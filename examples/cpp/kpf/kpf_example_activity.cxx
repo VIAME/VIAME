@@ -142,7 +142,17 @@ struct user_act_adapter_t: public KPF::kpf_act_adapter< user_activity_t >
         }
         // load the activity ID, name, and start and stop frames
         u.id = a.activity_id.t.d;
-        u.name = a.activity_label;
+
+
+        // there should only be one name in the activity labels map,
+        const KPF::canonical::cset_t& al = a.activity_labels;
+        if ((al.d.size() != 1))
+        {
+          throw logic_error( "KPF activity label not a single value" );
+        }
+        u.name = al.d.begin()->first;
+        u.confidence = al.d.begin()->second;
+
         u.start = a.timespan[0].t.start;
         u.stop = a.timespan[0].t.stop;
         // load in our actor IDs
@@ -158,29 +168,18 @@ struct user_act_adapter_t: public KPF::kpf_act_adapter< user_activity_t >
             u.source = kv.val;
           }
         }
-        // look for our confidence in confidence packets
-        for (const auto& c: a.confidences)
-        {
-          if (c.domain == DETECTOR_DOMAIN)
-          {
-            u.confidence = c.t.d;
-          }
-        }
       },
 
       // converts a user_activity "a" into a canonical activity and returns it
       []( const user_activity_t& u ) {
         KPF::canonical::activity_t a;
         // set the name, ID, and domain
-        a.activity_label = u.name;
+        a.activity_labels.d[ u.name ] = u.confidence;
         a.activity_id.t.d = u.id;
         a.activity_id.domain = DETECTOR_DOMAIN;
 
         // set our source as a key/value pair
         a.attributes.push_back( KPF::canonical::kv_t( "source", u.source ));
-
-        // set our confidence
-        a.confidences.push_back( {KPF::canonical::conf_t( u.confidence ), DETECTOR_DOMAIN });
 
         // set the start / stop time (as frame numbers)
         KPF::canonical::scoped< KPF::canonical::timestamp_range_t > tsr;
@@ -252,7 +251,7 @@ int main()
 {
 
   vector< user_activity_t > src = make_sample_activities();
-  for (auto i=0; i<src.size(); ++i)
+  for (size_t i=0; i<src.size(); ++i)
   {
     std::cout << "Source act " << i << ": " << src[i] << "\n";
   }
@@ -265,18 +264,18 @@ int main()
 
   std::cout << "\nAbout to read KPF:\n";
   vector< user_activity_t> new_acts = read_activities_from_stream( ss );
-  for (auto i=0; i<new_acts.size(); ++i)
+  for (size_t i=0; i<new_acts.size(); ++i)
   {
     std::cout << "Converted act " << i << ": " << new_acts[i] << "\n";
   }
 
   {
     stringstream shuffle;
-    shuffle << "- { act: { timespan: [{ tsr0: [1001 , 1010],  }], conf17: 0.3, actors: [{ id15: 15, timespan: [{ tsr0: [1001 , 1010],  }], }], act17: walking, id17: 100, source: SHUFFLE }}";
+    shuffle << "- { act: { timespan: [{ tsr0: [1001 , 1010],  }], conf17: 0.3, actors: [{ id15: 15, timespan: [{ tsr0: [1001 , 1010],  }], }], act17: {walking: 1.0} , id17: 100, source: SHUFFLE }}";
 
     std::cout << "\nAbout to convert a shuffled V3 activity:\n" << shuffle.str() << "\n";
     vector< user_activity_t> shuffle_acts = read_activities_from_stream( shuffle );
-    for (auto i=0; i<shuffle_acts.size(); ++i)
+    for (size_t i=0; i<shuffle_acts.size(); ++i)
     {
       std::cout << "Converted act " << i << ": " << shuffle_acts[i] << "\n";
     }

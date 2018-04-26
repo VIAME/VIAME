@@ -69,6 +69,7 @@ main(int argc, char* argv[])
 
 IMPLEMENT_TEST( basic_pipeline )
 {
+  sprokit::scheduler::type_t scheduler_type = sprokit::scheduler_factory::default_type;
   kwiver::input_adapter input_ad;
   kwiver::output_adapter output_ad;
 
@@ -78,11 +79,16 @@ IMPLEMENT_TEST( basic_pipeline )
   // Use SPROKIT macros to create pipeline description
   std::stringstream pipeline_desc;
   pipeline_desc << SPROKIT_PROCESS( "input_adapter",  "ia" )
+                << SPROKIT_CONFIG( "test", "value" )
+
                 << SPROKIT_PROCESS( "output_adapter", "oa" )
 
                 << SPROKIT_CONNECT( "ia", "port1",    "oa", "port1" )
                 << SPROKIT_CONNECT( "ia", "port2",    "oa", "port3" ) // yeah, i know
                 << SPROKIT_CONNECT( "ia", "port3",    "oa", "port2" )
+
+                << SPROKIT_CONFIG_BLOCK( "_scheduler" )
+                << SPROKIT_CONFIG( "type", scheduler_type )
     ;
 
     // create a pipeline
@@ -133,7 +139,6 @@ IMPLEMENT_TEST( basic_pipeline )
     std::cout << "    " << port << "\n";
   }
 
-  sprokit::scheduler::type_t scheduler_type = sprokit::scheduler_factory::default_type;
   kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
                                               kwiver::vital::config_block::block_sep + scheduler_type);
 
@@ -331,4 +336,55 @@ IMPLEMENT_TEST( embedded_pipeline_source )
   } // end while
 
   ep.wait();
+}
+
+// ============================================================================
+class config_ep
+  : public kwiver::embedded_pipeline
+{
+public:
+  config_ep() { }
+  virtual ~config_ep() { }
+
+protected:
+  virtual void update_config( kwiver::vital::config_block_sptr config )
+  {
+    // Test to see if the config has test = value
+    TEST_EQUAL( "Has expected entry", config->has_value( "ia:test" ), true );
+
+    std::string val = config->get_value<std::string>( "ia:test" );
+    TEST_EQUAL( "Has expected value", val, "value" );
+  }
+};
+
+
+// ----------------------------------------------------------------------------
+IMPLEMENT_TEST( update_config )
+{
+  sprokit::scheduler::type_t scheduler_type = sprokit::scheduler_factory::default_type;
+  kwiver::input_adapter input_ad;
+  kwiver::output_adapter output_ad;
+
+  // load processes
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
+  // Use SPROKIT macros to create pipeline description
+  std::stringstream pipeline_desc;
+  pipeline_desc << SPROKIT_PROCESS( "input_adapter",  "ia" )
+                << SPROKIT_CONFIG( "test", "value" )
+
+                << SPROKIT_PROCESS( "output_adapter", "oa" )
+
+                << SPROKIT_CONNECT( "ia", "port1",    "oa", "port1" )
+                << SPROKIT_CONNECT( "ia", "port2",    "oa", "port3" ) // yeah, i know
+                << SPROKIT_CONNECT( "ia", "port3",    "oa", "port2" )
+
+                << SPROKIT_CONFIG_BLOCK( "_scheduler" )
+                << SPROKIT_CONFIG( "type", scheduler_type )
+    ;
+
+  // create embedded pipeline
+  config_ep ep;
+  ep.build_pipeline( pipeline_desc );
+
 }

@@ -29,6 +29,7 @@
 from __future__ import print_function
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
+from vital.util.VitalPIL import from_pil, get_pil_image
 
 apply_descriptor_test_mode = False
 try:
@@ -111,11 +112,11 @@ class ApplyDescriptor(KwiverProcess):
         # smqtk.
         if not apply_descriptor_test_mode:
             # Get image from conatiner
-            in_img = in_img_c.get_image()
+            in_img = in_img_c.image()
 
 
             # convert generic image to PIL image
-            pil_image = in_img.get_pil_image()
+            pil_image = get_pil_image(in_img)
             pix = np.array(pil_image)
 
             # get image in acceptable format

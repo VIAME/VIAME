@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,13 @@ more python friendly types.
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
 #include <vital/types/track_set.h>
+#include <vital/types/object_track_set.h>
 
 #include <vital/bindings/c/error_handle.h>
 #include <vital/bindings/c/types/image_container.hxx>
 #include <vital/bindings/c/types/descriptor_set.hxx>
 #include <vital/bindings/c/types/detected_object_set.hxx>
+#include <vital/bindings/c/types/track_set.hxx>
 
 #include <sprokit/pipeline/datum.h>
 
@@ -154,7 +156,7 @@ vital_image_container_from_datum( PyObject* args )
  *
  * @param handle Opaque handle to image container
  *
- * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ * @return Wrapped Pointer to PyCapsule as PyObject.
  */
 PyObject*
 vital_image_container_to_datum( vital_image_container_t* handle )
@@ -226,7 +228,7 @@ vital_detected_object_set_from_datum( PyObject* args )
  *
  * @param handle Opaque handle to detected object set container
  *
- * @return boost::python wrapped Pointer to PyCapsule as PyObject.
+ * @return Wrapped Pointer to PyCapsule as PyObject.
  */
 PyObject*
 vital_detected_object_set_to_datum( vital_detected_object_set_t* handle )
@@ -359,7 +361,72 @@ vital_trackset_from_datum( PyObject* args )
     kwiver::vital::track_set_sptr sptr = kwiver::vital::any_cast< kwiver::vital::track_set_sptr > ( any );
 
     // Register this object with the main track_set interface
-    vital_trackset_t* ptr =  vital_trackset_from_sptr( reinterpret_cast< void* > ( &sptr ) );
+    vital_trackset_t* ptr = vital_trackset_from_sptr( reinterpret_cast< void* >( &sptr ) );
+    return ptr;
+  }
+  catch( kwiver::vital::bad_any_cast const& e )
+  {
+    // This is a warning because this converter should only be called
+    // if there is good reason to believe that the object really is an
+    // track_set.
+    LOG_WARN( logger, "Conversion error " << e.what() );
+  }
+
+  return 0;
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Convert track set container handle to PyCapsule
+ *
+ * @param handle Opaque handle to detected object set container
+ *
+ * @return Wrapped Pointer to PyCapsule as PyObject.
+ */
+PyObject*
+vital_trackset_to_datum( vital_trackset_t* handle )
+{
+  // Get sptr from handle. Use sptr cache access interface
+  kwiver::vital::track_set_sptr sptr = vital_track_set_to_sptr( handle, 0 );
+
+  if( !sptr )
+  {
+    // Could not find sptr for supplied handle.
+    Py_RETURN_NONE;
+  }
+
+  // Return address of datum through PyCapsule object.
+  // The caller now owns the datum.
+  PyObject* cap = put_in_datum_capsule( sptr );
+  return cap;
+}
+
+
+// ==================================================================
+/**
+ * @brief Convert from datum to track_set handle.
+ *
+ * @param args PyCapsule object
+ *
+ * @return track_set handle
+ */
+vital_trackset_t*
+vital_object_trackset_from_datum( PyObject* args )
+{
+  // Get capsule from args - or arg may be the capsule
+  sprokit::datum* dptr = (sprokit::datum*) PyCapsule_GetPointer( args, "sprokit::datum" );
+
+  try
+  {
+    kwiver::vital::any const any = dptr->get_datum< kwiver::vital::any >();
+
+    kwiver::vital::track_set_sptr sptr =
+      std::static_pointer_cast< kwiver::vital::track_set >(
+        kwiver::vital::any_cast< kwiver::vital::object_track_set_sptr >( any ) );
+
+    // Register this object with the main track_set interface
+    vital_trackset_t* ptr = vital_trackset_from_sptr( reinterpret_cast< void* >( &sptr ) );
     return ptr;
   }
   catch ( kwiver::vital::bad_any_cast const& e )
@@ -371,6 +438,35 @@ vital_trackset_from_datum( PyObject* args )
   }
 
   return 0;
+}
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Convert track set container handle to PyCapsule
+ *
+ * @param handle Opaque handle to detected object set container
+ *
+ * @return Wrapped Pointer to PyCapsule as PyObject.
+ */
+PyObject*
+vital_object_trackset_to_datum( vital_trackset_t* handle )
+{
+  // Get sptr from handle. Use sptr cache access interface
+  kwiver::vital::object_track_set_sptr sptr =
+    std::dynamic_pointer_cast< kwiver::vital::object_track_set >(
+      vital_track_set_to_sptr( handle, 0 ) );
+
+  if( !sptr )
+  {
+    // Could not find sptr for supplied handle.
+    Py_RETURN_NONE;
+  }
+
+  // Return address of datum through PyCapsule object.
+  // The caller now owns the datum.
+  PyObject* cap = put_in_datum_capsule( sptr );
+  return cap;
 }
 
 
@@ -437,7 +533,7 @@ vital_string_vector_to_datum( PyObject *list )
   for( size_t i = 0; i < num_elem; ++i )
   {
     PyObject* item = PyList_GetItem( list, i );
-    vect_sptr->push_back( std::string( PyString_AsString( item ) ) );
+    vect_sptr->push_back( std::string( PyBytes_AsString( item ) ) );
   }
 
   PyObject* cap = put_in_datum_capsule( vect_sptr );

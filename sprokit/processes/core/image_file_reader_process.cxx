@@ -108,11 +108,11 @@ public:
   // Configuration values
   int m_config_error_mode; // error mode
   std::vector< std::string > m_config_path;
-  kwiver::vital::timestamp::time_t m_config_frame_time;
+  kwiver::vital::time_us_t m_config_frame_time;
 
   // local state
-  kwiver::vital::timestamp::frame_t m_frame_number;
-  kwiver::vital::timestamp::time_t m_frame_time;
+  kwiver::vital::frame_id_t m_frame_number;
+  kwiver::vital::time_us_t m_frame_time;
 
   // processing classes
   algo::image_io_sptr m_image_reader;
@@ -149,7 +149,7 @@ void image_file_reader_process
   std::string path = config_value_using_trait( path );
   d->m_config_frame_time = config_value_using_trait( frame_time ) * 1e6; // in usec
 
-  kwiver::vital::tokenize( path, d->m_config_path, ":", true );
+  kwiver::vital::tokenize( path, d->m_config_path, ":", kwiver::vital::TokenizeTrimEmpty );
   d->m_config_path.push_back( "." ); // add current directory
 
   d->m_config_error_mode = priv::mode_converter().from_string( mode );

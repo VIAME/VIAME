@@ -34,61 +34,61 @@ Tests for Vital python Covariance class
 
 """
 from __future__ import print_function
-import ctypes
 import unittest
 
 import nose.tools
 import numpy
 
-from vital.types import Covariance, EigenArray
-from vital.util import VitalObject, VitalErrorHandle
-
+from vital.types import Covariance
+from vital.types import EigenArray
 
 class TestVitalCovariance (unittest.TestCase):
 
     def test_new_identity(self):
         # Valid dimensions and types
-        c = Covariance(2, ctypes.c_double)
+        c = Covariance.new_covar(2, 'd')
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(3, ctypes.c_double)
+        c = Covariance.new_covar(3, 'd')
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(2, ctypes.c_float)
+        c = Covariance.new_covar(2, 'f')
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(3, ctypes.c_float)
+        c = Covariance.new_covar(3, 'f')
         print('constructed matrix:\n', c.to_matrix())
 
     def test_new_scalar(self):
-        c = Covariance(2, ctypes.c_double, 2.)
+        c = Covariance.new_covar(2, 'd', 2.)
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(3, ctypes.c_double, 2.)
+        c = Covariance.new_covar(3, 'd', 2.)
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(2, ctypes.c_float, 2.)
+        c = Covariance.new_covar(2, 'f', 2.)
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(3, ctypes.c_float, 2.)
+        c = Covariance.new_covar(3, 'f', 2.)
         print('constructed matrix:\n', c.to_matrix())
 
-        c = Covariance(2, ctypes.c_double, 14.675)
+        c = Covariance.new_covar(2, 'd', 14.675)
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(3, ctypes.c_double, 14.675)
+        c = Covariance.new_covar(3, 'd', 14.675)
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(2, ctypes.c_float, 14.675)
+        c = Covariance.new_covar(2, 'f', 14.675)
         print('constructed matrix:\n', c.to_matrix())
-        c = Covariance(3, ctypes.c_float, 14.675)
+        c = Covariance.new_covar(3, 'f', 14.675)
         print('constructed matrix:\n', c.to_matrix())
 
     def test_new_matrix(self):
-        m = EigenArray(2, 2, dtype=numpy.double)
+        a = EigenArray(2, 2, type='d')
+        m = a.get_matrix()
         m[:] = 1.
-        c = Covariance(2, ctypes.c_double, m)
+        c = Covariance.from_matrix(2, 'd', m)
         m_out = c.to_matrix()
         print('input matrix:\n', m)
         print('output matrix:\n', m_out)
         numpy.testing.assert_array_equal(m_out, m)
 
         # Type casting should be handled
-        m = EigenArray(2, 2, dtype=numpy.float32)
+        a = EigenArray(2, 2, type='f')
+        m = a.get_matrix()
         m[:] = 1.
-        c = Covariance(2, ctypes.c_double, m)
+        c = Covariance.from_matrix(2, 'd', m)
         m_out = c.to_matrix()
         print('input matrix:\n', m)
         print('output matrix:\n', m_out)
@@ -97,7 +97,7 @@ class TestVitalCovariance (unittest.TestCase):
         # Any other numpy array of the correct shape should be acceptable
         m = numpy.ndarray((2, 2))
         m[:] = 3.
-        c = Covariance(2, ctypes.c_float, init_scalar_or_matrix=m)
+        c = Covariance.from_matrix(2, 'f', init=m)
         m_out = c.to_matrix()
         print('input matrix:\n', m)
         print('output matrix:\n', m_out)
@@ -110,7 +110,7 @@ class TestVitalCovariance (unittest.TestCase):
         m_expected = m.copy()
         m_expected[0,2] = 1.
         m_expected[2,0] = 1.
-        c = Covariance(3, init_scalar_or_matrix=m)
+        c = Covariance.from_matrix(3, init=m)
         m_out = c.to_matrix()
         print('input matrix:\n', m)
         print('output matrix:\n', m_out)
@@ -123,7 +123,7 @@ class TestVitalCovariance (unittest.TestCase):
         #  [ 6 7 8 ]]               [ 4 6 8 ]]
         m.reshape((9,))[:] = list(range(9))
 
-        c = Covariance(3, c_type=ctypes.c_double, init_scalar_or_matrix=m)
+        c = Covariance.from_matrix(3, c_type='d', init=m)
         # Test matrix upper triangle locations
         nose.tools.assert_equal(c[0,0], 0)
         nose.tools.assert_equal(c[0,1], 2)
@@ -135,7 +135,7 @@ class TestVitalCovariance (unittest.TestCase):
         nose.tools.assert_equal(c[0,2], c[2,0])
         nose.tools.assert_equal(c[1,2], c[2,1])
 
-        c = Covariance(3, c_type=ctypes.c_float, init_scalar_or_matrix=m)
+        c = Covariance.from_matrix(3, c_type='f', init=m)
         # Test matrix upper triangle locations
         nose.tools.assert_equal(c[0,0], 0)
         nose.tools.assert_equal(c[0,1], 2)
@@ -149,7 +149,7 @@ class TestVitalCovariance (unittest.TestCase):
 
     def test_get_oob(self):
         # 2x2 covariance mat
-        c = Covariance(c_type=ctypes.c_double)
+        c = Covariance.new_covar(c_type='d')
         _ = c[0, 0]  # Valid access
         nose.tools.assert_raises(
             IndexError,
@@ -157,7 +157,7 @@ class TestVitalCovariance (unittest.TestCase):
             (0, 2)
         )
 
-        c = Covariance(c_type=ctypes.c_float)
+        c = Covariance.new_covar(c_type='f')
         _ = c[0, 0]  # Valid access
         nose.tools.assert_raises(
             IndexError,
@@ -171,7 +171,7 @@ class TestVitalCovariance (unittest.TestCase):
         #  [ 3 4 5 ]  -> should become ->  [ 2 4 6 ]
         #  [ 6 7 8 ]]                      [ 4 6 8 ]]
         m.reshape((9,))[:] = list(range(9))
-        c = Covariance(3, c_type=ctypes.c_double, init_scalar_or_matrix=m)
+        c = Covariance.from_matrix(3, c_type='d', init=m)
 
         # modify some locations
         c[0,1] = 1
@@ -196,7 +196,7 @@ class TestVitalCovariance (unittest.TestCase):
         nose.tools.assert_equal(c[1, 2], 20.2)
 
         # FLOAT
-        c = Covariance(3, c_type=ctypes.c_float, init_scalar_or_matrix=m)
+        c = Covariance.from_matrix(3, c_type='f', init=m)
 
         # modify some locations
         c[0,1] = 1
@@ -222,7 +222,7 @@ class TestVitalCovariance (unittest.TestCase):
 
     def test_set_oob(self):
         # 2x2 covariance mat
-        c = Covariance(c_type=ctypes.c_float)
+        c = Covariance.new_covar(c_type='f')
         c[0, 0] = 1  # Valid set
         nose.tools.assert_raises(
             IndexError,
@@ -230,34 +230,10 @@ class TestVitalCovariance (unittest.TestCase):
             (0, 2), 1
         )
 
-        c = Covariance(c_type=ctypes.c_double)
+        c = Covariance.new_covar(c_type='d')
         c[0, 0] = 1  # Valid set
         nose.tools.assert_raises(
             IndexError,
             c.__setitem__,
             (0, 2), 1
         )
-
-    def test_from_cptr(self):
-        # Create a new covariance from C function and create new python instance
-        # from that pointer
-        c_new_func = VitalObject.VITAL_LIB['vital_covariance_3d_new']
-        c_new_func.argtypes = [VitalErrorHandle.C_TYPE_PTR]
-        c_new_func.restype = Covariance.c_ptr_type(3, ctypes.c_double)
-        with VitalErrorHandle() as eh:
-            c_ptr = c_new_func(eh)
-
-        c = Covariance(N=3, c_type=ctypes.c_double, from_cptr=c_ptr)
-        nose.tools.assert_is(c.C_TYPE_PTR, Covariance.c_ptr_type(3, ctypes.c_double))
-        numpy.testing.assert_array_equal(c.to_matrix(), numpy.eye(3))
-
-
-        c_new_func = VitalObject.VITAL_LIB['vital_covariance_3f_new']
-        c_new_func.argtypes = [VitalErrorHandle.C_TYPE_PTR]
-        c_new_func.restype = Covariance.c_ptr_type(3, ctypes.c_float)
-        with VitalErrorHandle() as eh:
-            c_ptr = c_new_func(eh)
-
-        c = Covariance(N=3, c_type=ctypes.c_float, from_cptr=c_ptr)
-        nose.tools.assert_is(c.C_TYPE_PTR,Covariance.c_ptr_type(3, ctypes.c_float))
-        numpy.testing.assert_array_equal(c.to_matrix(), numpy.eye(3))

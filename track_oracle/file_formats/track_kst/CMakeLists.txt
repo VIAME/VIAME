@@ -13,12 +13,12 @@ set( track_kst_sources
 
 kwiver_install_headers(
   ${track_kst_public_headers}
-  SUBDIR        track_oracle/track_kst
+  SUBDIR        track_oracle/file_formats/track_kst
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_kst_export.h
-  NOPATH SUBDIR        track_oracle/track_kst
+  NOPATH SUBDIR        track_oracle/file_formats/track_kst
 )
 
 kwiver_add_library( track_kst

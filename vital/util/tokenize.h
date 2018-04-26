@@ -41,8 +41,8 @@
 namespace kwiver {
 namespace vital {
 
-
 enum {
+  TokenizeNoTrimEmpty = 0,
   TokenizeTrimEmpty = 1
 };
 

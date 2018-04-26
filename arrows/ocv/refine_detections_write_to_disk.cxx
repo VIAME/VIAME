@@ -43,7 +43,6 @@
 #include <deque>
 
 #include <vital/vital_config.h>
-#include <vital/logger/logger.h>
 #include <vital/exceptions/io.h>
 
 #include <kwiversys/SystemTools.hxx>
@@ -143,7 +142,7 @@ refine_detections_write_to_disk
 {
   cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image() );
 
-  for( auto det : *detections->select() )
+  for( auto det : *detections )
   {
     // Generate output filename
     std::string ofn;

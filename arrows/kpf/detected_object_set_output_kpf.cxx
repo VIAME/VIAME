@@ -30,8 +30,6 @@
 
 #include "detected_object_set_output_kpf.h"
 
-#include <vital/util/tokenize.h>
-
 #include <arrows/kpf/yaml/kpf_canonical_io_adapter.h>
 #include <arrows/kpf/yaml/kpf_yaml_writer.h>
 
@@ -63,7 +61,6 @@ class detected_object_set_output_kpf::priv
 public:
   priv( detected_object_set_output_kpf* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "detected_object_set_output_kpf" ) )
     , m_frame_number( 1 )
   {}
 
@@ -72,7 +69,6 @@ public:
   void read_all();
 
   detected_object_set_output_kpf* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   int m_frame_number;
 };
 
@@ -82,13 +78,14 @@ detected_object_set_output_kpf::
 detected_object_set_output_kpf()
   : d( new detected_object_set_output_kpf::priv( this ) )
 {
+  attach_logger( "arrows.kpf.detected_object_set_output_kpf" );
 }
 
 
 detected_object_set_output_kpf::
 ~detected_object_set_output_kpf()
 {
-  
+
 }
 
 

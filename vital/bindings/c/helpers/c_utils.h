@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -186,7 +186,7 @@ public:
 
   /// Exception for when a given entry doesn't exist in this cache
   class NoEntryException
-    : public kwiver::vital::vital_core_base_exception
+    : public kwiver::vital::vital_exception
   {
   public:
     NoEntryException( std::string const &reason )
@@ -197,7 +197,7 @@ public:
 
   /// Exception for when we're asked to do something with a null pointer
   class NullPointerException
-    : public kwiver::vital::vital_core_base_exception
+    : public kwiver::vital::vital_exception
   {
   public:
     NullPointerException( std::string const &reason)

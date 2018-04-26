@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
-#include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 
 #include <map>
@@ -77,7 +76,6 @@ class detected_object_set_input_kw18::priv
 public:
   priv( detected_object_set_input_kw18* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "detected_object_set_input_kw18" ) )
     , m_first( true )
   { }
 
@@ -86,7 +84,6 @@ public:
   void read_all();
 
   detected_object_set_input_kw18* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
 
   int m_current_idx;
@@ -103,6 +100,7 @@ detected_object_set_input_kw18::
 detected_object_set_input_kw18()
   : d( new detected_object_set_input_kw18::priv( this ) )
 {
+  attach_logger( "arrows.core.detected_object_set_input_kw18" );
 }
 
 
@@ -116,7 +114,8 @@ detected_object_set_input_kw18::
 void
 detected_object_set_input_kw18::
 set_configuration(vital::config_block_sptr config)
-{ }
+{
+}
 
 
 // ------------------------------------------------------------------
@@ -190,7 +189,7 @@ read_all()
   while ( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, " ", true );
+    kwiver::vital::tokenize( line, col, " ", kwiver::vital::TokenizeTrimEmpty );
 
     if ( ( col.size() < 18 ) || ( col.size() > 20 ) )
     {

@@ -32,7 +32,7 @@ from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 from vital.types import Image
 from vital.types import ImageContainer
-
+from vital.util.VitalPIL import from_pil, get_pil_image
 
 class ProcessImage(KwiverProcess):
     """
@@ -73,23 +73,23 @@ class ProcessImage(KwiverProcess):
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
-        # Get image from conatiner
-        in_img = in_img_c.get_image()
+        # Get image from container
+        in_img = in_img_c.image()
 
         # convert generic image to PIL image
-        pil_image = in_img.get_pil_image()
+        pil_image = get_pil_image(in_img)
 
         # draw on the image to prove we can do it
         num = 37
-        import ImageDraw
-        draw = ImageDraw.Draw(pil_image)
+        import PIL.ImageDraw
+        draw = PIL.ImageDraw.Draw(pil_image)
         draw.line((0, 0) + pil_image.size, fill=128, width=5)
         draw.line((0, pil_image.size[1], pil_image.size[0], 0), fill=32768, width=5)
         #                 x0   y0   x1       y1
         draw.rectangle( [num, num, num+100, num+100], outline=125 )
         del draw
 
-        new_image = Image.from_pil( pil_image )  # get new image handle
+        new_image = from_pil( pil_image )  # get new image handle
         new_ic = ImageContainer( new_image )
 
         # push object to output port

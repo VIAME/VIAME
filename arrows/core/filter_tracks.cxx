@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/match_matrix.h>
 
-#include <vital/logger/logger.h>
-
 #include <algorithm>
 
 using namespace kwiver::vital;
@@ -52,34 +50,35 @@ class filter_tracks::priv
 public:
   /// Constructor
   priv()
-    : min_track_length(3),
-      min_mm_importance(1.0),
-      m_logger( vital::get_logger( "arrows.core.filter_tracks" ))
+    : min_track_length(3)
+    , min_mm_importance(1.0)
   {
   }
 
   unsigned int min_track_length;
   double min_mm_importance;
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 filter_tracks
 ::filter_tracks()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.filter_tracks" );
 }
 
 
-/// Destructor
+// Destructor
 filter_tracks
 ::~filter_tracks()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
   vital::config_block_sptr
 filter_tracks
 ::get_configuration() const
@@ -100,7 +99,8 @@ filter_tracks
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 filter_tracks
 ::set_configuration(vital::config_block_sptr config)
@@ -112,7 +112,8 @@ filter_tracks
 }
 
 
-/// Check that the algorithm's configuration vital::config_block is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's configuration vital::config_block is valid
 bool
 filter_tracks
 ::check_configuration(vital::config_block_sptr config) const
@@ -121,7 +122,7 @@ filter_tracks
                                                        d_->min_mm_importance);
   if( min_mm_importance < 0.0 )
   {
-    LOG_ERROR( d_->m_logger,
+    LOG_ERROR( logger(),
                "min_mm_importance parameter is " << min_mm_importance
                << ", must be non-negative.");
     return false;
@@ -130,7 +131,8 @@ filter_tracks
 }
 
 
-/// Filter feature set
+// ----------------------------------------------------------------------------
+// Filter feature set
 vital::track_set_sptr
 filter_tracks
 ::filter(vital::track_set_sptr tracks) const
@@ -146,7 +148,8 @@ filter_tracks
         good_trks.push_back(t);
       }
     }
-    tracks = std::make_shared<kwiver::vital::track_set>(good_trks);
+    tracks = std::make_shared<kwiver::vital::track_set>(good_trks,
+                                                        tracks->all_frame_data());
   }
 
   if( d_->min_mm_importance > 0 )
@@ -171,7 +174,8 @@ filter_tracks
       }
     }
 
-    tracks = std::make_shared<kwiver::vital::track_set>(good_trks);
+    tracks = std::make_shared<kwiver::vital::track_set>(good_trks,
+                                                        tracks->all_frame_data());
   }
   return tracks;
 }

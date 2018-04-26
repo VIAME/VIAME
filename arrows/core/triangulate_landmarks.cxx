@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,47 +37,42 @@
 
 #include <set>
 
-#include <vital/logger/logger.h>
-
 #include <arrows/core/triangulate.h>
 
 namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// Private implementation class
+// Private implementation class
 class triangulate_landmarks::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
-    : homogeneous(false),
-      m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
+    : homogeneous(false)
   {
   }
 
   priv(const priv& other)
-    : homogeneous(other.homogeneous),
-      m_logger( vital::get_logger( "arrows.core.triangulate_landmarks" ))
+    : homogeneous(other.homogeneous)
   {
   }
 
-  /// use the homogeneous method for triangulation
+  // use the homogeneous method for triangulation
   bool homogeneous;
-  /// logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// Constructor
 triangulate_landmarks
 ::triangulate_landmarks()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.triangulate_landmarks" );
 }
 
 
-/// Copy Constructor
+// Copy Constructor
 triangulate_landmarks
 ::triangulate_landmarks(const triangulate_landmarks& other)
 : d_(new priv(*other.d_))
@@ -85,14 +80,14 @@ triangulate_landmarks
 }
 
 
-/// Destructor
+// Destructor
 triangulate_landmarks
 ::~triangulate_landmarks()
 {
 }
 
 
-/// Get this alg's \link vital::config_block configuration block \endlink
+// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 triangulate_landmarks
 ::get_configuration() const
@@ -111,7 +106,7 @@ triangulate_landmarks
 }
 
 
-/// Set this algorithm's properties via a config block
+// Set this algorithm's properties via a config block
 void
 triangulate_landmarks
 ::set_configuration(vital::config_block_sptr in_config)
@@ -126,7 +121,7 @@ triangulate_landmarks
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// Check that the algorithm's currently configuration is valid
 bool
 triangulate_landmarks
 ::check_configuration(vital::config_block_sptr config) const
@@ -135,7 +130,7 @@ triangulate_landmarks
 }
 
 
-/// Triangulate the landmark locations given sets of cameras and tracks
+// Triangulate the landmark locations given sets of cameras and tracks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
@@ -181,7 +176,7 @@ triangulate_landmarks
     const vital::track& t = *t_itr->second;
 
     // extract the cameras and image points for this landmarks
-    std::vector<vital::simple_camera> lm_cams;
+    std::vector<vital::simple_camera_perspective> lm_cams;
     std::vector<vital::vector_2d> lm_image_pts;
 
     auto lm_observations = unsigned{0};
@@ -199,7 +194,9 @@ triangulate_landmarks
         // there is no camera for this track state.
         continue;
       }
-      lm_cams.push_back(vital::simple_camera(*c_itr->second));
+      auto cam_ptr =
+        std::dynamic_pointer_cast<vital::camera_perspective>(c_itr->second);
+      lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
       lm_image_pts.push_back(fts->feature->loc());
       ++lm_observations;
     }
@@ -223,14 +220,22 @@ triangulate_landmarks
       {
         pt3d = kwiver::arrows::triangulate_inhomog(lm_cams, lm_image_pts);
       }
-      for(vital::simple_camera const& cam : lm_cams)
+      if (pt3d.allFinite())
       {
-        if(cam.depth(pt3d) < 0.0)
+        for(vital::simple_camera_perspective const& cam : lm_cams)
         {
-          bad_triangulation = true;
-          failed_landmarks.insert(p.first);
-          break;
+          if(cam.depth(pt3d) < 0.0)
+          {
+            bad_triangulation = true;
+            failed_landmarks.insert(p.first);
+            break;
+          }
         }
+      }
+      else
+      {
+        bad_triangulation = true;
+        failed_landmarks.insert(p.first);
       }
       if( !bad_triangulation )
       {
@@ -247,7 +252,7 @@ triangulate_landmarks
   }
   if( !failed_landmarks.empty() )
   {
-    LOG_WARN( d_->m_logger,
+    LOG_WARN( logger(),
               "failed to triangulate " << failed_landmarks.size()
               << " of " << lms.size() << " landmarks");
   }

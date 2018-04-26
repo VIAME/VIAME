@@ -118,7 +118,8 @@ struct output_handler< false, vector<T> >
   {
     for (size_t i=0; i<vals.size(); ++i)
     {
-      os << vals[i] << " ";
+      output_handler< class_has_kwiver_write<T>::value, T>::write( os, vals[i] );
+      os << " ";
     }
     return os;
   }
@@ -138,7 +139,6 @@ ostream& operator<<( ostream& os, const vector< T >& vals )
 {
   for (size_t i=0; i<vals.size(); ++i)
   {
-    //    os << vals[i] << " ";
     output_handler< class_has_kwiver_write<T>::value, T>::write( os, vals[i] );
   }
   return os;
@@ -160,8 +160,8 @@ ostream&
 kwiver_io_base<DATA_TERM_T>
 ::to_stream( ostream& os, const Type& val ) const
 {
-  os << val;
-  //output_handler< class_has_kwiver_write<Type>::value, Type>::write( os, val );
+  //os << val;
+  output_handler< class_has_kwiver_write<Type>::value, Type>::write( os, val );
   return os;
 }
 

@@ -168,6 +168,7 @@ public:
    */
   datum_map_t::iterator begin();
   datum_map_t::const_iterator begin() const;
+  datum_map_t::const_iterator cbegin() const;
   //@}
 
 
@@ -181,6 +182,7 @@ public:
    */
   datum_map_t::iterator end();
   datum_map_t::const_iterator end() const;
+  datum_map_t::const_iterator cend() const;
   //@}
 
   /**

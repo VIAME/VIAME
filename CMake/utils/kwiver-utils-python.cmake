@@ -66,8 +66,7 @@ endmacro ()
 function (kwiver_add_python_library    name    modpath)
   _kwiver_create_safe_modpath("${modpath}" safe_modpath)
 
-  set(library_subdir "/${kwiver_python_subdir}")
-  set(library_subdir_suffix "/${python_sitename}/${modpath}")
+  set(library_subdir "/${kwiver_python_subdir}/${python_sitename}/${modpath}")
   set(component runtime)
 
   set(no_export ON)
@@ -199,7 +198,7 @@ function (kwiver_create_python_init    modpath)
   file(WRITE "${init_template}"      "${copyright_header}\n\n")
 
   foreach (module IN LISTS ARGN)
-    file(APPEND "${init_template}"      "from ${module} import *\n")
+    file(APPEND "${init_template}"      "from .${module} import *\n")
   endforeach ()
 
   kwiver_add_python_module("${init_template}"

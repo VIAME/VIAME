@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -108,7 +108,7 @@ create_process( const sprokit::process::type_t&         type,
 {
   if ( ! config )
   {
-    throw null_process_registry_config_exception();
+    VITAL_THROW( null_process_registry_config_exception );
   }
 
   typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
@@ -124,7 +124,7 @@ create_process( const sprokit::process::type_t&         type,
     auto logger = kwiver::vital::get_logger( "sprokit.process_factory" );
     LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
 
-    throw no_such_process_type_exception( type );
+    VITAL_THROW( no_such_process_type_exception, type );
   }
 
   // Add these entries to the new process config so it will know how it is instantiated.
@@ -135,7 +135,7 @@ create_process( const sprokit::process::type_t&         type,
   if (0 == pf)
   {
     // Wrong type of factory returned.
-    throw no_such_process_type_exception( type );
+    VITAL_THROW( no_such_process_type_exception, type );
   }
 
   sprokit::process_t proc;

@@ -9,6 +9,7 @@
 
 #include <vital/vital_config.h>
 #include <track_oracle/core/track_oracle_export.h>
+#include <track_oracle/core/track_oracle_api_types.h>
 
 #include <iostream>
 #include <vector>
@@ -42,6 +43,13 @@ TRACK_ORACLE_EXPORT bool kwiver_ts_string_read( const std::string& frame_str,
                                                 vital::timestamp& t );
 TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, vital::timestamp& ts );
 TRACK_ORACLE_EXPORT std::ostream& kwiver_write( std::ostream& os, const vital::timestamp& ts );
+
+TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, kpf_cset_type& cset );
+TRACK_ORACLE_EXPORT std::ostream&  kwiver_write( std::ostream& os, const kpf_cset_type& cset );
+TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, kpf_cset_sys_type& cset );
+TRACK_ORACLE_EXPORT std::ostream&  kwiver_write( std::ostream& os, const kpf_cset_sys_type& cset );
+TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, kpf_cset_s2i_type& cset );
+TRACK_ORACLE_EXPORT std::ostream&  kwiver_write( std::ostream& os, const kpf_cset_s2i_type& cset );
 
 //
 // default, unimplemented output routine for TMP

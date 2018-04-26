@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,19 +79,19 @@ detected_object_set_input
     // Make sure that the given file path exists and is a file.
   if ( ! kwiversys::SystemTools::FileExists( filename ) )
   {
-    throw path_not_exists(filename);
+    VITAL_THROW( path_not_exists, filename);
   }
 
   if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw path_not_a_file(filename);
+    VITAL_THROW( path_not_a_file, filename);
   }
 
   // try to open the file
   std::istream* file( new std::ifstream( filename ) );
   if ( ! file )
   {
-    kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
 
   m_stream = file;

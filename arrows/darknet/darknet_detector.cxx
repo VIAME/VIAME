@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 #include "darknet_custom_resize.h"
 
 // kwiver includes
-#include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
 
 #include <arrows/ocv/image_container.h>
@@ -48,7 +47,7 @@
 // Since we need to wrap darknet.h in an extern C
 // We need to include CUDA/CUDNN before darknet does
 // so C++ gets a hold of them first
-// We may want to wrap all the declarations in darknet.h in 
+// We may want to wrap all the declarations in darknet.h in
 // an extern C rather than have to do it here.
 
 #ifdef DARKNET_USE_GPU
@@ -127,9 +126,11 @@ darknet_detector::
 darknet_detector()
   : d( new priv() )
 {
+  attach_logger( "arrows.darknet.darknet_detector" );
+  d->m_logger = logger();
+
   // set darknet global GPU index
   gpu_index = d->m_gpu_index;
-  d->m_logger = logger();
 }
 
 
@@ -282,8 +283,7 @@ detect( vital::image_container_sptr image_data ) const
 {
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
 
-  cv::Mat cv_image =
-    kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+  cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image(), kwiver::arrows::ocv::image_container::BGR );
 
   cv::Mat cv_resized_image;
 

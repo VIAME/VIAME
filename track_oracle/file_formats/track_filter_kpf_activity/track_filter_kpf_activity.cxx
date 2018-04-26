@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ build_lookup_map( const track_handle_list_type& ref_tracks,
                   map< unsigned, track_handle_type >& lookup_map )
 {
   track_field< dt::tracking::external_id > id_field;
-  for (auto i=0; i<ref_tracks.size(); ++i)
+  for (size_t i=0; i<ref_tracks.size(); ++i)
   {
     auto probe = id_field.get( ref_tracks[i].row );
     if ( ! probe.first )
@@ -261,7 +261,7 @@ track_filter_kpf_activity
 
       track_handle_type k = act_schema.create();
 
-      act_schema.activity_label() = kpf_act.activity_label;
+      act_schema.activity_labels() = kpf_act.activity_labels.d;
       act_schema.activity_id() = kpf_act.activity_id.t.d;
       act_schema.activity_domain() = kpf_activity_domain;
       act_schema.actors() = actor_tracks;
@@ -299,15 +299,8 @@ track_filter_kpf_activity
       }
 
       //
-      // set confidences & evaluations
+      // set evaluations
       //
-      for (auto const& c: kpf_act.confidences)
-      {
-        KPF::packet_t p (KPF::packet_header_t( KPF::packet_style::CONF , c.domain));
-        p.conf = c.t;
-        kpf_utils::add_to_row( wmsgs, k.row, p );
-      }
-
       for (auto const& e: kpf_act.evals)
       {
         KPF::packet_t p (KPF::packet_header_t( KPF::packet_style::EVAL , e.domain));
@@ -381,7 +374,7 @@ track_filter_kpf_activity
       // gather the fields
 
       auto id_p = k.activity_id.get( t.row );
-      auto label_p = k.activity_label.get( t.row );
+      auto label_p = k.activity_labels.get( t.row );
       auto actor_p = k.actors.get( t.row );
       auto domain_p = k.activity_domain.get( t.row );
       auto ts_start_p = k.activity_start.get( t.row );
@@ -389,7 +382,7 @@ track_filter_kpf_activity
 
       size_t pre_check_size = wmsgs.n_msgs();
       if ( ! id_p.first )       wmsgs.add_msg( "No activity id" );
-      if ( ! label_p.first )    wmsgs.add_msg( "No activity label" );
+      if ( ! label_p.first )    wmsgs.add_msg( "No activity labels" );
       if ( ! actor_p.first )    wmsgs.add_msg( "No actors" );
       if ( ! domain_p.first )   wmsgs.add_msg( "No domain" );
       if ( ! ts_start_p.first ) wmsgs.add_msg( "No activity start frame" );
@@ -401,7 +394,7 @@ track_filter_kpf_activity
 
       // copy in the top-level data
       KPFC::activity_t a;
-      a.activity_label = label_p.second;
+      a.activity_labels.d = label_p.second;
       a.activity_id.t.d = id_p.second;
       a.activity_id.domain = domain_p.second;
 
@@ -449,10 +442,6 @@ track_filter_kpf_activity
         if (p.header.style == KPF::packet_style::KV)
         {
           a.attributes.push_back( p.kv );
-        }
-        else if (p.header.style == KPF::packet_style::CONF)
-        {
-          a.confidences.push_back( {p.conf, p.header.domain} );
         }
         else if (p.header.style == KPF::packet_style::EVAL)
         {

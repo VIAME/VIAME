@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@
 #include <arrows/core/metrics.h>
 #include <arrows/core/interpolate_camera.h>
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/exceptions.h>
 #include <vital/vital_types.h>
 
@@ -63,7 +63,7 @@ namespace core {
 namespace // anonymous
 {
 
-/// subsample a every Nth camera
+// subsample a every Nth camera
 /**
  * Subsamples are chosen based on camera order index instead of frame nubmer,
  * as cameras given may not be in sequential order.
@@ -95,7 +95,9 @@ subsample_cameras(camera_map::map_camera_t const& cameras, unsigned n)
   return subsample;
 }
 
-/// Integer interpolation -- used with indices, so can assume positive
+
+// ----------------------------------------------------------------------------
+// Integer interpolation -- used with indices, so can assume positive
 frame_id_t
 int_interp(frame_id_t a, frame_id_t b, double p)
 {
@@ -106,7 +108,8 @@ int_interp(frame_id_t a, frame_id_t b, double p)
 } // end anonymous namespace
 
 
-/// private implementation / data container for hierarchical_bundle_adjust
+// ============================================================================
+// private implementation / data container for hierarchical_bundle_adjust
 class hierarchical_bundle_adjust::priv
 {
 public:
@@ -114,7 +117,6 @@ public:
     : initial_sub_sample(1)
     , interpolation_rate(0)
     , rmse_reporting_enabled(false)
-    , m_logger( vital::get_logger( "arrows.core.hierarchical_bundle_adjust" ))
   {
   }
 
@@ -127,26 +129,28 @@ public:
   vital::algo::bundle_adjust_sptr sba;
   vital::algo::optimize_cameras_sptr camera_optimizer;
   vital::algo::triangulate_landmarks_sptr lm_triangulator;
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 hierarchical_bundle_adjust
 ::hierarchical_bundle_adjust()
   : d_(new priv)
-{ }
+{
+  attach_logger( "arrows.core.hierarchical_bundle_adjust" );
+}
 
 
-/// Destructor
+// Destructor
 hierarchical_bundle_adjust
 ::~hierarchical_bundle_adjust() noexcept
 {
 }
 
 
-/// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   vital::config_block_sptr
 hierarchical_bundle_adjust
 ::get_configuration() const
@@ -181,7 +185,8 @@ hierarchical_bundle_adjust
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 hierarchical_bundle_adjust
 ::set_configuration(vital::config_block_sptr config)
@@ -202,7 +207,8 @@ hierarchical_bundle_adjust
 }
 
 
-/// Check that the algorithm's configuration vital::config_block is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's configuration vital::config_block is valid
 bool
 hierarchical_bundle_adjust
 ::check_configuration(vital::config_block_sptr config) const
@@ -210,7 +216,7 @@ hierarchical_bundle_adjust
   bool valid = true;
 
 #define HSBA_CHECK_FAIL(msg) \
-  LOG_DEBUG(d_->m_logger, "Config Check Fail: " << msg); \
+  LOG_DEBUG(logger(), "Config Check Fail: " << msg);      \
   valid = false
 
   // using long to allow negatives and maintain numerical capacity of
@@ -235,7 +241,7 @@ hierarchical_bundle_adjust
 
   if (config->get_value<std::string>("camera_optimizer:type", "") == "")
   {
-    LOG_DEBUG(d_->m_logger, "HSBA per-iteration camera optimization disabled");
+    LOG_DEBUG(logger(), "HSBA per-iteration camera optimization disabled");
   }
   else if (!vital::algo::optimize_cameras::check_nested_algo_configuration("camera_optimizer", config))
   {
@@ -244,11 +250,11 @@ hierarchical_bundle_adjust
 
   if (config->get_value<std::string>("lm_triangulator:type", "") == "")
   {
-    LOG_DEBUG(d_->m_logger, "HSBA per-iteration LM Triangulation disabled");
+    LOG_DEBUG(logger(), "HSBA per-iteration LM Triangulation disabled");
   }
   else if (!vital::algo::triangulate_landmarks::check_nested_algo_configuration("lm_triangulator", config))
   {
-    LOG_DEBUG(d_->m_logger, "lm_triangulator type: \""
+    LOG_DEBUG(logger(), "lm_triangulator type: \""
                             << config->get_value<std::string>("lm_triangulator:type") << "\"");
     HSBA_CHECK_FAIL("lm_triangulator configuration invalid.");
   }
@@ -262,7 +268,8 @@ hierarchical_bundle_adjust
 }
 
 
-/// Optimize the camera and landmark parameters given a set of feature tracks
+// ----------------------------------------------------------------------------
+// Optimize the camera and landmark parameters given a set of feature tracks
 /**
  * Making naive assuptions:
  *  - cameras we are given are in sequence (no previous sub-sampling and no frame gaps)
@@ -280,7 +287,7 @@ hierarchical_bundle_adjust
   using namespace std;
 
   //frame_id_t orig_max_frame = cameras->cameras().rbegin()->first;
-  LOG_INFO(d_->m_logger, cameras->size() << " cameras provided");
+  LOG_INFO(logger(), cameras->size() << " cameras provided");
   size_t num_orig_cams = tracks->all_frame_ids().size();
 
   // If interpolation rate is 0, then that means that all intermediate frames
@@ -291,7 +298,7 @@ hierarchical_bundle_adjust
   {
     ir = std::numeric_limits<frame_id_t>::max();
   }
-  LOG_DEBUG(d_->m_logger, "Interpolation rate: " << ir);
+  LOG_DEBUG(logger(), "Interpolation rate: " << ir);
 
   // Sub-sample cameras
   // Always adding the last camera (if not already in there) to the sub-
@@ -303,18 +310,18 @@ hierarchical_bundle_adjust
   acm = subsample_cameras(input_cams, ssr);
   acm[input_cams.rbegin()->first] = input_cams.rbegin()->second;
   camera_map_sptr active_cam_map(new simple_camera_map(acm));
-  LOG_INFO(d_->m_logger, "Subsampled cameras: " << active_cam_map->size());
+  LOG_INFO(logger(), "Subsampled cameras: " << active_cam_map->size());
 
   // need to have at least 2 cameras
   if (active_cam_map->size() < 2)
   {
-    throw invalid_value("Camera map given is of insufficient length.");
+    VITAL_THROW( invalid_value,"Camera map given is of insufficient length.");
   }
 
   bool done = false;
   do
   {
-    LOG_INFO(d_->m_logger, "Optimizing " << active_cam_map->size() << " active cameras");
+    LOG_INFO(logger(), "Optimizing " << active_cam_map->size() << " active cameras");
     // updated active_cam_map and landmarks
     { // scope block
       kwiver::vital::scoped_cpu_timer t( "inner-SBA iteration" );
@@ -324,15 +331,15 @@ hierarchical_bundle_adjust
     double rmse = kwiver::arrows::reprojection_rmse(active_cam_map->cameras(),
                                     landmarks->landmarks(),
                                     tracks->tracks());
-    LOG_DEBUG(d_->m_logger, "current RMSE: " << rmse);
+    LOG_DEBUG(logger(), "current RMSE: " << rmse);
 
     // If we've just completed SBA with all original frames in the new map,
     // then we're done.
-    LOG_DEBUG(d_->m_logger, "completion check: " << active_cam_map->size()
+    LOG_DEBUG(logger(), "completion check: " << active_cam_map->size()
                             << " >= " << num_orig_cams );
     if (active_cam_map->size() >= num_orig_cams)
     {
-      LOG_INFO(d_->m_logger, "complete");
+      LOG_INFO(logger(), "complete");
       done = true;
     }
 
@@ -350,7 +357,7 @@ hierarchical_bundle_adjust
       double f;
       frame_id_t i2;
       frame_id_t cur_frm, next_frm;
-      camera_sptr cur_cam, next_cam;
+      camera_perspective_sptr cur_cam, next_cam;
 
       // Iterate through frames and cameras, interpolating across gaps when found
       // ASSUMING even interpolation for now
@@ -360,14 +367,14 @@ hierarchical_bundle_adjust
         while (it != ac_map.end())
         {
           cur_frm = it->first;
-          cur_cam = it->second;
+          cur_cam = std::dynamic_pointer_cast<camera_perspective>(it->second);
           ++it;
 
           // If we're not at the end of the active camera sequence
           if (it != ac_map.end())
           {
             next_frm = it->first;
-            next_cam = it->second;
+            next_cam = std::dynamic_pointer_cast<camera_perspective>(it->second);
 
             // this specific gap's interpolation rate -- gap may be smaller than ir
             ir_l = std::min(ir, next_frm - cur_frm - 1);
@@ -395,7 +402,7 @@ hierarchical_bundle_adjust
       }
       if(interped_cams.empty())
       {
-        LOG_INFO(d_->m_logger, "No new cameras interpolated, done.");
+        LOG_INFO(logger(), "No new cameras interpolated, done.");
         break;
       }
       camera_map_sptr interped_cams_p(new simple_camera_map(interped_cams));
@@ -403,14 +410,14 @@ hierarchical_bundle_adjust
       // Optimize new camers
       if (d_->camera_optimizer)
       {
-        LOG_INFO(d_->m_logger, "Optimizing new interpolated cameras ("
-                               << interped_cams.size() << " cams)");
+        LOG_INFO(logger(), "Optimizing new interpolated cameras ("
+                            << interped_cams.size() << " cams)");
         if (d_->rmse_reporting_enabled)
         {
-          LOG_DEBUG(d_->m_logger, "pre-optimization RMSE : "
-                                  << reprojection_rmse(interped_cams_p->cameras(),
-                                    landmarks->landmarks(),
-                                                       tracks->tracks()));
+          LOG_DEBUG(logger(), "pre-optimization RMSE : "
+                              << reprojection_rmse(interped_cams_p->cameras(),
+                                                   landmarks->landmarks(),
+                                                   tracks->tracks()));
         }
 
         { // scope block
@@ -420,10 +427,10 @@ hierarchical_bundle_adjust
 
         if (d_->rmse_reporting_enabled)
         {
-          LOG_DEBUG(d_->m_logger, "post-optimization RMSE : "
-                                  << reprojection_rmse(interped_cams_p->cameras(),
-                                    landmarks->landmarks(),
-                                                       tracks->tracks()));
+          LOG_DEBUG(logger(), "post-optimization RMSE : "
+                              << reprojection_rmse(interped_cams_p->cameras(),
+                                                   landmarks->landmarks(),
+                                                   tracks->tracks()));
         }
       }
       // adding optimized interpolated cameras to the map of existing cameras
@@ -435,22 +442,22 @@ hierarchical_bundle_adjust
       active_cam_map = camera_map_sptr(new simple_camera_map(ac_map));
       if (d_->rmse_reporting_enabled)
       {
-          LOG_DEBUG(d_->m_logger, "combined map RMSE : "
-                                  << reprojection_rmse(active_cam_map->cameras(),
-                                  landmarks->landmarks(),
-                                                       tracks->tracks()));
+        LOG_DEBUG(logger(), "combined map RMSE : "
+                            << reprojection_rmse(active_cam_map->cameras(),
+                                                 landmarks->landmarks(),
+                                                 tracks->tracks()));
       }
 
       // LM triangulation
       if (d_->lm_triangulator)
       {
-        LOG_INFO(d_->m_logger, "Triangulating landmarks after interpolating cameras");
+        LOG_INFO(logger(), "Triangulating landmarks after interpolating cameras");
         if (d_->rmse_reporting_enabled)
         {
-          LOG_DEBUG(d_->m_logger, "pre-triangulation RMSE : "
-                                  << reprojection_rmse(active_cam_map->cameras(),
-                                    landmarks->landmarks(),
-                                                       tracks->tracks()));
+          LOG_DEBUG(logger(), "pre-triangulation RMSE : "
+                              << reprojection_rmse(active_cam_map->cameras(),
+                                                   landmarks->landmarks(),
+                                                   tracks->tracks()));
         }
 
         { // scoped block
@@ -460,10 +467,10 @@ hierarchical_bundle_adjust
 
         if (d_->rmse_reporting_enabled)
         {
-          LOG_DEBUG(d_->m_logger, "post-triangulation RMSE : "
-                                  << reprojection_rmse(active_cam_map->cameras(),
-                                    landmarks->landmarks(),
-                                                       tracks->tracks()));
+          LOG_DEBUG(logger(), "post-triangulation RMSE : "
+                              << reprojection_rmse(active_cam_map->cameras(),
+                                                   landmarks->landmarks(),
+                                                   tracks->tracks()));
         }
       }
 

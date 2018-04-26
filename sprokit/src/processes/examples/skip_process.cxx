@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2013-2018 by Kitware, Inc. All Rights Reserved. Please refer to
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,7 +125,8 @@ skip_process
   {
     static std::string const reason = "The offset must be less than the skip count";
 
-    throw invalid_configuration_exception(name(), reason);
+    VITAL_THROW( invalid_configuration_exception,
+                 name(), reason);
   }
 
   set_input_port_frequency(priv::port_input, 1 + d->skip);

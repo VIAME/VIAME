@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,7 @@
 
 #include "vital_kpf_adapters.h"
 
-#include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
-#include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 
 #include <map>
@@ -60,7 +58,6 @@ class detected_object_set_input_kpf::priv
 public:
   priv( detected_object_set_input_kpf* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "detected_object_set_input_kpf" ) )
     , m_first( true )
   { }
 
@@ -69,7 +66,6 @@ public:
   void read_all();
 
   detected_object_set_input_kpf* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
 
   int m_current_idx;
@@ -86,6 +82,7 @@ detected_object_set_input_kpf::
 detected_object_set_input_kpf()
   : d( new detected_object_set_input_kpf::priv( this ) )
 {
+  attach_logger( "arrows.kpf.detected_object_set_input_kpf" );
 }
 
 
@@ -164,7 +161,7 @@ read_all()
 {
   m_detected_sets.clear();
 
-  
+
 
   KPF::kpf_yaml_parser_t parser(m_parent->stream());
   KPF::kpf_reader_t reader(parser);
@@ -198,7 +195,7 @@ read_all()
     box_adapter.get(bbox);
     kwiver::vital::detected_object_sptr det(new kwiver::vital::detected_object(bbox, confidence, types));
     det->set_detector_name(detector_name);
-    
+
     frame_detections = m_detected_sets[frame_number];
     if (frame_detections.get() == nullptr)
     {

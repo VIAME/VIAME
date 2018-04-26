@@ -38,6 +38,7 @@
 #ifndef VITAL_OBJECT_TRACK_SET_H_
 #define VITAL_OBJECT_TRACK_SET_H_
 
+#include "timestamp.h"
 #include "track_set.h"
 #include "detected_object.h"
 
@@ -59,15 +60,26 @@ public:
 
   /// Default constructor
   object_track_state( frame_id_t frame,
+                      time_us_t time,
                       detected_object_sptr d = nullptr )
     : track_state( frame )
     , detection( d )
+    , time_( time )
+  {}
+
+  /// Alternative constructor
+  object_track_state( const timestamp& ts,
+                      detected_object_sptr d = nullptr )
+    : track_state( ts.get_frame() )
+    , detection( d )
+    , time_( ts.get_time_usec() )
   {}
 
   /// Copy constructor
   object_track_state( object_track_state const& ot )
     : track_state( ot.frame() )
     , detection( ot.detection )
+    , time_( ot.time() )
   {}
 
   /// Clone the track state (polymorphic copy constructor)
@@ -76,7 +88,15 @@ public:
     return std::make_shared< object_track_state >( *this );
   }
 
+  time_us_t time() const
+  {
+    return time_;
+  }
+
   detected_object_sptr detection;
+
+private:
+  time_us_t time_;
 };
 
 

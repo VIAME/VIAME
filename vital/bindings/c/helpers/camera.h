@@ -38,14 +38,14 @@
 #ifndef VITAL_C_HELPERS_CAMERA_H_
 #define VITAL_C_HELPERS_CAMERA_H_
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/bindings/c/types/camera.h>
 #include <vital/bindings/c/helpers/c_utils.h>
 
 namespace kwiver {
 namespace vital_c {
 
-  extern SharedPointerCache< kwiver::vital::camera,
+  extern SharedPointerCache< kwiver::vital::camera_perspective,
                            vital_camera_t > CAMERA_SPTR_CACHE;
 
 } } // end namespace

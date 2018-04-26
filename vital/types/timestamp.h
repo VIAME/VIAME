@@ -36,6 +36,7 @@
 #include <istream>
 
 #include <vital/vital_export.h>
+#include <vital/vital_types.h>
 
 namespace kwiver {
 namespace vital {
@@ -63,9 +64,8 @@ namespace vital {
 class VITAL_EXPORT timestamp
 {
 public:
-  // -- TYPES --
-  typedef int64_t time_t; // in micro-seconds
-  typedef int64_t frame_t;
+  typedef kwiver::vital::frame_id_t frame_t;
+  typedef kwiver::vital::time_us_t  time_t;
 
   /**
    * \brief Default constructor.
@@ -80,10 +80,10 @@ public:
    *
    * Creates a valid timestamp with specified time and frame number.
    *
-   * @param t Time for timestamp
+   * @param t Time for timestamp in micro-seconds
    * @param f Frame number for timestamp
    */
-  explicit timestamp( time_t t, frame_t f);
+  explicit timestamp( time_us_t t, frame_id_t f);
 
   /**
    * \brief Is timestamp valid.
@@ -126,7 +126,7 @@ public:
    *
    * @return Frame time in micro-seconds
    */
-  time_t get_time_usec() const { return m_time; }
+  time_us_t get_time_usec() const { return m_time; }
 
 
   /**
@@ -150,7 +150,7 @@ public:
    *
    * @return Frame number.
    */
-  frame_t get_frame() const { return m_frame; }
+  frame_id_t get_frame() const { return m_frame; }
 
 
   /**
@@ -158,13 +158,13 @@ public:
    *
    * @param t Time for frame.
    */
-  timestamp& set_time_usec( time_t t );
+  timestamp& set_time_usec( time_us_t t );
 
 
   /**
    * \brief Set time portion of timestamp.
    *
-   * @param t Time for frame.
+   * @param t Time for frame in seconds.
    */
   timestamp& set_time_seconds( double t );
 
@@ -174,7 +174,7 @@ public:
    *
    * @param f Frame number
    */
-  timestamp& set_frame( frame_t f);
+  timestamp& set_frame( frame_id_t f);
 
 
   /**
@@ -219,8 +219,8 @@ private:
   bool m_valid_time;            ///< indicates valid time
   bool m_valid_frame;           ///< indicates valid frame number
 
-  time_t m_time;                ///< frame time in seconds
-  frame_t  m_frame;             ///< frame number
+  time_us_t m_time;             ///< frame time in seconds
+  frame_id_t  m_frame;          ///< frame number
 
   // index used to determine the time domain for this timestamp.
   int m_time_domain_index;

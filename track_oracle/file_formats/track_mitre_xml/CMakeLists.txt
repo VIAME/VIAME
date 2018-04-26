@@ -13,12 +13,12 @@ set( track_mitre_xml_sources
 
 kwiver_install_headers(
   ${track_mitre_xml_public_headers}
-  SUBDIR        track_oracle/track_mitre_xml
+  SUBDIR        track_oracle/file_formats/track_mitre_xml
 )
 
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/track_mitre_xml_export.h
-  NOPATH SUBDIR        track_oracle/track_mitre_xml
+  NOPATH SUBDIR        track_oracle/file_formats/track_mitre_xml
 )
 
 kwiver_add_library( track_mitre_xml

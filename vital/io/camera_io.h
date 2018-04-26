@@ -42,7 +42,7 @@
 #include <vital/vital_export.h>
 #include <vital/vital_types.h>
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 
 namespace kwiver {
 namespace vital {
@@ -57,7 +57,7 @@ namespace vital {
  * \param file_path   The path to the file to read in.
  * \return A new camera object representing the contents of the read-in file.
  */
-camera_sptr
+camera_perspective_sptr
 VITAL_EXPORT read_krtd_file( path_t const& file_path );
 
 
@@ -75,7 +75,7 @@ VITAL_EXPORT read_krtd_file( path_t const& file_path );
  * \return
  *    A new camera object representing the contents of the read-in file.
  */
-camera_sptr
+camera_perspective_sptr
 VITAL_EXPORT read_krtd_file( path_t const& image_file,
                              path_t const& camera_dir );
 
@@ -93,7 +93,7 @@ VITAL_EXPORT read_krtd_file( path_t const& image_file,
  * \param file_path The path to output the file to.
  */
 void
-VITAL_EXPORT write_krtd_file( camera const& cam,
+VITAL_EXPORT write_krtd_file( camera_perspective const& cam,
                               path_t const& file_path );
 
 } } // end namespace

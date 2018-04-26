@@ -105,7 +105,7 @@ namespace events {
   DECL_DT( event_probability, double, "event probability" );
   DECL_DT_RW_STR( source_track_ids, std::vector<unsigned>, "Track IDs contributing to the event" );
   DECL_DT_RW_STR( actor_track_rows, track_handle_list_type, "Track handles participating in the event" );
-  DECL_DT( kpf_activity_label, std::string, "KPF activity string" );
+
   DECL_DT( kpf_activity_domain, int, "KPF activity domain" );
   DECL_DT( kpf_activity_start, unsigned, "KPF activity start (frame number)" );
   DECL_DT( kpf_activity_stop, unsigned, "KPF activity stop (frame number)" );

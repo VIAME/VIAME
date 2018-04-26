@@ -94,6 +94,10 @@ TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(std::vector< double >);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(std::vector< std::vector< double > >);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(std::vector< std::string >);
 TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(std::set< std::string >);
+TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(kwiver::track_oracle::kpf_cset_type);
+TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(kwiver::track_oracle::kpf_cset_sys_type);
+TRACK_ORACLE_INSTANTIATE_OLD_STYLE_SPECIAL_OUTPUT(kwiver::track_oracle::kpf_cset_s2i_type);
+
 
 #ifdef WIN32
 TRACK_ORACLE_INSTANCES(std::pair<unsigned MACRO_COMMA unsigned >);

@@ -56,7 +56,7 @@ namespace canonical
 //
 
 template< typename T >
-struct KPF_YAML_EXPORT scoped
+struct scoped
 {
   T t;
   int domain;
@@ -148,16 +148,14 @@ struct KPF_YAML_EXPORT activity_t
     std::vector< scoped< timestamp_range_t > > actor_timespan;
   };
 
-  std::string activity_label;
+  cset_t activity_labels;
   scoped< id_t > activity_id;
   std::vector< scoped< timestamp_range_t > > timespan;
   std::vector< actor_t > actors;
   std::vector< kv_t > attributes;
-  std::vector< scoped< conf_t > > confidences;
   std::vector< scoped< eval_t > > evals;
 
   activity_t():
-    activity_label( "invalid" ),
     activity_id( id_t(), -1 )
     {}
 

@@ -3,17 +3,19 @@
 #
 
 function(vital_check_feature NAME TEST)
-  try_compile(_vital_check_feature_${NAME}
+  if(DEFINED VITAL_USE_${NAME})
+    return()
+  endif()
+  try_compile(VITAL_USE_${NAME}
     ${CMAKE_BINARY_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/configcheck/${TEST}
     CMAKE_FLAGS
       -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
       -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD})
-
-  set(VITAL_USE_${NAME} ${_vital_check_feature_${NAME}} PARENT_SCOPE)
 endfunction()
 
 macro(vital_check_required_feature NAME TEST MESSAGE)
+  message(STATUS "checking ${NAME} ${TEST}")
   vital_check_feature(${NAME} ${TEST})
   if (NOT VITAL_USE_${NAME})
     message(SEND_ERROR "Required C++ feature '${MESSAGE}' is not available")

@@ -157,6 +157,9 @@ embedded_pipeline
   m_priv->m_pipeline = builder.pipeline();
   m_priv->m_pipe_config = builder.config();
 
+  // Call framework method to allow config updates.
+  update_config(  m_priv->m_pipe_config );
+
   if ( ! m_priv->m_pipeline)
   {
     throw std::runtime_error( "Unable to bake pipeline" );
@@ -374,6 +377,14 @@ embedded_pipeline
 }
 
 
+// ----------------------------------------------------------------------------
+void
+embedded_pipeline::
+update_config( kwiver::vital::config_block_sptr config )
+{
+}
+
+
 // ==================================================================
 bool
 embedded_pipeline::priv::
@@ -412,6 +423,5 @@ connect_output_adapter()
   }
   return false;
 }
-
 
 } // end namespace kwiver

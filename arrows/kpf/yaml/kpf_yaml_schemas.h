@@ -49,7 +49,7 @@ namespace kwiver {
 namespace vital {
 namespace kpf {
 
-enum class KPF_YAML_EXPORT schema_style {
+enum class schema_style {
   INVALID,     // invalid
   GEOM,        // geometry
   ACT,         // activity
