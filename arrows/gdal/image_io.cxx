@@ -240,7 +240,9 @@ image_io
 ::save_(const std::string& filename,
        vital::image_container_sptr data) const
 {
-
+  LOG_ERROR( d_->m_logger, "GDAL implementation of image_io does not "
+                           "support saving to file." );
+  throw vital::image_exception();
 }
 
 } // end namespace gdal

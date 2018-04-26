@@ -33,29 +33,57 @@
  * \brief test GDAL image class
  */
 
-#include <arrows/tests/test_image.h>
+#include <test_gtest.h>
 
 #include <arrows/gdal/image_io.h>
-
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/types/metadata_traits.h>
 
-#include <gtest/gtest.h>
+kwiver::vital::path_t g_data_dir;
 
-using namespace kwiver::vital;
-using namespace kwiver::arrows;
+namespace algo = kwiver::vital::algo;
+namespace gdal = kwiver::arrows::gdal;
+static std::string nitf_file_name = "test.tif";
+
+static std::vector< kwiver::vital::vital_metadata_tag > rpc_tags =
+{
+  kwiver::vital::VITAL_META_RPC_HEIGHT_OFFSET,
+  kwiver::vital::VITAL_META_RPC_HEIGHT_SCALE,
+  kwiver::vital::VITAL_META_RPC_LONG_OFFSET,
+  kwiver::vital::VITAL_META_RPC_LONG_SCALE,
+  kwiver::vital::VITAL_META_RPC_LAT_OFFSET,
+  kwiver::vital::VITAL_META_RPC_LAT_SCALE,
+  kwiver::vital::VITAL_META_RPC_ROW_OFFSET,
+  kwiver::vital::VITAL_META_RPC_ROW_SCALE,
+  kwiver::vital::VITAL_META_RPC_COL_OFFSET,
+  kwiver::vital::VITAL_META_RPC_COL_SCALE ,
+  kwiver::vital::VITAL_META_RPC_ROW_NUM_COEFF,
+  kwiver::vital::VITAL_META_RPC_ROW_DEN_COEFF,
+  kwiver::vital::VITAL_META_RPC_COL_NUM_COEFF,
+  kwiver::vital::VITAL_META_RPC_COL_DEN_COEFF,
+};
 
 // ----------------------------------------------------------------------------
-int main(int argc, char** argv)
+int
+main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest( &argc, argv );
+  TEST_LOAD_PLUGINS();
+
+  GET_ARG(1, g_data_dir);
+
   return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
-TEST(image, create)
+class image_io : public ::testing::Test
 {
-  plugin_manager::instance().load_all_plugins();
+  TEST_ARG(data_dir);
+};
 
+// ----------------------------------------------------------------------------
+TEST_F(image_io, create)
+{
   std::shared_ptr<algo::image_io> img_io;
   ASSERT_NE(nullptr, img_io = algo::image_io::create("gdal"));
 
@@ -64,24 +92,28 @@ TEST(image, create)
     << "Factory method did not construct the correct type";
 }
 
-TEST(image, open)
+TEST_F(image_io, load)
 {
-  plugin_manager::instance().load_all_plugins();
-
   auto img_io = algo::image_io::create("gdal");
 
-  // TODO: Hard code for now until we settle on a test file
-  std::string filepath =
-    "/Users/chet.nieter/projects/ComputerVision/Core3D/data_fouo/"
-    "16JAN26183049-M1BS-500647790060_01_P001.tif";
+  kwiver::vital::path_t file_path = data_dir + "/" + nitf_file_name;
+  auto img_ptr = img_io->load(file_path);
 
-  auto img_ptr = img_io->load(filepath);
-
-  EXPECT_EQ( img_ptr->width(), 300 );
-  EXPECT_EQ( img_ptr->height(), 300 );
-  EXPECT_EQ( img_ptr->depth(), 2 );
+  EXPECT_EQ( img_ptr->width(), 50 );
+  EXPECT_EQ( img_ptr->height(), 50 );
+  EXPECT_EQ( img_ptr->depth(), 3 );
 
   auto md = img_ptr->get_metadata();
+
+  EXPECT_EQ( md->size(), 14 )
+    << "Image metadata should have 14 entries";
+
+  kwiver::vital::metadata_traits md_traits;
+  for ( auto const& tag : rpc_tags )
+  {
+    EXPECT_TRUE( md->has( tag ) )
+      << "Image metadata should include " << md_traits.tag_to_name( tag );
+  }
 
   if (md->size() > 0)
   {
