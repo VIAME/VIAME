@@ -19,8 +19,6 @@ set( burnout_linked_libs
 
 include_directories( SYSTEM ${VIDTK_INCLUDE_DIRS} )
 
-include_directories( SYSTEM ${VIDTK_INCLUDE_DIRS} )
-
 kwiver_install_headers(
   SUBDIR     arrows/burnout
   ${headers}
