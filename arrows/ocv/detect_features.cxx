@@ -50,7 +50,7 @@ namespace ocv {
 /// Extract a set of image features from the provided image
 vital::feature_set_sptr
 detect_features
-::detect(vital::image_container_sptr image_data, vital::image_container_sptr mask)
+::detect(vital::image_container_sptr image_data, vital::image_container_sptr mask) const
 {
   cv::Mat cv_img = ocv::image_container::vital_to_ocv(image_data->get_image());
   cv::Mat cv_mask;
