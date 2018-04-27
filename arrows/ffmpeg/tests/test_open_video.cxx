@@ -36,7 +36,11 @@
 #include <test_gtest.h>
 
 #include <arrows/ffmpeg/ffmpeg_video_input.h>
+#include <arrows/ffmpeg/tests/decode_barcode.h>
+#include <vital/exceptions/io.h>
 #include <vital/plugin_loader/plugin_manager.h>
+
+#include <arrows/vxl/vidl_ffmpeg_video_input.h>
 
 #include <memory>
 #include <string>
@@ -72,24 +76,54 @@ TEST_F(ffmpeg_video_input, create)
 }
 
 // ----------------------------------------------------------------------------
-TEST_F(ffmpeg_video_input, is_good)
+TEST_F(ffmpeg_video_input, is_good_correct_file_path)
 {
-  // make config block
-  auto config = kwiver::vital::config_block::empty_config();
-  config->set_value("metadata_directory", data_dir + "/pos");
-
   kwiver::arrows::ffmpeg::ffmpeg_video_input input;
-
-  EXPECT_TRUE(input.check_configuration(config));
-  input.set_configuration(config);
-
-  kwiver::vital::path_t list_file = data_dir + "/video.mp4";
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
 
   EXPECT_FALSE(input.good())
     << "Video state before open";
 
   // open the video
-  input.open(list_file);
+  input.open(correct_file);
+  EXPECT_FALSE(input.good())
+    << "Video state after open but before first frame";
+
+  // Get the next frame
+  kwiver::vital::timestamp ts;
+  EXPECT_TRUE(input.next_frame(ts))
+    << "Video state after open but before first frame";
+  EXPECT_EQ(ts.get_frame(), 0) << "Initial frame value mismastch";
+  EXPECT_TRUE(input.good())
+    << "Video state after open but before first frame";
+
+  // close the video
+  input.close();
+  EXPECT_FALSE(input.good())
+    << "Video state after close";
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, is_good_invalid_file_path)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+  kwiver::vital::path_t incorrect_file = data_dir + "/DoesNOTExists.mp4";
+
+  EXPECT_FALSE(input.good())
+    << "Video state before open";
+
+  // open the video
+  EXPECT_THROW(
+    input.open(incorrect_file),
+    kwiver::vital::file_not_found_exception);
+  EXPECT_FALSE(input.good())
+    << "Video state after open but before first frame";
+
+  // Get the next frame
+  kwiver::vital::timestamp ts;
+  EXPECT_THROW(input.next_frame(ts),
+    kwiver::vital::file_not_read_exception);
+  EXPECT_EQ(ts.get_frame(), 0) << "Initial frame value mismastch";
   EXPECT_FALSE(input.good())
     << "Video state after open but before first frame";
 
@@ -97,4 +131,38 @@ TEST_F(ffmpeg_video_input, is_good)
   input.close();
   EXPECT_FALSE(input.good())
     << "Video state after close";
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, frame_image)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  EXPECT_FALSE(input.good())
+    << "Video state before open";
+
+  // open the video
+  input.open(correct_file);
+  EXPECT_FALSE(input.good())
+    << "Video state after open but before first frame";
+  EXPECT_EQ(input.frame_image(), nullptr) << "Video should not have an image yet";
+
+  // Get the next frame
+  kwiver::vital::timestamp ts;
+  input.next_frame(ts);
+  EXPECT_EQ(ts.get_frame(), 0);
+  EXPECT_EQ(ts.get_time_domain_index(), 0);
+
+  kwiver::vital::image_container_sptr frame = input.frame_image();
+  EXPECT_EQ(frame->depth(), 3);
+  EXPECT_EQ(frame->get_image().width(), 80);
+  EXPECT_EQ(frame->get_image().height(), 54);
+  EXPECT_EQ(frame->get_image().d_step(), 4320*3);
+  EXPECT_EQ(frame->get_image().h_step(), 80*3);
+  EXPECT_EQ(frame->get_image().w_step(), 3);
+  EXPECT_EQ(frame->get_image().is_contiguous(), false);
+
+  kwiver::vital::image_of<uint8_t> frame_img(frame->get_image());
+  EXPECT_EQ(decode_barcode(frame), 1);
 }
