@@ -77,10 +77,6 @@ private:
    */
   virtual void save_(const std::string& filename,
                      vital::image_container_sptr data) const;
-
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
 };
 
 } // end namespace gdal

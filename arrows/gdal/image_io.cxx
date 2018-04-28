@@ -35,6 +35,8 @@
 
 #include "image_io.h"
 
+#include <vital/exceptions/algorithm.h>
+#include <vital/exceptions/io.h>
 #include <vital/types/metadata.h>
 #include <vital/types/metadata_traits.h>
 
@@ -98,20 +100,9 @@ if ( key == #GN)                              \
 #undef MAP_METADATA_COEFF
 }
 
-/// Private implementation class
-class image_io::priv
-{
-public:
-  /// Constructor
-  priv() : m_logger( vital::get_logger( "arrows.gdal.image_io" ) ) {}
-
-  vital::logger_handle_t m_logger;
-};
-
 /// Constructor
 image_io
 ::image_io()
-: d_(new priv)
 {
 }
 
@@ -141,8 +132,7 @@ image_io
 
   if ( !gdalDataset )
   {
-    LOG_ERROR( d_->m_logger, "Unable to load data from " << filename );
-    throw vital::image_exception();
+    VITAL_THROW( vital::invalid_file, filename, "GDAL could not load file.");
   }
   else
   {
@@ -194,9 +184,11 @@ image_io
       }
       default:
       {
-        LOG_ERROR( d_->m_logger, "Unknown or unsupported pixal type: "
-                  << bandType );
-        throw vital::image_type_mismatch_exception("kwiver::arrows::gdal::image_io::load()");
+        std::stringstream ss;
+        ss << "kwiver::arrows::gdal::image_io::load(): "
+           << "Unknown or unsupported pixal type: "
+           << GDALGetDataTypeName(bandType);
+        VITAL_THROW( vital::image_type_mismatch_exception, ss.str() );
         break;
       }
     }
@@ -240,9 +232,8 @@ image_io
 ::save_(const std::string& filename,
        vital::image_container_sptr data) const
 {
-  LOG_ERROR( d_->m_logger, "GDAL implementation of image_io does not "
-                           "support saving to file." );
-  throw vital::image_exception();
+  VITAL_THROW( vital::algorithm_exception, this->type_name(), this->impl_name(),
+               "Saving to file not supported." );
 }
 
 } // end namespace gdal
