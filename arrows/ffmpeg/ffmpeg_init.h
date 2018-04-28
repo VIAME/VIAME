@@ -31,12 +31,14 @@
 #ifndef ffmpeg_init_h_
 #define ffmpeg_init_h_
 
-//: Initialize the ffmpeg codecs.
-//
-// This will be called by the ffmpeg streams, so you
-// shouldn't need to worry about it. This function can be called
-// multiple times, but the real ffmpeg initialization
-// routine will run only once.
+// ---------------------------------------------------------------------------
+/**
+* @brief Initialize the ffmpeg codecs.
+*
+* This will be called by the ffmpeg streams, so you shouldn't need to worry
+* about it. This function can be called multiple times, but the real ffmpeg
+* initialization routine will run only once.
+*/
 void ffmpeg_init();
 
 #endif // ffmpeg_init_h_
