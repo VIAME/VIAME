@@ -45,11 +45,10 @@ namespace kwiver {
 namespace arrows {
 namespace ffmpeg {
 
-/// Video input using VXL vidl ffmpeg services.
-// ----------------------------------------------------------------
+/// Video input using ffmpeg services.
+// ---------------------------------------------------------------------------
 /**
- * This class implements a video input algorithm using the VXL vidl
- * ffmpeg video services.
+ * This class implements a video input algorithm using ffmpeg video services.
  *
  */
 class KWIVER_ALGO_FFMPEG_EXPORT ffmpeg_video_input
