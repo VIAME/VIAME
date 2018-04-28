@@ -33,8 +33,8 @@
  * \brief \todo
  */
 
-#ifndef KWIVER_ARROWS_FFMPEG_ffmpeg_video_input_H
-#define KWIVER_ARROWS_FFMPEG_ffmpeg_video_input_H
+#ifndef KWIVER_ARROWS_FFMPEG_FFMPEG_VIDEO_INPUT_H
+#define KWIVER_ARROWS_FFMPEG_FFMPEG_VIDEO_INPUT_H
 
 #include <vital/algo/video_input.h>
 
@@ -96,4 +96,4 @@ private:
 
 } } } // end namespace
 
-#endif // KWIVER_ARROWS_ffmpeg_ffmpeg_video_input_H
+#endif // KWIVER_ARROWS_FFMPEG_FFMPEG_VIDEO_INPUT_H
