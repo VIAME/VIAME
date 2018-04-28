@@ -36,7 +36,7 @@
 #include <test_gtest.h>
 
 #include <arrows/ffmpeg/ffmpeg_video_input.h>
-#include <arrows/ffmpeg/tests/decode_barcode.h>
+#include <arrows/core/tests/barcode_decode.h>
 #include <vital/exceptions/io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -163,6 +163,5 @@ TEST_F(ffmpeg_video_input, frame_image)
   EXPECT_EQ(frame->get_image().w_step(), 3);
   EXPECT_EQ(frame->get_image().is_contiguous(), false);
 
-  kwiver::vital::image_of<uint8_t> frame_img(frame->get_image());
-  EXPECT_EQ(decode_barcode(frame), 1);
+  EXPECT_EQ(decode_barcode(*frame), 1);
 }
