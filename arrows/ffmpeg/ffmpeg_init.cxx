@@ -34,14 +34,19 @@
 #define __STDC_CONSTANT_MACROS
 
 #include "ffmpeg_init.h"
+
+#include <mutex>
+
 extern "C" {
 #include <libavformat/avformat.h>
 }
 
-//--------------------------------------------------------------------------------
+std::mutex ffmpeg_init_mutex;
 
+//--------------------------------------------------------------------------------
 void ffmpeg_init()
 {
+  std::lock_guard< std::mutex > lock(ffmpeg_init_mutex);
   static bool initialized = false;
   if ( ! initialized ) {
     av_register_all();
