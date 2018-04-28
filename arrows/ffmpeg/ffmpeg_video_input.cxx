@@ -50,15 +50,9 @@
 #include <sstream>
 
 extern "C" {
-#if FFMPEG_IN_SEVERAL_DIRECTORIES
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
-#else
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/swscale.h>
-#endif
 }
 
 namespace kwiver {

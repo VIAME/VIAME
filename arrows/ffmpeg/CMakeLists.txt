@@ -3,6 +3,13 @@
 
 include_directories(${FFMPEG_INCLUDE_DIR})
 
+if ( FFMPEG_FOUND_SEVERAL)
+  message( "FFMPEG headers all in the same directories, "
+"this is not supported by this Arrow."
+"\nThis likely indicates that you are building against an old FFMPEG ! "
+)
+endif()
+
 set(ffmpeg_headers_public
   ffmpeg_init.h
   ffmpeg_video_input.h
@@ -32,10 +39,6 @@ target_link_libraries( kwiver_algo_ffmpeg
   PRIVATE              kwiversys
                        ${FFMPEG_LIBRARIES}
   )
-
-if (FFMPEG_FOUND_SEVERAL)
-  target_compile_definitions(kwiver_algo_ffmpeg PRIVATE FFMPEG_IN_SEVERAL_DIRECTORIES=1)
-endif ()
 
 algorithms_create_plugin( kwiver_algo_ffmpeg
   register_algorithms.cxx
