@@ -604,7 +604,6 @@ ffmpeg_video_input
   d->f_video_encoding = nullptr;
 }
 
-
 // ------------------------------------------------------------------
 bool
 ffmpeg_video_input
@@ -623,6 +622,16 @@ ffmpeg_video_input
   }
   return ret;
 }
+
+// ------------------------------------------------------------------
+bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
+  kwiver::vital::timestamp::frame_t frame_number,
+  uint32_t timeout)
+{
+  LOG_INFO(this->logger(), "Seeking isn't supported yet");
+  return false;
+}
+
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
@@ -738,11 +747,42 @@ ffmpeg_video_input
 
 
 // ------------------------------------------------------------------
+kwiver::vital::timestamp
+ffmpeg_video_input
+::frame_timestamp() const
+{
+  if (!this->good())
+  {
+    return{};
+  }
+
+  // We don't always have all components of a timestamp, so start with
+  // an invalid TS and add the data we have.
+  kwiver::vital::timestamp ts;
+  ts.set_frame(d->frame_number());
+
+  return ts;
+}
+
+
+// ------------------------------------------------------------------
 kwiver::vital::metadata_vector
 ffmpeg_video_input
 ::frame_metadata()
 {
+  LOG_INFO(this->logger(), "Metadata access isn't supported yet");
   return kwiver::vital::metadata_vector();
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::metadata_map_sptr
+ffmpeg_video_input
+::metadata_map()
+{
+  LOG_INFO(this->logger(), "Metadata access isn't supported yet");
+  return std::make_shared<kwiver::vital::simple_metadata_map>(
+    kwiver::vital::simple_metadata_map());
 }
 
 
@@ -761,6 +801,34 @@ ffmpeg_video_input
 ::good() const
 {
   return d->is_valid();
+}
+
+
+// ------------------------------------------------------------------
+bool
+ffmpeg_video_input
+::seekable() const
+{
+  LOG_INFO(this->logger(), "Seeking isn't supported yet");
+  return false;
+}
+
+// ------------------------------------------------------------------
+size_t
+ffmpeg_video_input
+::num_frames() const
+{
+  if (!this->good())
+  {
+    return -1;
+  }
+  else if (!this->seekable())
+  {
+    return 0;
+  }
+
+  // \todo: To implement to return the number of frames once the video
+  // is seekable.
 }
 
 } } } // end namespaces
