@@ -70,8 +70,8 @@ KWIVER_ALGO_CORE_EXPORT
 frame_coverage_vec
 image_coverages(
   const vital::feature_track_set_sptr tracks,
-  const vital::landmark_map::map_landmark_t& lms,
-  const vital::camera_map::map_camera_t& cams);
+  vital::landmark_map::map_landmark_t const& lms,
+  vital::camera_map::map_camera_t const& cams);
 
 typedef std::vector<std::set<vital::frame_id_t>> camera_components;
 
@@ -88,8 +88,8 @@ typedef std::vector<std::set<vital::frame_id_t>> camera_components;
 KWIVER_ALGO_CORE_EXPORT
 camera_components
 connected_camera_components(
-  const vital::camera_map::map_camera_t& cams,
-  const vital::landmark_map::map_landmark_t& lms,
+  vital::camera_map::map_camera_t const& cams,
+  vital::landmark_map::map_landmark_t const& lms,
   vital::feature_track_set_sptr tracks);
 
 /// detect bad landmarks
@@ -108,8 +108,8 @@ connected_camera_components(
 KWIVER_ALGO_CORE_EXPORT
 std::set<vital::track_id_t>
 detect_bad_landmarks(
-  const vital::camera_map::map_camera_t& cams,
-  const vital::landmark_map::map_landmark_t& lms,
+  vital::camera_map::map_camera_t const& cams,
+  vital::landmark_map::map_landmark_t const& lms,
   vital::feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
   double error_tol = 5.0);
@@ -138,8 +138,8 @@ remove_landmarks(const std::set<vital::track_id_t>& to_remove,
 KWIVER_ALGO_CORE_EXPORT
 std::set<vital::frame_id_t>
 detect_bad_cameras(
-  const vital::camera_map::map_camera_t& cams,
-  vital::landmark_map::map_landmark_t& lms,
+  vital::camera_map::map_camera_t const& cams,
+  vital::landmark_map::map_landmark_t const& lms,
   vital::feature_track_set_sptr tracks,
   float coverage_thresh);
 

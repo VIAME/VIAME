@@ -49,8 +49,8 @@ namespace core {
 /// Calculate fraction of each image that is covered by landmark projections
 frame_coverage_vec
 image_coverages(const feature_track_set_sptr tracks,
-  const kwiver::vital::landmark_map::map_landmark_t& lms,
-  const camera_map::map_camera_t& cams )
+  kwiver::vital::landmark_map::map_landmark_t const& lms,
+  camera_map::map_camera_t const& cams )
 {
   const int mask_w(16);
   const int mask_h(16);
@@ -162,22 +162,12 @@ remove_landmarks(const std::set<track_id_t>& to_remove,
   }
 }
 
+
 /// find connected components of cameras
-/**
-* Find connected components in the view graph.  Cameras that view the same
-* landmark are connected in the graph.
-* \param [in] logger the logger to write debug info to
-* \param [in] cams the cameras in the view graph.
-* \param [in] lms the landmarks in the view graph.
-* \param [in] tracks the track set
-* \return camera_components vector.  Each set in the vector represents a
-* different connected component.
-*/
 camera_components
 connected_camera_components(
-  kwiver::vital::logger_handle_t logger,
-  const camera_map::map_camera_t& cams,
-  const landmark_map::map_landmark_t& lms,
+  camera_map::map_camera_t const& cams,
+  landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks)
 {
   auto trks = tracks->tracks();
@@ -197,7 +187,7 @@ connected_camera_components(
     const landmark& lm = *lmi->second;
 
     std::set<frame_id_t> cam_clique;
-    for (auto ts: *t)
+    for (auto ts : *t)
     {
       auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
       if (!fts || !fts->feature)
@@ -274,41 +264,17 @@ connected_camera_components(
   return comps;
 }
 
-/// find connected components of cameras
-camera_components
-connected_camera_components(
-  const camera_map::map_camera_t& cams,
-  const landmark_map::map_landmark_t& lms,
-  feature_track_set_sptr tracks)
-{
-  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.core.sfm_utils"));
-  return connected_camera_components(logger, cams, lms, tracks);
-}
-
-/// clean a set of landmarks.
-/**
-* Checks landmark reprojection errors, triangulation angles and whether or not
-* landmark is adequately constrained (2+ rays).  If not it is returned as a
-* landmark to be removed
-* \param [in] logger the logger to write debug info to
-* \param [in] cams the cameras in the view graph.
-* \param [in] lms the landmarks in the view graph.
-* \param [in] tracks the track set
-* \param [in] triang_cos_ang_thresh features must have one pair of rays that
-*             meet this minimum intersection angle to keep
-* \param [in] error_tol reprojection error threshold
-* \return set of landmark ids (track_ids) that were bad and should be removed
-*/
+/// Detect underconstrained landmarks.
 std::set<track_id_t>
 detect_bad_landmarks(
-  kwiver::vital::logger_handle_t logger,
-  const camera_map::map_camera_t& cams,
-  const landmark_map::map_landmark_t& lms,
+  camera_map::map_camera_t const& cams,
+  landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
-  double error_tol = 5.0)
+  double error_tol)
 {
   //returns a set of un-constrained landmarks to be removed from the solution
+  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.core.sfm_utils"));
   std::set<track_id_t> landmarks_to_remove;
 
   double ets = error_tol * error_tol;
@@ -398,24 +364,11 @@ detect_bad_landmarks(
   return landmarks_to_remove;
 }
 
-/// detect bad landmarks
-std::set<track_id_t>
-detect_bad_landmarks(
-  const camera_map::map_camera_t& cams,
-  const landmark_map::map_landmark_t& lms,
-  feature_track_set_sptr tracks,
-  double triang_cos_ang_thresh,
-  double error_tol)
-{
-  kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.core.sfm_utils"));
-  return detect_bad_landmarks(logger, cams, lms, tracks, triang_cos_ang_thresh, error_tol);
-}
-
 /// detect bad cameras in sfm solution
 std::set<frame_id_t>
 detect_bad_cameras(
-  const camera_map::map_camera_t& cams,
-  landmark_map::map_landmark_t& lms,
+  camera_map::map_camera_t const& cams,
+  landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks,
   float coverage_thresh)
 {
@@ -454,7 +407,7 @@ clean_cameras_and_landmarks(
   {
     keep_cleaning = false;
     std::set<track_id_t> lm_to_remove =
-      detect_bad_landmarks(logger, cams, lms, tracks, triang_cos_ang_thresh, error_tol);
+      detect_bad_landmarks(cams, lms, tracks, triang_cos_ang_thresh, error_tol);
 
     if (!lm_to_remove.empty())
     {
@@ -478,7 +431,7 @@ clean_cameras_and_landmarks(
     }
 
     camera_components comps =
-      connected_camera_components(logger, cams, lms, tracks);
+      connected_camera_components(cams, lms, tracks);
 
     if (comps.size() < 2)
     {
