@@ -68,6 +68,11 @@ public:
   * A given mask image should be one-channel (mask->depth() == 1). If the
   * given mask image has more than one channel, only the first will be
   * considered.
+  * This method overrides the base detect method and adds dynamic threshold
+  * adaptation.  It adjusts the detector's feature strength threshold to try
+  * and extract a target number of features in each frame. Because scene
+  * content varies between images, different feature strength thresholds may
+  * be necessary to get the same number of feautres in different images.
   *
   * \param image_data contains the image data to process
   * \param mask Mask image where regions of positive values (boolean true)

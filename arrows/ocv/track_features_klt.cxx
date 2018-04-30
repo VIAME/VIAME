@@ -176,7 +176,11 @@ public:
 
     config->set_value("target_number_of_features", target_number_of_features,
                       "number of features that detector tries to find.  May be "
-                      "more or less depending on image content.");
+                      "more or less depending on image content.  The algorithm "
+                      "attempts to distribute this many features evenly across "
+                      "the image. If texture is locally weak few feautres may be "
+                      "extracted in a local area reducing the total detected "
+                      "feature count.");
   }
 
   /// Set our parameters based on the given config block
@@ -589,7 +593,7 @@ track_features_klt
     next_points.size() <=
     size_t(d_->redetect_threshold*double(d_->last_detect_num_features));
 
-  //set the feature distribution image
+  //set the feature distribution image where the features were tracked to this image.
   d_->dist_image.set_from_feature_vector(next_points, image_data);
 
   if (!detect_new_features)
@@ -634,13 +638,17 @@ track_features_klt
     // features from being kept that are detected near existing tracks.
     d_->set_tracked_feature_location_mask(next_points, image_data);
 
-    //randomize order of features returned from detector.  This is to
-    //ensure that their distribution across the image is random.
+    // sort the features by strength so we can pick the strongest ones
+    // first in each location.
     std::sort(vf.begin(), vf.end(), feat_stren_less);
 
     int dist_im_rows, dist_im_cols;
     d_->dist_image.get_grid_size(dist_im_rows, dist_im_cols);
-    int target_feat_per_bin = d_->target_number_of_features / (dist_im_rows * dist_im_cols);
+    int target_feat_per_bin =
+      static_cast<int>(
+      std::ceil(
+        static_cast<double>(d_->target_number_of_features) /
+        static_cast<double>(dist_im_rows * dist_im_cols)));
 
 
     typedef std::vector<feature_sptr>::const_reverse_iterator feat_itr;
@@ -659,6 +667,8 @@ track_features_klt
 
       cv::Point2f new_pt = cv::Point2f((*fit)->loc().x(), (*fit)->loc().y());
 
+      //check if there are too many features already in this bin, either tracked from
+      //the previous frame or detected in this frame.
       uint16_t &bin_count = d_->dist_image.get_bin_feat_count(new_pt,image_data);
       if (bin_count >= target_feat_per_bin)
       {
@@ -667,6 +677,8 @@ track_features_klt
       }
       else
       {
+        //There are not too many features in this bin so we can add a feature.
+        //Increment the bin count if it would not overflow.
         if (bin_count < UINT16_MAX)
         {
           ++bin_count;
