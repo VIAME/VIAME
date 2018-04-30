@@ -190,15 +190,6 @@ public:
   /// Return the additional data associated with all feature tracks on the given frame
   feature_track_set_frame_data_sptr feature_frame_data(frame_id_t offset = -1) const;
 
-  /// Merges the other feature track set into this feature track set.
-  /**
-   * \param [in] other  the other feature track set to merge into this one
-   * \param [in] do_not_append_tracks if true, the other tracks are cloned and assigned a new track id.
-   *  if false, if the same track id is found in other and in the current feature track set, then
-   *  track states from other are cloned and appended to this object's track.
-   */
-  virtual void merge_in_other_feature_track_set(feature_track_set_sptr other, bool do_not_append_tracks = false);
-
 };
 
 

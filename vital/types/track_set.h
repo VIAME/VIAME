@@ -628,6 +628,17 @@ public:
 
   virtual track_set_sptr clone() const;
 
+  /// Merges the other feature track set into this feature track set.
+  /**
+  * \param [in] other  the other feature track set to merge into this one
+  * \param [in] do_not_append_tracks if true, the other tracks are cloned and assigned a new track id.
+  *  if false, if the same track id is found in other and in the current feature track set, then
+  *  track states from other are cloned and appended to this object's track.
+  */
+  virtual void merge_in_other_track_set(
+    track_set_sptr other,
+    bool do_not_append_tracks = false);
+
 protected:
 
   /// The implementation of the track set functions

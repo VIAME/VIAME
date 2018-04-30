@@ -43,6 +43,42 @@
 namespace kwiver {
 namespace vital {
 
+void
+track_set
+::merge_in_other_track_set(track_set_sptr other, bool do_not_append_tracks)
+{
+  auto ot = other->tracks();
+
+  track_id_t next_track_id = (*this->all_track_ids().crbegin()) + 1;
+
+  for (auto &t : ot)
+  {
+    auto ct = this->get_track(t->id());
+    if (!ct)
+    {
+      this->insert(t->clone());
+    }
+    else
+    {
+      if (do_not_append_tracks)
+      {
+        auto tc = t->clone();
+        tc->set_id(next_track_id++);
+        this->insert(tc);
+      }
+      else
+      {
+        for (auto ts : *t)
+        {
+          auto ts_clone = ts->clone();
+          ct->append(ts_clone);
+          this->notify_new_state(ts_clone);
+        }
+      }
+    }
+  }
+}
+
 /// Return the number of tracks in the set
 size_t
 track_set_implementation

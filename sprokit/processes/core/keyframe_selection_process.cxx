@@ -347,7 +347,7 @@ keyframe_selection_process::priv
 {
   vital::feature_track_set_sptr curr_tracks = loop_back_tracks;
 
-  curr_tracks->merge_in_other_feature_track_set(next_tracks);
+  curr_tracks->merge_in_other_track_set(next_tracks);
 
   return curr_tracks;
 }
