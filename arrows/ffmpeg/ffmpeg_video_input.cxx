@@ -115,40 +115,6 @@ public:
   vital::image_memory_sptr current_image_memory;
   kwiver::vital::image_container_sptr current_image;
 
-  enum pixel_format
-  {
-    PIXEL_FORMAT_UNKNOWN = -1,
-
-    PIXEL_FORMAT_RGB_24,
-    PIXEL_FORMAT_RGB_24P,
-    PIXEL_FORMAT_BGR_24,
-    PIXEL_FORMAT_RGBA_32,
-    PIXEL_FORMAT_RGBA_32P,
-    PIXEL_FORMAT_RGB_565,
-    PIXEL_FORMAT_RGB_555,
-
-    PIXEL_FORMAT_YUV_444P,
-    PIXEL_FORMAT_YUV_422P,
-    PIXEL_FORMAT_YUV_420P,
-    PIXEL_FORMAT_YVU_420P,
-    PIXEL_FORMAT_YUV_411P,
-    PIXEL_FORMAT_YUV_410P,
-    PIXEL_FORMAT_UYV_444,
-    PIXEL_FORMAT_YUYV_422,
-    PIXEL_FORMAT_UYVY_422,
-    PIXEL_FORMAT_UYVY_411,
-
-    PIXEL_FORMAT_MONO_1,
-    PIXEL_FORMAT_MONO_8,
-    PIXEL_FORMAT_MONO_16,
-    PIXEL_FORMAT_MONO_F32,
-    PIXEL_FORMAT_RGB_F32,
-    PIXEL_FORMAT_RGB_F32P,
-
-    // Add values here
-    PIXEL_FORMAT_ENUM_END
-  };
-
   // ==================================================================
   /*
   * @brief Convert a ffmpeg pixel type to kwiver::vital::image_pixel_traits
@@ -440,40 +406,6 @@ public:
       - static_cast<int>(this->f_frame_number_offset));
   }
 
-  // ==================================================================
-  /*
-  * @brief Convert a ffmpeg pixel type to kwiver::vital::image_pixel_traits
-  *
-  * @return \b A kwiver::vital::image_pixel_traits
-  */
-  pixel_format pixel_format_from_ffmpeg(AVPixelFormat ffmpeg_format) const
-  {
-    switch (ffmpeg_format)
-    {
-    case AV_PIX_FMT_YUV420P:   return PIXEL_FORMAT_YUV_420P;
-    case AV_PIX_FMT_YUYV422:   return PIXEL_FORMAT_YUYV_422;
-    case AV_PIX_FMT_RGB24:     return PIXEL_FORMAT_RGB_24;
-    case AV_PIX_FMT_BGR24:     return PIXEL_FORMAT_BGR_24;
-    case AV_PIX_FMT_YUV422P:   return PIXEL_FORMAT_YUV_422P;
-    case AV_PIX_FMT_YUV444P:   return PIXEL_FORMAT_YUV_444P;
-#ifdef AV_PIX_FMT_RGBA
-    case AV_PIX_FMT_RGBA:      return PIXEL_FORMAT_RGBA_32;
-#endif
-    case AV_PIX_FMT_YUV410P:   return PIXEL_FORMAT_YUV_410P;
-    case AV_PIX_FMT_YUV411P:   return PIXEL_FORMAT_YUV_411P;
-    case AV_PIX_FMT_RGB565:    return PIXEL_FORMAT_RGB_565;
-    case AV_PIX_FMT_RGB555:    return PIXEL_FORMAT_RGB_555;
-    case AV_PIX_FMT_GRAY8:     return PIXEL_FORMAT_MONO_8;
-    case AV_PIX_FMT_PAL8:      return PIXEL_FORMAT_MONO_8;   //HACK: Treating 8-bit palette as greyscale image
-    case AV_PIX_FMT_MONOWHITE: return PIXEL_FORMAT_MONO_1;
-    case AV_PIX_FMT_MONOBLACK: return PIXEL_FORMAT_MONO_1;
-    case AV_PIX_FMT_UYVY422:   return PIXEL_FORMAT_UYVY_422;
-    case AV_PIX_FMT_UYYVYY411: return PIXEL_FORMAT_UYVY_411;
-    default: break;
-    }
-    return PIXEL_FORMAT_UNKNOWN;
-  }
-
 }; // end of internal class.
 
 // static open interlocking mutex
@@ -647,21 +579,51 @@ ffmpeg_video_input
   AVCodecContext* enc = d->f_format_context->streams[d->f_video_index]->codec;
 
   // If we have not already converted this frame, try to convert it
-
   if (!d->current_image_memory && d->f_frame->data[0] != 0)
   {
     int width = enc->width;
     int height = enc->height;
+    int num_pixels = 3;
+    vital::image_pixel_traits pixel_trait = vital::image_pixel_traits_of<unsigned char>();
+    bool direct_copy = false;
 
     // If the pixel format is not recognized by then convert the data into RGB_24
-    ffmpeg_video_input::priv::pixel_format format = d->pixel_format_from_ffmpeg(enc->pix_fmt);
-    if (format == ffmpeg_video_input::priv::PIXEL_FORMAT_UNKNOWN)
+    switch (enc->pix_fmt)
     {
-      int size = width * height * 3;
-      if (!d->current_image_memory || size != d->current_image_memory->size())
+      case AV_PIX_FMT_GRAY8:
       {
-        d->current_image_memory = vital::image_memory_sptr(new vital::image_memory(size));
+        num_pixels = 1;
+        direct_copy = true;
+        break;
       }
+      case AV_PIX_FMT_RGBA:
+      {
+        num_pixels = 4;
+        direct_copy = true;
+        break;
+      }
+      case AV_PIX_FMT_MONOWHITE:
+      case AV_PIX_FMT_MONOBLACK:
+      {
+        num_pixels = 1;
+        pixel_trait = vital::image_pixel_traits_of<bool>();
+        direct_copy = true;
+        break;
+      }
+    }
+    if (direct_copy)
+    {
+      int size = avpicture_get_size(enc->pix_fmt, width, height);
+      d->current_image_memory = vital::image_memory_sptr(new vital::image_memory(size));
+
+      AVPicture frame;
+      avpicture_fill(&frame, (uint8_t*)d->current_image_memory->data(), enc->pix_fmt, width, height);
+      av_picture_copy(&frame, (AVPicture*)d->f_frame, enc->pix_fmt, width, height);
+    }
+    else
+    {
+      int size = width * height * num_pixels;
+      d->current_image_memory = vital::image_memory_sptr(new vital::image_memory(size));
 
       d->f_software_context = sws_getCachedContext(
         d->f_software_context,
@@ -679,67 +641,19 @@ ffmpeg_video_input
       AVPicture rgb_frame;
       avpicture_fill(&rgb_frame, (uint8_t*)d->current_image_memory->data(), AV_PIX_FMT_RGB24, width, height);
 
-      int w_step = 1;
-      int h_step = width;
-      int d_step = width*height;
-
       sws_scale(d->f_software_context,
         d->f_frame->data, d->f_frame->linesize,
         0, height,
         rgb_frame.data, rgb_frame.linesize);
-
-      vital::image image(
-        d->current_image_memory,
-        d->current_image_memory->data(),
-        width, height, 3,
-        3, 3*width, 3*width*height,
-        vital::image_pixel_traits_of<unsigned char>());
-
-      d->current_image = std::make_shared<vital::simple_image_container>(vital::simple_image_container(image));
     }
-    else
-    {
-      // Test for contiguous memory.  Sometimes FFMPEG uses scanline buffers larger
-      // than the image width.  The extra memory is used in optimized decoding routines.
-      // This leads to a segmented image buffer, not supported by vidl.
-      AVPicture test_frame;
-      avpicture_fill(&test_frame, d->f_frame->data[0], enc->pix_fmt, width, height);
-      if (test_frame.data[1] == d->f_frame->data[1] &&
-        test_frame.data[2] == d->f_frame->data[2] &&
-        test_frame.linesize[0] == d->f_frame->linesize[0] &&
-        test_frame.linesize[1] == d->f_frame->linesize[1] &&
-        test_frame.linesize[2] == d->f_frame->linesize[2])
-      {
-      vital::image image(
-          d->f_frame->data[0],
-          width, height, 3,
-          3, 3 * width, 3 * width*height//,
-          //image_pixel_from_traits_macro from fmt ?
-        );
-      d->current_image = std::make_shared<vital::simple_image_container>(vital::simple_image_container(image));
-      }
-      // Copy the image into contiguous memory.
-      else
-      {
-        if (!d->current_image_memory)
-        {
-          int size = avpicture_get_size(enc->pix_fmt, width, height);
-          d->current_image_memory = vital::image_memory_sptr(new vital::image_memory(size));
-        }
-        avpicture_fill(&test_frame, (uint8_t*)d->current_image_memory->data(), enc->pix_fmt, width, height);
-        av_picture_copy(&test_frame, (AVPicture*)d->f_frame, enc->pix_fmt, width, height);
 
-        vital::image image(
-          d->current_image_memory,
-          nullptr,
-          width, height, 3,
-          3, 3 * width, 3 * width*height //,
-          //image_pixel_from_traits_macro from fmt ?
-          );
-        d->current_image = std::make_shared<vital::simple_image_container>(vital::simple_image_container(image));
-
-      }
-    }
+    vital::image image(
+      d->current_image_memory,
+      d->current_image_memory->data(),
+      width, height, num_pixels,
+      num_pixels, num_pixels * width, num_pixels * width*height
+    );
+    d->current_image = std::make_shared<vital::simple_image_container>(vital::simple_image_container(image));
   }
 
   return d->current_image;
@@ -827,6 +741,7 @@ ffmpeg_video_input
     return 0;
   }
 
+  return -1;
   // \todo: To implement to return the number of frames once the video
   // is seekable.
 }
