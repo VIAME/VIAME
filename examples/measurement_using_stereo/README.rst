@@ -45,7 +45,7 @@ Running via the pipeline runner
 -------------------------------
 
 To run the process using the sprokit C++ pipeline we use the the pipeline
-runner use the command:
+runner:
 
 ::
 
