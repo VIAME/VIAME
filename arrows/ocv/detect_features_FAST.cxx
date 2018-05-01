@@ -72,15 +72,16 @@ public:
   }
 
   /// Update the parameters of the given detector with the currently set values
-  void update(cv::Ptr<cv::FastFeatureDetector> detector) const
+  void update(cv::Ptr<cv::FeatureDetector> detector) const
   {
 #ifndef KWIVER_HAS_OPENCV_VER_3
     detector->set("threshold", threshold);
     detector->set("nonmaxSuppression", nonmaxSuppression);
 #else
-    detector->setThreshold(threshold);
-    detector->setNonmaxSuppression(nonmaxSuppression);
-    detector->setType(neighborhood_type);
+    auto det = detector.dynamicCast<cv::FastFeatureDetector>();
+    det->setThreshold(threshold);
+    det->setNonmaxSuppression(nonmaxSuppression);
+    det->setType(neighborhood_type);
 #endif
   }
 
@@ -146,7 +147,7 @@ public:
     return valid;
   }
 
-  int threshold;
+  mutable int threshold;
   bool nonmaxSuppression;
 #ifdef KWIVER_HAS_OPENCV_VER_3
   int neighborhood_type;
@@ -191,11 +192,7 @@ detect_features_FAST
   p_->set_config( config );
 
   // Update the wrapped algo inst with new parameters
-#ifdef KWIVER_HAS_OPENCV_VER_3
-  p_->update( detector.dynamicCast<cv::FastFeatureDetector>() );
-#else
-  p_->update( detector );
-#endif
+  p_->update(detector);
 }
 
 
@@ -211,7 +208,7 @@ detect_features_FAST
 /// Extract a set of image features from the provided image
 vital::feature_set_sptr
 detect_features_FAST
-::detect(vital::image_container_sptr image_data, vital::image_container_sptr mask)
+::detect(vital::image_container_sptr image_data, vital::image_container_sptr mask) const
 {
   float close_detect_thresh = 0.1; //be within 10% of target
   auto last_det_feat_set = ocv::detect_features::detect(image_data, mask);
@@ -233,8 +230,9 @@ detect_features_FAST
       {
         p_->threshold += 1;
       }
-      auto new_conf = get_configuration();
-      set_configuration(new_conf);
+      p_->update(detector);
+      // Update the wrapped algo inst with new parameters
+
       auto higher_thresh_feat_set = ocv::detect_features::detect(image_data, mask);
 
       if (higher_thresh_feat_set->size() <= p_->targetNumDetections ||
@@ -256,8 +254,7 @@ detect_features_FAST
         {
           // set threshold back to one used in last detection
           p_->threshold = last_threshold;
-          auto new_conf = get_configuration();
-          set_configuration(new_conf);
+          p_->update(detector);
         }
         break;
       }
@@ -284,8 +281,7 @@ detect_features_FAST
           //can't have a non-positive detection threshold.
           break;
         }
-        auto new_conf = get_configuration();
-        set_configuration(new_conf);
+        p_->update(detector);
         auto lower_thresh_feat_set = ocv::detect_features::detect(image_data, mask);
 
         if (lower_thresh_feat_set->size() >= p_->targetNumDetections ||
@@ -304,8 +300,7 @@ detect_features_FAST
           {
             // set threshold back to one used in last detection
             p_->threshold = last_threshold;
-            auto new_conf = get_configuration();
-            set_configuration(new_conf);
+            p_->update(detector);
           }
           break;
         }

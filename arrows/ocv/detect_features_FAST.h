@@ -82,7 +82,7 @@ public:
   */
   virtual vital::feature_set_sptr
     detect(vital::image_container_sptr image_data,
-      vital::image_container_sptr mask = vital::image_container_sptr());
+      vital::image_container_sptr mask = vital::image_container_sptr()) const;
 
 private:
   class priv;
