@@ -36,6 +36,30 @@ VIAME.
 
 After you build viame, remember to source the setup VIAME script. Then change directory to this example folder.
 
+Running via the pipeline runner
+-------------------------------
+
+To run the process using the sprokit C++ pipeline we use the the pipeline
+runner use the command:
+
+::
+
+    # First move to the example directory
+    cd ~/code/VIAME/examples/measurement_using_stereo
+
+    # The below script runs pipeline runner on the measurement_example.pipe
+    bash run_measurer.sh
+
+
+This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017
+i7 2.8Ghz Dell laptop.
+
+
+Running via installed camtrawl python module 
+--------------------------------------------
+
+The above pipeline can alternatively be run as a python script.
+
 ::
 
     # move to your VIAME build directory
@@ -48,31 +72,6 @@ After you build viame, remember to source the setup VIAME script. Then change di
     export KWIVER_DEFAULT_LOG_LEVEL=info
     export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes:camtrawl_processes
 
-
-Running via the pipeline runner
--------------------------------
-
-To run the process using the sprokit C++ pipeline we use the the pipeline
-runner use the command: (Note this method may not be stable and is under
-development)
-
-::
-
-    # First move to the example directory
-    cd ~/code/VIAME/examples/measurement_using_stereo
-
-    # Then run the pipeline file
-    pipeline_runner -p camtrawl_demo.pipe -S pythread_per_process
-
-
-This example runs at about 4.0Hz, and takes 13.3 seconds to complete on a 2017
-i7 2.8Ghz Dell laptop.
-
-
-Running via installed camtrawl python module 
---------------------------------------------
-
-The above pipeline can alternatively be run as a python script.
 
 You should be able to run the help command
 
