@@ -34,7 +34,12 @@ For simplicity this tutorial will assume that the VIAME source directory is
 these as needeed to match your system setup. We also assume that you have built
 VIAME.
 
-After you build viame, remember to source the setup VIAME script. Then change directory to this example folder.
+After you build viame, remember to source the setup VIAME script. Then change
+directory to this example folder.
+
+Additionally this example requires an extra python dependency to be installed.
+On Linux, 'pip install ubelt', on windows both 'pip install ubelt' and 'pip install jaraco.windows'
+
 
 Running via the pipeline runner
 -------------------------------
