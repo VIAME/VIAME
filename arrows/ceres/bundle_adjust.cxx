@@ -295,6 +295,11 @@ bundle_adjust
       {
         continue;
       }
+      if (!fts->inlier)
+      {
+        continue; // feature is not an inlier so don't use it in ba.
+      }
+
       unsigned intr_idx = d_->frame_to_intr_map[fts->frame()];
       double * intr_params_ptr = &d_->camera_intr_params[intr_idx][0];
       used_intrinsics.insert(intr_idx);
