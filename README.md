@@ -63,7 +63,7 @@ Python 2.7, and no matlab support enabled:
 
 [VIAME v0.9.3 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5a9d8b218d777f0685785721/download)
 
-[VIAME v0.9.3 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5a9041158d777f0685784d8a/download)
+[VIAME v0.9.4 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5ae9d37e8d777f068579700f/download)
 
 
 
