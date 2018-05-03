@@ -49,7 +49,7 @@ namespace core {
 /// Calculate fraction of each image that is covered by landmark projections
 frame_coverage_vec
 image_coverages(
-  const std::vector<track_sptr>& trks,
+  std::vector<track_sptr> const& trks,
   kwiver::vital::landmark_map::map_landmark_t const& lms,
   camera_map::map_camera_t const& cams )
 {

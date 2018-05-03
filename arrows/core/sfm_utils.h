@@ -69,7 +69,7 @@ typedef std::vector<coverage_pair> frame_coverage_vec;
 KWIVER_ALGO_CORE_EXPORT
 frame_coverage_vec
 image_coverages(
-  const std::vector<vital::track_sptr>& trks,
+  std::vector<vital::track_sptr> const& trks,
   vital::landmark_map::map_landmark_t const& lms,
   vital::camera_map::map_camera_t const& cams);
 
