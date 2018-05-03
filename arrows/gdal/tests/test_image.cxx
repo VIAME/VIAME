@@ -43,7 +43,12 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace gdal = kwiver::arrows::gdal;
-static std::string nitf_file_name = "test.tif";
+static int expected_size = 32;
+static std::string geotiff_file_name = "test.tif";
+static std::string nitf_file_name = "test.ntf";
+static std::string jpeg_file_name = "test.jpg";
+static std::vector<int> test_x_pixels = {0, 3, 11, 21, 31};
+static std::vector<int> test_y_pixels = {0, 5, 8, 13, 31};
 
 static std::vector< kwiver::vital::vital_metadata_tag > rpc_tags =
 {
@@ -76,6 +81,26 @@ main(int argc, char* argv[])
 }
 
 // ----------------------------------------------------------------------------
+void test_rpc_metadata(kwiver::vital::metadata_sptr md)
+{
+  EXPECT_EQ( md->size(), 14 )
+    << "Image metadata should have 14 entries";
+
+  kwiver::vital::metadata_traits md_traits;
+  for ( auto const& tag : rpc_tags )
+  {
+    EXPECT_TRUE( md->has( tag ) )
+      << "Image metadata should include " << md_traits.tag_to_name( tag );
+  }
+
+  if (md->size() > 0)
+  {
+    std::cout << "-----------------------------------\n" << std::endl;
+    kwiver::vital::print_metadata( std::cout, *md );
+  }
+}
+
+// ----------------------------------------------------------------------------
 class image_io : public ::testing::Test
 {
   TEST_ARG(data_dir);
@@ -92,33 +117,94 @@ TEST_F(image_io, create)
     << "Factory method did not construct the correct type";
 }
 
-TEST_F(image_io, load)
+TEST_F(image_io, load_geotiff)
+{
+  auto img_io = algo::image_io::create("gdal");
+
+  kwiver::vital::path_t file_path = data_dir + "/" + geotiff_file_name;
+  auto img_ptr = img_io->load(file_path);
+
+  EXPECT_EQ( img_ptr->width(), expected_size );
+  EXPECT_EQ( img_ptr->height(), expected_size );
+  EXPECT_EQ( img_ptr->depth(), 1 );
+
+  // Test some pixel values
+  kwiver::vital::image_of<uint16_t> img(img_ptr->get_image());
+  for ( auto x_px : test_x_pixels )
+  {
+    for ( auto y_px : test_y_pixels )
+    {
+      uint16_t expected_pixel_value = (std::numeric_limits<uint16_t>::max() + 1)
+        *x_px*y_px/expected_size/expected_size;
+      EXPECT_EQ( img(x_px, y_px), expected_pixel_value);
+    }
+  }
+
+  auto md = img_ptr->get_metadata();
+
+  test_rpc_metadata(md);
+}
+
+TEST_F(image_io, load_nitf)
 {
   auto img_io = algo::image_io::create("gdal");
 
   kwiver::vital::path_t file_path = data_dir + "/" + nitf_file_name;
   auto img_ptr = img_io->load(file_path);
 
-  EXPECT_EQ( img_ptr->width(), 50 );
-  EXPECT_EQ( img_ptr->height(), 50 );
-  EXPECT_EQ( img_ptr->depth(), 3 );
+  EXPECT_EQ( img_ptr->width(), expected_size );
+  EXPECT_EQ( img_ptr->height(), expected_size );
+  EXPECT_EQ( img_ptr->depth(), 1 );
+
+  // Test some pixel values
+  kwiver::vital::image_of<float> img(img_ptr->get_image());
+  for ( auto x_px : test_x_pixels )
+  {
+    for ( auto y_px : test_y_pixels )
+    {
+      float expected_pixel_value = x_px*y_px/float(expected_size*expected_size);
+      EXPECT_EQ( img(x_px, y_px), expected_pixel_value);
+    }
+  }
 
   auto md = img_ptr->get_metadata();
 
-  EXPECT_EQ( md->size(), 14 )
-    << "Image metadata should have 14 entries";
+  test_rpc_metadata(md);
+}
 
-  kwiver::vital::metadata_traits md_traits;
-  for ( auto const& tag : rpc_tags )
-  {
-    EXPECT_TRUE( md->has( tag ) )
-      << "Image metadata should include " << md_traits.tag_to_name( tag );
-  }
+TEST_F(image_io, load_jpeg)
+{
+  auto img_io = algo::image_io::create("gdal");
 
-  if (md->size() > 0)
+  kwiver::vital::path_t file_path = data_dir + "/" + jpeg_file_name;
+  auto img_ptr = img_io->load(file_path);
+
+  EXPECT_EQ( img_ptr->width(), expected_size );
+  EXPECT_EQ( img_ptr->height(), expected_size );
+  EXPECT_EQ( img_ptr->depth(), 3 );
+
+  uint8_t norm_fact =
+    expected_size*expected_size/(std::numeric_limits<uint8_t>::max() + 1);
+
+  // Test some pixel values
+  kwiver::vital::image_of<uint8_t> img(img_ptr->get_image());
+  for ( auto x_px : test_x_pixels )
   {
-    std::cout << "-----------------------------------\n" << std::endl;
-    kwiver::vital::print_metadata( std::cout, *md );
+    for ( auto y_px : test_y_pixels )
+    {
+      auto pixel = img.at( x_px, y_px );
+
+      uint8_t expected_red = x_px*y_px/norm_fact;
+      uint8_t expected_blue = (expected_size - x_px - 1)*y_px/norm_fact;
+      uint8_t expected_green = x_px*(expected_size - y_px - 1)/norm_fact;
+      // Due to lossy compression exact comparisons will fail
+      EXPECT_NEAR( pixel.r, expected_red, 1 )
+        << "Incorrect red value at pixel (" << x_px << "," << y_px << ")";
+      EXPECT_NEAR( pixel.b, expected_blue,1 )
+        << "Incorrect blue value at pixel (" << x_px << "," << y_px << ")";
+      EXPECT_NEAR( pixel.g, expected_green, 1 )
+        << "Incorrect green value at pixel (" << x_px << "," << y_px << ")";
+    }
   }
 }
 

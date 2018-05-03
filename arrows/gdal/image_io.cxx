@@ -200,8 +200,8 @@ image_io
       GDALRasterBand* band = gdalDataset->GetRasterBand(i);
       bandType = band->GetRasterDataType();
       err = band->RasterIO(GF_Read, 0, 0, imgWidth, imgHeight,
-        static_cast<void*>(
-          reinterpret_cast<GByte*>(img.first_pixel()) + (i-1)*img.d_step()),
+        static_cast<void*>(reinterpret_cast<GByte*>(
+          img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
         imgWidth, imgHeight, bandType, 0, 0);
     }
   }
