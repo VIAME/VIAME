@@ -21,6 +21,13 @@ Arrows - Core
    
 Sprokit
 
+ * Added functions that detect issues in the structure from motion
+   solution and correct them.  Issues could be disconnected components
+   of cameras, cameras with too little coverage, landmarks without
+   enough measurements to constrain them etc.  The corrections typically
+   remove offending items.  Only the largest connected map component is
+   kept.  Underconstrained landmarks are removed etc.
+
  * Changed KLT tracking pipeline to pass track change information between
    processes rather than full track sets for efficiency.
  
