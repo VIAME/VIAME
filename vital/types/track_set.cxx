@@ -71,8 +71,20 @@ track_set
         for (auto ts : *t)
         {
           auto ts_clone = ts->clone();
-          ct->append(ts_clone);
-          this->notify_new_state(ts_clone);
+          if (ct->back()->frame() < ts_clone->frame())
+          {
+            if (ct->append(ts_clone))
+            {
+              this->notify_new_state(ts_clone);
+            }
+          }
+          else
+          {
+            if (ct->insert(ts_clone))
+            {
+              this->notify_new_state(ts_clone);
+            }
+          }
         }
       }
     }
