@@ -192,15 +192,16 @@ bool
 track
 ::remove(track_state_sptr state)
 {
-  for (auto it = this->history_.begin(); it != this->history_.end(); ++it)
+  auto pos = std::lower_bound(this->history_.begin(), this->history_.end(),
+    state->frame(), compare_state_frame());
+
+  if (pos == this->history_.end() || (*pos)->frame() != state->frame())
   {
-    if (state == *it)
-    {
-      this->history_.erase(it);
-      return true;
-    }
+    return false;
   }
-  return false;
+
+  this->history_.erase(pos);
+  return true;
 }
 
 /// Find the track state iterator matching \a frame
