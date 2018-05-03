@@ -16,6 +16,14 @@ Arrows - Core
    RANSAC for robustness to outliers and additional checks to reject
    poorly constrainted landmarks with minimal view angle variation.
 
+ * Changes to track_set_impl to facilitate passing track changes between
+   sprokit processes rather than full track sets for efficiency.
+   
+Sprokit
 
+ * Changed KLT tracking pipeline to pass track change information between
+   processes rather than full track sets for efficiency.
+ 
+   
 Fixes since last public release
 -------------------------------
