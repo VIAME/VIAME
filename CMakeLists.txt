@@ -63,7 +63,7 @@ option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
-option( VIAME_ENABLE_FISHTRACKER    "Enable SRI GUI"                OFF )
+option( VIAME_ENABLE_FLASK          "Enable SRI GUI"                OFF )
 
 
 ###
@@ -322,16 +322,16 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 else()
 
-if( VIAME_ENABLE_FISHTRACKER )
+if( VIAME_ENABLE_FLASK )
   set(FT_DATA_ROOT "${CMAKE_BINARY_DIR}/data" CACHE STRING "Where fishtracker data is stored")
-  file(COPY "packages/FishTracker"
-       DESTINATION "static"
+  file(COPY "plugins/flask"
+       DESTINATION "plugins/flask"
        PATTERN "*.in" EXCLUDE)
-  configure_file("packages/FishTracker/flask/fishtracker.py.in"
-                 "static/FishTracker/flask/fishtracker.py"
+  configure_file("plugins/flask/flask/fishtracker.py.in"
+                 "plugins/flask/flask/fishtracker.py"
                  )
-  configure_file("packages/FishTracker/Python/run_python_script.sh.in"
-                 "static/FishTracker/Python/run_python_script.sh"
+  configure_file("plugins/flask/Python/run_python_script.sh.in"
+                 "plugins/flask/Python/run_python_script.sh"
                  )
 endif()
 
