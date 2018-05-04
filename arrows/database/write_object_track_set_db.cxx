@@ -134,7 +134,7 @@ write_object_track_set_db
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_db
-::write_set( const kwiver::vital::object_track_set_sptr set )
+::write_set( const kwiver::vital::timestamp& ts, const kwiver::vital::object_track_set_sptr set )
 {
   cppdb::statement update_stmt = d->m_conn.create_prepared_statement( "UPDATE OBJECT_TRACK SET "
     "TIMESTAMP = ?, "
