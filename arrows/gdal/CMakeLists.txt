@@ -25,7 +25,7 @@ kwiver_add_library( kwiver_algo_gdal
   )
 target_link_libraries( kwiver_algo_gdal
   PUBLIC               kwiver_algo_core
-                       ${GDAL_LIBRARY}
+  PRIVATE              ${GDAL_LIBRARY}
   )
 
 algorithms_create_plugin( kwiver_algo_gdal

@@ -49,7 +49,6 @@ class KWIVER_ALGO_GDAL_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
-public:
   /// Constructor
   image_io();
 
