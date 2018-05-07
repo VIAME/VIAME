@@ -48,7 +48,8 @@ namespace core {
 
 /// Calculate fraction of each image that is covered by landmark projections
 frame_coverage_vec
-image_coverages(const feature_track_set_sptr tracks,
+image_coverages(
+  std::vector<track_sptr> const& trks,
   kwiver::vital::landmark_map::map_landmark_t const& lms,
   camera_map::map_camera_t const& cams )
 {
@@ -58,7 +59,6 @@ image_coverages(const feature_track_set_sptr tracks,
   typedef std::map<frame_id_t, vis_mask> frame_map_t;
   frame_map_t frame_masks;
   //calculate feature distribution masks for each candidate image.
-  auto tks = tracks->tracks();
 
   struct im_dims {
     int w;
@@ -81,7 +81,7 @@ image_coverages(const feature_track_set_sptr tracks,
     }
   }
 
-  for (const track_sptr& t : tks)
+  for (const track_sptr& t : trks)
   {
     if (lms.find(t->id()) != lms.end())
     {
@@ -374,7 +374,7 @@ detect_bad_cameras(
 {
   std::set<frame_id_t> rem_frames;
 
-  frame_coverage_vec fc = image_coverages(tracks, lms, cams);
+  frame_coverage_vec fc = image_coverages(tracks->tracks(), lms, cams);
 
   for (auto cov : fc)
   {

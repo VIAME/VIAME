@@ -16,10 +16,9 @@ Arrows - Core
    RANSAC for robustness to outliers and additional checks to reject
    poorly constrainted landmarks with minimal view angle variation.
 
- * Changes to track_set_impl to facilitate passing track changes between
-   sprokit processes rather than full track sets for efficiency.
-   
-Sprokit
+ * Added feature detection that adaptively changes thresholds to detect 
+   close to a target number of features in each frame.  Also improves the
+   distribution of features across the image with a gridded approach.  
 
  * Added functions that detect issues in the structure from motion
    solution and correct them.  Issues could be disconnected components
@@ -28,9 +27,14 @@ Sprokit
    remove offending items.  Only the largest connected map component is
    kept.  Underconstrained landmarks are removed etc.
 
+ * Changes to track_set_impl to facilitate passing track changes between
+   sprokit processes rather than full track sets for efficiency.
+   
+Sprokit
+
  * Changed KLT tracking pipeline to pass track change information between
    processes rather than full track sets for efficiency.
- 
-   
+
+
 Fixes since last public release
 -------------------------------
