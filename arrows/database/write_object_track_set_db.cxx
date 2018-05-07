@@ -35,8 +35,6 @@
 
 #include "write_object_track_set_db.h"
 
-#include <boost/optional.hpp>
-
 #include <cppdb/frontend.h>
 
 #include <time.h>
@@ -52,6 +50,7 @@ public:
   priv( write_object_track_set_db* parent)
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "write_object_track_set_db" ) )
+    , m_commit_interval( 1 )
   { }
 
   ~priv() { }
@@ -61,7 +60,9 @@ public:
   cppdb::session m_conn;
   std::string m_conn_str;
   std::string m_video_name;
-  boost::optional<cppdb::transaction> m_tran;
+  unsigned int m_commit_interval;
+  unsigned int m_commit_frame_counter;
+  std::unique_ptr<cppdb::transaction> m_tran;
 };
 
 
@@ -86,6 +87,8 @@ write_object_track_set_db
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
   d->m_video_name = config->get_value< std::string > ( "video_name", "" );
+  d->m_commit_interval =
+    config->get_value<unsigned int>( "commit_interval", d->m_commit_interval );
 }
 
 
@@ -123,7 +126,9 @@ write_object_track_set_db
   delete_stmt.bind( 1, d->m_video_name );
   delete_stmt.exec();
 
-  d->m_tran.emplace( d->m_conn );
+  d->m_commit_frame_counter = 0;
+
+  d->m_tran.reset( new cppdb::transaction( d->m_conn ) );
 }
 
 
@@ -218,6 +223,18 @@ write_object_track_set_db
         insert_stmt.exec();
         insert_stmt.reset();
       }
+    }
+  }
+
+  if( d->m_commit_interval > 0 )
+  {
+    d->m_commit_frame_counter++;
+
+    if( d->m_commit_frame_counter >= d->m_commit_interval )
+    {
+      d->m_tran->commit();
+      d->m_tran.reset( new cppdb::transaction( d->m_conn ) );
+      d->m_commit_frame_counter = 0;
     }
   }
 }
