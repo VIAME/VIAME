@@ -35,6 +35,8 @@
 
 #include "write_object_track_set_db.h"
 
+#include <boost/optional.hpp>
+
 #include <cppdb/frontend.h>
 
 #include <time.h>
@@ -59,6 +61,7 @@ public:
   cppdb::session m_conn;
   std::string m_conn_str;
   std::string m_video_name;
+  boost::optional<cppdb::transaction> m_tran;
 };
 
 
@@ -119,6 +122,8 @@ write_object_track_set_db
   );
   delete_stmt.bind( 1, d->m_video_name );
   delete_stmt.exec();
+
+  d->m_tran.emplace( d->m_conn );
 }
 
 
@@ -127,6 +132,9 @@ void
 write_object_track_set_db
 ::close()
 {
+  d->m_tran->commit();
+  d->m_tran.reset();
+
   d->m_conn.close();
 }
 
@@ -181,8 +189,6 @@ write_object_track_set_db
       const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
       vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
-      cppdb::transaction guard(d->m_conn);
-
       update_stmt.bind( 1, trkstate->time() );
       update_stmt.bind( 2, bbox.min_x() );
       update_stmt.bind( 3, bbox.min_y() );
@@ -212,7 +218,6 @@ write_object_track_set_db
         insert_stmt.exec();
         insert_stmt.reset();
       }
-      guard.commit();
     }
   }
 }
