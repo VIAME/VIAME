@@ -177,6 +177,7 @@ detect_features_if_keyframe_process
   kwiver::vital::feature_track_set_sptr next_tracks =
     grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
 
+  //clone next track set so it can be changed
   next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
 
   //track set from the last call of detect_features_if_keyframe_process::step
@@ -194,7 +195,6 @@ detect_features_if_keyframe_process
   }
   else
   {
-    //clone next track set so it can be changed
     curr_tracks = next_tracks;
   }
   d->first = false;  //it's not the first call any more
