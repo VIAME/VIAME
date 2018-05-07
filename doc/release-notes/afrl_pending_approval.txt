@@ -16,12 +16,17 @@ Arrows - Core
    RANSAC for robustness to outliers and additional checks to reject
    poorly constrainted landmarks with minimal view angle variation.
 
+ * Added feature detection that adaptively changes thresholds to detect 
+   close to a target number of features in each frame.  Also improves the
+   distribution of features across the image with a gridded approach.  
+
  * Added functions that detect issues in the structure from motion
    solution and correct them.  Issues could be disconnected components
    of cameras, cameras with too little coverage, landmarks without
    enough measurements to constrain them etc.  The corrections typically
    remove offending items.  Only the largest connected map component is
    kept.  Underconstrained landmarks are removed etc.
+
 
 Fixes since last public release
 -------------------------------
