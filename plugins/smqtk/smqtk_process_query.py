@@ -88,14 +88,16 @@ class SmqtkProcessQuery (KwiverProcess):
 
         ## declare our input port ( port-name,flags)
         # user-provided positive examplar descriptors.
-        self.declare_input_port_using_trait('descriptor_set', required)
-        # UUIDs for the user provided positive exemplar descriptors
-        self.declare_input_port_using_trait('exemplar_uids', required)
+        self.declare_input_port_using_trait('positive_descriptor_set', required)
+        self.declare_input_port_using_trait('positive_exemplar_uids', required)
+        # user-provided negative examplar descriptors.
+        self.declare_input_port_using_trait('negative_descriptor_set', optional)
+        self.declare_input_port_using_trait('negative_exemplar_uids', optional)
         # user adjudicated positive and negative descriptor UUIDs
-        self.declare_input_port_using_trait('positive_uids', optional)
-        self.declare_input_port_using_trait('negative_uids', optional)
+        self.declare_input_port_using_trait('iqr_positive_uids', optional)
+        self.declare_input_port_using_trait('iqr_negative_uids', optional)
         # input model if pre-generated
-        self.declare_input_port_using_trait('query_model', optional)
+        self.declare_input_port_using_trait('iqr_query_model', optional)
 
         # Output, ranked descriptor UUIDs
         self.declare_output_port_using_trait('result_uids', optional)
@@ -127,13 +129,19 @@ class SmqtkProcessQuery (KwiverProcess):
         )
 
     def add_port_traits(self):
-        self.add_port_trait("exemplar_uids", "string_vector",
+        self.add_port_trait("positive_descriptor_set", "descriptor_set",
+                            "Positive exemplar descriptor set")
+        self.add_port_trait("positive_exemplar_uids", "string_vector",
                             "Positive exemplar descriptor UUIDs")
-        self.add_port_trait("positive_uids", "string_vector",
+        self.add_port_trait("negative_descriptor_set", "descriptor_set",
+                            "Negative exemplar descriptor set")
+        self.add_port_trait("negative_exemplar_uids", "string_vector",
+                            "Negative exemplar descriptor UUIDs")
+        self.add_port_trait("iqr_positive_uids", "string_vector",
                             "Positive sample UIDs")
-        self.add_port_trait("negative_uids", "string_vector",
+        self.add_port_trait("iqr_negative_uids", "string_vector",
                             "Negative sample UIDs")
-        self.add_port_trait("query_model", "uchar_vector",
+        self.add_port_trait("iqr_query_model", "uchar_vector",
                             "Input model for input queries.")
         self.add_port_trait("result_uids", "string_vector",
                             "Result ranked descriptor UUIDs in rank order.")
@@ -255,28 +263,34 @@ class SmqtkProcessQuery (KwiverProcess):
         # Set/vector of descriptors to perform query off of
         #
         #: :type: vital.types.DescriptorSet
-        vital_descriptor_set = self.grab_input_using_trait('descriptor_set')
-        vital_descriptor_uids = self.grab_input_using_trait('exemplar_uids')
+        vital_positive_descriptor_set = self.grab_input_using_trait('positive_descriptor_set')
+        vital_positive_descriptor_uids = self.grab_input_using_trait('positive_exemplar_uids')
+        #
+        # Set/vector of descriptors to use as negative examples
+        #
+        #: :type: vital.types.DescriptorSet
+        vital_negative_descriptor_set = self.grab_input_using_trait('negative_descriptor_set')
+        vital_negative_descriptor_uids = self.grab_input_using_trait('negative_exemplar_uids')
         #
         # Vector of UIDs for vector of descriptors in descriptor_set.
         #
         #: :type: list[str]
-        positive_tuple = self.grab_input_using_trait('positive_uids')
-        negative_tuple = self.grab_input_using_trait('negative_uids')
+        iqr_positive_tuple = self.grab_input_using_trait('iqr_positive_uids')
+        iqr_negative_tuple = self.grab_input_using_trait('iqr_negative_uids')
         #
         # Optional input SVM model
         #
         #: :type: vital.types.UCharVector
-        query_model = self.grab_input_using_trait('query_model')
+        iqr_query_model = self.grab_input_using_trait('iqr_query_model')
 
         # Reset index on new query, a new query is one without IQR feedback
-        if len( positive_tuple ) == 0 and len( negative_tuple ) == 0:
+        if len( iqr_positive_tuple ) == 0 and len( iqr_negative_tuple ) == 0:
           self.iqr_session = smqtk.iqr.IqrSession(self.pos_seed_neighbors)
 
         # Convert descriptors to SMQTK elements.
         #: :type: list[DescriptorElement]
         user_pos_elements = []
-        z = zip(vital_descriptor_set.descriptors(), vital_descriptor_uids)
+        z = zip(vital_positive_descriptor_set.descriptors(), vital_positive_descriptor_uids)
         for vital_descr, uid_str in z:
             smqtk_descr = self.smqtk_descriptor_element_factory.new_descriptor(
                 'from_sprokit', uid_str
@@ -287,14 +301,26 @@ class SmqtkProcessQuery (KwiverProcess):
             # Queue up element for adding to set.
             user_pos_elements.append(smqtk_descr)
 
+        user_neg_elements = []
+        z = zip(vital_negative_descriptor_set.descriptors(), vital_negative_descriptor_uids)
+        for vital_descr, uid_str in z:
+            smqtk_descr = self.smqtk_descriptor_element_factory.new_descriptor(
+                'from_sprokit', uid_str
+            )
+            # A descriptor may already exist in the backend (if its persistant)
+            # for the given UID. We currently always overwrite.
+            smqtk_descr.set_vector(vital_descr.todoublearray())
+            # Queue up element for adding to set.
+            user_neg_elements.append(smqtk_descr)
+
         # Get SMQTK descriptor elements from index for given pos/neg UUID-
         # values.
         #: :type: collections.Iterator[DescriptorElement]
-        pos_descrs = self.descriptor_set.get_many_descriptors(positive_tuple)
+        pos_descrs = self.descriptor_set.get_many_descriptors(iqr_positive_tuple)
         #: :type: collections.Iterator[DescriptorElement]
-        neg_descrs = self.descriptor_set.get_many_descriptors(negative_tuple)
+        neg_descrs = self.descriptor_set.get_many_descriptors(iqr_negative_tuple)
 
-        self.iqr_session.adjudicate(user_pos_elements)
+        self.iqr_session.adjudicate(user_pos_elements, user_neg_elements)
         self.iqr_session.adjudicate(pos_descrs, neg_descrs)
 
         # Update iqr working index for any new positives
