@@ -41,6 +41,7 @@
 #include <vital/types/metadata_traits.h>
 
 #include <gdal_priv.h>
+#include <ogr_spatialref.h>
 
 #include <sstream>
 
@@ -48,7 +49,7 @@ namespace kwiver {
 namespace arrows {
 namespace gdal {
 
-void add_metadata(char* raw_md, vital::metadata_sptr md)
+void add_rpc_metadata(char* raw_md, vital::metadata_sptr md)
 {
   std::istringstream md_string(raw_md);
 
@@ -98,6 +99,14 @@ if ( key == #GN)                              \
 
 #undef MAP_METADATA_SCALAR
 #undef MAP_METADATA_COEFF
+}
+
+vital::polygon::point_t apply_geo_transform(double gt[], double x, double y)
+{
+  vital::polygon::point_t retVal;
+  retVal[0] = gt[0] + gt[1]*x + gt[2]*y;
+  retVal[1] = gt[3] + gt[4]*x + gt[5]*y;
+  return retVal;
 }
 
 /// Constructor
@@ -204,21 +213,48 @@ image_io
           img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
         imgWidth, imgHeight, bandType, 0, 0);
     }
-  }
 
-  // Get and translate metadata
-  vital::metadata_sptr md = std::make_shared<vital::metadata>();
+    // Get and translate metadata
+    vital::metadata_sptr md = std::make_shared<vital::metadata>();
 
-  char** rpc_metadata = gdalDataset->GetMetadata("RPC");
-  if (CSLCount(rpc_metadata) > 0)
-  {
-    for (int i = 0; rpc_metadata[i] != NULL; ++i)
+    // Get geotransform and calculate corner points
+    double geo_transform[6];
+    gdalDataset->GetGeoTransform(geo_transform);
+
+    OGRSpatialReference osrs;
+    auto proj_ptr = gdalDataset->GetProjectionRef();
+    char* wktDesc = new char[strlen(proj_ptr)];
+    strcpy( wktDesc, proj_ptr ); // Copy needed due const/non-const api conflicts
+    char* tmpPtr = wktDesc; // This gets advanced by importFromWkt
+    osrs.importFromWkt( &tmpPtr );
+
+    // If coordinate system available - calculate corner points.
+    if ( osrs.GetAuthorityCode("GEOGCS") )
     {
-      add_metadata( rpc_metadata[i] , md);
-    }
-  }
+      vital::polygon points;
+      points.push_back( apply_geo_transform(geo_transform, 0, 0) );
+      points.push_back( apply_geo_transform(geo_transform, 0, imgHeight) );
+      points.push_back( apply_geo_transform(geo_transform, imgWidth, 0) );
+      points.push_back( apply_geo_transform(geo_transform, imgWidth, imgHeight) );
 
-  return std::make_shared<vital::simple_image_container>(img, md);
+      md->add( NEW_METADATA_ITEM( vital::VITAL_META_CORNER_POINTS,
+        vital::geo_polygon( points, atoi( osrs.GetAuthorityCode("GEOGCS") ) ) ) );
+    }
+
+    delete[] wktDesc;
+
+    // Get RPC metadata
+    char** rpc_metadata = gdalDataset->GetMetadata("RPC");
+    if (CSLCount(rpc_metadata) > 0)
+    {
+      for (int i = 0; rpc_metadata[i] != NULL; ++i)
+      {
+        add_rpc_metadata( rpc_metadata[i] , md );
+      }
+    }
+
+    return std::make_shared<vital::simple_image_container>(img, md);
+  }
 }
 
 
