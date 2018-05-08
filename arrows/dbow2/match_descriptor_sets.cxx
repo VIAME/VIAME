@@ -521,12 +521,19 @@ match_descriptor_sets
     // Bit set count operation from
     // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
 
+    if (dv1->size() % 4)
+    {
+      throw vital::invalid_value("Descriptor must be a multiple of four bytes long.");
+    }
+    const int num_ints_long(dv1->size() / 4);
+
+
     const int *pa = (int*)dv1->raw_data();
     const int *pb = (int*)dv2->raw_data();
 
     int dist = 0;
 
-    for (int i = 0; i < 8; i++, pa++, pb++)
+    for (int i = 0; i < num_ints_long; i++, pa++, pb++)
     {
       unsigned  int v = *pa ^ *pb;
       v = v - ((v >> 1) & 0x55555555);
