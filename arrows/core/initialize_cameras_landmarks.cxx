@@ -178,7 +178,7 @@ public:
   double interim_reproj_thresh;
   double final_reproj_thresh;
   double zoom_scale_thresh;
-  vital::simple_camera base_camera;
+  vital::simple_camera_perspective base_camera;
   vital::algo::estimate_essential_matrix_sptr e_estimator;
   vital::algo::optimize_cameras_sptr camera_optimizer;
   vital::algo::triangulate_landmarks_sptr lm_triangulator;
@@ -228,9 +228,9 @@ initialize_cameras_landmarks::priv
   camera_map::map_camera_t::const_iterator ci = cams.find(last_frame);
   if( ci == cams.end() )
   {
-    throw invalid_value("Camera for last frame not provided.");
+    VITAL_THROW( invalid_value,"Camera for last frame not provided.");
   }
-  camera_sptr prev_cam = ci->second;
+  auto prev_cam = std::dynamic_pointer_cast<camera_perspective>(ci->second);
   camera_intrinsics_sptr cal_right = prev_cam->intrinsics();
   const camera_intrinsics_sptr cal_left = base_camera.get_intrinsics();
   std::vector<bool> inliers;
@@ -257,7 +257,8 @@ initialize_cameras_landmarks::priv
   vector_2d right_pt = cal_right->unmap(pts_right[inlier_idx]);
 
   // compute the corresponding camera rotation and translation (up to scale)
-  vital::simple_camera cam = kwiver::arrows::extract_valid_left_camera(E, left_pt, right_pt);
+  vital::simple_camera_perspective cam =
+    kwiver::arrows::extract_valid_left_camera(E, left_pt, right_pt);
   cam.set_intrinsics(cal_left);
 
   // compute the scale from existing landmark locations (if available)
@@ -901,15 +902,15 @@ initialize_cameras_landmarks
 {
   if( !tracks )
   {
-    throw invalid_value("Some required input data is NULL.");
+    VITAL_THROW( invalid_value,"Some required input data is NULL.");
   }
   if( !d_->e_estimator )
   {
-    throw invalid_value("Essential matrix estimator not initialized.");
+    VITAL_THROW( invalid_value,"Essential matrix estimator not initialized.");
   }
   if( !d_->lm_triangulator )
   {
-    throw invalid_value("Landmark triangulator not initialized.");
+    VITAL_THROW( invalid_value,"Landmark triangulator not initialized.");
   }
   typedef vital::camera_map::map_camera_t map_cam_t;
   typedef vital::landmark_map::map_landmark_t map_landmark_t;
@@ -1053,7 +1054,8 @@ initialize_cameras_landmarks
 
     if( d_->init_from_last && d_->camera_optimizer && flms.size() > 3)
     {
-      cams[f] = cams[other_frame]->clone();
+      auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(cams[other_frame]);
+      cams[f] = cam_ptr->clone();
     }
     else if( trks.size() > 10 )
     {
@@ -1067,10 +1069,11 @@ initialize_cameras_landmarks
     if( scale_change != 1.0 )
     {
       // construct a new camera a new intrinsic model.
-      auto cam = cams[f];
-      auto K = std::make_shared<simple_camera_intrinsics>(*cam->intrinsics());
+      auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(cams[f]);
+      auto K = std::make_shared<simple_camera_intrinsics>(*cam_ptr->intrinsics());
       K->set_focal_length(K->get_focal_length() * scale_change);
-      cams[f] = std::make_shared<simple_camera>(cam->center(), cam->rotation(), K);
+      cams[f] = std::make_shared<simple_camera_perspective>(
+          cam_ptr->center(), cam_ptr->rotation(), K);
       LOG_DEBUG(logger(), "Constructing new intrinsics");
     }
 
@@ -1138,8 +1141,10 @@ initialize_cameras_landmarks
       tracks = std::make_shared<feature_track_set>(all_trks);
       double final_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
       LOG_INFO(logger(), "final reprojection RMSE: " << final_rmse);
+      auto cam_ptr =
+        std::dynamic_pointer_cast<camera_perspective>(cams.begin()->second);
       LOG_DEBUG(logger(), "updated focal length "
-                              << cams.begin()->second->intrinsics()->focal_length());
+                              << cam_ptr->intrinsics()->focal_length());
 
       if( !tried_necker_reverse && d_->reverse_ba_error_ratio > 0 )
       {

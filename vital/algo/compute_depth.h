@@ -39,7 +39,7 @@
 
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/image_container.h>
 #include <vital/types/landmark.h>
 
@@ -71,7 +71,7 @@ public:
   */
   virtual image_container_sptr
   compute(const std::vector<image_container_sptr> &frames,
-          const std::vector<camera_sptr> &cameras,
+          const std::vector<camera_perspective_sptr> &cameras,
           const std::vector<landmark_sptr> &landmarks,
           unsigned int reference_frame,
           const std::vector<image_container_sptr> &masks =

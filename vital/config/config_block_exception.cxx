@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ namespace vital {
 // ------------------------------------------------------------------
 config_block_exception
 ::config_block_exception() noexcept
-  : std::exception()
 {
 }
 
@@ -51,14 +50,6 @@ config_block_exception
 config_block_exception
 ::~config_block_exception() noexcept
 {
-}
-
-
-char const*
-config_block_exception
-::what() const noexcept
-{
-  return this->m_what.c_str();
 }
 
 

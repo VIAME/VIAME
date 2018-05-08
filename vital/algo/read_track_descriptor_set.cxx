@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  * \brief Implementation of load/save wrapping functionality.
  */
 
-#include "track_descriptor_set_output.h"
+#include "read_track_descriptor_set.h"
 
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
@@ -42,7 +42,7 @@
 #include <kwiversys/SystemTools.hxx>
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::track_descriptor_set_output);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::read_track_descriptor_set);
 /// \endcond
 
 
@@ -50,55 +50,19 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-track_descriptor_set_output
-::track_descriptor_set_output()
+read_track_descriptor_set
+::read_track_descriptor_set()
   : m_stream( 0 )
   , m_stream_owned( false )
 {
-  attach_logger( "track_descriptor_set_output" );
+  attach_logger( "read_track_descriptor_set" );
 }
 
 
-track_descriptor_set_output
-::~track_descriptor_set_output()
+read_track_descriptor_set
+::~read_track_descriptor_set()
 {
-}
-
-
-// ------------------------------------------------------------------
-void
-track_descriptor_set_output
-::open( std::string const& filename )
-{
-  // try to open the file
-  std::ostream* file( new std::ofstream( filename ) );
-  if ( ! file )
-  {
-    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
-  }
-
-  m_stream = file;
-  m_stream_owned = true;
-  m_filename = filename;
-}
-
-
-// ------------------------------------------------------------------
-void
-track_descriptor_set_output
-::use_stream( std::ostream* strm )
-{
-  m_stream = strm;
-  m_stream_owned = false;
-}
-
-
-// ------------------------------------------------------------------
-void
-track_descriptor_set_output
-::close()
-{
-  if ( m_stream_owned )
+  if ( m_stream && m_stream_owned )
   {
     delete m_stream;
   }
@@ -107,22 +71,99 @@ track_descriptor_set_output
 }
 
 
-// ------------------------------------------------------------------
-std::ostream&
-track_descriptor_set_output
+// ------------------------------------------------------------------------------------
+void
+read_track_descriptor_set
+::open( std::string const& filename )
+{
+  if( m_stream && m_stream_owned )
+  {
+    delete m_stream;
+  }
+
+  m_stream = 0;
+
+  // Make sure that the given file path exists and is a file.
+  if( ! kwiversys::SystemTools::FileExists( filename ) )
+  {
+    VITAL_THROW( path_not_exists, filename);
+  }
+
+  if( kwiversys::SystemTools::FileIsDirectory( filename ) )
+  {
+    VITAL_THROW( path_not_a_file, filename);
+  }
+
+  // try to open the file
+  std::istream* file( new std::ifstream( filename ) );
+  if( ! file )
+  {
+    VITAL_THROW( file_not_found_exception, filename, "open failed" );
+  }
+
+  m_stream = file;
+  m_stream_owned = true;
+
+  new_stream();
+}
+
+
+// ------------------------------------------------------------------------------------
+void
+read_track_descriptor_set
+::use_stream( std::istream* strm )
+{
+  m_stream = strm;
+  m_stream_owned = false;
+
+  new_stream();
+}
+
+
+// ------------------------------------------------------------------------------------
+void
+read_track_descriptor_set
+::close()
+{
+  if( m_stream_owned )
+  {
+    delete m_stream;
+  }
+
+  m_stream = 0;
+}
+
+
+// ------------------------------------------------------------------------------------
+bool
+read_track_descriptor_set
+::at_eof() const
+{
+  if( m_stream )
+  {
+    return m_stream->eof();
+  }
+  else
+  {
+    return true; // really error
+  }
+}
+
+
+// ------------------------------------------------------------------------------------
+std::istream&
+read_track_descriptor_set
 ::stream()
 {
   return *m_stream;
 }
 
 
-// ------------------------------------------------------------------
-std::string const&
-track_descriptor_set_output
-::filename()
+// ------------------------------------------------------------------------------------
+void
+read_track_descriptor_set
+::new_stream()
 {
-  return m_filename;
 }
-
 
 } } } // end namespace

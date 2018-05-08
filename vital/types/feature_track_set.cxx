@@ -248,41 +248,4 @@ feature_track_set
   return std::dynamic_pointer_cast<feature_track_set_frame_data>(impl_->frame_data(offset));
 }
 
-void
-feature_track_set
-::merge_in_other_feature_track_set(feature_track_set_sptr other, bool do_not_append_tracks)
-{
-  auto ot = other->tracks();
-
-  track_id_t next_track_id = (*this->all_track_ids().crbegin()) + 1;
-
-  for (auto &t : ot)
-  {
-    auto ct = this->get_track(t->id());
-    if (!ct)
-    {
-      this->insert(t->clone());
-    }
-    else
-    {
-      if (do_not_append_tracks)
-      {
-        auto tc = t->clone();
-        tc->set_id(next_track_id++);
-        this->insert(tc);
-      }
-      else
-      {
-        for (auto ts : *t)
-        {
-          auto ts_clone = ts->clone();
-          ct->append(ts_clone);
-          this->notify_new_state(ts_clone);
-        }
-      }
-    }
-  }
-}
-
-
 } } // end namespace vital

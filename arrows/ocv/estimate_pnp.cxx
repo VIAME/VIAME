@@ -145,7 +145,7 @@ estimate_pnp
 
 
 /// Estimate a camera pose from corresponding points
-vital::camera_sptr
+vital::camera_perspective_sptr
 estimate_pnp
 ::estimate(const std::vector<vital::vector_2d>& pts2d,
            const std::vector<vital::vector_3d>& pts3d,
@@ -156,7 +156,7 @@ estimate_pnp
   {
     LOG_ERROR(d_->m_logger,
       "Not enough points to estimate camera's pose");
-    return vital::camera_sptr();
+    return vital::camera_perspective_sptr();
   }
   if (pts2d.size() != pts3d.size())
   {
@@ -229,7 +229,7 @@ estimate_pnp
       " with confidence " << confidence << " and best inlier ratio " <<
       best_inlier_ratio );
 
-    return vital::camera_sptr();
+    return vital::camera_perspective_sptr();
   }
 
   inliers.assign(Xs.size(), 0);
@@ -240,7 +240,7 @@ estimate_pnp
     inliers[idx] = true;
   }
 
-  std::shared_ptr<vital::simple_camera> res_cam = std::make_shared<vital::simple_camera>();
+  auto res_cam = std::make_shared<vital::simple_camera_perspective>();
   Eigen::Vector3d rvec_eig, tvec_eig;
   cv::cv2eigen(best_rvec, rvec_eig);
   cv::cv2eigen(best_tvec, tvec_eig);
@@ -257,10 +257,10 @@ estimate_pnp
       best_tvec.at<double>(1) << " " << best_tvec.at<double>(2));
     LOG_DEBUG(d_->m_logger, "rotation angle " << res_cam->rotation().angle());
     LOG_WARN(d_->m_logger, "non-finite camera center found");
-    return vital::camera_sptr();
+    return vital::camera_perspective_sptr();
   }
 
-  return std::dynamic_pointer_cast<vital::camera>(res_cam);
+  return std::dynamic_pointer_cast<vital::camera_perspective>(res_cam);
 }
 
 

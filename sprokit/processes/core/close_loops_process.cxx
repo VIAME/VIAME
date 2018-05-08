@@ -181,21 +181,21 @@ close_loops_process
   // timestamp
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
 
-  vital::feature_track_set_sptr next_tracks_in =
+  vital::feature_track_set_sptr next_tracks =
     grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
 
-  auto next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks_in->clone());
+  next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
 
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first)
   {
-    vital::feature_track_set_sptr loob_back_tracks =
+    vital::feature_track_set_sptr loop_back_tracks =
       grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
 
-    loob_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loob_back_tracks->clone());
+    loop_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
 
     curr_tracks = d->merge_next_tracks_into_loop_back_track(
-                   next_tracks, frame_time.get_frame(), loob_back_tracks);
+                   next_tracks, frame_time.get_frame(), loop_back_tracks);
   }
   else
   {

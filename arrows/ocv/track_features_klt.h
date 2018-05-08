@@ -37,14 +37,11 @@
 #define ARROWS_PLUGINS_OCV_TRACK_FEATURES_KLT_H_
 
 
-#include <vital/vital_config.h>
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
 
 #include <vital/algo/track_features.h>
 #include <vital/types/image_container.h>
 #include <vital/types/feature_track_set.h>
-
-#include <memory>
 
 
 namespace kwiver {
@@ -61,7 +58,7 @@ public:
   track_features_klt();
 
   /// Destructor
-  virtual ~track_features_klt() VITAL_NOTHROW;
+  virtual ~track_features_klt() noexcept;
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   /**

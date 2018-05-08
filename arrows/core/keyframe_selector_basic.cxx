@@ -62,7 +62,7 @@ public:
     }
     if (config->has_value("keyframe_min_feature_count"))
     {
-      keyframe_min_feature_count = config->get_value<int>(
+      keyframe_min_feature_count = config->get_value<size_t>(
         "keyframe_min_feature_count");
     }
   }
@@ -118,7 +118,7 @@ public:
   bool a_keyframe_was_selected(
     kwiver::vital::track_set_sptr tracks);
 
-  int keyframe_min_feature_count;
+  size_t keyframe_min_feature_count;
   float fraction_tracks_lost_to_necessitate_new_keyframe;
 
   kwiver::vital::logger_handle_t m_logger;

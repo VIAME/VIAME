@@ -296,7 +296,7 @@ keyframe_selection_process::priv
     auto fd_cur =
       std::dynamic_pointer_cast<
          kwiver::vital::feature_track_set_frame_data>(it->second);
-    if (fd_cur->is_keyframe)
+    if (fd_cur && fd_cur->is_keyframe)
     {
       if (fn > latest_keyframe)
       {
@@ -347,7 +347,7 @@ keyframe_selection_process::priv
 {
   vital::feature_track_set_sptr curr_tracks = loop_back_tracks;
 
-  curr_tracks->merge_in_other_feature_track_set(next_tracks);
+  curr_tracks->merge_in_other_track_set(next_tracks);
 
   return curr_tracks;
 }

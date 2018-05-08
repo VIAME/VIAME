@@ -29,6 +29,25 @@ General -
    matcher process needs only get keyframes.  After sprokit klt tracks
    and keyframe orb feature tracks are merged into a single final track set.
 
+ * Added feature detection that adaptively changes thresholds to detect 
+   close to a target number of features in each frame.  Also improves the
+   distribution of features across the image with a gridded approach.  
+
+ * Added functions that detect issues in the structure from motion
+   solution and correct them.  Issues could be disconnected components
+   of cameras, cameras with too little coverage, landmarks without
+   enough measurements to constrain them etc.  The corrections typically
+   remove offending items.  Only the largest connected map component is
+   kept.  Underconstrained landmarks are removed etc.
+
+ * Changes to track_set_impl to facilitate passing track changes between
+   sprokit processes rather than full track sets for efficiency.
+   
+Sprokit
+
+ * Changed KLT tracking pipeline to pass track change information between
+   processes rather than full track sets for efficiency.
+
 
 Fixes since last public release
 -------------------------------

@@ -11,8 +11,10 @@ set( public_headers
   algorithm.h
   algorithm_factory.h
   analyze_tracks.h
+  associate_detections_to_tracks.h
   bundle_adjust.h
   close_loops.h
+  compute_association_matrix.h
   compute_depth.h
   compute_ref_homography.h
   compute_stereo_depth_map.h
@@ -40,21 +42,24 @@ set( public_headers
   image_io.h
   image_object_detector.h
   initialize_cameras_landmarks.h
+  initialize_object_tracks.h
   integrate_depth_maps.h
   interpolate_track.h
   keyframe_selection.h
   match_descriptor_sets.h
   match_features.h
   optimize_cameras.h
+  read_object_track_set.h
+  read_track_descriptor_set.h
   refine_detections.h
   split_image.h
   track_features.h
   train_detector.h
-  track_descriptor_set_input.h
-  track_descriptor_set_output.h
   triangulate_landmarks.h
   uuid_factory.h
   video_input.h
+  write_object_track_set.h
+  write_track_descriptor_set.h
   )
 
 set( sources
@@ -62,8 +67,10 @@ set( sources
   algorithm.cxx
   algorithm_factory.cxx
   analyze_tracks.cxx
+  associate_detections_to_tracks.cxx
   bundle_adjust.cxx
   close_loops.cxx
+  compute_association_matrix.cxx
   compute_depth.cxx
   compute_ref_homography.cxx
   compute_stereo_depth_map.cxx
@@ -90,6 +97,7 @@ set( sources
   image_filter.cxx
   image_io.cxx
   image_object_detector.cxx
+  initialize_object_tracks.cxx
   initialize_cameras_landmarks.cxx
   integrate_depth_maps.cxx
   interpolate_track.cxx
@@ -97,15 +105,17 @@ set( sources
   match_descriptor_sets.cxx
   match_features.cxx
   optimize_cameras.cxx
+  read_object_track_set.cxx
+  read_track_descriptor_set.cxx
   refine_detections.cxx
   split_image.cxx
   track_features.cxx
   train_detector.cxx
-  track_descriptor_set_input.cxx
-  track_descriptor_set_output.cxx
   triangulate_landmarks.cxx
   uuid_factory.cxx
   video_input.cxx
+  write_object_track_set.cxx
+  write_track_descriptor_set.cxx
 )
 
 kwiver_install_headers(

@@ -64,7 +64,7 @@ TEST(estimate_pnp, ideal_points)
   const frame_id_t frame1 = 0;
 
   camera_map::map_camera_t cams = cameras->cameras();
-  camera_sptr cam = cams[frame1];
+  auto cam = std::dynamic_pointer_cast<camera_perspective>(cams[frame1]);
   camera_intrinsics_sptr cal = cam->intrinsics();
 
   // extract corresponding image points
@@ -83,7 +83,7 @@ TEST(estimate_pnp, ideal_points)
 
   // compute the camera pose from the points and their projections
   std::vector<bool> inliers;
-  kwiver::vital::camera_sptr est_cam = est_pnp.estimate(pts_projs, pts_3d, cam->intrinsics(), inliers);
+  auto est_cam = est_pnp.estimate(pts_projs, pts_3d, cam->intrinsics(), inliers);
 
 
   // compare true and computed camera poses
@@ -127,7 +127,7 @@ TEST(estimate_pnp, noisy_points)
   const frame_id_t frame1 = 1;
 
   camera_map::map_camera_t cams = cameras->cameras();
-  camera_sptr cam = cams[frame1];
+  auto cam = std::dynamic_pointer_cast<camera_perspective>(cams[frame1]);
   camera_intrinsics_sptr cal = cam->intrinsics();
 
   // extract corresponding image points
@@ -146,7 +146,7 @@ TEST(estimate_pnp, noisy_points)
 
   // compute the camera pose from the points and their projections
   std::vector<bool> inliers;
-  kwiver::vital::camera_sptr est_cam = est_pnp.estimate(pts_projs, pts_3d, cam->intrinsics(), inliers);
+  auto est_cam = est_pnp.estimate(pts_projs, pts_3d, cam->intrinsics(), inliers);
 
 
   // compare true and computed camera poses
@@ -190,7 +190,7 @@ TEST(estimate_pnp, outlier_points)
   const frame_id_t frame1 = 10;
 
   camera_map::map_camera_t cams = cameras->cameras();
-  camera_sptr cam = cams[frame1];
+  auto cam = std::dynamic_pointer_cast<camera_perspective>(cams[frame1]);
   camera_intrinsics_sptr cal = cam->intrinsics();
 
   // extract corresponding image points
@@ -217,7 +217,7 @@ TEST(estimate_pnp, outlier_points)
 
   // compute the camera pose from the points and their projections
   std::vector<bool> inliers;
-  kwiver::vital::camera_sptr est_cam = est_pnp.estimate(pts_projs, pts_3d, cam->intrinsics(), inliers);
+  auto est_cam = est_pnp.estimate(pts_projs, pts_3d, cam->intrinsics(), inliers);
 
 
   // compare true and computed camera poses

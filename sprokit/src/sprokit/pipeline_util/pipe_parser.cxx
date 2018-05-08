@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +45,11 @@ namespace sprokit {
 
 namespace {
 
-#define PARSE_ERROR( T, MSG )                   \
-  {                                             \
-    std::stringstream str;                      \
-    str  << MSG << " at " << T->get_location(); \
-    throw parsing_exception( str.str() );       \
+#define PARSE_ERROR( T, MSG )                          \
+  {                                                    \
+    std::stringstream str;                             \
+    str  << MSG << " at " << T->get_location();        \
+    VITAL_THROW( parsing_exception, str.str() );       \
   }
 
 #define EXPECTED( E, T ) PARSE_ERROR( T, "Expected \"" << E << "\" but found \"" << T->text() << "\"" )
@@ -1039,7 +1039,7 @@ parse_config( config_values_t& out_config )
       block_stack.pop_back();
     }
 
-    throw parsing_exception( msg.str() );
+    VITAL_THROW( parsing_exception, msg.str() );
   }
 }
 

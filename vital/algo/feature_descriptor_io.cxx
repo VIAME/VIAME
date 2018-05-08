@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,11 +66,11 @@ feature_descriptor_io
   // Make sure that the given file path exists and is a file.
   if ( ! kwiversys::SystemTools::FileExists( filename ) )
   {
-    throw path_not_exists(filename);
+    VITAL_THROW( path_not_exists, filename);
   }
   else if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw path_not_a_file(filename);
+    VITAL_THROW( path_not_a_file, filename);
   }
 
   return this->load_(filename, feat, desc);
@@ -90,15 +90,16 @@ feature_descriptor_io
 
   if ( ! kwiversys::SystemTools::FileExists( containing_dir ) )
   {
-    throw path_not_exists(containing_dir);
+    VITAL_THROW( path_not_exists, containing_dir);
   }
   else if ( ! kwiversys::SystemTools::FileIsDirectory( containing_dir ) )
   {
-    throw path_not_a_directory( containing_dir );
+    VITAL_THROW( path_not_a_directory, containing_dir );
   }
   if (!feat && !desc)
   {
-    throw invalid_value("both features and descriptor are Null");
+    VITAL_THROW( invalid_value,
+                 "both features and descriptor are Null");
   }
 
   this->save_(filename, feat, desc);

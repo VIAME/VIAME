@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,33 +28,54 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_CORE_CORE_CONFIG_H
-#define KWIVER_CORE_CORE_CONFIG_H
+/**
+ * \file
+ * \brief Interface for read_track_descriptor process
+ */
 
-// Support macros.
-#if defined(_WIN32) || defined(_WIN64)
-#define KWIVER_NO_RETURN __declspec(noreturn)
-// Unsupported.
-#define KWIVER_MUST_USE_RESULT
-// Unsupported.
-#define KWIVER_UNUSED
-#elif defined(__GNUC__)
-#define KWIVER_NO_RETURN __attribute__((__noreturn__))
-#define KWIVER_MUST_USE_RESULT __attribute__((__warn_unused_result__))
-#define KWIVER_UNUSED __attribute__((__unused__))
-#else
-// Unsupported.
-#define KWIVER_NO_RETURN
-// Unsupported.
-#define KWIVER_MUST_USE_RESULT
-// Unsupported.
-#define KWIVER_UNUSED
-#endif
+#ifndef _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H
+#define _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H
 
-#if __cplusplus < 201103L
-#define KWIVER_NOTHROW throw ()
-#else
-#define KWIVER_NOTHROW noexcept
-#endif
+#include <sprokit/pipeline/process.h>
 
-#endif // KWIVER_CORE_CORE_CONFIG_H
+#include "kwiver_processes_export.h"
+
+#include <memory>
+
+namespace kwiver
+{
+
+// -------------------------------------------------------------------------------
+/**
+ * \class read_track_descriptor_process
+ *
+ * \brief Reads a series or single set of track descriptors
+ *
+ * \iports
+ * \iport{image_name}
+ * \oport{track descriptor_set}
+ */
+class KWIVER_PROCESSES_NO_EXPORT read_track_descriptor_process
+  : public sprokit::process
+{
+public:
+  read_track_descriptor_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~read_track_descriptor_process();
+
+protected:
+  virtual void _configure();
+  virtual void _init();
+  virtual void _step();
+
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class read_track_descriptor_process
+
+
+} // end namespace
+
+#endif // _KWIVER_READ_TRACK_DESCRIPTOR_PROCESS_H

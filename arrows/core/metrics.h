@@ -40,6 +40,7 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/landmark.h>
 #include <vital/types/feature.h>
 #include <vital/types/track.h>
@@ -79,7 +80,7 @@ reprojection_error_sqr(const vital::camera& cam,
   return reprojection_error_vec(cam, lm, f).squaredNorm();
 }
 
-/// Compute the maximum angle between the rays in the bundle associated with 
+/// Compute the maximum angle between the rays in the bundle associated with
 /// the landmark
 /**
 * \param [in] cameras is the set of cameras that view X
@@ -90,7 +91,7 @@ reprojection_error_sqr(const vital::camera& cam,
 
 KWIVER_ALGO_CORE_EXPORT
 double
-bundle_angle_max(const std::vector<vital::simple_camera> &cameras,
+bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
                  const vital::vector_3d &X);
 
 

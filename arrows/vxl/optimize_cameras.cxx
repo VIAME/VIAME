@@ -65,8 +65,8 @@ namespace // anonymous
 /// trace statement.
 vpgl_perspective_camera<double>
 opt_orient_pos(vpgl_perspective_camera<double> const& camera,
-                     vcl_vector<vgl_homg_point_3d<double> > const& world_points,
-                     vcl_vector<vgl_point_2d<double> > const& image_points)
+               vcl_vector<vgl_homg_point_3d<double> > const& world_points,
+               vcl_vector<vgl_point_2d<double> > const& image_points)
 {
   const vpgl_calibration_matrix<double>& K = camera.get_calibration();
   vgl_point_3d<double> c = camera.get_camera_center();
@@ -94,7 +94,7 @@ opt_orient_pos(vpgl_perspective_camera<double> const& camera,
 /// Optimize a single camera given corresponding features and landmarks
 void
 optimize_cameras
-::optimize(vital::camera_sptr& camera,
+::optimize(vital::camera_perspective_sptr& camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
            kwiver::vital::metadata_vector metadata) const
@@ -107,7 +107,7 @@ optimize_cameras
 
   // remove camera intrinsics from the camera and work in normalized coordinates
   // VXL is only optimizing rotation and translation and doesn't model distortion
-  vital::simple_camera mcamera(*camera);
+  vital::simple_camera_perspective mcamera(*camera);
   vital::camera_intrinsics_sptr k(camera->intrinsics());
   mcamera.set_intrinsics(vital::camera_intrinsics_sptr(new vital::simple_camera_intrinsics()));
 
@@ -136,7 +136,7 @@ optimize_cameras
   // convert back and fill in the unchanged intrinsics
   vpgl_camera_to_vital(vcamera, mcamera);
   mcamera.set_intrinsics(k);
-  camera = mcamera.clone();
+  camera = std::dynamic_pointer_cast<vital::camera_perspective>(mcamera.clone());
 }
 
 

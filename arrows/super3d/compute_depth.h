@@ -77,7 +77,7 @@ public:
   */
   virtual kwiver::vital::image_container_sptr
   compute(const std::vector<kwiver::vital::image_container_sptr> &frames,
-          const std::vector<kwiver::vital::camera_sptr> &cameras,
+          const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
           const std::vector<kwiver::vital::landmark_sptr> &landmarks,
           unsigned int reference_frame,
           const std::vector<kwiver::vital::image_container_sptr> &masks =

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ protected:
     std::stringstream str;
     str <<  "Entry for provider \"" << provider << "\" does not have an element \""
         << entry << "\"";
-    throw provider_error_exception( str.str() );
+    VITAL_THROW( provider_error_exception, str.str() );
 
     // Could do a log message instead
     return true;
@@ -74,7 +74,7 @@ protected:
   {
     std::stringstream str;
     str << "Provider \"" << provider << "\" is not available";
-    throw provider_error_exception( str.str() );
+    VITAL_THROW( provider_error_exception, str.str() );
 
     // Could do a log message instead
     return true;
@@ -210,7 +210,8 @@ bakery_base
       }
       else
       {
-        throw unrecognized_config_flag_exception(full_key, flag);
+        VITAL_THROW( unrecognized_config_flag_exception,
+                     full_key, flag);
       }
     } // end foreach over flags
   }
@@ -226,7 +227,8 @@ bakery_base
     catch ( const provider_error_exception &e )
     {
       // Rethrow exception after adding location
-      throw provider_error_exception( e.what(), value.loc );
+      VITAL_THROW( provider_error_exception,
+                   e.what(), value.loc );
     }
   }
 
@@ -316,8 +318,9 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
       }
       else
       {
-        throw relativepath_exception( "Can not resolve relative path because original source file is not known.",
-          info.defined_loc );
+        VITAL_THROW( relativepath_exception,
+                     "Can not resolve relative path because original source file is not known.",
+                     info.defined_loc );
       }
     }
 
