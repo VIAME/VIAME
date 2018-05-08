@@ -229,5 +229,4 @@ feature_track_set
   return std::dynamic_pointer_cast<feature_track_set_frame_data>(impl_->frame_data(offset));
 }
 
-
 } } // end namespace vital

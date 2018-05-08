@@ -187,6 +187,23 @@ track
   return true;
 }
 
+/// Remove a track state
+bool
+track
+::remove(track_state_sptr state)
+{
+  auto pos = std::lower_bound(this->history_.begin(), this->history_.end(),
+    state->frame(), compare_state_frame());
+
+  if (pos == this->history_.end() || (*pos)->frame() != state->frame())
+  {
+    return false;
+  }
+
+  this->history_.erase(pos);
+  return true;
+}
+
 /// Find the track state iterator matching \a frame
 track::history_const_itr
 track

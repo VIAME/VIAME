@@ -379,6 +379,7 @@ public:
   /// The feature detector algorithm to use
   vital::algo::detect_features_sptr detector;
   cv::Mat prev_image;
+  int prev_frame_num;
   size_t last_detect_num_features;
   float redetect_threshold;
   cv::Mat tracked_feature_location_mask;
@@ -541,7 +542,7 @@ track_features_klt
     for (auto at : active_tracks)
     {
       auto  bk = std::dynamic_pointer_cast<feature_track_state>(at->back());
-      if (bk->frame() != (frame_number - 1))
+      if (bk->frame() != d_->prev_frame_num)
       {
         continue;
       }
@@ -583,6 +584,7 @@ track_features_klt
       // append the feature's current location to it's track.  Track was picked
       // up with active_tracks() call on previous_tracks.
       t->append(fts);
+      cur_tracks->notify_new_state(fts);
       next_points.push_back(tracked_points[kf_feat_i]);
       //increment the feature distribution bins
     }
@@ -706,6 +708,7 @@ track_features_klt
 
   //set up previous data structures for next call
   d_->prev_image = cv_img.clone();
+  d_->prev_frame_num = frame_number;
 
   return cur_tracks;
 }

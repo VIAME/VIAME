@@ -41,13 +41,14 @@
 #include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
+#include <arrows/core/track_set_impl.h>
 
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver
 {
 
-  create_config_trait( track_features, std::string, "", 
+  create_config_trait( track_features, std::string, "",
     "Algorithm configuration subblock." )
 
 /**
@@ -88,7 +89,7 @@ public:
 
   // Configuration values
 
-  // There are many config items for the tracking and stabilization that go 
+  // There are many config items for the tracking and stabilization that go
   // directly to the algo.
 
   algo::track_features_sptr m_tracker;
@@ -132,24 +133,24 @@ void track_features_process
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   // Instantiate the configured algorithm
-  algo::track_features::set_nested_algo_configuration( "track_features", 
+  algo::track_features::set_nested_algo_configuration( "track_features",
     algo_config, d->m_tracker );
 
   if ( ! d->m_tracker )
   {
-    throw sprokit::invalid_configuration_exception( name(), 
+    throw sprokit::invalid_configuration_exception( name(),
       "Unable to create track_features" );
   }
 
-  algo::track_features::get_nested_algo_configuration("track_features", 
+  algo::track_features::get_nested_algo_configuration("track_features",
     algo_config, d->m_tracker);
 
   //// Check config so it will give run-time diagnostic if any config problems
   // are found
-  if ( ! algo::track_features::check_nested_algo_configuration( 
-          "track_features", algo_config ) ) 
+  if ( ! algo::track_features::check_nested_algo_configuration(
+          "track_features", algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), 
+    throw sprokit::invalid_configuration_exception( name(),
       "Configuration check failed." );
   }
 
@@ -167,17 +168,17 @@ track_features_process
   // image
   kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
 
-  
+
   kwiver::vital::feature_track_set_sptr cur_tracks;
-  if (!d->first) 
+  if (!d->first)
   {
-    kwiver::vital::feature_track_set_sptr prev_tracks = 
+    kwiver::vital::feature_track_set_sptr prev_tracks =
       grab_from_port_using_trait(feature_track_set);
-    // clone prev tracks.  This way any changes made on it by m_tracker are done 
+    // clone prev tracks.  This way any changes made on it by m_tracker are done
     // to a unique object.
-    cur_tracks = 
+    cur_tracks =
       std::dynamic_pointer_cast<vital::feature_track_set>(prev_tracks->clone());
-  }    
+  }
   d->first = false;
 
   {
@@ -187,6 +188,31 @@ track_features_process
 
     // detect features on the current frame
     cur_tracks = d->m_tracker->track(cur_tracks, frame_time.get_frame(), img);
+
+    std::vector<vital::track_sptr> last_frame_tracks;
+    //strip off just the last feature tracks to pass on
+    auto active = cur_tracks->active_tracks();
+    for (auto &t : active)
+    {
+      auto te = t->end();
+      --te;
+      auto lts = *te;
+      if (lts->frame() != frame_time.get_frame())
+      {
+        continue;
+      }
+
+      auto ntk = vital::track::create();
+
+      ntk->set_id(t->id());
+      ntk->append(lts->clone());
+      last_frame_tracks.push_back(ntk);
+    }
+
+    typedef std::unique_ptr<vital::track_set_implementation> tsi_uptr;
+    cur_tracks = std::make_shared<vital::feature_track_set>(
+      tsi_uptr(new kwiver::arrows::core::frame_index_track_set_impl()));
+    cur_tracks->set_tracks(last_frame_tracks);
   }
 
   // return by value
@@ -203,7 +229,7 @@ void track_features_process
   sprokit::process::port_flags_t required;
   sprokit::process::port_flags_t input_nodep;
   required.insert( flag_required );
-  input_nodep.insert(flag_input_nodep );  
+  input_nodep.insert(flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( timestamp, required );

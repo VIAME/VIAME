@@ -130,10 +130,13 @@ frame_index_track_set_impl
 {
   all_tracks_.push_back( t );
 
-  // update the frame map with the new track
-  for(auto const& ts : *t)
+  if (!frame_map_.empty())
   {
-    frame_map_[ts->frame()].insert(ts);
+    // update the frame map with the new track
+    for (auto const& ts : *t)
+    {
+      frame_map_[ts->frame()].insert(ts);
+    }
   }
 }
 
@@ -143,8 +146,42 @@ void
 frame_index_track_set_impl
 ::notify_new_state( vital::track_state_sptr ts )
 {
-  // update the frame map with the new state
-  frame_map_[ts->frame()].insert(ts);
+  if (!frame_map_.empty())
+  {
+    // update the frame map with the new state
+    frame_map_[ts->frame()].insert(ts);
+  }
+}
+
+/// Notify the container that a state has been removed from an existing track
+void
+frame_index_track_set_impl
+::notify_removed_state(vital::track_state_sptr ts)
+{
+  if (frame_map_.empty())
+  {
+    return;
+  }
+
+  auto fn = ts->frame();
+  auto fm_it = frame_map_.find(fn);
+  if (fm_it == frame_map_.end())
+  {
+    return;
+  }
+
+  auto &ts_set = fm_it->second;
+  auto ts_it = ts_set.find(ts);
+  if (ts_it != ts_set.end())
+  {
+    ts_set.erase(ts_it);
+  }
+
+  if (fm_it->second.empty())
+  {
+    //no track states for this frame so remove the frame from the map
+    frame_map_.erase(fm_it);
+  }
 }
 
 
@@ -160,10 +197,18 @@ frame_index_track_set_impl
   }
   all_tracks_.erase(itr);
 
-  // remove from the frame map
-  for(auto const& ts : *t)
+  if (!frame_map_.empty())
   {
-    frame_map_[ts->frame()].erase(ts);
+    // remove from the frame map
+    for (auto const& ts : *t)
+    {
+      frame_map_[ts->frame()].erase(ts);
+      if (frame_map_[ts->frame()].empty())
+      { // There are not track states in the frame map.  So remove the frame's
+        // entry from the frame map.
+        frame_map_.erase(ts->frame());
+      }
+    }
   }
 
   return true;
@@ -413,6 +458,21 @@ frame_index_track_set_impl
     return itr->second;
   }
   return nullptr;
+}
+
+/// Removes the frame data for the frame offset
+bool
+frame_index_track_set_impl
+::remove_frame_data(frame_id_t offset)
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if (itr != frame_data_.end())
+  {
+    frame_data_.erase(itr);
+    return true;
+  }
+  return false;
 }
 
 

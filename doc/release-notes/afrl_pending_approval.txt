@@ -27,6 +27,14 @@ Arrows - Core
    remove offending items.  Only the largest connected map component is
    kept.  Underconstrained landmarks are removed etc.
 
+ * Changes to track_set_impl to facilitate passing track changes between
+   sprokit processes rather than full track sets for efficiency.
+   
+Sprokit
+
+ * Changed KLT tracking pipeline to pass track change information between
+   processes rather than full track sets for efficiency.
+
 
 Fixes since last public release
 -------------------------------
