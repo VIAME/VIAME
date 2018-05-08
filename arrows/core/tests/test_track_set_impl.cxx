@@ -31,8 +31,9 @@
 #include <test_tracks.h>
 
 #include <arrows/core/track_set_impl.h>
-
+#include <vital/types/feature_track_set.h>
 #include <vital/tests/test_track_set.h>
+
 
 using namespace kwiver::vital;
 
@@ -104,4 +105,21 @@ TEST(frame_index_track_set_impl, matches_simple)
                     ftracks->terminated_tracks( 60 ) );
   EXPECT_EQ( tracks->percentage_tracked( 10, 50 ),
              ftracks->percentage_tracked( 10, 50 ) );
+}
+
+// ----------------------------------------------------------------------------
+TEST(frame_index_track_set_impl, remove_frame_data)
+{
+  auto test_set = kwiver::vital::testing::make_simple_track_set(1);
+
+  test_set = make_track_set_impl(test_set->tracks());
+
+  auto fd1 = std::make_shared<feature_track_set_frame_data>();
+  fd1->is_keyframe = true;
+  auto td1 = std::static_pointer_cast<track_set_frame_data>(fd1);
+  EXPECT_EQ(0, test_set->all_frame_data().size());
+  test_set->set_frame_data(td1, 1);
+  EXPECT_EQ(1, test_set->all_frame_data().size());
+  test_set->remove_frame_data(1);
+  EXPECT_EQ(0, test_set->all_frame_data().size());
 }
