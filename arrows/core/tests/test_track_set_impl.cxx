@@ -58,7 +58,7 @@ track_set_sptr make_track_set_impl( std::vector< track_sptr > const& tracks )
 // ----------------------------------------------------------------------------
 TEST(frame_index_track_set_impl, accessor_functions)
 {
-  auto test_set = kwiver::vital::testing::make_simple_track_set();
+  auto test_set = kwiver::vital::testing::make_simple_track_set(1);
 
   test_set = make_track_set_impl( test_set->tracks() );
 
@@ -68,7 +68,7 @@ TEST(frame_index_track_set_impl, accessor_functions)
 // ----------------------------------------------------------------------------
 TEST(frame_index_track_set_impl, modifier_functions)
 {
-  auto test_set = kwiver::vital::testing::make_simple_track_set();
+  auto test_set = kwiver::vital::testing::make_simple_track_set(1);
 
   test_set = make_track_set_impl( test_set->tracks() );
 
