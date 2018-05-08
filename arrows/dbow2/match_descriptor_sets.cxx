@@ -509,26 +509,6 @@ match_descriptor_sets
   return d_->query(desc, frame, true);
 }
 
-// Bit set count operation from
-// http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-int DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
-{
-  const int *pa = a.ptr<int32_t>();
-  const int *pb = b.ptr<int32_t>();
-
-  int dist = 0;
-
-  for (int i = 0; i<8; i++, pa++, pb++)
-  {
-    unsigned  int v = *pa ^ *pb;
-    v = v - ((v >> 1) & 0x55555555);
-    v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
-    dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
-  }
-
-  return dist;
-}
-
 int
 match_descriptor_sets
 ::descriptor_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2) const
@@ -558,12 +538,8 @@ match_descriptor_sets
   }
   else
   {
-    auto m1 = d_->descriptor_to_mat(d1);
-    auto m2 = d_->descriptor_to_mat(d2);
-
-    return DescriptorDistance(m1, m2);
+    throw vital::invalid_data("One or both descriptors cannot be cast to descriptor_dynamic<<unsigned char>>");
   }
-
 }
 
 // ------------------------------------------------------------------
