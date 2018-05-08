@@ -123,3 +123,34 @@ TEST(frame_index_track_set_impl, remove_frame_data)
   test_set->remove_frame_data(1);
   EXPECT_EQ(0, test_set->all_frame_data().size());
 }
+
+// ----------------------------------------------------------------------------
+TEST(frame_index_track_set_impl, merge_functions)
+{
+  using namespace kwiver::vital::testing;
+
+  auto test_set_1 = kwiver::vital::testing::make_simple_track_set(1);
+  test_set_1 = make_track_set_impl(test_set_1->tracks());
+
+  auto test_set_2 = kwiver::vital::testing::make_simple_track_set(2);
+  test_set_2 = make_track_set_impl(test_set_2->tracks());
+
+  EXPECT_FALSE(test_set_1->empty());
+  ASSERT_EQ(4, test_set_1->size());
+
+  EXPECT_FALSE(test_set_2->empty());
+  ASSERT_EQ(4, test_set_2->size());
+
+  test_set_1->merge_in_other_track_set(test_set_2);
+
+  EXPECT_FALSE(test_set_1->empty());
+  ASSERT_EQ(4, test_set_1->size());
+
+  auto tracks = test_set_1->tracks();
+  ASSERT_EQ(6, tracks[0]->size());
+  ASSERT_EQ(4, tracks[1]->size());
+  ASSERT_EQ(4, tracks[2]->size());
+  ASSERT_EQ(2, tracks[3]->size());
+  EXPECT_EQ(1, test_set_1->first_frame());
+  EXPECT_EQ(10, test_set_1->last_frame());
+}

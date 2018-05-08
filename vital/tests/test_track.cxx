@@ -52,7 +52,11 @@ TEST(track, id)
 
   t->set_id( 25 );
   EXPECT_EQ( 25, t->id() );
+}
 
+TEST(track, insert_remove)
+{
+  auto t = kwiver::vital::track::create();
   auto ts1 = std::make_shared < kwiver::vital::track_state>(1);
   auto ts2 = std::make_shared < kwiver::vital::track_state>(2);
   auto ts4 = std::make_shared < kwiver::vital::track_state>(4);
