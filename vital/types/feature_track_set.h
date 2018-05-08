@@ -62,13 +62,11 @@ public:
   /// Constructor
   explicit feature_track_state( frame_id_t frame,
                                 feature_sptr f = nullptr,
-                                descriptor_sptr d = nullptr,
-                                unsigned int node_id_ = std::numeric_limits<unsigned int>::max())
+                                descriptor_sptr d = nullptr)
     : track_state( frame )
     , feature(f)
     , descriptor(d)
     , inlier(true)
-    , node_id(node_id_)
   { }
 
   /// Clone the track state (polymorphic copy constructor)
@@ -80,9 +78,6 @@ public:
   feature_sptr feature;
   descriptor_sptr descriptor;
   bool inlier;
-  unsigned int node_id;  // This can be set ty feature quantization methods.
-                         // Features with the same node_id should be likely to
-                         // have similar apperarance.
 };
 
 

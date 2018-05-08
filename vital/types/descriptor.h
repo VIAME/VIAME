@@ -105,6 +105,10 @@ public:
   {
     return ! operator==(other);
   }
+
+  unsigned int node_id; // This can be set ty feature quantization methods.
+                         // Features with the same node_id should be likely to
+                         // have similar apperarance.
 };
 
 

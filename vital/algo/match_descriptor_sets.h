@@ -78,7 +78,7 @@ public:
   */
   virtual
   void
-  append_to_index(std::vector<vital::feature_track_state_sptr>& vfeat,
+  append_to_index( const vital::descriptor_set_sptr desc,
                   vital::frame_id_t frame) = 0;
 
   /// Query the inverted file system for similar sets of descriptors.
@@ -91,7 +91,7 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query(std::vector<vital::feature_track_state_sptr>& vfeat) = 0;
+  query( const vital::descriptor_set_sptr desc) = 0;
 
   /// Query the inverted file system and append the descriptors.
   /**
@@ -105,12 +105,12 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query_and_append(std::vector<vital::feature_track_state_sptr>& vfeat,
-                   frame_id_t frame);
+  query_and_append( const vital::descriptor_set_sptr desc,
+                    frame_id_t frame);
 
   //return the distance between two descriptors
   virtual
-  int descriptor_distance(vital::feature_track_state_sptr f1, vital::feature_track_state_sptr f2) const = 0;
+  int descriptor_distance(vital::descriptor_sptr f1, vital::descriptor_sptr f2) const = 0;
 
 protected:
 

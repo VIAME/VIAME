@@ -78,17 +78,18 @@ public:
     std::vector<feature_track_state_sptr> &features_with_descriptors) const;
 
   void descriptor_set_to_vec(
-    descriptor_set_sptr im_descriptors,
-    std::vector<cv::Mat> &features) const;
+    const std::vector< descriptor_sptr > &desc_vec,
+    std::vector<cv::Mat> &features,
+    std::vector<size_t> &desc_indices) const;
 
   cv::Mat descriptor_to_mat(descriptor_sptr) const;
 
   std::vector<frame_id_t>
-  query(std::vector<feature_track_state_sptr>& vfeat,
+  query(const vital::descriptor_set_sptr desc,
         frame_id_t frame_number,
         bool append_to_index_on_query);
 
-  void append_to_index(std::vector<feature_track_state_sptr>& vfeat,
+  void append_to_index(const vital::descriptor_set_sptr desc,
                        vital::frame_id_t frame);
 
   kwiver::vital::logger_handle_t m_logger;
@@ -166,21 +167,21 @@ match_descriptor_sets::priv
 
 void
 match_descriptor_sets::priv
-::append_to_index(std::vector<feature_track_state_sptr>& vfeat,
+::append_to_index(
+  const vital::descriptor_set_sptr desc,
   vital::frame_id_t frame_number)
 {
   setup_voc();
 
-  if (vfeat.empty())
+  if (desc->size() == 0)
   {
     return;
   }
 
   std::vector<cv::Mat> desc_mats;
-  std::vector<feature_track_state_sptr> fts_with_desc;
-  feature_track_vec_to_descriptor_vec(vfeat, desc_mats, fts_with_desc);  // note that desc_mats can be shorter
-                                           // than desc because of null
-                                           // descriptors (KLT features)
+  std::vector<size_t> desc_mat_indices;
+  auto desc_vec = desc->descriptors();
+  descriptor_set_to_vec(desc_vec, desc_mats, desc_mat_indices);
 
   if (desc_mats.size() == 0)
   {  //only features without descriptors in this frame
@@ -198,7 +199,7 @@ match_descriptor_sets::priv
     auto node_id = node_data.first;
     for (auto f_idx : node_data.second)
     {
-      fts_with_desc[f_idx]->node_id = node_id;
+      desc_vec[desc_mat_indices[f_idx]]->node_id = node_id;
     }
   }
 
@@ -213,7 +214,7 @@ match_descriptor_sets::priv
 
 std::vector<frame_id_t>
 match_descriptor_sets::priv
-::query( std::vector<feature_track_state_sptr>& vfeat,
+::query(const vital::descriptor_set_sptr desc,
          frame_id_t frame_number,
          bool append_to_index_on_query)
 {
@@ -221,16 +222,15 @@ match_descriptor_sets::priv
 
   std::vector<frame_id_t> putative_matches;
 
-  if (vfeat.empty())
+  if (desc->size() == 0)
   {
     return putative_matches;
   }
 
   std::vector<cv::Mat> desc_mats;
-  std::vector<feature_track_state_sptr> fts_with_desc;
-  feature_track_vec_to_descriptor_vec(vfeat, desc_mats, fts_with_desc);  // note that desc_mats can be shorter
-                                           // than desc because of null
-                                           // descriptors (KLT features)
+  std::vector<size_t> desc_mat_indices;
+  auto desc_vec = desc->descriptors();
+  descriptor_set_to_vec(desc_vec, desc_mats, desc_mat_indices);
 
   if (desc_mats.size() == 0)
   {  //only features without descriptors in this frame
@@ -249,7 +249,7 @@ match_descriptor_sets::priv
     auto node_id = node_data.first;
     for (auto f_idx : node_data.second)
     {
-      fts_with_desc[f_idx]->node_id = node_id;
+      desc_vec[desc_mat_indices[f_idx]]->node_id = node_id;
     }
   }
 
@@ -386,8 +386,9 @@ match_descriptor_sets::priv
     feature_set_sptr im_features = m_detector->detect(im);
     descriptor_set_sptr im_descriptors = m_extractor->extract(im, im_features);
 
+    std::vector<size_t> desc_mat_indices;
     features.push_back(std::vector<cv::Mat >());
-    descriptor_set_to_vec(im_descriptors, features.back());
+    descriptor_set_to_vec(im_descriptors->descriptors(), features.back(), desc_mat_indices);
   }
 
   if (im_list.bad())
@@ -430,23 +431,28 @@ match_descriptor_sets::priv
 void
 match_descriptor_sets::priv
 ::descriptor_set_to_vec(
-  descriptor_set_sptr im_descriptors,
-  std::vector<cv::Mat> &features) const
+  const std::vector< descriptor_sptr > &desc,
+  std::vector<cv::Mat> &features,
+  std::vector<size_t> &desc_indices) const
 {
-  std::vector< descriptor_sptr > desc = im_descriptors->descriptors();
+  desc_indices.resize(desc.size());
   features.resize(desc.size());
   unsigned int dn = 0;
+  size_t desc_idx = 0;
   for (auto d : desc)
   {
     if (!d)
     {
+      ++desc_idx;
       //skip null descriptors
       continue;
     }
+    desc_indices[dn] = desc_idx++;
     features[dn++] = descriptor_to_mat(d);
   }
 
   features.resize(dn);  //resize to only return features for non-null descriptors
+  desc_indices.resize(dn);
 }
 
 //-----------------------------------------------------------------------------
@@ -483,24 +489,24 @@ match_descriptor_sets
 
 void
 match_descriptor_sets
-::append_to_index(std::vector<feature_track_state_sptr>& vfeat, frame_id_t frame_number)
+::append_to_index(const vital::descriptor_set_sptr desc, frame_id_t frame_number)
 {
-  d_->append_to_index(vfeat, frame_number);
+  d_->append_to_index(desc, frame_number);
 }
 
 std::vector<frame_id_t>
 match_descriptor_sets
-::query(std::vector<feature_track_state_sptr>& vfeat)
+::query(const vital::descriptor_set_sptr desc)
 {
-  return d_->query(vfeat,-1,false);
+  return d_->query(desc,-1,false);
 }
 
 std::vector<frame_id_t>
 match_descriptor_sets
-::query_and_append(std::vector<feature_track_state_sptr>& vfeat,
+::query_and_append(const vital::descriptor_set_sptr desc,
                     frame_id_t frame)
 {
-  return d_->query(vfeat, frame, true);
+  return d_->query(desc, frame, true);
 }
 
 // Bit set count operation from
@@ -525,11 +531,8 @@ int DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
 
 int
 match_descriptor_sets
-::descriptor_distance(vital::feature_track_state_sptr f1, vital::feature_track_state_sptr f2) const
+::descriptor_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2) const
 {
-  auto d1 = f1->descriptor;
-  auto d2 = f2->descriptor;
-
   auto dv1 = std::dynamic_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d1);
   auto dv2 = std::dynamic_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d2);
 

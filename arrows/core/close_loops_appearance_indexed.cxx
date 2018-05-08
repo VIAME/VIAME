@@ -123,9 +123,9 @@ close_loops_appearance_indexed::priv
   node_id_to_feat_map fm;
   for (auto f : feats)
   {
-    if (f->descriptor && f->node_id != std::numeric_limits<unsigned int>::max())
+    if (f->descriptor && f->descriptor->node_id != std::numeric_limits<unsigned int>::max())
     {
-      auto fm_it = fm.find(f->node_id);
+      auto fm_it = fm.find(f->descriptor->node_id);
       if (fm_it != fm.end())
       {
         fm_it->second.push_back(f);
@@ -134,7 +134,7 @@ close_loops_appearance_indexed::priv
       {
         std::vector<feature_track_state_sptr> vec;
         vec.push_back(f);
-        fm[f->node_id] = vec;
+        fm[f->descriptor->node_id] = vec;
       }
     }
   }
@@ -160,7 +160,7 @@ close_loops_appearance_indexed::priv
 
     for (auto match_feat : vb)
     {
-      int dist = m_bow->descriptor_distance(cur_feat, match_feat);
+      int dist = m_bow->descriptor_distance(cur_feat->descriptor, match_feat->descriptor);
       if (dist < dist1)
       {
         dist1 = dist;
@@ -441,10 +441,10 @@ close_loops_appearance_indexed::priv
   }
 
 
-  std::vector<feature_track_state_sptr> fts_vec = feat_tracks->frame_feature_track_states(frame_number);
+  auto desc = feat_tracks->frame_descriptors(frame_number);
 
   std::vector<frame_id_t> putative_matching_images =
-    m_bow->query_and_append(fts_vec, frame_number);
+    m_bow->query_and_append(desc, frame_number);
 
   return verify_and_add_image_matches_node_id_guided(feat_tracks, frame_number,
                                       putative_matching_images);
