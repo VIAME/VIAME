@@ -329,8 +329,6 @@ class SmqtkProcessQuery (KwiverProcess):
         self.iqr_session.refine()
 
         ordered_results = self.iqr_session.ordered_results()
-        if self.query_return_n > 0:
-            ordered_results = ordered_results[:self.query_return_n]
 
         return_elems, return_dists = zip(*ordered_results)
         return_uuids = [e.uuid() for e in return_elems]
