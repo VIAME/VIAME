@@ -144,18 +144,6 @@ refine_detections_write_to_disk
 
   for( auto det : *detections )
   {
-    // Generate output filename
-    std::string ofn;
-    size_t max_len = d_->pattern.size() + 4096;
-    ofn.resize( max_len );
-    int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), d_->id++ );
-
-    if( num_bytes < 0 )
-    {
-      LOG_ERROR( logger(), "Could not format output file name: \"" << d_->pattern << "\"" );
-    }
-
-    // Output image to file
     vital::bounding_box_d bbox = det->bounding_box();
 
     cv::Size s = img.size();
@@ -164,6 +152,20 @@ refine_detections_write_to_disk
 
     bbox = intersection( bounds, bbox );
 
+    // Generate output filename
+    std::string ofn;
+    size_t max_len = d_->pattern.size() + 4096;
+    ofn.resize( max_len );
+    int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), d_->id++,
+                                                bbox.upper_left()[0], bbox.upper_left()[1],
+                                                bbox.width(), bbox.height() );
+
+    if( num_bytes < 0 )
+    {
+      LOG_ERROR( logger(), "Could not format output file name: \"" << d_->pattern << "\"" );
+    }
+
+    // Output image to file
     // Make CV rect for out bbox coordinates
     cv::Rect r( bbox.upper_left()[0], bbox.upper_left()[1],
       bbox.width(), bbox.height() );
