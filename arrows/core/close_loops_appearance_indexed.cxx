@@ -104,7 +104,7 @@ public:
 
   unsigned m_min_loop_inlier_matches;
 
-  std::function<float(descriptor_sptr, descriptor_sptr)> desc_dist = descriptor_distance_binary;
+  std::function<float(descriptor_sptr, descriptor_sptr)> desc_dist = hamming_distance;
 
 };
 

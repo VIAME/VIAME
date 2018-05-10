@@ -35,8 +35,8 @@
 
 #include <vital/types/descriptor.h>
 
-/// return the distance between two descriptors
-float kwiver::vital::descriptor_distance_binary(vital::descriptor_sptr d1, vital::descriptor_sptr d2)
+/// return the hamming_distance between two descriptors
+float kwiver::vital::hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2)
 {
   auto dv1 = std::dynamic_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d1);
   auto dv2 = std::dynamic_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d2);

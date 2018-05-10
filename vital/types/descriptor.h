@@ -293,9 +293,9 @@ protected:
   unsigned int node_id_;
 };
 
-/// return the distance between two descriptors
+/// return the hamming_distance between two descriptors
 VITAL_EXPORT
-float descriptor_distance_binary(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
+float hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
 
 // ------------------------------------------------------------------
 /// output stream operator for a feature
