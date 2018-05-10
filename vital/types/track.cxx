@@ -91,10 +91,12 @@ track
 ::clone() const
 {
   track_sptr t( new track( *this ) );
+  t->history_.resize(this->history_.size());
+  size_t i = 0;
   for( auto const& ts : this->history_ )
   {
-    t->history_.push_back( ts->clone() );
-    t->history_.back()->track_ = t->shared_from_this();
+    t->history_[i] =  ts->clone();
+    t->history_[i++]->track_ = t->shared_from_this();
   }
   return t;
 }

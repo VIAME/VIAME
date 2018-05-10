@@ -652,7 +652,6 @@ track_features_klt
         static_cast<double>(d_->target_number_of_features) /
         static_cast<double>(dist_im_rows * dist_im_cols)));
 
-
     typedef std::vector<feature_sptr>::const_reverse_iterator feat_itr;
     for(feat_itr fit = vf.crbegin(); fit != vf.crend(); ++fit)
     {

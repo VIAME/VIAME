@@ -149,6 +149,7 @@ set( vital_sources
   types/camera_intrinsics.cxx
   types/camera_perspective.cxx
   types/camera_rpc.cxx
+  types/descriptor.cxx
   types/descriptor_request.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx

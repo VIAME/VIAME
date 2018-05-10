@@ -84,7 +84,7 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query( const vital::descriptor_set_sptr desc);
+  query(const vital::descriptor_set_sptr desc );
 
   /// Query the inverted file system for similar images and append the querying image.
   /**
@@ -96,7 +96,7 @@ public:
   */
   virtual
   std::vector<vital::frame_id_t>
-  query_and_append( const vital::descriptor_set_sptr desc,
+  query_and_append(const vital::descriptor_set_sptr desc,
                     vital::frame_id_t frame);
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink

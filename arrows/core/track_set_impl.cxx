@@ -54,8 +54,11 @@ frame_index_track_set_impl
 /// Constructor from a vector of tracks
 frame_index_track_set_impl
 ::frame_index_track_set_impl( const std::vector< track_sptr >& tracks )
-  : all_tracks_( tracks )
 {
+  for (auto const &t : tracks)
+  {
+    all_tracks_.insert(std::make_pair(t->id(), t));
+  }
 }
 
 /// Populate frame_map_ with data from all_tracks_
@@ -66,7 +69,7 @@ frame_index_track_set_impl
   frame_map_.clear();
   for(auto const& track : all_tracks_)
   {
-    for(auto const& ts : *track)
+    for(auto const& ts : *track.second)
     {
       frame_map_[ts->frame()].insert(ts);
     }
@@ -109,7 +112,7 @@ bool
 frame_index_track_set_impl
 ::contains( vital::track_sptr t ) const
 {
-  return std::find(all_tracks_.begin(), all_tracks_.end(), t) != all_tracks_.end();
+  return all_tracks_.find(t->id()) != all_tracks_.end();
 }
 
 
@@ -118,7 +121,13 @@ void
 frame_index_track_set_impl
 ::set_tracks( std::vector< vital::track_sptr > const& tracks )
 {
-  all_tracks_ = tracks;
+  all_tracks_.clear();
+
+  for (auto const &t : tracks)
+  {
+    all_tracks_.insert(std::make_pair( t->id(), t));
+  }
+
   frame_map_.clear();
 }
 
@@ -128,7 +137,7 @@ void
 frame_index_track_set_impl
 ::insert( vital::track_sptr t )
 {
-  all_tracks_.push_back( t );
+  all_tracks_.insert(std::make_pair(t->id(), t));
 
   if (!frame_map_.empty())
   {
@@ -190,7 +199,7 @@ bool
 frame_index_track_set_impl
 ::remove( vital::track_sptr t )
 {
-  auto itr = std::find(all_tracks_.begin(), all_tracks_.end(), t);
+  auto itr = all_tracks_.find(t->id());
   if ( itr == all_tracks_.end() )
   {
     return false;
@@ -220,7 +229,13 @@ std::vector< track_sptr >
 frame_index_track_set_impl
 ::tracks() const
 {
-  return all_tracks_;
+  std::vector<track_sptr> tks(all_tracks_.size());
+  size_t i = 0;
+  for (auto const &t : all_tracks_)
+  {
+    tks[i++] = t.second;
+  }
+  return tks;
 }
 
 
@@ -250,7 +265,7 @@ frame_index_track_set_impl
   std::set<track_id_t> ids;
   for( auto const& t : all_tracks_)
   {
-    ids.insert(t->id());
+    ids.insert(t.first);
   }
   return ids;
 }
@@ -287,15 +302,12 @@ track_sptr const
 frame_index_track_set_impl
 ::get_track(track_id_t tid) const
 {
-  const std::vector<track_sptr> all_tracks = this->tracks();
-
-  for( auto const& t : all_tracks_)
+  auto t_it = all_tracks_.find(tid);
+  if (t_it != all_tracks_.end())
   {
-    if( t->id() == tid )
-    {
-      return t;
-    }
+    return t_it->second;
   }
+
 
   return track_sptr();
 }
@@ -333,9 +345,9 @@ frame_index_track_set_impl
   // and active_tracks()
   for( auto const& t : all_tracks_)
   {
-    if( t->find(frame_number) == t->end() )
+    if( t.second->find(frame_number) == t.second->end() )
     {
-      inactive_tracks.push_back(t);
+      inactive_tracks.push_back(t.second);
     }
   }
   return inactive_tracks;
@@ -511,7 +523,7 @@ frame_index_track_set_impl
   // clone the track data
   for (auto trk : all_tracks_)
   {
-    the_clone->all_tracks_.push_back(trk->clone());
+    the_clone->all_tracks_.insert(std::make_pair(trk.first,trk.second->clone()));
   }
 
   // clone the frame data

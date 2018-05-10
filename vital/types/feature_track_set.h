@@ -45,6 +45,7 @@
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
+#include <limits>
 #include <vector>
 #include <memory>
 
@@ -61,7 +62,7 @@ public:
   /// Constructor
   explicit feature_track_state( frame_id_t frame,
                                 feature_sptr f = nullptr,
-                                descriptor_sptr d = nullptr )
+                                descriptor_sptr d = nullptr)
     : track_state( frame )
     , feature(f)
     , descriptor(d)
@@ -169,6 +170,20 @@ public:
    */
   virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
 
+
+  /// Return a vector of feature track states corresponding to the tracks on the given frame.
+  /**
+  * \param [in] offset the frame offset for selecting the target frame.
+  *                    Positive number are absolute frame numbers while
+  *                    negative numbers are relative to the last frame.  For
+  *                    example, offset of -1 refers to the last frame and is
+  *                    the default.
+  *
+  * \returns a vector for all feature tracks states on the given frame.
+  */
+  virtual std::vector<feature_track_state_sptr>
+    frame_feature_track_states(frame_id_t offset = -1) const;
+
   /// Return a map of all feature_track_set_frame_data
   /**
    * This function is similar to \c all_frame_data() except that it checks
@@ -191,7 +206,6 @@ public:
 
   /// Return the additional data associated with all feature tracks on the given frame
   feature_track_set_frame_data_sptr feature_frame_data(frame_id_t offset = -1) const;
-
 };
 
 

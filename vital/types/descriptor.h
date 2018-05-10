@@ -38,6 +38,7 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/exceptions.h>
 
 #include <iostream>
 #include <vector>
@@ -105,6 +106,23 @@ public:
   {
     return ! operator==(other);
   }
+
+  /// Returns the node_id for the descriptor.
+  /**
+   * The node_id is generally the vocabulary tree leaf index computed when
+   * the descriptor is quantized in the tree.  Two features with the same
+   * node_id are expected to have similar visual appearance.
+  */
+  virtual unsigned int node_id() const { return 0; }
+
+  /// Sets the node_id for the descriptor.
+  /**
+   * By default this returns false because this base class has nowhere
+   * to store the node_id.  Derived classes that do store the node_id
+   * should return true if it successfully stored.
+  */
+  virtual bool set_node_id(unsigned int node_id) { return false; }
+
 };
 
 
@@ -184,7 +202,8 @@ class descriptor_fixed :
 {
 public:
   /// Default Constructor
-  descriptor_fixed< T, N > ( ) { }
+  descriptor_fixed< T, N > ( ):
+    node_id_(std::numeric_limits<unsigned int>::max()) { }
 
   /// The number of elements of the underlying type
   std::size_t size() const { return N; }
@@ -202,9 +221,19 @@ public:
     return new_desc;
   }
 
+  virtual unsigned int node_id() const { return node_id_; }
+
+  virtual bool set_node_id(unsigned int node_id)
+  {
+    node_id_ = node_id;
+    return true;
+  }
+
 protected:
   /// data array
   T data_[N];
+  /// node id
+  unsigned int node_id_;
 };
 
 
@@ -218,7 +247,8 @@ public:
   /// Constructor
   descriptor_dynamic< T > (size_t len)
   : data_( new T[len] ),
-  length_( len ) { }
+  length_( len ),
+  node_id_(std::numeric_limits<unsigned int>::max()) { }
 
   descriptor_dynamic< T > (size_t len, T* dat)
   : length_( len )
@@ -246,13 +276,26 @@ public:
     return ptr;
   }
 
+  virtual unsigned int node_id() const { return node_id_; }
+
+  virtual bool set_node_id(unsigned int node_id)
+  {
+    node_id_ = node_id;
+    return true;
+  }
+
 protected:
   /// data array
   T* data_;
   /// length of data array
   size_t length_;
+  /// node id
+  unsigned int node_id_;
 };
 
+/// return the hamming_distance between two descriptors
+VITAL_EXPORT
+float hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
 
 // ------------------------------------------------------------------
 /// output stream operator for a feature

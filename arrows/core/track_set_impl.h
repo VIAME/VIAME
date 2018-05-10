@@ -42,6 +42,7 @@
 #include <vital/types/track_set.h>
 
 #include <map>
+#include <unordered_map>
 
 namespace kwiver {
 namespace arrows {
@@ -172,7 +173,7 @@ protected:
 
 private:
   /// The vector of all tracks
-  std::vector< vital::track_sptr > all_tracks_;
+  std::unordered_map<vital::track_id_t, vital::track_sptr > all_tracks_;
 
   /// The mapping from frames to track states
   mutable std::map<vital::frame_id_t, std::set<vital::track_state_sptr> > frame_map_;
