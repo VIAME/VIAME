@@ -38,6 +38,7 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/exceptions.h>
 
 #include <iostream>
 #include <vector>
@@ -292,6 +293,9 @@ protected:
   unsigned int node_id_;
 };
 
+/// return the distance between two descriptors
+VITAL_EXPORT
+float descriptor_distance_binary(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
 
 // ------------------------------------------------------------------
 /// output stream operator for a feature

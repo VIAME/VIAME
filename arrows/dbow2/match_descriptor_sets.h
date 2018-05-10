@@ -134,10 +134,6 @@ public:
   */
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  //return the distance between two descriptors
-  virtual
-  int descriptor_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2) const;
-
 protected:
   /// the feature m_detector algorithm
   class priv;

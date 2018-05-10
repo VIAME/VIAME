@@ -104,6 +104,8 @@ public:
 
   unsigned m_min_loop_inlier_matches;
 
+  std::function<float(descriptor_sptr, descriptor_sptr)> desc_dist = descriptor_distance_binary;
+
 };
 
 //-----------------------------------------------------------------------------
@@ -160,7 +162,7 @@ close_loops_appearance_indexed::priv
 
     for (auto match_feat : vb)
     {
-      int dist = m_bow->descriptor_distance(cur_feat->descriptor, match_feat->descriptor);
+      int dist = static_cast<int>(desc_dist(cur_feat->descriptor, match_feat->descriptor));
       if (dist < dist1)
       {
         dist1 = dist;
@@ -207,7 +209,7 @@ close_loops_appearance_indexed::priv
 
     auto match_frame_fts = feat_tracks->frame_feature_track_states(fn_match);
 
-    auto match_node_map = make_node_map(match_frame_fts);    
+    auto match_node_map = make_node_map(match_frame_fts);
     matches_vec validated_matches;
 
     //ok now we do the matching.

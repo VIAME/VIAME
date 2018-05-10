@@ -476,46 +476,6 @@ match_descriptor_sets
   return d_->query(desc, frame, true);
 }
 
-int
-match_descriptor_sets
-::descriptor_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2) const
-{
-  auto dv1 = std::dynamic_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d1);
-  auto dv2 = std::dynamic_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d2);
-
-  if (dv1 && dv2 )
-  {
-    // Bit set count operation from
-    // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-
-    if (dv1->size() % 4)
-    {
-      throw vital::invalid_value("Descriptor must be a multiple of four bytes long.");
-    }
-    const int num_ints_long(dv1->size() / 4);
-
-
-    const int *pa = (int*)dv1->raw_data();
-    const int *pb = (int*)dv2->raw_data();
-
-    int dist = 0;
-
-    for (int i = 0; i < num_ints_long; i++, pa++, pb++)
-    {
-      unsigned  int v = *pa ^ *pb;
-      v = v - ((v >> 1) & 0x55555555);
-      v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
-      dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
-    }
-
-    return dist;
-  }
-  else
-  {
-    throw vital::invalid_data("One or both descriptors cannot be cast to descriptor_dynamic<<unsigned char>>");
-  }
-}
-
 // ------------------------------------------------------------------
 
 vital::config_block_sptr

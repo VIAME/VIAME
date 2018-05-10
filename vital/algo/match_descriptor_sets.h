@@ -106,10 +106,6 @@ public:
   query_and_append(const vital::descriptor_set_sptr desc,
                    frame_id_t frame);
 
-  //return the distance between two descriptors
-  virtual
-  int descriptor_distance(vital::descriptor_sptr f1, vital::descriptor_sptr f2) const = 0;
-
 protected:
 
   /// Default constructor
