@@ -123,9 +123,9 @@ close_loops_appearance_indexed::priv
   node_id_to_feat_map fm;
   for (auto f : feats)
   {
-    if (f->descriptor && f->descriptor->node_id != std::numeric_limits<unsigned int>::max())
+    if (f->descriptor && f->descriptor->node_id() != std::numeric_limits<unsigned int>::max())
     {
-      auto fm_it = fm.find(f->descriptor->node_id);
+      auto fm_it = fm.find(f->descriptor->node_id());
       if (fm_it != fm.end())
       {
         fm_it->second.push_back(f);
@@ -134,7 +134,7 @@ close_loops_appearance_indexed::priv
       {
         std::vector<feature_track_state_sptr> vec;
         vec.push_back(f);
-        fm[f->descriptor->node_id] = vec;
+        fm[f->descriptor->node_id()] = vec;
       }
     }
   }

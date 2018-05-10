@@ -106,9 +106,10 @@ public:
     return ! operator==(other);
   }
 
-  unsigned int node_id; // This can be set ty feature quantization methods.
-                         // Features with the same node_id should be likely to
-                         // have similar apperarance.
+  virtual unsigned int node_id() const { return 0; }
+
+  virtual bool set_node_id(unsigned int node_id) { return true; }
+
 };
 
 
@@ -188,7 +189,8 @@ class descriptor_fixed :
 {
 public:
   /// Default Constructor
-  descriptor_fixed< T, N > ( ) { }
+  descriptor_fixed< T, N > ( ):
+    node_id_(std::numeric_limits<unsigned int>::max()) { }
 
   /// The number of elements of the underlying type
   std::size_t size() const { return N; }
@@ -206,9 +208,22 @@ public:
     return new_desc;
   }
 
+  virtual unsigned int node_id() const { return node_id_; }
+
+  virtual bool set_node_id(unsigned int node_id)
+  {
+    node_id_ = node_id;
+    return true;
+  }
+
 protected:
   /// data array
   T data_[N];
+  /// node id
+  unsigned int node_id_; // This can be set ty feature quantization methods.
+                        // Features with the same node_id should be likely to
+                        // have similar apperarance.
+
 };
 
 
@@ -222,7 +237,8 @@ public:
   /// Constructor
   descriptor_dynamic< T > (size_t len)
   : data_( new T[len] ),
-  length_( len ) { }
+  length_( len ),
+  node_id_(std::numeric_limits<unsigned int>::max()) { }
 
   descriptor_dynamic< T > (size_t len, T* dat)
   : length_( len )
@@ -250,11 +266,23 @@ public:
     return ptr;
   }
 
+  virtual unsigned int node_id() const { return node_id_; }
+
+  virtual bool set_node_id(unsigned int node_id)
+  {
+    node_id_ = node_id;
+    return true;
+  }
+
 protected:
   /// data array
   T* data_;
   /// length of data array
   size_t length_;
+  /// node id
+  unsigned int node_id_; // This can be set ty feature quantization methods.
+                        // Features with the same node_id should be likely to
+                        // have similar apperarance.
 };
 
 

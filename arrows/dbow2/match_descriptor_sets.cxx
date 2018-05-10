@@ -194,7 +194,7 @@ match_descriptor_sets::priv
     auto node_id = node_data.first;
     for (auto f_idx : node_data.second)
     {
-      desc_vec[desc_mat_indices[f_idx]]->node_id = node_id;
+      desc_vec[desc_mat_indices[f_idx]]->set_node_id(node_id);
     }
   }
 
@@ -244,7 +244,7 @@ match_descriptor_sets::priv
     auto node_id = node_data.first;
     for (auto f_idx : node_data.second)
     {
-      desc_vec[desc_mat_indices[f_idx]]->node_id = node_id;
+      desc_vec[desc_mat_indices[f_idx]]->set_node_id(node_id);
     }
   }
 
