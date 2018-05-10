@@ -106,7 +106,7 @@ public:
     return ! operator==(other);
   }
 
-  /// Returns the node_id for the descriptor.  This number should be
+  /// Returns the node_id for the descriptor.
   /**
    * The node_id is generally the vocabulary tree leaf index computed when
    * the descriptor is quantized in the tree.  Two features with the same

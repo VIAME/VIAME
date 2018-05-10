@@ -207,8 +207,8 @@ close_loops_appearance_indexed::priv
 
     auto match_frame_fts = feat_tracks->frame_feature_track_states(fn_match);
 
-    auto match_node_map = make_node_map(match_frame_fts);
-    int num_linked = 0;
+    auto match_node_map = make_node_map(match_frame_fts);    
+    matches_vec validated_matches;
 
     //ok now we do the matching.
     //loop over node ids in the current frame
@@ -230,34 +230,38 @@ close_loops_appearance_indexed::priv
       do_matching( cur_feat_vec, match_feat_vec, matches_forward);
       do_matching( match_feat_vec, cur_feat_vec, matches_reverse);
 
+      // cross-validate the matches
       for (auto m_f : matches_forward)
       {
         for (auto m_r : matches_reverse)
         {
           if (m_f.first == m_r.second && m_f.second == m_r.first)
           {
-            track_sptr t1 = m_f.first->track();
-            track_sptr t2 = m_f.second->track();
-            if (feat_tracks->merge_tracks(t1, t2))
-            {
-              ++num_linked;
-            }
+            validated_matches.push_back(m_f);
             break;
           }
         }
       }
+    }
+
+    if (validated_matches.size() < m_min_loop_inlier_matches)
+    {
+      continue;
+    }
+
+    for (auto const&m : validated_matches)
+    {
+      track_sptr t1 = m.first->track();
+      track_sptr t2 = m.second->track();
+      feat_tracks->merge_tracks(t1, t2);
 
     }
-    //ok, we have all the matches for this node id and the current putative matching frame.  Add them.
 
-    LOG_DEBUG(m_logger, "Stitched " << num_linked <<
+    LOG_DEBUG(m_logger, "Stitched " << validated_matches.size() <<
       " tracks between frames " << frame_number <<
       " and " << fn_match);
 
-    if (num_linked > 0)
-    {
-      ++num_successfully_matched_pairs;
-    }
+    ++num_successfully_matched_pairs;
   }
 
   LOG_DEBUG(m_logger, "Of " << putative_matches.size() << " putative matches "
