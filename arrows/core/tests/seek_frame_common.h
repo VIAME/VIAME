@@ -66,6 +66,8 @@ void test_seek_frame(kwiver::vital::algo::video_input& vi)
     EXPECT_FALSE( vi.seek_frame( ts, requested_frame) );
     EXPECT_NE( requested_frame, ts.get_frame() );
   }
+
+  EXPECT_EQ( 50, vi.num_frames() );
 }
 
 void test_seek_frame_sublist(kwiver::vital::algo::video_input& vi)
@@ -107,8 +109,8 @@ void test_seek_then_next(kwiver::vital::algo::video_input& vi)
   // Video should be seekable
   EXPECT_TRUE( vi.seekable() );
 
-  // Seek to frame 12, then run over the rest of the video
-  kwiver::vital::timestamp::frame_t requested_frame = 12;
+  // Seek to frame 17, then run over the rest of the video
+  kwiver::vital::timestamp::frame_t requested_frame = 17;
 
   EXPECT_TRUE( vi.seek_frame( ts, requested_frame) );
 

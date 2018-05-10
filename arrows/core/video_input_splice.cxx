@@ -314,7 +314,7 @@ video_input_splice
 {
   size_t num_frames = 0;
 
-  for ( auto const& vs : d->d_video_sources )
+  for ( auto& vs : d->d_video_sources )
   {
     num_frames += vs->num_frames();
   }
@@ -389,8 +389,9 @@ video_input_splice
   {
     if ( frame_number <= (*vs_iter)->num_frames() + frames_prior )
     {
-      (*d->d_active_source)->seek_frame( ts, 0 );
+      (*d->d_active_source)->seek_frame( ts, 1, timeout );
       d->d_active_source = vs_iter;
+      d->d_frame_offset = frames_prior;
       status =
         (*d->d_active_source)->seek_frame( ts, frame_number - frames_prior );
       break;
@@ -401,7 +402,7 @@ video_input_splice
     }
   }
 
-  ts.set_frame( ts.get_frame() + frames_prior );
+  ts.set_frame( ts.get_frame() + d->d_frame_offset );
   return status;
 } // video_input_splice::seek_frame
 
