@@ -106,9 +106,21 @@ public:
     return ! operator==(other);
   }
 
+  /// Returns the node_id for the descriptor.  This number should be
+  /**
+   * The node_id is generally the vocabulary tree leaf index computed when
+   * the descriptor is quantized in the tree.  Two features with the same
+   * node_id are expected to have similar visual appearance.
+  */
   virtual unsigned int node_id() const { return 0; }
 
-  virtual bool set_node_id(unsigned int node_id) { return true; }
+  /// Sets the node_id for the descriptor.
+  /**
+   * By default this returns false because this base class has nowhere
+   * to store the node_id.  Derived classes that do store the node_id
+   * should return true if it successfully stored.
+  */
+  virtual bool set_node_id(unsigned int node_id) { return false; }
 
 };
 
@@ -220,10 +232,7 @@ protected:
   /// data array
   T data_[N];
   /// node id
-  unsigned int node_id_; // This can be set ty feature quantization methods.
-                        // Features with the same node_id should be likely to
-                        // have similar apperarance.
-
+  unsigned int node_id_;
 };
 
 
@@ -280,9 +289,7 @@ protected:
   /// length of data array
   size_t length_;
   /// node id
-  unsigned int node_id_; // This can be set ty feature quantization methods.
-                        // Features with the same node_id should be likely to
-                        // have similar apperarance.
+  unsigned int node_id_;
 };
 
 
