@@ -72,11 +72,6 @@ public:
   void load_features(std::string training_image_list,
     std::vector<std::vector<cv::Mat > > &features);
 
-  void feature_track_vec_to_descriptor_vec(
-    std::vector<feature_track_state_sptr>& vfeat,
-    std::vector<cv::Mat> &features,
-    std::vector<feature_track_state_sptr> &features_with_descriptors) const;
-
   void descriptor_set_to_vec(
     const std::vector< descriptor_sptr > &desc_vec,
     std::vector<cv::Mat> &features,
@@ -396,34 +391,6 @@ match_descriptor_sets::priv
     LOG_ERROR(m_logger, "error while reading " + training_image_list);
     throw vital::invalid_file(training_image_list, "training image list bad");
   }
-}
-
-//-----------------------------------------------------------------------------
-
-void
-match_descriptor_sets::priv
-::feature_track_vec_to_descriptor_vec(
-  std::vector<feature_track_state_sptr>& vfeat,
-  std::vector<cv::Mat> &features,
-  std::vector<feature_track_state_sptr> &features_with_descriptors) const
-{
-  features_with_descriptors.clear();
-
-  features.resize(vfeat.size());
-  unsigned int dn = 0;
-  for (auto f : vfeat)
-  {
-    auto d = f->descriptor;
-    if (!d)
-    {
-      //skip null descriptors
-      continue;
-    }
-    features[dn++] = descriptor_to_mat(d);
-    features_with_descriptors.push_back(f);
-  }
-
-  features.resize(dn);  //resize to only return features for non-null descriptors
 }
 
 //-----------------------------------------------------------------------------

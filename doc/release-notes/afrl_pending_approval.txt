@@ -22,7 +22,7 @@ Arrows - Core
 General - 
 
  * Improved speed of klt/ORB feature tracking by choosing which features
-   to tray and match with visual vocabulary node ID.  Made klt feature 
+   to track and match with visual vocabulary node ID.  Made klt feature 
    tracker in sprokit return just the most recent tracked features, not
    the entire history at each step.  Made keyframe selector remove non
    keyframes temporally between keyframes to improve speed.  That way

@@ -57,7 +57,7 @@ frame_index_track_set_impl
 {
   for (auto const &t : tracks)
   {
-    all_tracks_.insert(std::pair<vital::track_id_t, vital::track_sptr>(t->id(), t));
+    all_tracks_.insert(std::make_pair(t->id(), t));
   }
 }
 
@@ -125,7 +125,7 @@ frame_index_track_set_impl
 
   for (auto const &t : tracks)
   {
-    all_tracks_.insert(std::pair<vital::track_id_t, vital::track_sptr>(t->id(), t));
+    all_tracks_.insert(std::make_pair( t->id(), t));
   }
 
   frame_map_.clear();
@@ -137,7 +137,7 @@ void
 frame_index_track_set_impl
 ::insert( vital::track_sptr t )
 {
-  all_tracks_.insert(std::pair<vital::track_id_t, vital::track_sptr>(t->id(), t));
+  all_tracks_.insert(std::make_pair(t->id(), t));
 
   if (!frame_map_.empty())
   {
@@ -523,7 +523,7 @@ frame_index_track_set_impl
   // clone the track data
   for (auto trk : all_tracks_)
   {
-    the_clone->all_tracks_.insert(std::pair<vital::track_id_t,vital::track_sptr>(trk.first,trk.second->clone()));
+    the_clone->all_tracks_.insert(std::make_pair(trk.first,trk.second->clone()));
   }
 
   // clone the frame data
