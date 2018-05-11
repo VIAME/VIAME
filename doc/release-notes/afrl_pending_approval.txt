@@ -18,6 +18,9 @@ Arrows - Core
    
  * Switched track_set_impl from using a vector to store track_sptr to 
    using an unordered map.  This allows for more efficient search for tracks.
+   
+ * Set inlier flag for track states during triangulation.  Stored max 
+   intersection angle of rays in landmark, a quality metric.
 
 General - 
 
