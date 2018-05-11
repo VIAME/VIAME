@@ -18,6 +18,11 @@ Arrows - Core
    
  * Switched track_set_impl from using a vector to store track_sptr to 
    using an unordered map.  This allows for more efficient search for tracks.
+   
+Arrows - Ceres
+
+ * Added ability to fix either cameras or landmarks in bundle adjustment.  
+ * Automatically fixes the gauge if there are not enough fixed cameras or landmarks.
 
 General - 
 
