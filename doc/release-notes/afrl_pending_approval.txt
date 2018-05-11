@@ -19,6 +19,8 @@ Arrows - Core
  * Switched track_set_impl from using a vector to store track_sptr to 
    using an unordered map.  This allows for more efficient search for tracks.
 
+ * Added option to necker reverse only the cameras but not the landmarks.
+ 
 General - 
 
  * Improved speed of klt/ORB feature tracking by choosing which features
