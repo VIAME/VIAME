@@ -27,6 +27,8 @@ Arrows - Ceres
  * Added ability to fix either cameras or landmarks in bundle adjustment.  
  * Automatically fixes the gauge if there are not enough fixed cameras or landmarks.
 
+ * Added option to necker reverse only the cameras but not the landmarks.
+ 
 General - 
 
  * Improved speed of klt/ORB feature tracking by choosing which features
