@@ -66,10 +66,10 @@ public:
 
   /// Optimize the camera and landmark parameters given a set of feature tracks
   /**
-  * \param [in,out] cameras the cameras to optimize
-  * \param [in,out] landmarks the landmarks to optimize
-  * \param [in] tracks the feature tracks to use as constraints
-  * \param [in] metadata the frame metadata to use as constraints
+   * \param [in,out] cameras the cameras to optimize
+   * \param [in,out] landmarks the landmarks to optimize
+   * \param [in] tracks the feature tracks to use as constraints
+   * \param [in] metadata the frame metadata to use as constraints
   */
   virtual void
     optimize(vital::camera_map_sptr& cameras,
@@ -80,12 +80,12 @@ public:
 
   /// Optimize the camera and landmark parameters given a set of feature tracks
   /**
-  * \param [in,out] cameras the cameras to optimize
-  * \param [in,out] landmarks the landmarks to optimize
-  * \param [in] tracks the feature tracks to use as constraints
-  * \param [in] fixed_cameras frame ids for cameras to be fixed in the optimization
-  * \param [in] fixed_landmarks landmark ids for landmarks to be fixed in the optimization
-  * \param [in] metadata the frame metadata to use as constraints
+   * \param [in,out] cameras the cameras to optimize
+   * \param [in,out] landmarks the landmarks to optimize
+   * \param [in] tracks the feature tracks to use as constraints
+   * \param [in] fixed_cameras frame ids for cameras to be fixed in the optimization
+   * \param [in] fixed_landmarks landmark ids for landmarks to be fixed in the optimization
+   * \param [in] metadata the frame metadata to use as constraints
   */
   virtual void
     optimize(vital::camera_map_sptr& cameras,
