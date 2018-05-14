@@ -59,18 +59,14 @@ bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
 {
   double min_cos_ang = std::numeric_limits<double>::infinity();
   std::vector<vital::vector_3d> rays(cameras.size());
-  //pre-compute all rays and store so we don't compute them n*(n-1)/2 times
-  //only n times.
-  for (size_t i = 0; i < cameras.size(); ++i)
+
+  for(size_t i = 0; i < cameras.size(); ++i)
   {
     auto const& cam_i = cameras[i];
     const vital::vector_3d c_i(cam_i.center().cast<double>());
     rays[i] = (c_i - X).normalized();
-  }
 
-  for(size_t i = 0; i < cameras.size(); ++i)
-  {
-    for(size_t j = i+1; j < cameras.size(); ++j)
+    for(size_t j = 0; j < i; ++j)
     {
       // the second camera
       double cos_ang = rays[i].dot(rays[j]);

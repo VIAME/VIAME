@@ -131,9 +131,10 @@ public:
   /// Accessor for the world coordinates using underlying data type
   Eigen::Matrix< T, 3, 1 > const& get_loc() const { return loc_; }
 
-  /// Accessor for the cosine of the maximum observation angle
+  /// Accessor for the cosine of the maximum observation angle using underlying data type
   T get_cos_obs_angle() const { return cos_obs_angle_; }
 
+  /// Accessor for the cosine of the maximum observation angle
   virtual double cos_obs_angle() const { return static_cast<double>(cos_obs_angle_); }
 
   /// Accessor for the world coordinates
@@ -187,6 +188,7 @@ public:
   /// Set the number of observations of the landmark
   void set_observations(unsigned observations) { observations_ = observations; }
 
+  /// Set the cosine of the maximum observation angle
   void set_cos_observation_angle(T cos_ang) { cos_obs_angle_ = cos_ang; }
 
 protected:
