@@ -52,10 +52,14 @@ class video_input_splice::priv
 {
 public:
   priv() :
+  c_frame_skip( 1 ),
   d_has_timeout(false),
   d_is_seekable(false),
   d_frame_offset(0)
   { }
+
+  // Configuration values
+  unsigned int c_frame_skip;
 
   std::vector< std::string > d_search_path;
   bool d_has_timeout;
@@ -99,6 +103,11 @@ video_input_splice
   // get base config from base class
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
+  config->set_value( "output_nth_frame", d->c_frame_skip,
+                     "Only outputs every nth frame of the video starting at the first frame. The output "
+                     "of num_frames still reports the total frames in the video but skip_frame is valid "
+                     "every nth frame only and there are metadata_map entries for only every nth frame.");
+
   size_t n = 1;
   for ( auto const& vs : d->d_video_sources )
   {
@@ -113,8 +122,14 @@ video_input_splice
 // ------------------------------------------------------------------
 void
 video_input_splice
-::set_configuration( vital::config_block_sptr config )
+::set_configuration( vital::config_block_sptr in_config )
 {
+  vital::config_block_sptr config = this->get_configuration();
+  config->merge_config(in_config);
+
+  d->c_frame_skip = config->get_value<vital::timestamp::frame_t>(
+    "output_nth_frame", d->c_frame_skip );
+
   // Extract string and create vector of directories
   std::string path = config->get_value<std::string>( "path", "" );
   kwiver::vital::tokenize(
@@ -335,34 +350,41 @@ video_input_splice
     timeout = 0;
   }
 
-  bool status;
+  bool status = false;
+  kwiver::vital::timestamp::frame_t frame_number = 1;
 
-  status = (*d->d_active_source)->next_frame(ts, timeout);
-
-  if ( ! status )
+  do
   {
-    // Move to next source if needed
-    if ( (*d->d_active_source)->end_of_video() )
+    status = (*d->d_active_source)->next_frame(ts, timeout);
+    frame_number = ts.get_frame() + d->d_frame_offset;
+
+    if ( ! status )
     {
-      (*d->d_active_source)->seek_frame(ts, 1, timeout);
-      d->d_frame_offset += (*d->d_active_source)->num_frames();
-      d->d_active_source++;
-      if ( d->d_active_source != d->d_video_sources.end() )
+      // Move to next source if needed
+      if ( (*d->d_active_source)->end_of_video() )
       {
-        if ( ! (*d->d_active_source)->good() )
+        (*d->d_active_source)->seek_frame(ts, 1, timeout);
+        d->d_frame_offset += (*d->d_active_source)->num_frames();
+        d->d_active_source++;
+        if ( d->d_active_source != d->d_video_sources.end() )
         {
-          status = (*d->d_active_source)->next_frame(ts, timeout);
-        }
-        else
-        {
-          ts = (*d->d_active_source)->frame_timestamp();
-          status = true;
+          if ( ! (*d->d_active_source)->good() )
+          {
+            status = (*d->d_active_source)->next_frame(ts, timeout);
+            frame_number = ts.get_frame() + d->d_frame_offset;
+          }
+          else
+          {
+            ts = (*d->d_active_source)->frame_timestamp();
+            status = true;
+          }
         }
       }
     }
   }
+  while ( (frame_number - 1) % d->c_frame_skip != 0 && status );
 
-  ts.set_frame( ts.get_frame() + d->d_frame_offset );
+  ts.set_frame( frame_number );
   return status;
 } // video_input_splice::next_frame
 
@@ -379,6 +401,12 @@ video_input_splice
   if ( ! d->d_has_timeout )
   {
     timeout = 0;
+  }
+
+  // Check if requested frame would have been skipped
+  if ( ( frame_number - 1 ) % d->c_frame_skip != 0 )
+  {
+    return false;
   }
 
   // Determine which source is responsible for this frame
