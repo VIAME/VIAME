@@ -63,7 +63,7 @@ public:
     : m_homogeneous(false),
       m_ransac(true),
       m_min_angle_deg(1.0f),
-      m_inlier_threshold_pixels(100.0f),
+      m_inlier_threshold_pixels(10.0),
       m_frac_track_inliers_to_keep_triangulated_point(0.5f),
       m_max_ransac_samples(20),
       m_conf_thresh(0.99)
@@ -334,6 +334,7 @@ triangulate_landmarks
     // TODO throw an exception for missing input data
     return;
   }
+
   typedef vital::camera_map::map_camera_t map_camera_t;
   typedef vital::landmark_map::map_landmark_t map_landmark_t;
 
@@ -374,6 +375,7 @@ triangulate_landmarks
     // extract the cameras and image points for this landmarks
     std::vector<vital::simple_camera_perspective> lm_cams;
     std::vector<vital::vector_2d> lm_image_pts;
+    std::vector<vital::feature_track_state_sptr> lm_features;
 
     auto lm_observations = unsigned{0};
     for (vital::track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
@@ -394,6 +396,7 @@ triangulate_landmarks
         std::dynamic_pointer_cast<vital::camera_perspective>(c_itr->second);
       lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
       lm_image_pts.push_back(fts->feature->loc());
+      lm_features.push_back(fts);
       ++lm_observations;
     }
 
@@ -432,13 +435,37 @@ triangulate_landmarks
         }
         if (behind)
         {
+          for (int idx = 0; idx < lm_cams.size(); ++idx)
+          {
+            lm_features[idx]->inlier = false;
+          }
+
           failed_landmarks.insert(p.first);
           continue;
         }
       }
 
+      //set inlier/outlier states for the measurements
+      for (int idx = 0; idx < lm_cams.size(); ++idx)
+      {
+        vital::landmark_d lm;
+        lm.set_loc(pt3d);
+        double reproj_err = reprojection_error(lm_cams[idx], lm, *lm_features[idx]->feature);
+        if (reproj_err < d_->m_inlier_threshold_pixels)
+        {
+          lm_features[idx]->inlier = true;
+        }
+        else
+        {
+          lm_features[idx]->inlier = false;
+        }
+      }
       if (!pt3d.allFinite())
       {
+        for (int idx = 0; idx < lm_cams.size(); ++idx)
+        {
+          lm_features[idx]->inlier = false;
+        }
         failed_landmarks.insert(p.first);
         continue;
       }
@@ -449,8 +476,15 @@ triangulate_landmarks
       {
         failed_angle.insert(p.first);
         failed_landmarks.insert(p.first);
+
+        for (int idx = 0; idx < lm_cams.size(); ++idx)
+        {
+          lm_features[idx]->inlier = false;
+        }
+
         continue;
       }
+
 
       std::shared_ptr<vital::landmark_d> lm;
       // if the landmark already exists, copy it
@@ -464,6 +498,7 @@ triangulate_landmarks
       {
         lm = std::make_shared<vital::landmark_d>(pt3d);
       }
+      lm->set_cos_observation_angle(triang_cos_ang);
       lm->set_observations(lm_observations);
       triangulated_lms[p.first] = lm;
     }
