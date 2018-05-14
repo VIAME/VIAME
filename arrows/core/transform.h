@@ -123,8 +123,8 @@ vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
 KWIVER_ALGO_CORE_EXPORT
 void
 necker_reverse(vital::camera_map_sptr& cameras,
-  vital::landmark_map_sptr& landmarks,
-  bool reverse_landmarks = true);
+               vital::landmark_map_sptr& landmarks,
+               bool reverse_landmarks = true);
 
 } // end namespace arrows
 } // end namespace kwiver

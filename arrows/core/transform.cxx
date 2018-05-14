@@ -159,11 +159,12 @@ vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
   return vital::landmark_map_sptr(new vital::simple_landmark_map(lm_map));
 }
 
+
 /// Compute an approximate Necker reversal of cameras and landmarks
 void
 necker_reverse(vital::camera_map_sptr& cameras,
-  vital::landmark_map_sptr& landmarks,
-  bool reverse_landmarks)
+               vital::landmark_map_sptr& landmarks,
+               bool reverse_landmarks)
 {
   typedef vital::landmark_map::map_landmark_t lm_map_t;
   typedef vital::camera_map::map_camera_t cam_map_t;
