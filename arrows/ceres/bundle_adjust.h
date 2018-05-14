@@ -73,9 +73,9 @@ public:
   */
   virtual void
     optimize(vital::camera_map_sptr& cameras,
-      vital::landmark_map_sptr& landmarks,
-      vital::feature_track_set_sptr tracks,
-      vital::metadata_map_sptr metadata = nullptr) const;
+             vital::landmark_map_sptr& landmarks,
+             vital::feature_track_set_sptr tracks,
+             vital::metadata_map_sptr metadata = nullptr) const;
 
 
   /// Optimize the camera and landmark parameters given a set of feature tracks
@@ -89,11 +89,11 @@ public:
   */
   virtual void
     optimize(vital::camera_map_sptr& cameras,
-      vital::landmark_map_sptr& landmarks,
-      vital::feature_track_set_sptr tracks,
-      const std::set<vital::frame_id_t>& fixed_cameras,
-      const std::set<vital::landmark_id_t>& fixed_landmarks,
-      vital::metadata_map_sptr metadata = nullptr) const;
+             vital::landmark_map_sptr& landmarks,
+             vital::feature_track_set_sptr tracks,
+             const std::set<vital::frame_id_t>& fixed_cameras,
+             const std::set<vital::landmark_id_t>& fixed_landmarks,
+             vital::metadata_map_sptr metadata = nullptr) const;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

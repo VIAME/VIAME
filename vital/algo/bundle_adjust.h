@@ -78,21 +78,21 @@ public:
 
   /// Optimize the camera and landmark parameters given a set of feature tracks
   /**
-  * \param [in,out] cameras the cameras to optimize
-  * \param [in,out] landmarks the landmarks to optimize
-  * \param [in] tracks the feature tracks to use as constraints
-  * \param [in] fixed_cameras frame ids for cameras to be fixed in the optimization
-  * \param [in] fixed_landmarks landmark ids for landmarks to be fixed in the optimization
-  * \param [in] metadata the frame metadata to use as constraints
-  */
+   * \param [in,out] cameras the cameras to optimize
+   * \param [in,out] landmarks the landmarks to optimize
+   * \param [in] tracks the feature tracks to use as constraints
+   * \param [in] fixed_cameras frame ids for cameras to be fixed in the optimization
+   * \param [in] fixed_landmarks landmark ids for landmarks to be fixed in the optimization
+   * \param [in] metadata the frame metadata to use as constraints
+   */
 
   virtual void
     optimize(kwiver::vital::camera_map_sptr& cameras,
-      kwiver::vital::landmark_map_sptr& landmarks,
-      kwiver::vital::feature_track_set_sptr tracks,
-      const std::set<vital::frame_id_t>& fixed_cameras,
-      const std::set<vital::landmark_id_t>& fixed_landmarks,
-      kwiver::vital::metadata_map_sptr metadata = nullptr) const;
+             kwiver::vital::landmark_map_sptr& landmarks,
+             kwiver::vital::feature_track_set_sptr tracks,
+             const std::set<vital::frame_id_t>& fixed_cameras,
+             const std::set<vital::landmark_id_t>& fixed_landmarks,
+             kwiver::vital::metadata_map_sptr metadata = nullptr) const;
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,

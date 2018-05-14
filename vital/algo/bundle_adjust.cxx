@@ -59,11 +59,11 @@ bundle_adjust
 void
 bundle_adjust
 ::optimize(vital::camera_map_sptr& cameras,
-  vital::landmark_map_sptr& landmarks,
-  vital::feature_track_set_sptr tracks,
-  const std::set<vital::frame_id_t>& fixed_cameras,
-  const std::set<vital::landmark_id_t>& fixed_landmarks,
-  vital::metadata_map_sptr metadata) const
+           vital::landmark_map_sptr& landmarks,
+           vital::feature_track_set_sptr tracks,
+           const std::set<vital::frame_id_t>& fixed_cameras,
+           const std::set<vital::landmark_id_t>& fixed_landmarks,
+           vital::metadata_map_sptr metadata) const
 {
   if (!fixed_cameras.empty() || !fixed_landmarks.empty())
   {
