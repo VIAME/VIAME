@@ -22,6 +22,8 @@ Arrows - Core
  * Set inlier flag for track states during triangulation.  Stored max 
    intersection angle of rays in landmark, a quality metric.
 
+ * Added option to necker reverse only the cameras but not the landmarks.
+ 
 General - 
 
  * Improved speed of klt/ORB feature tracking by choosing which features
