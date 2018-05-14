@@ -36,6 +36,7 @@
 
 #include <vital/algo/bundle_adjust.h>
 #include <vital/algo/algorithm.txx>
+#include <vital/logger/logger.h>
 
 namespace kwiver {
 namespace vital {
@@ -64,6 +65,10 @@ bundle_adjust
   const std::set<vital::landmark_id_t>& fixed_landmarks,
   vital::metadata_map_sptr metadata) const
 {
+  if (!fixed_cameras.empty() || !fixed_landmarks.empty())
+  {
+    LOG_WARN(logger(), "This implementation does not support fixing cameras or landmarks");
+  }
   optimize(cameras, landmarks, tracks, metadata);
 }
 
