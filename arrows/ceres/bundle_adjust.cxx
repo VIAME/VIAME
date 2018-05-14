@@ -42,6 +42,7 @@
 #include <arrows/ceres/reprojection_error.h>
 #include <arrows/ceres/types.h>
 #include <arrows/ceres/options.h>
+#include <ceres/loss_function.h>
 
 #include <ceres/ceres.h>
 
@@ -237,7 +238,7 @@ public:
 
     T dist = dx*dx + dy*dy + dz*dz;
 
-    residuals[0] = 1000000.0*(dist - distance_squared_);
+    residuals[0] = (dist - distance_squared_);
 
     return true;
   }
@@ -401,7 +402,7 @@ bundle_adjust
 
   if (fixed_cameras.size() == 0)
   {
-    //fix a camera
+    //If no cameras are fixed, find the first camera and fix it.
     for (auto &fix : d_->camera_params)
     {
       auto fixed_fid = fix.first;
@@ -435,8 +436,10 @@ bundle_adjust
     double dy = param0[4] - param1[4];
     double dz = param0[5] - param1[5];
     double distance_squared = dx*dx + dy*dy + dz*dz;
+    int num_residuals = problem.NumResiduals();
 
-    problem.AddResidualBlock(distance_constraint::create(distance_squared), NULL, param0, param1);
+    auto dist_loss = new ::ceres::ScaledLoss(NULL, num_residuals, ::ceres::Ownership::TAKE_OWNERSHIP);
+    problem.AddResidualBlock(distance_constraint::create(distance_squared), dist_loss, param0, param1);
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
