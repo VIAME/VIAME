@@ -38,9 +38,11 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/vital_types.h>
 
 #include <iostream>
 #include <memory>
+#include <set>
 
 #include "covariance.h"
 #include "vector.h"
@@ -87,7 +89,8 @@ public:
   virtual unsigned observations() const = 0;
   /// Accessor for the maximum intersection angle of rays triangulating this landmark
   virtual double cos_obs_angle() const = 0;
-
+  /// Accessor for the set of track ids that triangulate to make this landmark
+  virtual std::set<track_id_t> tracks() const = 0;
 };
 
 /// output stream operator for a base class landmark
@@ -188,8 +191,18 @@ public:
   /// Set the number of observations of the landmark
   void set_observations(unsigned observations) { observations_ = observations; }
 
+  /// set the maximum observation angle between rays
   /// Set the cosine of the maximum observation angle
   void set_cos_observation_angle(T cos_ang) { cos_obs_angle_ = cos_ang; }
+
+  /// Add a track id to the landmark
+  void add_track(track_id_t id) { tracks_.insert(id); }
+
+  /// Remove a track id from the landmark
+  void remove_track(track_id_t id) { tracks_.erase(id); }
+
+  /// Return the track ids this landmark is triangulated from
+  std::set<track_id_t> tracks() const { return tracks_;  }
 
 protected:
   /// A vector representing the 3D position of the landmark
@@ -206,6 +219,8 @@ protected:
   unsigned observations_;
   /// The cosine of the maximum intersection angle of observations that contributed to this landmark
   T cos_obs_angle_;
+  /// The tracks that triangulate to make this landmark
+  std::set<track_id_t> tracks_;
 
 };
 

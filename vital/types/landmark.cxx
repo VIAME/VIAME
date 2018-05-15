@@ -66,6 +66,7 @@ landmark_< T >
     observations_( 0 ),
     cos_obs_angle_(1.0)
 {
+  tracks_.clear();
 }
 
 
@@ -79,6 +80,7 @@ landmark_< T >
     observations_( 0 ),
     cos_obs_angle_(1.0)
 {
+  tracks_.clear();
 }
 
 
@@ -91,7 +93,8 @@ landmark_< T >
     normal_( lm.normal().cast< T > () ),
     color_( lm.color() ),
     observations_( lm.observations() ),
-    cos_obs_angle_(static_cast< T >( lm.cos_obs_angle()))
+    cos_obs_angle_(static_cast< T >( lm.cos_obs_angle())),
+    tracks_(lm.tracks())
 {
 }
 

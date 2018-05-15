@@ -47,7 +47,12 @@
 
 namespace kwiver {
 namespace vital {
+
+typedef std::map<vital::track_id_t, vital::track_sptr> track_map_t;
+
 namespace algo {
+
+
 
 /// An abstract base class for triangulating landmarks
 class VITAL_ALGO_EXPORT triangulate_landmarks
@@ -70,6 +75,11 @@ public:
   triangulate(kwiver::vital::camera_map_sptr cameras,
               kwiver::vital::feature_track_set_sptr tracks,
               kwiver::vital::landmark_map_sptr& landmarks) const = 0;
+
+  virtual void
+    triangulate(vital::camera_map_sptr cameras,
+      vital::track_map_t tracks,
+      vital::landmark_map_sptr& landmarks) const;
 
 protected:
   triangulate_landmarks();
