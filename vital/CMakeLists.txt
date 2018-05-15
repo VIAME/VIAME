@@ -83,6 +83,7 @@ set( vital_public_headers
   types/camera_perspective.h
   types/camera_rpc.h
   types/camera_map.h
+  types/camera_perspective_map.h
   types/color.h
   types/covariance.h
   types/descriptor.h
