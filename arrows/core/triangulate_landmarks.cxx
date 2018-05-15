@@ -64,6 +64,7 @@ public:
       m_ransac(true),
       m_min_angle_deg(1.0f),
       m_inlier_threshold_pixels(10.0),
+      m_inlier_threshold_pixels_sq(m_inlier_threshold_pixels*m_inlier_threshold_pixels),
       m_frac_track_inliers_to_keep_triangulated_point(0.5f),
       m_max_ransac_samples(20),
       m_conf_thresh(0.99)
@@ -75,6 +76,7 @@ public:
       m_ransac(other.m_ransac),
       m_min_angle_deg(other.m_min_angle_deg),
       m_inlier_threshold_pixels(other.m_inlier_threshold_pixels),
+      m_inlier_threshold_pixels_sq(other.m_inlier_threshold_pixels_sq),
       m_frac_track_inliers_to_keep_triangulated_point(
         other.m_frac_track_inliers_to_keep_triangulated_point),
       m_max_ransac_samples(other.m_max_ransac_samples)
@@ -96,6 +98,7 @@ public:
   bool m_ransac;
   float m_min_angle_deg;
   float m_inlier_threshold_pixels;
+  float m_inlier_threshold_pixels_sq;
   float m_frac_track_inliers_to_keep_triangulated_point;
   int m_max_ransac_samples;
   double m_conf_thresh;
@@ -188,6 +191,8 @@ triangulate_landmarks
   d_->m_inlier_threshold_pixels =
     config->get_value<float>("inlier_threshold_pixels",
                              d_->m_inlier_threshold_pixels);
+
+  d_->m_inlier_threshold_pixels_sq = d_->m_inlier_threshold_pixels * d_->m_inlier_threshold_pixels;
 
   d_->m_frac_track_inliers_to_keep_triangulated_point =
     config->get_value<float>("frac_track_inliers_to_keep_triangulated_point",
@@ -297,8 +302,8 @@ triangulate_landmarks::priv
         continue;
       }
       f.set_loc(lm_image_pts[idx]);
-      double reproj_err = reprojection_error(lm_cams[idx], lm, f);
-      if (reproj_err < m_inlier_threshold_pixels)
+      double reproj_err_sq = reprojection_error_sqr(lm_cams[idx], lm, f);
+      if (reproj_err_sq < m_inlier_threshold_pixels_sq)
       {
         ++inlier_count;
       }
