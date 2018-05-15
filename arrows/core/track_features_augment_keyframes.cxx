@@ -87,31 +87,46 @@ track_features_augment_keyframes
     return tracks;
   }
 
-  //detect the features
-  vital::feature_set_sptr new_feat = d_->detector->detect(image_data, mask);
+  std::vector<feature_sptr> feats;
+  std::vector<feature_track_state_sptr> ftss;
+  auto active_tracks = tracks->active_tracks(frame_number);
+  for (auto &t : active_tracks)
+  {
+    auto f_it = t->find(frame_number);
+    if (f_it == t->end())
+    {
+      continue;
+    }
+    auto fts = std::static_pointer_cast<feature_track_state>(*f_it);
+    ftss.push_back(fts);
+    auto feat = fts->feature;
+    feats.push_back(feat);
+  }
 
+  vital::feature_set_sptr new_feat = std::make_shared<simple_feature_set>(feats);
   //describe the features
   vital::descriptor_set_sptr new_desc =
     d_->extractor->extract(image_data, new_feat, mask);
 
   std::vector<feature_sptr> vf = new_feat->features();
   std::vector<descriptor_sptr> df = new_desc->descriptors();
-  // get the last track id in the existing set of tracks and increment it
-  track_id_t next_track_id = (*tracks->all_track_ids().crbegin()) + 1;
-
   for (size_t i = 0; i < vf.size(); ++i)
   {
-    auto fts = std::make_shared<feature_track_state>(frame_number);
-    fts->feature = vf[i];
-    fts->descriptor = df[i];
-    auto t = vital::track::create();
-    t->append(fts);
-    t->set_id(next_track_id++);
-    tracks->insert(t);
-  }
+    auto feat = vf[i];
+    auto desc = df[i];
 
-  // Note that right now are haven't done any matching.  Each newly detected
-  // feature is in its own track.
+    // Go through existing features and find the one that equals feat.
+    // The feature pointers may have changed in detect so we can't use them
+    // directly with a map.
+    for (auto fts : ftss)
+    {
+      if (*fts->feature == *feat)
+      {
+        fts->descriptor = desc;
+        break;
+      }
+    }
+  }
 
   return tracks;
 }
