@@ -286,8 +286,7 @@ keyframe_selector_basic
   // 2) number of features in frame is greater than some minimum.  This prevents
   //    keyframes from being added in areas with little texture (few features).
 
-  // deep copy here
-  track_set_sptr cur_tracks = tracks->clone();
+  track_set_sptr cur_tracks = tracks;
 
   if (!d_->a_keyframe_was_selected(cur_tracks))
   {
