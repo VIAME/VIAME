@@ -384,9 +384,9 @@ bundle_adjust
       {
         continue;
       }
-      for (track::history_const_itr ts = t->begin(); ts != t->end(); ++ts)
+      for (auto ts: *t)
       {
-        if (to_fix_cameras.find((*ts)->frame()) == to_fix_cameras.end())
+        if (to_fix_cameras.find(ts->frame()) == to_fix_cameras.end())
         {
           //this landmark is viewed in a variable camera.  So include it in the state to estimate.
           lm_visible_in_variable_camera = true;
@@ -422,9 +422,9 @@ bundle_adjust
       }
       bool fixed_landmark = to_fix_landmarks.find(lm_id) != to_fix_landmarks.end();
 
-      for (track::history_const_itr ts = t->begin(); ts != t->end(); ++ts)
+      for (auto ts : *t)
       {
-        cam_param_map_t::iterator cam_itr = d_->camera_params.find((*ts)->frame());
+        cam_param_map_t::iterator cam_itr = d_->camera_params.find(ts->frame());
         if (cam_itr == d_->camera_params.end())
         {
           continue;
@@ -437,7 +437,7 @@ bundle_adjust
           continue;
         }
 
-        auto fts = std::dynamic_pointer_cast<feature_track_state>(*ts);
+        auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
         if (!fts || !fts->feature)
         {
           continue;
