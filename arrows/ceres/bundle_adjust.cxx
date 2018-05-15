@@ -385,6 +385,7 @@ bundle_adjust
     }
   }
 
+  std::set<landmark_id_t> fixed_landmarks;
   //fix all the landmarks in the to_fix_landmarks list
   for (auto tfl: to_fix_landmarks)
   {
@@ -397,10 +398,11 @@ bundle_adjust
     if (problem.HasParameterBlock(state_ptr))
     {
       problem.SetParameterBlockConstant(state_ptr);
+      fixed_landmarks.insert(tfl);
     }
   }
 
-  if (fixed_cameras.size() == 0)
+  if (fixed_cameras.size() == 0 && fixed_landmarks.size() < 3)
   {
     //If no cameras are fixed, find the first camera and fix it.
     for (auto &fix : d_->camera_params)
@@ -416,7 +418,7 @@ bundle_adjust
     }
   }
 
-  if (fixed_cameras.size() == 1)
+  if (fixed_cameras.size() == 1 && fixed_landmarks.empty())
   {
     //add measurement between the one fixed camera and another arbitrary camera to fix the scale
     cam_param_map_t::iterator cam_itr_0 = d_->camera_params.find(*fixed_cameras.begin());
