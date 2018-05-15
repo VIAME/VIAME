@@ -105,7 +105,7 @@ public:
   /// The bag of words matching image finder
   vital::algo::match_descriptor_sets_sptr m_bow;
 
-  /// The essential matrix estimator for geometric verification
+  /// The fundamental matrix estimator for geometric verification
   vital::algo::estimate_fundamental_matrix_sptr m_f_estimator;
 
   /// The minimum number of inliers required for a putative loop to be accepted
@@ -114,6 +114,9 @@ public:
   /// The function used to calculate the distance between two descriptors
   std::function<float(descriptor_sptr, descriptor_sptr)> desc_dist = hamming_distance;
 
+  /// Inlier threshold for fundamental matrix geometric verification
+  double m_geometric_verification_inlier_threshold;
+
 };
 
 //-----------------------------------------------------------------------------
@@ -121,7 +124,8 @@ public:
 close_loops_appearance_indexed::priv
 ::priv()
   : m_f_estimator(),
-  m_min_loop_inlier_matches(50)
+  m_min_loop_inlier_matches(50),
+  m_geometric_verification_inlier_threshold(2.0)
 {
 }
 
@@ -269,7 +273,9 @@ close_loops_appearance_indexed::priv
         pts_left.push_back(m.second->feature->loc());
       }
 
-      m_f_estimator->estimate(pts_right, pts_left, inliers, 2.0);
+      m_f_estimator->estimate(pts_right, pts_left, inliers,
+                              m_geometric_verification_inlier_threshold);
+
       unsigned num_inliers =
         static_cast<unsigned>(std::count(inliers.begin(), inliers.end(), true));
       if (num_inliers < m_min_loop_inlier_matches)
@@ -549,6 +555,10 @@ close_loops_appearance_indexed
     d_->m_min_loop_inlier_matches,
     "the minimum number of inlier feature matches to accept a loop connection and join tracks");
 
+  config->set_value("geometric_verification_inlier_threshold",
+    d_->m_geometric_verification_inlier_threshold,
+    "inlier threshold for fundamental matrix based geometric verification of loop closure in pixels");
+
   return config;
 }
 
@@ -586,6 +596,9 @@ close_loops_appearance_indexed
     config->get_value<int>("min_loop_inlier_matches",
       d_->m_min_loop_inlier_matches);
 
+  d_->m_geometric_verification_inlier_threshold =
+    config->get_value<double>("geometric_verification_inlier_threshold",
+      d_->m_geometric_verification_inlier_threshold);
 }
 
 //-----------------------------------------------------------------------------
