@@ -288,7 +288,7 @@ triangulate_landmarks::priv
     proj_sample[1] = lm_image_pts[s_idx[1]];
 
     vital::vector_3d pt3d;
-    if (guess != NULL && num_samples == 1 && !(guess->x() == 0 && guess->y() == 0 && guess->z() == 0) )
+    if (guess != NULL && num_samples == 1 )
     {
       pt3d = *guess;
     }
@@ -420,9 +420,14 @@ triangulate_landmarks
       vital::vector_3d pt3d;
       if (d_->m_ransac)
       {
-        vital::vector_3d lm_cur_pt3d;
-        lm_cur_pt3d = p.second->loc();
-        pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts, inlier_count,&lm_cur_pt3d);
+        vital::vector_3d lm_cur_pt3d = p.second->loc();
+        auto triang_guess = &lm_cur_pt3d;
+        if (lm_cur_pt3d.x() == 0 && lm_cur_pt3d.y() == 0 && lm_cur_pt3d.z() == 0)
+        {
+          triang_guess = NULL;
+        }
+
+        pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts, inlier_count, triang_guess);
         if (inlier_count < lm_image_pts.size() * d_->m_frac_track_inliers_to_keep_triangulated_point)
         {
           failed_landmarks.insert(p.first);
