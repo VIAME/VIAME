@@ -51,9 +51,6 @@ class track_features_augment_keyframes::priv
 {
 public:
 
-  /// The feature detector algorithm to use
-  vital::algo::detect_features_sptr detector;
-
   /// The descriptor extractor algorithm to use
   vital::algo::extract_descriptors_sptr extractor;
 
@@ -87,23 +84,9 @@ track_features_augment_keyframes
     return tracks;
   }
 
-  std::vector<feature_sptr> feats;
-  std::vector<feature_track_state_sptr> ftss;
-  auto active_tracks = tracks->active_tracks(frame_number);
-  for (auto &t : active_tracks)
-  {
-    auto f_it = t->find(frame_number);
-    if (f_it == t->end())
-    {
-      continue;
-    }
-    auto fts = std::static_pointer_cast<feature_track_state>(*f_it);
-    ftss.push_back(fts);
-    auto feat = fts->feature;
-    feats.push_back(feat);
-  }
+  auto track_states = tracks->frame_states(frame_number);
+  auto new_feat = tracks->frame_features(frame_number);
 
-  vital::feature_set_sptr new_feat = std::make_shared<simple_feature_set>(feats);
   //describe the features
   vital::descriptor_set_sptr new_desc =
     d_->extractor->extract(image_data, new_feat, mask);
@@ -118,8 +101,9 @@ track_features_augment_keyframes
     // Go through existing features and find the one that equals feat.
     // The feature pointers may have changed in detect so we can't use them
     // directly with a map.
-    for (auto fts : ftss)
+    for (auto ts : track_states)
     {
+      auto fts = std::static_pointer_cast<feature_track_state>(ts);
       if (*fts->feature == *feat)
       {
         fts->descriptor = desc;
@@ -153,10 +137,6 @@ track_features_augment_keyframes
   vital::config_block_sptr config = algorithm::get_configuration();
 
   // Sub-algorithm implementation name + sub_config block
-  // - Feature Detector algorithm
-  algo::detect_features::
-    get_nested_algo_configuration(d_->detector_name, config, d_->detector);
-
   // - Descriptor Extractor algorithm
   algo::extract_descriptors::
     get_nested_algo_configuration(d_->extractor_name, config, d_->extractor);
@@ -177,10 +157,6 @@ track_features_augment_keyframes
 
   // Setting nested algorithm instances via setter methods instead of directly
   // assigning to instance property.
-  algo::detect_features_sptr df;
-  algo::detect_features::set_nested_algo_configuration(d_->detector_name, config, df);
-  d_->detector = df;
-
   algo::extract_descriptors_sptr ed;
   algo::extract_descriptors::set_nested_algo_configuration(d_->extractor_name, config, ed);
   d_->extractor = ed;
