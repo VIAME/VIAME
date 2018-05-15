@@ -86,7 +86,8 @@ public:
   vital::vector_3d
   ransac_triangulation(const std::vector<vital::simple_camera_perspective> &lm_cams,
     const std::vector<vital::vector_2d> &lm_image_pts,
-    int &best_inlier_count) const;
+    int &best_inlier_count,
+    vital::vector_3d const* guess) const;
 
   bool
   triangulate(const std::vector<vital::simple_camera_perspective> &lm_cams,
@@ -243,7 +244,7 @@ vital::vector_3d
 triangulate_landmarks::priv
 ::ransac_triangulation(const std::vector<vital::simple_camera_perspective> &lm_cams,
   const std::vector<vital::vector_2d> &lm_image_pts,
-  int &best_inlier_count) const
+  int &best_inlier_count, vital::vector_3d const* guess) const
 {
   double conf = 0;
   std::vector<vital::simple_camera_perspective> cam_sample(2);
@@ -287,9 +288,16 @@ triangulate_landmarks::priv
     proj_sample[1] = lm_image_pts[s_idx[1]];
 
     vital::vector_3d pt3d;
-    if (!triangulate(cam_sample, proj_sample, pt3d))
+    if (guess != NULL && num_samples == 1 && !(guess->x() == 0 && guess->y() == 0 && guess->z() == 0) )
     {
-      continue;
+      pt3d = *guess;
+    }
+    else
+    {
+      if (!triangulate(cam_sample, proj_sample, pt3d))
+      {
+        continue;
+      }
     }
 
     lm.set_loc(pt3d);
@@ -412,7 +420,9 @@ triangulate_landmarks
       vital::vector_3d pt3d;
       if (d_->m_ransac)
       {
-        pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts, inlier_count);
+        vital::vector_3d lm_cur_pt3d;
+        lm_cur_pt3d = p.second->loc();
+        pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts, inlier_count,&lm_cur_pt3d);
         if (inlier_count < lm_image_pts.size() * d_->m_frac_track_inliers_to_keep_triangulated_point)
         {
           failed_landmarks.insert(p.first);
