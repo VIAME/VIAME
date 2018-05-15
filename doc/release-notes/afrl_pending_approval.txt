@@ -22,6 +22,9 @@ Arrows - Core
  * Set inlier flag for track states during triangulation.  Stored max 
    intersection angle of rays in landmark, a quality metric.
 
+ * Optionally estimates a fundamental matrix before loop closure.  Accepts
+   a loop only if the number of inlier matches is above a threshold.
+   
 Arrows - Ceres
 
  * Added ability to fix either cameras or landmarks in bundle adjustment.  
