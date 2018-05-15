@@ -60,7 +60,7 @@ triangulate_landmarks
   {
     track_vec[i++] = t.second;
   }
-  kwiver::vital::feature_track_set_sptr track_ptr = std::make_shared<vital::feature_track_set>(track_vec);
+  auto track_ptr = std::make_shared<vital::feature_track_set>(track_vec);
   triangulate(cameras, track_ptr, landmarks);
 }
 

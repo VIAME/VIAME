@@ -191,7 +191,6 @@ public:
   /// Set the number of observations of the landmark
   void set_observations(unsigned observations) { observations_ = observations; }
 
-  /// set the maximum observation angle between rays
   /// Set the cosine of the maximum observation angle
   void set_cos_observation_angle(T cos_ang) { cos_obs_angle_ = cos_ang; }
 
