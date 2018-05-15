@@ -146,7 +146,7 @@ keyframe_selector_basic::priv
     }
 
     bool is_keyframe = false;
-    if (tracks->num_active_tracks() >= keyframe_min_feature_count)
+    if (tracks->num_active_tracks(frame) >= keyframe_min_feature_count)
     {
       is_keyframe = true;
     }
@@ -188,7 +188,8 @@ keyframe_selector_basic::priv
   for ( ; next_candidate_keyframe_id <= last_frame_id ;
         ++next_candidate_keyframe_id)
   {
-    if (tracks->active_tracks(next_candidate_keyframe_id).empty())
+    auto active_tracks = tracks->active_tracks(next_candidate_keyframe_id);
+    if (active_tracks.empty())
     {
       //absolutely no tracks for this frame so it was skipped when reading.
       continue;
@@ -204,7 +205,7 @@ keyframe_selector_basic::priv
     }
 
     //ok we could make this a keyframe.  Does it have enough features?
-    if (tracks->num_active_tracks() < keyframe_min_feature_count)
+    if (active_tracks.size() < keyframe_min_feature_count)
     {
       is_keyframe = false;
     }
