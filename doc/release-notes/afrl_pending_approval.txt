@@ -21,6 +21,9 @@ Arrows - Core
    
  * Set inlier flag for track states during triangulation.  Stored max 
    intersection angle of rays in landmark, a quality metric.
+   
+ * Extracts ORB descriptors at KLT feature locations.  No longer runs ORB 
+   detector.
 
 Arrows - Ceres
 
