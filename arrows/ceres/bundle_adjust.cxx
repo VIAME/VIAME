@@ -421,25 +421,30 @@ bundle_adjust
     //add measurement between the one fixed camera and another arbitrary camera to fix the scale
     cam_param_map_t::iterator cam_itr_0 = d_->camera_params.find(*fixed_cameras.begin());
     //get another arbitrary camera
+    bool scale_locking_camera_found = false;
     auto cam_itr_1 = d_->camera_params.begin();
     for (; cam_itr_1 != d_->camera_params.end(); ++cam_itr_1)
     {
       if (cam_itr_1->first != cam_itr_0->first && problem.HasParameterBlock(&cam_itr_1->second[0]))
       {
+        scale_locking_camera_found = true;
         break;
       }
     }
 
-    double *param0 = &cam_itr_0->second[0];
-    double *param1 = &cam_itr_1->second[0];
-    double dx = param0[3] - param1[3];
-    double dy = param0[4] - param1[4];
-    double dz = param0[5] - param1[5];
-    double distance_squared = dx*dx + dy*dy + dz*dz;
-    int num_residuals = problem.NumResiduals();
+    if (scale_locking_camera_found)
+    {
+      double *param0 = &cam_itr_0->second[0];
+      double *param1 = &cam_itr_1->second[0];
+      double dx = param0[3] - param1[3];
+      double dy = param0[4] - param1[4];
+      double dz = param0[5] - param1[5];
+      double distance_squared = dx*dx + dy*dy + dz*dz;
+      int num_residuals = problem.NumResiduals();
 
-    auto dist_loss = new ::ceres::ScaledLoss(NULL, num_residuals, ::ceres::Ownership::TAKE_OWNERSHIP);
-    problem.AddResidualBlock(distance_constraint::create(distance_squared), dist_loss, param0, param1);
+      auto dist_loss = new ::ceres::ScaledLoss(NULL, num_residuals, ::ceres::Ownership::TAKE_OWNERSHIP);
+      problem.AddResidualBlock(distance_constraint::create(distance_squared), dist_loss, param0, param1);
+    }
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
