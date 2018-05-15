@@ -84,7 +84,8 @@ public:
 
     float test_fraction_tracks_lost_to_necessitate_new_keyframe =
       config->get_value<float>(
-      "fraction_tracks_lost_to_necessitate_new_keyframe");
+      "fraction_tracks_lost_to_necessitate_new_keyframe",
+        fraction_tracks_lost_to_necessitate_new_keyframe);
 
     if (!(0 < test_fraction_tracks_lost_to_necessitate_new_keyframe &&
           test_fraction_tracks_lost_to_necessitate_new_keyframe <= 1.0))
@@ -96,7 +97,7 @@ public:
     }
 
     int test_keyframe_min_feature_count = config->get_value<int>(
-      "keyframe_min_feature_count");
+      "keyframe_min_feature_count", keyframe_min_feature_count);
 
     if (test_keyframe_min_feature_count < 0)
     {
