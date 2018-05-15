@@ -22,6 +22,11 @@ Arrows - Core
  * Set inlier flag for track states during triangulation.  Stored max 
    intersection angle of rays in landmark, a quality metric.
 
+ * When triangulating switch to using squared rerpojection error for 
+   efficiency.  Optionally pass initial guess for landmark position to 
+   RANSAC triangulation.  If location is already known or a good guess
+   is available this can cut down the RANSAC loops considerably.
+   
 Arrows - Ceres
 
  * Added ability to fix either cameras or landmarks in bundle adjustment.  
