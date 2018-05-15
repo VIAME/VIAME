@@ -48,6 +48,7 @@ using namespace kwiver::vital;
 #include <vital/algo/extract_descriptors.h>
 #include <vital/algo/image_io.h>
 #include <vital/algo/match_features.h>
+#include <vital/algo/estimate_fundamental_matrix.h>
 #include <kwiversys/SystemTools.hxx>
 
 namespace kwiver {
@@ -63,48 +64,58 @@ public:
   typedef std::vector<fs_match> matches_vec;
 
   kwiver::vital::feature_track_set_sptr
-    detect(kwiver::vital::feature_track_set_sptr feat_tracks,
-      kwiver::vital::frame_id_t frame_number);
+  detect(
+    kwiver::vital::feature_track_set_sptr feat_tracks,
+    kwiver::vital::frame_id_t frame_number);
 
   kwiver::vital::feature_track_set_sptr
-    verify_and_add_image_matches(
-      kwiver::vital::feature_track_set_sptr feat_tracks,
-      kwiver::vital::frame_id_t frame_number,
-      std::vector<frame_id_t> const &putative_matches);
+  verify_and_add_image_matches(
+    kwiver::vital::feature_track_set_sptr feat_tracks,
+    kwiver::vital::frame_id_t frame_number,
+    std::vector<frame_id_t> const &putative_matches);
 
   void
-  do_matching(const std::vector<feature_track_state_sptr> &va,
-              const std::vector<feature_track_state_sptr> &vb,
-              matches_vec &matches);
+  do_matching(
+    const std::vector<feature_track_state_sptr> &va,
+    const std::vector<feature_track_state_sptr> &vb,
+    matches_vec &matches);
 
   kwiver::vital::feature_track_set_sptr
-    verify_and_add_image_matches_node_id_guided(
-      kwiver::vital::feature_track_set_sptr feat_tracks,
-      kwiver::vital::frame_id_t frame_number,
-      std::vector<frame_id_t> const &putative_matches);
+  verify_and_add_image_matches_node_id_guided(
+    kwiver::vital::feature_track_set_sptr feat_tracks,
+    kwiver::vital::frame_id_t frame_number,
+    std::vector<frame_id_t> const &putative_matches);
 
   typedef std::map<unsigned int, std::vector<feature_track_state_sptr>> node_id_to_feat_map;
 
   node_id_to_feat_map make_node_map(const std::vector<feature_track_state_sptr> &feats);
 
   match_set_sptr
-    remove_duplicate_matches(
-      match_set_sptr mset,
-      feature_info_sptr fi1,
-      feature_info_sptr fi2);
+  remove_duplicate_matches(
+    match_set_sptr mset,
+    feature_info_sptr fi1,
+    feature_info_sptr fi2);
 
+  /// The logger handle
   kwiver::vital::logger_handle_t m_logger;
-
 
   /// The feature matching algorithm to use
   vital::algo::match_features_sptr m_matcher;
 
-  // The bag of words matching image finder
+  /// The bag of words matching image finder
   vital::algo::match_descriptor_sets_sptr m_bow;
 
+  /// The fundamental matrix estimator for geometric verification
+  vital::algo::estimate_fundamental_matrix_sptr m_f_estimator;
+
+  /// The minimum number of inliers required for a putative loop to be accepted
   unsigned m_min_loop_inlier_matches;
 
+  /// The function used to calculate the distance between two descriptors
   std::function<float(descriptor_sptr, descriptor_sptr)> desc_dist = hamming_distance;
+
+  /// Inlier threshold for fundamental matrix geometric verification
+  double m_geometric_verification_inlier_threshold;
 
 };
 
@@ -112,7 +123,9 @@ public:
 
 close_loops_appearance_indexed::priv
 ::priv()
-  : m_min_loop_inlier_matches(50)
+  : m_f_estimator(),
+  m_min_loop_inlier_matches(50),
+  m_geometric_verification_inlier_threshold(2.0)
 {
 }
 
@@ -197,8 +210,6 @@ close_loops_appearance_indexed::priv
 
   auto cur_node_map = make_node_map(cur_frame_fts);
 
-
-
   //loop over putatively matching frames
   for (auto fn_match : putative_matches)
   {
@@ -251,19 +262,57 @@ close_loops_appearance_indexed::priv
       continue;
     }
 
-    for (auto const&m : validated_matches)
+    std::vector<bool> inliers;
+    //do geometric verification here
+    if (m_f_estimator)
     {
+      std::vector<vector_2d> pts_right, pts_left;
+      for (auto &m : validated_matches)
+      {
+        pts_right.push_back(m.first->feature->loc());
+        pts_left.push_back(m.second->feature->loc());
+      }
+
+      m_f_estimator->estimate(pts_right, pts_left, inliers,
+                              m_geometric_verification_inlier_threshold);
+
+      unsigned num_inliers =
+        static_cast<unsigned>(std::count(inliers.begin(), inliers.end(), true));
+      if (num_inliers < m_min_loop_inlier_matches)
+      {
+        continue;
+      }
+    }
+
+    int num_stitched_tracks = 0;
+    for(size_t i = 0; i < validated_matches.size(); ++i)
+    {
+      if (!inliers.empty())
+      {
+        if (!inliers[i])
+        {
+          continue;
+        }
+      }
+      auto &m = validated_matches[i];
       track_sptr t1 = m.first->track();
       track_sptr t2 = m.second->track();
-      feat_tracks->merge_tracks(t1, t2);
+      if (feat_tracks->merge_tracks(t1, t2))
+      {
+        //tracks will not merge if t1 and t2 are already the same track
+        ++num_stitched_tracks;
+      }
 
     }
 
-    LOG_DEBUG(m_logger, "Stitched " << validated_matches.size() <<
-      " tracks between frames " << frame_number <<
-      " and " << fn_match);
+    if (num_stitched_tracks > 0)
+    {
+      LOG_DEBUG(m_logger, "Stitched " << num_stitched_tracks <<
+        " tracks between frames " << frame_number <<
+        " and " << fn_match);
 
-    ++num_successfully_matched_pairs;
+      ++num_successfully_matched_pairs;
+    }
   }
 
   LOG_DEBUG(m_logger, "Of " << putative_matches.size() << " putative matches "
@@ -497,9 +546,18 @@ close_loops_appearance_indexed
   algo::match_descriptor_sets::
     get_nested_algo_configuration("bag_of_words_matching", config, d_->m_bow);
 
+  // nested algorithm configurations
+  vital::algo::estimate_fundamental_matrix
+    ::get_nested_algo_configuration("fundamental_mat_estimator",
+      config, d_->m_f_estimator);
+
   config->set_value("min_loop_inlier_matches",
     d_->m_min_loop_inlier_matches,
     "the minimum number of inlier feature matches to accept a loop connection and join tracks");
+
+  config->set_value("geometric_verification_inlier_threshold",
+    d_->m_geometric_verification_inlier_threshold,
+    "inlier threshold for fundamental matrix based geometric verification of loop closure in pixels");
 
   return config;
 }
@@ -530,10 +588,17 @@ close_loops_appearance_indexed
     "bag_of_words_matching", config, bow);
   d_->m_bow = bow;
 
+  vital::algo::estimate_fundamental_matrix
+    ::set_nested_algo_configuration("fundamental_mat_estimator",
+      config, d_->m_f_estimator);
+
   d_->m_min_loop_inlier_matches =
     config->get_value<int>("min_loop_inlier_matches",
       d_->m_min_loop_inlier_matches);
 
+  d_->m_geometric_verification_inlier_threshold =
+    config->get_value<double>("geometric_verification_inlier_threshold",
+      d_->m_geometric_verification_inlier_threshold);
 }
 
 //-----------------------------------------------------------------------------
