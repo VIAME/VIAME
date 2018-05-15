@@ -35,6 +35,7 @@ set( plugin_core_headers
   filter_tracks.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
+  initialize_cameras_landmarks_keyframe.h
   initialize_object_tracks_threshold.h
   keyframe_selector_basic.h
   match_features_fundamental_matrix.h
@@ -103,6 +104,7 @@ set( plugin_core_sources
   filter_tracks.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
+  initialize_cameras_landmarks_keyframe.cxx
   initialize_object_tracks_threshold.cxx
   keyframe_selector_basic.cxx
   match_features_fundamental_matrix.cxx
