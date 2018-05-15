@@ -64,9 +64,6 @@ public:
   /// Destructor
   virtual ~initialize_cameras_landmarks_keyframe();
 
-  /// Copy Constructor
-  initialize_cameras_landmarks_keyframe(const initialize_cameras_landmarks_keyframe& other);
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
