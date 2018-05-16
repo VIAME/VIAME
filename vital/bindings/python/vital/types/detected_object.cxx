@@ -105,6 +105,9 @@ PYBIND11_MODULE(detected_object, m)
   .def("confidence", &det_obj::confidence)
   .def("set_confidence", &det_obj::set_confidence,
     py::arg("d"))
+  .def("descriptor", &det_obj::descriptor)
+  .def("set_descriptor", &det_obj::set_descriptor,
+		py::arg("descriptor"))
   .def("type", &det_obj::type)
   .def("set_type", &det_obj::set_type,
     py::arg("c"))

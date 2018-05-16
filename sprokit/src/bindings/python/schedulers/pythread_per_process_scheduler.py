@@ -98,6 +98,7 @@ class PyThreadPerProcessScheduler(scheduler.PythonScheduler):
 
     def _stop(self):
         self._event.set()
+        self.shutdown()
 
     def _run_process(self, proc):
         utils.name_thread(proc.name())
