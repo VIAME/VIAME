@@ -18,6 +18,9 @@ Vital
    Note also that [[noreturn]] must appear before <lib>_EXPORT; this was not
    the case with the old definition of VITAL_NO_RETURN.
 
+ * Added a small range utilities library.  This implements a small subset of
+   range adapters inspired by the upcoming Ranges TS.
+
  * Added new data types geo_point and geo_polygon for representing points
    and polygons in geographic coordinates.  These new types use the new
    geodetic conversion function and know how to convert themselves into

@@ -66,6 +66,7 @@ set( vital_public_headers
   any.h
   algorithm_capabilities.h
   attribute_set.h
+  exceptions.h
   iterator.h
 
   io/camera_from_metadata.h
@@ -279,6 +280,7 @@ configure_file(
 add_subdirectory( exceptions )
 add_subdirectory( algo )
 add_subdirectory( util )
+add_subdirectory( range )
 add_subdirectory( bindings )
 add_subdirectory( config )
 add_subdirectory( klv )
