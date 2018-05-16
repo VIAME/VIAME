@@ -31,6 +31,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import sys
 import torch
 from torchvision import models, transforms
 from torch.autograd import Variable
@@ -38,6 +39,7 @@ from torch import nn
 import numpy as np
 import scipy as sp
 import scipy.optimize
+import threading
 
 from PIL import Image as pilImage
 
@@ -69,6 +71,20 @@ from kwiver.arrows.pytorch.models import get_config
 
 g_config = get_config()
 
+def print(msg):
+   import threading
+   import traceback
+   try:
+       msg = '[{}] {}'.format(threading.current_thread(), msg)
+   #    with open('database/Logs/SRNN_Tracking_Log', 'a') as f:
+   #        f.write(str(msg) + '\n')
+   except Exception as ex:
+       with open('database/Logs/SRNN_Tracking_Error_Log', 'a') as f:
+           f.write('Error durring print! Attempting to report\n')
+           f.write(repr(ex) + '\n')
+           f.write(traceback.format_exc() + '\n')
+           raise
+
 def ts2ot_list(track_set):
     ot_list = [] 
     for t in track_set:
@@ -76,9 +92,10 @@ def ts2ot_list(track_set):
         ot_list.append(ot)
 
     for idx, t in enumerate(track_set):
-        for i in range(len(t)):
-            ot_state = ObjectTrackState(t[i].frame_id, t[i].detectedObj)
-            if not ot_list[idx].append(ot_state):
+        ot = ot_list[idx]
+        for i, ti in enumerate(t):
+            ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time, ti.detectedObj)
+            if not ot.append(ot_state):
                 print('cannot add ObjectTrackState')
                 exit(1)
 
@@ -98,7 +115,7 @@ class SRNN_tracking(KwiverProcess):
         # siamese 
         #----------------------------------------------------------------------------------
         self.add_config_trait("siamese_model_path", "siamese_model_path",
-                              '/home/bdong/HiDive_project/tracking_the_untrackable/snapshot/siamese/snapshot_epoch_6.pt',
+                              'siamese/snapshot_epoch_6.pt',
                               'Trained PyTorch model.')
         self.declare_config_using_trait('siamese_model_path')
 
@@ -120,13 +137,13 @@ class SRNN_tracking(KwiverProcess):
         #----------------------------------------------------------------------------------
         # target RNN full model
         self.add_config_trait("targetRNN_AIM_model_path", "targetRNN_AIM_model_path",
-                              '/home/bdong/HiDive_project/tracking_the_untrackable/snapshot/targetRNN_snapshot/App_LSTM_epoch_51.pt',
+                              'targetRNN_snapshot/App_LSTM_epoch_51.pt',
                               'Trained targetRNN PyTorch model.')
         self.declare_config_using_trait('targetRNN_AIM_model_path')
 
         # target RNN AI model
         self.add_config_trait("targetRNN_AIM_V_model_path", "targetRNN_AIM_V_model_path",
-                              '/home/bdong/HiDive_project/tracking_the_untrackable/snapshot/targetRNN_AI/App_LSTM_epoch_51.pt',
+                              'targetRNN_AI/App_LSTM_epoch_51.pt',
                               'Trained targetRNN AIM with variable input size PyTorch model.')
         self.declare_config_using_trait('targetRNN_AIM_V_model_path')
 
@@ -165,8 +182,15 @@ class SRNN_tracking(KwiverProcess):
 
         # matching active track threshold
         self.add_config_trait("terminate_track_threshold", "terminate_track_threshold", '15',
-                              'terminate the tracking if the target has been lost for more than termniate_track_threshold frames.')
+                              'terminate the tracking if the target has been lost for more than '
+                              'termniate_track_threshold readin frames.')
         self.declare_config_using_trait('terminate_track_threshold')
+
+        # matching active track threshold
+        self.add_config_trait("sys_terminate_track_threshold", "sys_terminate_track_threshold", '50',
+                              'terminate the tracking if the target has been lost for more than '
+                              'termniate_track_threshold system (original) frames.')
+        self.declare_config_using_trait('sys_terminate_track_threshold')
 
         # MOT gt detection
         #-------------------------------------------------------------------
@@ -188,6 +212,12 @@ class SRNN_tracking(KwiverProcess):
         self.declare_config_using_trait('GT_bbox_file_path')
         #-------------------------------------------------------------------
 
+        # Image query mode
+        #-------------------------------------------------------------------
+        self.add_config_trait("image_query_mode", "image_query_mode", 'False', 'Image query mode?')
+        self.declare_config_using_trait('image_query_mode')
+        #-------------------------------------------------------------------
+
         self._track_flag = False
 
         # AFRL start id : 0
@@ -203,6 +233,7 @@ class SRNN_tracking(KwiverProcess):
         # self.declare_input_port_using_trait('framestamp', optional)
         self.declare_input_port_using_trait('image', required)
         self.declare_input_port_using_trait('detected_object_set', required)
+        self.declare_input_port_using_trait('timestamp', required)
         self.declare_input_port_using_trait('object_track_set', optional)
 
         #  output port ( port-name,flags)
@@ -272,142 +303,162 @@ class SRNN_tracking(KwiverProcess):
         # generated track_set
         self._track_set = track_set()
         self._terminate_track_threshold = int(self.config_value('terminate_track_threshold'))
+        self._sys_terminate_track_threshold = int(self.config_value('sys_terminate_track_threshold'))
+
+        # image query mode
+        self._image_query_mode = (self.config_value('image_query_mode') == 'True')
 
         self._base_configure()
 
     # ----------------------------------------------
     def _step(self):
-        print('step {}'.format(self._step_id))
+        try:
+            print('step {}'.format(self._step_id))
 
-        # grab image container from port using traits
-        in_img_c = self.grab_input_using_trait('image')
-        dos_ptr = self.grab_input_using_trait('detected_object_set')
+            # grab image container from port using traits
+            in_img_c = self.grab_input_using_trait('image')
+            timestamp = self.grab_input_using_trait('timestamp')
+            dos_ptr = self.grab_input_using_trait('detected_object_set')
+            print('timestamp = {!r}'.format(timestamp))
 
-        # Get current frame and give it to app feature extractor
-        im = get_pil_image(in_img_c.image())
-        self._app_feature_extractor.frame = im
+            # Get current frame and give it to app feature extractor
+            im = get_pil_image(in_img_c.image())
+            self._app_feature_extractor.frame = im
 
-        bbox_num = 0
-        # Get detection bbox
-        if self._GTbbox_flag is True:
-            dos = self._m_bbox[self._step_id] 
-            bbox_num = len(dos)
-        else:
-            dos = dos_ptr.select(self._select_threshold)
-            bbox_num = dos.size()
-        #print('bbox list len is {}'.format(dos.size()))
-
-        det_obj_set = DetectedObjectSet()
-        if bbox_num == 0:
-            print('!!! No bbox is provided on this frame and skip this frame !!!')
-        else:
-            # interaction features
-            grid_f_begin = timer()
-            grid_feature_list = self._grid(im.size, dos, self._GTbbox_flag)
-            grid_f_end = timer()
-            print('%%%grid feature eclapsed time: {}'.format(grid_f_end - grid_f_begin))
-            
-            # appearance features (format: pytorch tensor)
-            app_f_begin = timer()
-            pt_app_features = self._app_feature_extractor(dos, self._GTbbox_flag) 
-            app_f_end = timer()
-            print('%%%app feature eclapsed time: {}'.format(app_f_end - app_f_begin))
-
-            track_state_list = []
-            next_trackID = int(self._track_set.get_max_track_ID()) + 1
-        
-            # get new track state from new frame and detections
-            for idx, item in enumerate(dos):
-                if self._GTbbox_flag is True:
-                    bbox = item
-                    d_obj = DetectedObject(bbox=item , confidence=1.0)
-                else:
-                    bbox = item.bounding_box()
-                    d_obj = item
-
-                # store app feature to detectedObject
-                app_f = new_descriptor(g_config.A_F_num)
-                app_f[:] = pt_app_features[idx].numpy()
-                d_obj.set_descriptor(app_f)
-                det_obj_set.add(d_obj)
-
-                # build track state for current bbox for matching
-                cur_ts = track_state(frame_id=self._step_id, bbox_center=tuple((bbox.center())), 
-                                     interaction_feature=grid_feature_list[idx],
-                                     app_feature=pt_app_features[idx], bbox=[int(bbox.min_x()), int(bbox.min_y()), 
-                                                                    int(bbox.width()), int(bbox.height())],
-                                     detectedObject=d_obj)
-                track_state_list.append(cur_ts)
-                
-            # if there is no tracks, generate new tracks from the track_state_list
-            if self._track_flag is False:
-                next_trackID = self._track_set.add_new_track_state_list(next_trackID, track_state_list)
-                self._track_flag = True
+            bbox_num = 0
+            # Get detection bbox
+            if self._GTbbox_flag is True:
+                dos = self._m_bbox[self._step_id] 
+                bbox_num = len(dos)
             else:
-                # check whether we need to terminate a track
-                for ti in range(len(self._track_set)):
-                    if self._step_id - self._track_set[ti][-1].frame_id > self._terminate_track_threshold:
-                        self._track_set[ti].active_flag = False
+                dos = dos_ptr.select(self._select_threshold)
+                bbox_num = dos.size()
+            #print('bbox list len is {}'.format(dos.size()))
 
-                #print('track_set len {}'.format(len(self._track_set)))
-                #print('track_state_list len {}'.format(len(track_state_list)))
+            det_obj_set = DetectedObjectSet()
+            if bbox_num == 0:
+                print('!!! No bbox is provided on this frame and skip this frame !!!')
+            else:
+                # interaction features
+                grid_f_begin = timer()
+                grid_feature_list = self._grid(im.size, dos, self._GTbbox_flag)
+                grid_f_end = timer()
+                print('%%%grid feature eclapsed time: {}'.format(grid_f_end - grid_f_begin))
                 
-                # call IOU tracker
-                if self._IOU_flag is True:
-                    IOU_begin = timer()
-                    self._track_set, track_state_list = self._iou_tracker(self._track_set, track_state_list)
-                    IOU_end = timer()
-                    print('%%%IOU tracking eclapsed time: {}'.format(IOU_end - IOU_begin))
+                # appearance features (format: pytorch tensor)
+                app_f_begin = timer()
+                pt_app_features = self._app_feature_extractor(dos, self._GTbbox_flag) 
+                app_f_end = timer()
+                print('%%%app feature eclapsed time: {}'.format(app_f_end - app_f_begin))
 
-                #print('***track_set len {}'.format(len(self._track_set)))
-                #print('***track_state_list len {}'.format(len(track_state_list)))
-
-                # estimate similarity matrix
-                ttu_begin = timer()
-                similarity_mat, track_idx_list = self._SRNN_matching(self._track_set, track_state_list, self._ts_threshold)
-                ttu_end = timer()
-                print('%%%SRNN assication eclapsed time: {}'.format(ttu_end - ttu_begin))
-
-                #reset update_flag
-                self._track_set.reset_updated_flag()
-
-                # Hungarian algorithm
-                hung_begin = timer()
-                row_idx_list, col_idx_list = sp.optimize.linear_sum_assignment(similarity_mat)
-                hung_end = timer()
-                print('%%%Hungarian alogrithm eclapsed time: {}'.format(hung_end - hung_begin))
-                
-                for i in range(len(row_idx_list)):
-                    r = row_idx_list[i]
-                    c = col_idx_list[i]
-
-                    if -similarity_mat[r, c] < self._similarity_threshold:
-                        # initialize a new track
-                        self._track_set.add_new_track_state(next_trackID, track_state_list[c])
-                        next_trackID += 1
+                track_state_list = []
+                next_trackID = int(self._track_set.get_max_track_ID()) + 1
+            
+                # get new track state from new frame and detections
+                for idx, item in enumerate(dos):
+                    if self._GTbbox_flag is True:
+                        bbox = item
+                        fid = self._step_id
+                        ts = self._step_id
+                        d_obj = DetectedObject(bbox=item , confidence=1.0)
                     else:
-                        # add to existing track
-                        self._track_set.update_track(track_idx_list[r], track_state_list[c])
-                
-                # for rest unmatched track_state, we initialize new tracks
-                if len(track_state_list) - len(col_idx_list) > 0:
-                    for i in range(len(track_state_list)):
-                        if i not in col_idx_list:
-                            self._track_set.add_new_track_state(next_trackID, track_state_list[i])
+                        bbox = item.bounding_box()
+                        fid = timestamp.get_frame()
+                        ts = timestamp.get_time_usec()
+                        d_obj = item
+
+                    # store app feature to detectedObject
+                    app_f = new_descriptor(g_config.A_F_num)
+                    app_f[:] = pt_app_features[idx].numpy()
+                    d_obj.set_descriptor(app_f)
+                    det_obj_set.add(d_obj)
+
+                    # build track state for current bbox for matching
+                    cur_ts = track_state(frame_id=self._step_id, bbox_center=tuple((bbox.center())), 
+                                         interaction_feature=grid_feature_list[idx],
+                                         app_feature=pt_app_features[idx], bbox=[int(bbox.min_x()), int(bbox.min_y()), 
+                                                                        int(bbox.width()), int(bbox.height())],
+                                         detectedObject=d_obj, sys_frame_id=fid, sys_frame_time=ts)
+                    track_state_list.append(cur_ts)
+                    
+                # if there is no tracks, generate new tracks from the track_state_list
+                if self._track_flag is False:
+                    next_trackID = self._track_set.add_new_track_state_list(next_trackID, track_state_list)
+                    self._track_flag = True
+                else:
+                    # check whether we need to terminate a track
+                    for ti in range(len(self._track_set)):
+                        # terminating a track based on readin_frame_id or original_frame_id gap  
+                        if self._track_set[ti].active_flag is True and  \
+                            (self._step_id - self._track_set[ti][-1].frame_id > self._terminate_track_threshold or \
+                             fid - self._track_set[ti][-1].sys_frame_id > self._sys_terminate_track_threshold):
+                            self._track_set[ti].active_flag = False
+
+                    #print('track_set len {}'.format(len(self._track_set)))
+                    #print('track_state_list len {}'.format(len(track_state_list)))
+                    
+                    # call IOU tracker
+                    if self._IOU_flag is True:
+                        IOU_begin = timer()
+                        self._track_set, track_state_list = self._iou_tracker(self._track_set, track_state_list)
+                        IOU_end = timer()
+                        print('%%%IOU tracking eclapsed time: {}'.format(IOU_end - IOU_begin))
+
+                    #print('***track_set len {}'.format(len(self._track_set)))
+                    #print('***track_state_list len {}'.format(len(track_state_list)))
+
+                    # estimate similarity matrix
+                    ttu_begin = timer()
+                    similarity_mat, track_idx_list = self._SRNN_matching(self._track_set, track_state_list, self._ts_threshold)
+                    ttu_end = timer()
+                    print('%%%SRNN assication eclapsed time: {}'.format(ttu_end - ttu_begin))
+
+                    #reset update_flag
+                    self._track_set.reset_updated_flag()
+
+                    # Hungarian algorithm
+                    hung_begin = timer()
+                    row_idx_list, col_idx_list = sp.optimize.linear_sum_assignment(similarity_mat)
+                    hung_end = timer()
+                    print('%%%Hungarian alogrithm eclapsed time: {}'.format(hung_end - hung_begin))
+                    
+                    for i in range(len(row_idx_list)):
+                        r = row_idx_list[i]
+                        c = col_idx_list[i]
+
+                        if -similarity_mat[r, c] < self._similarity_threshold:
+                            # initialize a new track
+                            self._track_set.add_new_track_state(next_trackID, track_state_list[c])
                             next_trackID += 1
+                        else:
+                            # add to existing track
+                            self._track_set.update_track(track_idx_list[r], track_state_list[c])
+                    
+                    # for rest unmatched track_state, we initialize new tracks
+                    if len(track_state_list) - len(col_idx_list) > 0:
+                        for i in range(len(track_state_list)):
+                            if i not in col_idx_list:
+                                self._track_set.add_new_track_state(next_trackID, track_state_list[i])
+                                next_trackID += 1
 
-            print('total tracks {}'.format(len(self._track_set)))
+                print('total tracks {}'.format(len(self._track_set)))
 
-        # push track set to output port
-        ot_list = ts2ot_list(self._track_set)
-        ots = ObjectTrackSet(ot_list)
+            # push track set to output port
+            ot_list = ts2ot_list(self._track_set)
+            ots = ObjectTrackSet(ot_list)
 
-        self.push_to_port_using_trait('object_track_set', ots)
-        self.push_to_port_using_trait('detected_object_set', det_obj_set)
+            self.push_to_port_using_trait('object_track_set', ots)
+            self.push_to_port_using_trait('detected_object_set', det_obj_set)
 
-        self._step_id += 1
+            self._step_id += 1
 
-        self._base_step()
+            self._base_step()
+
+        except BaseException as e:
+            print( repr( e ) )
+            import traceback
+            print( traceback.format_exc() )
+            #sys.stdout.flush()
 
     def __del__(self):
         print('!!!!SRNN tracking Deleting python process!!!!')
