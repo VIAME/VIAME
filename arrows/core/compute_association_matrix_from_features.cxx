@@ -84,16 +84,8 @@ compute_association_matrix_from_features
 
 /// Destructor
 compute_association_matrix_from_features
-::~compute_association_matrix_from_features() VITAL_NOTHROW
+::~compute_association_matrix_from_features() noexcept
 {
-}
-
-
-std::string
-compute_association_matrix_from_features
-::description() const
-{
-  return "Initializes new object tracks via simple thresholding";
 }
 
 

@@ -73,17 +73,17 @@ public:
   ~priv();
 
   // Configuration values
-  std::string                             m_config_video_filename;
-  kwiver::vital::timestamp::time_t        m_config_frame_time;
-  bool                                    m_has_config_frame_time;
+  std::string                           m_config_video_filename;
+  kwiver::vital::time_us_t              m_config_frame_time;
+  bool                                  m_has_config_frame_time;
 
-  kwiver::vital::algo::video_input_sptr   m_video_reader;
+  kwiver::vital::algo::video_input_sptr m_video_reader;
   kwiver::vital::algorithm_capabilities m_video_traits;
 
-  kwiver::vital::timestamp::frame_t       m_frame_number;
-  kwiver::vital::timestamp::time_t        m_frame_time;
+  kwiver::vital::frame_id_t             m_frame_number;
+  kwiver::vital::time_us_t              m_frame_time;
 
-  kwiver::vital::metadata_vector          m_last_metadata;
+  kwiver::vital::metadata_vector        m_last_metadata;
 
 }; // end priv class
 
@@ -114,7 +114,7 @@ void video_input_process
 
   // Examine the configuration
   d->m_config_video_filename = config_value_using_trait( video_filename );
-  d->m_config_frame_time = static_cast<vital::timestamp::time_t>(
+  d->m_config_frame_time = static_cast<vital::time_us_t>(
                                config_value_using_trait( frame_time ) * 1e6); // in usec
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,27 +42,27 @@ namespace vital {
 
 
 kpf_exception
-::kpf_exception() VITAL_NOTHROW
+::kpf_exception() noexcept
 {
   m_what = "Generic KPF exception";
 }
 
 kpf_exception
-::~kpf_exception() VITAL_NOTHROW
+::~kpf_exception() noexcept
 {
 }
 
 
 // ------------------------------------------------------------------
 kpf_token_underrun_exception
-::kpf_token_underrun_exception(std::string const& message) VITAL_NOTHROW
+::kpf_token_underrun_exception(std::string const& message) noexcept
   : m_message(message)
 {
   m_what = message;
 }
 
 kpf_token_underrun_exception
-::~kpf_token_underrun_exception() VITAL_NOTHROW
+::~kpf_token_underrun_exception() noexcept
 {
 }
 

@@ -31,7 +31,6 @@
 #include "darknet_trainer.h"
 #include "darknet_custom_resize.h"
 
-#include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
 
 #include <arrows/ocv/image_container.h>

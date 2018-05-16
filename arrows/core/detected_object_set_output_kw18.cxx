@@ -35,7 +35,7 @@
 #include <memory>
 #include <vector>
 #include <fstream>
-#include <time.h>
+#include <ctime>
 
 #if ( __GNUC__ == 4 && __GNUC_MINOR__ < 5 && !defined(__clang__) )
   #include <cstdatomic>
@@ -68,7 +68,6 @@ class detected_object_set_output_kw18::priv
 public:
   priv( detected_object_set_output_kw18* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "detected_object_set_output_kw18" ) )
     , m_first( true )
     , m_frame_number( 0 )
     , m_write_tot( false )
@@ -79,7 +78,6 @@ public:
   void read_all();
 
   detected_object_set_output_kw18* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   int m_frame_number;
   bool m_write_tot;
@@ -94,6 +92,7 @@ detected_object_set_output_kw18::
 detected_object_set_output_kw18()
   : d( new detected_object_set_output_kw18::priv( this ) )
 {
+  attach_logger( "arrows.core.detected_object_set_output_kw18" );
 }
 
 
@@ -173,7 +172,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
   if (d->m_first)
   {
-    time_t rawtime;
+    std::time_t rawtime;
     struct tm * timeinfo;
 
     time ( &rawtime );

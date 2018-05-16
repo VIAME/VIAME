@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@
 using namespace kwiver::vital;
 
 namespace {
-/// detect bad tracks
+// detect bad tracks
 std::set<track_id_t>
 detect_bad_tracks(const camera_map::map_camera_t& cams,
                   const landmark_map::map_landmark_t& lms,
@@ -79,7 +79,7 @@ detect_bad_tracks(const camera_map::map_camera_t& cams,
   return to_remove;
 }
 
-/// remove landmarks with IDs in the set
+// remove landmarks with IDs in the set
 void
 remove_landmarks(const std::set<track_id_t>& to_remove,
                  landmark_map::map_landmark_t& lms)
@@ -91,7 +91,7 @@ remove_landmarks(const std::set<track_id_t>& to_remove,
 }
 
 
-/// remove landmarks with IDs in the set
+// remove landmarks with IDs in the set
 void
 remove_tracks(const std::set<track_id_t>& to_remove,
               std::vector<track_sptr>& trks)
@@ -116,11 +116,11 @@ namespace arrows {
 namespace core {
 
 
-/// Private implementation class
+// Private implementation class
 class initialize_cameras_landmarks::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
   : verbose(false),
     continue_processing(true),
@@ -137,34 +137,33 @@ public:
     camera_optimizer(),
     // use the core triangulation as the default, users can change it
     lm_triangulator(new core::triangulate_landmarks()),
-    bundle_adjuster(),
-    m_logger( vital::get_logger( "arrows.core.initialize_cameras_landmarks" ))
+    bundle_adjuster()
   {
   }
 
-  /// Destructor
+  // Destructor
   ~priv()
   {
   }
 
-  /// Construct and initialized camera for \a frame
+  // Construct and initialized camera for \a frame
   camera_sptr init_camera(frame_id_t frame, frame_id_t last_frame,
                           const camera_map::map_camera_t& cams,
                           const std::vector<track_sptr>& trks,
                           const landmark_map::map_landmark_t& lms) const;
 
-  /// Re-triangulate all landmarks for provided tracks
+  // Re-triangulate all landmarks for provided tracks
   void retriangulate(landmark_map::map_landmark_t& lms,
                      const camera_map::map_camera_t& cams,
                      const std::vector<track_sptr>& trks,
                      const std::set<landmark_id_t>& new_lm_ids) const;
 
-  /// Estimate the translation scale using a 2d-3d correspondence
+  // Estimate the translation scale using a 2d-3d correspondence
   double estimate_t_scale(const vector_3d& KRp,
                           const vector_3d& Kt,
                           const vector_2d& pt2d) const;
 
-  /// Pass through this callback to another callback but cache the return value
+  // Pass through this callback to another callback but cache the return value
   bool pass_through_callback(callback_t cb,
                              camera_map_sptr cams,
                              landmark_map_sptr lms);
@@ -179,17 +178,18 @@ public:
   double interim_reproj_thresh;
   double final_reproj_thresh;
   double zoom_scale_thresh;
-  vital::simple_camera base_camera;
+  vital::simple_camera_perspective base_camera;
   vital::algo::estimate_essential_matrix_sptr e_estimator;
   vital::algo::optimize_cameras_sptr camera_optimizer;
   vital::algo::triangulate_landmarks_sptr lm_triangulator;
   vital::algo::bundle_adjust_sptr bundle_adjuster;
-  /// Logger handle
+  // Logger handle
   vital::logger_handle_t m_logger;
 };
 
 
-/// Construct and initialized camera for \a frame
+// ----------------------------------------------------------------------------
+// Construct and initialized camera for \a frame
 camera_sptr
 initialize_cameras_landmarks::priv
 ::init_camera(frame_id_t frame, frame_id_t last_frame,
@@ -228,9 +228,9 @@ initialize_cameras_landmarks::priv
   camera_map::map_camera_t::const_iterator ci = cams.find(last_frame);
   if( ci == cams.end() )
   {
-    throw invalid_value("Camera for last frame not provided.");
+    VITAL_THROW( invalid_value,"Camera for last frame not provided.");
   }
-  camera_sptr prev_cam = ci->second;
+  auto prev_cam = std::dynamic_pointer_cast<camera_perspective>(ci->second);
   camera_intrinsics_sptr cal_right = prev_cam->intrinsics();
   const camera_intrinsics_sptr cal_left = base_camera.get_intrinsics();
   std::vector<bool> inliers;
@@ -257,7 +257,8 @@ initialize_cameras_landmarks::priv
   vector_2d right_pt = cal_right->unmap(pts_right[inlier_idx]);
 
   // compute the corresponding camera rotation and translation (up to scale)
-  vital::simple_camera cam = kwiver::arrows::extract_valid_left_camera(E, left_pt, right_pt);
+  vital::simple_camera_perspective cam =
+    kwiver::arrows::extract_valid_left_camera(E, left_pt, right_pt);
   cam.set_intrinsics(cal_left);
 
   // compute the scale from existing landmark locations (if available)
@@ -306,7 +307,8 @@ initialize_cameras_landmarks::priv
 }
 
 
-/// Re-triangulate all landmarks for provided tracks
+// ----------------------------------------------------------------------------
+// Re-triangulate all landmarks for provided tracks
 void
 initialize_cameras_landmarks::priv
 ::retriangulate(landmark_map::map_landmark_t& lms,
@@ -357,7 +359,7 @@ initialize_cameras_landmarks::priv
 }
 
 
-/// Estimate the translation scale using a 2d-3d correspondence
+// Estimate the translation scale using a 2d-3d correspondence
 double
 initialize_cameras_landmarks::priv
 ::estimate_t_scale(const vector_3d& KRp,
@@ -376,7 +378,7 @@ initialize_cameras_landmarks::priv
 }
 
 
-/// Pass through this callback to another callback but cache the return value
+// Pass through this callback to another callback but cache the return value
 bool
 initialize_cameras_landmarks::priv
 ::pass_through_callback(callback_t cb,
@@ -388,22 +390,25 @@ initialize_cameras_landmarks::priv
 }
 
 
-/// Constructor
+// Constructor
 initialize_cameras_landmarks
 ::initialize_cameras_landmarks()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.initialize_cameras_landmarks" );
+  d_->m_logger = logger();
 }
 
 
-/// Destructor
+// Destructor
 initialize_cameras_landmarks
 ::~initialize_cameras_landmarks()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 initialize_cameras_landmarks
 ::get_configuration() const
@@ -490,7 +495,8 @@ initialize_cameras_landmarks
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 initialize_cameras_landmarks
 ::set_configuration(vital::config_block_sptr config)
@@ -565,7 +571,8 @@ initialize_cameras_landmarks
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's currently configuration is valid
 bool
 initialize_cameras_landmarks
 ::check_configuration(vital::config_block_sptr config) const
@@ -589,10 +596,9 @@ initialize_cameras_landmarks
              ::check_nested_algo_configuration("lm_triangulator", config);
 }
 
-namespace
-{
+namespace {
 
-/// Extract valid cameras and cameras to initialize.
+// Extract valid cameras and cameras to initialize.
 /**
  * If \a cameras is NULL then return empty cam_map and frame_ids unchanged.
  * If not NULL, return frame_ids containing IDs of all NULL cameras and
@@ -632,7 +638,8 @@ void extract_cameras(const camera_map_sptr& cameras,
 }
 
 
-/// Extract valid landmarks and landmarks to initialize.
+// ----------------------------------------------------------------------------
+// Extract valid landmarks and landmarks to initialize.
 /**
  * If \a landmarks is NULL then return empty lm_map and track_ids unchanged.
  * If not NULL, return track_ids containing IDs of all NULL landmark and
@@ -672,7 +679,8 @@ void extract_landmarks(const landmark_map_sptr& landmarks,
 }
 
 
-/// Find the closest frame number with an existing camera
+// ----------------------------------------------------------------------------
+// Find the closest frame number with an existing camera
 frame_id_t
 find_closest_camera(const frame_id_t& frame,
                     const camera_map::map_camera_t& cams)
@@ -697,7 +705,7 @@ find_closest_camera(const frame_id_t& frame,
 }
 
 
-/// Find the subset of new_frames within dist frames of a camera in cams
+// Find the subset of new_frames within dist frames of a camera in cams
 std::set<frame_id_t>
 find_nearby_new_frames(const std::set<frame_id_t>& new_frames,
                        const camera_map::map_camera_t& cams,
@@ -720,7 +728,8 @@ find_nearby_new_frames(const std::set<frame_id_t>& new_frames,
 }
 
 
-/// find the best pair of camera indices to start with
+// ----------------------------------------------------------------------------
+// find the best pair of camera indices to start with
 void
 find_best_initial_pair(const Eigen::SparseMatrix<unsigned int>& mm,
                        int& i, int& j,
@@ -772,6 +781,7 @@ find_best_initial_pair(const Eigen::SparseMatrix<unsigned int>& mm,
 }
 
 
+// ----------------------------------------------------------------------------
 // find the frame in the set \p new_frame_ids that sees the most
 // landmarks in \p lms in the track set \p tracks.
 frame_id_t
@@ -829,6 +839,7 @@ next_best_frame(const track_set_sptr tracks,
 }
 
 
+// ----------------------------------------------------------------------------
 double
 estimate_gsd(const frame_id_t frame,
              std::vector<track_sptr> const& tracks,
@@ -880,7 +891,8 @@ estimate_gsd(const frame_id_t frame,
 } // end anonymous namespace
 
 
-/// Initialize the camera and landmark parameters given a set of tracks
+// ----------------------------------------------------------------------------
+// Initialize the camera and landmark parameters given a set of tracks
 void
 initialize_cameras_landmarks
 ::initialize(camera_map_sptr& cameras,
@@ -890,15 +902,15 @@ initialize_cameras_landmarks
 {
   if( !tracks )
   {
-    throw invalid_value("Some required input data is NULL.");
+    VITAL_THROW( invalid_value,"Some required input data is NULL.");
   }
   if( !d_->e_estimator )
   {
-    throw invalid_value("Essential matrix estimator not initialized.");
+    VITAL_THROW( invalid_value,"Essential matrix estimator not initialized.");
   }
   if( !d_->lm_triangulator )
   {
-    throw invalid_value("Landmark triangulator not initialized.");
+    VITAL_THROW( invalid_value,"Landmark triangulator not initialized.");
   }
   typedef vital::camera_map::map_camera_t map_cam_t;
   typedef vital::landmark_map::map_landmark_t map_landmark_t;
@@ -947,8 +959,8 @@ initialize_cameras_landmarks
   Eigen::SparseMatrix<unsigned int> mm = match_matrix(tracks, mm_frames);
   int init_i=0,init_j=0;
   find_best_initial_pair(mm, init_i, init_j, d_->m_logger);
-  LOG_INFO(d_->m_logger, "Initializing with frames "<< mm_frames[init_i]
-                         << " and " << mm_frames[init_j]);
+  LOG_INFO(logger(), "Initializing with frames "<< mm_frames[init_i]
+                     << " and " << mm_frames[init_j]);
 
   if(cams.empty())
   {
@@ -1003,7 +1015,7 @@ initialize_cameras_landmarks
     frame_id_t other_frame = find_closest_camera(f, cams);
     if(d_->verbose)
     {
-      LOG_DEBUG(d_->m_logger, "frame "<< f <<" uses reference "<< other_frame);
+      LOG_DEBUG(logger(), "frame "<< f <<" uses reference "<< other_frame);
     }
 
     // get the subset of tracks that have features on frame f
@@ -1029,9 +1041,9 @@ initialize_cameras_landmarks
       double gsd_prev = estimate_gsd(other_frame, trks, flms);
       double gsd_next = estimate_gsd(f, trks, flms);
       scale_change = gsd_prev / gsd_next;
-      LOG_DEBUG(d_->m_logger, "GSD estimates: "<<gsd_prev<<", "
-                              <<gsd_next<<" ratio "
-                              <<scale_change);
+      LOG_DEBUG(logger(), "GSD estimates: " << gsd_prev << ", "
+                               << gsd_next << " ratio "
+                              << scale_change);
       // small scale changes are less likely to be zoom, so share intrinsics
       if (scale_change < 1.0 + d_->zoom_scale_thresh &&
           1.0/scale_change < 1.0 + d_->zoom_scale_thresh)
@@ -1042,7 +1054,8 @@ initialize_cameras_landmarks
 
     if( d_->init_from_last && d_->camera_optimizer && flms.size() > 3)
     {
-      cams[f] = cams[other_frame]->clone();
+      auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(cams[other_frame]);
+      cams[f] = cam_ptr->clone();
     }
     else if( trks.size() > 10 )
     {
@@ -1056,11 +1069,12 @@ initialize_cameras_landmarks
     if( scale_change != 1.0 )
     {
       // construct a new camera a new intrinsic model.
-      auto cam = cams[f];
-      auto K = std::make_shared<simple_camera_intrinsics>(*cam->intrinsics());
+      auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(cams[f]);
+      auto K = std::make_shared<simple_camera_intrinsics>(*cam_ptr->intrinsics());
       K->set_focal_length(K->get_focal_length() * scale_change);
-      cams[f] = std::make_shared<simple_camera>(cam->center(), cam->rotation(), K);
-      LOG_DEBUG(d_->m_logger, "Constructing new intrinsics");
+      cams[f] = std::make_shared<simple_camera_perspective>(
+          cam_ptr->center(), cam_ptr->rotation(), K);
+      LOG_DEBUG(logger(), "Constructing new intrinsics");
     }
 
     // optionally optimize the new camera
@@ -1086,26 +1100,26 @@ initialize_cameras_landmarks
       std::vector<double> rpe = kwiver::arrows::reprojection_errors(new_cam_map, lms, trks);
       if( rpe.empty() )
       {
-        LOG_DEBUG(d_->m_logger, "no landmark projections for new camera");
+        LOG_DEBUG(logger(), "no landmark projections for new camera");
       }
       else
       {
         std::sort(rpe.begin(), rpe.end());
-        LOG_DEBUG(d_->m_logger, "new camera reprojections - median: "
+        LOG_DEBUG(logger(), "new camera reprojections - median: "
                                 << rpe[rpe.size()/2] << " max: " << rpe.back());
       }
     }
 
     if( d_->bundle_adjuster && cams.size() >= num_cams_for_next_ba )
     {
-      LOG_INFO(d_->m_logger, "Running Global Bundle Adjustment on "
+      LOG_INFO(logger(), "Running Global Bundle Adjustment on "
                               << cams.size() << " cameras and "
                               << lms.size() << " landmarks");
       num_cams_for_next_ba = static_cast<size_t>(std::ceil(d_->global_ba_rate * num_cams_for_next_ba));
       camera_map_sptr ba_cams(new simple_camera_map(cams));
       landmark_map_sptr ba_lms(new simple_landmark_map(lms));
       double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
-      LOG_INFO(d_->m_logger, "initial reprojection RMSE: " << init_rmse);
+      LOG_INFO(logger(), "initial reprojection RMSE: " << init_rmse);
 
       d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, metadata);
       cams = ba_cams->cameras();
@@ -1117,18 +1131,20 @@ initialize_cameras_landmarks
       // detect tracks/landmarks with large error and remove them
       std::set<track_id_t> to_remove = detect_bad_tracks(cams, lms, trks,
                                                          d_->interim_reproj_thresh);
-      LOG_INFO(d_->m_logger, "removing "<<to_remove.size()
-                             << "/" << lms.size()
-                             << " landmarks with RMSE > "
-                             << d_->interim_reproj_thresh);
+      LOG_INFO(logger(), "removing "<<to_remove.size()
+                         << "/" << lms.size()
+                         << " landmarks with RMSE > "
+                         << d_->interim_reproj_thresh);
       remove_landmarks(to_remove, lms);
       std::vector<track_sptr> all_trks = tracks->tracks();
       remove_tracks(to_remove, all_trks);
       tracks = std::make_shared<feature_track_set>(all_trks);
       double final_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
-      LOG_INFO(d_->m_logger, "final reprojection RMSE: " << final_rmse);
-      LOG_DEBUG(d_->m_logger, "updated focal length "
-                              << cams.begin()->second->intrinsics()->focal_length());
+      LOG_INFO(logger(), "final reprojection RMSE: " << final_rmse);
+      auto cam_ptr =
+        std::dynamic_pointer_cast<camera_perspective>(cams.begin()->second);
+      LOG_DEBUG(logger(), "updated focal length "
+                              << cam_ptr->intrinsics()->focal_length());
 
       if( !tried_necker_reverse && d_->reverse_ba_error_ratio > 0 )
       {
@@ -1138,23 +1154,23 @@ initialize_cameras_landmarks
         necker_reverse(ba_cams2, ba_lms2);
         d_->lm_triangulator->triangulate(ba_cams2, tracks, ba_lms2);
         init_rmse = kwiver::arrows::reprojection_rmse(ba_cams2->cameras(), ba_lms2->landmarks(), trks);
-        LOG_DEBUG(d_->m_logger, "Necker reversed initial reprojection RMSE: " << init_rmse);
+        LOG_DEBUG(logger(), "Necker reversed initial reprojection RMSE: " << init_rmse);
         if( init_rmse < final_rmse * d_->reverse_ba_error_ratio )
         {
           // Only try a Necker reversal once when we have enough data to
           // support it. We will either decide to reverse or not.
           // Either way we should not have to try this again.
           tried_necker_reverse = true;
-          LOG_INFO(d_->m_logger, "Running Necker reversed bundle adjustment for comparison");
+          LOG_INFO(logger(), "Running Necker reversed bundle adjustment for comparison");
           d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks, metadata);
           map_cam_t cams2 = ba_cams2->cameras();
           map_landmark_t lms2 = ba_lms2->landmarks();
           double final_rmse2 = kwiver::arrows::reprojection_rmse(cams2, lms2, trks);
-          LOG_DEBUG(d_->m_logger, "Necker reversed final reprojection RMSE: " << final_rmse2);
+          LOG_DEBUG(logger(), "Necker reversed final reprojection RMSE: " << final_rmse2);
 
           if(final_rmse2 < final_rmse)
           {
-            LOG_INFO(d_->m_logger, "Necker reversed solution is better");
+            LOG_INFO(logger(), "Necker reversed solution is better");
             cams = ba_cams2->cameras();
             lms = ba_lms2->landmarks();
           }
@@ -1167,9 +1183,9 @@ initialize_cameras_landmarks
       camera_map_sptr ba_cams(new simple_camera_map(cams));
       landmark_map_sptr ba_lms(new simple_landmark_map(lms));
       double curr_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
-      LOG_INFO(d_->m_logger, "current reprojection RMSE: " << curr_rmse);
+      LOG_INFO(logger(), "current reprojection RMSE: " << curr_rmse);
 
-      LOG_DEBUG(d_->m_logger, "frame "<<f<<" - num landmarks = "<< lms.size());
+      LOG_DEBUG(logger(), "frame "<<f<<" - num landmarks = "<< lms.size());
     }
     if( this->m_callback )
     {
@@ -1181,19 +1197,19 @@ initialize_cameras_landmarks
   // Run a final bundle adjustment
   if( d_->bundle_adjuster && d_->continue_processing )
   {
-    LOG_INFO(d_->m_logger, "Running final bundle adjustment");
+    LOG_INFO(logger(), "Running final bundle adjustment");
     camera_map_sptr ba_cams(new simple_camera_map(cams));
     landmark_map_sptr ba_lms(new simple_landmark_map(lms));
     double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
-    LOG_DEBUG(d_->m_logger, "initial reprojection RMSE: " << init_rmse);
+    LOG_DEBUG(logger(), "initial reprojection RMSE: " << init_rmse);
 
     d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, metadata);
     map_cam_t cams1 = ba_cams->cameras();
     map_landmark_t lms1 = ba_lms->landmarks();
     double final_rmse1 = kwiver::arrows::reprojection_rmse(cams1, lms1, trks);
-    LOG_DEBUG(d_->m_logger, "final reprojection RMSE: " << final_rmse1);
+    LOG_DEBUG(logger(), "final reprojection RMSE: " << final_rmse1);
     double final_med_err = kwiver::arrows::reprojection_median_error(cams1, lms1, trks);
-    LOG_DEBUG(d_->m_logger, "final reprojection Median Error: " << final_med_err);
+    LOG_DEBUG(logger(), "final reprojection Median Error: " << final_med_err);
     cams = ba_cams->cameras();
     lms = ba_lms->landmarks();
 
@@ -1202,10 +1218,10 @@ initialize_cameras_landmarks
     const double outlier_thresh = final_med_err * d_->final_reproj_thresh;
     std::set<track_id_t> to_remove = detect_bad_tracks(cams, lms, trks,
                                                        outlier_thresh);
-    LOG_INFO(d_->m_logger, "removing "<<to_remove.size()
-                           << "/" << lms.size()
-                           << " landmarks with RMSE > "
-                           << outlier_thresh);
+    LOG_INFO(logger(), "removing " << to_remove.size()
+                       << "/" << lms.size()
+                       << " landmarks with RMSE > "
+                       << outlier_thresh);
     remove_landmarks(to_remove, lms);
   }
   cameras = camera_map_sptr(new simple_camera_map(cams));
@@ -1213,7 +1229,8 @@ initialize_cameras_landmarks
 }
 
 
-/// Set a callback function to report intermediate progress
+// ----------------------------------------------------------------------------
+// Set a callback function to report intermediate progress
 void
 initialize_cameras_landmarks
 ::set_callback(callback_t cb)

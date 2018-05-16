@@ -73,6 +73,8 @@ class scheduler_trampoline
     void _stop() override;
 };
 
+void scheduler_shutdown(object);
+
 PYBIND11_MODULE(scheduler, m)
 {
   class_<sprokit::scheduler, scheduler_trampoline, sprokit::scheduler_t>(m, "PythonScheduler"
@@ -100,7 +102,18 @@ PYBIND11_MODULE(scheduler, m)
       , "Implementation of stopping the pipeline.")
     .def("pipeline", static_cast<sprokit::pipeline_t (sprokit::scheduler::*)() const>(&wrap_scheduler::pipeline), call_guard<sprokit::python::gil_scoped_release>()
       , "Scheduler pipeline.")
+	.def("shutdown", &scheduler_shutdown, call_guard<gil_scoped_release>()
+      , "Shut down the scheduler.")
   ;
+}
+
+// There's some bad refcounting, so we end up with one extra
+// That one extra occurs whether we're using a C++ scheduler
+// or a python scheduler (where we already had to inc_ref to counteract a mistaken dec_ref)
+void
+scheduler_shutdown(object schd_obj)
+{
+  schd_obj.dec_ref();
 }
 
 void

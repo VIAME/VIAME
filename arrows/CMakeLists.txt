@@ -15,6 +15,7 @@ endif()
 
 # Add OpenCV plugin if enabled
 if( KWIVER_ENABLE_OPENCV )
+  #add_subdirectory( dbow2 )
   add_subdirectory( ocv )
 endif()
 
@@ -26,6 +27,17 @@ endif()
 # Add VXL plugin if enabled
 if( KWIVER_ENABLE_VXL )
   add_subdirectory( vxl )
+
+  # Super3D depends on VXL
+  option( KWIVER_ENABLE_SUPER3D
+    "Enable SUPER3D dependent code and plugins (Arrows)"
+    ON
+    )
+
+  # Add super3d plugin if enabled
+  if( KWIVER_ENABLE_SUPER3D )
+    add_subdirectory( super3d )
+  endif()
 endif()
 
 # Add VisCL plugin if enabled
@@ -44,7 +56,12 @@ if( KWIVER_ENABLE_DARKNET )
   add_subdirectory( darknet )
 endif()
 
-# if burnout is enabled
+# if database is enabled
+if (KWIVER_ENABLE_DATABASE)
+  add_subdirectory( database )
+endif()
+
+  # if burnout is enabled
 if( KWIVER_ENABLE_BURNOUT )
   add_subdirectory( burnout )
 endif()
@@ -61,5 +78,9 @@ endif()
 
 # if python is enabled
 if( KWIVER_ENABLE_PYTHON )
+  set(kwiver_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
+  set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}")
+
   kwiver_create_python_plugin_init( kwiver/arrows )
+  add_subdirectory( pytorch )
 endif()

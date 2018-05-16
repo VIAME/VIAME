@@ -52,13 +52,19 @@ class KWIVER_ALGO_CORE_EXPORT write_object_track_set_kw18
       vital::algo::write_object_track_set >
 {
 public:
+
+  static constexpr char const* name = "kw18";
+
+  static constexpr char const* description =
+    "Object track set kw18 writer.";
+
   write_object_track_set_kw18();
   virtual ~write_object_track_set_kw18();
 
   virtual void set_configuration( vital::config_block_sptr config );
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::object_track_set_sptr set );
+  virtual void write_set( const kwiver::vital::timestamp& ts, const kwiver::vital::object_track_set_sptr set );
 
   virtual void close();
 

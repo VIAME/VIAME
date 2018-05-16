@@ -87,16 +87,8 @@ associate_detections_to_tracks_threshold
 
 /// Destructor
 associate_detections_to_tracks_threshold
-::~associate_detections_to_tracks_threshold() VITAL_NOTHROW
+::~associate_detections_to_tracks_threshold() noexcept
 {
-}
-
-
-std::string
-associate_detections_to_tracks_threshold
-::description() const
-{
-  return "Performs track association of new detectionss via simple thresholding";
 }
 
 
@@ -188,7 +180,7 @@ associate_detections_to_tracks_threshold
     if( best_index < all_detections->size() )
     {
       vital::track_state_sptr new_track_state(
-        new vital::object_track_state( ts.get_frame(),
+        new vital::object_track_state( ts,
           all_detections->begin()[best_index] ) );
 
       vital::track_sptr adj_track( all_tracks[t]->clone() );

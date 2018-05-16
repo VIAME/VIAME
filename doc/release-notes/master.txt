@@ -18,6 +18,9 @@ Vital
    Note also that [[noreturn]] must appear before <lib>_EXPORT; this was not
    the case with the old definition of VITAL_NO_RETURN.
 
+ * Added a small range utilities library.  This implements a small subset of
+   range adapters inspired by the upcoming Ranges TS.
+
  * Added new data types geo_point and geo_polygon for representing points
    and polygons in geographic coordinates.  These new types use the new
    geodetic conversion function and know how to convert themselves into
@@ -117,6 +120,32 @@ Vital
    moved into vital/io, and the KLV conversion functions have moved into
    vital/klv.
 
+ * Refactor timestamp types for time and frame number. Standardized on
+   the base kwiver::vital types for frame_id and time. Renamed time_t
+   to time_us_t to provide some distance from std::time_t and make the
+   units apparent.
+
+ * Added frame_time() method to video_input to access the current time stamp.
+
+ * Expanded video_input API to include a seek_frame() method which will seek
+   the video source to specific frame and a seekable() method which returns
+   true if the video source supports frame seeking. This allows
+   implementations to support seeking to a specific frame if possible.
+
+ * Added a new abstract algorithm, integrate_depth_maps, for the integration
+   of depth map images into an implicit surface volume using truncated signed
+   distance functions (TSDF) or similar approaches.
+
+ * Added clone() functions to the track_set and the class that it contains
+   to allow deep copies of track sets.
+
+ * Added a track_set_frame_data class to store frame-level data along side
+   the tracks.  The feature_track_set uses this to mark frames as key frames.
+
+ * Added an assortment of types and algorithms in support of a basic object
+   tracker, including readers/writers, a matrix-based associate detections to
+   tracks process, a generic track initializer, and others.
+
 Vital Bindings
 
  * Vital C and Python bindings have been updated with respect the refactoring
@@ -137,6 +166,62 @@ Arrows: Core
 
  * Removed description() methods from some implementations. This
    method is no longer used.
+
+ * Implemented the seekable() and seek_frame() methods for the various
+   video_input implementations. In general this means most of these
+   implementations now support seeking to a specific frame in the video.
+
+ * Implemented a num_frames() method for the various video_input
+   implementations. This method returns the number of frames available in
+   the video or 0 if the video is not seekable.
+
+ * Expanding the tests for the video_input implementations to test the new
+   seek frame functionality.
+
+ * Tests of the video_input implementations now test against new test imagery
+   that allows an additional check that the video source is on the correct
+   frame. This done using barcodes embedded in the test imagery that encode
+   the frame number.
+
+ * Added keyframe selection classes.  These facilitate choosing particularly
+   important frames in an image sequence and then only doing later operations
+   (e.g. structure from motion) on these frames.
+
+ * Added a new loop closure algorithm that uses bag of words image matching.
+
+ * Added a special feature tracker that augments keyframes with additional
+   detections.  This tracker does not actually "track" anything but runs
+   a feature detector and descriptor only on key frames and creates single
+   frame tracks for later matching and linking.
+
+ * Added an assortment of algorithm implementations in support of a basic object
+   tracking support, including readers/writers, a matrix-based associate detections
+   to tracks process, a generic track initializer, and others.
+
+Arrows: OpenCV
+
+ * Added an OpenCV based KLT feature tracker.
+
+ * Added perspective three point pose estimation.
+
+Arrows: DBoW2
+
+ * Added bag of words image matching based on DBoW2 library.  Includes a new vital
+   algorithm base class bag_of_words_matching.
+
+Arrows: VXL
+
+ * Implemented the seekable() and seek_frame() methods for the
+   vidl_ffmpeg_video_input video source. This source now supports seeking by
+   frame if the underlying video stream supports it.
+
+ * Implemented a num_frames() method for the vidl_ffmpeg_video_input video
+   source. This method returns the number of frames available in the video or
+   0 if the video is not seekable.
+
+ * Added a test for the vidl_ffmpeg_video_input. This test tests the same
+   functionality as the tests for video_input implementations in Core. This
+   includes the new seek frame functionality.
 
 Sprokit
 
@@ -170,6 +255,15 @@ Sprokit
    in the pipeline. If a python process is found, an exception is
    thrown.
 
+Sprokit: Processes
+
+ * Added sprokit processes corresponding the feature tracker and keyframe
+   selection vital algorithms.
+
+ * Added a detect_feature_if_keyframe process that calls the new augment
+   features tracker and also merges tracks.  This may be refactored in the
+   future to split out track merging and reuse the feature tracker process.
+
 Tools
 
  * Added built-in plugin search paths to the plugin_explorer and dump_klv
@@ -178,10 +272,10 @@ Tools
 
 Unit Tests
 
- * KWIVER is in the process of transitioning to Google Test as its primary
-   testing framework.  This means that Google Test is now a hard dependency
-   when KWIVER_ENABLE_TESTS is ON.  (Recent versions of Fletch include Google
-   Test.)  The Sprokit tests will continue to use their own framework.
+ * KWIVER now uses Google Test as its primary testing framework.  This means
+   that Google Test is now a hard dependency when KWIVER_ENABLE_TESTS is ON.
+   (Recent versions of Fletch include Google Test.)  The Sprokit tests will
+   continue to use their own framework.
 
 
 Fixes since v1.1.0
@@ -195,3 +289,8 @@ Sprokit
    directory and file name that represent the location of the pipeline
    definition and can be used to supply needed directory for
    relativepath.
+
+Vital
+
+ * Fixed problem #503 where relativepath modifier in a config entry
+   would not supply the correct directory. See MR #504.

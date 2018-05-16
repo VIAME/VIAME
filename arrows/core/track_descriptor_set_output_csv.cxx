@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,6 @@ class track_descriptor_set_output_csv::priv
 public:
   priv( track_descriptor_set_output_csv* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "track_descriptor_set_output_csv" ) )
     , m_first( true )
     , m_frame_number( 1 )
     , m_delim( "," )
@@ -57,7 +56,6 @@ public:
   ~priv() { }
 
   track_descriptor_set_output_csv* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   int m_frame_number;
   std::string m_delim;
@@ -69,6 +67,7 @@ track_descriptor_set_output_csv::
 track_descriptor_set_output_csv()
   : d( new track_descriptor_set_output_csv::priv( this ) )
 {
+  attach_logger( "arrows.core.track_descriptor_set_output_csv" );
 }
 
 

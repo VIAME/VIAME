@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ detect_features
     if ( image_data->width() != mask->width() ||
          image_data->height() != mask->height() )
     {
-      throw image_size_mismatch_exception(
+      VITAL_THROW( image_size_mismatch_exception,
           "OCV detect feature algorithm given a non-zero mask with mismatched "
           "shape compared to input image",
           image_data->width(), image_data->height(),

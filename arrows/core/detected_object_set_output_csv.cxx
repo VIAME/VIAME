@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 
 #include "detected_object_set_output_csv.h"
 
-#include <time.h>
+#include <ctime>
 
 
 namespace kwiver {
@@ -48,7 +48,6 @@ class detected_object_set_output_csv::priv
 public:
   priv( detected_object_set_output_csv* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "detected_object_set_output_csv" ) )
     , m_first( true )
     , m_frame_number( 1 )
     , m_delim( "," )
@@ -57,7 +56,6 @@ public:
   ~priv() { }
 
   detected_object_set_output_csv* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   int m_frame_number;
   std::string m_delim;
@@ -69,6 +67,7 @@ detected_object_set_output_csv::
 detected_object_set_output_csv()
   : d( new detected_object_set_output_csv::priv( this ) )
 {
+  attach_logger( "arrows.core.detected_object_set_output_csv" );
 }
 
 
@@ -104,7 +103,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
   if (d->m_first)
   {
-    time_t rawtime;
+    std::time_t rawtime;
     struct tm * timeinfo;
 
     time ( &rawtime );

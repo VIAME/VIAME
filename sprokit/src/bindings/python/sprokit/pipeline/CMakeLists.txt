@@ -5,7 +5,8 @@ _sprokit_add_python_library(config
   config.cxx)
 target_link_libraries(python-sprokit.pipeline-config
   PRIVATE             sprokit_pipeline
-                      sprokit_python_util)
+                      sprokit_python_util
+                      vital_exceptions)
 
 _sprokit_add_python_library(datum
   sprokit/pipeline
@@ -13,7 +14,7 @@ _sprokit_add_python_library(datum
 target_link_libraries(python-sprokit.pipeline-datum
   PRIVATE             sprokit_pipeline
                       sprokit_python_util
-                      vital_util)
+                      vital vital_util)
 
 _sprokit_add_python_library(edge
   sprokit/pipeline

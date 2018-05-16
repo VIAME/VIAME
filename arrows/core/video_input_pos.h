@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,18 @@ class KWIVER_ALGO_CORE_EXPORT video_input_pos
   : public vital::algorithm_impl < video_input_pos, vital::algo::video_input >
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "pos";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "Read video metadata in AFRL POS format."
+    " The algorithm takes configuration for a directory full of images"
+    " and an associated directory name for the metadata files."
+    " These metadata files have the same base name as the image files."
+    " Each metadata file is associated with the image file"
+    " of the same base name.";
+
   /// Constructor
   video_input_pos();
   virtual ~video_input_pos();
@@ -79,12 +91,20 @@ public:
 
   virtual bool end_of_video() const;
   virtual bool good() const;
+  virtual bool seekable() const;
+  virtual size_t num_frames() const;
 
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 );
 
+  virtual bool seek_frame( kwiver::vital::timestamp& ts,
+                           kwiver::vital::timestamp::frame_t frame_number,
+                           uint32_t timeout = 0 );
+
+  virtual kwiver::vital::timestamp frame_timestamp() const;
   virtual kwiver::vital::image_container_sptr frame_image();
   virtual kwiver::vital::metadata_vector frame_metadata();
+  virtual kwiver::vital::metadata_map_sptr metadata_map();
 
 private:
   /// private implementation class

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -121,7 +121,8 @@ number_process
   {
     static std::string const reason = "The start value must be greater than the end value";
 
-    throw invalid_configuration_exception(name(), reason);
+    VITAL_THROW( invalid_configuration_exception,
+                 name(), reason);
   }
 
   process::_configure();

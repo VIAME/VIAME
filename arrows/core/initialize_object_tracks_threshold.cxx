@@ -92,16 +92,8 @@ initialize_object_tracks_threshold
 
 /// Destructor
 initialize_object_tracks_threshold
-::~initialize_object_tracks_threshold() VITAL_NOTHROW
+::~initialize_object_tracks_threshold() noexcept
 {
-}
-
-
-std::string
-initialize_object_tracks_threshold
-::description() const
-{
-  return "Initializes new object tracks via simple thresholding";
 }
 
 
@@ -170,7 +162,7 @@ initialize_object_tracks_threshold
     new_track->set_id( new_id );
 
     vital::track_state_sptr first_track_state(
-      new vital::object_track_state( ts.get_frame(), filtered->begin()[i] ) );
+      new vital::object_track_state( ts, filtered->begin()[i] ) );
 
     new_track->append( first_track_state );
 

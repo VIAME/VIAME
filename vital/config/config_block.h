@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2015 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -542,14 +542,15 @@ config_block_get_value_cast_default( config_block_value_t const& value )
     interpreter >> result;
     if( interpreter.fail() )
     {
-      throw bad_config_block_cast( "failed to convert from string representation \"" + value + "\"" );
+      VITAL_THROW( bad_config_block_cast,
+                   "failed to convert from string representation \"" + value + "\"" );
     }
 
     return result;
   }
   catch( std::exception& e )
   {
-    throw bad_config_block_cast( e.what() );
+    VITAL_THROW( bad_config_block_cast, e.what() );
   }
 }
 
@@ -573,11 +574,11 @@ config_block_get_value_cast( config_block_value_t const& value )
   std::stringstream str;
   str << value;
 
-  timestamp::time_t t;
+  kwiver::vital::time_us_t t;
   str >> t;
   obj.set_time( t );
 
-  timestamp::frame_t f;
+  kwiver::vital::frame_id_t f;
   str >> f;
   obj.set_frame( f );
 
@@ -638,7 +639,7 @@ config_block
   config_block_value_t value;
   if ( ! find_value(key, value ) )
   {
-    throw no_such_configuration_value_exception( key );
+    VITAL_THROW( no_such_configuration_value_exception, key );
   }
 
   try
@@ -649,7 +650,8 @@ config_block
   catch ( bad_config_block_cast const& e )
   {
     // Upgrade exception by adding more known details.
-    throw bad_config_block_cast_exception( key, value, typeid( T ).name(), e.what() );
+    VITAL_THROW( bad_config_block_cast_exception,
+                 key, value, typeid( T ).name(), e.what() );
   }
 }
 
@@ -744,14 +746,15 @@ config_block_set_value_cast_default( T const& value )
     val_str << value;
     if ( val_str.fail() )
     {
-      throw bad_config_block_cast( "failed to convert value to string representation" );
+      VITAL_THROW( bad_config_block_cast,
+                   "failed to convert value to string representation" );
     }
 
     return val_str.str();
   }
     catch( std::exception& e )
   {
-    throw bad_config_block_cast( e.what() );
+    VITAL_THROW( bad_config_block_cast, e.what() );
   }
 }
 

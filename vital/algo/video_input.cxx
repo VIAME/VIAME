@@ -49,6 +49,7 @@ const algorithm_capabilities::capability_name_t video_input::HAS_FRAME_RATE( "ha
 const algorithm_capabilities::capability_name_t video_input::HAS_ABSOLUTE_FRAME_TIME( "has-abs-frame-time" );
 const algorithm_capabilities::capability_name_t video_input::HAS_METADATA( "has-metadata" );
 const algorithm_capabilities::capability_name_t video_input::HAS_TIMEOUT( "has-timeout" );
+const algorithm_capabilities::capability_name_t video_input::IS_SEEKABLE( "is-seekable" );
 
 
 // ------------------------------------------------------------------

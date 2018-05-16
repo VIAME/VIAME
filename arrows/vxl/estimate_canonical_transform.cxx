@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #include "estimate_canonical_transform.h"
 
 #include <vital/logger/logger.h>
+#include <vital/types/camera_perspective.h>
 
 #include <algorithm>
 
@@ -53,12 +54,13 @@ namespace kwiver {
 namespace arrows {
 namespace vxl {
 
-/// Private implementation class
+
+// Private implementation class
 class estimate_canonical_transform::priv
 {
 public:
   enum rrel_method_types {RANSAC, LMS, IRLS};
-  /// Constructor
+  // Constructor
   priv()
     : estimate_scale(true),
       trace_level(0),
@@ -68,12 +70,12 @@ public:
       prior_inlier_scale(0.1),
       irls_max_iterations(15),
       irls_iterations_for_scale(2),
-      irls_conv_tolerance(1e-4),
-      m_logger( vital::get_logger( "arrows.vxl.estimate_canonical_transform" ))
+      irls_conv_tolerance(1e-4)
   {
   }
 
-  /// Helper function to estimate a ground plane from the data points
+  // ----------------------------------------------------------------------------
+  // Helper function to estimate a ground plane from the data points
   vector_4d estimate_plane(std::vector<vector_3d> const& points) const
   {
     std::vector< vnl_vector<double> > vnl_points;
@@ -174,28 +176,33 @@ public:
   int irls_iterations_for_scale;
   // The convergence tolerance for IRLS
   double irls_conv_tolerance;
+
   // Logger handle
   vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 estimate_canonical_transform
 ::estimate_canonical_transform()
 : d_(new priv)
 {
+  attach_logger( "arrows.vxl.estimate_canonical_transform" );
+  d_->m_logger = logger();
 }
 
 
-/// Destructor
+// Destructor
 estimate_canonical_transform
 ::~estimate_canonical_transform()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
-  vital::config_block_sptr
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
+vital::config_block_sptr
 estimate_canonical_transform
 ::get_configuration() const
 {
@@ -241,7 +248,8 @@ estimate_canonical_transform
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 estimate_canonical_transform
 ::set_configuration(vital::config_block_sptr config)
@@ -259,7 +267,8 @@ estimate_canonical_transform
 }
 
 
-/// Check that the algorithm's configuration vital::config_block is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's configuration vital::config_block is valid
 bool
 estimate_canonical_transform
 ::check_configuration(vital::config_block_sptr config) const
@@ -268,7 +277,8 @@ estimate_canonical_transform
 }
 
 
-/// Estimate a canonical similarity transform for cameras and points
+// ----------------------------------------------------------------------------
+// Estimate a canonical similarity transform for cameras and points
 kwiver::vital::similarity_d
 estimate_canonical_transform
 ::estimate_transform(kwiver::vital::camera_map_sptr const cameras,
@@ -321,7 +331,8 @@ estimate_canonical_transform
     typedef vital::camera_map::map_camera_t cam_map_t;
     for(const cam_map_t::value_type& p : cameras->cameras())
     {
-      cam_center += p.second->center();
+      auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(p.second);
+      cam_center += cam_ptr->center();
     }
     cam_center /= static_cast<double>(cameras->size());
     cam_center -= center;

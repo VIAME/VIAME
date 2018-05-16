@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -236,7 +236,7 @@ collate_process
       std::string const reason = "There must be at least two ports to collate "
                                  "to for the \"" + tag + "\" result data";
 
-      throw invalid_configuration_exception(name(), reason);
+      VITAL_THROW( invalid_configuration_exception, name(), reason);
     }
 
     // Now here's some port frequency magic

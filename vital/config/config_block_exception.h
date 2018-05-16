@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,10 @@
 
 #include <vital/config/vital_config_export.h>
 #include <vital/vital_config.h>
+#include <vital/exceptions/base.h>
 
 #include "config_block_types.h"
 
-#include <exception>
 #include <string>
 
 namespace kwiver {
@@ -53,25 +53,13 @@ namespace vital {
  * \ingroup exceptions
  */
 class VITAL_CONFIG_EXPORT config_block_exception
-  : public std::exception
+  : public vital_exception
 {
 public:
   /// Constructor.
   config_block_exception() noexcept;
   /// Destructor.
   virtual ~config_block_exception() noexcept;
-
-  /// Description of the exception
-  /**
-   * \returns A string describing what went wrong.
-   */
-  char const* what() const noexcept;
-
-
-protected:
-  /// descriptive string as to what happened to cause the exception.
-  std::string m_what;
-
 };
 
 // ------------------------------------------------------------------

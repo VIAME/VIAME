@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,14 @@ class KWIVER_ALGO_CORE_EXPORT video_input_filter
   : public vital::algorithm_impl < video_input_filter, vital::algo::video_input >
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "filter";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "A video input that calls another video input"
+    " and filters the output on frame range and other parameters.";
+
   /// Constructor
   video_input_filter();
   virtual ~video_input_filter();
@@ -68,12 +76,20 @@ public:
 
   virtual bool end_of_video() const;
   virtual bool good() const;
+  virtual bool seekable() const;
+  virtual size_t num_frames() const;
 
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 );
 
+  virtual bool seek_frame( kwiver::vital::timestamp& ts,
+                           kwiver::vital::timestamp::frame_t frame_number,
+                           uint32_t timeout = 0 );
+
+  virtual kwiver::vital::timestamp frame_timestamp() const;
   virtual kwiver::vital::image_container_sptr frame_image();
   virtual kwiver::vital::metadata_vector frame_metadata();
+  virtual kwiver::vital::metadata_map_sptr metadata_map();
 
 private:
   /// private implementation class

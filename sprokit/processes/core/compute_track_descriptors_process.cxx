@@ -137,6 +137,8 @@ void compute_track_descriptors_process
   d->add_custom_uid = config_value_using_trait( add_custom_uid );
   d->uid_basename = config_value_using_trait( uid_basename );
   d->flush_on_last = config_value_using_trait( flush_on_last );
+
+  process::_configure();
 }
 
 
@@ -226,7 +228,7 @@ compute_track_descriptors_process
       new_track->set_id( i + d->detection_offset );
 
       vital::track_state_sptr first_track_state(
-        new vital::object_track_state( ts.get_frame(), detections->begin()[i] ) );
+        new vital::object_track_state( ts, detections->begin()[i] ) );
 
       new_track->append( first_track_state );
 
@@ -273,6 +275,7 @@ compute_track_descriptors_process
     push_to_port_using_trait( detected_object_set, detections );
   }
 
+  process::_step();
 }
 
 

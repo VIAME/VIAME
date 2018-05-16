@@ -49,6 +49,7 @@ kwiver_add_library( vital_config
 target_link_libraries( vital_config
   PRIVATE              kwiversys
                        vital_logger
+                       vital_exceptions
                        vital_util
   )
 

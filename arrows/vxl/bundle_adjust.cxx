@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,8 +64,7 @@ public:
     normalize_data(true),
     max_iterations(1000),
     x_tolerance(1e-8),
-    g_tolerance(1e-8),
-    m_logger( vital::get_logger( "arrows.vxl.bundle_adjust" ))
+    g_tolerance(1e-8)
   {
   }
 
@@ -81,8 +80,6 @@ public:
   unsigned max_iterations;
   double x_tolerance;
   double g_tolerance;
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
@@ -91,6 +88,7 @@ bundle_adjust
 ::bundle_adjust()
 : d_(new priv)
 {
+  attach_logger( "arrows.vxl.bundle_adjust" );
 }
 
 
@@ -206,26 +204,26 @@ bundle_adjust
   }
   if( metadata && metadata->size() > 0 )
   {
-    LOG_WARN( d_->m_logger, "metadata is provided but will be ignored "
+    LOG_WARN( logger(), "metadata is provided but will be ignored "
                             "by this algorithm");
   }
   typedef vxl::camera_map::map_vcam_t map_vcam_t;
   typedef vital::landmark_map::map_landmark_t map_landmark_t;
 
-#define SBA_TIMED(msg, code)                                      \
+#define SBA_TIMED(msg, code)                                            \
   do                                                                    \
   {                                                                     \
     kwiver::vital::cpu_timer t;                                         \
     if (d_->verbose)                                                    \
     {                                                                   \
       t.start();                                                        \
-      LOG_DEBUG(d_->m_logger, msg << " ... ");                          \
+      LOG_DEBUG(logger(), msg << " ... ");                              \
     }                                                                   \
     code                                                                \
     if (d_->verbose)                                                    \
     {                                                                   \
       t.stop();                                                         \
-      LOG_DEBUG(d_->m_logger, " --> " << t.elapsed() << "s CPU");       \
+      LOG_DEBUG(logger(), " --> " << t.elapsed() << "s CPU");           \
     }                                                                   \
   } while(false)
 

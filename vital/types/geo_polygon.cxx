@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -135,8 +135,8 @@ config_block_get_value_cast( config_block_value_t const& value )
   // Set up helper lambda to check for errors
   auto try_or_die = [&value]( std::istream& s ) {
     if ( s.fail() ) {
-      throw bad_config_block_cast(
-        "failed to convert from string representation \"" + value + "\"" );
+      VITAL_THROW( bad_config_block_cast,
+                   "failed to convert from string representation \"" + value + "\"" );
     }
   };
 

@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief test VXL bundle adjustment functionality
+ * \brief test VXL bouding_box functionality
  */
 
 #include <arrows/vxl/bounding_box.h>

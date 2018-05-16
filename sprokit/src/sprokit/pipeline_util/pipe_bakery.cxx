@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -171,14 +171,14 @@ bake_cluster_blocks( cluster_blocks const& blocks )
 
   if ( bakery.m_processes.empty() )
   {
-    throw cluster_without_processes_exception();
+    VITAL_THROW( cluster_without_processes_exception );
   }
 
   cluster_bakery::opt_cluster_component_info_t const& opt_cluster = bakery.m_cluster;
 
   if ( ! opt_cluster )
   {
-    throw missing_cluster_block_exception();
+    VITAL_THROW( missing_cluster_block_exception );
   }
 
   cluster_bakery::cluster_component_info_t const& cluster = *opt_cluster;
@@ -186,7 +186,7 @@ bake_cluster_blocks( cluster_blocks const& blocks )
   if ( cluster.m_inputs.empty() &&
        cluster.m_outputs.empty() )
   {
-    throw cluster_without_ports_exception();
+    VITAL_THROW( cluster_without_ports_exception );
   }
 
   process::type_t const& type = bakery.m_type;

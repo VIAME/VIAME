@@ -295,21 +295,15 @@ process writer
 
 # Option to compress the image portion of the archive. Compressing the
 # images takes less space, but takes longer to retrieve and write.
-  :compress_image      true
+  compress_image = true
 
 # Establish a fixed GSD for the 'gsd' port, since we currently have no
 # gsd source
 # Static values for input ports are specified in the process config
 # block as follows
-#  :static/<port-name>  <value>
-  static/gsd[ro]{CONF} = common:fixed_gsd
+#  static/<port-name> = <value>
+  static/gsd[ro] = $CONFIG{common:fixed_gsd}
   static/corner_points[ro] = 0 0 0 0 0 0 0 0
-
-# ================================================================
-# global pipeline config
-#
-config _pipeline:_edge
-       capacity = 10
 
 # ================================================================
 # connections
