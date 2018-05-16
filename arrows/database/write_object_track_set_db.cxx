@@ -50,6 +50,7 @@ public:
   priv( write_object_track_set_db* parent)
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "write_object_track_set_db" ) )
+    , m_commit_interval( 1 )
   { }
 
   ~priv() { }
@@ -59,6 +60,9 @@ public:
   cppdb::session m_conn;
   std::string m_conn_str;
   std::string m_video_name;
+  unsigned int m_commit_interval;
+  unsigned int m_commit_frame_counter;
+  std::unique_ptr<cppdb::transaction> m_tran;
 };
 
 
@@ -83,6 +87,8 @@ write_object_track_set_db
 {
   d->m_conn_str = config->get_value< std::string > ( "conn_str", "" );
   d->m_video_name = config->get_value< std::string > ( "video_name", "" );
+  d->m_commit_interval =
+    config->get_value<unsigned int>( "commit_interval", d->m_commit_interval );
 }
 
 
@@ -119,6 +125,10 @@ write_object_track_set_db
   );
   delete_stmt.bind( 1, d->m_video_name );
   delete_stmt.exec();
+
+  d->m_commit_frame_counter = 0;
+
+  d->m_tran.reset( new cppdb::transaction( d->m_conn ) );
 }
 
 
@@ -127,6 +137,9 @@ void
 write_object_track_set_db
 ::close()
 {
+  d->m_tran->commit();
+  d->m_tran.reset();
+
   d->m_conn.close();
 }
 
@@ -134,7 +147,7 @@ write_object_track_set_db
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_db
-::write_set( const kwiver::vital::object_track_set_sptr set )
+::write_set( const kwiver::vital::timestamp& ts, const kwiver::vital::object_track_set_sptr set )
 {
   cppdb::statement update_stmt = d->m_conn.create_prepared_statement( "UPDATE OBJECT_TRACK SET "
     "TIMESTAMP = ?, "
@@ -163,29 +176,32 @@ write_object_track_set_db
   {
     for( auto ts_ptr : *trk )
     {
-      vital::object_track_state* ts =
+      vital::object_track_state* trkstate =
         dynamic_cast< vital::object_track_state* >( ts_ptr.get() );
 
-      if( !ts )
+      if( !trkstate )
       {
         LOG_ERROR( d->m_logger, "MISSED STATE " << trk->id() << " " << trk->size() );
         continue;
       }
 
-      vital::detected_object_sptr det = ts->detection;
+      if( trkstate->frame() != ts.get_frame() )
+      {
+        continue;
+      }
+
+      vital::detected_object_sptr det = trkstate->detection;
       const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
       vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
-      cppdb::transaction guard(d->m_conn);
-
-      update_stmt.bind( 1, ts->time() );
+      update_stmt.bind( 1, trkstate->time() );
       update_stmt.bind( 2, bbox.min_x() );
       update_stmt.bind( 3, bbox.min_y() );
       update_stmt.bind( 4, bbox.max_x() );
       update_stmt.bind( 5, bbox.max_y() );
       update_stmt.bind( 6, det->confidence() );
       update_stmt.bind( 7, trk->id() );
-      update_stmt.bind( 8, ts->frame() );
+      update_stmt.bind( 8, trkstate->frame() );
       update_stmt.bind( 9, d->m_video_name );
 
       update_stmt.exec();
@@ -195,9 +211,9 @@ write_object_track_set_db
       if( count == 0 )
       {
         insert_stmt.bind( 1, trk->id() );
-        insert_stmt.bind( 2, ts->frame() );
+        insert_stmt.bind( 2, trkstate->frame() );
         insert_stmt.bind( 3, d->m_video_name );
-        insert_stmt.bind( 4, ts->time() );
+        insert_stmt.bind( 4, trkstate->time() );
         insert_stmt.bind( 5, bbox.min_x() );
         insert_stmt.bind( 6, bbox.min_y() );
         insert_stmt.bind( 7, bbox.max_x() );
@@ -207,7 +223,18 @@ write_object_track_set_db
         insert_stmt.exec();
         insert_stmt.reset();
       }
-      guard.commit();
+    }
+  }
+
+  if( d->m_commit_interval > 0 )
+  {
+    d->m_commit_frame_counter++;
+
+    if( d->m_commit_frame_counter >= d->m_commit_interval )
+    {
+      d->m_tran->commit();
+      d->m_tran.reset( new cppdb::transaction( d->m_conn ) );
+      d->m_commit_frame_counter = 0;
     }
   }
 }

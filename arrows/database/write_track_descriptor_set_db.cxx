@@ -52,6 +52,7 @@ public:
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "write_track_descriptor_set_db" ) )
     , m_write_world_loc( false )
+    , m_commit_interval( 1 )
   {}
 
   ~priv() {}
@@ -62,6 +63,9 @@ public:
   std::string m_conn_str;
   std::string m_video_name;
   bool m_write_world_loc;
+  unsigned int m_commit_interval;
+  unsigned int m_commit_frame_counter;
+  std::unique_ptr<cppdb::transaction> m_tran;
 };
 
 
@@ -88,6 +92,8 @@ write_track_descriptor_set_db
   d->m_video_name = config->get_value< std::string > ( "video_name", "" );
   d->m_write_world_loc =
     config->get_value<bool>( "write_world_loc", d->m_write_world_loc );
+  d->m_commit_interval =
+    config->get_value<unsigned int>( "commit_interval", d->m_commit_interval );
 }
 
 
@@ -154,6 +160,10 @@ write_track_descriptor_set_db
   delete_td_stmt.bind( 1, d->m_video_name );
   delete_td_stmt.exec();
   delete_td_stmt.reset();
+
+  d->m_commit_frame_counter = 0;
+
+  d->m_tran.reset( new cppdb::transaction( d->m_conn ) );
 }
 
 
@@ -162,6 +172,9 @@ void
 write_track_descriptor_set_db
 ::close()
 {
+  d->m_tran->commit();
+  d->m_tran.reset();
+
   d->m_conn.close();
 }
 
@@ -245,6 +258,18 @@ write_track_descriptor_set_db
 
       insert_tdh_stmt.exec();
       insert_tdh_stmt.reset();
+    }
+  }
+
+  if( d->m_commit_interval > 0 )
+  {
+    d->m_commit_frame_counter++;
+
+    if( d->m_commit_frame_counter >= d->m_commit_interval )
+    {
+      d->m_tran->commit();
+      d->m_tran.reset( new cppdb::transaction( d->m_conn ) );
+      d->m_commit_frame_counter = 0;
     }
   }
 }
