@@ -160,8 +160,11 @@ compute_track_descriptors_process
     {
       vital::track_descriptor_set_sptr output;
       output = d->m_computer->flush();
-      d->add_custom_uids( output, "final" );
-      push_outputs( output );
+      if( output )
+      {
+        d->add_custom_uids( output, "final" );
+        push_outputs( output );
+      }
     }
 
     const sprokit::datum_t dat = sprokit::datum::complete_datum();

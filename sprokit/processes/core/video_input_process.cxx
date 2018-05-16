@@ -237,10 +237,13 @@ void video_input_process
       }
     }
 
-    push_to_port_using_trait( timestamp, ts );
-    push_to_port_using_trait( image, frame );
-    push_to_port_using_trait( metadata, metadata );
-    push_to_port_using_trait( frame_rate, d->m_video_reader->frame_rate() );
+    if( ts.get_frame() < 4294967000 && ts.get_frame() > 0 )
+    {
+      push_to_port_using_trait( timestamp, ts );
+      push_to_port_using_trait( image, frame );
+      push_to_port_using_trait( metadata, metadata );
+      push_to_port_using_trait( frame_rate, d->m_video_reader->frame_rate() );
+    }
   }
   else
   {

@@ -133,7 +133,7 @@ class SRNN_matching(object):
         for t in range(tracks_num):
             track_idx_list.append(track_set[t].id)
 
-        kwargs = {'num_workers': 6, 'pin_memory': True}
+        kwargs = {'num_workers': 8, 'pin_memory': True}
         AIM_V_data_loader = torch.utils.data.DataLoader(
             TargetRNNDataLoader(track_set, track_state_list, track_search_threshold, RnnType.Target_RNN_AIM_V),
             batch_size=self._batch_size, shuffle=False, **kwargs)

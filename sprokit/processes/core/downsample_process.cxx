@@ -137,10 +137,10 @@ void downsample_process
   {
     if( has_input_port_edge( d->port_inputs[i] ) )
     {
-      sprokit::edge_datum_t datum = grab_from_port( d->port_inputs[i] );
+      sprokit::datum_t datum = grab_datum_from_port( d->port_inputs[i] );
       if( send_frame )
       {
-        push_to_port( d->port_outputs[i], datum );
+        push_datum_to_port( d->port_outputs[i], datum );
       }
     }
   }
@@ -165,7 +165,7 @@ void downsample_process
                         port_description_t( "Input data." ) );
   }
 
-  declare_output_port_using_trait( timestamp, required );
+  declare_output_port_using_trait( timestamp, optional );
   for( size_t i = 0; i < 5; i++ )
   {
     declare_output_port( priv::port_outputs[i],

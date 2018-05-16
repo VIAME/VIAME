@@ -13,10 +13,10 @@ from vital.types import DetectedObjectSet
 
 from kwiver.arrows.pytorch.seg_utils import *
 
-try:
-    import cv2
-except ImportError:
-    cv2 = None
+#try:
+#    import cv2
+#except ImportError:
+#    cv2 = None
 
 class_names = np.array([
             'background',
@@ -70,20 +70,20 @@ class FCN_Segmentation(object):
         lbl_pred = label2rgb(lbl_pred, n_labels=21)
 
         # get bounding boxs
-        cv_pred = cv2.cvtColor(np.array(lbl_pred.squeeze()), cv2.COLOR_RGB2BGR)
-        lbl_pred_overlap = cv2.cvtColor(np.array(lbl_pred_overlap.squeeze()), cv2.COLOR_RGB2BGR)
-        imgray = cv2.cvtColor(cv_pred, cv2.COLOR_BGR2GRAY)
-        _, thresh = cv2.threshold(imgray, 127, 255, 0)
-        _, contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #cv_pred = cv2.cvtColor(np.array(lbl_pred.squeeze()), cv2.COLOR_RGB2BGR)
+        #lbl_pred_overlap = cv2.cvtColor(np.array(lbl_pred_overlap.squeeze()), cv2.COLOR_RGB2BGR)
+        #imgray = cv2.cvtColor(cv_pred, cv2.COLOR_BGR2GRAY)
+        #_, thresh = cv2.threshold(imgray, 127, 255, 0)
+        #_, contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
+        #for cnt in contours:
+        #    x, y, w, h = cv2.boundingRect(cnt)
             #cv2.rectangle(cv_pred, (x, y), (x + w, y + h), (255, 255, 255), 2)
-            cv2.rectangle(in_img, (x, y), (x + w, y + h), (255, 255, 255), 2)
+        #    cv2.rectangle(in_img, (x, y), (x + w, y + h), (255, 255, 255), 2)
 
         dos = DetectedObjectSet()
         for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
+            #x, y, w, h = cv2.boundingRect(cnt)
             dobj = DetectedObject(bbox=BoundingBox(float(x), float(y), float(x + w), float(y + h)), confid=1.0)
             dos.add(dobj)
 
@@ -92,19 +92,19 @@ class FCN_Segmentation(object):
     def _apply_contour(self, in_img):
 
         # get bounding boxs
-        cv_img = cv2.cvtColor(np.array(in_img), cv2.COLOR_RGB2BGR)
-        imgray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
-        _, thresh = cv2.threshold(imgray, 127, 255, 0)
-        _, contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #cv_img = cv2.cvtColor(np.array(in_img), cv2.COLOR_RGB2BGR)
+        #imgray = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
+        #_, thresh = cv2.threshold(imgray, 127, 255, 0)
+        #_, contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
+        #for cnt in contours:
+            #x, y, w, h = cv2.boundingRect(cnt)
             #cv2.rectangle(cv_pred, (x, y), (x + w, y + h), (255, 255, 255), 2)
-            cv2.rectangle(in_img, (x, y), (x + w, y + h), (255, 255, 255), 2)
+            #cv2.rectangle(in_img, (x, y), (x + w, y + h), (255, 255, 255), 2)
 
         dos = DetectedObjectSet()
         for cnt in contours:
-            x, y, w, h = cv2.boundingRect(cnt)
+       #     x, y, w, h = cv2.boundingRect(cnt)
             dobj = DetectedObject(bbox=BoundingBox(float(x), float(y), float(x + w), float(y + h)), confid=1.0)
             dos.add(dobj)
 

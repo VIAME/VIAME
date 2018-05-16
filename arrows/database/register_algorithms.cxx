@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <arrows/database/kwiver_algo_database_export.h>
+#include <arrows/database/kwiver_algo_database_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/database/write_object_track_set_db.h>
@@ -46,7 +46,7 @@ namespace arrows {
 namespace database {
 
 extern "C"
-KWIVER_ALGO_DATABASE_EXPORT
+KWIVER_ALGO_DATABASE_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
