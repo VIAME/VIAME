@@ -112,6 +112,7 @@ create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::pat
 create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
 create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
+create_type_trait( frame_rate, "kwiver:frame_rate", double );
 
 
 // ==================================================================================
@@ -148,5 +149,6 @@ create_port_trait( image_file_name, image_file_name, "Name of an image file." );
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
 create_port_trait( metadata, metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
+create_port_trait( frame_rate, frame_rate, "Video frame rate." );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H
