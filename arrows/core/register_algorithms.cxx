@@ -37,6 +37,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/core/associate_detections_to_tracks_threshold.h>
+#include <arrows/core/average_track_descriptors.h>
 #include <arrows/core/class_probablity_filter.h>
 #include <arrows/core/close_loops_bad_frames_only.h>
 #include <arrows/core/close_loops_appearance_indexed.h>
@@ -116,6 +117,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   register_algorithm< associate_detections_to_tracks_threshold >( vpm );
+  register_algorithm< average_track_descriptors >( vpm );
   register_algorithm< class_probablity_filter >( vpm );
   register_algorithm< close_loops_bad_frames_only >( vpm );
   register_algorithm< close_loops_exhaustive >( vpm );
