@@ -1,10 +1,10 @@
 import numpy as np
 import torch
 import copy
-from vital.types import DetectedObject
+import collections
 
 class track_state(object):
-    def __init__(self, frame_id, bbox_center, interaction_feature, app_feature, bbox, detectedObject):
+    def __init__(self, frame_id, bbox_center, interaction_feature, app_feature, bbox, detectedObject, sys_frame_id, sys_frame_time):
         self._bbox_center = bbox_center
 
         '''a list [x, y, w, h]'''
@@ -18,8 +18,11 @@ class track_state(object):
 
         self._track_id = -1
         self._frame_id = frame_id
-        
+
         self._detectedObj = detectedObject
+        
+        self._sys_frame_id = sys_frame_id
+        self._sys_frame_time = sys_frame_time
 
         # FIXME: the detected_object confidence does not work
         # For now, I just set the confidence = 1.0
@@ -106,6 +109,22 @@ class track_state(object):
     @conf.setter
     def conf(self, val):
         self._conf = val
+
+    @property
+    def sys_frame_id(self):
+        return self._sys_frame_id
+
+    @sys_frame_id.setter
+    def sys_frame_id(self, val):
+        self._sys_frame_id = val
+
+    @property
+    def sys_frame_time(self):
+        return self._sys_frame_time
+
+    @sys_frame_time.setter
+    def sys_frame_time(self, val):
+        self._sys_frame_time = val
 
 class track(object):
     def __init__(self, id):
@@ -203,15 +222,16 @@ class track(object):
 
 class track_set(object):
     def __init__(self):
-        self._id_ts_dict = {}
+        self._id_ts_dict = collections.OrderedDict()
 
     def __len__(self):
         return len(self._id_ts_dict)
 
     def __getitem__(self, idx):
-        if idx >= len(self._id_ts_dict):
+        if idx >= len(self._id_ts_dict) or idx < 0:
             raise IndexError
-        return self._id_ts_dict.items()[idx][1]
+        # for Py3 
+        return list(self._id_ts_dict.items())[idx][1]
 
     def __iter__(self):
         for _, item in self._id_ts_dict.items():

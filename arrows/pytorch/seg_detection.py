@@ -37,7 +37,7 @@ from torch.autograd import Variable
 from torch import nn
 import numpy as np
 import scipy as sp
-import cv2
+#import cv2
 
 from PIL import Image as pilImage
 
@@ -105,9 +105,9 @@ class seg_detection(KwiverProcess):
         im = np.array(im, dtype=np.uint8)
         
         dos, cv_pred, lbl_pred_overlap = self._fcn_seg(im, fcn_flag=self._fcn_flag)
-        cv2.imwrite('det_frame_{}.jpg'.format(self._frame_id), cv_pred)
-        if lbl_pred_overlap is not None:
-            cv2.imwrite('lbl_frame_{}.jpg'.format(self._frame_id), lbl_pred_overlap)
+        #cv2.imwrite('det_frame_{}.jpg'.format(self._frame_id), cv_pred)
+        #if lbl_pred_overlap is not None:
+            #cv2.imwrite('lbl_frame_{}.jpg'.format(self._frame_id), lbl_pred_overlap)
 
         print('dos length {}'.format(dos.size()))
         self._frame_id += 1

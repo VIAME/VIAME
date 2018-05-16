@@ -103,6 +103,9 @@ target_link_libraries( kwiver_algo_ocv
   PUBLIC               kwiver_algo_core
                        ${OpenCV_LIBS}
   PRIVATE              kwiversys
+                       ${Boost_SYSTEM_LIBRARY}
+                       ${Boost_FILESYSTEM_LIBRARY}
+                       ${Boost_REGEX_LIBRARY}
   )
 
 algorithms_create_plugin( kwiver_algo_ocv
