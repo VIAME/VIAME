@@ -51,6 +51,7 @@ import filecmp
 import sys
 import threading
 import traceback
+import numpy
 
 def print(msg):
    import threading
@@ -110,6 +111,8 @@ class SmqtkProcessQuery (KwiverProcess):
         # in increasing order of magnitude.  These distances correspond to
         # feedback_uids.
         self.declare_output_port_using_trait('feedback_distances', optional)
+        # Output, feedback scores corresponding to the descriptors.
+        self.declare_output_port_using_trait('feedback_scores', optional)
         # Output, trained IQR model.
         self.declare_output_port_using_trait('result_model', optional)
 
@@ -162,6 +165,8 @@ class SmqtkProcessQuery (KwiverProcess):
                             "Distances from the separating plane in increasing"
                             "order of magnitude. The distances correspond to "
                             "feedback descriptors")
+        self.add_port_trait("feedback_scores", "double_vector",
+                            "Scores corresponding to the feedback descriptors")
         self.add_port_trait("result_model", "uchar_vector",
                             "Result ranked descriptor distance score values "
                             "in rank order.")
@@ -352,6 +357,10 @@ class SmqtkProcessQuery (KwiverProcess):
         return_uuids = [e.uuid() for e in return_elems]
         ordered_feedback_uuids = [e[0].uuid() for e in ordered_feedback_results]
         ordered_feedback_distances = [e[1] for e in ordered_feedback_results]
+        # Just creating the scores to preserve the order in case of equal floats
+        # because we're passing the distances explicity anyway
+        ordered_feedback_scores = numpy.linspace(1, 0,
+            len(ordered_feedback_distances))
 
         # Retrive IQR model from class
         try:
@@ -368,6 +377,8 @@ class SmqtkProcessQuery (KwiverProcess):
             datum.VectorDouble(return_dists) )
         self.push_to_port_using_trait('feedback_distances',
             datum.VectorDouble(ordered_feedback_distances))
+        self.push_to_port_using_trait('feedback_scores',
+            datum.VectorDouble(ordered_feedback_scores))
         self.push_to_port_using_trait('result_model',
             datum.VectorUChar(return_model) )
 
