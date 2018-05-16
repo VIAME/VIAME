@@ -101,6 +101,9 @@ class SmqtkProcessQuery (KwiverProcess):
 
         # Output, ranked descriptor UUIDs
         self.declare_output_port_using_trait('result_uids', optional)
+        # Output, feedback descriptor UUIDs in decreasing order of 
+        # importance
+        self.declare_output_port_using_trait('feedback_uids', optional)
         # Output, ranked descriptor scores.
         self.declare_output_port_using_trait('result_scores', optional)
         # Output, trained IQR model.
@@ -145,6 +148,9 @@ class SmqtkProcessQuery (KwiverProcess):
                             "Input model for input queries.")
         self.add_port_trait("result_uids", "string_vector",
                             "Result ranked descriptor UUIDs in rank order.")
+        self.add_port_trait("feedback_uids", "string_vector",
+                            "Uuids of the descriptors in decreasing order of "
+                            "importance for feedback")
         self.add_port_trait("result_scores", "double_vector",
                             "Result ranked descriptor distance score values "
                             "in rank order.")
@@ -329,11 +335,14 @@ class SmqtkProcessQuery (KwiverProcess):
         self.iqr_session.refine()
 
         ordered_results = self.iqr_session.ordered_results()
+        ordered_feedback = self.iqr_session.ordered_feedback()
         if self.query_return_n > 0:
+            ordered_feedback_results = ordered_feedback[:self.query_return_n]
             ordered_results = ordered_results[:self.query_return_n]
 
         return_elems, return_dists = zip(*ordered_results)
         return_uuids = [e.uuid() for e in return_elems]
+        ordered_feedback_uuids = [e[0].uuid() for e in ordered_feedback_results]
 
         # Retrive IQR model from class
         try:
@@ -342,9 +351,14 @@ class SmqtkProcessQuery (KwiverProcess):
           return_model = []
 
         # Pass on input descriptors and UIDs
-        self.push_to_port_using_trait('result_uids', datum.VectorString(return_uuids) )
-        self.push_to_port_using_trait('result_scores', datum.VectorDouble(return_dists) )
-        self.push_to_port_using_trait('result_model', datum.VectorUChar(return_model) )
+        self.push_to_port_using_trait('result_uids',
+            datum.VectorString(return_uuids) )
+        self.push_to_port_using_trait('feedback_uids',
+            datum.VectorString(ordered_feedback_uuids))
+        self.push_to_port_using_trait('result_scores',
+            datum.VectorDouble(return_dists) )
+        self.push_to_port_using_trait('result_model',
+            datum.VectorUChar(return_model) )
 
         self._base_step()
 
