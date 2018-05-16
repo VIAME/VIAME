@@ -106,6 +106,10 @@ class SmqtkProcessQuery (KwiverProcess):
         self.declare_output_port_using_trait('feedback_uids', optional)
         # Output, ranked descriptor scores.
         self.declare_output_port_using_trait('result_scores', optional)
+        # Output, distances of feedback descriptors from the separating plane
+        # in increasing order of magnitude.  These distances correspond to
+        # feedback_uids.
+        self.declare_output_port_using_trait('feedback_distances', optional)
         # Output, trained IQR model.
         self.declare_output_port_using_trait('result_model', optional)
 
@@ -154,6 +158,10 @@ class SmqtkProcessQuery (KwiverProcess):
         self.add_port_trait("result_scores", "double_vector",
                             "Result ranked descriptor distance score values "
                             "in rank order.")
+        self.add_port_trait("feedback_distances", "double_vector",
+                            "Distances from the separating plane in increasing"
+                            "order of magnitude. The distances correspond to "
+                            "feedback descriptors")
         self.add_port_trait("result_model", "uchar_vector",
                             "Result ranked descriptor distance score values "
                             "in rank order.")
@@ -343,6 +351,7 @@ class SmqtkProcessQuery (KwiverProcess):
         return_elems, return_dists = zip(*ordered_results)
         return_uuids = [e.uuid() for e in return_elems]
         ordered_feedback_uuids = [e[0].uuid() for e in ordered_feedback_results]
+        ordered_feedback_distances = [e[1] for e in ordered_feedback_results]
 
         # Retrive IQR model from class
         try:
@@ -357,6 +366,8 @@ class SmqtkProcessQuery (KwiverProcess):
             datum.VectorString(ordered_feedback_uuids))
         self.push_to_port_using_trait('result_scores',
             datum.VectorDouble(return_dists) )
+        self.push_to_port_using_trait('feedback_distances',
+            datum.VectorDouble(ordered_feedback_distances))
         self.push_to_port_using_trait('result_model',
             datum.VectorUChar(return_model) )
 
