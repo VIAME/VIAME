@@ -1,0 +1,112 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   5
+
+config global
+   :database_folder                            database
+   :query_folder                               database/Queries
+
+config _scheduler
+   :type                                       pythread_per_process
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+process reader
+  :: image_file_reader
+  :image_reader:type                           vxl
+  :frame_time                                  1.0
+  :error_mode                                  abort
+
+connect from in_adapt.filename
+        to   reader.image_file_name
+
+process kwa_writer
+ :: kw_archive_writer
+
+  :output_directory                            $CONFIG{global:query_folder}
+  :mission_id                                  0
+
+connect from reader.image
+        to   kwa_writer.image
+connect from reader.timestamp
+        to   kwa_writer.timestamp
+connect from in_adapt.stream_id
+        to   kwa_writer.filename
+connect from in_adapt.stream_id
+        to   kwa_writer.stream_id
+
+connect from kwa_writer.complete_flag
+        to   out_adapt.complete_flag
+
+process detector
+  :: image_object_detector
+  :detector:type                               darknet
+
+  # Network config
+  relativepath detector:darknet:net_config  =  models/yolo_v2_960_no_obj.cfg
+  relativepath detector:darknet:weight_file =  models/yolo_v2_960_no_obj.weights
+  relativepath detector:darknet:class_names =  models/yolo_v2_960_no_obj.lbl
+
+  # Detector parameters
+  :detector:darknet:thresh                     0.001
+  :detector:darknet:hier_thresh                0.001
+  :detector:darknet:gpu_index                  0
+
+  # Image scaling parameters
+  :detector:darknet:resize_option              maintain_ar
+  :detector:darknet:resize_ni                  960
+  :detector:darknet:resize_nj                  960
+  :detector:darknet:scale                      1.0
+
+connect from reader.image
+        to   detector.image
+
+process tracker
+  :: SRNN_tracking
+  :siamese_model_input_size                    224
+  :detection_select_threshold	                 0.01
+  :similarity_threshold                        0.80
+  :terminate_track_threshold                   1
+  :IOU_tracker_flag                            False
+  :IOU_accept_threshold                        0.5
+  :IOU_reject_threshold                        0.1
+  :track_search_threshold                      2
+  :gpu_list                                    0
+
+  relativepath siamese_model_path =            models/siamese_model.pt
+  :siamese_batch_size                          128
+
+  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
+  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
+  :targetRNN_batch_size                        256 
+
+connect from reader.image
+        to   tracker.image
+connect from reader.timestamp
+        to   tracker.timestamp
+connect from detector.detected_object_set
+        to   tracker.detected_object_set
+
+process track_descriptor
+ :: compute_track_descriptors
+  :computer:type                              average
+  :add_custom_uid                             true
+  :uid_basename                               query_descriptor
+
+connect from reader.image
+        to   track_descriptor.image
+connect from reader.timestamp
+        to   track_descriptor.timestamp
+connect from tracker.object_track_set
+        to   track_descriptor.object_track_set
+
+connect from track_descriptor.track_descriptor_set
+        to   out_adapt.track_descriptor_set

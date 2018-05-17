@@ -1,0 +1,121 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   5
+
+config global
+   :database_folder                            database
+   :query_folder                               database/Queries
+
+config _scheduler
+   :type                                       pythread_per_process
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+process reader
+  :: image_file_reader
+  :image_reader:type                           vxl
+  :frame_time                                  1.0
+  :error_mode                                  abort
+
+connect from in_adapt.filename
+        to   reader.image_file_name
+
+process kwa_writer
+ :: kw_archive_writer
+
+  :output_directory                            $CONFIG{global:query_folder}
+  :mission_id                                  0
+
+connect from reader.image
+        to   kwa_writer.image
+connect from reader.timestamp
+        to   kwa_writer.timestamp
+connect from in_adapt.stream_id
+        to   kwa_writer.filename
+connect from in_adapt.stream_id
+        to   kwa_writer.stream_id
+
+connect from kwa_writer.complete_flag
+        to   out_adapt.complete_flag
+
+process detector
+  :: image_object_detector
+  :detector:type                               darknet
+
+  # Network config
+  relativepath detector:darknet:net_config  =  models/yolo_v2_960_salsa.cfg
+  relativepath detector:darknet:weight_file =  models/yolo_v2_960_salsa.weights
+  relativepath detector:darknet:class_names =  models/yolo_v2_960_salsa.lbl
+
+  # Detector parameters
+  :detector:darknet:thresh                     0.01
+  :detector:darknet:hier_thresh                0.001
+  :detector:darknet:gpu_index                  0
+
+  # Image scaling parameters
+  :detector:darknet:resize_option              chip_and_original
+  :detector:darknet:resize_ni                  960
+  :detector:darknet:resize_nj                  960
+  :detector:darknet:chip_step                  850
+  :detector:darknet:scale                      2.0
+
+connect from reader.image
+        to   detector.image
+
+process resnet
+  :: resnet_descriptors
+  :resnet_model_input_size                     224
+  :resnet_batch_size                           32
+  :gpu_list                                    0
+  relativepath resnet_model_path =             models/resnet50_default.pt
+
+connect from reader.image
+        to   resnet.image
+connect from reader.timestamp
+        to   resnet.timestamp
+connect from detector.detected_object_set
+        to   resnet.detected_object_set
+
+process track_initializer
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.01
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      generic_object_proposal
+  endblock
+
+connect from reader.image
+        to   track_initializer.image
+connect from reader.timestamp
+        to   track_initializer.timestamp
+connect from resnet.detected_object_set
+        to   track_initializer.detected_object_set
+
+process track_descriptor
+ :: compute_track_descriptors
+  :computer:type                              average
+  :add_custom_uid                             true
+  :uid_basename                               query_descriptor
+
+connect from reader.image
+        to   track_descriptor.image
+connect from reader.timestamp
+        to   track_descriptor.timestamp
+connect from track_initializer.object_track_set
+        to   track_descriptor.object_track_set
+
+connect from reader.image
+        to   out_adapt.image
+connect from track_descriptor.track_descriptor_set
+        to   out_adapt.track_descriptor_set

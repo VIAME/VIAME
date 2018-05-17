@@ -1,0 +1,28 @@
+{
+    "hash2uuid_kv_store": {
+        "type": "MemoryKeyValueStore",
+        "MemoryKeyValueStore": {
+            "cache_element": {
+                "type": "DataFileElement",
+                "DataFileElement": {
+                    "explicit_mimetype": null,
+                    "filepath": "database/ITQ/hash2uuids.memKvStore.pickle",
+                    "readonly": true
+                }
+            }
+        }
+    },
+    "itq_bit_length": 256,
+    "sklearn_balltree": {
+        "cache_element": {
+            "type": "DataFileElement",
+            "DataFileElement": {
+                "explicit_mimetype": null,
+                "filepath": "database/ITQ/balltree.hi_btree.npz",
+                "readonly": false
+            }
+        },
+        "leaf_size": 40,
+        "random_seed": 0
+    }
+}

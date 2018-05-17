@@ -1,0 +1,170 @@
+# Ingest video pipeline using pytorch descriptors
+#
+# Runs a multi-node object tracking, descriptor generation, and indexing pipeline
+#
+# This pipe requires an input source node 'input' to be defined elsewhere
+
+# ================================== VIDEO INPUT ===================================
+process downsampler
+  :: downsample
+  :target_frame_rate                           1
+  :burst_frame_count                           0
+  :burst_frame_break                           0
+
+connect from input.image
+        to   downsampler.input_1
+connect from input.frame_rate
+        to   downsampler.frame_rate
+connect from input.timestamp
+        to   downsampler.timestamp
+
+# =================================== DETECTOR =====================================
+
+process detector
+  :: image_object_detector
+  :detector:type                               darknet
+
+  # Network config
+  relativepath detector:darknet:net_config  =  models/yolo_v2_960_salsa.cfg
+  relativepath detector:darknet:weight_file =  models/yolo_v2_960_salsa.weights
+  relativepath detector:darknet:class_names =  models/yolo_v2_960_salsa.lbl
+
+  # Detector parameters
+  :detector:darknet:thresh                     0.01
+  :detector:darknet:hier_thresh                0.001
+  :detector:darknet:gpu_index                  0
+
+  # Image scaling parameters
+  :detector:darknet:resize_option              chip_and_original
+  :detector:darknet:resize_ni                  960
+  :detector:darknet:resize_nj                  960
+  :detector:darknet:chip_step                  850
+  :detector:darknet:scale                      2.0
+
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   [INSERT_ME]
+  :writer:type                                 kw18
+
+  # Write out FSO classifications alongside tracks
+  :writer:kw18:write_tot                       true
+  :writer:kw18:tot_field2_ids                  generic_object_proposal
+
+connect from downsampler.output_1
+        to   detector.image
+connect from detector.detected_object_set
+        to   detector_writer.detected_object_set
+
+# ================================= CORE TRACKER ===================================
+
+process resnet
+  :: resnet_descriptors
+  :resnet_model_input_size                     224
+  :resnet_batch_size                           32
+  :gpu_list                                    0
+  relativepath resnet_model_path =             models/resnet50_default.pt
+
+connect from downsampler.output_1
+        to   resnet.image
+connect from downsampler.timestamp
+        to   resnet.timestamp
+connect from detector.detected_object_set
+        to   resnet.detected_object_set
+
+process track_initializer
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.01
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      generic_object_proposal
+  endblock
+
+connect from downsampler.output_1
+        to   track_initializer.image
+connect from downsampler.timestamp
+        to   track_initializer.timestamp
+connect from resnet.detected_object_set
+        to   track_initializer.detected_object_set
+
+# ============================ ANALYZE AND INDEX DATA ==============================
+
+process track_descriptor
+ :: compute_track_descriptors
+  :add_custom_uid                             true
+  :uid_basename                               [INSERT_ME]
+  :computer:type                              average
+
+connect from downsampler.output_1
+        to   track_descriptor.image
+connect from downsampler.timestamp
+        to   track_descriptor.timestamp
+connect from track_initializer.object_track_set
+        to   track_descriptor.object_track_set
+
+process kwa_writer
+  :: kw_archive_writer
+  :output_directory                           [INSERT_ME]
+  :base_filename                              [INSERT_ME]
+  :separate_meta                              true
+  :stream_id                                  [INSERT_ME]
+  :compress_image                             true
+  :static/gsd[ro]                             common:fixed_gsd
+  :static/corner_points[ro]                   0 0 0 0 0 0 0 0
+  :fixed_col_count                            4000
+  :fixed_row_count                            4000
+
+connect from input.corner_points
+        to   kwa_writer.corner_points
+connect from downsampler.timestamp
+        to   kwa_writer.timestamp
+connect from downsampler.output_1
+        to   kwa_writer.image
+
+process track_writer
+  :: write_object_track
+  :file_name                                  [INSERT_ME]
+  :writer:type                                kw18
+
+connect from downsampler.timestamp
+        to   track_writer.timestamp
+connect from track_initializer.object_track_set
+        to   track_writer.object_track_set
+
+process track_writer_db
+  :: write_object_track
+  :file_name                                  none
+  :writer:type                                db
+  :writer:db:conn_str                         postgresql:host=localhost;user=postgres
+  :writer:db:video_name                       [INSERT_ME]
+
+connect from downsampler.timestamp
+        to   track_writer_db.timestamp
+connect from track_initializer.object_track_set
+        to   track_writer_db.object_track_set
+
+process descriptor_writer_db
+  :: write_track_descriptor
+  :file_name                                  none
+  :writer:type                                db
+  :writer:db:conn_str                         postgresql:host=localhost;user=postgres
+  :writer:db:video_name                       [INSERT_ME]
+
+connect from track_descriptor.track_descriptor_set
+        to   descriptor_writer_db.track_descriptor_set
+
+process smqtk_indexer
+  :: smqtk_ingest_descriptors
+  relativepath config_file =                  smqtk_postgres_ingest.json
+
+connect from track_descriptor.descriptor_set
+        to   smqtk_indexer.descriptor_set
+
+connect from track_descriptor.string_vector
+        to   smqtk_indexer.string_vector
+
+# -- end of file --
