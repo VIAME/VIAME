@@ -75,3 +75,8 @@ Sprokit
 
 Fixes since last public release
 -------------------------------
+
+Arrows - VXL
+
+ * Fixed issue with ffmpeg video source where the frame metadata was not
+   getting set correctly.

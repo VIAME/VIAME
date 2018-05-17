@@ -166,7 +166,6 @@ public:
   std::string video_path; // name of video we opened
 
   std::deque<uint8_t> md_buffer; // working buffer for metadata stream
-  kwiver::vital::metadata_vector metadata_collection; // current collection
 
   kwiver::vital::convert_metadata converter; // metadata converter object
 
@@ -188,11 +187,12 @@ public:
    *
    * @param curr_md Stream of metadata bytes.
    *
-   * @return \b true if there was enough metadata to process.
+   * @return the processed metadata. If there is no metadata it returns an
+   *         empty metadata vector.
    */
-  bool process_metadata( std::deque<uint8_t> const& curr_md )
+  kwiver::vital::metadata_vector process_metadata( std::deque<uint8_t> const& curr_md )
   {
-    bool retval(false);
+    kwiver::vital::metadata_vector retval;
 
     // Add new metadata to the end of current metadata stream
     md_buffer.insert(md_buffer.end(), curr_md.begin(), curr_md.end());
@@ -228,16 +228,13 @@ public:
 
         meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_FILENAME,
                                       video_path ) );
-        this->metadata_collection.push_back( meta );
-
-        // indicate we have found
-        retval = true;
+        retval.push_back( meta );
       } // end valid metadata packet.
     } // end while
 
     // if no metadata from the stream, add a basic metadata item
     // containing video name and timestamp
-    if (this->metadata_collection.empty())
+    if ( retval.empty() )
     {
       auto meta = std::make_shared<kwiver::vital::metadata>();
       kwiver::vital::timestamp ts;
@@ -253,10 +250,7 @@ public:
       meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_FILENAME,
         video_path));
 
-      this->metadata_collection.push_back(meta);
-
-      // TODO decide if this function should return true only for KLV metadata
-      retval = true;
+      retval.push_back(meta);
     }
 
     return retval;
@@ -336,9 +330,6 @@ public:
     // establish a relative time reference
     d_have_frame_time = ( 0 != d_video_stream.current_pts() );
 
-    // Clear any old metadata
-    metadata_collection.clear();
-
     return retval;
   } // init_timestamp
 
@@ -386,12 +377,13 @@ public:
 
       //It might be more accurate to get the second unique timestamp instead of the first
       std::deque< vxl_byte > curr_md = d_video_stream.current_metadata();
-      if (process_metadata( curr_md ) )
+      auto klv_metadata = process_metadata( curr_md );
+      if ( klv_metadata.size() > 0 )
       {
         // A metadata collection was created
         // check to see if it is of the desired type.
         std::string collection_type;
-        for( auto meta : this->metadata_collection)
+        for( auto meta : klv_metadata )
         {
           // Test to see if the collection is from the specified standard (0104/0601)
           if (meta->has( kwiver::vital::VITAL_META_METADATA_ORIGIN ) )
@@ -429,12 +421,12 @@ public:
         (c_stop_after_frame == 0 || fn <= c_stop_after_frame) &&
         c_use_metadata)
     {
-      metadata_collection.clear();
       auto curr_md = d_video_stream.current_metadata();
-      if (process_metadata( curr_md ) )
+      auto metadata = process_metadata( curr_md );
+      if ( metadata.size() > 0 )
       {
         std::pair<vital::timestamp::frame_t, vital::metadata_vector>
-          el(fn, metadata_collection);
+          el(fn, metadata);
         d_metadata_map.insert( el );
       }
     }
@@ -469,8 +461,6 @@ public:
             push_metadata_to_map(d_num_frames);
           }
         }
-
-        metadata_collection.clear();
 
         // Close and reopen to reset
         d_video_stream.open( video_path );
@@ -890,9 +880,6 @@ vidl_ffmpeg_video_input
 
   ts = this->frame_timestamp();
 
-  // ---- process metadata ---
-  d->metadata_collection.clear(); // erase old metadata packets
-
   return true;
 }
 
@@ -959,15 +946,9 @@ vidl_ffmpeg_video_input
     return kwiver::vital::metadata_vector();
   }
 
-  // ---- process metadata ---
-  // If the vector is empty, then try to convert metadata.
-  if ( d->metadata_collection.empty() )
-  {
-    // will manage metadata collection object.
-    d->process_metadata(d->d_video_stream.current_metadata());
-  }
-
-  return d->metadata_collection;
+  // TODO: consider getting metadata from metadata map if it is present
+  //       caching it there if not.
+  return d->process_metadata( d->d_video_stream.current_metadata() );
 }
 
 
