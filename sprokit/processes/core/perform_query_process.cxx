@@ -743,6 +743,7 @@ void perform_query_process
 
   // -- output --
   declare_output_port_using_trait( query_result, optional );
+  declare_output_port_using_trait( feedback_request, optional );
   declare_output_port_using_trait( iqr_model, optional );
 }
 
