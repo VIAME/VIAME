@@ -56,6 +56,10 @@
 #include <vsl/vsl_binary_io.h>
 #include <vsl/vsl_vector_io.h>
 
+#include <vil/vil_fill.h>
+#include <vil/vil_crop.h>
+#include <vil/vil_copy.h>
+
 #include <vil/vil_image_view.h>
 #include <vil/vil_pixel_format.h>
 #include <vil/vil_stream_core.h>
@@ -88,6 +92,10 @@ create_config_trait( stream_id, std::string,
   "", "Stream ID to store in archive" );
 create_config_trait( compress_image, bool,
   "true", "Whether to compress image data stored in archive" );
+create_config_trait( fixed_row_count, unsigned,
+  "0", "Lock the output volume resolution to a fixed size" );
+create_config_trait( fixed_col_count, unsigned,
+  "0", "Lock the output volume resolution to a fixed size" );
 
 create_type_trait( bool,
   "kwiver:bool", bool );
@@ -132,6 +140,8 @@ public:
   std::string m_mission_id;
   std::string m_stream_id;
   bool m_compress_image;
+  unsigned m_fixed_row_count;
+  unsigned m_fixed_col_count;
 
   // local storage
   std::unique_ptr< std::ofstream > m_index_stream;
@@ -181,6 +191,8 @@ kw_archive_writer_process
   d->m_mission_id       = config_value_using_trait( mission_id );
   d->m_stream_id        = config_value_using_trait( stream_id );
   d->m_compress_image   = config_value_using_trait( compress_image );
+  d->m_fixed_col_count  = config_value_using_trait( fixed_col_count );
+  d->m_fixed_row_count  = config_value_using_trait( fixed_row_count );
 }
 
 
@@ -442,6 +454,8 @@ kw_archive_writer_process
   declare_config_using_trait( mission_id );
   declare_config_using_trait( stream_id );
   declare_config_using_trait( compress_image );
+  declare_config_using_trait( fixed_col_count );
+  declare_config_using_trait( fixed_row_count );
 }
 
 
@@ -477,6 +491,23 @@ priv_t
                                      img.h_step(), // j_step
                                      img.d_step() // plane_step
     );
+
+  if( m_fixed_col_count > 0 || m_fixed_row_count > 0 )
+  {
+    vil_image_view< vxl_byte > new_image( m_fixed_col_count, m_fixed_row_count, image.nplanes() );
+
+    vil_fill( new_image, static_cast< vxl_byte >( 0 ) );
+
+    unsigned copy_col = std::min( m_fixed_col_count, image.ni() );
+    unsigned copy_row = std::min( m_fixed_row_count, image.nj() );
+
+    vil_image_view< vxl_byte > v1 = vil_crop( image, 0, copy_col, 0, copy_row );
+    vil_image_view< vxl_byte > v2 = vil_crop( new_image, 0, copy_col, 0, copy_row );
+
+    vil_copy_reformat( v1, v2 );
+
+    image = new_image;
+  }
 
   // convert homography
   Eigen::Matrix< double, 3, 3 > matrix= s2r_homog.homography()->matrix();
