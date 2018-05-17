@@ -376,6 +376,7 @@ endif()
   ##
   add_subdirectory( plugins )
   add_subdirectory( examples )
+  add_subdirectory( configs )
 
   ###
   # Configure setup scripts
