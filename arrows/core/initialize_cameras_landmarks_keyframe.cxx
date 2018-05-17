@@ -1483,7 +1483,7 @@ initialize_cameras_landmarks_keyframe::priv
   // get set of keyframe ids
   auto keyframes = get_keyframe_ids(tracks);
 
-  const int num_begniing_keyframes(keyframes.size());
+  const int num_begniing_keyframes(std::min<int>(keyframes.size(),20));
 
   std::set<frame_id_t> beginning_keyframes;
   for (auto kf_id : keyframes)

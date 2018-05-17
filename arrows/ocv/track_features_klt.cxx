@@ -78,7 +78,7 @@ public:
     exclude_rad_pixels(1),
     erp2(1),
     max_pyramid_level(3),
-    target_number_of_features(512)
+    target_number_of_features(2048)
   {
   }
 
@@ -206,7 +206,7 @@ public:
 
     max_pyramid_level = config->get_value<int>("max_pyramid_level");
 
-    target_number_of_features = config->get_value<int>("target_number_of_features");
+    target_number_of_features = config->get_value<int>("target_number_of_features",target_number_of_features);
 
   }
 
