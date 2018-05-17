@@ -37,7 +37,7 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_shapelib:BOOL=OFF
     -Dfletch_ENABLE_VTK:BOOL=ON
     -Dfletch_ENABLE_qtExtensions:BOOL=ON
-    -DVTK_SELECT_VERSION:STRING=6.2
+    -DVTK_SELECT_VERSION:STRING=8.0
     -Dfletch_ENABLE_PROJ4:BOOL=ON
     -Dfletch_ENABLE_libkml:BOOL=ON
     -Dfletch_ENABLE_PNG:BOOL=ON
