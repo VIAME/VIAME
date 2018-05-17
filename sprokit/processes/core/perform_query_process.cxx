@@ -52,6 +52,8 @@ create_config_trait( external_handler, bool,
   "true", "Whether or not an external query handler is used" );
 create_config_trait( external_pipeline_file, std::string,
   "", "External pipeline definition file location" );
+create_config_trait( augmentation_pipeline_file, std::string,
+  "", "Augmentation pipeline definition file location" );
 create_config_trait( database_folder, std::string,
   "", "Folder containing all track and descriptor files" );
 create_config_trait( max_result_count, unsigned,
@@ -62,12 +64,15 @@ create_config_trait( descriptor_postfix, std::string,
   "_descriptors.csv", "Postfix to add to basename for desc files" );
 create_config_trait( index_postfix, std::string,
   ".index", "Postfix to add to basename for reading index files" );
+create_config_trait( unused_descriptors_as_negative, bool,
+  "true", "Use un-marked user descriptors as negative exemplars" );
 create_config_trait( use_tracks_for_history, bool,
   "false", "Use object track states for track descriptor history" );
 create_config_trait( merge_duplicate_results, bool,
   "false", "If use_tracks_for_history is on, use the track with the "
            "highest confidence, otherwise concatenate the history of "
            "all entries with the same track" );
+
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -81,15 +86,18 @@ public:
 
   bool external_handler;
   std::string external_pipeline_file;
+  std::string augmentation_pipeline_file;
   std::string database_folder;
 
   std::string track_postfix;
   std::string descriptor_postfix;
   std::string index_postfix;
+  bool unused_descriptors_as_negative;
   bool use_tracks_for_history;
   bool merge_duplicate_results;
 
   std::unique_ptr< embedded_pipeline > external_pipeline;
+  std::unique_ptr< embedded_pipeline > augmentation_pipeline;
 
   unsigned max_result_count;
 
@@ -104,6 +112,9 @@ public:
   bool database_populated;
 
   algo::query_track_descriptor_set_sptr descriptor_query;
+
+  vital::image_container_sptr_list query_images;
+  vital::track_descriptor_set_sptr all_descriptors;
 
   void reset_query( const vital::database_query_sptr& query );
   unsigned get_instance_id( const std::string& uid );
@@ -135,6 +146,14 @@ perform_query_process
     d->external_pipeline->wait();
     d->external_pipeline.reset();
   }
+
+  if( d->augmentation_pipeline )
+  {
+    d->augmentation_pipeline->send_end_of_input();
+    d->augmentation_pipeline->receive();
+    d->augmentation_pipeline->wait();
+    d->augmentation_pipeline.reset();
+  }
 }
 
 
@@ -146,11 +165,13 @@ void perform_query_process
 
   d->external_handler = config_value_using_trait( external_handler );
   d->external_pipeline_file = config_value_using_trait( external_pipeline_file );
+  d->augmentation_pipeline_file = config_value_using_trait( augmentation_pipeline_file );
   d->database_folder = config_value_using_trait( database_folder );
   d->max_result_count = config_value_using_trait( max_result_count );
   d->track_postfix = config_value_using_trait( track_postfix );
   d->descriptor_postfix = config_value_using_trait( descriptor_postfix );
   d->index_postfix = config_value_using_trait( index_postfix );
+  d->unused_descriptors_as_negative = config_value_using_trait( unused_descriptors_as_negative );
   d->use_tracks_for_history = config_value_using_trait( use_tracks_for_history );
   d->merge_duplicate_results = config_value_using_trait( merge_duplicate_results );
 
@@ -214,6 +235,34 @@ perform_query_process
     d->external_pipeline = std::move( new_pipeline );
     pipe_stream.close();
   }
+
+  if( !d->augmentation_pipeline_file.empty() )
+  {
+    std::unique_ptr< embedded_pipeline > new_pipeline =
+      std::unique_ptr< embedded_pipeline >( new embedded_pipeline() );
+
+    std::ifstream pipe_stream;
+    pipe_stream.open( d->augmentation_pipeline_file, std::ifstream::in );
+
+    if( !pipe_stream )
+    {
+      throw sprokit::invalid_configuration_exception(
+        name(), "Unable to open pipeline file: " + d->augmentation_pipeline_file );
+    }
+
+    try
+    {
+      new_pipeline->build_pipeline( pipe_stream, dir.string() );
+      new_pipeline->start();
+    }
+    catch( const std::exception& e )
+    {
+      throw sprokit::invalid_configuration_exception( name(), e.what() );
+    }
+
+    d->augmentation_pipeline = std::move( new_pipeline );
+    pipe_stream.close();
+  }
 }
 
 
@@ -259,6 +308,63 @@ merge_history( vital::track_descriptor::descriptor_history_t& dest,
 }
 
 
+bool
+is_overlap( vital::track_descriptor_sptr p1, vital::track_descriptor_sptr p2 )
+{
+  // If uncertain return true, they might overlap
+  if( !p1 || !p2 )
+  {
+    return true;
+  }
+
+  auto h1 = p1->get_history();
+  auto h2 = p2->get_history();
+
+  // If uncertain return true, they might overlap
+  if( h1.empty() || h2.empty() )
+  {
+    return true;
+  }
+
+  for( auto e1 : h1 )
+  {
+    for( auto e2 : h2 )
+    {
+      if( e1.get_timestamp() == e2.get_timestamp() )
+      {
+        if( vital::intersection( e1.get_image_location(),
+                                 e2.get_image_location() ).area() > 0 )
+        {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+
+vital::detected_object_set_sptr
+desc_to_det( vital::track_descriptor_set_sptr descs )
+{
+  auto detected_set = std::make_shared< kwiver::vital::detected_object_set>();
+
+  for( auto desc : *descs )
+  {
+    if( desc->get_history().size() == 1 )
+    {
+      detected_set->add(
+        std::make_shared< kwiver::vital::detected_object >(
+          desc->get_history()[0].get_image_location(),
+          1.0 ) );
+    }
+  }
+
+  return detected_set;
+}
+
+
 // -----------------------------------------------------------------------------
 void
 perform_query_process
@@ -270,7 +376,20 @@ perform_query_process
   if( port_info.datum->type() == sprokit::datum::complete )
   {
     grab_edge_datum_using_trait( database_query );
-    grab_edge_datum_using_trait( iqr_feedback );
+
+    if ( has_input_port_edge_using_trait( iqr_feedback ) )
+    {
+      grab_edge_datum_using_trait( iqr_feedback );
+    }
+    if ( has_input_port_edge_using_trait( iqr_model ) )
+    {
+      grab_edge_datum_using_trait( iqr_model );
+    }
+    if( has_input_port_edge_using_trait( track_descriptor_set ) )
+    {
+      grab_edge_datum_using_trait( track_descriptor_set );
+    }
+    grab_edge_datum_using_trait( image_set );
     mark_process_as_complete();
 
     const sprokit::datum_t dat = sprokit::datum::complete_datum();
@@ -283,10 +402,32 @@ perform_query_process
   vital::database_query_sptr query;
   vital::iqr_feedback_sptr feedback;
   vital::uchar_vector_sptr model;
-
+  vital::track_descriptor_set_sptr query_descs;
+  vital::image_container_sptr_list query_images;
+	
   query = grab_from_port_using_trait( database_query );
-  feedback = grab_from_port_using_trait( iqr_feedback );
-  model = grab_from_port_using_trait( iqr_model );
+
+  if( has_input_port_edge_using_trait( iqr_feedback ) )
+  {
+    feedback = grab_from_port_using_trait( iqr_feedback );
+  }
+  if( has_input_port_edge_using_trait( iqr_model ) )
+  {
+    model = grab_from_port_using_trait( iqr_model );
+  }
+
+  query_descs = grab_from_port_using_trait( track_descriptor_set );
+  query_images = grab_from_port_using_trait( image_set );
+
+  if( query_descs )
+  {
+    d->all_descriptors = query_descs;
+  }
+
+  if( !query_images.empty() )
+  {
+    d->query_images = query_images;
+  }
 
   // Declare output
   vital::query_result_set_sptr output( new vital::query_result_set() );
@@ -311,8 +452,8 @@ perform_query_process
   // Call external feedback loop if enabled
   if( d->external_handler )
   {
-    vital::string_vector_sptr positive_uids( new vital::string_vector() );
-    vital::string_vector_sptr negative_uids( new vital::string_vector() );
+    vital::string_vector_sptr iqr_positive_uids( new vital::string_vector() );
+    vital::string_vector_sptr iqr_negative_uids( new vital::string_vector() );
 
     if( feedback &&
       ( !feedback->positive_ids().empty() ) )
@@ -321,7 +462,7 @@ perform_query_process
       {
         for( auto desc_sptr : *d->previous_results[id]->descriptors() )
         {
-          positive_uids->push_back( desc_sptr->get_uid().value() );
+          iqr_positive_uids->push_back( desc_sptr->get_uid().value() );
         }
 
         d->forced_positives[ id ] = d->previous_results[ id ];
@@ -342,7 +483,7 @@ perform_query_process
       {
         for( auto desc_sptr : *d->previous_results[id]->descriptors() )
         {
-          negative_uids->push_back( desc_sptr->get_uid().value() );
+          iqr_negative_uids->push_back( desc_sptr->get_uid().value() );
         }
 
         d->forced_negatives[ id ] = d->previous_results[ id ];
@@ -356,32 +497,138 @@ perform_query_process
       }
     }
 
-#ifndef DUMMY_OUTPUT
     // Format data to simplified format for external
-    std::vector< vital::descriptor_sptr > exemplar_raw_descs;
+    std::vector< vital::descriptor_sptr > exemplar_raw_pos_descs;
+    std::vector< vital::descriptor_sptr > exemplar_raw_neg_descs;
 
-    vital::string_vector_sptr exemplar_uids( new vital::string_vector() );
+    vital::string_vector_sptr exemplar_pos_uids( new vital::string_vector() );
+    vital::string_vector_sptr exemplar_neg_uids( new vital::string_vector() );
 
     if( query )
     {
       for( auto track_desc : *query->descriptors() )
       {
-        exemplar_uids->push_back( track_desc->get_uid().value() );
-        exemplar_raw_descs.push_back( track_desc->get_descriptor() );
+        exemplar_pos_uids->push_back( track_desc->get_uid().value() );
+        exemplar_raw_pos_descs.push_back( track_desc->get_descriptor() );
+      }
+
+      if( !feedback && d->augmentation_pipeline )
+      {
+        if( d->query_images.empty() )
+        {
+          throw std::runtime_error( "Must supply images for use with augmentation pipeline" );
+        }
+
+        // Run seperate augmentation pipeline to get more positives and negatives
+        for( auto query_image : d->query_images )
+        {
+          auto ids = adapter::adapter_data_set::create();
+
+          vital::descriptor_set_sptr pos_descs(
+            new vital::simple_descriptor_set( exemplar_raw_pos_descs ) );
+
+          vital::detected_object_set_sptr pos_dets = desc_to_det( query->descriptors() );
+
+          ids->add_value( "image", query_image );
+          ids->add_value( "positive_descriptors", pos_descs );
+          ids->add_value( "positive_detections", pos_dets );
+
+          d->augmentation_pipeline->send( ids );
+
+          auto const& ods = d->augmentation_pipeline->receive();
+  
+          if( ods->is_end_of_data() )
+          {
+            throw std::runtime_error( "Pipeline terminated unexpectingly" );
+          }
+
+          // Grab result from pipeline output data set
+          auto const& iter1 = ods->find( "new_positive_descriptors" );
+          auto const& iter2 = ods->find( "new_positive_ids" );
+          auto const& iter3 = ods->find( "new_negative_descriptors" );
+          auto const& iter4 = ods->find( "new_negative_ids" );
+
+          if( iter1 == ods->end() || iter2 == ods->end() ||
+              iter3 == ods->end() || iter4 == ods->end() )
+          {
+            throw std::runtime_error( "Empty pipeline output" );
+          }
+
+          vital::descriptor_set_sptr new_positive_descriptors =
+            iter1->second->get_datum< vital::descriptor_set_sptr >();
+          vital::string_vector_sptr new_positive_ids =
+            iter2->second->get_datum< vital::string_vector_sptr >();
+          vital::descriptor_set_sptr new_negative_descriptors =
+            iter3->second->get_datum< vital::descriptor_set_sptr >();
+          vital::string_vector_sptr new_negative_ids =
+            iter4->second->get_datum< vital::string_vector_sptr >();
+
+          const auto& pos_iter = new_positive_descriptors->descriptors();
+          const auto& neg_iter = new_positive_descriptors->descriptors();
+
+          if( !pos_iter.empty() )
+          {
+            exemplar_raw_pos_descs.insert( exemplar_raw_pos_descs.end(),
+              pos_iter.begin(), pos_iter.end() );
+            exemplar_pos_uids->insert( exemplar_pos_uids->end(), 
+              new_positive_ids->begin(), new_positive_ids->end() );
+          }
+
+          if( !neg_iter.empty() )
+          {
+            exemplar_raw_neg_descs.insert( exemplar_raw_neg_descs.end(),
+              neg_iter.begin(), neg_iter.end() );
+            exemplar_neg_uids->insert( exemplar_neg_uids->end(), 
+              new_negative_ids->begin(), new_negative_ids->end() );
+          }
+        }
+      }
+
+      if( !feedback && d->unused_descriptors_as_negative )
+      {
+        if( !d->all_descriptors )
+        {
+          throw std::runtime_error( "Must supply descriptors to use with unused as negative option" );
+        }
+
+        // Use background descriptors as negative examples
+        for( auto desc : *( d->all_descriptors ) )
+        {
+          bool no_overlap = true;
+  
+          for( auto comp : *( query->descriptors() ) )
+          {
+            if( is_overlap( desc, comp ) )
+            {
+              no_overlap = false;
+              break;
+            }
+          }
+  
+          if( no_overlap )
+          {
+            exemplar_neg_uids->push_back( desc->get_uid().value() );
+            exemplar_raw_neg_descs.push_back( desc->get_descriptor() );
+          }
+        }
       }
     }
 
-    vital::descriptor_set_sptr exemplar_descs(
-      new vital::simple_descriptor_set( exemplar_raw_descs ) );
+    vital::descriptor_set_sptr exemplar_pos_descs(
+      new vital::simple_descriptor_set( exemplar_raw_pos_descs ) );
+    vital::descriptor_set_sptr exemplar_neg_descs(
+      new vital::simple_descriptor_set( exemplar_raw_neg_descs ) );
 
     // Set request on pipeline inputs
     auto ids = adapter::adapter_data_set::create();
 
-    ids->add_value( "descriptor_set", exemplar_descs );
-    ids->add_value( "exemplar_uids", exemplar_uids );
-    ids->add_value( "positive_uids", positive_uids );
-    ids->add_value( "negative_uids", negative_uids );
-    ids->add_value( "query_model", model );
+    ids->add_value( "positive_descriptor_set", exemplar_pos_descs );
+    ids->add_value( "positive_exemplar_uids", exemplar_pos_uids );
+    ids->add_value( "negative_descriptor_set", exemplar_neg_descs );
+    ids->add_value( "negative_exemplar_uids", exemplar_neg_uids );
+    ids->add_value( "iqr_positive_uids", iqr_positive_uids );
+    ids->add_value( "iqr_negative_uids", iqr_negative_uids );
+    ids->add_value( "iqr_query_model", model );
 
     // Send the request through the pipeline and wait for a result
     d->external_pipeline->send( ids );
@@ -409,36 +656,6 @@ perform_query_process
       iter2->second->get_datum< vital::double_vector_sptr >();
 
     model = iter3->second->get_datum< vital::uchar_vector_sptr >();
-#else
-    // Format data to simplified format for external
-    vital::string_vector_sptr result_uids( new vital::string_vector() );
-    vital::double_vector_sptr result_scores( new vital::double_vector() );
-
-    model = vital::uchar_vector_sptr( new vital::uchar_vector() );
-
-    result_uids->push_back( "output_frame_final_item_14" );
-    result_uids->push_back( "output_frame_final_item_13" );
-    result_uids->push_back( "output_frame_final_item_12" );
-    result_uids->push_back( "output_frame_final_item_11" );
-    result_uids->push_back( "output_frame_final_item_10" );
-    result_uids->push_back( "output_frame_final_item_9" );
-    result_uids->push_back( "output_frame_final_item_8" );
-    result_uids->push_back( "output_frame_final_item_7" );
-    result_uids->push_back( "output_frame_final_item_21" );
-    result_uids->push_back( "output_frame_final_item_24" );
-
-    result_scores->push_back( 0.98 );
-    result_scores->push_back( 0.95 );
-    result_scores->push_back( 0.92 );
-    result_scores->push_back( 0.91 );
-    result_scores->push_back( 0.90 );
-    result_scores->push_back( 0.80 );
-    result_scores->push_back( 0.79 );
-    result_scores->push_back( 0.69 );
-    result_scores->push_back( 0.68 );
-    result_scores->push_back( 0.50 );
-    result_scores->push_back( 0.45 );
-#endif
 
     // Handle forced positive examples, set score to 1, make sure at front
     for( auto itr = d->forced_positives.begin();
@@ -620,6 +837,8 @@ void perform_query_process
   declare_input_port_using_trait( database_query, required );
   declare_input_port_using_trait( iqr_feedback, optional );
   declare_input_port_using_trait( iqr_model, optional );
+  declare_input_port_using_trait( track_descriptor_set, optional );
+  declare_input_port_using_trait( image_set, optional );
 
   // -- output --
   declare_output_port_using_trait( query_result, optional );
@@ -633,11 +852,13 @@ void perform_query_process
 {
   declare_config_using_trait( external_handler );
   declare_config_using_trait( external_pipeline_file );
+  declare_config_using_trait( augmentation_pipeline_file );
   declare_config_using_trait( database_folder );
   declare_config_using_trait( max_result_count );
   declare_config_using_trait( descriptor_postfix );
   declare_config_using_trait( track_postfix );
   declare_config_using_trait( index_postfix );
+  declare_config_using_trait( unused_descriptors_as_negative );
   declare_config_using_trait( use_tracks_for_history );
   declare_config_using_trait( merge_duplicate_results );
 }
@@ -649,7 +870,9 @@ perform_query_process::priv
  : parent( p )
  , external_handler( true )
  , external_pipeline_file( "" )
+ , augmentation_pipeline_file( "" )
  , database_folder( "" )
+ , unused_descriptors_as_negative( true )
  , use_tracks_for_history( false )
  , merge_duplicate_results( false )
  , max_result_count( 100 )
