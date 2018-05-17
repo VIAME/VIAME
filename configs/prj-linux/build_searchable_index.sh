@@ -1,9 +1,9 @@
 #!/bin/bash
 
-export VCATInstallDir=/opt/kitware/video-cat
-export VCATScriptDir=${VCATInstallDir}/run_scripts
+export VIAME_INSTALL_DIR=/opt/noaa/viame
+export VIAME_SCRIPT_DIR=${VIAME_INSTALL_DIR}/configs
 
-source ${VCATInstallDir}/setup_viame.sh
+source ${VIAME_INSTALL_DIR}/setup_viame.sh
 
-python ${VCATScriptDir}/database_tool.py start
-python ${VCATScriptDir}/ingest_video.py --build-index
+python ${VIAME_SCRIPT_DIR}/database_tool.py start
+python ${VIAME_SCRIPT_DIR}/ingest_video.py --build-index
