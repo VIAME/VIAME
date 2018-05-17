@@ -130,7 +130,7 @@ check_configuration(vital::config_block_sptr config) const
 // ------------------------------------------------------------------
 bool
 detected_object_set_input_csv::
-read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name )
+read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
 {
   if ( d->m_first )
   {

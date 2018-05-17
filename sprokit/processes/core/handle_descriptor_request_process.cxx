@@ -164,11 +164,13 @@ handle_descriptor_request_process
   if( !request )
   {
     push_to_port_using_trait( track_descriptor_set, vital::track_descriptor_set_sptr() );
+    push_to_port_using_trait( image_set, vital::image_container_sptr_list() );
     return; // Normal return, no failure
   }
 
   // Get output descriptors from internal pipeline
   vital::track_descriptor_set_sptr descriptors;
+  vital::image_container_sptr_list images;
 
   // Get filepaths
   boost::filesystem::path p( request->data_location() );
@@ -204,6 +206,15 @@ handle_descriptor_request_process
 
     descriptors = iter->second->get_datum< vital::track_descriptor_set_sptr >();
 
+    auto const& iter2 = ods->find( "image" );
+
+    if( iter2 == ods->end() )
+    {
+      throw std::runtime_error( "Empty pipeline output" );
+    }
+
+    images.push_back( iter2->second->get_datum< vital::image_container_sptr >() );
+
     // Assign optional UID to descriptors
     if( d->assign_uids )
     {
@@ -216,6 +227,7 @@ handle_descriptor_request_process
 
   // Return all outputs
   push_to_port_using_trait( track_descriptor_set, descriptors );
+  push_to_port_using_trait( image_set, images );
 }
 
 
@@ -234,6 +246,7 @@ void handle_descriptor_request_process
 
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
+  declare_output_port_using_trait( image_set, optional );
 }
 
 
