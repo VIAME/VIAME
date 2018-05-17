@@ -4,19 +4,20 @@
 
 if( VIAME_INSTALL_EXAMPLES )
 
-  add_subdirectory( common_data )
+  add_subdirectory( annotation_and_visualization )
+  add_subdirectory( building_and_installing_viame )
   add_subdirectory( detection_file_conversions )
-  add_subdirectory( detector_training )
-  add_subdirectory( detector_training_old_api )
-  add_subdirectory( detector_pipelines )
+  add_subdirectory( example_imagery )
   add_subdirectory( external_plugin_creation )
   add_subdirectory( hello_world_pipeline )
-  add_subdirectory( image_and_video_search )
+  add_subdirectory( measurement_and_classification )
   add_subdirectory( measurement_using_stereo )
+  add_subdirectory( object_detection )
+  add_subdirectory( object_detector_training )
+  add_subdirectory( object_tracking )
   add_subdirectory( scoring_and_roc_generation )
-  add_subdirectory( tracking_pipelines )
+  add_subdirectory( search_and_rapid_model_generation )
   add_subdirectory( using_detectors_in_cxx_code )
-  add_subdirectory( visualizing_detections_in_gui )
 
 endif()
 
