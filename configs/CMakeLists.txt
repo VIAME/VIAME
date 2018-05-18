@@ -12,7 +12,7 @@ if( VIAME_DOWNLOAD_MODELS )
     ${CMAKE_CURRENT_SOURCE_DIR}/gui-params )
 
   # PyTorch Tracking Models
-  if( VIAME_ENABLE_PYTORCH )
+  if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5afe6d6d8d777f15ebe1d6f9/download
       f1fd5436c80911e9e3357835db4cdffd
@@ -88,4 +88,4 @@ set( RUN_SCRIPT_FILES
      launch_annotation_gui.py )
 
 install( FILES       ${RUN_SCRIPT_FILES}
-         DESTINATION configs 
+         DESTINATION configs )

@@ -38,8 +38,6 @@ endif()
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/object_detection )
-install( DIRECTORY   models
-         DESTINATION examples/object_detection )
 install( FILES       output/example_detections.kw18
                      output/example_tot_scores.txt
                      output/yolo_v2_detections.prj
