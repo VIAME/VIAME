@@ -49,3 +49,7 @@ connect from smqtk_query_handler.result_scores
         to   out_adapt.result_scores
 connect from smqtk_query_handler.result_model
         to   out_adapt.result_model
+connect from smqtk_query_handler.feedback_uids
+        to   out_adapt.feedback_uids
+connect from smqtk_query_handler.feedback_scores
+        to   out_adapt.feedback_scores
