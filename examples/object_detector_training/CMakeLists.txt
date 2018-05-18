@@ -18,14 +18,6 @@ if( VIAME_ENABLE_YOLO )
        yolo_v2_high_res_kw18.conf
        yolo_v2_high_res_habcam.conf )
 
-  if( VIAME_DOWNLOAD_MODELS )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5a5839ec8d777f5e872f8396/download
-      64ed76909df326e6239742cbca78d7b7
-      ${VIAME_DOWNLOAD_DIR}/yolo_v2_seed_model.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR} )
-  endif()
-
   if( NOT WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
