@@ -4,8 +4,8 @@
 
 # Download formatted example training data
 DownloadAndExtract(
-  https://data.kitware.com/api/v1/item/5a5839318d777f5e872f8393/download
-  ea0553ee4cc14f5941ad055a4468146c
+  https://data.kitware.com/api/v1/item/5afed6f68d777f15ebe1d795/download
+  e38843185bcb4f56f85ff208943cddc3
   ${VIAME_DOWNLOAD_DIR}/training_example_set1.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR} )
 
@@ -35,5 +35,5 @@ install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/object_detector_training )
 install( DIRECTORY   training_data
          DESTINATION examples/object_detector_training )
-install( DIRECTORY   old_api
+install( DIRECTORY   deprecated_old_api
          DESTINATION examples/object_detector_training )
