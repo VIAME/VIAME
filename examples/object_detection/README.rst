@@ -10,13 +10,13 @@ Object Detection
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/skate_detection.png
    :scale: 30
    :align: center
-   :target: https://github.com/Kitware/VIAME/tree/master/examples/object_detector
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/object_detection
 |
 
 This document corresponds to `this example online`_, in addition to the
-examples/object_detector folder in a VIAME installation.
+examples/object_detection folder in a VIAME installation.
 
-.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/object_detector
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/object_detection
 
 This folder contains assorted examples of object detection pipelines
 running different detectors such as YOLOv2, ScallopTK, Faster RCNN, and others.

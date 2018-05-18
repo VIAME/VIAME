@@ -3,8 +3,8 @@
 ##
 
 set( EXAMPLE_INSTALL_FILES
-     input_list.txt
-     habcam_list.txt )
+     input_image_list_habcam.txt
+     input_image_list_small_set.txt )
 
 if( VIAME_ENABLE_YOLO )
   if( WIN32 )
@@ -38,7 +38,5 @@ endif()
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/object_detection )
-install( FILES       output/example_detections.kw18
-                     output/example_tot_scores.txt
-                     output/yolo_v2_detections.prj
+install( FILES       output/yolo_v2_detections.prj
          DESTINATION examples/object_detection/output )
