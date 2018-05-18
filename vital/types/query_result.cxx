@@ -109,6 +109,22 @@ query_result
 }
 
 // ----------------------------------------------------------------------------
+double
+query_result
+::preference_score() const
+{
+  return m_preference_score;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_preference_score( double s )
+{
+  m_preference_score = s;
+}
+
+// ----------------------------------------------------------------------------
 timestamp
 query_result
 ::start_time() const

@@ -126,7 +126,8 @@ public:
   void add_results_to_list( const vital::query_result_set_sptr& results,
                             const std::vector<std::string>& uids,
                             const std::vector<double>& scores,
-                            std::map< std::string, unsigned >& instance_ids );
+                            std::map< std::string, unsigned >& instance_ids,
+                            bool feedback_request );
 }; // end priv class
 
 
@@ -701,8 +702,8 @@ perform_query_process
     }
 
     // Handle all new or unadjudacted results
-    d->add_results_to_list( results, *result_uids, *result_scores, d->result_instance_ids );
-    d->add_results_to_list( feedback_requests, *feedback_uids, *feedback_scores, d->feedback_instance_ids );
+    d->add_results_to_list( results, *result_uids, *result_scores, d->result_instance_ids, false );
+    d->add_results_to_list( feedback_requests, *feedback_uids, *feedback_scores, d->feedback_instance_ids, true );
 
     // Handle forced negative examples, set score to 0, make sure at end of result set
     for( auto itr = d->forced_negatives.begin();
@@ -794,7 +795,8 @@ void perform_query_process::priv
 ::add_results_to_list( const vital::query_result_set_sptr& results,
                        const std::vector<std::string>& uids,
                        const std::vector<double>& scores,
-                       std::map< std::string, unsigned >& instance_ids )
+                       std::map< std::string, unsigned >& instance_ids,
+                       bool feedback_request )
 {
   typedef std::pair< std::string, vital::track_id_t > unique_track_id_t;
   std::map< unique_track_id_t, vital::query_result_sptr > top_results;
@@ -880,7 +882,15 @@ void perform_query_process::priv
     entry->set_query_id( active_uid );
     entry->set_stream_id( std::get<0>( result ) );
     entry->set_instance_id( iid );
-    entry->set_relevancy_score( score );
+    if( feedback_request )
+    {
+      entry->set_relevancy_score( 0.0 );
+      entry->set_preference_score( score );
+    }
+    else
+    {
+      entry->set_relevancy_score( score );
+    }
 
     // Assign track descriptor set to result
     vital::track_descriptor_set_sptr desc_set = entry->descriptors();

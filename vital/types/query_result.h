@@ -71,6 +71,7 @@ public:
 
   unsigned instance_id() const;
   double relevancy_score() const;
+  double preference_score() const;
 
   vital::timestamp start_time() const;
   vital::timestamp end_time() const;
@@ -87,6 +88,7 @@ public:
 
   void set_instance_id( unsigned );
   void set_relevancy_score( double );
+  void set_preference_score( double );
 
   void set_temporal_bounds( timestamp const&, timestamp const& );
 
@@ -104,6 +106,7 @@ protected:
 
   unsigned m_instance_id;
   double m_relevancy_score;
+  double m_preference_score;
 
   vital::timestamp m_start_time;
   vital::timestamp m_end_time;
