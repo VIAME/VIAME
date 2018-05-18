@@ -182,7 +182,7 @@ if __name__ == "__main__" :
   parser.add_argument("-l", dest="input_list", default="",
                       help="Input list of image or video files to ingest")
 
-  parser.add_argument("-p", dest="pipeline", default="configs/ingest_video.tut.pipe",
+  parser.add_argument("-p", dest="pipeline", default="pipelines/ingest_video.tut.pipe",
                       help="Input pipeline for ingesting video or image data")
 
   parser.add_argument("-e", dest="extra_options", default="",
