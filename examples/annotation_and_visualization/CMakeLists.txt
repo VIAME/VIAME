@@ -24,4 +24,4 @@ else()
 endif()
 
 install( FILES       ${example_files}
-         DESTINATION examples/visualizing_detections_in_gui )
+         DESTINATION examples/annotation_and_visualization )

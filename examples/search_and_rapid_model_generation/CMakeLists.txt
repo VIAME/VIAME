@@ -11,3 +11,9 @@ if( VIAME_ENABLE_SMQTK )
   endif()
 
 endif()
+
+if( VIAME_ENABLE_FLASK )
+
+  add_subdirectory( flask )
+
+endif()

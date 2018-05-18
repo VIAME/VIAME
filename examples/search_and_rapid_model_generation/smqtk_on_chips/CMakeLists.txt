@@ -11,6 +11,6 @@ set( EXAMPLE_INSTALL_FILES
   reset_database.sh )
 
 install( FILES      ${EXAMPLE_INSTALL_FILES}
-   DESTINATION      examples/image_and_video_search/smqtk_on_chips )
+   DESTINATION      examples/search_and_rapid_model_generation/smqtk_on_chips )
 install( DIRECTORY  configs
-   DESTINATION      examples/image_and_video_search/smqtk_on_chips )
+   DESTINATION      examples/search_and_rapid_model_generation/smqtk_on_chips )

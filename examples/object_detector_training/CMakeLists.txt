@@ -44,8 +44,8 @@ endif()
 # Install pipelines to example directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/detector_training )
+         DESTINATION examples/object_detector_training )
 install( DIRECTORY   cfg
-         DESTINATION examples/detector_training )
+         DESTINATION examples/object_detector_training )
 install( DIRECTORY   training_data
-         DESTINATION examples/detector_training )
+         DESTINATION examples/object_detector_training )

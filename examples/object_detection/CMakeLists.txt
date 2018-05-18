@@ -83,10 +83,10 @@ endif()
 # Install pipelines to example directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/detector_pipelines )
+         DESTINATION examples/object_detection )
 install( DIRECTORY   models
-         DESTINATION examples/detector_pipelines )
+         DESTINATION examples/object_detection )
 install( FILES       output/example_detections.kw18
                      output/example_tot_scores.txt
                      output/yolo_v2_detections.prj
-         DESTINATION examples/detector_pipelines/output )
+         DESTINATION examples/object_detection/output )

@@ -26,6 +26,6 @@ endif()
 # Install configuration files to examples directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/image_and_video_search/video_ingest )
+         DESTINATION examples/search_and_rapid_model_generation/video_ingest )
 install( DIRECTORY   configs
-         DESTINATION examples/image_and_video_search/video_ingest )
+         DESTINATION examples/search_and_rapid_model_generation/video_ingest )

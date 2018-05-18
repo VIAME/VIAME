@@ -20,4 +20,4 @@ endif()
 # Install pipelines to example directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/tracking_pipelines )
+         DESTINATION examples/object_tracking )
