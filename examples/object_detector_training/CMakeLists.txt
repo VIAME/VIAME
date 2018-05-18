@@ -2,22 +2,18 @@
 # Detector training utilities
 ##
 
-set( EXAMPLE_INSTALL_FILES
-     README.rst )
-
+# Download formatted example training data
 DownloadAndExtract(
   https://data.kitware.com/api/v1/item/5a5839318d777f5e872f8393/download
   ea0553ee4cc14f5941ad055a4468146c
   ${VIAME_DOWNLOAD_DIR}/training_example_set1.tar.gz
   ${CMAKE_CURRENT_SOURCE_DIR} )
 
-if( VIAME_ENABLE_YOLO )
-  set( EXAMPLE_INSTALL_FILES
-       ${EXAMPLE_INSTALL_FILES}
-       yolo_v2_544_kw18.conf
-       yolo_v2_high_res_kw18.conf
-       yolo_v2_high_res_habcam.conf )
+# Install remaining example files
+set( EXAMPLE_INSTALL_FILES
+     README.rst )
 
+if( VIAME_ENABLE_YOLO )
   if( NOT WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
@@ -37,7 +33,7 @@ endif()
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/object_detector_training )
-install( DIRECTORY   cfg
-         DESTINATION examples/object_detector_training )
 install( DIRECTORY   training_data
+         DESTINATION examples/object_detector_training )
+install( DIRECTORY   old_api
          DESTINATION examples/object_detector_training )
