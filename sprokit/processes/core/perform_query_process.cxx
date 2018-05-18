@@ -73,6 +73,9 @@ create_config_trait( merge_duplicate_results, bool,
            "highest confidence, otherwise concatenate the history of "
            "all entries with the same track" );
 
+create_port_trait( feedback_request, query_result,
+  "Feedback requests" );
+
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -103,7 +106,8 @@ public:
 
   bool is_first;
   std::map< unsigned, vital::query_result_sptr > previous_results;
-  std::map< std::string, unsigned > instance_ids;
+  std::map< std::string, unsigned > result_instance_ids;
+  std::map< std::string, unsigned > feedback_instance_ids;
   std::map< unsigned, vital::query_result_sptr > forced_positives;
   std::map< unsigned, vital::query_result_sptr > forced_negatives;
   vital::uid active_uid;
@@ -117,7 +121,12 @@ public:
   vital::track_descriptor_set_sptr all_descriptors;
 
   void reset_query( const vital::database_query_sptr& query );
-  unsigned get_instance_id( const std::string& uid );
+  unsigned get_instance_id( std::map< std::string, unsigned >& instance_ids, const std::string& uid );
+
+  void add_results_to_list( const vital::query_result_set_sptr& results,
+                            const std::vector<std::string>& uids,
+                            const std::vector<double>& scores,
+                            std::map< std::string, unsigned >& instance_ids );
 }; // end priv class
 
 
@@ -430,12 +439,14 @@ perform_query_process
   }
 
   // Declare output
-  vital::query_result_set_sptr output( new vital::query_result_set() );
+  vital::query_result_set_sptr results( new vital::query_result_set() );
+  vital::query_result_set_sptr feedback_requests( new vital::query_result_set() );
 
   // No query received, do nothing, return no results
   if( !query && !feedback && !model )
   {
-    push_to_port_using_trait( query_result, output );
+    push_to_port_using_trait( query_result, results );
+    push_to_port_using_trait( feedback_request, feedback_requests );
     push_to_port_using_trait( iqr_model, model );
     return;
   }
@@ -644,6 +655,8 @@ perform_query_process
     auto const& iter1 = ods->find( "result_uids" );
     auto const& iter2 = ods->find( "result_scores" );
     auto const& iter3 = ods->find( "result_model" );
+    auto const& iter4 = ods->find( "feedback_uids" );
+    auto const& iter5 = ods->find( "feedback_scores" );
 
     if( iter1 == ods->end() || iter2 == ods->end() || iter3 == ods->end() )
     {
@@ -655,6 +668,28 @@ perform_query_process
     vital::double_vector_sptr result_scores =
       iter2->second->get_datum< vital::double_vector_sptr >();
 
+    vital::string_vector_sptr feedback_uids;
+    if( iter4 != ods->end() )
+    {
+      feedback_uids =
+        iter4->second->get_datum< vital::string_vector_sptr >();
+    }
+    else
+    {
+      feedback_uids.reset( new std::vector<std::string> );
+    }
+
+    vital::double_vector_sptr feedback_scores;
+    if( iter5 != ods->end() )
+    {
+      feedback_scores =
+        iter5->second->get_datum< vital::double_vector_sptr >();
+    }
+    else
+    {
+      feedback_scores.reset( new std::vector<double> );
+    }
+
     model = iter3->second->get_datum< vital::uchar_vector_sptr >();
 
     // Handle forced positive examples, set score to 1, make sure at front
@@ -662,154 +697,19 @@ perform_query_process
          itr != d->forced_positives.end(); itr++ )
     {
       itr->second->set_relevancy_score( 1.0 );
-      output->push_back( itr->second );
+      results->push_back( itr->second );
     }
-
-    typedef std::pair< std::string, vital::track_id_t > unique_track_id_t;
-    std::map< unique_track_id_t, vital::query_result_sptr > top_results;
 
     // Handle all new or unadjudacted results
-    for( unsigned i = 0; i < result_uids->size(); ++i )
-    {
-      if( i > d->max_result_count )
-      {
-        break;
-      }
-
-      auto result_uid = (*result_uids)[i];
-      auto result_score = (*result_scores)[i];
-
-      vital::algo::query_track_descriptor_set::desc_tuple_t result;
-      if( !d->descriptor_query->get_track_descriptor( result_uid, result ))
-      {
-        continue;
-      }
-
-      // Create result set and set relevant IDs
-      auto iid = d->get_instance_id( result_uid );
-
-      // Check if result is forced positive or negative (e.g. annotated by user)
-      if( d->forced_positives.find( iid ) != d->forced_positives.end() ||
-          d->forced_negatives.find( iid ) != d->forced_negatives.end() )
-      {
-        continue;
-      }
-
-      vital::query_result_sptr entry;
-      bool insert = true;
-
-      // If there is more than one track for a descriptor, there's no point in
-      // trying to do any merging
-      if( d->merge_duplicate_results && std::get<2>( result ).size() == 1 )
-      {
-        vital::track_sptr track = std::get<2>( result )[0];
-        unique_track_id_t track_id;
-        track_id.first = std::get<0>( result );
-        track_id.second = track->id();
-
-        auto it = top_results.find( track_id );
-        if( it != top_results.end() )
-        {
-          if( d->use_tracks_for_history)
-          {
-            if( it->second->relevancy_score() >= result_score )
-            {
-              continue;
-            }
-            else
-            {
-              entry = it->second;
-              insert = false;
-            }
-          }
-          else
-          {
-            entry = it->second;
-            insert = false;
-            vital::track_descriptor_sptr entry_descriptor = (*entry->descriptors())[0];
-            auto hist = std::get<1>( result )->get_history();
-            auto entry_hist = entry_descriptor->get_history();
-
-            merge_history( entry_hist, hist );
-
-            entry_descriptor->set_history( entry_hist );
-          }
-        }
-        else
-        {
-          entry.reset( new vital::query_result() );
-          top_results[ track_id ] = entry;
-        }
-      }
-
-      if( ! entry )
-      {
-        entry.reset( new vital::query_result() );
-      }
-
-      entry->set_query_id( d->active_uid );
-      entry->set_stream_id( std::get<0>( result ) );
-      entry->set_instance_id( iid );
-      entry->set_relevancy_score( result_score );
-
-      // Assign track descriptor set to result
-      vital::track_descriptor_set_sptr desc_set = entry->descriptors();
-      if( ! desc_set )
-      {
-        desc_set.reset( new vital::track_descriptor_set() );
-
-        desc_set->push_back( std::get<1>( result ) );
-        entry->set_descriptors( desc_set );
-      }
-
-      // Assign temporal bounds to this query result
-      vital::timestamp ts1, ts2;
-      bool is_first = true;
-
-      for( auto desc : *desc_set )
-      {
-        for( auto hist : desc->get_history() )
-        {
-          if( is_first )
-          {
-            ts1 = hist.get_timestamp();
-            ts2 = hist.get_timestamp();
-
-            is_first = false;
-          }
-          else if( hist.get_timestamp().get_frame() < ts1.get_frame() )
-          {
-            ts1 = hist.get_timestamp();
-          }
-          else if( hist.get_timestamp().get_frame() > ts2.get_frame() )
-          {
-            ts2 = hist.get_timestamp();
-          }
-        }
-      }
-      entry->set_temporal_bounds( ts1, ts2 );
-
-      // Assign track set to result
-      vital::object_track_set_sptr trk_set(
-        new vital::object_track_set( std::get<2>( result ) ) );
-
-      entry->set_tracks( trk_set );
-
-      // Remember this descriptor result for future iterations
-      d->previous_results[ entry->instance_id() ] = entry;
-
-      if( insert )
-      {
-        output->push_back( entry );
-      }
-    }
+    d->add_results_to_list( results, *result_uids, *result_scores, d->result_instance_ids );
+    d->add_results_to_list( feedback_requests, *feedback_uids, *feedback_scores, d->feedback_instance_ids );
 
     // Handle forced negative examples, set score to 0, make sure at end of result set
     for( auto itr = d->forced_negatives.begin();
          itr != d->forced_negatives.end(); itr++ )
     {
       itr->second->set_relevancy_score( 0.0 );
-      output->push_back( itr->second );
+      results->push_back( itr->second );
     }
   }
   else
@@ -818,7 +718,8 @@ perform_query_process
   }
 
   // Push outputs downstream
-  push_to_port_using_trait( query_result, output );
+  push_to_port_using_trait( query_result, results );
+  push_to_port_using_trait( feedback_request, feedback_requests );
   push_to_port_using_trait( iqr_model, model );
 }
 
@@ -842,6 +743,7 @@ void perform_query_process
 
   // -- output --
   declare_output_port_using_trait( query_result, optional );
+  declare_output_port_using_trait( feedback_request, optional );
   declare_output_port_using_trait( iqr_model, optional );
 }
 
@@ -889,10 +791,157 @@ perform_query_process::priv
 
 
 void perform_query_process::priv
+::add_results_to_list( const vital::query_result_set_sptr& results,
+                       const std::vector<std::string>& uids,
+                       const std::vector<double>& scores,
+                       std::map< std::string, unsigned >& instance_ids )
+{
+  typedef std::pair< std::string, vital::track_id_t > unique_track_id_t;
+  std::map< unique_track_id_t, vital::query_result_sptr > top_results;
+
+  for( unsigned i = 0; i < uids.size(); ++i )
+  {
+    if( i > max_result_count )
+    {
+      break;
+    }
+
+    auto uid = uids[i];
+    auto score = scores[i];
+
+    vital::algo::query_track_descriptor_set::desc_tuple_t result;
+    if( !descriptor_query->get_track_descriptor( uid, result ))
+    {
+      continue;
+    }
+
+    // Create result set and set relevant IDs
+    auto iid = get_instance_id( instance_ids, uid );
+
+    // Check if result is forced positive or negative (e.g. annotated by user)
+    if( forced_positives.find( iid ) != forced_positives.end() ||
+        forced_negatives.find( iid ) != forced_negatives.end() )
+    {
+      continue;
+    }
+
+    vital::query_result_sptr entry;
+    bool insert = true;
+
+    // If there is more than one track for a descriptor, there's no point in
+    // trying to do any merging
+    if( merge_duplicate_results && std::get<2>( result ).size() == 1 )
+    {
+      vital::track_sptr track = std::get<2>( result )[0];
+      unique_track_id_t track_id;
+      track_id.first = std::get<0>( result );
+      track_id.second = track->id();
+
+      auto it = top_results.find( track_id );
+      if( it != top_results.end() )
+      {
+        if( use_tracks_for_history)
+        {
+          if( it->second->relevancy_score() >= score )
+          {
+            continue;
+          }
+          else
+          {
+            entry = it->second;
+            insert = false;
+          }
+        }
+        else
+        {
+          entry = it->second;
+          insert = false;
+          vital::track_descriptor_sptr entry_descriptor = (*entry->descriptors())[0];
+          auto hist = std::get<1>( result )->get_history();
+          auto entry_hist = entry_descriptor->get_history();
+
+          merge_history( entry_hist, hist );
+
+          entry_descriptor->set_history( entry_hist );
+        }
+      }
+      else
+      {
+        entry.reset( new vital::query_result() );
+        top_results[ track_id ] = entry;
+      }
+    }
+
+    if( ! entry )
+    {
+      entry.reset( new vital::query_result() );
+    }
+
+    entry->set_query_id( active_uid );
+    entry->set_stream_id( std::get<0>( result ) );
+    entry->set_instance_id( iid );
+    entry->set_relevancy_score( score );
+
+    // Assign track descriptor set to result
+    vital::track_descriptor_set_sptr desc_set = entry->descriptors();
+    if( ! desc_set )
+    {
+      desc_set.reset( new vital::track_descriptor_set() );
+
+      desc_set->push_back( std::get<1>( result ) );
+      entry->set_descriptors( desc_set );
+    }
+
+    // Assign temporal bounds to this query result
+    vital::timestamp ts1, ts2;
+    bool is_first = true;
+
+    for( auto desc : *desc_set )
+    {
+      for( auto hist : desc->get_history() )
+      {
+        if( is_first )
+        {
+          ts1 = hist.get_timestamp();
+          ts2 = hist.get_timestamp();
+
+          is_first = false;
+        }
+        else if( hist.get_timestamp().get_frame() < ts1.get_frame() )
+        {
+          ts1 = hist.get_timestamp();
+        }
+        else if( hist.get_timestamp().get_frame() > ts2.get_frame() )
+        {
+          ts2 = hist.get_timestamp();
+        }
+      }
+    }
+    entry->set_temporal_bounds( ts1, ts2 );
+
+    // Assign track set to result
+    vital::object_track_set_sptr trk_set(
+      new vital::object_track_set( std::get<2>( result ) ) );
+
+    entry->set_tracks( trk_set );
+
+    // Remember this descriptor result for future iterations
+    previous_results[ entry->instance_id() ] = entry;
+
+    if( insert )
+    {
+      results->push_back( entry );
+    }
+  }
+}
+
+
+void perform_query_process::priv
 ::reset_query( const vital::database_query_sptr& query )
 {
   result_counter = 0;
-  instance_ids.clear();
+  result_instance_ids.clear();
+  feedback_instance_ids.clear();
   previous_results.clear();
   forced_positives.clear();
   forced_negatives.clear();
@@ -901,7 +950,7 @@ void perform_query_process::priv
 
 
 unsigned perform_query_process::priv
-::get_instance_id( const std::string& uid )
+::get_instance_id( std::map< std::string, unsigned >& instance_ids, const std::string& uid )
 {
   auto itr = instance_ids.find( uid );
 
