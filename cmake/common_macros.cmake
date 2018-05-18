@@ -23,6 +23,7 @@ endfunction()
 function( DownloadAndExtract _URL _MD5 _DL_LOC _EXT_LOC )
   DownloadFile( ${_URL} ${_DL_LOC} ${_MD5} )
   message( STATUS "Extracting data file from ${_URL}" )
+  file( MAKE_DIRECTORY ${_EXT_LOC} )
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E tar xzf ${_DL_LOC}
     WORKING_DIRECTORY ${_EXT_LOC} )
@@ -30,6 +31,7 @@ endfunction()
 
 function( DownloadExtractAndInstall _URL _MD5 _DL_LOC _EXT_LOC _INT_LOC )
   DownloadAndExtract( ${_URL} ${_MD5} ${_DL_LOC} ${_EXT_LOC} )
+  file( MAKE_DIRECTORY ${_EXT_LOC} )
   foreach( _file ${ARGN} )
     if( NOT EXISTS "${_EXT_LOC}/${_file}" )
       message( FATAL_ERROR "${_EXT_LOC}/${_file} does not exist" )
