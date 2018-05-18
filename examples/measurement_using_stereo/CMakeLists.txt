@@ -1,5 +1,6 @@
 set( EXAMPLE_INSTALL_FILES
-     README.rst )
+     README.rst
+     calibration.npz )
 
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
@@ -12,6 +13,4 @@ else()
 endif()
 
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/measurement_using_stereo )
-install( DIRECTORY   camtrawl_data
          DESTINATION examples/measurement_using_stereo )
