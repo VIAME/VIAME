@@ -34,6 +34,20 @@ set( VIAME_DOWNLOAD_DIR             "${VIAME_PACKAGES_DIR}/downloads" )
 option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
 option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
 
+if( VIAME_DOWNLOAD_MODELS )
+  option( VIAME_DOWNLOAD_MODELS-HABCAM   "Download habcam detection models"   ON )
+  option( VIAME_DOWNLOAD_MODELS-MOUSS    "Download mouss detection models"    ON )
+  option( VIAME_DOWNLOAD_MODELS-PYTORCH  "Download pytorch models"            ON )
+
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOUSS )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
+else()
+  set( VIAME_DOWNLOAD_MODELS-HABCAM  OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-MOUSS   OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-PYTORCH OFF CACHE BOOL "Forced off" FORCE )
+endif()
+
 ###
 # GPU and FFMPEG utilization flags used across projects
 ##
@@ -46,6 +60,7 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  OFF )
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
+option( VIAME_ENABLE_FLASK          "Enable Flask GUIs"             OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
 
 ###
@@ -56,6 +71,7 @@ option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         OFF )
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
+option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        OFF )
 option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugin"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
@@ -63,7 +79,6 @@ option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
-option( VIAME_ENABLE_FLASK          "Enable SRI GUI"                OFF )
 
 
 ###
@@ -102,7 +117,7 @@ if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"   FORCE )
 endif()
 
-if( VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_SMQTK )
+if( VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"   FORCE )
 endif()
 
@@ -236,6 +251,9 @@ endif()
 
 # Include internal common CMake macros used across all CMakeLists.txt
 include( common_macros )
+
+# Include checks across all prior versions of the code
+include( old_version_checks )
 
 ###
 # Main build loop for when we are building both VIAME and all dependencies

@@ -1,15 +1,18 @@
 # =============================================================================
 process input
   :: frame_list_input
-  :image_list_file     input_list.txt
-  :frame_time          .3333
-  :image_reader:type   ocv
+  :image_list_file                   input_list.txt
+  :frame_time                        .3333
+  :image_reader:type                 ocv
 
 # =============================================================================
 process detector
   :: image_object_detector
   :detector:type                     scallop_tk
-  :detector:scallop_tk:config_file   models/scallop_tk/SYSTEM_SETTINGS
+
+  block detector:scallop_tk
+    relativepath config_file =       models/scallop_tk/SYSTEM_SETTINGS
+  endblock
 
 # =============================================================================
 process draw
@@ -24,9 +27,9 @@ process draw
 # =============================================================================
 process disp
   :: image_viewer
-  :annotate_image      true
-  :pause_time          0  # 1.0
-  :title               NOAA images
+  :annotate_image                    true
+  :pause_time                        0  # 1.0
+  :title                             NOAA images
 
 # =============================================================================
 # global pipeline config

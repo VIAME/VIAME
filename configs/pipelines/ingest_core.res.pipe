@@ -24,22 +24,25 @@ process detector
   :: image_object_detector
   :detector:type                               darknet
 
-  # Network config
-  relativepath detector:darknet:net_config  =  models/yolo_v2_960_salsa.cfg
-  relativepath detector:darknet:weight_file =  models/yolo_v2_960_salsa.weights
-  relativepath detector:darknet:class_names =  models/yolo_v2_960_salsa.lbl
+  block detector:darknet
 
-  # Detector parameters
-  :detector:darknet:thresh                     0.01
-  :detector:darknet:hier_thresh                0.001
-  :detector:darknet:gpu_index                  0
+    # Network config, weights, and names
+    relativepath net_config  =                 models/default_yolo_v2.cfg
+    relativepath weight_file =                 models/default_yolo_v2.weights
+    relativepath class_names =                 models/default_yolo_v2.lbl
 
-  # Image scaling parameters
-  :detector:darknet:resize_option              chip_and_original
-  :detector:darknet:resize_ni                  960
-  :detector:darknet:resize_nj                  960
-  :detector:darknet:chip_step                  850
-  :detector:darknet:scale                      2.0
+    # Detector parameters
+    :thresh                                    0.001
+    :hier_thresh                               0.001
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             maintain_ar
+    :resize_ni                                 544
+    :resize_nj                                 544
+    :scale                                     1.0
+
+  endblock
 
 process detector_writer
   :: detected_object_output
@@ -64,7 +67,7 @@ process resnet
   :resnet_model_input_size                     224
   :resnet_batch_size                           32
   :gpu_list                                    0
-  relativepath resnet_model_path =             models/resnet50_default.pt
+  relativepath resnet_model_path =             models/pytorch-resnet50.pt
 
 connect from downsampler.output_1
         to   resnet.image

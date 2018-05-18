@@ -190,7 +190,7 @@ if __name__ == "__main__" :
                       help="Input directory containing videos and results")
 
   parser.add_argument("-c", dest="context_file",
-                      default="configs" + div + "context_view_bluemarble_low_res.kst",
+                      default="gui-params" + div + "context_view_bluemarble_low_res.kst",
                       help="GUI context file for display on left panel")
 
   parser.add_argument("-s", dest="style", default="",
@@ -201,7 +201,7 @@ if __name__ == "__main__" :
                       help="Turn on the engineer UI (add developer options).")
 
   parser.add_argument("-qp", dest="query_pipe",
-                      default="configs" + div + "query_retrieval_and_iqr.tut.pipe",
+                      default="pipelines" + div + "query_retrieval_and_iqr.tut.pipe",
                       help="Pipeline for performing new system queries")
 
   parser.add_argument("-qd", dest="query_dir",
@@ -209,15 +209,15 @@ if __name__ == "__main__" :
                       help="Directory for writing new queries and configs to")
 
   parser.add_argument("-cd", dest="cache_dir",
-                      default="database" + div + "Queries" + div + "Cache",
+                      default="disabled",
                       help="Directory for caching repeated queries")
 
   parser.add_argument("-pd", dest="predefined_dir",
-                      default="configs" + div + "predefined_queries",
+                      default="pipelines" + div + "predefined_queries",
                       help="Predefined query directory, if present")
 
   parser.add_argument("-gt", dest="gui_theme",
-                      default="configs" + div + "dark_gui_settings.ini",
+                      default="gui-params" + div + "dark_gui_settings.ini",
                       help="Predefined query directory, if present")
 
   parser.add_argument("--no-reconfig", dest="no_reconfig", action="store_true",

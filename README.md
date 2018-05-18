@@ -34,18 +34,18 @@ The [VIAME manual](http://viame.readthedocs.io/en/latest/) is more comprehensive
 but select entries are also listed below, which include some run examples:
 
 
-[Build and Install Guide](examples/building_viame) <> 
+[Build and Install Guide](examples/building_and_installing_viame) <> 
 [KWIVER Overview](https://github.com/Kitware/kwiver) <> 
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
-[Object Detector Examples](examples/detector_pipelines) <br />
+[Object Detector Examples](examples/object_detection) <br />
 [Stereo Measurement Examples](examples/measurement_using_stereo) <> 
 [Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
 [How to Integrate Your Own Plugin](examples/hello_world_pipeline) <br />
 [Example Integrations](plugins) <>
 [Example Plugin Templates](plugins/templates) <> 
-[GUIs for Visualization and Annotation](examples/visualizing_detections_in_gui) <> 
-[Detector Training API](examples/detector_training) <br />
-[Video Search for Object Matching and Model Generation](examples/image_and_video_search) <> 
+[GUIs for Visualization and Annotation](examples/annotation_and_visualization) <> 
+[Detector Training API](examples/object_detector_training) <br />
+[Video Search for Object Matching and Model Generation](examples/search_and_rapid_model_generation) <> 
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation)
 
 
@@ -70,7 +70,7 @@ Python 2.7, and no matlab support enabled:
 Quick Build Instructions
 ------------------------
 
-More in-depth build instructions can be found [here](examples/building_viame), but
+More in-depth build instructions can be found [here](examples/building_and_installing_viame), but
 VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
 [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
@@ -116,6 +116,7 @@ such as OpenCV) then the dependency flag will be forced to on.
 | VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
 | VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes (pixel classifiers, FRCNN dependency)          |
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes                                           |
+| VIAME_ENABLE_PYTORCH         | Installs all pytorch proccesses (detectors, classifiers)                              |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
 | VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |

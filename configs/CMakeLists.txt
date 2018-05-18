@@ -1,3 +1,73 @@
+
+###
+# Download and install enabled model files
+##
+if( VIAME_DOWNLOAD_MODELS )
+
+  # GUI Context View
+  DownloadAndExtract(
+    https://data.kitware.com/api/v1/item/5afe6c018d777f15ebe1d6f2/download
+    7e8800cb11a1a491140e7f58e9053030
+    ${VIAME_DOWNLOAD_DIR}/models-blue_marble_context-v1.0.0.tar.gz
+    ${CMAKE_CURRENT_SOURCE_DIR}/gui-params )
+
+  # PyTorch Tracking Models
+  if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5afe6d6d8d777f15ebe1d6f9/download
+      f1fd5436c80911e9e3357835db4cdffd
+      ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5afe6d678d777f15ebe1d6f6/download
+      fadc40de1f50b7b502d4a9b1d809cf28
+      ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+  endif()
+
+  # Default Caffe Models
+  if( VIAME_ENABLE_CAFFE )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5afe6e1e8d777f15ebe1d6fc/download
+      2cdbe7ca51b49b12e59911aadec20e98
+      ${VIAME_DOWNLOAD_DIR}/models-default_caffe_descriptor-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+  endif()
+
+  # Default YOLO Configs
+  if( VIAME_ENABLE_YOLO )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5afe74f68d777f15ebe1d709/download
+      8240b4939cc54383662ba9cdb0fc5206
+      ${VIAME_DOWNLOAD_DIR}/models-default_yolo_v2-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5afe74e68d777f15ebe1d703/download
+      989ee1e694b736edf08eb7ed2c0337ab
+      ${VIAME_DOWNLOAD_DIR}/models-yolo_v2_seed_model-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+
+    if( VIAME_DOWNLOAD_MODELS-HABCAM )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5afe74ef8d777f15ebe1d706/download
+        6ff52ef53d995d1216af87e0a255b16f
+        ${VIAME_DOWNLOAD_DIR}/models-habcam-v1.0.0.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
+  endif()
+
+  # Default Faster-RCNN Models
+  if( VIAME_ENABLE_FASTER_RCNN )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5afe74fc8d777f15ebe1d70c/download
+      e4792d72721465a206580522c37d0000
+      ${VIAME_DOWNLOAD_DIR}/models-default_faster_rcnn-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+  endif()
+endif()
+
 ###
 # All subdirectories for this folder
 ##
@@ -19,10 +89,3 @@ set( RUN_SCRIPT_FILES
 
 install( FILES       ${RUN_SCRIPT_FILES}
          DESTINATION configs )
-
-###
-# Download and install enabled model files
-##
-if( VIAME_DOWNLOAD_MODELS )
-
-endif()
