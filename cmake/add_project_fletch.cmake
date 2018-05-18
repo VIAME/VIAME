@@ -184,15 +184,15 @@ ExternalProject_Add(fletch
     -P ${VIAME_SOURCE_DIR}/cmake/custom_fletch_install.cmake
   )
 
-if (VIAME_FORCEBUILD)
-ExternalProject_Add_Step(fletch forcebuild
-  COMMAND ${CMAKE_COMMAND}
-    -E remove ${VIAME_BUILD_PREFIX}/src/fletch-stamp/fletch-build
-  COMMENT "Removing build stamp file for build update (forcebuild)."
-  DEPENDEES configure
-  DEPENDERS build
-  ALWAYS 1
-  )
+if( VIAME_FORCEBUILD )
+  ExternalProject_Add_Step(fletch forcebuild
+    COMMAND ${CMAKE_COMMAND}
+      -E remove ${VIAME_BUILD_PREFIX}/src/fletch-stamp/fletch-build
+    COMMENT "Removing build stamp file for build update (forcebuild)."
+    DEPENDEES configure
+    DEPENDERS build
+    ALWAYS 1
+    )
 endif()
 
 if( WIN32 )
