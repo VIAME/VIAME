@@ -8,8 +8,8 @@ Overview
 ********
 
 This document corresponds to `this online example`_, in addition to the
-examples/object_tracking_training folder in a VIAME installation.
+examples/object_tracker_training folder in a VIAME installation.
 
-.. _this online example: https://github.com/Kitware/VIAME/tree/master/examples/object_tracking_training
+.. _this online example: https://github.com/Kitware/VIAME/tree/master/examples/object_tracker_training
 
 Coming Soon....
