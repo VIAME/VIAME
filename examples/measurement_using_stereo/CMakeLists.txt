@@ -1,6 +1,6 @@
 set( EXAMPLE_INSTALL_FILES
      README.rst
-     calibration.npz
+     calibration_matrices.npz
      cam1_images.txt
      cam2_images.txt )
 
