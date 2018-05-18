@@ -1,6 +1,8 @@
 set( EXAMPLE_INSTALL_FILES
      README.rst
-     calibration.npz )
+     calibration.npz
+     cam1_images.txt
+     cam2_images.txt )
 
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
