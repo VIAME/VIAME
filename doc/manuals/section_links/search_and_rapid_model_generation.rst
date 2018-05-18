@@ -1,6 +1,6 @@
-.. include:: ../../../examples/image_and_video_search/README.rst
-.. include:: ../../../examples/image_and_video_search/smqtk_on_chips/README.rst
-.. include:: ../../../examples/image_and_video_search/video_ingest/README.rst
+.. include:: ../../../examples/search_and_rapid_model_generation/README.rst
+.. include:: ../../../examples/search_and_rapid_model_generation/smqtk_on_chips/README.rst
+.. include:: ../../../examples/search_and_rapid_model_generation/video_ingest/README.rst
 
 ======================
 Rapid Model Generation

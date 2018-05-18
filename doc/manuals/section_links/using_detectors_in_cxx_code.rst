@@ -1,1 +1,1 @@
-.. include:: ../../../examples/using_detectors_in_gui/README.rst
+.. include:: ../../../examples/using_detectors_in_cxx_code/README.rst
