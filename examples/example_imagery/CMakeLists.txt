@@ -31,16 +31,13 @@ if( VIAME_DOWNLOAD_MODELS )
     examples/example_imagery
     mouss_example_image_set1 )
 
-  # Download default caffe classification models
-  if( VIAME_ENABLE_CAFFE )
-    DownloadExtractAndInstall(
-      https://data.kitware.com/api/v1/item/5a83a7d88d777f0685782a56/download
-      2cdbe7ca51b49b12e59911aadec20e98
-      ${VIAME_DOWNLOAD_DIR}/default_caffe_models_v0.1.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR}
-      examples/example_imagery
-      models )
-  endif()
-
+  # Download camtrawl image set 1
+  DownloadExtractAndInstall(
+    https://data.kitware.com/api/v1/item/5ada492b8d777f0685794c86/download
+    fef401788fbba63d530ae6fda05b129b
+    ${VIAME_DOWNLOAD_DIR}/camtrawl_set1.tar.gz
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    examples/example_imagery
+    camtrawl_data )
 endif()
 

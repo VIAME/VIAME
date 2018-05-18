@@ -1,5 +1,4 @@
 set( EXAMPLE_INSTALL_FILES
-     measurement_example.pipe
      README.rst )
 
 if( WIN32 )
