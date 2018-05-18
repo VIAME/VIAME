@@ -63,7 +63,7 @@ option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
-option( VIAME_ENABLE_FLASK          "Enable SRI GUI"                OFF )
+option( VIAME_ENABLE_FLASK          "Enable Flask GUI"              OFF )
 
 
 ###
