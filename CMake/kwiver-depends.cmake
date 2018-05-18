@@ -8,7 +8,7 @@ include( kwiver-depends-log4cxx )
 include( kwiver-depends-log4cplus )
 
 # Required for Sprokit and Track Oracle
-if(KWIVER_ENABLE_SPROKIT OR KWIVER_ENABLE_TRACK_ORACLE)
+if(KWIVER_ENABLE_SPROKIT OR KWIVER_ENABLE_TRACK_ORACLE OR KWIVER_ENABLE_SVM)
   include( kwiver-depends-Boost )
 endif()
 
@@ -32,4 +32,5 @@ if(KWIVER_ENABLE_ARROWS)
   include( kwiver-depends-Burn-Out )
   include( kwiver-depends-uuid )
   include( kwiver-depends-kpf )
+  include( kwiver-depends-SVM )
 endif()

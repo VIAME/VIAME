@@ -19,6 +19,11 @@ if( KWIVER_ENABLE_OPENCV )
   add_subdirectory( ocv )
 endif()
 
+# Add SVM plugin if enabled
+if( KWIVER_ENABLE_SVM)
+  add_subdirectory( svm )
+endif()
+
 # Add PROJ plugin if enabled
 if( KWIVER_ENABLE_PROJ )
   add_subdirectory( proj )
