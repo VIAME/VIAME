@@ -2,8 +2,10 @@
 
 # Setup VIAME Paths (no need to run multiple times if you already ran it)
 
-source ../../setup_viame.sh
+export VIAME_INSTALL=./../..
+
+source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run vpView
 
-../../vpView.app/Contents/MacOS/vpView
+${VIAME_INSTALL}/vpView.app/Contents/MacOS/vpView
