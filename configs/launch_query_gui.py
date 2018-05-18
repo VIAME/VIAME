@@ -209,7 +209,7 @@ if __name__ == "__main__" :
                       help="Directory for writing new queries and configs to")
 
   parser.add_argument("-cd", dest="cache_dir",
-                      default="database" + div + "Queries" + div + "Cache",
+                      default="disabled",
                       help="Directory for caching repeated queries")
 
   parser.add_argument("-pd", dest="predefined_dir",

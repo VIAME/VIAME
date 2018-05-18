@@ -5,26 +5,26 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 5
+       :capacity                    5
 
 # ================================= INPUT VIDEO ====================================
 #process input
 #  :: video_input
-#  :input_name      [video_name]
-#  :video_io:type   vidl_ffmpeg
+#  :input_name                       [video_name]
+#  :video_io:type                    vidl_ffmpeg
 
 process input
   :: frame_list_input
-  :image_list_file     input_list.txt
-  :frame_time          .03333
-  :image_reader:type   ocv
+  :image_list_file                  input_list.txt
+  :frame_time                       .03333
+  :image_reader:type                ocv
 
 # ================================= DOWNSAMPLER ====================================
 
 #process downsampler
 #  :: image_object_detector
-#  :downsampler:type       core
-#  :downsampler:frame_rate 10
+#  :downsampler:type                core
+#  :downsampler:frame_rate          10
 
 #connect from input.image
 #        to   downsampler.image
@@ -33,23 +33,27 @@ process input
 
 process detector
   :: image_object_detector
-  :detector:type                darknet
+  :detector:type                    darknet
 
   # Network config
-  :detector:darknet:net_config  ../../detector_pipelines/models/default_yolo_v2.cfg
-  :detector:darknet:weight_file ../../detector_pipelines/models/default_yolo_v2.weights
-  :detector:darknet:class_names ../../detector_pipelines/models/default_yolo_v2.lbl
+  block detector:darknet
+
+    relativepath net_config  =      models/default_yolo_v2.cfg
+    relativepath weight_file =      models/default_yolo_v2.weights
+    relativepath class_names =      models/default_yolo_v2.lbl
+
+  endblock
 
   # Detector parameters
-  :detector:darknet:thresh      0.25
-  :detector:darknet:hier_thresh 0.01
-  :detector:darknet:gpu_index   0
+  :detector:darknet:thresh          0.25
+  :detector:darknet:hier_thresh     0.01
+  :detector:darknet:gpu_index       0
 
   # Image scaling parameters
-  :detector:darknet:resize_option maintain_ar
-  :detector:darknet:resize_ni   544
-  :detector:darknet:resize_nj   544
-  :detector:darknet:scale       1.0
+  :detector:darknet:resize_option   maintain_ar
+  :detector:darknet:resize_ni       544
+  :detector:darknet:resize_nj       544
+  :detector:darknet:scale           1.0
 
 #connect from downsampler.image
 #        to   detector.image
@@ -60,8 +64,8 @@ connect from input.image
 
 process chipper
   :: refine_detections
-  :refiner:type                ocv_write
-  :refiner:ocv_write:pattern   tiles/detection_%05d.png
+  :refiner:type                     ocv_write
+  :refiner:ocv_write:pattern        tiles/detection_%05d.png
 
 #connect from downsampler.image
 #        to   chipper.image

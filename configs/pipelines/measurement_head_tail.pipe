@@ -15,26 +15,26 @@ config _scheduler
 
 process cam1_imread
   :: frame_list_input
-  :image_reader:type     ocv
-  :image_list_file       cam1_images.txt
-  :frame_time            0.03333333
+  :image_reader:type                           ocv
+  :image_list_file                             cam1_images.txt
+  :frame_time                                  0.03333333
 
 process cam1_detect
   :: camtrawl_detect_fish
 
 process cam2_imread
   :: frame_list_input
-  :image_reader:type     ocv
-  :image_list_file       cam2_images.txt
-  :frame_time            0.03333333
+  :image_reader:type                           ocv
+  :image_list_file                             cam2_images.txt
+  :frame_time                                  0.03333333
 
 process cam2_detect
   :: camtrawl_detect_fish
 
 process measure
   :: camtrawl_measure
-  :output_fpath          ./camtrawl_out.csv
-  :cal_fpath             ./camtrawl_data/cal.npz
+  :output_fpath                                ./output_raw_measurements.csv
+  :cal_fpath                                   ./calibration_matrices.npz
 
 connect from cam1_imread.image
         to   cam1_detect.image

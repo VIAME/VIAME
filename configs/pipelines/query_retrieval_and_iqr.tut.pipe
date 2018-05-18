@@ -22,20 +22,28 @@ process descriptor_generator
 
 connect from in_adapt.descriptor_request
         to   descriptor_generator.descriptor_request
+
+connect from descriptor_generator.track_descriptor_set
+        to   database_query_handler.track_descriptor_set
+connect from descriptor_generator.image_set
+        to   database_query_handler.image_set
+
 connect from descriptor_generator.track_descriptor_set
         to   out_adapt.track_descriptor_set
 
 # ==================================================================================
 process database_query_handler
- :: perform_query
- :external_handler                             true
- relativepath external_pipeline_file =         smqtk_query.pipe
- :database_folder                              $CONFIG{global:database_folder}
- :max_result_count                             50000
- :use_tracks_for_history                       true
- :merge_duplicate_results                      true
- :descriptor_query:type                        db
- :descriptor_query:db:conn_str                 postgresql:host=localhost;user=postgres
+  :: perform_query
+  :external_handler                             true
+  relativepath external_pipeline_file =         smqtk_query.pipe
+  #relativepath augmentation_pipeline_file =     augment_queries.res.pipe
+  :database_folder                              $CONFIG{global:database_folder}
+  :max_result_count                             50000
+  :use_tracks_for_history                       true
+  :merge_duplicate_results                      true
+  :unused_descriptors_as_negative               false
+  :descriptor_query:type                        db
+  :descriptor_query:db:conn_str                 postgresql:host=localhost;user=postgres
 
 connect from in_adapt.database_query
         to   database_query_handler.database_query

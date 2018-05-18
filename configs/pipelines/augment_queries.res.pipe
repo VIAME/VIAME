@@ -21,10 +21,8 @@ process augmenter
   :resnet_batch_size                           32
   :gpu_list                                    0
   :negative_sample_count                       500
-  :use_historical_database                     true
-  relativepath resnet_model_path =             models/resnet50_default.pt
-  relativepath historical_tree =               models/kdtree_stock_resnet_5ds.pickle
-  relativepath historical_database =           models/kd_tree_raw_data_5ds.pickle
+  :use_historical_database                     false
+  relativepath resnet_model_path =             models/pytorch-resnet50.pt
 
 connect from in_adapt.image
         to   augmenter.image
