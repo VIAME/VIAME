@@ -16,6 +16,6 @@ if( EXISTS ${VIAME_BUILD_PREFIX}/src/fletch-build/CMakeCache.txt )
       "to version 8.0 for the latest GUIs. A full re-build is recommended, but "
       "alternatively you can delete [build]/build/src/fletch-build/CMakeCache.txt, "
       "[build]/build/src/fletch-build/build/src/VTK*, and "
-      "[build]/build/src/fletch-stamp" )
+      "[build]/build/src/fletch-stamp and [build]/build/src/vivia-build" )
   endif()
 endif()
