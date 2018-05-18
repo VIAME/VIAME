@@ -237,6 +237,9 @@ endif()
 # Include internal common CMake macros used across all CMakeLists.txt
 include( common_macros )
 
+# Include checks across all prior versions of the code
+include( old_version_checks )
+
 ###
 # Main build loop for when we are building both VIAME and all dependencies
 ##
