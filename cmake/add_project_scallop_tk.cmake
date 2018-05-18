@@ -52,7 +52,7 @@ ExternalProject_Add(scallop_tk
     -DBUILD_TESTS:BOOL=OFF
     -DENABLE_CAFFE:BOOL=${VIAME_ENABLE_CAFFE}
     -DCAFFE_CPU_ONLY:BOOL=${SCALLOP_TK_CPU_ONLY}
-    -DMODEL_INSTALL_DIR:PATH=examples/detector_pipelines/models/scallop_tk
+    -DMODEL_INSTALL_DIR:PATH=configs/pipelines/models/scallop_tk
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
