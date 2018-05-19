@@ -222,11 +222,7 @@ image_io
     gdalDataset->GetGeoTransform(geo_transform);
 
     OGRSpatialReference osrs;
-    auto proj_ptr = gdalDataset->GetProjectionRef();
-    char* wktDesc = new char[strlen(proj_ptr)];
-    strcpy( wktDesc, proj_ptr ); // Copy needed due const/non-const api conflicts
-    char* tmpPtr = wktDesc; // This gets advanced by importFromWkt
-    osrs.importFromWkt( &tmpPtr );
+    osrs.importFromWkt( gdalDataset->GetProjectionRef() );
 
     // If coordinate system available - calculate corner points.
     if ( osrs.GetAuthorityCode("GEOGCS") )
@@ -240,8 +236,6 @@ image_io
       md->add( NEW_METADATA_ITEM( vital::VITAL_META_CORNER_POINTS,
         vital::geo_polygon( points, atoi( osrs.GetAuthorityCode("GEOGCS") ) ) ) );
     }
-
-    delete[] wktDesc;
 
     // Get RPC metadata
     char** rpc_metadata = gdalDataset->GetMetadata("RPC");
