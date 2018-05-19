@@ -47,7 +47,8 @@ kwiver_add_executable( viame_train_detector
 find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
     COMPONENTS
       chrono
-      filesystem)
+      filesystem
+      system)
 
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
