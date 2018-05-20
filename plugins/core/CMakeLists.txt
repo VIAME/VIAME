@@ -1,11 +1,19 @@
 # Build / Install Plugin containing core algorithm implementations
 
 set( plugin_headers
-  detected_object_set_input_habcam.h
+  read_detected_object_set_habcam.h
+  read_detected_object_set_viame_csv.h
+  read_object_track_set_viame_csv.h
+  write_detected_object_set_viame_csv.h
+  write_object_track_set_viame_csv.h
   )
 
 set( plugin_sources
-  detected_object_set_input_habcam.cxx
+  read_detected_object_set_habcam.cxx
+  read_detected_object_set_viame_csv.cxx
+  read_object_track_set_viame_csv.cxx
+  write_detected_object_set_viame_csv.cxx
+  writw_object_track_set_viame_csv.cxx
   )
 
 kwiver_install_headers(

@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief Interface for detected_object_set_input_habcam
+ * \brief Interface for read_detected_object_set_habcam
  */
 
-#ifndef KWIVER_VIAME_CORE_DETECTED_OBJECT_SET_INPUT_HABCAM_H
-#define KWIVER_VIAME_CORE_DETECTED_OBJECT_SET_INPUT_HABCAM_H
+#ifndef KWIVER_VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
+#define KWIVER_VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
 
 
 #include <vital/vital_config.h>
@@ -46,13 +46,13 @@
 
 namespace viame {
 
-class VIAME_CORE_EXPORT detected_object_set_input_habcam
-  : public kwiver::vital::algorithm_impl< detected_object_set_input_habcam,
+class VIAME_CORE_EXPORT read_detected_object_set_habcam
+  : public kwiver::vital::algorithm_impl< read_detected_object_set_habcam,
       kwiver::vital::algo::detected_object_set_input >
 {
 public:
-  detected_object_set_input_habcam();
-  virtual ~detected_object_set_input_habcam();
+  read_detected_object_set_habcam();
+  virtual ~read_detected_object_set_habcam();
 
   virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
@@ -68,4 +68,4 @@ private:
 
 } // end namespace
 
-#endif // KWIVER_VIAME_CORE_DETECTED_OBJECT_SET_INPUT_HABCAM_H
+#endif // KWIVER_VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H

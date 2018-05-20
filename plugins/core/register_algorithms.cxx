@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,11 @@
 #include <plugins/core/viame_core_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
-#include "detected_object_set_input_habcam.h"
+#include "read_detected_object_set_habcam.h"
+#include "read_detected_object_set_viame_csv.h"
+#include "write_detected_object_set_viame_csv.h"
+#include "read_object_track_set_viame_csv.h"
+#include "write_object_track_set_viame_csv.h"
 
 namespace viame {
 
@@ -52,7 +56,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "habcam", viame::detected_object_set_input_habcam );
+  auto fact = vpm.ADD_ALGORITHM( "habcam", viame::read_detected_object_set_habcam );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Reads habcam detection/ground truth files and creates detected_object_sets.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
