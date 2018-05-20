@@ -30,21 +30,19 @@
 
 /**
  * \file
- * \brief Implementation of read_object_track_set_kw18
+ * \brief Implementation of read_object_track_set_viame_csv
  */
 
-#include "read_object_track_set_kw18.h"
+#include "read_object_track_set_viame_csv.h"
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
 
 #include <kwiversys/SystemTools.hxx>
 
-namespace kwiver {
-namespace arrows {
-namespace core {
+namespace viame {
 
-// field numbers for KW18 file format
+// field numbers for VIAME_CSV file format
 enum{
   COL_ID = 0,   // 0: Object ID
   COL_LEN,      // 1: Track length (always 1 for detections)
@@ -68,12 +66,12 @@ enum{
 };
 
 // -------------------------------------------------------------------------------
-class read_object_track_set_kw18::priv
+class read_object_track_set_viame_csv::priv
 {
 public:
-  priv( read_object_track_set_kw18* parent )
+  priv( read_object_track_set_viame_csv* parent )
     : m_parent( parent )
-    , m_logger( vital::get_logger( "read_object_track_set_kw18" ) )
+    , m_logger( kwiver::vital::get_logger( "read_object_track_set_viame_csv" ) )
     , m_first( true )
     , m_batch_load( true )
     , m_delim( " " )
@@ -83,49 +81,49 @@ public:
 
   ~priv() {}
 
-  read_object_track_set_kw18* m_parent;
-  vital::logger_handle_t m_logger;
+  read_object_track_set_viame_csv* m_parent;
+  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   bool m_batch_load;
   std::string m_delim;
 
-  vital::frame_id_t m_current_idx;
-  vital::frame_id_t m_last_idx;
+  kwiver::vital::frame_id_t m_current_idx;
+  kwiver::vital::frame_id_t m_last_idx;
 
   void read_all();
 
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
-  std::map< vital::frame_id_t, std::vector< vital::track_sptr > > m_tracks_by_frame_id;
+  std::map< kwiver::vital::frame_id_t, std::vector< kwiver::vital::track_sptr > > m_tracks_by_frame_id;
 
   // Compilation of all loaded tracks, track id -> track sptr mapping
-  std::map< vital::frame_id_t, vital::track_sptr > m_all_tracks;
+  std::map< kwiver::vital::frame_id_t, kwiver::vital::track_sptr > m_all_tracks;
 
   // Compilation of all loaded track IDs, track id -> type string
-  std::map< vital::frame_id_t, std::string > m_track_ids;
+  std::map< kwiver::vital::frame_id_t, std::string > m_track_ids;
 };
 
 
 // ===============================================================================
-read_object_track_set_kw18
-::read_object_track_set_kw18()
-  : d( new read_object_track_set_kw18::priv( this ) )
+read_object_track_set_viame_csv
+::read_object_track_set_viame_csv()
+  : d( new read_object_track_set_viame_csv::priv( this ) )
 {
 }
 
 
-read_object_track_set_kw18
-::~read_object_track_set_kw18()
+read_object_track_set_viame_csv
+::~read_object_track_set_viame_csv()
 {
 }
 
 
 // -------------------------------------------------------------------------------
 void
-read_object_track_set_kw18
+read_object_track_set_viame_csv
 ::open( std::string const& filename )
 {
-  vital::algo::read_object_track_set::open( filename );
+  kwiver::vital::algo::read_object_track_set::open( filename );
 
   d->m_first = true;
 
@@ -137,8 +135,8 @@ read_object_track_set_kw18
 
 // -------------------------------------------------------------------------------
 void
-read_object_track_set_kw18
-::set_configuration(vital::config_block_sptr config)
+read_object_track_set_viame_csv
+::set_configuration(kwiver::vital::config_block_sptr config)
 {
   d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
   d->m_batch_load = config->get_value<bool>( "batch_load", d->m_batch_load );
@@ -147,8 +145,8 @@ read_object_track_set_kw18
 
 // -------------------------------------------------------------------------------
 bool
-read_object_track_set_kw18
-::check_configuration( vital::config_block_sptr config ) const
+read_object_track_set_viame_csv
+::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -156,8 +154,8 @@ read_object_track_set_kw18
 
 // -------------------------------------------------------------------------------
 bool
-read_object_track_set_kw18
-::read_set( vital::object_track_set_sptr& set )
+read_object_track_set_viame_csv
+::read_set( kwiver::vital::object_track_set_sptr& set )
 {
   if( d->m_first )
   {
@@ -168,14 +166,14 @@ read_object_track_set_kw18
 
   if( d->m_batch_load )
   {
-    std::vector< vital::track_sptr > trks;
+    std::vector< kwiver::vital::track_sptr > trks;
 
     for( auto it = d->m_all_tracks.begin(); it != d->m_all_tracks.end(); ++it )
     {
       trks.push_back( it->second );
     }
 
-    set = vital::object_track_set_sptr( new vital::object_track_set( trks ) );
+    set = kwiver::vital::object_track_set_sptr( new kwiver::vital::object_track_set( trks ) );
     return true;
   }
 
@@ -183,13 +181,13 @@ read_object_track_set_kw18
   if( d->m_tracks_by_frame_id.count( d->m_current_idx ) == 0 )
   {
     // Return empty set
-    set = std::make_shared< vital::object_track_set>();
+    set = std::make_shared< kwiver::vital::object_track_set>();
   }
   else
   {
     // Return tracks for this frame
-    vital::object_track_set_sptr new_set(
-      new vital::object_track_set(
+    kwiver::vital::object_track_set_sptr new_set(
+      new kwiver::vital::object_track_set(
         d->m_tracks_by_frame_id[ d->m_current_idx ] ) );
 
     set = new_set;
@@ -204,11 +202,11 @@ read_object_track_set_kw18
 
 // -------------------------------------------------------------------------------
 void
-read_object_track_set_kw18::priv
+read_object_track_set_viame_csv::priv
 ::read_all()
 {
   std::string line;
-  vital::data_stream_reader stream_reader( m_parent->stream() );
+  kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
 
   m_tracks_by_frame_id.clear();
   m_all_tracks.clear();
@@ -240,16 +238,16 @@ read_object_track_set_kw18::priv
     }
 
     std::vector< std::string > col;
-    vital::tokenize( line, col, m_delim, true );
+    kwiver::vital::tokenize( line, col, m_delim, true );
 
     if( ( col.size() < 18 ) || ( col.size() > 20 ) )
     {
       std::stringstream str;
 
-      str << "This is not a kw18 kw19 or kw20 file; found "
+      str << "This is not a viame_csv kw19 or kw20 file; found "
           << col.size() << " columns in\n\"" << line << "\"";
 
-      throw vital::invalid_data( str.str() );
+      throw kwiver::vital::invalid_data( str.str() );
     }
 
     /*
@@ -261,11 +259,11 @@ read_object_track_set_kw18::priv
      * This allows for track states to be written in a non-contiguous
      * manner as may be done by streaming writers.
      */
-    vital::frame_id_t frame_index = atoi( col[COL_FRAME].c_str() );
-    vital::time_us_t frame_time = atof( col[COL_TIME].c_str() );
+    kwiver::vital::frame_id_t frame_index = atoi( col[COL_FRAME].c_str() );
+    kwiver::vital::time_us_t frame_time = atof( col[COL_TIME].c_str() );
     int track_index = atoi( col[COL_ID].c_str() );
 
-    vital::bounding_box_d bbox(
+    kwiver::vital::bounding_box_d bbox(
       atof( col[COL_MIN_X].c_str() ),
       atof( col[COL_MIN_Y].c_str() ),
       atof( col[COL_MAX_X].c_str() ),
@@ -279,19 +277,19 @@ read_object_track_set_kw18::priv
     }
 
     // Create new detection
-    vital::detected_object_sptr det =
-      std::make_shared< vital::detected_object >( bbox, conf );
+    kwiver::vital::detected_object_sptr det =
+      std::make_shared< kwiver::vital::detected_object >( bbox, conf );
 
     // Create new object track state
-    vital::track_state_sptr ots =
-      std::make_shared< vital::object_track_state >( frame_index, frame_time, det );
+    kwiver::vital::track_state_sptr ots =
+      std::make_shared< kwiver::vital::object_track_state >( frame_index, frame_time, det );
 
     // Assign object track state to track
-    vital::track_sptr trk;
+    kwiver::vital::track_sptr trk;
 
     if( m_all_tracks.count( track_index ) == 0 )
     {
-      trk = vital::track::create();
+      trk = kwiver::vital::track::create();
       trk->set_id( track_index );
       m_all_tracks[ track_index ] = trk;
     }
@@ -311,4 +309,4 @@ read_object_track_set_kw18::priv
   }
 }
 
-} } } // end namespace
+} // end namespace

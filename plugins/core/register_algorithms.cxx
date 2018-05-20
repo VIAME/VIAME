@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,59 +44,44 @@
 
 namespace viame {
 
+namespace {
+
+static auto const module_name         = std::string{ "viame.core" };
+static auto const module_version      = std::string{ "1.0" };
+static auto const module_organization = std::string{ "Kitware Inc." };
+
+// ----------------------------------------------------------------------------
+template <typename algorithm_t>
+void register_algorithm( kwiver::vital::plugin_loader& vpm )
+{
+  using kvpf = kwiver::vital::plugin_factory;
+
+  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
+  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
+       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
+       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
+       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
+       ;
+}
+
+}
+
 extern "C"
 VIAME_CORE_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "viame.core" );
   if (vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
-  // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "habcam", viame::read_detected_object_set_habcam );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Reads habcam detection/ground truth files and creates detected_object_sets.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  register_algorithm< read_detected_object_set_habcam >( vpm );
+  register_algorithm< read_detected_object_set_viame_csv >( vpm );
+  register_algorithm< write_detected_object_set_viame_csv >( vpm );
+  register_algorithm< read_object_track_set_viame_csv >( vpm );
+  register_algorithm< write_object_track_set_viame_csv >( vpm );
 
-  fact = vpm.ADD_ALGORITHM( "viame_csv", viame::read_detected_object_set_viame_csv );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Reads viame csv detection/ground truth files and creates detected_object_sets.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  fact = vpm.ADD_ALGORITHM( "viame_csv", viame::write_detected_object_set_viame_csv );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Writes viame csv detection/ground truth files and creates detected_object_sets.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  fact = vpm.ADD_ALGORITHM( "viame_csv", viame::read_object_track_set_viame_csv );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Reads viame csv track/ground truth files and creates object_track_sets.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  fact = vpm.ADD_ALGORITHM( "viame_csv", viame::write_object_track_set_viame_csv );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Writes viame csv track/ground truth files and creates object_track_sets.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  // - - - - - - -
   vpm.mark_module_as_loaded( module_name );
 }
 

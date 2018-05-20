@@ -30,41 +30,45 @@
 
 /**
  * \file
- * \brief Interface for read_object_track_set_kw18
+ * \brief Interface for read_object_track_set_viame_csv
  */
 
-#ifndef KWIVER_ARROWS_READ_OBJECT_TRACK_SET_KW18_H
-#define KWIVER_ARROWS_READ_OBJECT_TRACK_SET_KW18_H
+#ifndef VIAME_CORE_READ_OBJECT_TRACK_SET_VIAME_CSV_H
+#define VIAME_CORE_READ_OBJECT_TRACK_SET_VIAME_CSV_H
 
-#include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <plugins/core/viame_core_export.h>
 
 #include <vital/algo/read_object_track_set.h>
 
 #include <memory>
 
-namespace kwiver {
-namespace arrows {
-namespace core {
+namespace viame {
 
-class KWIVER_ALGO_CORE_EXPORT read_object_track_set_kw18
-  : public vital::algorithm_impl< read_object_track_set_kw18,
-      vital::algo::read_object_track_set >
+class VIAME_CORE_EXPORT read_object_track_set_viame_csv
+  : public kwiver::vital::algorithm_impl< read_object_track_set_viame_csv,
+      kwiver::vital::algo::read_object_track_set >
 {
 public:
 
-  static constexpr char const* name = "kw18";
+  static constexpr char const* name = "viame_csv";
 
   static constexpr char const* description =
-    "Object track set kw18 reader.";
+    "Object track set viame_csv reader.\n\n"
+    "  - Column(s) 1: Detection or Track-id\n"
+    "  - Column(s) 2: Video or Image List ID\n"
+    "  - Column(s) 3: Unique Frame Identifier\n"
+    "  - Column(s) 4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
+    "  - Column(s) 8: Detection confidence\n"
+    "  - Column(s) 8: Fish Length (0 or -1 if invalid)\n"
+    "  - Column(s) 9-10+: Repeated Species, Confidence pairs\n";
 
-  read_object_track_set_kw18();
-  virtual ~read_object_track_set_kw18();
+  read_object_track_set_viame_csv();
+  virtual ~read_object_track_set_viame_csv();
 
   virtual void open( std::string const& filename );
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   virtual bool read_set( kwiver::vital::object_track_set_sptr& set );
 
@@ -73,6 +77,6 @@ private:
   std::unique_ptr< priv > d;
 };
 
-} } } // end namespace
+} // end namespace
 
-#endif // KWIVER_ARROWS_READ_OBJECT_TRACK_SET_KW18_H
+#endif // VIAME_CORE_READ_OBJECT_TRACK_SET_VIAME_CSV_H

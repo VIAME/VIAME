@@ -33,11 +33,9 @@
  * \brief Interface for read_detected_object_set_habcam
  */
 
-#ifndef KWIVER_VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
-#define KWIVER_VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
+#ifndef VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
+#define VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
 
-
-#include <vital/vital_config.h>
 #include <plugins/core/viame_core_export.h>
 
 #include <vital/algo/detected_object_set_input.h>
@@ -51,6 +49,12 @@ class VIAME_CORE_EXPORT read_detected_object_set_habcam
       kwiver::vital::algo::detected_object_set_input >
 {
 public:
+  static constexpr char const* name = "habcam";
+
+  // NOTE: Keep description in sync with write_detected_object_set_viame_csv
+  static constexpr char const* description =
+    "Reads habcam-style detection/ground truth files.";
+
   read_detected_object_set_habcam();
   virtual ~read_detected_object_set_habcam();
 
@@ -68,4 +72,4 @@ private:
 
 } // end namespace
 
-#endif // KWIVER_VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H
+#endif // VIAME_CORE_READ_DETECTED_OBJECT_SET_HABCAM_H

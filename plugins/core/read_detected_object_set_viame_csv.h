@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,45 @@
 
 /**
  * \file
- * \brief Interface for detected_object_set_input_kw18
+ * \brief Interface for read_detected_object_set_viame_csv
  */
 
-#ifndef KWIVER_ARROWS_CORE_DETECTED_OBJECT_SET_INPUT_KW18_H
-#define KWIVER_ARROWS_CORE_DETECTED_OBJECT_SET_INPUT_KW18_H
+#ifndef VIAME_CORE_READ_DETECTED_OBJECT_SET_VIAME_CSV_H
+#define VIAME_CORE_READ_DETECTED_OBJECT_SET_VIAME_CSV_H
 
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <plugins/core/viame_core_export.h>
 
 #include <vital/algo/detected_object_set_input.h>
 
 #include <memory>
 
-namespace kwiver {
-namespace arrows {
-namespace core {
+namespace viame {
 
-class KWIVER_ALGO_CORE_EXPORT detected_object_set_input_kw18
-  : public vital::algorithm_impl<detected_object_set_input_kw18, vital::algo::detected_object_set_input>
+class VIAME_CORE_EXPORT read_detected_object_set_viame_csv
+  : public kwiver::vital::algorithm_impl<read_detected_object_set_viame_csv,
+      kwiver::vital::algo::detected_object_set_input>
 {
 public:
-  static constexpr char const* name = "kw18";
+  static constexpr char const* name = "viame_csv";
 
-  // NOTE: Keep description in sync with detected_object_set_output_kw18
+  // NOTE: Keep description in sync with write_detected_object_set_viame_csv
   static constexpr char const* description =
-    "Detected object set reader using kw18 format.\n\n"
-    "  - Column(s) 1: Track-id\n"
-    "  - Column(s) 2: Track-length (number of detections)\n"
-    "  - Column(s) 3: Frame-number (-1 if not available)\n"
-    "  - Column(s) 4-5: Tracking-plane-loc(x,y) (could be same as World-loc)\n"
-    "  - Column(s) 6-7: Velocity(x,y)\n"
-    "  - Column(s) 8-9: Image-loc(x,y)\n"
-    "  - Column(s) 10-13: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
-    " (location of top-left & bottom-right vertices)\n"
-    "  - Column(s) 14: Area\n"
-    "  - Column(s) 15-17: World-loc(x,y,z)"
-    " (longitude, latitude, 0 - when available)\n"
-    "  - Column(s) 18: Timesetamp (-1 if not available)\n"
-    "  - Column(s) 19: Track-confidence (-1 if not available)\n";
+    "Detected object set reader using viame_csv format.\n\n"
+    "  - Column(s) 1: Detection or Track-id\n"
+    "  - Column(s) 2: Video or Image List ID\n"
+    "  - Column(s) 3: Unique Frame Identifier\n"
+    "  - Column(s) 4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
+    "  - Column(s) 8: Detection confidence\n"
+    "  - Column(s) 8: Fish Length (0 or -1 if invalid)\n"
+    "  - Column(s) 9-10+: Repeated Species, Confidence pairs\n";
 
-  detected_object_set_input_kw18();
-  virtual ~detected_object_set_input_kw18();
+  read_detected_object_set_viame_csv();
+  virtual ~read_detected_object_set_viame_csv();
 
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  virtual void set_configuration(kwiver::vital::config_block_sptr config);
+  virtual bool check_configuration(kwiver::vital::config_block_sptr config) const;
 
-  virtual bool read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name );
+  virtual bool read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name );
 
 private:
   virtual void new_stream();
@@ -84,6 +77,6 @@ private:
   std::unique_ptr< priv > d;
 };
 
-} } } // end namespace
+} // end namespace
 
-#endif // KWIVER_ARROWS_CORE_DETECTED_OBJECT_SET_INPUT_KW18_H
+#endif // VIAME_CORE_READ_DETECTED_OBJECT_SET_VIAME_CSV_H

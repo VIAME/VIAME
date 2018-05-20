@@ -30,41 +30,46 @@
 
 /**
  * \file
- * \brief Interface for write_object_track_set_kw18
+ * \brief Interface for write_object_track_set_viame_csv
  */
 
-#ifndef KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_KW18_H
-#define KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_KW18_H
+#ifndef VIAME_CORE_WRITE_OBJECT_TRACK_SET_VIAME_CSV_H
+#define VIAME_CORE_WRITE_OBJECT_TRACK_SET_VIAME_CSV_H
 
-#include <vital/vital_config.h>
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <plugins/core/viame_core_export.h>
 
 #include <vital/algo/write_object_track_set.h>
 
 #include <memory>
 
-namespace kwiver {
-namespace arrows {
-namespace core {
+namespace viame {
 
-class KWIVER_ALGO_CORE_EXPORT write_object_track_set_kw18
-  : public vital::algorithm_impl< write_object_track_set_kw18,
-      vital::algo::write_object_track_set >
+class VIAME_CORE_EXPORT write_object_track_set_viame_csv
+  : public kwiver::vital::algorithm_impl< write_object_track_set_viame_csv,
+      kwiver::vital::algo::write_object_track_set >
 {
 public:
 
-  static constexpr char const* name = "kw18";
+  static constexpr char const* name = "viame_csv";
 
   static constexpr char const* description =
-    "Object track set kw18 writer.";
+    "Object track set viame_csv writer.\n\n"
+    "  - Column(s) 1: Detection or Track ID\n"
+    "  - Column(s) 2: Video or Image Identifier\n"
+    "  - Column(s) 3: Unique Frame Identifier\n"
+    "  - Column(s) 4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
+    "  - Column(s) 8: Detection Confidence\n"
+    "  - Column(s) 9: Target Length (0 or less if uncomputed)\n"
+    "  - Column(s) 10-11+: Repeated Species, Confidence Pairs\n";
 
-  write_object_track_set_kw18();
-  virtual ~write_object_track_set_kw18();
+  write_object_track_set_viame_csv();
+  virtual ~write_object_track_set_viame_csv();
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::timestamp& ts, const kwiver::vital::object_track_set_sptr set );
+  virtual void write_set( const kwiver::vital::timestamp& ts,
+                          const kwiver::vital::object_track_set_sptr set );
 
   virtual void close();
 
@@ -73,6 +78,6 @@ private:
   std::unique_ptr< priv > d;
 };
 
-} } } // end namespace
+} // end namespace
 
-#endif // KWIVER_ARROWS_WRITE_OBJECT_TRACK_SET_KW18_H
+#endif // VIAME_CORE_WRITE_OBJECT_TRACK_SET_VIAME_CSV_H

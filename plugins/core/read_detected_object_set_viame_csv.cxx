@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation for detected_object_set_input_kw18
+ * \brief Implementation for read_detected_object_set_viame_csv
  */
 
-#include "detected_object_set_input_kw18.h"
+#include "read_detected_object_set_viame_csv.h"
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
@@ -45,11 +45,9 @@
 #include <sstream>
 #include <cstdlib>
 
-namespace kwiver {
-namespace arrows {
-namespace core {
+namespace viame {
 
-// field numbers for KW18 file format
+// field numbers for VIAME_CSV file format
 enum{
   COL_ID = 0,             // 0: Object ID
   COL_LEN,                // 1: Track length (always 1 for detections)
@@ -73,10 +71,10 @@ enum{
 };
 
 // ------------------------------------------------------------------
-class detected_object_set_input_kw18::priv
+class read_detected_object_set_viame_csv::priv
 {
 public:
-  priv( detected_object_set_input_kw18* parent )
+  priv( read_detected_object_set_viame_csv* parent )
     : m_parent( parent )
     , m_first( true )
   { }
@@ -85,7 +83,7 @@ public:
 
   void read_all();
 
-  detected_object_set_input_kw18* m_parent;
+  read_detected_object_set_viame_csv* m_parent;
   bool m_first;
 
   int m_current_idx;
@@ -101,32 +99,32 @@ public:
 
 
 // ==================================================================
-detected_object_set_input_kw18::
-detected_object_set_input_kw18()
-  : d( new detected_object_set_input_kw18::priv( this ) )
+read_detected_object_set_viame_csv::
+read_detected_object_set_viame_csv()
+  : d( new read_detected_object_set_viame_csv::priv( this ) )
 {
-  attach_logger( "arrows.core.detected_object_set_input_kw18" );
+  attach_logger( "arrows.core.read_detected_object_set_viame_csv" );
 }
 
 
-detected_object_set_input_kw18::
-~detected_object_set_input_kw18()
+read_detected_object_set_viame_csv::
+~read_detected_object_set_viame_csv()
 {
 }
 
 
 // ------------------------------------------------------------------
 void
-detected_object_set_input_kw18::
-set_configuration(vital::config_block_sptr config)
+read_detected_object_set_viame_csv::
+set_configuration(kwiver::vital::config_block_sptr config)
 {
 }
 
 
 // ------------------------------------------------------------------
 bool
-detected_object_set_input_kw18::
-check_configuration(vital::config_block_sptr config) const
+read_detected_object_set_viame_csv::
+check_configuration(kwiver::vital::config_block_sptr config) const
 {
   return true;
 }
@@ -134,7 +132,7 @@ check_configuration(vital::config_block_sptr config) const
 
 // ------------------------------------------------------------------
 bool
-detected_object_set_input_kw18::
+read_detected_object_set_viame_csv::
 read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name )
 {
   if ( d->m_first )
@@ -174,7 +172,7 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
 
 // ------------------------------------------------------------------
 void
-detected_object_set_input_kw18::
+read_detected_object_set_viame_csv::
 new_stream()
 {
   d->m_first = true;
@@ -183,7 +181,7 @@ new_stream()
 
 // ==================================================================
 void
-detected_object_set_input_kw18::priv::
+read_detected_object_set_viame_csv::priv::
 read_all()
 {
   std::string line;
@@ -219,7 +217,7 @@ read_all()
     if ( ( col.size() < 18 ) || ( col.size() > 20 ) )
     {
       std::stringstream str;
-      str << "This is not a kw18 kw19 or kw20 file; found " << col.size()
+      str << "This is not a viame_csv kw19 or kw20 file; found " << col.size()
           << " columns in\n\"" << line << "\"";
       throw kwiver::vital::invalid_data( str.str() );
     }
@@ -283,4 +281,4 @@ read_all()
   } // ...while !eof
 } // read_all
 
-} } } // end namespace
+} // end namespace
