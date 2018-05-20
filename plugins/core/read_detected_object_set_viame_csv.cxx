@@ -47,6 +47,19 @@
 
 namespace viame {
 
+enum{
+  COL_DET_ID=0,  // 0: Object ID
+  COL_SOURCE_ID, // 1
+  COL_FRAME_ID,  // 2
+  COL_MIN_X,     // 3
+  COL_MIN_Y,     // 4
+  COL_MAX_X,     // 5
+  COL_MAX_Y,     // 6
+  COL_CONFIDENCE,// 7
+  COL_LENGTH,    // 8
+  COL_TOT        // 9
+};
+
 // -----------------------------------------------------------------------------------
 class read_detected_object_set_viame_csv::priv
 {
@@ -125,20 +138,37 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
     d->m_first = false;
 
     // set up iterators for returning sets.
-    d->m_current_idx = d->m_detection_by_id.begin()->first;
+    d->m_current_idx = 0;
     d->m_last_idx = d->m_detection_by_id.rbegin()->first;
   } // end first
 
-  // test for end of all loaded detections
+  // External image name provided, use that
+  if( !image_name.empty() )
+  {
+    // return detection set at current index if there is one
+    if( d->m_detection_by_str.find( image_name ) == d->m_detection_by_str.end() )
+    {
+      // return empty set
+      set = std::make_shared< kwiver::vital::detected_object_set>();
+    }
+    else
+    {
+      // Return detections for this frame.
+      set = d->m_detection_by_str[ image_name ];
+    }
+    return true;
+  }
+
+  // Test for end of all loaded detections
   if( d->m_current_idx > d->m_last_idx )
   {
     return false;
   }
 
-  // return detection set at current index if there is one
+  // Return detection set at current index if there is one
   if( d->m_detection_by_id.count( d->m_current_idx ) == 0 )
   {
-    // return empty set
+    // Return empty set
     set = std::make_shared< kwiver::vital::detected_object_set>();
   }
   else
@@ -170,37 +200,24 @@ read_all()
   std::string line;
   kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
 
-  // Check for types file
-  m_detection_ids.clear();
-
-  std::string types_fn = m_parent->filename() + ".types";
-
-  if( kwiversys::SystemTools::FileExists( types_fn ) )
-  {
-    std::ifstream fin( types_fn );
-    while( !fin.eof() )
-    {
-      int id;
-      std::string lbl;
-
-      fin >> id >> lbl;
-      m_detection_ids[id] = lbl;
-    }
-    fin.close();
-  }
-
   // Read detections
   m_detection_by_id.clear();
+  m_detection_by_str.clear();
 
-  while ( stream_reader.getline( line ) )
+  while( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, " ", kwiver::vital::TokenizeTrimEmpty );
+    kwiver::vital::tokenize( line, col, ",", kwiver::vital::TokenizeTrimEmpty );
 
-    if ( ( col.size() < 18 ) || ( col.size() > 20 ) )
+    if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
+    {
+      continue;
+    }
+
+    if( col.size() < 10 )
     {
       std::stringstream str;
-      str << "This is not a viame_csv kw19 or kw20 file; found " << col.size()
+      str << "This is not a viame_csv file; found " << col.size()
           << " columns in\n\"" << line << "\"";
       throw kwiver::vital::invalid_data( str.str() );
     }
@@ -214,12 +231,20 @@ read_all()
      * This allows for track states to be written in a non-contiguous
      * manner as may be done by streaming writers.
      */
-    int id = atoi( col[COL_ID].c_str() );
-    int index = atoi( col[COL_FRAME].c_str() );
-    if ( 0 == m_detection_by_id.count( index ) )
+    int frame_id = atoi( col[COL_FRAME_ID].c_str() );
+    std::string str_id = col[COL_SOURCE_ID];
+
+    if( m_detection_by_id.count( frame_id ) == 0 )
     {
       // create a new detection set entry
-      m_detection_by_id[ index ] = std::make_shared<kwiver::vital::detected_object_set>();
+      m_detection_by_id[ frame_id ] = std::make_shared<kwiver::vital::detected_object_set>();
+    }
+
+    if( !str_id.empty() &&
+        m_detection_by_str.count( str_id ) == 0 )
+    {
+      // create a new detection set entry
+      m_detection_by_str[ str_id ] = std::make_shared<kwiver::vital::detected_object_set>();
     }
 
     kwiver::vital::bounding_box_d bbox(
@@ -228,12 +253,7 @@ read_all()
       atof( col[COL_MAX_X].c_str() ),
       atof( col[COL_MAX_Y].c_str() ) );
 
-    double conf = 1.0;
-
-    if ( col.size() == 19 )
-    {
-      conf = atof( col[COL_CONFIDENCE].c_str() );
-    }
+    double conf = atof( col[COL_CONFIDENCE].c_str() );
 
     // Create detection
     kwiver::vital::detected_object_sptr dob;
@@ -247,20 +267,32 @@ read_all()
       kwiver::vital::detected_object_type_sptr dot =
         std::make_shared<kwiver::vital::detected_object_type>();
 
-      if( m_detection_ids.find( id ) != m_detection_ids.end() )
+      for( unsigned i = COL_TOT; i < col.size(); i+=2 )
       {
-        dot->set_score( m_detection_ids[id], conf );
-      }
-      else
-      {
-        dot->set_score( "-", conf );
+        if( col.size() < i + 2 )
+        {
+          std::stringstream str;
+          str << "Every species pair must contain a confidence; error "
+              << "at\n\"" << line << "\"";
+          throw kwiver::vital::invalid_data( str.str() );
+        }
+
+        std::string spec_id = col[i];
+        double spec_conf = atof( col[i+1].c_str() );
+
+        dot->set_score( spec_id, spec_conf );
       }
 
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
     }
 
     // Add detection to set for the frame
-    m_detection_by_id[index]->add( dob );
+    m_detection_by_id[frame_id]->add( dob );
+
+    if( !str_id.empty() )
+    {
+      m_detection_by_str[str_id]->add( dob );
+    }
   } // ...while !eof
 } // read_all
 
