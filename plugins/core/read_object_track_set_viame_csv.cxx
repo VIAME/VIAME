@@ -42,28 +42,6 @@
 
 namespace viame {
 
-// field numbers for VIAME_CSV file format
-enum{
-  COL_ID = 0,   // 0: Object ID
-  COL_LEN,      // 1: Track length (always 1 for detections)
-  COL_FRAME,    // 2: in this case, set index
-  COL_LOC_X,    // 3
-  COL_LOC_Y,    // 4
-  COL_VEL_X,    // 5
-  COL_VEL_Y,    // 6
-  COL_IMG_LOC_X,// 7
-  COL_IMG_LOC_Y,// 8
-  COL_MIN_X,    // 9
-  COL_MIN_Y,    // 10
-  COL_MAX_X,    // 11
-  COL_MAX_Y,    // 12
-  COL_AREA,     // 13
-  COL_WORLD_X,  // 14
-  COL_WORLD_Y,  // 15
-  COL_WORLD_Z,  // 16
-  COL_TIME,     // 17
-  COL_CONFIDENCE// 18
-};
 
 // -------------------------------------------------------------------------------
 class read_object_track_set_viame_csv::priv
@@ -74,7 +52,7 @@ public:
     , m_logger( kwiver::vital::get_logger( "read_object_track_set_viame_csv" ) )
     , m_first( true )
     , m_batch_load( true )
-    , m_delim( " " )
+    , m_delim( "," )
     , m_current_idx( 0 )
     , m_last_idx( 1 )
   {}
@@ -92,9 +70,11 @@ public:
 
   void read_all();
 
+  typedef std::vector< kwiver::vital::track_sptr > track_vector;
+
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
-  std::map< kwiver::vital::frame_id_t, std::vector< kwiver::vital::track_sptr > > m_tracks_by_frame_id;
+  std::map< kwiver::vital::frame_id_t, track_vector > m_tracks_by_frame_id;
 
   // Compilation of all loaded tracks, track id -> track sptr mapping
   std::map< kwiver::vital::frame_id_t, kwiver::vital::track_sptr > m_all_tracks;
@@ -259,7 +239,7 @@ read_object_track_set_viame_csv::priv
      * This allows for track states to be written in a non-contiguous
      * manner as may be done by streaming writers.
      */
-    kwiver::vital::frame_id_t frame_index = atoi( col[COL_FRAME].c_str() );
+    /*kwiver::vital::frame_id_t frame_index = atoi( col[COL_FRAME].c_str() );
     kwiver::vital::time_us_t frame_time = atof( col[COL_TIME].c_str() );
     int track_index = atoi( col[COL_ID].c_str() );
 
@@ -305,7 +285,7 @@ read_object_track_set_viame_csv::priv
     {
       m_tracks_by_frame_id[ frame_index ].push_back( trk );
       m_last_idx = std::max( m_last_idx, frame_index );
-    }
+    }*/
   }
 }
 

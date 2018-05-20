@@ -47,36 +47,15 @@
 
 namespace viame {
 
-// field numbers for VIAME_CSV file format
-enum{
-  COL_ID = 0,             // 0: Object ID
-  COL_LEN,                // 1: Track length (always 1 for detections)
-  COL_FRAME,              // 2: in this case, set index
-  COL_LOC_X,    // 3
-  COL_LOC_Y,    // 4
-  COL_VEL_X,    // 5
-  COL_VEL_Y,    // 6
-  COL_IMG_LOC_X,// 7
-  COL_IMG_LOC_Y,// 8
-  COL_MIN_X,    // 9
-  COL_MIN_Y,    // 10
-  COL_MAX_X,    // 11
-  COL_MAX_Y,    // 12
-  COL_AREA,     // 13
-  COL_WORLD_X,  // 14
-  COL_WORLD_Y,  // 15
-  COL_WORLD_Z,  // 16
-  COL_TIME,     // 17
-  COL_CONFIDENCE// 18
-};
-
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
 class read_detected_object_set_viame_csv::priv
 {
 public:
   priv( read_detected_object_set_viame_csv* parent )
     : m_parent( parent )
     , m_first( true )
+    , m_current_idx( 0 )
+    , m_last_idx( 0 )
   { }
 
   ~priv() { }
@@ -91,19 +70,23 @@ public:
 
   // Map of detected objects indexed by frame number. Each set
   // contains all detections for a single frame.
-  std::map< int, kwiver::vital::detected_object_set_sptr > m_detected_sets;
+  std::map< int, kwiver::vital::detected_object_set_sptr > m_detection_by_id;
+
+  // Map of detected objects indexed by frame name. Each set
+  // contains all detections for a single frame.
+  std::map< std::string, kwiver::vital::detected_object_set_sptr > m_detection_by_str;
 
   // Compilation of all loaded detection id to type strings.
   std::map< int, std::string > m_detection_ids;
 };
 
 
-// ==================================================================
+// ===================================================================================
 read_detected_object_set_viame_csv::
 read_detected_object_set_viame_csv()
   : d( new read_detected_object_set_viame_csv::priv( this ) )
 {
-  attach_logger( "arrows.core.read_detected_object_set_viame_csv" );
+  attach_logger( "viame.core.read_detected_object_set_viame_csv" );
 }
 
 
@@ -113,7 +96,7 @@ read_detected_object_set_viame_csv::
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
 void
 read_detected_object_set_viame_csv::
 set_configuration(kwiver::vital::config_block_sptr config)
@@ -121,7 +104,7 @@ set_configuration(kwiver::vital::config_block_sptr config)
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_viame_csv::
 check_configuration(kwiver::vital::config_block_sptr config) const
@@ -130,30 +113,30 @@ check_configuration(kwiver::vital::config_block_sptr config) const
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_viame_csv::
 read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name )
 {
-  if ( d->m_first )
+  if( d->m_first )
   {
     // Read in all detections
     d->read_all();
     d->m_first = false;
 
     // set up iterators for returning sets.
-    d->m_current_idx = d->m_detected_sets.begin()->first;
-    d->m_last_idx = d->m_detected_sets.rbegin()->first;
+    d->m_current_idx = d->m_detection_by_id.begin()->first;
+    d->m_last_idx = d->m_detection_by_id.rbegin()->first;
   } // end first
 
   // test for end of all loaded detections
-  if (d->m_current_idx > d->m_last_idx)
+  if( d->m_current_idx > d->m_last_idx )
   {
     return false;
   }
 
   // return detection set at current index if there is one
-  if ( 0 == d->m_detected_sets.count( d->m_current_idx ) )
+  if( d->m_detection_by_id.count( d->m_current_idx ) == 0 )
   {
     // return empty set
     set = std::make_shared< kwiver::vital::detected_object_set>();
@@ -161,7 +144,7 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
   else
   {
     // Return detections for this frame.
-    set = d->m_detected_sets[d->m_current_idx];
+    set = d->m_detection_by_id[d->m_current_idx];
   }
 
   ++d->m_current_idx;
@@ -170,7 +153,7 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------------
 void
 read_detected_object_set_viame_csv::
 new_stream()
@@ -179,7 +162,7 @@ new_stream()
 }
 
 
-// ==================================================================
+// ===================================================================================
 void
 read_detected_object_set_viame_csv::priv::
 read_all()
@@ -207,7 +190,7 @@ read_all()
   }
 
   // Read detections
-  m_detected_sets.clear();
+  m_detection_by_id.clear();
 
   while ( stream_reader.getline( line ) )
   {
@@ -233,10 +216,10 @@ read_all()
      */
     int id = atoi( col[COL_ID].c_str() );
     int index = atoi( col[COL_FRAME].c_str() );
-    if ( 0 == m_detected_sets.count( index ) )
+    if ( 0 == m_detection_by_id.count( index ) )
     {
       // create a new detection set entry
-      m_detected_sets[ index ] = std::make_shared<kwiver::vital::detected_object_set>();
+      m_detection_by_id[ index ] = std::make_shared<kwiver::vital::detected_object_set>();
     }
 
     kwiver::vital::bounding_box_d bbox(
@@ -277,7 +260,7 @@ read_all()
     }
 
     // Add detection to set for the frame
-    m_detected_sets[index]->add( dob );
+    m_detection_by_id[index]->add( dob );
   } // ...while !eof
 } // read_all
 
