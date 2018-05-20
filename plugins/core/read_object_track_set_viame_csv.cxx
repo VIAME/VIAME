@@ -233,9 +233,9 @@ read_object_track_set_viame_csv::priv
      * This allows for track states to be written in a non-contiguous
      * manner as may be done by streaming writers.
      */
-    /*kwiver::vital::frame_id_t frame_index = atoi( col[COL_FRAME].c_str() );
-    kwiver::vital::time_us_t frame_time = atof( col[COL_TIME].c_str() );
-    int track_index = atoi( col[COL_ID].c_str() );
+    int trk_id = atoi( col[COL_DET_ID].c_str() );
+    kwiver::vital::frame_id_t frame_id = atoi( col[COL_FRAME_ID].c_str() );
+    std::string str_id = col[COL_SOURCE_ID];
 
     kwiver::vital::bounding_box_d bbox(
       atof( col[COL_MIN_X].c_str() ),
@@ -243,33 +243,48 @@ read_object_track_set_viame_csv::priv
       atof( col[COL_MAX_X].c_str() ),
       atof( col[COL_MAX_Y].c_str() ) );
 
-    double conf = 1.0;
+    double conf = atof( col[COL_CONFIDENCE].c_str() );
 
-    if( col.size() == 19 )
+    // Create detection object
+    kwiver::vital::detected_object_sptr dob;
+
+    kwiver::vital::detected_object_type_sptr dot =
+      std::make_shared<kwiver::vital::detected_object_type>();
+
+    for( unsigned i = COL_TOT; i < col.size(); i+=2 )
     {
-      conf = atof( col[COL_CONFIDENCE].c_str() );
+      if( col.size() < i + 2 )
+      {
+        std::stringstream str;
+        str << "Every species pair must contain a confidence; error "
+            << "at\n\"" << line << "\"";
+        throw kwiver::vital::invalid_data( str.str() );
+      }
+
+      std::string spec_id = col[i];
+      double spec_conf = atof( col[i+1].c_str() );
+
+      dot->set_score( spec_id, spec_conf );
     }
 
-    // Create new detection
-    kwiver::vital::detected_object_sptr det =
-      std::make_shared< kwiver::vital::detected_object >( bbox, conf );
+    dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
 
     // Create new object track state
     kwiver::vital::track_state_sptr ots =
-      std::make_shared< kwiver::vital::object_track_state >( frame_index, frame_time, det );
+      std::make_shared< kwiver::vital::object_track_state >( frame_id, frame_id, dob );
 
     // Assign object track state to track
     kwiver::vital::track_sptr trk;
 
-    if( m_all_tracks.count( track_index ) == 0 )
+    if( m_all_tracks.count( trk_id ) == 0 )
     {
       trk = kwiver::vital::track::create();
-      trk->set_id( track_index );
-      m_all_tracks[ track_index ] = trk;
+      trk->set_id( trk_id );
+      m_all_tracks[ trk_id ] = trk;
     }
     else
     {
-      trk = m_all_tracks[ track_index ];
+      trk = m_all_tracks[ trk_id ];
     }
 
     trk->append( ots );
@@ -277,9 +292,9 @@ read_object_track_set_viame_csv::priv
     // Add track to indexes
     if( !m_batch_load )
     {
-      m_tracks_by_frame_id[ frame_index ].push_back( trk );
-      m_last_idx = std::max( m_last_idx, frame_index );
-    }*/
+      m_tracks_by_frame_id[ frame_id ].push_back( trk );
+      m_last_idx = std::max( m_last_idx, frame_id );
+    }
   }
 }
 
