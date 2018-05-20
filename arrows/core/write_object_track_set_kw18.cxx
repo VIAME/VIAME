@@ -106,7 +106,8 @@ void write_object_track_set_kw18
 
       if( !ts )
       {
-        LOG_ERROR( d->m_logger, "MISSED STATE " << trk_ptr->id() << " " << trk_ptr->size() );
+        LOG_ERROR( d->m_logger, "Invalid state for track " << trk_ptr->id()
+                                << " of size " << trk_ptr->size() );
         continue;
       }
 
