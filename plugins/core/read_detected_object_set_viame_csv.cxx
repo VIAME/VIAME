@@ -237,14 +237,16 @@ read_all()
     if( m_detection_by_id.count( frame_id ) == 0 )
     {
       // create a new detection set entry
-      m_detection_by_id[ frame_id ] = std::make_shared<kwiver::vital::detected_object_set>();
+      m_detection_by_id[ frame_id ] =
+        std::make_shared<kwiver::vital::detected_object_set>();
     }
 
     if( !str_id.empty() &&
         m_detection_by_str.count( str_id ) == 0 )
     {
       // create a new detection set entry
-      m_detection_by_str[ str_id ] = std::make_shared<kwiver::vital::detected_object_set>();
+      m_detection_by_str[ str_id ] =
+        std::make_shared<kwiver::vital::detected_object_set>();
     }
 
     kwiver::vital::bounding_box_d bbox(
