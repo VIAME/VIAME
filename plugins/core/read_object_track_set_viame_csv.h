@@ -54,13 +54,13 @@ public:
 
   static constexpr char const* description =
     "Object track set viame_csv reader.\n\n"
-    "  - Column(s) 1: Detection or Track-id\n"
-    "  - Column(s) 2: Video or Image List ID\n"
+    "  - Column(s) 1: Detection or Track ID\n"
+    "  - Column(s) 2: Video or Image Identifier\n"
     "  - Column(s) 3: Unique Frame Identifier\n"
     "  - Column(s) 4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
-    "  - Column(s) 8: Detection confidence\n"
-    "  - Column(s) 8: Fish Length (0 or -1 if invalid)\n"
-    "  - Column(s) 9-10+: Repeated Species, Confidence pairs\n";
+    "  - Column(s) 8: Detection Confidence\n"
+    "  - Column(s) 9: Target Length (0 or less if uncomputed)\n"
+    "  - Column(s) 10-11+: Repeated Species, Confidence Pairs\n";
 
   read_object_track_set_viame_csv();
   virtual ~read_object_track_set_viame_csv();

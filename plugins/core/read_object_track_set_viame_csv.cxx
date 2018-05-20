@@ -42,6 +42,19 @@
 
 namespace viame {
 
+enum
+{
+  COL_DET_ID=0,  // 0: Object ID
+  COL_SOURCE_ID, // 1
+  COL_FRAME_ID,  // 2
+  COL_MIN_X,     // 3
+  COL_MIN_Y,     // 4
+  COL_MAX_X,     // 5
+  COL_MAX_Y,     // 6
+  COL_CONFIDENCE,// 7
+  COL_LENGTH,    // 8
+  COL_TOT        // 9
+};
 
 // -------------------------------------------------------------------------------
 class read_object_track_set_viame_csv::priv
@@ -116,7 +129,7 @@ read_object_track_set_viame_csv
 // -------------------------------------------------------------------------------
 void
 read_object_track_set_viame_csv
-::set_configuration(kwiver::vital::config_block_sptr config)
+::set_configuration( kwiver::vital::config_block_sptr config )
 {
   d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
   d->m_batch_load = config->get_value<bool>( "batch_load", d->m_batch_load );
@@ -192,23 +205,6 @@ read_object_track_set_viame_csv::priv
   m_all_tracks.clear();
   m_track_ids.clear();
 
-  // Check for types file
-  std::string types_fn = m_parent->filename() + ".types";
-
-  if( kwiversys::SystemTools::FileExists( types_fn ) )
-  {
-    std::ifstream fin( types_fn );
-    while( !fin.eof() )
-    {
-      int id;
-      std::string lbl;
-
-      fin >> id >> lbl;
-      m_track_ids[id] = lbl;
-    }
-    fin.close();
-  }
-
   // Read track file
   while( stream_reader.getline( line ) )
   {
@@ -220,13 +216,11 @@ read_object_track_set_viame_csv::priv
     std::vector< std::string > col;
     kwiver::vital::tokenize( line, col, m_delim, true );
 
-    if( ( col.size() < 18 ) || ( col.size() > 20 ) )
+    if( col.size() < 10 )
     {
       std::stringstream str;
-
-      str << "This is not a viame_csv kw19 or kw20 file; found "
-          << col.size() << " columns in\n\"" << line << "\"";
-
+      str << "This is not a viame_csv file; found " << col.size()
+          << " columns in\n\"" << line << "\"";
       throw kwiver::vital::invalid_data( str.str() );
     }
 

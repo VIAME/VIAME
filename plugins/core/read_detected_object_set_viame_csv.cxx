@@ -47,7 +47,8 @@
 
 namespace viame {
 
-enum{
+enum
+{
   COL_DET_ID=0,  // 0: Object ID
   COL_SOURCE_ID, // 1
   COL_FRAME_ID,  // 2
@@ -112,7 +113,7 @@ read_detected_object_set_viame_csv::
 // -----------------------------------------------------------------------------------
 void
 read_detected_object_set_viame_csv::
-set_configuration(kwiver::vital::config_block_sptr config)
+set_configuration( kwiver::vital::config_block_sptr config )
 {
 }
 
@@ -120,7 +121,7 @@ set_configuration(kwiver::vital::config_block_sptr config)
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_viame_csv::
-check_configuration(kwiver::vital::config_block_sptr config) const
+check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   return true;
 }
