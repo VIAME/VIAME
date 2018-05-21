@@ -100,8 +100,8 @@ def fset( setting_str, trailing_space=True ):
 
 def video_output_settings_str( basename ):
   return '' + \
-    fset( 'detector_writer:file_name=database/' + basename + '_detections.kw18' ) + \
-    fset( 'track_writer:file_name=database/' + basename + '_tracks.kw18' ) + \
+    fset( 'detector_writer:file_name=database/' + basename + '_detections.csv' ) + \
+    fset( 'track_writer:file_name=database/' + basename + '_tracks.csv' ) + \
     fset( 'track_writer:stream_identifier=' + basename ) + \
     fset( 'track_writer_db:writer:db:video_name=' + basename ) + \
     fset( 'descriptor_writer_db:writer:db:video_name=' + basename ) + \
