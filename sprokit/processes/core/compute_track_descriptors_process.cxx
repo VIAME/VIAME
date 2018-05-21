@@ -148,11 +148,14 @@ compute_track_descriptors_process
 ::_step()
 {
   // Peek at next input to see if we're at end of video
-  auto port_info = peek_at_port_using_trait( image );
+  auto port_info_img = peek_at_port_using_trait( image );
+  auto port_info_trk = peek_at_port_using_trait( object_track_set );
 
-  if( port_info.datum->type() == sprokit::datum::complete )
+  if( port_info_img.datum->type() == sprokit::datum::complete ||
+      port_info_trk.datum->type() == sprokit::datum::complete )
   {
     grab_edge_datum_using_trait( image );
+    grab_edge_datum_using_trait( object_track_set );
     mark_process_as_complete();
 
     // Push last outputs
