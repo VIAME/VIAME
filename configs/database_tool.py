@@ -14,10 +14,10 @@ sql_dir=database_dir + div + "SQL"
 init_file="pipelines" + div + "sql_init_table.sql"
 log_file="database" + div + "SQL_Log_File"
 
-SMQTK_ITQ_TRAIN_CONFIG="configs" + div + "smqtk_train_itq.json"
-SMQTK_HCODE_CONFIG="configs" + div + "smqtk_compute_hashes.json"
+SMQTK_ITQ_TRAIN_CONFIG="pipelines" + div + "smqtk_train_itq.json"
+SMQTK_HCODE_CONFIG="pipelines" + div + "smqtk_compute_hashes.json"
 SMQTK_HCODE_PICKLE="database" + div + "ITQ" + div + "alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle"
-SMQTK_BTREE_CONFIG="configs" + div + "smqtk_make_balltree.json"
+SMQTK_BTREE_CONFIG="pipelines" + div + "smqtk_make_balltree.json"
 
 def query_yes_no(question, default="yes"):
   valid = {"yes": True, "y": True, "ye": True,
