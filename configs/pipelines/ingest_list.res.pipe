@@ -20,4 +20,9 @@ process input
 
 include ingest_core.res.pipe
 
+connect from input.image_file_name
+        to   downsampler.input_2
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
+
 # -- end of file --
