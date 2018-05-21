@@ -5,15 +5,15 @@
 # ==================================================================
 process read_annotations
   :: detected_object_input
-  :file_name                  some_ground_truth_file.txt
-  :reader:type                gt_type_str[csv,habcam,...]
+  :file_name                  example_output.csv
+  :reader:type                viame_csv
 
 # ==================================================================
 process image_reader
-  :: image_file_reader
-  :error_mode    skip
-  :path                       directory_containing_images
-  :image_reader:type ocv
+  :: frame_list_input
+  :image_list_file            input_list.txt
+  :frame_time                 0.03333
+  :image_reader:type          ocv
 
 # ==================================================================
 process draw_box
@@ -35,12 +35,9 @@ config _pipeline:_edge
 # ================================================================
 connect from read_annotations.image_file_name
         to   image_reader.image_file_name
-
 connect from read_annotations.detected_object_set
         to   draw_box.detected_object_set
-
 connect from image_reader.image
         to   draw_box.image
-
 connect from draw_box.image
         to   disp.image

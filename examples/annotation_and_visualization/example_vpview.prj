@@ -1,4 +1,2 @@
 DataSetSpecifier = input_list.txt
-TracksFile = example_detections.kw18
-TrackColorOverride = 0.0 0.0 1.0
-TrackPVOsFile = example_tot_scores.txt
+TracksFile = example_output.csv
