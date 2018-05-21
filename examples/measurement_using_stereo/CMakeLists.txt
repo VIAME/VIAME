@@ -11,7 +11,8 @@ if( WIN32 )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_measurer.sh )
+       run_measurer.sh
+       standalone_with_display.sh )
 endif()
 
 install( FILES       ${EXAMPLE_INSTALL_FILES}
