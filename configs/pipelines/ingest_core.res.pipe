@@ -118,8 +118,6 @@ process kwa_writer
   :fixed_col_count                            4000
   :fixed_row_count                            4000
 
-connect from input.corner_points
-        to   kwa_writer.corner_points
 connect from downsampler.timestamp
         to   kwa_writer.timestamp
 connect from downsampler.output_1
