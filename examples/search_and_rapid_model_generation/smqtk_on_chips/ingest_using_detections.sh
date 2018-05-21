@@ -7,7 +7,9 @@
 #
 set -e
 
-source ../../../setup_viame.sh
+export VIAME_INSTALL=./../../..
+
+source ${VIAME_INSTALL}/setup_viame.sh 
 
 # PARAMETERS ###################################################################
 
@@ -18,7 +20,8 @@ IMAGE_TILES_DIR="tiles"
 echo "Generating tiles for images ($(wc -l "${IMAGE_LIST}" | cut -d' ' -f1) images)"
 mkdir -p "${IMAGE_TILES_DIR}"
 
-pipeline_runner -p configs/chip_extractor_pipeline.pipe
+pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_extract_chips.pipe \
+                -s input:image_list_file=${IMAGE_LIST}
 
 # Perform ingest on computed chips
 bash ingest_image_folder.sh "${IMAGE_TILES_DIR}"

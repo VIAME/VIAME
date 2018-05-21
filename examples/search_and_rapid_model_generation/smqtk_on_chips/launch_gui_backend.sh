@@ -4,7 +4,9 @@
 #	mongod --dbpath $PWD
 # Where $PWD is some directory
 #
-source ../../../setup_viame.sh
+export VIAME_INSTALL=./../../..
+
+source ${VIAME_INSTALL}/setup_viame.sh 
 
 # Start the process, storing the pid
 # Let it run in the background, keeping a log

@@ -7,7 +7,9 @@
 #
 set -e
 
-source ../../../setup_viame.sh
+export VIAME_INSTALL=./../../..
+
+source ${VIAME_INSTALL}/setup_viame.sh 
 
 # PARAMETERS ###################################################################
 

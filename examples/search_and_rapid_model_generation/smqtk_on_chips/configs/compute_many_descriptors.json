@@ -17,15 +17,15 @@
         "CaffeDescriptorGenerator": {
             "batch_size": 100,
             "data_layer": "data",
-            "image_mean_uri": "../../common_data/models/default_caffe_mean.binaryproto",
+            "image_mean_uri": "../../../configs/pipelines/models/default_caffe_mean.binaryproto",
             "input_scale": null,
             "load_truncated_images": true,
             "network_is_bgr": true,
-            "network_model_uri": "../../common_data/models/default_caffe_clfr.caffemodel",
-            "network_prototxt_uri": "../../common_data/models/default_caffe_clfr.prototxt",
+            "network_model_uri": "../../../configs/pipelines/models/default_caffe_clfr.caffemodel",
+            "network_prototxt_uri": "../../../configs/pipelines/models/default_caffe_clfr.prototxt",
             "pixel_rescale": null,
             "return_layer": "fc7",
-            "use_gpu": false
+            "use_gpu": true
         },
         "type": "CaffeDescriptorGenerator"
     },

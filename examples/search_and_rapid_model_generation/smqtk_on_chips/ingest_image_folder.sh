@@ -5,7 +5,9 @@
 #
 # This assumes the use of the LSH nearest-neighbor index as it builds ITQ model.
 #
-source ../../../setup_viame.sh
+export VIAME_INSTALL=./../../..
+
+source ${VIAME_INSTALL}/setup_viame.sh 
 
 # PARAMETERS ###################################################################
 
