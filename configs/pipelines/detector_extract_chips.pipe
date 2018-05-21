@@ -65,7 +65,7 @@ connect from input.image
 process chipper
   :: refine_detections
   :refiner:type                     ocv_write
-  :refiner:ocv_write:pattern        tiles/detection_%05d.png
+  :refiner:ocv_write:pattern        tiles/detection_%05d_%fx%f+%f+%f.png
 
 #connect from downsampler.image
 #        to   chipper.image
