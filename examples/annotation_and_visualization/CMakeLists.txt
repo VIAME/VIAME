@@ -4,8 +4,7 @@
 
 set( example_files
   display_annotation.pipe
-  example_detections.kw18
-  example_tot_scores.txt
+  example_output.csv
   example_vpview.prj
   input_list.txt )
 
