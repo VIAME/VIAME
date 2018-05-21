@@ -49,20 +49,13 @@ process yolo_v2_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name     output/yolo_v2_detections.kw18
-  :writer:type   kw18
-
-  # Write out FSO classifications alongside tracks
-  :writer:kw18:write_tot         true
-  :writer:kw18:tot_field1_ids    fish
-  :writer:kw18:tot_field2_ids    scallop
+  :file_name     output/yolo_v2_detections.csv
+  :writer:type   viame_csv
 
 connect from input.image
         to   yolo_v2.image
-
 connect from yolo_v2.detected_object_set
         to   yolo_v2_writer.detected_object_set
-
 connect from input.image_file_name
         to   yolo_v2_writer.image_file_name
 
@@ -75,15 +68,13 @@ connect from input.image_file_name
 #
 #process scallop_tk_writer
 #  :: detected_object_output
-#  :file_name     output/scallop_tk_detections.kw18
-#  :writer:type   kw18
+#  :file_name     output/scallop_tk_detections.csv
+#  :writer:type   viame_csv
 #
 #connect from input.image
 #        to   scallop_tk.image
-#
 #connect from scallop_tk.detected_object_set
 #        to   scallop_tk_writer.detected_object_set
-#
 #connect from input.image_file_name
 #        to   scallop_tk_writer.image_file_name
 
@@ -121,23 +112,15 @@ process faster_rcnn_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name     output/faster_rcnn_detections.kw18
-  :writer:type   kw18
-
-  # Write out FSO classifications alongside tracks
-  :writer:kw18:write_tot         true
-  :writer:kw18:tot_field1_ids    fish
-  :writer:kw18:tot_field2_ids    scallop
+  :file_name     output/faster_rcnn_detections.csv
+  :writer:type   viame_csv
 
 connect from input.image
         to   faster_rcnn.image
-
 connect from faster_rcnn.detected_object_set
         to   faster_rcnn_filter.detected_object_set
-
 connect from faster_rcnn_filter.detected_object_set
         to   faster_rcnn_writer.detected_object_set
-
 connect from input.image_file_name
         to   faster_rcnn_writer.image_file_name
 

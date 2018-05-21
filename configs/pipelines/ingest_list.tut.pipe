@@ -15,7 +15,7 @@ config _scheduler
 process input
   :: frame_list_input
   :image_list_file                             [INSERT_ME]
-  :frame_time                                  1.0
+  :frame_time                                  1
   :image_reader:type                           vxl
 
 include ingest_core.tut.pipe

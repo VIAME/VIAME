@@ -45,13 +45,8 @@ process detector_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                     output/individual_detections.kw18
-  :writer:type                   kw18
-
-  # Write out FSO classifications alongside tracks
-  :writer:kw18:write_tot         true
-  :writer:kw18:tot_field1_ids    fish
-  :writer:kw18:tot_field2_ids    scallop
+  :file_name                     output/individual_detections.csv
+  :writer:type                   viame_csv
 
 connect from input.image
         to   detector.image
@@ -142,11 +137,14 @@ connect from track_associator.unused_detections
 
 process track_writer
   :: write_object_track
-  :file_name                        output_tracks.kw18
-  :writer:type                      kw18
+  :file_name                        output_tracks.csv
+  :writer:type                      viame_csv
+  :writer:stream_identifier         input_list.txt
 
 # Connect inputs to track writer
 connect from track_initializer.object_track_set
         to   track_writer.object_track_set
+connect from input.timestamp
+        to   track_writer.timestamp
 
 # -- end of file --

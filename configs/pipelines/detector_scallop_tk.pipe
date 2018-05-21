@@ -20,9 +20,12 @@ process draw
   :default_line_thickness 3
 
 # =============================================================================
-#process writer
-#  :: detected_object_set_output
-#  :detector:type                    csv
+process writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                         output/scallop_tk_detections.csv
+  :writer:type                       viame_csv
 
 # =============================================================================
 process disp
@@ -52,7 +55,9 @@ connect from input.timestamp
 connect from draw.image
         to   disp.image
 
-#connect from detector.detected_object_set
-#        to   writer.detected_object_set
+connect from detector.detected_object_set
+        to   writer.detected_object_set
+connect from input.image_file_name
+        to   writer.image_file_name
 
 # -- end of file --
