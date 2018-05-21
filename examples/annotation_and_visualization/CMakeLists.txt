@@ -15,11 +15,13 @@ if( WIN32 )
 elseif( APPLE )
   set( example_files
        ${example_files}
-       run_vpview.mac.sh )
+       run_vpview.mac.sh
+       run_pipe_display.sh )
 else()
   set( example_files
        ${example_files}
-       run_vpview.sh )
+       run_vpview.sh
+       run_pipe_display.sh )
 endif()
 
 install( FILES       ${example_files}

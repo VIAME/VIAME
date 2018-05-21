@@ -17,7 +17,8 @@ process image_reader
 
 # ==================================================================
 process draw_box
-:: draw_detected_object_boxes
+:: draw_detected_object_set
+  :draw_algo:type             ocv
 
 # ================================================================
 process disp
@@ -33,8 +34,6 @@ config _pipeline:_edge
 
 
 # ================================================================
-connect from read_annotations.image_file_name
-        to   image_reader.image_file_name
 connect from read_annotations.detected_object_set
         to   draw_box.detected_object_set
 connect from image_reader.image
