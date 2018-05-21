@@ -19,6 +19,8 @@ else()
     ingest_using_detections.sh
     ingest_using_windowing.sh
     launch_gui_backend.sh
+    db_tool.sh
+    sql_init_table.sql
     reset_database.sh )
 endif()
 
