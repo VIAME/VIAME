@@ -91,8 +91,10 @@ set_configuration( kwiver::vital::config_block_sptr config_in )
 {
   kwiver::vital::config_block_sptr config = this->get_configuration();
 
-  d->m_write_frame_number = config->get_value<bool>( "write_frame_number" );
-  d->m_stream_identifier = config->get_value<std::string>( "stream_identifier" );
+  d->m_write_frame_number =
+    config->get_value<bool>( "write_frame_number", d->m_write_frame_number );
+  d->m_stream_identifier =
+    config->get_value<std::string>( "stream_identifier", d->m_stream_identifier );
 
   config->merge_config( config_in );
 }

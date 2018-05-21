@@ -148,9 +148,12 @@ void
 write_object_track_set_viame_csv
 ::set_configuration( kwiver::vital::config_block_sptr config )
 {
-  d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
-  d->m_stream_identifier = config->get_value<std::string>( "stream_identifier" );
-  d->m_active_writing = config->get_value<bool>( "active_writing" );
+  d->m_delim =
+    config->get_value<std::string>( "delimiter", d->m_delim );
+  d->m_stream_identifier =
+    config->get_value<std::string>( "stream_identifier", d->m_stream_identifier );
+  d->m_active_writing =
+    config->get_value<bool>( "active_writing", d->m_active_writing );
 }
 
 
