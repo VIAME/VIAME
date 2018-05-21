@@ -12,7 +12,7 @@ else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_measurer.sh
-       standalone_with_display.sh )
+       standalone_with_disp.sh )
 endif()
 
 install( FILES       ${EXAMPLE_INSTALL_FILES}
