@@ -11,9 +11,9 @@ config _pipeline:_edge
 # ====================== INPUT FRAME LIST ========================
 process input
   :: frame_list_input
-  :image_list_file                input_list.txt
-  :frame_time                     0.03333
-  :image_reader:type              ocv
+  :image_list_file               input_list.txt
+  :frame_time                    0.03333
+  :image_reader:type             ocv
 
 # =========================== YOLO v2 ============================
 
@@ -41,38 +41,19 @@ process yolo_v2
 
   endblock
 
-process yolo_v2_kw18_writer
-  :: detected_object_output
-
-  # Type of file to output
-  :file_name                      output/yolo_v2_detections.kw18
-  :writer:type                    kw18
-
-  # Write out FSO classifications alongside tracks
-  :writer:kw18:write_tot          true
-  :writer:kw18:tot_field1_ids     fish
-  :writer:kw18:tot_field2_ids     scallop
-
 process yolo_v2_csv_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                      output/yolo_v2_detections.csv
-  :writer:type                    csv
+  :file_name                     output/yolo_v2_detections.csv
+  :writer:type                   viame_csv
 
 connect from input.image
         to   yolo_v2.image
-
-connect from yolo_v2.detected_object_set
-        to   yolo_v2_kw18_writer.detected_object_set
-
-connect from input.image_file_name
-        to   yolo_v2_kw18_writer.image_file_name
-
 connect from yolo_v2.detected_object_set
         to   yolo_v2_csv_writer.detected_object_set
-
 connect from input.image_file_name
         to   yolo_v2_csv_writer.image_file_name
+
 
 # -- end of file --

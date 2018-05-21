@@ -1,4 +1,2 @@
-DataSetSpecifier = ../input_list.txt
-TracksFile = yolo_v2_detections.kw18
-TrackColorOverride = 0.0 0.0 1.0
-TrackPVOsFile = yolo_v2_detections.txt
+DataSetSpecifier = ../input_image_list_small_set.txt
+TracksFile = yolo_v2_detections.csv

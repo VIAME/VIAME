@@ -76,7 +76,7 @@ connect from reader.image
 process tracker
   :: SRNN_tracking
   :siamese_model_input_size                    224
-  :detection_select_threshold	                 0.01
+  :detection_select_threshold                  0.01
   :similarity_threshold                        0.80
   :terminate_track_threshold                   1
   :IOU_tracker_flag                            False
