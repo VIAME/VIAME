@@ -843,6 +843,13 @@ class StereoCalibration(object):
 
     @classmethod
     def from_file(StereoCalibration, cal_fpath):
+        """
+        Loads a camera calebration from a .mat or .npz file
+
+        SeeAlso:
+            from_npzfile
+            from_matfile
+        """
         ext = splitext(cal_fpath)[1].lower()
         if ext == '.mat':
             return StereoCalibration.from_matfile(cal_fpath)
@@ -853,6 +860,22 @@ class StereoCalibration(object):
 
     @classmethod
     def from_npzfile(StereoCalibration, cal_fpath):
+        """
+        For the npz file the root object should be a dict with the following
+        keys and values:
+            R: extrinsic rotation matrix
+            T: extrinsic translation
+            cameraMatrixL: dict of intrinsict parameters for the left camera
+                fc: focal length
+                cc: principle point
+                alpha_c: skew
+            cameraMatrixR: dict of intrinsict parameters for the right camera
+                fc: focal length
+                cc: principle point
+                alpha_c: skew
+            distCoeffsL: distortion coefficients for the left camera
+            distCoeffsR: distortion coefficients for the right camera
+        """
         logger.debug('Loading npzfile {}'.format(cal_fpath))
         data = dict(np.load(cal_fpath))
         flat_dict = {}
@@ -881,6 +904,19 @@ class StereoCalibration(object):
     def from_matfile(StereoCalibration, cal_fpath):
         """
         Loads a matlab camera calibration file from disk
+
+        For the mat file, the root structure should be a dict with the key
+        `Cal` whose value is a dict with the following items:
+            om: extrinsic rotation vector (note rotation matrix is rodrigues(om))
+            T: extrinsic translation
+            fc_left: focal length of the left camera
+            cc_left: principle point
+            alpha_c_left: skew
+            kc_left: distortion coefficients for the left camera
+            fc_right: focal length of the right camera
+            cc_right: principle point
+            alpha_c_right: skew
+            kc_right: distortion coefficients for the right camera
 
         References:
             http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/parameters.html
