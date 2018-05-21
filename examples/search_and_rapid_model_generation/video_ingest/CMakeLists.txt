@@ -4,7 +4,9 @@
 
 set( EXAMPLE_INSTALL_FILES
      input_list.txt
-     ingest_list.sh
+     create_searchable_index.sh
+     process_using_models.sh
+     launch_query_gui.sh
      view_detections.prj )
 
 ###

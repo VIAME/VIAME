@@ -11,7 +11,7 @@ else:
 
 database_dir="database"
 sql_dir=database_dir + div + "SQL"
-init_file="configs" + div + "sql_init_table.sql"
+init_file="pipelines" + div + "sql_init_table.sql"
 log_file="database" + div + "SQL_Log_File"
 
 SMQTK_ITQ_TRAIN_CONFIG="configs" + div + "smqtk_train_itq.json"
