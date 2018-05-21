@@ -7,7 +7,7 @@
 # ================================== VIDEO INPUT ===================================
 process downsampler
   :: downsample
-  :target_frame_rate                           5
+  :target_frame_rate                           1
   :burst_frame_count                           0
   :burst_frame_break                           0
 
