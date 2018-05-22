@@ -803,7 +803,7 @@ void perform_query_process::priv
 
   for( unsigned i = 0; i < uids.size(); ++i )
   {
-    if( i > max_result_count )
+    if( i > max_result_count || (feedback_request && i > 20) )
     {
       break;
     }
