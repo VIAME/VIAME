@@ -265,7 +265,7 @@ connected_camera_components(
 }
 
 /// Detect underconstrained landmarks.
-std::set<track_id_t>
+std::set<landmark_id_t>
 detect_bad_landmarks(
   camera_map::map_camera_t const& cams,
   landmark_map::map_landmark_t const& lms,
@@ -273,9 +273,12 @@ detect_bad_landmarks(
   double triang_cos_ang_thresh,
   double error_tol)
 {
+
+  double stdev_bound = 3;
+
   //returns a set of un-constrained landmarks to be removed from the solution
   kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.core.sfm_utils"));
-  std::set<track_id_t> landmarks_to_remove;
+  std::set<landmark_id_t> landmarks_to_remove;
 
   double ets = error_tol * error_tol;
 
@@ -285,6 +288,38 @@ detect_bad_landmarks(
   size_t num_lm_found_from_tracks = 0;
   size_t num_unconstrained_landmarks_found = 0;
 
+  bool do_statistical_filter = false;
+  if (do_statistical_filter)
+  {
+    vector_3d mean_lm;
+    mean_lm.setZero();
+    double n = 0;
+    for (auto const &lm : lms)
+    {
+      n += 1.0;
+      mean_lm = (1 / n) * lm.second->loc() + ((n - 1) / n)* mean_lm;
+    }
+    vector_3d var_lm;
+    var_lm.setZero();
+    double weight = 1.0 / (n - 1.0);
+    for (auto const &lm : lms)
+    {
+      auto diff = lm.second->loc() - mean_lm;
+      var_lm += weight * diff.cwiseProduct(diff);
+    }
+    auto inv_stdev_lm = var_lm.cwiseSqrt().cwiseInverse();
+
+    for (auto const& lm : lms)
+    {
+      vector_3d num_stdev = ((lm.second->loc() - mean_lm).cwiseProduct(inv_stdev_lm)).cwiseAbs();
+      if (num_stdev.maxCoeff() > stdev_bound)
+      {
+        landmarks_to_remove.insert(lm.first);
+      }
+    }
+  }
+
+  std::vector<double> depths;
   for (const track_sptr& t : trks)
   {
     auto lmi = lms.find(t->id());
@@ -295,6 +330,12 @@ detect_bad_landmarks(
     }
 
     ++num_lm_found_from_tracks;
+
+    if (landmarks_to_remove.find(t->id()) != landmarks_to_remove.end())
+    {
+      //already removed, no need to process further.
+      continue;
+    }
 
     //ok this track has an associated landmark
     const landmark& lm = *lmi->second;
@@ -329,6 +370,7 @@ detect_bad_landmarks(
       {
         observing_cams.push_back(*cam);
         fts->inlier = true;
+        depths.push_back(d);
       }
       else
       {
@@ -356,10 +398,58 @@ detect_bad_landmarks(
     }
   }
 
+  size_t num_far_lm_removed = 0;
+  std::sort(depths.begin(), depths.end());
+  double depth_thresh = depths[depths.size()*0.5] * 10;
+  for (const track_sptr& t : trks)
+  {
+    auto lmi = lms.find(t->id());
+    if (lmi == lms.end() || !lmi->second)
+    {
+      // no landmark corresponding to this track
+      continue;
+    }
+
+    if (landmarks_to_remove.find(t->id()) != landmarks_to_remove.end())
+    {
+      //already removed, no need to process further.
+      continue;
+    }
+
+    //ok this track has an associated landmark
+    const landmark& lm = *lmi->second;
+
+    for (auto ts : *t)
+    {
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+      if (!fts || !fts->feature)
+      {
+        // no feature for this track state.
+        continue;
+      }
+      const feature& feat = *fts->feature;
+      auto ci = cams.find(ts->frame());
+      if (ci == cams.end() || !ci->second)
+      {
+        // no camera corresponding to this track state
+        continue;
+      }
+      const auto cam = std::static_pointer_cast<simple_camera_perspective>(ci->second);
+      auto d = cam->depth(lm.loc());
+      if (d > depth_thresh)
+      {
+        landmarks_to_remove.insert(t->id());
+        ++num_far_lm_removed;
+        break;
+      }
+    }
+  }
+
   LOG_DEBUG(logger, "num landmarks " << lms.size() << " num unconstrained " <<
     num_unconstrained_landmarks_found << " found from tracks " <<
     num_lm_found_from_tracks << " removed bad angle " <<
-    num_lm_removed_bad_angle);
+    num_lm_removed_bad_angle << " removed too far " <<
+    num_far_lm_removed);
 
   return landmarks_to_remove;
 }
@@ -394,9 +484,49 @@ clean_cameras_and_landmarks(
   feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
   std::vector<frame_id_t> &removed_cams,
+  const std::set<vital::frame_id_t> &active_cams,
+  const std::set<vital::landmark_id_t> &active_lms,
   float image_coverage_threshold,
   double error_tol)
 {
+
+  landmark_map::map_landmark_t det_lms;
+  if (active_lms.empty())
+  {
+    det_lms = lms;
+  }
+  else
+  {
+    for (auto lm_id : active_lms)
+    {
+      auto it = lms.find(lm_id);
+      if (it == lms.end())
+      {
+        continue;
+      }
+      det_lms[lm_id] = it->second;
+    }
+  }
+
+  camera_map::map_camera_t det_cams;
+  if (active_cams.empty())
+  {
+    det_cams = cams;
+  }
+  else
+  {
+    for (auto cam_id : active_cams)
+    {
+      auto it = cams.find(cam_id);
+      if (it == cams.end())
+      {
+        continue;
+      }
+      det_cams[cam_id] = it->second;
+    }
+  }
+
+
 
   kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.core.sfm_utils"));
 
@@ -407,7 +537,7 @@ clean_cameras_and_landmarks(
   {
     keep_cleaning = false;
     std::set<track_id_t> lm_to_remove =
-      detect_bad_landmarks(cams, lms, tracks, triang_cos_ang_thresh, error_tol);
+      detect_bad_landmarks(cams, det_lms, tracks, triang_cos_ang_thresh, error_tol);
 
     if (!lm_to_remove.empty())
     {
@@ -419,13 +549,15 @@ clean_cameras_and_landmarks(
       }
     }
     remove_landmarks(lm_to_remove, lms);
+    remove_landmarks(lm_to_remove, det_lms);
 
     std::set<frame_id_t> cams_to_remove =
-      detect_bad_cameras(cams, lms, tracks, image_coverage_threshold);
+      detect_bad_cameras(det_cams, det_lms, tracks, image_coverage_threshold);
 
     for (auto frame_id : cams_to_remove)
     {
       cams[frame_id] = nullptr;
+      det_cams[frame_id] = nullptr;
       removed_cams.push_back(frame_id);
       LOG_DEBUG(logger, "removing camera " << frame_id);
     }
@@ -471,6 +603,7 @@ clean_cameras_and_landmarks(
 
       keep_cleaning = true;
       cams[frame_id] = nullptr;
+      det_cams[frame_id] = nullptr;
       removed_cams.push_back(frame_id);
     }
     LOG_DEBUG(logger, "remaining cameras size " << cams.size());

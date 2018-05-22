@@ -106,7 +106,7 @@ connected_camera_components(
 * \return set of landmark ids (track_ids) that were bad and should be removed
 */
 KWIVER_ALGO_CORE_EXPORT
-std::set<vital::track_id_t>
+std::set<vital::landmark_id_t>
 detect_bad_landmarks(
   vital::camera_map::map_camera_t const& cams,
   vital::landmark_map::map_landmark_t const& lms,
@@ -155,6 +155,8 @@ detect_bad_cameras(
 * \param [in] triang_cos_ang_thresh largest angle rays intersecting landmark must
 *             have less than this cos angle for landmkark to be kept.
 * \param [out] removed_cams frame ids of cameras that are removed while cleaning
+* \param [in] active_cams if non-empty only these cameras will be cleaned
+* \param [in] active_lms if non-empty only these landmarks will be cleaned
 * \param [in] image_coverage_threshold images must have this fraction [0 - 1] of
 *             coverage to be kept in the solution
 * \param [in] error_tol maximum reprojection error to keep features
@@ -167,6 +169,8 @@ clean_cameras_and_landmarks(
   vital::feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
   std::vector<vital::frame_id_t> &removed_cams,
+  const std::set<vital::frame_id_t> &active_cams,
+  const std::set<vital::landmark_id_t> &active_lms,
   float image_coverage_threshold = 0.25,
   double error_tol = 5.0);
 
