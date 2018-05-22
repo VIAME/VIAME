@@ -56,6 +56,14 @@ if( VIAME_DOWNLOAD_MODELS )
         ${VIAME_DOWNLOAD_DIR}/models-habcam-v1.0.0.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
+
+    if( VIAME_DOWNLOAD_MODELS-MOUSS )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5b0455de8d777f15ebe1efbe/download
+        b5f53f45fcc4ebac264d9d33b5e558e4
+        ${VIAME_DOWNLOAD_DIR}/models-mouss-generic-v1.0.0.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
   endif()
 
   # Default Faster-RCNN Models
