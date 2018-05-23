@@ -122,7 +122,7 @@ def video_frame_rate_settings_str( options ):
 
 def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
-  
+
 # Process a single video
 def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='' ):
 
@@ -150,6 +150,59 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     command = command + video_frame_rate_settings_str( options )
 
   command = command + video_output_settings_str( basename )
+
+  if len( args.extra_options ) > 0:
+    for extra_option in args.extra_options:
+      command = command + fset( extra_option )
+
+  if len( args.log_dir ) > 0 and not args.debug:
+    command = command + get_log_postfix( args.log_dir + '/' + basename )
+
+  # Process command
+  res = execute_command( command )
+
+  if res == 0:
+    print( 'Success' )
+  else:
+    print( 'Failure' )
+    print( '\nIngest failed, check database/Log files, terminating.\n' )
+    sys.exit( 0 )
+
+# Plot settings strings
+def plot_settings_str( basename ):
+  return '' + \
+    fset( 'detector_writer:file_name=database/' + basename + '_detections.csv' ) + \
+    fset( 'kwa_writer:output_directory=database ' ) + \
+    fset( 'kwa_writer:base_filename=' + basename ) + \
+    fset( 'kwa_writer:stream_id=' + basename, False )
+
+# Process a single video
+def process_video_plots( input_name, options, is_image_list=False, base_ovrd='' ):
+
+  sys.stdout.write( 'Processing: ' + input_name + "... " )
+  sys.stdout.flush()
+
+  # Get video name without extension and full path
+  if len( base_ovrd ) > 0:
+    basename = base_ovrd
+  else:
+    basename = os.path.splitext( os.path.basename( input_name ) )[0]
+
+  # Formulate input setting string
+  if is_image_list:
+    input_setting = fset( 'input:image_list_file=' + input_name )
+  else:
+    input_setting = fset( 'input:video_filename=' + input_name )
+
+  # Formulate command
+  command = get_pipeline_cmd( args.debug ) + \
+            '-p ' + farg( find_file( options.pipeline ) ) + \
+            input_setting
+
+  if not is_image_list:
+    command = command + video_frame_rate_settings_str( options )
+
+  command = command + plot_settings_str( basename )
 
   if len( args.extra_options ) > 0:
     for extra_option in args.extra_options:
@@ -198,6 +251,12 @@ if __name__ == "__main__" :
   parser.add_argument("-fskip", dest="batch_skip", default="",
                       help="If batching frames, number of frames to skip between batches")
 
+  parser.add_argument("-species", dest="species", default="fish",
+                      help="Species to generate plots for")
+
+  parser.add_argument("-threshold", dest="threshold", default="0.25",
+                      help="Threshold to generate plots for")
+
   parser.add_argument("-logs", dest="log_dir", default="database/Logs",
                       help="Directory for log files, if empty will not use files")
 
@@ -213,6 +272,9 @@ if __name__ == "__main__" :
   parser.add_argument("--debug", dest="debug", action="store_true",
                       help="Run with debugger attached to process")
 
+  parser.add_argument("--detection-plots", dest="detection_plots", action="store_true",
+                      help="Produce per-video detection plot summaries")
+
   parser.add_argument("-install", dest="install_dir", default="",
                       help="Optional install dir over-ride for all application "
                       "binaries. If this is not specified, it is expected that all "
@@ -221,6 +283,7 @@ if __name__ == "__main__" :
   parser.set_defaults( init_db=False )
   parser.set_defaults( build_index=False )
   parser.set_defaults( ball_tree=False )
+  parser.set_defaults( detection_plots=False )
   parser.set_defaults( debug=False )
 
   args = parser.parse_args()
@@ -273,12 +336,19 @@ if __name__ == "__main__" :
       create_dir( args.log_dir )
       sys.stdout.write( "\n" )
 
-    # Process videos 
+    # Process videos
     for video_name in video_list:
       if os.path.exists( video_name ) and os.path.isfile( video_name ):
-        process_video_kwiver( video_name, args, is_image_list )
+        if not args.detection_plots:
+          process_video_kwiver( video_name, args, is_image_list )
+        else:
+          process_video_plots( video_name, args, is_image_list )
       else:
         print( "Skipping " + video_name )
+
+  # Build out final analytics
+  if args.detection_plots:
+    print( "Generating data plots" )
 
   # Build index
   if args.build_index:
