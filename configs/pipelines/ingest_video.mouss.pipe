@@ -17,6 +17,6 @@ process input
   :video_filename                              [INSERT_ME]
   :video_reader:type                           vidl_ffmpeg
 
-include ingest_mouss_counting.cfe.pipe
+include ingest_mouss_counting.pipe
 
 # -- end of file --
