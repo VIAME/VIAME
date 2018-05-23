@@ -37,10 +37,10 @@ process yolo_v2_detector
     :gpu_index                             0
 
     # Image scaling parameters
-    :resize_option                         chip
+    :resize_option                         maintain_ar
     :resize_ni                             544
     :resize_nj                             544
-    :scale                                 1.25
+    :scale                                 1.0
     :chip_step                             500
 
   endblock
