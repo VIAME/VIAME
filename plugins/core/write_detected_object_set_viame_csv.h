@@ -69,7 +69,8 @@ public:
   virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::detected_object_set_sptr set,
+  virtual void write_set( const kwiver::vital::detected_object_set_sptr& set,
+                          const boost::optional<kwiver::vital::timestamp>& timestamp,
                           std::string const& image_name );
 
 private:

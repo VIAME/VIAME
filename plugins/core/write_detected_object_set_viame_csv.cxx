@@ -131,7 +131,8 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 // --------------------------------------------------------------------------------
 void
 write_detected_object_set_viame_csv::
-write_set( const kwiver::vital::detected_object_set_sptr set,
+write_set( const kwiver::vital::detected_object_set_sptr& set,
+           const boost::optional<kwiver::vital::timestamp>& timestamp,
            std::string const& image_name )
 {
   if( d->m_first )
@@ -180,9 +181,20 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
              << video_id << ",";            // 2: video or image id
 
     if( d->m_write_frame_number )
-      stream() << d->m_frame_number << ","; // 3: frame number
+    {
+      if( timestamp )
+      {
+        stream() << timestamp->get_frame() << ","; // 3: frame number
+      }
+      else
+      {
+        stream() << d->m_frame_number << ","; // 3: frame number
+      }
+    }
     else
+    {
       stream() << image_name << ",";        // 3: frame identfier
+    }
   
     stream() << bbox.min_x() << ","         // 4: TL-x
              << bbox.min_y() << ","         // 5: TL-y
