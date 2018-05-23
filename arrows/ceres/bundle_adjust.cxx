@@ -290,14 +290,6 @@ bundle_adjust
   // extract data from containers
   d_->cams = cameras->cameras();
   d_->lms = landmarks->landmarks();
-  std::vector<track_sptr> trks = tracks->tracks();
-
-  //make track id to track pointer map
-  std::map<track_id_t, track_sptr> track_map;
-  for (auto &t : trks)
-  {
-    track_map[t->id()] = t;
-  }
 
   std::map<track_id_t, landmark_id_t> track_id_to_landmark_id;
 
@@ -372,12 +364,12 @@ bundle_adjust
     const auto lm_id = *lm_t.begin();
     for (auto t_id : lm_t)
     {
-      auto tk_it = track_map.find(t_id);
-      if (tk_it == track_map.end())
+      auto t = tracks->get_track(t_id);
+      if (!t)
       {
         continue;
       }
-      auto t = tk_it->second;
+
       lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);
       // skip this track if the landmark is not in the set to optimize
       if (lm_itr == d_->landmark_params.end())
@@ -408,12 +400,12 @@ bundle_adjust
     //lowest index track is landmark id
     for (auto t_id : lm_t)
     {
-      auto tk_it = track_map.find(t_id);
-      if (tk_it == track_map.end())
+      auto t = tracks->get_track(t_id);
+      if (!t)
       {
         continue;
       }
-      auto t = tk_it->second;
+
       lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);
       // skip this track if the landmark is not in the set to optimize
       if (lm_itr == d_->landmark_params.end())
