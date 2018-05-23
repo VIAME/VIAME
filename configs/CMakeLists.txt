@@ -93,7 +93,8 @@ set( RUN_SCRIPT_FILES
      ingest_video.py
      launch_query_gui.py
      launch_track_viewer.py
-     launch_annotation_gui.py )
+     launch_annotation_gui.py
+     aggregate_plots.py )
 
 install( FILES       ${RUN_SCRIPT_FILES}
          DESTINATION configs )
