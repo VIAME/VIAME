@@ -350,12 +350,8 @@ if __name__ == "__main__" :
   # Build out final analytics
   if args.detection_plots:
     print( "Generating data plots" )
-    if args.frame_rate:
-      smooth = int( args.frame_rate )
-    else:
-      smooth = 1
     aggregate_plots.fish_aggregate( "database", args.species,
-                                    float( args.threshold ), smooth )
+                                    float( args.threshold ) )
 
   # Build index
   if args.build_index:
