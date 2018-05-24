@@ -76,7 +76,6 @@ typedef vital::landmark_map::map_landmark_t map_landmark_t;
 
 typedef std::pair<frame_id_t, float> coverage_pair;
 typedef std::vector<coverage_pair> frame_coverage_vec;
-typedef std::vector<std::set<frame_id_t>> camera_components;
 
 class rel_pose {
 public:
