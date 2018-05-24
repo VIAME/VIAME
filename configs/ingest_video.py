@@ -304,7 +304,8 @@ if __name__ == "__main__" :
   if args.detection_plots:
     print( "Generating data plots" )
     aggregate_plots.fish_aggregate( "database", args.species,
-                                    float( args.threshold ) )
+                                    float( args.threshold ),
+                                    float( args.frame_rate ) )
 
   # Build index
   if args.build_index:
