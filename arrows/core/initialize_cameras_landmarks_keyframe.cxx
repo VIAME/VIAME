@@ -299,6 +299,11 @@ public:
     feature_track_set_sptr tracks,
     metadata_map_sptr metadata);
 
+  std::set<landmark_id_t> find_visible_landmarks_in_frames(
+    const map_landmark_t &lmks,
+    feature_track_set_sptr tracks,
+    const std::set<frame_id_t> &frames);
+
   void set_track_to_landmark_map(const map_landmark_t &lmks);
 
   vector_3d get_velocity(
@@ -348,6 +353,7 @@ public:
   std::mt19937 m_rng;    // random-number engine used (Mersenne-Twister in this case)
   double m_reverse_ba_error_ratio;
   bool m_enable_BA_callback;
+  std::unordered_map<landmark_id_t, track_id_t> m_track_to_landmark_map;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -478,6 +484,10 @@ initialize_cameras_landmarks_keyframe::priv
 
   return vel;
 }
+
+void
+initialize_cameras_landmarks_keyframe::priv
+::check_inputs(feature_track_set_sptr tracks)
 {
   if (!tracks)
   {
@@ -1804,10 +1814,12 @@ void initialize_cameras_landmarks_keyframe::priv
       //now replace the landmark in lmks with the lowest track_id track in the joined landmark.  Remove other landmarks.
       auto final_tks = joined_lm->tracks();
       bool first_track = true;
+      landmark_id_t lm_id = -1;
       for (auto ft_id : final_tks)
       {
         if (first_track)
         {
+          lm_id = ft_id;
           lmks[ft_id] = joined_lm;
           first_track = false;
         }
@@ -1815,6 +1827,7 @@ void initialize_cameras_landmarks_keyframe::priv
         {
           lmks.erase(ft_id);
         }
+        m_track_to_landmark_map[ft_id] = lm_id;
       }
     }
     //now triangulate all the tracks that didn't merge and add them back into lmks
@@ -1824,6 +1837,7 @@ void initialize_cameras_landmarks_keyframe::priv
       auto lm = std::make_shared<landmark_d>();
       lm->add_track(nmt_id);
       non_joined_lm_map[nmt_id] = lm;
+      m_track_to_landmark_map[nmt_id] = nmt_id;
     }
     landmark_map_sptr non_joined_lm_ptr(new simple_landmark_map(non_joined_lm_map));
     lm_triangulator->triangulate(cams, m_track_map, non_joined_lm_ptr);
@@ -1847,7 +1861,6 @@ initialize_cameras_landmarks_keyframe::priv
   metadata_map_sptr metadata,
   callback_t callback)
 {
-
   LOG_DEBUG(m_logger, "initialize_keyframes");
 
 
@@ -2300,26 +2313,21 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 std::set<landmark_id_t>
-find_visible_landmarks_in_frames(const map_landmark_t &lmks, feature_track_set_sptr tracks, const std::set<frame_id_t> &frames)
+initialize_cameras_landmarks_keyframe::priv
+::find_visible_landmarks_in_frames(
+  const map_landmark_t &lmks,
+  feature_track_set_sptr tracks,
+  const std::set<frame_id_t> &frames)
 {
   std::set<landmark_id_t> visible_landmarks;
-
-  std::map<track_id_t, landmark_id_t> track_to_lm_map;
-  for (auto const &lm : lmks)
-  {
-    for (auto t : lm.second->tracks())
-    {
-      track_to_lm_map[t] = lm.first;
-    }
-  }
 
   for (auto const fid : frames)
   {
     auto at = tracks->active_tracks(fid);
     for (auto t : at)
     {
-      auto t_it = track_to_lm_map.find(t->id());
-      if (t_it != track_to_lm_map.end())
+      auto t_it = m_track_to_landmark_map.find(t->id());
+      if (t_it != m_track_to_landmark_map.end())
       {
         visible_landmarks.insert(t_it->second);
       }
@@ -2404,174 +2412,109 @@ initialize_cameras_landmarks_keyframe::priv
   metadata_map_sptr metadata,
   callback_t callback)
 {
-
-  auto pcams_map = cams->simple_perspective_cameras();
-
   //we will lock the original cameras in the bundle adjustment, could also exclude them
 
-
   auto lmks = landmarks->landmarks();
+
+  set_track_to_landmark_map(lmks);
+
+  std::set<frame_id_t> already_registred_cams, frames_to_register;
+  get_registered_and_non_registered_frames(cams, tracks, already_registred_cams, frames_to_register);
 
   std::set<landmark_id_t> fixed_landmarks;
   for (auto &l : lmks)
   {
     fixed_landmarks.insert(l.first);
   }
-
-  auto frames_to_register = tracks->all_frame_ids();
-  std::set<frame_id_t> orig_cams;
-  for (auto &p : pcams_map)
-  {
-    orig_cams.insert(p.first);
-    frames_to_register.erase(p.first);
-  }
-
   std::set<frame_id_t> frames_since_last_local_ba;
   m_frames_removed_from_sfm_solution.clear();
-  std::set<frame_id_t> already_registred_cams = orig_cams;
-  while(!frames_to_register.empty())
-  {
-    auto existing_cams = cams->simple_perspective_cameras();
-    frame_id_t fid_to_register = -1;
-    frame_id_t closest_existing_cam = -1;
-    frame_id_t min_frame_diff = std::numeric_limits<frame_id_t>::max();
-    for (auto f : frames_to_register)
-    {
-      for (auto &ec : existing_cams)
-      {
-        auto diff = abs(ec.first - f);
-        if (diff < min_frame_diff)
-        {
-          min_frame_diff = diff;
-          fid_to_register = f;
-          closest_existing_cam = ec.first;
-        }
-      }
-    }
-    frames_to_register.erase(fid_to_register);
-    auto closest_cam = cams->find(closest_existing_cam);
-    vector_3d vel;
-    vel.setZero();
 
-    frame_id_t velocity_base_cam = -1;
-    min_frame_diff = std::numeric_limits<frame_id_t>::max();
-    for (auto &ec : existing_cams)
-    {
-      if (ec.first == closest_existing_cam)
-      {
-        continue;
-      }
-      auto diff = ec.first - closest_existing_cam;
-      if (abs(diff) < min_frame_diff)
-      {
-        min_frame_diff = abs(diff);
-        velocity_base_cam = ec.first;
-      }
-    }
-    if (min_frame_diff <= 4)
-    {
-      auto vel_cam = cams->find(velocity_base_cam);
-      vel = (closest_cam->center() - vel_cam->center()) / min_frame_diff;
-
-      if (velocity_base_cam > closest_existing_cam)
-      {
-        //backwards in time so negate the velocity
-        vel *= -1.0;
-      }
-    }
+  int frames_since_last_down_select = 0;
 
   time_t prev_callback_time;
   time(&prev_callback_time);
   const double callback_min_period = 2;
 
+  while(!frames_to_register.empty())
+  {
+    frame_id_t fid_to_register, closest_cam_fid;
+    get_next_fid_to_register_and_its_closets_registered_cam(cams, frames_to_register, fid_to_register, closest_cam_fid);
+    frames_to_register.erase(fid_to_register);
+    auto vel = get_velocity(cams, fid_to_register);
+    simple_camera_perspective_sptr closest_cam = cams->simple_perspective_cameras()[closest_cam_fid];
     simple_camera_perspective_sptr resectioned_cam, bundled_cam;
 
     int bundled_inlier_count = 0;
     int resection_inlier_count = 0;
     bool force_local_ba = false;
     bool good_pose = false;
-    int min_inliers = 500;
-    for (int tries = 0; tries < 2 && !good_pose; tries++)
+
+    int min_inliers = 50;
+
+    std::set<frame_id_t> cur_fid;
+    cur_fid.insert(fid_to_register);
+    auto cur_frame_landmarks = find_visible_landmarks_in_frames(landmarks->landmarks(), tracks, cur_fid);
+    auto cur_landmarks = get_sub_landmark_map(lmks, cur_frame_landmarks);
+
     {
-      std::set<frame_id_t> cur_fid;
-      cur_fid.insert(fid_to_register);
-      auto cur_frame_landmarks = find_visible_landmarks_in_frames(landmarks->landmarks(), tracks, cur_fid);
-      auto non_current_landmarks = fixed_landmarks;
-      for (auto &lm : cur_frame_landmarks)
-      {
-        non_current_landmarks.erase(lm);
-      }
+      //use the pose of the closest camera as starting point
+      bundled_cam = std::static_pointer_cast<simple_camera_perspective>(closest_cam->clone());
+      //use constant velocity model
+      bundled_cam->set_center(closest_cam->center() + (fid_to_register - closest_cam_fid) * vel);
+      cams->insert(fid_to_register, bundled_cam);
+      camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
 
+      int prev_bundled_inlier_count = -1;
+      int loop_count = 0;
+      while (bundled_inlier_count > prev_bundled_inlier_count)
       {
-        //use the pose of the closest camera as starting point
-        bundled_cam = std::static_pointer_cast<simple_camera_perspective>(closest_cam->clone());
-        //use constant velocity model
-        bundled_cam->set_center(bundled_cam->center() + (fid_to_register - closest_existing_cam) * vel);
-        cams->insert(fid_to_register, bundled_cam);
-        camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
+        //DOES THIS LOOP HELP?
+        bundle_adjuster->optimize(ba_cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, metadata);
 
-        int prev_bundled_inlier_count = -1;
-        while (bundled_inlier_count > prev_bundled_inlier_count)
-        {
-          bundle_adjuster->optimize(ba_cams, landmarks, tracks, already_registred_cams, non_current_landmarks, metadata);
-          cams->set_from_base_cams(ba_cams);
-          bundled_cam = cams->find(fid_to_register);
-          prev_bundled_inlier_count = bundled_inlier_count;
-          bundled_inlier_count = set_inlier_flags(fid_to_register, bundled_cam, lmks, tracks,50);
-          //evaluate inliers for bundled_cam
-          //count inliers for bundled cam
-        }
+        cams->set_from_base_cams(ba_cams);
+        bundled_cam = cams->find(fid_to_register);
+        prev_bundled_inlier_count = bundled_inlier_count;
+        bundled_inlier_count = set_inlier_flags(fid_to_register, bundled_cam, cur_landmarks->landmarks(), tracks,50);
+        ++loop_count;
       }
-
-      if (bundled_inlier_count < min_inliers)
+      if (loop_count > 2)
       {
-        resection_camera(cams, lmks, tracks, fid_to_register);
-        resectioned_cam = cams->find(fid_to_register);
-        if (resectioned_cam)
-        {
-          camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
-          int prev_resection_inlier_count = -1;
-          while (resection_inlier_count > prev_resection_inlier_count)
-          {
-            bundle_adjuster->optimize(ba_cams, landmarks, tracks, already_registred_cams, non_current_landmarks, metadata);
-            cams->set_from_base_cams(ba_cams);
-            resectioned_cam = cams->find(fid_to_register);
-            prev_resection_inlier_count = resection_inlier_count;
-            resection_inlier_count = set_inlier_flags(fid_to_register, resectioned_cam, lmks, tracks, 50);
-          }
-        }
+        LOG_DEBUG(m_logger, "ran " << loop_count << " hill climbing BA loops");
       }
-
-      int inlier_count = std::max(resection_inlier_count, bundled_inlier_count);
-      if (inlier_count < min_inliers)
-      {
-        if (tries == 0)
-        {
-          std::set<landmark_id_t> inliers;
-          retriangulate(lmks, cams, tracks->tracks(), inliers);
-          landmarks = landmark_map_sptr(new simple_landmark_map(lmks));
-          join_landmarks(cams, landmarks, tracks, metadata, fid_to_register);
-          fixed_landmarks.clear();
-          for (auto &lm : lmks)
-          {
-            fixed_landmarks.insert(lm.first);
-          }
-          force_local_ba = true;
-        }
-      }
-      else
-      {
-        good_pose = true;
-      }
-      min_inliers = 30;
     }
-    if (!good_pose)
+
+    if (bundled_inlier_count < 4*min_inliers)
+    {
+      resection_camera(cams, lmks, tracks, fid_to_register);
+      resectioned_cam = cams->find(fid_to_register);
+      if (resectioned_cam)
+      {
+        camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
+        int prev_resection_inlier_count = -1;
+        int loop_count = 0;
+        while (resection_inlier_count > prev_resection_inlier_count)
+        {
+          //DOES THIS LOOP HELP?
+          bundle_adjuster->optimize(ba_cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, metadata);
+          cams->set_from_base_cams(ba_cams);
+          resectioned_cam = cams->find(fid_to_register);
+          prev_resection_inlier_count = resection_inlier_count;
+          resection_inlier_count = set_inlier_flags(fid_to_register, resectioned_cam, cur_landmarks->landmarks(), tracks, 50);
+          ++loop_count;
+        }
+        if (loop_count > 2)
+        {
+          LOG_DEBUG(m_logger, "ran " << loop_count << " hill climbing resection BA loops");
+        }
+      }
+    }
+
+    int inlier_count = std::max(resection_inlier_count, bundled_inlier_count);
+    if (inlier_count < min_inliers)
     {
       cams->erase(fid_to_register);
       continue;
     }
-
-
 
     if (resection_inlier_count > bundled_inlier_count)
     {
@@ -2585,9 +2528,17 @@ initialize_cameras_landmarks_keyframe::priv
       set_inlier_flags(fid_to_register, bundled_cam, lmks, tracks,10);
     }
 
+    //Triangulate only landmarks visible in latest cameras
+    std::set<frame_id_t> fids_to_triang;
+    fids_to_triang.insert(fid_to_register);
+    triangulate_landmarks_visible_in_frames(lmks, cams, tracks, fids_to_triang,false);
 
-    std::set<landmark_id_t> inliers;
-    retriangulate(lmks, cams, tracks->tracks(), inliers);
+    if (++frames_since_last_down_select >= 5)
+    {
+      down_select_landmarks(lmks, cams, tracks, fids_to_triang);
+      frames_since_last_down_select = 0;
+    }
+
     landmarks = landmark_map_sptr(new simple_landmark_map(lmks));
     fixed_landmarks.clear();
     for (auto &lm : lmks)
@@ -2597,7 +2548,7 @@ initialize_cameras_landmarks_keyframe::priv
 
     frames_since_last_local_ba.insert(fid_to_register);
 
-    if (frames_since_last_local_ba.size() >= 1 || force_local_ba)
+    if (frames_since_last_local_ba.size() >= 3 || force_local_ba)
     {
       auto frames_to_fix = already_registred_cams;
       //optimize camera and all landmarks it sees, fixing all other cameras.
@@ -2606,7 +2557,7 @@ initialize_cameras_landmarks_keyframe::priv
       //eventually want to find neighbors in the pose graph, not temporal neighbors. But this should work for now.
       for (auto it = already_registred_cams.rbegin(); it != already_registred_cams.rend(); ++it)
       {
-        if (variable_frames.size() >= 5)
+        if (variable_frames.size() >= 3)
         {
           break;
         }
@@ -2618,30 +2569,26 @@ initialize_cameras_landmarks_keyframe::priv
         frames_to_fix.erase(fid);
       }
 
-      std::set<landmark_id_t> non_current_landmark_set = fixed_landmarks;
-      std::set<track_id_t> variable_landmarks = find_visible_landmarks_in_frames(landmarks->landmarks(), tracks, variable_frames);
-      for (auto &lm : variable_landmarks)
-      {
-        non_current_landmark_set.erase(lm);
-      }
-
-
+      std::set<landmark_id_t> variable_landmark_ids = find_visible_landmarks_in_frames(landmarks->landmarks(), tracks, variable_frames);
       std::vector<frame_id_t> removed_cams;
       auto cam_map = cams->cameras();
       auto lms = landmarks->landmarks();
       clean_cameras_and_landmarks(cam_map, lms, tracks, m_thresh_triang_cos_ang, removed_cams,
-        variable_frames, variable_landmarks, image_coverage_threshold, interim_reproj_thresh);
+        variable_frames, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
 
       for (auto rem_fid : removed_cams)
       {
         m_frames_removed_from_sfm_solution.insert(rem_fid);
       }
       cams->set_from_base_camera_map(cam_map);
-      landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 
+      auto variable_landmarks = get_sub_landmark_map(lms, variable_landmark_ids);
       camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
-      bundle_adjuster->optimize(ba_cams, landmarks, tracks, frames_to_fix, non_current_landmark_set, metadata);
+      std::set<landmark_id_t> empty_landmark_id_set;
+
+      bundle_adjuster->optimize(ba_cams, variable_landmarks, tracks, frames_to_fix, empty_landmark_id_set, metadata);
       cams->set_from_base_cams(ba_cams);
+      landmarks = store_landmarks(lms, variable_landmarks);
       frames_since_last_local_ba.clear();
     }
 
