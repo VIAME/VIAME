@@ -217,6 +217,13 @@ public:
     const std::vector<track_sptr>& trks,
     std::set<landmark_id_t>& inlier_lm_ids) const;
 
+  void triangulate_landmarks_visible_in_frames(
+    landmark_map::map_landmark_t& lmks,
+    simple_camera_perspective_map_sptr cams,
+    feature_track_set_sptr tracks,
+    std::set<frame_id_t> frame_ids,
+    bool triangulate_only_outliers);
+
   bool initialize_reconstruction(
     simple_camera_perspective_map_sptr cams,
     map_landmark_t &lms,
@@ -437,6 +444,49 @@ initialize_cameras_landmarks_keyframe::priv
   {
     inlier_lm_ids.insert(lm.first);
     lms[lm.first] = lm.second;
+  }
+}
+
+void
+initialize_cameras_landmarks_keyframe::priv
+::triangulate_landmarks_visible_in_frames(
+  landmark_map::map_landmark_t& lmks,
+  simple_camera_perspective_map_sptr cams,
+  feature_track_set_sptr tracks,
+  std::set<frame_id_t> frame_ids,
+  bool triangulate_only_outliers)
+{
+  // only triangulates tracks that don't already have associated landmarks
+  landmark_map::map_landmark_t new_lms;
+  std::vector<track_sptr> triang_tracks;
+
+  for (auto fid : frame_ids)
+  {
+    auto active_tracks = tracks->active_tracks(fid);
+    for (auto &t : active_tracks)
+    {
+      auto fts = std::static_pointer_cast<feature_track_state>(*(t->find(fid)));
+      if (fts->inlier && triangulate_only_outliers)
+      {
+        continue;
+      }
+
+      auto it = lmks.find(t->id());
+      if (it != lmks.end())
+      {
+        continue;
+      }
+
+      triang_tracks.push_back(t);
+    }
+  }
+  std::set<landmark_id_t> inlier_lm_ids;
+  retriangulate(new_lms, cams, triang_tracks, inlier_lm_ids);
+
+  for (auto &lm : new_lms)
+  {
+    lmks[lm.first] = lm.second;
+    m_track_to_landmark_map[lm.first] = lm.first;
   }
 }
 
