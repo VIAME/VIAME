@@ -2443,6 +2443,9 @@ initialize_cameras_landmarks_keyframe::priv
       }
     }
 
+  time_t prev_callback_time;
+  time(&prev_callback_time);
+  const double callback_min_period = 2;
 
     simple_camera_perspective_sptr resectioned_cam, bundled_cam;
 
@@ -2607,8 +2610,13 @@ initialize_cameras_landmarks_keyframe::priv
 
     already_registred_cams.insert(fid_to_register);
 
-    if (callback)
+    time_t cur_time;
+    time(&cur_time);
+    double seconds_since_last_disp = difftime(cur_time, prev_callback_time);
+
+    if (callback && seconds_since_last_disp > callback_min_period)
     {
+      time(&prev_callback_time);
       continue_processing =
         callback(cams, std::make_shared<simple_landmark_map>(lmks));
 
