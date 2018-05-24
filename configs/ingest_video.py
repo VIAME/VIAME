@@ -101,7 +101,8 @@ def fset( setting_str, trailing_space=True ):
 
 def video_output_settings_str( basename ):
   return '' + \
-    fset( 'detector_writer:file_name=database/' + basename + '_detections.csv' ) + \
+    fset( 'detector_writer:file_name=database/' + basename + '.csv' ) + \
+    fset( 'detector_writer_kw18:file_name=database/' + basename + '.kw18' ) + \
     fset( 'track_writer:file_name=database/' + basename + '_tracks.csv' ) + \
     fset( 'track_writer:stream_identifier=' + basename ) + \
     fset( 'track_writer_db:writer:db:video_name=' + basename ) + \
@@ -176,51 +177,6 @@ def plot_settings_str( basename ):
     fset( 'kwa_writer:output_directory=database ' ) + \
     fset( 'kwa_writer:base_filename=' + basename ) + \
     fset( 'kwa_writer:stream_id=' + basename, False )
-
-# Process a single video
-def process_video_plots( input_name, options, is_image_list=False, base_ovrd='' ):
-
-  sys.stdout.write( 'Processing: ' + input_name + "... " )
-  sys.stdout.flush()
-
-  # Get video name without extension and full path
-  if len( base_ovrd ) > 0:
-    basename = base_ovrd
-  else:
-    basename = os.path.splitext( os.path.basename( input_name ) )[0]
-
-  # Formulate input setting string
-  if is_image_list:
-    input_setting = fset( 'input:image_list_file=' + input_name )
-  else:
-    input_setting = fset( 'input:video_filename=' + input_name )
-
-  # Formulate command
-  command = get_pipeline_cmd( args.debug ) + \
-            '-p ' + farg( find_file( options.pipeline ) ) + \
-            input_setting
-
-  if not is_image_list:
-    command = command + video_frame_rate_settings_str( options )
-
-  command = command + plot_settings_str( basename )
-
-  if len( args.extra_options ) > 0:
-    for extra_option in args.extra_options:
-      command = command + fset( extra_option )
-
-  if len( args.log_dir ) > 0 and not args.debug:
-    command = command + get_log_postfix( args.log_dir + '/' + basename )
-
-  # Process command
-  res = execute_command( command )
-
-  if res == 0:
-    print( 'Success' )
-  else:
-    print( 'Failure' )
-    print( '\nIngest failed, check database/Log files, terminating.\n' )
-    sys.exit( 0 )
 
 # Main Function
 if __name__ == "__main__" :
@@ -340,19 +296,15 @@ if __name__ == "__main__" :
     # Process videos
     for video_name in video_list:
       if os.path.exists( video_name ) and os.path.isfile( video_name ):
-        if not args.detection_plots:
-          process_video_kwiver( video_name, args, is_image_list )
-        else:
-          process_video_plots( video_name, args, is_image_list )
+        process_video_kwiver( video_name, args, is_image_list )
       else:
         print( "Skipping " + video_name )
 
   # Build out final analytics
   if args.detection_plots:
     print( "Generating data plots" )
-    aggregate_plots.fish_aggregate( "database", args.species.split(","),
-                                    float( args.threshold ),
-                                    float( args.frame_rate ) )
+    aggregate_plots.fish_aggregate( "database", args.species,
+                                    float( args.threshold ) )
 
   # Build index
   if args.build_index:
