@@ -249,7 +249,7 @@ if __name__ == "__main__" :
   process_data = True
 
   if len( args.input_video ) == 0 and len( args.input_dir ) == 0 and len( args.input_list ) == 0:
-    if not args.build_index:
+    if not args.build_index and not args.detection_plots:
       print( "Either input video or input directory must be specified" )
       sys.exit( 0 )
     else:
