@@ -397,6 +397,7 @@ bundle_adjust
       continue;
     }
 
+    int num_fixed_cameras_this_lm = 0;
     //lowest index track is landmark id
     for (auto t_id : lm_t)
     {
@@ -422,7 +423,9 @@ bundle_adjust
           continue;
         }
 
-        if (fixed_landmark && to_fix_cameras.find(cam_itr->first) != to_fix_cameras.end())
+        bool fixed_camera = to_fix_cameras.find(cam_itr->first) != to_fix_cameras.end();
+
+        if (fixed_landmark && fixed_camera)
         {
           //skip this measurement because it involves both a fixed camera and fixed landmark.
           //It could influence the intrinsics but we will ignore that for speed.
@@ -437,6 +440,15 @@ bundle_adjust
         if (!fts->inlier)
         {
           continue; // feature is not an inlier so don't use it in ba.
+        }
+
+        if (fixed_camera)
+        {
+          ++num_fixed_cameras_this_lm;
+          if (num_fixed_cameras_this_lm > 4)
+          {
+            continue;
+          }
         }
 
         unsigned intr_idx = d_->frame_to_intr_map[fts->frame()];
