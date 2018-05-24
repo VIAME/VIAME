@@ -8,27 +8,23 @@ option( KWIVER_ENABLE_GDAL
 if( KWIVER_ENABLE_GDAL )
   find_package( GDAL REQUIRED )
   if( GDAL_FOUND )
-    # We need to build the file in a line-by-line fashon because of
-    # portability with end of line markers.
-    file( WRITE  ${CMAKE_BINARY_DIR}/test_gdal_version.cxx "#include <gdal_version.h>\n" )
-    file( APPEND ${CMAKE_BINARY_DIR}/test_gdal_version.cxx "#if ( GDAL_COMPUTE_VERSION( 2, 3, 0  ) != GDAL_VERSION_NUM )\n")
-    file( APPEND ${CMAKE_BINARY_DIR}/test_gdal_version.cxx "#error \"GDAL Not required version: $GDAL_VERSION_NUM\"\n" )
-    file( APPEND ${CMAKE_BINARY_DIR}/test_gdal_version.cxx "#endif\n")
-    file( APPEND ${CMAKE_BINARY_DIR}/test_gdal_version.cxx "int main() { } // just need some code\n")
+    if( GDAL_CONFIG )
+      EXEC_PROGRAM(${GDAL_CONFIG}
+        ARGS --version
+        OUTPUT_VARIABLE GDAL_VERSION )
+      STRING(REGEX REPLACE "([0-9]+)\\.([0-9]+)\\.([0-9]+)" "\\1" GDAL_VERSION_MAJOR "${GDAL_VERSION}")
+      STRING(REGEX REPLACE "([0-9]+)\\.([0-9]+)\\.([0-9]+)" "\\2" GDAL_VERSION_MINOR "${GDAL_VERSION}")
 
-    TRY_COMPILE( GDAL_VERSION_MATCH
-               ${CMAKE_BINARY_DIR}
-               ${CMAKE_BINARY_DIR}/test_gdal_version.cxx
-               COMPILE_DEFINITIONS "-I${GDAL_INCLUDE_DIR}"
-               OUTPUT_VARIABLE OUTPUT)
+      message(STATUS "Found GDAL ${GDAL_VERSION}")
 
-    file( REMOVE ${CMAKE_BINARY_DIR}/test_gdal_version.cxx )
-
-    if( GDAL_VERSION_MATCH )
-      include_directories(SYSTEM ${GDAL_INCLUDE_DIR})
+      if( GDAL_VERSION_MAJOR LESS 2 OR GDAL_VERSION_MINOR LESS 3 )
+        message( FATAL_ERROR "GDAL ${GDAL_VERSION} found, but version must be 2.3.0 or higher." )
+        unset(GDAL_INCLUDE_DIR)
+      else()
+        include_directories(SYSTEM ${GDAL_INCLUDE_DIR})
+      endif()
     else()
-      message( FATAL_ERROR "GDAL found, but not needed version. Need version: 2.3.0" )
-      message(${OUTPUT})
+      message( FATAL_ERROR "gdal-config missing from GDAL installation. Can not test for GDAL version." )
       unset(GDAL_INCLUDE_DIR)
     endif()
   endif()
