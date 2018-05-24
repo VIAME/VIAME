@@ -298,6 +298,10 @@ public:
     feature_track_set_sptr tracks,
     metadata_map_sptr metadata);
 
+  vector_3d get_velocity(
+    simple_camera_perspective_map_sptr cams,
+    frame_id_t vel_frame) const;
+
   bool verbose;
   bool continue_processing;
   double interim_reproj_thresh;
@@ -353,6 +357,77 @@ initialize_cameras_landmarks_keyframe::priv
 }
 
 void initialize_cameras_landmarks_keyframe::priv::check_inputs(feature_track_set_sptr tracks)
+vector_3d
+initialize_cameras_landmarks_keyframe::priv
+::get_velocity(
+  simple_camera_perspective_map_sptr cams,
+  frame_id_t vel_frame) const
+{
+  vector_3d vel;
+  vel.setZero();
+
+  auto existing_cams = cams->simple_perspective_cameras();
+  auto closest_fid = -1;
+  auto next_closest_fid = -1;
+  auto it = existing_cams.find(vel_frame);
+  simple_camera_perspective_sptr closest_cam, next_closest_cam;
+  closest_cam = nullptr;
+  next_closest_cam = nullptr;
+  frame_id_t min_frame_diff = std::numeric_limits<frame_id_t>::max();
+
+  if (it == existing_cams.end())
+  {
+    //find the closest existing cam to vel_frame
+    for (auto &ec : existing_cams)
+    {
+      auto diff = abs(ec.first - vel_frame);
+      if (diff < min_frame_diff)
+      {
+        min_frame_diff = diff;
+        closest_cam = ec.second;
+        closest_fid = ec.first;
+      }
+    }
+  }
+  else
+  {
+    closest_cam = it->second;
+  }
+
+  if (!closest_cam)
+  {
+    return vel;
+  }
+
+  // find the second closest cam
+  min_frame_diff = std::numeric_limits<frame_id_t>::max();
+  for (auto &ec : existing_cams)
+  {
+    if (ec.first == closest_fid)
+    {
+      continue;
+    }
+    auto diff = abs(ec.first - closest_fid);
+    if (diff < min_frame_diff)
+    {
+      min_frame_diff = diff;
+      next_closest_cam = ec.second;
+      next_closest_fid = ec.first;
+    }
+  }
+
+  if (!next_closest_cam || min_frame_diff > 4)
+  {
+    return vel;
+  }
+
+  double frame_diff = static_cast<double>(closest_fid - next_closest_fid);
+  auto pos_diff = closest_cam->center() - next_closest_cam->center();
+
+  vel = pos_diff * (1.0 / frame_diff);
+
+  return vel;
+}
 {
   if (!tracks)
   {
