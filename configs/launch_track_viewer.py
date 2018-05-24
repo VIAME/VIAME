@@ -63,6 +63,6 @@ if __name__ == "__main__" :
   filename = files[int(choice)-1]
   base, ext = os.path.splitext( filename )
 
-  cmd = get_gui_cmd() + " -tf " + base + "_tracks.kw18 -vf " + filename
+  cmd = get_gui_cmd() + " -tf " + base + ".kw18 -vf " + filename
 
   os.system( cmd )
