@@ -22,7 +22,6 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
         if filename.endswith(".csv") and not filename.endswith(".output.csv"):
             fig, ax = video_plots[filename] = plt.subplots()
 
-            plt.xticks(rotation=20)
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
             ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
             ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s)" % filename)
@@ -91,7 +90,6 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
                 y = np.array(fish_counts)
 
                 fig, ax = plt.subplots()
-                plt.xticks(rotation=20)
                 ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
                 ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
                 ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s) (%s)" % (s, filename))
