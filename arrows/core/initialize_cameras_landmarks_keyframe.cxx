@@ -223,6 +223,12 @@ public:
     std::set<frame_id_t> frame_ids,
     bool triangulate_only_outliers);
 
+  void down_select_landmarks(
+    landmark_map::map_landmark_t &lmks,
+    simple_camera_perspective_map_sptr cams,
+    feature_track_set_sptr tracks,
+    std::set<frame_id_t> down_select_these_frames) const;
+
   bool initialize_reconstruction(
     simple_camera_perspective_map_sptr cams,
     map_landmark_t &lms,
@@ -486,6 +492,188 @@ initialize_cameras_landmarks_keyframe::priv
   {
     lmks[lm.first] = lm.second;
     m_track_to_landmark_map[lm.first] = lm.first;
+  }
+}
+
+class gridded_mask {
+public:
+  gridded_mask(
+    int input_w,
+    int input_h,
+    int min_features_per_cell):
+    m_input_w(input_w),
+    m_input_h(input_h),
+    m_min_features_per_cell(min_features_per_cell)
+  {
+    m_mask.setZero();
+  }
+
+  void add_entry(vector_2d loc)
+  {
+    int cx = m_mask.cols()* (loc.x() / double(m_input_w));
+    int cy = m_mask.rows()* (loc.y() / double(m_input_h));
+    cx = std::min<int>(cx, m_mask.cols()-1);
+    cy = std::min<int>(cy, m_mask.rows()-1);
+    auto &mv = m_mask(cy, cx);
+    ++mv;
+  }
+
+  bool conditionally_remove_entry(vector_2d loc)
+  {
+    int cx = m_mask.cols()* (loc.x() / double(m_input_w));
+    int cy = m_mask.rows()* (loc.y() / double(m_input_h));
+    cx = std::min<int>(cx, m_mask.cols()-1);
+    cy = std::min<int>(cy, m_mask.rows()-1);
+    auto &mv = m_mask(cy, cx);
+    if (mv > m_min_features_per_cell)
+    {
+      --mv;
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+private:
+
+  int m_input_w;
+  int m_input_h;
+  int m_min_features_per_cell;
+  Eigen::Matrix<int, 4, 4> m_mask;
+
+};
+
+typedef std::shared_ptr<gridded_mask> gridded_mask_sptr;
+
+
+void
+initialize_cameras_landmarks_keyframe::priv
+::down_select_landmarks(
+  landmark_map::map_landmark_t &lmks,
+  simple_camera_perspective_map_sptr cams,
+  feature_track_set_sptr tracks,
+  std::set<frame_id_t> down_select_these_frames) const
+{
+  //go through landmarks visible in the down select frames
+  // favor longer landmarks
+  // get at least N landmarks per image region, if possible
+  const int cells_w = 4;
+  const int cells_h = 4;
+  const int min_features_per_cell = 128 / (cells_w*cells_h);
+  std::map<frame_id_t, gridded_mask_sptr> masks;
+
+  frame_id_t first_frame = std::numeric_limits<frame_id_t>::max();
+  frame_id_t last_frame = -1;
+  std::set<track_sptr> lm_to_downsample_set;
+  for (auto ds : down_select_these_frames)
+  {
+    auto active_tracks = tracks->active_tracks(ds);
+    for (auto t : active_tracks)
+    {
+      if (lmks.find(t->id()) == lmks.end())
+      {
+        continue;
+      }
+      first_frame = std::min<frame_id_t>(first_frame, t->first_frame());
+      last_frame = std::max<frame_id_t>(last_frame, t->last_frame());
+      lm_to_downsample_set.insert(t);
+    }
+  }
+
+  //ok now we know what frames the down select tracks cover.  Build a mask for each of these frames.
+  for (auto cam : cams->simple_perspective_cameras())
+  {
+    auto fid = cam.first;
+    if (fid < first_frame || fid > last_frame)
+    {
+      continue;
+    }
+    int image_w = 2 * cam.second->intrinsics()->principal_point().x();
+    int image_h = 2 * cam.second->intrinsics()->principal_point().y();
+
+    auto mask = std::make_shared<gridded_mask>(image_w, image_h, min_features_per_cell);
+    masks[fid] = mask;
+
+    auto active_tracks = tracks->active_tracks(fid);
+    for (auto t : active_tracks)
+    {
+      if (lmks.find(t->id()) == lmks.end())
+      {
+        continue;
+      }
+      auto ts = *t->find(fid);
+      auto fts = std::static_pointer_cast<feature_track_state>(ts);
+      if (!fts->inlier)
+      {
+        continue;
+      }
+      mask->add_entry(fts->feature->loc());
+    }
+  }
+
+  std::vector<track_sptr> lm_to_downsample;
+  for (auto t : lm_to_downsample_set)
+  {
+    lm_to_downsample.push_back(t);
+  }
+
+  std::random_device rd;  //Will be used to obtain a seed for the random number engine
+  std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+  const int good_enough_size = 10;
+  std::uniform_int_distribution<> dis(2, good_enough_size);
+
+  std::set<landmark_id_t> lm_to_remove;
+  //first we sample from the long_ds_landmarks because they will make the reconstruction complete without as many breaks
+  while (!lm_to_downsample.empty())
+  {
+    auto &t1 = lm_to_downsample.back();
+    for(int ns = 0; ns < 20; ++ns)
+    {
+      int rand_idx = std::min<int>((double(std::rand()) / double(RAND_MAX)) * lm_to_downsample.size(), lm_to_downsample.size() - 1);
+      t1 = lm_to_downsample[rand_idx];
+      int length_thresh = dis(gen);
+      int t1_effective_len = std::min<int>(t1->size(), good_enough_size);
+
+      if (t1_effective_len <= length_thresh)
+      {
+        break;
+      }
+    }
+    auto &t2 = lm_to_downsample.back();
+    std::swap(t1, t2);
+    auto t = t2;
+    lm_to_downsample.pop_back();
+    bool keep_lm = false;
+    for (auto &ts : *t)
+    {
+      auto fid = ts->frame();
+      auto mask_it = masks.find(fid);
+      if (mask_it == masks.end())
+      {
+        continue;
+      }
+      auto fts = std::static_pointer_cast<feature_track_state>(ts);
+      if (!fts->inlier)
+      {
+        continue;
+      }
+
+      if (!mask_it->second->conditionally_remove_entry(fts->feature->loc()))
+      {
+        keep_lm = true;
+      }
+    }
+    if (!keep_lm)
+    {
+      lm_to_remove.insert(t->id());
+    }
+  }
+
+  for (auto lm_id : lm_to_remove)
+  {
+    lmks.erase(lm_id);
   }
 }
 
