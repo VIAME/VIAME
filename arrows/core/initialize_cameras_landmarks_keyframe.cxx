@@ -41,6 +41,7 @@
 #include <iterator>
 #include <Eigen/StdVector>
 #include <fstream>
+#include <ctime>
 
 #include <vital/exceptions.h>
 #include <vital/io/eigen_io.h>
