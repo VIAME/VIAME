@@ -315,6 +315,14 @@ public:
     std::set<frame_id_t> &frames_to_register,
     frame_id_t &fid_to_register, frame_id_t &closest_frame) const;
 
+  landmark_map_sptr get_sub_landmark_map(
+    map_landmark_t &lmks,
+    const std::set<landmark_id_t> &lm_ids) const;
+
+  landmark_map_sptr store_landmarks(
+    map_landmark_t &store_lms,
+    landmark_map_sptr to_store) const;
+
   bool verbose;
   bool continue_processing;
   double interim_reproj_thresh;
@@ -369,7 +377,35 @@ initialize_cameras_landmarks_keyframe::priv
 {
 }
 
-void initialize_cameras_landmarks_keyframe::priv::check_inputs(feature_track_set_sptr tracks)
+landmark_map_sptr
+initialize_cameras_landmarks_keyframe::priv
+::get_sub_landmark_map(map_landmark_t &lmks, const std::set<landmark_id_t> &lm_ids) const
+{
+  map_landmark_t sub_lmks;
+  for (auto lm : lm_ids)
+  {
+    auto it = lmks.find(lm);
+    if (it == lmks.end())
+    {
+      continue;
+    }
+    sub_lmks[lm] = it->second;
+  }
+
+  return landmark_map_sptr(new simple_landmark_map(sub_lmks));
+}
+
+landmark_map_sptr
+initialize_cameras_landmarks_keyframe::priv
+::store_landmarks(map_landmark_t &store_lms, landmark_map_sptr to_store) const
+{
+  for (auto lm : to_store->landmarks())
+  {
+    store_lms[lm.first] = lm.second;
+  }
+  return landmark_map_sptr(new simple_landmark_map(store_lms));
+}
+
 vector_3d
 initialize_cameras_landmarks_keyframe::priv
 ::get_velocity(
