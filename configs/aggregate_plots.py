@@ -11,10 +11,23 @@ import numpy as np
 
 
 def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
+    def format_x(x, pos):
+        t = datetime.timedelta(seconds=x)
+        return str(t)
+
     videos = dict()
+    video_plots = dict()
 
     for filename in os.listdir(directory):
         if filename.endswith(".csv") and not filename.endswith(".output.csv"):
+            fig, ax = video_plots[filename] = plt.subplots()
+
+            plt.xticks(rotation=20)
+            ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
+            ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
+            ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s)" % filename)
+            ax.grid()
+
             video_species = videos[filename] = dict()
             for s in species:
                 video_species[s] = dict()
@@ -59,10 +72,6 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
 
                 video_species[s] = smoothed_video_frames
 
-    def format_x(x, pos):
-        t = datetime.timedelta(seconds=x)
-        return str(t)
-
     for s in species:
         sorted_frames = list()
         with open(os.path.join(directory, s + ".output.csv"), "w") as outfile:
@@ -85,18 +94,25 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
                 plt.xticks(rotation=20)
                 ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
                 ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
-                ax.plot(x, y)
-
-                ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s)" % filename)
+                ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s) (%s)" % (s, filename))
                 ax.grid()
 
+                ax.plot(x, y)
                 fig.savefig(os.path.join(directory, filename + "." + s + ".png"))
+
+                fig, ax = video_plots[filename]
+                ax.plot(x, y, label=s)
 
         sorted_frames.sort(key=lambda line: line[2], reverse=True)
         with open(os.path.join(directory, s + ".sorted.output.csv"), "w") as outfile:
             outfile.write("#video_id,frame_id,detection_count\n")
             for filename, frame_id, count in sorted_frames:
                 outfile.write(filename + "," + str(frame_id) + "," + str(count) + "\n")
+
+    for filename in video_plots:
+        fig, ax = video_plots[filename]
+        ax.legend()
+        fig.savefig(os.path.join(directory, filename + ".png"))
 
 
 if __name__ == "__main__":
