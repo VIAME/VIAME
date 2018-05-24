@@ -35,10 +35,98 @@
 
 #include "triangulate.h"
 #include <Eigen/SVD>
+#include <arrows/core/epipolar_geometry.h>
 
 
 namespace kwiver {
 namespace arrows {
+
+// Triangulates 2 views
+void Triangulate_DLT(
+  kwiver::vital::matrix_3x4d const& pose1,
+  kwiver::vital::matrix_3x4d const& pose2,
+  kwiver::vital::vector_2d const& point1,
+  kwiver::vital::vector_2d const& point2,
+  kwiver::vital::vector_4d &triangulated_point) {
+  kwiver::vital::matrix_4x4d design_matrix;
+  design_matrix.row(0) = point1[0] * pose1.row(2) - pose1.row(0);
+  design_matrix.row(1) = point1[1] * pose1.row(2) - pose1.row(1);
+  design_matrix.row(2) = point2[0] * pose2.row(2) - pose2.row(0);
+  design_matrix.row(3) = point2[1] * pose2.row(2) - pose2.row(1);
+
+  // Extract nullspace.
+  Eigen::JacobiSVD<Eigen::Matrix<double,4,4>> svd(design_matrix, Eigen::ComputeFullV);
+  triangulated_point = svd.matrixV().rightCols<1>();
+}
+
+// Given either a fundamental or essential matrix and two corresponding images
+// points such that ematrix * point2 produces a line in the first image,
+// this method finds corrected image points such that
+// corrected_point1^t * ematrix * corrected_point2 = 0.
+void find_optimal_image_points(kwiver::vital::essential_matrix_sptr ematrix,
+  const vital::vector_2d &point1,
+  const vital::vector_2d &point2,
+  vital::vector_2d &corrected_point1,
+  vital::vector_2d &corrected_point2) {
+
+  auto E = ematrix->matrix();
+
+  vital::vector_3d point1_homog = point1.homogeneous();
+  vital::vector_3d point2_homog = point2.homogeneous();
+
+  // A helper matrix to isolate certain coordinates.
+  Eigen::Matrix<double, 2, 3> s_matrix;
+  s_matrix << 1, 0, 0, 0, 1, 0;
+
+  const Eigen::Matrix2d e_submatrix = E.topLeftCorner<2, 2>();
+
+  // The epipolar line from one image point in the other image.
+  vital::vector_2d epipolar_line1 = s_matrix * E * point2_homog;
+  vital::vector_2d epipolar_line2 = s_matrix * E.transpose() * point1_homog;
+
+  const double a = epipolar_line1.transpose() * e_submatrix * epipolar_line2;
+  const double b =
+    (epipolar_line1.squaredNorm() + epipolar_line2.squaredNorm()) / 2.0;
+  const double c = point1_homog.transpose() * E * point2_homog;
+
+  const double d = sqrt(b * b - a * c);
+
+  double lambda = c / (b + d);
+  epipolar_line1 -= e_submatrix * lambda * epipolar_line1;
+  epipolar_line2 -= e_submatrix.transpose() * lambda * epipolar_line2;
+
+  lambda *=
+    (2.0 * d) / (epipolar_line1.squaredNorm() + epipolar_line2.squaredNorm());
+
+  corrected_point1 =
+    (point1_homog - s_matrix.transpose() * lambda * epipolar_line1)
+    .hnormalized();
+  corrected_point2 =
+    (point2_homog - s_matrix.transpose() * lambda * epipolar_line2)
+    .hnormalized();
+}
+
+template <typename T>
+Eigen::Matrix<T, 3, 1>
+triangulate_fast_two_view(const std::vector<vital::simple_camera_perspective> &cameras,
+                          const std::vector<Eigen::Matrix<T, 2, 1> >& points)
+{
+  const auto &cam0 = cameras[0];
+  const auto &cam1 = cameras[1];
+
+  auto E = kwiver::arrows::essential_matrix_from_cameras(cam0, cam1);
+
+  const vital::vector_2d pt0 = cam0.get_intrinsics()->unmap(points[0].template cast<double>());
+  const vital::vector_2d pt1 = cam1.get_intrinsics()->unmap(points[1].template cast<double>());
+
+  vital::vector_2d corrected_pt0, corrected_pt1;
+
+  find_optimal_image_points(E, pt0, pt1, corrected_pt0, corrected_pt1);
+
+  vital::vector_4d triangulated_point;
+  Triangulate_DLT(cam0.pose_matrix(), cam1.pose_matrix(), corrected_pt0, corrected_pt1, triangulated_point);
+  return triangulated_point.hnormalized().template cast<T>();
+}
 
 /// Triangulate a 3D point from a set of cameras and 2D image points
 template <typename T>
@@ -77,7 +165,6 @@ triangulate_inhomog(const std::vector<vital::simple_camera_perspective >& camera
   return svd.solve(b);
 }
 
-
 /// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
 template <typename T>
 Eigen::Matrix<T,4,1>
@@ -112,10 +199,12 @@ triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
   return svd.matrixV().col(3);
 }
 
-
-
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRIANGULATE(T) \
+template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,3,1> \
+         triangulate_fast_two_view( \
+            const std::vector<vital::simple_camera_perspective >& cameras, \
+            const std::vector<Eigen::Matrix<T,2,1> >& points); \
 template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,4,1> \
          triangulate_homog( \
             const std::vector<vital::simple_camera_perspective >& cameras, \
