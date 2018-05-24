@@ -163,7 +163,6 @@ refine_detections_write_to_disk
     {
       filename = filename.substr(filename_pos+path_sep.length());
     }
-
   }
 
   for( auto det : *detections )
