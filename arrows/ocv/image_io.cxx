@@ -37,6 +37,8 @@
 
 #include <arrows/ocv/image_container.h>
 
+#include <vital/types/metadata_traits.h>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -54,8 +56,13 @@ vital::image_container_sptr
 image_io
 ::load_(const std::string& filename) const
 {
+  auto md = std::shared_ptr<kwiver::vital::metadata>(new kwiver::vital::metadata());
+  md->add(NEW_METADATA_ITEM(kwiver::vital::VITAL_META_IMAGE_FILENAME, filename));
+
   cv::Mat img = cv::imread(filename.c_str(), -1);
-  return vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR));
+  auto img_ptr = vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR));
+  img_ptr->set_metadata(md);
+  return img_ptr;
 }
 
 

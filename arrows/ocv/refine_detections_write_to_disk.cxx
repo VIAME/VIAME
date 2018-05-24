@@ -147,6 +147,25 @@ refine_detections_write_to_disk
 {
   cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image() );
 
+  // Get input filename if it's in the vital_metadata
+  std::string filename = "";
+  auto md = image_data->get_metadata();
+  if( md && md->has(VITAL_META_IMAGE_FILENAME) )
+  {
+    // Get the full path, and then extract just the filename proper
+    filename = md->find(VITAL_META_IMAGE_FILENAME).as_string();
+    std::string path_sep = "/";
+#ifdef WIN32
+    path_sep = "\\"; // Windows likes to be different
+#endif
+    size_t filename_pos = filename.rfind(path_sep);
+    if(filename_pos < filename.length()) // make sure we actually need to extract a filename from a path
+    {
+      filename = filename.substr(filename_pos+path_sep.length());
+    }
+
+  }
+
   for( auto det : *detections )
   {
     vital::bounding_box_d bbox = det->bounding_box();
@@ -163,7 +182,7 @@ refine_detections_write_to_disk
     ofn.resize( max_len );
     int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), d_->id++,
                                                 bbox.upper_left()[0], bbox.upper_left()[1],
-                                                bbox.width(), bbox.height() );
+                                                bbox.width(), bbox.height(), filename.c_str() );
 
     if( num_bytes < 0 )
     {
