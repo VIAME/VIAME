@@ -186,10 +186,10 @@ connected_camera_components(
     //ok this track has an associated landmark
     const landmark& lm = *lmi->second;
 
-    std::set<frame_id_t> cam_clique;
+    std::unordered_set<frame_id_t> cam_clique;
     for (auto ts : *t)
     {
-      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+      auto fts = std::static_pointer_cast<feature_track_state>(ts);
       if (!fts || !fts->feature)
       {
         // no feature for this track state.
@@ -218,7 +218,7 @@ connected_camera_components(
     std::vector<int> overlapping_comps;
     for (int comp_id = 0; comp_id < comps.size(); ++comp_id)
     {
-      std::set<frame_id_t> &cur_comp = comps[comp_id];
+      auto &cur_comp = comps[comp_id];
       for (auto cn : cam_clique)
       {
         if (cur_comp.find(cn) != cur_comp.end())
@@ -235,7 +235,7 @@ connected_camera_components(
     }
     else
     {
-      std::set<frame_id_t> &final_comp = comps[overlapping_comps[0]];
+      auto &final_comp = comps[overlapping_comps[0]];
       //add all cameras in cam_clique to final comp
       for (auto cn : cam_clique)
       {
@@ -244,7 +244,7 @@ connected_camera_components(
       //merge all other overlapping components into final_comp
       for (int oc = 1; oc < overlapping_comps.size(); ++oc)
       {
-        std::set<frame_id_t> &merged_comp = comps[overlapping_comps[oc]];
+       auto &merged_comp = comps[overlapping_comps[oc]];
         final_comp.insert(merged_comp.begin(), merged_comp.end());
       }
       //remove all merged comps except for final_comp
@@ -500,7 +500,6 @@ clean_cameras_and_landmarks(
   float image_coverage_threshold,
   double error_tol)
 {
-
   landmark_map::map_landmark_t det_lms;
   if (active_lms.empty())
   {

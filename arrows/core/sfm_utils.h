@@ -38,6 +38,7 @@
 #define KWIVER_ARROWS_CORE_SFM_UTILS_H_
 
 #include <vector>
+#include <unordered_set>
 
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
@@ -73,7 +74,7 @@ image_coverages(
   vital::landmark_map::map_landmark_t const& lms,
   vital::camera_map::map_camera_t const& cams);
 
-typedef std::vector<std::set<vital::frame_id_t>> camera_components;
+typedef std::vector<std::unordered_set<vital::frame_id_t>> camera_components;
 
 /// find connected components of cameras
 /**
