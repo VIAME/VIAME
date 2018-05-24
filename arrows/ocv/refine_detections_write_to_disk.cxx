@@ -111,7 +111,7 @@ refine_detections_write_to_disk
   config->set_value( "pattern", d_->pattern,
                      "The output pattern for writing images to disk. "
                      "Parameters that may be included in the pattern are "
-                     "the id (an integer) and four values for the chip coordinate: "
+                     "the id (an integer), the source image filename (a string), and four values for the chip coordinate: "
                      "top left x, top left y, width, height (all floating point numbers). "
                      "For information on how to format the pattern, see "
                      "www.cplusplus.com/reference/cstdio/printf." );
