@@ -379,13 +379,17 @@ triangulate_landmarks
   //minimum triangulation angle
   double thresh_triang_cos_ang = cos(DEG_TO_RAD * d_->m_min_angle_deg);
 
+  std::vector<vital::simple_camera_perspective> lm_cams;
+  std::vector<vital::vector_2d> lm_image_pts;
+  std::vector<vital::feature_track_state_sptr> lm_features;
+
   map_landmark_t triangulated_lms;
   for(const map_landmark_t::value_type& p : lms)
   {
+    lm_cams.clear();
+    lm_image_pts.clear();
+    lm_features.clear();
     // extract the cameras and image points for this landmarks
-    std::vector<vital::simple_camera_perspective> lm_cams;
-    std::vector<vital::vector_2d> lm_image_pts;
-    std::vector<vital::feature_track_state_sptr> lm_features;
     auto lm_observations = unsigned{ 0 };
 
     std::set<vital::track_id_t> lm_tracks = p.second->tracks();
@@ -408,7 +412,7 @@ triangulate_landmarks
 
       for (vital::track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
       {
-        auto fts = std::dynamic_pointer_cast<vital::feature_track_state>(*tsi);
+        auto fts = std::static_pointer_cast<vital::feature_track_state>(*tsi);
         if (!fts && !fts->feature)
         {
           // there is no valid feature for this track state
@@ -420,7 +424,7 @@ triangulate_landmarks
           // there is no camera for this track state.
           continue;
         }
-        vital::simple_camera_perspective_sptr sc = std::dynamic_pointer_cast<vital::simple_camera_perspective>(c_itr->second);
+        vital::simple_camera_perspective_sptr sc = std::static_pointer_cast<vital::simple_camera_perspective>(c_itr->second);
         lm_cams.push_back(vital::simple_camera_perspective(*sc));
         lm_image_pts.push_back(fts->feature->loc());
         lm_features.push_back(fts);
@@ -494,8 +498,8 @@ triangulate_landmarks
       {
         vital::landmark_d lm;
         lm.set_loc(pt3d);
-        double reproj_err = reprojection_error(lm_cams[idx], lm, *lm_features[idx]->feature);
-        if (reproj_err < d_->m_inlier_threshold_pixels)
+        double reproj_err_sq = reprojection_error_sqr(lm_cams[idx], lm, *lm_features[idx]->feature);
+        if (reproj_err_sq < d_->m_inlier_threshold_pixels_sq)
         {
           lm_features[idx]->inlier = true;
         }
