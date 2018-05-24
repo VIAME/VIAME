@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import datetime
 import os
 import os.path
 import sys
@@ -9,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def fish_aggregate(directory, species, threshold, smooth=1):
+def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
     videos = dict()
 
     outfiles = { "output.csv", "output_sorted.csv" }
@@ -60,27 +61,34 @@ def fish_aggregate(directory, species, threshold, smooth=1):
 
             videos[filename] = smoothed_video_frames
 
+    def format_x(x, pos):
+        t = datetime.timedelta(seconds=x)
+        return str(t)
+
     sorted_frames = list()
     with open(os.path.join(directory, "output.csv"), "w") as outfile:
         outfile.write("#video_id,frame_id,detection_count\n")
         for filename in sorted(videos):
             video_frames = videos[filename]
-            frame_ids = list()
+            times = list()
             fish_counts = list()
             for frame_id in sorted(video_frames):
-                frame_ids.append(frame_id)
+                times.append(frame_id / frame_rate)
                 fish_counts.append(video_frames[frame_id])
                 outfile.write(filename + "," + str(frame_id) + "," + str(video_frames[frame_id]) + "\n")
 
                 sorted_frames.append((filename, frame_id, video_frames[frame_id]))
 
-            x = np.array(frame_ids)
+            x = np.array(times)
             y = np.array(fish_counts)
 
             fig, ax = plt.subplots()
+            plt.xticks(rotation=20)
+            ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
+            ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
             ax.plot(x, y)
 
-            ax.set(xlabel="Frame ID", ylabel="Fish Count", title="Fish Count (%s)" % filename)
+            ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s)" % filename)
             ax.grid()
 
             fig.savefig(os.path.join(directory, filename + ".png"))
@@ -94,7 +102,7 @@ def fish_aggregate(directory, species, threshold, smooth=1):
 
 if __name__ == "__main__":
     try:
-        smooth = int(sys.argv[3])
+        smooth = int(sys.argv[4])
     except IndexError:
         smooth = 1
-    fish_aggregate(".", sys.argv[1], float(sys.argv[2]), smooth)
+    fish_aggregate(".", sys.argv[1], float(sys.argv[2]), float(sys.argv[3]), smooth)
