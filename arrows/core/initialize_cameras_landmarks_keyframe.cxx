@@ -310,6 +310,11 @@ public:
     std::set<frame_id_t> &registered_frames,
     std::set<frame_id_t> &non_registered_frames) const;
 
+  bool get_next_fid_to_register_and_its_closets_registered_cam(
+    simple_camera_perspective_map_sptr cams,
+    std::set<frame_id_t> &frames_to_register,
+    frame_id_t &fid_to_register, frame_id_t &closest_frame) const;
+
   bool verbose;
   bool continue_processing;
   double interim_reproj_thresh;
@@ -2321,6 +2326,37 @@ initialize_cameras_landmarks_keyframe::priv
   }
 }
 
+bool
+initialize_cameras_landmarks_keyframe::priv
+::get_next_fid_to_register_and_its_closets_registered_cam(
+  simple_camera_perspective_map_sptr cams,
+  std::set<frame_id_t> &frames_to_register,
+  frame_id_t &fid_to_register, frame_id_t &closest_frame) const
+{
+  auto existing_cams = cams->simple_perspective_cameras();
+  frame_id_t min_frame_diff = std::numeric_limits<frame_id_t>::max();
+  for (auto f : frames_to_register)
+  {
+    for (auto &ec : existing_cams)
+    {
+      auto diff = abs(ec.first - f);
+      if (diff < min_frame_diff)
+      {
+        closest_frame = ec.first;
+        min_frame_diff = diff;
+        fid_to_register = f;
+      }
+    }
+  }
+  if (min_frame_diff != std::numeric_limits<frame_id_t>::max())
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
 
 bool
 initialize_cameras_landmarks_keyframe::priv
