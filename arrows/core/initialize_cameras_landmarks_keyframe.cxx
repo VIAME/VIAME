@@ -298,6 +298,8 @@ public:
     feature_track_set_sptr tracks,
     metadata_map_sptr metadata);
 
+  void set_track_to_landmark_map(const map_landmark_t &lmks);
+
   vector_3d get_velocity(
     simple_camera_perspective_map_sptr cams,
     frame_id_t vel_frame) const;
@@ -2277,6 +2279,20 @@ find_visible_landmarks_in_frames(const map_landmark_t &lmks, feature_track_set_s
   }
 
   return visible_landmarks;
+}
+
+void
+initialize_cameras_landmarks_keyframe::priv
+::set_track_to_landmark_map(const map_landmark_t &lmks)
+{
+  for (auto &lm : lmks)
+  {
+    auto tks = lm.second->tracks();
+    for (auto t : tks)
+    {
+      m_track_to_landmark_map[t] = lm.first;
+    }
+  }
 }
 
 
