@@ -561,52 +561,6 @@ clean_cameras_and_landmarks(
       removed_cams.push_back(frame_id);
       LOG_DEBUG(logger, "removing camera " << frame_id);
     }
-
-    camera_components comps =
-      connected_camera_components(cams, lms, tracks);
-
-    if (comps.size() < 2)
-    {
-      //only one component so no need to remove disconnected cameras
-      continue;
-    }
-    LOG_DEBUG(logger, "found " << comps.size() << " components");
-
-    int max_comp_idx = -1;
-    size_t max_comp_size = 0;
-    for (int ci = 0; ci < comps.size(); ++ci)
-    {
-      std::set<frame_id_t> &comp = comps[ci];
-      LOG_DEBUG(logger, " comp size " << comp.size());
-
-      if (comp.size() > max_comp_size)
-      {
-        max_comp_size = comp.size();
-        max_comp_idx = ci;
-      }
-    }
-    //ok we have the largest component
-    std::set<frame_id_t> &max_comp = comps[max_comp_idx];
-    cams_to_remove.clear();
-    for (auto cam : cams)
-    {
-      if (cam.second && max_comp.find(cam.first) == max_comp.end())
-      {
-        cams_to_remove.insert(cam.first);
-      }
-    }
-    //remove cameras in disconnected components
-    for (auto frame_id : cams_to_remove)
-    {
-
-      LOG_DEBUG(logger, "removing disconnected camera " << frame_id);
-
-      keep_cleaning = true;
-      cams[frame_id] = nullptr;
-      det_cams[frame_id] = nullptr;
-      removed_cams.push_back(frame_id);
-    }
-    LOG_DEBUG(logger, "remaining cameras size " << cams.size());
   }
 }
 }
