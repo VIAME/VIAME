@@ -304,6 +304,12 @@ public:
     simple_camera_perspective_map_sptr cams,
     frame_id_t vel_frame) const;
 
+  void get_registered_and_non_registered_frames(
+    simple_camera_perspective_map_sptr cams,
+    feature_track_set_sptr tracks,
+    std::set<frame_id_t> &registered_frames,
+    std::set<frame_id_t> &non_registered_frames) const;
+
   bool verbose;
   bool continue_processing;
   double interim_reproj_thresh;
@@ -2292,6 +2298,26 @@ initialize_cameras_landmarks_keyframe::priv
     {
       m_track_to_landmark_map[t] = lm.first;
     }
+  }
+}
+
+void
+initialize_cameras_landmarks_keyframe::priv
+::get_registered_and_non_registered_frames(
+  simple_camera_perspective_map_sptr cams,
+  feature_track_set_sptr tracks,
+  std::set<frame_id_t> &registered_frames,
+  std::set<frame_id_t> &non_registered_frames) const
+{
+  registered_frames.clear();
+  non_registered_frames.clear();
+
+  auto pcams_map = cams->simple_perspective_cameras();
+  non_registered_frames = tracks->all_frame_ids();
+  for (auto &p : pcams_map)
+  {
+    registered_frames.insert(p.first);
+    non_registered_frames.erase(p.first);
   }
 }
 
