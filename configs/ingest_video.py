@@ -214,6 +214,9 @@ if __name__ == "__main__" :
   parser.add_argument("-threshold", dest="threshold", default="0.25",
                       help="Threshold to generate plots for")
 
+  parser.add_argument("-smooth", dest="smooth", default="1",
+                      help="Smoothing factor for plots")
+
   parser.add_argument("-logs", dest="log_dir", default="database/Logs",
                       help="Directory for log files, if empty will not use files")
 
@@ -305,7 +308,8 @@ if __name__ == "__main__" :
     print( "Generating data plots" )
     aggregate_plots.fish_aggregate( "database", args.species.split(","),
                                     float( args.threshold ),
-                                    float( args.frame_rate ) )
+                                    float( args.frame_rate ),
+                                    int( args.smooth ) )
 
   # Build index
   if args.build_index:
