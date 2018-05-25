@@ -53,9 +53,9 @@ process detector
   block detector:darknet
 
     # Network config, weights, and names
-    relativepath net_config  =                 models/mouss_yolo_v2_generic_960_generic.cfg
-    relativepath weight_file =                 models/mouss_yolo_v2_generic_960_generic.weights
-    relativepath class_names =                 models/mouss_yolo_v2_generic_960_generic.lbl
+    relativepath net_config  =                 models/mouss_yolo_v2_960_generic.cfg
+    relativepath weight_file =                 models/mouss_yolo_v2_960_generic.weights
+    relativepath class_names =                 models/mouss_yolo_v2_960_generic.lbl
 
     # Detector parameters
     :thresh                                    0.001
