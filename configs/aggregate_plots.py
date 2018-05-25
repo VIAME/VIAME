@@ -92,7 +92,7 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
                 fig, ax = plt.subplots()
                 ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
                 ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
-                plt.locator_params(axis='x', nbins=5)
+                plt.locator_params(axis='x', nbins=6)
                 ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s) (%s)" % (s, filename))
                 ax.grid()
 
@@ -101,6 +101,7 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
                 fig.savefig(os.path.join(directory, filename + "." + s + ".png"))
 
                 fig, ax = video_plots[filename]
+                plt.locator_params(axis='x', nbins=6)
                 ax.plot(x, y, label=s)
                 ax.set_ylim(ymin=0)
 
