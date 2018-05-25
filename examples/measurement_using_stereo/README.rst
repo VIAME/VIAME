@@ -129,32 +129,33 @@ Calibration File Format
 For the npz file format the root object should be a python dict with the
 following keys and values:
 
-
-    R: extrinsic rotation matrix
-    T: extrinsic translation
-    cameraMatrixL: dict of intrinsict parameters for the left camera
-        fc: focal length
-        cc: principle point
-        alpha_c: skew
-    cameraMatrixR: dict of intrinsict parameters for the right camera
-        fc: focal length
-        cc: principle point
-        alpha_c: skew
-    distCoeffsL: distortion coefficients for the left camera
-    distCoeffsR: distortion coefficients for the right camera
-
+|
+|    R: extrinsic rotation matrix
+|    T: extrinsic translation
+|    cameraMatrixL: dict of intrinsict parameters for the left camera
+|        fc: focal length
+|        cc: principle point
+|        alpha_c: skew
+|    cameraMatrixR: dict of intrinsict parameters for the right camera
+|        fc: focal length
+|        cc: principle point
+|        alpha_c: skew
+|    distCoeffsL: distortion coefficients for the left camera
+|    distCoeffsR: distortion coefficients for the right camera
+|
  
 For the mat file, format the root structure should be a dict with the key
 `Cal` whose value is a dict with the following items:
 
-
-    om: extrinsic rotation vector (note rotation matrix is rodrigues(om))
-    T: extrinsic translation
-    fc_left: focal length of the left camera
-    cc_left: principle point
-    alpha_c_left: skew
-    kc_left: distortion coefficients for the left camera
-    fc_right: focal length of the right camera
-    cc_right: principle point
-    alpha_c_right: skew
-    kc_right: distortion coefficients for the right camera
+|
+|    om: extrinsic rotation vector (note rotation matrix is rodrigues(om))
+|    T: extrinsic translation
+|    fc_left: focal length of the left camera
+|    cc_left: principle point
+|    alpha_c_left: skew
+|    kc_left: distortion coefficients for the left camera
+|    fc_right: focal length of the right camera
+|    cc_right: principle point
+|    alpha_c_right: skew
+|    kc_right: distortion coefficients for the right camera
+|
