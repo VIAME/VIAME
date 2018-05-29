@@ -2548,6 +2548,11 @@ initialize_cameras_landmarks_keyframe::priv
   auto cur_frame_landmarks = find_visible_landmarks_in_frames(lmks, tracks, cur_fid);
   auto cur_landmarks = get_sub_landmark_map(lmks, cur_frame_landmarks);
 
+  auto ba_config = bundle_adjuster->get_configuration();
+  bool opt_focal_was_set = ba_config->get_value<bool>("optimize_focal_length");
+  ba_config->set_value<bool>("optimize_focal_length", false);
+  bundle_adjuster->set_configuration(ba_config);
+
   {
     auto vel = get_velocity(cams, fid_to_register);
     //use the pose of the closest camera as starting point
@@ -2601,6 +2606,10 @@ initialize_cameras_landmarks_keyframe::priv
       }
     }
   }
+
+  ba_config = bundle_adjuster->get_configuration();
+  ba_config->set_value<bool>("optimize_focal_length", opt_focal_was_set);
+  bundle_adjuster->set_configuration(ba_config);
 
   int inlier_count = std::max(resection_inlier_count, bundled_inlier_count);
   if (inlier_count < min_inliers)
