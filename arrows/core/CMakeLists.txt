@@ -50,6 +50,7 @@ set( plugin_core_headers
   video_input_filter.h
   video_input_image_list.h
   video_input_pos.h
+  video_input_splice.h
   video_input_split.h
   write_object_track_set_kw18.h
   write_track_descriptor_set_csv.h
@@ -119,6 +120,7 @@ set( plugin_core_sources
   video_input_filter.cxx
   video_input_image_list.cxx
   video_input_pos.cxx
+  video_input_splice.cxx
   video_input_split.cxx
   write_object_track_set_kw18.cxx
   write_track_descriptor_set_csv.cxx

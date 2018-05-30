@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,12 @@
 
 /**
  * \file
- * \brief test reading images and metadata with video_input_split
+ * \brief test reading images and metadata with video_input_splice
  */
 
 #include <test_gtest.h>
 
-#include <arrows/core/video_input_split.h>
+#include <arrows/core/video_input_splice.h>
 #include <vital/algo/algorithm_factory.h>
 #include <vital/io/metadata_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
@@ -53,7 +53,8 @@ kwiver::vital::path_t g_data_dir;
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
 static int num_expected_frames = 50;
-static std::string list_file_name = "frame_list.txt";
+static int nth_frame_output = 3;
+static std::string list_file_name = "source_list.txt";
 
 // ----------------------------------------------------------------------------
 int
@@ -68,15 +69,15 @@ main(int argc, char* argv[])
 }
 
 // ----------------------------------------------------------------------------
-class video_input_split : public ::testing::Test
+class video_input_splice : public ::testing::Test
 {
   TEST_ARG(data_dir);
 };
 
 // ----------------------------------------------------------------------------
-TEST_F(video_input_split, create)
+TEST_F(video_input_splice, create)
 {
-  EXPECT_NE( nullptr, algo::video_input::create("split") );
+  EXPECT_NE( nullptr, algo::video_input::create("splice") );
 }
 
 // ----------------------------------------------------------------------------
@@ -84,29 +85,31 @@ static
 bool
 set_config(kwiver::vital::config_block_sptr config, std::string const& data_dir)
 {
-  config->set_value( "image_source:type", "image_list" );
-  if ( kwiver::vital::has_algorithm_impl_name( "image_io", "ocv" ) )
+  for ( int n = 1; n < 4; ++n )
   {
-    config->set_value( "image_source:image_list:image_reader:type", "ocv" );
-  }
-  else if ( kwiver::vital::has_algorithm_impl_name( "image_io", "vxl" ) )
-  {
-    config->set_value( "image_source:image_list:image_reader:type", "vxl" );
-  }
-  else
-  {
-    std::cout << "Skipping tests since there is no image reader." << std::endl;
-    return false;
-  }
+    std::string block_name = "video_source_" + std::to_string( n ) + ":";
 
-  config->set_value( "metadata_source:type", "pos" );
-  config->set_value( "metadata_source:pos:metadata_directory", data_dir + "/pos");
+    config->set_value( block_name + "type", "image_list" );
+    if ( kwiver::vital::has_algorithm_impl_name( "image_io", "ocv" ) )
+    {
+      config->set_value( block_name + "image_list:image_reader:type", "ocv" );
+    }
+    else if ( kwiver::vital::has_algorithm_impl_name( "image_io", "vxl" ) )
+    {
+      config->set_value( block_name + "image_list:image_reader:type", "vxl" );
+    }
+    else
+    {
+      std::cout << "Skipping tests since there is no image reader." << std::endl;
+      return false;
+    }
+  }
 
   return true;
 }
 
 // ----------------------------------------------------------------------------
-TEST_F(video_input_split, read_list)
+TEST_F(video_input_splice, next_frame)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
@@ -116,7 +119,7 @@ TEST_F(video_input_split, read_list)
     return;
   }
 
-  kwiver::arrows::core::video_input_split vis;
+  kwiver::arrows::core::video_input_splice vis;
 
   EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
@@ -143,14 +146,12 @@ TEST_F(video_input_split, read_list)
       << "Frame numbers should be sequential";
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
-    EXPECT_EQ( ts.get_time_usec(), vis.frame_timestamp().get_time_usec() );
-    EXPECT_EQ( ts.get_frame(), vis.frame_timestamp().get_frame() );
   }
   EXPECT_EQ( num_expected_frames, num_frames );
   EXPECT_EQ( num_expected_frames, vis.num_frames() );
 }
 
-TEST_F(video_input_split, seek_frame)
+TEST_F(video_input_splice, seek_frame)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
@@ -160,7 +161,7 @@ TEST_F(video_input_split, seek_frame)
     return;
   }
 
-  kwiver::arrows::core::video_input_split vis;
+  kwiver::arrows::core::video_input_splice vis;
 
   EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
@@ -175,7 +176,7 @@ TEST_F(video_input_split, seek_frame)
   vis.close();
 }
 
-TEST_F(video_input_split, seek_then_next_frame)
+TEST_F(video_input_splice, seek_then_next_frame)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
@@ -185,7 +186,7 @@ TEST_F(video_input_split, seek_then_next_frame)
     return;
   }
 
-  kwiver::arrows::core::video_input_split vis;
+  kwiver::arrows::core::video_input_splice vis;
 
   EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
@@ -200,7 +201,7 @@ TEST_F(video_input_split, seek_then_next_frame)
   vis.close();
 }
 
-TEST_F(video_input_split, next_then_seek_frame)
+TEST_F(video_input_splice, next_then_seek_frame)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
@@ -210,7 +211,7 @@ TEST_F(video_input_split, next_then_seek_frame)
     return;
   }
 
-  kwiver::arrows::core::video_input_split vis;
+  kwiver::arrows::core::video_input_splice vis;
 
   EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
@@ -225,7 +226,7 @@ TEST_F(video_input_split, next_then_seek_frame)
   vis.close();
 }
 
-TEST_F(video_input_split, metadata_map)
+TEST_F(video_input_splice, metadata_map)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
@@ -235,7 +236,7 @@ TEST_F(video_input_split, metadata_map)
     return;
   }
 
-  kwiver::arrows::core::video_input_split vis;
+  kwiver::arrows::core::video_input_splice vis;
 
   EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );
@@ -251,30 +252,16 @@ TEST_F(video_input_split, metadata_map)
   EXPECT_EQ( md_map.size(), num_expected_frames )
     << "There should be metadata for every frame";
 
-  // Open the list file directly and construct metadata file names and compare
-  std::ifstream list_file_stream( list_file );
+  // Open the frame list file directly and compare name to metadata
+  std::ifstream list_file_stream( data_dir + "/frame_list.txt" );
   int frame_number = 1;
   std::string file_name;
   while ( std::getline( list_file_stream, file_name ) )
   {
-    file_name.replace(0, 6, "pos");
-    file_name.replace(file_name.length() - 3, 3, "pos");
-
-    auto md_test = kwiver::vital::read_pos_file( data_dir + "/" + file_name );
-    auto md_vec = md_map[frame_number];
-
-    // Loop over metadata items and compare
-    for (auto iter = md_test->begin(); iter != md_test->end(); ++iter)
-    {
-      bool found_item = false;
-      for (auto md : md_vec)
-      {
-        found_item = found_item || md->has( iter->first );
-      }
-      EXPECT_TRUE( found_item )
-        << "Metadata should have item " << iter->second->name();
-    }
-
+    auto md_file_name = md_map[frame_number][0]->find(
+        kwiver::vital::VITAL_META_IMAGE_FILENAME).as_string();
+    EXPECT_TRUE( md_file_name.find( file_name ) != std::string::npos )
+      << "File path in metadata should contain " << file_name;
     frame_number++;
   }
   list_file_stream.close();
@@ -282,8 +269,108 @@ TEST_F(video_input_split, metadata_map)
   vis.close();
 }
 
+TEST_F(video_input_splice, next_frame_nth_frame_output)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_splice vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  vis.open( list_file );
+
+  kwiver::vital::timestamp ts;
+
+  EXPECT_EQ( num_expected_frames, vis.num_frames() )
+    << "Number of frames before extracting frames should be "
+    << num_expected_frames;
+
+  int num_frames = 0;
+  int expected_frame_num = 1;
+  while ( vis.next_frame( ts ) )
+  {
+    auto img = vis.frame_image();
+    auto md = vis.frame_metadata();
+
+    if (md.size() > 0)
+    {
+      std::cout << "-----------------------------------\n" << std::endl;
+      kwiver::vital::print_metadata( std::cout, *md[0] );
+    }
+
+    ++num_frames;
+    EXPECT_EQ( expected_frame_num, ts.get_frame() )
+      << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
+    expected_frame_num += 3;
+  }
+}
+
+TEST_F(video_input_splice, seek_frame_nth_frame_output)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_splice vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  vis.open( list_file );
+
+  kwiver::vital::timestamp ts;
+
+  // Video should be seekable
+  EXPECT_TRUE( vis.seekable() );
+
+  // Test various valid seeks
+  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
+    {4, 10, 13, 22, 49};
+  for (auto requested_frame : valid_seeks)
+  {
+    EXPECT_TRUE( vis.seek_frame( ts, requested_frame) );
+
+    auto img = vis.frame_image();
+
+    EXPECT_EQ( requested_frame, ts.get_frame() )
+      << "Frame number should match seek request";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
+  }
+
+  // Test various invalid seeks past end of visdeo
+  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
+    {-3, -1, 0, 2, 12, 11, 21, 24, 51, 55};
+  for (auto requested_frame : in_valid_seeks)
+  {
+    EXPECT_FALSE( vis.seek_frame( ts, requested_frame) );
+    EXPECT_NE( requested_frame, ts.get_frame() );
+  }
+
+  vis.close();
+}
+
 // ----------------------------------------------------------------------------
-TEST_F(video_input_split, test_capabilities)
+TEST_F(video_input_splice, test_capabilities)
 {
   // make config block
   auto config = kwiver::vital::config_block::empty_config();
@@ -293,7 +380,7 @@ TEST_F(video_input_split, test_capabilities)
     return;
   }
 
-  kwiver::arrows::core::video_input_split vis;
+  kwiver::arrows::core::video_input_splice vis;
 
   EXPECT_TRUE( vis.check_configuration( config ) );
   vis.set_configuration( config );

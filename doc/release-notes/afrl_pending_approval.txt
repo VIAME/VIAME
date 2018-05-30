@@ -33,14 +33,17 @@ Arrows - Core
  * Optionally estimates a fundamental matrix before loop closure.  Accepts
    a loop only if the number of inlier matches is above a threshold.
    
+ * Added a new video_input implementation, video_input_splice, that
+   splices multiple video sources together into a single video source. 
+
 Arrows - Ceres
 
- * Added ability to fix either cameras or landmarks in bundle adjustment.  
- * Automatically fixes the gauge if there are not enough fixed cameras or landmarks.
+ * Added ability to fix either cameras or landmarks in bundle adjustment.
+  
+ * Automatically fixes the gauge if there are not enough fixed cameras or
+   landmarks.
 
  * Added option to necker reverse only the cameras but not the landmarks.
- 
-General - 
 
  * Improved speed of klt/ORB feature tracking by choosing which features
    to track and match with visual vocabulary node ID.  Made klt feature 
@@ -72,3 +75,8 @@ Sprokit
 
 Fixes since last public release
 -------------------------------
+
+Arrows - VXL
+
+ * Fixed issue with ffmpeg video source where the frame metadata was not
+   getting set correctly.

@@ -244,6 +244,56 @@ TEST_F(video_input_filter, seek_frame)
   vif.close();
 }
 
+TEST_F(video_input_filter, seek_then_next_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vif.open( list_file );
+
+  test_seek_then_next( vif );
+
+  vif.close();
+}
+
+TEST_F(video_input_filter, next_then_seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vif.open( list_file );
+
+  test_next_then_seek( vif );
+
+  vif.close();
+}
+
 TEST_F(video_input_filter, metadata_map)
 {
   // make config block
