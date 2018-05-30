@@ -392,44 +392,35 @@ triangulate_landmarks
     // extract the cameras and image points for this landmarks
     auto lm_observations = unsigned{ 0 };
 
-    std::set<vital::track_id_t> lm_tracks = p.second->tracks();
-
-    if (lm_tracks.empty())
+    // get the corresponding track
+    vital::track_map_t::const_iterator t_itr = track_map.find(p.first);
+    if (t_itr == track_map.end())
     {
-      lm_tracks.insert(p.first); //in case no track ids have been added to this landmark.  (legacy case)
+      // there is no track for the provided landmark
+      failed_landmarks.insert(p.first);
+      continue;
     }
-    for (auto lm_t : lm_tracks)
+    const vital::track& t = *t_itr->second;
+
+    for (vital::track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
     {
-      // get the corresponding track
-      vital::track_map_t::const_iterator t_itr = track_map.find(lm_t);
-      if (t_itr == track_map.end())
+      auto fts = std::static_pointer_cast<vital::feature_track_state>(*tsi);
+      if (!fts && !fts->feature)
       {
-        // there is no track for the provided landmark
-        failed_landmarks.insert(lm_t);
+        // there is no valid feature for this track state
         continue;
       }
-      const vital::track& t = *t_itr->second;
-
-      for (vital::track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
+      map_camera_t::const_iterator c_itr = cams.find((*tsi)->frame());
+      if (c_itr == cams.end())
       {
-        auto fts = std::static_pointer_cast<vital::feature_track_state>(*tsi);
-        if (!fts && !fts->feature)
-        {
-          // there is no valid feature for this track state
-          continue;
-        }
-        map_camera_t::const_iterator c_itr = cams.find((*tsi)->frame());
-        if (c_itr == cams.end())
-        {
-          // there is no camera for this track state.
-          continue;
-        }
-        vital::simple_camera_perspective_sptr sc = std::static_pointer_cast<vital::simple_camera_perspective>(c_itr->second);
-        lm_cams.push_back(vital::simple_camera_perspective(*sc));
-        lm_image_pts.push_back(fts->feature->loc());
-        lm_features.push_back(fts);
-        ++lm_observations;
+        // there is no camera for this track state.
+        continue;
       }
+      vital::simple_camera_perspective_sptr sc = std::static_pointer_cast<vital::simple_camera_perspective>(c_itr->second);
+      lm_cams.push_back(vital::simple_camera_perspective(*sc));
+      lm_image_pts.push_back(fts->feature->loc());
+      lm_features.push_back(fts);
+      ++lm_observations;
     }
 
     // if we found at least two views of this landmark, triangulate
@@ -449,11 +440,8 @@ triangulate_landmarks
         pt3d = d_->ransac_triangulation(lm_cams, lm_image_pts, inlier_count, triang_guess);
         if (inlier_count < lm_image_pts.size() * d_->m_frac_track_inliers_to_keep_triangulated_point)
         {
-          for (auto lm_t : lm_tracks)
-          {
-            failed_landmarks.insert(lm_t);
-            failed_outlier.insert(lm_t);
-          }
+          failed_landmarks.insert(p.first);
+          failed_outlier.insert(p.first);
           continue;
         }
       }
@@ -461,10 +449,7 @@ triangulate_landmarks
       {
         if (!d_->triangulate(lm_cams, lm_image_pts, pt3d))
         {
-          for (auto lm_t : lm_tracks)
-          {
-            failed_landmarks.insert(lm_t);
-          }
+          failed_landmarks.insert(p.first);
           continue;
         }
         //test if the point is behind any of the cameras
@@ -484,11 +469,7 @@ triangulate_landmarks
           {
             lm_features[idx]->inlier = false;
           }
-
-          for (auto lm_t : lm_tracks)
-          {
-            failed_landmarks.insert(lm_t);
-          }
+          failed_landmarks.insert(p.first);
           continue;
         }
       }
@@ -514,10 +495,7 @@ triangulate_landmarks
         {
           lm_features[idx]->inlier = false;
         }
-        for (auto lm_t : lm_tracks)
-        {
-          failed_landmarks.insert(lm_t);
-        }
+        failed_landmarks.insert(p.first);
         continue;
       }
 
@@ -525,17 +503,12 @@ triangulate_landmarks
       bool bad_triangulation = triang_cos_ang > thresh_triang_cos_ang;
       if (bad_triangulation)
       {
-        for (auto lm_t : lm_tracks)
-        {
-          failed_landmarks.insert(lm_t);
-          failed_angle.insert(lm_t);
-        }
-
+        failed_landmarks.insert(p.first);
+        failed_angle.insert(p.first);
         for (int idx = 0; idx < lm_cams.size(); ++idx)
         {
           lm_features[idx]->inlier = false;
         }
-
         continue;
       }
 
@@ -551,7 +524,6 @@ triangulate_landmarks
       else
       {
         lm = std::make_shared<vital::landmark_d>(pt3d);
-        lm->add_track(p.first);  // landmark didn't exist.  Therefore only one track could have been used for its construction.
       }
       lm->set_cos_observation_angle(triang_cos_ang);
       lm->set_observations(lm_observations);

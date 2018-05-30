@@ -291,33 +291,14 @@ bundle_adjust
   d_->cams = cameras->cameras();
   d_->lms = landmarks->landmarks();
 
-  std::map<track_id_t, landmark_id_t> track_id_to_landmark_id;
-
   // Extract the landmark locations into a mutable map
   d_->landmark_params.clear();
   for(const landmark_map::map_landmark_t::value_type& lm : d_->lms)
   {
-    landmark_id_t lm_id;
-    auto lm_t = lm.second->tracks();
-    if (lm_t.empty())
-    {
-      lm_id = lm.first;
-      lm_t.insert(lm_id);
-    }
-    else
-    {
-      //use id of lowest index track for landmark id
-      lm_id = *lm_t.begin();
-    }
+    landmark_id_t lm_id = lm.first;
 
     if (d_->landmark_params.find(lm_id) == d_->landmark_params.end())
     {
-      //fill in the track to landmark map for this landmark
-      for (auto tk_id : lm_t)
-      {
-        track_id_to_landmark_id[tk_id] = lm_id;
-      }
-
       vector_3d loc = lm.second->loc();
       d_->landmark_params[lm_id] = std::vector<double>(loc.data(), loc.data() + 3);
     }
@@ -353,40 +334,28 @@ bundle_adjust
 
   for (const auto & lm : d_->lms)
   {
-    auto lm_t = lm.second->tracks();
-    if (lm_t.empty())
+    const auto lm_id = lm.first;
+    bool lm_visible_in_variable_camera = false;
+    //lowest index track is landmark id    
+
+    auto t = tracks->get_track(lm_id);
+    if (!t)
     {
-      lm_t.insert(lm.first);
+      continue;
     }
 
-    bool lm_visible_in_variable_camera = false;
-    //lowest index track is landmark id
-    const auto lm_id = *lm_t.begin();
-    for (auto t_id : lm_t)
+    lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);
+    // skip this track if the landmark is not in the set to optimize
+    if (lm_itr == d_->landmark_params.end())
     {
-      auto t = tracks->get_track(t_id);
-      if (!t)
+      continue;
+    }
+    for (auto ts: *t)
+    {
+      if (to_fix_cameras.find(ts->frame()) == to_fix_cameras.end())
       {
-        continue;
-      }
-
-      lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);
-      // skip this track if the landmark is not in the set to optimize
-      if (lm_itr == d_->landmark_params.end())
-      {
-        continue;
-      }
-      for (auto ts: *t)
-      {
-        if (to_fix_cameras.find(ts->frame()) == to_fix_cameras.end())
-        {
-          //this landmark is viewed in a variable camera.  So include it in the state to estimate.
-          lm_visible_in_variable_camera = true;
-          break;
-        }
-      }
-      if (lm_visible_in_variable_camera)
-      {
+        //this landmark is viewed in a variable camera.  So include it in the state to estimate.
+        lm_visible_in_variable_camera = true;
         break;
       }
     }
@@ -399,71 +368,58 @@ bundle_adjust
 
     int num_fixed_cameras_this_lm = 0;
     //lowest index track is landmark id
-    for (auto t_id : lm_t)
+
+    bool fixed_landmark = to_fix_landmarks.find(lm_id) != to_fix_landmarks.end();
+
+    for (auto ts : *t)
     {
-      auto t = tracks->get_track(t_id);
-      if (!t)
+      cam_param_map_t::iterator cam_itr = d_->camera_params.find(ts->frame());
+      if (cam_itr == d_->camera_params.end())
       {
         continue;
       }
 
-      lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);
-      // skip this track if the landmark is not in the set to optimize
-      if (lm_itr == d_->landmark_params.end())
+      bool fixed_camera = to_fix_cameras.find(cam_itr->first) != to_fix_cameras.end();
+
+      if (fixed_landmark && fixed_camera)
+      {
+        //skip this measurement because it involves both a fixed camera and fixed landmark.
+        //It could influence the intrinsics but we will ignore that for speed.
+        continue;
+      }
+
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+      if (!fts || !fts->feature)
       {
         continue;
       }
-      bool fixed_landmark = to_fix_landmarks.find(lm_id) != to_fix_landmarks.end();
-
-      for (auto ts : *t)
+      if (!fts->inlier)
       {
-        cam_param_map_t::iterator cam_itr = d_->camera_params.find(ts->frame());
-        if (cam_itr == d_->camera_params.end())
-        {
-          continue;
-        }
-
-        bool fixed_camera = to_fix_cameras.find(cam_itr->first) != to_fix_cameras.end();
-
-        if (fixed_landmark && fixed_camera)
-        {
-          //skip this measurement because it involves both a fixed camera and fixed landmark.
-          //It could influence the intrinsics but we will ignore that for speed.
-          continue;
-        }
-
-        auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
-        if (!fts || !fts->feature)
-        {
-          continue;
-        }
-        if (!fts->inlier)
-        {
-          continue; // feature is not an inlier so don't use it in ba.
-        }
-
-        if (fixed_camera)
-        {
-          ++num_fixed_cameras_this_lm;
-          if (num_fixed_cameras_this_lm > 4)
-          {
-            continue;
-          }
-        }
-
-        unsigned intr_idx = d_->frame_to_intr_map[fts->frame()];
-        double * intr_params_ptr = &d_->camera_intr_params[intr_idx][0];
-        used_intrinsics.insert(intr_idx);
-        vector_2d pt = fts->feature->loc();
-        problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
-          pt.x(), pt.y()),
-          loss_func,
-          intr_params_ptr,
-          &cam_itr->second[0],
-          &lm_itr->second[0]);
-
-        loss_func_used = true;
+        continue; // feature is not an inlier so don't use it in ba.
       }
+
+      if (fixed_camera)
+      {
+        ++num_fixed_cameras_this_lm;
+        if (num_fixed_cameras_this_lm > 4)
+        {
+          continue;
+        }
+      }
+
+      unsigned intr_idx = d_->frame_to_intr_map[fts->frame()];
+      double * intr_params_ptr = &d_->camera_intr_params[intr_idx][0];
+      used_intrinsics.insert(intr_idx);
+      vector_2d pt = fts->feature->loc();
+      problem.AddResidualBlock(create_cost_func(d_->lens_distortion_type,
+        pt.x(), pt.y()),
+        loss_func,
+        intr_params_ptr,
+        &cam_itr->second[0],
+        &lm_itr->second[0]);
+
+      loss_func_used = true;
+      
     }
   }
 
@@ -486,13 +442,8 @@ bundle_adjust
   std::set<landmark_id_t> fixed_landmarks;
   //fix all the landmarks in the to_fix_landmarks list
   for (auto tfl: to_fix_landmarks)
-  {
-    auto t_to_l_it = track_id_to_landmark_id.find(tfl);
-    if (t_to_l_it == track_id_to_landmark_id.end())
-    {
-      continue;
-    }
-    auto lm_id = t_to_l_it->second;
+  {    
+    auto lm_id = tfl;
 
     lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);
     if (lm_itr == d_->landmark_params.end())

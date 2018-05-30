@@ -274,13 +274,6 @@ public:
     metadata_map_sptr metadata,
     std::deque<frame_id_t> &recently_added_frame_queue);
 
-  void join_landmarks(
-    simple_camera_perspective_map_sptr cameras,
-    landmark_map_sptr& landmarks,
-    feature_track_set_sptr tracks,
-    metadata_map_sptr metadata,
-    frame_id_t frame_to_drive_merge = -1);
-
   int get_inlier_count(
     frame_id_t fid,
     landmark_map_sptr landmarks,
@@ -303,8 +296,6 @@ public:
     const map_landmark_t &lmks,
     feature_track_set_sptr tracks,
     const std::set<frame_id_t> &frames);
-
-  void set_track_to_landmark_map(const map_landmark_t &lmks);
 
   vector_3d get_velocity(
     simple_camera_perspective_map_sptr cams,
@@ -371,7 +362,6 @@ public:
   std::mt19937 m_rng;    // random-number engine used (Mersenne-Twister in this case)
   double m_reverse_ba_error_ratio;
   bool m_enable_BA_callback;
-  std::unordered_map<landmark_id_t, track_id_t> m_track_to_landmark_map;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -562,27 +552,13 @@ initialize_cameras_landmarks_keyframe::priv
   typedef landmark_map::map_landmark_t lm_map_t;
   lm_map_t init_lms;
 
-  //find out what tracks the landmarks currently cover
-  std::set<track_id_t> covered_tracks;
-  for (auto lm : lms)
-  {
-    auto lm_tracks = lm.second->tracks();
-    covered_tracks.insert(lm_tracks.begin(), lm_tracks.end());
-  }
-
   for (const track_sptr& t : trks)
   {
     const track_id_t& tid = t->id();
     lm_map_t::const_iterator li = lms.find(tid);
     if (li == lms.end())
     {
-      if (covered_tracks.find(tid) != covered_tracks.end())
-      {
-        //this track is covered by a landmark already.
-        continue;
-      }
       auto lm = std::make_shared<landmark_d>(vector_3d(0, 0, 0));
-      lm->add_track(tid);
       init_lms[static_cast<landmark_id_t>(tid)] = lm;
     }
     else
@@ -644,7 +620,6 @@ initialize_cameras_landmarks_keyframe::priv
   for (auto &lm : new_lms)
   {
     lmks[lm.first] = lm.second;
-    m_track_to_landmark_map[lm.first] = lm.first;
   }
 }
 
@@ -1473,38 +1448,36 @@ void initialize_cameras_landmarks_keyframe::priv
 
   for (auto const& lm : lmks)
   {
-    auto tks = lm.second->tracks();
+    auto t = lm.first;
     bool found_target_frame = false;
     int lm_inlier_meas = 0;
-    for (auto t : tks)
+
+    auto tk_it = m_track_map.find(t);
+    if (tk_it == m_track_map.end())
     {
-      auto tk_it = m_track_map.find(t);
-      if (tk_it == m_track_map.end())
+      continue;
+    }
+    auto tk = tk_it->second;
+    for (auto ts_it = tk->begin(); ts_it != tk->end(); ++ts_it)
+    {
+      auto fts = static_cast<feature_track_state*>(ts_it->get());
+      if (!fts->inlier)
       {
         continue;
       }
-      auto tk = tk_it->second;
-      for (auto ts_it = tk->begin(); ts_it != tk->end(); ++ts_it)
+
+      auto const f = fts->frame();
+
+      if (!cams->find(f))
       {
-        auto fts = static_cast<feature_track_state*>(ts_it->get());
-        if (!fts->inlier)
-        {
-          continue;
-        }
-
-        auto const f = fts->frame();
-
-        if (!cams->find(f))
-        {
-          continue;
-        }
-        //landmark is an inlier to one of the cameras in the reconstruction
-        if (f == target_frame)
-        {
-          found_target_frame = true;
-        }
-        ++lm_inlier_meas;
+        continue;
       }
+      //landmark is an inlier to one of the cameras in the reconstruction
+      if (f == target_frame)
+      {
+        found_target_frame = true;
+      }
+      ++lm_inlier_meas;
     }
 
     if (found_target_frame)
@@ -1565,351 +1538,6 @@ void initialize_cameras_landmarks_keyframe::priv
       remove_redundant_keyframe(cams, landmarks, tracks, metadata, potential_rem_frame);
     }
   }
-}
-
-void initialize_cameras_landmarks_keyframe::priv
-::join_landmarks(
-  simple_camera_perspective_map_sptr cams,
-  landmark_map_sptr& landmarks,
-  feature_track_set_sptr tracks,
-  metadata_map_sptr metadata,
-  frame_id_t frame_to_drive_merge)
-{
-  //precondition:  the landmarks are already triangulated
-
-  // Want to find landmarks that project to the same place in all (almost all?)
-  // the images they are seen in.
-  // When found, make the landmark_sptr the same for both landmark_ids in
-  // landmarks.
-  // Next for efficiency:  Track which landmarks are already joined so we can
-  // just check them and update without recalculating landmark matches for
-  // every track every time.
-
-  set_map<track_id_t> failed_sets;
-
-  if (m_track_map.empty())
-  {
-    //only build this once.
-    auto tks = tracks->tracks();
-    for (auto const& t : tks)
-    {
-      m_track_map[t->id()] = t;
-    }
-  }
-
-  auto lmks = landmarks->landmarks();
-
-  typedef std::map<int, std::set<track_id_t>> tk_bin_row_major;
-
-  struct lm_projection_table {
-    lm_projection_table(int im_w_, int im_h_, int bin_side_pixels):
-      im_w(im_w_),
-      im_h(im_h_),
-      bins_x(im_w_ / bin_side_pixels),
-      bins_y(im_h_ / bin_side_pixels)
-    {
-    }
-    tk_bin_row_major bins;
-    int bins_x;
-    int bins_y;
-    int im_w, im_h;
-
-    int calc_bin(vital::vector_2d pos)
-    {
-      int bin_y = bins_y * pos.y() / double(im_h);
-      int bin_x = bins_x * pos.x() / double(im_w);
-      return bins_x * bin_y + bin_x;
-    }
-
-    void add_to_table(camera_sptr cam, landmark_sptr lm)
-    {
-      vital::vector_2d pos = cam->project(lm->loc());
-      if (pos.x() >= 0 && pos.x() < im_w && pos.y() >= 0 && pos.y() < im_h)
-      {
-        int bin = calc_bin(pos);
-        auto bin_it = bins.find(bin);
-        auto tks_id = lm->tracks();
-        for (auto t_id : tks_id)
-        {
-          bins[bin].insert(t_id);
-        }
-      }
-    }
-
-    void add_to_table(camera_sptr cam, map_landmark_t landmarks)
-    {
-      for (auto &lm : landmarks)
-      {
-        add_to_table(cam, lm.second);
-      }
-    }
-
-    void clear()
-    {
-      for (auto &b : bins)
-      {
-        b.second.clear();
-      }
-    }
-  };
-
-  simple_camera_perspective_map::map_simple_camera_perspective_t join_test_cams;
-
-  if (frame_to_drive_merge != -1)
-  {
-    auto cam = cams->find(frame_to_drive_merge);
-    if (!cam)
-    {
-      return;
-    }
-    join_test_cams[frame_to_drive_merge] = cam;
-  }
-  else
-  {
-    join_test_cams = cams->simple_perspective_cameras();
-  }
-
-  std::shared_ptr<lm_projection_table> proj_tab;
-
-  for (auto &cam : join_test_cams)
-  {
-    frame_id_t fid = cam.first;
-    auto cam_ptr = cam.second;
-    int im_w = cam_ptr->intrinsics()->principal_point().x() * 2;
-    int im_h = cam_ptr->intrinsics()->principal_point().y() * 2;
-
-    if (!proj_tab || proj_tab->im_h != im_h || proj_tab->im_w != im_w)
-    {
-      proj_tab = std::make_shared<lm_projection_table>(im_w, im_h, 2);
-    }
-    else
-    {
-      proj_tab->clear();
-    }
-    proj_tab->add_to_table(cam.second, lmks);
-
-
-    //get a set of tracks so we can check if a landmark is measured in the current image
-    auto frame_tracks = tracks->active_tracks(fid);
-
-    map_landmark_t joined_lm_map;
-
-    std::map<track_id_t, int> track_to_inliers_in_cur_cams_inlier_count;
-
-    for (auto &bin : proj_tab->bins)
-    {
-      std::set<track_id_t> potential_matching_tracks;
-      //get landmarks in each neighboring bin
-      int bin_y = bin.first / proj_tab->bins_x;
-      int bin_x = bin.first % proj_tab->bins_x;
-
-      for (int dy = -1; dy <= 1; ++dy)
-      {
-        int near_y = bin_y + dy;
-        if (!(0 <= near_y && near_y < proj_tab->bins_y))
-        {
-          continue;
-        }
-        for (int dx = -1; dx <= 1; ++dx)
-        {
-          int near_x = bin_x + dx;
-          if (!(0 <= near_x && near_x < proj_tab->bins_x))
-          {
-            continue;
-          }
-          int near_rm = near_y*proj_tab->bins_x + near_x;
-          auto bin_it = proj_tab->bins.find(near_rm);
-          if (bin_it == proj_tab->bins.end())
-          {
-            continue;
-          }
-          potential_matching_tracks.insert(bin_it->second.begin(), bin_it->second.end());
-        }
-      }
-
-      //ok we have a set of landmarks that could match based on their projections being close.  What next?
-      //make a single landmark for all the tracks, try to triangulate it
-
-      if (potential_matching_tracks.size() > 1)
-      {
-        if (failed_sets.contains_set(potential_matching_tracks) )
-        {
-          continue;
-        }
-
-        landmark_id_t joined_lm_id = *potential_matching_tracks.begin();
-
-        //landmarks always have the ID of the lowest track in their track set
-        std::shared_ptr<landmark_d> joined_lm = std::dynamic_pointer_cast<landmark_d>(lmks[joined_lm_id]->clone());
-        for (auto jt_id : potential_matching_tracks)
-        {
-          joined_lm->add_track(jt_id);
-          track_to_inliers_in_cur_cams_inlier_count[jt_id] = 0;
-        }
-
-        auto j_lm_it = joined_lm_map.find(joined_lm_id);
-        if (j_lm_it == joined_lm_map.end())
-        {
-          joined_lm_map[joined_lm_id] = joined_lm;
-        }
-        else
-        {
-          //pick the joined landmark with the most matches
-          if (j_lm_it->second->tracks().size() < joined_lm->tracks().size())
-          {
-            joined_lm_map[joined_lm_id] = joined_lm;
-          }
-        }
-      }
-    }
-
-    for (auto &tm : track_to_inliers_in_cur_cams_inlier_count)
-    {
-      auto tk_id = tm.first;
-      auto tk_it = m_track_map.find(tk_id);
-      if (tk_it == m_track_map.end())
-      {
-        continue;
-      }
-      auto tk = tk_it->second;
-      int tk_inlier_count = 0;
-
-      for (auto ts_it = tk->begin(); ts_it != tk->end(); ++ts_it)
-      {
-        auto fts = static_cast<feature_track_state*>(ts_it->get());
-
-        if (!cams->find(fts->frame()))
-        {
-          //feature track is not in current set of cameras
-          continue;
-        }
-        if (fts->inlier)
-        {
-          ++tk_inlier_count;
-        }
-      }
-      tm.second = tk_inlier_count;
-    }
-
-    //now we triangulate all the joined landmarks.  Then check for inliers
-    landmark_map_sptr joined_landmarks(new simple_landmark_map(joined_lm_map));
-
-    auto triang_conf = lm_triangulator->get_configuration();
-    double orig_inlier_threshold = triang_conf->get_value<double>("inlier_threshold_pixels");
-    triang_conf->set_value<double>("inlier_threshold_pixels", 2.0);
-    lm_triangulator->set_configuration(triang_conf);
-
-    lm_triangulator->triangulate(cams, m_track_map, joined_landmarks);
-    triang_conf->set_value<double>("inlier_threshold_pixels", orig_inlier_threshold);
-    lm_triangulator->set_configuration(triang_conf);
-
-
-    std::set<track_id_t> non_merged_tracks;
-
-    for (auto &j_lm : joined_lm_map)
-    {
-      auto lm = j_lm.second;
-      auto lm_tk_ids = lm->tracks();
-      std::set<track_id_t> final_merged_tracks;
-      for (auto tk_id : lm_tk_ids)
-      {
-        auto tk_it = m_track_map.find(tk_id);
-        if (tk_it == m_track_map.end())
-        {
-          continue;
-        }
-        auto tk = tk_it->second;
-        int tk_inlier_count = 0;
-        int tk_detections_in_current_cams = 0;
-
-        for (auto ts_it = tk->begin(); ts_it != tk->end(); ++ts_it)
-        {
-          auto fts = static_cast<feature_track_state*>(ts_it->get());
-
-          if (!cams->find(fts->frame()))
-          {
-            //feature track is not in current set of cameras
-            continue;
-          }
-          ++tk_detections_in_current_cams;
-          if (fts->inlier)
-          {
-            ++tk_inlier_count;
-          }
-        }
-        auto tm_it = track_to_inliers_in_cur_cams_inlier_count.find(tk_id);
-        if (tm_it == track_to_inliers_in_cur_cams_inlier_count.end())
-        {
-          continue;
-        }
-
-        if (tk_inlier_count >= tm_it->second)
-        { // number of inliers in merged landmark must be at least as many as in
-          // original track (possibly merged with some other track)
-          final_merged_tracks.insert(tk_id);
-        }
-      }
-
-      if (final_merged_tracks.size() != lm_tk_ids.size())
-      {
-        //not all tracks merged.  Don't try this combination again later.
-        failed_sets.add_set(lm_tk_ids);
-      }
-
-      if (final_merged_tracks.size() < 2)
-      {
-        //we didn't have at least two tracks with 50% inliers.  So don't save the resulting merged landmark.
-        continue;
-      }
-      //ok now we have what tracks should be merged based on outlier count
-      std::shared_ptr<landmark_d> joined_lm = std::dynamic_pointer_cast<landmark_d>(lm);
-      for (auto tk_id : lm_tk_ids)
-      {
-        if (final_merged_tracks.find(tk_id) == final_merged_tracks.end())
-        {
-          joined_lm->remove_track(tk_id);
-          non_merged_tracks.insert(tk_id);
-        }
-      }
-      //now replace the landmark in lmks with the lowest track_id track in the joined landmark.  Remove other landmarks.
-      auto final_tks = joined_lm->tracks();
-      bool first_track = true;
-      landmark_id_t lm_id = -1;
-      for (auto ft_id : final_tks)
-      {
-        if (first_track)
-        {
-          lm_id = ft_id;
-          lmks[ft_id] = joined_lm;
-          first_track = false;
-        }
-        else
-        {
-          lmks.erase(ft_id);
-        }
-        m_track_to_landmark_map[ft_id] = lm_id;
-      }
-    }
-    //now triangulate all the tracks that didn't merge and add them back into lmks
-    map_landmark_t non_joined_lm_map;
-    for (auto nmt_id : non_merged_tracks)
-    {
-      auto lm = std::make_shared<landmark_d>();
-      lm->add_track(nmt_id);
-      non_joined_lm_map[nmt_id] = lm;
-      m_track_to_landmark_map[nmt_id] = nmt_id;
-    }
-    landmark_map_sptr non_joined_lm_ptr(new simple_landmark_map(non_joined_lm_map));
-    lm_triangulator->triangulate(cams, m_track_map, non_joined_lm_ptr);
-    non_joined_lm_map = non_joined_lm_ptr->landmarks();
-    for (auto lm : non_joined_lm_map)
-    {
-      lmks[lm.first] = lm.second;
-    }
-  }
-
-  //store the final set of landmarks
-  landmarks = landmark_map_sptr(new simple_landmark_map(lmks));
 }
 
 bool
@@ -2456,20 +2084,6 @@ initialize_cameras_landmarks_keyframe::priv
 
 void
 initialize_cameras_landmarks_keyframe::priv
-::set_track_to_landmark_map(const map_landmark_t &lmks)
-{
-  for (auto &lm : lmks)
-  {
-    auto tks = lm.second->tracks();
-    for (auto t : tks)
-    {
-      m_track_to_landmark_map[t] = lm.first;
-    }
-  }
-}
-
-void
-initialize_cameras_landmarks_keyframe::priv
 ::get_registered_and_non_registered_frames(
   simple_camera_perspective_map_sptr cams,
   feature_track_set_sptr tracks,
@@ -2689,7 +2303,6 @@ initialize_cameras_landmarks_keyframe::priv
   int frames_since_last_down_select = 0;
 
   auto lmks = landmarks->landmarks();
-  set_track_to_landmark_map(lmks);
 
   std::set<frame_id_t> already_registred_cams, frames_to_register;
   get_registered_and_non_registered_frames(cams, tracks, already_registred_cams, frames_to_register);

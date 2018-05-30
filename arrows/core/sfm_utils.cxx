@@ -331,51 +331,50 @@ detect_bad_landmarks(
     //ok this track has an associated landmark
 
     const auto lm = lm_it.second;
+    auto t_id = lm_it.first;
 
     std::vector<kwiver::vital::simple_camera_perspective> observing_cams;
-    for (auto t_id : lm->tracks())
+
+    auto t = tracks->get_track(t_id);
+    if (!t)
     {
-      auto t = tracks->get_track(t_id);
-      if (!t)
+      continue;
+    }
+
+    for (auto ts : *t)
+    {
+      auto fts = std::static_pointer_cast<feature_track_state>(ts);
+      if (!fts || !fts->feature)
       {
+        // no feature for this track state.
+        continue;
+      }
+      const feature& feat = *fts->feature;
+      auto ci = cams.find(ts->frame());
+      if (ci == cams.end() || !ci->second)
+      {
+        // no camera corresponding to this track state
+        continue;
+      }
+      const auto cam = std::static_pointer_cast<simple_camera_perspective>(ci->second);
+
+      auto d = cam->depth(lm->loc());
+      if (d <= 0)
+      {
+        fts->inlier = false;
         continue;
       }
 
-      for (auto ts : *t)
+      double sq_err = kwiver::arrows::reprojection_error_sqr(*cam, *lm, feat);
+      if (sq_err <= ets || error_tol < 0)
       {
-        auto fts = std::static_pointer_cast<feature_track_state>(ts);
-        if (!fts || !fts->feature)
-        {
-          // no feature for this track state.
-          continue;
-        }
-        const feature& feat = *fts->feature;
-        auto ci = cams.find(ts->frame());
-        if (ci == cams.end() || !ci->second)
-        {
-          // no camera corresponding to this track state
-          continue;
-        }
-        const auto cam = std::static_pointer_cast<simple_camera_perspective>(ci->second);
-
-        auto d = cam->depth(lm->loc());
-        if (d <= 0)
-        {
-          fts->inlier = false;
-          continue;
-        }
-
-        double sq_err = kwiver::arrows::reprojection_error_sqr(*cam, *lm, feat);
-        if (sq_err <= ets || error_tol < 0)
-        {
-          observing_cams.push_back(*cam);
-          fts->inlier = true;
-          depths.push_back(d);
-        }
-        else
-        {
-          fts->inlier = false;
-        }
+        observing_cams.push_back(*cam);
+        fts->inlier = true;
+        depths.push_back(d);
+      }
+      else
+      {
+        fts->inlier = false;
       }
     }
 
@@ -399,7 +398,6 @@ detect_bad_landmarks(
     }
   }
 
-
   size_t num_far_lm_removed = 0;
   std::sort(depths.begin(), depths.end());
   double depth_thresh = -1;
@@ -417,45 +415,44 @@ detect_bad_landmarks(
       //ok this track has an associated landmark
 
       const auto lm = lm_it.second;
+      auto t_id = lm_it.first;
 
       std::vector<kwiver::vital::simple_camera_perspective> observing_cams;
       bool lm_too_far = false;
-      for (auto t_id : lm->tracks())
+
+      auto t = tracks->get_track(t_id);
+      if (!t)
       {
-        auto t = tracks->get_track(t_id);
-        if (!t)
+        continue;
+      }
+      for (auto ts : *t)
+      {
+        auto fts = std::static_pointer_cast<feature_track_state>(ts);
+        if (!fts || !fts->feature)
         {
+          // no feature for this track state.
           continue;
         }
-        for (auto ts : *t)
+        const feature& feat = *fts->feature;
+        auto ci = cams.find(ts->frame());
+        if (ci == cams.end() || !ci->second)
         {
-          auto fts = std::static_pointer_cast<feature_track_state>(ts);
-          if (!fts || !fts->feature)
-          {
-            // no feature for this track state.
-            continue;
-          }
-          const feature& feat = *fts->feature;
-          auto ci = cams.find(ts->frame());
-          if (ci == cams.end() || !ci->second)
-          {
-            // no camera corresponding to this track state
-            continue;
-          }
-          const auto cam = std::static_pointer_cast<simple_camera_perspective>(ci->second);
-          auto d = cam->depth(lm->loc());
-          if (d > depth_thresh)
-          {
-            landmarks_to_remove.insert(lm_it.first);
-            ++num_far_lm_removed;
-            lm_too_far = true;
-            break;
-          }
+          // no camera corresponding to this track state
+          continue;
         }
-        if (lm_too_far)
+        const auto cam = std::static_pointer_cast<simple_camera_perspective>(ci->second);
+        auto d = cam->depth(lm->loc());
+        if (d > depth_thresh)
         {
+          landmarks_to_remove.insert(lm_it.first);
+          ++num_far_lm_removed;
+          lm_too_far = true;
           break;
         }
+      }
+      if (lm_too_far)
+      {
+        break;
       }
     }
   }
