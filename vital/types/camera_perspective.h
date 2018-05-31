@@ -133,6 +133,10 @@ protected:
 VITAL_EXPORT std::ostream& operator<<( std::ostream& s,
                                        const camera_perspective& c );
 
+/// forward declaration of simple perspective camera class
+class simple_camera_perspective;
+/// typedef for a simple_camera_perspective shared pointer
+typedef std::shared_ptr< simple_camera_perspective > simple_camera_perspective_sptr;
 
 /// A representation of a camera
 /**
