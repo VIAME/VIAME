@@ -99,7 +99,10 @@ public:
 * \param [in,out] landmarks the landmarks to triangulate
 *
 * This function only triangulates the landmarks with indicies in the
-* landmark map and which have support in the tracks and cameras
+* landmark map and which have support in the tracks and cameras.  Note:
+* triangulate modifies the inlier/outlier flags in tracks. It also sets
+* the cosine of the maximum observation angle and number of observations
+* in the landmarks.
 */
   virtual void
     triangulate(vital::camera_map_sptr cameras,
