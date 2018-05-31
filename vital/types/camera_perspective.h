@@ -106,6 +106,13 @@ public:
    */
   virtual matrix_3x4d as_matrix() const;
 
+  /// Convert to a 3x4 pose matrix (no intrinsics)
+  /**
+  *  \note This matrix representation does not account for camera intrisics
+  *  and only models the extinsic pose of the camera.
+  */
+  matrix_3x4d pose_matrix() const;
+
   /// Project a 3D point into a 2D image point
   virtual vector_2d project( const vector_3d& pt ) const;
 
