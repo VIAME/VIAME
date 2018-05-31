@@ -3,8 +3,8 @@
 
 include_directories(${FFMPEG_INCLUDE_DIR})
 
-if ( FFMPEG_FOUND_SEVERAL)
-  message( "FFMPEG headers all in the same directories, "
+if (NOT FFMPEG_FOUND_SEVERAL)
+  message( FATAL_ERROR "FFMPEG headers all in the same directories, "
 "this is not supported by this Arrow."
 "\nThis likely indicates that you are building against an old FFMPEG ! "
 )
