@@ -325,7 +325,9 @@ frame_index_track_set_impl
   auto const& map_itr = frame_map_.find(frame_number);
   if( map_itr != frame_map_.end() )
   {
-    for( auto const& ts : map_itr->second )
+    auto &track_set = map_itr->second;
+    active_tracks.reserve(track_set.size());
+    for( auto const& ts : track_set)
     {
       active_tracks.push_back(ts->track());
     }
