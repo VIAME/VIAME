@@ -91,6 +91,21 @@ public:
               vital::feature_track_set_sptr tracks,
               vital::landmark_map_sptr& landmarks) const;
 
+
+/// Triangulate the landmark locations given sets of cameras and feature tracks
+/**
+* \param [in] cameras the cameras viewing the landmarks
+* \param [in] tracks the feature tracks to use as constraints in a map
+* \param [in,out] landmarks the landmarks to triangulate
+*
+* This function only triangulates the landmarks with indicies in the
+* landmark map and which have support in the tracks and cameras
+*/
+  virtual void
+    triangulate(vital::camera_map_sptr cameras,
+      vital::track_map_t tracks,
+      vital::landmark_map_sptr& landmarks) const;
+
 private:
   /// private implementation class
   class priv;
