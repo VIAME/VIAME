@@ -76,7 +76,7 @@ public:
   virtual void optimize(vital::camera_map_sptr & cameras,
                         vital::landmark_map_sptr & landmarks,
                         vital::feature_track_set_sptr tracks,
-                        vital::metadata_map_sptr metadata = nullptr) const;
+                        vital::sfm_constraints_sptr constraints = nullptr) const;
 
   using vital::algo::bundle_adjust::optimize;
 
