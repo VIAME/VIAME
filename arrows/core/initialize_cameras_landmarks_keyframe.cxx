@@ -184,14 +184,14 @@ public:
     simple_camera_perspective_map_sptr cameras,
     landmark_map_sptr& landmarks,
     feature_track_set_sptr tracks,
-    metadata_map_sptr metadata,
+    sfm_constraints_sptr constraints,
     callback_t m_callback);
 
   bool initialize_remaining_cameras(
     simple_camera_perspective_map_sptr cams,
     landmark_map_sptr& landmarks,
     feature_track_set_sptr tracks,
-    metadata_map_sptr metadata,
+    sfm_constraints_sptr constraints,
     callback_t callback);
 
   bool bundle_adjust();
@@ -264,14 +264,14 @@ public:
     simple_camera_perspective_map_sptr cameras,
     landmark_map_sptr& landmarks,
     feature_track_set_sptr tracks,
-    metadata_map_sptr metadata,
+    sfm_constraints_sptr constraints,
     frame_id_t target_frame);
 
   void remove_redundant_keyframes(
     simple_camera_perspective_map_sptr cameras,
     landmark_map_sptr& landmarks,
     feature_track_set_sptr tracks,
-    metadata_map_sptr metadata,
+    sfm_constraints_sptr constraints,
     std::deque<frame_id_t> &recently_added_frame_queue);
 
   int get_inlier_count(
@@ -290,7 +290,7 @@ public:
     simple_camera_perspective_map_sptr cams,
     landmark_map_sptr landmarks,
     feature_track_set_sptr tracks,
-    metadata_map_sptr metadata);
+    sfm_constraints_sptr constraints);
 
   std::set<landmark_id_t> find_visible_landmarks_in_frames(
     const map_landmark_t &lmks,
@@ -324,7 +324,7 @@ public:
     simple_camera_perspective_map_sptr cams,
     map_landmark_t& lmks,
     feature_track_set_sptr tracks,
-    metadata_map_sptr metadata,
+    sfm_constraints_sptr constraints,
     frame_id_t &fid_to_register,
     std::set<frame_id_t> &frames_to_register,
     std::set<frame_id_t> &already_registred_cams);
@@ -334,7 +334,7 @@ public:
     landmark_map_sptr& landmarks,
     map_landmark_t& lmks,
     feature_track_set_sptr tracks,
-    metadata_map_sptr metadata,
+    sfm_constraints_sptr constraints,
     const std::set<frame_id_t> &already_registered_cams,
     const std::set<frame_id_t> &frames_since_last_local_ba);
 
@@ -1420,7 +1420,7 @@ void initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata,
+  sfm_constraints_sptr constraints,
   frame_id_t target_frame)
 {
 
@@ -1508,7 +1508,7 @@ void initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata,
+  sfm_constraints_sptr constraints,
   std::deque<frame_id_t> &recently_added_frame_queue)
 {
   if (recently_added_frame_queue.size() >= 5)
@@ -1535,7 +1535,7 @@ void initialize_cameras_landmarks_keyframe::priv
       {
         continue;
       }
-      remove_redundant_keyframe(cams, landmarks, tracks, metadata, potential_rem_frame);
+      remove_redundant_keyframe(cams, landmarks, tracks, constraints, potential_rem_frame);
     }
   }
 }
@@ -1546,7 +1546,7 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata,
+  sfm_constraints_sptr constraints,
   callback_t callback)
 {
   LOG_DEBUG(m_logger, "initialize_keyframes");
@@ -1650,7 +1650,7 @@ initialize_cameras_landmarks_keyframe::priv
   }
 
   //landmark_map_sptr join_lms(new simple_landmark_map(lms));
-  //join_landmarks(cams, join_lms, tracks, metadata);
+  //join_landmarks(cams, join_lms, tracks, constraints);
   //lms = join_lms->landmarks();
 
   bool tried_necker_reverse = false;
@@ -1703,7 +1703,7 @@ initialize_cameras_landmarks_keyframe::priv
         }
       }
 
-      bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, metadata);
+      bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, constraints);
 
       lms = ba_lms->landmarks();
       cams->set_from_base_cams(ba_cams);
@@ -1718,9 +1718,9 @@ initialize_cameras_landmarks_keyframe::priv
     retriangulate(lms, cams, trks, inlier_lm_ids);
 
     //landmark_map_sptr join_lms(new simple_landmark_map(lms));
-    //join_landmarks(cams, join_lms, tracks, metadata, next_frame_id);
+    //join_landmarks(cams, join_lms, tracks, constraints, next_frame_id);
 
-    //remove_redundant_keyframes(cams, join_lms, tracks, metadata, added_frame_queue);
+    //remove_redundant_keyframes(cams, join_lms, tracks, constraints, added_frame_queue);
 
     //lms = join_lms->landmarks();
     {
@@ -1777,7 +1777,7 @@ initialize_cameras_landmarks_keyframe::priv
         {
           fixed_landmarks.insert(l.first);
         }
-        bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, metadata);
+        bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, constraints);
 
         lms = ba_lms->landmarks();
         cams->set_from_base_cams(ba_cams);
@@ -1792,7 +1792,7 @@ initialize_cameras_landmarks_keyframe::priv
         //now an overall ba
         landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
         fixed_landmarks.clear();
-        bundle_adjuster->optimize(ba_cams, ba_lms2, tracks, fixed_cameras, fixed_landmarks, metadata);
+        bundle_adjuster->optimize(ba_cams, ba_lms2, tracks, fixed_cameras, fixed_landmarks, constraints);
 
         cams->set_from_base_cams(ba_cams);
         lms = ba_lms2->landmarks();
@@ -1802,7 +1802,7 @@ initialize_cameras_landmarks_keyframe::priv
         //do an overall join, because the solution geometry may have changed significantly after BA.
 
         //landmark_map_sptr join_lms(new simple_landmark_map(lms));
-        //join_landmarks(cams, join_lms, tracks, metadata);
+        //join_landmarks(cams, join_lms, tracks, constraints);
         //lms = join_lms->landmarks();
 
         if (!tried_necker_reverse && m_reverse_ba_error_ratio > 0)
@@ -1822,7 +1822,7 @@ initialize_cameras_landmarks_keyframe::priv
             // Either way we should not have to try this again.
             tried_necker_reverse = true;
             LOG_INFO(m_logger, "Running Necker reversed bundle adjustment for comparison");
-            bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks, metadata);
+            bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks, constraints);
 
             map_landmark_t lms2 = ba_lms2->landmarks();
 
@@ -1958,7 +1958,7 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr landmarks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata)
+  sfm_constraints_sptr constraints)
 {
   //first record all camera positions
   std::map<frame_id_t, vector_3d> orig_positions;
@@ -1998,7 +1998,7 @@ initialize_cameras_landmarks_keyframe::priv
         fixed_cams.erase(fid);
         cams->insert(fid, reversed_cam);
         camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
-        bundle_adjuster->optimize(ba_cams, landmarks, tracks, fixed_cams, fixed_landmarks, metadata);
+        bundle_adjuster->optimize(ba_cams, landmarks, tracks, fixed_cams, fixed_landmarks, constraints);
         cams->set_from_base_cams(ba_cams);
         //now add it back to the fixed frames so it is fixed next time
         fixed_cams.insert(fid);
@@ -2051,7 +2051,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   fixed_cams.clear();
   camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
-  bundle_adjuster->optimize(ba_cams, landmarks, tracks, fixed_cams, fixed_landmarks, metadata);
+  bundle_adjuster->optimize(ba_cams, landmarks, tracks, fixed_cams, fixed_landmarks, constraints);
   cams->set_from_base_cams(ba_cams);
 
 }
@@ -2140,7 +2140,7 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   map_landmark_t& lmks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata,
+  sfm_constraints_sptr constraints,
   frame_id_t &fid_to_register,
   std::set<frame_id_t> &frames_to_register,
   std::set<frame_id_t> &already_registred_cams)
@@ -2181,7 +2181,7 @@ initialize_cameras_landmarks_keyframe::priv
     while (bundled_inlier_count > prev_bundled_inlier_count)
     {
       //DOES THIS LOOP HELP?
-      bundle_adjuster->optimize(ba_cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, metadata);
+      bundle_adjuster->optimize(ba_cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, constraints);
 
       cams->set_from_base_cams(ba_cams);
       bundled_cam = cams->find(fid_to_register);
@@ -2207,7 +2207,7 @@ initialize_cameras_landmarks_keyframe::priv
       while (resection_inlier_count > prev_resection_inlier_count)
       {
         //DOES THIS LOOP HELP?
-        bundle_adjuster->optimize(ba_cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, metadata);
+        bundle_adjuster->optimize(ba_cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, constraints);
         cams->set_from_base_cams(ba_cams);
         resectioned_cam = cams->find(fid_to_register);
         prev_resection_inlier_count = resection_inlier_count;
@@ -2253,7 +2253,7 @@ initialize_cameras_landmarks_keyframe::priv
   landmark_map_sptr& landmarks,
   map_landmark_t& lmks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata,
+  sfm_constraints_sptr constraints,
   const std::set<frame_id_t> &already_registered_cams,
   const std::set<frame_id_t> &frames_since_last_local_ba)
 {
@@ -2282,7 +2282,7 @@ initialize_cameras_landmarks_keyframe::priv
   camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
   std::set<landmark_id_t> empty_landmark_id_set;
 
-  bundle_adjuster->optimize(ba_cams, variable_landmarks, tracks, frames_to_fix, empty_landmark_id_set, metadata);
+  bundle_adjuster->optimize(ba_cams, variable_landmarks, tracks, frames_to_fix, empty_landmark_id_set, constraints);
   cams->set_from_base_cams(ba_cams);
   landmarks = store_landmarks(lmks, variable_landmarks);
 }
@@ -2293,7 +2293,7 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata,
+  sfm_constraints_sptr constraints,
   callback_t callback)
 {
   //we will lock the original cameras in the bundle adjustment, could also exclude them
@@ -2317,7 +2317,7 @@ initialize_cameras_landmarks_keyframe::priv
   {
     frame_id_t fid_to_register;
 
-    if (!initialize_next_camera(cams, lmks, tracks, metadata, fid_to_register, frames_to_register, already_registred_cams))
+    if (!initialize_next_camera(cams, lmks, tracks, constraints, fid_to_register, frames_to_register, already_registred_cams))
     {
       continue;
     }
@@ -2344,7 +2344,7 @@ initialize_cameras_landmarks_keyframe::priv
     if (i_over_u < 0.7)
     {
       windowed_clean_and_bundle(cams, landmarks, lmks, tracks,
-        metadata, already_registred_cams, frames_since_last_local_ba);
+        constraints, already_registred_cams, frames_since_last_local_ba);
       last_ba_landmarks = cur_lmks;
       frames_since_last_local_ba.clear();
     }
@@ -2392,7 +2392,7 @@ initialize_cameras_landmarks_keyframe::priv
   //}
 
   //this should only be done for aerial, semi-planar scenes.
-  //cleanup_necker_reversals(cams, landmarks, tracks,metadata);
+  //cleanup_necker_reversals(cams, landmarks, tracks,constraints);
 
   return true;
 }
@@ -2580,7 +2580,7 @@ initialize_cameras_landmarks_keyframe
 ::initialize(camera_map_sptr& cameras,
              landmark_map_sptr& landmarks,
              feature_track_set_sptr tracks,
-             metadata_map_sptr metadata) const
+             sfm_constraints_sptr constraints) const
 {
   m_priv->check_inputs(tracks);
 
@@ -2588,10 +2588,10 @@ initialize_cameras_landmarks_keyframe
   cams->set_from_base_cams(cameras);
 
   // build constraint graph
-  m_priv->initialize_keyframes(cams, landmarks, tracks, metadata,this->m_callback);
+  m_priv->initialize_keyframes(cams, landmarks, tracks, constraints,this->m_callback);
 
   // optimize constraint graph
-  m_priv->initialize_remaining_cameras(cams,landmarks,tracks,metadata,this->m_callback);
+  m_priv->initialize_remaining_cameras(cams,landmarks,tracks,constraints,this->m_callback);
 
   cameras = std::make_shared<simple_camera_map>(cams->cameras());
 }

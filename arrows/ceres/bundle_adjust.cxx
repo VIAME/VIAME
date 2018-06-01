@@ -259,12 +259,12 @@ bundle_adjust
 ::optimize(camera_map_sptr& cameras,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata) const
+  sfm_constraints_sptr constriants) const
 {
   //both fixed cameras and fixed landmarks are empty for default call.
   std::set<vital::frame_id_t> fixed_cameras;
   std::set<vital::landmark_id_t> fixed_landmarks;
-  optimize(cameras, landmarks, tracks, fixed_cameras, fixed_landmarks, metadata);
+  optimize(cameras, landmarks, tracks, fixed_cameras, fixed_landmarks, constriants);
 }
 
 
@@ -277,7 +277,7 @@ bundle_adjust
            feature_track_set_sptr tracks,
            const std::set<vital::frame_id_t>& to_fix_cameras,
            const std::set<vital::landmark_id_t>& to_fix_landmarks,
-           metadata_map_sptr metadata) const
+           sfm_constraints_sptr constriants) const
 {
   if( !cameras || !landmarks || !tracks )
   {
@@ -336,7 +336,7 @@ bundle_adjust
   {
     const auto lm_id = lm.first;
     bool lm_visible_in_variable_camera = false;
-    //lowest index track is landmark id    
+    //lowest index track is landmark id
 
     auto t = tracks->get_track(lm_id);
     if (!t)
@@ -419,7 +419,7 @@ bundle_adjust
         &lm_itr->second[0]);
 
       loss_func_used = true;
-      
+
     }
   }
 
@@ -442,7 +442,7 @@ bundle_adjust
   std::set<landmark_id_t> fixed_landmarks;
   //fix all the landmarks in the to_fix_landmarks list
   for (auto tfl: to_fix_landmarks)
-  {    
+  {
     auto lm_id = tfl;
 
     lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);

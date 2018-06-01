@@ -43,7 +43,7 @@
 #include <vital/types/feature_track_set.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
-#include <vital/types/metadata_map.h>
+#include <vital/types/sfm_constraints.h>
 
 #include <functional>
 
@@ -74,7 +74,7 @@ public:
   optimize(kwiver::vital::camera_map_sptr& cameras,
            kwiver::vital::landmark_map_sptr& landmarks,
            kwiver::vital::feature_track_set_sptr tracks,
-           kwiver::vital::metadata_map_sptr metadata = nullptr) const = 0;
+           kwiver::vital::sfm_constraints_sptr constraints = nullptr) const = 0;
 
   /// Optimize the camera and landmark parameters given a set of feature tracks
   /**
@@ -92,7 +92,7 @@ public:
              kwiver::vital::feature_track_set_sptr tracks,
              const std::set<vital::frame_id_t>& fixed_cameras,
              const std::set<vital::landmark_id_t>& fixed_landmarks,
-             kwiver::vital::metadata_map_sptr metadata = nullptr) const;
+             kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,

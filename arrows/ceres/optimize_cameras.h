@@ -84,7 +84,7 @@ public:
   optimize(kwiver::vital::camera_map_sptr & cameras,
            kwiver::vital::feature_track_set_sptr tracks,
            kwiver::vital::landmark_map_sptr landmarks,
-           kwiver::vital::metadata_map_sptr metadata = nullptr) const;
+           kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
 
 
   /// Optimize a single camera given corresponding features and landmarks
@@ -105,8 +105,7 @@ public:
   optimize(vital::camera_perspective_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
-           kwiver::vital::metadata_vector metadata
-             = kwiver::vital::metadata_vector()) const;
+           kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
 
 private:
   /// private implementation class
