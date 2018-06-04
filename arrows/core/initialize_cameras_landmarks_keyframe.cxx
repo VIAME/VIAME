@@ -50,6 +50,7 @@
 #include <vital/algo/triangulate_landmarks.h>
 #include <vital/algo/bundle_adjust.h>
 #include <vital/algo/optimize_cameras.h>
+#include <vital/algo/estimate_similarity_transform.h>
 
 #include <arrows/core/triangulate_landmarks.h>
 #include <arrows/core/epipolar_geometry.h>
@@ -230,6 +231,12 @@ public:
     feature_track_set_sptr tracks,
     std::set<frame_id_t> down_select_these_frames) const;
 
+  bool fit_reconstruction_to_constraints(
+    simple_camera_perspective_map_sptr cams,
+    map_landmark_t &lms,
+    feature_track_set_sptr tracks,
+    sfm_constraints_sptr constraints);
+
   bool initialize_reconstruction(
     simple_camera_perspective_map_sptr cams,
     map_landmark_t &lms,
@@ -349,6 +356,7 @@ public:
   vital::algo::optimize_cameras_sptr camera_optimizer;
   vital::algo::triangulate_landmarks_sptr lm_triangulator;
   vital::algo::bundle_adjust_sptr bundle_adjuster;
+  vital::algo::estimate_similarity_transform_sptr m_similarity_estimator;
   /// Logger handle
   vital::logger_handle_t m_logger;
   double m_thresh_triang_cos_ang;
@@ -1251,6 +1259,105 @@ initialize_cameras_landmarks_keyframe::priv
 
 bool
 initialize_cameras_landmarks_keyframe::priv
+::fit_reconstruction_to_constraints(
+  simple_camera_perspective_map_sptr cams,
+  map_landmark_t &lms,
+  feature_track_set_sptr tracks,
+  sfm_constraints_sptr constraints)
+{
+  int max_frame_diff = 20;
+
+  auto pos_priors = constraints->get_camera_position_priors();
+
+  auto persp_cams = cams->simple_perspective_cameras();
+
+  if (!m_similarity_estimator)
+  {
+    LOG_DEBUG(m_logger, "No similarity estimator defined. Skipping fit to constraints.");
+    return false;
+  }
+
+  std::vector<vector_3d> cam_positions, sensor_positions;
+
+  for (auto &cam : persp_cams)
+  {
+    auto cam_fid = cam.first;
+    frame_id_t closest_prior_fid = -1;
+    int best_fid_difference = std::numeric_limits<int>::max();
+    vector_3d closest_prior;
+    for (auto &prior : pos_priors)
+    {
+      auto prior_fid = prior.first;
+      auto cur_diff = abs(prior_fid - cam_fid);
+      if (cur_diff < best_fid_difference)
+      {
+        best_fid_difference = cur_diff;
+        closest_prior_fid = prior_fid;
+        closest_prior = prior.second;
+      }
+    }
+    if (best_fid_difference > max_frame_diff)
+    {
+      continue;
+    }
+    cam_positions.push_back(cam.second->center());
+    sensor_positions.push_back(closest_prior);
+  }
+
+  if (cam_positions.size() < 3)
+  {
+    return false;
+  }
+
+  Eigen::Matrix<double, 3, Eigen::Dynamic> cam_mat;
+  cam_mat.resize(3, cam_positions.size());
+  for (int v = 0; v < cam_positions.size(); ++v)
+  {
+    cam_mat(0, v) = cam_positions[v].x();
+    cam_mat(1, v) = cam_positions[v].y();
+    cam_mat(2, v) = cam_positions[v].z();
+  }
+
+  Eigen::Vector3d cam_mean;
+  cam_mean(0) = cam_mat.row(0).mean();
+  cam_mean(1) = cam_mat.row(1).mean();
+  cam_mean(2) = cam_mat.row(2).mean();
+
+  auto cam_mat_centered = cam_mat - cam_mean.replicate(1, cam_mat.cols());
+
+  auto cov_mat = cam_mat_centered * cam_mat_centered.transpose();
+
+  Eigen::JacobiSVD<vital::matrix_3x3d> svd(cov_mat, Eigen::ComputeFullV);
+  auto sing_vals = svd.singularValues();
+  if (sing_vals(0) > 100 * sing_vals(1))
+  {
+    return false;
+  }
+
+  auto sim = m_similarity_estimator->estimate_transform(cam_positions, sensor_positions);
+
+  //transform all the points and camera centers
+
+  for (auto cam : persp_cams)
+  {
+    auto c_xformed = sim*cam.second->center();
+    auto rot = cam.second->rotation();
+    rot = rot * sim.rotation().inverse();
+    cam.second->set_center(c_xformed);
+    cam.second->set_rotation(rot);
+  }
+
+  for (auto &lm : lms)
+  {
+    auto& lmi = std::static_pointer_cast<landmark_d>(lm.second);
+    lmi->set_loc(sim*lmi->loc());
+  }
+
+  return true;
+}
+
+bool
+initialize_cameras_landmarks_keyframe::priv
 ::initialize_reconstruction(
   simple_camera_perspective_map_sptr cams,
   map_landmark_t &lms,
@@ -1620,10 +1727,6 @@ initialize_cameras_landmarks_keyframe::priv
   // get relative pose constraints for keyframes
   calc_rel_poses(beginning_keyframes, tracks);
 
-  // To do 1, visual odometry
-
-  // choose the first keyframe pair that meets minimum triangulation angle requirements.  This is the seed.
-  // Triangulate first pair
   initialize_reconstruction(cams, lms, tracks);
 
   if (callback)
@@ -2296,6 +2399,9 @@ initialize_cameras_landmarks_keyframe::priv
   sfm_constraints_sptr constraints,
   callback_t callback)
 {
+
+
+
   //we will lock the original cameras in the bundle adjustment, could also exclude them
   time_t prev_callback_time;
   time(&prev_callback_time);
@@ -2303,6 +2409,8 @@ initialize_cameras_landmarks_keyframe::priv
   int frames_since_last_down_select = 0;
 
   auto lmks = landmarks->landmarks();
+
+  fit_reconstruction_to_constraints(cams, lmks, tracks, constraints);
 
   std::set<frame_id_t> already_registred_cams, frames_to_register;
   get_registered_and_non_registered_frames(cams, tracks, already_registred_cams, frames_to_register);
@@ -2481,6 +2589,9 @@ initialize_cameras_landmarks_keyframe
   vital::algo::estimate_pnp
     ::get_nested_algo_configuration("estimate_pnp", config, m_priv->m_pnp);
 
+  vital::algo::estimate_similarity_transform
+    ::get_nested_algo_configuration("estimate_similarity", config, m_priv->m_similarity_estimator);
+
   return config;
 }
 
@@ -2505,6 +2616,11 @@ initialize_cameras_landmarks_keyframe
   vital::algo::bundle_adjust
       ::set_nested_algo_configuration("bundle_adjuster",
                                       config, m_priv->bundle_adjuster);
+
+  vital::algo::estimate_similarity_transform
+    ::set_nested_algo_configuration("similarity_estimator",
+                                    config, m_priv->m_similarity_estimator);
+
   if(m_priv->bundle_adjuster && this->m_callback && m_priv->m_enable_BA_callback)
   {
     using std::placeholders::_1;
@@ -2563,16 +2679,14 @@ initialize_cameras_landmarks_keyframe
   {
     return false;
   }
-  return vital::algo::estimate_essential_matrix
-             ::check_nested_algo_configuration("essential_mat_estimator",
-                                               config)
-      && vital::algo::triangulate_landmarks
-             ::check_nested_algo_configuration("lm_triangulator", config);
+  return
+    vital::algo::estimate_essential_matrix
+      ::check_nested_algo_configuration("essential_mat_estimator",config) &&
+    vital::algo::triangulate_landmarks
+      ::check_nested_algo_configuration("lm_triangulator", config) &&
+    vital::algo::estimate_similarity_transform
+      ::check_nested_algo_configuration("similarity_estimator", config);
 }
-
-
-
-
 
 /// Initialize the camera and landmark parameters given a set of tracks
 void
