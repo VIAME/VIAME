@@ -2409,8 +2409,7 @@ initialize_cameras_landmarks_keyframe::priv
   int frames_since_last_down_select = 0;
 
   auto lmks = landmarks->landmarks();
-
-  fit_reconstruction_to_constraints(cams, lmks, tracks, constraints);
+  sfm_constraints_sptr constraints_to_ba = nullptr;
 
   std::set<frame_id_t> already_registred_cams, frames_to_register;
   get_registered_and_non_registered_frames(cams, tracks, already_registred_cams, frames_to_register);
@@ -2423,9 +2422,14 @@ initialize_cameras_landmarks_keyframe::priv
 
   while(!frames_to_register.empty())
   {
+    if (!constraints_to_ba && fit_reconstruction_to_constraints(cams, lmks, tracks, constraints))
+    {
+      constraints_to_ba = constraints;
+    }
+
     frame_id_t fid_to_register;
 
-    if (!initialize_next_camera(cams, lmks, tracks, constraints, fid_to_register, frames_to_register, already_registred_cams))
+    if (!initialize_next_camera(cams, lmks, tracks, constraints_to_ba, fid_to_register, frames_to_register, already_registred_cams))
     {
       continue;
     }
@@ -2452,7 +2456,7 @@ initialize_cameras_landmarks_keyframe::priv
     if (i_over_u < 0.7)
     {
       windowed_clean_and_bundle(cams, landmarks, lmks, tracks,
-        constraints, already_registred_cams, frames_since_last_local_ba);
+        constraints_to_ba, already_registred_cams, frames_since_last_local_ba);
       last_ba_landmarks = cur_lmks;
       frames_since_last_local_ba.clear();
     }
