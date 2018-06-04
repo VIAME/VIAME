@@ -35,12 +35,13 @@
 
 #include <vital/algo/video_input.h>
 
+// ----------------------------------------------------------------------------
 void test_seek_frame(kwiver::vital::algo::video_input& vi)
 {
   kwiver::vital::timestamp ts;
 
   // Video should be seekable
-  EXPECT_TRUE( vi.seekable() );
+  ASSERT_TRUE( vi.seekable() );
 
   // Test various valid seeks
   std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
@@ -54,7 +55,7 @@ void test_seek_frame(kwiver::vital::algo::video_input& vi)
 
     EXPECT_EQ( requested_frame, ts.get_frame() )
       << "Frame number should match seek request";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+    EXPECT_EQ( ts.get_frame(), decode_barcode( *img ) )
       << "Frame number should match barcode in frame image";
   }
 
@@ -70,12 +71,13 @@ void test_seek_frame(kwiver::vital::algo::video_input& vi)
   EXPECT_EQ( 50, vi.num_frames() );
 }
 
+// ----------------------------------------------------------------------------
 void test_seek_frame_sublist(kwiver::vital::algo::video_input& vi)
 {
   kwiver::vital::timestamp ts;
 
   // Video should be seekable
-  EXPECT_TRUE( vi.seekable() );
+  ASSERT_TRUE( vi.seekable() );
 
   // Test various valid seeks
   std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
@@ -88,7 +90,7 @@ void test_seek_frame_sublist(kwiver::vital::algo::video_input& vi)
 
     EXPECT_EQ( requested_frame, ts.get_frame() )
       << "Frame number should match seek request";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+    EXPECT_EQ( ts.get_frame(), decode_barcode( *img ) )
       << "Frame number should match barcode in frame image";
   }
 
@@ -102,23 +104,24 @@ void test_seek_frame_sublist(kwiver::vital::algo::video_input& vi)
   }
 }
 
+// ----------------------------------------------------------------------------
 void test_seek_then_next(kwiver::vital::algo::video_input& vi)
 {
   kwiver::vital::timestamp ts;
 
   // Video should be seekable
-  EXPECT_TRUE( vi.seekable() );
+  ASSERT_TRUE( vi.seekable() );
 
   // Seek to frame 17, then run over the rest of the video
-  kwiver::vital::timestamp::frame_t requested_frame = 17;
+  const kwiver::vital::timestamp::frame_t requested_frame = 17;
 
-  EXPECT_TRUE( vi.seek_frame( ts, requested_frame) );
+  EXPECT_TRUE( vi.seek_frame( ts, requested_frame ) );
 
   auto img = vi.frame_image();
 
   EXPECT_EQ( requested_frame, ts.get_frame() )
     << "Frame number should match seek request";
-  EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+  EXPECT_EQ( ts.get_frame(), decode_barcode( *img ) )
     << "Frame number should match barcode in frame image";
 
   int num_frames = requested_frame;
@@ -129,17 +132,18 @@ void test_seek_then_next(kwiver::vital::algo::video_input& vi)
     ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+    EXPECT_EQ( ts.get_frame(), decode_barcode( *img ) )
       << "Frame number should match barcode in frame image";
   }
 }
 
+// ----------------------------------------------------------------------------
 void test_next_then_seek(kwiver::vital::algo::video_input& vi)
 {
   kwiver::vital::timestamp ts;
 
   // Video should be seekable
-  EXPECT_TRUE( vi.seekable() );
+  ASSERT_TRUE( vi.seekable() );
 
   // Frame by frame until frame 45, then seek back to frame 12
 
@@ -147,25 +151,24 @@ void test_next_then_seek(kwiver::vital::algo::video_input& vi)
   kwiver::vital::timestamp::frame_t requested_frame = 12;
 
   int num_frames = 0;
-  while ( vi.next_frame( ts ) && num_frames <= stop_frame )
+  while ( vi.next_frame( ts ) && ++num_frames < stop_frame )
   {
     auto img = vi.frame_image();
 
-    ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+    EXPECT_EQ( ts.get_frame(), decode_barcode( *img ) )
       << "Frame number should match barcode in frame image";
   }
 
-  EXPECT_TRUE( vi.seek_frame( ts, requested_frame) );
+  EXPECT_TRUE( vi.seek_frame( ts, requested_frame ) );
 
   auto img = vi.frame_image();
 
   EXPECT_EQ( requested_frame, ts.get_frame() )
     << "Frame number should match seek request";
-  EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+  EXPECT_EQ( ts.get_frame(), decode_barcode( *img ) )
     << "Frame number should match barcode in frame image";
 }
 
-#endif /* ARROWS_CORE_TEST_SEEK_FRAME_COMMON_H */
+#endif // ARROWS_CORE_TEST_SEEK_FRAME_COMMON_H

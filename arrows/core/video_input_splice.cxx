@@ -43,19 +43,22 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-std::string source_name(size_t n)
+// ----------------------------------------------------------------
+static std::string source_name(size_t n)
 {
   return "video_source_" + std::to_string(n);
 }
 
+
+// ----------------------------------------------------------------
 class video_input_splice::priv
 {
 public:
   priv() :
   c_frame_skip( 1 ),
-  d_has_timeout(false),
-  d_is_seekable(false),
-  d_frame_offset(0)
+  d_has_timeout( false ),
+  d_is_seekable( false ),
+  d_frame_offset( 0 )
   { }
 
   // Configuration values
@@ -314,6 +317,7 @@ video_input_splice
   }
 }
 
+
 // ------------------------------------------------------------------
 bool
 video_input_splice
@@ -321,6 +325,7 @@ video_input_splice
 {
   return d->d_is_seekable;
 }
+
 
 // ------------------------------------------------------------------
 size_t
@@ -336,6 +341,7 @@ video_input_splice
 
   return num_frames;
 }
+
 
 // ------------------------------------------------------------------
 bool
@@ -388,6 +394,7 @@ video_input_splice
   return status;
 } // video_input_splice::next_frame
 
+
 // ------------------------------------------------------------------
 bool
 video_input_splice
@@ -434,6 +441,7 @@ video_input_splice
   return status;
 } // video_input_splice::seek_frame
 
+
 // ------------------------------------------------------------------
 kwiver::vital::timestamp
 video_input_splice
@@ -441,6 +449,7 @@ video_input_splice
 {
   return (*d->d_active_source)->frame_timestamp();
 }
+
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
@@ -459,6 +468,8 @@ video_input_splice
   return (*d->d_active_source)->frame_metadata();
 }
 
+
+// ----------------------------------------------------------------
 kwiver::vital::metadata_map_sptr
 video_input_splice
 ::metadata_map()

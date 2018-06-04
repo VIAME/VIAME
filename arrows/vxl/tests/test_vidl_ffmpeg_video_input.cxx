@@ -486,7 +486,7 @@ TEST_F(vidl_ffmpeg_video_input, seek_nth_frame_output)
   kwiver::vital::timestamp ts;
 
   // Video should be seekable
-  EXPECT_TRUE( vfvi.seekable() );
+  ASSERT_TRUE( vfvi.seekable() );
 
   // Test various valid seeks
   std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =

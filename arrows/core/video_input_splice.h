@@ -97,4 +97,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_SPLICE_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_SPLICE_H

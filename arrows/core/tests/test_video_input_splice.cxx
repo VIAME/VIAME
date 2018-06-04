@@ -347,7 +347,7 @@ TEST_F(video_input_splice, seek_frame_nth_frame_output)
     {4, 10, 13, 22, 49};
   for (auto requested_frame : valid_seeks)
   {
-    EXPECT_TRUE( vis.seek_frame( ts, requested_frame) );
+    ASSERT_TRUE( vis.seek_frame( ts, requested_frame) );
 
     auto img = vis.frame_image();
 
