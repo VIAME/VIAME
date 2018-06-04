@@ -68,7 +68,12 @@ public:
 
   void set_local_geo_cs(local_geo_cs const& lgcs);
 
-  bool get_camera_position_prior_local(frame_id_t fid, vector_3d &pos_loc);
+  bool get_camera_position_prior_local(frame_id_t fid, vector_3d &pos_loc) const;
+
+  typedef std::map<frame_id_t, vector_3d> position_map;
+
+  position_map get_camera_position_priors() const;
+
 
 protected:
 

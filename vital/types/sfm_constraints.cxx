@@ -90,7 +90,7 @@ sfm_constraints
 bool
 sfm_constraints
 ::get_camera_position_prior_local(frame_id_t fid,
-                                  vector_3d &pos_loc)
+                                  vector_3d &pos_loc) const
 {
   if (m_priv->m_lgcs.origin().is_empty())
   {
@@ -120,6 +120,40 @@ sfm_constraints
   pos_loc[2] = alt;
 
   return true;
+}
+
+sfm_constraints::position_map
+sfm_constraints
+::get_camera_position_priors() const
+{
+  position_map local_positions;
+
+  auto md = m_priv->m_md->metadata();
+
+  for (auto mdv : md)
+  {
+    auto fid = mdv.first;
+
+    vector_3d loc;
+    if (!get_camera_position_prior_local(fid, loc))
+    {
+      continue;
+    }
+    if (local_positions.empty())
+    {
+      local_positions[fid] = loc;
+    }
+    else
+    {
+      auto last_loc = local_positions.crbegin()->second;
+      if (loc == last_loc)
+      {
+        continue;
+      }
+      local_positions[fid] = loc;
+    }
+  }
+  return local_positions;
 }
 
 }
