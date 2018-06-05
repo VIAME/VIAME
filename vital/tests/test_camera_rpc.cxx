@@ -40,8 +40,6 @@
 
 #include <iostream>
 
-using namespace kwiver::vital;
-
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
@@ -50,31 +48,86 @@ int main(int argc, char** argv)
 }
 
 // ----------------------------------------------------------------------------
-TEST(camera_rpc, identity)
+class camera_rpc : public ::testing::Test
 {
-  simple_camera_rpc icam;
+public:
+  void SetUp()
+  {
+    rpc_coeffs = kwiver::vital::rpc_matrix::Zero();
+    rpc_coeffs(0, 0) = 0.75; rpc_coeffs(0, 1) = 0.3; rpc_coeffs(0, 2) = 1.0;
+    rpc_coeffs(0, 3) = 1.0; rpc_coeffs(0, 11) = 0.1; rpc_coeffs(0, 13) = 0.01;
+    rpc_coeffs(0, 15) = 0.071;
 
-  vector_3d pt(1.0, 2.0, 10.0);
+    rpc_coeffs(1, 0) = 1.00; rpc_coeffs(1, 1) = 1.0; rpc_coeffs(1, 2) = 1.0;
+    rpc_coeffs(1, 3) = 1.00; rpc_coeffs(1, 9) =0.01; rpc_coeffs(1, 11) = 0.1;
+    rpc_coeffs(1, 15) = 0.05;
+
+    rpc_coeffs(2, 0) = 0.33; rpc_coeffs(2, 1) = 0.4; rpc_coeffs(2, 2) = 0.5;
+    rpc_coeffs(2, 3) = 0.01; rpc_coeffs(2, 11) = 0.02; rpc_coeffs(2, 13) =0.1;
+    rpc_coeffs(2, 15) = 0.014;
+
+    rpc_coeffs(3, 0) = 1.00; rpc_coeffs(3, 1) = 1.0; rpc_coeffs(3, 2) = 1.0;
+    rpc_coeffs(3, 3) = 0.30; rpc_coeffs(3, 9) =0.03; rpc_coeffs(3, 11) = 0.1;
+    rpc_coeffs(3, 15) = 0.05;
+
+    world_scale << 50.0, 125.0, 5.0;
+    world_offset << 150.0, 100.0, 10.0;
+    image_scale << 1000.0, 500.0;
+    image_offset << 500.0, 200.0;
+
+    // Actual world values
+    double act_x[8] =
+      { 150.0, 150.0, 150.0, 150.0, 200.0, 200.0, 200.0, 200.0 };
+    double act_y[8] =
+      { 100.0, 100.0, 225.0, 225.0, 100.0, 100.0, 225.0, 225.0 };
+    double act_z[8] =
+      { 10.0, 15.0, 10.0, 15.0, 10.0, 15.0, 10.0, 15.0 };
+
+    // Actual projection values
+    double act_u[8] =
+      { 1250., 1370.65, 1388.29, 1421.9, 1047.62, 1194.53, 1205.08, 1276.68 };
+    double act_v[8] =
+      { 365., 327.82, 405.854, 379.412, 378.572, 376.955, 400.635, 397.414 };
+
+    for (int i = 0; i<8; ++i)
+    {
+      test_points.push_back(
+        kwiver::vital::vector_3d( act_x[i], act_y[i], act_z[i] ) );
+      test_image_points.push_back(
+        kwiver::vital::vector_2d( act_u[i], act_v[i] ) );
+    }
+  }
+
+  kwiver::vital::vector_3d world_scale;
+  kwiver::vital::vector_3d world_offset;
+  kwiver::vital::vector_2d image_scale;
+  kwiver::vital::vector_2d image_offset;
+
+  kwiver::vital::rpc_matrix rpc_coeffs;
+
+  std::vector<kwiver::vital::vector_3d> test_points;
+  std::vector<kwiver::vital::vector_2d> test_image_points;
+};
+
+// ----------------------------------------------------------------------------
+TEST_F(camera_rpc, identity)
+{
+  kwiver::vital::simple_camera_rpc icam;
+
+  kwiver::vital::vector_3d pt(1.0, 2.0, 10.0);
 
   auto img_pt = icam.project( pt );
 
-  EXPECT_MATRIX_EQ( img_pt, vector_2d(1.0, 2.0) );
+  EXPECT_MATRIX_EQ( img_pt, kwiver::vital::vector_2d(1.0, 2.0) );
 }
 
 // ----------------------------------------------------------------------------
-TEST(camera_rpc, clone)
+TEST_F(camera_rpc, clone)
 {
-  vector_3d world_scale(10.0, 20.0, 30.0);
-  vector_3d world_offset(5.0, 0.0, 10.0);
-  vector_2d image_scale(400.0, 300.0);
-  vector_2d image_offset(100.0, 50.0);
-  rpc_matrix rpc_coeffs = rpc_matrix::Zero();
-  rpc_coeffs(0, 0) = 0.3; rpc_coeffs(1, 2) = 0.1; rpc_coeffs(3, 15) = 0.9;
-  rpc_coeffs(0, 10) = 0.05; rpc_coeffs(1, 14) = 0.09; rpc_coeffs(2, 16) = 0.2;
-
-  simple_camera_rpc cam( world_scale, world_offset, image_scale, image_offset,
-                         rpc_coeffs);
-  auto cam_clone = std::dynamic_pointer_cast<camera_rpc>( cam.clone() );
+  kwiver::vital::simple_camera_rpc cam( world_scale, world_offset,
+                                        image_scale, image_offset, rpc_coeffs );
+  auto cam_clone =
+    std::dynamic_pointer_cast<kwiver::vital::camera_rpc>( cam.clone() );
 
   EXPECT_MATRIX_EQ( cam.world_scale(), cam_clone->world_scale() );
   EXPECT_MATRIX_EQ( cam.world_offset(), cam_clone->world_offset() );
@@ -84,46 +137,30 @@ TEST(camera_rpc, clone)
 }
 
 // ----------------------------------------------------------------------------
-TEST(camera_rpc, projection)
+TEST_F(camera_rpc, projection)
 {
-  vector_3d world_scale(50.0, 125.0, 5.0);
-  vector_3d world_offset(150.0, 100.0, 10.0);
-  vector_2d image_scale(1000.0, 500.0);
-  vector_2d image_offset(500.0, 200.0);
-  rpc_matrix rpc_coeffs = rpc_matrix::Zero();
-  rpc_coeffs(0, 0) = 0.75; rpc_coeffs(0, 1) = 0.3; rpc_coeffs(0, 2) = 1.0;
-  rpc_coeffs(0, 3) = 1.0; rpc_coeffs(0, 11) = 0.1; rpc_coeffs(0, 13) = 0.01;
-  rpc_coeffs(0, 15) = 0.071;
+  kwiver::vital::simple_camera_rpc cam( world_scale, world_offset,
+                                        image_scale, image_offset, rpc_coeffs );
 
-  rpc_coeffs(1, 0) = 1.00; rpc_coeffs(1, 1) = 1.0; rpc_coeffs(1, 2) = 1.0;
-  rpc_coeffs(1, 3) = 1.00; rpc_coeffs(1, 9) =0.01; rpc_coeffs(1, 11) = 0.1;
-  rpc_coeffs(1, 15) = 0.05;
-
-  rpc_coeffs(2, 0) = 0.33; rpc_coeffs(2, 1) = 0.4; rpc_coeffs(2, 2) = 0.5;
-  rpc_coeffs(2, 3) = 0.01; rpc_coeffs(2, 11) = 0.02; rpc_coeffs(2, 13) =0.1;
-  rpc_coeffs(2, 15) = 0.014;
-
-  rpc_coeffs(3, 0) = 1.00; rpc_coeffs(3, 1) = 1.0; rpc_coeffs(3, 2) = 1.0;
-  rpc_coeffs(3, 3) = 0.30; rpc_coeffs(3, 9) =0.03; rpc_coeffs(3, 11) = 0.1;
-  rpc_coeffs(3, 15) = 0.05;
-
-  simple_camera_rpc cam( world_scale, world_offset, image_scale, image_offset,
-                         rpc_coeffs);
-
-  //Actual world values
-  double act_x[8]={150.0, 150.0, 150.0, 150.0, 200.0, 200.0, 200.0, 200.0};
-  double act_y[8]={100.0, 100.0, 225.0, 225.0, 100.0, 100.0, 225.0, 225.0};
-  double act_z[8]={10.0, 15.0, 10.0, 15.0, 10.0, 15.0, 10.0, 15.0};
-  // Actual projection values
-  double act_u[8]={1250., 1370.65, 1388.29, 1421.9, 1047.62, 1194.53, 1205.08, 1276.68};
-  double act_v[8]={365., 327.82, 405.854, 379.412, 378.572, 376.955, 400.635, 397.414};
-
-  for (int i = 0; i<8; ++i)
+  for (int i = 0; i < test_points.size(); ++i)
   {
-    vector_3d pt(act_x[i], act_y[i], act_z[i]);
+    auto img_pt = cam.project( test_points[i] );
 
-    auto img_pt = cam.project( pt );
+    EXPECT_MATRIX_NEAR( img_pt, test_image_points[i], 0.01 );
+  }
+}
 
-    EXPECT_MATRIX_NEAR( img_pt, vector_2d(act_u[i], act_v[i]), 0.01 );
+// ----------------------------------------------------------------------------
+TEST_F(camera_rpc, back_projection)
+{
+  kwiver::vital::simple_camera_rpc cam( world_scale, world_offset,
+                                        image_scale, image_offset, rpc_coeffs );
+
+  for (int i = 0; i < test_points.size(); ++i)
+  {
+    auto img_pt = cam.project( test_points[i] );
+    auto new_pt = cam.back_project( img_pt );
+
+    EXPECT_MATRIX_NEAR( new_pt, test_points[i], 0.01 );
   }
 }

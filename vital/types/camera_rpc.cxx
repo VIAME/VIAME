@@ -74,6 +74,14 @@ camera_rpc
   return image_pt.cwiseProduct( image_scale() ) + image_offset();
 }
 
+/// Project a 2D image point to a 3D point in space
+vector_3d
+camera_rpc
+::back_project( const vector_2d& image_pt ) const
+{
+  return vector_3d(1., 0., 0.);
+}
+
 Eigen::Matrix<double, 20, 1>
 simple_camera_rpc
 ::power_vector( const vector_3d& pt ) const
