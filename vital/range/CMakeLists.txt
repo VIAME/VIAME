@@ -12,6 +12,7 @@
 set( public_headers
   defs.h
   filter.h
+  indirect.h
   integer_sequence.h
   sliding.h
   transform.h

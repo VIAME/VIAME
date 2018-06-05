@@ -9,5 +9,6 @@ set( test_libraries )
 ##############################
 
 kwiver_discover_gtests(vital range_filter       LIBRARIES ${test_libraries})
+kwiver_discover_gtests(vital range_indirect     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital range_sliding      LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital range_transform    LIBRARIES ${test_libraries})
