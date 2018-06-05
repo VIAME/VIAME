@@ -458,55 +458,62 @@ bundle_adjust
     }
   }
 
-  if (fixed_cameras.size() == 0 && fixed_landmarks.size() < 3)
-  {
-    //If no cameras are fixed, find the first camera and fix it.
-    for (auto &fix : d_->camera_params)
-    {
-      auto fixed_fid = fix.first;
-      auto state = &fix.second[0];
-      if (problem.HasParameterBlock(state))
-      {
-        problem.SetParameterBlockConstant(state);
-        fixed_cameras.insert(fixed_fid);
-        break;
-      }
-    }
-  }
+  int num_position_priors_applied =
+    d_->add_position_prior_cost(problem, d_->camera_params, constraints);
 
-  if (fixed_cameras.size() == 1 && fixed_landmarks.empty())
+  if (num_position_priors_applied < 3)
   {
-    //add measurement between the one fixed camera and another arbitrary camera to fix the scale
-    cam_param_map_t::iterator cam_itr_0 = d_->camera_params.find(*fixed_cameras.begin());
-    //get another arbitrary camera
-    bool scale_locking_camera_found = false;
-    auto cam_itr_1 = d_->camera_params.begin();
-    for (; cam_itr_1 != d_->camera_params.end(); ++cam_itr_1)
+    //gauge fixing code
+    if (fixed_cameras.size() == 0 && fixed_landmarks.size() < 3)
     {
-      if (cam_itr_1->first != cam_itr_0->first && problem.HasParameterBlock(&cam_itr_1->second[0]))
+      //If no cameras are fixed, find the first camera and fix it.
+      for (auto &fix : d_->camera_params)
       {
-        scale_locking_camera_found = true;
-        break;
+        auto fixed_fid = fix.first;
+        auto state = &fix.second[0];
+        if (problem.HasParameterBlock(state))
+        {
+          problem.SetParameterBlockConstant(state);
+          fixed_cameras.insert(fixed_fid);
+          break;
+        }
       }
     }
 
-    if (scale_locking_camera_found)
+    if (fixed_cameras.size() == 1 && fixed_landmarks.empty())
     {
-      double *param0 = &cam_itr_0->second[0];
-      double *param1 = &cam_itr_1->second[0];
-      double dx = param0[3] - param1[3];
-      double dy = param0[4] - param1[4];
-      double dz = param0[5] - param1[5];
-      double distance_squared = dx*dx + dy*dy + dz*dz;
-      int num_residuals = problem.NumResiduals();
+      //add measurement between the one fixed camera and another arbitrary camera to fix the scale
+      cam_param_map_t::iterator cam_itr_0 = d_->camera_params.find(*fixed_cameras.begin());
+      //get another arbitrary camera
+      bool scale_locking_camera_found = false;
+      auto cam_itr_1 = d_->camera_params.begin();
+      for (; cam_itr_1 != d_->camera_params.end(); ++cam_itr_1)
+      {
+        if (cam_itr_1->first != cam_itr_0->first && problem.HasParameterBlock(&cam_itr_1->second[0]))
+        {
+          scale_locking_camera_found = true;
+          break;
+        }
+      }
 
-      auto dist_loss = new ::ceres::ScaledLoss(NULL, num_residuals, ::ceres::Ownership::TAKE_OWNERSHIP);
-      problem.AddResidualBlock(distance_constraint::create(distance_squared), dist_loss, param0, param1);
+      if (scale_locking_camera_found)
+      {
+        double *param0 = &cam_itr_0->second[0];
+        double *param1 = &cam_itr_1->second[0];
+        double dx = param0[3] - param1[3];
+        double dy = param0[4] - param1[4];
+        double dz = param0[5] - param1[5];
+        double distance_squared = dx*dx + dy*dy + dz*dz;
+        int num_residuals = problem.NumResiduals();
+
+        auto dist_loss = new ::ceres::ScaledLoss(NULL, num_residuals, ::ceres::Ownership::TAKE_OWNERSHIP);
+        problem.AddResidualBlock(distance_constraint::create(distance_squared), dist_loss, param0, param1);
+      }
     }
   }
 
   const unsigned int ndp = num_distortion_params(d_->lens_distortion_type);
-  for(const unsigned int idx : used_intrinsics)
+  for (const unsigned int idx : used_intrinsics)
   {
     std::vector<double>& cip = d_->camera_intr_params[idx];
     // apply the constraints
@@ -519,7 +526,7 @@ bundle_adjust
     {
       // set a subset of parameters in the block constant
       problem.SetParameterization(&cip[0],
-          new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
+        new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
     }
   }
 

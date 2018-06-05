@@ -1756,13 +1756,15 @@ initialize_cameras_landmarks_keyframe::priv
   //join_landmarks(cams, join_lms, tracks, constraints);
   //lms = join_lms->landmarks();
 
+  sfm_constraints_sptr ba_constraints = nullptr;
+
   bool tried_necker_reverse = false;
   int prev_ba_lm_count = lms.size();
   auto trks = tracks->tracks();
 
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
-  while (!frames_to_resection.empty() && (cams->size() < 10 || tried_necker_reverse == false))
+  while (!frames_to_resection.empty() && (cams->size() < 20 || tried_necker_reverse == false))
   {
     frame_id_t next_frame_id = select_next_camera(frames_to_resection, cams, lms, tracks);
 
@@ -1806,7 +1808,7 @@ initialize_cameras_landmarks_keyframe::priv
         }
       }
 
-      bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, constraints);
+      bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
 
       lms = ba_lms->landmarks();
       cams->set_from_base_cams(ba_cams);
@@ -1817,13 +1819,19 @@ initialize_cameras_landmarks_keyframe::priv
       LOG_INFO(m_logger, "after new camera reprojection RMSE: " << after_new_cam_rmse);
 
     }
+
+    if (fit_reconstruction_to_constraints(cams, lms, tracks, constraints))
+    {
+      ba_constraints = constraints;
+    }
+
     std::set<landmark_id_t> inlier_lm_ids;
     retriangulate(lms, cams, trks, inlier_lm_ids);
 
     //landmark_map_sptr join_lms(new simple_landmark_map(lms));
-    //join_landmarks(cams, join_lms, tracks, constraints, next_frame_id);
+    //join_landmarks(cams, join_lms, tracks, ba_constraints, next_frame_id);
 
-    //remove_redundant_keyframes(cams, join_lms, tracks, constraints, added_frame_queue);
+    //remove_redundant_keyframes(cams, join_lms, tracks, ba_constraints, added_frame_queue);
 
     //lms = join_lms->landmarks();
     {
@@ -1880,7 +1888,7 @@ initialize_cameras_landmarks_keyframe::priv
         {
           fixed_landmarks.insert(l.first);
         }
-        bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, constraints);
+        bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
 
         lms = ba_lms->landmarks();
         cams->set_from_base_cams(ba_cams);
@@ -1895,7 +1903,7 @@ initialize_cameras_landmarks_keyframe::priv
         //now an overall ba
         landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
         fixed_landmarks.clear();
-        bundle_adjuster->optimize(ba_cams, ba_lms2, tracks, fixed_cameras, fixed_landmarks, constraints);
+        bundle_adjuster->optimize(ba_cams, ba_lms2, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
 
         cams->set_from_base_cams(ba_cams);
         lms = ba_lms2->landmarks();
@@ -1905,38 +1913,55 @@ initialize_cameras_landmarks_keyframe::priv
         //do an overall join, because the solution geometry may have changed significantly after BA.
 
         //landmark_map_sptr join_lms(new simple_landmark_map(lms));
-        //join_landmarks(cams, join_lms, tracks, constraints);
+        //join_landmarks(cams, join_lms, tracks, ba_constraints);
         //lms = join_lms->landmarks();
 
-        if (!tried_necker_reverse && m_reverse_ba_error_ratio > 0)
+        if ( m_reverse_ba_error_ratio > 0)
         {
           // reverse cameras and optimize again
 
-          camera_map_sptr ba_cams2(new simple_camera_map(cams->cameras()));
+          auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->simple_perspective_cameras());
+          auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
+
           landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
-          necker_reverse(ba_cams2, ba_lms2);
-          lm_triangulator->triangulate(ba_cams2, tracks, ba_lms2);
-          init_rmse = kwiver::arrows::reprojection_rmse(ba_cams2->cameras(), ba_lms2->landmarks(), trks);
+          necker_reverse(nr_cams, ba_lms2,false);
+          //set from base is required because necker_reverse returns new cameras
+          nr_cams_perspec->set_from_base_cams(nr_cams);
+          map_landmark_t nr_landmarks;
+
+          std::set<landmark_id_t> nr_inlier_lms;
+          retriangulate(nr_landmarks, nr_cams_perspec, trks, nr_inlier_lms);
+
+          fit_reconstruction_to_constraints(nr_cams_perspec, nr_landmarks, tracks, ba_constraints);
+
+          init_rmse = kwiver::arrows::reprojection_rmse(nr_cams_perspec->cameras(), nr_landmarks, trks);
           LOG_DEBUG(m_logger, "Necker reversed initial reprojection RMSE: " << init_rmse);
           if (init_rmse < optimized_rmse * m_reverse_ba_error_ratio)
           {
+
+            landmark_map_sptr nr_landmark_map(new simple_landmark_map(nr_landmarks));
+
             // Only try a Necker reversal once when we have enough data to
             // support it. We will either decide to reverse or not.
             // Either way we should not have to try this again.
             tried_necker_reverse = true;
             LOG_INFO(m_logger, "Running Necker reversed bundle adjustment for comparison");
-            bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks, constraints);
 
-            map_landmark_t lms2 = ba_lms2->landmarks();
+            double before_final_ba_rmse2 = kwiver::arrows::reprojection_rmse(nr_cams->cameras(), nr_landmark_map->landmarks(), trks);
+            LOG_DEBUG(m_logger, "Necker reversed before final reprojection RMSE: " << before_final_ba_rmse2);
 
-            double final_rmse2 = kwiver::arrows::reprojection_rmse(ba_cams2->cameras(), lms2, trks);
+            bundle_adjuster->optimize(nr_cams, nr_landmark_map, tracks, ba_constraints);
+
+            map_landmark_t lms2 = nr_landmark_map->landmarks();
+
+            double final_rmse2 = kwiver::arrows::reprojection_rmse(nr_cams->cameras(), lms2, trks);
             LOG_DEBUG(m_logger, "Necker reversed final reprojection RMSE: " << final_rmse2);
 
             if (final_rmse2 < optimized_rmse)
             {
               LOG_INFO(m_logger, "Necker reversed solution is better");
-              cams->set_from_base_cams(ba_cams2);
-              lms = ba_lms2->landmarks();
+              cams->set_from_base_cams(nr_cams);
+              lms = lms2;
             }
           }
         }
@@ -2453,7 +2478,7 @@ initialize_cameras_landmarks_keyframe::priv
     std::set_union(last_ba_landmarks.begin(), last_ba_landmarks.end(), cur_lmks.begin(), cur_lmks.end(), std::back_inserter(union_lmks));
     float i_over_u = static_cast<float>(intersect_lmks.size()) / static_cast<float>(union_lmks.size());
 
-    if (i_over_u < 0.7)
+    if (i_over_u < 0.7 || frames_to_register.empty())
     {
       windowed_clean_and_bundle(cams, landmarks, lmks, tracks,
         constraints_to_ba, already_registred_cams, frames_since_last_local_ba);
