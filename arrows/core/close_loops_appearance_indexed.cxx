@@ -308,11 +308,7 @@ close_loops_appearance_indexed::priv
         {
           if (m_f.first == m_r.second && m_f.second == m_r.first)
           {
-            if (m_f.first->track()->id() != m_f.second->track()->id())
-            {
-              //only include matches that aren't already from the same track.
               validated_matches.push_back(m_f);
-            }
             break;
           }
         }
