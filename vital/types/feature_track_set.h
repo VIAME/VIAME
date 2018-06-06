@@ -184,6 +184,19 @@ public:
   virtual std::vector<feature_track_state_sptr>
     frame_feature_track_states(frame_id_t offset = -1) const;
 
+  /// Return a set of track ids corresponding to the tracks on the given frame.
+  /**
+  * \param [in] offset the frame offset for selecting the target frame.
+  *                    Positive number are absolute frame numbers while
+  *                    negative numbers are relative to the last frame.  For
+  *                    example, offset of -1 refers to the last frame and is
+  *                    the default.
+  *
+  * \returns a set for all tracks ids on the given frame.
+  */
+  virtual std::set<track_id_t>
+    frame_track_ids(frame_id_t offset = -1) const;
+
   /// Return a map of all feature_track_set_frame_data
   /**
    * This function is similar to \c all_frame_data() except that it checks
