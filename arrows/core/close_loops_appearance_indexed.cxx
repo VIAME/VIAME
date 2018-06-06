@@ -177,6 +177,7 @@ close_loops_appearance_indexed::priv
 
   std::map<track_id_t, feature_track_state_sptr> track_to_vb_state;
 
+  // store mapping from track id to feature track state from vb
   for (auto match_feat : vb)
   {
     track_to_vb_state[match_feat->track()->id()] = match_feat;
@@ -189,10 +190,14 @@ close_loops_appearance_indexed::priv
     int dist2 = max_int;
     vital::feature_track_state_sptr best_match = nullptr;
 
+    // see if this track id already has a vb feature track state associate with it
     auto it = track_to_vb_state.find(cur_feat->track()->id());
     if(it != track_to_vb_state.end())
     {
+        // The two features are already from the same track.  So, they are
+        // a match.  Add them to matches.
         matches.push_back(fs_match(cur_feat, it->second));
+        // There is no need to search vb for additional matches.
         break;
     }
 
