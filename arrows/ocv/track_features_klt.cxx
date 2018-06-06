@@ -187,24 +187,25 @@ public:
   void set_config(const vital::config_block_sptr & config)
   {
     redetect_threshold =
-      config->get_value<double>("redetect_frac_lost_threshold");
+      config->get_value<double>("redetect_frac_lost_threshold", redetect_threshold);
 
-    int grid_rows = config->get_value<int>("grid_rows");
+    int grid_rows = config->get_value<int>("grid_rows", grid_rows);
 
-    int gridCols = config->get_value<int>("grid_cols");
+    int grid_cols = config->get_value<int>("grid_cols", grid_cols);
 
-    dist_image.set_grid_size(grid_rows, gridCols);
+    dist_image.set_grid_size(grid_rows, grid_cols);
 
-    last_detect_distImage.set_grid_size(grid_rows, gridCols);
+    last_detect_distImage.set_grid_size(grid_rows, grid_cols);
 
     exclusionary_radius_image_frac =
-      config->get_value<float>("new_feat_exclusionary_radius_image_fraction");
+      config->get_value<float>("new_feat_exclusionary_radius_image_fraction",
+        exclusionary_radius_image_frac);
 
-    win_size = config->get_value<int>("win_size");
+    win_size = config->get_value<int>("win_size", win_size);
 
     half_win_size = win_size / 2;
 
-    max_pyramid_level = config->get_value<int>("max_pyramid_level");
+    max_pyramid_level = config->get_value<int>("max_pyramid_level", max_pyramid_level);
 
     target_number_of_features = config->get_value<int>("target_number_of_features",target_number_of_features);
 
