@@ -123,6 +123,13 @@ public:
   */
   virtual bool set_node_id(unsigned int node_id) { return false; }
 
+  /// Get a pointer to the underlying continous block of raw descriptor data
+  /** All subclasses are required to store their data in a continous
+   *  block of memory to make the method fast and functional.
+  */
+
+  virtual const unsigned char* get_data() const = 0;
+
 };
 
 
@@ -161,6 +168,10 @@ public:
     return double_data;
   }
 
+  virtual const unsigned char* get_data() const
+  {
+    return reinterpret_cast<const unsigned char *>(raw_data());
+  }
 
   /// Return an pointer to the raw data array
   virtual T* raw_data() = 0;
