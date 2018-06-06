@@ -24,9 +24,9 @@ process yolo_v2
   block detector:darknet
 
     # Network config, weights, and names
-    relativepath net_config  =   models/mouss_yolo_v2_960_generic.cfg
-    relativepath weight_file =   models/mouss_yolo_v2_960_generic.weights
-    relativepath class_names =   models/mouss_yolo_v2_960_generic.lbl
+    relativepath net_config  =   models/default_yolo_v2.cfg
+    relativepath weight_file =   models/default_yolo_v2.weights
+    relativepath class_names =   models/default_yolo_v2.lbl
 
     # Detector parameters
     :thresh                      0.001
@@ -35,8 +35,8 @@ process yolo_v2
 
     # Image scaling parameters
     :resize_option               maintain_ar
-    :resize_ni                   960
-    :resize_nj                   960
+    :resize_ni                   544
+    :resize_nj                   544
     :scale                       1.0
 
   endblock
