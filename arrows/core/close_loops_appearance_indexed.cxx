@@ -234,7 +234,7 @@ close_loops_appearance_indexed::priv
 {
   auto cur_frame_fts = feat_tracks->frame_feature_track_states(frame_number);
 
-  auto cur_frame_track_ids = feat_tracks->frame_track_ids(frame_number);
+  auto cur_frame_track_ids = feat_tracks->active_track_ids(frame_number);
 
   int num_successfully_matched_pairs = 0;
 
@@ -250,7 +250,7 @@ close_loops_appearance_indexed::priv
     }
 
     //get active tracks on fn match
-    auto match_frame_track_ids = feat_tracks->frame_track_ids(fn_match);
+    auto match_frame_track_ids = feat_tracks->active_track_ids(fn_match);
     std::set<track_id_t> tracks_in_common;
     std::set_intersection(cur_frame_track_ids.begin(), cur_frame_track_ids.end(),
                           match_frame_track_ids.begin(), match_frame_track_ids.end(),

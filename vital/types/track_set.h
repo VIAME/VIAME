@@ -187,6 +187,18 @@ public:
    */
   virtual std::vector< track_sptr> active_tracks( frame_id_t offset = -1 ) const = 0;
 
+  /// Return a set of track ids corresponding to the tracks on the given frame.
+  /**
+  * \param [in] offset the frame offset for selecting the target frame.
+  *                    Positive number are absolute frame numbers while
+  *                    negative numbers are relative to the last frame.  For
+  *                    example, offset of -1 refers to the last frame and is
+  *                    the default.
+  *
+  * \returns a set for all tracks ids on the given frame.
+  */
+  virtual std::set<track_id_t> active_track_ids(frame_id_t offset = -1) const = 0;
+
   /// return the number of active tracks on a frame
   /**
   * Active tracks are any tracks which contain a state on the target frame.
@@ -393,6 +405,9 @@ public:
   /// Return all tracks active on a frame.
   virtual std::vector< track_sptr> active_tracks( frame_id_t offset = -1 ) const;
 
+  /// Returns all the active track ids on a frame
+  virtual std::set<track_id_t> active_track_ids( frame_id_t offset = -1) const;
+
   /// Return the number of active tracks for a frame
   virtual size_t num_active_tracks(frame_id_t offset = -1) const;
 
@@ -552,6 +567,11 @@ public:
   {
     return impl_->active_tracks(offset);
   };
+
+  virtual std::set< track_id_t > active_track_ids(frame_id_t offset = -1) const
+  {
+    return impl_->active_track_ids(offset);
+  }
 
   /// Return number of active tracks for a frame.
   virtual size_t num_active_tracks(frame_id_t offset = -1) const

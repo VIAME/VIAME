@@ -281,6 +281,20 @@ track_set_implementation
   return active_tracks;
 }
 
+/// Returns all the active track ids on a frame
+std::set<track_id_t>
+track_set_implementation
+::active_track_ids(frame_id_t offset) const
+{
+  std::set<track_id_t> track_ids;
+  std::vector<track_state_sptr> ts = this->frame_states(offset);
+  for (auto const data : ts)
+  {
+    track_ids.insert(data->track()->id());
+  }
+  return track_ids;
+}
+
 /// Return all tracks active on a frame.
 size_t
 track_set_implementation

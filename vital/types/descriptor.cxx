@@ -56,8 +56,8 @@ float kwiver::vital::hamming_distance(vital::descriptor_sptr d1, vital::descript
 
   const int num_ints_long(d1_bytes / 4);
 
-  const int *pa = reinterpret_cast<const int*>(d1->get_data());
-  const int *pb = reinterpret_cast<const int*>(d2->get_data());
+  const int *pa = reinterpret_cast<const int*>(d1->as_bytes());
+  const int *pb = reinterpret_cast<const int*>(d2->as_bytes());
 
   int dist = 0;
 

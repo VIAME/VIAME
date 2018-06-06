@@ -74,12 +74,17 @@ public:
   /// The number of bytes used to represent the data
   virtual std::size_t num_bytes() const = 0;
 
-  /// Return the descriptor as a vector of bytes
+  /// Return the descriptor as pointer to bytes
   /**
-   * This should always work,
-   * even if the underlying type is not bytes
+   * subclasses should ensure this always works by storing the data
+   * as a continuous byte array
+   * Note that as_bytes returns a poitner to the underlying data while
+   * as_double returns a vector of doubles which will be copied from
+   * the underlying data if possible.  As_bytes is written this way
+   * for speed (no copying) at the cost of being restrictive on sub-classes
+   * in terms of the way they lay out their descriptors in memory.
    */
-  virtual std::vector< byte > as_bytes() const = 0;
+  virtual const byte* as_bytes() const = 0;
 
   /// Return the descriptor as a vector of doubles
   /**
@@ -96,8 +101,9 @@ public:
     {
       return false;
     }
-    std::vector<uint8_t> b1 = this->as_bytes();
-    std::vector<uint8_t> b2 = other.as_bytes();
+    std::vector<uint8_t> b1 = std::vector<uint8_t>(this->as_bytes(), this->as_bytes() + this->num_bytes());
+    std::vector<uint8_t> b2 = std::vector<uint8_t>(other.as_bytes(), other.as_bytes() + other.num_bytes());
+
     return std::equal(b1.begin(), b1.end(), b2.begin());
   }
 
@@ -123,13 +129,6 @@ public:
   */
   virtual bool set_node_id(unsigned int node_id) { return false; }
 
-  /// Get a pointer to the underlying continous block of raw descriptor data
-  /** All subclasses are required to store their data in a continous
-   *  block of memory to make the method fast and functional.
-  */
-
-  virtual const byte* get_data() const = 0;
-
 };
 
 
@@ -146,14 +145,6 @@ public:
   /// The number of bytes used to represent the data
   std::size_t num_bytes() const { return this->size() * sizeof( T ); }
 
-  /// Return the descriptor as a vector of bytes
-  std::vector< byte > as_bytes() const
-  {
-    const byte* byte_data = reinterpret_cast< const byte* > ( this->raw_data() );
-
-    return std::vector< byte > ( byte_data, byte_data + this->num_bytes() );
-  }
-
 
   /// Return the descriptor as a vector of doubles
   std::vector< double > as_double() const
@@ -168,9 +159,9 @@ public:
     return double_data;
   }
 
-  virtual const byte* get_data() const
+  virtual const byte* as_bytes() const
   {
-    return reinterpret_cast<byte *>(raw_data());
+    return reinterpret_cast<const byte *>(raw_data());
   }
 
   /// Return an pointer to the raw data array
@@ -178,7 +169,6 @@ public:
 
   /// Return an pointer to the raw data array
   virtual const T* raw_data() const = 0;
-
 
   // Iterator interface
   T const* begin() const { return this->raw_data(); }

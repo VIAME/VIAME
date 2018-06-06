@@ -140,21 +140,6 @@ feature_track_set
   return descriptor_set_sptr(new simple_descriptor_set(descriptors));
 }
 
-/// Return the set of track ids with feature track states in the given frame
-
-std::set<track_id_t>
-feature_track_set
-::frame_track_ids(frame_id_t offset) const
-{
-  std::set<track_id_t> track_ids;
-  std::vector<track_state_sptr> fsd = this->frame_states(offset);
-  for (auto const data : fsd)
-  {
-    track_ids.insert(data->track()->id());
-  }
-  return track_ids;
-}
-
 /// Return the vector of feature track states for all tracks for the given frame.
 std::vector<feature_track_state_sptr>
 feature_track_set
