@@ -416,11 +416,15 @@ triangulate_landmarks
         // there is no camera for this track state.
         continue;
       }
-      vital::simple_camera_perspective_sptr sc = std::static_pointer_cast<vital::simple_camera_perspective>(c_itr->second);
-      lm_cams.push_back(vital::simple_camera_perspective(*sc));
-      lm_image_pts.push_back(fts->feature->loc());
-      lm_features.push_back(fts);
-      ++lm_observations;
+      auto cam_ptr =
+        std::dynamic_pointer_cast<vital::camera_perspective>(c_itr->second);
+      if (cam_ptr)
+      {
+        lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
+        lm_image_pts.push_back(fts->feature->loc());
+        lm_features.push_back(fts);
+        ++lm_observations;
+      }
     }
 
     // if we found at least two views of this landmark, triangulate
