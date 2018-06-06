@@ -29,7 +29,7 @@
  */
 
 
-// The immediately folliwing copyright notice applies to code in the methods
+// The immediately following copyright notice applies to code in the methods
 // Triangulate_DLT, find_optimal_image_points and triangulate_fast_two_view.
 
  // Copyright (C) 2013 The Regents of the University of California (Regents).
