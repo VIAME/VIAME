@@ -128,7 +128,7 @@ public:
    *  block of memory to make the method fast and functional.
   */
 
-  virtual const unsigned char* get_data() const = 0;
+  virtual const byte* get_data() const = 0;
 
 };
 
@@ -168,9 +168,9 @@ public:
     return double_data;
   }
 
-  virtual const unsigned char* get_data() const
+  virtual const byte* get_data() const
   {
-    return reinterpret_cast<const unsigned char *>(raw_data());
+    return reinterpret_cast<byte *>(raw_data());
   }
 
   /// Return an pointer to the raw data array

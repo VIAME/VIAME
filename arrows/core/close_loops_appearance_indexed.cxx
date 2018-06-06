@@ -308,7 +308,7 @@ close_loops_appearance_indexed::priv
         {
           if (m_f.first == m_r.second && m_f.second == m_r.first)
           {
-              validated_matches.push_back(m_f);
+            validated_matches.push_back(m_f);
             break;
           }
         }
