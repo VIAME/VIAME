@@ -45,21 +45,21 @@ namespace range {
  * filter functor returns \c true) will be seen.
  *
  * \par Example:
- \code
- namespace r = kwiver::vital::range;
-
- std::vector<int> values = { 1, 2, 3, 4, 5, 6, 7, 8 };
- auto is_even = []( int x ){ return ( x % 2 ) == 0; };
-
- for ( auto x : values | r::filter( is_even ) )
-   std::cout << x << std::endl;
-
- // Output:
- //  2
- //  4
- //  6
- //  8
- \endcode
+ * \code
+ * namespace r = kwiver::vital::range;
+ *
+ * std::vector<int> values = { 1, 2, 3, 4, 5, 6, 7, 8 };
+ * auto is_even = []( int x ){ return ( x % 2 ) == 0; };
+ *
+ * for ( auto x : values | r::filter( is_even ) )
+ *   std::cout << x << std::endl;
+ *
+ * // Output:
+ * //  2
+ * //  4
+ * //  6
+ * //  8
+ * \endcode
  */
 template < typename Functor, typename Range >
 class filter_view : public generic_view
@@ -139,6 +139,8 @@ filter_view< FilterFunction, Range >::const_iterator
 
 KWIVER_RANGE_ADAPTER_FUNCTION( filter )
 
-} } } // end namespace
+} // namespace range
+} // namespace vital
+} // namespace kwiver
 
 #endif
