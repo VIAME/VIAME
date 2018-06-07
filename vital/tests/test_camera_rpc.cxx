@@ -159,7 +159,7 @@ TEST_F(camera_rpc, back_projection)
   for (int i = 0; i < test_points.size(); ++i)
   {
     auto img_pt = cam.project( test_points[i] );
-    auto new_pt = cam.back_project( img_pt );
+    auto new_pt = cam.back_project( img_pt, test_points[i][2] );
 
     EXPECT_MATRIX_NEAR( new_pt, test_points[i], 0.01 );
   }
