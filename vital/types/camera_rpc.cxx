@@ -167,22 +167,22 @@ simple_camera_rpc
   for ( int i = 0; i < 10; ++i )
   {
     double pwr = 1.0;
-    if ( dx_ind[i] == 1 || dx_ind[i] == 4 || dx_ind[i] == 5 )
+    if ( i == 1 || i == 4 || i == 5 )
     {
       pwr = 2.;
     }
-    else if ( dx_ind[i] == 7 )
+    else if ( i == 7 )
     {
       pwr = 3.;
     }
     dx_coeffs_.block<4, 1>( 0, i ) =
       pwr * rpc_coeffs().block<4, 1>( 0, dx_ind[i] );
     pwr = 1.0;
-    if ( dy_ind[i] == 2 || dy_ind[i] == 4 || dy_ind[i] == 6 )
+    if ( i == 2 || i == 4 || i == 6 )
     {
       pwr = 2.;
     }
-    else if ( dy_ind[i] == 8 )
+    else if ( i == 8 )
     {
       pwr = 3.;
     }
