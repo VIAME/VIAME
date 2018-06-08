@@ -1265,6 +1265,11 @@ initialize_cameras_landmarks_keyframe::priv
   feature_track_set_sptr tracks,
   sfm_constraints_sptr constraints)
 {
+  if (!constraints)
+  {
+    return true;
+  }
+
   int max_frame_diff = 20;
 
   auto pos_priors = constraints->get_camera_position_priors();
