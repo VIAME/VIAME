@@ -319,13 +319,13 @@ public:
     std::set<frame_id_t> &frames_to_register,
     frame_id_t &fid_to_register, frame_id_t &closest_frame) const;
 
-  landmark_map_sptr get_sub_landmark_map(
+  map_landmark_t get_sub_landmark_map(
     map_landmark_t &lmks,
     const std::set<landmark_id_t> &lm_ids) const;
 
   landmark_map_sptr store_landmarks(
     map_landmark_t &store_lms,
-    landmark_map_sptr to_store) const;
+    map_landmark_t &to_store) const;
 
   bool initialize_next_camera(
     simple_camera_perspective_map_sptr cams,
@@ -400,7 +400,7 @@ initialize_cameras_landmarks_keyframe::priv
 {
 }
 
-landmark_map_sptr
+map_landmark_t
 initialize_cameras_landmarks_keyframe::priv
 ::get_sub_landmark_map(map_landmark_t &lmks, const std::set<landmark_id_t> &lm_ids) const
 {
@@ -415,14 +415,14 @@ initialize_cameras_landmarks_keyframe::priv
     sub_lmks[lm] = it->second;
   }
 
-  return landmark_map_sptr(new simple_landmark_map(sub_lmks));
+  return sub_lmks;
 }
 
 landmark_map_sptr
 initialize_cameras_landmarks_keyframe::priv
-::store_landmarks(map_landmark_t &store_lms, landmark_map_sptr to_store) const
+::store_landmarks(map_landmark_t &store_lms, map_landmark_t &to_store) const
 {
-  for (auto lm : to_store->landmarks())
+  for (auto lm : to_store)
   {
     store_lms[lm.first] = lm.second;
   }
@@ -1377,6 +1377,8 @@ initialize_cameras_landmarks_keyframe::priv
   std::vector<rel_pose> rel_poses_inlier_ordered(m_rel_poses.begin(), m_rel_poses.end());
   std::sort(rel_poses_inlier_ordered.begin(), rel_poses_inlier_ordered.end(), well_conditioned_less);
   std::reverse(rel_poses_inlier_ordered.begin(), rel_poses_inlier_ordered.end());
+  std::set<frame_id_t> fixed_cams_empty;
+  std::set<landmark_id_t> fixed_lms_empty;
 
   bool good_initialization = false;
   for (auto &rp_init : rel_poses_inlier_ordered)
@@ -1405,23 +1407,14 @@ initialize_cameras_landmarks_keyframe::priv
         << cams->size() << " cameras and "
         << lms.size() << " landmarks");
 
-      auto cam_map = cams->cameras();
-      double before_clean_rmse = kwiver::arrows::reprojection_rmse(cam_map, lms, trks);
-      LOG_INFO(m_logger, "before clean reprojection RMSE: " << before_clean_rmse);
 
-      camera_map_sptr ba_cams(new simple_camera_map(cam_map));
-      landmark_map_sptr ba_lms(new simple_landmark_map(lms));
-      double init_rmse = kwiver::arrows::reprojection_rmse(ba_cams->cameras(), lms, trks);
+      double init_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
       LOG_INFO(m_logger, "initial reprojection RMSE: " << init_rmse);
 
       //TODO:  Change bundle adjuster so it takes a simple_camera_perspective_map_sptr as input to avoid all this copying.
-      bundle_adjuster->optimize(ba_cams, ba_lms, tracks);
+      bundle_adjuster->optimize(*cams, lms, tracks,fixed_cams_empty, fixed_lms_empty);
 
-      //set cams from ba_cams
-      cams->set_from_base_cams(ba_cams);
-
-      lms = ba_lms->landmarks();
-      auto first_cam = std::static_pointer_cast<simple_camera_perspective>(ba_cams->cameras().begin()->second);
+      auto first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
       m_base_camera.set_intrinsics(first_cam->intrinsics());
 
       double optimized_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
@@ -1435,9 +1428,9 @@ initialize_cameras_landmarks_keyframe::priv
       std::vector<frame_id_t> removed_cams;
       std::set<frame_id_t> variable_cams;
       std::set<landmark_id_t> variable_lms;
-      cam_map = cams->cameras();
+      auto cam_map = cams->cameras();
       clean_cameras_and_landmarks(cam_map, lms, tracks, m_thresh_triang_cos_ang, removed_cams, variable_cams, variable_lms, image_coverage_threshold, interim_reproj_thresh);
-
+      cams->set_from_base_camera_map(cam_map);
       bool try_next_pair = false;
       for (auto c : cam_map)
       {
@@ -1797,8 +1790,6 @@ initialize_cameras_landmarks_keyframe::priv
     {
       //bundle adjust fixing all cameras but the new one
       auto cameras = cams->cameras();
-      camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
-      landmark_map_sptr ba_lms(new simple_landmark_map(lms));
 
       double before_new_cam_rmse = kwiver::arrows::reprojection_rmse(cameras, lms, trks);
       LOG_INFO(m_logger, "before new camera reprojection RMSE: " << before_new_cam_rmse);
@@ -1813,11 +1804,9 @@ initialize_cameras_landmarks_keyframe::priv
         }
       }
 
-      bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
+      bundle_adjuster->optimize(*cams, lms, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
 
-      lms = ba_lms->landmarks();
-      cams->set_from_base_cams(ba_cams);
-      auto first_cam = std::static_pointer_cast<simple_camera_perspective>(ba_cams->cameras().begin()->second);
+      auto first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
       m_base_camera.set_intrinsics(first_cam->intrinsics());
 
       double after_new_cam_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
@@ -1880,8 +1869,6 @@ initialize_cameras_landmarks_keyframe::priv
         {
           m_frames_removed_from_sfm_solution.insert(rem_fid);
         }
-        camera_map_sptr ba_cams(new simple_camera_map(cam_map));
-        landmark_map_sptr ba_lms(new simple_landmark_map(lms));
 
         double init_rmse = kwiver::arrows::reprojection_rmse(cam_map, lms, trks);
         LOG_INFO(m_logger, "initial reprojection RMSE: " << init_rmse);
@@ -1893,26 +1880,21 @@ initialize_cameras_landmarks_keyframe::priv
         {
           fixed_landmarks.insert(l.first);
         }
-        bundle_adjuster->optimize(ba_cams, ba_lms, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
+        bundle_adjuster->optimize(*cams, lms, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
 
-        lms = ba_lms->landmarks();
-        cams->set_from_base_cams(ba_cams);
-        auto first_cam = std::static_pointer_cast<simple_camera_perspective>(ba_cams->cameras().begin()->second);
+        auto first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
         m_base_camera.set_intrinsics(first_cam->intrinsics());
 
-        double optimized_rmse = kwiver::arrows::reprojection_rmse(ba_cams->cameras(), lms, trks);
+        double optimized_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
         LOG_INFO(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
 
         retriangulate(lms, cams, trks, inlier_lm_ids);
 
         //now an overall ba
-        landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
         fixed_landmarks.clear();
-        bundle_adjuster->optimize(ba_cams, ba_lms2, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
+        bundle_adjuster->optimize(*cams, lms, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
 
-        cams->set_from_base_cams(ba_cams);
-        lms = ba_lms2->landmarks();
-        first_cam = std::static_pointer_cast<simple_camera_perspective>(ba_cams->cameras().begin()->second);
+        first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
         m_base_camera.set_intrinsics(first_cam->intrinsics());
 
         //do an overall join, because the solution geometry may have changed significantly after BA.
@@ -1955,18 +1937,16 @@ initialize_cameras_landmarks_keyframe::priv
             double before_final_ba_rmse2 = kwiver::arrows::reprojection_rmse(nr_cams->cameras(), nr_landmark_map->landmarks(), trks);
             LOG_DEBUG(m_logger, "Necker reversed before final reprojection RMSE: " << before_final_ba_rmse2);
 
-            bundle_adjuster->optimize(nr_cams, nr_landmark_map, tracks, ba_constraints);
+            bundle_adjuster->optimize(*nr_cams_perspec, nr_landmarks, tracks, fixed_cameras,fixed_landmarks,ba_constraints);
 
-            map_landmark_t lms2 = nr_landmark_map->landmarks();
-
-            double final_rmse2 = kwiver::arrows::reprojection_rmse(nr_cams->cameras(), lms2, trks);
+            double final_rmse2 = kwiver::arrows::reprojection_rmse(nr_cams->cameras(), nr_landmarks, trks);
             LOG_DEBUG(m_logger, "Necker reversed final reprojection RMSE: " << final_rmse2);
 
             if (final_rmse2 < optimized_rmse)
             {
               LOG_INFO(m_logger, "Necker reversed solution is better");
               cams->set_from_base_cams(nr_cams);
-              lms = lms2;
+              lms = nr_landmarks;
             }
           }
         }
@@ -2130,9 +2110,7 @@ initialize_cameras_landmarks_keyframe::priv
         //remove current frame from fixed cameras so it will be optimized
         fixed_cams.erase(fid);
         cams->insert(fid, reversed_cam);
-        camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
-        bundle_adjuster->optimize(ba_cams, landmarks, tracks, fixed_cams, fixed_landmarks, constraints);
-        cams->set_from_base_cams(ba_cams);
+        bundle_adjuster->optimize(*cams, lms, tracks, fixed_cams, fixed_landmarks, constraints);
         //now add it back to the fixed frames so it is fixed next time
         fixed_cams.insert(fid);
       }
@@ -2183,10 +2161,7 @@ initialize_cameras_landmarks_keyframe::priv
   }
 
   fixed_cams.clear();
-  camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
-  bundle_adjuster->optimize(ba_cams, landmarks, tracks, fixed_cams, fixed_landmarks, constraints);
-  cams->set_from_base_cams(ba_cams);
-
+  bundle_adjuster->optimize(*cams, lms, tracks, fixed_cams, fixed_landmarks, constraints);
 }
 
 std::set<landmark_id_t>
@@ -2307,19 +2282,17 @@ initialize_cameras_landmarks_keyframe::priv
     //use constant velocity model
     bundled_cam->set_center(closest_cam->center() + (fid_to_register - closest_cam_fid) * vel);
     cams->insert(fid_to_register, bundled_cam);
-    camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
 
     int prev_bundled_inlier_count = -1;
     int loop_count = 0;
     while (bundled_inlier_count > prev_bundled_inlier_count)
     {
       //DOES THIS LOOP HELP?
-      bundle_adjuster->optimize(ba_cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, constraints);
+      bundle_adjuster->optimize(*cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, constraints);
 
-      cams->set_from_base_cams(ba_cams);
       bundled_cam = cams->find(fid_to_register);
       prev_bundled_inlier_count = bundled_inlier_count;
-      bundled_inlier_count = set_inlier_flags(fid_to_register, bundled_cam, cur_landmarks->landmarks(), tracks, 50);
+      bundled_inlier_count = set_inlier_flags(fid_to_register, bundled_cam, cur_landmarks, tracks, 50);
       ++loop_count;
     }
     if (loop_count > 2)
@@ -2334,17 +2307,14 @@ initialize_cameras_landmarks_keyframe::priv
     resectioned_cam = cams->find(fid_to_register);
     if (resectioned_cam)
     {
-      camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
       int prev_resection_inlier_count = -1;
       int loop_count = 0;
       while (resection_inlier_count > prev_resection_inlier_count)
       {
-        //DOES THIS LOOP HELP?
-        bundle_adjuster->optimize(ba_cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, constraints);
-        cams->set_from_base_cams(ba_cams);
+        bundle_adjuster->optimize(*cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, constraints);
         resectioned_cam = cams->find(fid_to_register);
         prev_resection_inlier_count = resection_inlier_count;
-        resection_inlier_count = set_inlier_flags(fid_to_register, resectioned_cam, cur_landmarks->landmarks(), tracks, 50);
+        resection_inlier_count = set_inlier_flags(fid_to_register, resectioned_cam, cur_landmarks, tracks, 50);
         ++loop_count;
       }
       if (loop_count > 2)
@@ -2412,11 +2382,9 @@ initialize_cameras_landmarks_keyframe::priv
   cams->set_from_base_camera_map(cam_map);
 
   auto variable_landmarks = get_sub_landmark_map(lmks, variable_landmark_ids);
-  camera_map_sptr ba_cams(new simple_camera_map(cams->cameras()));
   std::set<landmark_id_t> empty_landmark_id_set;
 
-  bundle_adjuster->optimize(ba_cams, variable_landmarks, tracks, frames_to_fix, empty_landmark_id_set, constraints);
-  cams->set_from_base_cams(ba_cams);
+  bundle_adjuster->optimize(*cams, variable_landmarks, tracks, frames_to_fix, empty_landmark_id_set, constraints);
   landmarks = store_landmarks(lmks, variable_landmarks);
 }
 

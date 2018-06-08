@@ -42,6 +42,7 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/types/camera_map.h>
+#include <vital/types/camera_perspective_map.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/sfm_constraints.h>
 
@@ -87,12 +88,13 @@ public:
    */
 
   virtual void
-    optimize(kwiver::vital::camera_map_sptr& cameras,
-             kwiver::vital::landmark_map_sptr& landmarks,
-             kwiver::vital::feature_track_set_sptr tracks,
-             const std::set<vital::frame_id_t>& fixed_cameras,
-             const std::set<vital::landmark_id_t>& fixed_landmarks,
-             kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
+  optimize(kwiver::vital::simple_camera_perspective_map &cameras,
+           kwiver::vital::landmark_map::map_landmark_t &landmarks,
+           vital::feature_track_set_sptr tracks,
+           const std::set<vital::frame_id_t>& fixed_cameras,
+           const std::set<vital::landmark_id_t>& fixed_landmarks,
+           kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
+
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,

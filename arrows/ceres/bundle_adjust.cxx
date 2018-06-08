@@ -261,10 +261,7 @@ bundle_adjust
   feature_track_set_sptr tracks,
   sfm_constraints_sptr constraints) const
 {
-  //both fixed cameras and fixed landmarks are empty for default call.
-  std::set<vital::frame_id_t> fixed_cameras;
-  std::set<vital::landmark_id_t> fixed_landmarks;
-  optimize(cameras, landmarks, tracks, fixed_cameras, fixed_landmarks, constraints);
+  throw vital::algorithm_exception("ceres bundle adjuster","", "optimize is not defined for a map of base cameras");
 }
 
 
@@ -272,14 +269,14 @@ bundle_adjust
 // Optimize the camera and landmark parameters given a set of tracks
 void
 bundle_adjust
-::optimize(camera_map_sptr& cameras,
-           landmark_map_sptr& landmarks,
-           feature_track_set_sptr tracks,
+::optimize(kwiver::vital::simple_camera_perspective_map &cameras,
+           kwiver::vital::landmark_map::map_landmark_t &landmarks,
+           vital::feature_track_set_sptr tracks,
            const std::set<vital::frame_id_t>& to_fix_cameras,
            const std::set<vital::landmark_id_t>& to_fix_landmarks,
-           sfm_constraints_sptr constraints) const
+           kwiver::vital::sfm_constraints_sptr constraints) const
 {
-  if( !cameras || !landmarks || !tracks )
+  if(!tracks )
   {
     // TODO throw an exception for missing input data
     return;
@@ -288,8 +285,8 @@ bundle_adjust
   std::set<frame_id_t> fixed_cameras;
 
   // extract data from containers
-  d_->cams = cameras->cameras();
-  d_->lms = landmarks->landmarks();
+  d_->cams = cameras.cameras();
+  d_->lms = landmarks;
 
   // Extract the landmark locations into a mutable map
   d_->landmark_params.clear();
@@ -556,12 +553,11 @@ bundle_adjust
     auto& lmi = std::static_pointer_cast<landmark_d>(d_->lms[lmp.first]);
     lmi->set_loc(Eigen::Map<const vector_3d>(&lmp.second[0]));
   }
-  landmarks = std::make_shared<simple_landmark_map>(d_->lms);
 
   // Update the cameras with the optimized values
   d_->update_camera_parameters(d_->cams, d_->camera_params,
                                d_->camera_intr_params, d_->frame_to_intr_map);
-  cameras = std::make_shared<simple_camera_map>(d_->cams);
+  cameras.set_from_base_camera_map(d_->cams);
 }
 
 
