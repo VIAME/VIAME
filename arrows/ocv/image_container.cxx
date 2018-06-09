@@ -49,7 +49,9 @@ image_container
 ::image_container(const cv::Mat& d, ColorMode cm)
   : data_(d)
 {
-  if(cm != RGB && data_.channels() != 1)
+  //Handle BGR(A) case, others just copy the memory, the assumption is
+  //RGB images
+  if(cm == BGR && (data_.channels() == 3 || data_.channels() == 4 ))
   {
     switch(d.depth())
     {
@@ -195,12 +197,14 @@ image_container
       out.addref();
     }
     // TODO use MatAllocator to share memory with image_memory
-    if(cm == RGB || out.channels() == 1 )
+    if( cm == RGB || cm == OTHER_COLOR_MODE || out.channels() < 3 || out.channels() > 4 )
     {
+      //Want output as something other than an BGR(A) image
       return out;
     }
     else
     {
+      //Want output as a BGR(A) image, and it has the correct number of channels
       switch(out.depth())
       {
         case CV_8U:
@@ -227,12 +231,14 @@ image_container
   image new_img = ocv_to_vital(out, RGB);
   new_img.copy_from(img);
 
-  if(cm == RGB || out.channels() == 1 )
+  if( cm == RGB || cm == OTHER_COLOR_MODE || out.channels() < 3 || out.channels() > 4 )
   {
+      //Want output as something other than an BGR(A) image
       return out;
   }
   else
   {
+    //Want output as a BGR(A) image, and it has the correct number of channels
     switch(out.depth())
     {
       case CV_8U:
@@ -318,8 +324,9 @@ image_container_to_ocv_matrix(const vital::image_container& img, image_container
   if( const ocv::image_container* c =
           dynamic_cast<const ocv::image_container*>(&img) )
   {
-    if(cm == image_container::RGB)
+    if(cm == image_container::RGB || cm == image_container::OTHER_COLOR_MODE || result.channels()<3 || result.channels() > 4)
     {
+      //Want something other than a BGR(A) image
       return c->get_Mat();
     }
     result = c->get_Mat().clone();
@@ -328,8 +335,9 @@ image_container_to_ocv_matrix(const vital::image_container& img, image_container
   {
     return ocv::image_container::vital_to_ocv(img.get_image(), cm);
   }
-  if(cm == image_container::BGR && result.channels() != 1 )
+  if(cm == image_container::BGR && (result.channels()==3 || result.channels() == 4) )
   {
+    //Want a BGR(A) image, and there is the correct number of channels for it to be a BGR(A) image
     switch(result.depth())
     {
       case CV_8U:

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ class KWIVER_ALGO_OCV_EXPORT image_container
 {
 public:
 
-  enum ColorMode{RGB,BGR};
+  enum ColorMode{RGB,BGR,OTHER_COLOR_MODE};
 
   /// Constructor - from a cv::Mat
   explicit image_container(const cv::Mat& d, ColorMode cm);
