@@ -345,6 +345,45 @@ TYPED_TEST(image_conversion, vital_to_ocv_interleaved)
 }
 
 // ----------------------------------------------------------------------------
+TEST(image, bgr_to_rgb)
+{
+  // Create vital images and convert to and from cv::Mat
+  // (note: different code paths are taken depending on whether the image
+  // is natively created as OpenCV or vital, so we need to test both ways)
+  kwiver::vital::image_of<unsigned char> img{ 200, 300, 3 };
+  populate_vital_image<unsigned char>( img );
+  cv::Mat ocv_img =  ocv::image_container::vital_to_ocv(img, ocv::image_container::BGR);
+  {
+    int const num_c = ocv_img.channels();
+    for( int j = 0; j < ocv_img.rows; ++j )
+    {
+      for( int i = 0; i < ocv_img.cols; ++i )
+      {
+        ASSERT_EQ( img( i, j, 0 ), ocv_img.ptr<unsigned char>( j )[ num_c * i + 2 ] )
+            << "Pixels differ at " << i << ", " << j << ", (0,2)";
+      }
+    }
+    for( int j = 0; j < ocv_img.rows; ++j )
+    {
+      for( int i = 0; i < ocv_img.cols; ++i )
+      {
+        ASSERT_EQ( img( i, j, 1 ), ocv_img.ptr<unsigned char>( j )[ num_c * i + 1 ] )
+            << "Pixels differ at " << i << ", " << j << ", (1,1)";
+      }
+    }
+    for( int j = 0; j < ocv_img.rows; ++j )
+    {
+      for( int i = 0; i < ocv_img.cols; ++i )
+      {
+        ASSERT_EQ( img( i, j, 2 ), ocv_img.ptr<unsigned char>( j )[ num_c * i + 0 ] )
+            << "Pixels differ at " << i << ", " << j << ", (2,0)";
+      }
+    }
+  };
+}
+
+
+// ----------------------------------------------------------------------------
 TEST(image, bad_conversions)
 {
   // Some types not supported by OpenCV and should throw an exception
