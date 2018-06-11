@@ -197,7 +197,8 @@ public:
 
   bool bundle_adjust();
 
-  std::set<vital::frame_id_t> get_keyframe_ids(feature_track_set_sptr tracks);
+  std::set<vital::frame_id_t> get_keyframe_ids(
+    feature_track_set_sptr tracks) const;
 
   rel_pose
   calc_rel_pose(frame_id_t frame_0, frame_id_t frame_1,
@@ -207,8 +208,11 @@ public:
 
   bool read_rel_poses(std::string file_path);
 
-  void
-    calc_rel_poses(
+  std::set<frame_id_t>
+  select_begining_frames_for_initialization(
+    feature_track_set_sptr tracks) const;
+
+  void calc_rel_poses(
       const std::set<frame_id_t> &frames,
       feature_track_set_sptr tracks);
 
@@ -533,7 +537,7 @@ initialize_cameras_landmarks_keyframe::priv
 
 std::set<vital::frame_id_t>
 initialize_cameras_landmarks_keyframe::priv
-::get_keyframe_ids(feature_track_set_sptr tracks)
+::get_keyframe_ids(feature_track_set_sptr tracks) const
 {
   auto all_frame_ids = tracks->all_frame_ids();
   std::set<vital::frame_id_t> keyframe_ids;
@@ -1634,27 +1638,13 @@ void initialize_cameras_landmarks_keyframe::priv
   }
 }
 
-bool
+std::set<frame_id_t>
 initialize_cameras_landmarks_keyframe::priv
-::initialize_keyframes(
-  simple_camera_perspective_map_sptr cams,
-  landmark_map_sptr& landmarks,
-  feature_track_set_sptr tracks,
-  sfm_constraints_sptr constraints,
-  callback_t callback)
+::select_begining_frames_for_initialization(
+  feature_track_set_sptr tracks ) const
 {
-  LOG_DEBUG(m_logger, "initialize_keyframes");
-
-
-  // get set of keyframe ids
+  std::set<frame_id_t> beginning_keyframes;
   auto keyframes = get_keyframe_ids(tracks);
-  if (keyframes.empty())
-  {
-    LOG_DEBUG(m_logger, "no keyframes, cannot initilize reconstruction");
-    return false;
-  }
-
-  //const int num_begining_keyframes(std::min<int>(keyframes.size(),20));
   auto first_fid = *keyframes.begin();
   auto ff_tracks = tracks->active_tracks(first_fid);
   auto all_frames = tracks->all_frame_ids();
@@ -1685,7 +1675,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (last_continuous_track_frames.empty())
   {
-    return false;
+    return beginning_keyframes;
   }
   std::sort(last_continuous_track_frames.begin(), last_continuous_track_frames.end());
 
@@ -1693,7 +1683,6 @@ initialize_cameras_landmarks_keyframe::priv
 
   LOG_DEBUG(m_logger, "last_kf_for_init " << last_kf_for_init);
 
-  std::set<frame_id_t> beginning_keyframes;
   for (auto kf_id : keyframes)
   {
     if (kf_id > last_kf_for_init)
@@ -1706,6 +1695,31 @@ initialize_cameras_landmarks_keyframe::priv
       break;
     }
   }
+
+  return beginning_keyframes;
+}
+
+bool
+initialize_cameras_landmarks_keyframe::priv
+::initialize_keyframes(
+  simple_camera_perspective_map_sptr cams,
+  landmark_map_sptr& landmarks,
+  feature_track_set_sptr tracks,
+  sfm_constraints_sptr constraints,
+  callback_t callback)
+{
+  LOG_DEBUG(m_logger, "initialize_keyframes");
+
+
+  // get set of keyframe ids
+  auto keyframes = get_keyframe_ids(tracks);
+  if (keyframes.empty())
+  {
+    LOG_DEBUG(m_logger, "no keyframes, cannot initilize reconstruction");
+    return false;
+  }
+
+  auto beginning_keyframes = select_begining_frames_for_initialization(tracks);
 
   map_landmark_t lms;
 
@@ -1738,10 +1752,6 @@ initialize_cameras_landmarks_keyframe::priv
   {
     frames_to_resection.erase(c.first);
   }
-
-  //landmark_map_sptr join_lms(new simple_landmark_map(lms));
-  //join_landmarks(cams, join_lms, tracks, constraints);
-  //lms = join_lms->landmarks();
 
   sfm_constraints_sptr ba_constraints = nullptr;
 
@@ -1811,12 +1821,6 @@ initialize_cameras_landmarks_keyframe::priv
     std::set<landmark_id_t> inlier_lm_ids;
     retriangulate(lms, cams, trks, inlier_lm_ids);
 
-    //landmark_map_sptr join_lms(new simple_landmark_map(lms));
-    //join_landmarks(cams, join_lms, tracks, ba_constraints, next_frame_id);
-
-    //remove_redundant_keyframes(cams, join_lms, tracks, ba_constraints, added_frame_queue);
-
-    //lms = join_lms->landmarks();
     {
       std::vector<frame_id_t> removed_cams;
       std::set<frame_id_t> variable_cams;
@@ -1884,12 +1888,6 @@ initialize_cameras_landmarks_keyframe::priv
         first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
         m_base_camera.set_intrinsics(first_cam->intrinsics());
 
-        //do an overall join, because the solution geometry may have changed significantly after BA.
-
-        //landmark_map_sptr join_lms(new simple_landmark_map(lms));
-        //join_landmarks(cams, join_lms, tracks, ba_constraints);
-        //lms = join_lms->landmarks();
-
         if ( m_reverse_ba_error_ratio > 0)
         {
           // reverse cameras and optimize again
@@ -1949,7 +1947,7 @@ initialize_cameras_landmarks_keyframe::priv
     if (callback)
     {
       continue_processing =
-      callback(cams,std::make_shared<simple_landmark_map>(lms));
+        callback(cams,std::make_shared<simple_landmark_map>(lms));
 
       if (!continue_processing)
       {
