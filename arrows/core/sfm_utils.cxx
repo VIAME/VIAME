@@ -491,7 +491,7 @@ detect_bad_cameras(
 /// clean structure from motion solution
 void
 clean_cameras_and_landmarks(
-  camera_map::map_camera_t& cams,
+  vital::simple_camera_perspective_map& cams_persp,
   landmark_map::map_landmark_t& lms,
   feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
@@ -501,6 +501,9 @@ clean_cameras_and_landmarks(
   float image_coverage_threshold,
   double error_tol)
 {
+
+  auto cams = cams_persp.cameras();
+
   landmark_map::map_landmark_t det_lms;
   if (active_lms.empty())
   {
@@ -567,7 +570,7 @@ clean_cameras_and_landmarks(
 
     for (auto frame_id : cams_to_remove)
     {
-      cams[frame_id] = nullptr;
+      cams_persp.erase(frame_id);
       det_cams[frame_id] = nullptr;
       removed_cams.push_back(frame_id);
       LOG_DEBUG(logger, "removing camera " << frame_id);

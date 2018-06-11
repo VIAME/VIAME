@@ -47,6 +47,7 @@
 #include <vital/types/track_set.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/camera_map.h>
+#include <vital/types/camera_perspective_map.h>
 #include <vital/types/feature_track_set.h>
 
 namespace kwiver {
@@ -165,7 +166,7 @@ detect_bad_cameras(
 KWIVER_ALGO_CORE_EXPORT
 void
 clean_cameras_and_landmarks(
-  vital::camera_map::map_camera_t& cams,
+  vital::simple_camera_perspective_map& cams,
   vital::landmark_map::map_landmark_t& lms,
   vital::feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,

@@ -80,7 +80,17 @@ public:
     return ret_map;
   }
 
-  simple_camera_perspective_sptr find(frame_id_t fid)
+  virtual std::set<frame_id_t> get_frame_ids() const
+  {
+    std::set<frame_id_t> cam_ids;
+    for (auto const& d : data_)
+    {
+      cam_ids.insert(d.first);
+    }
+    return cam_ids;
+  }
+
+  simple_camera_perspective_sptr find(frame_id_t fid) const
   {
     auto it = data_.find(fid);
     if (it == data_.end())
@@ -138,7 +148,7 @@ public:
   }
 
   /// return a map from integer IDs to simple perspective camera shared pointers
-  virtual map_simple_camera_perspective_t simple_perspective_cameras() const { return data_;  }
+  virtual map_simple_camera_perspective_t const& simple_perspective_cameras() const { return data_;  }
 
 protected:
   /// The map from integer IDs to camera shared pointers

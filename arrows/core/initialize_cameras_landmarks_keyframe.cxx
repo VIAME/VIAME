@@ -1428,24 +1428,13 @@ initialize_cameras_landmarks_keyframe::priv
       std::vector<frame_id_t> removed_cams;
       std::set<frame_id_t> variable_cams;
       std::set<landmark_id_t> variable_lms;
-      auto cam_map = cams->cameras();
-      clean_cameras_and_landmarks(cam_map, lms, tracks, m_thresh_triang_cos_ang, removed_cams, variable_cams, variable_lms, image_coverage_threshold, interim_reproj_thresh);
-      cams->set_from_base_camera_map(cam_map);
-      bool try_next_pair = false;
-      for (auto c : cam_map)
-      {
-        if (!c.second)
-        {
-          try_next_pair = true;
-          break;
-        }
-      }
-      if (try_next_pair)
+
+      clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, variable_cams, variable_lms, image_coverage_threshold, interim_reproj_thresh);
+
+      if (cams->size() < 2)
       {
         continue;
       }
-
-
     }
     if (lms.size() > 0.1 * rp_init.well_conditioned_landmark_count)
     {
@@ -1830,19 +1819,18 @@ initialize_cameras_landmarks_keyframe::priv
     //lms = join_lms->landmarks();
     {
       std::vector<frame_id_t> removed_cams;
-      auto cam_map = cams->cameras();
       std::set<frame_id_t> variable_cams;
       std::set<landmark_id_t> variable_lms;
-      clean_cameras_and_landmarks(cam_map, lms, tracks, m_thresh_triang_cos_ang, removed_cams, variable_cams, variable_lms, image_coverage_threshold, interim_reproj_thresh);
+      clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, variable_cams, variable_lms, image_coverage_threshold, interim_reproj_thresh);
 
       for (auto rem_fid : removed_cams)
       {
         m_frames_removed_from_sfm_solution.insert(rem_fid);
       }
-      cams->set_from_base_camera_map(cam_map);
     }
 
     int next_ba_cam_count = std::max<int>(cams->size() * 0.2,5);
+    next_ba_cam_count = 0;
 
     if ( (lms.size() > prev_ba_lm_count * 1.5 ||
       lms.size() < prev_ba_lm_count * 0.5) ||
@@ -1857,20 +1845,19 @@ initialize_cameras_landmarks_keyframe::priv
           << cams->size() << " cameras and "
           << lms.size() << " landmarks");
 
-        auto cam_map = cams->cameras();
-        double before_clean_rmse = kwiver::arrows::reprojection_rmse(cam_map, lms, trks);
+        double before_clean_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
         LOG_INFO(m_logger, "before clean reprojection RMSE: " << before_clean_rmse);
 
         std::vector<frame_id_t> removed_cams;
         std::set<frame_id_t> variable_cams;
         std::set<landmark_id_t> variable_lms;
-        clean_cameras_and_landmarks(cam_map, lms, tracks, m_thresh_triang_cos_ang, removed_cams, variable_cams, variable_lms, image_coverage_threshold, interim_reproj_thresh);
+        clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, variable_cams, variable_lms, image_coverage_threshold, interim_reproj_thresh);
         for (auto rem_fid : removed_cams)
         {
           m_frames_removed_from_sfm_solution.insert(rem_fid);
         }
 
-        double init_rmse = kwiver::arrows::reprojection_rmse(cam_map, lms, trks);
+        double init_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
         LOG_INFO(m_logger, "initial reprojection RMSE: " << init_rmse);
 
         //first a BA fixing all landmarks to correct the cameras
@@ -1973,13 +1960,11 @@ initialize_cameras_landmarks_keyframe::priv
     }
   }
 
-  auto cam_map = cams->cameras();
   std::vector<frame_id_t> removed_cams;
   std::set<frame_id_t> empty_cam_set;
   std::set<landmark_id_t> empty_lm_set;
-  clean_cameras_and_landmarks(cam_map, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, image_coverage_threshold, interim_reproj_thresh);
+  clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, image_coverage_threshold, interim_reproj_thresh);
 
-  cams->set_from_base_camera_map(cam_map);
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 
   return true;
@@ -2257,7 +2242,7 @@ initialize_cameras_landmarks_keyframe::priv
   get_next_fid_to_register_and_its_closets_registered_cam(cams, frames_to_register, fid_to_register, closest_cam_fid);
   frames_to_register.erase(fid_to_register);
 
-  simple_camera_perspective_sptr closest_cam = cams->simple_perspective_cameras()[closest_cam_fid];
+  simple_camera_perspective_sptr closest_cam = cams->find(closest_cam_fid);
   simple_camera_perspective_sptr resectioned_cam, bundled_cam;
   int bundled_inlier_count = 0;
   int resection_inlier_count = 0;
@@ -2371,15 +2356,13 @@ initialize_cameras_landmarks_keyframe::priv
 
   std::set<landmark_id_t> variable_landmark_ids = find_visible_landmarks_in_frames(lmks, tracks, variable_frames);
   std::vector<frame_id_t> removed_cams;
-  auto cam_map = cams->cameras();
-  clean_cameras_and_landmarks(cam_map, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
+  clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
     variable_frames, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
 
   for (auto rem_fid : removed_cams)
   {
     m_frames_removed_from_sfm_solution.insert(rem_fid);
   }
-  cams->set_from_base_camera_map(cam_map);
 
   auto variable_landmarks = get_sub_landmark_map(lmks, variable_landmark_ids);
   std::set<landmark_id_t> empty_landmark_id_set;
