@@ -346,7 +346,7 @@ public:
     map_landmark_t& lmks,
     feature_track_set_sptr tracks,
     sfm_constraints_sptr constraints,
-    const std::set<frame_id_t> &already_registered_cams,
+    const std::set<frame_id_t> &already_bundled_cams,
     const std::set<frame_id_t> &frames_since_last_local_ba);
 
   bool verbose;
@@ -876,7 +876,6 @@ initialize_cameras_landmarks_keyframe::priv
   cams[frame_0] = std::static_pointer_cast<simple_camera_perspective>(m_base_camera.clone());
 
   auto cam_map = std::make_shared < simple_camera_perspective_map>(cams);
-  auto sc_map = std::static_pointer_cast<camera_map>(cam_map);
 
   auto trk_set = std::make_shared<feature_track_set>(trks);
 
@@ -1786,15 +1785,18 @@ initialize_cameras_landmarks_keyframe::priv
 
   sfm_constraints_sptr ba_constraints = nullptr;
 
-  bool tried_necker_reverse = false;
   int prev_ba_lm_count = lms.size();
   auto trks = tracks->tracks();
 
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
-  while (!frames_to_resection.empty() && (cams->size() < 20 || tried_necker_reverse == false))
+  while (!frames_to_resection.empty() && cams->size() < 40)
   {
     frame_id_t next_frame_id = select_next_camera(frames_to_resection, cams, lms, tracks);
+    if (next_frame_id == -1)
+    {
+      break;
+    }
 
     if (!resection_camera(cams, lms, tracks, next_frame_id))
     {
@@ -2373,12 +2375,15 @@ initialize_cameras_landmarks_keyframe::priv
   map_landmark_t& lmks,
   feature_track_set_sptr tracks,
   sfm_constraints_sptr constraints,
-  const std::set<frame_id_t> &already_registered_cams,
+  const std::set<frame_id_t> &already_bundled_cams,
   const std::set<frame_id_t> &frames_since_last_local_ba)
 {
-  auto frames_to_fix = already_registered_cams;
+  auto frames_to_fix = already_bundled_cams;
   //optimize camera and all landmarks it sees, fixing all other cameras.
   auto variable_frames = frames_since_last_local_ba;
+
+  //make all frames variable frames temporarily
+  //variable_frames = cams->get_frame_ids();
 
   for (auto fid : variable_frames)
   {
@@ -2423,11 +2428,10 @@ initialize_cameras_landmarks_keyframe::priv
   auto lmks = landmarks->landmarks();
   sfm_constraints_sptr constraints_to_ba = nullptr;
 
-  std::set<frame_id_t> already_registred_cams, frames_to_register;
+  std::set<frame_id_t> already_registred_cams, frames_to_register, windowed_bundled_cams;
   get_registered_and_non_registered_frames(cams, tracks, already_registred_cams, frames_to_register);
 
-  // this forces a BA and cleaning of all cams after the first camera insertion
-  std::set<frame_id_t> frames_since_last_local_ba = already_registred_cams;
+  std::set<frame_id_t> frames_since_last_local_ba;
   m_frames_removed_from_sfm_solution.clear();
 
   std::set<landmark_id_t> last_ba_landmarks;
@@ -2468,8 +2472,21 @@ initialize_cameras_landmarks_keyframe::priv
     if (i_over_u < 0.7 || frames_to_register.empty())
     {
       windowed_clean_and_bundle(cams, landmarks, lmks, tracks,
-        constraints_to_ba, already_registred_cams, frames_since_last_local_ba);
+        constraints_to_ba, windowed_bundled_cams, frames_since_last_local_ba);
       last_ba_landmarks = cur_lmks;
+
+      for (auto ll_fid : frames_since_last_local_ba)
+      {
+        windowed_bundled_cams.insert(ll_fid);
+      }
+      auto max_windowed_cam = *(windowed_bundled_cams.rbegin());
+      for (auto ar_fid : already_registred_cams)
+      {
+        if (ar_fid < max_windowed_cam)
+        {
+          windowed_bundled_cams.insert(ar_fid);
+        }
+      }
       frames_since_last_local_ba.clear();
     }
 
