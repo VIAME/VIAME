@@ -115,7 +115,7 @@ void test_seek_then_next( kwiver::vital::algo::video_input& vi )
   // Seek to frame 17, then run over the rest of the video
   const kwiver::vital::timestamp::frame_t requested_frame = 17;
 
-  EXPECT_TRUE( vi.seek_frame( ts, requested_frame ) );
+  ASSERT_TRUE( vi.seek_frame( ts, requested_frame ) );
 
   auto img = vi.frame_image();
 
@@ -161,7 +161,7 @@ void test_next_then_seek( kwiver::vital::algo::video_input& vi )
       << "Frame number should match barcode in frame image";
   }
 
-  EXPECT_TRUE( vi.seek_frame( ts, requested_frame ) );
+  ASSERT_TRUE( vi.seek_frame( ts, requested_frame ) );
 
   auto img = vi.frame_image();
 
@@ -197,7 +197,7 @@ void test_next_then_seek_then_next( kwiver::vital::algo::video_input& vi )
       << "Frame number should match barcode in frame image";
   }
 
-  EXPECT_TRUE( vi.seek_frame( ts, requested_frame ) );
+  ASSERT_TRUE( vi.seek_frame( ts, requested_frame ) );
   auto seek_img = vi.frame_image();
 
   EXPECT_EQ( requested_frame, ts.get_frame() )

@@ -129,23 +129,19 @@ TEST_F(video_input_splice, is_good)
 
   kwiver::vital::timestamp ts;
 
-  EXPECT_FALSE( vis.good() )
-    << "Video state before open";
+  EXPECT_FALSE( vis.good() );
 
   // open the video
   vis.open( list_file );
-  EXPECT_FALSE( vis.good() )
-    << "Video state after open but before first frame";
+  EXPECT_FALSE( vis.good() );
 
   // step one frame
   vis.next_frame( ts );
-  EXPECT_TRUE( vis.good() )
-    << "Video state on first frame";
+  EXPECT_TRUE( vis.good() );
 
   // close the video
   vis.close();
-  EXPECT_FALSE( vis.good() )
-    << "Video state after close";
+  EXPECT_FALSE( vis.good() );
 
   // Reopen the video
   vis.open( list_file );
@@ -159,8 +155,7 @@ TEST_F(video_input_splice, is_good)
   }
   EXPECT_EQ( num_expected_frames, num_frames );
 
-  EXPECT_FALSE( vis.good() )
-    << "Video state after last frame.";
+  EXPECT_FALSE( vis.good() );
 }
 
 // ----------------------------------------------------------------------------

@@ -295,7 +295,7 @@ bool
 video_input_splice
 ::good() const
 {
-  if ( *d->d_active_source && d->d_active_source != d->d_video_sources.end() )
+  if ( d->d_active_source != d->d_video_sources.end() && *d->d_active_source )
   {
     return (*d->d_active_source)->good();
   }
