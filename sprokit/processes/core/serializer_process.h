@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_FRAME_LIST_PROCESS_H_
-#define _KWIVER_FRAME_LIST_PROCESS_H_
+/**
+ * \file
+ *
+ * \brief interface to the serializer process.
+ */
+
+#ifndef SPROKIT_PROCESS_FLOW_SERIALIZER_PROCESS_H
+#define SPROKIT_PROCESS_FLOW_SERIALIZER_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
 #include "kwiver_processes_export.h"
 
 namespace kwiver {
 
-// ----------------------------------------------------------------
-/**
- * \class frame_list_process
- *
- * \brief Reads a series of images
- *
- * \oports
- * \oport{image}
- *
- * \oport{frame}
- * \oport{time}
- */
-class KWIVER_PROCESSES_NO_EXPORT frame_list_process
+class KWIVER_PROCESSES_NO_EXPORT serializer_process
   : public sprokit::process
 {
 public:
-  frame_list_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~frame_list_process();
+  serializer_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~serializer_process();
 
 
 protected:
@@ -61,14 +55,21 @@ protected:
   virtual void _init();
   virtual void _step();
 
+  virtual sprokit::process::port_info_t _input_port_info( port_t const& port );
+  virtual sprokit::process::port_info_t _output_port_info( port_t const& port );
+
+  virtual bool _set_input_port_type( port_t const&      port_name,
+                                     port_type_t const& port_type );
+
 private:
-  void make_ports();
   void make_config();
+  void init_port_handler( port_t port_name );
 
   class priv;
-  const std::unique_ptr<priv> d;
-}; // end class frame_list_process
+  const std::unique_ptr< priv > d;
+
+}; // end class serializer_process
 
 }  // end namespace
 
-#endif /* _KWIVER_FRAME_LIST_PROCESS_H_ */
+#endif /* SPROKIT_PROCESS_FLOW_SERIALIZER_PROCESS_H */

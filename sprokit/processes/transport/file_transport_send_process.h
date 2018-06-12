@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_FRAME_LIST_PROCESS_H_
-#define _KWIVER_FRAME_LIST_PROCESS_H_
+#ifndef KWIVER_TRANSPORT_FILE_TRANSPORT_SEND_PROCESS_H
+#define KWIVER_TRANSPORT_FILE_TRANSPORT_SEND_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
+#include "processes_transport_export.h"
 
 namespace kwiver {
 
 // ----------------------------------------------------------------
 /**
- * \class frame_list_process
+ * \class file_transport_send_process
  *
- * \brief Reads a series of images
+ * \brief Writes serialized data to a file.
  *
- * \oports
- * \oport{image}
  *
- * \oport{frame}
- * \oport{time}
+ * \oport{message}
  */
-class KWIVER_PROCESSES_NO_EXPORT frame_list_process
+class PROCESSES_TRANSPORT_NO_EXPORT file_transport_send_process
   : public sprokit::process
 {
 public:
-  frame_list_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~frame_list_process();
+  file_transport_send_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~file_transport_send_process();
 
 
 protected:
   virtual void _configure();
-  virtual void _init();
   virtual void _step();
 
 private:
@@ -67,8 +63,8 @@ private:
 
   class priv;
   const std::unique_ptr<priv> d;
-}; // end class frame_list_process
+}; // end class file_transport_send_process
 
 }  // end namespace
 
-#endif /* _KWIVER_FRAME_LIST_PROCESS_H_ */
+#endif // KWIVER_TRANSPORT_FILE_TRANSPORT_SEND_PROCESS_H

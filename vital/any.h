@@ -257,7 +257,6 @@ public:
    * This is the CTOR for the bnad any cast exception. A message is
    * created from the supplied mangled type names.
    *
-   *
    * @param from_type Mangled type name.
    * @param to_type Mangled type name.
    */

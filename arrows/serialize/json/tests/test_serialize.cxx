@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_FRAME_LIST_PROCESS_H_
-#define _KWIVER_FRAME_LIST_PROCESS_H_
-
-#include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
-
-namespace kwiver {
-
-// ----------------------------------------------------------------
 /**
- * \class frame_list_process
- *
- * \brief Reads a series of images
- *
- * \oports
- * \oport{image}
- *
- * \oport{frame}
- * \oport{time}
+ * \file
+ * \brief test json serializers
  */
-class KWIVER_PROCESSES_NO_EXPORT frame_list_process
-  : public sprokit::process
+
+#include <gtest/gtest.h>
+
+#include <arrows/serialize/json/bounding_box.h>
+
+#include <vital/types/bounding_box.h>
+
+namespace kasj = kwiver::arrows::serialize::json;
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-public:
-  frame_list_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~frame_list_process();
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
+// ----------------------------------------------------------------------------
+TEST( serialize, bounding_box )
+{
+  kasj::bounding_box bbox_ser;
+  kwiver::vital::bounding_box_d bbox { 1, 2, 3, 4 };
 
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
+  kwiver::vital::any bb_any( bbox );
+  auto mes = bbox_ser.serialize( bb_any );
 
-private:
-  void make_ports();
-  void make_config();
+  // std::cout << "Serialized bbox: \"" << *mes << "\"\n";
 
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class frame_list_process
+  auto dser = bbox_ser.deserialize( mes );
+  kwiver::vital::bounding_box_d bbox_dser = kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser );
 
-}  // end namespace
+  /*
+  std::cout << "bbox_dser { " << bbox_dser.min_x() << ", "
+            << bbox_dser.min_y() << ", "
+            << bbox_dser.max_x() << ", "
+            << bbox_dser.max_y() << "}\n";
+  */
 
-#endif /* _KWIVER_FRAME_LIST_PROCESS_H_ */
+  EXPECT_EQ( bbox, bbox_dser );
+}

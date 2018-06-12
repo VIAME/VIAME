@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_FRAME_LIST_PROCESS_H_
-#define _KWIVER_FRAME_LIST_PROCESS_H_
+#ifndef ARROWS_SERIALIZATION_JSON_BOUNDING_BOX
+#define ARROWS_SERIALIZATION_JSON_BOUNDING_BOX
 
-#include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
+#include <arrows/serialize/json/kwiver_algo_serialize_json_export.h>
+#include <vital/algo/data_serializer.h>
 
 namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace json {
 
-// ----------------------------------------------------------------
-/**
- * \class frame_list_process
- *
- * \brief Reads a series of images
- *
- * \oports
- * \oport{image}
- *
- * \oport{frame}
- * \oport{time}
- */
-class KWIVER_PROCESSES_NO_EXPORT frame_list_process
-  : public sprokit::process
+class KWIVER_ALGO_SERIALIZE_JSON_EXPORT bounding_box
+  : public vital::algorithm_impl< bounding_box, vital::algo::data_serializer >
 {
 public:
-  frame_list_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~frame_list_process();
+  // Type name this class supports
+  static constexpr char const* name = "kwiver:bounding_box";
 
+  static constexpr char const* description =
+    "Serializes a bounding box using json notation.";
 
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
+  bounding_box();
+  virtual ~bounding_box();
 
-private:
-  void make_ports();
-  void make_config();
+  virtual std::shared_ptr< std::string > serialize( const kwiver::vital::any& item );
+  virtual const kwiver::vital::any deserialize( std::shared_ptr< std::string > message );
+};
 
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class frame_list_process
+} } } }       // end namespace kwiver
 
-}  // end namespace
-
-#endif /* _KWIVER_FRAME_LIST_PROCESS_H_ */
+#endif // ARROWS_SERIALIZATION_JSON_BOUNDING_BOX

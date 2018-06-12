@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_FRAME_LIST_PROCESS_H_
-#define _KWIVER_FRAME_LIST_PROCESS_H_
+/**
+ * \file
+ * \brief data_serializer algorithm definition instantiation
+ */
 
-#include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
+#include <vital/algo/data_serializer.h>
+#include <vital/algo/algorithm.txx>
 
 namespace kwiver {
+namespace vital {
+namespace algo {
 
-// ----------------------------------------------------------------
-/**
- * \class frame_list_process
- *
- * \brief Reads a series of images
- *
- * \oports
- * \oport{image}
- *
- * \oport{frame}
- * \oport{time}
- */
-class KWIVER_PROCESSES_NO_EXPORT frame_list_process
-  : public sprokit::process
+data_serializer
+::data_serializer()
 {
-public:
-  frame_list_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~frame_list_process();
+  attach_logger( "data_serializer" );
+}
 
+} } }
 
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
-
-private:
-  void make_ports();
-  void make_config();
-
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class frame_list_process
-
-}  // end namespace
-
-#endif /* _KWIVER_FRAME_LIST_PROCESS_H_ */
+/// \cond DoxygenSuppress
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::data_serializer);
+/// \endcond
