@@ -886,10 +886,11 @@ initialize_cameras_landmarks_keyframe::priv
   while (inlier_lm_ids.size() > inlier_count_prev)
   {
     inlier_count_prev = inlier_lm_ids.size();
-    landmark_map_sptr ba_lms(new simple_landmark_map(lms));
 #pragma omp critical
     {
-      bundle_adjuster->optimize(sc_map, ba_lms, trk_set);
+      std::set<frame_id_t> empty_fixed_cams;
+      std::set<landmark_id_t> empty_fixed_lms;
+      bundle_adjuster->optimize(*cam_map, lms, trk_set, empty_fixed_cams,empty_fixed_lms);
     }
     inlier_lm_ids.clear();
     retriangulate(lms, cam_map, trks, inlier_lm_ids);
