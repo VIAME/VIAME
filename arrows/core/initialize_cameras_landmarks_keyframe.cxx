@@ -374,6 +374,7 @@ public:
   std::mt19937 m_rng;    // random-number engine used (Mersenne-Twister in this case)
   double m_reverse_ba_error_ratio;
   bool m_enable_BA_callback;
+  bool m_solution_was_fit_to_constraints;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -394,7 +395,8 @@ initialize_cameras_landmarks_keyframe::priv
   m_thresh_triang_cos_ang(cos((M_PI / 180.0) * 2.0)),
   m_rng(m_rd()),
   m_reverse_ba_error_ratio(2.0),
-  m_enable_BA_callback(false)
+  m_enable_BA_callback(false),
+  m_solution_was_fit_to_constraints(false)
 {
 
   }
@@ -1359,9 +1361,36 @@ initialize_cameras_landmarks_keyframe::priv
 
   for (auto &lm : lms)
   {
-    auto& lmi = std::static_pointer_cast<landmark_d>(lm.second);
-    lmi->set_loc(sim*lmi->loc());
+    auto lm_xformed = sim*lm.second->loc();
+    lms[lm.first] = std::make_shared<landmark_d>(lm_xformed);
   }
+
+  int net_cams_pointing_up = 0;
+  for (auto &cam : cams->simple_perspective_cameras())
+  {
+    auto Rmatrix = cam.second->rotation().matrix();
+    auto Y_axis = Rmatrix.row(1);
+    if (Y_axis(2) < 0)
+    {
+      ++net_cams_pointing_up;
+    }
+    else
+    {
+      --net_cams_pointing_up;
+    }
+  }
+
+  if (net_cams_pointing_up < 0)
+  {
+    auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->simple_perspective_cameras());
+    auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
+    landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
+    necker_reverse(nr_cams, ba_lms2, false);
+    cams->set_from_base_cams(nr_cams);
+  }
+
+  std::set<landmark_id_t> inlier_lms;
+  retriangulate(lms, cams, tracks->tracks(), inlier_lms);
 
   return true;
 }
@@ -1711,6 +1740,7 @@ initialize_cameras_landmarks_keyframe::priv
 {
   LOG_DEBUG(m_logger, "initialize_keyframes");
 
+  m_solution_was_fit_to_constraints = false;
 
   // get set of keyframe ids
   auto keyframes = get_keyframe_ids(tracks);
@@ -1817,10 +1847,16 @@ initialize_cameras_landmarks_keyframe::priv
     if (fit_reconstruction_to_constraints(cams, lms, tracks, constraints))
     {
       ba_constraints = constraints;
+      m_solution_was_fit_to_constraints = true;
     }
-
-    std::set<landmark_id_t> inlier_lm_ids;
-    retriangulate(lms, cams, trks, inlier_lm_ids);
+    else
+    {
+      // fit_reconstruction_to_constraints does a retriangulation if successful.
+      // This call makes sure we triangulate features for the newly resectioned camera
+      // if it wasn't.
+      std::set<landmark_id_t> inlier_lm_ids;
+      retriangulate(lms, cams, trks, inlier_lm_ids);
+    }
 
     {
       std::vector<frame_id_t> removed_cams;
@@ -1879,7 +1915,7 @@ initialize_cameras_landmarks_keyframe::priv
 
         double optimized_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
         LOG_INFO(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
-
+        std::set<landmark_id_t> inlier_lm_ids;
         retriangulate(lms, cams, trks, inlier_lm_ids);
 
         //now an overall ba
@@ -1889,7 +1925,7 @@ initialize_cameras_landmarks_keyframe::priv
         first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
         m_base_camera.set_intrinsics(first_cam->intrinsics());
 
-        if ( m_reverse_ba_error_ratio > 0)
+        if ( m_reverse_ba_error_ratio > 0 && !m_solution_was_fit_to_constraints)
         {
           // reverse cameras and optimize again
 
@@ -1914,10 +1950,6 @@ initialize_cameras_landmarks_keyframe::priv
 
             landmark_map_sptr nr_landmark_map(new simple_landmark_map(nr_landmarks));
 
-            // Only try a Necker reversal once when we have enough data to
-            // support it. We will either decide to reverse or not.
-            // Either way we should not have to try this again.
-            tried_necker_reverse = true;
             LOG_INFO(m_logger, "Running Necker reversed bundle adjustment for comparison");
 
             double before_final_ba_rmse2 = kwiver::arrows::reprojection_rmse(nr_cams->cameras(), nr_landmark_map->landmarks(), trks);
