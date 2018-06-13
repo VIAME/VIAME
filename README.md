@@ -52,7 +52,8 @@ but select entries are also listed below, which include some run examples:
 Pre-Built Binaries
 ------------------
 
-Installation Manual Coming Soon
+To install, extract the binaries and place them in a directory of your choosing,
+for example C:\Program Files\ on Windows or /opt/viame on Linux, or elsewhere.
 
 **Linux:**
 
