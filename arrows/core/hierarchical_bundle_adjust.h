@@ -78,6 +78,8 @@ public:
                         vital::feature_track_set_sptr tracks,
                         vital::metadata_map_sptr metadata = nullptr) const;
 
+  using vital::algo::bundle_adjust::optimize;
+
 private:
   // private implementation class
   class priv;
