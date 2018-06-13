@@ -66,6 +66,7 @@ set( vital_public_headers
   any.h
   algorithm_capabilities.h
   attribute_set.h
+  exceptions.h
   iterator.h
 
   io/camera_from_metadata.h
@@ -83,6 +84,7 @@ set( vital_public_headers
   types/camera_perspective.h
   types/camera_rpc.h
   types/camera_map.h
+  types/category_hierarchy.h
   types/color.h
   types/covariance.h
   types/descriptor.h
@@ -149,6 +151,7 @@ set( vital_sources
   types/camera_intrinsics.cxx
   types/camera_perspective.cxx
   types/camera_rpc.cxx
+  types/category_hierarchy.cxx
   types/descriptor.cxx
   types/descriptor_request.cxx
   types/detected_object.cxx
@@ -274,6 +277,7 @@ configure_file(
 add_subdirectory( exceptions )
 add_subdirectory( algo )
 add_subdirectory( util )
+add_subdirectory( range )
 add_subdirectory( bindings )
 add_subdirectory( config )
 add_subdirectory( klv )
