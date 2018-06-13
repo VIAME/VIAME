@@ -38,6 +38,7 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/vital_types.h>
 #include <vital/exceptions.h>
 
 #include <iostream>
@@ -49,9 +50,6 @@
 
 namespace kwiver {
 namespace vital {
-
-/// Convenience typedef for a byte
-typedef unsigned char byte;
 
 /// Shared pointer for base descriptor type
 class descriptor;
@@ -98,8 +96,8 @@ public:
     {
       return false;
     }
-    std::vector<uint8_t> b1 = this->as_bytes();
-    std::vector<uint8_t> b2 = other.as_bytes();
+    auto b1 = this->as_bytes();
+    auto b2 = other.as_bytes();
     return std::equal(b1.begin(), b1.end(), b2.begin());
   }
 
