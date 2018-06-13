@@ -28,10 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "bounding_box.h"
+#include "detected_object_type.h"
 
-#include <vital/types/bounding_box.h>
+#include <vital/types/detected_object_type.h>
 #include <vital/internal/cereal/cereal.hpp>
+#include <vital/internal/cereal/types/map.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
 #include <sstream>
@@ -42,28 +43,28 @@ namespace serialize {
 namespace json {
 
 // ----------------------------------------------------------------------------
-bounding_box::
-bounding_box()
+detected_object_type::
+detected_object_type()
 { }
 
 
-bounding_box::
-~bounding_box()
+detected_object_type::
+~detected_object_type()
 { }
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
-bounding_box::
+detected_object_type::
 serialize( const kwiver::vital::any& item )
 {
-  kwiver::vital::bounding_box_d bbox =
-    kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( item );
+  kwiver::vital::detected_object_type dot =
+    kwiver::vital::any_cast< kwiver::vital::detected_object_type > ( item );
 
   std::stringstream msg;
-  msg << "bounding_box "; // add type tag
+  msg << "detected_object_type ";
   {
     cereal::JSONOutputArchive ar( msg );
-    save( ar, bbox );
+    save( ar, dot );
   }
 
   return std::make_shared< std::string > ( msg.str() );
@@ -72,52 +73,56 @@ serialize( const kwiver::vital::any& item )
 
 // ----------------------------------------------------------------------------
 const kwiver::vital::any
-bounding_box::
+detected_object_type::
 deserialize( std::shared_ptr< std::string > message )
 {
   std::stringstream msg(*message);
-  kwiver::vital::bounding_box_d bbox{ 0, 0, 0, 0 };
+  kwiver::vital::detected_object_type dot;
   std::string tag;
   msg >> tag;
 
-  if (tag != "bounding_box" )
+  if (tag != "detected_object_type" )
   {
-    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"bounding_box\", received \""
+    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"detected_object_type\", received \""
                << tag << "\". Message dropped." );
   }
   else
   {
     cereal::JSONInputArchive ar( msg );
-    load( ar, bbox );
+    load( ar, dot );
   }
 
-  return kwiver::vital::any(bbox);
+  return kwiver::vital::any(dot);
 }
 
 // ----------------------------------------------------------------------------
 void
-bounding_box::
-save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox )
+detected_object_type::
+save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_type& dot )
 {
-  archive( cereal::make_nvp( "min_x", bbox.min_x() ),
-           cereal::make_nvp( "min_y", bbox.min_y() ),
-           cereal::make_nvp( "max_x", bbox.max_x() ),
-           cereal::make_nvp( "max_y", bbox.max_y() ) );
+
+  // recreate the class/score map so we don't break encapsulation.
+  std::map< std::string, double > class_map;
+  for ( auto entry : dot )
+  {
+    class_map[*(entry.first)] = entry.second;
+  }
+
+  archive( CEREAL_NVP( class_map ) );
 }
 
 // ----------------------------------------------------------------------------
 void
-bounding_box::
-load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbox )
+detected_object_type::
+load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_type& dot )
 {
-  double min_x, min_y, max_x, max_y;
+  std::map< std::string, double > class_map;
+  archive( CEREAL_NVP( class_map ) );
 
-  archive( CEREAL_NVP( min_x ),
-           CEREAL_NVP( min_y ),
-           CEREAL_NVP( max_x ),
-           CEREAL_NVP( max_y ) );
-
-  bbox = kwiver::vital::bounding_box_d( min_x, min_y, max_x, max_y );
+  for ( auto entry : class_map )
+  {
+    dot.set_score( entry.first, entry.second );
+  }
 }
 
 } } } }       // end namespace kwiver

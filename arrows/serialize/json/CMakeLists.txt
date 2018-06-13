@@ -1,11 +1,15 @@
 # Build / Install plugin for serialization
 
 set( headers_public
+
   bounding_box.h
+  detected_object_type.h
   )
 
 set( sources
+
   bounding_box.cxx
+  detected_object_type.cxx
   )
 
 kwiver_add_library( kwiver_algo_serialize_json

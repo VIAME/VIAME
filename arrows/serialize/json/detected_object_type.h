@@ -28,12 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_SERIALIZATION_JSON_BOUNDING_BOX
-#define ARROWS_SERIALIZATION_JSON_BOUNDING_BOX
+#ifndef ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
+#define ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
 
 #include <arrows/serialize/json/kwiver_algo_serialize_json_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/bounding_box.h>
+#include <vital/types/detected_object_type.h>
 
 namespace cereal {
   class JSONOutputArchive;
@@ -45,28 +45,28 @@ namespace arrows {
 namespace serialize {
 namespace json {
 
-class KWIVER_ALGO_SERIALIZE_JSON_EXPORT bounding_box
-  : public vital::algorithm_impl< bounding_box, vital::algo::data_serializer >
+class KWIVER_ALGO_SERIALIZE_JSON_EXPORT detected_object_type
+  : public vital::algorithm_impl< detected_object_type, vital::algo::data_serializer >
 {
 public:
   // Type name this class supports
-  static constexpr char const* name = "kwiver:bounding_box";
+  static constexpr char const* name = "kwiver:detected_object_type";
 
   static constexpr char const* description =
     "Serializes a bounding box using json notation.";
 
-  bounding_box();
-  virtual ~bounding_box();
+  detected_object_type();
+  virtual ~detected_object_type();
 
   virtual std::shared_ptr< std::string > serialize( const kwiver::vital::any& item );
   virtual const kwiver::vital::any deserialize( std::shared_ptr< std::string > message );
 
   // Converters that can be used in cases of nested structures
-  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox );
-  static void load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbox );
+  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_type& dot );
+  static void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_type& dot );
 
 };
 
 } } } }       // end namespace kwiver
 
-#endif // ARROWS_SERIALIZATION_JSON_BOUNDING_BOX
+#endif // ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
