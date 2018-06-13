@@ -22,9 +22,22 @@ but instead loads project files (details below) which are simple text files poin
 groundtruth, and/or homographies for the input data. If you just want to use the tool to make
 annotations you don't need to specify the later two, and just need to set a DataSetSpecifier.
 
-************************
-vpView GUI Project Files
-************************
+
+
+***************************************
+vpView Tool Annotation Process Overview
+***************************************
+
+| `Manual (PDF)`_
+|
+| `Example Video (MP4)`_
+
+.. _Manual (PDF): https://data.kitware.com/api/v1/item/5b20cb448d777f2e62256215/download
+.. _Example Video (MP4): https://data.kitware.com/api/v1/item/5b20c8aa8d777f2e62256212/download
+
+********************************
+vpView GUI Project File Overview
+********************************
 
 vpView does not open videos directory, but instead open prj files containing a pointer
 to any imagery and detections we want to load. Listed below are the parameters available in
