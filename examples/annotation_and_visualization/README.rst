@@ -24,16 +24,15 @@ annotations you don't need to specify the later two, and just need to set a Data
 
 
 
-***************************************
-vpView Tool Annotation Process Overview
-***************************************
+**********************************
+vpView Annotation Process Overview
+**********************************
 
-| `Manual (PDF)`_
-|
-| `Example Video (MP4)`_
+| `Manual Annotation Guide (PDF)`_
+| `Example Video Overview (MP4)`_
 
-.. _Manual (PDF): https://data.kitware.com/api/v1/item/5b20cb448d777f2e62256215/download
-.. _Example Video (MP4): https://data.kitware.com/api/v1/item/5b20c8aa8d777f2e62256212/download
+.. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5b20cb448d777f2e62256215/download
+.. _Example Video Overview (MP4): https://data.kitware.com/api/v1/item/5b20c8aa8d777f2e62256212/download
 
 ********************************
 vpView GUI Project File Overview
