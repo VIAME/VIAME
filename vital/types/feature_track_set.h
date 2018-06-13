@@ -66,7 +66,7 @@ public:
     : track_state( frame )
     , feature(f)
     , descriptor(d)
-    , inlier(true)
+    , inlier(false)
   { }
 
   /// Clone the track state (polymorphic copy constructor)

@@ -1799,8 +1799,9 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (callback)
   {
+    auto chgs = get_feature_track_changes(tracks, *cams);
     continue_processing =
-      callback(cams,std::make_shared<simple_landmark_map>(lms),nullptr);
+      callback(cams,std::make_shared<simple_landmark_map>(lms), chgs);
 
     if (!continue_processing)
     {
@@ -1963,6 +1964,12 @@ initialize_cameras_landmarks_keyframe::priv
 
         first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
         m_base_camera.set_intrinsics(first_cam->intrinsics());
+
+        clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, variable_cams, variable_lms, image_coverage_threshold, interim_reproj_thresh);
+        for (auto rem_fid : removed_cams)
+        {
+          m_frames_removed_from_sfm_solution.insert(rem_fid);
+        }
 
         if ( m_reverse_ba_error_ratio > 0 && !m_solution_was_fit_to_constraints)
         {
@@ -2428,10 +2435,13 @@ initialize_cameras_landmarks_keyframe::priv
     frames_to_fix.erase(fid);
   }
 
-  std::set<landmark_id_t> variable_landmark_ids = find_visible_landmarks_in_frames(lmks, tracks, variable_frames);
+  std::set<frame_id_t> empty_frames;
+  std::set<landmark_id_t> empty_landmarks;
+
+  std::set<landmark_id_t> variable_landmark_ids = find_visible_landmarks_in_frames(lmks, tracks, frames_since_last_local_ba);
   std::vector<frame_id_t> removed_cams;
   clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
-    variable_frames, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
+    empty_frames, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
 
   for (auto rem_fid : removed_cams)
   {
@@ -2442,6 +2452,15 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<landmark_id_t> empty_landmark_id_set;
 
   bundle_adjuster->optimize(*cams, variable_landmarks, tracks, frames_to_fix, empty_landmark_id_set, constraints);
+
+  clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
+    empty_frames, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
+
+  for (auto rem_fid : removed_cams)
+  {
+    m_frames_removed_from_sfm_solution.insert(rem_fid);
+  }
+
   landmarks = store_landmarks(lmks, variable_landmarks);
 }
 
@@ -2550,29 +2569,16 @@ initialize_cameras_landmarks_keyframe::priv
     }
   }
 
-  //std::set<frame_id_t> variable_frames;
-  //std::set<landmark_id_t> variable_landmarks;
-  //std::vector<frame_id_t> removed_cams;
-  //auto cam_map = cams->cameras();
-  //auto lms = landmarks->landmarks();
-  //clean_cameras_and_landmarks(cam_map, lms, tracks, m_thresh_triang_cos_ang, removed_cams,
-  //  variable_frames, variable_landmarks, image_coverage_threshold, interim_reproj_thresh);
+  std::set<frame_id_t> empty_frames;
+  std::set<landmark_id_t> empty_landmarks;
+  std::vector<frame_id_t> removed_cams;
+  clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
+    empty_frames, empty_landmarks, image_coverage_threshold, interim_reproj_thresh);
 
-  //cams->set_from_base_camera_map(cam_map);
-  //landmarks = landmark_map_sptr(new simple_landmark_map(lms));
-
-  //for (auto rem_fid : removed_cams)
-  //{
-  //  m_frames_removed_from_sfm_solution.insert(rem_fid);
-  //}
-
-  //for (auto c : m_frames_removed_from_sfm_solution)
-  //{
-  //  cams->erase(c);
-  //}
-
-  //this should only be done for aerial, semi-planar scenes.
-  //cleanup_necker_reversals(cams, landmarks, tracks,constraints);
+  for (auto rem_fid : removed_cams)
+  {
+    m_frames_removed_from_sfm_solution.insert(rem_fid);
+  }
 
   return true;
 }
