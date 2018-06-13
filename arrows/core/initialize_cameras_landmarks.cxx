@@ -166,7 +166,8 @@ public:
   // Pass through this callback to another callback but cache the return value
   bool pass_through_callback(callback_t cb,
                              camera_map_sptr cams,
-                             landmark_map_sptr lms);
+                             landmark_map_sptr lms,
+                             feature_track_set_changes_sptr track_changes);
 
   bool verbose;
   bool continue_processing;
@@ -383,9 +384,10 @@ bool
 initialize_cameras_landmarks::priv
 ::pass_through_callback(callback_t cb,
                         camera_map_sptr cams,
-                        landmark_map_sptr lms)
+                        landmark_map_sptr lms,
+                        feature_track_set_changes_sptr track_changes)
 {
-  this->continue_processing = cb(cams, lms);
+  this->continue_processing = cb(cams, lms, track_changes);
   return this->continue_processing;
 }
 
@@ -520,9 +522,10 @@ initialize_cameras_landmarks
   {
     using std::placeholders::_1;
     using std::placeholders::_2;
+    using std::placeholders::_3;
     callback_t pcb =
       std::bind(&initialize_cameras_landmarks::priv::pass_through_callback,
-                d_.get(), this->m_callback, _1, _2);
+                d_.get(), this->m_callback, _1, _2, _3);
     d_->bundle_adjuster->set_callback(pcb);
   }
 
@@ -1190,7 +1193,8 @@ initialize_cameras_landmarks
     if( this->m_callback )
     {
       d_->continue_processing = this->m_callback(std::make_shared<simple_camera_map>(cams),
-                                                 std::make_shared<simple_landmark_map>(lms));
+                                                 std::make_shared<simple_landmark_map>(lms),
+                                                 nullptr);
     }
   }
 
@@ -1241,9 +1245,10 @@ initialize_cameras_landmarks
   {
     using std::placeholders::_1;
     using std::placeholders::_2;
+    using std::placeholders::_3;
     callback_t pcb =
       std::bind(&initialize_cameras_landmarks::priv::pass_through_callback,
-                d_.get(), cb, _1, _2);
+                d_.get(), cb, _1, _2, _3);
     d_->bundle_adjuster->set_callback(pcb);
   }
 }

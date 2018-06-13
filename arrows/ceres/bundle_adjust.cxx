@@ -606,7 +606,7 @@ bundle_adjust
                                  d_->camera_intr_params, d_->frame_to_intr_map);
     camera_map_sptr cameras = std::make_shared<simple_camera_map>(d_->cams);
 
-    return this->m_callback(cameras, landmarks);
+    return this->m_callback(cameras, landmarks,nullptr);
   }
   return true;
 }

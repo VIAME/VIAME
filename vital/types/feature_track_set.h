@@ -208,6 +208,43 @@ public:
   feature_track_set_frame_data_sptr feature_frame_data(frame_id_t offset = -1) const;
 };
 
+class feature_track_set_changes;
+typedef std::shared_ptr<feature_track_set_changes> feature_track_set_changes_sptr;
+
+class VITAL_EXPORT feature_track_set_changes
+{
+public:
+  struct state_data {
+    state_data(frame_id_t fid, track_id_t tid, bool inlier) :
+      frame_id_(fid), track_id_(tid), inlier_(inlier) { }
+
+    frame_id_t frame_id_;
+    track_id_t track_id_;
+    bool inlier_;
+  };
+
+  feature_track_set_changes() {};
+
+  feature_track_set_changes(std::vector<state_data> const& changes) {
+    m_changes = changes;
+  };
+
+  void clear() { m_changes.clear(); }
+
+  void add_change(frame_id_t fid, track_id_t tid, bool inlier)
+  {
+    m_changes.push_back(state_data(fid, tid, inlier));
+  }
+
+  feature_track_set_changes_sptr clone()
+  {
+    return std::make_shared<feature_track_set_changes>(this->m_changes);
+  }
+
+  std::vector<state_data> m_changes;
+};
+
+
 
 } } // end namespace vital
 

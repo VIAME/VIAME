@@ -177,7 +177,8 @@ public:
   /// Pass through this callback to another callback but cache the return value
   bool pass_through_callback(callback_t cb,
                              camera_map_sptr cams,
-                             landmark_map_sptr lms);
+                             landmark_map_sptr lms,
+                             feature_track_set_changes_sptr track_changes);
 
   void check_inputs(feature_track_set_sptr tracks);
 
@@ -348,6 +349,11 @@ public:
     sfm_constraints_sptr constraints,
     const std::set<frame_id_t> &already_bundled_cams,
     const std::set<frame_id_t> &frames_since_last_local_ba);
+
+  feature_track_set_changes_sptr
+    get_feature_track_changes(
+      feature_track_set_sptr tracks,
+      const simple_camera_perspective_map &cams) const;
 
   bool verbose;
   bool continue_processing;
@@ -531,9 +537,10 @@ bool
 initialize_cameras_landmarks_keyframe::priv
 ::pass_through_callback(callback_t cb,
   camera_map_sptr cams,
-  landmark_map_sptr lms)
+  landmark_map_sptr lms,
+  feature_track_set_changes_sptr track_changes)
 {
-  this->continue_processing = cb(cams, lms);
+  this->continue_processing = cb(cams, lms, track_changes);
   return this->continue_processing;
 }
 
@@ -1728,6 +1735,36 @@ initialize_cameras_landmarks_keyframe::priv
   return beginning_keyframes;
 }
 
+feature_track_set_changes_sptr
+initialize_cameras_landmarks_keyframe::priv
+::get_feature_track_changes(
+  feature_track_set_sptr tracks,
+  const simple_camera_perspective_map &cams) const
+{
+  auto chgs = std::make_shared<feature_track_set_changes>();
+
+  for (auto &cam : cams.simple_perspective_cameras())
+  {
+    auto fid = cam.first;
+    auto at = tracks->active_tracks(fid);
+    for (auto tk : at)
+    {
+      auto tk_it = tk->find(fid);
+      if (tk_it == tk->end())
+      {
+        continue;
+      }
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tk_it);
+      if (!fts)
+      {
+        continue;
+      }
+      chgs->add_change(fid, tk->id(), fts->inlier);
+    }
+  }
+  return chgs;
+}
+
 bool
 initialize_cameras_landmarks_keyframe::priv
 ::initialize_keyframes(
@@ -1763,7 +1800,7 @@ initialize_cameras_landmarks_keyframe::priv
   if (callback)
   {
     continue_processing =
-      callback(cams,std::make_shared<simple_landmark_map>(lms));
+      callback(cams,std::make_shared<simple_landmark_map>(lms),nullptr);
 
     if (!continue_processing)
     {
@@ -1981,8 +2018,9 @@ initialize_cameras_landmarks_keyframe::priv
     }
     if (callback)
     {
+      auto chgs = get_feature_track_changes(tracks, *cams);
       continue_processing =
-        callback(cams,std::make_shared<simple_landmark_map>(lms));
+        callback(cams,std::make_shared<simple_landmark_map>(lms),chgs);
 
       if (!continue_processing)
       {
@@ -2499,8 +2537,9 @@ initialize_cameras_landmarks_keyframe::priv
     if (callback && seconds_since_last_disp > callback_min_period)
     {
       time(&prev_callback_time);
+      auto chgs = get_feature_track_changes(tracks, *cams);
       continue_processing =
-        callback(cams, std::make_shared<simple_landmark_map>(lmks));
+        callback(cams, std::make_shared<simple_landmark_map>(lmks),chgs);
 
       if (!continue_processing)
       {
@@ -2658,9 +2697,10 @@ initialize_cameras_landmarks_keyframe
   {
     using std::placeholders::_1;
     using std::placeholders::_2;
+    using std::placeholders::_3;
     callback_t pcb =
       std::bind(&initialize_cameras_landmarks_keyframe::priv::pass_through_callback,
-                m_priv.get(), this->m_callback, _1, _2);
+                m_priv.get(), this->m_callback, _1, _2, _3);
     m_priv->bundle_adjuster->set_callback(pcb);
   }
 
@@ -2755,9 +2795,10 @@ initialize_cameras_landmarks_keyframe
   {
     using std::placeholders::_1;
     using std::placeholders::_2;
+    using std::placeholders::_3;
     callback_t pcb =
       std::bind(&initialize_cameras_landmarks_keyframe::priv::pass_through_callback,
-                m_priv.get(), cb, _1, _2);
+                m_priv.get(), cb, _1, _2, _3);
     m_priv->bundle_adjuster->set_callback(pcb);
   }
 }
