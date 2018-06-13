@@ -20,4 +20,4 @@ else()
 endif()
 
 install( FILES       ${example_files}
-         DESTINATION examples/annotation_and_visualization )
+         DESTINATION examples/archive_summarization )
