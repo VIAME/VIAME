@@ -54,13 +54,13 @@ Pre-Built Binaries
 
 Installation Manual Coming Soon
 
-Linux:
+**Linux:**
 
 [VIAME v0.9.6 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.5](https://data.kitware.com/api/v1/item/5b20c7748d777f2e6225620d/download)
 
 [VIAME v0.9.4 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5ae9d37e8d777f068579700f/download)
 
-Windows:
+**Windows:**
 
 [VIAME v0.9.3 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5a9d8b218d777f0685785721/download)
 
