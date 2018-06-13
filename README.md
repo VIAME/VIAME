@@ -53,8 +53,8 @@ Pre-Built Binaries
 ------------------
 
 To install, extract the binaries and place them in a directory of your choosing,
-for example C:\Program Files on Windows or /opt/viame on Linux. Alternatively, any directory
-of your choosing.
+for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux. Alternatively,
+any directory of your choosing.
 
 **Linux:**
 
