@@ -42,6 +42,7 @@
 #include <algorithm>
 #include <deque>
 #include <vector>
+
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 
@@ -51,7 +52,7 @@
 
 #include <kwiversys/SystemTools.hxx>
 
-
+#include <svm.h>
 
 using namespace kwiver::vital;
 
@@ -68,8 +69,8 @@ class refine_detections_with_svm::priv
 
   /// Constructor
   priv()
-      : model_dir( "" ),
-        id( 0 )
+    : model_dir( "" ),
+      id( 0 )
   {
   }
 
@@ -83,6 +84,19 @@ class refine_detections_with_svm::priv
 
   /// Variables
   unsigned id;
+
+  /// Vector of models
+  std::vector< svm_model* > models;
+  std::vector< bool > models_first_is_pos;
+  std::vector< std::string > model_labels;
+
+  /// Helpers
+  void dealloc_models();
+  void load_models();
+
+  kwiver::vital::logger_handle_t m_logger;
+
+  std::map<std::string, double> apply_svms( svm_node *x ) const;
 };
 
 
@@ -98,6 +112,64 @@ refine_detections_with_svm
 refine_detections_with_svm
 ::~refine_detections_with_svm()
 {
+  d_->dealloc_models();
+}
+
+
+/// Helper function to deallocate model memory
+void
+refine_detections_with_svm::priv
+::dealloc_models()
+{
+  for( auto p : models )
+  {
+    svm_free_and_destroy_model( &p );
+  }
+
+  models.clear();
+  models_first_is_pos.clear();
+  model_labels.clear();
+}
+
+
+/// Helper function to load models from folder
+void
+refine_detections_with_svm::priv
+::load_models()
+{
+  boost::filesystem::path p( model_dir );
+  boost::filesystem::directory_iterator it{ p };
+
+  boost::regex file_regex( "^.*\\.svm" );
+  boost::cmatch char_matches;
+
+  int *labels = new int[2];
+
+  for (; it != boost::filesystem::directory_iterator {}; ++it)
+  {
+    std::string file_name_with_path = it->path().string().c_str();
+    std::string file_name = (it->path()).filename().string();
+    std::string file_name_no_ext = (it->path()).stem().string();
+
+    LOG_ASSERT(m_logger, boost::regex_match(file_name.c_str(), char_matches, file_regex),
+               "All svm files must have .svm extension");
+
+    svm_model *model = svm_load_model(file_name_with_path.c_str());
+    int num_classes = svm_get_nr_class(model);
+    LOG_ASSERT(m_logger, svm_check_probability_model(model), "Invalid Model");
+
+    // We're expecting a two class problem
+    LOG_ASSERT(m_logger, num_classes == 2, "Invalid Model");
+    svm_get_labels(model, labels);
+    LOG_ASSERT(m_logger, (labels[0] == 1 && labels[1] == -1) ||
+        (labels[0] == -1 && labels[1] == 1), "Invalid Model");
+
+    models.push_back( model );
+    models_first_is_pos.push_back( labels[0] == 1 );
+    model_labels.push_back( file_name_no_ext );
+  }
+
+  delete[] labels;
 }
 
 
@@ -124,6 +196,9 @@ refine_detections_with_svm
   config->merge_config( in_config );
 
   d_->model_dir = config->get_value<std::string>( "model_dir" );
+
+  d_->dealloc_models();
+  d_->load_models();
 }
 
 /// Check that the algorithm's currently configuration is valid
@@ -135,46 +210,19 @@ refine_detections_with_svm
 }
 
 
-std::map<std::string, double> refine_detections_with_svm::apply_svms_from_directory(
-    std::string dir_path, svm_node *x) const {
+std::map<std::string, double>
+refine_detections_with_svm::priv::apply_svms( svm_node *x ) const
+{
+  std::map< std::string, double > result;
 
-  LOG_ASSERT(logger(), boost::filesystem::is_directory(dir_path) == true,
-             "Invalid path");
-
-  boost::filesystem::path p(dir_path);
-  boost::filesystem::directory_iterator it{p};
-
-  boost::regex file_regex("^.*\\.svm");
-  boost::cmatch char_matches;
-
-  int *labels = new int[2];
-  std::map <std::string, double> result;
-
-  for (; it != boost::filesystem::directory_iterator {}; ++it) {
-    std::string file_name_with_path = it -> path().string().c_str();
-    std::string file_name = (it -> path()).filename().string();
-
-    LOG_ASSERT(logger(), boost::regex_match(file_name.c_str(), char_matches, file_regex),
-               "All svm files must have .svm extension");
-
-    svm_model *model = svm_load_model(file_name_with_path.c_str());
-    int num_classes = svm_get_nr_class(model);
-    LOG_ASSERT(logger(), svm_check_probability_model(model), "Invalid Model");
-
-    // We're expecting a two class problem
-    LOG_ASSERT(logger(), num_classes == 2, "Invalid Model");
-    svm_get_labels(model, labels);
-    LOG_ASSERT(logger(), (labels[0] == 1 && labels[1] == -1) ||
-        (labels[0] == -1 && labels[1] == 1), "Invalid Model");
-
+  for( unsigned i = 0; i < models.size(); ++i )
+  {
     double *prob_estimates = new double[2];
-    svm_predict_probability(model, x, prob_estimates);
-
-    result[file_name] = labels[0] == 1 ? prob_estimates[0] : prob_estimates[1];
+    svm_predict_probability( models[i], x, prob_estimates );
+    result[ model_labels[i] ] = models_first_is_pos[i] ? prob_estimates[0] : prob_estimates[1];
     delete[] prob_estimates;
-    svm_free_and_destroy_model(&model);
   }
-  delete[] labels;
+
   return result;
 }
 
@@ -192,23 +240,26 @@ refine_detections_with_svm
 
   for( auto det : *detections )
   {
-    std::vector<double> descriptor_vector = det -> descriptor()-> as_double();
+    std::vector<double> descriptor_vector = det->descriptor()->as_double();
+
     size_t descriptor_size = descriptor_vector.size();
     svm_node *svm_nodes = new svm_node[descriptor_size];
 
-    for( size_t i = 0; i < descriptor_size; ++i ) {
+    for( size_t i = 0; i < descriptor_size; ++i )
+    {
       svm_nodes[i].index = i + 1;
       svm_nodes[i].value = descriptor_vector.at(i);
     }
-    std::string md = d_->model_dir;
-    typedef  std::map<std::string, double> Map;
 
-    Map res = apply_svms_from_directory(md, svm_nodes);
+    typedef std::map<std::string, double> result_map;
+	result_map res = d_->apply_svms( svm_nodes );
 
-    // Set detected object type using map
-    for(Map::iterator it = res.begin(); it != res.end(); ++it) {
-      det -> type() -> set_score(it -> first, it -> second);
+    // Set output detected object type using map
+    for(result_map::iterator it = res.begin(); it != res.end(); ++it)
+    {
+      det->type()->set_score( it->first, it->second );
     }
+
     delete[] svm_nodes;
   }
 

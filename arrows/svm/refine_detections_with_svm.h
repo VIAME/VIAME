@@ -40,8 +40,6 @@
 
 #include <vital/algo/refine_detections.h>
 
-#include <svm.h>
-
 namespace kwiver {
 namespace arrows {
 namespace svm {
@@ -81,10 +79,7 @@ public:
 
 private:
 
-  std::map<std::string, double> apply_svms_from_directory
-      (std::string dir_path, svm_node *x) const;
-
-  /// private implementation class
+  /// Private implementation class
   class priv;
   const std::unique_ptr<priv> d_;
 };
