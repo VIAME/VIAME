@@ -32,4 +32,10 @@ if( NOT WIN32 AND VIAME_ENABLE_CAFFE )
                  ${VIAME_BUILD_INSTALL_PREFIX}/lib/libleveldb.so.1 )
 endif()
 
+# SVM install tree quick hacks
+if( NOT WIN32 AND VIAME_ENABLE_SMQTK )
+  CreateSymlink( ${VIAME_BUILD_INSTALL_PREFIX}/lib/libsvm.so.2
+                 ${VIAME_BUILD_INSTALL_PREFIX}/lib/libsvm.so )
+endif()
+
 message("Done")
