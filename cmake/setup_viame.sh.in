@@ -18,8 +18,8 @@ export VIDTK_MODULE_PATH=$this_dir/lib/modules
 # paths for python
 @SETUP_PYTHON_LIBRARY_PATH@
 export PYTHONPATH=$this_dir/python:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python2.7/dist-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/python3.6/site-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/python3.6m/site-packages:$PYTHONPATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
 # set default log level
@@ -29,5 +29,5 @@ export KWIVER_DEFAULT_LOG_LEVEL=debug
 @SETUP_MATLAB_LIBRARY_PATH@
 
 # paths for adding exes to path (must occur after python and matlab)
-export PATH=$this_dir/bin:$PATH
+export PATH=$this_dir/bin:/opt/noaa/python3/lib:$PATH
 @SETUP_LIBRARY_PATH@
