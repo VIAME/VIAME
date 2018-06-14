@@ -70,7 +70,7 @@ class refine_detections_with_svm::priv
   /// Constructor
   priv()
     : model_dir( "" ),
-      id( 0 )
+      override_original( true )
   {
   }
 
@@ -83,7 +83,7 @@ class refine_detections_with_svm::priv
   std::string model_dir;
 
   /// Variables
-  unsigned id;
+  bool override_original;
 
   /// Vector of models
   std::vector< svm_model* > models;
@@ -182,6 +182,8 @@ refine_detections_with_svm
 
   config->set_value( "model_dir", d_->model_dir,
                      "The directory where the SVM models are placed." );
+  config->set_value( "override_original", d_->override_original,
+                     "Replace original scores with new scores." );
 
   return config;
 }
@@ -196,6 +198,7 @@ refine_detections_with_svm
   config->merge_config( in_config );
 
   d_->model_dir = config->get_value<std::string>( "model_dir" );
+  d_->override_original = config->get_value<bool>( "override_original" );
 
   d_->dealloc_models();
   d_->load_models();
@@ -252,13 +255,26 @@ refine_detections_with_svm
     }
 
     typedef std::map<std::string, double> result_map;
-	result_map res = d_->apply_svms( svm_nodes );
+    result_map res = d_->apply_svms( svm_nodes );
 
     // Set output detected object type using map
-    for(result_map::iterator it = res.begin(); it != res.end(); ++it)
+    detected_object_type_sptr new_type;
+
+    if( d_->override_original || !det->type() )
     {
-      det->type()->set_score( it->first, it->second );
+      new_type = std::make_shared< detected_object_type >();
     }
+    else
+    {
+      new_type = det->type();
+    }
+
+    for( result_map::iterator it = res.begin(); it != res.end(); ++it )
+    {
+      new_type->set_score( it->first, it->second );
+    }
+
+    det->set_type( new_type );
 
     delete[] svm_nodes;
   }
