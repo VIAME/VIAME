@@ -38,38 +38,37 @@
 /// return the hamming_distance between two descriptors
 float kwiver::vital::hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2)
 {
-  auto dv1 = std::static_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d1);
-  auto dv2 = std::static_pointer_cast<vital::descriptor_dynamic<unsigned char>>(d2);
+  // Bit set count operation from
+  // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
 
-  if (dv1 && dv2)
+  const int d1_bytes = d1->num_bytes();
+
+  if (d1_bytes % 4)
   {
-    // Bit set count operation from
-    // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-
-    if (dv1->size() % 4)
-    {
-      throw vital::invalid_value("Descriptor must be a multiple of four bytes long.");
-    }
-    const int num_ints_long(dv1->size() / 4);
-
-
-    const int *pa = (int*)dv1->raw_data();
-    const int *pb = (int*)dv2->raw_data();
-
-    int dist = 0;
-
-    for (int i = 0; i < num_ints_long; i++, pa++, pb++)
-    {
-      unsigned  int v = *pa ^ *pb;
-      v = v - ((v >> 1) & 0x55555555);
-      v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
-      dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
-    }
-
-    return dist;
+    throw vital::invalid_value("Descriptor must be a multiple of four bytes long.");
   }
-  else
+
+  const int d2_bytes = d2->num_bytes();
+  if (d1_bytes != d2_bytes)
   {
-    throw vital::invalid_data("One or both descriptors cannot be cast to descriptor_dynamic<<unsigned char>>");
+    throw vital::invalid_value("Descriptors must be the same number of bytes long");
   }
+
+  const int num_ints_long(d1_bytes / 4);
+
+  const int *pa = reinterpret_cast<const int*>(d1->as_bytes());
+  const int *pb = reinterpret_cast<const int*>(d2->as_bytes());
+
+  int dist = 0;
+
+  for (int i = 0; i < num_ints_long; i++, pa++, pb++)
+  {
+    unsigned  int v = *pa ^ *pb;
+    v = v - ((v >> 1) & 0x55555555);
+    v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+    dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
+  }
+
+  return dist;
+
 }

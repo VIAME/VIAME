@@ -109,8 +109,6 @@ void test_conversions(const cv::Mat& data)
       ASSERT_EQ( data.cols, static_cast<int>( desc[i]->size() ) );
 
       auto const& vals = desc[i]->as_double();
-      auto const& byte_vals = desc[i]->as_bytes();
-      ASSERT_EQ( desc[i]->num_bytes(), byte_vals.size() );
 
       cv::Mat row = double_data.row(i);
       ASSERT_TRUE( std::equal(vals.begin(), vals.end(), row.begin<double>() ) );

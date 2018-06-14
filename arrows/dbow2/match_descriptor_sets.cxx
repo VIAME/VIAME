@@ -428,12 +428,13 @@ cv::Mat
 match_descriptor_sets::priv
 ::descriptor_to_mat(descriptor_sptr desc) const
 {
-  std::vector<kwiver::vital::byte> desc_bytes = desc->as_bytes();
-  cv::Mat desc_mat = cv::Mat(1, static_cast<int>(desc_bytes.size()), CV_8UC1);
-  unsigned int bn = 0;
-  for (auto b : desc_bytes)
+  const byte *db = desc->as_bytes();
+  auto const num_bytes = desc->num_bytes();
+  cv::Mat desc_mat = cv::Mat(1, static_cast<int>(num_bytes), CV_8UC1);
+
+  for(int bn = 0; bn < num_bytes; ++bn, ++db)
   {
-    desc_mat.at<unsigned char>(0, bn++) = b;
+    desc_mat.at<unsigned char>(0, bn) = *db;
   }
   return desc_mat;
 }

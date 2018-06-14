@@ -35,6 +35,7 @@
 
 #include <map>
 #include <algorithm>
+#include <iterator>
 
 #include "close_loops_appearance_indexed.h"
 
@@ -120,6 +121,8 @@ public:
   /// The maximum number of times to attempt to complete a loop with each new frame
   int m_max_loop_attempts_per_frame;
 
+  // If this or more tracks ids are shared between two frames then don't attempt to close the loop
+  int m_tracks_in_common_to_skip_loop_closing;
 };
 
 //-----------------------------------------------------------------------------
@@ -129,7 +132,8 @@ close_loops_appearance_indexed::priv
   : m_f_estimator(),
   m_min_loop_inlier_matches(50),
   m_geometric_verification_inlier_threshold(2.0),
-  m_max_loop_attempts_per_frame(5)
+  m_max_loop_attempts_per_frame(5),
+  m_tracks_in_common_to_skip_loop_closing(50)
 {
 }
 
@@ -145,7 +149,6 @@ close_loops_appearance_indexed::priv
     if (f->descriptor && f->descriptor->node_id() != std::numeric_limits<unsigned int>::max())
     {
       auto node_id = f->descriptor->node_id();
-      //node_id = 0; //TEMP TEST CODE
       auto fm_it = fm.find(node_id);
       if (fm_it != fm.end())
       {
@@ -174,6 +177,7 @@ close_loops_appearance_indexed::priv
 
   std::map<track_id_t, feature_track_state_sptr> track_to_vb_state;
 
+  // store mapping from track id to feature track state from vb
   for (auto match_feat : vb)
   {
     track_to_vb_state[match_feat->track()->id()] = match_feat;
@@ -186,10 +190,14 @@ close_loops_appearance_indexed::priv
     int dist2 = max_int;
     vital::feature_track_state_sptr best_match = nullptr;
 
+    // see if this track id already has a vb feature track state associate with it
     auto it = track_to_vb_state.find(cur_feat->track()->id());
     if(it != track_to_vb_state.end())
     {
+        // The two features are already from the same track.  So, they are
+        // a match.  Add them to matches.
         matches.push_back(fs_match(cur_feat, it->second));
+        // There is no need to search vb for additional matches.
         break;
     }
 
@@ -226,12 +234,7 @@ close_loops_appearance_indexed::priv
 {
   auto cur_frame_fts = feat_tracks->frame_feature_track_states(frame_number);
 
-  frame_id_t earliest_frame_with_track_to_current = frame_number;
-  for (auto fts : cur_frame_fts)
-  {
-    earliest_frame_with_track_to_current =
-      std::min(earliest_frame_with_track_to_current, fts->track()->first_frame());
-  }
+  auto cur_frame_track_ids = feat_tracks->active_track_ids(frame_number);
 
   int num_successfully_matched_pairs = 0;
 
@@ -241,16 +244,24 @@ close_loops_appearance_indexed::priv
   for (auto fn_match : putative_matches)
   {
 
-    if (fn_match >= earliest_frame_with_track_to_current)
-    {
-      //exclude frames with tracks already linked to this one
-      continue;
-    }
-
     if (fn_match == frame_number)
     {
       continue; // no sense matching an image to itself
     }
+
+    //get active tracks on fn match
+    auto match_frame_track_ids = feat_tracks->active_track_ids(fn_match);
+    std::set<track_id_t> tracks_in_common;
+    std::set_intersection(cur_frame_track_ids.begin(), cur_frame_track_ids.end(),
+                          match_frame_track_ids.begin(), match_frame_track_ids.end(),
+                          std::inserter(tracks_in_common, tracks_in_common.begin()));
+
+    if (tracks_in_common.size() >= m_tracks_in_common_to_skip_loop_closing)
+    {
+      continue;
+    }
+
+    // how many tracks to fn_match and frame_number have in common?  Too many?  Don't match.
 
     ++num_loops_attempted;
     if (num_loops_attempted >= m_max_loop_attempts_per_frame)
@@ -297,11 +308,7 @@ close_loops_appearance_indexed::priv
         {
           if (m_f.first == m_r.second && m_f.second == m_r.first)
           {
-            if (m_f.first->track()->id() != m_f.second->track()->id())
-            {
-              //only include matches that aren't already from the same track.
-              validated_matches.push_back(m_f);
-            }
+            validated_matches.push_back(m_f);
             break;
           }
         }
@@ -619,6 +626,10 @@ close_loops_appearance_indexed
     d_->m_max_loop_attempts_per_frame,
     "the maximum number of loop closure attempts to make per frame");
 
+  config->set_value("tracks_in_common_to_skip_loop_closing",
+    d_->m_tracks_in_common_to_skip_loop_closing,
+    "is this or more tracks are in common between two frames then don't try to complete a loop with them");
+
   return config;
 }
 
@@ -663,6 +674,10 @@ close_loops_appearance_indexed
   d_->m_max_loop_attempts_per_frame =
     config->get_value<int>("max_loop_attempts_per_frame",
       d_->m_max_loop_attempts_per_frame);
+
+  d_->m_tracks_in_common_to_skip_loop_closing =
+    config->get_value<int>("tracks_in_common_to_skip_loop_closing",
+      d_->m_tracks_in_common_to_skip_loop_closing);
 }
 
 //-----------------------------------------------------------------------------

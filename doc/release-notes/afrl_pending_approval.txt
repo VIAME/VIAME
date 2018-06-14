@@ -36,6 +36,8 @@ Arrows - Core
  * Added a new video_input implementation, video_input_splice, that
    splices multiple video sources together into a single video source. 
 
+ * Improved the efficiency of loop closing and descriptor comparision.
+   
 Arrows - Ceres
 
  * Added ability to fix either cameras or landmarks in bundle adjustment.
@@ -44,6 +46,8 @@ Arrows - Ceres
    landmarks.
 
  * Added option to necker reverse only the cameras but not the landmarks.
+ 
+General - 
 
  * Improved speed of klt/ORB feature tracking by choosing which features
    to track and match with visual vocabulary node ID.  Made klt feature 
