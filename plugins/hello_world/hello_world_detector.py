@@ -76,7 +76,7 @@ class hello_world_detector(KwiverProcess):
         in_img = in_img_c.image()
 
         # Print out text to screen
-        print("Text: " + str( self.text ))
+        print( "Text: " + str( self.text )) 
 
         # push dummy detections object to output port
         detections = DetectedObjectSet()

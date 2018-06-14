@@ -59,14 +59,14 @@ class hello_world_filter(KwiverProcess):
 
     # ----------------------------------------------
     def _configure(self):
-        print "[DEBUG] ----- configure"
+        print( "[DEBUG] ----- configure" )
         self.text = self.config_value('text')
 
         self._base_configure()
 
     # ----------------------------------------------
     def _step(self):
-        print "[DEBUG] ----- start step"
+        print( "[DEBUG] ----- start step" )
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
@@ -74,7 +74,7 @@ class hello_world_filter(KwiverProcess):
         in_img = in_img_c.get_image()
 
         # Print out text to screen
-        print "Text: " + str( self.text )
+        print( "Text: " + str( self.text ) )
 
         # push dummy image object (same as input) to output port
         self.push_to_port_using_trait('out_image', ImageContainer(in_img))
