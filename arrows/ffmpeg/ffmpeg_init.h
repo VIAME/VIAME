@@ -28,8 +28,8 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef ffmpeg_init_h_
-#define ffmpeg_init_h_
+#ifndef FFMPEG_INIT_H_
+#define FFMPEG_INIT_H_
 
 // ---------------------------------------------------------------------------
 /**
@@ -41,5 +41,5 @@
 */
 void ffmpeg_init();
 
-#endif // ffmpeg_init_h_
+#endif // FFMPEG_INIT_H_
 

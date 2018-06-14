@@ -667,7 +667,7 @@ ffmpeg_video_input
 {
   if (!this->good())
   {
-    return{};
+    return {};
   }
 
   // We don't always have all components of a timestamp, so start with
