@@ -29,5 +29,6 @@ export KWIVER_DEFAULT_LOG_LEVEL=debug
 @SETUP_MATLAB_LIBRARY_PATH@
 
 # paths for adding exes to path (must occur after python and matlab)
-export PATH=$this_dir/bin:/opt/noaa/python3/lib:$PATH
+export PATH=$this_dir/bin:$PATH
 @SETUP_LIBRARY_PATH@
+export LD_LIBRARY_PATH=/opt/noaa/python3/lib:$LD_LIBRARY_PATH
