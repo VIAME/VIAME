@@ -39,7 +39,8 @@
 #include <arrows/svm/kwiver_algo_svm_export.h>
 
 #include <vital/algo/refine_detections.h>
-#include <libsvm/svm.h>
+
+#include <svm.h>
 
 namespace kwiver {
 namespace arrows {
