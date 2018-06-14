@@ -37,9 +37,11 @@
 
 #include <arrows/serialize/json/bounding_box.h>
 #include <arrows/serialize/json/detected_object_type.h>
+#include <arrows/serialize/json/detected_object.h>
 
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object_type.h>
+#include <vital/types/detected_object.h>
 
 namespace kasj = kwiver::arrows::serialize::json;
 
@@ -103,6 +105,52 @@ TEST( serialize, detected_object_type )
     EXPECT_EQ( *(o_it->first), *(d_it->first) );
     EXPECT_EQ( o_it->second, d_it->second );
   }
+}
 
-  // EXPECT_EQ( dot, dot_dser );
+// ----------------------------------------------------------------------------
+TEST( serialize, detected_object )
+{
+  kasj::detected_object obj_ser; // get serializer
+
+  auto dot = std::make_shared<kwiver::vital::detected_object_type>();
+
+  dot->set_score( "first", 1 );
+  dot->set_score( "second", 10 );
+  dot->set_score( "third", 101 );
+  dot->set_score( "last", 121 );
+
+  auto obj = std::make_shared< kwiver::vital::detected_object>(
+    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, dot );
+  obj->set_detector_name( "test_detector" );
+  obj->set_index( 1234 );
+
+  kwiver::vital::any obj_any( obj );
+  auto mes = obj_ser.serialize( obj_any );
+
+  // std::cout << "Serialized dot: \"" << *mes << "\"\n";
+
+  auto dser = obj_ser.deserialize( mes );
+  auto obj_dser = kwiver::vital::any_cast< kwiver::vital::detected_object_sptr >( dser );
+
+  EXPECT_EQ( obj->bounding_box(), obj_dser->bounding_box() );
+  EXPECT_EQ( obj->index(), obj_dser->index() );
+  EXPECT_EQ( obj->confidence(), obj_dser->confidence() );
+  EXPECT_EQ( obj->detector_name(), obj_dser->detector_name() );
+
+  dot = obj->type();
+  if (dot)
+  {
+    auto dot_dser = obj_dser->type();
+
+    EXPECT_EQ( dot->size(), dot_dser->size() );
+
+    auto o_it = dot->begin();
+    auto d_it = dot_dser->begin();
+
+    for (size_t i = 0; i < dot->size(); ++i )
+    {
+      EXPECT_EQ( *(o_it->first), *(d_it->first) );
+      EXPECT_EQ( o_it->second, d_it->second );
+    }
+  }
 }

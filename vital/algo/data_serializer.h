@@ -56,6 +56,11 @@ namespace algo {
  * actually doing the serialization depends on the concrete
  * implementation.
  *
+ * It is expected that implementations of this interface will not
+ * require any implementation specific configuration parameters. This
+ * is because the implementation is selected at run time based on the
+ * data type of the port connections.
+ *
  * The serializer is stateless and idempotent.
  *
  * The main application for this algorithm is to serialize data
