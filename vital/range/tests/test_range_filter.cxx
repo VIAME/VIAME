@@ -39,6 +39,8 @@
 
 #include <gtest/gtest.h>
 
+#include <set>
+
 using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------
@@ -46,6 +48,22 @@ int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
   return RUN_ALL_TESTS();
+}
+
+// ----------------------------------------------------------------------------
+TEST(range_filter, empty)
+{
+  auto const empty_set = std::set< int >{};
+  auto my_filter = []( int ){ return true; };
+
+  int counter = 0;
+  for ( auto x : empty_set | range::filter( my_filter ) )
+  {
+    static_cast< void >( x );
+    ++counter;
+  }
+
+  EXPECT_EQ( 0, counter );
 }
 
 // ----------------------------------------------------------------------------

@@ -50,6 +50,36 @@ int main(int argc, char** argv)
 }
 
 // ----------------------------------------------------------------------------
+TEST(range_valid, empty)
+{
+  auto test_values = std::vector< int >{};
+
+  auto counter = int{ 0 };
+  for ( auto x : test_values | range::valid )
+  {
+    static_cast< void >( x );
+    ++counter;
+  }
+
+  EXPECT_EQ( 0, counter );
+}
+
+// ----------------------------------------------------------------------------
+TEST(range_valid, none)
+{
+  auto test_values = std::vector< bool >{ false, false };
+
+  auto counter = int{ 0 };
+  for ( auto x : test_values | range::valid )
+  {
+    static_cast< void >( x );
+    ++counter;
+  }
+
+  EXPECT_EQ( 0, counter );
+}
+
+// ----------------------------------------------------------------------------
 TEST(range_valid, basic)
 {
   auto test_values = std::vector< std::shared_ptr< int > >{
