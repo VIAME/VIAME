@@ -80,6 +80,8 @@ public:
 
     iterator& operator++();
 
+    operator bool() const { return m_iter != m_end; }
+
   protected:
     friend class valid_view;
     iterator( range_iterator_t const& iter,
@@ -108,7 +110,7 @@ valid_view< Range >
 ::begin() const
 {
   auto iter = iterator{ m_range.begin(), m_range.end() };
-  return ( !!( *iter ) ? iter : ++iter );
+  return ( iter && !!( *iter ) ? iter : ++iter );
 }
 
 // ----------------------------------------------------------------------------
