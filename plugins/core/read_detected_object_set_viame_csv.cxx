@@ -89,9 +89,6 @@ public:
   // Map of detected objects indexed by frame name. Each set
   // contains all detections for a single frame.
   std::map< std::string, kwiver::vital::detected_object_set_sptr > m_detection_by_str;
-
-  // Compilation of all loaded detection id to type strings.
-  std::map< int, std::string > m_detection_ids;
 };
 
 
@@ -130,7 +127,7 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 // -----------------------------------------------------------------------------------
 bool
 read_detected_object_set_viame_csv::
-read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name )
+read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -261,33 +258,28 @@ read_all()
     // Create detection
     kwiver::vital::detected_object_sptr dob;
 
-    if( m_detection_ids.empty() )
-    {
-      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
-    }
-    else
-    {
-      kwiver::vital::detected_object_type_sptr dot =
-        std::make_shared<kwiver::vital::detected_object_type>();
+    kwiver::vital::detected_object_type_sptr dot =
+      std::make_shared<kwiver::vital::detected_object_type>();
 
-      for( unsigned i = COL_TOT; i < col.size(); i+=2 )
+    for( unsigned i = COL_TOT; i < col.size(); i+=2 )
+    {
+      if( col.size() < i + 2 )
       {
-        if( col.size() < i + 2 )
-        {
-          std::stringstream str;
-          str << "Every species pair must contain a confidence; error "
-              << "at\n\"" << line << "\"";
-          throw kwiver::vital::invalid_data( str.str() );
-        }
-
-        std::string spec_id = col[i];
-        double spec_conf = atof( col[i+1].c_str() );
-
-        dot->set_score( spec_id, spec_conf );
+        std::stringstream str;
+        str << "Every species pair must contain a confidence; error "
+            << "at\n\"" << line << "\"";
+        throw kwiver::vital::invalid_data( str.str() );
       }
 
-      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+      std::string spec_id = col[i];
+      std::cout << "!!B " << spec_id << std::endl;
+
+      double spec_conf = atof( col[i+1].c_str() );
+
+      dot->set_score( spec_id, spec_conf );
     }
+
+    dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
 
     // Add detection to set for the frame
     m_detection_by_id[frame_id]->add( dob );
