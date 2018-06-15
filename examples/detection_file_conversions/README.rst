@@ -26,18 +26,22 @@ New formats can be integrated to the system by implementing a derived version of
 vital::algo::detected_object_set_input class in C++, or via making a python process which
 produces detected_object_sets or object_track_sets.
 
-| **CSV - Default Comma Seperated Value Detection Format**
+| **Default CSV - Default Comma Seperated Value Detection Format**
 | 
 |  The default CSV format contains 1 detection per line, with each line as follows:
 |
-|   - 1: frame number
-|   - 2: file name
-|   - 3: TL-x (top left of the image is the origin: 0,0)
-|   - 4: TL-y
-|   - 5: BR-x
-|   - 6: BR-y
-|   - 7: detection confidence
-|   - 8,9+  : class-name  score (this pair may be omitted or repeated)
+|   - 1: Detection or Track Unique ID
+|   - 2: Video or Image String Identifier
+|   - 3: Unique Frame Integer Identifier
+|   - 4: TL-x (top left of the image is the origin: 0,0)
+|   - 5: TL-y
+|   - 6: BR-x
+|   - 7: BR-y
+|   - 8: Detection Confidence (how likely is this actually an object)
+|   - 9: Target Length
+|   - 10,11+  : class-name  score (this pair may be omitted or repeated)
+|
+|  This file format is supported by most GUIs and detector training tools.
 |
 | **KW18 - Kitware KW18 Column Seperated Track Format**
 |
@@ -65,6 +69,20 @@ produces detected_object_sets or object_track_sets.
 |     201503.20150517.png,527,scallop,"""line"": [[458, 970], [521, 1021]]"
 |
 |   which is more or less the same, just formatted differently.
+|
+| **Detection CSV (Deprecated) - Additional Comma Seperated Value Detection Format**
+|
+|  A detection only CSV format contains 1 detection per line, with each line as follows:
+|
+|   - 1: frame number
+|   - 2: file name
+|   - 3: TL-x (top left of the image is the origin: 0,0)
+|   - 4: TL-y
+|   - 5: BR-x
+|   - 6: BR-y
+|   - 7: detection confidence
+|   - 8,9+  : class-name  score (this pair may be omitted or repeated)
+|
 
 *******************
 Example Conversions
