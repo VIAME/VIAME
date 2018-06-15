@@ -24,7 +24,7 @@ def replace_str_in_file( input_fn, output_fn, repl_array ):
   inputf = open( input_fn )
   outputf = open( output_fn, 'w' )
   all_lines = []
-  for s in inputf.xreadlines():
+  for s in list( inputf ):
     all_lines.append( s )
   for repl in repl_array:
     for i, s in enumerate( all_lines ):
