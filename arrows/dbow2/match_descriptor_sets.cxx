@@ -366,15 +366,9 @@ match_descriptor_sets::priv
     throw vital::invalid_file(training_image_list,
       "unable to open training image file");
   }
-
-  int ln_num = 0;
+  
   while (std::getline(im_list, line))
   {
-    if (ln_num++ != 10)
-    {
-      continue;
-    }
-    ln_num = 0;
     image_container_sptr im = m_image_io->load(line);
     LOG_INFO(m_logger, "Extracting features for image " + line);
 
