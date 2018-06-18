@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2014-2018 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -19,6 +19,7 @@
 #include <vgl/vgl_box_2d.h>
 #include <vgl/vgl_point_3d.h>
 #include <vital/types/timestamp.h>
+#include <vital/types/uid.h>
 
 namespace kwiver {
 namespace track_oracle {
@@ -43,6 +44,9 @@ TRACK_ORACLE_EXPORT bool kwiver_ts_string_read( const std::string& frame_str,
                                                 vital::timestamp& t );
 TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, vital::timestamp& ts );
 TRACK_ORACLE_EXPORT std::ostream& kwiver_write( std::ostream& os, const vital::timestamp& ts );
+
+TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, vital::uid& uid );
+TRACK_ORACLE_EXPORT std::ostream& kwiver_write( std::ostream& os, const vital::uid& uid );
 
 TRACK_ORACLE_EXPORT bool kwiver_read( const std::string& s, kpf_cset_type& cset );
 TRACK_ORACLE_EXPORT std::ostream&  kwiver_write( std::ostream& os, const kpf_cset_type& cset );
