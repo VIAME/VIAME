@@ -87,7 +87,7 @@ track_features_augment_keyframes
   auto track_states = tracks->frame_states(frame_number);
   auto new_feat = tracks->frame_features(frame_number);
 
-  //describe the features
+  //describe the features.  Note this will recalculate the feature angles.
   vital::descriptor_set_sptr new_desc =
     d_->extractor->extract(image_data, new_feat, mask);
 
@@ -104,8 +104,10 @@ track_features_augment_keyframes
     for (auto ts : track_states)
     {
       auto fts = std::static_pointer_cast<feature_track_state>(ts);
-      if (*fts->feature == *feat)
+      if (fts && fts->feature && fts->feature->equal_except_for_angle(*feat))
       {
+        //feature must be set because extract will have calculated a new feature angle
+        fts->feature = feat;
         fts->descriptor = desc;
         break;
       }

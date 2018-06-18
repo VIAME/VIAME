@@ -98,6 +98,17 @@ public:
            this->covar() == other.covar();
   }
 
+  bool equal_except_for_angle(feature const& other) const
+  {
+    return this->data_type() == other.data_type() &&
+           this->loc() == other.loc() &&
+           this->scale() == other.scale() &&
+           this->magnitude() == other.magnitude() &&
+           this->color() == other.color() &&
+           this->covar() == other.covar();
+  }
+
+
   /// Inequality operator
   bool operator!=( feature const& other ) const
   {
