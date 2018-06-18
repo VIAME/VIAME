@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_CORE_VIDEO_INPUT_SPLIT_H
-#define ARROWS_CORE_VIDEO_INPUT_SPLIT_H
+#ifndef ARROWS_CORE_VIDEO_INPUT_SPLICE_H
+#define ARROWS_CORE_VIDEO_INPUT_SPLICE_H
 
 #include <vital/algo/video_input.h>
 
@@ -39,28 +39,26 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// Video input that pulls image and metadata inputs from different sources.
-// ----------------------------------------------------------------
+// ---------------------------------------------------------------------------
+/// Video input that splices frames together from multiple video input sources.
 /**
- * This class implements a video input algorithm that holds two other video
- * input algorithms and pulls imagery from one and metadata from the other.
+ * This class implements a video input algorithm that splices multiple video
+ * input sources together into a single source.
  */
-class KWIVER_ALGO_CORE_EXPORT video_input_split
-  : public vital::algorithm_impl < video_input_split, vital::algo::video_input >
+class KWIVER_ALGO_CORE_EXPORT video_input_splice
+  : public vital::algorithm_impl < video_input_splice, vital::algo::video_input >
 {
 public:
   /// Name of the algorithm
-  static constexpr char const* name = "split";
+  static constexpr char const* name = "splice";
 
   /// Description of the algorithm
   static constexpr char const* description =
-    "Coordinate two video readers."
-    " One reader supplies the image/data stream."
-    " The other reader supplies the metadata stream.";
+    "Splices multiple video sources together.";
 
   /// Constructor
-  video_input_split();
-  virtual ~video_input_split();
+  video_input_splice();
+  virtual ~video_input_splice();
 
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -92,10 +90,6 @@ public:
   virtual kwiver::vital::metadata_map_sptr metadata_map();
 
 private:
-  kwiver::vital::timestamp merge_timestamps(
-    kwiver::vital::timestamp const& image_ts,
-    kwiver::vital::timestamp const& metadata_ts ) const;
-
   /// private implementation class
   class priv;
   const std::unique_ptr<priv> d;
@@ -103,4 +97,4 @@ private:
 
 } } } // end namespace
 
-#endif // ARROWS_CORE_VIDEO_INPUT_SPLIT_H
+#endif // ARROWS_CORE_VIDEO_INPUT_SPLICE_H
