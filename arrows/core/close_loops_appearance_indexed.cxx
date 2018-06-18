@@ -198,7 +198,7 @@ close_loops_appearance_indexed::priv
         // a match.  Add them to matches.
         matches.push_back(fs_match(cur_feat, it->second));
         // There is no need to search vb for additional matches.
-        break;
+        continue;
     }
 
     for (auto match_feat : vb)
