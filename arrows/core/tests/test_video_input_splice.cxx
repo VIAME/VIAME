@@ -197,6 +197,9 @@ TEST_F(video_input_splice, next_frame)
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
   }
+
+  EXPECT_FALSE (vis.next_frame(ts) );
+  EXPECT_TRUE( vis.end_of_video() );
   EXPECT_EQ( num_expected_frames, num_frames );
   EXPECT_EQ( num_expected_frames, vis.num_frames() );
 }

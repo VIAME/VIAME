@@ -340,6 +340,11 @@ video_input_splice
   bool status = false;
   kwiver::vital::timestamp::frame_t frame_number = 1;
 
+  if ( this->end_of_video() )
+  {
+    return status;
+  }
+
   do
   {
     status = (*d->d_active_source)->next_frame(ts, timeout);
