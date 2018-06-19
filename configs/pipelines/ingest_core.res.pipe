@@ -115,8 +115,6 @@ process kwa_writer
   :compress_image                             true
   :static/gsd[ro]                             common:fixed_gsd
   :static/corner_points[ro]                   0 0 0 0 0 0 0 0
-  :fixed_col_count                            4000
-  :fixed_row_count                            4000
 
 connect from downsampler.timestamp
         to   kwa_writer.timestamp
