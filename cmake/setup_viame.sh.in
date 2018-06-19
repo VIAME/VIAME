@@ -15,11 +15,13 @@ export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
 export VG_PLUGIN_PATH=$this_dir
 export VIDTK_MODULE_PATH=$this_dir/lib/modules
 
-# paths for python
+# excessive paths for python
 @SETUP_PYTHON_LIBRARY_PATH@
 export PYTHONPATH=$this_dir/python:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python2.7/site-packages:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python2.7/dist-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@/site-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@m/site-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@/dist-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@m/dist-packages:$PYTHONPATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
 # set default log level
