@@ -2441,7 +2441,7 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<landmark_id_t> variable_landmark_ids = find_visible_landmarks_in_frames(lmks, tracks, frames_since_last_local_ba);
   std::vector<frame_id_t> removed_cams;
   clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
-    empty_frames, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
+    frames_since_last_local_ba, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
 
   for (auto rem_fid : removed_cams)
   {
@@ -2454,7 +2454,7 @@ initialize_cameras_landmarks_keyframe::priv
   bundle_adjuster->optimize(*cams, variable_landmarks, tracks, frames_to_fix, empty_landmark_id_set, constraints);
 
   clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
-    empty_frames, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
+    frames_since_last_local_ba, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
 
   for (auto rem_fid : removed_cams)
   {
