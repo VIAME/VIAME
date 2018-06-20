@@ -19,16 +19,20 @@ new annotations in video. There are additionally simpler GUIs which can be enabl
 files that are a part of KWIVER. For examples on how to run both of these GUIs see the
 "annotation_and_visualization" example folder. vpView doesn't load imagery by default,
 but instead loads project files (details below) which are simple text files pointing to imagery,
-groundtruth, and/or homographies for the input data. If you just want to use the tool to make
-annotations you don't need to specify the later two, and just need to set a DataSetSpecifier.
+groundtruth, computed detections, and/or homographies for the input data. If you just want to
+use the tool to make annotations you don't need to specify the later three, and just need to
+set a DataSetSpecifier.
 
-
+There are 2 default run scripts in this folder. "run_vpview" launches the main vpview
+annotation and results display GUI while "run_pipe_display" runs the simpler in-pipeline
+display GUI.
 
 **********************************
 vpView Annotation Process Overview
 **********************************
 
 | `Manual Annotation Guide (PDF)`_
+|
 | `Example Video Overview (MP4)`_
 
 .. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5b20cb448d777f2e62256215/download
@@ -38,9 +42,10 @@ vpView Annotation Process Overview
 vpView GUI Project File Overview
 ********************************
 
-vpView does not open videos directory, but instead open prj files containing a pointer
+vpView does not open videos directly, but instead opens prj files containing a pointer
 to any imagery and detections we want to load. Listed below are the parameters available in
-the vpView prj file:
+the vpView prj file as a quick reference. For those not familiary with the tool, downloading the
+above manual is best.
 
 Note: The list is not complete, but currently focusing on the most used (and new) parameters
 
