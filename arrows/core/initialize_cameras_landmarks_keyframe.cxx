@@ -1846,15 +1846,6 @@ initialize_cameras_landmarks_keyframe::priv
 
     added_frame_queue.push_back(next_frame_id);
 
-    // we just resectioned this camera so we can try all the previously
-    // failed frames again.
-    for (auto ffid : m_frames_removed_from_sfm_solution)
-    {
-      frames_to_resection.insert(ffid);
-    }
-    //remove all the failed to resection images.  We will try them again.
-    m_frames_removed_from_sfm_solution.clear();
-
     frames_to_resection.erase(next_frame_id);
 
     {
