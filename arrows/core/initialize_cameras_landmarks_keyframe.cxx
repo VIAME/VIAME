@@ -381,6 +381,7 @@ public:
   double m_reverse_ba_error_ratio;
   bool m_enable_BA_callback;
   bool m_solution_was_fit_to_constraints;
+  int m_max_cams_in_keyframe_init;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -402,7 +403,8 @@ initialize_cameras_landmarks_keyframe::priv
   m_rng(m_rd()),
   m_reverse_ba_error_ratio(2.0),
   m_enable_BA_callback(false),
-  m_solution_was_fit_to_constraints(false)
+  m_solution_was_fit_to_constraints(false),
+  m_max_cams_in_keyframe_init(20)
 {
 
   }
@@ -1801,7 +1803,7 @@ initialize_cameras_landmarks_keyframe::priv
   {
     auto chgs = get_feature_track_changes(tracks, *cams);
     continue_processing =
-      callback(cams,std::make_shared<simple_landmark_map>(lms), chgs);
+      callback(cams, std::make_shared<simple_landmark_map>(lms), chgs);
 
     if (!continue_processing)
     {
@@ -1828,7 +1830,8 @@ initialize_cameras_landmarks_keyframe::priv
 
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
-  while (!frames_to_resection.empty() && cams->size() < 40)
+  while (!frames_to_resection.empty() &&
+         (m_max_cams_in_keyframe_init < 0 || cams->size() < m_max_cams_in_keyframe_init))
   {
     frame_id_t next_frame_id = select_next_camera(frames_to_resection, cams, lms, tracks);
     if (next_frame_id == -1)
@@ -2646,6 +2649,10 @@ initialize_cameras_landmarks_keyframe
                     "The skew factor of the base camera model.\n"
                     "This is almost always zero in any real camera.");
 
+  config->set_value("max_cams_in_keyframe_init", m_priv->m_max_cams_in_keyframe_init,
+    "the maximum number of cameras to reconstruct in initialization step before"
+    " switching to resectioning remaining cameras.");
+
   // nested algorithm configurations
   vital::algo::estimate_essential_matrix
       ::get_nested_algo_configuration("essential_mat_estimator",
@@ -2715,6 +2722,11 @@ initialize_cameras_landmarks_keyframe
   m_priv->final_reproj_thresh =
       config->get_value<double>("final_reproj_thresh",
                                 m_priv->final_reproj_thresh);
+
+  m_priv->m_max_cams_in_keyframe_init =
+    config->get_value<int>("max_cams_in_keyframe_init",
+      m_priv->m_max_cams_in_keyframe_init);
+
 
   m_priv->zoom_scale_thresh =
       config->get_value<double>("zoom_scale_thresh",
