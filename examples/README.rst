@@ -1,13 +1,14 @@
 
-=======================
-Example Folder Overview
-=======================
+========================
+Examples Folder Overview
+=======================-
 
-In the '[install]/examples' folder, there are a number of folders, with each folder corresponding
+In the '[install]/examples' folder, there are a number of subfolders, with each folder corresponding
 to a different core functionality. The scripts in each of these folders can be copied to and run
-from any directory on your computer, the only item requiring change in the script is the
-'VIAME_INSTALL' path at the top of the given run script. These scripts can be opened and edited in
-any text editor to point the VIAME_INSTALL path to the location of your installed (or built) binaries.
+from any directory on your computer, the only item requiring change being the 'VIAME_INSTALL' path at
+the top of the each run script. These scripts can be opened and edited in any text editor to point
+the VIAME_INSTALL path to the location of your installed (or built) binaries. This is true on both
+Windows, Linux, and Mac.
 
 Each example is run in a different fashion, but there are 3 core commands you need to know in
 order to run them on Linux:
@@ -23,7 +24,7 @@ up, alongside a lone 'ls' command to list all files in the current directory.
 
 To run the examples on Windows, you just need to be able to run (double click) the .bat scripts
 in the given directories. Additionally, knowing how to make a list of files, e.g. 'dir > filename.txt'
-on the windows command line can also be useful.
+on the windows command line can also be useful for processing custom image lists.
 
 
 =======================
