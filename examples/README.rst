@@ -1,26 +1,34 @@
 
-========================
-Example Run Instructions
-========================
+=======================
+Example Folder Overview
+=======================
 
 In the '[install]/examples' folder, there are a number of directories, each folder corresponding
-to a core functionality. The scripts in each of these folders can be copied to and run from any
-directory on your computer, the only thing needing to change in the script is the 'VIAME_INSTALL'
-path at the top of the given run script. This can be opened and edited in any text editor.
+to a different core functionality. The scripts in each of these folders can be copied to and run
+from any directory on your computer, the only item requiring change in the script is the
+'VIAME_INSTALL' path at the top of the given run script. These scripts can be opened and edited in
+any text editor to point the VIAME_INSTALL path to the location of your installed (or built) binaries.
 
 Each example is run in a different fashion, but there are 3 core commands you need to know in
 order to run them on Linux:
 
 'bash' - for running commands, e.g. 'bash run_annotation_gui.sh' which launches the application
 
-'ls' - for making file lists of images to process, e.g. 'ls *.png > input_list.txt'
+'ls' - for making file lists of images to process, e.g. 'ls *.png > input_list.txt' to list all
+png image files in a folder
 
-'cd' - go into an example directory, e.g. 'cd annotation_and_visualization'
+'cd' - go into an example directory, e.g. 'cd annotation_and_visualization' to move down into the
+annotation_and_visualization directory. 'cd ..' is another useful command which moves one directory
+up, alongside a lone 'ls' command to list all files in the current directory.
+
+To run the examples on Windows, you just need to be able to run (double click) the .bat scripts
+in the given directories. Additionally, knowing how to make a list of files, e.g. 'dir > filename.txt'
+on the windows command line can also be useful.
 
 
-===========================
-Example System Capabilities
-===========================
+=======================
+Key System Capabilities
+=======================
 
 ****************
 Object Detection
