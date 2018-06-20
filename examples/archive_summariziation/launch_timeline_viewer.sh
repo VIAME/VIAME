@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export VIAME_INSTALL_DIR=./../..
+export VIAME_INSTALL=./../..
 
-source ${VIAME_INSTALL_DIR}/setup_viame.sh
+source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL_DIR}/configs/launch_track_viewer.py
+python ${VIAME_INSTALL}/configs/launch_track_viewer.py

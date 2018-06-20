@@ -3,7 +3,7 @@
 Example Folder Overview
 =======================
 
-In the '[install]/examples' folder, there are a number of directories, each folder corresponding
+In the '[install]/examples' folder, there are a number of folders, with each folder corresponding
 to a different core functionality. The scripts in each of these folders can be copied to and run
 from any directory on your computer, the only item requiring change in the script is the
 'VIAME_INSTALL' path at the top of the given run script. These scripts can be opened and edited in

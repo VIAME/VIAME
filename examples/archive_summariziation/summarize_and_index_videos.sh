@@ -1,10 +1,10 @@
 #!/bin/sh
 
-export VIAME_INSTALL_DIR=./../..
+export VIAME_INSTALL=./../..
 
-source ${VIAME_INSTALL_DIR}/setup_viame.sh
+source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL_DIR}/configs/ingest_video.py --init -d INPUT_DIRECTORY \
+python ${VIAME_INSTALL}/configs/ingest_video.py --init -d INPUT_DIRECTORY \
   --detection-plots -species fish -threshold 0.25 -frate 2 -smooth 2 \
   -p pipelines/ingest_video.mouss_index.pipe --build-index --ball-tree
 
