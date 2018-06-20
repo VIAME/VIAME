@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run vpView
 
-pipeline_runner -p display_annotation.pipe
+pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/display_annotation.pipe

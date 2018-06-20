@@ -12,7 +12,7 @@ process image_reader
 # ==================================================================
 process read_annotations
   :: detected_object_input
-  :file_name                  example_annotations.csv
+  :file_name                  example_output.csv
   :reader:type                viame_csv
 
 # ==================================================================
