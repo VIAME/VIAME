@@ -10,7 +10,8 @@ set( example_files
 if( WIN32 )
   set( example_files
        ${example_files}
-       run_vpview.bat )
+       run_vpview.bat
+       run_pipe_display.bat )
 elseif( APPLE )
   set( example_files
        ${example_files}
