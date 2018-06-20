@@ -58,9 +58,9 @@ any directory of your choosing.
 
 **Linux:**
 
-[VIAME v0.9.6 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.5](https://data.kitware.com/api/v1/item/5b20c7748d777f2e6225620d/download)
-
 [VIAME v0.9.6 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.12](https://data.kitware.com/api/v1/item/5b2ab6b98d777f2e62257ad1/download)
+
+[VIAME v0.9.6 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.5](https://data.kitware.com/api/v1/item/5b20c7748d777f2e6225620d/download)
 
 **Windows:**
 
