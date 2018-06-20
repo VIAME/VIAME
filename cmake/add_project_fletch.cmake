@@ -182,6 +182,7 @@ ExternalProject_Add(fletch
     -DMSVC_VERSION=${MSVC_VERSION}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DVIAME_ENABLE_CAFFE=${VIAME_ENABLE_CAFFE}
+    -DVIAME_ENABLE_SMQTK=${VIAME_ENABLE_SMQTK}
     -P ${VIAME_SOURCE_DIR}/cmake/custom_fletch_install.cmake
   )
 
