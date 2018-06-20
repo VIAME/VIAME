@@ -257,7 +257,7 @@ close_loops_appearance_indexed::priv
                           match_frame_track_ids.begin(), match_frame_track_ids.end(),
                           std::inserter(tracks_in_common, tracks_in_common.begin()));
 
-    if (tracks_in_common.size() >= m_tracks_in_common_to_skip_loop_closing)
+    if (tracks_in_common.size() > m_tracks_in_common_to_skip_loop_closing)
     {
       continue;
     }
