@@ -134,7 +134,7 @@ close_loops_appearance_indexed::priv
   m_min_loop_inlier_matches(50),
   m_geometric_verification_inlier_threshold(2.0),
   m_max_loop_attempts_per_frame(5),
-  m_tracks_in_common_to_skip_loop_closing(50)
+  m_tracks_in_common_to_skip_loop_closing(0)
 {
 }
 
