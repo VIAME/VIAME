@@ -1,0 +1,3 @@
+python:
+  version: 2
+requirements_file: doc/manuals/requirements.txt
