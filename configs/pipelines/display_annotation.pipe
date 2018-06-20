@@ -13,7 +13,7 @@ process image_reader
 process read_annotations
   :: detected_object_input
   :file_name                  example_annotations.csv
-  :reader:type                csv
+  :reader:type                viame_csv
 
 # ==================================================================
 process draw_box
@@ -24,7 +24,7 @@ process draw_box
 process disp
   :: image_viewer
  :annotate_image              true
- :pause_time                  100.0
+ :pause_time                  4.0
 
 # ================================================================
 # global pipeline config

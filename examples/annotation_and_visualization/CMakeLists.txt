@@ -3,7 +3,6 @@
 ##
 
 set( example_files
-  display_annotation.pipe
   example_output.csv
   example_vpview.prj
   input_list.txt )
