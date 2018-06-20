@@ -78,6 +78,8 @@ public:
                         vital::feature_track_set_sptr tracks,
                         vital::sfm_constraints_sptr constraints = nullptr) const;
 
+  using vital::algo::bundle_adjust::optimize;
+
 private:
   // private implementation class
   class priv;

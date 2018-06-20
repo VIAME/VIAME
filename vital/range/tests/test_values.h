@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_DARKNET_TRAINER
-#define KWIVER_ARROWS_DARKNET_TRAINER
+namespace {
 
-
-#include <arrows/darknet/kwiver_algo_darknet_export.h>
-
-#include <vital/algo/train_detector.h>
-
-namespace kwiver {
-namespace arrows {
-namespace darknet {
-
-// ----------------------------------------------------------------
-/**
- * @brief Darknet Training Utility Class
- */
-class KWIVER_ALGO_DARKNET_EXPORT darknet_trainer
-  : public vital::algorithm_impl<darknet_trainer, vital::algo::train_detector>
-{
-public:
-
-  darknet_trainer();
-  virtual ~darknet_trainer();
-
-  virtual vital::config_block_sptr get_configuration() const;
-
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
-
-  virtual void
-  train_from_disk(vital::category_hierarchy_sptr object_labels,
-    std::vector< std::string > train_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-    std::vector< std::string > test_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
-
-private:
-
-  class priv;
-  const std::unique_ptr<priv> d;
+int const test_values[] = {
+   0,  4,  3, 12,
+   1, 13,  4,  9,
+   1,  4, 15,  8,
+  11, 14,  3,  1,
+   0,  0, 10, 12,
+  14,  9,  9, 10,
+   1,  3,  4,  5,
+  14,  4, 13,  6
 };
 
-} } }
-
-#endif /* KWIVER_ARROWS_DARKNET_TRAINER */
+}

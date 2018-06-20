@@ -109,9 +109,59 @@ set_config(kwiver::vital::config_block_sptr config, std::string const& data_dir)
 }
 
 // ----------------------------------------------------------------------------
+TEST_F(video_input_splice, is_good)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_splice vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  vis.open( list_file );
+
+  kwiver::vital::timestamp ts;
+
+  EXPECT_FALSE( vis.good() );
+
+  // open the video
+  vis.open( list_file );
+  EXPECT_FALSE( vis.good() );
+
+  // step one frame
+  vis.next_frame( ts );
+  EXPECT_TRUE( vis.good() );
+
+  // close the video
+  vis.close();
+  EXPECT_FALSE( vis.good() );
+
+  // Reopen the video
+  vis.open( list_file );
+
+  int num_frames = 0;
+  while ( vis.next_frame( ts ) )
+  {
+    ++num_frames;
+    EXPECT_TRUE( vis.good() )
+      << "Video state on frame " << ts.get_frame();
+  }
+  EXPECT_EQ( num_expected_frames, num_frames );
+
+  EXPECT_FALSE( vis.good() );
+}
+
+// ----------------------------------------------------------------------------
 TEST_F(video_input_splice, next_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -147,13 +197,17 @@ TEST_F(video_input_splice, next_frame)
     EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
   }
+
+  EXPECT_FALSE (vis.next_frame(ts) );
+  EXPECT_TRUE( vis.end_of_video() );
   EXPECT_EQ( num_expected_frames, num_frames );
   EXPECT_EQ( num_expected_frames, vis.num_frames() );
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_splice, seek_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -176,9 +230,10 @@ TEST_F(video_input_splice, seek_frame)
   vis.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_splice, seek_then_next_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -201,9 +256,10 @@ TEST_F(video_input_splice, seek_then_next_frame)
   vis.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_splice, next_then_seek_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -226,9 +282,36 @@ TEST_F(video_input_splice, next_then_seek_frame)
   vis.close();
 }
 
+// ----------------------------------------------------------------------------
+TEST_F(video_input_splice, next_then_seek_then_next)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_splice vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vis.open( list_file );
+
+  test_next_then_seek_then_next( vis );
+
+  vis.close();
+}
+
+// ----------------------------------------------------------------------------
 TEST_F(video_input_splice, metadata_map)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -269,9 +352,10 @@ TEST_F(video_input_splice, metadata_map)
   vis.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_splice, next_frame_nth_frame_output)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   config->set_value( "output_nth_frame", nth_frame_output );
@@ -317,9 +401,10 @@ TEST_F(video_input_splice, next_frame_nth_frame_output)
   }
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_splice, seek_frame_nth_frame_output)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   config->set_value( "output_nth_frame", nth_frame_output );
@@ -347,7 +432,7 @@ TEST_F(video_input_splice, seek_frame_nth_frame_output)
     {4, 10, 13, 22, 49};
   for (auto requested_frame : valid_seeks)
   {
-    EXPECT_TRUE( vis.seek_frame( ts, requested_frame) );
+    ASSERT_TRUE( vis.seek_frame( ts, requested_frame) );
 
     auto img = vis.frame_image();
 
@@ -372,7 +457,7 @@ TEST_F(video_input_splice, seek_frame_nth_frame_output)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_splice, test_capabilities)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )

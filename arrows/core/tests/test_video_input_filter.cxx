@@ -112,7 +112,7 @@ set_config(kwiver::vital::config_block_sptr config, std::string const& data_dir)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, read_list)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -166,7 +166,7 @@ TEST_F(video_input_filter, read_list)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, read_list_subset)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -219,9 +219,10 @@ TEST_F(video_input_filter, read_list_subset)
     << num_expected_frames_subset;
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_filter, seek_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -244,9 +245,10 @@ TEST_F(video_input_filter, seek_frame)
   vif.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_filter, seek_then_next_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -269,9 +271,10 @@ TEST_F(video_input_filter, seek_then_next_frame)
   vif.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_filter, next_then_seek_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -294,9 +297,10 @@ TEST_F(video_input_filter, next_then_seek_frame)
   vif.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_filter, metadata_map)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -351,9 +355,10 @@ TEST_F(video_input_filter, metadata_map)
   vif.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_filter, seek_frame_sublist)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -379,9 +384,10 @@ TEST_F(video_input_filter, seek_frame_sublist)
   vif.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_filter, metadata_map_sublist)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )
@@ -445,7 +451,7 @@ TEST_F(video_input_filter, metadata_map_sublist)
 // ----------------------------------------------------------------------------
 TEST_F(video_input_filter, test_capabilities)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   if( !set_config(config, data_dir) )

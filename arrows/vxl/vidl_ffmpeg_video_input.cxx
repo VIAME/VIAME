@@ -704,7 +704,7 @@ vidl_ffmpeg_video_input
         break;
       }
 
-      frame_num++;
+      ++frame_num;
     }
 
     d->d_frame_number = frame_num;

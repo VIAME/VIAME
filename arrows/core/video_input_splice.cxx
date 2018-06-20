@@ -43,19 +43,21 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-std::string source_name(size_t n)
+// ----------------------------------------------------------------
+static std::string source_name(size_t n)
 {
   return "video_source_" + std::to_string(n);
 }
 
+// ----------------------------------------------------------------
 class video_input_splice::priv
 {
 public:
   priv() :
   c_frame_skip( 1 ),
-  d_has_timeout(false),
-  d_is_seekable(false),
-  d_frame_offset(0)
+  d_has_timeout( false ),
+  d_is_seekable( false ),
+  d_frame_offset( 0 )
   { }
 
   // Configuration values
@@ -187,8 +189,6 @@ video_input_splice
 
   d->d_is_seekable = is_seekable;
   d->d_has_timeout = has_timeout;
-
-  d->d_active_source = d->d_video_sources.begin();
 }
 
 
@@ -241,18 +241,13 @@ video_input_splice
 
   while ( stream_reader.getline( filepath ) && vs_iter != d->d_video_sources.end() )
   {
-    if ( ! kwiversys::SystemTools::FileExists( filepath ) )
-    {
-      filepath = kwiversys::SystemTools::FindFile( filepath, d->d_search_path, true );
-      if ( filepath.empty() )
-      {
-        throw kwiver::vital::
-          file_not_found_exception( filepath, "could not locate file in path" );
-      }
-    }
+    filepath = kwiversys::SystemTools::FindFile( filepath, d->d_search_path, true );
     (*vs_iter)->open( filepath );
     ++vs_iter;
   }
+
+  d->d_active_source = d->d_video_sources.begin();
+  d->d_frame_offset = 0;
 
   if ( vs_iter != d->d_video_sources.end() )
   {
@@ -274,7 +269,7 @@ video_input_splice
 ::close()
 {
   // Close all the sources
-  for (auto vs: d->d_video_sources)
+  for ( auto vs : d->d_video_sources )
   {
     if ( vs )
     {
@@ -283,10 +278,6 @@ video_input_splice
   }
 
   d->d_metadata_map.clear();
-
-  d->d_frame_offset = 0;
-  d->d_has_timeout = false;
-  d->d_is_seekable = false;
 }
 
 
@@ -304,7 +295,7 @@ bool
 video_input_splice
 ::good() const
 {
-  if ( *d->d_active_source )
+  if ( d->d_active_source != d->d_video_sources.end() && *d->d_active_source )
   {
     return (*d->d_active_source)->good();
   }
@@ -314,6 +305,7 @@ video_input_splice
   }
 }
 
+
 // ------------------------------------------------------------------
 bool
 video_input_splice
@@ -321,6 +313,7 @@ video_input_splice
 {
   return d->d_is_seekable;
 }
+
 
 // ------------------------------------------------------------------
 size_t
@@ -337,21 +330,20 @@ video_input_splice
   return num_frames;
 }
 
+
 // ------------------------------------------------------------------
 bool
 video_input_splice
 ::next_frame( kwiver::vital::timestamp& ts,   // returns timestamp
               uint32_t                  timeout )
 {
-  // if timeout is not supported by both sources
-  // then do not pass a time out value to either
-  if ( ! d->d_has_timeout )
-  {
-    timeout = 0;
-  }
-
   bool status = false;
   kwiver::vital::timestamp::frame_t frame_number = 1;
+
+  if ( this->end_of_video() )
+  {
+    return status;
+  }
 
   do
   {
@@ -363,21 +355,24 @@ video_input_splice
       // Move to next source if needed
       if ( (*d->d_active_source)->end_of_video() )
       {
-        (*d->d_active_source)->seek_frame(ts, 1, timeout);
         d->d_frame_offset += (*d->d_active_source)->num_frames();
-        d->d_active_source++;
+        ++d->d_active_source;
         if ( d->d_active_source != d->d_video_sources.end() )
         {
+          if ( (*d->d_active_source)->seekable() )
+          {
+            (*d->d_active_source)->seek_frame(ts, 1, timeout);
+          }
           if ( ! (*d->d_active_source)->good() )
           {
             status = (*d->d_active_source)->next_frame(ts, timeout);
-            frame_number = ts.get_frame() + d->d_frame_offset;
           }
           else
           {
             ts = (*d->d_active_source)->frame_timestamp();
             status = true;
           }
+          frame_number = ts.get_frame() + d->d_frame_offset;
         }
       }
     }
@@ -388,6 +383,7 @@ video_input_splice
   return status;
 } // video_input_splice::next_frame
 
+
 // ------------------------------------------------------------------
 bool
 video_input_splice
@@ -396,12 +392,6 @@ video_input_splice
               uint32_t                  timeout )
 {
   bool status = false;
-  // if timeout is not supported by all sources
-  // then do not pass a time out value to active source
-  if ( ! d->d_has_timeout )
-  {
-    timeout = 0;
-  }
 
   // Check if requested frame would have been skipped
   if ( ( frame_number - 1 ) % d->c_frame_skip != 0 )
@@ -417,7 +407,6 @@ video_input_splice
   {
     if ( frame_number <= (*vs_iter)->num_frames() + frames_prior )
     {
-      (*d->d_active_source)->seek_frame( ts, 1, timeout );
       d->d_active_source = vs_iter;
       d->d_frame_offset = frames_prior;
       status =
@@ -434,19 +423,31 @@ video_input_splice
   return status;
 } // video_input_splice::seek_frame
 
+
 // ------------------------------------------------------------------
 kwiver::vital::timestamp
 video_input_splice
 ::frame_timestamp() const
 {
+  if ( this->end_of_video() )
+  {
+    return {};
+  }
+
   return (*d->d_active_source)->frame_timestamp();
 }
+
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
 video_input_splice
 ::frame_image()
 {
+  if ( this->end_of_video() )
+  {
+    return nullptr;
+  }
+
   return (*d->d_active_source)->frame_image();
 }
 
@@ -456,9 +457,16 @@ kwiver::vital::metadata_vector
 video_input_splice
 ::frame_metadata()
 {
+  if ( this->end_of_video() )
+  {
+    return {};
+  }
+
   return (*d->d_active_source)->frame_metadata();
 }
 
+
+// ----------------------------------------------------------------
 kwiver::vital::metadata_map_sptr
 video_input_splice
 ::metadata_map()
@@ -466,16 +474,14 @@ video_input_splice
   if ( d->d_metadata_map.empty() && d->d_video_sources.size() > 0 )
   {
     auto frame_offset = 0;
-    for ( auto vs_iter = d->d_video_sources.begin();
-          vs_iter != d->d_video_sources.end();
-          vs_iter++ )
+    for ( auto const& vs  : d->d_video_sources )
     {
-      auto curr_metadata = (*vs_iter)->metadata_map()->metadata();
+      auto curr_metadata = vs->metadata_map()->metadata();
       for ( auto const& md : curr_metadata )
       {
-        d->d_metadata_map[md.first + frame_offset] = md.second;
+        d->d_metadata_map.emplace(md.first + frame_offset, md.second);
       }
-      frame_offset += (*vs_iter)->num_frames();
+      frame_offset += vs->num_frames();
     }
   }
   return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);

@@ -103,4 +103,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_SPLIT_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_SPLIT_H

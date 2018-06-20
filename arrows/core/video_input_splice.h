@@ -39,8 +39,8 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
+// ---------------------------------------------------------------------------
 /// Video input that splices frames together from multiple video input sources.
-// ----------------------------------------------------------------
 /**
  * This class implements a video input algorithm that splices multiple video
  * input sources together into a single source.
@@ -97,4 +97,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_SPLICE_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_SPLICE_H
