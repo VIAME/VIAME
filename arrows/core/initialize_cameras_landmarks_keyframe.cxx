@@ -2486,14 +2486,18 @@ initialize_cameras_landmarks_keyframe::priv
 
   while(!frames_to_register.empty())
   {
-    if (!constraints_to_ba && fit_reconstruction_to_constraints(cams, lmks, tracks, constraints))
+    if (fit_reconstruction_to_constraints(cams, lmks, tracks, constraints))
     {
       constraints_to_ba = constraints;
+    }
+    else
+    {
+      constraints_to_ba = nullptr;
     }
 
     frame_id_t fid_to_register;
 
-    if (!initialize_next_camera(cams, lmks, tracks, constraints_to_ba, fid_to_register, frames_to_register, already_registred_cams))
+    if (!initialize_next_camera(cams, lmks, tracks, nullptr, fid_to_register, frames_to_register, already_registred_cams))
     {
       continue;
     }
