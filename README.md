@@ -35,7 +35,7 @@ but select entries are also listed below, which include some run examples:
 
 
 [Build and Install Guide](examples/building_and_installing_viame) <> 
-[KWIVER Overview](https://github.com/Kitware/kwiver) <> 
+[All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
 [Object Detector Examples](examples/object_detection) <br />
 [Stereo Measurement Examples](examples/measurement_using_stereo) <> 
@@ -45,9 +45,9 @@ but select entries are also listed below, which include some run examples:
 [Example Plugin Templates](plugins/templates) <> 
 [GUIs for Visualization and Annotation](examples/annotation_and_visualization) <> 
 [Detector Training API](examples/object_detector_training) <br />
-[Video Search for Object Matching and Model Generation](examples/search_and_rapid_model_generation) <> 
-[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation)
-
+[Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <> 
+[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <>
+[KWIVER Overview](https://github.com/Kitware/kwiver)
 
 Pre-Built Binaries
 ------------------
