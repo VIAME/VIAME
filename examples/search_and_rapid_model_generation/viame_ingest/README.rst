@@ -19,8 +19,8 @@ covering image search on top of an archive of videos or images.
 |
 | Building and running this examples requires: 
 |
-|  (a) The python packages: numpy, pymongo
-|  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL and VIVIA enabled.
+|  (a) The python packages: numpy, pymongo, torch, torchvision, matplotlib, and python-tk
+|  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL, PYTORCH, and VIVIA enabled.
 
 An arbitrary tracking pipeline is used to first generate spatio-temporal object tracks
 representing object candidate locations in video. Descriptors are generated around these
@@ -28,5 +28,7 @@ object tracks, which get indexed into a database and can be queried upon. By ind
 which query results are correct, a model can be trained for a new object category and
 saved to an output file to be reused again in future pipelines or query requests.
 
-First, db_init.sh should be called to initialize a new database. Next 'ingest_video.sh'
-in order to pre-process a video or image sequence of your choice.
+First, create_searchable_index.sh should be called to initialize a new database, and populate it
+with descriptors around generic objects to be queried upon. Next 'launch_query_gui.sh' should be
+called to launch the GUI, new query->image exemplar should be selected, and finally, results
+annotated as either correct or incorrect.
