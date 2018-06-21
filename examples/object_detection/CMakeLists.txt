@@ -24,7 +24,6 @@ if( VIAME_ENABLE_YOLO )
   endif()
 endif()
 
-
 if( VIAME_ENABLE_MATLAB )
   if( NOT WIN32 )
     set( EXAMPLE_INSTALL_FILES

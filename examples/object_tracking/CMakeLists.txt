@@ -11,7 +11,7 @@ if( WIN32 )
        ${EXAMPLE_INSTALL_FILES}
        run_simple_tracker.bat
        run_tut_tracker.bat
-       run_track_viewer.bat
+       run_track_viewer.bat )
 elseif( APPLE )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
