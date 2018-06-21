@@ -137,7 +137,7 @@ connect from track_associator.unused_detections
 
 process track_writer
   :: write_object_track
-  :file_name                        output_tracks.csv
+  :file_name                        output/object_tracks.csv
   :writer:type                      viame_csv
   :writer:stream_identifier         input_list.txt
 
