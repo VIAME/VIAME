@@ -7,8 +7,8 @@ Length Measurement Examples
    :scale: 60
    :align: center
 
-Running the Demo (WIP)
-======================
+Running the Demo
+================
 
 This section corresponds to `this example online`_, in addition to the
 measurement_using_stereo example folder in a VIAME installation. This folder contains
@@ -26,11 +26,10 @@ Setup:
 ------
 
 Make sure you build VIAME with `VIAME_ENABLE_PYTHON=True` and
-`VIAME_ENABLE_CAMTRAWL=True`.  (For development it is useful to set
-`VIAME_SYMLINK_PYTHON=True`)
+`VIAME_ENABLE_CAMTRAWL=True`.
 
 For simplicity this tutorial will assume that the VIAME source directory is
-`~/code/VIAME` and the build directory is `~/code/VIAME/build`. Please modify
+`[viame-source]` and the build directory is `[viame-build]`. Please modify
 these as needeed to match your system setup. We also assume that you have built
 VIAME.
 
@@ -48,7 +47,7 @@ runner:
 ::
 
     # First move to the example directory
-    cd ~/code/VIAME/examples/measurement_using_stereo
+    cd [viame-source]/examples/measurement_using_stereo
 
     # The below script runs pipeline runner on the measurement_example.pipe
     bash run_measurer.sh
@@ -66,7 +65,7 @@ The above pipeline can alternatively be run as a python script.
 ::
 
     # move to your VIAME build directory
-    cd ~/code/VIAME/build
+    cd [viame-build]
     # Run the setup script to setup the proper paths and environment variables
     source install/setup_viame.sh
 
@@ -104,7 +103,7 @@ VIAME)
 ::
 
     # First move to the example directory
-    cd ~/code/VIAME/examples/measurement_using_stereo
+    cd [viame-source]/examples/measurement_using_stereo
 
     # Run the camtrawl module directly via the path
     python ../../plugins/camtrawl/python/viame/processes/camtrawl \

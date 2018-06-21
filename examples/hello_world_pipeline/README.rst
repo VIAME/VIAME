@@ -8,26 +8,27 @@ alongside `these example plugin templates`_. Additionally, all of the last can b
 [viame-install]/examples/hello_world_pipeline folder,
 [viame-source]/plugins/hello_world folder,
 and [viame-source]/plugins/templates folder in a VIAME installation, respectively.
-Throughout these folders are example object detectors, image filters, and image classifiers
-written in python and C++.
+Throughout these folders are example object detectors, image filters, and image classifier
+implementations written in both Python and C++.
 
 .. _this runable example: https://github.com/Kitware/VIAME/tree/master/examples/hello_world_pipeline
 .. _these example simple plugins: https://github.com/Kitware/VIAME/tree/master/plugins/hello_world
 .. _these example plugin templates: https://github.com/Kitware/VIAME/tree/master/plugins/templates
 
 
-*******************
-C++ Detector Plugin
-*******************
+**********************************
+Simple C++ Detector Plugin Example
+**********************************
 
-A new detector plugin is added by creating a class that implements the
+A new detector plugin can be added by creating a class that implements the
 kwiver::vital::algo::image_object_detector interface. This interface
-is defined in an abstract base class in file vital/algo/image_object_detector.h
+is defined in an abstract base class in file vital/algo/image_object_detector.h.
+Similar interfaces exist for several other types of functions.
 
 The directory `plugins/templates/cxx` contains files that can be used
 as a starting point for implementing new detectors. These files
 contain markers in the form `@text@` that are to be replaced with the
-strings related to your new detector.
+string (the title) of your new detector.
 
 All files in that directory should be copied to a new directory and
 renamed as appropriate. The files template_detector.{cxx,h} should be
@@ -44,8 +45,8 @@ personalize the detector.
 detector. Can be the same name as the detector.
 
 @template_dir@ - name of the source subdirectory containing the detector
-files. For example if the detector is in the directory plugins/fin_fish_detector,
-then 'template_dir' should be replaced with 'fin_fish_detector'.
+files. For example if the detector is in the directory plugins/ex_fish_detector,
+then 'template_dir' should be replaced with 'ex_fish_detector'.
 
 The place holders also appear in capital letters indicating that the
 replacement string should be capitalized.
@@ -55,7 +56,7 @@ VIAME framework is to convert the input image from the VIAME format to
 the format needed by the detector, and to convert the detections to a
 detected_object_set as needed by the framework.
 
-Many detectors take images in OpenCV MAT format. This data structure
+Many detectors take images in OpenCV matrix format. This data structure
 can be extracted from the image_container_sptr that is available using
 the following code:
 

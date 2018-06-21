@@ -412,3 +412,9 @@ raw_function.hpp doesn't get installed for some reason on some systems. Manually
 to
 
 ``[VIAME_BUILD]/install/include/boost/python/``
+
+==================================
+Installing from Pre-Built Binaries
+==================================
+
+Coming soon....
