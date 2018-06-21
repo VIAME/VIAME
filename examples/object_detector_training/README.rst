@@ -35,7 +35,7 @@ file structures.
 | ......groundtruth.gt
 |
 | where groundtruth can be in any file format for which a
-"detected_object_set_input" implementation exists (e.g. kw18, habcam),
+"detected_object_set_input" implementation exists (e.g. noaa_csv, kw18, habcam),
 and labels.txt contains a list of output categories (one per line) for
 the trained detection model. "labels.txt" can also contain any alternative
 names in the groundtruth which map back to the same output category label.
