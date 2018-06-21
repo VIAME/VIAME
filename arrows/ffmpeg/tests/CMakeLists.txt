@@ -7,4 +7,4 @@ set(test_libraries     kwiver_algo_ffmpeg)
 ##############################
 # Algorithms ffmpeg tests
 ##############################
-kwiver_discover_gtests(ffmpeg ideo_input_ffmpeg LIBRARIES ${test_libraries} ARGUMENTS "${kwiver_test_data_directory}")
+kwiver_discover_gtests(ffmpeg video_input_ffmpeg LIBRARIES ${test_libraries} ARGUMENTS "${kwiver_test_data_directory}")

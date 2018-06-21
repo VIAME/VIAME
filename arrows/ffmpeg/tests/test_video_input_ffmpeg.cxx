@@ -165,3 +165,45 @@ TEST_F(ffmpeg_video_input, frame_image)
 
   EXPECT_EQ(decode_barcode(*frame), 1);
 }
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, seek)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+  EXPECT_TRUE(input.seekable()) << "Seekable";
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  EXPECT_FALSE(input.good())
+    << "Video state before open";
+
+  // open the video
+  input.open(correct_file);
+  EXPECT_FALSE(input.good())
+    << "Video state after open but before first frame";
+  EXPECT_EQ(input.frame_image(), nullptr) << "Video should not have an image yet";
+
+  kwiver::vital::timestamp ts;
+
+  // Test various valid seeks
+  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
+  { 3, 23, 46, 34, 50, 1 };
+  for (auto requested_frame : valid_seeks)
+  {
+    EXPECT_TRUE(input.seek_frame(ts, requested_frame));
+    EXPECT_EQ(requested_frame, ts.get_frame())
+      << "Frame number should match seek request";
+
+    auto img = input.frame_image();
+    EXPECT_EQ(ts.get_frame(), decode_barcode(*img))
+      << "Frame number should match barcode in frame image";
+  }
+  // Test various invalid seeks past end of video
+  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
+  { -3, -1, 0, 51, 55 };
+  for (auto requested_frame : in_valid_seeks)
+  {
+    EXPECT_FALSE(input.seek_frame(ts, requested_frame));
+    EXPECT_NE(requested_frame, ts.get_frame());
+  }
+}

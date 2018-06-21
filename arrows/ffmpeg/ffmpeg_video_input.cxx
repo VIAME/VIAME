@@ -75,7 +75,8 @@ public:
     f_software_context(nullptr),
     f_start_time(-1),
     f_frame_number_offset(0),
-    video_path("")
+    video_path(""),
+    frame_advanced(0)
   {
     f_packet.data = nullptr;
   }
@@ -114,6 +115,9 @@ public:
   // Current image frame.
   vital::image_memory_sptr current_image_memory;
   kwiver::vital::image_container_sptr current_image;
+
+  // local state
+  int frame_advanced; // This is a boolean check value really
 
   // ==================================================================
   /*
@@ -262,6 +266,7 @@ public:
     // Quick return if the file isn't open.
     if (!this->is_opened())
     {
+      this->frame_advanced = 0.;
       return false;
     }
 
@@ -277,20 +282,19 @@ public:
     {
       av_free_packet(&this->f_packet);  // free previous packet
     }
-
-    int got_picture = 0;
+    this->frame_advanced = 0;
 
     // \todo - metada not implemented yet
     // clear the metadata from the previous frame
     //this->metadata.clear();
 
-    while (got_picture == 0 && av_read_frame(this->f_format_context, &this->f_packet) >= 0)
+    while (this->frame_advanced == 0 && av_read_frame(this->f_format_context, &this->f_packet) >= 0)
     {
       // Make sure that the packet is from the actual video stream.
       if (this->f_packet.stream_index == this->f_video_index)
       {
         int err = avcodec_decode_video2(this->f_video_encoding,
-          this->f_frame, &got_picture,
+          this->f_frame, &this->frame_advanced,
           &this->f_packet);
         if (err == AVERROR_INVALIDDATA)
         {// Ignore the frame and move to the next
@@ -318,7 +322,7 @@ public:
       //    is_->packet_.data + is_->packet_.size);
       //}
 
-      if (!got_picture)
+      if (!this->frame_advanced)
       {
         av_free_packet(&this->f_packet);
       }
@@ -327,14 +331,14 @@ public:
     // From ffmpeg apiexample.c: some codecs, such as MPEG, transmit the
     // I and P frame with a latency of one frame. You must do the
     // following to have a chance to get the last frame of the video.
-    if (!got_picture)
+    if (!this->frame_advanced)
     {
       av_init_packet(&this->f_packet);
       this->f_packet.data = nullptr;
       this->f_packet.size = 0;
 
       int err = avcodec_decode_video2(this->f_video_encoding,
-        this->f_frame, &got_picture,
+        this->f_frame, &this->frame_advanced,
         &this->f_packet);
       if (err >= 0)
       {
@@ -346,12 +350,12 @@ public:
     // frame or not.
     this->current_image_memory = nullptr;
 
-    if (!got_picture)
+    if (!this->frame_advanced)
     {
       this->f_frame->data[0] = NULL;
     }
 
-    return got_picture != 0;
+    return static_cast<bool>(this->frame_advanced);
   }
 
   // ==================================================================
@@ -521,6 +525,7 @@ ffmpeg_video_input
   d->f_data_index = -1;
   d->f_start_time = -1;
   d->video_path = "";
+  d->frame_advanced = 0;
   //is_->metadata_.clear();
   if (d->f_video_stream)
   {
@@ -550,7 +555,7 @@ ffmpeg_video_input
   bool ret = d->advance();
   if (ret)
   {
-    ts.set_frame(d->frame_number());
+    ts = this->frame_timestamp();
   }
   return ret;
 }
@@ -560,8 +565,43 @@ bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
   kwiver::vital::timestamp::frame_t frame_number,
   uint32_t timeout)
 {
-  LOG_INFO(this->logger(), "Seeking isn't supported yet");
-  return false;
+  // Quick return if the stream isn't open.
+  if (!d->is_opened())
+  {
+    throw vital::file_not_read_exception(d->video_path, "Video not open");
+    return false;
+  }
+  if (frame_number <= 0)
+  {
+    return false;
+  }
+
+  // Quick return if the stream isn't open.
+  if (timeout != 0)
+  {
+    LOG_WARN(this->logger(), "Timeout argument is not supported.");
+  }
+
+  int current_frame_number = d->frame_number() + d->f_frame_number_offset + 1;
+  // If current frame number is greater than requested frame reopen
+  // file to reset to start
+  if (current_frame_number > frame_number)
+  {
+    this->open(d->video_path); // Calls close on current video
+    current_frame_number = d->frame_number() + d->f_frame_number_offset + 1;
+  }
+
+  // Just advance video until the requested frame is reached
+  for (int i = current_frame_number; i < frame_number; ++i)
+  {
+    if (!d->advance())
+    {
+      return false;
+    }
+  }
+
+  ts = this->frame_timestamp();
+  return true;
 }
 
 
@@ -673,7 +713,7 @@ ffmpeg_video_input
   // We don't always have all components of a timestamp, so start with
   // an invalid TS and add the data we have.
   kwiver::vital::timestamp ts;
-  ts.set_frame(d->frame_number());
+  ts.set_frame(d->frame_number() + d->f_frame_number_offset + 1);
 
   return ts;
 }
@@ -714,7 +754,7 @@ bool
 ffmpeg_video_input
 ::good() const
 {
-  return d->is_valid();
+  return d->is_valid() && d->frame_advanced;
 }
 
 
@@ -723,8 +763,7 @@ bool
 ffmpeg_video_input
 ::seekable() const
 {
-  LOG_INFO(this->logger(), "Seeking isn't supported yet");
-  return false;
+  return true;
 }
 
 // ------------------------------------------------------------------
