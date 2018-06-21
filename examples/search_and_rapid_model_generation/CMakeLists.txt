@@ -3,7 +3,6 @@
 ##
 
 if( VIAME_ENABLE_SMQTK )
-
   add_subdirectory( smqtk_on_chips )
 
   if( VIAME_ENABLE_VIVIA )
@@ -13,7 +12,5 @@ if( VIAME_ENABLE_SMQTK )
 endif()
 
 if( VIAME_ENABLE_FLASK )
-
   add_subdirectory( flask_clustering )
-
 endif()

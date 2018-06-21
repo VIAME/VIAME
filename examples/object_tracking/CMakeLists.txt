@@ -3,17 +3,27 @@
 ##
 
 set( EXAMPLE_INSTALL_FILES
-     input_list.txt
-     simple_tracker.pipe )
+     README.rst
+     input_list.txt )
 
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_tracker.bat )
+       run_simple_tracker.bat
+       run_tut_tracker.bat
+       run_track_viewer.bat
+elseif( APPLE )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_simple_tracker.sh
+       run_tut_tracker.sh
+       run_track_viewer.mac.sh )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_tracker.sh )
+       run_simple_tracker.sh
+       run_tut_tracker.sh
+       run_track_viewer.sh )
 endif()
 
 ###
