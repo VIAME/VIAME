@@ -5,11 +5,24 @@
 set( EXAMPLE_INSTALL_FILES
      README.rst
      input_list.txt
-     create_index.image_list.sh
-     create_index.video_folder.sh
-     process_using_models.sh
-     launch_query_gui.sh
-     view_detections.prj )
+     view_detections.prj
+     view_tracks.prj )
+
+if( WIN32 )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       create_index.image_list.bat
+       create_index.video_folder.bat
+       process_using_models.bat
+       launch_query_gui.bat )
+else()
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       create_index.image_list.sh
+       create_index.video_folder.sh
+       process_using_models.sh
+       launch_query_gui.sh )
+endif()
 
 ###
 # Install configuration files to examples directory
