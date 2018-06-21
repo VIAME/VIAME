@@ -20,7 +20,7 @@ covering image search on top of an archive of videos or images.
 | Building and running this examples requires: 
 |
 |  (a) The python packages: numpy, pymongo, torch, torchvision, matplotlib, and python-tk
-|  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, VXL, PYTORCH, and VIVIA enabled.
+|  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, PYTORCH, VXL, and VIVIA enabled.
 
 An arbitrary tracking pipeline is used to first generate spatio-temporal object tracks
 representing object candidate locations in video. Descriptors are generated around these
