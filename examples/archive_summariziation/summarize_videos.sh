@@ -6,7 +6,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/ingest_video.py --init -d INPUT_DIRECTORY \
   --detection-plots -species fish -threshold 0.25 -frate 2 -smooth 2 \
-  -p pipelines/ingest_video.mouss_no_index.pipe
+  -p pipelines/ingest_video.mouss_count.pipe
 
 # Timestamp adjustment hack (will be removed in future iterations), converts milliseconds to seconds
 for f in database/*.kw18; do

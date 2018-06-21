@@ -22,7 +22,7 @@ connect from input.timestamp
 
 process detector
   :: image_object_detector
-  :detector:type    darknet
+  :detector:type                           darknet
 
   block detector:darknet
 
