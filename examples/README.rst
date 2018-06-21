@@ -1,7 +1,7 @@
 
 ========================
 Examples Folder Overview
-=======================-
+========================
 
 In the '[install]/examples' folder, there are a number of subfolders, with each folder corresponding
 to a different core functionality. The scripts in each of these folders can be copied to and run
@@ -19,17 +19,17 @@ order to run them on Linux:
 png image files in a folder
 
 'cd' - go into an example directory, e.g. 'cd annotation_and_visualization' to move down into the
-annotation_and_visualization directory. 'cd ..' is another useful command which moves one directory
-up, alongside a lone 'ls' command to list all files in the current directory.
+annotation_and_visualization example directory. 'cd ..' is another useful command which moves one
+directory up, alongside a lone 'ls' command to list all files in the current directory.
 
 To run the examples on Windows, you just need to be able to run (double click) the .bat scripts
 in the given directories. Additionally, knowing how to make a list of files, e.g. 'dir > filename.txt'
 on the windows command line can also be useful for processing custom image lists.
 
 
-=======================
-Key System Capabilities
-=======================
+========================
+Key Toolkit Capabilities
+========================
 
 ****************
 Object Detection
@@ -67,9 +67,9 @@ GUIs for Visualization and Annotation
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/master/examples/annotation_and_visualization
 
-*******************
-Detector Evaluation
-*******************
+*******************************
+Detector and Tracker Evaluation
+*******************************
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/scoring-2.png
    :scale: 50
