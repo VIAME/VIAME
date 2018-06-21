@@ -322,7 +322,7 @@ class SRNN_tracking(KwiverProcess):
             print('timestamp = {!r}'.format(timestamp))
 
             # Get current frame and give it to app feature extractor
-            im = get_pil_image(in_img_c.image())
+            im = get_pil_image(in_img_c.image()).convert('RGB')
             self._app_feature_extractor.frame = im
 
             bbox_num = 0
