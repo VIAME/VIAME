@@ -13,4 +13,4 @@ set( EXAMPLE_INSTALL_FILES
 # Install configuration files to examples directory
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
-         DESTINATION examples/search_and_rapid_model_generation/video_ingest )
+         DESTINATION examples/search_and_rapid_model_generation/viame_ingest )
