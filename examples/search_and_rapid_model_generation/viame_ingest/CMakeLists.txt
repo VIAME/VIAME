@@ -3,8 +3,10 @@
 ##
 
 set( EXAMPLE_INSTALL_FILES
+     README.rst
      input_list.txt
-     create_searchable_index.sh
+     create_index.image_list.sh
+     create_index.video_folder.sh
      process_using_models.sh
      launch_query_gui.sh
      view_detections.prj )

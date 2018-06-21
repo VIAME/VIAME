@@ -48,6 +48,7 @@ Contents:
    section_links/measurement_using_stereo
    section_links/object_detector_training
    section_links/search_and_rapid_model_generation
+   section_links/archive_summarization
    section_links/using_detectors_in_cxx_code
    section_links/annotation_and_visualization
    section_links/scoring_and_roc_generation
