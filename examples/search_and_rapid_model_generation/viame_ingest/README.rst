@@ -1,7 +1,7 @@
 
-************************
-Video Search using VIAME
-************************
+**********************************
+Video and Image Search using VIAME
+**********************************
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/video_query_start.png
    :scale: 30
@@ -10,7 +10,7 @@ Video Search using VIAME
 
 This section corresponds to `this example online`_, in addition to the
 viame_ingest example folder in a VIAME installation. This folder contains examples
-covering image search on top of an archive of videos.
+covering image search on top of an archive of videos or images.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/viame_ingest
 

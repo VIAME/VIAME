@@ -14,6 +14,6 @@ endif()
 
 if( VIAME_ENABLE_FLASK )
 
-  add_subdirectory( flask )
+  add_subdirectory( flask_clustering )
 
 endif()
