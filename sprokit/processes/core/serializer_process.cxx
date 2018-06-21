@@ -36,7 +36,6 @@
 
 #include "serializer_process.h"
 
-#include <vital/algo/data_serializer.h>
 #include <vital/util/string.h>
 
 #include <kwiver_type_traits.h>
@@ -49,6 +48,49 @@
 // ----------------------------------------------------------------------------
 namespace kwiver {
 
+/**
+ * \class serializer_process
+ *
+ * \brief Process for serializing data items into a byte string.
+ *
+ * \process Serialize incoming data items into a byte stream. An
+ * instance of this process can serialize multiple streams of input
+ * data into output byte strings.
+ *
+ * \iports
+ *
+ * Input ports are dynamically created as needed. Port name must
+ * have the format \iport{algo/item} or \iport{algo}.
+ *
+ * \oports
+ *
+ * \oport{algo} Output ports are dynamically created as needed and
+ * must correspond to the algo name from an input port.
+ *
+ * The "algo" part of a port name must correspond to a loadable
+ * serializer algorithm. The "item" part of the input port name must
+ * correspond to an element name expected by the serializer instance.
+ *
+ * \code
+ process ser :: serializer
+
+ # select the serializing method to apply to all data items.
+ serialization_type = json
+
+ # -- connect inputs to algo that generates image and mask messages
+ connect from foo.image to ser.ImageAndMask/image  # supplies image to ImageAndMask implementation
+ connect from bar.image to ser.ImageAndMask/mask   # supplies mask to ImageAndMask implementation
+
+ # -- connect output to transport
+ connect ser.ImageAndMask to trans.message
+
+ # -- connect a single input algorithm
+ connect from foo.detections to ser.detections  # connect detection set to be serialized
+ connect from ser.detections to det_trans.message
+ * \endcode
+ *
+ */
+
 // (config-key, value-type, default-value, description )
 create_config_trait( serialization_type, std::string, "",
                      "Specifies the method used to serialize the data object. "
@@ -59,33 +101,14 @@ class serializer_process::priv
 public:
   priv();
   ~priv();
-
-  // The canonical name string defining the data type we are converting.
-  std::string m_serialization_type;
-
-  /*
-   * This class represents the serialization needed for an
-   * input/output port pair.
-   */
-  class port_handler
-  {
-  public:
-    port_t m_port_name;
-    port_type_t m_port_type;
-
-    vital::algo::data_serializer_sptr m_serializer;
-  };
-
-  // map is indexed by port name
-  std::map< std::string, port_handler > m_port_handler_list;
-
 };
 
 // ============================================================================
 serializer_process
 ::serializer_process( kwiver::vital::config_block_sptr const& config )
-  : process( config ),
-  d( new priv )
+  : process( config )
+  , serializer_base( *this )
+  , d( new priv )
 {
   // This process manages its own inputs.
   this->set_data_checking_level( check_none );
@@ -107,7 +130,7 @@ serializer_process
   scoped_configure_instrumentation();
 
   // Examine the configuration
-  d->m_serialization_type = config_value_using_trait( serialization_type );
+  m_serialization_type = config_value_using_trait( serialization_type );
 }
 
 
@@ -117,6 +140,7 @@ void
 serializer_process
 ::_init()
 {
+  base_init();
 }
 
 
@@ -127,19 +151,30 @@ serializer_process
 {
   scoped_step_instrumentation();
 
-  // Loop over all registered ports
-  for (const auto elem : d->m_port_handler_list )
+  // Loop over all registered groups
+  for (const auto elem : m_port_group_list )
   {
-    const auto & ph = elem.second;
+    const auto & pg = elem.second;
 
-    LOG_TRACE( logger(), "Processing port: \"" << ph.m_port_name
-               << "\" of type \"" << ph.m_port_type << "\"" );
+    vital::algo::data_serializer::serialize_param_t sp;
 
-    // Convert input datum to a serialized message
-    auto datum = grab_datum_from_port( ph.m_port_name );
-    auto local_datum = datum->get_datum<kwiver::vital::any>();
-    auto message = ph.m_serializer->serialize( local_datum );
-    push_to_port_as < serialized_message_port_trait::type >( ph.m_port_name, message );
+    // loop over all items that are part of this group.
+    // This assembles the output byte string from one or more concrete data types.
+    for ( auto pg_item : pg.m_items )
+    {
+      auto & item = pg_item.second;
+      LOG_TRACE( logger(), "Processing port: \"" << item.m_port_name
+                 << "\" of type \"" << item.m_port_type << "\"" );
+
+      // Convert input datum to a serialized message
+      auto datum = grab_datum_from_port( item.m_port_name );
+      auto local_datum = datum->get_datum<kwiver::vital::any>();
+      sp[ item.m_element_name ] = local_datum;
+    }
+
+    // Serialize the collected set of inputs
+    auto message = pg.m_serializer->serialize( sp );
+    push_to_port_as < serialized_message_port_trait::type >( pg.m_serialized_port_name, message );
   }
 
 } // serializer_process::_step
@@ -154,7 +189,21 @@ _input_port_info(port_t const& port_name)
 
   if (! kwiver::vital::starts_with( port_name, "_" ) )
   {
-    init_port_handler( port_name );
+    if ( vital_typed_port_info( port_name ) )
+    {
+      // Create input port
+      port_flags_t required;
+      required.insert( flag_required );
+
+      LOG_TRACE( logger(), "Creating input port: \"" << port_name << "\"" );
+
+      // Open an input port for the name
+      declare_input_port(
+        port_name,                  // port name
+        type_flow_dependent,        // port_type
+        required,
+        port_description_t( "data type to be serialized" ) );
+    }
   }
 
   return process::_input_port_info( port_name );
@@ -167,9 +216,20 @@ _output_port_info(port_t const& port_name)
 {
   LOG_TRACE( logger(), "Processing output port info: \"" << port_name << "\"" );
 
+  // Just create an output port
   if (! kwiver::vital::starts_with( port_name, "_" ) )
   {
-    init_port_handler( port_name );
+    byte_string_port_info( port_name );
+
+    port_flags_t required;
+    required.insert( flag_required );
+
+    // Create output port
+    declare_output_port(
+      port_name,                                // port name
+      serialized_message_port_trait::type_name, // port type
+      required,                                 // port flags
+      "serialized output" );
   }
 
   return process::_output_port_info( port_name );
@@ -180,7 +240,7 @@ _output_port_info(port_t const& port_name)
 //
 // port - name of the input port being connected.
 //
-// port_type - type of port to create
+// port_type - type of port
 bool
 serializer_process
 ::_set_input_port_type( port_t const&       port_name,
@@ -190,54 +250,10 @@ serializer_process
              << "\" of type \"" << port_type
              << "\""  );
 
-  // update port handler
-  priv::port_handler& ph = d->m_port_handler_list[port_name];
-
-  ph.m_port_type = port_type;
-
-  // create config items
-  // serialize-protobuf:type = <data_type>
-  // serialize-protobuf:<data type>:foo = bar // possible but not likely
-
-  if ( ! ph.m_serializer )
-  {
-    auto algo_config = kwiver::vital::config_block::empty_config();
-    const std::string ser_algo_type( "serialize-" + d->m_serialization_type );
-    const std::string ser_type( ser_algo_type + vital::config_block::block_sep + "type" );
-
-    algo_config->set_value( ser_type, ph.m_port_type );
-
-    std::stringstream str;
-    algo_config->print( str );
-    LOG_TRACE( logger(), "Creating algorithm for (config block):\n" << str.str() << std::endl );
-
-    vital::algorithm_sptr base_nested_algo;
-
-    // create serialization algorithm
-    vital::algorithm::set_nested_algo_configuration( ser_algo_type, // data type name
-                                                     ser_algo_type, // config block name
-                                                     algo_config,
-                                                     base_nested_algo );
-
-    ph.m_serializer = std::dynamic_pointer_cast< vital::algo::data_serializer > ( base_nested_algo );
-    if ( ! ph.m_serializer )
-    {
-      VITAL_THROW( sprokit::invalid_configuration_exception, name(),
-                   "Unable to create serializer for type \"" +
-                   ph.m_port_type  + "\" for " + d->m_serialization_type );
-    }
-
-    if ( ! vital::algorithm::check_nested_algo_configuration( ser_algo_type,
-                                                              ser_algo_type,
-                                                              algo_config ) )
-    {
-      throw sprokit::invalid_configuration_exception(
-        name(), "Configuration check failed." );
-    }
-  }
+  set_port_type( port_name, port_type );
 
   // pass to base class
-  return process::_set_input_port_type( port_name, ph.m_port_type );
+  return process::_set_input_port_type( port_name, port_type );
 } // serializer_process::_input_port_info
 
 // ----------------------------------------------------------------
@@ -245,43 +261,6 @@ void serializer_process
 ::make_config()
 {
   declare_config_using_trait( serialization_type );
-}
-
-// ----------------------------------------------------------------------------
-void serializer_process
-::init_port_handler( port_t port_name )
-{
-  // if port has already been added, do nothing
-  if (d->m_port_handler_list.count( port_name ) > 0 )
-  {
-    return;
-  }
-
-    // create new port handler
-  priv::port_handler ph;
-  ph.m_port_name = port_name;
-
-  d->m_port_handler_list[port_name] = ph;
-
-  port_flags_t required;
-  required.insert( flag_required );
-
-  LOG_TRACE( logger(), "Creating input & output port: \"" << port_name << "\"" );
-
-  // Create output port
-  declare_output_port(
-    port_name,                                // port name
-    serialized_message_port_trait::type_name, // port type
-    required,                                 // port flags
-    "serialized output" );
-
-  // Open an input port for the name
-  declare_input_port(
-    port_name,                  // port name
-    type_flow_dependent,        // port_type
-    required,
-    port_description_t( "data type to be serialized" ) );
-
 }
 
 // ------------------------------------------------------------------

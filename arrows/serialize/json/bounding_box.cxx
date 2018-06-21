@@ -44,7 +44,9 @@ namespace json {
 // ----------------------------------------------------------------------------
 bounding_box::
 bounding_box()
-{ }
+{
+  m_element_names.insert( DEFAULT_ELEMENT_NAME );
+}
 
 
 bounding_box::
@@ -54,10 +56,10 @@ bounding_box::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 bounding_box::
-serialize( const kwiver::vital::any& item )
+serialize( const data_serializer::serialize_param_t elements )
 {
   kwiver::vital::bounding_box_d bbox =
-    kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( item );
+    kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( elements.at( DEFAULT_ELEMENT_NAME ) );
 
   std::stringstream msg;
   msg << "bounding_box "; // add type tag
@@ -71,7 +73,7 @@ serialize( const kwiver::vital::any& item )
 
 
 // ----------------------------------------------------------------------------
-const kwiver::vital::any
+vital::algo::data_serializer::deserialize_result_t
 bounding_box::
 deserialize( std::shared_ptr< std::string > message )
 {
@@ -91,7 +93,10 @@ deserialize( std::shared_ptr< std::string > message )
     load( ar, bbox );
   }
 
-  return kwiver::vital::any(bbox);
+  deserialize_result_t res;
+  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(bbox);
+
+  return res;
 }
 
 // ----------------------------------------------------------------------------

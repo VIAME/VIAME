@@ -45,7 +45,9 @@ namespace json {
 // ----------------------------------------------------------------------------
 detected_object_type::
 detected_object_type()
-{ }
+{
+  m_element_names.insert( DEFAULT_ELEMENT_NAME );
+}
 
 
 detected_object_type::
@@ -55,10 +57,10 @@ detected_object_type::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 detected_object_type::
-serialize( const kwiver::vital::any& item )
+serialize( const serialize_param_t elements )
 {
   kwiver::vital::detected_object_type dot =
-    kwiver::vital::any_cast< kwiver::vital::detected_object_type > ( item );
+    kwiver::vital::any_cast< kwiver::vital::detected_object_type > ( elements.at( DEFAULT_ELEMENT_NAME ) );
 
   std::stringstream msg;
   msg << "detected_object_type ";
@@ -72,7 +74,7 @@ serialize( const kwiver::vital::any& item )
 
 
 // ----------------------------------------------------------------------------
-const kwiver::vital::any
+vital::algo::data_serializer::deserialize_result_t
 detected_object_type::
 deserialize( std::shared_ptr< std::string > message )
 {
@@ -92,7 +94,10 @@ deserialize( std::shared_ptr< std::string > message )
     load( ar, dot );
   }
 
-  return kwiver::vital::any(dot);
+  deserialize_result_t res;
+  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(dot);
+
+  return res;
 }
 
 // ----------------------------------------------------------------------------

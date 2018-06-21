@@ -43,6 +43,8 @@
 #include <vital/types/detected_object_type.h>
 #include <vital/types/detected_object.h>
 
+#include <vital/util/string.h>
+
 namespace kasj = kwiver::arrows::serialize::json;
 
 // ----------------------------------------------------------------------------
@@ -59,12 +61,22 @@ TEST( serialize, bounding_box )
   kwiver::vital::bounding_box_d bbox { 1, 2, 3, 4 };
 
   kwiver::vital::any bb_any( bbox );
-  auto mes = bbox_ser.serialize( bb_any );
+  kwiver::vital::algo::data_serializer::serialize_param_t sp;
+  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, bb_any);
+  auto mes = bbox_ser.serialize( sp );
+
+
+  // check element names
+  const auto& names = bbox_ser.element_names();
+
+  EXPECT_EQ( names.size(), 1 );
 
   // std::cout << "Serialized bbox: \"" << *mes << "\"\n";
+  // std::cout << "List of element names: " << kwiver::vital::join( names, ", " ) << std::endl;
 
   auto dser = bbox_ser.deserialize( mes );
-  kwiver::vital::bounding_box_d bbox_dser = kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser );
+  kwiver::vital::bounding_box_d bbox_dser =
+    kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
 
   /*
   std::cout << "bbox_dser { " << bbox_dser.min_x() << ", "
@@ -88,12 +100,16 @@ TEST( serialize, detected_object_type )
   dot.set_score( "last", 121 );
 
   kwiver::vital::any dot_any( dot );
-  auto mes = dot_ser.serialize( dot_any );
+  kwiver::vital::algo::data_serializer::serialize_param_t sp;
+  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = dot_any;
+
+  auto mes = dot_ser.serialize( sp );
 
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
   auto dser = dot_ser.deserialize( mes );
-  kwiver::vital::detected_object_type dot_dser = kwiver::vital::any_cast< kwiver::vital::detected_object_type >( dser );
+  kwiver::vital::detected_object_type dot_dser =
+    kwiver::vital::any_cast< kwiver::vital::detected_object_type >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
 
   EXPECT_EQ( dot.size(), dot_dser.size() );
 
@@ -125,12 +141,15 @@ TEST( serialize, detected_object )
   obj->set_index( 1234 );
 
   kwiver::vital::any obj_any( obj );
-  auto mes = obj_ser.serialize( obj_any );
+  kwiver::vital::algo::data_serializer::serialize_param_t sp;
+  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = obj_any;
+
+  auto mes = obj_ser.serialize( sp );
 
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
   auto dser = obj_ser.deserialize( mes );
-  auto obj_dser = kwiver::vital::any_cast< kwiver::vital::detected_object_sptr >( dser );
+  auto obj_dser = kwiver::vital::any_cast< kwiver::vital::detected_object_sptr >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
 
   EXPECT_EQ( obj->bounding_box(), obj_dser->bounding_box() );
   EXPECT_EQ( obj->index(), obj_dser->index() );

@@ -53,13 +53,14 @@ public:
   static constexpr char const* name = "kwiver:detected_object_set";
 
   static constexpr char const* description =
-    "Serializes a bounding box using json notation.";
+    "Serializes a detected_object_set using JSON notation. "
+    "This implementation only handles a single data item.";
 
   detected_object_set();
   virtual ~detected_object_set();
 
-  virtual std::shared_ptr< std::string > serialize( const kwiver::vital::any& item );
-  virtual const kwiver::vital::any deserialize( std::shared_ptr< std::string > message );
+  virtual std::shared_ptr< std::string > serialize( const serialize_param_t elements );
+  virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
   // Converters that can be used in cases of nested structures
   static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_set& obj );

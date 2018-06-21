@@ -35,15 +35,56 @@
 
 #include <vital/algo/data_serializer.h>
 #include <vital/algo/algorithm.txx>
+#include <vital/util/string.h>
+
+#include <sstream>
+#include <stdexcept>
+#include <vector>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
+const std::string data_serializer::DEFAULT_ELEMENT_NAME {"datum"};
+
+// ----------------------------------------------------------------------------
 data_serializer
 ::data_serializer()
 {
   attach_logger( "data_serializer" );
+}
+
+
+// ----------------------------------------------------------------------------
+bool
+data_serializer
+::check_element_names( serialize_param_t elements )
+{
+  for ( const auto it : elements )
+  {
+    if ( m_element_names.count( it.first ) == 0 )
+    {
+      // throw error
+      std::stringstream str;
+      str << "Element name \"" << it.first
+          << "\" is not in the supported set. Supported elements are: "
+          << kwiver::vital::join( m_element_names, ", " );
+
+      throw std::runtime_error( str.str() );
+    }
+  } // end for
+
+  // Check for all allowable names being in the map;
+  return (elements.size() == m_element_names.size() );
+}
+
+
+// ----------------------------------------------------------------------------
+const std::set< std::string >&
+data_serializer
+::element_names() const
+{
+  return m_element_names;
 }
 
 } } }

@@ -40,10 +40,13 @@
 #include <sprokit/pipeline/process.h>
 #include "kwiver_processes_export.h"
 
+#include "serializer_base.h"
+
 namespace kwiver {
 
 class KWIVER_PROCESSES_NO_EXPORT serializer_process
   : public sprokit::process
+  , public serializer_base
 {
 public:
   serializer_process( kwiver::vital::config_block_sptr const& config );
@@ -63,7 +66,6 @@ protected:
 
 private:
   void make_config();
-  void init_port_handler( port_t port_name );
 
   class priv;
   const std::unique_ptr< priv > d;
