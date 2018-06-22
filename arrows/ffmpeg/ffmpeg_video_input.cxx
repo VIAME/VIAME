@@ -76,7 +76,8 @@ public:
     f_start_time(-1),
     f_frame_number_offset(0),
     video_path(""),
-    frame_advanced(0)
+    frame_advanced(0),
+    end_of_video(true)
   {
     f_packet.data = nullptr;
   }
@@ -118,6 +119,7 @@ public:
 
   // local state
   int frame_advanced; // This is a boolean check value really
+  bool end_of_video;
 
   // ==================================================================
   /*
@@ -266,7 +268,7 @@ public:
     // Quick return if the file isn't open.
     if (!this->is_opened())
     {
-      this->frame_advanced = 0.;
+      this->frame_advanced = 0;
       return false;
     }
 
@@ -495,6 +497,7 @@ ffmpeg_video_input
     {
       throw kwiver::vital::video_runtime_exception("Video stream open failed for unknown reasons");
     }
+    d->end_of_video = false;
   }
 }
 
@@ -526,6 +529,7 @@ ffmpeg_video_input
   d->f_start_time = -1;
   d->video_path = "";
   d->frame_advanced = 0;
+  d->end_of_video = true;
   //is_->metadata_.clear();
   if (d->f_video_stream)
   {
@@ -553,6 +557,7 @@ ffmpeg_video_input
   }
 
   bool ret = d->advance();
+  d->end_of_video = !ret;
   if (ret)
   {
     ts = this->frame_timestamp();
@@ -745,7 +750,7 @@ bool
 ffmpeg_video_input
 ::end_of_video() const
 {
-  return false;
+  return d->end_of_video;
 }
 
 

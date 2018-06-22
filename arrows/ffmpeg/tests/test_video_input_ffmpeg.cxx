@@ -207,3 +207,28 @@ TEST_F(ffmpeg_video_input, seek)
     EXPECT_NE(requested_frame, ts.get_frame());
   }
 }
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, end_of_video)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  EXPECT_TRUE(input.end_of_video())
+    << "End of video before open";
+
+  // open the video
+  input.open(correct_file);
+  EXPECT_FALSE(input.end_of_video())
+    << "End of video after open";
+
+  kwiver::vital::timestamp ts;
+  while (input.next_frame(ts))
+  {
+    EXPECT_FALSE(input.end_of_video()) << "End of video while reading";
+  }
+
+  EXPECT_EQ(ts.get_frame(), 50) << "Last frame";
+  EXPECT_TRUE(input.end_of_video()) << "End of video after last frame";
+}
