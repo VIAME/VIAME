@@ -1797,7 +1797,11 @@ initialize_cameras_landmarks_keyframe::priv
   // get relative pose constraints for keyframes
   calc_rel_poses(beginning_keyframes, tracks);
 
-  initialize_reconstruction(cams, lms, tracks);
+  if (!initialize_reconstruction(cams, lms, tracks))
+  {
+    LOG_DEBUG(m_logger, "unable to find a good initial pair for reconstruction");
+    return false;
+  }
 
   if (callback)
   {
