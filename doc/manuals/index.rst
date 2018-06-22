@@ -3,7 +3,7 @@
    contain the root `toctree` directive.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/into_image.png
-   :scale: 60 %
+   :scale: 30 %
    :align: center
    :target: http://viame.readthedocs.io/en/latest/index.html
 
