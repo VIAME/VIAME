@@ -4,7 +4,7 @@ New Module Creation Examples
 ============================
 
 This document corresponds to `this runable example`_ of `these example simple plugins`_,
-alongside `these example plugin templates`_. Additionally, all of the last can be found in
+alongside `these example plugin templates`_. Additionally, all of the former can be found in
 [viame-install]/examples/hello_world_pipeline folder,
 [viame-source]/plugins/hello_world folder,
 and [viame-source]/plugins/templates folder in a VIAME installation, respectively.
