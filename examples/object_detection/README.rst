@@ -3,9 +3,9 @@
 Object Detection Examples
 =========================
 
-****************
-Object Detection
-****************
+******************
+Detection Overview
+******************
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/skate_detection.png
    :scale: 30
@@ -24,25 +24,9 @@ Several different models are found in the examples, trained on a variety of
 different sensors. It can be useful to try out different models to see what works
 best for your problem.
 
-************
-Requirements
-************
-
-| Minimum:
-| 
-| VIAME_ENABLE_OPENCV (default) (for image reading) or alternatively VIAME_ENABLE_VXL if
-| you set :image_reader:type to vxl in each .pipe config.
-|
-| Per-Example:
-|
-| run_habcam.sh/bat - VIAME_ENABLE_OPENCV, VIAME_ENABLE_YOLO, VIAME_ENABLE_SCALLOP_TK
-| run_yolo.sh/bat - VIAME_ENABLE_YOLO
-| run_lanl.sh/bat - VIAME_ENABLE_MATLAB
-
-
-*************************************
-Running the object detection examples
-*************************************
+********************
+Running the Examples
+********************
 
 Each run script contains 2 calls. A first ('source setup_viame.sh') which
 runs a script configuring all paths required to run VIAME calls, and a second
@@ -56,10 +40,29 @@ list loader, the actual detector, detection filters, and detection writers. In t
 habcam example an additional split processes is added early in the pipeline, as
 habcam imagery has stereo pairs typically encoded in the same png.
 
+******************
+Build Requirements
+******************
 
-********************************
-Running a detector from C++ code
-********************************
+These are the build flags required to run this example, if building from
+the source. In the pre-built binaries they are all enabled by default.
+
+| Minimum:
+|
+| VIAME_ENABLE_OPENCV (default) (for image reading) or alternatively VIAME_ENABLE_VXL if
+| you set :image_reader:type to vxl in each .pipe config.
+|
+| Per-Example:
+|
+| run_habcam - VIAME_ENABLE_OPENCV, VIAME_ENABLE_YOLO, VIAME_ENABLE_SCALLOP_TK
+| run_scallop_tk - VIAME_ENABLE_SCALLOP_TK
+| run_yolo - VIAME_ENABLE_YOLO
+| run_lanl - VIAME_ENABLE_MATLAB
+
+
+*******************************
+Running Detectors From C++ Code
+*******************************
 
 We will be using a Hough circle detector as an and example of the
 mechanics of implementing a VIAME detector in cxx code.
@@ -174,7 +177,7 @@ Note that log messages do not need an end-of-line at the end.
 Refer to the separate logger documentation for more details.
 
 ******************************
-Detector configuration support
+Detector Configuration Support
 ******************************
 
 In our detector example we just used the detector in its default state
@@ -301,7 +304,7 @@ not specified in the file retain their default values.
 
 
 **************************
-Configurable detector type
+Configurable Detector Type
 **************************
 
 To further expand on our example, the actual detector algorithm can be
@@ -404,7 +407,7 @@ complicated applications are configured.
 
 
 ***********************************************
-Sequencing one or more algorithms in a pipeline
+Sequencing One or More Algorithms in a Pipeline
 ***********************************************
 
 In a real application, the input images may come from places other

@@ -35,12 +35,16 @@ file structures.
 | ......groundtruth.gt
 |
 | where groundtruth can be in any file format for which a
-"detected_object_set_input" implementation exists (e.g. noaa_csv, kw18, habcam),
+"detected_object_set_input" implementation exists (e.g. viame_csv, kw18, habcam),
 and labels.txt contains a list of output categories (one per line) for
 the trained detection model. "labels.txt" can also contain any alternative
 names in the groundtruth which map back to the same output category label.
 For example, see training_data/labels.txt for the corresponding groundtruth
-file in training_data/seq1.
+file in training_data/seq1. The "labels.txt" file allows the user to selectively
+train models for certain sub-categories or super-categories of object by specifying
+only the categories of interest to train a model for, and any synonyms for the
+same category on the same line.
+
 
 After formatting data, a model can be trained via the 'viame_train_detector'
 tool, the only modification required from the scripts in this folder being
@@ -50,6 +54,9 @@ setting your .conf files to the correct groundtruth file format type.
 ******************
 Build Requirements
 ******************
+
+These are the build flags required to run this example, if building from
+the source. In the pre-built binaries they are all enabled by default.
 
 | VIAME_ENABLE_OPENCV set to ON
 | VIAME_ENABLE_PYTHON set to ON
