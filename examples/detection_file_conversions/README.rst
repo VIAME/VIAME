@@ -8,13 +8,11 @@ detection_file_conversions example folder in a VIAME installation.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/detection_file_conversions
 
-This folder contains examples of how to convert between textual
-formats representing object detections, tracks, results, etc. There
-are multiple ways to perform format conversions, either using KWIVER
-pipelines with reader/writer nodes (e.g. see pipelines directory) or
-using quick standalone scripts (see scripts). Conversion pipelines
-are simple, containing a detection input node (reader) and output
-node (writer).
+This folder contains examples of how to convert between textual formats representing object
+detections, tracks, results, etc. There are multiple ways to perform format conversions,
+either using KWIVER pipelines with reader/writer nodes (e.g. see pipelines directory) or
+using quick standalone scripts (see scripts). Conversion pipelines are simple, containing
+a detection input node (reader) and output node (writer).
 
 ****************************
 Integrated Detection Formats
@@ -63,11 +61,11 @@ produces detected_object_sets or object_track_sets.
 |
 |   For the point type, only 1 set of coordinate is provided
 |
-|   An alternative format that reader supports looks like:
+|   An alternative format, that the reader also supports, looks like:
 |
 |     201503.20150517.png,527,scallop,"""line"": [[458, 970], [521, 1021]]"
 |
-|   which is more or less the same, just formatted differently.
+|   which is more or less the same as the prior, just formatted differently.
 |
 | **Detection CSV (Deprecated) - Additional Comma Seperated Value Detection Format**
 |
