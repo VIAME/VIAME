@@ -9,10 +9,10 @@ GUIs for Visualization and Annotation
    :target: https://github.com/Kitware/VIAME/blob/master/examples/annotation_and_visualization/README.rst
 
 This document corresponds to `this example online`_, in addition to the
-examples/annotation_and_visualization folder in a VIAME installation.
+annotation_and_visualization example folder in a VIAME installation.
 
 .. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/annotation_and_visualization
-
+|
 There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
 GUIs are useful for displaying detections, their respective probabilities, and for making
 new annotations in video. There are additionally simpler GUIs which can be enabled in .pipe
@@ -32,7 +32,6 @@ vpView Annotation Process Overview
 **********************************
 
 | `Manual Annotation Guide (PDF)`_
-|
 | `Example Video Overview (MP4)`_
 
 .. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5b20cb448d777f2e62256215/download
@@ -53,9 +52,6 @@ Note: The list is not complete, but currently focusing on the most used (and new
   Filename with list of images for each frame or glob for sequence of images  
 * TracksFile = filename  
   Filename containing the tracks data.  
-* TrackPVOsFile = filename  
-  Specifies (PVO or TOT) file  containing track classification data in the ASCII format  
-  where each line contains 'track-id fish-probability scallop-probability other-probability'.  
 * TrackColorOverride = r g b  
   rgb color, specified from 0 to 1, overrides the default vpView track color for this
   project only  
