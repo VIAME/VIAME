@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <arrows/core/kwiver_algo_core_plugin_export.h>
+#include <arrows/serialize/protobuf/kwiver_serialize_proto_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include "bounding_box.h"
@@ -41,11 +41,11 @@
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace json {
+namespace protobuf {
 
 namespace {
 
-static auto const module_name         = std::string{ "arrows.serialize.json" };
+static auto const module_name         = std::string{ "arrows.serialize.protobuf" };
 static auto const module_version      = std::string{ "1.0" };
 static auto const module_organization = std::string{ "Kitware Inc." };
 
@@ -56,7 +56,7 @@ register_algorithm( kwiver::vital::plugin_loader& vpm )
 {
   using kvpf = kwiver::vital::plugin_factory;
   auto fact = vpm.add_factory( new kwiver::vital::algorithm_factory_0< algorithm_t > (
-                                 "serialize-json", // group name
+                                 "serialize-protobuf", // group name
                                  algorithm_t::name ) ); // instance name
 
   fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
@@ -70,7 +70,7 @@ register_algorithm( kwiver::vital::plugin_loader& vpm )
 
 // ----------------------------------------------------------------------------
 extern "C"
-KWIVER_SERIALIZE_JSON_EXPORT
+KWIVER_SERIALIZE_PROTO_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
@@ -79,12 +79,12 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
-  register_algorithm< kwiver::arrows::serialize::json::bounding_box >( vpm );
+  // register_algorithm< kwiver::arrows::serialize::protobuf::bounding_box >( vpm );
 
   vpm.mark_module_as_loaded( module_name );
 }
 
-} // end namespace json
+} // end namespace protobuf
 } // end namespace serialize
 } // end namespace arrows
 } // end namespace kwiver

@@ -31,7 +31,7 @@
 #ifndef ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
 #define ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
 
-#include <arrows/serialize/json/kwiver_algo_serialize_json_export.h>
+#include <arrows/serialize/json/kwiver_serialize_json_export.h>
 #include <vital/algo/data_serializer.h>
 #include <vital/types/detected_object_type.h>
 
@@ -45,7 +45,7 @@ namespace arrows {
 namespace serialize {
 namespace json {
 
-class KWIVER_ALGO_SERIALIZE_JSON_EXPORT detected_object_type
+class KWIVER_SERIALIZE_JSON_EXPORT detected_object_type
   : public vital::algorithm_impl< detected_object_type, vital::algo::data_serializer >
 {
 public:

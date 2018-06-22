@@ -287,6 +287,10 @@ if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )
 endif()
 
+if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
+  add_subdirectory( types/protobuf )
+endif()
+
 ###
 # Add tests if enabled
 if (KWIVER_ENABLE_TESTS)

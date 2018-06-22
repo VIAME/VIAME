@@ -28,46 +28,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_SET
-#define ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_SET
+#ifndef ARROWS_SERIALIZATION_PROTO_BOUNDING_BOX_H
+#define ARROWS_SERIALIZATION_PROTO_BOUNDING_BOX_H
 
-#include <arrows/serialize/json/kwiver_serialize_json_export.h>
+#include <arrows/serialize/protobuf/kwiver_serialize_proto_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/detected_object_set.h>
-
-namespace cereal {
-  class JSONOutputArchive;
-  class JSONInputArchive;
-} // end namespace cereal
+#include <vital/types/bounding_box.h>
 
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace json {
+namespace proto {
 
-class KWIVER_SERIALIZE_JSON_EXPORT detected_object_set
-  : public vital::algorithm_impl< detected_object_set, vital::algo::data_serializer >
+class KWIVER_SERIALIZE_JSON_EXPORT bounding_box
+  : public vital::algorithm_impl< bounding_box, vital::algo::data_serializer >
 {
 public:
   // Type name this class supports
-  static constexpr char const* name = "kwiver:detected_object_set";
+  static constexpr char const* name = "kwiver:bounding_box";
 
   static constexpr char const* description =
-    "Serializes a detected_object_set using JSON notation. "
+    "Serializes a bounding_box using protobuf notation. "
     "This implementation only handles a single data item.";
 
-  detected_object_set();
-  virtual ~detected_object_set();
+  bounding_box();
+  virtual ~bounding_box();
 
   virtual std::shared_ptr< std::string > serialize( const serialize_param_t elements );
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
   // Converters that can be used in cases of nested structures
-  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_set& obj );
-  static void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_set& obj );
+  // static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox );
+  // static void load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbox );
 
 };
 
 } } } }       // end namespace kwiver
 
-#endif // ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_SET
+#endif // ARROWS_SERIALIZATION_PROTO_BOUNDING_BOX_H
