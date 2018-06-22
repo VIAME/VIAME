@@ -1,4 +1,10 @@
 # =============================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 5
+
+# =============================================================================
 process input
   :: frame_list_input
   :image_list_file                   input_list.txt
@@ -33,12 +39,6 @@ process disp
   :annotate_image                    true
   :pause_time                        0  # 1.0
   :title                             NOAA images
-
-# =============================================================================
-# global pipeline config
-#
-config _pipeline:_edge
-       :capacity 5
 
 # =============================================================================
 # connections
