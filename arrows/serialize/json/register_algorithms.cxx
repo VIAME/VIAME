@@ -37,6 +37,9 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include "bounding_box.h"
+#include "detected_object.h"
+#include "detected_object_type.h"
+#include "detected_object_set.h"
 
 namespace kwiver {
 namespace arrows {
@@ -80,6 +83,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   register_algorithm< kwiver::arrows::serialize::json::bounding_box >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::detected_object >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::detected_object_type >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::detected_object_set >( vpm );
 
   vpm.mark_module_as_loaded( module_name );
 }

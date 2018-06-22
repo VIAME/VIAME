@@ -58,8 +58,38 @@ public:
   virtual ~serializer_base();
 
   void base_init();
+
+  /**
+   * @brief Processes a port with a vital type.
+   *
+   * This method is called with a port that has a vital type, not the
+   * serialized string type. The internal data structures are created
+   * if this is the first time the port has been seen and \b true is
+   * returned. If the port has already been created, then false is
+   * returned.
+   *
+   * @param port_name Name of the port to process.
+   *
+   * @return \b true -f the port should be created. \b false if port
+   * should not be created.
+   */
   bool vital_typed_port_info( sprokit::process::port_t const& port_name );
-  void byte_string_port_info( sprokit::process::port_t const& port_name );
+
+  /**
+   * @brief Processes a port for serialized messages.
+   *
+   * This method is called with a port that has serialized string
+   * type. The internal data structures are created if this is the
+   * first time the port has been seen and \b true is returned. If the
+   * port has already been created, then false is returned.
+   *
+   * @param port_name Name of the port to process.
+   *
+   * @return \b true -f the port should be created. \b false if port
+   * should not be created.
+   */
+  bool byte_string_port_info( sprokit::process::port_t const& port_name );
+
   void set_port_type( sprokit::process::port_t const&      port_name,
                       sprokit::process::port_type_t const& port_type );
 
@@ -76,6 +106,9 @@ protected:
    */
   struct port_group
   {
+    port_group()
+      : m_serialized_port_created(false)
+    {}
 
     // This struct defines a single input port.
     struct data_item
@@ -95,6 +128,7 @@ protected:
 
     // port to read serialized data from
     sprokit::process::port_t m_serialized_port_name;
+    bool m_serialized_port_created;
 
     std::string m_algo_name;
 

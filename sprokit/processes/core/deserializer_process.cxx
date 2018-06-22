@@ -144,17 +144,18 @@ _input_port_info(port_t const& port_name)
   // Just create an input port to read byte string from
   if (! kwiver::vital::starts_with( port_name, "_" ) )
   {
-    byte_string_port_info( port_name );
+    if ( byte_string_port_info( port_name ) )
+    {
+      port_flags_t required;
+      required.insert( flag_required );
 
-    port_flags_t required;
-    required.insert( flag_required );
-
-    // Create output port
-    declare_input_port(
-      port_name,                                // port name
-      serialized_message_port_trait::type_name, // port type
-      required,                                 // port flags
-      "serialized input" );
+      // Create output port
+      declare_input_port(
+        port_name,                                // port name
+        serialized_message_port_trait::type_name, // port type
+        required,                                 // port flags
+        "serialized input" );
+    }
   }
 
   return process::_input_port_info( port_name );

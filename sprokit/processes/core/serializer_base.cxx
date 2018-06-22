@@ -77,7 +77,18 @@ serializer_base
     if ( pg.m_algo_name.empty() )
     {
       // There should only be one item in the group
+      if (pg.m_items.size() != 1)
+      {
+        std::stringstream str;
+        str <<  "Port group \"" << elem.first << "\" has more than one element.";
+
+        VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), str.str() );
+      }
+
       pg.m_algo_name = pg.m_items.cbegin()->second.m_port_type;
+
+      LOG_TRACE( m_logger, "Setting algo name for port group \"" << elem.first
+                 << "\" to \"" << pg.m_algo_name << "\"" );
     }
 
     // create config items
@@ -166,16 +177,15 @@ vital_typed_port_info( sprokit::process::port_t const& port_name )
   {
     // create a new empty group
     m_port_group_list[ group_name ] = port_group();
+    LOG_TRACE( m_logger, "Creating new group \"" << group_name << "\" for typed port" );
   }
 
   port_group& pg = m_port_group_list[ group_name ];
 
   // See if the item already exists in the item list. If so, then
-  // the same port was connected more than once.
-  if ( pg.m_items.count( item_name ) > 0 )
+  // the port has already been created.
+  if ( pg.m_items.count( item_name ) != 0 )
   {
-    LOG_ERROR( m_logger, "Data item \"" << item_name <<"\" from input port \""
-               << port_name << "\" has already been connected" );
     return false;
   }
 
@@ -187,22 +197,40 @@ vital_typed_port_info( sprokit::process::port_t const& port_name )
   pg.m_serialized_port_name = group_name; // expected port name
   pg.m_algo_name = algo_name; // can be empty string if single item group.
 
+  LOG_TRACE( m_logger, "Created port item \"" << item_name
+             << "\" for group \"" << group_name
+             << "\" with algo name \"" << algo_name << "\"" );
+
   return true;
 }
 
 // ----------------------------------------------------------------------------
-void
+bool
 serializer_base::
 byte_string_port_info( sprokit::process::port_t const& port_name )
 {
-    if (m_port_group_list.count( port_name ) == 0 )
-    {
-      // create a new empty group
-      m_port_group_list[ port_name ] = port_group();
-    }
+  if (m_port_group_list.count( port_name ) == 0 )
+  {
+    // create a new empty group
+    m_port_group_list[ port_name ] = port_group();
+    LOG_TRACE( m_logger, "Creating new group for byte_string port \"" << port_name << "\"" );
+  }
 
-    port_group& pg = m_port_group_list[ port_name ];
+  port_group& pg = m_port_group_list[ port_name ];
+
+  if ( ! pg.m_serialized_port_created )
+  {
+    LOG_TRACE( m_logger, "Creating byte_string port \"" << port_name << "\"" );
     pg.m_serialized_port_name = port_name;
+    pg.m_serialized_port_created = true;
+
+    return true;
+  }
+
+  LOG_TRACE( m_logger, "byte_string port \"" << port_name
+             << "\" has already been created." );
+
+  return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -229,6 +257,9 @@ set_port_type( sprokit::process::port_t const&      port_name,
   port_group::data_item& di = pg.m_items[item_name];
 
   di.m_port_type = port_type;
+
+  LOG_TRACE( m_logger, "Setting port type for group \"" << port_name
+             << "\" item \"" << item_name << "\" to \"" << port_type << "\"" );
 }
 
 } // end namespace kwiver

@@ -107,7 +107,7 @@ public:
 serializer_process
 ::serializer_process( kwiver::vital::config_block_sptr const& config )
   : process( config )
-  , serializer_base( *this )
+  , serializer_base( *this, logger() )
   , d( new priv )
 {
   // This process manages its own inputs.
@@ -219,17 +219,20 @@ _output_port_info(port_t const& port_name)
   // Just create an output port
   if (! kwiver::vital::starts_with( port_name, "_" ) )
   {
-    byte_string_port_info( port_name );
+    if ( byte_string_port_info( port_name ) )
+    {
+      port_flags_t required;
+      required.insert( flag_required );
 
-    port_flags_t required;
-    required.insert( flag_required );
+      LOG_TRACE( logger(), "Creating output port: \"" << port_name << "\"" );
 
-    // Create output port
-    declare_output_port(
-      port_name,                                // port name
-      serialized_message_port_trait::type_name, // port type
-      required,                                 // port flags
-      "serialized output" );
+      // Create output port
+      declare_output_port(
+        port_name,                                // port name
+        serialized_message_port_trait::type_name, // port type
+        required,                                 // port flags
+        "serialized output" );
+    }
   }
 
   return process::_output_port_info( port_name );
