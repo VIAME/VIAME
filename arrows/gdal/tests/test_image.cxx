@@ -73,7 +73,6 @@ int
 main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest( &argc, argv );
-  TEST_LOAD_PLUGINS();
 
   GET_ARG(1, g_data_dir);
 
@@ -106,20 +105,17 @@ class image_io : public ::testing::Test
 // ----------------------------------------------------------------------------
 TEST_F(image_io, create)
 {
-  std::shared_ptr<algo::image_io> img_io;
-  ASSERT_NE(nullptr, img_io = algo::image_io::create("gdal"));
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  algo::image_io* img_io_ptr = img_io.get();
-  EXPECT_EQ(typeid(gdal::image_io), typeid(*img_io_ptr))
-    << "Factory method did not construct the correct type";
+  ASSERT_NE(nullptr, algo::image_io::create("gdal"));
 }
 
 TEST_F(image_io, load_geotiff)
 {
-  auto img_io = algo::image_io::create("gdal");
+  kwiver::arrows::gdal::image_io img_io;
 
   kwiver::vital::path_t file_path = data_dir + "/" + geotiff_file_name;
-  auto img_ptr = img_io->load(file_path);
+  auto img_ptr = img_io.load(file_path);
 
   EXPECT_EQ( img_ptr->width(), expected_size );
   EXPECT_EQ( img_ptr->height(), expected_size );
@@ -159,10 +155,10 @@ TEST_F(image_io, load_geotiff)
 
 TEST_F(image_io, load_nitf)
 {
-  auto img_io = algo::image_io::create("gdal");
+  kwiver::arrows::gdal::image_io img_io;
 
   kwiver::vital::path_t file_path = data_dir + "/" + nitf_file_name;
-  auto img_ptr = img_io->load(file_path);
+  auto img_ptr = img_io.load(file_path);
 
   EXPECT_EQ( img_ptr->width(), expected_size );
   EXPECT_EQ( img_ptr->height(), expected_size );
@@ -186,10 +182,10 @@ TEST_F(image_io, load_nitf)
 
 TEST_F(image_io, load_jpeg)
 {
-  auto img_io = algo::image_io::create("gdal");
+  kwiver::arrows::gdal::image_io img_io;
 
   kwiver::vital::path_t file_path = data_dir + "/" + jpeg_file_name;
-  auto img_ptr = img_io->load(file_path);
+  auto img_ptr = img_io.load(file_path);
 
   EXPECT_EQ( img_ptr->width(), expected_size );
   EXPECT_EQ( img_ptr->height(), expected_size );
