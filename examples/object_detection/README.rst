@@ -44,7 +44,7 @@ habcam imagery has stereo pairs typically encoded in the same png.
 Build Requirements
 ******************
 
-These are the build flags required to run this example, if building from
+These are the build flags required to run these examples, if building from
 the source. In the pre-built binaries they are all enabled by default.
 
 | Minimum:
