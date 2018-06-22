@@ -32,6 +32,14 @@ if( VIAME_ENABLE_MATLAB )
   endif()
 endif()
 
+if( VIAME_ENABLE_SCALLOP_TK )
+  if( NOT WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_scallop_tk.sh )
+  endif()
+endif()
+
 ###
 # Install pipelines to example directory
 ##
