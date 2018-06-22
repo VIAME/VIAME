@@ -14,14 +14,15 @@ Object Detection
 |
 
 This document corresponds to `this example online`_, in addition to the
-examples/object_detection folder in a VIAME installation.
+object_detection example folder in a VIAME installation.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/object_detection
 
 This folder contains assorted examples of object detection pipelines
 running different detectors such as YOLOv2, ScallopTK, Faster RCNN, and others.
-Several different models are found in the examples, trained on a variety of different
-sensors.
+Several different models are found in the examples, trained on a variety of
+different sensors. It can be useful to try out different models to see what works
+best for your problem.
 
 ************
 Requirements

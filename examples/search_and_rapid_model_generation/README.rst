@@ -8,9 +8,9 @@ Overview
 ********
 
 This document corresponds to `this folder online`_, in addition to the
-examples/image_and_video_search folder in a VIAME installation.
+search_and_rapid_model_generation example folder in a VIAME installation.
 
-.. _this folder online: https://github.com/Kitware/VIAME/tree/master/examples/image_and_video_search
+.. _this folder online: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 This directory contains methods to accomplish two tasks: 
 

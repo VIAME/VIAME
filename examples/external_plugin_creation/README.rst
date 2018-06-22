@@ -4,7 +4,7 @@ External Plugin Creation
 ========================
 
 This document corresponds to `this example online`_, in addition to the
-examples/external_plugin_creation folder in a VIAME installation.
+external_plugin_creation example folder in a VIAME installation.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/external_plugin_creation
 

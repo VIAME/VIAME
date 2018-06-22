@@ -4,8 +4,7 @@ Detection File Formats and Conversions
 ======================================
 
 This document corresponds to `this example online`_, in addition to the
-examples/detection_file_conversions folder in a VIAME
-installation.
+detection_file_conversions example folder in a VIAME installation.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/detection_file_conversions
 

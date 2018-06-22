@@ -7,6 +7,10 @@ Scoring Detectors and Trackers
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/master/examples/scoring_and_roc_generation
 
+This document corresponds to `this example online`_, in addition to the
+scoring_and_roc_generation example folder in a VIAME installation.
+
+.. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/scoring_and_roc_generation
 
 The KWANT package provides scoring tools that can be used to
 calculate the probability of detecting an item, along with other scoring

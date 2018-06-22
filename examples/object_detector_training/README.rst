@@ -4,7 +4,7 @@ Detector Training Examples
 ==========================
 
 This document corresponds to `this example online`_, in addition to the
-examples/object_detector_training folder in a VIAME installation.
+object_detector_training example folder in a VIAME installation.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/object_detector_training
 
