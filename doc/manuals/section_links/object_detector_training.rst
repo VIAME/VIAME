@@ -1,1 +1,1 @@
-.. include:: ../../../examples/object_detection_training/README.rst
+.. include:: ../../../examples/object_detector_training/README.rst
