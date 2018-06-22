@@ -5,7 +5,7 @@
 if( VIAME_INSTALL_EXAMPLES )
 
   add_subdirectory( annotation_and_visualization )
-  add_subdirectory( archive_summariziation )
+  add_subdirectory( archive_summarization )
   add_subdirectory( building_and_installing_viame )
   add_subdirectory( detection_file_conversions )
   add_subdirectory( example_imagery )
