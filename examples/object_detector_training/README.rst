@@ -34,7 +34,7 @@ file structures.
 | ......image002.png
 | ......groundtruth.gt
 |
-| where groundtruth can be in any file format for which a
+where groundtruth can be in any file format for which a
 "detected_object_set_input" implementation exists (e.g. viame_csv, kw18, habcam),
 and labels.txt contains a list of output categories (one per line) for
 the trained detection model. "labels.txt" can also contain any alternative
@@ -56,7 +56,9 @@ Build Requirements
 ******************
 
 These are the build flags required to run this example, if building from
-the source. In the pre-built binaries they are all enabled by default.
+the source.
+
+In the pre-built binaries they are all enabled by default.
 
 | VIAME_ENABLE_OPENCV set to ON
 | VIAME_ENABLE_PYTHON set to ON
