@@ -17,14 +17,14 @@ Example Capabilities
 <p align="center">
 <br>
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-04.png" alt="Search Example" width="400" height="220">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-03.png" alt="Measurement Example" width="400" height="220">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-04.png" alt="Search Example" width="300" height="220">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-03.png" alt="Measurement Example" width="500" height="220">
 </nobr>
 </p>
 <p align="center">
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-01.png" alt="Query Example" width="600" height="220">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02b.png" alt="Detection Example" width="200" height="220">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-01.png" alt="Query Example" width="500" height="220">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02b.png" alt="Detection Example" width="300" height="220">
 </nobr>
 </p>
 
