@@ -22,7 +22,7 @@ Example Capabilities
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02.png" alt="Detection Example" width="300" height="170">
 </nobr>
 </p>
-<p align="center">
+<p align="left">
 <nobr>
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-03.png" alt="Measurement Example" width="400" height="135">
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-01.png" alt="Query Example" width="400" height="135">
