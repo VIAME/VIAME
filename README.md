@@ -18,7 +18,7 @@ Example Capabilities
 <br>
 <nobr>
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-04.png" alt="Search Example" width="400" height="220">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02b.png" alt="Detection Example" width="400" height="220">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02.png" alt="Detection Example" width="400" height="220">
 </nobr>
 </p>
 <p align="center">
