@@ -15,7 +15,7 @@ image/video search, and rapid model generation.
 Example Capabilities
 --------------------
 <p align="left">
-<br>0
+<br>
 <nobr>
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-04.png" alt="Search Example" width="303" height="183">
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/tracks.png" alt="Tracking Example" width="235" height="183">
