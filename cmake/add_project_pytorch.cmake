@@ -10,17 +10,19 @@
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
 
 CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
+CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-tmp )
 
-set( PYTORCH_PIP_BUILD_DIR -b ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-build )
-set( PYTORCH_PIP_CACHE_DIR --cache-dir ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-cache )
+set( PYTORCH_PIP_BUILD_DIR_CMD -b ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-build )
+set( PYTORCH_PIP_CACHE_DIR_CMD --cache-dir ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-cache )
+set( PYTORCH_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-tmp )
 
-set( PYTORCH_PIP_SETTINGS ${PYTORCH_PIP_BUILD_DIR} ${PYTORCH_PIP_CACHE_DIR} )
+set( PYTORCH_PIP_SETTINGS ${PYTORCH_PIP_BUILD_DIR_CMD} ${PYTORCH_PIP_CACHE_DIR_CMD} )
 
 if( VIAME_SYMLINK_PYTHON )
   set( PYTORCH_PIP_CMD
     pip install ${PYTORCH_PIP_SETTINGS} --user -e . )
   set( TORCHVISION_PIP_CMD
-    pip install ${PYTORCH_PIP_SETTINGS} --user -e .  )
+    pip install ${PYTORCH_PIP_SETTINGS} --user -e . )
 else()
   set( PYTORCH_PIP_CMD
     pip install ${PYTORCH_PIP_SETTINGS} --user file://${VIAME_PACKAGES_DIR}/pytorch )
@@ -36,12 +38,14 @@ set( CUSTOM_PATH
   ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
 set( PYTORCH_PYTHON_INSTALL
   ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
+                      TMPDIR=${PYTORCH_PIP_TMP_DIR}
                       PATH=${CUSTOM_PATH}
                       PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
                       CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
     ${PYTHON_EXECUTABLE} -m ${PYTORCH_PIP_CMD} )
 set( TORCHVISION_PYTHON_INSTALL
   ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
+                      TMPDIR=${PYTORCH_PIP_TMP_DIR}
                       PATH=${CUSTOM_PATH}
                       PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
                       CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
