@@ -38,7 +38,7 @@ set( TORCHVISION_PYTHON_INSTALL
                       PATH=${CUSTOM_PATH}
                       PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
                       CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
-    ${PYTHON_EXECUTABLE} -m ${PYTORCH_PIP_CMD} )
+    ${PYTHON_EXECUTABLE} -m ${TORCHVISION_PIP_CMD} )
 
 ExternalProject_Add( pytorch
   DEPENDS fletch
