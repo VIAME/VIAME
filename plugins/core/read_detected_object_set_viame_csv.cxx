@@ -272,7 +272,6 @@ read_all()
       }
 
       std::string spec_id = col[i];
-      std::cout << "!!B " << spec_id << std::endl;
 
       double spec_conf = atof( col[i+1].c_str() );
 
