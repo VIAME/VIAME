@@ -1,4 +1,4 @@
-# vibrant External Project
+# SMQTK External Project
 #
 # Required symbols are:
 #   VIAME_BUILD_PREFIX - where packages are built

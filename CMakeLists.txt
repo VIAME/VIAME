@@ -313,6 +313,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_smqtk )
   endif()
 
+  if( VIAME_ENABLE_PYTORCH )
+    include( add_project_pytorch )
+  endif()
+
   # VIAME plugins, adds this project causing the below else() block to run
   if( VIAME_ENABLE_VIAME_PLUGINS )
     include( add_project_viame )
