@@ -79,6 +79,12 @@ function( CreateSymlink _inFile _outFile )
   endif()
 endfunction()
 
+function( CreateDirectory _outFolder )
+  if( NOT EXISTS ${_outFolder} )
+    file( MAKE_DIRECTORY ${_outFolder} )
+  endif()
+endfunction()
+
 function( RemoveDir _inDir )
   file( REMOVE_RECURSE ${_inDir} )
 endfunction()

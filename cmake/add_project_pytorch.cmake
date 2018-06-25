@@ -9,6 +9,8 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
 
+CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
+
 set( PYTORCH_PIP_BUILD_DIR -b ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-build )
 set( PYTORCH_PIP_CACHE_DIR --cache-dir ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-cache )
 
