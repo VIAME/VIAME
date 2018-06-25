@@ -12,9 +12,13 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
 if( VIAME_SYMLINK_PYTHON )
   set( PYTORCH_PIP_CMD
     pip install --user -e . )
+  set( TORCHVISION_PIP_CMD
+    pip install --user -e . )
 else()
   set( PYTORCH_PIP_CMD
     pip install --user file://${VIAME_PACKAGES_DIR}/pytorch )
+  set( TORCHVISION_PIP_CMD
+    pip install --user file://${VIAME_PACKAGES_DIR}/torchvision )
 endif()
 
 set( PYTHON_BASEPATH
@@ -29,6 +33,12 @@ set( PYTORCH_PYTHON_BUILD
                       PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
                       CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
     ${PYTHON_EXECUTABLE} -m ${PYTORCH_PIP_CMD} )
+set( TORCHVISION_PYTHON_INSTALL
+  ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
+                      PATH=${CUSTOM_PATH}
+                      PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
+                      CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
+    ${PYTHON_EXECUTABLE} -m ${PYTORCH_PIP_CMD} )
 
 ExternalProject_Add( pytorch
   DEPENDS fletch
@@ -38,6 +48,13 @@ ExternalProject_Add( pytorch
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ${PYTORCH_PYTHON_BUILD}
   INSTALL_COMMAND ""
+  )
+
+ExternalProject_Add_Step(pytorch install_torchvision
+  WORKING_DIRECTORY ${VIAME_PACKAGES_DIR}/torchvision
+  COMMAND ${TORCHVISION_PYTHON_INSTALL}
+  COMMENT "Installing torchvision python files."
+  DEPENDEES build
   )
 
 if (VIAME_FORCEBUILD)
