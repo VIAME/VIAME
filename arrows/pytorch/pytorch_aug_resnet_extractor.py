@@ -11,7 +11,6 @@ from torch.autograd import Variable
 
 from PIL import Image as pilImage
 
-import cv2
 import math
 import random
 
@@ -21,6 +20,10 @@ from vital.types import BoundingBox
 
 
 def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3, iflux=0.2 ):
+
+    if 'cv2' not in sys.modules:
+        import cv2
+
     rt2 = math.sqrt( 2.0 )
     csize = csize * ( 1.0 + random.uniform( -sflux, sflux ) )
     boxsize = int( csize * rt2 )
