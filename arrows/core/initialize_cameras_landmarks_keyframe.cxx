@@ -836,6 +836,15 @@ initialize_cameras_landmarks_keyframe::priv
   typedef landmark_map::map_landmark_t lm_map_t;
   // extract coresponding image points and landmarks
   std::vector<vector_2d> pts_right, pts_left;
+
+  const camera_intrinsics_sptr cal_left = m_base_camera.get_intrinsics();
+  const camera_intrinsics_sptr cal_right = m_base_camera.get_intrinsics();
+
+  auto cal_left_no_dist = std::static_pointer_cast<simple_camera_intrinsics>(cal_left->clone());
+  cal_left_no_dist->set_dist_coeffs(Eigen::VectorXd());
+  auto cal_right_no_dist = std::static_pointer_cast<simple_camera_intrinsics>(cal_right->clone());
+  cal_right_no_dist->set_dist_coeffs(Eigen::VectorXd());
+
   for (unsigned int i = 0; i<trks.size(); ++i)
   {
     auto frame_data_0 = std::dynamic_pointer_cast<feature_track_state>(
@@ -846,12 +855,12 @@ initialize_cameras_landmarks_keyframe::priv
     {
       continue;
     }
-    pts_right.push_back(frame_data_1->feature->loc());
-    pts_left.push_back(frame_data_0->feature->loc());
-  }
+    auto undist_f1 = cal_right->unmap(frame_data_1->feature->loc());
+    auto undist_f0 = cal_left->unmap(frame_data_0->feature->loc());
 
-  const camera_intrinsics_sptr cal_left = m_base_camera.get_intrinsics();
-  const camera_intrinsics_sptr cal_right = m_base_camera.get_intrinsics();
+    pts_right.push_back(cal_right_no_dist->map(undist_f1));
+    pts_left.push_back(cal_left_no_dist->map(undist_f0));
+  }
 
   std::vector<bool> inliers;
   essential_matrix_sptr E_sptr = e_estimator->estimate(pts_right, pts_left,
@@ -2657,6 +2666,20 @@ initialize_cameras_landmarks_keyframe
     "the maximum number of cameras to reconstruct in initialization step before"
     " switching to resectioning remaining cameras.");
 
+  double r1 = 0;
+  double r2 = 0;
+  double r3 = 0;
+  auto dc = K->dist_coeffs();
+  if (dc.size() == 5)
+  {
+    r1 = dc[0];
+    r2 = dc[1];
+    r3 = dc[4];
+  }
+  config->set_value("base_camera:r1", r1, "r^2 radial distortion term");
+  config->set_value("base_camera:r2", r1, "r^4 radial distortion term");
+  config->set_value("base_camera:r3", r1, "r^6 radial distortion term");
+
   // nested algorithm configurations
   vital::algo::estimate_essential_matrix
       ::get_nested_algo_configuration("essential_mat_estimator",
@@ -2745,6 +2768,18 @@ initialize_cameras_landmarks_keyframe
                                                     K->aspect_ratio()),
                               bc->get_value<double>("skew",
                                                     K->skew()));
+  double r1 = bc->get_value<double>("r1", 0);
+  double r2 = bc->get_value<double>("r2", 0);
+  double r3 = bc->get_value<double>("r3", 0);
+
+  Eigen::VectorXd dist;
+  dist.resize(5);
+  dist.setZero();
+  dist[0] = r1;
+  dist[1] = r2;
+  dist[4] = r3;
+  K2.set_dist_coeffs(dist);
+
   m_priv->m_base_camera.set_intrinsics(K2.clone());
 
   vital::algo::estimate_pnp::set_nested_algo_configuration(
