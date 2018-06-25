@@ -9,16 +9,18 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
 
+set( PYTORCH_BUILD_DIR_CMD -b ${VIAME_BUILD_PREFIX}/src/pytorch-build )
+
 if( VIAME_SYMLINK_PYTHON )
   set( PYTORCH_PIP_CMD
-    pip install --user -e . )
+    pip install --user -e . ${PYTORCH_BUILD_DIR_CMD} )
   set( TORCHVISION_PIP_CMD
-    pip install --user -e . )
+    pip install --user -e . ${PYTORCH_BUILD_DIR_CMD} )
 else()
   set( PYTORCH_PIP_CMD
-    pip install --user file://${VIAME_PACKAGES_DIR}/pytorch )
+    pip install --user file://${VIAME_PACKAGES_DIR}/pytorch ${PYTORCH_BUILD_DIR_CMD} )
   set( TORCHVISION_PIP_CMD
-    pip install --user file://${VIAME_PACKAGES_DIR}/torchvision )
+    pip install --user file://${VIAME_PACKAGES_DIR}/torchvision ${PYTORCH_BUILD_DIR_CMD} )
 endif()
 
 set( PYTHON_BASEPATH
@@ -57,7 +59,7 @@ ExternalProject_Add_Step(pytorch install_torchvision
   DEPENDEES build
   )
 
-if (VIAME_FORCEBUILD)
+if ( VIAME_FORCEBUILD )
 ExternalProject_Add_Step(pytorch forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/pytorch-stamp/pytorch-build

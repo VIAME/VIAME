@@ -52,7 +52,7 @@ ExternalProject_Add_Step(smqtk installpy
   DEPENDEES build
   )
 
-if (VIAME_FORCEBUILD)
+if ( VIAME_FORCEBUILD )
 ExternalProject_Add_Step(smqtk forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/smqtk-stamp/smqtk-build

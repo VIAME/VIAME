@@ -44,7 +44,7 @@ ExternalProject_Add(darknet
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-if (VIAME_FORCEBUILD)
+if ( VIAME_FORCEBUILD )
 ExternalProject_Add_Step(darknet forcebuild
   COMMAND ${CMAKE_COMMAND}
     -E remove ${VIAME_BUILD_PREFIX}/src/darknet-stamp/darknet-build
