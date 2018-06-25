@@ -1,35 +1,42 @@
 #
 # Script to set up environment to use VIAME
 #
+
+@SETUP_PYTHON_LOCATION@
+
+# The below variables specify search paths for plugins and modules within the VIAME
+# framework. It is not recommended to modify any of the below paths, unless you know
+# what you're doing.
 @SETUP_READLINK_CMD@
 
-# paths for loading algorithms
+# Paths for loading algorithm plugins
 export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/sprokit:$KWIVER_PLUGIN_PATH
 
-# paths for loading processes
+# Paths for loading process plugins
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
 
-# paths for the GUIs
+# Paths for the GUIs
 @SETUP_QT_PLUGIN_PATH@
 export VG_PLUGIN_PATH=$this_dir
 export VIDTK_MODULE_PATH=$this_dir/lib/modules
 
-# excessive paths for python
+# Excessive paths for loading python plugins
 @SETUP_PYTHON_LIBRARY_PATH@
 export PYTHONPATH=$this_dir/python:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@/site-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@m/site-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@/dist-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python@PYTHON_VERSION_MAJOR@.@PYTHON_VERSION_MINOR@m/dist-packages:$PYTHONPATH
+export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
-# set default log level
+# Set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=debug
 
-# paths for matlab (empty if not built with matlab)
+# Paths for matlab (empty if not built with matlab)
 @SETUP_MATLAB_LIBRARY_PATH@
 
-# paths for adding exes to path (must occur after python and matlab)
+# Paths for adding exes to path (must occur after python and matlab)
 export PATH=$this_dir/bin:$PATH
 @SETUP_LIBRARY_PATH@
