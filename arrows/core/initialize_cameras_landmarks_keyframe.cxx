@@ -2666,6 +2666,9 @@ initialize_cameras_landmarks_keyframe
     "the maximum number of cameras to reconstruct in initialization step before"
     " switching to resectioning remaining cameras.");
 
+  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
+  config->set_value("feature_angle_threshold", ang_thresh_cur,"feature must have this triangulation angle to keep");
+
   double r1 = 0;
   double r2 = 0;
   double r3 = 0;
@@ -2781,6 +2784,11 @@ initialize_cameras_landmarks_keyframe
   K2.set_dist_coeffs(dist);
 
   m_priv->m_base_camera.set_intrinsics(K2.clone());
+
+  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
+  double ang_thresh_config = config->get_value("feature_angle_threshold", ang_thresh_cur);
+
+  m_priv->m_thresh_triang_cos_ang = cos((M_PI / 180.0) * ang_thresh_config);
 
   vital::algo::estimate_pnp::set_nested_algo_configuration(
     "estimate_pnp", config, m_priv->m_pnp);
