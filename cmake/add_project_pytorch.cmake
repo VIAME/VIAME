@@ -9,18 +9,21 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
 
-set( PYTORCH_BUILD_DIR_CMD -b ${VIAME_BUILD_PREFIX}/src/pytorch-build )
+set( PYTORCH_PIP_BUILD_DIR -b ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-build )
+set( PYTORCH_PIP_CACHE_DIR --cache-dir ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-cache )
+
+set( PYTORCH_PIP_SETTINGS ${PYTORCH_PIP_BUILD_DIR} ${PYTORCH_PIP_CACHE_DIR} )
 
 if( VIAME_SYMLINK_PYTHON )
   set( PYTORCH_PIP_CMD
-    pip install --user -e . ${PYTORCH_BUILD_DIR_CMD} )
+    pip install ${PYTORCH_PIP_SETTINGS} --user -e . )
   set( TORCHVISION_PIP_CMD
-    pip install --user -e . ${PYTORCH_BUILD_DIR_CMD} )
+    pip install ${PYTORCH_PIP_SETTINGS} --user -e .  )
 else()
   set( PYTORCH_PIP_CMD
-    pip install --user file://${VIAME_PACKAGES_DIR}/pytorch ${PYTORCH_BUILD_DIR_CMD} )
+    pip install ${PYTORCH_PIP_SETTINGS} --user file://${VIAME_PACKAGES_DIR}/pytorch )
   set( TORCHVISION_PIP_CMD
-    pip install --user file://${VIAME_PACKAGES_DIR}/torchvision ${PYTORCH_BUILD_DIR_CMD} )
+    pip install ${PYTORCH_PIP_SETTINGS} --user file://${VIAME_PACKAGES_DIR}/torchvision )
 endif()
 
 set( PYTHON_BASEPATH
@@ -29,7 +32,7 @@ set( CUSTOM_PYTHONPATH
   ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
 set( CUSTOM_PATH
   ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
-set( PYTORCH_PYTHON_BUILD
+set( PYTORCH_PYTHON_INSTALL
   ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
                       PATH=${CUSTOM_PATH}
                       PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
@@ -48,15 +51,15 @@ ExternalProject_Add( pytorch
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/pytorch
   BUILD_IN_SOURCE 1
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND ${PYTORCH_PYTHON_BUILD}
-  INSTALL_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ${PYTORCH_PYTHON_INSTALL}
   )
 
 ExternalProject_Add_Step(pytorch install_torchvision
   WORKING_DIRECTORY ${VIAME_PACKAGES_DIR}/torchvision
   COMMAND ${TORCHVISION_PYTHON_INSTALL}
   COMMENT "Installing torchvision python files."
-  DEPENDEES build
+  DEPENDEES install
   )
 
 if ( VIAME_FORCEBUILD )
