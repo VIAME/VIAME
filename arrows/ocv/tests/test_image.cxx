@@ -346,15 +346,15 @@ TYPED_TEST(image_conversion, vital_to_ocv_interleaved)
 
 // ----------------------------------------------------------------------------
 template <typename T>
-class bgr_conversion : public ::testing::Test
+class image_bgr_conversion : public ::testing::Test
 {
 };
 
-using bgr_types = ::testing::Types<uint8_t, uint16_t, float>;
-TYPED_TEST_CASE(bgr_conversion, bgr_types);
+using image_bgr_types = ::testing::Types<uint8_t, uint16_t, float>;
+TYPED_TEST_CASE(image_bgr_conversion, image_bgr_types);
 
 // ----------------------------------------------------------------------------
-TYPED_TEST(bgr_conversion, bgr_to_rgb)
+TYPED_TEST(image_bgr_conversion, bgr_to_rgb)
 {
   kwiver::vital::image_of<TypeParam> img{ 200, 300, 3 };
   populate_vital_image<TypeParam>( img );
@@ -376,7 +376,7 @@ TYPED_TEST(bgr_conversion, bgr_to_rgb)
 }
 
 // ----------------------------------------------------------------------------
-TYPED_TEST(bgr_conversion, bgra_to_rgba)
+TYPED_TEST(image_bgr_conversion, bgra_to_rgba)
 {
   kwiver::vital::image_of<TypeParam> img{ 200, 300, 4 };
   populate_vital_image<TypeParam>( img );
@@ -401,15 +401,15 @@ TYPED_TEST(bgr_conversion, bgra_to_rgba)
 
 // ----------------------------------------------------------------------------
 template <typename T>
-class bgr_bad_conversion : public ::testing::Test
+class image_bgr_bad_conversion : public ::testing::Test
 {
 };
 
-using bgr_bad_types = ::testing::Types<int8_t, int16_t, int32_t, double>;
-TYPED_TEST_CASE(bgr_bad_conversion, bgr_bad_types);
+using image_bgr_bad_types = ::testing::Types<int8_t, int16_t, int32_t, double>;
+TYPED_TEST_CASE(image_bgr_bad_conversion, image_bgr_bad_types);
 
 // ----------------------------------------------------------------------------
-TYPED_TEST(bgr_bad_conversion, bgr_to_rgb_bad_types)
+TYPED_TEST(image_bgr_bad_conversion, bgr_to_rgb_bad_types)
 {
   kwiver::vital::image_of<TypeParam> img{ 200, 300, 3 };
   populate_vital_image<TypeParam>( img );
