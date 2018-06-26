@@ -28,6 +28,7 @@ else()
        run_chip_pipe.sh
        run_display_pipe.sh
        run_draw_pipe.sh )
+endif()
 
 install( FILES       ${example_files}
          DESTINATION examples/annotation_and_visualization )
