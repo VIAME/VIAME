@@ -37,6 +37,7 @@
 
 #include <iostream>
 #include <set>
+#include <unordered_set>
 
 #include <vital/io/eigen_io.h>
 #include <arrows/ceres/reprojection_error.h>
@@ -104,13 +105,13 @@ public:
   // the input landmarks to update in place
   landmark_map::map_landmark_t lms;
   // a map from track id to landmark parameters
-  std::map<track_id_t, std::vector<double> > landmark_params;
+  std::unordered_map<track_id_t, std::vector<double> > landmark_params;
   // a map from frame number to extrinsic parameters
-  std::map<frame_id_t, std::vector<double> > camera_params;
+  std::unordered_map<frame_id_t, std::vector<double> > camera_params;
   // vector of unique camera intrinsic parameters
   std::vector<std::vector<double> > camera_intr_params;
   // a map from frame number to index of unique camera intrinsics in camera_intr_params
-  std::map<frame_id_t, unsigned int> frame_to_intr_map;
+  std::unordered_map<frame_id_t, unsigned int> frame_to_intr_map;
   // the ceres callback class
   StateCallback ceres_callback;
 };
@@ -272,14 +273,26 @@ bundle_adjust
 ::optimize(kwiver::vital::simple_camera_perspective_map &cameras,
            kwiver::vital::landmark_map::map_landmark_t &landmarks,
            vital::feature_track_set_sptr tracks,
-           const std::set<vital::frame_id_t>& to_fix_cameras,
-           const std::set<vital::landmark_id_t>& to_fix_landmarks,
+           const std::set<vital::frame_id_t>& to_fix_cameras_in,
+           const std::set<vital::landmark_id_t>& to_fix_landmarks_in,
            kwiver::vital::sfm_constraints_sptr constraints) const
 {
   if(!tracks )
   {
     // TODO throw an exception for missing input data
     return;
+  }
+
+  std::unordered_set<vital::frame_id_t> to_fix_cameras;
+  for (auto &fid : to_fix_cameras_in)
+  {
+    to_fix_cameras.insert(fid);
+  }
+
+  std::unordered_set<vital::landmark_id_t> to_fix_landmarks;
+  for (auto &lid : to_fix_landmarks_in)
+  {
+    to_fix_landmarks.insert(lid);
   }
 
   std::set<frame_id_t> fixed_cameras;
@@ -341,7 +354,7 @@ bundle_adjust
       continue;
     }
 
-    lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);
+    auto lm_itr = d_->landmark_params.find(lm_id);
     // skip this track if the landmark is not in the set to optimize
     if (lm_itr == d_->landmark_params.end())
     {
@@ -370,7 +383,7 @@ bundle_adjust
 
     for (auto ts : *t)
     {
-      cam_param_map_t::iterator cam_itr = d_->camera_params.find(ts->frame());
+      auto cam_itr = d_->camera_params.find(ts->frame());
       if (cam_itr == d_->camera_params.end())
       {
         continue;
@@ -423,7 +436,7 @@ bundle_adjust
   //fix all the cameras in the to_fix_cameras list
   for (auto tfc : to_fix_cameras)
   {
-    cam_param_map_t::iterator cam_itr = d_->camera_params.find(tfc);
+    auto cam_itr = d_->camera_params.find(tfc);
     if (cam_itr == d_->camera_params.end())
     {
       continue;
@@ -442,7 +455,7 @@ bundle_adjust
   {
     auto lm_id = tfl;
 
-    lm_param_map_t::iterator lm_itr = d_->landmark_params.find(lm_id);
+    auto lm_itr = d_->landmark_params.find(lm_id);
     if (lm_itr == d_->landmark_params.end())
     {
       continue;
@@ -480,7 +493,7 @@ bundle_adjust
     if (fixed_cameras.size() == 1 && fixed_landmarks.empty())
     {
       //add measurement between the one fixed camera and another arbitrary camera to fix the scale
-      cam_param_map_t::iterator cam_itr_0 = d_->camera_params.find(*fixed_cameras.begin());
+      auto cam_itr_0 = d_->camera_params.find(*fixed_cameras.begin());
       //get another arbitrary camera
       bool scale_locking_camera_found = false;
       auto cam_itr_1 = d_->camera_params.begin();

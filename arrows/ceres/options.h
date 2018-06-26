@@ -82,8 +82,8 @@ class camera_options
 {
 public:
   /// typedef for camera parameter map
-  typedef std::map<vital::frame_id_t, std::vector<double> > cam_param_map_t;
-  typedef std::map<vital::frame_id_t, unsigned int> cam_intrinsic_id_map_t;
+  typedef std::unordered_map<vital::frame_id_t, std::vector<double> > cam_param_map_t;
+  typedef std::unordered_map<vital::frame_id_t, unsigned int> cam_intrinsic_id_map_t;
 
   /// Constructor
   camera_options();
