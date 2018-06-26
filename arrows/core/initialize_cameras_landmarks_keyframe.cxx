@@ -240,7 +240,8 @@ public:
     simple_camera_perspective_map_sptr cams,
     map_landmark_t &lms,
     feature_track_set_sptr tracks,
-    sfm_constraints_sptr constraints);
+    sfm_constraints_sptr constraints,
+    int &num_constraints_used);
 
   bool initialize_reconstruction(
     simple_camera_perspective_map_sptr cams,
@@ -1287,8 +1288,10 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   map_landmark_t &lms,
   feature_track_set_sptr tracks,
-  sfm_constraints_sptr constraints)
+  sfm_constraints_sptr constraints,
+  int &num_constraints_used)
 {
+  num_constraints_used = 0;
   if (!constraints)
   {
     return true;
@@ -1333,6 +1336,7 @@ initialize_cameras_landmarks_keyframe::priv
     sensor_positions.push_back(closest_prior);
   }
 
+  num_constraints_used = static_cast<int>(sensor_positions.size());
   if (cam_positions.size() < 3)
   {
     return false;
@@ -1890,8 +1894,8 @@ initialize_cameras_landmarks_keyframe::priv
       LOG_INFO(m_logger, "after new camera reprojection RMSE: " << after_new_cam_rmse);
 
     }
-
-    if (fit_reconstruction_to_constraints(cams, lms, tracks, constraints))
+    int num_constraints_used;
+    if (fit_reconstruction_to_constraints(cams, lms, tracks, constraints, num_constraints_used))
     {
       ba_constraints = constraints;
       m_solution_was_fit_to_constraints = true;
@@ -1993,8 +1997,8 @@ initialize_cameras_landmarks_keyframe::priv
 
           std::set<landmark_id_t> nr_inlier_lms;
           retriangulate(nr_landmarks, nr_cams_perspec, trks, nr_inlier_lms);
-
-          fit_reconstruction_to_constraints(nr_cams_perspec, nr_landmarks, tracks, ba_constraints);
+          int rev_num_constraints_used;
+          fit_reconstruction_to_constraints(nr_cams_perspec, nr_landmarks, tracks, ba_constraints, rev_num_constraints_used);
 
           init_rmse = kwiver::arrows::reprojection_rmse(nr_cams_perspec->cameras(), nr_landmarks, trks);
           LOG_DEBUG(m_logger, "Necker reversed initial reprojection RMSE: " << init_rmse);
@@ -2445,7 +2449,7 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<frame_id_t> empty_frames;
   std::set<landmark_id_t> empty_landmarks;
 
-  std::set<landmark_id_t> variable_landmark_ids = find_visible_landmarks_in_frames(lmks, tracks, frames_since_last_local_ba);
+  auto variable_landmark_ids = find_visible_landmarks_in_frames(lmks, tracks, frames_since_last_local_ba);
   std::vector<frame_id_t> removed_cams;
   clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
     frames_since_last_local_ba, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
@@ -2499,16 +2503,22 @@ initialize_cameras_landmarks_keyframe::priv
   m_frames_removed_from_sfm_solution.clear();
 
   std::set<landmark_id_t> last_ba_landmarks;
+  int max_constraints_used = 0;
 
   while(!frames_to_register.empty())
   {
-    if (fit_reconstruction_to_constraints(cams, lmks, tracks, constraints))
+    if (max_constraints_used < 10)
     {
-      constraints_to_ba = constraints;
-    }
-    else
-    {
-      constraints_to_ba = nullptr;
+      int num_constraints_used;
+      if (fit_reconstruction_to_constraints(cams, lmks, tracks, constraints, num_constraints_used))
+      {
+        max_constraints_used = std::max(num_constraints_used, max_constraints_used);
+        constraints_to_ba = constraints;
+      }
+      else
+      {
+        constraints_to_ba = nullptr;
+      }
     }
 
     frame_id_t fid_to_register;
