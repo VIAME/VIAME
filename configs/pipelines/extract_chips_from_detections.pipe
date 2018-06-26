@@ -15,15 +15,13 @@ process read_annotations
   :file_name                  example_output.csv
   :reader:type                viame_csv
 
-# ================================================================
+# ==================================================================
 process chipper
   :: refine_detections
   :refiner:type               ocv_write
   :refiner:ocv_write:pattern  tiles/detection_%05d_%fx%f+%f+%f.png
 
-# ================================================================
-connect from image_reader.image
-        to   draw_box.image
+# ==================================================================
 connect from image_reader.image_file_name
         to   read_annotations.image_file_name
 connect from image_reader.image
