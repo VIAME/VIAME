@@ -400,21 +400,24 @@ TYPED_TEST(image_bgr_conversion, bgra_to_rgba)
 }
 
 // ----------------------------------------------------------------------------
-template <typename T>
-class image_bgr_bad_conversion : public ::testing::Test
+TEST(image, bgr_to_rgb_bad_types)
 {
-};
-
-using image_bgr_bad_types = ::testing::Types<int8_t, int16_t, int32_t, double>;
-TYPED_TEST_CASE(image_bgr_bad_conversion, image_bgr_bad_types);
-
-// ----------------------------------------------------------------------------
-TYPED_TEST(image_bgr_bad_conversion, bgr_to_rgb_bad_types)
-{
-  kwiver::vital::image_of<TypeParam> img{ 200, 300, 3 };
-  populate_vital_image<TypeParam>( img );
-  EXPECT_THROW(ocv::image_container::vital_to_ocv(img, ocv::image_container::BGR_COLOR),
-               image_type_mismatch_exception);
+  EXPECT_THROW( ocv::image_container::vital_to_ocv(
+                  image_of<int8_t>{ 200, 300 },
+                  ocv::image_container::BGR_COLOR ),
+                image_type_mismatch_exception );
+  EXPECT_THROW( ocv::image_container::vital_to_ocv(
+                  image_of<int16_t>{ 200, 300 },
+                  ocv::image_container::BGR_COLOR ),
+                image_type_mismatch_exception );
+  EXPECT_THROW( ocv::image_container::vital_to_ocv(
+                  image_of<int32_t>{ 200, 300 },
+                  ocv::image_container::BGR_COLOR ),
+                image_type_mismatch_exception );
+  EXPECT_THROW( ocv::image_container::vital_to_ocv(
+                  image_of<double>{ 200, 300 },
+                  ocv::image_container::BGR_COLOR ),
+                image_type_mismatch_exception );
 }
 
 // ----------------------------------------------------------------------------
