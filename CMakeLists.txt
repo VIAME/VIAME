@@ -59,9 +59,9 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  OFF )
 # Add core utilities enable flags
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
-option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             OFF )
+option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             ON )
 option( VIAME_ENABLE_FLASK          "Enable Flask GUIs"             OFF )
-option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
+option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
 ###
 # Add algorithmic plugin enable flags
@@ -69,15 +69,15 @@ option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        OFF )
 option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
 option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
-option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         OFF )
+option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
-option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        OFF )
+option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugin"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
-option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
-option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          OFF )
+option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       ON )
+option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
 
 
