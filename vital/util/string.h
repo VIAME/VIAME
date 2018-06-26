@@ -93,7 +93,7 @@ join( const std::vector<std::string>& elements, const std::string& str_separator
  * forward iteration. The result is a unique vector of strings that preserves
  * the forwards order.
  *
- * @param items Vector of strings to modify inplace
+ * @param[in,out] items Vector of strings to modify inplace
  */
 VITAL_UTIL_EXPORT void
 erase_duplicates(std::vector<std::string>& items);
