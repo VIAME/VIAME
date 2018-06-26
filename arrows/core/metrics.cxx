@@ -53,6 +53,35 @@ reprojection_error_vec(const camera& cam,
   return pt - f.loc();
 }
 
+
+bool
+bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &cameras,
+                         const vital::vector_3d &X,
+                         double cos_ang_thresh)
+{
+  std::vector<vital::vector_3d> rays(cameras.size());
+
+  for (size_t i = 0; i < cameras.size(); ++i)
+  {
+    auto const& cam_i = cameras[i];
+    const vital::vector_3d c_i(cam_i.center().cast<double>());
+    rays[i] = (c_i - X).normalized();
+
+    for (size_t j = 0; j < i; ++j)
+    {
+      // the second camera
+      double cos_ang = rays[i].dot(rays[j]);
+
+      if (cos_ang <= cos_ang_thresh)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 double
 bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
                  const vital::vector_3d &X)

@@ -354,11 +354,7 @@ detect_bad_landmarks(
     }
     else
     {
-      double cos_ang =
-        kwiver::arrows::bundle_angle_max(observing_cams, lm->loc());
-
-      bad_ang = cos_ang > triang_cos_ang_thresh;
-      if (bad_ang)
+      if (!kwiver::arrows::bundle_angle_is_at_least(observing_cams,lm->loc(),triang_cos_ang_thresh))
       {
         ++num_lm_removed_bad_angle;
         landmarks_to_remove.insert(lm_it.first);

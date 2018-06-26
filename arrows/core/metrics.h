@@ -80,6 +80,21 @@ reprojection_error_sqr(const vital::camera& cam,
   return reprojection_error_vec(cam, lm, f).squaredNorm();
 }
 
+
+/// Check that at least one pair of rays has angle greater than or equal to ang_thresh
+/**
+* \param[in] cameras is the set of cameras that view X
+* \param[in] X is the landmark projected into the cameras
+* \param[in] cos_ang_thresh cosine of the angle threshold
+* \returns true if at least one pair of rays has cos(angle) < cos_angl_thresh
+*/
+
+KWIVER_ALGO_CORE_EXPORT
+bool
+bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &cameras,
+                         const vital::vector_3d &X,
+                         double cos_ang_thresh);
+
 /// Compute the maximum angle between the rays in the bundle associated with
 /// the landmark
 /**
