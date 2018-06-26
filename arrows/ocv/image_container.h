@@ -54,14 +54,14 @@ class KWIVER_ALGO_OCV_EXPORT image_container
 {
 public:
 
-  enum ColorMode{RGB,BGR,OTHER_COLOR_MODE};
+  enum ColorMode{RGB_COLOR, BGR_COLOR, OTHER_COLOR};
 
   /// Constructor - from a cv::Mat
   explicit image_container(const cv::Mat& d, ColorMode cm);
 
   /// Constructor - convert kwiver image to cv::Mat
   explicit image_container(const vital::image& vital_image)
-  : data_(vital_to_ocv(vital_image, RGB)) {}
+  : data_(vital_to_ocv(vital_image, RGB_COLOR)) {}
 
   /// Constructor - convert base image container to cv::Mat
   explicit image_container(const vital::image_container& image_cont);
@@ -87,7 +87,7 @@ public:
   virtual size_t depth() const { return data_.channels(); }
 
   /// Get and in-memory image class to access the data
-  virtual vital::image get_image() const { return ocv_to_vital(data_, RGB); }
+  virtual vital::image get_image() const { return ocv_to_vital(data_, RGB_COLOR); }
 
   /// Access the underlying cv::Mat data structure
   cv::Mat get_Mat() const { return data_; }
@@ -119,7 +119,7 @@ protected:
  * \param img Image container to convert to cv::mat
  */
 KWIVER_ALGO_OCV_EXPORT cv::Mat image_container_to_ocv_matrix(const vital::image_container& img,
-                           image_container::ColorMode cm = image_container::BGR);
+                           image_container::ColorMode cm = image_container::BGR_COLOR);
 
 
 } // end namespace ocv

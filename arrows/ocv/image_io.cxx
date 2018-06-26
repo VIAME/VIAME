@@ -55,7 +55,7 @@ image_io
 ::load_(const std::string& filename) const
 {
   cv::Mat img = cv::imread(filename.c_str(), -1);
-  return vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR));
+  return vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR_COLOR));
 }
 
 
@@ -69,7 +69,7 @@ image_io
 ::save_(const std::string& filename,
        vital::image_container_sptr data) const
 {
-  cv::Mat img = ocv::image_container::vital_to_ocv(data->get_image(), ocv::image_container::BGR);
+  cv::Mat img = ocv::image_container::vital_to_ocv(data->get_image(), ocv::image_container::BGR_COLOR);
   cv::imwrite(filename.c_str(), img);
 }
 
