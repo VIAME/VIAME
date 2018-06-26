@@ -20,13 +20,13 @@ process draw_box
 :: draw_detected_object_set
   :draw_algo:type             ocv
 
-# ================================================================
+# ==================================================================
 process writer
   :: image_writer
   :file_name_template         image%04d.jpg
   :image_writer:type          ocv
 
-# ================================================================
+# ==================================================================
 connect from image_reader.image
         to   draw_box.image
 connect from image_reader.image_file_name

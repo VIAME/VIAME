@@ -16,6 +16,17 @@ process read_annotations
   :reader:type                viame_csv
 
 # ==================================================================
+process annotation_filter
+  :: detected_object_filter
+  :filter:type                       class_probablity_filter
+
+  block filter:class_probablity_filter
+    :threshold                       0.100
+    :keep_all_classes                true
+    :keep_classes                    fish;scallop
+  endblock
+
+# ==================================================================
 process chipper
   :: refine_detections
   :refiner:type               ocv_write
@@ -27,4 +38,6 @@ connect from image_reader.image_file_name
 connect from image_reader.image
         to   chipper.image
 connect from read_annotations.detected_object_set
+        to   annotation_filter.detected_object_set
+connect from annotation_filter.detected_object_set
         to   chipper.detected_object_set
