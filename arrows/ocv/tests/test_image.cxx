@@ -345,13 +345,19 @@ TYPED_TEST(image_conversion, vital_to_ocv_interleaved)
 }
 
 // ----------------------------------------------------------------------------
-TEST(image, bgr_to_rgb)
+template <typename T>
+class bgr_conversion : public ::testing::Test
 {
-  // Create vital images and convert to and from cv::Mat
-  // (note: different code paths are taken depending on whether the image
-  // is natively created as OpenCV or vital, so we need to test both ways)
-  kwiver::vital::image_of<unsigned char> img{ 200, 300, 3 };
-  populate_vital_image<unsigned char>( img );
+};
+
+using bgr_types = ::testing::Types<uint8_t, uint16_t, float>;
+TYPED_TEST_CASE(bgr_conversion, bgr_types);
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(bgr_conversion, bgr_to_rgb)
+{
+  kwiver::vital::image_of<TypeParam> img{ 200, 300, 3 };
+  populate_vital_image<TypeParam>( img );
   cv::Mat ocv_img =  ocv::image_container::vital_to_ocv(img, ocv::image_container::BGR_COLOR);
   {
     int const num_c = ocv_img.channels();
@@ -359,29 +365,57 @@ TEST(image, bgr_to_rgb)
     {
       for( int i = 0; i < ocv_img.cols; ++i )
       {
-        ASSERT_EQ( img( i, j, 0 ), ocv_img.ptr<unsigned char>( j )[ num_c * i + 2 ] )
-            << "Pixels differ at " << i << ", " << j << ", (0,2)";
+        for( int c = 0; c < 3; ++c )
+        {
+          ASSERT_EQ( img( i, j, c ), ocv_img.ptr<TypeParam>( j )[ num_c * i + (2-c) ] )
+              << "Pixels differ at " << i << ", " << j << ", (" << c << "," << (2-c) << ")";
+        }
       }
     }
-    for( int j = 0; j < ocv_img.rows; ++j )
-    {
-      for( int i = 0; i < ocv_img.cols; ++i )
-      {
-        ASSERT_EQ( img( i, j, 1 ), ocv_img.ptr<unsigned char>( j )[ num_c * i + 1 ] )
-            << "Pixels differ at " << i << ", " << j << ", (1,1)";
-      }
-    }
-    for( int j = 0; j < ocv_img.rows; ++j )
-    {
-      for( int i = 0; i < ocv_img.cols; ++i )
-      {
-        ASSERT_EQ( img( i, j, 2 ), ocv_img.ptr<unsigned char>( j )[ num_c * i + 0 ] )
-            << "Pixels differ at " << i << ", " << j << ", (2,0)";
-      }
-    }
-  };
+  }
 }
 
+// ----------------------------------------------------------------------------
+TYPED_TEST(bgr_conversion, bgra_to_rgba)
+{
+  kwiver::vital::image_of<TypeParam> img{ 200, 300, 4 };
+  populate_vital_image<TypeParam>( img );
+  cv::Mat ocv_img =  ocv::image_container::vital_to_ocv(img, ocv::image_container::BGR_COLOR);
+  {
+    int const num_c = ocv_img.channels();
+    for( int j = 0; j < ocv_img.rows; ++j )
+    {
+      for( int i = 0; i < ocv_img.cols; ++i )
+      {
+        for( int c = 0; c < 3; ++c )
+        {
+          ASSERT_EQ( img( i, j, c ), ocv_img.ptr<TypeParam>( j )[ num_c * i + (2-c) ] )
+              << "Pixels differ at " << i << ", " << j << ", (" << c << "," << (2-c) << ")";
+        }
+        ASSERT_EQ( img( i, j, 3 ), ocv_img.ptr<TypeParam>( j )[ num_c * i + (3) ] )
+              << "Pixels differ at " << i << ", " << j << ", (3,3)";
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+template <typename T>
+class bgr_bad_conversion : public ::testing::Test
+{
+};
+
+using bgr_bad_types = ::testing::Types<int8_t, int16_t, int32_t, double>;
+TYPED_TEST_CASE(bgr_bad_conversion, bgr_bad_types);
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(bgr_bad_conversion, bgr_to_rgb_bad_types)
+{
+  kwiver::vital::image_of<TypeParam> img{ 200, 300, 3 };
+  populate_vital_image<TypeParam>( img );
+  EXPECT_THROW(ocv::image_container::vital_to_ocv(img, ocv::image_container::BGR_COLOR),
+               image_type_mismatch_exception);
+}
 
 // ----------------------------------------------------------------------------
 TEST(image, bad_conversions)
