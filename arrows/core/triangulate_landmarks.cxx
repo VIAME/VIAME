@@ -334,15 +334,31 @@ triangulate_landmarks::priv
   return best_pt3d;
 }
 
+
+void
+triangulate_landmarks
+::triangulate(vital::camera_map_sptr cameras,
+  vital::feature_track_set_sptr tracks,
+  vital::landmark_map_sptr& landmarks) const
+{
+  vital::track_map_t track_map;
+  auto tks = tracks->tracks();
+  for (auto const&t : tks)
+  {
+    track_map[t->id()] = t;
+  }
+  triangulate(cameras, track_map, landmarks);
+}
+
 // Triangulate the landmark locations given sets of cameras and tracks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
-              vital::feature_track_set_sptr tracks,
+              vital::track_map_t track_map,
               vital::landmark_map_sptr& landmarks) const
 {
   using namespace kwiver;
-  if( !cameras || !landmarks || !tracks )
+  if( !cameras || !landmarks )
   {
     // TODO throw an exception for missing input data
     return;
@@ -354,15 +370,6 @@ triangulate_landmarks
   // extract data from containers
   map_camera_t cams = cameras->cameras();
   map_landmark_t lms = landmarks->landmarks();
-  std::vector<vital::track_sptr> trks = tracks->tracks();
-
-  // build a track map by id
-  typedef std::map<vital::track_id_t, vital::track_sptr> track_map_t;
-  track_map_t track_map;
-  for(const vital::track_sptr& t : trks)
-  {
-    track_map[t->id()] = t;
-  }
 
   // the set of landmark ids which failed to triangulate
   std::set<vital::landmark_id_t> failed_landmarks;
@@ -372,11 +379,21 @@ triangulate_landmarks
   //minimum triangulation angle
   double thresh_triang_cos_ang = cos(DEG_TO_RAD * d_->m_min_angle_deg);
 
+  std::vector<vital::simple_camera_perspective> lm_cams;
+  std::vector<vital::vector_2d> lm_image_pts;
+  std::vector<vital::feature_track_state_sptr> lm_features;
+
   map_landmark_t triangulated_lms;
   for(const map_landmark_t::value_type& p : lms)
   {
+    lm_cams.clear();
+    lm_image_pts.clear();
+    lm_features.clear();
+    // extract the cameras and image points for this landmarks
+    auto lm_observations = unsigned{ 0 };
+
     // get the corresponding track
-    track_map_t::const_iterator t_itr = track_map.find(p.first);
+    vital::track_map_t::const_iterator t_itr = track_map.find(p.first);
     if (t_itr == track_map.end())
     {
       // there is no track for the provided landmark
@@ -385,15 +402,9 @@ triangulate_landmarks
     }
     const vital::track& t = *t_itr->second;
 
-    // extract the cameras and image points for this landmarks
-    std::vector<vital::simple_camera_perspective> lm_cams;
-    std::vector<vital::vector_2d> lm_image_pts;
-    std::vector<vital::feature_track_state_sptr> lm_features;
-
-    auto lm_observations = unsigned{0};
     for (vital::track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
     {
-      auto fts = std::dynamic_pointer_cast<vital::feature_track_state>(*tsi);
+      auto fts = std::static_pointer_cast<vital::feature_track_state>(*tsi);
       if (!fts && !fts->feature)
       {
         // there is no valid feature for this track state
@@ -407,10 +418,13 @@ triangulate_landmarks
       }
       auto cam_ptr =
         std::dynamic_pointer_cast<vital::camera_perspective>(c_itr->second);
-      lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
-      lm_image_pts.push_back(fts->feature->loc());
-      lm_features.push_back(fts);
-      ++lm_observations;
+      if (cam_ptr)
+      {
+        lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
+        lm_image_pts.push_back(fts->feature->loc());
+        lm_features.push_back(fts);
+        ++lm_observations;
+      }
     }
 
     // if we found at least two views of this landmark, triangulate
@@ -459,7 +473,6 @@ triangulate_landmarks
           {
             lm_features[idx]->inlier = false;
           }
-
           failed_landmarks.insert(p.first);
           continue;
         }
@@ -470,8 +483,8 @@ triangulate_landmarks
       {
         vital::landmark_d lm;
         lm.set_loc(pt3d);
-        double reproj_err = reprojection_error(lm_cams[idx], lm, *lm_features[idx]->feature);
-        if (reproj_err < d_->m_inlier_threshold_pixels)
+        double reproj_err_sq = reprojection_error_sqr(lm_cams[idx], lm, *lm_features[idx]->feature);
+        if (reproj_err_sq < d_->m_inlier_threshold_pixels_sq)
         {
           lm_features[idx]->inlier = true;
         }
@@ -494,14 +507,12 @@ triangulate_landmarks
       bool bad_triangulation = triang_cos_ang > thresh_triang_cos_ang;
       if (bad_triangulation)
       {
-        failed_angle.insert(p.first);
         failed_landmarks.insert(p.first);
-
+        failed_angle.insert(p.first);
         for (int idx = 0; idx < lm_cams.size(); ++idx)
         {
           lm_features[idx]->inlier = false;
         }
-
         continue;
       }
 
@@ -510,7 +521,7 @@ triangulate_landmarks
       // if the landmark already exists, copy it
       if (p.second)
       {
-        lm = std::make_shared<vital::landmark_d>(*p.second);
+        lm = std::make_shared<vital::landmark_d>(*p.second);  //automatically copies the tracks_ data
         lm->set_loc(pt3d);
       }
       // otherwise make a new landmark

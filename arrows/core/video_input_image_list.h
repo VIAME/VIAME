@@ -114,4 +114,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_IMAGE_LIST_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_IMAGE_LIST_H

@@ -64,6 +64,18 @@ camera_perspective
   return K * P;
 }
 
+/// Convert to a 3x4 pose matrix (no intrinsics)
+matrix_3x4d
+camera_perspective
+::pose_matrix() const
+{
+  matrix_3x4d P;
+  matrix_3x3d R(this->rotation().matrix());
+  vector_3d t(this->translation());
+  P.block< 3, 3 >(0, 0) = R;
+  P.block< 3, 1 >(0, 3) = t;
+  return P;
+}
 
 /// Project a 3D point into a 2D image point
 vector_2d

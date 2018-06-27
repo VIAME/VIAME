@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,18 +38,18 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/vital_types.h>
 #include <vital/exceptions.h>
 
 #include <iostream>
-#include <vector>
+#include <limits>
 #include <memory>
+#include <vector>
+
 #include <cstring>
 
 namespace kwiver {
 namespace vital {
-
-/// Convenience typedef for a byte
-typedef unsigned char byte;
 
 /// Shared pointer for base descriptor type
 class descriptor;
@@ -101,8 +101,8 @@ public:
     {
       return false;
     }
-    std::vector<uint8_t> b1 = std::vector<uint8_t>(this->as_bytes(), this->as_bytes() + this->num_bytes());
-    std::vector<uint8_t> b2 = std::vector<uint8_t>(other.as_bytes(), other.as_bytes() + other.num_bytes());
+    std::vector<byte> b1(this->as_bytes(), this->as_bytes() + this->num_bytes());
+    std::vector<byte> b2(other.as_bytes(), other.as_bytes() + other.num_bytes());
 
     return std::equal(b1.begin(), b1.end(), b2.begin());
   }

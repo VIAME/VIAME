@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_DARKNET_TRAINER
-#define KWIVER_ARROWS_DARKNET_TRAINER
-
-
-#include <arrows/darknet/kwiver_algo_darknet_export.h>
-
-#include <vital/algo/train_detector.h>
-
-namespace kwiver {
-namespace arrows {
-namespace darknet {
-
-// ----------------------------------------------------------------
 /**
- * @brief Darknet Training Utility Class
+ * \file
+ * \brief test range transform
  */
-class KWIVER_ALGO_DARKNET_EXPORT darknet_trainer
-  : public vital::algorithm_impl<darknet_trainer, vital::algo::train_detector>
+
+#include "test_values.h"
+
+#include <vital/range/transform.h>
+
+#include <gtest/gtest.h>
+
+using namespace kwiver::vital;
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-public:
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
-  darknet_trainer();
-  virtual ~darknet_trainer();
+// ----------------------------------------------------------------------------
+TEST(range_transform, basic)
+{
+  auto my_transform = []( int x ){
+    return static_cast< double >( x ) / 16.0;
+  };
 
-  virtual vital::config_block_sptr get_configuration() const;
+  int counter = 0;
+  auto sum = 0.0;
+  for ( auto x : test_values | range::transform( my_transform ) )
+  {
+    sum += x;
 
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+    auto const t = static_cast< double >( test_values[ counter ] );
+    EXPECT_EQ( t / 16.0, x ) << "At iteration " << counter;
 
-  virtual void
-  train_from_disk(vital::category_hierarchy_sptr object_labels,
-    std::vector< std::string > train_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-    std::vector< std::string > test_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
+    ++counter;
+  }
 
-private:
-
-  class priv;
-  const std::unique_ptr<priv> d;
-};
-
-} } }
-
-#endif /* KWIVER_ARROWS_DARKNET_TRAINER */
+  EXPECT_EQ( 13.5625, sum );
+}
