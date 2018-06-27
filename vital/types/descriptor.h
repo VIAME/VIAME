@@ -296,7 +296,7 @@ protected:
 
 /// return the hamming_distance between two descriptors
 VITAL_EXPORT
-float hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
+int hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
 
 // ------------------------------------------------------------------
 /// output stream operator for a feature

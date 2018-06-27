@@ -36,7 +36,7 @@
 #include <vital/types/descriptor.h>
 
 /// return the hamming_distance between two descriptors
-float kwiver::vital::hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2)
+int kwiver::vital::hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2)
 {
   // Bit set count operation from
   // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
