@@ -383,6 +383,7 @@ public:
   bool m_enable_BA_callback;
   bool m_solution_was_fit_to_constraints;
   int m_max_cams_in_keyframe_init;
+  double m_frac_frames_for_init;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -405,7 +406,8 @@ initialize_cameras_landmarks_keyframe::priv
   m_reverse_ba_error_ratio(2.0),
   m_enable_BA_callback(false),
   m_solution_was_fit_to_constraints(false),
-  m_max_cams_in_keyframe_init(20)
+  m_max_cams_in_keyframe_init(20),
+  m_frac_frames_for_init(-1.0)
 {
 
   }
@@ -1700,6 +1702,19 @@ initialize_cameras_landmarks_keyframe::priv
   auto ff_tracks = tracks->active_tracks(first_fid);
   auto all_frames = tracks->all_frame_ids();
 
+  if (m_frac_frames_for_init > 0)
+  {
+    int num_init_keyframes = keyframes.size() * m_frac_frames_for_init;
+    for (auto kfid : keyframes)
+    {
+      beginning_keyframes.insert(kfid);
+      if (beginning_keyframes.size() >= num_init_keyframes)
+      {
+        return beginning_keyframes;
+      }
+    }
+  }
+
   std::vector<frame_id_t> last_continuous_track_frames;
   for (auto t : ff_tracks)
   {
@@ -2642,6 +2657,9 @@ initialize_cameras_landmarks_keyframe
                     "If true, write status messages to the terminal showing "
                     "debugging information");
 
+  config->set_value("frac_frames_for_init", m_priv->m_frac_frames_for_init,
+                    "fraction of keyframes used in relative pose initialization");
+
   config->set_value("interim_reproj_thresh", m_priv->interim_reproj_thresh,
                     "Threshold for rejecting landmarks based on reprojection "
                     "error (in pixels) during intermediate processing steps.");
@@ -2752,6 +2770,10 @@ initialize_cameras_landmarks_keyframe
     m_priv->bundle_adjuster->set_callback(pcb);
   }
 
+  m_priv->m_frac_frames_for_init =
+    config->get_value<double>("frac_frames_for_init",
+                              m_priv->m_frac_frames_for_init);
+
   m_priv->verbose = config->get_value<bool>("verbose",
                                         m_priv->verbose);
 
@@ -2799,6 +2821,8 @@ initialize_cameras_landmarks_keyframe
   double ang_thresh_config = config->get_value("feature_angle_threshold", ang_thresh_cur);
 
   m_priv->m_thresh_triang_cos_ang = cos((M_PI / 180.0) * ang_thresh_config);
+
+
 
   vital::algo::estimate_pnp::set_nested_algo_configuration(
     "estimate_pnp", config, m_priv->m_pnp);
