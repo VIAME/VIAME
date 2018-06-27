@@ -102,9 +102,9 @@ vital_descriptor_as_bytes( vital_descriptor_t const *d,
   STANDARD_CATCH(
     "vital_descriptor_as_bytes", eh,
     auto d_sptr = vital_c::DESCRIPTOR_SPTR_CACHE.get( d );
-    std::vector<unsigned char> v = d_sptr->as_bytes();
-    unsigned char *v_ptr = (unsigned char*)malloc(sizeof(unsigned char) * v.size());
-    for( size_t i=0; i < v.size(); ++i )
+    auto v = d_sptr->as_bytes();
+    unsigned char *v_ptr = (unsigned char*)malloc(sizeof(unsigned char) * d_sptr->num_bytes());
+    for( size_t i=0; i < d_sptr->num_bytes(); ++i )
     {
       v_ptr[i] = v[i];
     }
