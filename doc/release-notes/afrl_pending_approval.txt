@@ -33,6 +33,15 @@ Arrows - Core
  * Optionally estimates a fundamental matrix before loop closure.  Accepts
    a loop only if the number of inlier matches is above a threshold.
    
+ * Added triangulate_landmarks method that takes a map of tracks rather 
+   than a track_set_sptr as input.  This is done for efficiency. Using
+   the track map we can directly access the track corresponding to a 
+   landmark that needs to be triangulated, rather than looping over 
+   all tracks.
+   
+ * Added an alternative triangulation method based on "Triangulation 
+   Made Easy" Lindstrom CVPR 2010.
+   
  * Added a new video_input implementation, video_input_splice, that
    splices multiple video sources together into a single video source. 
 
