@@ -56,7 +56,7 @@ extract_descriptors
   {
     return descriptor_set_sptr();
   }
-  cv::Mat img = image_container_to_ocv_matrix(*image_data, ocv::image_container::BGR);
+  cv::Mat img = image_container_to_ocv_matrix(*image_data, ocv::image_container::BGR_COLOR);
   std::vector<cv::KeyPoint> kpts = features_to_ocv_keypoints(*features);
 
   cv::Mat desc;

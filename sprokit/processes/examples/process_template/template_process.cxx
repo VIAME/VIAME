@@ -84,7 +84,8 @@ namespace group_ns {
 // config items
 // <name>, <type>, <default string>, <description string>
 create_config_trait( header, std::string, "top", "Header text for image display." );
-create_config_trait( footer, std::string, "bottom", "Footer text for image display. Displayed centered at bottom of image." );
+create_config_trait( footer, std::string, "bottom",
+                     "Footer text for image display. Displayed centered at bottom of image." );
 create_config_trait( gsd, double, "3.14159", "Meters per pixel scaling." );
 
 //----------------------------------------------------------------
@@ -170,11 +171,14 @@ template_process
     scoped_step_instrumentation();
 
     LOG_DEBUG( logger(), "Processing frame " << frame_time );
+    using namespace kwiver::arrows::ocv;
 
-    cv::Mat in_image = kwiver::arrows::ocv::image_container::vital_to_ocv( img->get_image() );
+    cv::Mat in_image = image_container::vital_to_ocv( img->get_image(),
+                                                      image_container::RGB_COLOR );
 
     //++ Here is where the process does its work.
-    out_image = std::make_shared<kwiver::arrows::ocv::image_container>( d->process_image( in_image ) );
+    out_image = std::make_shared<image_container>( d->process_image( in_image ),
+                                                   image_container::RGB_COLOR );
   }
 
 
