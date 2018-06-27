@@ -33,6 +33,8 @@ Arrows - Core
  * Optionally estimates a fundamental matrix before loop closure.  Accepts
    a loop only if the number of inlier matches is above a threshold.
    
+ * Improved the efficiency of loop closing and descriptor comparision.
+   
  * Added triangulate_landmarks method that takes a map of tracks rather 
    than a track_set_sptr as input.  This is done for efficiency. Using
    the track map we can directly access the track corresponding to a 

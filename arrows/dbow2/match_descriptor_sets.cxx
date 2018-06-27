@@ -186,7 +186,7 @@ match_descriptor_sets::priv
   //run them through the vocabulary to get the BOW vector
   DBoW2::BowVector bow_vec;
   DBoW2::FeatureVector feat_vec;
-  m_voc->transform(desc_mats, bow_vec, feat_vec, 3);
+  m_voc->transform(desc_mats, bow_vec, feat_vec, 0);
 
   //store node ids in feature_track_states
   for (auto node_data : feat_vec)
@@ -309,7 +309,7 @@ match_descriptor_sets::priv
   std::string voc_file_path)
 {
   const int k = 10;  //branching factor
-  const int L = 6;   //number of levels
+  const int L = 4;   //number of levels
   const DBoW2::WeightingType weight = DBoW2::TF_IDF;
   const DBoW2::ScoringType score = DBoW2::L1_NORM;
 
@@ -428,12 +428,13 @@ cv::Mat
 match_descriptor_sets::priv
 ::descriptor_to_mat(descriptor_sptr desc) const
 {
-  std::vector<kwiver::vital::byte> desc_bytes = desc->as_bytes();
-  cv::Mat desc_mat = cv::Mat(1, static_cast<int>(desc_bytes.size()), CV_8UC1);
-  unsigned int bn = 0;
-  for (auto b : desc_bytes)
+  const byte *db = desc->as_bytes();
+  auto const num_bytes = desc->num_bytes();
+  cv::Mat desc_mat = cv::Mat(1, static_cast<int>(num_bytes), CV_8UC1);
+
+  for(int bn = 0; bn < num_bytes; ++bn, ++db)
   {
-    desc_mat.at<unsigned char>(0, bn++) = b;
+    desc_mat.at<unsigned char>(0, bn) = *db;
   }
   return desc_mat;
 }

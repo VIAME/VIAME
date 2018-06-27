@@ -141,7 +141,6 @@ feature_track_set
 }
 
 /// Return the vector of feature track states for all tracks for the given frame.
-
 std::vector<feature_track_state_sptr>
 feature_track_set
 ::frame_feature_track_states(frame_id_t offset) const

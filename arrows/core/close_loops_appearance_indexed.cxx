@@ -35,6 +35,7 @@
 
 #include <map>
 #include <algorithm>
+#include <iterator>
 #include <limits>
 
 #include "close_loops_appearance_indexed.h"
@@ -118,6 +119,11 @@ public:
   /// Inlier threshold for fundamental matrix geometric verification
   double m_geometric_verification_inlier_threshold;
 
+  /// The maximum number of times to attempt to complete a loop with each new frame
+  int m_max_loop_attempts_per_frame;
+
+  // If this or more tracks ids are shared between two frames then don't attempt to close the loop
+  int m_tracks_in_common_to_skip_loop_closing;
 };
 
 //-----------------------------------------------------------------------------
@@ -126,7 +132,9 @@ close_loops_appearance_indexed::priv
 ::priv()
   : m_f_estimator(),
   m_min_loop_inlier_matches(50),
-  m_geometric_verification_inlier_threshold(2.0)
+  m_geometric_verification_inlier_threshold(2.0),
+  m_max_loop_attempts_per_frame(5),
+  m_tracks_in_common_to_skip_loop_closing(50)
 {
 }
 
@@ -141,7 +149,8 @@ close_loops_appearance_indexed::priv
   {
     if (f->descriptor && f->descriptor->node_id() != std::numeric_limits<unsigned int>::max())
     {
-      auto fm_it = fm.find(f->descriptor->node_id());
+      auto node_id = f->descriptor->node_id();
+      auto fm_it = fm.find(node_id);
       if (fm_it != fm.end())
       {
         fm_it->second.push_back(f);
@@ -150,7 +159,7 @@ close_loops_appearance_indexed::priv
       {
         std::vector<feature_track_state_sptr> vec;
         vec.push_back(f);
-        fm[f->descriptor->node_id()] = vec;
+        fm[node_id] = vec;
       }
     }
   }
@@ -167,12 +176,31 @@ close_loops_appearance_indexed::priv
   const int match_thresh = 25;
   const float next_neigh_match_diff = 2;
 
+  std::map<track_id_t, feature_track_state_sptr> track_to_vb_state;
+
+  // store mapping from track id to feature track state from vb
+  for (auto match_feat : vb)
+  {
+    track_to_vb_state[match_feat->track()->id()] = match_feat;
+  }
+
   //now loop over all the features in the same bin
   for (auto cur_feat : va)
   {
     int dist1 = max_int;
     int dist2 = max_int;
     vital::feature_track_state_sptr best_match = nullptr;
+
+    // see if this track id already has a vb feature track state associate with it
+    auto it = track_to_vb_state.find(cur_feat->track()->id());
+    if(it != track_to_vb_state.end())
+    {
+        // The two features are already from the same track.  So, they are
+        // a match.  Add them to matches.
+        matches.push_back(fs_match(cur_feat, it->second));
+        // There is no need to search vb for additional matches.
+        break;
+    }
 
     for (auto match_feat : vb)
     {
@@ -207,16 +235,39 @@ close_loops_appearance_indexed::priv
 {
   auto cur_frame_fts = feat_tracks->frame_feature_track_states(frame_number);
 
+  auto cur_frame_track_ids = feat_tracks->active_track_ids(frame_number);
+
   int num_successfully_matched_pairs = 0;
 
   auto cur_node_map = make_node_map(cur_frame_fts);
-
+  int num_loops_attempted = 0;
   //loop over putatively matching frames
   for (auto fn_match : putative_matches)
   {
+
     if (fn_match == frame_number)
     {
       continue; // no sense matching an image to itself
+    }
+
+    //get active tracks on fn match
+    auto match_frame_track_ids = feat_tracks->active_track_ids(fn_match);
+    std::set<track_id_t> tracks_in_common;
+    std::set_intersection(cur_frame_track_ids.begin(), cur_frame_track_ids.end(),
+                          match_frame_track_ids.begin(), match_frame_track_ids.end(),
+                          std::inserter(tracks_in_common, tracks_in_common.begin()));
+
+    if (tracks_in_common.size() >= m_tracks_in_common_to_skip_loop_closing)
+    {
+      continue;
+    }
+
+    // how many tracks to fn_match and frame_number have in common?  Too many?  Don't match.
+
+    ++num_loops_attempted;
+    if (num_loops_attempted >= m_max_loop_attempts_per_frame)
+    {
+      break;
     }
 
     auto match_frame_fts = feat_tracks->frame_feature_track_states(fn_match);
@@ -242,8 +293,15 @@ close_loops_appearance_indexed::priv
       matches_vec matches_forward, matches_reverse;
 
       do_matching( cur_feat_vec, match_feat_vec, matches_forward);
+      if (matches_forward.empty())
+      {
+        continue;
+      }
       do_matching( match_feat_vec, cur_feat_vec, matches_reverse);
-
+      if (matches_reverse.empty())
+      {
+        continue;
+      }
       // cross-validate the matches
       for (auto m_f : matches_forward)
       {
@@ -298,12 +356,17 @@ close_loops_appearance_indexed::priv
       auto &m = validated_matches[i];
       track_sptr t1 = m.first->track();
       track_sptr t2 = m.second->track();
+      //t1's states should be after t2
+      if (t1->last_frame() < t2->last_frame())
+      {
+        std::swap(t1, t2);
+      }
+
       if (feat_tracks->merge_tracks(t1, t2))
       {
         //tracks will not merge if t1 and t2 are already the same track
         ++num_stitched_tracks;
       }
-
     }
 
     if (num_stitched_tracks > 0)
@@ -560,6 +623,14 @@ close_loops_appearance_indexed
     d_->m_geometric_verification_inlier_threshold,
     "inlier threshold for fundamental matrix based geometric verification of loop closure in pixels");
 
+  config->set_value("max_loop_attempts_per_frame",
+    d_->m_max_loop_attempts_per_frame,
+    "the maximum number of loop closure attempts to make per frame");
+
+  config->set_value("tracks_in_common_to_skip_loop_closing",
+    d_->m_tracks_in_common_to_skip_loop_closing,
+    "is this or more tracks are in common between two frames then don't try to complete a loop with them");
+
   return config;
 }
 
@@ -600,6 +671,14 @@ close_loops_appearance_indexed
   d_->m_geometric_verification_inlier_threshold =
     config->get_value<double>("geometric_verification_inlier_threshold",
       d_->m_geometric_verification_inlier_threshold);
+
+  d_->m_max_loop_attempts_per_frame =
+    config->get_value<int>("max_loop_attempts_per_frame",
+      d_->m_max_loop_attempts_per_frame);
+
+  d_->m_tracks_in_common_to_skip_loop_closing =
+    config->get_value<int>("tracks_in_common_to_skip_loop_closing",
+      d_->m_tracks_in_common_to_skip_loop_closing);
 }
 
 //-----------------------------------------------------------------------------
