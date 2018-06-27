@@ -60,7 +60,7 @@ image_io
   md->add(NEW_METADATA_ITEM(kwiver::vital::VITAL_META_IMAGE_FILENAME, filename));
 
   cv::Mat img = cv::imread(filename.c_str(), -1);
-  auto img_ptr = vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR));
+  auto img_ptr = vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR_COLOR));
   img_ptr->set_metadata(md);
   return img_ptr;
 }
@@ -76,7 +76,7 @@ image_io
 ::save_(const std::string& filename,
        vital::image_container_sptr data) const
 {
-  cv::Mat img = ocv::image_container::vital_to_ocv(data->get_image(), ocv::image_container::BGR);
+  cv::Mat img = ocv::image_container::vital_to_ocv(data->get_image(), ocv::image_container::BGR_COLOR);
   cv::imwrite(filename.c_str(), img);
 }
 
