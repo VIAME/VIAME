@@ -30,16 +30,15 @@
 
 /**
  * \file
- * \brief test range filter
+ * \brief test range validity-filter
  */
 
-#include "test_values.h"
-
-#include <vital/range/filter.h>
+#include <vital/range/valid.h>
 
 #include <gtest/gtest.h>
 
-#include <set>
+#include <memory>
+#include <vector>
 
 using namespace kwiver::vital;
 
@@ -51,13 +50,12 @@ int main(int argc, char** argv)
 }
 
 // ----------------------------------------------------------------------------
-TEST(range_filter, empty)
+TEST(range_valid, empty)
 {
-  auto const empty_set = std::set< int >{};
-  auto my_filter = []( int ){ return true; };
+  auto test_values = std::vector< int >{};
 
-  int counter = 0;
-  for ( auto x : empty_set | range::filter( my_filter ) )
+  auto counter = int{ 0 };
+  for ( auto x : test_values | range::valid )
   {
     static_cast< void >( x );
     ++counter;
@@ -67,27 +65,12 @@ TEST(range_filter, empty)
 }
 
 // ----------------------------------------------------------------------------
-TEST(range_filter, always_true)
+TEST(range_valid, none)
 {
-  auto my_filter = []( int ){ return true; };
+  auto test_values = std::vector< bool >{ false, false };
 
-  int counter = 0;
-  for ( auto x : test_values | range::filter( my_filter ) )
-  {
-    static_cast< void >( x );
-    ++counter;
-  }
-
-  EXPECT_EQ( 32, counter );
-}
-
-// ----------------------------------------------------------------------------
-TEST(range_filter, always_false)
-{
-  auto my_filter = []( int ){ return false; };
-
-  int counter = 0;
-  for ( auto x : test_values | range::filter( my_filter ) )
+  auto counter = int{ 0 };
+  for ( auto x : test_values | range::valid )
   {
     static_cast< void >( x );
     ++counter;
@@ -97,61 +80,42 @@ TEST(range_filter, always_false)
 }
 
 // ----------------------------------------------------------------------------
-TEST(range_filter, specific_value)
+TEST(range_valid, basic)
 {
-  auto my_filter = []( int i ){ return i != 9; };
+  auto test_values = std::vector< std::shared_ptr< int > >{
+    std::shared_ptr< int >{ nullptr },
+    std::shared_ptr< int >{ new int{ 1 } },
+    std::shared_ptr< int >{ nullptr },
+    std::shared_ptr< int >{ new int{ 2 } },
+    std::shared_ptr< int >{ new int{ 3 } },
+    std::shared_ptr< int >{ nullptr },
+    std::shared_ptr< int >{ nullptr },
+    std::shared_ptr< int >{ new int{ 4 } },
+    std::shared_ptr< int >{ new int{ 5 } },
+    std::shared_ptr< int >{ nullptr }
+  };
 
-  int counter = 0;
-  for ( auto x : test_values | range::filter( my_filter ) )
+  auto accumulator = int{ 0 };
+  for ( auto p : test_values | range::valid )
   {
-    EXPECT_NE( 9, x ) << "At iteration " << counter;
-    ++counter;
+    accumulator += *p;
   }
 
-  EXPECT_EQ( 29, counter );
+  EXPECT_EQ( 15, accumulator );
 }
 
 // ----------------------------------------------------------------------------
-TEST(range_filter, no_match)
+TEST(range_valid, mutating)
 {
-  auto my_filter = []( int i ){ return i == 7; };
+  auto test_values = std::vector< int >{ 1, 2, 3, 4, 5 };
 
-  int counter = 0;
-  for ( auto x : test_values | range::filter( my_filter ) )
+  for ( auto& x : test_values | range::valid )
   {
-    EXPECT_EQ( 7, x ) << "At iteration " << counter;
-    ++counter;
+    if ( x == 3 )
+    {
+      x = 42;
+    }
   }
 
-  EXPECT_EQ( 0, counter );
-}
-
-// ----------------------------------------------------------------------------
-TEST(range_filter, evens)
-{
-  auto my_filter = []( int i ){ return ( i & 1 ) == 0; };
-
-  int counter = 0;
-  for ( auto x : test_values | range::filter( my_filter ) )
-  {
-    EXPECT_EQ( 0, ( x % 2 ) ) << "At iteration " << counter;
-    ++counter;
-  }
-
-  EXPECT_EQ( 17, counter );
-}
-
-// ----------------------------------------------------------------------------
-TEST(range_filter, odds)
-{
-  auto my_filter = []( int i ){ return ( i & 1 ) != 0; };
-
-  int counter = 0;
-  for ( auto x : test_values | range::filter( my_filter ) )
-  {
-    EXPECT_NE( 0, ( x % 2 ) ) << "At iteration " << counter;
-    ++counter;
-  }
-
-  EXPECT_EQ( 15, counter );
+  EXPECT_EQ( 42, test_values[2] );
 }
