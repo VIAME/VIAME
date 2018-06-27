@@ -101,10 +101,10 @@ public:
     {
       return false;
     }
-    std::vector<byte> b1(this->as_bytes(), this->as_bytes() + this->num_bytes());
-    std::vector<byte> b2(other.as_bytes(), other.as_bytes() + other.num_bytes());
+    auto b1 = this->as_bytes();
+    auto b2 = other.as_bytes();
 
-    return std::equal(b1.begin(), b1.end(), b2.begin());
+    return std::equal(b1, b1 + this->num_bytes(), b2);
   }
 
   /// Inequality operator
