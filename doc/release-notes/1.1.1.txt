@@ -1,0 +1,100 @@
+KWIVER v1.1.1 Release Notes
+===========================
+
+This is a patch release of KWIVER that provides bug fixes and documentation
+improvements over the previous v1.1.0 release.
+
+
+Updates since v1.1.0
+--------------------
+
+Vital
+
+ * The camera model support in KWIVER has been refactored to support multiple
+   type of camera models. There is now a base camera class, simply named camera
+   that provides the general camera API. The original camera model has been
+   renamed camera_perspective.
+
+ * Using the new base camera API, a camera model named camera_rpc has been
+   added to support rational polynomial cameras (RPC).
+
+Testing
+
+ * The Travis CI framework was updated to download a pre-built Fletch instead
+   of building Fletch from source.  This change helps to avoid the Travis CI
+   time out.  It also allows us to build all of Fletch and all of KWIVER
+   without hitting the time limit, so Sprokit, Python, and track oracle have
+   now been enabled in Travis CI testing.
+
+ * Removed duplicate testing headers from kwiver/vital/tests that were unused.
+   The copies in kwiver/tests/ are still used.
+
+
+Fixes since v1.1.0
+------------------
+
+Arrows - Core
+
+  * The triangulate landmarks algorithm was supposed to catch and discard
+    invalid triangulated points.  It was failing to catch points that contained
+    NaN or infinity value.  This has been corrected.
+
+Arrows - VXL
+
+ * The vidl_ffmpeg_video_input algorithm was not catching exceptions caused by
+   corrupt metadata.  This typically led programs like dump_klv to crash.  The
+   exception is now caught in the video_input and logged as a warning so that
+   the rest of the data can be read.
+
+Arrows - OpenCV
+
+ * Updated the OpenCV extract_descriptors algorithm to return potentially
+   modified features by reference when computing descriptors.  This is needed
+   because some descriptors in OpenCV, notably ORB, do this reordering and
+   this resulted in a bug in which features and descriptor were out of sync
+   when using ORB.
+
+Vital
+
+  * The simple_camera_perspective::clone_look_at now has the same parameter
+    default as the base method, allowing it to be called with one parameter
+    from an instance whose static type is simple_camera_perspective.
+
+  * rotation::quaternion no longer returns the quaternion by reference.  This
+    fixes a potential dangling reference problem if this method is called on a
+    temporary object.  (In particular, this was causing several VXL arrow tests
+    to fail.)
+
+ * The conversion from 0601 KLV to vital metadata was missing a case for
+   "Outside Air Temperature".  When this field was encountered an exception was
+   thrown.  The correct conversion has been added.
+
+ * Modified the extract_descriptors API to allow algorithms to also modify the
+   input feature set and return updated features by reference.  This is needed
+   because some descriptor extractors in OpenCV modify features.  This was
+   causing a bug in which features and descriptor were out of sync.
+
+Sprokit
+
+ * Previously the Python path used in Sprokit Python tests was incorrect due to
+   the missing Python version subdirectory (e.g. 'python2.7/') in the directory
+   structure.  This has now been corrected, meaning the tests should pass
+   without needing to explicitly set the PYTHONPATH environment variable first.
+
+Testing
+
+ * The sprokit non-blocking pipeline test was failing intermittently and
+   taking a long time to run.  Adjustments to the process timing using short
+   sleep calls make this test more reliable and run faster.
+
+Tools
+
+ * Fixed the name of the video_reader in the dump_klv tool.
+
+CMake
+
+ * The kwiver_configure_file CMake macro was ignoring all values except the
+   first for list arguments like the KWIVER_INCLUDE_DIRS and
+   KWIVER_LIBRARY_DIRS. This would prevent consumer projects from using some of
+   the include/library paths. Changes to the argument parsing in the macro have
+   fixed this issue.
