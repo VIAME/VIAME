@@ -83,6 +83,13 @@ Sprokit
  * Changed KLT tracking pipeline to pass track change information between
    processes rather than full track sets for efficiency.
 
+Vital
+
+ * Change the return type of the as_bytes() function on vital::descriptor
+   to return a raw pointer to the bytes instead of a vector of bytes.
+   This API change avoids many memory copies when comparing descriptors
+   at the byte level.
+
 
 Fixes since last public release
 -------------------------------
