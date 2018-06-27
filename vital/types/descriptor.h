@@ -76,9 +76,9 @@ public:
 
   /// Return the descriptor as pointer to bytes
   /**
-   * subclasses should ensure this always works by storing the data
-   * as a continuous byte array
-   * Note that as_bytes returns a poitner to the underlying data while
+   * Subclasses should ensure this always works by storing the data
+   * as a continuous byte array.
+   * Note that as_bytes returns a pointer to the underlying data while
    * as_double returns a vector of doubles which will be copied from
    * the underlying data if possible.  As_bytes is written this way
    * for speed (no copying) at the cost of being restrictive on sub-classes
