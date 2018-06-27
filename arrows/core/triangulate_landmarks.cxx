@@ -85,9 +85,9 @@ public:
 
   vital::vector_3d
   ransac_triangulation(const std::vector<vital::simple_camera_perspective> &lm_cams,
-    const std::vector<vital::vector_2d> &lm_image_pts,
-    int &best_inlier_count,
-    vital::vector_3d const* guess) const;
+                       const std::vector<vital::vector_2d> &lm_image_pts,
+                       int &best_inlier_count,
+                       vital::vector_3d const* guess) const;
 
   bool
   triangulate(const std::vector<vital::simple_camera_perspective> &lm_cams,
@@ -218,7 +218,8 @@ triangulate_landmarks
 bool
 triangulate_landmarks::priv
 ::triangulate(const std::vector<vital::simple_camera_perspective> &lm_cams,
-  const std::vector<vital::vector_2d> &lm_image_pts, vital::vector_3d &pt3d) const
+              const std::vector<vital::vector_2d> &lm_image_pts,
+              vital::vector_3d &pt3d) const
 {
   if (m_homogeneous)
   {
@@ -243,8 +244,9 @@ triangulate_landmarks::priv
 vital::vector_3d
 triangulate_landmarks::priv
 ::ransac_triangulation(const std::vector<vital::simple_camera_perspective> &lm_cams,
-  const std::vector<vital::vector_2d> &lm_image_pts,
-  int &best_inlier_count, vital::vector_3d const* guess) const
+                       const std::vector<vital::vector_2d> &lm_image_pts,
+                       int &best_inlier_count,
+                       vital::vector_3d const* guess) const
 {
   double conf = 0;
   std::vector<vital::simple_camera_perspective> cam_sample(2);
@@ -271,7 +273,9 @@ triangulate_landmarks::priv
   vital::landmark_d lm;
   vital::feature_d f;
 
-  for (int num_samples = 1; num_samples <= m_max_ransac_samples && conf < m_conf_thresh; ++num_samples)
+  for (int num_samples = 1;
+       num_samples <= m_max_ransac_samples && conf < m_conf_thresh;
+       ++num_samples)
   {
     //pick two random points
     int inlier_count = 0;
@@ -338,8 +342,8 @@ triangulate_landmarks::priv
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
-  vital::feature_track_set_sptr tracks,
-  vital::landmark_map_sptr& landmarks) const
+              vital::feature_track_set_sptr tracks,
+              vital::landmark_map_sptr& landmarks) const
 {
   vital::track_map_t track_map;
   auto tks = tracks->tracks();

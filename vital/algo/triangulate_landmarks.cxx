@@ -51,8 +51,8 @@ triangulate_landmarks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
-  vital::track_map_t tracks,
-  vital::landmark_map_sptr& landmarks) const
+              vital::track_map_t tracks,
+              vital::landmark_map_sptr& landmarks) const
 {
   std::vector<track_sptr> track_vec(tracks.size());
   size_t i = 0;

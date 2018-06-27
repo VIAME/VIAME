@@ -88,7 +88,8 @@ Triangulate_DLT( kwiver::vital::matrix_3x4d const& pose1,
                  kwiver::vital::vector_2d const& point2,
                  kwiver::vital::vector_4d &triangulated_point)
 {
-  // code modified from code found at https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.h
+  // code modified from code found at
+  // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.h
 
   kwiver::vital::matrix_4x4d design_matrix;
   design_matrix.row(0) = point1[0] * pose1.row(2) - pose1.row(0);
@@ -112,7 +113,8 @@ find_optimal_image_points(kwiver::vital::essential_matrix_sptr ematrix,
                           vital::vector_2d &corrected_point1,
                           vital::vector_2d &corrected_point2)
 {
-  // code modified from code found at https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.cc
+  // code modified from code found at
+  // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.cc
   auto E = ematrix->matrix();
 
   vital::vector_3d point1_homog = point1.homogeneous();
@@ -157,7 +159,8 @@ triangulate_fast_two_view(const vital::simple_camera_perspective &camera0,
                           const Eigen::Matrix<T, 2, 1> &point0,
                           const Eigen::Matrix<T, 2, 1> &point1)
 {
-  // code modified from code found at https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.cc
+  // code modified from code found at
+  // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.cc
 
   auto E = kwiver::arrows::essential_matrix_from_cameras(cam0, cam1);
 
