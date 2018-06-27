@@ -175,6 +175,56 @@ TEST_F(video_input_split, seek_frame)
   vis.close();
 }
 
+TEST_F(video_input_split, seek_then_next_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_split vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vis.open( list_file );
+
+  test_seek_then_next( vis );
+
+  vis.close();
+}
+
+TEST_F(video_input_split, next_then_seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_split vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vis.open( list_file );
+
+  test_next_then_seek( vis );
+
+  vis.close();
+}
+
 TEST_F(video_input_split, metadata_map)
 {
   // make config block

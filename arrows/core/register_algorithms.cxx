@@ -73,6 +73,7 @@
 #include <arrows/core/video_input_filter.h>
 #include <arrows/core/video_input_image_list.h>
 #include <arrows/core/video_input_pos.h>
+#include <arrows/core/video_input_splice.h>
 #include <arrows/core/video_input_split.h>
 #include <arrows/core/write_object_track_set_kw18.h>
 #include <arrows/core/write_track_descriptor_set_csv.h>
@@ -152,6 +153,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< video_input_filter >( vpm );
   register_algorithm< video_input_image_list >( vpm );
   register_algorithm< video_input_pos >( vpm );
+  register_algorithm< video_input_splice >( vpm );
   register_algorithm< video_input_split >( vpm );
   register_algorithm< write_object_track_set_kw18 >( vpm );
   register_algorithm< write_track_descriptor_set_csv >( vpm );

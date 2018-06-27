@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,70 +28,73 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Header defining the hierarchical_bundle_adjust algorithm
- */
+#ifndef ARROWS_CORE_VIDEO_INPUT_SPLICE_H
+#define ARROWS_CORE_VIDEO_INPUT_SPLICE_H
 
-#ifndef KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
-#define KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#include <vital/algo/video_input.h>
 
 #include <arrows/core/kwiver_algo_core_export.h>
-
-#include <vital/algo/algorithm.h>
-#include <vital/algo/bundle_adjust.h>
-#include <vital/config/config_block.h>
-
 
 namespace kwiver {
 namespace arrows {
 namespace core {
 
-
-class KWIVER_ALGO_CORE_EXPORT hierarchical_bundle_adjust
-  : public vital::algorithm_impl<hierarchical_bundle_adjust, vital::algo::bundle_adjust>
+// ---------------------------------------------------------------------------
+/// Video input that splices frames together from multiple video input sources.
+/**
+ * This class implements a video input algorithm that splices multiple video
+ * input sources together into a single source.
+ */
+class KWIVER_ALGO_CORE_EXPORT video_input_splice
+  : public vital::algorithm_impl < video_input_splice, vital::algo::video_input >
 {
 public:
   /// Name of the algorithm
-  static constexpr char const* name = "hierarchical";
+  static constexpr char const* name = "splice";
 
   /// Description of the algorithm
   static constexpr char const* description =
-    "Run a bundle adjustment algorithm in a temporally hierarchical fashion"
-    " (useful for video)";
+    "Splices multiple video sources together.";
 
   /// Constructor
-  hierarchical_bundle_adjust();
-  /// Destructor
-  virtual ~hierarchical_bundle_adjust() noexcept;
+  video_input_splice();
+  virtual ~video_input_splice();
 
-  /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
+  /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
+
   /// Set this algorithm's properties via a config block
   virtual void set_configuration(vital::config_block_sptr config);
-  /// Check that the algorithm's configuration vital::config_block is valid
+
+  /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /// Optimize the camera and landmark parameters given a set of tracks
-  virtual void optimize(vital::camera_map_sptr & cameras,
-                        vital::landmark_map_sptr & landmarks,
-                        vital::feature_track_set_sptr tracks,
-                        vital::metadata_map_sptr metadata = nullptr) const;
+  virtual void open( std::string name );
+  virtual void close();
 
-  using vital::algo::bundle_adjust::optimize;
+  virtual bool end_of_video() const;
+  virtual bool good() const;
+  virtual bool seekable() const;
+  virtual size_t num_frames() const;
+
+  virtual bool next_frame( kwiver::vital::timestamp& ts,
+                           uint32_t timeout = 0 );
+
+  virtual bool seek_frame( kwiver::vital::timestamp& ts,
+                           kwiver::vital::timestamp::frame_t frame_number,
+                           uint32_t timeout = 0 );
+
+  virtual kwiver::vital::timestamp frame_timestamp() const;
+  virtual kwiver::vital::image_container_sptr frame_image();
+  virtual kwiver::vital::metadata_vector frame_metadata();
+  virtual kwiver::vital::metadata_map_sptr metadata_map();
 
 private:
-  // private implementation class
+  /// private implementation class
   class priv;
-  std::unique_ptr<priv> d_;
+  const std::unique_ptr<priv> d;
 };
 
+} } } // end namespace
 
-/// Type definition for shared pointer for hierarchical_bundle_adjust algorithm
-typedef std::shared_ptr<hierarchical_bundle_adjust> hierarchical_bundle_adjust_sptr;
-
-} // end namespace core
-} // end namespace arrows
-} // end namespace kwiver
-
-#endif // KWIVER_ARROWS_CORE_HIERARCHICAL_BUNDLE_ADJUST_H_
+#endif // ARROWS_CORE_VIDEO_INPUT_SPLICE_H
