@@ -189,6 +189,22 @@ public:
     sfm_constraints_sptr constraints,
     callback_t m_callback);
 
+  bool vision_centric_keyframe_initialization(
+    simple_camera_perspective_map_sptr cams,
+    landmark_map_sptr& landmarks,
+    feature_track_set_sptr tracks,
+    sfm_constraints_sptr constraints,
+    std::set<vital::frame_id_t> &keyframes,
+    callback_t callback);
+
+  bool metadata_centric_keyframe_initialization(
+    simple_camera_perspective_map_sptr cams,
+    landmark_map_sptr& landmarks,
+    feature_track_set_sptr tracks,
+    sfm_constraints_sptr constraints,
+    std::set<vital::frame_id_t> &keyframes,
+    callback_t callback);
+
   bool initialize_remaining_cameras(
     simple_camera_perspective_map_sptr cams,
     landmark_map_sptr& landmarks,
@@ -1797,24 +1813,14 @@ initialize_cameras_landmarks_keyframe::priv
 
 bool
 initialize_cameras_landmarks_keyframe::priv
-::initialize_keyframes(
+::vision_centric_keyframe_initialization(
   simple_camera_perspective_map_sptr cams,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
   sfm_constraints_sptr constraints,
+  std::set<vital::frame_id_t> &keyframes,
   callback_t callback)
 {
-  LOG_DEBUG(m_logger, "initialize_keyframes");
-
-  m_solution_was_fit_to_constraints = false;
-
-  // get set of keyframe ids
-  auto keyframes = get_keyframe_ids(tracks);
-  if (keyframes.empty())
-  {
-    LOG_DEBUG(m_logger, "no keyframes, cannot initilize reconstruction");
-    return false;
-  }
 
   auto beginning_keyframes = select_begining_frames_for_initialization(tracks);
 
@@ -1863,7 +1869,7 @@ initialize_cameras_landmarks_keyframe::priv
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
   while (!frames_to_resection.empty() &&
-         (m_max_cams_in_keyframe_init < 0 || cams->size() < m_max_cams_in_keyframe_init))
+    (m_max_cams_in_keyframe_init < 0 || cams->size() < m_max_cams_in_keyframe_init))
   {
     frame_id_t next_frame_id = select_next_camera(frames_to_resection, cams, lms, tracks);
     if (next_frame_id == -1)
@@ -1936,17 +1942,17 @@ initialize_cameras_landmarks_keyframe::priv
       }
     }
 
-    int next_ba_cam_count = std::max<int>(cams->size() * 0.2,5);
+    int next_ba_cam_count = std::max<int>(cams->size() * 0.2, 5);
     next_ba_cam_count = 0;
 
-    if ( (lms.size() > prev_ba_lm_count * 1.5 ||
+    if ((lms.size() > prev_ba_lm_count * 1.5 ||
       lms.size() < prev_ba_lm_count * 0.5) ||
       frames_resectioned_since_last_ba >= next_ba_cam_count ||
       frames_to_resection.empty())
     {
       frames_resectioned_since_last_ba = 0;
       //bundle adjust result because number of inliers has changed significantly
-      if ( bundle_adjuster)
+      if (bundle_adjuster)
       {
         LOG_INFO(m_logger, "Running Global Bundle Adjustment on "
           << cams->size() << " cameras and "
@@ -1997,7 +2003,7 @@ initialize_cameras_landmarks_keyframe::priv
           m_frames_removed_from_sfm_solution.insert(rem_fid);
         }
 
-        if ( m_reverse_ba_error_ratio > 0 && !m_solution_was_fit_to_constraints)
+        if (m_reverse_ba_error_ratio > 0 && !m_solution_was_fit_to_constraints)
         {
           // reverse cameras and optimize again
 
@@ -2005,7 +2011,7 @@ initialize_cameras_landmarks_keyframe::priv
           auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
 
           landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
-          necker_reverse(nr_cams, ba_lms2,false);
+          necker_reverse(nr_cams, ba_lms2, false);
           //set from base is required because necker_reverse returns new cameras
           nr_cams_perspec->set_from_base_cams(nr_cams);
           map_landmark_t nr_landmarks;
@@ -2027,7 +2033,7 @@ initialize_cameras_landmarks_keyframe::priv
             double before_final_ba_rmse2 = kwiver::arrows::reprojection_rmse(nr_cams->cameras(), nr_landmark_map->landmarks(), trks);
             LOG_DEBUG(m_logger, "Necker reversed before final reprojection RMSE: " << before_final_ba_rmse2);
 
-            bundle_adjuster->optimize(*nr_cams_perspec, nr_landmarks, tracks, fixed_cameras,fixed_landmarks,ba_constraints);
+            bundle_adjuster->optimize(*nr_cams_perspec, nr_landmarks, tracks, fixed_cameras, fixed_landmarks, ba_constraints);
 
             double final_rmse2 = kwiver::arrows::reprojection_rmse(nr_cams->cameras(), nr_landmarks, trks);
             LOG_DEBUG(m_logger, "Necker reversed final reprojection RMSE: " << final_rmse2);
@@ -2053,7 +2059,7 @@ initialize_cameras_landmarks_keyframe::priv
     {
       auto chgs = get_feature_track_changes(tracks, *cams);
       continue_processing =
-        callback(cams,std::make_shared<simple_landmark_map>(lms),chgs);
+        callback(cams, std::make_shared<simple_landmark_map>(lms), chgs);
 
       if (!continue_processing)
       {
@@ -2072,6 +2078,131 @@ initialize_cameras_landmarks_keyframe::priv
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 
   return true;
+}
+
+bool
+initialize_cameras_landmarks_keyframe::priv
+::metadata_centric_keyframe_initialization(
+  simple_camera_perspective_map_sptr cams,
+  landmark_map_sptr& landmarks,
+  feature_track_set_sptr tracks,
+  sfm_constraints_sptr constraints,
+  std::set<vital::frame_id_t> &keyframes,
+  callback_t callback)
+{
+  cams->clear();
+
+  auto frames = tracks->all_frame_ids();
+  for (auto fid : frames)
+  {
+    vector_3d pos_loc;
+    rotation_d R_loc;
+
+    if (constraints->get_camera_position_prior_local(fid, pos_loc) &&
+        constraints->get_camera_orientation_prior_local(fid, R_loc))
+    {
+      auto cam = std::make_shared<simple_camera_perspective>();
+
+      cam->set_center(pos_loc);
+      cam->set_rotation(R_loc);
+      cam->set_intrinsics(m_base_camera.get_intrinsics());
+      cams->insert(fid, cam);
+    }
+  }
+
+  if (cams->size() < 2)
+  {
+    return false;
+  }
+
+  auto trks = tracks->tracks();
+  map_landmark_t lms;
+  std::set<landmark_id_t> inlier_lm_ids;
+  size_t prev_inlier_lm_count = 0;
+  size_t cur_inlier_lm_count = 0;
+  int iterations = 0;
+  do {
+    prev_inlier_lm_count = cur_inlier_lm_count;
+
+    double triang_thresh_orig = 10;
+    if (iterations == 0)
+    {
+      auto triang_config = lm_triangulator->get_configuration();
+      triang_thresh_orig = triang_config->get_value<double>("inlier_threshold_pixels", triang_thresh_orig);
+      triang_config->set_value<double>("inlier_threshold_pixels", triang_thresh_orig * 20);
+      lm_triangulator->set_configuration(triang_config);
+    }
+    retriangulate(lms, cams, trks, inlier_lm_ids);
+
+    if (iterations == 0)
+    {
+      auto triang_config = lm_triangulator->get_configuration();
+      triang_config->set_value<double>("inlier_threshold_pixels", triang_thresh_orig);
+      lm_triangulator->set_configuration(triang_config);
+    }
+
+    double init_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
+    LOG_INFO(m_logger, "initial reprojection RMSE: " << init_rmse);
+
+    //first a BA fixing all landmarks to correct the cameras
+    std::set<frame_id_t> fixed_cameras;
+    std::set<landmark_id_t> fixed_landmarks;
+    bundle_adjuster->optimize(*cams, lms, tracks, fixed_cameras, fixed_landmarks, constraints);
+
+    auto first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
+    m_base_camera.set_intrinsics(first_cam->intrinsics());
+
+    double optimized_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
+    LOG_INFO(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
+
+    std::vector<frame_id_t> removed_cams;
+    std::set<frame_id_t> empty_cam_set;
+    std::set<landmark_id_t> empty_lm_set;
+    double coverage_thresh = iterations == 0 ? 0 : image_coverage_threshold;
+    clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, interim_reproj_thresh);
+
+    cur_inlier_lm_count = lms.size();
+    ++iterations;
+  } while (cur_inlier_lm_count > prev_inlier_lm_count);
+
+  landmarks = landmark_map_sptr(new simple_landmark_map(lms));
+
+  if (landmarks->size() > 0 && cams->size() >= 2)
+  {
+    return true;
+  }
+
+  return false;
+}
+
+bool
+initialize_cameras_landmarks_keyframe::priv
+::initialize_keyframes(
+  simple_camera_perspective_map_sptr cams,
+  landmark_map_sptr& landmarks,
+  feature_track_set_sptr tracks,
+  sfm_constraints_sptr constraints,
+  callback_t callback)
+{
+  LOG_DEBUG(m_logger, "initialize_keyframes");
+
+  m_solution_was_fit_to_constraints = false;
+
+  // get set of keyframe ids
+  auto keyframes = get_keyframe_ids(tracks);
+  if (keyframes.empty())
+  {
+    LOG_DEBUG(m_logger, "no keyframes, cannot initilize reconstruction");
+    return false;
+  }
+  if (!metadata_centric_keyframe_initialization(cams, landmarks, tracks, constraints, keyframes, callback))
+  {
+    return vision_centric_keyframe_initialization(cams, landmarks, tracks, constraints, keyframes, callback);
+  }
+  else
+  {
+    return true;
+  }
 }
 
 int
@@ -2868,10 +2999,8 @@ initialize_cameras_landmarks_keyframe
   auto cams = std::make_shared<simple_camera_perspective_map>();
   cams->set_from_base_cams(cameras);
 
-  // build constraint graph
   m_priv->initialize_keyframes(cams, landmarks, tracks, constraints,this->m_callback);
 
-  // optimize constraint graph
   m_priv->initialize_remaining_cameras(cams,landmarks,tracks,constraints,this->m_callback);
 
   cameras = std::make_shared<simple_camera_map>(cams->cameras());
