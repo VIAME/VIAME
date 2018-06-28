@@ -72,7 +72,7 @@ camera_rpc
 /// Project a 2D image point to a 3D point in space
 vector_3d
 camera_rpc
-::back_project( const vector_2d& image_pt, double elev )
+::back_project( const vector_2d& image_pt, double elev ) const
 {
   // Normalize image point
   vector_2d norm_pt = ( image_pt - image_offset() ).cwiseQuotient( image_scale() );
@@ -153,7 +153,7 @@ camera_rpc
 
 void
 simple_camera_rpc
-::update_partial_deriv()
+::update_partial_deriv() const
 {
   std::vector<int> dx_ind = { 1, 7, 4, 5, 14 ,17 ,10, 11, 12, 13 };
   std::vector<int> dy_ind = { 2, 4, 8, 6, 12, 10, 18, 14, 15, 16 };

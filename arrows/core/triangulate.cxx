@@ -113,6 +113,29 @@ triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
 }
 
 
+/// Triangulate a 3D point from a set of RPC cameras and 2D image points
+template <typename T>
+Eigen::Matrix<T,3,1>
+triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
+                const std::vector<Eigen::Matrix<T,2,1> >& points)
+{
+  Eigen::Matrix<T,3,1> retVal;
+
+  // Generate rays from arbitary heights
+  double h1 = 1000.0;
+  double h2 = 2000.0;
+
+  // Get the pairs of points to define the rays
+  std::vector< std::pair< vital::vector_3d, vital::vector_3d > > pts;
+
+  for( unsigned int i = 0; i < points.size(); ++i )
+  {
+    auto pt1 = cameras[i].back_project( points[i].template cast<double>(), h1 );
+    // pts.push_back( std::make_pair< vector_3d >( cameras[i].back_project( points[i]))
+  }
+
+  return retVal;
+}
 
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRIANGULATE(T) \
@@ -123,6 +146,10 @@ template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,4,1> \
 template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,3,1> \
          triangulate_inhomog( \
             const std::vector<vital::simple_camera_perspective >& cameras, \
+            const std::vector<Eigen::Matrix<T,2,1> >& points); \
+template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,3,1> \
+         triangulate_rpc( \
+            const std::vector<vital::simple_camera_rpc >& cameras, \
             const std::vector<Eigen::Matrix<T,2,1> >& points);
 
 INSTANTIATE_TRIANGULATE(double);
