@@ -629,7 +629,7 @@ close_loops_appearance_indexed
 
   config->set_value("tracks_in_common_to_skip_loop_closing",
     d_->m_tracks_in_common_to_skip_loop_closing,
-    "is this or more tracks are in common between two frames then don't try to complete a loop with them");
+    "if this or more tracks are in common between two frames then don't try to complete a loop with them");
 
   return config;
 }
