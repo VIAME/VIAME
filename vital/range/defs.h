@@ -116,46 +116,6 @@ struct generic_view {};
 template < typename GenericAdapter >
 struct range_adapter_t {};
 
-/// \endcond
-
-#ifdef DOXYGEN
-
-// ----------------------------------------------------------------------------
-/**
- * Apply a range adapter to a range.
- */
-template < typename Range, typename Adapter >
-auto
-operator|( Range const&, Adapter );
-
-#else
-
-// ----------------------------------------------------------------------------
-template < typename Range, typename Adapter >
-auto
-operator|(
-  Range& range,
-  range_adapter_t< Adapter >(*)() )
--> decltype( Adapter::adapt( range ) )
-{
-  return Adapter::adapt( range );
-}
-
-// ----------------------------------------------------------------------------
-template < typename Range, typename Adapter >
-auto
-operator|(
-  Range& range,
-  range_adapter_t< Adapter > )
--> decltype( Adapter::adapt( range ) )
-{
-  return Adapter::adapt( range );
-}
-
-#endif
-
-/// \cond Internal
-
 // ----------------------------------------------------------------------------
 template < typename Functor >
 struct function_detail : function_detail< decltype( &Functor::operator() ) >
@@ -261,5 +221,41 @@ protected:
 /// \endcond
 
 } } } // end namespace
+
+#ifdef DOXYGEN
+
+// ----------------------------------------------------------------------------
+/**
+ * Apply a range adapter to a range.
+ */
+template < typename Range, typename Adapter >
+auto
+operator|( Range const&, Adapter );
+
+#else
+
+// ----------------------------------------------------------------------------
+template < typename Range, typename Adapter >
+auto
+operator|(
+  Range& range,
+  kwiver::vital::range::range_adapter_t< Adapter >(*)() )
+-> decltype( Adapter::adapt( range ) )
+{
+  return Adapter::adapt( range );
+}
+
+// ----------------------------------------------------------------------------
+template < typename Range, typename Adapter >
+auto
+operator|(
+  Range& range,
+  kwiver::vital::range::range_adapter_t< Adapter > )
+-> decltype( Adapter::adapt( range ) )
+{
+  return Adapter::adapt( range );
+}
+
+#endif
 
 #endif
