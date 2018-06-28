@@ -132,6 +132,9 @@ class SRNN_tracking(KwiverProcess):
         self.add_config_trait("detection_select_threshold", "detection_select_threshold", '0.0',
                               'detection select threshold')
         self.declare_config_using_trait('detection_select_threshold')
+        self.add_config_trait("track_initialization_threshold", "track_initialization_threshold", '0.0',
+                              'track_initialization_threshold')
+        self.declare_config_using_trait('track_initialization_threshold')
 
         # SRNN
         #----------------------------------------------------------------------------------
@@ -243,6 +246,7 @@ class SRNN_tracking(KwiverProcess):
     # ----------------------------------------------
     def _configure(self):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
+        self._track_initialization_threshold = float(self.config_value('track_initialization_threshold'))
 
         #GPU_list
         GPU_list_str = self.config_value('GPU_list')
@@ -383,7 +387,7 @@ class SRNN_tracking(KwiverProcess):
                     
                 # if there is no tracks, generate new tracks from the track_state_list
                 if self._track_flag is False:
-                    next_trackID = self._track_set.add_new_track_state_list(next_trackID, track_state_list)
+                    next_trackID = self._track_set.add_new_track_state_list(next_trackID, track_state_list, self._track_initialization_threshold)
                     self._track_flag = True
                 else:
                     # check whether we need to terminate a track
@@ -413,7 +417,7 @@ class SRNN_tracking(KwiverProcess):
                     ttu_end = timer()
                     print('%%%SRNN assication eclapsed time: {}'.format(ttu_end - ttu_begin))
 
-                    #reset update_flag
+                    # reset update_flag
                     self._track_set.reset_updated_flag()
 
                     # Hungarian algorithm
@@ -428,8 +432,9 @@ class SRNN_tracking(KwiverProcess):
 
                         if -similarity_mat[r, c] < self._similarity_threshold:
                             # initialize a new track
-                            self._track_set.add_new_track_state(next_trackID, track_state_list[c])
-                            next_trackID += 1
+                            if track_state_list[c].detectedObj.confidence() >= self._track_initialization_threshold:
+                                self._track_set.add_new_track_state(next_trackID, track_state_list[c])
+                                next_trackID += 1
                         else:
                             # add to existing track
                             self._track_set.update_track(track_idx_list[r], track_state_list[c])
@@ -437,7 +442,7 @@ class SRNN_tracking(KwiverProcess):
                     # for rest unmatched track_state, we initialize new tracks
                     if len(track_state_list) - len(col_idx_list) > 0:
                         for i in range(len(track_state_list)):
-                            if i not in col_idx_list:
+                            if i not in col_idx_list and track_state_list[i].detectedObj.confidence() >= self._track_initialization_threshold:
                                 self._track_set.add_new_track_state(next_trackID, track_state_list[i])
                                 next_trackID += 1
 
