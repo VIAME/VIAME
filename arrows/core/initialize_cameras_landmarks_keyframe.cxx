@@ -400,6 +400,7 @@ public:
   bool m_solution_was_fit_to_constraints;
   int m_max_cams_in_keyframe_init;
   double m_frac_frames_for_init;
+  double m_metadata_init_permissive_triang_thresh;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -423,7 +424,8 @@ initialize_cameras_landmarks_keyframe::priv
   m_enable_BA_callback(false),
   m_solution_was_fit_to_constraints(false),
   m_max_cams_in_keyframe_init(20),
-  m_frac_frames_for_init(-1.0)
+  m_frac_frames_for_init(-1.0),
+  m_metadata_init_permissive_triang_thresh(10000)
 {
 
   }
@@ -2121,21 +2123,47 @@ initialize_cameras_landmarks_keyframe::priv
   size_t prev_inlier_lm_count = 0;
   size_t cur_inlier_lm_count = 0;
   int iterations = 0;
+  int num_permissive_triangulation_iterations = 3;
+  int min_non_permissive_triangulation_iterations = 2;
   do {
     prev_inlier_lm_count = cur_inlier_lm_count;
 
     double triang_thresh_orig = 10;
-    if (iterations == 0)
+    if (iterations < num_permissive_triangulation_iterations)
     {
       auto triang_config = lm_triangulator->get_configuration();
       triang_thresh_orig = triang_config->get_value<double>("inlier_threshold_pixels", triang_thresh_orig);
-      triang_config->set_value<double>("inlier_threshold_pixels", triang_thresh_orig * 20);
+      triang_config->set_value<double>("inlier_threshold_pixels", m_metadata_init_permissive_triang_thresh);
       lm_triangulator->set_configuration(triang_config);
     }
     retriangulate(lms, cams, trks, inlier_lm_ids);
 
-    if (iterations == 0)
+    if (iterations < num_permissive_triangulation_iterations)
     {
+      //set all tracks to inliers
+      for (auto lm : lms)
+      {
+        auto tid = lm.first;
+        auto tk = tracks->get_track(tid);
+        if (!tk)
+        {
+          continue;
+        }
+        for (auto ts_it : *tk)
+        {
+          auto fts = std::dynamic_pointer_cast<feature_track_state>(ts_it);
+          if (!fts)
+          {
+            continue;
+          }
+          if (!cams->find(fts->frame()))
+          {
+            continue;
+          }
+          fts->inlier = true;
+        }
+      }
+
       auto triang_config = lm_triangulator->get_configuration();
       triang_config->set_value<double>("inlier_threshold_pixels", triang_thresh_orig);
       lm_triangulator->set_configuration(triang_config);
@@ -2163,7 +2191,24 @@ initialize_cameras_landmarks_keyframe::priv
 
     cur_inlier_lm_count = lms.size();
     ++iterations;
-  } while (cur_inlier_lm_count > prev_inlier_lm_count);
+
+    if (callback)
+    {
+      auto chgs = get_feature_track_changes(tracks, *cams);
+      continue_processing =
+        callback(cams, std::make_shared<simple_landmark_map>(lms), chgs);
+
+      if (!continue_processing)
+      {
+        LOG_DEBUG(m_logger,
+          "continue processing is false, exiting initialize loop");
+        break;
+      }
+    }
+
+
+  } while (cur_inlier_lm_count > prev_inlier_lm_count ||
+           iterations < (num_permissive_triangulation_iterations + min_non_permissive_triangulation_iterations));
 
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 
@@ -2822,8 +2867,13 @@ initialize_cameras_landmarks_keyframe
                     "This is almost always zero in any real camera.");
 
   config->set_value("max_cams_in_keyframe_init", m_priv->m_max_cams_in_keyframe_init,
-    "the maximum number of cameras to reconstruct in initialization step before"
-    " switching to resectioning remaining cameras.");
+                    "the maximum number of cameras to reconstruct in initialization step before"
+                    " switching to resectioning remaining cameras.");
+
+  config->set_value("metadata_init_permissive_triang_thresh",
+                    m_priv->m_metadata_init_permissive_triang_thresh,
+                    "threshold to apply to triangulation in the first permissive rounds of "
+                    "metadata based reconstruction initialization");
 
   double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
   config->set_value("feature_angle_threshold", ang_thresh_cur,"feature must have this triangulation angle to keep");
@@ -2920,6 +2970,9 @@ initialize_cameras_landmarks_keyframe
     config->get_value<int>("max_cams_in_keyframe_init",
       m_priv->m_max_cams_in_keyframe_init);
 
+  m_priv->m_metadata_init_permissive_triang_thresh =
+    config->get_value<double>("metadata_init_permissive_triang_thresh",
+      m_priv->m_metadata_init_permissive_triang_thresh);
 
   m_priv->zoom_scale_thresh =
       config->get_value<double>("zoom_scale_thresh",
