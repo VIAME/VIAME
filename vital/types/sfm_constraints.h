@@ -70,6 +70,8 @@ public:
 
   bool get_camera_position_prior_local(frame_id_t fid, vector_3d &pos_loc) const;
 
+  bool get_camera_orientation_prior_local(frame_id_t fid, rotation_d &R_loc) const;
+
   typedef std::map<frame_id_t, vector_3d> position_map;
 
   position_map get_camera_position_priors() const;

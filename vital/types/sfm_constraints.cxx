@@ -89,6 +89,53 @@ sfm_constraints
 
 bool
 sfm_constraints
+::get_camera_orientation_prior_local(frame_id_t fid,
+                                     rotation_d &R_loc) const
+{
+  if (m_priv->m_lgcs.origin().is_empty())
+  {
+    return false;
+  }
+
+  if (!m_priv->m_md)
+  {
+    return false;
+  }
+
+  auto &md = *m_priv->m_md;
+
+  double platform_heading, platform_roll,   platform_pitch;
+  double sensor_rel_az,    sensor_rel_roll, sensor_rel_el;
+
+  if (md.get_platform_heading_angle(fid, platform_heading) &&
+      md.get_platform_roll_angle(   fid, platform_roll) &&
+      md.get_platform_pitch_angle(  fid, platform_pitch) &&
+      md.get_sensor_rel_az_angle(   fid, sensor_rel_az) &&
+      md.get_sensor_rel_el_angle(   fid, sensor_rel_el))
+  {
+    if (!md.get_sensor_rel_roll_angle(fid, sensor_rel_roll))
+    {
+      sensor_rel_roll = 0;
+    }
+
+    if (std::isnan(platform_heading) || std::isnan(platform_pitch) || std::isnan(platform_roll) ||
+        std::isnan(sensor_rel_az) || std::isnan(sensor_rel_el) || std::isnan(sensor_rel_roll))
+    {
+      return false;
+    }
+
+    R_loc = m_priv->m_lgcs.compose_rotation(platform_heading, platform_pitch, platform_roll,
+                                            sensor_rel_az, sensor_rel_el, sensor_rel_roll);
+
+    return true;
+  }
+
+  return false;
+}
+
+
+bool
+sfm_constraints
 ::get_camera_position_prior_local(frame_id_t fid,
                                   vector_3d &pos_loc) const
 {
