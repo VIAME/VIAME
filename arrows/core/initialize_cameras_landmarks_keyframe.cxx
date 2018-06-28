@@ -2177,8 +2177,11 @@ initialize_cameras_landmarks_keyframe::priv
     std::set<landmark_id_t> fixed_landmarks;
     bundle_adjuster->optimize(*cams, lms, tracks, fixed_cameras, fixed_landmarks, constraints);
 
-    auto first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
-    m_base_camera.set_intrinsics(first_cam->intrinsics());
+    if (cams->size() > 0)
+    {
+      auto first_cam = std::static_pointer_cast<simple_camera_perspective>(cams->cameras().begin()->second);
+      m_base_camera.set_intrinsics(first_cam->intrinsics());
+    }
 
     double optimized_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
     LOG_INFO(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
@@ -2188,6 +2191,12 @@ initialize_cameras_landmarks_keyframe::priv
     std::set<landmark_id_t> empty_lm_set;
     double coverage_thresh = iterations == 0 ? 0 : image_coverage_threshold;
     clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, interim_reproj_thresh);
+
+    if (cams->size() < 2)
+    {
+      cams->clear();
+      return false;
+    }
 
     cur_inlier_lm_count = lms.size();
     ++iterations;
