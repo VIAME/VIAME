@@ -162,7 +162,7 @@ triangulate_fast_two_view(const vital::simple_camera_perspective &camera0,
   // code modified from code found at
   // https://github.com/sweeneychris/TheiaSfM/blob/master/src/theia/sfm/triangulation/triangulation.cc
 
-  auto E = kwiver::arrows::essential_matrix_from_cameras(cam0, cam1);
+  auto E = kwiver::arrows::essential_matrix_from_cameras(camera0, camera1);
 
   const vital::vector_2d pt0 = camera0.get_intrinsics()->unmap(point0.template cast<double>());
   const vital::vector_2d pt1 = camera1.get_intrinsics()->unmap(point1.template cast<double>());
@@ -251,8 +251,10 @@ triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
 #define INSTANTIATE_TRIANGULATE(T) \
 template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,3,1> \
          triangulate_fast_two_view( \
-            const std::vector<vital::simple_camera_perspective >& cameras, \
-            const std::vector<Eigen::Matrix<T,2,1> >& points); \
+            const vital::simple_camera_perspective &camera0, \
+            const vital::simple_camera_perspective &camera1, \
+            const Eigen::Matrix<T, 2, 1> &point0, \
+            const Eigen::Matrix<T, 2, 1> &point1); \
 template KWIVER_ALGO_CORE_EXPORT Eigen::Matrix<T,4,1> \
          triangulate_homog( \
             const std::vector<vital::simple_camera_perspective >& cameras, \
