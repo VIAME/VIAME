@@ -77,7 +77,9 @@ public:
     f_frame_number_offset(0),
     video_path(""),
     frame_advanced(0),
-    end_of_video(true)
+    end_of_video(true),
+    number_of_frames(0),
+    number_of_frames_valid(false)
   {
     f_packet.data = nullptr;
   }
@@ -120,6 +122,8 @@ public:
   // local state
   int frame_advanced; // This is a boolean check value really
   bool end_of_video;
+  size_t number_of_frames;
+  bool number_of_frames_valid;
 
   // ==================================================================
   /*
@@ -530,6 +534,8 @@ ffmpeg_video_input
   d->video_path = "";
   d->frame_advanced = 0;
   d->end_of_video = true;
+  d->number_of_frames = 0;
+  d->number_of_frames_valid = false;
   //is_->metadata_.clear();
   if (d->f_video_stream)
   {
@@ -557,11 +563,22 @@ ffmpeg_video_input
   }
 
   bool ret = d->advance();
+  if (!ret && !d->end_of_video)
+  {
+    // If it's the first frame that fails
+    // -> first frame as the end of the video
+    d->number_of_frames_valid = true;
+  }
+
   d->end_of_video = !ret;
   if (ret)
   {
     ts = this->frame_timestamp();
-  }
+    if (!d->number_of_frames_valid)
+    {
+      d->number_of_frames = ts.get_frame();
+    }
+  };
   return ret;
 }
 
@@ -587,25 +604,24 @@ bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
     LOG_WARN(this->logger(), "Timeout argument is not supported.");
   }
 
-  int current_frame_number = d->frame_number() + d->f_frame_number_offset + 1;
+  int current_frame_number = this->frame_timestamp().get_frame();
   // If current frame number is greater than requested frame reopen
   // file to reset to start
   if (current_frame_number > frame_number)
   {
     this->open(d->video_path); // Calls close on current video
-    current_frame_number = d->frame_number() + d->f_frame_number_offset + 1;
+    current_frame_number = this->frame_timestamp().get_frame();
   }
 
   // Just advance video until the requested frame is reached
   for (int i = current_frame_number; i < frame_number; ++i)
   {
-    if (!d->advance())
+    if (!this->next_frame(ts))
     {
       return false;
     }
   }
 
-  ts = this->frame_timestamp();
   return true;
 }
 
@@ -774,20 +790,37 @@ ffmpeg_video_input
 // ------------------------------------------------------------------
 size_t
 ffmpeg_video_input
-::num_frames() const
+::private_num_frames()
 {
-  if (!this->good())
-  {
-    return -1;
-  }
-  else if (!this->seekable())
+  if (!this->seekable())
   {
     return 0;
   }
+  else if (d->number_of_frames_valid)
+  {
+    return d->number_of_frames;
+  }
 
-  return -1;
-  // \todo: To implement to return the number of frames once the video
-  // is seekable.
+  bool was_opened = d->is_opened();
+  vital::timestamp old_ts = this->frame_timestamp();
+  if (!was_opened)
+  {
+    this->open(d->video_path);
+  }
+  vital::timestamp unused_ts;
+  while (this->next_frame(unused_ts));
+
+  if (was_opened)
+  {
+    size_t number_of_frames = d->number_of_frames;
+    this->open(d->video_path);
+    d->number_of_frames_valid = true;
+    d->number_of_frames = number_of_frames;
+
+    vital::timestamp unused_ts;
+    this->seek_frame(unused_ts, old_ts.get_frame());
+  }
+  return d->number_of_frames;
 }
 
 } } } // end namespaces

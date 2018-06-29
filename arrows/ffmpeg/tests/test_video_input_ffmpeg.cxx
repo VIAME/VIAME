@@ -50,6 +50,8 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 
+static int TOTAL_NUMBER_OF_FRAMES = 50;
+
 // ----------------------------------------------------------------------------
 int
 main(int argc, char* argv[])
@@ -93,7 +95,7 @@ TEST_F(ffmpeg_video_input, is_good_correct_file_path)
   kwiver::vital::timestamp ts;
   EXPECT_TRUE(input.next_frame(ts))
     << "Video state after open but before first frame";
-  EXPECT_EQ(ts.get_frame(), 0) << "Initial frame value mismastch";
+  EXPECT_EQ(ts.get_frame(), 1) << "Initial frame value mismastch";
   EXPECT_TRUE(input.good())
     << "Video state after open but before first frame";
 
@@ -151,8 +153,7 @@ TEST_F(ffmpeg_video_input, frame_image)
   // Get the next frame
   kwiver::vital::timestamp ts;
   input.next_frame(ts);
-  EXPECT_EQ(ts.get_frame(), 0);
-  EXPECT_EQ(ts.get_time_domain_index(), 0);
+  EXPECT_EQ(ts.get_frame(), 1);
 
   kwiver::vital::image_container_sptr frame = input.frame_image();
   EXPECT_EQ(frame->depth(), 3);
@@ -229,6 +230,41 @@ TEST_F(ffmpeg_video_input, end_of_video)
     EXPECT_FALSE(input.end_of_video()) << "End of video while reading";
   }
 
-  EXPECT_EQ(ts.get_frame(), 50) << "Last frame";
+  EXPECT_EQ(ts.get_frame(), TOTAL_NUMBER_OF_FRAMES) << "Last frame";
   EXPECT_TRUE(input.end_of_video()) << "End of video after last frame";
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, read_video)
+{
+  // make config block
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  input.open(correct_file);
+
+  kwiver::vital::timestamp ts;
+
+  EXPECT_EQ(TOTAL_NUMBER_OF_FRAMES, input.num_frames())
+    << "Number of frames before extracting frames should be "
+    << TOTAL_NUMBER_OF_FRAMES;
+
+  int num_frames = 0;
+  while (input.next_frame(ts))
+  {
+    auto img = input.frame_image();
+
+    ++num_frames;
+    EXPECT_EQ(num_frames, ts.get_frame())
+      << "Frame numbers should be sequential";
+    EXPECT_EQ(ts.get_frame(), decode_barcode(*img))
+      << "Frame number should match barcode in frame image";
+  }
+  EXPECT_EQ(TOTAL_NUMBER_OF_FRAMES, num_frames)
+    << "Number of frames found should be "
+    << TOTAL_NUMBER_OF_FRAMES;
+  EXPECT_EQ(TOTAL_NUMBER_OF_FRAMES, input.num_frames())
+    << "Number of frames after extracting frames should be "
+    << TOTAL_NUMBER_OF_FRAMES;
 }
