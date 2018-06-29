@@ -106,7 +106,7 @@ void read_object_track_process
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if(  algo::read_object_track_set::check_nested_algo_configuration(
+  if( !algo::read_object_track_set::check_nested_algo_configuration(
          "reader",
          algo_config ) )
   {
@@ -120,7 +120,7 @@ void read_object_track_process
     algo_config,
     d->m_reader );
 
-  if( ! d->m_reader )
+  if( !d->m_reader )
   {
     throw sprokit::invalid_configuration_exception( name(),
       "Unable to create reader." );
