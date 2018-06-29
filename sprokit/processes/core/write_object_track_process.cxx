@@ -149,7 +149,7 @@ void write_object_track_process
   std::string file_name;
 
   // image name is optional
-  if ( has_input_port_edge_using_trait( image_file_name ) )
+  if( has_input_port_edge_using_trait( image_file_name ) )
   {
     file_name = grab_from_port_using_trait( image_file_name );
   }
@@ -157,7 +157,12 @@ void write_object_track_process
   kwiver::vital::object_track_set_sptr input
     = grab_from_port_using_trait( object_track_set );
 
-  kwiver::vital::timestamp ts = grab_from_port_using_trait( timestamp );
+  kwiver::vital::timestamp ts;
+
+  if ( has_input_port_edge_using_trait( timestamp ) )
+  {
+    ts = grab_from_port_using_trait( timestamp );
+  }
 
   d->m_writer->write_set( ts, input );
 }
@@ -174,7 +179,7 @@ void write_object_track_process
 
   declare_input_port_using_trait( image_file_name, optional );
   declare_input_port_using_trait( object_track_set, required );
-  declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( timestamp, optional );
 }
 
 
