@@ -150,7 +150,9 @@ bool
 read_object_track_set_viame_csv
 ::read_set( kwiver::vital::object_track_set_sptr& set )
 {
-  if( d->m_first )
+  bool was_first = d->m_first;
+
+  if( was_first )
   {
     // Read in all detections
     d->read_all();
@@ -167,7 +169,7 @@ read_object_track_set_viame_csv
     }
 
     set = kwiver::vital::object_track_set_sptr( new kwiver::vital::object_track_set( trks ) );
-    return true;
+    return was_first;
   }
 
   // Return detection set at current index if there is one
