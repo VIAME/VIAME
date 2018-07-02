@@ -2,7 +2,6 @@
 
 import sys
 import os
-import glob
 import argparse
 import signal
 
@@ -13,14 +12,13 @@ import database_tool
 
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
-  output = glob.glob( folder + '/*' )
-  output.sort()
-  return output
+  return [
+    os.path.join(folder, f) for f in sorted(os.listdir(folder))
+    if not f.startswith('.')
+  ]
 
 def list_files_in_dir_w_ext( folder, extension ):
-  output = glob.glob( folder + '/*' + extension )
-  output.sort()
-  return output
+  return [f for f in list_files_in_dir(folder) if f.endswith(extension)]
 
 # Create a directory if it doesn't exist
 def create_dir( dirname, logging=True ):
