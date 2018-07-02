@@ -3,7 +3,10 @@
 import sys
 import os
 import argparse
+import contextlib
+import itertools
 import signal
+import subprocess
 
 sys.dont_write_bytecode = True
 
@@ -27,12 +30,8 @@ def create_dir( dirname, logging=True ):
       print( "Creating " + dirname )
     os.makedirs( dirname )
 
-# Get correct OS-specific calls
-def execute_command( cmd ):
-  if os.name == 'nt':
-    return os.system( cmd )
-  else:
-    return os.system( '/bin/bash -c \"' + cmd + '\"'  )
+def execute_command( cmd, stdout=None, stderr=None ):
+  return subprocess.call(cmd, stdout=stdout, stderr=stderr)
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
@@ -40,14 +39,14 @@ def get_script_path():
 def get_pipeline_cmd( debug=False ):
   if os.name == 'nt':
     if debug:
-      return 'pipeline_runner.exe '
+      return ['pipeline_runner.exe']
     else:
-      return 'pipeline_runner.exe '
+      return ['pipeline_runner.exe']
   else:
     if debug:
-      return 'gdb --args pipeline_runner '
+      return ['gdb', '--args', 'pipeline_runner']
     else:
-      return 'pipeline_runner '
+      return ['pipeline_runner']
 
 def exit_with_error( error_str ):
   print( error_str )
@@ -58,11 +57,15 @@ def check_file( filename ):
     exit_with_error( "Unable to find: " + filename )
   return filename
 
-def get_log_postfix( output_prefix ):
+@contextlib.contextmanager
+def get_log_output_files( output_prefix ):
   if os.name == 'nt':
-    return ' 1> ' + output_prefix + '.out.txt 2> ' + output_prefix + '.err.txt'
+    with open(output_prefix + '.out.txt', 'w') as fo, \
+         open(output_prefix + '.err.txt', 'w') as fe:
+      yield dict(stdout=fo, stderr=fe)
   else:
-    return ' > ' + output_prefix + '.txt 2>&1'
+    with open(output_prefix + '.txt', 'w') as fo:
+      yield dict(stdout=fo, stderr=fo)
 
 def find_file( filename ):
   if( os.path.exists( filename ) ):
@@ -82,37 +85,32 @@ def arg_border():
     bd = '\"'
   return bd
 
-def farg( setting_str, trailing_space=True ):
-  output_str = arg_border() + setting_str + arg_border()
-  if trailing_space:
-    output_str = output_str + ' '
-  return output_str
+def fset( setting_str ):
+  return ['-s', setting_str]
 
-def fset( setting_str, trailing_space=True ):
-  return '-s ' + farg( setting_str, trailing_space )
+def video_output_settings_list( basename ):
+  return list(itertools.chain(
+    fset( 'detector_writer:file_name=database/' + basename + '.csv' ),
+    fset( 'track_writer:file_name=database/' + basename + '_tracks.csv' ),
+    fset( 'track_writer:stream_identifier=' + basename ),
+    fset( 'track_writer_db:writer:db:video_name=' + basename ),
+    fset( 'track_writer_kw18:file_name=database/' + basename + '.kw18' ),
+    fset( 'descriptor_writer_db:writer:db:video_name=' + basename ),
+    fset( 'track_descriptor:uid_basename=' + basename ),
+    fset( 'kwa_writer:output_directory=database ' ),
+    fset( 'kwa_writer:base_filename=' + basename ),
+    fset( 'kwa_writer:stream_id=' + basename ),
+  ))
 
-def video_output_settings_str( basename ):
-  return '' + \
-    fset( 'detector_writer:file_name=database/' + basename + '.csv' ) + \
-    fset( 'track_writer:file_name=database/' + basename + '_tracks.csv' ) + \
-    fset( 'track_writer:stream_identifier=' + basename ) + \
-    fset( 'track_writer_db:writer:db:video_name=' + basename ) + \
-    fset( 'track_writer_kw18:file_name=database/' + basename + '.kw18' ) + \
-    fset( 'descriptor_writer_db:writer:db:video_name=' + basename ) + \
-    fset( 'track_descriptor:uid_basename=' + basename ) + \
-    fset( 'kwa_writer:output_directory=database ' ) + \
-    fset( 'kwa_writer:base_filename=' + basename ) + \
-    fset( 'kwa_writer:stream_id=' + basename, False )
-
-def video_frame_rate_settings_str( options ):
-  output_str = ''
+def video_frame_rate_settings_list( options ):
+  output = []
   if len( options.frame_rate ) > 0:
-    output_str += fset( 'downsampler:target_frame_rate=' + options.frame_rate )
+    output += fset( 'downsampler:target_frame_rate=' + options.frame_rate )
   if len( options.batch_size ) > 0:
-    output_str += fset( 'downsampler:burst_frame_count=' + options.batch_size )
+    output += fset( 'downsampler:burst_frame_count=' + options.batch_size )
   if len( options.batch_skip ) > 0:
-    output_str += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
-  return output_str
+    output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
+  return output
 
 def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
@@ -136,24 +134,25 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     input_setting = fset( 'input:video_filename=' + input_name )
 
   # Formulate command
-  command = get_pipeline_cmd( args.debug ) + \
-            '-p ' + farg( find_file( options.pipeline ) ) + \
-            input_setting
+  command = (get_pipeline_cmd( args.debug ) +
+             ['-p', find_file( options.pipeline )] +
+             input_setting)
 
   if not is_image_list:
-    command = command + video_frame_rate_settings_str( options )
+    command += video_frame_rate_settings_list( options )
 
-  command = command + video_output_settings_str( basename )
+  command += video_output_settings_list( basename )
 
   if len( args.extra_options ) > 0:
     for extra_option in args.extra_options:
-      command = command + fset( extra_option )
+      command += fset( extra_option )
 
+  # Process command, possibly with logging
   if len( args.log_dir ) > 0 and not args.debug:
-    command = command + get_log_postfix( args.log_dir + '/' + basename )
-
-  # Process command
-  res = execute_command( command )
+    with get_log_output_files(args.log_dir + '/' + basename) as kwargs:
+      res = execute_command(command, **kwargs)
+  else:
+    res = execute_command(command)
 
   if res == 0:
     print( 'Success' )
@@ -162,12 +161,13 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     exit_with_error( '\nIngest failed, check database/Log files, terminating.\n' )
 
 # Plot settings strings
-def plot_settings_str( basename ):
-  return '' + \
-    fset( 'detector_writer:file_name=database/' + basename + '_detections.csv' ) + \
-    fset( 'kwa_writer:output_directory=database ' ) + \
-    fset( 'kwa_writer:base_filename=' + basename ) + \
-    fset( 'kwa_writer:stream_id=' + basename, False )
+def plot_settings_list( basename ):
+  return list(itertools.chain(
+    fset( 'detector_writer:file_name=database/' + basename + '_detections.csv' ),
+    fset( 'kwa_writer:output_directory=database ' ),
+    fset( 'kwa_writer:base_filename=' + basename ),
+    fset( 'kwa_writer:stream_id=' + basename ),
+  ))
 
 # Main Function
 if __name__ == "__main__" :
