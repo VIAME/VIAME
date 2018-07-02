@@ -26,10 +26,6 @@ def create_dir( dirname, logging=True ):
     if logging:
       print( "Creating " + dirname )
     os.makedirs( dirname )
-  if not os.path.exists( dirname ):
-    if logging:
-      print( "Unable to create " + dirname )
-    sys.exit( 0 )
 
 # Get correct OS-specific calls
 def execute_command( cmd ):
