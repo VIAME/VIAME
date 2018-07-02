@@ -231,12 +231,6 @@ if __name__ == "__main__" :
                       "binaries. If this is not specified, it is expected that all "
                       "viame binaries are already in our path.")
 
-  parser.set_defaults( init_db=False )
-  parser.set_defaults( build_index=False )
-  parser.set_defaults( ball_tree=False )
-  parser.set_defaults( detection_plots=False )
-  parser.set_defaults( debug=False )
-
   args = parser.parse_args()
 
   # Error checking
