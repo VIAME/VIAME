@@ -242,14 +242,15 @@ if __name__ == "__main__" :
   # Error checking
   process_data = True
 
-  if len( args.input_video ) == 0 and len( args.input_dir ) == 0 and len( args.input_list ) == 0:
+  number_input_args = sum(len(inp_x) > 0 for inp_x in [args.input_video, args.input_dir, args.input_list])
+  if number_input_args == 0:
     if not args.build_index and not args.detection_plots:
       exit_with_error( "Either input video or input directory must be specified" )
     else:
       process_data = False
 
-  if len( args.input_video ) > 0 and len( args.input_dir ) > 0 and len( args.input_list ) > 0:
-    exit_with_error( "Only an input video or directory should be specified, not both" )
+  elif number_input_args > 1:
+    exit_with_error( "Only one of input video, directory, or list should be specified, not more" )
 
   signal.signal( signal.SIGINT, signal_handler )
 
