@@ -70,13 +70,11 @@ def find_file( filename ):
   elif os.path.exists( get_script_path() + "/" + filename ):
     return get_script_path() + "/" + filename
   else:
-    print( "Unable to find " + filename )
-    sys.exit( 0 )
+    exit_with_error( "Unable to find " + filename )
 
 # Other helpers
 def signal_handler( signal, frame ):
-  print( 'Ingest aborted, see you next time' )
-  sys.exit(0)
+  exit_with_error( 'Ingest aborted, see you next time' )
 
 def arg_border():
   bd = ""
@@ -161,8 +159,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     print( 'Success' )
   else:
     print( 'Failure' )
-    print( '\nIngest failed, check database/Log files, terminating.\n' )
-    sys.exit( 0 )
+    exit_with_error( '\nIngest failed, check database/Log files, terminating.\n' )
 
 # Plot settings strings
 def plot_settings_str( basename ):
@@ -247,14 +244,12 @@ if __name__ == "__main__" :
 
   if len( args.input_video ) == 0 and len( args.input_dir ) == 0 and len( args.input_list ) == 0:
     if not args.build_index and not args.detection_plots:
-      print( "Either input video or input directory must be specified" )
-      sys.exit( 0 )
+      exit_with_error( "Either input video or input directory must be specified" )
     else:
       process_data = False
 
   if len( args.input_video ) > 0 and len( args.input_dir ) > 0 and len( args.input_list ) > 0:
-    print( "Only an input video or directory should be specified, not both" )
-    sys.exit( 0 )
+    exit_with_error( "Only an input video or directory should be specified, not both" )
 
   signal.signal( signal.SIGINT, signal_handler )
 
@@ -278,8 +273,7 @@ if __name__ == "__main__" :
       is_image_list = False
 
     if len( video_list ) == 0:
-      print( "No videos found for ingest in given folder, exiting.\n" )
-      sys.exit(0)
+      exit_with_error( "No videos found for ingest in given folder, exiting.\n" )
     elif not is_image_list:
       print( "\nIngesting " + str( len( video_list ) ) + " videos\n" )
 
