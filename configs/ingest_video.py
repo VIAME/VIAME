@@ -79,12 +79,6 @@ def find_file( filename ):
 def signal_handler( signal, frame ):
   exit_with_error( 'Ingest aborted, see you next time' )
 
-def arg_border():
-  bd = ""
-  if os.name == 'nt':
-    bd = '\"'
-  return bd
-
 def fset( setting_str ):
   return ['-s', setting_str]
 
