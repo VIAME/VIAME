@@ -74,13 +74,21 @@ public:
   /// Destructor
   virtual ~camera_rpc() = default;
 
+  /// Vector of the powers of the 3D positions
+  /**
+   * Produces a vector whose components are the various powers (up to cubic)
+   * of the components of a 3D position. This vector is used to construct
+   * the various polynomials used in the RPC model. The order of the terms is
+   *
+   * {1, x, y, z, xy, xz, yz, xx, yy, zz, xyz, xxx, xyy, xzz, xxy, yyy, yzz, xxz, yyz, zzz}
+   */
+  static Eigen::Matrix<double, 20, 1> power_vector( const vector_3d& pt );
+
   /// Create a clone of this camera_rpc object
   virtual camera_sptr clone() const = 0;
 
   // Accessors
   virtual rpc_matrix rpc_coeffs() const = 0;
-  virtual rpc_deriv_matrix dx_coeffs() const = 0;
-  virtual rpc_deriv_matrix dy_coeffs() const = 0;
   virtual vector_3d world_scale() const = 0;
   virtual vector_3d world_offset() const = 0;
   virtual vector_2d image_scale() const = 0;
@@ -95,16 +103,10 @@ public:
 protected:
   camera_rpc();
 
-  // Vector of the powers of the positions
-  virtual Eigen::Matrix< double, 20, 1 > power_vector( const vector_3d& pt ) const = 0;
-
   // Compute the Jacobian of the RPC at the given normalized world point
   // Currently this only computes the 2x2 Jacobian for X and Y parameters.
   // This function also returns the normalized projected point
   virtual void jacobian( const vector_3d& pt, matrix_2x2d& J, vector_2d& norm_pt ) const = 0;
-
-  // Update the partial derivatives needed to compute the jacobian
-  virtual void update_partial_deriv() = 0;
 
   kwiver::vital::logger_handle_t m_logger;
 
@@ -131,6 +133,8 @@ public:
     rpc_coeffs_(3, 0) = 1.0;
     rpc_coeffs_(0, 1) = 1.0;
     rpc_coeffs_(2, 2) = 1.0;
+
+    update_partial_deriv();
   }
 
 /// Constructor - direct from coeffs, scales, and offset
@@ -145,7 +149,9 @@ public:
     image_scale_( image_scale ),
     image_offset_( image_offset ),
     rpc_coeffs_( rpc_coeffs )
-  { }
+  {
+    update_partial_deriv();
+  }
 
   /// Constructor - from base class
   simple_camera_rpc ( const camera_rpc &base ) :
@@ -154,7 +160,9 @@ public:
     image_scale_( base.image_scale() ),
     image_offset_( base.image_offset() ),
     rpc_coeffs_( base.rpc_coeffs() )
-  { }
+  {
+    update_partial_deriv();
+  }
 
   /// Create a clone of this camera object
   virtual camera_sptr clone() const
@@ -163,17 +171,17 @@ public:
   // Accessors
   virtual rpc_matrix rpc_coeffs() const
     { return rpc_coeffs_; }
-  virtual rpc_deriv_matrix dx_coeffs() const
-    { return dx_coeffs_; }
-  virtual rpc_deriv_matrix dy_coeffs() const
-    { return dy_coeffs_; }
   virtual vector_3d world_scale() const { return world_scale_; }
   virtual vector_3d world_offset() const { return world_offset_; }
   virtual vector_2d image_scale() const { return image_scale_; }
   virtual vector_2d image_offset() const { return image_offset_; }
 
   // Setters
-  void set_rpc_coeffs(rpc_matrix coeffs) { rpc_coeffs_ = coeffs; }
+  void set_rpc_coeffs(rpc_matrix coeffs)
+  {
+    rpc_coeffs_ = coeffs;
+    update_partial_deriv();
+  }
   void set_world_scale(vector_3d& scale) { world_scale_ = scale; }
   void set_world_offset(vector_3d& offset) { world_offset_ = offset; }
   void set_image_scale(vector_2d& scale) { image_scale_ = scale; }
@@ -181,10 +189,10 @@ public:
 
 protected:
 
-  // Vector of the powers of the positions
-  virtual Eigen::Matrix<double, 20, 1> power_vector( const vector_3d& pt ) const;
   virtual void jacobian( const vector_3d& pt, matrix_2x2d& J, vector_2d& norm_pt ) const;
-  virtual void update_partial_deriv();
+
+    // Update the partial derivatives needed to compute the jacobian
+  void update_partial_deriv();
 
   // The RPC coefficients
   rpc_matrix rpc_coeffs_;

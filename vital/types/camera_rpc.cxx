@@ -88,7 +88,7 @@ camera_rpc
   A.block<1, 2>( 0, 0 ) = rpc_coeffs().block<1, 2>( 0, 1 )
                            - norm_pt[0] * rpc_coeffs().block<1, 2>( 1, 1 );
   A.block<1, 2>( 1, 0 ) = rpc_coeffs().block<1, 2>( 2, 1 );
-                           - ( norm_pt[1] * rpc_coeffs().block<1, 2>( 3, 1 ) );
+                           - norm_pt[1] * rpc_coeffs().block<1, 2>( 3, 1 );
 
   b[0] = ( rpc_coeffs()( 1, 0 ) + norm_elev*rpc_coeffs()( 1, 3 ) )*norm_pt[0]
          - ( rpc_coeffs()( 0, 0 ) + norm_elev*rpc_coeffs()( 0, 3 ) );
@@ -96,9 +96,6 @@ camera_rpc
          - ( rpc_coeffs()( 2, 0 ) + norm_elev*rpc_coeffs()( 2, 3 ) );
 
   rslt.head(2) = A.colPivHouseholderQr().solve( b );
-
-  // Make sure the partial derivatives are up to date
-  this->update_partial_deriv();
 
   // Apply gradient descendent until convergence. Should converge
   // in a few interations.
@@ -121,8 +118,8 @@ camera_rpc
 }
 
 Eigen::Matrix<double, 20, 1>
-simple_camera_rpc
-::power_vector( const vector_3d& pt ) const
+camera_rpc
+::power_vector( const vector_3d& pt )
 {
   // Form the monomials in homogeneous form
   double w  = 1.0;
@@ -193,8 +190,8 @@ simple_camera_rpc
 {
   auto pv = this->power_vector( pt );
   auto ply = this->rpc_coeffs() * pv;
-  vector_4d dx_ply = this->dx_coeffs() * pv.head(10);
-  vector_4d dy_ply = this->dy_coeffs() * pv.head(10);
+  vector_4d dx_ply = this->dx_coeffs_ * pv.head(10);
+  vector_4d dy_ply = this->dy_coeffs_ * pv.head(10);
 
   J( 0, 0 ) = ( ply[1] * dx_ply[0] - ply[0] * dx_ply[1] ) / ( ply[1] * ply[1] );
   J( 0, 1 ) = ( ply[1] * dy_ply[0] - ply[0] * dy_ply[1] ) / ( ply[1] * ply[1] );
