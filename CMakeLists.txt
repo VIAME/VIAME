@@ -52,9 +52,9 @@ endif()
 ###
 # GPU and FFMPEG utilization flags used across projects
 ##
-option( VIAME_ENABLE_CUDA           "Enable CUDA-Dependent Code"    OFF )
-option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   OFF )
-option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  OFF )
+option( VIAME_ENABLE_CUDA           "Enable CUDA-Dependent Code"    ON )
+option( VIAME_ENABLE_CUDNN          "Enable CUDNN-Dependent Code"   ON )
+option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 
 ###
 # Add core utilities enable flags
