@@ -276,14 +276,6 @@ public:
       return false;
     }
 
-    // \todo - num_frames not implemented
-    //// See the comment in num_frames().  This is to make sure that once
-    //// we start reading frames, we'll never try to march to the end to
-    //// figure out how many frames there are.
-    //if (is_->num_frames_ == -2) {
-    //  is_->num_frames_ = -1;
-    //}
-
     if (this->f_packet.data)
     {
       av_free_packet(&this->f_packet);  // free previous packet
@@ -526,7 +518,6 @@ ffmpeg_video_input
     av_freep(&d->f_video_encoding->opaque);
   }
 
-  //d->num_frames_ = -2;
   //is_->contig_memory_ = 0;
   d->f_video_index = -1;
   d->f_data_index = -1;
@@ -646,7 +637,7 @@ ffmpeg_video_input
     int height = enc->height;
     int num_pixels = 3;
     vital::image_pixel_traits pixel_trait = vital::image_pixel_traits_of<unsigned char>();
-    bool direct_copy = false;
+    bool direct_copy;
 
     // If the pixel format is not recognized by then convert the data into RGB_24
     switch (enc->pix_fmt)
@@ -670,6 +661,10 @@ ffmpeg_video_input
         pixel_trait = vital::image_pixel_traits_of<bool>();
         direct_copy = true;
         break;
+      }
+      default:
+      {
+        direct_copy = false;
       }
     }
     if (direct_copy)
