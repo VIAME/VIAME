@@ -9,6 +9,14 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} smqtk )
 
+if( VIAME_ENABLE_PYTHON )
+  FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
+endif()
+
+if( VIAME_ENABLE_CUDA )
+  FormatPassdowns( "CUDA" VIAME_CUDA_FLAGS )
+endif()
+
 if( VIAME_SYMLINK_PYTHON )
   set( SMQTK_PIP_CMD
     pip install --user -e .[postgres] )
@@ -41,6 +49,8 @@ ExternalProject_Add( smqtk
     -DSMQTK_INSTALL_SETUP_SCRIPT:BOOL=OFF
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
+    ${VIAME_PYTHON_FLAGS}
+    ${VIAME_CUDA_FLAGS}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
