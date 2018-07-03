@@ -62,11 +62,7 @@ camera_rpc
     ( pt - world_offset() ).cwiseQuotient( world_scale() );
 
   // Calculate polynomials
-  // TODO: why doesn't this work ?
-  // auto polys = this->rpc_coeffs()*this->power_vector(norm_pt);
-  auto rpc = this->rpc_coeffs();
-  auto pv = this->power_vector(norm_pt);
-  auto polys = rpc*pv;
+  vector_4d polys = this->rpc_coeffs()*this->power_vector(norm_pt);
   vector_2d image_pt( polys[0] / polys[1], polys[2] / polys[3]);
 
   // Un-normalize
@@ -79,7 +75,7 @@ camera_rpc
 ::back_project( const vector_2d& image_pt, double elev )
 {
   // Normalize image point
-  auto norm_pt = ( image_pt - image_offset() ).cwiseQuotient( image_scale() );
+  vector_2d norm_pt = ( image_pt - image_offset() ).cwiseQuotient( image_scale() );
   auto norm_elev = ( elev - world_offset()[2] ) / world_scale()[2];
 
   // Use a first order approximation to the RPC to initialize.
@@ -90,9 +86,9 @@ camera_rpc
   vector_2d b;
 
   A.block<1, 2>( 0, 0 ) = rpc_coeffs().block<1, 2>( 0, 1 )
-                          - norm_pt[0] * rpc_coeffs().block<1, 2>( 1, 1 );
-  A.block<1, 2>( 1, 0 ) = rpc_coeffs().block<1, 2>( 2, 1 )
-                          - norm_pt[1] * rpc_coeffs().block<1, 2>( 3, 1 );
+                           - norm_pt[0] * rpc_coeffs().block<1, 2>( 1, 1 );
+  A.block<1, 2>( 1, 0 ) = rpc_coeffs().block<1, 2>( 2, 1 );
+                           - ( norm_pt[1] * rpc_coeffs().block<1, 2>( 3, 1 ) );
 
   b[0] = ( rpc_coeffs()( 1, 0 ) + norm_elev*rpc_coeffs()( 1, 3 ) )*norm_pt[0]
          - ( rpc_coeffs()( 0, 0 ) + norm_elev*rpc_coeffs()( 0, 3 ) );
