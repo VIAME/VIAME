@@ -23,14 +23,21 @@ kwiver_add_library( kwiver_algo_svm
   ${plugin_sources}
   )
 
+if( WIN32 )
+  set( SVM_LIBRARY libsvm )
+else()
+  set( SVM_LIBRARY svm )
+endif()
+
 target_link_libraries( kwiver_algo_svm
   PUBLIC               kwiver_algo_core
                        ${OpenCV_LIBS}
   PRIVATE              vital_config
+                       kwiversys
                        ${Boost_SYSTEM_LIBRARY}
                        ${Boost_FILESYSTEM_LIBRARY}
                        ${Boost_REGEX_LIBRARY}
-                       svm
+                       ${SVM_LIBRARY}
   )
 
 algorithms_create_plugin( kwiver_algo_svm
