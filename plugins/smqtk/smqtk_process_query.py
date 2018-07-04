@@ -340,7 +340,7 @@ class SmqtkProcessQuery (KwiverProcess):
         neg_descrs = self.descriptor_set.get_many_descriptors(iqr_negative_tuple)
 
         self.iqr_session.adjudicate(user_pos_elements, user_neg_elements)
-        self.iqr_session.adjudicate(pos_descrs, neg_descrs)
+        self.iqr_session.adjudicate(set(pos_descrs), set(neg_descrs))
 
         # Update iqr working index for any new positives
         self.iqr_session.update_working_index(self.neighbor_index)
