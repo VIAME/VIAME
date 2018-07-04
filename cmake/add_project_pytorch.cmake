@@ -9,14 +9,16 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
 
-CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
-CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-tmp )
+# The below ideally caches pip build files, but appears to be broken so is commented for now
 
-set( PYTORCH_PIP_BUILD_DIR_CMD -b ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-build )
-set( PYTORCH_PIP_CACHE_DIR_CMD --cache-dir ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-cache )
-set( PYTORCH_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-tmp )
+#CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
+#CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-tmp )
 
-set( PYTORCH_PIP_SETTINGS ${PYTORCH_PIP_BUILD_DIR_CMD} ${PYTORCH_PIP_CACHE_DIR_CMD} )
+#set( PYTORCH_PIP_BUILD_DIR_CMD -b ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-build )
+#set( PYTORCH_PIP_CACHE_DIR_CMD --cache-dir ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-cache )
+#set( PYTORCH_PIP_TMP_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/pip-tmp )
+
+#set( PYTORCH_PIP_SETTINGS ${PYTORCH_PIP_BUILD_DIR_CMD} ${PYTORCH_PIP_CACHE_DIR_CMD} )
 
 if( VIAME_SYMLINK_PYTHON )
   set( PYTORCH_PIP_CMD
