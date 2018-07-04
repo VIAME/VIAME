@@ -35,7 +35,7 @@
 
 #include "write_object_track_set_viame_csv.h"
 
-#include <time.h>
+#include <ctime>
 
 namespace viame {
 
