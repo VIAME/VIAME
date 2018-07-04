@@ -38,6 +38,7 @@ target_link_libraries( viame_core
                        vital_exceptions
                        vital_logger
                        vital_util
+                       kwiversys
   )
 
 algorithms_create_plugin( viame_core
