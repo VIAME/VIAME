@@ -350,7 +350,10 @@ class SmqtkProcessQuery (KwiverProcess):
         ordered_results = self.iqr_session.ordered_results()
         ordered_feedback = self.iqr_session.ordered_feedback()
         if self.query_return_n > 0:
-            ordered_feedback_results = ordered_feedback[:self.query_return_n]
+            if ordered_feedback is not None:
+                ordered_feedback_results = ordered_feedback[:self.query_return_n]
+            else:
+                ordered_feedback_results = []
             ordered_results = ordered_results[:self.query_return_n]
 
         return_elems, return_dists = zip(*ordered_results)
