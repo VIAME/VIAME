@@ -30,8 +30,33 @@ def create_dir( dirname, logging=True ):
       print( "Creating " + dirname )
     os.makedirs( dirname )
 
-def execute_command( cmd, stdout=None, stderr=None ):
-  return subprocess.call(cmd, stdout=stdout, stderr=stderr)
+CUDA_VISIBLE_DEVICES = "CUDA_VISIBLE_DEVICES"
+
+def get_real_gpu_index(n):
+  """Return the real index for the nth GPU as a string.  This respects
+  CUDA_VISIBLE_DEVICES
+
+  """
+  cvd = os.environ.get(CUDA_VISIBLE_DEVICES)
+  if not cvd:  # Treat empty string and None the same
+    return str(n)
+  # This is an attempt to respect the fact that an invalid index hides
+  # the GPUs listed after it
+  cvd_parsed = list(itertools.takewhile(lambda i: not i.startswith('-'),
+                                        cvd.split(',')))
+  if 0 <= n < len(cvd_parsed):
+    return cvd_parsed[n]
+  else:
+    raise IndexError('Only {} visible GPUs; you asked for number {}!'
+                     .format(len(cvd_parsed), n))
+
+def execute_command( cmd, stdout=None, stderr=None, gpu=None ):
+  if gpu is None:
+    env = None
+  else:
+    env = dict(os.environ)
+    env[CUDA_VISIBLE_DEVICES] = get_real_gpu_index(gpu)
+  return subprocess.call(cmd, stdout=stdout, stderr=stderr, env=env)
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
@@ -153,9 +178,9 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   # Process command, possibly with logging
   if len( args.log_dir ) > 0 and not args.debug:
     with get_log_output_files(args.log_dir + '/' + basename) as kwargs:
-      res = execute_command(command, **kwargs)
+      res = execute_command(command, gpu=0, **kwargs)
   else:
-    res = execute_command(command)
+    res = execute_command(command, gpu=0)
 
   if res == 0:
     print( 'Success' )
