@@ -38,7 +38,7 @@ process database_query_handler
   relativepath external_pipeline_file =         smqtk_query.pipe
   #relativepath augmentation_pipeline_file =     augment_queries.res.pipe
   :database_folder                              $CONFIG{global:database_folder}
-  :max_result_count                             100
+  :max_result_count                             250
   :use_tracks_for_history                       true
   :merge_duplicate_results                      true
   :unused_descriptors_as_negative               false

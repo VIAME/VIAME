@@ -24,8 +24,8 @@ process smqtk_query_handler
   :: smqtk_process_query
   relativepath descriptor_index_config_file =  smqtk_desc_index.json
   relativepath neighbor_index_config_file   =  smqtk_nn_index.json
-  :pos_seed_neighbors                          200
-  :query_return_size                           200
+  :pos_seed_neighbors                          500
+  :query_return_size                           500
 
 connect from in_adapt.positive_descriptor_set
         to   smqtk_query_handler.positive_descriptor_set
