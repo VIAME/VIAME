@@ -56,12 +56,25 @@ ExternalProject_Add( smqtk
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-ExternalProject_Add_Step(smqtk installpy
+ExternalProject_Add_Step(smqtk install_python
   WORKING_DIRECTORY ${VIAME_PACKAGES_DIR}/smqtk
   COMMAND ${SMQTK_PYTHON_INSTALL}
   COMMENT "Installing SMQTK python files."
   DEPENDEES build
   )
+
+ExternalProject_Add_Step(smqtk install_cleanup
+  WORKING_DIRECTORY ${VIAME_PACKAGES_DIR}/smqtk
+  COMMAND ${CMAKE_COMMAND}
+    -DVIAME_CMAKE_DIR:PATH=${CMAKE_SOURCE_DIR}/cmake
+    -DVIAME_BUILD_PREFIX:PATH=${VIAME_BUILD_PREFIX}
+    -DVIAME_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
+    -DVIAME_ENABLE_SMQTK=${VIAME_ENABLE_SMQTK}
+    -P ${VIAME_SOURCE_DIR}/cmake/custom_smqtk_install.cmake
+  COMMENT "Performing SMQTK Cleanup."
+  DEPENDEES build
+  )
+
 
 if ( VIAME_FORCEBUILD )
 ExternalProject_Add_Step(smqtk forcebuild
