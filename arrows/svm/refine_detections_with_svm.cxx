@@ -250,7 +250,7 @@ refine_detections_with_svm
 
     for( size_t i = 0; i < descriptor_size; ++i )
     {
-      svm_nodes[i].index = i + 1;
+      svm_nodes[i].index = i;
       svm_nodes[i].value = descriptor_vector.at(i);
     }
 
