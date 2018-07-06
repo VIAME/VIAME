@@ -159,7 +159,7 @@ file_format_noaa_csv
         vgl_box_2d<double>(
           vgl_point_2d<double>( stod( tokens[3] ), stod( tokens[4] )),
           vgl_point_2d<double>( stod( tokens[5] ), stod( tokens[6] )));
-      trk[ f ].relevancy() = stod( tokens[7] );
+      trk( t ).relevancy() = stod( tokens[7] );
 
 
       kpf_cset_type cset;

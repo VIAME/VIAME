@@ -72,9 +72,13 @@ struct TRACK_NOAA_CSV_EXPORT track_noaa_csv_type: public track_base< track_noaa_
   track_field< kpf_cset_type >& species_cset;
   track_field< double >& relevancy;
 
+  //
+  // relevancy is nominally on the track
+  //
+
   track_noaa_csv_type() :
     species_cset( Frame.add_field< kpf_cset_type >( "species_cset" )),
-    relevancy( Frame.add_field< double >( "relevancy" ))
+    relevancy( Track.add_field< double >( "relevancy" ))
   {
     Track.add_field( det_id );
     Frame.add_field( frame_number );
