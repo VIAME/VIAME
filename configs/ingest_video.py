@@ -298,19 +298,17 @@ if __name__ == "__main__" :
   if args.init_db:
     database_tool.init()
 
-  # Identify all videos to process
-  video_list = []
-
   if process_data:
 
+    # Identify all videos to process
     if len( args.input_list ) > 0:
-      video_list.append( args.input_list )
+      video_list = [args.input_list]
       is_image_list = True
     elif len( args.input_dir ) > 0:
       video_list = list_files_in_dir( args.input_dir )
       is_image_list = False
     else:
-      video_list.append( args.input_video )
+      video_list = [args.input_video]
       is_image_list = False
 
     if len( video_list ) == 0:
