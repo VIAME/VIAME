@@ -143,10 +143,13 @@ def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
 # Process a single video
-def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='' ):
+def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='', gpu=None ):
 
   sys.stdout.write( 'Processing: ' + input_name + "... " )
   sys.stdout.flush()
+
+  if gpu is None:
+    gpu = 0
 
   # Get video name without extension and full path
   if len( base_ovrd ) > 0:
@@ -178,9 +181,9 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   # Process command, possibly with logging
   if len( args.log_dir ) > 0 and not args.debug:
     with get_log_output_files(args.log_dir + '/' + basename) as kwargs:
-      res = execute_command(command, gpu=0, **kwargs)
+      res = execute_command(command, gpu=gpu, **kwargs)
   else:
-    res = execute_command(command, gpu=0)
+    res = execute_command(command, gpu=gpu)
 
   if res == 0:
     print( 'Success' )
@@ -316,7 +319,7 @@ if __name__ == "__main__" :
     # Process videos
     for video_name in video_list:
       if os.path.exists( video_name ) and os.path.isfile( video_name ):
-        process_video_kwiver( video_name, args, is_image_list )
+        process_video_kwiver( video_name, args, is_image_list, gpu=0 )
       else:
         print( "Skipping " + video_name )
 
