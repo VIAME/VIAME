@@ -7,6 +7,7 @@ import contextlib
 import itertools
 import signal
 import subprocess
+import tempfile
 import threading
 try:
   import queue
@@ -206,6 +207,30 @@ def plot_settings_list( basename ):
     fset( 'kwa_writer:stream_id=' + basename ),
   ))
 
+def split_image_list(image_list_file, n, dir=None):
+  """Create and return the paths to n temp files that when interlaced
+  reproduce the original file
+
+  """
+  prefix, suffix = os.path.splitext(os.path.basename(image_list_file))
+  tempfiles = [tempfile.NamedTemporaryFile(
+    mode='w', prefix=prefix + '_' + str(i) + '_tmp', suffix=suffix,
+    dir=dir, delete=False,
+  ) for i in range(n)]
+  with open(image_list_file) as f:
+    for i, line in enumerate(f):
+      tempfiles[i % n].write(line)
+  # This is bad security practice, but keeping the files open isn't an
+  # option in general. From the docs
+  # (https://docs.python.org/2/library/tempfile.html#tempfile.NamedTemporaryFile):
+  # "Whether the name can be used to open the file a second time,
+  # while the named temporary file is still open, varies across
+  # platforms (it can be so used on Unix; it cannot on Windows NT or
+  # later)"
+  for tf in tempfiles:
+    tf.close()
+  return [tf.name for tf in tempfiles]
+
 # Main Function
 if __name__ == "__main__" :
 
@@ -302,7 +327,7 @@ if __name__ == "__main__" :
 
     # Identify all videos to process
     if len( args.input_list ) > 0:
-      video_list = [args.input_list]
+      video_list = split_image_list(args.input_list, args.gpu_count, 'database/')
       is_image_list = True
     elif len( args.input_dir ) > 0:
       video_list = list_files_in_dir( args.input_dir )
@@ -345,6 +370,10 @@ if __name__ == "__main__" :
       thread.start()
     for thread in threads:
       thread.join()
+
+    if is_image_list:
+      for image_list in video_list:  # Clean up after split_image_list
+        os.unlink(image_list)
 
     if not video_queue.empty():
       exit_with_error("Some videos were not processed!")
