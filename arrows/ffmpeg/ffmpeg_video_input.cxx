@@ -421,6 +421,17 @@ ffmpeg_video_input
 {
   attach_logger( "ffmpeg_video_input" ); // get appropriate logger
   d->logger = this->logger();
+
+  this->set_capability(vital::algo::video_input::HAS_EOV, true);
+  this->set_capability(vital::algo::video_input::HAS_FRAME_NUMBERS, true);
+  this->set_capability(vital::algo::video_input::HAS_FRAME_DATA, false);
+  this->set_capability(vital::algo::video_input::HAS_METADATA, false);
+
+  this->set_capability(vital::algo::video_input::HAS_FRAME_TIME, false);
+  this->set_capability(vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME, false);
+  this->set_capability(vital::algo::video_input::HAS_TIMEOUT, false);
+  this->set_capability(vital::algo::video_input::IS_SEEKABLE, true);
+
   ffmpeg_init();
 }
 
