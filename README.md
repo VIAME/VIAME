@@ -58,17 +58,15 @@ To install, extract the binaries and place them in a directory of your choosing,
 for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux. Alternatively,
 any directory of your choosing.
 
+Installation Requirements: Anaconda3 5.2.0 and CUDA 8.0 GA2.
+
 **Linux:** <br>
+[VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b3dbe208d777f2e622593a1/download)
+[VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Pvo2IdbwiyNR8itqyfm7fFrb8JayDIY6)
+
+**Deprecated, Will Be Updated Shortly:** <br>
 [VIAME v0.9.6 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.12](https://data.kitware.com/api/v1/item/5b2ab6b98d777f2e62257ad1/download) <br>
-[VIAME v0.9.6 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.5](https://data.kitware.com/api/v1/item/5b20c7748d777f2e6225620d/download)
-
-**Windows:** <br>
-[VIAME v0.9.3 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7 (Deprecated)](https://data.kitware.com/api/v1/item/5a9d8b218d777f0685785721/download)
-
-Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads)
-(preferred) or a comparable Python 2.7 with multiple packages, however, our source releases now
-support building with either Python 2 or Python 3. The above releases were both built with CUDA 8.0,
-Python 2.7, and no matlab support enabled.
+[VIAME v0.9.3 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5a9d8b218d777f0685785721/download)
 
 
 Quick Build Instructions
