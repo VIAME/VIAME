@@ -31,6 +31,7 @@ set( plugin_core_headers
   match_features_fundamental_matrix.h
   match_features_homography.h
   match_tracks.h
+  non_maximum_suppression.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
   track_features_augment_keyframes.h
@@ -99,6 +100,7 @@ set( plugin_core_sources
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   match_tracks.cxx
+  non_maximum_suppression.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
   track_features_augment_keyframes.cxx
