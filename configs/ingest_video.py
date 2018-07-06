@@ -7,6 +7,11 @@ import contextlib
 import itertools
 import signal
 import subprocess
+import threading
+try:
+  import queue
+except ImportError:  # Python 2
+  import Queue as queue
 
 sys.dont_write_bytecode = True
 
@@ -269,6 +274,9 @@ if __name__ == "__main__" :
                       "binaries. If this is not specified, it is expected that all "
                       "viame binaries are already in our path.")
 
+  parser.add_argument("-g", "--gpu-count", default=1, type=int, metavar='N',
+                      help="Parallelize the ingest by using the first N GPUs in parallel")
+
   args = parser.parse_args()
 
   # Error checking
@@ -317,12 +325,31 @@ if __name__ == "__main__" :
       create_dir( args.log_dir )
       sys.stdout.write( "\n" )
 
-    # Process videos
+    # Process videos in parallel, one per GPU
+    video_queue = queue.Queue()
     for video_name in video_list:
-      if os.path.exists( video_name ) and os.path.isfile( video_name ):
-        process_video_kwiver( video_name, args, is_image_list, gpu=0 )
+      if os.path.isfile( video_name ):
+        video_queue.put(video_name)
       else:
         print( "Skipping " + video_name )
+
+    def process_video_thread(gpu):
+      while True:
+        try:
+          video_name = video_queue.get_nowait()
+        except queue.Empty:
+          break
+        process_video_kwiver(video_name, args, is_image_list, gpu=gpu)
+
+    threads = [threading.Thread(target=process_video_thread, args=(gpu,))
+               for gpu in range(args.gpu_count)]
+    for thread in threads:
+      thread.start()
+    for thread in threads:
+      thread.join()
+
+    if not video_queue.empty():
+      exit_with_error("Some videos were not processed!")
 
   # Build out final analytics
   if args.detection_plots:
