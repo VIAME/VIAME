@@ -57,6 +57,7 @@ enum file_format_enum
   TF_KWIVER,
   TF_KPF_GEOM,
   TF_KPF_ACT,
+  TF_NOAA_CSV,
   TF_INVALID_TYPE   // must always be last entry
 };
 

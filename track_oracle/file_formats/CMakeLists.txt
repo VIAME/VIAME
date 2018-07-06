@@ -61,6 +61,7 @@ add_subdirectory( track_csv )
 add_subdirectory( track_kst )
 add_subdirectory( track_vatic )
 add_subdirectory( track_vpd )
+add_subdirectory( track_noaa_csv )
 if( KWIVER_ENABLE_KPF )
   add_subdirectory( track_kpf_geom )
   add_subdirectory( kpf_utils )
@@ -131,7 +132,7 @@ target_link_libraries( track_oracle_file_formats
                        ${TRACK_FILTER_KWE_LIBRARY}
                        ${TRACK_ORACLE_APIX_LIBRARY}
                        ${TRACK_KPF_LIBRARIES}
-                       
+                       track_noaa_csv
   PRIVATE              ${Boost_THREAD_LIBRARY}
                        vital
                        vul

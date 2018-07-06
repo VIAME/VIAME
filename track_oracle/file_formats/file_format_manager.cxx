@@ -43,6 +43,7 @@
 #endif
 #include <track_oracle/file_formats/track_csv/file_format_csv.h>
 #include <track_oracle/file_formats/track_kwiver/file_format_kwiver.h>
+#include <track_oracle/file_formats/track_noaa_csv/file_format_noaa_csv.h>
 #include <track_oracle/core/schema_algorithm.h>
 
 #include <boost/thread/mutex.hpp>
@@ -126,6 +127,7 @@ file_format_manager_impl
 #ifdef KWIVER_ENABLE_KPF
   formats[ TF_KPF_GEOM ] = new file_format_kpf_geom();
 #endif
+  formats[ TF_NOAA_CSV ] = new file_format_noaa_csv();
 
   // get instances of all the schemas, for introspection
   for (format_map_cit i = formats.begin(); i != formats.end(); ++i)
