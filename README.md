@@ -60,13 +60,13 @@ any directory of your choosing.
 
 Installation Requirements: Anaconda3 5.2.0 and CUDA 8.0 GA2.
 
-**Linux:** <br>
-[VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b3dbe208d777f2e622593a1/download)
-[VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Pvo2IdbwiyNR8itqyfm7fFrb8JayDIY6)
-
-**Deprecated, Will Be Updated Shortly:** <br>
-[VIAME v0.9.6 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.12](https://data.kitware.com/api/v1/item/5b2ab6b98d777f2e62257ad1/download) <br>
-[VIAME v0.9.3 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5a9d8b218d777f0685785721/download)
+| **Linux:** <br>
+| [VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b3dbe208d777f2e622593a1/download)
+| [VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Pvo2IdbwiyNR8itqyfm7fFrb8JayDIY6)
+|
+| **Deprecated, Will Be Updated Shortly:** <br>
+| [VIAME v0.9.6 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.12](https://data.kitware.com/api/v1/item/5b2ab6b98d777f2e62257ad1/download) <br>
+| [VIAME v0.9.3 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7](https://data.kitware.com/api/v1/item/5a9d8b218d777f0685785721/download)
 
 
 Quick Build Instructions
