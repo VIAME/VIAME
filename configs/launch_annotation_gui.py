@@ -35,17 +35,15 @@ def get_writer_cmd():
   else:
     return 'kwa_tool '
 
-# Main Function
-if __name__ == "__main__" :
+def process_video( args ):
+  print( "Function not yet implemented" )
+  sys.exit(0)
 
-  parser = argparse.ArgumentParser(description="Launch annotation GUI",
-                       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+def process_list( args ):
+  print( "Function not yet implemented" )
+  sys.exit(0)
 
-  parser.add_argument("-d", dest="input_dir", default="database",
-                      help="Input directory containing results")
-
-  args = parser.parse_args()
-
+def process_dir( args ):
   files = list_files_in_dir( args.input_dir, "index" )
 
   if len( files ) == 0:
@@ -95,3 +93,39 @@ if __name__ == "__main__" :
 
   cmd = get_gui_cmd() + " -p " + project_file
   os.system( cmd )
+
+# Main Function
+if __name__ == "__main__" :
+
+  parser = argparse.ArgumentParser(description="Launch annotation GUI",
+                       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+  parser.add_argument("-d", dest="input_dir", default="",
+                      help="Input directory to run annotator on")
+
+  parser.add_argument("-v", dest="input_video", default="",
+                      help="Input video file to run annotator on")
+
+  parser.add_argument("-l", dest="input_list", default="",
+                      help="Input image list file to run annotator on")
+
+  parser.add_argument("-gt", dest="gui_theme",
+                      default="gui-params" + div + "dark_gui_settings.ini",
+                      help="Predefined query directory, if present")
+
+  parser.add_argument("--debug", dest="debug", action="store_true",
+                      help="Run with debugger attached to process")
+                      
+  parser.set_defaults( debug=False )
+
+  args = parser.parse_args()
+
+  if len( args.input_dir ) > 0:
+    process_dir( args )
+  elif len( args.input_video ) > 0:
+    process_video( args )
+  else:
+      if not args.no_reconfig:
+    if len( args.gui_theme ) > 0:
+      command = command + "--theme \"" + find_file( args.gui_theme ) + "\" "
+
