@@ -145,11 +145,11 @@ def remove_quotes( input_str ):
 # Process a single video
 def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='', gpu=None ):
 
-  sys.stdout.write( 'Processing: ' + input_name + "... " )
-  sys.stdout.flush()
-
   if gpu is None:
     gpu = 0
+
+  sys.stdout.write( 'Processing: {} on GPU {}... '.format(os.path.basename(input_name), gpu) )
+  sys.stdout.flush()
 
   # Get video name without extension and full path
   if len( base_ovrd ) > 0:
@@ -186,10 +186,11 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     res = execute_command(command, gpu=gpu)
 
   if res == 0:
-    print( 'Success' )
+    print( 'Success ({})'.format(gpu) )
   else:
-    print( 'Failure' )
-    exit_with_error( '\nIngest failed, check database/Log files, terminating.\n' )
+    print( 'Failure ({})'.format(gpu) )
+    exit_with_error( '\nIngest failed, check database/Log files for {}, terminating.\n'
+                     .format(os.path.basename(input_name)) )
 
 # Plot settings strings
 def plot_settings_list( basename ):
