@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,9 +103,11 @@ public:
   /**
    * This method writes the specified detected object to file.
    *
-   * \param set Detected object set
+   * \param set Track descriptor set
+   * \param source_id Video or image source identifier over-ride
    */
-  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set ) = 0;
+  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
+                          const std::string& source_id ) = 0;
 
 
 protected:

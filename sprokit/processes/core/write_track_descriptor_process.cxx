@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,7 +149,7 @@ void write_track_descriptor_process
   std::string file_name;
 
   // image name is optional
-  if ( has_input_port_edge_using_trait( image_file_name ) )
+  if( has_input_port_edge_using_trait( image_file_name ) )
   {
     file_name = grab_from_port_using_trait( image_file_name );
   }
@@ -159,7 +159,7 @@ void write_track_descriptor_process
 
   {
     scoped_step_instrumentation();
-    d->m_writer->write_set( input );
+    d->m_writer->write_set( input, file_name );
   }
 }
 

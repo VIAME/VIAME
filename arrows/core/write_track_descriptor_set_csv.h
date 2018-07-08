@@ -63,7 +63,8 @@ public:
   virtual void set_configuration( vital::config_block_sptr config );
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set );
+  virtual void write_set( const kwiver::vital::track_descriptor_set_sptr set,
+                          const std::string& source_id );
 
 private:
   class priv;

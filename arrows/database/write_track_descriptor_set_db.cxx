@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -182,7 +182,8 @@ write_track_descriptor_set_db
 // -------------------------------------------------------------------------------
 void
 write_track_descriptor_set_db
-::write_set( const kwiver::vital::track_descriptor_set_sptr set )
+::write_set( const kwiver::vital::track_descriptor_set_sptr set,
+             const std::string& source_id )
 {
   cppdb::statement insert_td_stmt = d->m_conn.create_prepared_statement( "INSERT INTO TRACK_DESCRIPTOR("
     "UID, "
@@ -216,7 +217,7 @@ write_track_descriptor_set_db
   {
     insert_td_stmt.bind( 1, td->get_uid().value() );
     insert_td_stmt.bind( 2, td->get_type() );
-    insert_td_stmt.bind( 3, d->m_video_name );
+    insert_td_stmt.bind( 3, ( source_id.empty() ? d->m_video_name : source_id ) );
 
     insert_td_stmt.exec();
     insert_td_stmt.reset();
