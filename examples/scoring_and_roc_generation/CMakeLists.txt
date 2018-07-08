@@ -4,7 +4,9 @@
 
 set( example_files
   plotroc.py
+  detections.csv
   detections.kw18
+  groundtruth.csv
   groundtruth.kw18 )
 
 if( VIAME_ENABLE_KWANT )
