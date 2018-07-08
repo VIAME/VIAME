@@ -8,5 +8,5 @@ CALL %VIAME_INSTALL%\setup_viame.bat
 
 REM Run Pipeline
 
-vpView.exe
+python.exe %VIAME_INSTALL%\configs\launch_annotation_gui.py
 

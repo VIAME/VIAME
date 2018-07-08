@@ -6,6 +6,6 @@ export VIAME_INSTALL=./../..
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 
-# Run vpView
+# Run chip pipeline
 
 pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/extract_chips_from_detections.pipe

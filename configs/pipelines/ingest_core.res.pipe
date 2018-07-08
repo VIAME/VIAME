@@ -5,6 +5,7 @@
 # This pipe requires an input source node 'input' to be defined elsewhere
 
 # ================================== VIDEO INPUT ===================================
+
 process downsampler
   :: downsample
   :target_frame_rate                           1

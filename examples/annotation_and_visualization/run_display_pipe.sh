@@ -6,6 +6,6 @@ export VIAME_INSTALL=./../..
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 
-# Run vpView
+# Run simple display pipeline
 
 pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/display_annotation.pipe
