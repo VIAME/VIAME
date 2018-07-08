@@ -5,6 +5,11 @@ import os
 import glob
 import argparse
 
+if os.name == 'nt':
+  div = '\\'
+else:
+  div = '/'
+
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
   return glob.glob( folder + '/*' )
@@ -21,6 +26,18 @@ def get_gui_cmd():
   else:
     return 'vsPlay '
 
+def get_script_path():
+  return os.path.dirname( os.path.realpath( sys.argv[0] ) )
+
+def find_file( filename ):
+  if( os.path.exists( filename ) ):
+    return os.path.abspath( filename )
+  elif os.path.exists( get_script_path() + div + filename ):
+    return get_script_path() + div + filename
+  else:
+    print( "Unable to find " + filename )
+    sys.exit( 0 )
+
 # Main Function
 if __name__ == "__main__" :
 
@@ -29,6 +46,10 @@ if __name__ == "__main__" :
 
   parser.add_argument("-d", dest="input_dir", default="database",
                       help="Input directory containing results")
+
+  parser.add_argument("-theme", dest="gui_theme",
+                      default="gui-params" + div + "dark_gui_settings.ini",
+                      help="Predefined query directory, if present")
 
   args = parser.parse_args()
 
@@ -64,5 +85,8 @@ if __name__ == "__main__" :
   base, ext = os.path.splitext( filename )
 
   cmd = get_gui_cmd() + " -tf " + base + ".kw18 -vf " + filename
+
+  if len( args.gui_theme ) > 0:
+    cmd = cmd + " --theme \"" + find_file( args.gui_theme ) + "\" "
 
   os.system( cmd )

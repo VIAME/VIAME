@@ -8,4 +8,4 @@ CALL %VIAME_INSTALL%\setup_viame.bat
 
 REM Run Pipeline
 
-echo Script temporarily disabled on Windows
+python.exe %VIAME_INSTALL%\configs\launch_track_viewer.py

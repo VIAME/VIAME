@@ -135,7 +135,7 @@ if __name__ == "__main__" :
   parser.add_argument("-l", dest="input_list", default="",
                       help="Input image list file to run annotator on")
 
-  parser.add_argument("-gt", dest="gui_theme",
+  parser.add_argument("-theme", dest="gui_theme",
                       default="gui-params" + div + "dark_gui_settings.ini",
                       help="Predefined query directory, if present")
 
