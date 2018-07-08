@@ -215,10 +215,12 @@ class SRNN_tracking(KwiverProcess):
         self.declare_config_using_trait('GT_bbox_file_path')
         #-------------------------------------------------------------------
 
-        # Image query mode
+        # Add features to detections
         #-------------------------------------------------------------------
-        self.add_config_trait("image_query_mode", "image_query_mode", 'False', 'Image query mode?')
-        self.declare_config_using_trait('image_query_mode')
+        self.add_config_trait("add_features_to_detections",
+                              "add_features_to_detections", 'True',
+                              'Should we add internally computed features to detections?')
+        self.declare_config_using_trait('add_features_to_detections')
         #-------------------------------------------------------------------
 
         self._track_flag = False
@@ -309,8 +311,8 @@ class SRNN_tracking(KwiverProcess):
         self._terminate_track_threshold = int(self.config_value('terminate_track_threshold'))
         self._sys_terminate_track_threshold = int(self.config_value('sys_terminate_track_threshold'))
 
-        # image query mode
-        self._image_query_mode = (self.config_value('image_query_mode') == 'True')
+        # add features to detections?
+        self._add_features_to_detections = (self.config_value('add_features_to_detections') == 'True')
 
         self._base_configure()
 
@@ -374,7 +376,8 @@ class SRNN_tracking(KwiverProcess):
                     # store app feature to detectedObject
                     app_f = new_descriptor(g_config.A_F_num)
                     app_f[:] = pt_app_features[idx].numpy()
-                    d_obj.set_descriptor(app_f)
+                    if self_.add_features_to_detections:
+                        d_obj.set_descriptor(app_f)
                     det_obj_set.add(d_obj)
 
                     # build track state for current bbox for matching
