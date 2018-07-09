@@ -51,7 +51,6 @@ process detector
   :detector:type                               darknet
 
   block detector:darknet
-
     # Network config, weights, and names
     relativepath net_config  =                 models/mouss_yolo_v2_960_generic.cfg
     relativepath weight_file =                 models/mouss_yolo_v2_960_generic.weights
@@ -68,7 +67,6 @@ process detector
     :resize_nj                                 960
     :scale                                     1.0
     :chip_step                                 900
-
   endblock
 
 connect from reader.image
