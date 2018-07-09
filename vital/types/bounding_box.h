@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ public:
     vector_type lr( upper_left );
     lr.x() += width;
     lr.y() += height;
-    m_bbox =  Eigen::AlignedBox< T, 2 >( upper_left, lr );
+    m_bbox = Eigen::AlignedBox< T, 2 >( upper_left, lr );
   }
 
   /**
@@ -92,7 +92,7 @@ public:
   {
     vector_type ul( xmin, ymin );
     vector_type lr( xmax, ymax );
-    m_bbox =  Eigen::AlignedBox< T, 2 >( ul, lr );
+    m_bbox = Eigen::AlignedBox< T, 2 >( ul, lr );
   }
 
   /**
@@ -149,8 +149,8 @@ protected:
    *
    * @return Underlying data type.
    */
-  Eigen::AlignedBox< T, 2 >& get_eabb()  { return m_bbox; }
-  Eigen::AlignedBox< T, 2 > get_eabb() const  { return m_bbox; }
+  Eigen::AlignedBox< T, 2 >& get_eabb() { return m_bbox; }
+  Eigen::AlignedBox< T, 2 > get_eabb() const { return m_bbox; }
 
 private:
   // Note that this class is implemented using Eigen types.
@@ -172,6 +172,10 @@ private:
   template < typename T1 >
   friend bounding_box<T1> scale( bounding_box<T1> const& bbox,
                                  double scale_factor );
+
+  template < typename T1 >
+  friend bounding_box<T1> scale_about_center( bounding_box<T1> const& bbox,
+                                              double scale_factor );
 
   template<typename T2>
   friend bounding_box<T2> intersection( bounding_box<T2> const& one,
@@ -232,10 +236,10 @@ bounding_box<T> & translate( bounding_box<T>& bbox,
 /**
  * @brief Scale a box by some scale factor.
  *
- * This operator scales bounding_box by the specified
- * amount.
+ * This operator scales bounding_box by the specified amount.
+ * Note: this also scales the box center location.
  *
- * @param[in,out] bbox Box to translate
+ * @param[in,out] bbox Box to scale
  * @param[in] scale_factor Scale factor to use
  *
  * @return The specified parameter box, updated with the new
@@ -248,6 +252,30 @@ bounding_box<T> scale( bounding_box<T> const& bbox,
   return bounding_box<T>(
     (bbox.upper_left().template cast<double>() * scale_factor).template cast<T>(),
     (bbox.lower_right().template cast<double>() * scale_factor).template cast<T>() );
+}
+
+
+/**
+ * @brief Scale a box by some scale factor.
+ *
+ * This operator scales bounding_box by the specified amount.
+ * This scales the aspect ratio of the box without moving its center.
+ *
+ * @param[in,out] bbox Box to scale
+ * @param[in] scale_factor Scale factor to use
+ *
+ * @return The specified parameter box, updated with the new
+ * coordinates, is returned.
+ */
+template < typename T >
+bounding_box<T> scale_about_center( bounding_box<T> const& bbox,
+                                    double scale_factor )
+{
+  typename bounding_box<T>::vector_type offset(
+    ( bbox.width() * scale_factor ) / 2,
+    ( bbox.height() * scale_factor ) / 2 );
+
+  return bounding_box<T>(bbox.upper_left()-offset,bbox.lower_right()+offset);
 }
 
 
