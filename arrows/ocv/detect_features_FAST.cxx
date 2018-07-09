@@ -211,6 +211,7 @@ detect_features_FAST
 ::detect(vital::image_container_sptr image_data, vital::image_container_sptr mask) const
 {
   float close_detect_thresh = 0.1; //be within 10% of target
+  const int duplicate_feat_count_thresh = 4;
   auto last_det_feat_set = ocv::detect_features::detect(image_data, mask);
 
   if (p_->targetNumDetections <= 0)
@@ -221,6 +222,7 @@ detect_features_FAST
   if (last_det_feat_set->size() > (1.0 + close_detect_thresh)*p_->targetNumDetections)
   {
     //we got too many features
+    int same_num_feat_count = 0;
     while (true)
     {
       auto last_threshold = p_->threshold;
@@ -235,10 +237,17 @@ detect_features_FAST
 
       auto higher_thresh_feat_set = ocv::detect_features::detect(image_data, mask);
 
+      if (last_det_feat_set->size() == higher_thresh_feat_set->size())
+      {
+        ++same_num_feat_count;
+      }
+      else
+      {
+        same_num_feat_count = 0;
+      }
+
       if (higher_thresh_feat_set->size() <= p_->targetNumDetections ||
-          abs(static_cast<int>(last_det_feat_set->size()) -
-              static_cast<int>(higher_thresh_feat_set->size())) <
-            (p_->targetNumDetections * close_detect_thresh*0.5))
+          same_num_feat_count > duplicate_feat_count_thresh)
       {
         //ok, we've crossed from too many to too few features
         // or we aren't changing the number of detected features much
@@ -268,6 +277,7 @@ detect_features_FAST
     {
       //we got too few features
       // or we aren't changing the number of detected features much
+      int same_num_feat_count = 0;
       while (true)
       {
         auto last_threshold = p_->threshold;
@@ -284,8 +294,17 @@ detect_features_FAST
         p_->update(detector);
         auto lower_thresh_feat_set = ocv::detect_features::detect(image_data, mask);
 
+        if (last_det_feat_set->size() == lower_thresh_feat_set->size())
+        {
+          ++same_num_feat_count;
+        }
+        else
+        {
+          same_num_feat_count = 0;
+        }
+
         if (lower_thresh_feat_set->size() >= p_->targetNumDetections ||
-          abs(int(last_det_feat_set->size()) - int(lower_thresh_feat_set->size())) < (p_->targetNumDetections * close_detect_thresh*0.5))
+          same_num_feat_count > duplicate_feat_count_thresh)
         {
           int lower_diff = abs(int(lower_thresh_feat_set->size()) - p_->targetNumDetections);
           int last_diff = abs(int(last_det_feat_set->size()) - p_->targetNumDetections);
