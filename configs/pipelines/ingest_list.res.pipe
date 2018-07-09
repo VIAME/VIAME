@@ -26,8 +26,14 @@ connect from input.image_file_name
 connect from downsampler.output_2
         to   detector_writer.image_file_name
 
-# Connect image name to KWA writer to put correct name into stream
+# Connect image name to desc writer to put correct name into stream
 connect from downsampler.output_2
         to   descriptor_writer_db.image_file_name
+
+# Connect image name to KWA writer to put correct name into stream
+connect from downsampler.output_2
+        to   kwa_writer.stream_id
+connect from downsampler.output_2
+        to   kwa_writer.filename
 
 # -- end of file --
