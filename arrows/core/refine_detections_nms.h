@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_ARROWS_NON_MAXIMUM_SUPPRESSION_H_
-#define _KWIVER_ARROWS_NON_MAXIMUM_SUPPRESSION_H_
+#ifndef _KWIVER_ARROWS_REFINE_DETECTIONS_NMS_H_
+#define _KWIVER_ARROWS_REFINE_DETECTIONS_NMS_H_
 
 #include <arrows/core/kwiver_algo_core_export.h>
 
@@ -41,7 +41,7 @@ namespace core {
 
 // -----------------------------------------------------------------------------
 /**
- * \class non_maximum_suppression
+ * \class refine_detections_nms
  *
  * \brief Prunes overlapping detections
  *
@@ -51,20 +51,21 @@ namespace core {
  * \oports
  * \oport{pruned_detections}
  */
-class KWIVER_ALGO_CORE_EXPORT non_maximum_suppression
-  : public vital::algorithm_impl<non_maximum_suppression,
+class KWIVER_ALGO_CORE_EXPORT refine_detections_nms
+  : public vital::algorithm_impl<refine_detections_nms,
     vital::algo::refine_detections>
 {
 
 public:
-  static constexpr char const* name = "non_maximum_suppression";
+  static constexpr char const* name = "nms";
 
   static constexpr char const* description =
     "Refines detections based on overlap.\n\n"
-    "This algorithm sorts through detections, pruning detections that heavily overlap with higher confidence detections.";
+    "This algorithm sorts through detections, pruning detections "
+    "that heavily overlap with higher confidence detections.";
 
-  non_maximum_suppression();
-  virtual ~non_maximum_suppression();
+  refine_detections_nms();
+  virtual ~refine_detections_nms();
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -92,8 +93,8 @@ private:
   class priv;
   const std::unique_ptr<priv> d_;
 
- }; // end class non_maximum_suppression
+ }; // end class refine_detections_nms
 
 
 }}} // end namespace
-#endif /* _KWIVER_ARROWS_NON_MAXIMUM_SUPPRESSION_H_ */
+#endif /* _KWIVER_ARROWS_REFINE_DETECTIONS_NMS_H_ */

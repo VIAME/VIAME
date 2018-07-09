@@ -28,21 +28,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "non_maximum_suppression.h"
+#include "refine_detections_nms.h"
 
 namespace kwiver {
 namespace arrows {
 namespace core {
 
 /// Private implementation class
-class non_maximum_suppression::priv
+class refine_detections_nms::priv
 {
 public:
 
   /// Constructor
   priv()
-  : scale_factor( 1.0 ),
-    max_overlap(0.8)
+  : nms_scale_factor( 1.0 ),
+    output_scale_factor( 1.0 ),
+    max_overlap( 0.5 )
   {
   }
 
@@ -52,39 +53,43 @@ public:
   }
 
   /// Parameters
-  double scale_factor;
+  double nms_scale_factor;
+  double output_scale_factor;
   double max_overlap;
-
 };
 
 
 /// Constructor
-non_maximum_suppression
-::non_maximum_suppression()
+refine_detections_nms
+::refine_detections_nms()
 : d_( new priv() )
 {
 }
 
 
 /// Destructor
-non_maximum_suppression
-::~non_maximum_suppression()
+refine_detections_nms
+::~refine_detections_nms()
 {
 }
 
 
 /// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
-non_maximum_suppression
+refine_detections_nms
 ::get_configuration() const
 {
   vital::config_block_sptr config = vital::algo::refine_detections::get_configuration();
 
-  config->set_value( "scale_factor", d_->scale_factor,
-                     "The factor by which the refined detections are scaled." );
+  config->set_value( "nms_scale_factor", d_->nms_scale_factor,
+                     "The factor by which the detections are scaled during NMS." );
+
+  config->set_value( "output_scale_factor", d_->output_scale_factor,
+                     "The factor by which the refined final detections are scaled." );
 
   config->set_value( "max_overlap", d_->max_overlap,
-                     "The maximum percent a detection can overlap with another before it's discarded." );
+                     "The maximum percent a detection can overlap with another "
+                     "before it's discarded. Range [0.0,1.0]." );
 
   return config;
 }
@@ -92,31 +97,33 @@ non_maximum_suppression
 
 /// Set this algorithm's properties via a config block
 void
-non_maximum_suppression
+refine_detections_nms
 ::set_configuration( vital::config_block_sptr in_config )
 {
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
-  d_->scale_factor = config->get_value<double>( "scale_factor" );
+  d_->nms_scale_factor = config->get_value<double>( "nms_scale_factor" );
+  d_->output_scale_factor = config->get_value<double>( "output_scale_factor" );
   d_->max_overlap = config->get_value<double>( "max_overlap" );
 }
 
 /// Check that the algorithm's currently configuration is valid
 bool
-non_maximum_suppression
+refine_detections_nms
 ::check_configuration(vital::config_block_sptr config) const
 {
   return true;
 }
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 vital::detected_object_set_sptr
-non_maximum_suppression
+refine_detections_nms
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
-  vital::detected_object_set_sptr dets = detections->clone()->select(); // sort by confidence threshold
+  // Returns detections sorted by confidence threshold
+  vital::detected_object_set_sptr dets = detections->clone()->select();
 
   vital::detected_object_set_sptr results(new vital::detected_object_set());
 
@@ -124,27 +131,37 @@ non_maximum_suppression
   for(auto det = dets->begin(); det != dets->end(); det++)
   {
     bool should_add = true;
+ 
+    kwiver::vital::bounding_box_d det_bbox =
+      scale_about_center((*det)->bounding_box(), d_->nms_scale_factor);
+
     for(auto result = results->begin(); result != results->end(); result++)
     {
-      kwiver::vital::bounding_box_d det_bbox = (*det)->bounding_box();
-      kwiver::vital::bounding_box_d res_bbox = (*result)->bounding_box();
-      kwiver::vital::bounding_box_d overlap = kwiver::vital::intersection(det_bbox, res_bbox);
-	  
+      kwiver::vital::bounding_box_d res_bbox =
+        scale_about_center((*result)->bounding_box(), d_->nms_scale_factor);
+
+      kwiver::vital::bounding_box_d overlap =
+        kwiver::vital::intersection(det_bbox, res_bbox);
+
       // Check how much they overlap. Only keep if the overlapped percent isn't too high
-	  if((overlap.area() / std::min(det_bbox.area(), res_bbox.area())) > d_->max_overlap)
+      if((overlap.area() / std::min(det_bbox.area(), res_bbox.area())) > d_->max_overlap)
       {
         should_add = false;
-		break;
+        break;
       }
     }
-    if (should_add) // It doesn't overlap too much, add it in
+    if(should_add) // It doesn't overlap too much, add it in
     {
+      if(d_->output_scale_factor != 1.0)
+      {
+        kwiver::vital::bounding_box_d adj_bbox =
+          scale_about_center((*det)->bounding_box(), d_->output_scale_factor);
+
+        (*det)->set_bounding_box(adj_bbox);
+      }
       results->add(*det);
     }
   }
-
-  // We've got our detections, now scale
-  results->scale(d_->scale_factor);
 
   return results;
 }
