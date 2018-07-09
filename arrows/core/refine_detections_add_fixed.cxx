@@ -119,8 +119,9 @@ refine_detections_add_fixed
   if( d_->add_full_image_detection &&
       image_data->height() > 0 && image_data->width() > 0 )
   {
-    kwiver::vital::bounding_box_d det_box( 0, image_data->width(),
-                                           0, image_data->height() ); 
+    kwiver::vital::bounding_box_d det_box( 0, 0,
+                                           image_data->width(),
+                                           image_data->height() );
 
     if( !d_->detection_type.empty() )
     {
