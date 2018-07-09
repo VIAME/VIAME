@@ -272,8 +272,8 @@ bounding_box<T> scale_about_center( bounding_box<T> const& bbox,
                                     double scale_factor )
 {
   typename bounding_box<T>::vector_type offset(
-    ( bbox.width() * scale_factor ) / 2,
-    ( bbox.height() * scale_factor ) / 2 );
+    ( bbox.width() * ( scale_factor - 1.0 ) ) / 2,
+    ( bbox.height() * ( scale_factor - 1.0 ) ) / 2 );
 
   return bounding_box<T>(bbox.upper_left()-offset,bbox.lower_right()+offset);
 }
