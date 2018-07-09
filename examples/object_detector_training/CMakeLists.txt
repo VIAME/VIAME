@@ -14,7 +14,13 @@ set( EXAMPLE_INSTALL_FILES
      README.rst )
 
 if( VIAME_ENABLE_YOLO )
-  if( NOT WIN32 )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_yolo_v2_habcam.bat
+         train_yolo_v2_viame_csv.bat
+         train_yolo_v2_kw18.bat )
+  else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          train_yolo_v2_habcam.sh
