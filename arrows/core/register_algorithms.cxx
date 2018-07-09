@@ -68,6 +68,7 @@
 #include <arrows/core/match_features_homography.h>
 #include <arrows/core/read_object_track_set_kw18.h>
 #include <arrows/core/read_track_descriptor_set_csv.h>
+#include <arrows/core/refine_detections_add_fixed.h>
 #include <arrows/core/refine_detections_nms.h>
 #include <arrows/core/track_features_augment_keyframes.h>
 #include <arrows/core/track_features_core.h>
@@ -148,6 +149,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< match_features_homography >( vpm );
   register_algorithm< read_object_track_set_kw18 >( vpm );
   register_algorithm< read_track_descriptor_set_csv >( vpm );
+  register_algorithm< refine_detections_add_fixed >( vpm );
   register_algorithm< refine_detections_nms >( vpm );
   register_algorithm< track_features_augment_keyframes >( vpm );
   register_algorithm< track_features_core >( vpm );
