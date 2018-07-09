@@ -102,7 +102,7 @@ public:
     double act_v[num_points] =
       { 15443.08533878, 15451.02512727, 15458.40044985, 15461.20973047, 15462.29884238 };
 
-    for (int i = 0; i<num_points; ++i)
+    for (size_t i = 0; i<num_points; ++i)
     {
       test_points.push_back(
         kwiver::vital::vector_3d( act_x[i], act_y[i], act_z[i] ) );
@@ -155,7 +155,7 @@ TEST_F(camera_rpc, projection)
   kwiver::vital::simple_camera_rpc cam( world_scale, world_offset,
                                         image_scale, image_offset, rpc_coeffs );
 
-  for (int i = 0; i < test_points.size(); ++i)
+  for (size_t i = 0; i < test_points.size(); ++i)
   {
     auto img_pt = cam.project( test_points[i] );
 
@@ -169,7 +169,7 @@ TEST_F(camera_rpc, back_projection)
   kwiver::vital::simple_camera_rpc cam( world_scale, world_offset,
                                         image_scale, image_offset, rpc_coeffs );
 
-  for (int i = 0; i < test_points.size(); ++i)
+  for (size_t i = 0; i < test_points.size(); ++i)
   {
     auto img_pt = cam.project( test_points[i] );
     auto new_pt = cam.back_project( img_pt, test_points[i][2] );
