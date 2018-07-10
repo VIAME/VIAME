@@ -34,8 +34,7 @@ these as needeed to match your system setup. We also assume that you have built
 VIAME.
 
 Additionally this example requires an extra python dependency to be installed.
-On Linux, 'pip install ubelt', on windows both 'pip install ubelt' and
-'pip install jaraco.windows'
+On Linux or Windows, 'pip install ubelt'.
 
 
 Running via the pipeline runner
@@ -47,7 +46,7 @@ runner:
 ::
 
     # First move to the example directory
-    cd [viame-source]/examples/measurement_using_stereo
+    cd [viame-build]/install/examples/measurement_using_stereo
 
     # The below script runs pipeline runner on the measurement_example.pipe
     bash run_measurer.sh
