@@ -14,7 +14,6 @@ covering image search on top of an archive of videos or images.
 
 .. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/viame_ingest
 
-|
 | Building and running this examples requires: 
 |
 |  (a) The python packages: numpy, pymongo, torch, torchvision, matplotlib, and python-tk
