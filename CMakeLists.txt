@@ -165,6 +165,10 @@ if( VIAME_ENABLE_PYTHON )
        CACHE STRING "Python version number" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  OFF )
+endif()
+
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL )
   find_package( PythonInterp QUIET )
