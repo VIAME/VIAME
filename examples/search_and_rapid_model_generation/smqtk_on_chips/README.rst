@@ -3,7 +3,7 @@
 Image Search Using SMQTK
 ************************
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/video_query_start.png
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
    :scale: 30
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/smqtk_on_chips
@@ -14,10 +14,7 @@ covering image search over sub-regions of an archive of input images. Note: whil
 via SMQTK does currently let you save out final results, it does not let you save out
 final detection models for re-use.
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
-   :scale: 30
-   :align: center
-   :target: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/smqtk_on_chips
+.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/smqtk_on_chips
 
 | Building and running `this example`_ requires: 
 |
