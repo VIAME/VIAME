@@ -62,7 +62,7 @@ distribution. Lastly, run through some of the examples to validate the installat
 
 **Installation Requirements:** <br>
 (1) [Anaconda3 5.2.0](https://repo.continuum.io/archive/) <br>
-(2) [CUDA 8.0 GA2](https://developer.nvidia.com/cuda-toolkit-archive)
+(2) [CUDA 8.0 GA2](https://developer.nvidia.com/cuda-toolkit-archive) <br>
 (3) Recommended: an CUDA-enabled GPU with more than 8 Gb VRAM
 
 **Linux:** <br>
