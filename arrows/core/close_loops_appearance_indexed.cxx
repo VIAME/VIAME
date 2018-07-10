@@ -173,8 +173,9 @@ close_loops_appearance_indexed::priv
               matches_vec & matches)
 {
   const int max_int = std::numeric_limits<int>::max();
-  const int match_thresh = 25;
-  const float next_neigh_match_diff = 2;
+  const int match_thresh = 128;
+  const float next_neigh_match_diff = 1.2;
+
 
   std::map<track_id_t, feature_track_state_sptr> track_to_vb_state;
 
@@ -252,12 +253,19 @@ close_loops_appearance_indexed::priv
 
     //get active tracks on fn match
     auto match_frame_track_ids = feat_tracks->active_track_ids(fn_match);
-    std::set<track_id_t> tracks_in_common;
+    std::set<track_id_t> tracks_in_common, union_of_tracks;
     std::set_intersection(cur_frame_track_ids.begin(), cur_frame_track_ids.end(),
                           match_frame_track_ids.begin(), match_frame_track_ids.end(),
                           std::inserter(tracks_in_common, tracks_in_common.begin()));
 
-    if (tracks_in_common.size() > m_tracks_in_common_to_skip_loop_closing)
+    std::set_union(cur_frame_track_ids.begin(), cur_frame_track_ids.end(),
+                   match_frame_track_ids.begin(), match_frame_track_ids.end(),
+                   std::inserter(union_of_tracks, union_of_tracks.begin()));
+
+    double i_over_u = static_cast<double>(tracks_in_common.size()) /
+                      static_cast<double>(union_of_tracks.size());
+
+    if (i_over_u > 0.5)
     {
       continue;
     }
