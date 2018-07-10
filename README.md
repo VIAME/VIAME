@@ -108,11 +108,11 @@ Or alternatively by building it in Visual Studio or your compiler of choice on
 Windows. The '-j8' tells the build to run multi-threaded using 8 threads, this is
 useful for a faster build though if you get an error it can be difficult to know
 here it was, in which case running just 'make' might be more helpful. For Windows,
-currently VS2013 thru VS2015 (with only early versions of 2017, not latest) are
-supported. If using CUDA, version 8.0 is desired, along with Python 2.7. Other 
-versions have yet to be tested extensively. On Windows it can also be beneficial
-to use Anaconda to get multiple python packages. Boost Python (turned on by default
-hen Python is enabled) requires Numpy and a few other dependencies.
+currently VS2015 (with only some sub-versions of 2017) are supported. If using CUDA,
+version 8.0 or 9.0, with CUDNN 6.0 is desired. Other versions have yet to be tested
+extensively. On Windows it can also be beneficial to use Anaconda to get multiple
+python packages. Boost Python (turned on by default hen Python is enabled) requires
+Numpy and a few other dependencies.
 
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency
