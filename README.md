@@ -65,7 +65,7 @@ distribution. Lastly, run through some of the examples to validate the installat
 [CUDA 8.0 GA2](https://developer.nvidia.com/cuda-toolkit-archive) <br>
 
 **Installation Recommendations:** <br>
-A CUDA-enabled GPU with more than 8 Gb VRAM
+A CUDA-enabled GPU with 8 Gb or more VRAM
 
 **Linux Binaries:** <br>
 [VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b4409bc8d777f2e62259a98/download) <br>
