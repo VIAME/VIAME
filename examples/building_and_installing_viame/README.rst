@@ -4,7 +4,6 @@
 
 .. _linux-label:
 |
-
 ==========================
 Building VIAME From Source
 ==========================
