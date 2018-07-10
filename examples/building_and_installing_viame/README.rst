@@ -3,7 +3,6 @@
    :local:
 
 .. _linux-label:
-
 |
 
 ==========================
@@ -45,7 +44,8 @@ If using VIAME_ENABLE VIVIA for building GUIs, you also may need to run:
 
   sudo apt-get build-dep qt5-default
 
-If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy, e.g.:
+If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy (or
+alternatively whatever python distribution you want to use), e.g.:
 
 .. code-block:: bash
 
@@ -201,8 +201,7 @@ Building on Windows
 Building on windows can be very similar to Linux if using a shell like cygwin
 (``https://www.cygwin.com/``), though if not you may want to go grab the GUI
 ersions of CMake (``https://cmake.org/``) and TortoiseGit (``https://tortoisegit.org/``).
-Currently Visual Studio 2013, 2015 and EARLY VERSION ONLY of 2017 are supported.
-Latest 2017 is not yet supported but will be shortly.
+Currently Visual Studio 2015 and some versions of 2017 are supported.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this
 involves right clicking in your folder of choice, selecting Git Clone, and then
@@ -214,7 +213,7 @@ right click on the folder you checked out the source into, move to the TortoiseG
 menu section, and select ``Submodule Update``.
 
 Next, install any required dependencies for items you want to build. If using CUDA,
-version 8.0 is desired, along with Python 2.7. Other versions have yet to be tested 
+version 8.0 is desired, along with Python 3.6. Other versions have yet to be tested 
 extensively. On Windows it can also be beneficial to use Anaconda to get multiple
 python packages. Boost Python (turned on by default when Python is enabled) requires
 Numpy and a few other dependencies.
@@ -261,9 +260,8 @@ for sub-projects (say, for example, if one doesn't build).
 
 **Python:**
 
-The default Python used is 2.7, though other versions may work as well. It depends on
-your build settings and which dependency projects are turned on (some require 2.7, some
-don't).
+The default Python used is 2.7 or 3.6, though other versions may work as well. It depends on
+your build settings, operating system, and which dependency projects are turned on.
 
 
 .. _issues-label:
@@ -310,7 +308,7 @@ buy a better computer if not running a VM with at least 1 Gb of RAM.
 
 **Issue:**
 
-On VS2013 with Python enabled: ``error LNK1104: cannot open file 'python27_d.lib'``
+On VS2015 with Python enabled: ``error LNK1104: cannot open file 'python27_d.lib'``
 
 **Solution:**
 
