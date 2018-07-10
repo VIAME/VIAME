@@ -57,7 +57,7 @@ Pre-Built Binaries
 To install, extract the binaries and place them in a directory of your choosing,
 for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
 
-Installation Requirements: Anaconda3 5.2.0 and CUDA 8.0 GA2.
+Installation Requirements: [Anaconda3 5.2.0](https://repo.continuum.io/archive/) and [CUDA 8.0 GA2](https://developer.nvidia.com/cuda-toolkit-archive).
 
 **Linux:** <br>
 [VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b43fb4f8d777f2e62259a88/download) <br>
