@@ -318,7 +318,7 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_smqtk )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_INTERNAL_PYTORCH AND NOT WIN32 )
+  if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_INTERNAL_PYTORCH )
     include( add_project_pytorch )
   endif()
 
