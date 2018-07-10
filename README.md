@@ -66,8 +66,8 @@ Installation Requirements: Anaconda3 5.2.0 and CUDA 8.0 GA2.
 [VIAME v0.9.7 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=17OqNm3LZ7DBYlZQouA_ulZkOOCNteeUH)
 
 **Windows:** <br>
-[VIAME v0.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6]() <br>
-[VIAME v0.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6]()
+[VIAME v0.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1]() <br>
+[VIAME v0.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2]()
 
 
 Quick Build Instructions
