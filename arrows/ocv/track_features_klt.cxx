@@ -62,6 +62,8 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
+typedef std::vector<cv::Mat> image_pyramid;
+typedef std::map<frame_id_t, image_pyramid> image_pyramid_map;
 
 /// Private implementation class
 class track_features_klt::priv
@@ -78,7 +80,8 @@ public:
     exclude_rad_pixels(1),
     erp2(1),
     max_pyramid_level(3),
-    target_number_of_features(2048)
+    target_number_of_features(2048),
+    l1_err_thresh(10.0f)
   {
   }
 
@@ -181,6 +184,10 @@ public:
                       "the image. If texture is locally weak few feautres may be "
                       "extracted in a local area reducing the total detected "
                       "feature count.");
+
+    config->set_value("klt_path_l1_difference_thresh", l1_err_thresh,
+                      "patches with average l1 difference greater than this threshold "
+                      "will be discarded.");
   }
 
   /// Set our parameters based on the given config block
@@ -209,6 +216,7 @@ public:
 
     target_number_of_features = config->get_value<int>("target_number_of_features",target_number_of_features);
 
+    l1_err_thresh = config->get_value<float>("klt_path_l1_difference_thresh", l1_err_thresh);
   }
 
   bool check_configuration(vital::config_block_sptr config) const
@@ -377,9 +385,27 @@ public:
       int rows, cols;
   };
 
+  struct detection_data
+  {
+    frame_id_t fid;
+    vector_2d loc;
+    detection_data(frame_id_t _fid, vector_2d _loc):
+      fid(_fid), loc(_loc)
+    {
+    }
+    detection_data():
+      fid(-1), loc(vector_2d(-1,-1))
+    {
+    }
+  };
+
+  typedef std::map<track_id_t, detection_data> detection_data_map;
+
   /// The feature detector algorithm to use
   vital::algo::detect_features_sptr detector;
-  cv::Mat prev_image;
+  image_pyramid prev_pyramid;
+  image_pyramid_map det_pyramids;
+  detection_data_map det_data_map;
   int prev_frame_num;
   size_t last_detect_num_features;
   float redetect_threshold;
@@ -395,6 +421,7 @@ public:
   int erp2;
   int max_pyramid_level;
   int target_number_of_features;
+  float l1_err_thresh;
 };
 
 
@@ -488,7 +515,7 @@ track_features_klt
         "not all sub-algorithms have been initialized");
   }
 
-
+  image_pyramid cur_pyramid;
   cv::Mat cv_img = ocv::image_container::vital_to_ocv(image_data->get_image());
   cv::Mat cv_mask;
 
@@ -519,6 +546,11 @@ track_features_klt
   }
 
   //setup stuff complete
+
+  // build pyramid for the current image
+  auto win_size = cv::Size(d_->win_size, d_->win_size);
+  cv::buildOpticalFlowPyramid(cv_img, cur_pyramid, win_size, d_->max_pyramid_level);
+
   feature_track_set_sptr cur_tracks = prev_tracks;  //no clone here.  It is done in the process.
 
   //points to be tracked in the next frame.  Empty at first.
@@ -540,6 +572,7 @@ track_features_klt
     std::vector<float> err;
 
     std::vector<track_sptr> prev_klt_tracks;
+    std::set<track_id_t> active_track_ids;
     for (auto at : active_tracks)
     {
       auto  bk = std::dynamic_pointer_cast<feature_track_state>(at->back());
@@ -554,27 +587,137 @@ track_features_klt
       }
       prev_points.push_back(cv::Point2f(bk->feature->loc().x(), bk->feature->loc().y()));
       prev_klt_tracks.push_back(at);
+      active_track_ids.insert(at->id());
     }
 
-    cv::calcOpticalFlowPyrLK(d_->prev_image, cv_img, prev_points,
-      tracked_points, status, err,cv::Size(d_->win_size, d_->win_size),d_->max_pyramid_level);
+    //clean out no longer active detection data items
+    std::set<track_id_t> det_tracks_to_remove;
+    for (auto &det : d_->det_data_map)
+    {
+      if (active_track_ids.find(det.first) == active_track_ids.end())
+      {
+        det_tracks_to_remove.insert(det.first);
+      }
+    }
+    for (auto &rem_det_id : det_tracks_to_remove)
+    {
+      d_->det_data_map.erase(rem_det_id);
+    }
+
+    cv::calcOpticalFlowPyrLK(d_->prev_pyramid, cur_pyramid, prev_points,
+      tracked_points, status, err, win_size,d_->max_pyramid_level);
+
+    //ok, now we do the tracking for each active track back to the frame where it was detected
+    //copy last frame's features
+
+    //first mark all features falling outside of the acceptable range in the image as having bad status.
+    //This way we don't have to do all these tracks again.
+    for (unsigned int kf_feat_i = 0; kf_feat_i < prev_klt_tracks.size(); ++kf_feat_i)
+    {
+      vector_2f tp(tracked_points[kf_feat_i].x, tracked_points[kf_feat_i].y);
+      if (!status[kf_feat_i]
+        || tp.x() <= d_->half_win_size
+        || tp.y() <= d_->half_win_size
+        || tp.x() >= image_data->width() - d_->half_win_size
+        || tp.y() >= image_data->height() - d_->half_win_size)
+      {
+        // skip features that tracked to outside of the image (or the border)
+        // or didn't track properly
+        status[kf_feat_i] = 0;
+      }
+    }
+
+    std::set<frame_id_t> det_pyr_to_remove;
+    for (auto &det_pyr_it : d_->det_pyramids)
+    {
+
+      std::vector<unsigned int> kf_feat_i_in_det_tracking;
+      std::vector<cv::Point2f> det_points, det_tracked_points;
+
+      frame_id_t det_frame = det_pyr_it.first;
+      auto &det_pyr = det_pyr_it.second;
+      for (unsigned int kf_feat_i = 0; kf_feat_i < prev_klt_tracks.size(); ++kf_feat_i)
+      {
+        if (!status[kf_feat_i])
+        {
+          continue;
+        }
+
+        track_sptr t = prev_klt_tracks[kf_feat_i];
+        if (t->empty())
+        {
+          continue;
+        }
+        auto det_it = d_->det_data_map.find(t->id());
+        if (det_it == d_->det_data_map.end())
+        {
+          continue;
+        }
+
+        if (det_it->second.fid != det_frame)
+        {
+          continue;
+        }
+
+        auto &det_loc = det_it->second.loc;
+
+        kf_feat_i_in_det_tracking.push_back(kf_feat_i);
+        cv::Point2f det_p(det_loc.x(), det_loc.y());
+        det_points.push_back(det_p);
+        //where the point was tracked to from the previous frame
+        det_tracked_points.push_back(tracked_points[kf_feat_i]);
+      }
+      if (det_tracked_points.empty())
+      {
+        det_pyr_to_remove.insert(det_frame);
+        continue;
+      }
+      std::vector<uchar> det_status;
+      std::vector<float> det_err;
+
+      cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS,30,0.01);
+      int flags = cv::OPTFLOW_USE_INITIAL_FLOW;
+      cv::calcOpticalFlowPyrLK(det_pyr, cur_pyramid, det_points, det_tracked_points, det_status, det_err, win_size, d_->max_pyramid_level,criteria,flags);
+
+      for (unsigned int det_kf_feat_i = 0; det_kf_feat_i != det_points.size(); ++det_kf_feat_i)
+      {
+        auto kf_feat_i = kf_feat_i_in_det_tracking[det_kf_feat_i];
+        vector_2f tp(det_tracked_points[det_kf_feat_i].x, det_tracked_points[det_kf_feat_i].y);
+        if (!det_status[det_kf_feat_i] || det_err[det_kf_feat_i] > d_->l1_err_thresh
+          || tp.x() <= d_->half_win_size
+          || tp.y() <= d_->half_win_size
+          || tp.x() >= image_data->width() - d_->half_win_size
+          || tp.y() >= image_data->height() - d_->half_win_size)
+        {
+          status[kf_feat_i] = 0;
+          continue;
+        }
+
+        tracked_points[kf_feat_i] = det_tracked_points[det_kf_feat_i];
+      }
+    }
+
+    // limit the stored detection pyramids to ones in which the active tracks started
+    for (auto rem_fid : det_pyr_to_remove)
+    {
+      d_->det_pyramids.erase(rem_fid);
+    }
+
     //copy last frame's features
     for (unsigned int kf_feat_i = 0; kf_feat_i< prev_klt_tracks.size(); ++kf_feat_i)
     {
-      //first we check if the active track has a descriptor.  If it does, it's not a klt track so we skip over it.
-      track_sptr t = prev_klt_tracks[kf_feat_i];
-
-      vector_2f tp(tracked_points[kf_feat_i].x, tracked_points[kf_feat_i].y);
-      if (!status[kf_feat_i]
-          || tp.x() <= d_->half_win_size
-          || tp.y() <= d_->half_win_size
-          || tp.x() >= image_data->width()- d_->half_win_size
-          || tp.y() >= image_data->height()- d_->half_win_size)
+      if (!status[kf_feat_i])
       {
         // skip features that tracked to outside of the image (or the border)
         // or didn't track properly
         continue;
       }
+
+      vector_2f tp(tracked_points[kf_feat_i].x, tracked_points[kf_feat_i].y);
+
+      //first we check if the active track has a descriptor.  If it does, it's not a klt track so we skip over it.
+      track_sptr t = prev_klt_tracks[kf_feat_i];
+
       //info from feature detector (location, scale etc.)
       auto last_fts = std::dynamic_pointer_cast<feature_track_state>(t->back());
       auto f = std::make_shared<feature_f>(*last_fts->feature);
@@ -612,6 +755,8 @@ track_features_klt
 
   if( detect_new_features)
   {
+    d_->det_pyramids[frame_number] = cur_pyramid;
+
     // detect new features
     // see if there are already existing tracks on this frame
     feature_set_sptr detected_feat;
@@ -687,6 +832,8 @@ track_features_klt
         }
       }
 
+      d_->det_data_map[next_track_id] = priv::detection_data(frame_number, (*fit)->loc());
+
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
       auto t = vital::track::create();  //make a new track
@@ -707,7 +854,7 @@ track_features_klt
   }
 
   //set up previous data structures for next call
-  d_->prev_image = cv_img.clone();
+  d_->prev_pyramid = cur_pyramid;
   d_->prev_frame_num = frame_number;
 
   return cur_tracks;
