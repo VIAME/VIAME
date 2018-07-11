@@ -8,9 +8,6 @@ CALL %VIAME_INSTALL%\setup_viame.bat
 
 REM Run Pipeline
 
-python.exe %VIAME_INSTALL%\configs\ingest_video.py --init -l input_list.txt ^
-  -p pipelines\ingest_list.res.pipe ^
-  -install "%VIAME_INSTALL%" ^
-  --build-index --ball-tree
+python.exe %VIAME_INSTALL%\configs\ingest_video.py --init -l input_list.txt -p pipelines\ingest_list.res.pipe --build-index --ball-tree -install "%VIAME_INSTALL%"
 
 pause
