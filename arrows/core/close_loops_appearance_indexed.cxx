@@ -124,6 +124,9 @@ public:
 
   // If this or more tracks ids are shared between two frames then don't attempt to close the loop
   int m_tracks_in_common_to_skip_loop_closing;
+
+  //if intersect over union of track ids between two frames are greather than this then don't try to close the loop.
+  float m_skip_loop_detection_track_i_over_u_threshold;
 };
 
 //-----------------------------------------------------------------------------
@@ -134,7 +137,8 @@ close_loops_appearance_indexed::priv
   m_min_loop_inlier_matches(50),
   m_geometric_verification_inlier_threshold(2.0),
   m_max_loop_attempts_per_frame(5),
-  m_tracks_in_common_to_skip_loop_closing(0)
+  m_tracks_in_common_to_skip_loop_closing(0),
+  m_skip_loop_detection_track_i_over_u_threshold(0.5)
 {
 }
 
@@ -241,7 +245,7 @@ close_loops_appearance_indexed::priv
   int num_successfully_matched_pairs = 0;
 
   auto cur_node_map = make_node_map(cur_frame_fts);
-  int num_loops_attempted = 0;
+  int num_failed_loop_attempts_in_a_row = 0;
   //loop over putatively matching frames
   for (auto fn_match : putative_matches)
   {
@@ -265,15 +269,15 @@ close_loops_appearance_indexed::priv
     double i_over_u = static_cast<double>(tracks_in_common.size()) /
                       static_cast<double>(union_of_tracks.size());
 
-    if (i_over_u > 0.5)
+    if (i_over_u > m_skip_loop_detection_track_i_over_u_threshold)
     {
       continue;
     }
 
     // how many tracks to fn_match and frame_number have in common?  Too many?  Don't match.
 
-    ++num_loops_attempted;
-    if (num_loops_attempted >= m_max_loop_attempts_per_frame)
+    ++num_failed_loop_attempts_in_a_row;
+    if (num_failed_loop_attempts_in_a_row > m_max_loop_attempts_per_frame)
     {
       break;
     }
@@ -329,6 +333,24 @@ close_loops_appearance_indexed::priv
       continue;
     }
 
+    size_t already_joined_matches = 0;
+    for (auto &vm : validated_matches)
+    {
+      if (vm.first->track()->id() == vm.second->track()->id())
+      {
+        ++already_joined_matches;
+      }
+    }
+
+    if (already_joined_matches > 0.7 * validated_matches.size() && already_joined_matches > 0.7*m_min_loop_inlier_matches)
+    {
+      //we assume this would have been a success
+      num_failed_loop_attempts_in_a_row = 0;
+      continue;
+    }
+
+    continue;
+
     std::vector<bool> inliers;
     //do geometric verification here
     if (m_f_estimator)
@@ -350,6 +372,8 @@ close_loops_appearance_indexed::priv
         continue;
       }
     }
+
+    num_failed_loop_attempts_in_a_row = 0;
 
     int num_stitched_tracks = 0;
     for(size_t i = 0; i < validated_matches.size(); ++i)
@@ -639,6 +663,10 @@ close_loops_appearance_indexed
     d_->m_tracks_in_common_to_skip_loop_closing,
     "is this or more tracks are in common between two frames then don't try to complete a loop with them");
 
+  config->set_value("m_skip_loop_detection_track_i_over_u_threshold",
+    d_->m_skip_loop_detection_track_i_over_u_threshold,
+    "skip loop detection if intersection over union of track ids in two frames is greater than this");
+
   return config;
 }
 
@@ -687,6 +715,10 @@ close_loops_appearance_indexed
   d_->m_tracks_in_common_to_skip_loop_closing =
     config->get_value<int>("tracks_in_common_to_skip_loop_closing",
       d_->m_tracks_in_common_to_skip_loop_closing);
+
+  d_->m_skip_loop_detection_track_i_over_u_threshold =
+    config->get_value<float>("skip_loop_detection_track_i_over_u_threshold",
+      d_->m_skip_loop_detection_track_i_over_u_threshold);
 }
 
 //-----------------------------------------------------------------------------
