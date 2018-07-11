@@ -54,8 +54,8 @@ but select entries are also listed below, which include some run examples:
 Pre-Built Binaries
 ------------------
 
-For a full installation guide, see [here](https://data.kitware.com/api/v1/item/5b4681808d777f2e6225a29f/download)
-In summary: extract the binaries and place them in a directory of your choosing, for
+For a [full installation guide, see here](https://data.kitware.com/api/v1/item/5b4681808d777f2e6225a29f/download).
+In short, extract the binaries and place them in a directory of your choosing, for
 example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
 Next, set the PYTHON_INSTALL_DIR and CUDA_INSTALL_DIR variables at the top
 of the setup_viame.sh (Linux) or setup_viame.bat (Windows) script in the root install
