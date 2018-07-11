@@ -90,7 +90,7 @@ class pytorch_siamese_f_extractor(object):
 
     def _obtain_feature(self, bbox_list, MOT_flag):
         
-        kwargs = {'num_workers': 8, 'pin_memory': True}
+        kwargs = {'num_workers': 0, 'pin_memory': True}
         bbox_loader_class = siameseDataLoader(bbox_list, self._transform, self._frame, self._img_size, MOT_flag) 
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 

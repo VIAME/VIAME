@@ -148,7 +148,7 @@ class pytorch_aug_resnet_extractor(object):
 
     def _obtain_feature(self, bbox_list):
 
-        kwargs = {'num_workers': 8, 'pin_memory': True}
+        kwargs = {'num_workers': 0, 'pin_memory': True}
         bbox_loader_class = aug_resnet_data_loader(bbox_list, self._transform, self._frame, self._img_size, self._rotational_shifts) 
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
