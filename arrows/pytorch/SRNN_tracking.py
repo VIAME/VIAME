@@ -376,7 +376,7 @@ class SRNN_tracking(KwiverProcess):
                     # store app feature to detectedObject
                     app_f = new_descriptor(g_config.A_F_num)
                     app_f[:] = pt_app_features[idx].numpy()
-                    if self_.add_features_to_detections:
+                    if self._add_features_to_detections:
                         d_obj.set_descriptor(app_f)
                     det_obj_set.add(d_obj)
 
