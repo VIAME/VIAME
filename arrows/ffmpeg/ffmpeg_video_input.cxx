@@ -127,13 +127,6 @@ public:
 
   // ==================================================================
   /*
-  * @brief Convert a ffmpeg pixel type to kwiver::vital::image_pixel_traits
-  *
-  * @return \b A kwiver::vital::image_pixel_traits
-  */
-
-  // ==================================================================
-  /*
   * @brief Whether the video was opened.
   *
   * @return \b true if video was opened.
@@ -267,7 +260,7 @@ public:
   *
   * @return \b true if video was valid and we found a frame.
   */
-  virtual bool advance()
+  bool advance()
   {
     // Quick return if the file isn't open.
     if (!this->is_opened())
@@ -424,7 +417,7 @@ ffmpeg_video_input
 
   this->set_capability(vital::algo::video_input::HAS_EOV, true);
   this->set_capability(vital::algo::video_input::HAS_FRAME_NUMBERS, true);
-  this->set_capability(vital::algo::video_input::HAS_FRAME_DATA, false);
+  this->set_capability(vital::algo::video_input::HAS_FRAME_DATA, true);
   this->set_capability(vital::algo::video_input::HAS_METADATA, false);
 
   this->set_capability(vital::algo::video_input::HAS_FRAME_TIME, false);
@@ -646,7 +639,7 @@ ffmpeg_video_input
   {
     int width = enc->width;
     int height = enc->height;
-    int num_pixels = 3;
+    int depth = 3;
     vital::image_pixel_traits pixel_trait = vital::image_pixel_traits_of<unsigned char>();
     bool direct_copy;
 
@@ -655,20 +648,20 @@ ffmpeg_video_input
     {
       case AV_PIX_FMT_GRAY8:
       {
-        num_pixels = 1;
+        depth = 1;
         direct_copy = true;
         break;
       }
       case AV_PIX_FMT_RGBA:
       {
-        num_pixels = 4;
+        depth = 4;
         direct_copy = true;
         break;
       }
       case AV_PIX_FMT_MONOWHITE:
       case AV_PIX_FMT_MONOBLACK:
       {
-        num_pixels = 1;
+        depth = 1;
         pixel_trait = vital::image_pixel_traits_of<bool>();
         direct_copy = true;
         break;
@@ -689,8 +682,8 @@ ffmpeg_video_input
     }
     else
     {
-      int size = width * height * num_pixels;
-      d->current_image_memory = vital::image_memory_sptr(new vital::image_memory(size));
+      int size = width * height * depth;
+      d->current_image_memory = std::make_shared<vital::image_memory>(size);
 
       d->f_software_context = sws_getCachedContext(
         d->f_software_context,
@@ -717,8 +710,8 @@ ffmpeg_video_input
     vital::image image(
       d->current_image_memory,
       d->current_image_memory->data(),
-      width, height, num_pixels,
-      num_pixels, num_pixels * width, num_pixels * width*height
+      width, height, depth,
+      depth, depth * width, depth * width * height
     );
     d->current_image = std::make_shared<vital::simple_image_container>(vital::simple_image_container(image));
   }

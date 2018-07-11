@@ -76,11 +76,11 @@ public:
 
   virtual bool seekable() const;
   virtual size_t num_frames() const
-    {
-      // NOT an actual const method !
-      // We need to go through the entire video to find out
-      return const_cast<ffmpeg_video_input*>(this)->private_num_frames();
-    }
+  {
+    // NOT an actual const method !
+    // We need to go through the entire video to find out
+    return const_cast<ffmpeg_video_input*>(this)->private_num_frames();
+  }
 
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 );
