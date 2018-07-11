@@ -349,8 +349,6 @@ close_loops_appearance_indexed::priv
       continue;
     }
 
-    continue;
-
     std::vector<bool> inliers;
     //do geometric verification here
     if (m_f_estimator)
