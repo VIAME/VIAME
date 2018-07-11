@@ -212,7 +212,7 @@ if( VIAME_ENABLE_CUDNN )
     message( FATAL_ERROR "Unable to locate CUDNN library" )
   else()
     # Different subprojects use each variable
-    set( CUDNN_LIBRARIES CUDNN_LIBRARY CACHE INTERNAL "" FORCE )
+    set( CUDNN_LIBRARIES "${CUDNN_LIBRARY}" CACHE INTERNAL "" FORCE )
   endif()
 endif()
 
