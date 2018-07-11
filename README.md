@@ -57,9 +57,9 @@ Pre-Built Binaries
 To install, extract the binaries and place them in a directory of your choosing,
 for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux. Next,
 set the PYTHON_INSTALL_DIR and CUDA_INSTALL_DIR variables at the top of the
-setup_viame.sh (Linux) or setup_viame.bat (Windows) script to point to the location
-of your installed Anaconda and CUDA distributions. Lastly, run through some of the
-examples to validate the installation.
+setup_viame.sh (Linux) or setup_viame.bat (Windows) script in the root install
+folder to point to the location of your installed Anaconda and CUDA distributions.
+Lastly, run through some of the examples to validate the installation.
 
 **Installation Requirements:** <br>
 [Anaconda3 5.2.0](https://repo.continuum.io/archive/) <br>
