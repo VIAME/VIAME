@@ -2289,7 +2289,8 @@ initialize_cameras_landmarks_keyframe::priv
     std::set<frame_id_t> empty_cam_set;
     std::set<landmark_id_t> empty_lm_set;
     double coverage_thresh = iterations == 0 ? 0 : image_coverage_threshold;
-    clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, interim_reproj_thresh);
+    double reproj_thresh = iterations < num_permissive_triangulation_iterations ? 50.0*interim_reproj_thresh : 5.0*interim_reproj_thresh;
+    clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, reproj_thresh);
 
     if (cams->size() < 2)
     {
