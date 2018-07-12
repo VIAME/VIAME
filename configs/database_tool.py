@@ -66,11 +66,18 @@ def format_cmd( cmd ):
 def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
   if is_windows():
     if len( install_dir ) > 0:
-      return "python.exe \"" + install_dir + div + "Python36" + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py\""
+      cmd = "python.exe \"" + install_dir + div + "Python" + str( sys.version_info[0] ) + str( sys.version_info[1] )
+      cmd = cmd + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py\""
+      return cmd
     else:
       return cmd + ".exe"
   else:
-    return cmd
+    if len( install_dir ) > 0:
+      cmd = python \"" + install_dir + div + "lib" + div + "python" + str( sys.version_info[0] ) + "." + str( sys.version_info[1] )
+      cmd = cmd + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py\""
+      return cmd
+    else:
+      return cmd
 
 def sequence_cmd( prefix, cmd, args  ):
   return prefix + " && " + format_cmd( cmd ) + " " + args
