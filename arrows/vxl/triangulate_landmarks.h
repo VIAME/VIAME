@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,7 @@ public:
   triangulate(vital::camera_map_sptr cameras,
               vital::feature_track_set_sptr tracks,
               vital::landmark_map_sptr& landmarks) const;
+  using vital::algo::triangulate_landmarks::triangulate;
 
 private:
   /// private implementation class

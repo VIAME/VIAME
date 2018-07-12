@@ -659,7 +659,7 @@ close_loops_appearance_indexed
 
   config->set_value("tracks_in_common_to_skip_loop_closing",
     d_->m_tracks_in_common_to_skip_loop_closing,
-    "is this or more tracks are in common between two frames then don't try to complete a loop with them");
+    "if this or more tracks are in common between two frames then don't try to complete a loop with them");
 
   config->set_value("m_skip_loop_detection_track_i_over_u_threshold",
     d_->m_skip_loop_detection_track_i_over_u_threshold,

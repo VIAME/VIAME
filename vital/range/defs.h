@@ -48,6 +48,25 @@ namespace range {
 #define KWIVER_UNPACK_TOKENS(...) __VA_ARGS__
 
 // ----------------------------------------------------------------------------
+#define KWIVER_MUTABLE_RANGE_ADAPTER( name ) \
+  struct name##_view_adapter_t \
+  { \
+    template < typename Range > \
+    static name##_view< Range > \
+    adapt( Range& range ) \
+    { return { range }; } \
+    \
+    template < typename Range > \
+    static name##_view< Range const > \
+    adapt( Range const& range ) \
+    { return { range }; } \
+  }; \
+  \
+  inline constexpr \
+  range_adapter_t< name##_view_adapter_t > \
+  name() { return {}; }
+
+// ----------------------------------------------------------------------------
 #define KWIVER_RANGE_ADAPTER_TEMPLATE( name, args, arg_names ) \
   template < KWIVER_UNPACK_TOKENS args > \
   struct name##_view_adapter_t \
@@ -97,46 +116,6 @@ struct generic_view {};
 template < typename GenericAdapter >
 struct range_adapter_t {};
 
-/// \endcond
-
-#ifdef DOXYGEN
-
-// ----------------------------------------------------------------------------
-/**
- * Apply a range adapter to a range.
- */
-template < typename Range, typename Adapter >
-auto
-operator|( Range const&, Adapter );
-
-#else
-
-// ----------------------------------------------------------------------------
-template < typename Range, typename Adapter >
-auto
-operator|(
-  Range const& range,
-  range_adapter_t< Adapter >(*)() )
--> decltype( Adapter::adapt( range ) )
-{
-  return Adapter::adapt( range );
-}
-
-// ----------------------------------------------------------------------------
-template < typename Range, typename Adapter >
-auto
-operator|(
-  Range const& range,
-  range_adapter_t< Adapter > )
--> decltype( Adapter::adapt( range ) )
-{
-  return Adapter::adapt( range );
-}
-
-#endif
-
-/// \cond Internal
-
 // ----------------------------------------------------------------------------
 template < typename Functor >
 struct function_detail : function_detail< decltype( &Functor::operator() ) >
@@ -171,15 +150,20 @@ namespace range_detail {
   using namespace std;
 
   template < typename Range >
-  struct range_helper
+  class range_helper
   {
-    static auto begin_helper( Range const& range )
+  protected:
+    static auto begin_helper( Range&& range )
+    -> decltype( begin( range ) );
+
+  public:
+    static auto begin_helper( Range& range )
     -> decltype( begin( range ) )
     {
       return begin( range );
     }
 
-    static auto end_helper( Range const& range )
+    static auto end_helper( Range& range )
     -> decltype( end( range ) )
     {
       return end( range );
@@ -199,7 +183,7 @@ public:
   using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
   using value_t = typename std::remove_reference< value_ref_t >::type;
 
-  range_ref( Range const& range ) : m_range( range ) {}
+  range_ref( Range& range ) : m_range( range ) {}
   range_ref( range_ref const& ) = default;
 
   iterator_t begin() const { return detail::begin_helper( m_range ); }
@@ -208,7 +192,7 @@ public:
 protected:
   using detail = range_detail::range_helper< Range >;
 
-  Range const& m_range;
+  Range& m_range;
 };
 
 /// \endcond
@@ -220,7 +204,7 @@ template < typename Range >
 class range_ref< Range, true >
 {
 public:
-  using iterator_t = typename Range::const_iterator;
+  using iterator_t = typename Range::iterator;
   using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
   using value_t = typename std::remove_reference< value_ref_t >::type;
 
@@ -231,11 +215,47 @@ public:
   iterator_t end() const { return m_range.end(); }
 
 protected:
-  Range m_range;
+  typename std::remove_const< Range >::type m_range;
 };
 
 /// \endcond
 
 } } } // end namespace
+
+#ifdef DOXYGEN
+
+// ----------------------------------------------------------------------------
+/**
+ * Apply a range adapter to a range.
+ */
+template < typename Range, typename Adapter >
+auto
+operator|( Range const&, Adapter );
+
+#else
+
+// ----------------------------------------------------------------------------
+template < typename Range, typename Adapter >
+auto
+operator|(
+  Range& range,
+  kwiver::vital::range::range_adapter_t< Adapter >(*)() )
+-> decltype( Adapter::adapt( range ) )
+{
+  return Adapter::adapt( range );
+}
+
+// ----------------------------------------------------------------------------
+template < typename Range, typename Adapter >
+auto
+operator|(
+  Range& range,
+  kwiver::vital::range::range_adapter_t< Adapter > )
+-> decltype( Adapter::adapt( range ) )
+{
+  return Adapter::adapt( range );
+}
+
+#endif
 
 #endif

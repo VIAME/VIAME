@@ -76,9 +76,9 @@ public:
 
   /// Return the descriptor as pointer to bytes
   /**
-   * subclasses should ensure this always works by storing the data
-   * as a continuous byte array
-   * Note that as_bytes returns a poitner to the underlying data while
+   * Subclasses should ensure this always works by storing the data
+   * as a continuous byte array.
+   * Note that as_bytes returns a pointer to the underlying data while
    * as_double returns a vector of doubles which will be copied from
    * the underlying data if possible.  As_bytes is written this way
    * for speed (no copying) at the cost of being restrictive on sub-classes
@@ -101,10 +101,10 @@ public:
     {
       return false;
     }
-    std::vector<uint8_t> b1 = std::vector<uint8_t>(this->as_bytes(), this->as_bytes() + this->num_bytes());
-    std::vector<uint8_t> b2 = std::vector<uint8_t>(other.as_bytes(), other.as_bytes() + other.num_bytes());
+    auto b1 = this->as_bytes();
+    auto b2 = other.as_bytes();
 
-    return std::equal(b1.begin(), b1.end(), b2.begin());
+    return std::equal(b1, b1 + this->num_bytes(), b2);
   }
 
   /// Inequality operator
@@ -296,7 +296,7 @@ protected:
 
 /// return the hamming_distance between two descriptors
 VITAL_EXPORT
-float hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
+int hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
 
 // ------------------------------------------------------------------
 /// output stream operator for a feature

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,42 +30,55 @@
 
 /**
  * \file
- * \brief Instantiation of \link kwiver::vital::algo::algorithm_def algorithm_def<T>
- *        \endlink for \link kwiver::vital::algo::triangulate_landmarks
- *        triangulate_landmarks \endlink
+ * \brief test range indirection
  */
 
-#include <vital/algo/triangulate_landmarks.h>
-#include <vital/algo/algorithm.txx>
+#include <vital/range/indirect.h>
 
-namespace kwiver {
-namespace vital {
-namespace algo {
+#include <gtest/gtest.h>
 
-triangulate_landmarks
-::triangulate_landmarks()
+#include <vector>
+
+using namespace kwiver::vital;
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  attach_logger( "triangulate_landmarks" );
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
-void
-triangulate_landmarks
-::triangulate(vital::camera_map_sptr cameras,
-              vital::track_map_t tracks,
-              vital::landmark_map_sptr& landmarks) const
+// ----------------------------------------------------------------------------
+TEST(range_indirect, mutating)
 {
-  std::vector<track_sptr> track_vec(tracks.size());
-  size_t i = 0;
-  for (auto const& t : tracks)
+  auto test_values = std::vector< int >{ 1, 2, 3, 4, 5 };
+
+  for ( auto iter : test_values | range::indirect )
   {
-    track_vec[i++] = t.second;
+    if ( *iter == 3 )
+    {
+      *iter = 42;
+    }
   }
-  auto track_ptr = std::make_shared<vital::feature_track_set>(track_vec);
-  triangulate(cameras, track_ptr, landmarks);
+
+  EXPECT_EQ( 42, test_values[2] );
 }
 
-} } }
+// ----------------------------------------------------------------------------
+TEST(range_indirect, assign_iterator)
+{
+  auto const test_values = std::vector< int >{ 1, 2, 3, 4, 5 };
 
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::triangulate_landmarks);
-/// \endcond
+  auto out_iter = test_values.end();
+
+  for ( auto iter : test_values | range::indirect )
+  {
+    if ( *iter == 3 )
+    {
+      out_iter = iter;
+    }
+  }
+
+  ASSERT_NE( test_values.end(), out_iter );
+  EXPECT_EQ( 3, *out_iter );
+}
