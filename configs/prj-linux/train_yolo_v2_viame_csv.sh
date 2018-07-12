@@ -6,6 +6,9 @@ export VIAME_INSTALL=/opt/noaa/viame
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 
-# Run vpView annotation GUI
+# Run pipeline
 
-python ${VIAME_INSTALL}/configs/launch_annotation_gui.py
+viame_train_detector \
+  -i training_data_habcam \
+  -c ${VIAME_INSTALL}/configs/pipelines/train_yolo_v2_high_res_viame_csv.conf \
+  --threshold 0.0
