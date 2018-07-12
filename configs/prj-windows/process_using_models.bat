@@ -8,5 +8,7 @@ CALL %VIAME_INSTALL%\setup_viame.bat
 
 REM Run Pipeline
 
-python.exe %VIAME_INSTALL%\configs\launch_query_gui.py ^
-  -qp pipelines\query_retrieval_and_iqr.res.pipe
+pipeline_runner.exe -p %VIAME_INSTALL%\configs\pipelines\detector_use_svm_models.pipe ^
+                    -s input:image_list_file=input_list.txt
+
+pause

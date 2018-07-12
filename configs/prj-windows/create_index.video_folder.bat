@@ -8,5 +8,6 @@ CALL %VIAME_INSTALL%\setup_viame.bat
 
 REM Run Pipeline
 
-python.exe %VIAME_INSTALL%\configs\launch_query_gui.py ^
-  -qp pipelines\query_retrieval_and_iqr.res.pipe
+python.exe %VIAME_INSTALL%\configs\ingest_video.py --init -d videos -p pipelines\ingest_video.tut.pipe --build-index --ball-tree -install "%VIAME_INSTALL%"
+
+pause
