@@ -1164,6 +1164,74 @@ initialize_cameras_landmarks_keyframe::priv
       max_score = rfs.second;
     }
   }
+
+
+  if (selected_frame == -1)
+  {
+    int max_existing_spacing = -1;
+    auto reconstructed_cam_ids = cams->get_frame_ids();
+    int cid_prev = -1;
+    for (auto cid : reconstructed_cam_ids)
+    {
+      if (cid_prev >= 0)
+      {
+        max_existing_spacing = std::max<int>(max_existing_spacing, cid - cid_prev);
+      }
+      cid_prev = cid;
+    }
+
+    std::set<landmark_id_t> currently_reconstructed_landmarks;
+    for (auto lm : lms)
+    {
+      currently_reconstructed_landmarks.insert(lm.first);
+    }
+
+    // We can't use the relative pose scores any more to do the selection.
+    // Score each remaining camera accordint to how far it is temporally from
+    // the reconstructed cameras and how many 3D landmarks it sees.
+    double best_score = -1;
+
+    for (auto rc : frames_to_resection)
+    {
+      auto closest_frame_diff = std::numeric_limits<frame_id_t>::max();
+      for (auto c : reconstructed_cam_ids)
+      {
+        auto diff = abs(rc - c);
+        if (diff < closest_frame_diff)
+        {
+          closest_frame_diff = diff;
+        }
+      }
+
+      if (closest_frame_diff > 1.2*max_existing_spacing)
+      {
+        // reconstruction has not successfully included a camera spaced out much more than max_existing_spacing
+        // so don't try this one.
+        continue;
+      }
+
+      auto rc_tracks_ids = tracks->active_track_ids(rc);
+      std::vector<landmark_id_t> intersect_lmks;
+      std::set_intersection(currently_reconstructed_landmarks.begin(), currently_reconstructed_landmarks.end(),
+                            rc_tracks_ids.begin(), rc_tracks_ids.end(),
+                            std::back_inserter(intersect_lmks));
+
+      if (intersect_lmks.size() < 10)
+      {
+        //without enough landmarks in common there is no reason to try this frame
+        continue;
+      }
+      double score = intersect_lmks.size() * closest_frame_diff;
+      if (score > best_score)
+      {
+        best_score = score;
+        selected_frame = rc;
+      }
+
+    }
+
+  }
+
   return selected_frame;
 }
 
