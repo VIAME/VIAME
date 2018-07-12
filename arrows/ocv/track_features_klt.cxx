@@ -81,7 +81,7 @@ public:
     erp2(1),
     max_pyramid_level(3),
     target_number_of_features(2048),
-    l1_err_thresh(10.0f)
+    l1_err_thresh(-1)
   {
   }
 
@@ -683,7 +683,8 @@ track_features_klt
       {
         auto kf_feat_i = kf_feat_i_in_det_tracking[det_kf_feat_i];
         vector_2f tp(det_tracked_points[det_kf_feat_i].x, det_tracked_points[det_kf_feat_i].y);
-        if (!det_status[det_kf_feat_i] || det_err[det_kf_feat_i] > d_->l1_err_thresh
+        if (!det_status[det_kf_feat_i]
+          || (d_->l1_err_thresh > 0 && det_err[det_kf_feat_i] > d_->l1_err_thresh)
           || tp.x() <= d_->half_win_size
           || tp.y() <= d_->half_win_size
           || tp.x() >= image_data->width() - d_->half_win_size
@@ -745,7 +746,7 @@ track_features_klt
   if (!detect_new_features)
   {
     //now check the distribution of features in the image
-    if(d_->dist_image.should_redetect(d_->last_detect_distImage,d_->redetect_threshold))
+    if(d_->dist_image.should_redetect(d_->last_detect_distImage,d_->redetect_threshold*0.5))
     {
       //this will never be called on the first image so it will work.
       LOG_DEBUG(logger(), "detecting new feature because of distribution");
