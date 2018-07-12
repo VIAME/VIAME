@@ -81,7 +81,7 @@ public:
     erp2(1),
     max_pyramid_level(3),
     target_number_of_features(2048),
-    l1_err_thresh(-1)
+    l1_err_thresh(10)
   {
   }
 
