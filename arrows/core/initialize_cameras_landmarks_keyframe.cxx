@@ -2045,12 +2045,11 @@ initialize_cameras_landmarks_keyframe::priv
     }
 
     int next_ba_cam_count = std::max<int>(cams->size() * 0.2, 5);
-    next_ba_cam_count = 0;
 
     if ((lms.size() > prev_ba_lm_count * 1.5 ||
       lms.size() < prev_ba_lm_count * 0.5) ||
       frames_resectioned_since_last_ba >= next_ba_cam_count ||
-      frames_to_resection.empty())
+      frames_to_resection.empty() || cams->size() < 30)
     {
       frames_resectioned_since_last_ba = 0;
       //bundle adjust result because number of inliers has changed significantly
