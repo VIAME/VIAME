@@ -30,6 +30,15 @@ else()
     pip install ${PYTORCH_PIP_SETTINGS} --user file://${VIAME_PACKAGES_DIR}/torchvision )
 endif()
 
+if(VIAME_ENABLE_CUDNN)
+  set(CUDNN_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}")
+  if(CUDNN_ROOT_DIR)
+    list(APPEND CUDNN_ENV "CUDNN_INCLUDE_DIR=${CUDNN_ROOT_DIR}/include")
+  endif()
+else()
+  unset(CUDNN_ENV)
+endif()
+
 set( PYTHON_BASEPATH
   ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS} )
 set( CUSTOM_PYTHONPATH
@@ -42,6 +51,7 @@ set( PYTORCH_PYTHON_INSTALL
                       PATH=${CUSTOM_PATH}
                       PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
                       CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
+                      ${CUDNN_ENV}
     ${PYTHON_EXECUTABLE} -m ${PYTORCH_PIP_CMD} )
 set( TORCHVISION_PYTHON_INSTALL
   ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
@@ -49,6 +59,7 @@ set( TORCHVISION_PYTHON_INSTALL
                       PATH=${CUSTOM_PATH}
                       PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
                       CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
+                      ${CUDNN_ENV}
     ${PYTHON_EXECUTABLE} -m ${TORCHVISION_PIP_CMD} )
 
 ExternalProject_Add( pytorch
