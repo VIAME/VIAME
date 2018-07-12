@@ -73,7 +73,7 @@ def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
       return cmd + ".exe"
   else:
     if len( install_dir ) > 0:
-      cmd = python \"" + install_dir + div + "lib" + div + "python" + str( sys.version_info[0] ) + "." + str( sys.version_info[1] )
+      cmd = "python \"" + install_dir + div + "lib" + div + "python" + str( sys.version_info[0] ) + "." + str( sys.version_info[1] )
       cmd = cmd + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py\""
       return cmd
     else:
