@@ -1015,61 +1015,93 @@ initialize_cameras_landmarks_keyframe::priv
 {
   std::string rel_pose_path = "rel_poses.txt";
 
-  if (read_rel_poses(rel_pose_path))
-  {
-    return;
-  }
+  //if (read_rel_poses(rel_pose_path))
+  //{
+  //  return;
+  //}
+  m_rel_poses.clear();
 
-  m_kf_mm_frames = std::vector<frame_id_t>(frames.begin(), frames.end());
-  m_kf_match_matrix = match_matrix(tracks, m_kf_mm_frames);
+  int frames_skip = frames.size() *0.5;
 
-  typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, 1> vectorXu;
-  const int cols = m_kf_match_matrix.cols();
+  do {
 
-  const int min_matches = 100;
-
-  std::vector<std::pair<frame_id_t, frame_id_t>> pairs_to_process;
-  for (int k = 0; k < cols; ++k)
-  {
-    for (Eigen::SparseMatrix<unsigned int>::InnerIterator it(m_kf_match_matrix, k); it; ++it)
+    std::vector<frame_id_t> m_kf_mm_frames;
+    int fid_idx = 0;
+    for(auto fid: frames)
     {
-      if (it.row() > k && it.value() > min_matches)
+      if (fid_idx%frames_skip == 0)
       {
-        auto fid_0 = m_kf_mm_frames[it.row()];
-        auto fid_1 = m_kf_mm_frames[k];
-        if (fid_0 > fid_1)
+        m_kf_mm_frames.push_back(fid);
+      }
+      ++fid_idx;
+    }
+
+    m_kf_match_matrix = match_matrix(tracks, m_kf_mm_frames);
+
+    typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, 1> vectorXu;
+    const int cols = m_kf_match_matrix.cols();
+
+    const int min_matches = 100;
+
+    std::vector<std::pair<frame_id_t, frame_id_t>> pairs_to_process;
+    for (int k = 0; k < cols; ++k)
+    {
+      for (Eigen::SparseMatrix<unsigned int>::InnerIterator it(m_kf_match_matrix, k); it; ++it)
+      {
+        if (it.row() > k && it.value() > min_matches)
         {
-          std::swap(fid_0, fid_1);
+          auto fid_0 = m_kf_mm_frames[it.row()];
+          auto fid_1 = m_kf_mm_frames[k];
+          if (fid_0 > fid_1)
+          {
+            std::swap(fid_0, fid_1);
+          }
+          rel_pose rp;
+          rp.f0 = fid_0;
+          rp.f1 = fid_1;
+          if (m_rel_poses.find(rp) != m_rel_poses.end())
+          {
+            //we've already computed this relative pose
+            continue;
+          }
+          pairs_to_process.push_back(std::pair<frame_id_t, frame_id_t>(fid_0, fid_1));
         }
-        pairs_to_process.push_back(std::pair<frame_id_t, frame_id_t>(fid_0, fid_1));
       }
     }
-  }
 
-  #pragma omp parallel for schedule(dynamic, 10)
-  for (int64_t i = 0; i < pairs_to_process.size(); ++i)
-  {
-    const auto &tp = pairs_to_process[i];
-    auto fid_0 = tp.first;
-    auto fid_1 = tp.second;
-    auto tks0 = tracks->active_tracks(fid_0);
-    auto tks1 = tracks->active_tracks(fid_1);
-    std::sort(tks0.begin(), tks0.end());
-    std::sort(tks1.begin(), tks1.end());
-    std::vector<kwiver::vital::track_sptr> tks_01;
-    auto tk_it = std::set_intersection(tks0.begin(), tks0.end(), tks1.begin(), tks1.end(), std::back_inserter(tks_01));
-
-    //ok now we have the common tracks between the two frames.
-    //make the essential matrix, decompose it and store it in a relative pose
-    rel_pose rp = calc_rel_pose(fid_0, fid_1, tks_01);
-    #pragma omp critical
+#pragma omp parallel for schedule(dynamic, 10)
+    for (int64_t i = 0; i < pairs_to_process.size(); ++i)
     {
-      if (rp.well_conditioned_landmark_count > 0)
+      const auto &tp = pairs_to_process[i];
+      auto fid_0 = tp.first;
+      auto fid_1 = tp.second;
+      auto tks0 = tracks->active_tracks(fid_0);
+      auto tks1 = tracks->active_tracks(fid_1);
+      std::sort(tks0.begin(), tks0.end());
+      std::sort(tks1.begin(), tks1.end());
+      std::vector<kwiver::vital::track_sptr> tks_01;
+      auto tk_it = std::set_intersection(tks0.begin(), tks0.end(), tks1.begin(), tks1.end(), std::back_inserter(tks_01));
+
+      //ok now we have the common tracks between the two frames.
+      //make the essential matrix, decompose it and store it in a relative pose
+      rel_pose rp = calc_rel_pose(fid_0, fid_1, tks_01);
+#pragma omp critical
       {
-        m_rel_poses.insert(rp);
+        if (rp.well_conditioned_landmark_count > 100)
+        {
+          m_rel_poses.insert(rp);
+        }
       }
     }
-  }
+
+    if (m_rel_poses.size() > 20)
+    {
+      //we have enough initialization poses.
+      break;
+    }
+    frames_skip /= 2;
+
+  } while (frames_skip >= 1);
 
   write_rel_poses(rel_pose_path);
 }
