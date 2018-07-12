@@ -1968,6 +1968,14 @@ initialize_cameras_landmarks_keyframe::priv
   int prev_ba_lm_count = lms.size();
   auto trks = tracks->tracks();
 
+  std::set<frame_id_t> frames_that_were_in_sfm_solution;
+  std::set<frame_id_t> frames_that_failed_resection;
+
+  for (auto c : cams->get_frame_ids())
+  {
+    frames_that_were_in_sfm_solution.insert(c);
+  }
+
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
   while (!frames_to_resection.empty() &&
@@ -1982,7 +1990,19 @@ initialize_cameras_landmarks_keyframe::priv
     if (!resection_camera(cams, lms, tracks, next_frame_id))
     {
       frames_to_resection.erase(next_frame_id);
+      frames_that_failed_resection.insert(next_frame_id);
       continue;
+    }
+
+    frames_that_were_in_sfm_solution.insert(next_frame_id);
+    for (auto fid : frames_that_failed_resection)
+    {
+      if (frames_that_were_in_sfm_solution.find(fid) != frames_that_were_in_sfm_solution.end())
+      {
+        //skip frames that were in the sfm solution but were later dropped
+        continue;
+      }
+      frames_to_resection.insert(fid);
     }
 
     ++frames_resectioned_since_last_ba;
