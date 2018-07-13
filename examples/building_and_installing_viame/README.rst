@@ -61,21 +61,21 @@ Install CMAKE
 =============
 
 Depending on the OS, the version of cmake you get with apt/yum/dnf is often too old to
-use for VIAME (you currently need at least CMake 3.3) so you may need to do a manual
+use for VIAME (you currently need at least CMake 3.11.4) so you may need to do a manual
 install. Go to the cmake website, ``https://cmake.org/download``, and download the
 appropriate binary distribution (for Ubuntu, this would be something like 
-cmake-3.6.1-Linux-x86_64.sh, depending on version). Alternatively, download the
-source code, e.g. cmake-3.6.1.tar.gz, and build the binaries from source. To untar
+cmake-3.11.4-Linux-x86_64.sh, depending on version). Alternatively, download the
+source code, e.g. cmake-3.11.4.tar.gz, and build the binaries from source. To untar
 and build the source, use the following set of commands. Keep in mind that if you're
-not using version 3.6.1, you'll need to update the version number in the below to
+not using version 3.11.4, you'll need to update the version number in the below to
 match your downloaded version.
 
 
 .. code-block:: bash
 
    cd ~/Downloads
-   tar zxfv cmake-3.6.1.tar.gz
-   cd cmake-3.6.1
+   tar zxfv cmake-3.11.4.tar.gz
+   cd cmake-3.11.4
    ./bootstrap --system-curl --no-system-libs
    make
    sudo make install
