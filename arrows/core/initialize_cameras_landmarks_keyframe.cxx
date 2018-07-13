@@ -2843,14 +2843,32 @@ initialize_cameras_landmarks_keyframe::priv
   auto lmks = landmarks->landmarks();
   sfm_constraints_sptr constraints_to_ba = nullptr;
 
-  std::set<frame_id_t> already_registred_cams, frames_to_register, windowed_bundled_cams;
-  get_registered_and_non_registered_frames(cams, tracks, already_registred_cams, frames_to_register);
+  std::set<frame_id_t> already_registred_cams, frames_to_register, windowed_bundled_cams, all_frames_to_register, keyframes_to_register, non_keyframes_to_register;
+  get_registered_and_non_registered_frames(cams, tracks, already_registred_cams, all_frames_to_register);
+
+  //enforce registering only keyframes
+  auto keyframe_ids = tracks->keyframes();
+  for (auto fid : all_frames_to_register)
+  {
+    if (keyframe_ids.find(fid) != keyframe_ids.end())
+    {
+      keyframes_to_register.insert(fid);
+    }
+    else
+    {
+      non_keyframes_to_register.insert(fid);
+    }
+  }
+
+  frames_to_register = keyframes_to_register;
 
   std::set<frame_id_t> frames_since_last_local_ba;
   m_frames_removed_from_sfm_solution.clear();
 
   std::set<landmark_id_t> last_ba_landmarks;
   int max_constraints_used = 0;
+
+  bool done_registering_keyframes = false;
 
   while(!frames_to_register.empty())
   {
@@ -2926,6 +2944,11 @@ initialize_cameras_landmarks_keyframe::priv
           "continue processing is false, exiting initialize_remaining_cameras loop");
         break;
       }
+    }
+    if ( frames_to_register.empty() && !done_registering_keyframes)
+    {
+      done_registering_keyframes = true;
+      frames_to_register = non_keyframes_to_register;
     }
   }
 
