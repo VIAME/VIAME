@@ -169,7 +169,8 @@ struct function_detail< ReturnType ( Object::* )( ArgsType... ) const >
 // ----------------------------------------------------------------------------
 namespace range_detail {
 
-using namespace std;
+using std::begin;
+using std::end;
 
 template < typename Range >
 struct range_helper
