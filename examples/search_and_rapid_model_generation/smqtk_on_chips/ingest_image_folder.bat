@@ -3,7 +3,12 @@
 ::
 :: This assumes the use of the LSH nearest-neighbor index as it builds ITQ model.
 ::
-call ../../../setup_viame.bat
+
+rem Setup VIAME Paths (no need to set if installed to registry or already set up)
+
+set VIAME_INSTALL=.\..\..\..
+
+call "%VIAME_INSTALL%\setup_viame.bat"
 
 :: PARAMETERS ###################################################################
 
