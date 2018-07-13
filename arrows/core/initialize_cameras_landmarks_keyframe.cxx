@@ -237,7 +237,8 @@ public:
   void retriangulate(landmark_map::map_landmark_t& lms,
     simple_camera_perspective_map_sptr cams,
     const std::vector<track_sptr>& trks,
-    std::set<landmark_id_t>& inlier_lm_ids) const;
+    std::set<landmark_id_t>& inlier_lm_ids,
+    int min_inlier_observations = 2) const;
 
   void triangulate_landmarks_visible_in_frames(
     landmark_map::map_landmark_t& lmks,
@@ -591,7 +592,8 @@ initialize_cameras_landmarks_keyframe::priv
 ::retriangulate(landmark_map::map_landmark_t& lms,
   simple_camera_perspective_map_sptr cams,
   const std::vector<track_sptr>& trks,
-  std::set<landmark_id_t>& inlier_lm_ids) const
+  std::set<landmark_id_t>& inlier_lm_ids,
+  int min_inlier_observations) const
 {
   typedef landmark_map::map_landmark_t lm_map_t;
   lm_map_t init_lms;
@@ -620,8 +622,15 @@ initialize_cameras_landmarks_keyframe::priv
   auto inlier_lms = lm_map->landmarks();
   for(auto lm: inlier_lms)
   {
-    inlier_lm_ids.insert(lm.first);
-    lms[lm.first] = lm.second;
+    if (lm.second->observations() < min_inlier_observations)
+    {
+      lms.erase(lm.first);
+    }
+    else
+    {
+      inlier_lm_ids.insert(lm.first);
+      lms[lm.first] = lm.second;
+    }
   }
 }
 
@@ -659,7 +668,7 @@ initialize_cameras_landmarks_keyframe::priv
     }
   }
   std::set<landmark_id_t> inlier_lm_ids;
-  retriangulate(new_lms, cams, triang_tracks, inlier_lm_ids);
+  retriangulate(new_lms, cams, triang_tracks, inlier_lm_ids,3);
 
   for (auto &lm : new_lms)
   {
@@ -2255,7 +2264,7 @@ initialize_cameras_landmarks_keyframe::priv
       triang_config->set_value<double>("inlier_threshold_pixels", m_metadata_init_permissive_triang_thresh);
       lm_triangulator->set_configuration(triang_config);
     }
-    retriangulate(lms, cams, trks, inlier_lm_ids);
+    retriangulate(lms, cams, trks, inlier_lm_ids,3);
 
     if (iterations < num_permissive_triangulation_iterations)
     {
@@ -2310,7 +2319,7 @@ initialize_cameras_landmarks_keyframe::priv
     std::set<landmark_id_t> empty_lm_set;
     double coverage_thresh = iterations == 0 ? 0 : image_coverage_threshold;
     double reproj_thresh = iterations < num_permissive_triangulation_iterations ? 50.0*interim_reproj_thresh : 5.0*interim_reproj_thresh;
-    clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, reproj_thresh);
+    clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, reproj_thresh,3);
 
     if (cams->size() < 2)
     {
@@ -2785,7 +2794,7 @@ initialize_cameras_landmarks_keyframe::priv
   bundle_adjuster->optimize(*cams, variable_landmarks, tracks, frames_to_fix, empty_landmark_id_set, constraints);
 
   clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
-    frames_since_last_local_ba, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh);
+    frames_since_last_local_ba, variable_landmark_ids, image_coverage_threshold, interim_reproj_thresh,3);
 
   for (auto rem_fid : removed_cams)
   {
@@ -2914,7 +2923,7 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<landmark_id_t> empty_landmarks;
   std::vector<frame_id_t> removed_cams;
   clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
-    empty_frames, empty_landmarks, image_coverage_threshold, interim_reproj_thresh);
+    empty_frames, empty_landmarks, image_coverage_threshold, interim_reproj_thresh,3);
 
   for (auto rem_fid : removed_cams)
   {
