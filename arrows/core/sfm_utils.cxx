@@ -271,7 +271,8 @@ detect_bad_landmarks(
   landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
-  double error_tol)
+  double error_tol,
+  int min_landmark_inliers)
 {
 
   double stdev_bound = 3;
@@ -347,7 +348,7 @@ detect_bad_landmarks(
     }
 
     bool bad_ang = false;
-    if (observing_cams.size() < 2)
+    if (observing_cams.size() < 2 || (min_landmark_inliers > 0 && observing_cams.size() < min_landmark_inliers))
     {
       ++num_unconstrained_landmarks_found;
       landmarks_to_remove.insert(lm_it.first);
@@ -484,7 +485,8 @@ clean_cameras_and_landmarks(
   const std::set<vital::frame_id_t> &active_cams,
   const std::set<vital::landmark_id_t> &active_lms,
   float image_coverage_threshold,
-  double error_tol)
+  double error_tol,
+  int min_landmark_inliers)
 {
 
   auto cams = cams_persp.cameras();
@@ -536,7 +538,7 @@ clean_cameras_and_landmarks(
   {
     keep_cleaning = false;
     std::set<track_id_t> lm_to_remove =
-      detect_bad_landmarks(cams, det_lms, tracks, triang_cos_ang_thresh, error_tol);
+      detect_bad_landmarks(cams, det_lms, tracks, triang_cos_ang_thresh, error_tol, min_landmark_inliers);
 
     if (!lm_to_remove.empty())
     {

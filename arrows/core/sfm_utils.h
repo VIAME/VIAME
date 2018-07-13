@@ -114,7 +114,8 @@ detect_bad_landmarks(
   vital::landmark_map::map_landmark_t const& lms,
   vital::feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
-  double error_tol = 5.0);
+  double error_tol = 5.0,
+  int min_landmark_inliers = -1);
 
 /// remove landmarks with IDs in the set
 /**
@@ -174,7 +175,8 @@ clean_cameras_and_landmarks(
   const std::set<vital::frame_id_t> &active_cams,
   const std::set<vital::landmark_id_t> &active_lms,
   float image_coverage_threshold = 0.25,
-  double error_tol = 5.0);
+  double error_tol = 5.0,
+  int min_landmark_inliers = -1);
 
 }
 }
