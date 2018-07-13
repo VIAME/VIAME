@@ -2622,6 +2622,9 @@ initialize_cameras_landmarks_keyframe::priv
 {
   auto existing_cams = cams->simple_perspective_cameras();
   frame_id_t min_frame_diff = std::numeric_limits<frame_id_t>::max();
+
+  std::vector<std::pair<frame_id_t,frame_id_t>> min_diff_cams;
+
   for (auto f : frames_to_register)
   {
     for (auto &ec : existing_cams)
@@ -2629,14 +2632,21 @@ initialize_cameras_landmarks_keyframe::priv
       auto diff = abs(ec.first - f);
       if (diff < min_frame_diff)
       {
-        closest_frame = ec.first;
+        min_diff_cams.clear();
+        min_diff_cams.push_back(std::pair<frame_id_t, frame_id_t>(f, ec.first));
         min_frame_diff = diff;
-        fid_to_register = f;
+      }
+      else if (diff == min_frame_diff)
+      {
+        min_diff_cams.push_back(std::pair<frame_id_t, frame_id_t>(f, ec.first));
       }
     }
   }
-  if (min_frame_diff != std::numeric_limits<frame_id_t>::max())
+  if (!min_diff_cams.empty())
   {
+    std::random_shuffle(min_diff_cams.begin(), min_diff_cams.end());
+    fid_to_register = min_diff_cams.begin()->first;
+    closest_frame = min_diff_cams.begin()->second;
     return true;
   }
   else
