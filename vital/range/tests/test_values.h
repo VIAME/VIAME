@@ -41,4 +41,4 @@ int const test_values[] = {
   14,  4, 13,  6
 };
 
-}
+} // namespace <anonymous>
