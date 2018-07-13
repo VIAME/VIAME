@@ -414,4 +414,12 @@ to
 Installing from Pre-Built Binaries
 ==================================
 
-Coming soon....
+First, download the binaries for your operating system from the main github page:
+
+https://github.com/Kitware/VIAME
+
+Next, use the offline install guide located at the below link to complete the installation:
+
+`VIAME Offline Installation`_
+
+.. _VIAME Offline Installation: https://data.kitware.com/api/v1/item/5b4681808d777f2e6225a29f/download
