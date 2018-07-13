@@ -2688,8 +2688,14 @@ initialize_cameras_landmarks_keyframe::priv
   ba_config->set_value<bool>("optimize_focal_length", false);
   bundle_adjuster->set_configuration(ba_config);
 
+  for(int lp = 0; lp < 2; ++lp)
   {
     auto vel = get_velocity(cams, fid_to_register);
+    if (lp == 1)
+    {
+      //try zero velocity if using the constant velocity model didn't work.
+      vel.setZero();
+    }
     //use the pose of the closest camera as starting point
     bundled_cam = std::static_pointer_cast<simple_camera_perspective>(closest_cam->clone());
     //use constant velocity model
@@ -2711,6 +2717,11 @@ initialize_cameras_landmarks_keyframe::priv
     if (loop_count > 2)
     {
       LOG_DEBUG(m_logger, "ran " << loop_count << " hill climbing BA loops");
+    }
+
+    if (bundled_inlier_count >= 4 * min_inliers)
+    {
+      break;
     }
   }
 
