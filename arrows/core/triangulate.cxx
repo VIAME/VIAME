@@ -130,8 +130,12 @@ triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
 
   for( unsigned int i = 0; i < points.size(); ++i )
   {
-    auto pt1 = cameras[i].back_project( points[i].template cast<double>(), h1 );
-    // pts.push_back( std::make_pair< vector_3d >( cameras[i].back_project( points[i]))
+    vital::vector_3d pt1 =
+      cameras[i].back_project( points[i].template cast<double>(), h1 );
+    vital::vector_3d pt2 =
+      cameras[i].back_project( points[i].template cast<double>(), h2 );
+    pts.push_back(
+      std::pair< vital::vector_3d, vital::vector_3d >( pt1, pt2 ) );
   }
 
   return retVal;
