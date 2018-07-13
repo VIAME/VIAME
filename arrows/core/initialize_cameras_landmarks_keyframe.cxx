@@ -2834,9 +2834,6 @@ initialize_cameras_landmarks_keyframe::priv
   sfm_constraints_sptr constraints,
   callback_t callback)
 {
-
-
-
   //we will lock the original cameras in the bundle adjustment, could also exclude them
   time_t prev_callback_time;
   time(&prev_callback_time);
@@ -2906,14 +2903,6 @@ initialize_cameras_landmarks_keyframe::priv
       for (auto ll_fid : frames_since_last_local_ba)
       {
         windowed_bundled_cams.insert(ll_fid);
-      }
-      auto max_windowed_cam = *(windowed_bundled_cams.rbegin());
-      for (auto ar_fid : already_registred_cams)
-      {
-        if (ar_fid < max_windowed_cam)
-        {
-          windowed_bundled_cams.insert(ar_fid);
-        }
       }
       frames_since_last_local_ba.clear();
     }
