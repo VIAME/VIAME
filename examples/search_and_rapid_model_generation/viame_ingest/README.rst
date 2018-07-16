@@ -246,9 +246,11 @@ If you have a detection .csv file for corresponding imagery, and want to train a
 model for the data, you can first correct any mistakes (either mis-classifications, or
 grossly incorrect boxes) in the annotation GUI. To do this, set a detection threshold you want
 to annotate at, do not change it, and make the boxes as perfect as possible at this threshold.
-Export a new detection csv (File->Export Tracks) after correcting as many boxes as you can.
-Lastly, feed this into the ground-up `detector training example`_, with the one diference
-being that you need to set whatever threshold you set in the train .sh file you used.
+Over-ride any incorrectly computed classification types, and create new detections for objects
+which were missed by the initial model. Export a new detection csv (File->Export Tracks) after
+correcting as many boxes as you can. Lastly, feed this into the ground-up `detector training example`_.
+Make sure to set whatever threshold you set for annotation in the [train].sh script you use for
+new model training.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
    :scale: 30
