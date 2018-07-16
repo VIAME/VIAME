@@ -185,7 +185,7 @@ an entry and press '+' or '-' on your keyboard for faster annotation.
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_13_feedback.png
 
 You might want to annotate entries from both the top results list, and the requested
-feedback list (bottom right in the above). This can improve the performance of your
+feedback list (bottom left in the above). This can improve the performance of your
 model significantly. After annotating your entries press 'Refine' on the top left.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_14_next_n_results.png
