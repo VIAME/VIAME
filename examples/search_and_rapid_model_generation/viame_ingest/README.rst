@@ -243,7 +243,7 @@ Correct Results and Train a Better Model
 ========================================
 
 If you have a detection .csv file for corresponding imagery, and want to train a better (deep)
-model for the data, you can first correct any mistakes (either in miss classifications, or
+model for the data, you can first correct any mistakes (either mis-classifications, or
 grossly incorrect boxes) in the annotation GUI. To do this, set a detection threshold you want
 to annotate at, do not change it, and make the boxes as perfect as possible at this threshold.
 Export a new detection csv (File->Export Tracks) after correcting as many boxes as you can.
