@@ -1,6 +1,6 @@
 
 ===============================
-Image and Video Search Examples
+Video and Image Search Examples
 ===============================
 
 ********
