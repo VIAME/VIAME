@@ -139,21 +139,21 @@ Train a IQR Model
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_17_saved_models.png
 
+Re-Run Models on Additional Data
+================================
+
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
    :scale: 30
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
-
-Filter Results
-==============
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
    :scale: 30
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
 
-Train a Better Model
-====================
+Correct Results and Train a Better Model
+========================================
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
    :scale: 30
