@@ -22,7 +22,7 @@ pipelines or query requests.
 Initial Setup
 =============
 
-| Building and running this examples requires either a VIAME install or a build from source with: 
+| Building and running this example requires either a VIAME install or a build from source with: 
 |
 |  (a) The python packages: numpy, pymongo, torch, torchvision, matplotlib, and python-tk
 |  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, PYTORCH, VXL, and VIVIA enabled.
