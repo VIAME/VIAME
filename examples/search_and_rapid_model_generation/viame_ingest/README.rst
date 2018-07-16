@@ -3,6 +3,10 @@
 Video and Image Search using VIAME
 **********************************
 
+-------
+Summary
+-------
+
 This section corresponds to `this example online`_, in addition to the
 viame_ingest example folder in a VIAME installation. This folder contains examples
 covering image search on top of an archive of videos or images.
@@ -21,6 +25,10 @@ By indicating which query results are correct, a model can be trained for a new 
 category (or sub-category attribute) and saved to an output file to be reused again in future
 pipelines or query requests.
 
+-------------
+Initial Setup
+-------------
+
 First, you should decide where you want to run this example from. Doing it in the example folder
 tree is fine as a first pass, but if it is something you plan on running a few times or on multiple
 datasets, you probably want to select a different place in your user space to store databases and
@@ -33,6 +41,10 @@ these example scripts alongside others.
    :scale: 30
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_0_new_project.png
+
+--------------------------
+Ingest Image or Video Data
+--------------------------
 
 First, create_index.*.sh should be called to initialize a new database, and populate it
 with descriptors around generic objects to be queried upon. Next 'launch_query_gui.sh' should be
@@ -48,6 +60,10 @@ annotated as either correct or incorrect.
    :scale: 30
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_2_ingest.png
+
+----------------------
+Perform an Image Query
+----------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_3_launch_gui.png
    :scale: 30
@@ -94,6 +110,10 @@ annotated as either correct or incorrect.
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
 
+-----------------
+Train a IQR Model
+-----------------
+
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_12_adjudacation.png
    :scale: 30
    :align: center
@@ -129,10 +149,18 @@ annotated as either correct or incorrect.
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
 
+--------------
+Filter Results
+--------------
+
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
    :scale: 30
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
+
+--------------------
+Train a Better Model
+--------------------
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
    :scale: 30
