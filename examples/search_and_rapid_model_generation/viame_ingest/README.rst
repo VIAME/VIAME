@@ -153,8 +153,8 @@ Now you can put this chip through the image query system, instead of the full fr
 
 Regardless which method you use, when you get new results they should look like this. You
 can select them on the left and see the entries on the right. Your GUI may not look like this
-depending on which windows you have turned on, but they can be enabled/disabled in Settings ->
-Tool Views.
+depending on which windows you have turned on, but different display windows can be enabled
+or disabled in Settings->Tool Views and dragged around the screen.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_11_initial_results.png
    :scale: 30
