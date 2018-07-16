@@ -57,7 +57,7 @@
 using namespace sprokit;
 
 static std::string const default_include_dirs = std::string(DEFAULT_CLUSTER_PATHS);
-static envvar_name_t const sprokit_include_envvar = envvar_name_t("SPROKIT_CLUSTER_PATH");
+static std::string const sprokit_include_envvar = std::string("SPROKIT_CLUSTER_PATH");
 static std::string const cluster_suffix = std::string(".cluster");
 static const std::string path_separator( 1, PATH_SEPARATOR_CHAR );
 

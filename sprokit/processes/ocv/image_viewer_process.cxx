@@ -244,7 +244,7 @@ image_viewer_process
 
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  cv::Mat image = arrows::ocv::image_container::vital_to_ocv( img->get_image(), arrows::ocv::image_container::BGR );
+  cv::Mat image = arrows::ocv::image_container::vital_to_ocv( img->get_image(), arrows::ocv::image_container::BGR_COLOR );
 
   if ( d->m_annotate_image )
   {

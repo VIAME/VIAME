@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,17 +28,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace {
+/**
+ * \file
+ * \brief GDAL algorithm registration implementation
+ */
 
-int const test_values[] = {
-   0,  4,  3, 12,
-   1, 13,  4,  9,
-   1,  4, 15,  8,
-  11, 14,  3,  1,
-   0,  0, 10, 12,
-  14,  9,  9, 10,
-   1,  3,  4,  5,
-  14,  4, 13,  6
-};
+#include <arrows/gdal/kwiver_algo_gdal_plugin_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-} // namespace <anonymous>
+#include <arrows/gdal/image_io.h>
+
+namespace kwiver {
+namespace arrows {
+namespace gdal {
+
+extern "C"
+KWIVER_ALGO_GDAL_PLUGIN_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
+{
+  static auto const module_name = std::string( "arrows.gdal" );
+  if (vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
+
+  // add factory               implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM( "gdal", kwiver::arrows::gdal::image_io );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Read and write image using GDAL." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  vpm.mark_module_as_loaded( module_name );
+}
+
+} // end namespace gdal
+} // end namespace arrows
+} // end namespace kwiver

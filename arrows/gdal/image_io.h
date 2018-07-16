@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,56 @@
 
 /**
  * \file
- * \brief OpenCV image_io implementation
+ * \brief GDAL image_io interface
  */
 
-#include "image_io.h"
+#ifndef KWIVER_ARROWS_GDAL_IMAGE_IO_H_
+#define KWIVER_ARROWS_GDAL_IMAGE_IO_H_
 
-#include <arrows/ocv/image_container.h>
+#include <arrows/gdal/kwiver_algo_gdal_export.h>
 
-#include <vital/types/metadata_traits.h>
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <vital/algo/image_io.h>
 
 namespace kwiver {
 namespace arrows {
-namespace ocv {
+namespace gdal {
 
-/// Load image image from the file
-/**
- * \param filename the path to the file the load
- * \returns an image container refering to the loaded image
- */
-vital::image_container_sptr
-image_io
-::load_(const std::string& filename) const
+/// A class for using GDAL to read and write images
+class KWIVER_ALGO_GDAL_EXPORT image_io
+  : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
-  auto md = std::shared_ptr<kwiver::vital::metadata>(new kwiver::vital::metadata());
-  md->add(NEW_METADATA_ITEM(kwiver::vital::VITAL_META_IMAGE_FILENAME, filename));
+public:
+  /// Constructor
+  image_io();
 
-  cv::Mat img = cv::imread(filename.c_str(), -1);
-  auto img_ptr = vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR_COLOR));
-  img_ptr->set_metadata(md);
-  return img_ptr;
-}
+  /// Destructor
+  virtual ~image_io();
 
+  // No configuration for this class yet
+  /// \cond DoxygenSuppress
+  virtual void set_configuration(vital::config_block_sptr /*config*/) { }
+  virtual bool check_configuration(vital::config_block_sptr /*config*/) const { return true; }
+  /// \endcond
 
-/// Save image image to a file
-/**
- * \param filename the path to the file to save.
- * \param data The image container refering to the image to write.
- */
-void
-image_io
-::save_(const std::string& filename,
-       vital::image_container_sptr data) const
-{
-  cv::Mat img = ocv::image_container::vital_to_ocv(data->get_image(), ocv::image_container::BGR_COLOR);
-  cv::imwrite(filename.c_str(), img);
-}
+private:
+  /// Implementation specific load functionality.
+  /**
+   * \param filename the path to the file the load
+   * \returns an image container refering to the loaded image
+   */
+  virtual vital::image_container_sptr load_(const std::string& filename) const;
 
-} // end namespace ocv
+  /// Implementation specific save functionality.
+  /**
+   * \param filename the path to the file to save
+   * \param data the image container refering to the image to write
+   */
+  virtual void save_(const std::string& filename,
+                     vital::image_container_sptr data) const;
+};
+
+} // end namespace gdal
 } // end namespace arrows
 } // end namespace kwiver
+
+#endif // KWIVER_ARROWS_GDAL_IMAGE_IO_H_

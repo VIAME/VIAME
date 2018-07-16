@@ -45,7 +45,7 @@ namespace range {
 
 /// \cond Internal
 
-#define KWIVER_UNPACK_TOKENS(...) __VA_ARGS__
+#define KWIVER_UNPACK_TOKENS( ... ) __VA_ARGS__
 
 // ----------------------------------------------------------------------------
 #define KWIVER_RANGE_ADAPTER_TEMPLATE( name, args, arg_names ) \
@@ -116,7 +116,7 @@ template < typename Range, typename Adapter >
 auto
 operator|(
   Range const& range,
-  range_adapter_t< Adapter >(*)() )
+  range_adapter_t< Adapter > (*)() )
 -> decltype( Adapter::adapt( range ) )
 {
   return Adapter::adapt( range );
@@ -168,26 +168,29 @@ struct function_detail< ReturnType ( Object::* )( ArgsType... ) const >
 
 // ----------------------------------------------------------------------------
 namespace range_detail {
-  using namespace std;
 
-  template < typename Range >
-  struct range_helper
+using std::begin;
+using std::end;
+
+template < typename Range >
+struct range_helper
+{
+  static auto begin_helper( Range const& range )
+  -> decltype( begin( range ) )
   {
-    static auto begin_helper( Range const& range )
-    -> decltype( begin( range ) )
-    {
-      return begin( range );
-    }
+    return begin( range );
+  }
 
-    static auto end_helper( Range const& range )
-    -> decltype( end( range ) )
-    {
-      return end( range );
-    }
+  static auto end_helper( Range const& range )
+  -> decltype( end( range ) )
+  {
+    return end( range );
+  }
 
-    using iterator_t = decltype( begin_helper( std::declval< Range >() ) );
-  };
-}
+  using iterator_t = decltype( begin_helper( std::declval< Range >() ) );
+};
+
+} // namespace range_detail
 
 // ----------------------------------------------------------------------------
 template < typename Range,
@@ -203,7 +206,7 @@ public:
   range_ref( range_ref const& ) = default;
 
   iterator_t begin() const { return detail::begin_helper( m_range ); }
-  iterator_t end() const{ return detail::end_helper( m_range ); }
+  iterator_t end() const { return detail::end_helper( m_range ); }
 
 protected:
   using detail = range_detail::range_helper< Range >;
@@ -236,6 +239,8 @@ protected:
 
 /// \endcond
 
-} } } // end namespace
+} // namespace range
+} // namespace vital
+} // namespace kwiver
 
 #endif

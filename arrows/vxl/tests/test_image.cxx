@@ -178,7 +178,8 @@ TYPED_TEST(image_io, type)
   kwiver::vital::image_of<pix_t> img( 200, 300, TypeParam::depth );
   populate_vital_image<pix_t>( img );
 
-  auto const image_path = kwiver::testing::temp_file_name( "test-", ".tiff" );
+  auto const image_ext = ( img.depth() == 4 ? ".png" : ".tiff" );
+  auto const image_path = kwiver::testing::temp_file_name( "test-", image_ext );
 
   auto c = std::make_shared<simple_image_container>( img );
   vxl::image_io io;
