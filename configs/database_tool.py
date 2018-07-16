@@ -138,7 +138,7 @@ def build_balltree_index( install_dir="" ):
   build_standard_index( install_dir )
   print( "3. Generating Ball Tree" )
   execute_pycmd( install_dir, "make_balltree",
-    "-vc " + find_config( SMQTK_BTREE_CONFIG ) )
+    "-vc \"" + find_config( SMQTK_BTREE_CONFIG ) + "\"" )
 
 def build_standard_index( install_dir="" ):
   print( "1. Training ITQ Model" )
