@@ -17,7 +17,7 @@ covering image search on top of an archive of videos or images.
 |  (a) The python packages: numpy, pymongo, torch, torchvision, matplotlib, and python-tk
 |  (b) A VIAME build with VIAME_ENABLE_SMQTK, BURNOUT, YOLO, OPENCV, PYTORCH, VXL, and VIVIA enabled.
 |
-An arbitrary detection and/or tracking pipeline is used to first generate spatio-temporal
+|An arbitrary detection and/or tracking pipeline is used to first generate spatio-temporal
 object tracks representing object candidate locations in video or imagery. Descriptors are
 generated around these object tracks, which get indexed into a database and can be queried upon.
 By indicating which query results are correct, a model can be trained for a new object
@@ -159,3 +159,8 @@ Correct Results and Train a Better Model
    :scale: 30
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
+
+Tuning Algorithms (Advanced)
+============================
+
+Coming Soon....
