@@ -17,7 +17,7 @@ This directory contains methods to accomplish two tasks:
 | (a) Performing exemplar-based searches on an archive of unannotated imagery or videos 
 | (b) Quickly training up detection models for new categories of objects on the same ingest
 
-Image and Video Archive Search using VIAME
+Video and Image Archive Search using VIAME
 ==========================================
 
 Video archive search can be performed via a few methods. The default includes

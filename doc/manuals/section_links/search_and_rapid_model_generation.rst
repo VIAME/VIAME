@@ -10,5 +10,3 @@ Rapid model generation can be performed using the same method as image and video
 (above), just saving out the resultant trained detection models after performing iterative
 query refinement. These models can then be used in detection pipelines, or further refined
 or used in future video searches.
-
-Additional documentation coming soon.
