@@ -17,10 +17,22 @@ Vital Bindings
 Arrows: Core
 
 
+Arrows: FFmpeg
+
+ * Created a new FFmpeg arrow with a video_input algorithm implementation.
+   This provides an alternative to the vidl_ffmpeg_video_input in the VXL
+   arrow.  The goal is to provide direct access to FFMPEG without requiring
+   VXL and to improve efficency, especially with video seeking.  Currently
+   this implementation is not full featured and does not yet provide a
+   complete replacement for the VXL implementation.
+
+Arrows: GDAL
+
+ * Created a new GDAL arrow with an image_io algorithm implementation.
+   This allows opening images with GDAL, which is especially useful for
+   Geospatial image formats like GeoTIFF and NITF.
+
 Arrows: OpenCV
-
-
-Arrows: DBoW2
 
 
 Arrows: VXL
