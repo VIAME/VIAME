@@ -124,7 +124,7 @@ annotated as either correct or incorrect.
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_17_saved_models.png
 
-.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.pn
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
    :scale: 30
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png

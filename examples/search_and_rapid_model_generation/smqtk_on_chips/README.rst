@@ -27,8 +27,8 @@ examples.
 |        - VIAME_ENABLE_CUDA (Optional, but desired for performance)
 |        - VIAME_ENABLE_YOLO (Optional, for detector ingest example (c))
 |  (d) An installation of MongoDB to run the web GUI client
-         - This can either be from a system install or from:
-|          https://docs.mongodb.com/manual/tutorial/install-mongodb-on-linux/
+|        - This can either be from a system install or from:
+|        - https://docs.mongodb.com/manual/tutorial/install-mongodb-on-linux/
 |
 | The system can either be configured to perform queries via: 
 |
