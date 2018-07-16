@@ -248,7 +248,7 @@ grossly incorrect boxes) in the annotation GUI. To do this, set a detection thre
 to annotate at, do not change it, and make the boxes as perfect as possible at this threshold.
 Export a new detection csv (File->Export Tracks) after correcting as many boxes as you can.
 Lastly, feed this into the ground-up `detector training example`_, with the one diference
-being that you need to set whatever threshold you set in the train .sh file you choose to use.
+being that you need to set whatever threshold you set in the train .sh file you used.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
    :scale: 30
