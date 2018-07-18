@@ -61,11 +61,11 @@ TEST_F(triangulate_landmarks_rpc, from_data)
   // Landmarks pulled from Google Maps
   landmark_map::map_landmark_t landmark_map;
   std::vector< vector_3d > lm_pos;
-  lm_pos.push_back( vector_3d( 32.881208, -117.237465, 127.0 ) );
-  lm_pos.push_back( vector_3d( 32.879108, -117.235309, 127.0 ) );
-  lm_pos.push_back( vector_3d( 32.877824, -117.239404, 127.0 ) );
-  lm_pos.push_back( vector_3d( 32.877091, -117.236088, 127.0 ) );
-  lm_pos.push_back( vector_3d( 32.876183, -117.240455, 127.0 ) );
+  lm_pos.push_back( vector_3d( -117.237465, 32.881208, 110.0 ) );
+  lm_pos.push_back( vector_3d( -117.235309, 32.879108, 110.0 ) );
+  lm_pos.push_back( vector_3d( -117.239404, 32.877824, 110.0 ) );
+  lm_pos.push_back( vector_3d( -117.236088, 32.877091, 110.0 ) );
+  lm_pos.push_back( vector_3d( -117.240455, 32.876183, 110.0 ) );
 
   for ( size_t i = 0; i < lm_pos.size(); ++i )
   {

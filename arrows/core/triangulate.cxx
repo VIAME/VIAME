@@ -54,7 +54,7 @@ triangulate_inhomog(const std::vector<vital::simple_camera_perspective >& camera
   const unsigned int num_rows = 2*static_cast<unsigned int>(points.size());
   data_matrix_t A(num_rows, 3);
   data_vector_t b(num_rows);
-  for( unsigned int i=0; i<points.size(); ++i )
+  for ( unsigned int i=0; i<points.size(); ++i )
   {
     // the camera
     const vital::simple_camera_perspective& cam = cameras[i];
@@ -90,7 +90,7 @@ triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
   typedef Eigen::Matrix<T, Eigen::Dynamic, 4> data_matrix_t;
   const unsigned int num_rows = 2*static_cast<unsigned int>(points.size());
   data_matrix_t A(num_rows, 4);
-  for( unsigned int i=0; i<points.size(); ++i )
+  for ( unsigned int i=0; i<points.size(); ++i )
   {
     // the camera
     const vital::simple_camera_perspective& cam = cameras[i];
@@ -121,21 +121,43 @@ triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
 {
   Eigen::Matrix<T,3,1> retVal;
 
-  // Generate rays from arbitary heights
-  double h1 = 1000.0;
-  double h2 = 2000.0;
-
   // Get the pairs of points to define the rays
   std::vector< std::pair< vital::vector_3d, vital::vector_3d > > pts;
 
-  for( unsigned int i = 0; i < points.size(); ++i )
+  Eigen::Array3d curr_scale = cameras[0].world_scale().array();
+  Eigen::Array3d curr_offset = cameras[0].world_offset().array();
+  Eigen::Array3d min_pos = curr_offset - curr_scale;
+  Eigen::Array3d max_pos = curr_offset + curr_scale;
+
+  for ( unsigned int i = 0; i < points.size(); ++i )
   {
+    // Get world offset and scale to set normalization and sample heights
+    curr_scale = cameras[i].world_scale().array();
+    curr_offset = cameras[i].world_offset().array();
+
+    min_pos = min_pos.min( curr_offset - curr_scale );
+    max_pos = max_pos.max( curr_offset + curr_scale );
+
+    double h1 = ( curr_offset - curr_scale )[2];
+    double h2 = ( curr_offset + curr_scale )[2];
+
     vital::vector_3d pt1 =
       cameras[i].back_project( points[i].template cast<double>(), h1 );
     vital::vector_3d pt2 =
       cameras[i].back_project( points[i].template cast<double>(), h2 );
     pts.push_back(
       std::pair< vital::vector_3d, vital::vector_3d >( pt1, pt2 ) );
+  }
+
+  // Get normalization for full point set
+  vital::vector_3d scale = 0.5*( max_pos.matrix() - min_pos.matrix() );
+  vital::vector_3d offset = 0.5*( max_pos.matrix() + min_pos.matrix() );
+
+  // Loop through points and normalize
+  for ( auto& pt : pts )
+  {
+    pt.first = ( pt.first - offset ).cwiseQuotient( scale );
+    pt.second = ( pt.second - offset ).cwiseQuotient( scale );
   }
 
   return retVal;
