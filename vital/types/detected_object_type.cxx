@@ -37,8 +37,6 @@
 #include <iostream>
 #include <algorithm>
 
-#include <iostream>
-
 namespace kwiver {
 namespace vital {
 
