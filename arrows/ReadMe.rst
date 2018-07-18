@@ -13,6 +13,7 @@ Directory Structure and Provided Functionality
                       dependencies beyond what Vital uses (Eigen).
 `<arrows/super3d>`_   Depth estimation from video, uses VXL
 `<arrows/darknet>`_   [*Experimental*] Object detection with the Darknet_ YOLO CNN.
+`<arrows/ffmpeg>`_    Video support through the FFMPEG library.
 `<arrows/matlab>`_    An interface for running Matlab code KWIVER 
 `<arrows/ocv>`_       Algorithms implemented using OpenCV_.
                       Includes feature detectors and descriptor, homography

@@ -323,7 +323,7 @@ file_format_kw18
     // kw19 hacks
     if (this->opts.kw19_hack)
     {
-      relevancy( tracks.back().row ) = p.kw19;
+      relevancy( current_frame.row ) = p.kw19;
     }
 
   } // ... while non-blank lines exist
