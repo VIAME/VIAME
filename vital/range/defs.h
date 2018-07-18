@@ -45,7 +45,7 @@ namespace range {
 
 /// \cond Internal
 
-#define KWIVER_UNPACK_TOKENS(...) __VA_ARGS__
+#define KWIVER_UNPACK_TOKENS( ... ) __VA_ARGS__
 
 // ----------------------------------------------------------------------------
 #define KWIVER_MUTABLE_RANGE_ADAPTER( name ) \
@@ -147,31 +147,34 @@ struct function_detail< ReturnType ( Object::* )( ArgsType... ) const >
 
 // ----------------------------------------------------------------------------
 namespace range_detail {
-  using namespace std;
 
-  template < typename Range >
-  class range_helper
+using std::begin;
+using std::end;
+
+template < typename Range >
+class range_helper
+{
+protected:
+  static auto begin_helper( Range&& range )
+  -> decltype( begin( range ) );
+
+public:
+  static auto begin_helper( Range& range )
+  -> decltype( begin( range ) )
   {
-  protected:
-    static auto begin_helper( Range&& range )
-    -> decltype( begin( range ) );
+    return begin( range );
+  }
 
-  public:
-    static auto begin_helper( Range& range )
-    -> decltype( begin( range ) )
-    {
-      return begin( range );
-    }
+  static auto end_helper( Range& range )
+  -> decltype( end( range ) )
+  {
+    return end( range );
+  }
 
-    static auto end_helper( Range& range )
-    -> decltype( end( range ) )
-    {
-      return end( range );
-    }
+  using iterator_t = decltype( begin_helper( std::declval< Range >() ) );
+};
 
-    using iterator_t = decltype( begin_helper( std::declval< Range >() ) );
-  };
-}
+} // namespace range_detail
 
 // ----------------------------------------------------------------------------
 template < typename Range,
@@ -187,7 +190,7 @@ public:
   range_ref( range_ref const& ) = default;
 
   iterator_t begin() const { return detail::begin_helper( m_range ); }
-  iterator_t end() const{ return detail::end_helper( m_range ); }
+  iterator_t end() const { return detail::end_helper( m_range ); }
 
 protected:
   using detail = range_detail::range_helper< Range >;
@@ -220,7 +223,9 @@ protected:
 
 /// \endcond
 
-} } } // end namespace
+} // namespace range
+} // namespace vital
+} // namespace kwiver
 
 #ifdef DOXYGEN
 
@@ -239,7 +244,7 @@ template < typename Range, typename Adapter >
 auto
 operator|(
   Range& range,
-  kwiver::vital::range::range_adapter_t< Adapter >(*)() )
+  kwiver::vital::range::range_adapter_t< Adapter > (*)() )
 -> decltype( Adapter::adapt( range ) )
 {
   return Adapter::adapt( range );

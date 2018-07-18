@@ -87,12 +87,12 @@ struct generator : concat_t< gen_t< T, Count / 2 >,
 // Boundary cases
 template < typename T, T Count >
 struct generator< T, Count, typename std::enable_if< Count == 0 >::type >
-: integer_sequence_t< T >
+  : integer_sequence_t< T >
 {};
 
 template < typename T, T Count >
 struct generator< T, Count, typename std::enable_if< Count == 1 >::type >
-: integer_sequence_t< T, static_cast< T >( 0 ) >
+  : integer_sequence_t< T, static_cast< T >( 0 ) >
 {};
 
 } // end implementation detail namespace
@@ -110,6 +110,8 @@ make_integer_sequence()
   return {};
 }
 
-} } } // end namespace
+} // namespace range
+} // namespace vital
+} // namespace kwiver
 
 #endif
