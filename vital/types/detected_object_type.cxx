@@ -37,6 +37,8 @@
 #include <iostream>
 #include <algorithm>
 
+#include <iostream>
+
 namespace kwiver {
 namespace vital {
 
@@ -102,6 +104,11 @@ detected_object_type
 detected_object_type
 ::detected_object_type( const std::string& class_name, double score )
 {
+  if ( class_name.empty() )
+  {
+    throw std::invalid_argument( "Must supply a non-empty class name." );
+  }
+
   set_score( class_name, score );
 }
 
