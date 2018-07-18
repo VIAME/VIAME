@@ -583,6 +583,22 @@ check_configuration(vital::config_block_sptr config) const
     config_valid = false;
   }
 
+  auto voc_path = config->get_value<std::string>("vocabulary_path",
+                                                 d_->vocabulary_path);
+  auto train_path = config->get_value<std::string>("training_image_list_path",
+                                                   d_->training_image_list_path);
+  if ((!kwiversys::SystemTools::FileExists(voc_path) ||
+       kwiversys::SystemTools::FileIsDirectory(voc_path)) &&
+      (!kwiversys::SystemTools::FileExists(train_path) ||
+       kwiversys::SystemTools::FileIsDirectory(train_path)))
+  {
+    LOG_ERROR(d_->m_logger,
+      "Could not find a valid vocabulary file or training image list\n"
+      "  voc file: " << voc_path << "\n"
+      "  train list: " << train_path);
+    config_valid = false;
+  }
+
   return config_valid;
 }
 
