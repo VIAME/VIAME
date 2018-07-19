@@ -1,12 +1,14 @@
 
 set( database_headers
   query_track_descriptor_set_db.h
+  read_object_track_set_db.h
   write_object_track_set_db.h
   write_track_descriptor_set_db.h
   )
 
 set( database_sources
   query_track_descriptor_set_db.cxx
+  read_object_track_set_db.cxx
   write_object_track_set_db.cxx
   write_track_descriptor_set_db.cxx
   )
