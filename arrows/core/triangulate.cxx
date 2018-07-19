@@ -119,8 +119,6 @@ Eigen::Matrix<T,3,1>
 triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
                 const std::vector<Eigen::Matrix<T,2,1> >& points)
 {
-  Eigen::Matrix<T,3,1> retVal;
-
   // Get the pairs of points to define the rays
   std::vector< std::pair< vital::vector_3d, vital::vector_3d > > pts;
 
@@ -149,18 +147,30 @@ triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
       std::pair< vital::vector_3d, vital::vector_3d >( pt1, pt2 ) );
   }
 
-  // Get normalization for full point set
+  // Get normalization factors for full point set
   vital::vector_3d scale = 0.5*( max_pos.matrix() - min_pos.matrix() );
   vital::vector_3d offset = 0.5*( max_pos.matrix() + min_pos.matrix() );
 
-  // Loop through points and normalize
+  vital::matrix_3x3d M = vital::matrix_3x3d::Zero();
+  vital::vector_3d v(0., 0., 0.);
+
   for ( auto& pt : pts )
   {
-    pt.first = ( pt.first - offset ).cwiseQuotient( scale );
-    pt.second = ( pt.second - offset ).cwiseQuotient( scale );
+    // Normalize points
+    vital::vector_3d p = ( pt.first - offset ).cwiseQuotient( scale );
+    vital::vector_3d x = ( pt.second - offset ).cwiseQuotient( scale );
+
+    // Unit vector along ray
+    vital::vector_3d unit_vec = ( x - p ) / ( x - p ).norm();
+
+    vital::matrix_3x3d tmp_mat =
+      vital::matrix_3x3d::Identity() - unit_vec * unit_vec.transpose();
+    M += tmp_mat;
+    v += tmp_mat * p;
   }
 
-  return retVal;
+  // Un-normalize before return
+  return ( scale.cwiseProduct( M.inverse() * v ) + offset ).cast<T>();
 }
 
 /// \cond DoxygenSuppress

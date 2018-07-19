@@ -87,12 +87,17 @@ TEST_F(triangulate_landmarks_rpc, from_data)
 
   auto tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
 
-  double init_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
-                                       landmarks->landmarks(),
-                                       tracks->tracks());
+  double init_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
+                                                        landmarks->landmarks(),
+                                                        tracks->tracks() );
   std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
 
   EXPECT_LE(init_rmse, 1e-12) << "Initial reprojection RMSE should be small";
 
   tri_lm.triangulate(cameras, tracks, landmarks);
+
+  double end_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
+                                                       landmarks->landmarks(),
+                                                       tracks->tracks() );
+  EXPECT_NEAR(0.0, end_rmse, 0.05) << "RMSE after triangulation";
 }
