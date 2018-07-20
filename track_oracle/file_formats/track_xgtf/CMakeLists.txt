@@ -33,6 +33,5 @@ target_link_libraries( track_xgtf
                        vgl
   PRIVATE              track_oracle_tokenizers
                        logging_map
-                       vul
                        ${TinyXML_LIBRARY}
 )

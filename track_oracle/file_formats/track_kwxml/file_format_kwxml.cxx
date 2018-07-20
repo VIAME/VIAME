@@ -12,8 +12,6 @@
 #include <cstdio>
 #include <utility>
 
-#include <vul/vul_reg_exp.h>
-
 #include <tinyxml.h>
 
 #include <track_oracle/utils/tokenizers.h>

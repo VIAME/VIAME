@@ -6,7 +6,6 @@
 
 #include "file_format_xgtf.h"
 
-#include <vul/vul_reg_exp.h>
 #include <vgl/vgl_point_2d.h>
 
 #include <tinyxml.h>
