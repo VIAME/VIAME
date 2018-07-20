@@ -5,6 +5,7 @@
  */
 
 #include "track_oracle_core_impl.h"
+#include <mutex>
 #include <stdexcept>
 #include <limits>
 #include <algorithm>
@@ -147,7 +148,7 @@ vector< field_handle_type >
 track_oracle_core_impl
 ::get_all_field_handles() const
 {
- boost::unique_lock< boost::mutex > lock( this->api_lock );
+ std::lock_guard< std::mutex > lock( this->api_lock );
  vector< field_handle_type > ret;
  for (const auto p: this->name_pool)
  {
@@ -172,7 +173,7 @@ field_handle_type
 track_oracle_core_impl
 ::lookup_by_name( const string& name ) const
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   return this->unlocked_lookup_by_name( name );
 }
 
@@ -189,7 +190,7 @@ element_descriptor
 track_oracle_core_impl
 ::get_element_descriptor( field_handle_type f ) const
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   map< field_handle_type, element_store_base* >::const_iterator probe = this->element_pool.find( f );
   return
     ( probe != this->element_pool.end() )
@@ -201,7 +202,7 @@ const element_store_base*
 track_oracle_core_impl
 ::get_element_store_base( field_handle_type f ) const
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   map< field_handle_type, element_store_base* >::const_iterator probe = this->element_pool.find( f );
   return
     ( probe != this->element_pool.end() )
@@ -213,7 +214,7 @@ element_store_base*
 track_oracle_core_impl
 ::get_mutable_element_store_base( field_handle_type f ) const
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   map< field_handle_type, element_store_base* >::const_iterator probe = this->element_pool.find( f );
   return
     ( probe != this->element_pool.end() )
@@ -239,7 +240,7 @@ bool
 track_oracle_core_impl
 ::field_has_row( oracle_entry_handle_type row, field_handle_type field )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   return this->unlocked_field_has_row( row, field );
 }
 
@@ -247,7 +248,7 @@ vector< field_handle_type >
 track_oracle_core_impl
 ::fields_at_row( oracle_entry_handle_type row ) const
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   vector< field_handle_type > ret;
   for (map< field_handle_type, element_store_base* >::const_iterator i = this->element_pool.begin();
        i != this->element_pool.end();
@@ -265,7 +266,7 @@ vector< vector< field_handle_type > >
 track_oracle_core_impl
 ::fields_at_rows( const vector<oracle_entry_handle_type>& rows ) const
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   vector< vector< field_handle_type > > ret( rows.size() );
 
   vector< oracle_entry_handle_type > sorted_rows( rows );
@@ -291,7 +292,7 @@ oracle_entry_handle_type
 track_oracle_core_impl
 ::get_next_handle()
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   return ++this->row_count;
 }
 
@@ -299,7 +300,7 @@ handle_list_type
 track_oracle_core_impl
 ::get_domain( domain_handle_type domain )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   handle_list_type ret;
 
   //
@@ -331,7 +332,7 @@ domain_handle_type
 track_oracle_core_impl
 ::lookup_domain( const string& domain_name, bool create_if_not_found )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   map< string, domain_handle_type >::iterator probe =  this->domain_names.find( domain_name );
 
   // return if found
@@ -351,7 +352,7 @@ domain_handle_type
 track_oracle_core_impl
 ::create_domain( )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   // pre-incrementing ensures that DOMAIN_ALL can never be allocated
   domain_handle_type h = ++this->last_domain_allocated;
   this->domain_names[ vul_sprintf("anon_domain_%d", static_cast<int>( h )) ] = h;
@@ -364,7 +365,7 @@ domain_handle_type
 track_oracle_core_impl
 ::create_domain( const handle_list_type& handles )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   // pre-incrementing ensures that DOMAIN_ALL can never be allocated
   domain_handle_type h = ++this->last_domain_allocated;
   this->domain_names[ vul_sprintf("anon_domain_%d", static_cast<int>( h )) ] = h;
@@ -388,7 +389,7 @@ bool
 track_oracle_core_impl
 ::is_domain_defined( const domain_handle_type& domain )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
 
   return (this->domain_pool.find( domain ) != this->domain_pool.end() );
 }
@@ -397,7 +398,7 @@ bool
 track_oracle_core_impl
 ::release_domain( const domain_handle_type& domain )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
 
   map< domain_handle_type, handle_list_type >::iterator probe = this->domain_pool.find( domain );
   if (probe == this->domain_pool.end())
@@ -460,7 +461,7 @@ bool
 track_oracle_core_impl
 ::add_to_domain( const handle_list_type& handles, const domain_handle_type& domain )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   map< domain_handle_type, handle_list_type >::iterator i = domain_pool.find( domain );
   if ( i == domain_pool.end() ) return false;
   i->second.insert( i->second.end(), handles.begin(), handles.end() );
@@ -471,7 +472,7 @@ bool
 track_oracle_core_impl
 ::add_to_domain( const track_handle_type& track, const domain_handle_type& domain )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   map< domain_handle_type, handle_list_type >::iterator i = domain_pool.find( domain );
   if ( i == domain_pool.end() ) return false;
   i->second.push_back( track.row );
@@ -482,7 +483,7 @@ bool
 track_oracle_core_impl
 ::set_domain( const handle_list_type& handles, domain_handle_type domain )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   map< domain_handle_type, handle_list_type >::iterator i = domain_pool.find( domain );
   if ( i == domain_pool.end() ) return false;
   i->second = handles;
@@ -500,7 +501,7 @@ frame_handle_list_type
 track_oracle_core_impl
 ::get_frames( const track_handle_type& t )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   return this->unlocked_get_frames( t );
 }
 
@@ -508,7 +509,7 @@ void
 track_oracle_core_impl
 ::set_frames( const track_handle_type& t, const frame_handle_list_type& frames )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   this->unlocked_get_field< frame_handle_list_type >( t.row, this->lookup_required_field( "__frame_list" )) = frames;
 }
 
@@ -516,7 +517,7 @@ size_t
 track_oracle_core_impl
 ::get_n_frames( const track_handle_type& t )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   return this->unlocked_get_field< frame_handle_list_type >( t.row, this->lookup_required_field( "__frame_list" )).size();
 }
 
@@ -536,7 +537,7 @@ track_oracle_core_impl
     return false;
   }
 
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   bool all_okay = true;
   for ( map< field_handle_type, element_store_base* >::iterator i = this->element_pool.begin();
         i != this->element_pool.end();
@@ -632,7 +633,7 @@ bool
 track_oracle_core_impl
 ::write_kwiver( ostream& os, const track_handle_list_type& tracks )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   os << "<kwiver>\n"
      << "<!--\n"
      << "  File of " << tracks.size() << " tracks emitted by track_oracle's kwiver writer\n"
@@ -694,7 +695,7 @@ bool
 track_oracle_core_impl
 ::write_csv( ostream& os, const track_handle_list_type& tracks, bool csv_v1_semantics )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
 
   field_handle_type world_gcs_fh = this->unlocked_lookup_by_name( "world_gcs" );
   if ( world_gcs_fh == INVALID_FIELD_HANDLE )
@@ -934,7 +935,7 @@ csv_handler_map_type
 track_oracle_core_impl
 ::get_csv_handler_map( const vector< string >& headers )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
 
 
   map< string, field_handle_type > header_map;

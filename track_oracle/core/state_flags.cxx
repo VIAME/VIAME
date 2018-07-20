@@ -8,8 +8,8 @@
 
 #include <string>
 #include <sstream>
+#include <mutex>
 
-#include <boost/thread/mutex.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include <tinyxml.h>
@@ -55,7 +55,7 @@ struct state_flags_backend
 
 private:
   static state_flags_backend* impl;
-  boost::mutex api_lock;
+  std::mutex api_lock;
   string special_slot_zero_tag;
 };
 
@@ -77,7 +77,7 @@ pair< size_t, size_t >
 state_flags_backend
 ::set_flag( const string& component, const string& status )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
 
   // first, locate or assign the component
   string_index_map_t& c = this->component_map;
@@ -112,7 +112,7 @@ map< string, string >
 state_flags_backend
 ::get_map( const vector<size_t>& data )
 {
-  boost::unique_lock< boost::mutex > lock( api_lock );
+  std::lock_guard< std::mutex > lock( api_lock );
 
   map< string, string > ret;
 

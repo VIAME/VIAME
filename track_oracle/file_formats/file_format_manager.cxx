@@ -11,6 +11,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <sstream>
+#include <mutex>
 #include <vul/vul_string.h>
 #include <vul/vul_file.h>
 
@@ -45,8 +46,6 @@
 #include <track_oracle/file_formats/track_kwiver/file_format_kwiver.h>
 #include <track_oracle/core/schema_algorithm.h>
 
-#include <boost/thread/mutex.hpp>
-
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
 
@@ -63,7 +62,7 @@ using std::vector;
 
 namespace // anon
 {
-boost::mutex instance_lock;
+std::mutex instance_lock;
 };
 
 namespace kwiver {
@@ -78,7 +77,7 @@ struct file_format_manager_impl
   schema_map_type schemata;          // an instance of each schema
 
   // giant mutex for a blunt approach to thread safety
-  mutable boost::mutex api_lock;
+  mutable std::mutex api_lock;
 
   // what formats match the globs?
   vector< file_format_enum > unlocked_globs_match( string fn );
@@ -97,7 +96,7 @@ struct file_format_manager_impl
 file_format_manager_impl
 ::file_format_manager_impl()
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
 
   // register all the formats.
   // when adding a new format, the only things you should need to do
@@ -157,7 +156,7 @@ vector< file_format_enum >
 file_format_manager_impl
 ::globs_match( string fn )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   return this->unlocked_globs_match( fn );
 }
 
@@ -165,7 +164,7 @@ file_format_enum
 file_format_manager_impl
 ::detect_format( const string& fn )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
 
   // the assumption here is that multiple formats may match a glob,
   // but only one should pass inspection.  Add a check to verify this.
@@ -240,7 +239,7 @@ file_format_base*
 file_format_manager_impl
 ::get_format( file_format_enum fmt ) const
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   format_map_cit probe = formats.find( fmt );
   return
     (probe == formats.end())
@@ -251,7 +250,7 @@ file_format_manager_impl
 file_format_manager_impl
 ::~file_format_manager_impl()
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   for (format_map_cit i = formats.begin(); i != formats.end(); ++i)
   {
     delete i->second;
@@ -268,7 +267,7 @@ file_format_manager
 {
   if ( ! file_format_manager::impl )
   {
-    boost::unique_lock< boost::mutex > lock( instance_lock );
+    std::lock_guard< std::mutex > lock( instance_lock );
     if ( ! file_format_manager::impl )
     {
       file_format_manager::impl = new file_format_manager_impl();
