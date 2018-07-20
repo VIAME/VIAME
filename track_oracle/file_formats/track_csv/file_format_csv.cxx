@@ -18,7 +18,6 @@
 #include <track_oracle/data_terms/data_terms.h>
 
 #include <boost/smart_ptr.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/uuid/uuid_io.hpp>
 
 #include <vul/vul_timer.h>
@@ -393,7 +392,7 @@ file_format_csv
     bool row_is_track = ( values[ frame_index ].empty() );
     if (row_is_track)
     {
-      unsigned this_id = boost::lexical_cast<unsigned>( values[ sequence_index ]);
+      unsigned this_id = std::stoul( values[ sequence_index ] );
 
       // do we need to create a new row?
       if ( sequence_to_handle_map.find( this_id ) == sequence_to_handle_map.end() )
@@ -413,7 +412,7 @@ file_format_csv
         ? values[frame_index]
         : values[sequence_index];
 
-      unsigned this_frame_belongs_to = boost::lexical_cast<unsigned>( parent_probe_target_string );
+      unsigned this_frame_belongs_to = std::stoul( parent_probe_target_string );
       map< size_t, track_handle_type >::const_iterator parent_probe =
         sequence_to_handle_map.find( this_frame_belongs_to );
       if (parent_probe == sequence_to_handle_map.end() )

@@ -18,7 +18,6 @@
 #include <track_oracle/track_scorable_mgrs/scorable_mgrs.h>
 
 #include <boost/regex.hpp>
-#include <boost/lexical_cast.hpp>
 
 using std::vector;
 using std::map;
@@ -66,10 +65,10 @@ parse_aoi_string( const string& s,
   string::const_iterator a( s.begin() ), b( s.end() );
   if ( regex_match( a, b, what, pixel_geom_re ))
   {
-    int w = boost::lexical_cast<int>( string( what[1].first, what[1].second ) );
-    int h = boost::lexical_cast<int>( string( what[2].first, what[2].second ) );
-    int x = boost::lexical_cast<int>( string( what[3].first, what[3].second ) );
-    int y = boost::lexical_cast<int>( string( what[4].first, what[4].second ) );
+    int w = std::stoi( string( what[1].first, what[1].second ) );
+    int h = std::stoi( string( what[2].first, what[2].second ) );
+    int x = std::stoi( string( what[3].first, what[3].second ) );
+    int y = std::stoi( string( what[4].first, what[4].second ) );
     flavor = ::kwiver::track_oracle::aoi_utils::aoi_t::PIXEL;
     points.push_back( vgl_point_2d<double>(x,   y   ));
     points.push_back( vgl_point_2d<double>(x+w, y   ));
@@ -92,8 +91,8 @@ parse_aoi_string( const string& s,
   // start picking off the numbers
   while ( regex_search( a, b, what, float_pair_re ) )
   {
-    double x = boost::lexical_cast<double>( string( what[1].first, what[1].second ));
-    double y = boost::lexical_cast<double>( string( what[2].first, what[2].second ));
+    double x = std::stod( string( what[1].first, what[1].second ));
+    double y = std::stor( string( what[2].first, what[2].second ));
     points.push_back( vgl_point_2d<double>( x, y ));
     a = what[2].second;
   }

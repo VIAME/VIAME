@@ -11,8 +11,6 @@
 
 #include <tinyxml.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <track_oracle/utils/tokenizers.h>
 #include <track_oracle/utils/logging_map.h>
 #include <track_oracle/file_formats/track_xgtf/track_xgtf.h>
