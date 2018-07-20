@@ -197,6 +197,9 @@ function (kwiver_create_python_init    modpath)
 
   file(WRITE "${init_template}"      "${copyright_header}\n\n")
 
+  file(APPEND "${init_template}"
+    "from __future__ import absolute_import\n\n")
+
   foreach (module IN LISTS ARGN)
     file(APPEND "${init_template}"      "from .${module} import *\n")
   endforeach ()
