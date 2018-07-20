@@ -35,7 +35,6 @@ target_link_libraries( data_terms
   PRIVATE              scoring_aries_interface
                        vital_logger
                        vital
-                       ${Boost_SYSTEM_LIBRARY}
   INTERFACE            vgl
 )
 set_target_properties( data_terms PROPERTIES CXX_VISIBILITY_PRESET default)
