@@ -77,7 +77,7 @@ TEST_F(triangulate_landmarks_rpc, from_data)
     std::make_shared< simple_landmark_map >( landmark_map );
 
   camera_map::map_camera_t camera_map;
-  for ( size_t i = 0; i < 3; ++i )
+  for ( size_t i = 0; i < 8; ++i )
   {
     path_t filepath = data_dir + "/rpc_data" + std::to_string(i) + ".dat";
     auto cam_ptr = std::make_shared< simple_camera_rpc >( read_rpc( filepath ) );
