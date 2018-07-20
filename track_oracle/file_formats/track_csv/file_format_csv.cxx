@@ -26,6 +26,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -293,8 +294,8 @@ file_format_csv
   // of the track_sequence header. (frame_sequence may be
   // missing if no frame data is recorded.)
 
-  vector<string>::iterator track_sequence_probe = find( headers.begin(), headers.end(), string("_track_sequence") );
-  vector<string>::iterator external_id_probe = find( headers.begin(), headers.end(),  string("external_id") );
+  vector<string>::iterator track_sequence_probe = std::find( headers.begin(), headers.end(), "_track_sequence" );
+  vector<string>::iterator external_id_probe = std::find( headers.begin(), headers.end(), "external_id" );
 
   if (( track_sequence_probe == headers.end() ) &&
       ( external_id_probe == headers.end() ))
