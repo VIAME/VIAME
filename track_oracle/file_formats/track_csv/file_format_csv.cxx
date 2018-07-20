@@ -17,9 +17,6 @@
 #include <track_oracle/core/state_flags.h>
 #include <track_oracle/data_terms/data_terms.h>
 
-#include <boost/smart_ptr.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
 #include <vul/vul_timer.h>
 #include <vul/vul_file.h>
 #include <vul/vul_sprintf.h>
