@@ -10,12 +10,13 @@
 #include <sstream>
 #include <mutex>
 
-#include <boost/algorithm/string.hpp>
-
 #include <tinyxml.h>
 
 #include <track_oracle/core/track_oracle_core.h>
 #include <track_oracle/core/element_descriptor.h>
+
+#include <vital/util/tokenize.h>
+#include <vital/util/string.h>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -260,11 +261,11 @@ istream& operator>>( istream& is, state_flag_type& t )
   if ( is >> text )
   {
     vector<string> tokens;
-    boost::split( tokens, text, boost::is_any_of( ",|+" ));
+    kwiver::vital::tokenize( text, tokens, ",|+" );
     for (size_t i=0; i<tokens.size(); ++i)
     {
       string& token = tokens[i];
-      boost::trim(token);
+      kwiver::vital::string_trim(token);
       if (token.empty()) continue;
       size_t c = token.find( ':' );
       if ( c == string::npos )
