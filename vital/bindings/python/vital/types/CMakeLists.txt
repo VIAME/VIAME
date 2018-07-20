@@ -156,7 +156,7 @@ target_link_libraries(python-vital.types-object_track_set
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
-sprokit_create_python_init(vital/types
+kwiver_create_python_init(vital/types
   bounding_box
   camera
   camera_intrinsics
