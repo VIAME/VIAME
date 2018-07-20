@@ -363,7 +363,10 @@ video_input_filter
   auto internal_map = d->d_video_input->metadata_map()->metadata();
   auto start = internal_map.find(d->c_start_at_frame);
   auto stop = internal_map.find(d->c_stop_after_frame);
-  stop++; // stop frame should be included
+  if (stop != internal_map.end() )
+  {
+    stop++; // stop frame should be included
+  }
 
   if (d->c_stop_after_frame > 0)
   {
