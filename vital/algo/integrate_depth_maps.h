@@ -40,8 +40,10 @@
 #include <vital/vital_config.h>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/image_container.h>
+
+#include <vital/types/vector.h>
 
 
 namespace kwiver {
@@ -78,9 +80,10 @@ public:
    * image specify the origin and scale of the volume in world coordinates.
    */
   virtual void
-  integrate(kwiver::vital::image_container_sptr_list depth_maps,
-            kwiver::vital::camera_sptr_list cameras,
-            kwiver::vital::image_container_sptr& volume) const = 0;
+    integrate(const kwiver::vital::vector_3d &minpt_bound, const kwiver::vital::vector_3d &maxpt_bound,
+      const std::vector<kwiver::vital::image_container_sptr> &depth_maps,
+      const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
+      kwiver::vital::image_container_sptr& volume) const = 0;
 
 protected:
   integrate_depth_maps();

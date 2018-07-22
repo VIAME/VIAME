@@ -40,6 +40,10 @@ if( KWIVER_ENABLE_VXL )
   endif()
 endif()
 
+if ( KWIVER_ENABLE_CUDA )
+  add_subdirectory( cuda )
+endif()
+
 # Add VisCL plugin if enabled
 #  needs VXL
 if( KWIVER_ENABLE_VISCL )
