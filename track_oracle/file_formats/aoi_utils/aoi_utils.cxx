@@ -10,6 +10,7 @@
 #include <vector>
 #include <map>
 #include <sstream>
+#include <regex>
 
 #include <vgl/vgl_point_2d.h>
 #include <vgl/vgl_polygon.h>
@@ -17,8 +18,6 @@
 
 #include <track_oracle/track_scorable_mgrs/scorable_mgrs.h>
 
-#include <boost/regex.hpp>
-#include <boost/lexical_cast.hpp>
 
 using std::vector;
 using std::map;
@@ -56,20 +55,20 @@ parse_aoi_string( const string& s,
   flavor = ::kwiver::track_oracle::aoi_utils::aoi_t::INVALID;
   points.clear();
 
-  boost::regex pixel_geom_re( "(\\d+)x(\\d+)([\\+\\-]\\d+)([\\+\\-]\\d+)" );
-  boost::regex float_pair_re( "^\\s*\\:?\\s*([\\d\\+\\-\\.eE]+)\\s*\\,\\s*([\\d\\+\\-\\.eE]+)" );
-  boost::regex pixel_tag_re ( "^\\s*[Pp]" );
+  std::regex pixel_geom_re( "(\\d+)x(\\d+)([\\+\\-]\\d+)([\\+\\-]\\d+)" );
+  std::regex float_pair_re( "^\\s*\\:?\\s*([\\d\\+\\-\\.eE]+)\\s*\\,\\s*([\\d\\+\\-\\.eE]+)" );
+  std::regex pixel_tag_re ( "^\\s*[Pp]" );
 
-  boost::match_results< string::const_iterator > what;
+  std::smatch what;
 
   // special case: is it a geometry string?
   string::const_iterator a( s.begin() ), b( s.end() );
-  if ( regex_match( a, b, what, pixel_geom_re ))
+  if ( std::regex_match( a, b, what, pixel_geom_re ))
   {
-    int w = boost::lexical_cast<int>( string( what[1].first, what[1].second ) );
-    int h = boost::lexical_cast<int>( string( what[2].first, what[2].second ) );
-    int x = boost::lexical_cast<int>( string( what[3].first, what[3].second ) );
-    int y = boost::lexical_cast<int>( string( what[4].first, what[4].second ) );
+    int w = std::stoi( what.str(1) );
+    int h = std::stoi( what.str(2) );
+    int x = std::stoi( what.str(3) );
+    int y = std::stoi( what.str(4) );
     flavor = ::kwiver::track_oracle::aoi_utils::aoi_t::PIXEL;
     points.push_back( vgl_point_2d<double>(x,   y   ));
     points.push_back( vgl_point_2d<double>(x+w, y   ));
@@ -79,7 +78,7 @@ parse_aoi_string( const string& s,
   }
 
   // otherwise, is it a pixel or a lat/lon?
-  if ( regex_search( a, b, what, pixel_tag_re ))
+  if ( std::regex_search( a, b, what, pixel_tag_re ))
   {
     flavor = ::kwiver::track_oracle::aoi_utils::aoi_t::PIXEL;
     a = what[1].second;
@@ -90,10 +89,10 @@ parse_aoi_string( const string& s,
   }
 
   // start picking off the numbers
-  while ( regex_search( a, b, what, float_pair_re ) )
+  while ( std::regex_search( a, b, what, float_pair_re ) )
   {
-    double x = boost::lexical_cast<double>( string( what[1].first, what[1].second ));
-    double y = boost::lexical_cast<double>( string( what[2].first, what[2].second ));
+    double x = std::stod( what.str(1) );
+    double y = std::stor( what.str(2) );
     points.push_back( vgl_point_2d<double>( x, y ));
     a = what[2].second;
   }

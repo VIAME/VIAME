@@ -12,7 +12,7 @@
 #include <cstdio>
 #include <cctype>
 
-#include <boost/tokenizer.hpp>
+#include <vital/util/tokenize.h>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -45,14 +45,9 @@ file_format_vatic
   if ( line.find( "\"" ) == string::npos ) return false;
 
   {
-    boost::char_separator<char> sep(" ");
-    boost::tokenizer<boost::char_separator<char> > tokens(line, sep);
-    for ( boost::tokenizer<boost::char_separator<char> >::iterator it = tokens.begin();
-          it != tokens.end();
-          ++it)
-    {
-      fields.push_back(*it);
-    }
+    vector< string > fields;
+    const bool doTrimEmpty = true;
+    kwiver::vital::tokenize( line, fields, " ", doTrimEmpty );
     if (fields.size() < 10  || !isdigit(fields[6][0]))
     {
       return false;

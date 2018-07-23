@@ -12,10 +12,10 @@
 
 #include <map>
 #include <string>
+#include <mutex>
+
 #include <track_oracle/core/track_oracle_core.h>
 #include <track_oracle/core/element_store.h>
-
-#include <boost/thread/mutex.hpp>
 
 namespace  // anon
 {
@@ -79,7 +79,7 @@ private:
   template< typename T > std::pair< std::map<oracle_entry_handle_type, T>*, T > lookup_table( field_handle_type field );
 
   // giant mutex for a blunt approach to thread safety
-  mutable boost::mutex api_lock;
+  mutable std::mutex api_lock;
 
   // throws if the field doesn't exist
   field_handle_type lookup_required_field( const std::string& fn ) const;

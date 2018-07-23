@@ -6,12 +6,9 @@
 
 #include "file_format_xgtf.h"
 
-#include <vul/vul_reg_exp.h>
 #include <vgl/vgl_point_2d.h>
 
 #include <tinyxml.h>
-
-#include <boost/lexical_cast.hpp>
 
 #include <track_oracle/utils/tokenizers.h>
 #include <track_oracle/utils/logging_map.h>

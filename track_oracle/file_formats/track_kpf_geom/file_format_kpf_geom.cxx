@@ -49,8 +49,6 @@ static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __
 #include <track_oracle/utils/logging_map.h>
 #include <track_oracle/file_formats/kpf_utils/kpf_utils.h>
 
-#include <kwiversys/RegularExpression.hxx>
-
 #include <yaml-cpp/yaml.h>
 
 #include <iostream>

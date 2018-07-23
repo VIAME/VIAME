@@ -17,10 +17,6 @@
 #include <track_oracle/core/state_flags.h>
 #include <track_oracle/data_terms/data_terms.h>
 
-#include <boost/smart_ptr.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
 #include <vul/vul_timer.h>
 #include <vul/vul_file.h>
 #include <vul/vul_sprintf.h>
@@ -30,6 +26,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -297,8 +294,8 @@ file_format_csv
   // of the track_sequence header. (frame_sequence may be
   // missing if no frame data is recorded.)
 
-  vector<string>::iterator track_sequence_probe = find( headers.begin(), headers.end(), "_track_sequence" );
-  vector<string>::iterator external_id_probe = find( headers.begin(), headers.end(),  "external_id" );
+  vector<string>::iterator track_sequence_probe = std::find( headers.begin(), headers.end(), "_track_sequence" );
+  vector<string>::iterator external_id_probe = std::find( headers.begin(), headers.end(), "external_id" );
 
   if (( track_sequence_probe == headers.end() ) &&
       ( external_id_probe == headers.end() ))
@@ -393,7 +390,7 @@ file_format_csv
     bool row_is_track = ( values[ frame_index ].empty() );
     if (row_is_track)
     {
-      unsigned this_id = boost::lexical_cast<unsigned>( values[ sequence_index ]);
+      unsigned this_id = std::stoul( values[ sequence_index ] );
 
       // do we need to create a new row?
       if ( sequence_to_handle_map.find( this_id ) == sequence_to_handle_map.end() )
@@ -413,7 +410,7 @@ file_format_csv
         ? values[frame_index]
         : values[sequence_index];
 
-      unsigned this_frame_belongs_to = boost::lexical_cast<unsigned>( parent_probe_target_string );
+      unsigned this_frame_belongs_to = std::stoul( parent_probe_target_string );
       map< size_t, track_handle_type >::const_iterator parent_probe =
         sequence_to_handle_map.find( this_frame_belongs_to );
       if (parent_probe == sequence_to_handle_map.end() )
