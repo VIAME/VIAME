@@ -210,7 +210,7 @@ Next, install any required dependencies for items you want to build. If using CU
 version 8.0 is desired, along with Python 2.7. Other versions have yet to be tested 
 extensively. On Windows it can also be beneficial to use Anaconda to get multiple
 python packages. Boost Python (turned on by default when Python is enabled) requires
-Numpy and a few other dependencies. Postgresql must be installed from ``https://www.postgresql.org/``.
+Numpy and a few other dependencies. If using databases, Postgresql may be installed from ``https://www.postgresql.org/``.
 
 Finally, create a build folder and run the CMake GUI (``https://cmake.org/runningcmake/``).
 Point it to your source and build directories, select your compiler of choice, and
