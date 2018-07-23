@@ -6,6 +6,6 @@ export VIAME_INSTALL=./../..
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 
-# Run vpView
+# Run draw pipeline
 
 pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/draw_detections_on_images.pipe

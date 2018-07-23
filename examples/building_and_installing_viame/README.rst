@@ -3,8 +3,21 @@
    :local:
 
 .. _linux-label:
-
 |
+==================================
+Installing from Pre-Built Binaries
+==================================
+
+First, download the binaries for your operating system from the main github page:
+
+https://github.com/Kitware/VIAME
+
+Next, use the offline install guide located at the below link to complete the installation:
+
+`VIAME Offline Installation`_
+
+.. _VIAME Offline Installation: https://data.kitware.com/api/v1/item/5b4681808d777f2e6225a29f/download
+
 
 ==========================
 Building VIAME From Source
@@ -38,7 +51,8 @@ a starting point.
 
    sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev
 
-If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy, e.g.:
+If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy (or
+alternatively whatever python distribution you want to use), e.g.:
 
 .. code-block:: bash
 
@@ -55,21 +69,21 @@ Install CMAKE
 =============
 
 Depending on the OS, the version of cmake you get with apt/yum/dnf is often too old to
-use for VIAME (you currently need at least CMake 3.3) so you may need to do a manual
+use for VIAME (you currently need at least CMake 3.11.4) so you may need to do a manual
 install. Go to the cmake website, ``https://cmake.org/download``, and download the
 appropriate binary distribution (for Ubuntu, this would be something like 
-cmake-3.6.1-Linux-x86_64.sh, depending on version). Alternatively, download the
-source code, e.g. cmake-3.6.1.tar.gz, and build the binaries from source. To untar
+cmake-3.11.4-Linux-x86_64.sh, depending on version). Alternatively, download the
+source code, e.g. cmake-3.11.4.tar.gz, and build the binaries from source. To untar
 and build the source, use the following set of commands. Keep in mind that if you're
-not using version 3.6.1, you'll need to update the version number in the below to
+not using version 3.11.4, you'll need to update the version number in the below to
 match your downloaded version.
 
 
 .. code-block:: bash
 
    cd ~/Downloads
-   tar zxfv cmake-3.6.1.tar.gz
-   cd cmake-3.6.1
+   tar zxfv cmake-3.11.4.tar.gz
+   cd cmake-3.11.4
    ./bootstrap --system-curl --no-system-libs
    make
    sudo make install
@@ -207,7 +221,7 @@ right click on the folder you checked out the source into, move to the TortoiseG
 menu section, and select ``Submodule Update``.
 
 Next, install any required dependencies for items you want to build. If using CUDA,
-version 8.0 is desired, along with Python 2.7. Other versions have yet to be tested 
+version 8.0 is desired, along with Python 3.6. Other versions have yet to be tested 
 extensively. On Windows it can also be beneficial to use Anaconda to get multiple
 python packages. Boost Python (turned on by default when Python is enabled) requires
 Numpy and a few other dependencies. If using databases, Postgresql may be installed from ``https://www.postgresql.org/``.
@@ -254,9 +268,8 @@ for sub-projects (say, for example, if one doesn't build).
 
 **Python:**
 
-The default Python used is 2.7, though other versions may work as well. It depends on
-your build settings and which dependency projects are turned on (some require 2.7, some
-don't).
+The default Python used is 2.7 or 3.6, though other versions may work as well. It depends on
+your build settings, operating system, and which dependency projects are turned on.
 
 
 .. _issues-label:
@@ -303,7 +316,7 @@ buy a better computer if not running a VM with at least 1 Gb of RAM.
 
 **Issue:**
 
-On VS2013 with Python enabled: ``error LNK1104: cannot open file 'python27_d.lib'``
+On VS2015 with Python enabled: ``error LNK1104: cannot open file 'python27_d.lib'``
 
 **Solution:**
 
@@ -406,8 +419,3 @@ to
 
 ``[VIAME_BUILD]/install/include/boost/python/``
 
-==================================
-Installing from Pre-Built Binaries
-==================================
-
-Coming soon....

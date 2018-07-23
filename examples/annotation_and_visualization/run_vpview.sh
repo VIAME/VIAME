@@ -6,6 +6,6 @@ export VIAME_INSTALL=./../..
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 
-# Run vpView
+# Run vpView annotation GUI
 
-vpView
+python ${VIAME_INSTALL}/configs/launch_annotation_gui.py

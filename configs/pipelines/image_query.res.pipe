@@ -51,7 +51,6 @@ process detector
   :detector:type                               darknet
 
   block detector:darknet
-
     # Network config, weights, and names
     relativepath net_config  =                 models/mouss_yolo_v2_960_generic.cfg
     relativepath weight_file =                 models/mouss_yolo_v2_960_generic.weights
@@ -67,11 +66,25 @@ process detector
     :resize_ni                                 960
     :resize_nj                                 960
     :scale                                     1.0
-
+    :chip_step                                 900
   endblock
 
 connect from reader.image
         to   detector.image
+
+process add_fixed_detection
+  :: refine_detections
+  :refiner:type                                add_fixed
+  
+  block refiner:add_fixed
+    :detection_type                            generic_object_proposal
+    :add_full_image_detection                  true
+  endblock
+
+connect from reader.image
+        to   add_fixed_detection.image
+connect from detector.detected_object_set
+        to   add_fixed_detection.detected_object_set
 
 process resnet
   :: resnet_descriptors
@@ -84,7 +97,7 @@ connect from reader.image
         to   resnet.image
 connect from reader.timestamp
         to   resnet.timestamp
-connect from detector.detected_object_set
+connect from add_fixed_detection.detected_object_set
         to   resnet.detected_object_set
 
 process track_initializer
@@ -93,7 +106,7 @@ process track_initializer
 
   block track_initializer:threshold:filter
     :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.01
+    :class_probablity_filter:threshold         0.0025
     :class_probablity_filter:keep_all_classes  true
     :class_probablity_filter:keep_classes      generic_object_proposal
   endblock

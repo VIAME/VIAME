@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,7 @@ public:
   std::string opt_input;
   std::string opt_detector;
   std::string opt_out_config;
+  std::string opt_threshold;
 
   trainer_vars()
   {
@@ -284,6 +285,9 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "image_extensions", ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG",
                      "Semicolon list of seperated image extensions to use in training, images "
                      "without this extension will not be included." );
+  config->set_value( "threshold", "0.00",
+                     "Optional threshold to provide on top of input groundtruth. This is useful "
+                     "if the groundtruth is derived from some automated detector." );
   config->set_value( "check_override", "false",
                      "Over-ride and ignore data safety checks." );
 
@@ -355,6 +359,10 @@ main( int argc, char* argv[] )
     &g_params.opt_out_config, "Output a sample configuration to file" );
   g_params.m_args.AddArgument( "-o",        argT::SPACE_ARGUMENT,
     &g_params.opt_out_config, "Output a sample configuration to file" );
+  g_params.m_args.AddArgument( "--threshold", argT::SPACE_ARGUMENT,
+    &g_params.opt_threshold, "Threshold override to apply over inputs" );
+  g_params.m_args.AddArgument( "-t",        argT::SPACE_ARGUMENT,
+    &g_params.opt_threshold, "Threshold override to apply over inputs" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -576,6 +584,13 @@ main( int argc, char* argv[] )
   std::string image_extensions_str = config->get_value< std::string >( "image_extensions" );
   std::string groundtruth_style = config->get_value< std::string >( "groundtruth_style" );
   bool check_override = config->get_value< bool >( "check_override" );
+  double threshold = config->get_value< double >( "threshold" );
+
+  if( !g_params.opt_threshold.empty() )
+  {
+    threshold = atof( g_params.opt_threshold.c_str() );
+    std::cout << "Using command line provided threshold: " << threshold << std::endl;
+  }
 
   std::vector< std::string > image_extensions, groundtruth_extensions;
   bool one_file_per_image;
@@ -618,6 +633,9 @@ main( int argc, char* argv[] )
     std::cout << "Error: training folder contains no sub-folders" << std::endl;
     exit( 0 );
   }
+
+  // Retain class counts for error checking
+  std::map< std::string, int > class_count;
 
   for( std::string folder : subdirs )
   {
@@ -704,11 +722,41 @@ main( int argc, char* argv[] )
 
       std::cout << "Read " << frame_dets->size() << " detections for " << image_file << std::endl;
 
-      // Is this a train or test image?
-      // TODO: ME
+      // Apply threshold to frame detections
+      kwiver::vital::detected_object_set_sptr filtered_dets =
+        std::make_shared< kwiver::vital::detected_object_set>();
 
+      for( auto det : *frame_dets )
+      {
+        bool add_detection = false;
+
+        if( det->type() )
+        {
+          for( auto t : *det->type() )
+          {
+            std::string gt_class = *(t.first);
+
+            if( classes->has_class_name( gt_class ) && t.second > threshold )
+            {
+              class_count[ classes->get_class_name( gt_class ) ]++;
+              add_detection = true;
+            }
+          }
+        }
+        else if( classes->size() == 1 )
+        {
+          add_detection = true; // single class problem, doesn't need dot
+        }
+
+        if( add_detection )
+        {
+          filtered_dets->add( det );
+        }
+      }
+
+      // TODO: Is this a train or test image?
       train_image_fn.push_back( image_files[i] );
-      train_gt.push_back( frame_dets );
+      train_gt.push_back( filtered_dets );
     }
 
     if( !one_file_per_image )
@@ -716,9 +764,6 @@ main( int argc, char* argv[] )
       gt_reader->close();
     }
   }
-
-  // Adjust all groundtruth detections for label file contents and perform error checking
-  std::map< std::string, int > class_count;
 
   for( auto det_set : train_gt )
   {

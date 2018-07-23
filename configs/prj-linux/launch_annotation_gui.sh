@@ -1,8 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
-export VIAME_INSTALL_DIR=/opt/noaa/viame
-export VIAME_SCRIPT_DIR=${VIAME_INSTALL_DIR}/configs
+# Setup VIAME Paths (no need to run multiple times if you already ran it)
 
-source ${VIAME_INSTALL_DIR}/setup_viame.sh
+export VIAME_INSTALL=/opt/noaa/viame
 
-echo "Script temporarily disabled"
+source ${VIAME_INSTALL}/setup_viame.sh 
+
+# Run vpView annotation GUI
+
+python ${VIAME_INSTALL}/configs/launch_annotation_gui.py

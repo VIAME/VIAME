@@ -5,6 +5,11 @@ import os
 import glob
 import argparse
 
+if os.name == 'nt':
+  div = '\\'
+else:
+  div = '/'
+
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
   return glob.glob( folder + '/*' )
@@ -29,22 +34,41 @@ def get_gui_cmd():
   else:
     return 'vpView '
 
+def execute_command( cmd ):
+  if os.name == 'nt':
+    return os.system( cmd )
+  else:
+    return os.system( '/bin/bash -c \"' + cmd + '\"'  )
+
+def get_script_path():
+  return os.path.dirname( os.path.realpath( sys.argv[0] ) )
+
+def find_file( filename ):
+  if( os.path.exists( filename ) ):
+    return os.path.abspath( filename )
+  elif os.path.exists( get_script_path() + div + filename ):
+    return get_script_path() + div + filename
+  else:
+    print( "Unable to find " + filename )
+    sys.exit( 0 )
+
 def get_writer_cmd():
   if os.name == 'nt':
     return 'kwa_tool.exe '
   else:
     return 'kwa_tool '
 
-# Main Function
-if __name__ == "__main__" :
+def process_video( args ):
+  print( "Function not yet implemented" )
+  sys.exit(0)
 
-  parser = argparse.ArgumentParser(description="Launch annotation GUI",
-                       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+def process_list( args ):
+  print( "Function not yet implemented" )
+  sys.exit(0)
 
-  parser.add_argument("-d", dest="input_dir", default="database",
-                      help="Input directory containing results")
-
-  args = parser.parse_args()
+def process_dir( args ):
+  print( "Function not yet implemented" )
+  sys.exit(0)
 
   files = list_files_in_dir( args.input_dir, "index" )
 
@@ -95,3 +119,41 @@ if __name__ == "__main__" :
 
   cmd = get_gui_cmd() + " -p " + project_file
   os.system( cmd )
+
+# Main Function
+if __name__ == "__main__" :
+
+  parser = argparse.ArgumentParser(description="Launch annotation GUI",
+                       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+  parser.add_argument("-d", dest="input_dir", default="",
+                      help="Input directory to run annotator on")
+
+  parser.add_argument("-v", dest="input_video", default="",
+                      help="Input video file to run annotator on")
+
+  parser.add_argument("-l", dest="input_list", default="",
+                      help="Input image list file to run annotator on")
+
+  parser.add_argument("-theme", dest="gui_theme",
+                      default="gui-params" + div + "dark_gui_settings.ini",
+                      help="Predefined query directory, if present")
+
+  parser.add_argument("--debug", dest="debug", action="store_true",
+                      help="Run with debugger attached to process")
+                      
+  parser.set_defaults( debug=False )
+
+  args = parser.parse_args()
+
+  if len( args.input_dir ) > 0:
+    process_dir( args )
+  elif len( args.input_video ) > 0:
+    process_video( args )
+  elif len( args.input_list ) > 0:
+    process_list( args )
+  else:
+    command = get_gui_cmd()
+    if len( args.gui_theme ) > 0:
+      command = command + " --theme \"" + find_file( args.gui_theme ) + "\" "
+    execute_command( command )

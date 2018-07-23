@@ -20,9 +20,24 @@ process input
 
 include ingest_core.res.pipe
 
-connect from input.image_file_name
-        to   downsampler.input_2
-connect from downsampler.output_2
-        to   detector_writer.image_file_name
+# The below changes lead to 1 KWA per input image as opposed to 1 per
+# input file. It is commented out per now due to failing at a high
+# number of files (~1000)
+
+# Connect image name to detection writer to inject correct name
+#connect from input.image_file_name
+#        to   downsampler.input_2
+#connect from downsampler.output_2
+#        to   detector_writer.image_file_name
+
+# Connect image name to desc writer to put correct name into stream
+#connect from downsampler.output_2
+#        to   descriptor_writer_db.image_file_name
+
+# Connect image name to KWA writer to put correct name into stream
+#connect from downsampler.output_2
+#        to   kwa_writer.stream_id
+#connect from downsampler.output_2
+#        to   kwa_writer.filename
 
 # -- end of file --

@@ -54,21 +54,30 @@ but select entries are also listed below, which include some run examples:
 Pre-Built Binaries
 ------------------
 
-To install, extract the binaries and place them in a directory of your choosing,
-for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux. Alternatively,
-any directory of your choosing.
+For a full installation guide, [see here](https://data.kitware.com/api/v1/item/5b4681808d777f2e6225a29f/download).
+In summary, extract the binaries and place them in a directory of your choosing, for
+example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
+Next, set the PYTHON_INSTALL_DIR and CUDA_INSTALL_DIR variables at the top
+of the setup_viame.sh (Linux) or setup_viame.bat (Windows) script in the root install
+folder to point to the location of your installed Anaconda and CUDA distributions.
+Lastly, run through some of the examples to validate the installation.
 
-**Linux:** <br>
-[VIAME v0.9.6 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.12](https://data.kitware.com/api/v1/item/5b2ab6b98d777f2e62257ad1/download) <br>
-[VIAME v0.9.6 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7.5](https://data.kitware.com/api/v1/item/5b20c7748d777f2e6225620d/download)
+**Installation Requirements:** <br>
+[Anaconda3 5.2.0](https://repo.continuum.io/archive/) <br>
+[CUDA 8.0 GA2](https://developer.nvidia.com/cuda-toolkit-archive) <br>
 
-**Windows:** <br>
-[VIAME v0.9.3 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 2.7 (Deprecated)](https://data.kitware.com/api/v1/item/5a9d8b218d777f0685785721/download)
+**Installation Recommendations:** <br>
+A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
-Windows binaries require an install of either [Anaconda2](https://www.continuum.io/downloads)
-(preferred) or a comparable Python 2.7 with multiple packages, however, our source releases now
-support building with either Python 2 or Python 3. The above releases were both built with CUDA 8.0,
-Python 2.7, and no matlab support enabled.
+**Linux Binaries:** <br>
+[VIAME v0.9.7 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b48cb078d777f2e6225a9ef/download) <br>
+[VIAME v0.9.7 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=18tyvb7JlUWt4aifQmJK6A9KZFwdgopRX) <br>
+[VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b47c0ba8d777f2e6225a753/download) <br>
+[VIAME v0.9.7 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Bma9kipvDUh1DvWBPpw3MiYgROy7iAmC)
+
+**Windows Binaries:** <br>
+[VIAME v0.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b4c1e958d777f2e6225b7c0/download) <br>
+[VIAME v0.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1kmCJpOIMp07vGxAJIzJJY7MXa6-XoQKb)
 
 
 Quick Build Instructions
@@ -101,11 +110,11 @@ Or alternatively by building it in Visual Studio or your compiler of choice on
 Windows. The '-j8' tells the build to run multi-threaded using 8 threads, this is
 useful for a faster build though if you get an error it can be difficult to know
 here it was, in which case running just 'make' might be more helpful. For Windows,
-currently VS2013 thru VS2015 (with only early versions of 2017, not latest) are
-supported. If using CUDA, version 8.0 is desired, along with Python 2.7. Other 
-versions have yet to be tested extensively. On Windows it can also be beneficial
-to use Anaconda to get multiple python packages. Boost Python (turned on by default
-hen Python is enabled) requires Numpy and a few other dependencies.
+currently VS2015 (with only some sub-versions of 2017) are supported. If using CUDA,
+version 8.0 or 9.0, with CUDNN 6.0 is desired. Other versions have yet to be tested
+extensively. On Windows it can also be beneficial to use Anaconda to get multiple
+python packages. Boost Python (turned on by default hen Python is enabled) requires
+Numpy and a few other dependencies.
 
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency

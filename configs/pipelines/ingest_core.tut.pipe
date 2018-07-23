@@ -57,6 +57,22 @@ connect from downsampler.output_1
 connect from detector.detected_object_set
         to   detector_writer.detected_object_set
 
+# =============================== CORE DESCRIPTOR ==================================
+
+process resnet
+  :: resnet_descriptors
+  :resnet_model_input_size                     224
+  :resnet_batch_size                           32
+  :gpu_list                                    0
+  relativepath resnet_model_path =             models/pytorch-resnet50.pt
+
+connect from downsampler.output_1
+        to   resnet.image
+connect from downsampler.timestamp
+        to   resnet.timestamp
+connect from detector.detected_object_set
+        to   resnet.detected_object_set
+
 # ================================= CORE TRACKER ===================================
 
 process tracker
@@ -65,6 +81,7 @@ process tracker
   :detection_select_threshold                  0.01
   :similarity_threshold                        0.05
   :terminate_track_threshold                   2
+  :add_features_to_detections                  False
   :IOU_tracker_flag                            True
   :IOU_accept_threshold                        0.5
   :IOU_reject_threshold                        0.1
@@ -82,7 +99,7 @@ connect from downsampler.output_1
         to   tracker.image
 connect from downsampler.timestamp
         to   tracker.timestamp
-connect from detector.detected_object_set
+connect from resnet.detected_object_set
         to   tracker.detected_object_set
 
 # ============================ ANALYZE AND INDEX DATA ==============================

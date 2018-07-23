@@ -66,11 +66,18 @@ def format_cmd( cmd ):
 def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
   if is_windows():
     if len( install_dir ) > 0:
-      return "python.exe \"" + install_dir + div + "Scripts" + div + cmd + "-script.py\""
+      output = "python.exe \"" + install_dir + div + "Python" + str( sys.version_info[0] ) + str( sys.version_info[1] )
+      output = output + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py\""
+      return output
     else:
       return cmd + ".exe"
   else:
-    return cmd
+    if len( install_dir ) > 0:
+      output = "python " + install_dir + div + "lib" + div + "python" + str( sys.version_info[0] ) + "." + str( sys.version_info[1] )
+      output = output + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py"
+      return output
+    else:
+      return cmd
 
 def sequence_cmd( prefix, cmd, args  ):
   return prefix + " && " + format_cmd( cmd ) + " " + args
@@ -131,7 +138,7 @@ def build_balltree_index( install_dir="" ):
   build_standard_index( install_dir )
   print( "3. Generating Ball Tree" )
   execute_pycmd( install_dir, "make_balltree",
-    "-vc " + find_config( SMQTK_BTREE_CONFIG ) )
+    "-vc \"" + find_config( SMQTK_BTREE_CONFIG ) + "\"" )
 
 def build_standard_index( install_dir="" ):
   print( "1. Training ITQ Model" )

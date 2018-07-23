@@ -2,7 +2,7 @@
 # top level build file for NOAA VIAME
 #
 
-cmake_minimum_required( VERSION 3.9.5 )
+cmake_minimum_required( VERSION 3.11.4 )
 set( CMAKE_CXX_STANDARD 11 )
 
 project( VIAME )
@@ -165,6 +165,10 @@ if( VIAME_ENABLE_PYTHON )
        CACHE STRING "Python version number" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  OFF )
+endif()
+
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL )
   find_package( PythonInterp QUIET )
@@ -195,11 +199,11 @@ if( WIN32 AND VIAME_ENABLE_FASTER_RCNN )
 endif()
 
 if( VIAME_ENABLE_CUDNN )
-  set( CUDNN_ROOT "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
+  set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
   find_library( CUDNN_LIBRARY REQUIRED
     NAMES cudnn libcudnn.so libcudnn.so.6
-    PATHS ${CUDNN_ROOT}
+    HINTS ${CUDNN_ROOT_DIR}
           ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
           ${CUDA_TOOLKIT_ROOT_DIR}
     PATH_SUFFIXES lib lib64 )
@@ -208,7 +212,7 @@ if( VIAME_ENABLE_CUDNN )
     message( FATAL_ERROR "Unable to locate CUDNN library" )
   else()
     # Different subprojects use each variable
-    set( CUDNN_LIBRARIES CUDNN_LIBRARY CACHE INTERNAL "" FORCE )
+    set( CUDNN_LIBRARIES "${CUDNN_LIBRARY}" CACHE INTERNAL "" FORCE )
   endif()
 endif()
 
@@ -314,7 +318,7 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_smqtk )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH AND NOT WIN32 )
+  if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_INTERNAL_PYTORCH )
     include( add_project_pytorch )
   endif()
 

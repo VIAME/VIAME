@@ -5,6 +5,7 @@
 # This pipe requires an input source node 'input' to be defined elsewhere
 
 # ================================== VIDEO INPUT ===================================
+
 process downsampler
   :: downsample
   :target_frame_rate                           1
@@ -79,7 +80,7 @@ process track_initializer
 
   block track_initializer:threshold:filter
     :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.01
+    :class_probablity_filter:threshold         0.005
     :class_probablity_filter:keep_all_classes  true
     :class_probablity_filter:keep_classes      generic_object_proposal
   endblock
