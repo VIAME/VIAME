@@ -72,3 +72,6 @@ target_link_libraries( track_oracle_event_adapter
 
 endif()
 
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory(tests)
+endif()
