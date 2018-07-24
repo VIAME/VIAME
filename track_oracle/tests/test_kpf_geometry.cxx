@@ -116,7 +116,7 @@ TEST(track_oracle, kpf_geometry)
 
   // catch duplicated IDs
   EXPECT_EQ( kpf_tracks.size(), kpf_map.size() ) << " same number of KPF tracks in map";
-  EXPECT_EQ( kw18_tracks.size(), kw18_map.size() ) << " same number of KPF tracks in map";
+  EXPECT_EQ( kw18_tracks.size(), kw18_map.size() ) << " same number of kw18 tracks in map";
 
   for (const auto& kw18: kw18_map )
   {
