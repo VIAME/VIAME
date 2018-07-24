@@ -22,7 +22,7 @@ process detector
 
 # =============================================================================
 process draw
-  :: draw_detected_object_boxes
+  :: draw_detected_object_set
   :default_line_thickness 3
 
 # =============================================================================
