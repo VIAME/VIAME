@@ -1,0 +1,65 @@
+#
+# Self-contained KWIVER installation
+# 
+
+FROM ubuntu:trusty
+
+#
+# System dependencies
+#
+
+RUN apt-get update -y && apt-get install -y && sudo apt-get install curl -y \ 
+&& apt-get install build-essential libgl1-mesa-dev -y \
+&& apt-get install libexpat1-dev -y \
+&& apt-get install libgtk2.0-dev -y \
+&& apt-get install libxt-dev -y \
+&& apt-get install libxml2-dev -y \
+&& apt-get install libssl-dev -y \
+&& apt-get install openssl libssl-dev -y \
+&& apt-get install liblapack-dev -y \
+&& apt-get install zlib1g-dev -y \
+&& apt-get install python2.7-dev -y \
+&& apt-get install python-pip -y \
+&& pip install numpy \
+&& apt-get install git -y
+
+#
+# CMake
+#
+
+ENV PATH $PATH:/cmake/cmake-3.11.3/bin  
+RUN mkdir /cmake \
+&& cd /cmake \
+&& curl -O "https://cmake.org/files/v3.11/cmake-3.11.3.tar.gz" \
+&& tar -xvf cmake-3.11.3.tar.gz \
+&& cd cmake-3.11.3 \
+&& ./configure \
+&& make -j8 -k \ 
+
+#
+# Building Fletch
+#
+
+&& mkdir -p /fletch/build/rel \
+&& mkdir /fletch_install \
+&& cd /fletch \
+&& git clone https://github.com/Kitware/fletch.git src \
+&& cd src \
+&& git checkout release \ 
+&& cd /fletch/build/rel \ 
+&& cmake -DCMAKE_BUILD_TYPE=Release -Dfletch_ENABLE_ALL_PACKAGES=ON -Dfletch_ENABLE_PYTHON=ON -Dfletch_BUILD_INSTALL_PREFIX=/fletch_install ../../src \
+&& make -j8 -k \
+&& rm -rf /fletch \ 
+
+#
+# Building Kwiver
+#
+
+&& mkdir -p /kwiver/build/release \
+&& cd /kwiver \
+&& git clone https://github.com/Kitware/kwiver.git src \
+&& cd src \
+&& git checkout release \ 
+&& cd /kwiver/build/release \ 
+&& cmake /kwiver/src -DCMAKE_BUILD_TYPE=Release -Dfletch_DIR:PATH=/fletch_install/share/cmake -DKWIVER_ENABLE_ARROWS=ON -DKWIVER_ENABLE_C_BINDINGS=ON -DKWIVER_ENABLE_CERES=ON -DKWIVER_ENABLE_EXTRAS=ON -DKWIVER_ENABLE_LOG4CPLUS=ON -DKWIVER_ENABLE_OPENCV=ON -DKWIVER_ENABLE_PROCESSES=ON -DKWIVER_ENABLE_PROJ=ON -DKWIVER_ENABLE_PYTHON=ON -DKWIVER_ENABLE_SPROKIT=ON -DKWIVER_ENABLE_TESTS=ON -DKWIVER_ENABLE_TOOLS=ON -DKWIVER_ENABLE_VXL=ON -DKWIVER_ENABLE_DOCS=ON -DKWIVER_INSTALL_DOCS=ON -DKWIVER_USE_BUILD_TREE=ON \
+&& make -j8 -k
