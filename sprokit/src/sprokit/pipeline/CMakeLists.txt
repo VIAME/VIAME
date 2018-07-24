@@ -48,12 +48,11 @@ set(pipeline_headers
 
 set(pipeline_private_headers)
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} sprokit )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_process_subdir} )
 set( sprokit_default_module_paths ${kwiver_module_path_result} )
 
-
 if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${sprokit_output_dir} sprokit )
+  kwiver_make_module_path( ${sprokit_output_dir} ${kwiver_plugin_process_subdir} )
   list( INSERT sprokit_default_module_paths 0 "${kwiver_module_path_result}" )
 endif ()
 
