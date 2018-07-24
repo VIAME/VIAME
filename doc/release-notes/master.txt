@@ -48,3 +48,9 @@ Tools
 
 
 Unit Tests
+
+Bug Fixes
+--------
+
+ * Fixed a problem where ports that were not supplied data in the
+   input_adapter_process were incorrectly reported.

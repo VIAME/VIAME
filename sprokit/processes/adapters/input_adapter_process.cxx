@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,7 +126,7 @@ input_adapter_process
 ::_step()
 {
   LOG_TRACE( logger(), "Processing data set" );
-  auto data_set = this->get_interface_queue()->Receive(); // blocks
+  auto data_set = this->get_interface_queue()->Receive(); // blocking call
   std::set< sprokit::process::port_t > unused_ports = m_active_ports; // copy set of active ports
 
   // Handle end of input as last data supplied.
@@ -150,24 +150,22 @@ input_adapter_process
   // Need to assure that all defined ports have a datum, and
   // there are no unconnected ports specified.
 
-  auto ie = data_set->end();
-  for ( auto ix = data_set->begin(); ix != ie; ++ix )
+  for ( auto ix : *data_set )
   {
     // validate the port name against our list of created ports
-    if ( m_active_ports.count( ix->first ) == 1 )
+    if ( m_active_ports.count( ix.first ) == 1 )
     {
       // Push each datum to their port
-      this->push_datum_to_port( ix->first, ix->second );
+      this->push_datum_to_port( ix.first, ix.second );
 
       // Remove this port from set so we know data has been sent.
       // Any remaining names are considered unused.
-      unused_ports.erase( ix->first );
+      unused_ports.erase( ix.first );
     }
     else
     {
       std::stringstream str;
-      str << "Process " << name() << ": Unconnected port \"" << ix->first << "\" specified in data packet. ";
-      LOG_ERROR( logger(), str.str() );
+      str << "Process " << name() << ": Unconnected port \"" << ix.first << "\" specified in data packet. ";
       throw std::runtime_error( str.str() );
     }
   } // end for
@@ -175,12 +173,10 @@ input_adapter_process
   // check to see if all ports have been supplied with a datum
   if ( unused_ports.size() != 0 )
   {
-    auto ie = data_set->end();
-    for ( auto ix = data_set->begin(); ix != ie; ++ix )
+    for ( auto port : unused_ports )
     {
-      std::stringstream str;
-      str << "Process: " << name() << ": Port \"" << ix->first << "\" has not been supplied with a datum";
-      LOG_ERROR( logger(), str.str() );
+      LOG_ERROR( logger(), "Process: " << name() << ": Port \"" << port
+                 << "\" has not been supplied with a datum");
     } // end for
 
     throw std::runtime_error( "Process " + name() + " has not been supplied data for all ports." );
