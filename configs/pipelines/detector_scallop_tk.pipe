@@ -21,11 +21,6 @@ process detector
   endblock
 
 # =============================================================================
-process draw
-  :: draw_detected_object_set
-  :default_line_thickness 3
-
-# =============================================================================
 process writer
   :: detected_object_output
 
@@ -34,26 +29,9 @@ process writer
   :writer:type                       viame_csv
 
 # =============================================================================
-process disp
-  :: image_viewer
-  :annotate_image                    true
-  :pause_time                        0  # 1.0
-  :title                             NOAA images
-
-# =============================================================================
 # connections
 connect from input.image
         to   detector.image
-
-connect from detector.detected_object_set
-        to   draw.detected_object_set
-connect from input.image
-        to   draw.image
-
-connect from input.timestamp
-        to   disp.timestamp
-connect from draw.image
-        to   disp.image
 
 connect from detector.detected_object_set
         to   writer.detected_object_set
