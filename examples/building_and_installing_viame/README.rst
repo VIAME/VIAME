@@ -50,6 +50,12 @@ a starting point.
 .. code-block:: bash
 
    sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev
+   
+If Qt or Boost don't build properly, you may need additional dependencies.
+On Ubuntu 14.04, for example, you need to run the following:
+
+.. code-block:: bash
+
    sudo apt-get build-dep libboost-all-dev qt5-default
 
 If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy (or
