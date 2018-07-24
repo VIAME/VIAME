@@ -50,6 +50,7 @@ a starting point.
 .. code-block:: bash
 
    sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev
+   sudo apt-get build-dep libboost-all-dev qt5-default
 
 If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy (or
 alternatively whatever python distribution you want to use), e.g.:
@@ -208,8 +209,7 @@ Building on Windows
 Building on windows can be very similar to Linux if using a shell like cygwin
 (``https://www.cygwin.com/``), though if not you may want to go grab the GUI
 versions of CMake (``https://cmake.org/``) and TortoiseGit (``https://tortoisegit.org/``).
-Currently Visual Studio 2013, 2015 and EARLY VERSION ONLY of 2017 are supported.
-Latest 2017 is not yet supported but will be shortly.
+Currently Visual Studio 2015 and 2017 are supported.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this
 involves right clicking in your folder of choice, selecting Git Clone, and then
