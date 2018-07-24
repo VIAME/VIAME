@@ -20,15 +20,15 @@ include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
 include_directories( "${Matlab_INCLUDE_DIRS}" )
 
 kwiver_add_plugin( kwiver_processes_matlab
-  SUBDIR           sprokit
-  SOURCES        ${sources}
-                 ${private_headers}
+  SUBDIR           ${kwiver_plugin_process_subdir}
+  SOURCES          ${sources}
+                   ${private_headers}
   PRIVATE          sprokit_pipeline
                    kwiver_algo_core
                    kwiver_algo_matlab
                    kwiversys
                    vital vital_vpm vital_logger vital_config
-                 ${Boost_SYSTEM_LIBRARY}
-                 ${Boost_FILESYSTEM_LIBRARY}
-                 ${Matlab_LIBRARIES}
+                   ${Boost_SYSTEM_LIBRARY}
+                   ${Boost_FILESYSTEM_LIBRARY}
+                   ${Matlab_LIBRARIES}
 )

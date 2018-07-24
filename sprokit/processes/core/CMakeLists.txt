@@ -5,7 +5,7 @@ project( kwiver_processes )
 
 set( sources
   register_processes.cxx
-  
+
   associate_detections_to_tracks_process.cxx
   close_loops_process.cxx
   compute_association_matrix_process.cxx
@@ -13,10 +13,10 @@ set( sources
   compute_stereo_depth_map_process.cxx
   compute_track_descriptors_process.cxx
   detect_features_if_keyframe_process.cxx
-  detect_features_process.cxx  
+  detect_features_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
-  detected_object_filter_process.cxx  
+  detected_object_filter_process.cxx
   draw_detected_object_set_process.cxx
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
@@ -49,7 +49,7 @@ set( private_headers
   compute_stereo_depth_map_process.h
   compute_track_descriptors_process.h
   detect_features_if_keyframe_process.h
-  detect_features_process.h  
+  detect_features_process.h
   detected_object_output_process.h
   detected_object_input_process.h
   detected_object_filter_process.h
@@ -82,13 +82,13 @@ kwiver_private_header_group( ${private_headers} )
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 kwiver_add_plugin( kwiver_processes
-  SUBDIR           sprokit
-  SOURCES        ${sources}
-                 ${private_headers}
+  SUBDIR           ${kwiver_plugin_process_subdir}
+  SOURCES          ${sources}
+                   ${private_headers}
   PRIVATE          sprokit_pipeline
                    kwiver_algo_core
                    kwiversys
                    vital vital_vpm vital_logger vital_config
-                 ${Boost_SYSTEM_LIBRARY}
-                 ${Boost_FILESYSTEM_LIBRARY}
+                   ${Boost_SYSTEM_LIBRARY}
+                   ${Boost_FILESYSTEM_LIBRARY}
 )

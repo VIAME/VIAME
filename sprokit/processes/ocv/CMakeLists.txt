@@ -23,12 +23,12 @@ if( OpenCV_VERSION VERSION_LESS "2.4" )
 endif()
 
 kwiver_add_plugin( kwiver_processes_ocv
-  SUBDIR           sprokit
-  SOURCES        ${sources}
-                 ${private_headers}
+  SUBDIR           ${kwiver_plugin_process_subdir}
+  SOURCES          ${sources}
+                   ${private_headers}
   PRIVATE          sprokit_pipeline
                    kwiver_algo_core kwiver_algo_ocv
                    vital vital_vpm vital_logger vital_config
                    kwiversys
-                 ${OpenCV_LIBS}
+                   ${OpenCV_LIBS}
  )

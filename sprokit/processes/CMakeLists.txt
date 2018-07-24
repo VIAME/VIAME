@@ -43,7 +43,7 @@ if (KWIVER_ENABLE_TOOLS)
 ###
 #     plugins for plugin explorer
 kwiver_add_plugin( process_explorer_plugin
-  SUBDIR   modules/plugin_explorer
+  SUBDIR   ${kwiver_plugin_plugin_explorer_subdir}
   SOURCES  process_explorer_plugin.cxx
   PRIVATE  vital
            vital_vpm

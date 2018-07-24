@@ -122,6 +122,14 @@ set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 #
 include(kwiver-utils)
 
+# Set directories where loadable modules are stored.
+# These subdirs are under .../lib/
+set( kwiver_plugin_process_subdir                 kwiver/processes )
+set( kwiver_plugin_process_instrumentation_subdir kwiver/modules ) # with modules for now
+set( kwiver_plugin_scheduler_subdir               kwiver/processes ) # with processes for now
+set( kwiver_plugin_module_subdir                  kwiver/modules )
+set( kwiver_plugin_plugin_explorer_subdir         kwiver/modules/plugin_explorer )
+
 ##
 # System specific compiler flags
 include(kwiver-flags)

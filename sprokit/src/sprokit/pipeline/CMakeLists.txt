@@ -97,7 +97,7 @@ set_source_files_properties(edge.cxx
   PROPERTIES
   COMPILE_DEFINITIONS "SPROKIT_DEFAULT_EDGE_CAPACITY=${SPROKIT_DEFAULT_EDGE_CAPACITY}" )
 
-sprokit_private_header_group(${pipeline_private_headers})
+kwiver_private_header_group(${pipeline_private_headers})
 
 kwiver_add_library(sprokit_pipeline
   ${pipeline_srcs}
