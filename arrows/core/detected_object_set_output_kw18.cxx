@@ -236,7 +236,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
     if( d->m_write_types )
     {
-      std::string type_fn = filename() + ".txt";
+      std::string type_fn = filename() + ".types";
 
       d->m_type_writer.reset( new std::ofstream( type_fn ) );
     }
