@@ -49,12 +49,12 @@ set(examples_private_headers
 
 set(no_install FALSE)
 
-sprokit_private_header_group(${examples_private_headers})
+kwiver_private_header_group(${examples_private_headers})
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 kwiver_add_plugin(processes_examples
-  SUBDIR         sprokit
+  SUBDIR         ${kwiver_plugin_process_subdir}
   SOURCES        ${examples_srcs}
                  ${examples_private_headers}
   PRIVATE        sprokit_pipeline

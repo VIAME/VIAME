@@ -15,9 +15,9 @@ set(flow_private_headers
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-sprokit_private_header_group(${flow_private_headers})
+kwiver_private_header_group(${flow_private_headers})
 kwiver_add_plugin(processes_flow
-  SUBDIR      sprokit
+  SUBDIR      ${kwiver_plugin_process_subdir}
   SOURCES     ${flow_srcs}
               ${flow_private_headers}
   PRIVATE     sprokit_pipeline

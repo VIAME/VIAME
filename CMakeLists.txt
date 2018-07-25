@@ -122,6 +122,15 @@ set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 #
 include(kwiver-utils)
 
+# Set directories where loadable modules are stored.
+# These subdirs are under .../lib/
+set( kwiver_plugin_process_subdir                 kwiver/processes )
+set( kwiver_plugin_process_instrumentation_subdir kwiver/modules ) # with modules for now
+set( kwiver_plugin_scheduler_subdir               kwiver/processes ) # with processes for now
+set( kwiver_plugin_module_subdir                  kwiver/modules )
+set( kwiver_plugin_plugin_explorer_subdir         kwiver/modules/plugin_explorer )
+set( kwiver_plugin_logger_subdir                  kwiver/modules )
+
 ##
 # System specific compiler flags
 include(kwiver-flags)
@@ -222,7 +231,7 @@ file( COPY log4cxx.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
 install( FILES log4cxx.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CXX )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/${kwiver_plugin_logger_subdir}/vital_log4cxx_logger\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties\n" )
   if(WIN32)
     message(STATUS "Log4CXX is not supported on windows, if no other logger is provided, the default will be used")
@@ -235,7 +244,7 @@ file( COPY log4cplus.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
 install( FILES log4cplus.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CPLUS )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cplus_logger\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/${kwiver_plugin_logger_subdir}/vital_log4cplus_logger\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CPLUS_CONFIGURATION=$this_dir/log4cplus.properties\n" )
 
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set VITAL_LOGGER_FACTORY=vital_log4cplus_logger\n" )

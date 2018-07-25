@@ -7,7 +7,7 @@
 :: where as an install directory does not (bin/*.dlls)
 if exist %~dp0/bin/kwiversys.dll (
   set config=
-  
+
   if not [%1] == [] echo setting up an install directory, ignoring provided configuration.
   GOTO Start
 )
@@ -24,7 +24,7 @@ set config=release
 
 set PATH=%~dp0/bin/%config%;%~dp0/lib/%config%/modules;%~dp0/lib/%config%/sprokit;%~dp0/lib/sprokit/%config%;@EXTRA_WIN32_PATH@
 
-set KWIVER_PLUGIN_PATH=%~dp0/lib/%config%/modules;%~dp0/lib/%config%/sprokit;%~dp0/lib/sprokit/%config%
+set KWIVER_PLUGIN_PATH=%~dp0/lib/%config%/@kwiver_plugin_module_subdir@;%~dp0/lib/%config%/sprokit;%~dp0/lib/@kwiver_plugin_process_subdir@/%config%
 
 :: Set default log reporting level for default logger.
 :: set KWIVER_DEFAULT_LOG_LEVEL=info

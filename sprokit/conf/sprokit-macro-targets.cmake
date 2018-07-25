@@ -2,13 +2,6 @@
 # The following functions are defined:
 #
 #   sprokit_install
-#   sprokit_add_executable
-#   sprokit_add_library
-#   sprokit_private_header_group
-#   sprokit_private_template_group
-#   sprokit_install_pipelines
-#   sprokit_install_clusters
-#   sprokit_install_includes
 #
 # The following variables may be used to control the behavior of the functions:
 #
@@ -47,28 +40,6 @@
 #   sprokit_install([args])
 #     A wrapper around the install call which recognizes the 'no_install'
 #     variable.
-#
-#   sprokit_add_executable(name [source ...])
-#     Creates an executable that is built into the correct directory and is
-#     installed.
-#
-#   sprokit_add_library(name [source ...])
-#     Creates a library named that is built into the correct directory and
-#     is installed. Additionally, the 'library_subdir' variable can be set to
-#     put the library in the correct place on DLL systems (see the CMake
-#     documentation on LIBRARY_OUTPUT_DIRECTORY).
-#
-#   sprokit_private_header_group([source ...])
-#   sprokit_private_template_group([source ...])
-#     Add 'sources' to a subdirectory within IDEs which display sources for
-#     each target. Useful for separating installed files from private files in
-#     the UI.
-#
-#   sprokit_install_pipelines([pipeline ...])
-#   sprokit_install_clusters([cluster ...])
-#   sprokit_install_includes([include ...])
-#     Install pipeline files into the correct
-#     location.
 #
 
 ###
@@ -109,45 +80,4 @@ function (sprokit_install)
   endif ()
 
   install(${ARGN})
-endfunction ()
-
-###
-#
-function (sprokit_private_header_group)
-  source_group("Header Files\\Private"
-    FILES ${ARGN})
-endfunction ()
-
-###
-#
-function (sprokit_private_template_group)
-  source_group("Template Files\\Private"
-    FILES ${ARGN})
-endfunction ()
-
-###
-#
-function (sprokit_install_pipelines)
-  sprokit_install(
-    FILES       ${ARGN}
-    DESTINATION share/sprokit/pipelines
-    COMPONENT   pipeline)
-endfunction ()
-
-###
-# for cluster definitions
-function (sprokit_install_clusters)
-  sprokit_install(
-    FILES       ${ARGN}
-    DESTINATION share/sprokit/pipelines/clusters
-    COMPONENT   pipeline)
-endfunction ()
-
-###
-# for pipeline fragment files that are included
-function (sprokit_install_includes)
-  sprokit_install(
-    FILES       ${ARGN}
-    DESTINATION share/sprokit/pipelines/include
-    COMPONENT   pipeline)
 endfunction ()

@@ -8,6 +8,14 @@ fixes over the previous v1.2.0 release.
 Updates since v1.2.0
 --------------------
 
+ * Loadable modules (algorithms and processes) have been moved under
+   the .../lib/kwiver sugdirectory so that they will not conflict with
+   other packages.
+
+ * Replaces sprokit_private_header_group with kwiver equivalent.
+
+ * Remove unused sprokit cmake support.
+
 Vital
 
 

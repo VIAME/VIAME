@@ -18,9 +18,9 @@ kwiver_private_header_group( ${private_headers} )
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
 kwiver_add_plugin( kwiver_processes_vxl
-  SUBDIR          sprokit
-  SOURCES       ${sources}
-                ${private_headers}
+  SUBDIR          ${kwiver_plugin_process_subdir}
+  SOURCES         ${sources}
+                  ${private_headers}
   PRIVATE         sprokit_pipeline
                   kwiver_algo_core kwiver_algo_vxl
                   vital vital_vpm vital_logger vital_config
