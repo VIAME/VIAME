@@ -43,7 +43,9 @@ glob_to_regexp_string( const string& glob )
   {
     const char& c = *i;
     if (c =='\\' && !prev_slash)
+    {
       prev_slash = true;
+    }
     else if (prev_slash)
     {
       prev_slash = false;
@@ -61,16 +63,22 @@ glob_to_regexp_string( const string& glob )
       re.append(1,']');
     }
     else if (c=='?' && !in_sqr_brackets)
+    {
       re.append(1,'.');
+    }
     else if (c=='*' && !in_sqr_brackets)
+    {
       re.append( ".*" );
+    }
     else if (meta_chars.find_first_of( c ) != string::npos)
     {
       re.append( "\\" );
       re.append(1, c );
     }
     else
+    {
       re.append(1, c);
+    }
 
     ++i;
   }
