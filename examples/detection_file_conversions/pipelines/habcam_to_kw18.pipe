@@ -13,6 +13,7 @@ process image_reader
   :: frame_list_input
   :image_list_file                                  input_list.txt
   :frame_time                                              0.03333
+  :disable_file_load                                          true
   :image_reader:type                                           vxl
 
 process detection_reader
