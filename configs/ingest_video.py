@@ -96,6 +96,14 @@ def video_output_settings_list( basename ):
     fset( 'kwa_writer:stream_id=' + basename ),
   ))
 
+def archive_dimension_settings_list( options ):
+  if len( options.archive_width ) > 0:
+    return list(itertools.chain(
+      fset( 'kwa_writer:fixed_col_count=' + options.archive_width ),
+      fset( 'kwa_writer:fixed_row_count=' + options.archive_height ),
+    ))
+  return []
+
 def video_frame_rate_settings_list( options ):
   output = []
   if len( options.frame_rate ) > 0:
@@ -136,6 +144,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     command += video_frame_rate_settings_list( options )
 
   command += video_output_settings_list( basename )
+  command += archive_dimension_settings_list( options )
 
   if len( args.extra_options ) > 0:
     for extra_option in args.extra_options:
@@ -201,6 +210,12 @@ if __name__ == "__main__" :
 
   parser.add_argument("-smooth", dest="smooth", default="1",
                       help="Smoothing factor for plots")
+
+  parser.add_argument("-archive-height", dest="archive_height", default="",
+                      help="Advanced: Optional video archive height over-ride")
+
+  parser.add_argument("-archive-width", dest="archive_width", default="",
+                      help="Advanced: Optional video archive width over-ride")
 
   parser.add_argument("-logs", dest="log_dir", default="database/Logs",
                       help="Directory for log files, if empty will not use files")
