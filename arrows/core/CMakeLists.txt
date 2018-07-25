@@ -23,6 +23,7 @@ set( plugin_core_headers
   filter_features_magnitude.h
   filter_features_scale.h
   filter_tracks.h
+  full_frame_detector.h
   handle_descriptor_request_core.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
@@ -93,6 +94,7 @@ set( plugin_core_sources
   filter_features_magnitude.cxx
   filter_features_scale.cxx
   filter_tracks.cxx
+  full_frame_detector.cxx
   handle_descriptor_request_core.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
