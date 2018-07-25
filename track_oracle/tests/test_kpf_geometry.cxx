@@ -42,12 +42,14 @@
 #include <track_oracle/file_formats/file_format_manager.h>
 
 #include <map>
+#include <utility>
 
 namespace to = ::kwiver::track_oracle;
 namespace dt = ::kwiver::track_oracle::dt;
 
 using std::string;
 using std::map;
+using std::pair;
 
 namespace { //anon
 
@@ -85,6 +87,20 @@ int main(int argc, char** argv)
   ::testing::InitGoogleTest( &argc, argv );
   GET_ARG(1, g_data_dir);
   return RUN_ALL_TESTS();
+}
+
+// ------------------------------------------------------------------
+TEST(track_oracle, file_globs)
+{
+  const pair<size_t, string> test_globs[] = { { 1, "*.kw18" },
+                                              { 1, "*.geom.yml" },
+                                              { 2, "*.viratdata.events.txt" },
+                                              { 0, "*.nothing_matches_me" } };
+  for (const auto& g: test_globs)
+  {
+    auto matching_formats = to::file_format_manager::globs_match( g.second );
+    EXPECT_EQ( matching_formats.size(), g.first ) << "Glob '" << g.second << "' matches " << g.first << " formats";
+  }
 }
 
 // ------------------------------------------------------------------
