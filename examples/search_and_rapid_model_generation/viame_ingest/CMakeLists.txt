@@ -12,6 +12,7 @@ if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        create_index.from_detections.bat
+       create_index.full_frame_only.bat
        create_index.image_list.bat
        create_index.video_folder.bat
        process_using_models.bat
@@ -20,6 +21,7 @@ else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        create_index.from_detections.sh
+       create_index.full_frame_only.sh
        create_index.image_list.sh
        create_index.video_folder.sh
        process_using_models.sh
