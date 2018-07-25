@@ -71,6 +71,7 @@ public:
     , m_first( true )
     , m_frame_number( 0 )
     , m_write_tot( false )
+    , m_write_types( true )
   {}
 
   ~priv() {}
@@ -81,7 +82,9 @@ public:
   bool m_first;
   int m_frame_number;
   bool m_write_tot;
+  bool m_write_types;
   std::unique_ptr< std::ofstream > m_tot_writer;
+  std::unique_ptr< std::ofstream > m_type_writer;
   std::string m_tot_field1_ids, m_tot_field2_ids;
   std::vector< std::string > m_parsed_tot_ids1, m_parsed_tot_ids2;
 };
@@ -103,6 +106,11 @@ detected_object_set_output_kw18::
   {
     d->m_tot_writer->close();
   }
+
+  if( d->m_type_writer && d->m_type_writer->is_open() )
+  {
+    d->m_type_writer->close();
+  }
 }
 
 
@@ -115,6 +123,7 @@ set_configuration( vital::config_block_sptr config_in )
   config->merge_config( config_in );
 
   d->m_write_tot = config->get_value<bool>( "write_tot" , d->m_write_tot );
+  d->m_write_types = config->get_value<bool>( "write_types" , d->m_write_types );
 
   d->m_tot_field1_ids = config->get_value<std::string>( "tot_field1_ids" , d->m_tot_field1_ids );
   d->m_tot_field2_ids = config->get_value<std::string>( "tot_field2_ids" , d->m_tot_field2_ids );
@@ -136,6 +145,8 @@ get_configuration() const
   config->set_value( "write_tot", d->m_write_tot,
                      "Write a file in the vpView TOT format alongside "
                      "the computed tracks." );
+  config->set_value( "write_types", d->m_write_types,
+                     "Write a kw18 types file alongside the track file." );
   config->set_value( "tot_field1_ids", d->m_tot_field1_ids,
                      "Comma seperated list of ids used for TOT field 1." );
   config->set_value( "tot_field2_ids", d->m_tot_field2_ids,
@@ -222,6 +233,13 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
 
       d->m_tot_writer.reset( new std::ofstream( tot_fn ) );
     }
+
+    if( d->m_write_types )
+    {
+      std::string type_fn = filename() + ".txt";
+
+      d->m_type_writer.reset( new std::ofstream( type_fn ) );
+    }
   } // end first
 
   // process all detections
@@ -281,8 +299,21 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
       f3 = 1.0 - f2 - f1;
 
       (*d->m_tot_writer) << id << " " << f1 << " " << f2 << " " << f3 << std::endl;
-
     } // end write_tot
+
+    // optionally write type to corresponding file
+    if( d->m_write_types )
+    {
+      vital::detected_object_type_sptr clf = (*det)->type();
+
+      if( !clf->size() == 0 )
+      {
+        std::string cls;
+        clf->get_most_likely( cls );
+
+        (*d->m_type_writer) << id << " " << cls << std::endl;
+      }
+    } // end write_type
   } // end foreach
 
   // Put each set on a new frame
