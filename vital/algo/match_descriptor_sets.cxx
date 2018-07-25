@@ -49,7 +49,7 @@ namespace algo {
 match_descriptor_sets
 ::match_descriptor_sets()
 {
-  attach_logger( "match_descriptor_sets" );
+  attach_logger( "algo.match_descriptor_sets" );
 }
 
 

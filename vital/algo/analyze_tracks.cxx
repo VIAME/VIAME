@@ -38,7 +38,7 @@ namespace algo {
 analyze_tracks
 ::analyze_tracks()
 {
-  attach_logger( "analyze_tracks" );
+  attach_logger( "algo.analyze_tracks" );
 }
 
 } } }

@@ -49,7 +49,7 @@ namespace algo {
 estimate_essential_matrix
 ::estimate_essential_matrix()
 {
-  attach_logger( "estimate_essential_matrix" );
+  attach_logger( "algo.estimate_essential_matrix" );
 }
 
 

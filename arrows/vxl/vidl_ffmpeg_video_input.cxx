@@ -508,7 +508,7 @@ vidl_ffmpeg_video_input
 ::vidl_ffmpeg_video_input()
   : d( new priv() )
 {
-  attach_logger( "video_input" ); // get appropriate logger
+  attach_logger( "arrows.vxl.video_input" ); // get appropriate logger
   d->d_logger = this->logger();
 }
 

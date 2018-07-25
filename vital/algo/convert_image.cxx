@@ -40,7 +40,7 @@ namespace algo {
 convert_image
 ::convert_image()
 {
-  attach_logger( "convert_image" );
+  attach_logger( "algo.convert_image" );
 }
 
 

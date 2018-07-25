@@ -43,7 +43,7 @@ namespace algo {
 uuid_factory
 ::uuid_factory()
 {
-  attach_logger( "uuid_factory" );
+  attach_logger( "algo.uuid_factory" );
 }
 
 } } }

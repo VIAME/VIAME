@@ -84,7 +84,7 @@ video_input_image_list
 ::video_input_image_list()
   : d( new video_input_image_list::priv )
 {
-  attach_logger( "video_input_image_list" );
+  attach_logger( "arrows.core.video_input_image_list" );
 
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );

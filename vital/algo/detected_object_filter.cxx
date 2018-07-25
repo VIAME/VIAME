@@ -43,7 +43,7 @@ namespace algo {
 detected_object_filter
 ::detected_object_filter()
 {
-  attach_logger( "detected_object_filter" );
+  attach_logger( "algo.detected_object_filter" );
 }
 
 } } }

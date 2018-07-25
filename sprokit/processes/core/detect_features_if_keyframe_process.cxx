@@ -115,8 +115,6 @@ public:
   : process( config ),
     d( new detect_features_if_keyframe_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
   d->m_logger = this->logger();
 
   make_ports();
@@ -133,7 +131,6 @@ void detect_features_if_keyframe_process
 ::_configure()
 {
   scoped_configure_instrumentation();
-
 
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();

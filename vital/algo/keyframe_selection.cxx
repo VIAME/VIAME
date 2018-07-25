@@ -39,7 +39,7 @@ namespace algo {
       keyframe_selection
         ::keyframe_selection()
       {
-        attach_logger("keyframe_selection");
+        attach_logger("algo.keyframe_selection");
       }
 
 }}} // end namespace

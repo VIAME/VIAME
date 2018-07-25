@@ -43,7 +43,7 @@ namespace algo {
 compute_stereo_depth_map
 ::compute_stereo_depth_map()
 {
-  attach_logger( "compute_stereo_depth_map" );
+  attach_logger( "algo.compute_stereo_depth_map" );
 }
 
 } } }

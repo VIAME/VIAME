@@ -60,7 +60,7 @@ video_input_split
 ::video_input_split()
   : d( new video_input_split::priv )
 {
-  attach_logger( "video_input_split" );
+  attach_logger( "arrows.core.video_input_split" );
 }
 
 

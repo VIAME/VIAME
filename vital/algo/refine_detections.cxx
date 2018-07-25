@@ -43,7 +43,7 @@ namespace algo {
 refine_detections
 ::refine_detections()
 {
-  attach_logger( "refine_detections" ); // specify a logger
+  attach_logger( "algo.refine_detections" ); // specify a logger
 }
 
 } } }

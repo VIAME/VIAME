@@ -38,7 +38,7 @@ namespace algo {
 initialize_object_tracks
 ::initialize_object_tracks()
 {
-  attach_logger( "initialize_object_tracks" );
+  attach_logger( "algo.initialize_object_tracks" );
 }
 
 } } }

@@ -76,9 +76,6 @@ write_object_track_process
   : process( config ),
     d( new write_object_track_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -94,6 +91,8 @@ write_object_track_process
 void write_object_track_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
@@ -145,7 +144,11 @@ void write_object_track_process
   kwiver::vital::object_track_set_sptr input
     = grab_from_port_using_trait( object_track_set );
 
-  d->m_writer->write_set( input );
+  {
+    scoped_step_instrumentation();
+
+    d->m_writer->write_set( input );
+  }
 }
 
 
