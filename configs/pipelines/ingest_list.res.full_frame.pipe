@@ -38,6 +38,7 @@ connect from input.timestamp
 process detector
   :: image_object_detector
   :detector:type                               full_frame
+  :detector:full_frame:detection_type          generic_object_proposal
 
 process detector_writer
   :: detected_object_output
