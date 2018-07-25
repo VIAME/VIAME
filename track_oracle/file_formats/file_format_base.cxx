@@ -6,7 +6,7 @@
 
 #include "file_format_base.h"
 
-#include <regex>
+#include <kwiversys/RegularExpression.hxx>
 
 #include <vul/vul_file.h>
 #include <vul/vul_string.h>
@@ -132,11 +132,10 @@ file_format_base
 ::filename_matches_globs( string fn ) const
 {
   vul_string_downcase( fn );
-  std::smatch matches;
   for (size_t i=0; i<this->globs.size(); ++i)
   {
-    std::regex r( glob_to_regexp_string( this->globs[i] ));
-    if (std::regex_search( fn, matches, r )) return true;
+    kwiversys::RegularExpression r( glob_to_regexp_string( this->globs[i] ));
+    if (r.find( fn )) return true;
   }
   return false;
 }
