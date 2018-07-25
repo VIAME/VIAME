@@ -85,6 +85,9 @@ create_config_trait( no_path_in_name, bool, "true",
                      "Set to true if the output image file path should not contain a full path to"
                      "the image file and just contain the file name for the image." );
 
+create_config_trait( disable_file_load, bool, "false",
+                     "Debug option to disable file loading and just pass the filename downstream." );
+
 create_config_trait( image_reader, std::string, "", "Algorithm configuration subblock" );
 
 //----------------------------------------------------------------
@@ -107,6 +110,7 @@ public:
   kwiver::vital::time_us_t m_frame_time;
   bool m_zero_based_id;
   bool m_no_path_in_name;
+  bool m_disable_file_load;
 
   // processing classes
   algo::image_io_sptr m_image_reader;
@@ -143,6 +147,7 @@ void frame_list_process
   d->m_config_frame_time          = config_value_using_trait( frame_time ) * 1e6; // in usec
   d->m_zero_based_id              = config_value_using_trait( zero_based_id );
   d->m_no_path_in_name            = config_value_using_trait( no_path_in_name );
+  d->m_disable_file_load          = config_value_using_trait( disable_file_load );
 
   std::string path = config_value_using_trait( path );
   kwiver::vital::tokenize( path, d->m_config_path, ":", kwiver::vital::TokenizeTrimEmpty );
@@ -224,7 +229,12 @@ void frame_list_process
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    auto img_c = d->m_image_reader->load( a_file );
+    kwiver::vital::image_container_sptr img_c;
+
+    if( !d->m_disable_file_load )
+    {
+      img_c = d->m_image_reader->load( a_file );
+    }
 
     // --- debug
 #if defined DEBUG
@@ -301,6 +311,7 @@ void frame_list_process
   declare_config_using_trait( path );
   declare_config_using_trait( zero_based_id );
   declare_config_using_trait( no_path_in_name );
+  declare_config_using_trait( disable_file_load );
 }
 
 
