@@ -1,0 +1,99 @@
+# Detection pipeline with SVM rapid model filters
+#
+# Runs pre-trained object detector followed by SVM class filters.
+
+# ========================= GLOBAL PROPERTIES ============================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity 5
+
+config _scheduler
+  :type pythread_per_process
+
+# ========================== INPUT FRAME LIST ============================
+process input
+  :: frame_list_input
+  :image_list_file                   input_list.txt
+  :frame_time                        0.03333
+  :image_reader:type                 ocv
+
+# =============================== YOLO v2 ================================
+
+process detector
+  :: image_object_detector
+  :detector:type    darknet
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =       models/default_yolo_v2.cfg
+    relativepath weight_file =       models/default_yolo_v2.weights
+    relativepath class_names =       models/default_yolo_v2.lbl
+
+    # Detector parameters
+    :thresh                          0.002
+    :hier_thresh                     0.001
+    :gpu_index                       0
+
+    # Image scaling parameters
+    :resize_option                   chip_and_original
+    :resize_ni                       544
+    :resize_nj                       544
+    :scale                           0.8
+    :chip_step                       500
+  endblock
+
+process descriptor
+  :: resnet_descriptors
+  :resnet_model_input_size           224
+  :resnet_batch_size                 32
+  :gpu_list                          0
+  relativepath resnet_model_path =   models/pytorch-resnet50.pt
+
+process svm_refiner
+  :: refine_detections
+  :refiner:type                      svm_refine
+  :refiner:svm_refine:model_dir      category_models
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                      nms
+  
+  block refiner:nms
+    :max_overlap                     0.50
+    :nms_scale_factor                1.5
+    :output_scale_factor             1.1
+  endblock
+
+process refined_csv_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                         svm_detections.csv
+  :writer:type                       viame_csv
+
+connect from input.image
+        to   detector.image
+connect from input.image
+        to   descriptor.image
+connect from input.image
+        to   svm_refiner.image
+connect from input.image
+        to   nms_refiner.image
+
+connect from input.timestamp
+        to   descriptor.timestamp
+
+connect from input.image_file_name
+        to   refined_csv_writer.image_file_name
+
+connect from detector.detected_object_set
+        to   descriptor.detected_object_set
+connect from descriptor.detected_object_set
+        to   svm_refiner.detected_object_set
+connect from svm_refiner.detected_object_set
+        to   nms_refiner.detected_object_set
+connect from nms_refiner.detected_object_set
+        to   refined_csv_writer.detected_object_set
+
+# -- end of file --
