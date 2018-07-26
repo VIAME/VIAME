@@ -98,7 +98,11 @@ void
 refine_detections_process::
 _step()
 {
-  vital::image_container_sptr image = grab_from_port_using_trait( image );
+  vital::image_container_sptr image;
+  if( has_input_port_edge_using_trait( image ) )
+  {
+    image = grab_from_port_using_trait( image );
+  }
   vital::detected_object_set_sptr dets = grab_from_port_using_trait( detected_object_set );
 
   vital::detected_object_set_sptr results;
