@@ -113,7 +113,7 @@ here it was, in which case running just 'make' might be more helpful. For Window
 currently VS2015 (with only some sub-versions of 2017) are supported. If using CUDA,
 version 8.0 or 9.0, with CUDNN 6.0 is desired. Other versions have yet to be tested
 extensively. On Windows it can also be beneficial to use Anaconda to get multiple
-python packages. Boost Python (turned on by default hen Python is enabled) requires
+python packages. Boost Python (turned on by default when Python is enabled) requires
 Numpy and a few other dependencies.
 
 There are several optional arguments to viame which control which plugins get built,
