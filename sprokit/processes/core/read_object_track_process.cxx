@@ -75,9 +75,6 @@ read_object_track_process
   : process( config ),
     d( new read_object_track_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }

@@ -38,7 +38,7 @@ namespace algo {
 compute_association_matrix
 ::compute_association_matrix()
 {
-  attach_logger( "compute_association_matrix" );
+  attach_logger( "algo.compute_association_matrix" );
 }
 
 } } }

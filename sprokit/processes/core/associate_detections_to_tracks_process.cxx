@@ -75,9 +75,6 @@ associate_detections_to_tracks_process
   : process( config ),
     d( new associate_detections_to_tracks_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -93,6 +90,8 @@ associate_detections_to_tracks_process
 void associate_detections_to_tracks_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   algo::associate_detections_to_tracks::set_nested_algo_configuration(
@@ -148,9 +147,13 @@ associate_detections_to_tracks_process
   vital::object_track_set_sptr output;
   vital::detected_object_set_sptr unused;
 
-  // Run associator
-  d->m_track_associator->associate( frame_id, image,
-    tracks, detections, ass_matrix, output, unused );
+  {
+    scoped_step_instrumentation();
+
+    // Run associator
+    d->m_track_associator->associate( frame_id, image,
+           tracks, detections, ass_matrix, output, unused );
+  }
 
   // Return by value
   push_to_port_using_trait( object_track_set, output );

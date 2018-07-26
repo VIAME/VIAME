@@ -115,9 +115,7 @@ match_features_bruteforce
 ::match_features_bruteforce()
   : p_( new priv )
 {
-  std::stringstream ss;
-  ss << type_name() << "." << impl_name();
-  attach_logger( ss.str() );
+  attach_logger( "arrows.ocv.match_features_bruteforce" );
 }
 
 

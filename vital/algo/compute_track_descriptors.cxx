@@ -43,7 +43,7 @@ namespace algo {
 compute_track_descriptors
 ::compute_track_descriptors()
 {
-  attach_logger( "compute_track_descriptors" );
+  attach_logger( "algo.compute_track_descriptors" );
 }
 
 } } }

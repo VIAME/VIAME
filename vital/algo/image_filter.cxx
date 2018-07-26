@@ -43,7 +43,7 @@ namespace algo {
 image_filter
 ::image_filter()
 {
-  attach_logger( "image_filter" ); // specify a logger
+  attach_logger( "algo.image_filter" ); // specify a logger
 }
 
 } } }

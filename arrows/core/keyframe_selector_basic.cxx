@@ -230,7 +230,7 @@ keyframe_selector_basic
 {
   d_ = std::make_shared<keyframe_selector_basic::priv>();
 
-  attach_logger("keyframe_selector_basic");
+  attach_logger("arrows.core.keyframe_selector_basic");
   d_->m_logger = this->logger();
 }
 

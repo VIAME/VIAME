@@ -45,7 +45,7 @@ namespace algo {
 triangulate_landmarks
 ::triangulate_landmarks()
 {
-  attach_logger( "triangulate_landmarks" );
+  attach_logger( "algo.triangulate_landmarks" );
 }
 
 } } }

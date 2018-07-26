@@ -38,7 +38,7 @@ namespace algo {
 compute_ref_homography
 ::compute_ref_homography()
 {
-  attach_logger( "compute_ref_homography" );
+  attach_logger( "algo.compute_ref_homography" );
 }
 
 } } }

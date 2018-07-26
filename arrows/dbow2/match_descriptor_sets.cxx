@@ -415,7 +415,7 @@ match_descriptor_sets
 ::match_descriptor_sets()
  : d_(new priv)
 {
-  attach_logger("match_descriptor_sets");
+  attach_logger("arrows.dbow2.match_descriptor_sets");
   d_->m_logger = this->logger();
 }
 

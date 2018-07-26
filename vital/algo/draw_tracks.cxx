@@ -38,7 +38,7 @@ namespace algo {
 draw_tracks
 ::draw_tracks()
 {
-  attach_logger( "draw_tracks" );
+  attach_logger( "algo.draw_tracks" );
 }
 
 } } }

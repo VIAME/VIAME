@@ -38,7 +38,7 @@ namespace algo {
 compute_depth
 ::compute_depth()
 {
-  attach_logger("compute_depth");
+  attach_logger("algo.compute_depth");
 }
 
 /// Set a callback function to report intermediate progress

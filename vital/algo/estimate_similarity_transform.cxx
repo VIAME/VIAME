@@ -51,7 +51,7 @@ namespace algo {
 estimate_similarity_transform
 ::estimate_similarity_transform()
 {
-  attach_logger( "estimate_similarity_transform" );
+  attach_logger( "algo.estimate_similarity_transform" );
 }
 
 

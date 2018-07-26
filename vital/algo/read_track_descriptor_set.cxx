@@ -55,7 +55,7 @@ read_track_descriptor_set
   : m_stream( 0 )
   , m_stream_owned( false )
 {
-  attach_logger( "read_track_descriptor_set" );
+  attach_logger( "algo.read_track_descriptor_set" );
 }
 
 

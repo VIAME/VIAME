@@ -49,7 +49,7 @@ namespace algo {
 estimate_pnp
 ::estimate_pnp()
 {
-  attach_logger( "estimate_pnp" );
+  attach_logger( "algo.estimate_pnp" );
 }
 
 
