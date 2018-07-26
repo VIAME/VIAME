@@ -135,6 +135,13 @@ target_link_libraries(python-vital.types-similarity
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+kwiver_add_python_library(timestamp
+  vital/types
+  timestamp.cxx)
+target_link_libraries(python-vital.types-timestamp
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 kwiver_add_python_library(track
   vital/types
   track.cxx)
@@ -156,6 +163,8 @@ target_link_libraries(python-vital.types-object_track_set
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+
+
 kwiver_create_python_init(vital/types
   bounding_box
   camera
@@ -176,6 +185,7 @@ kwiver_create_python_init(vital/types
   landmark
   rotation
   similarity
+  timestamp
   track
   track_set
   object_track_set
