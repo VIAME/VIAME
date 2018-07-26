@@ -15,7 +15,7 @@ if( WIN32 )
        create_index.full_frame_only.bat
        create_index.image_list.bat
        create_index.video_folder.bat
-       process_using_models.bat
+       process_list_using_models.bat
        launch_query_gui.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
@@ -24,7 +24,7 @@ else()
        create_index.full_frame_only.sh
        create_index.image_list.sh
        create_index.video_folder.sh
-       process_using_models.sh
+       process_list_using_models.sh
        launch_query_gui.sh )
 endif()
 
