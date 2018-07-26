@@ -210,7 +210,6 @@ read_object_track_set_db::priv
     "WHERE VIDEO_NAME = ?"
   );
   stmt.bind( 1, m_video_name );
-  stmt.exec();
 
   cppdb::result row = stmt.query();
 
