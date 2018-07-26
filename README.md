@@ -249,15 +249,15 @@ or
 	cd [install-directory]/examples/detector_pipelines/
 
 In those directories, run one of the detector pipelines. Which ENABLE_FLAGS you
-enabled will control which detector pipelines you can run, and only pipeline files
-with all required dependencies enabled will show up in the install tree.
-They can be run via one of the scripts placed in the directory, or via:
+enabled will control which detector pipelines you can run, and only run scripts
+with all required dependencies enabled will show up in the install tree. Each
+script is just performing a call to pipeline runner under the hood, e.g.:
 
 	pipeline_runner -p [pipeline-file].pipe
 
 Output detections can then be viewed in the GUI, e.g., see:
 
-[install-directory]/examples/visualizing_detections_in_gui/
+[install-directory]/examples/annotation_and_visualization/
 
 
 License and Citation
