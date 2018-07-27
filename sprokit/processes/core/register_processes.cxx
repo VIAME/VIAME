@@ -67,6 +67,7 @@
 #include "split_image_process.h"
 #include "stabilize_image_process.h"
 #include "track_features_process.h"
+#include "unwrap_detections_process.h"
 #include "video_input_process.h"
 #include "write_object_track_process.h"
 #include "write_track_descriptor_process.h"
@@ -411,6 +412,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Downsample an input stream." );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+
+  fact = vpm.ADD_PROCESS( kwiver::unwrap_detections_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "unwrap_detections" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "Unwrap object detections from object tracks." );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
 
 
