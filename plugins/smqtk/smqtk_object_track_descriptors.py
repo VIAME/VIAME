@@ -86,6 +86,7 @@ class SmqtkObjectTrackDescriptors (KwiverProcess):
         )
 
         self.conn = psycopg2.connect(self.conn_str)
+        self.current_idx = 0
 
         self._base_configure()
 
@@ -94,21 +95,33 @@ class SmqtkObjectTrackDescriptors (KwiverProcess):
 
         for object_track in object_tracks.tracks():
             for track_state in object_track:
-                cur = self.conn.cursor()
-                cur.execute("SELECT track_descriptor.uid FROM track_descriptor "
-                            "INNER JOIN track_descriptor_track ON track_descriptor.uid = track_descriptor_track.uid "
-                            "INNER JOIN track_descriptor_history ON track_descriptor.uid = track_descriptor_history.uid "
-                            "WHERE track_descriptor.video_name = %(video_name)s AND track_descriptor_history.frame_number = %(frame_number)s AND track_descriptor_track.track_id = %(track_id)s",
-                            {
-                                "video_name": self.video_name,
-                                "frame_number": track_state.frame_id,
-                                "track_id": object_track.id,
-                            })
-                rows = list(cur.fetchall())
-                if len(rows) != 1:
-                    raise RuntimeError("Could not get track descriptor")
-                uid = rows[0][0]
+                if track_state.frame_id == self.current_idx:
+                    cur = self.conn.cursor()
+                    cur.execute("SELECT track_descriptor.uid FROM track_descriptor "
+                                "INNER JOIN track_descriptor_track ON track_descriptor.uid = track_descriptor_track.uid "
+                                "INNER JOIN track_descriptor_history ON track_descriptor.uid = track_descriptor_history.uid "
+                                "WHERE track_descriptor.video_name = %(video_name)s AND track_descriptor_history.frame_number = %(frame_number)s AND track_descriptor_track.track_id = %(track_id)s",
+                                {
+                                    "video_name": self.video_name,
+                                    "frame_number": track_state.frame_id,
+                                    "track_id": object_track.id,
+                                })
+                    rows = list(cur.fetchall())
+                    if len(rows) != 1:
+                        raise RuntimeError("Could not get track descriptor")
+                    uid = rows[0][0]
+
+                    smqtk_descriptor = self.smqtk_descriptor_index.get_descriptor(uid)
+
+                    vital_descriptor = new_descriptor(len(smqtk_descriptor.vector()), "d")
+                    vital_descriptor[:] = smqtk_descriptor.vector()
+
+                    track_state.detection.set_descriptor(vital_descriptor)
+
+                    print("Finished track state: %i %i" % (object_track.id, track_state.frame_id))
 
         self.push_to_port_using_trait('object_track_set', object_tracks)
+
+        self.current_idx += 1
 
         self._base_step()
