@@ -63,6 +63,13 @@ public:
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
+  /// set a 3D region of interest for computing depth in
+  void set_roi(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt);
+
+  /// remove ROI, will compute depth range using landmarks instead
+  void clear_roi();
+
+
   /// Compute a depth map from an image sequence
   /**
   * Implementations of this function should not modify the underlying objects
