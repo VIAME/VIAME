@@ -40,8 +40,10 @@
 #include <vital/vital_config.h>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/image_container.h>
+
+#include <vital/types/vector.h>
 
 
 namespace kwiver {
@@ -70,17 +72,19 @@ public:
   /// Integrate multiple depth maps into a common volume
   /**
    *
-   * \param [in]     depth_maps the set of floating point depth map images
-   * \param [in]     cameras    the set of cameras, one for each depth map
-   * \param [in,out] volume     the fused volumetric data
-   *
-   * \note the volume data is stored as a 3D image.  Metadata fields on the
-   * image specify the origin and scale of the volume in world coordinates.
+   * \param [in]     minpt_bound the min point of the bounding region
+   * \param [in]     maxpt_bound the max point of the bounding region
+   * \param [in]     depth_maps  the set of floating point depth map images
+   * \param [in]     cameras     the set of cameras, one for each depth map
+   * \param [in,out] volume      the fused volumetric data
+   * \param [in,out] spacing     the spacing of the grid used to create the volume
    */
   virtual void
-  integrate(kwiver::vital::image_container_sptr_list depth_maps,
-            kwiver::vital::camera_sptr_list cameras,
-            kwiver::vital::image_container_sptr& volume) const = 0;
+    integrate(const kwiver::vital::vector_3d &minpt_bound, const kwiver::vital::vector_3d &maxpt_bound,
+      const std::vector<kwiver::vital::image_container_sptr> &depth_maps,
+      const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
+      kwiver::vital::image_container_sptr& volume,
+      kwiver::vital::vector_3d &spacing) const = 0;
 
 protected:
   integrate_depth_maps();
