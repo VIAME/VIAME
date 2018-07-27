@@ -89,6 +89,7 @@ private:
   bool m_keep_all_classes;
   std::set<std::string> m_keep_classes;
   double m_threshold;
+  bool m_remove_non_class_scores;
 };
 
 }}} //End namespace

@@ -12,6 +12,7 @@ set( sources
   compute_homography_process.cxx
   compute_stereo_depth_map_process.cxx
   compute_track_descriptors_process.cxx
+  create_detection_grid_process.cxx
   detect_features_if_keyframe_process.cxx
   detect_features_process.cxx  
   detected_object_output_process.cxx
@@ -30,6 +31,7 @@ set( sources
   initialize_object_tracks_process.cxx
   keyframe_selection_process.cxx
   matcher_process.cxx
+  merge_detection_sets_process.cxx
   perform_query_process.cxx
   print_config_process.cxx
   read_descriptor_process.cxx
@@ -52,6 +54,7 @@ set( private_headers
   compute_homography_process.h
   compute_stereo_depth_map_process.h
   compute_track_descriptors_process.h
+  create_detection_grid_process.h
   detect_features_if_keyframe_process.h
   detect_features_process.h  
   detected_object_output_process.h
@@ -70,6 +73,7 @@ set( private_headers
   initialize_object_tracks_process.h
   keyframe_selection_process.h
   matcher_process.h
+  merge_detection_sets_process.h
   perform_query_process.h
   print_config_process.h
   read_descriptor_process.h
