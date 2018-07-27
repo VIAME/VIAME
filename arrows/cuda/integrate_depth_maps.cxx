@@ -60,7 +60,7 @@ public:
       ray_potential_eta(0.03),
       ray_potential_delta(0.3),
       grid_spacing {1.0, 1.0, 1.0},
-      m_logger(vital::get_logger("arrows.depth.integrate_depth_maps"))
+      m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
   {
   }
 
@@ -186,12 +186,12 @@ double *init_volume_on_gpu(unsigned int vsize)
 
 void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera, double* d_K, double *d_RT)
 {
-  matrix_4x4d K4x4;
+  Eigen::Matrix<double, 4, 4, Eigen::RowMajor> K4x4;
   K4x4.setIdentity();
   matrix_3x3d K(camera->intrinsics()->as_matrix());
   K4x4.block< 3, 3 >(0, 0) = K;
 
-  matrix_4x4d RT;
+  Eigen::Matrix<double, 4, 4, Eigen::RowMajor> RT;
   RT.setIdentity();
   matrix_3x3d R(camera->rotation().matrix());
   vector_3d t(camera->translation());
@@ -209,13 +209,17 @@ void
 integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &maxpt_bound,
                                 const std::vector<kwiver::vital::image_container_sptr> &depth_maps,
                                 const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
-                                kwiver::vital::image_container_sptr& volume) const
+                                kwiver::vital::image_container_sptr& volume,
+                                kwiver::vital::vector_3d &spacing) const
 {
   vector_3d diff = maxpt_bound - minpt_bound;
-  vector_3d orig = 0.5 * diff;
+  vector_3d orig = minpt_bound;
 
   for (int i = 0; i < 3; i++) d_->grid_dims[i] = (int)(diff[i] / d_->grid_spacing[i]);
 
+  std::cerr << d_->grid_dims[0] << " " << d_->grid_dims[1] << " " << d_->grid_dims[2] << "\n";
+
+  std::cout << "initialize\n";
   cuda_initalize(d_->grid_dims, orig.data(), d_->grid_spacing,
     d_->ray_potential_thickness, d_->ray_potential_rho, d_->ray_potential_eta, d_->ray_potential_delta);
   const int vsize = d_->grid_dims[0] * d_->grid_dims[1] * d_->grid_dims[2];
@@ -235,6 +239,7 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
     copy_camera_to_gpu(cameras[i], d_K, d_RT);
 
     // run code on device
+    std::cout << "depth map " << i << std::endl;
     launch_depth_kernel(d_depth, depthmap_dims, d_K, d_RT, d_volume);
     cudaFree(d_depth);
   }
@@ -243,6 +248,7 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
   double *h_volume = new double[vsize];
   cudaMemcpy(h_volume, d_volume, vsize * sizeof(double), cudaMemcpyDeviceToHost);
 
+  spacing = vector_3d(d_->grid_spacing);
   volume = std::shared_ptr<image_container>(new simple_image_container(
     image(h_volume, d_->grid_dims[0], d_->grid_dims[1], d_->grid_dims[2],
       1, d_->grid_dims[0], d_->grid_dims[0] * d_->grid_dims[1],

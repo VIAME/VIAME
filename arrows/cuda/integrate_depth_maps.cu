@@ -71,16 +71,14 @@ __device__ void computeVoxelCenter(int voxelCoordinate[3], double output[3])
 	output[2] = c_gridOrig[2] + (voxelCoordinate[2] + 0.5) * c_gridSpacing[2];
 }
 
-
 // ----------------------------------------------------------------------------
-// Apply a 4x4 matrix to a 3D points, matrix in column major from eigen
+/* Apply a 4x4 matrix to a 3D points */
 __device__ void transformFrom4Matrix(double M[size4x4], double point[3], double output[3])
 {
-  output[0] = M[0 * 4 + 0] * point[0] + M[1 * 4 + 0] * point[1] + M[2 * 4 + 0] * point[2] + M[3 * 4 + 0];
-  output[1] = M[0 * 4 + 1] * point[0] + M[1 * 4 + 1] * point[1] + M[2 * 4 + 1] * point[2] + M[3 * 4 + 1];
-  output[2] = M[0 * 4 + 2] * point[0] + M[1 * 4 + 2] * point[1] + M[2 * 4 + 2] * point[2] + M[3 * 4 + 2];
+  output[0] = M[0 * 4 + 0] * point[0] + M[0 * 4 + 1] * point[1] + M[0 * 4 + 2] * point[2] + M[0 * 4 + 3];
+  output[1] = M[1 * 4 + 0] * point[0] + M[1 * 4 + 1] * point[1] + M[1 * 4 + 2] * point[2] + M[1 * 4 + 3];
+  output[2] = M[2 * 4 + 0] * point[0] + M[2 * 4 + 1] * point[1] + M[2 * 4 + 2] * point[2] + M[2 * 4 + 3];
 }
-
 
 // ----------------------------------------------------------------------------
 // Compute the norm of a table with 3 double
@@ -151,11 +149,10 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
 
   double voxelCenterCoordinate[3];
   computeVoxelCenter(voxelIndex, voxelCenterCoordinate);
-  double voxelCenter[3];
 
   // Transform voxel center from real coord to camera coords
   double voxelCenterCamera[3];
-  transformFrom4Matrix(matrixRT, voxelCenter, voxelCenterCamera);
+  transformFrom4Matrix(matrixRT, voxelCenterCoordinate, voxelCenterCamera);
 
   // Transform voxel center from camera coords to depth map homogeneous coords
   double voxelCenterHomogen[3];
