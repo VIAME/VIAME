@@ -75,8 +75,8 @@ Vital
    range-based for, etc.  This provides a much more efficient mechanism for
    visiting all classifications.
 
- * Improved plugin explorer so it is easier to get information ahout
-   processes and algorithms. Typicl usage for locating processes would
+ * Improved plugin explorer so it is easier to get information about
+   processes and algorithms. Typical usage for locating processes would
    be to enter the following command to find which processes have to
    do with reading.
 
@@ -154,7 +154,7 @@ Vital Bindings
 Arrows: Core
 
  * Added a new frame-indexed track_set_implementation.  When used in place of
-   the default track_set_implementation this implemenation will cache a mapping
+   the default track_set_implementation this implementation will cache a mapping
    from frame number to the set of track states on that frame.  This makes it
    substantially faster to query tracks by frame ID.
 
@@ -241,7 +241,7 @@ Sprokit
      block _instrumentation
        type = logger    # select logger implementation
        block  logger
-          # add config items for specific implementaion
+          # add config items for specific implementation
           # currently the logger has no additional configuration
        endblock
      endblock
