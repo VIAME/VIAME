@@ -16,13 +16,13 @@ process reader
   :file_name                         none
   :reader:type                       db
   :reader:db:conn_str                postgresql:host=localhost;user=postgres
-  :reader:db:video_name              input_list
+  :reader:db:video_name              [INSERT_ME]
 
 process descriptors
   :: smqtk_object_track_descriptors
   relativepath config_file         = smqtk_desc_index.json
   :conn_str                          host=localhost user=postgres
-  :video_name                        input_list
+  :video_name                        [INSERT_ME]
 
 process unwrapper
   :: unwrap_detections
