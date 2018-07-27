@@ -14,4 +14,9 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_SMQTK )
     ${CMAKE_CURRENT_SOURCE_DIR}/smqtk_process_query.py
     viame/processes/smqtk
     smqtk_process_query )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/smqtk_object_track_descriptors.py
+    viame/processes/smqtk
+    smqtk_object_track_descriptors )
 endif()
