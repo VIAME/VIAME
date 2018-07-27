@@ -18,7 +18,6 @@ process input
   :frame_time                                  1
   :image_reader:type                           vxl
   :image_reader:vxl:force_byte                 true
-  :image_reader:vxl:stretch_range              true
 
 process downsampler
   :: downsample
