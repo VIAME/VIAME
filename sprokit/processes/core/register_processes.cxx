@@ -42,7 +42,6 @@
 #include "detect_features_if_keyframe_process.h"
 #include "detect_features_process.h"
 #include "close_loops_process.h"
-#include "create_detection_grid_process.h"
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
