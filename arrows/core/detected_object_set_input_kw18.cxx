@@ -268,7 +268,7 @@ read_all()
 
       if( m_detection_ids.find( id ) != m_detection_ids.end() )
       {
-        dot->set_score( m_detection_ids[id], conf );
+        dot->set_score( m_detection_ids[id], ( conf == -1.0 ? 1.0 : conf ) );
       }
       else
       {
