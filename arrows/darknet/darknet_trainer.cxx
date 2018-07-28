@@ -32,8 +32,10 @@
 #include "darknet_custom_resize.h"
 
 #include <vital/util/cpu_timer.h>
+#include <vital/algo/image_io.h>
 
 #include <arrows/ocv/image_container.h>
+
 #include <kwiversys/SystemTools.hxx>
 
 #include <opencv2/core/core.hpp>
@@ -117,6 +119,7 @@ public:
     std::string filename,
     cv::Mat image );
 
+  kwiver::vital::algo::image_io_sptr m_image_io;
   kwiver::vital::logger_handle_t m_logger;
 };
 
@@ -175,6 +178,9 @@ get_configuration() const
   config->set_value( "crop_left", d->m_crop_left,
     "Crop out the left portion of imagery, only using the left side." );
 
+  kwiver::vital::algo::image_io::get_nested_algo_configuration( "image_reader",
+    config, d->m_image_io );
+
   return config;
 }
 
@@ -204,6 +210,10 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
   this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
+
+  kwiver::vital::algo::image_io_sptr io;
+  kwiver::vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
+  d->m_image_io = io;
 }
 
 
@@ -329,7 +339,10 @@ format_images( std::string folder, std::string prefix,
 
     // Scale and break up image according to settings
     cv::Mat original_image, resized_image;
-    original_image = cv::imread( image_fn, -1 );
+
+    auto vital_img = m_image_io->load( image_fn );
+    original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
+      vital_img->get_image(), kwiver::arrows::ocv::image_container::BGR );
 
     if( original_image.rows == 0 || original_image.cols == 0 )
     {
