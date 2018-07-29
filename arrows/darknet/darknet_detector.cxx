@@ -186,6 +186,8 @@ get_configuration() const
     "Convert input greyscale images to rgb before processing." );
   config->set_value( "chip_edge_filter", d->m_chip_edge_filter,
     "If using chipping, filter out detections this pixel count near borders." );
+  config->set_value( "chip_adaptive_thresh", d->m_chip_edge_filter,
+    "If using adaptive selection, total pixel count at which we start to chip." );
 
   return config;
 }
@@ -311,7 +313,7 @@ detect( vital::image_container_sptr image_data ) const
   }
   else if( d->m_resize_option == "adaptive" )
   {
-    if( cv_image.rows * cv_image.cols > d->m_chip_adaptive_thresh )
+    if( cv_image.rows * cv_image.cols >= d->m_chip_adaptive_thresh )
     {
       d->m_resize_option = "chip_and_original";
     }
