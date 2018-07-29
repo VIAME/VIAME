@@ -41,6 +41,17 @@ process detection_reader
   :file_name                                   [INSERT_ME]
   :reader:type                                 viame_csv
 
+process detection_filter
+  :: detected_object_filter
+  :filter:type                                 class_probablity_filter
+
+  block filter:class_probablity_filter
+    # Filter parameters
+    :threshold                                 0.100
+    :keep_all_classes                          true
+    :keep_classes                              ex1;ex2;not_used_unless_set
+  endblock
+
 process detector_writer
   :: detected_object_output
 
@@ -54,6 +65,8 @@ connect from downsampler.output_2
         to   detection_reader.image_file_name
 
 connect from detection_reader.detected_object_set
+        to   detection_filter.detected_object_set
+connect from detection_filter.detected_object_set
         to   detector_writer.detected_object_set
 
 # ================================= CORE TRACKER ===================================
@@ -69,7 +82,7 @@ connect from downsampler.output_1
         to   resnet.image
 connect from downsampler.timestamp
         to   resnet.timestamp
-connect from detection_reader.detected_object_set
+connect from detection_filter.detected_object_set
         to   resnet.detected_object_set
 
 process track_initializer
