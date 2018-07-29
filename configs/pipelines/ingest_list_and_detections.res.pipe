@@ -38,7 +38,7 @@ connect from input.timestamp
 
 process detection_reader
   :: detected_object_input
-  :file_name                                   input_detections.csv
+  :file_name                                   [INSERT_ME]
   :reader:type                                 viame_csv
 
 process detector_writer

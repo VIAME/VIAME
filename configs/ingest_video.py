@@ -136,7 +136,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     input_setting = fset( 'input:video_filename=' + input_name )
 
   # Formulate command
-  command = (get_pipeline_cmd( args.debug ) +
+  command = (get_pipeline_cmd( options.debug ) +
              ['-p', find_file( options.pipeline )] +
              input_setting)
 
@@ -146,13 +146,16 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   command += video_output_settings_list( basename )
   command += archive_dimension_settings_list( options )
 
-  if len( args.extra_options ) > 0:
-    for extra_option in args.extra_options:
+  if len( options.input_detections ) > 0:
+    command += fset( "detection_reader:file_name=" + options.input_detections )
+
+  if len( options.extra_options ) > 0:
+    for extra_option in options.extra_options:
       command += fset( extra_option )
 
   # Process command, possibly with logging
-  if len( args.log_dir ) > 0 and not args.debug:
-    with get_log_output_files(args.log_dir + '/' + basename) as kwargs:
+  if len( options.log_dir ) > 0 and not options.debug:
+    with get_log_output_files(options.log_dir + '/' + basename) as kwargs:
       res = execute_command(command, **kwargs)
   else:
     res = execute_command(command)
@@ -192,6 +195,9 @@ if __name__ == "__main__" :
 
   parser.add_argument("-e", dest="extra_options", default="",
                       help="Extra command line arguments for the pipeline runner")
+
+  parser.add_argument("-id", dest="input_detections", default="",
+                      help="Input detections around which to create descriptors")
 
   parser.add_argument("-frate", dest="frame_rate", default="",
                       help="Frame rate over-ride to process videos at")
