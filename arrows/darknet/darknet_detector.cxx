@@ -83,6 +83,7 @@ public:
     , m_chip_step( 100 )
     , m_gs_to_rgb( true )
     , m_chip_edge_filter( -1 )
+    , m_chip_adaptive_thresh( 2000000 )
     , m_names( 0 )
     , m_boxes( 0 )
     , m_probs( 0 )
@@ -109,6 +110,7 @@ public:
   int m_chip_step;
   bool m_gs_to_rgb;
   int m_chip_edge_filter;
+  int m_chip_adaptive_thresh;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
@@ -171,7 +173,7 @@ get_configuration() const
     "GPU index. Only used when darknet is compiled with GPU support." );
   config->set_value( "resize_option", d->m_resize_option,
     "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
-    "chip, or chip_and_original." );
+    "chip, chip_and_original, or adaptive." );
   config->set_value( "scale", d->m_scale,
     "Image scaling factor used when resize_option is scale or chip." );
   config->set_value( "resize_ni", d->m_resize_i,
@@ -214,6 +216,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
   this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
   this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
+  this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
 
   /* the size of this array is a mystery - probably has to match some
    * constant in net description */
@@ -305,6 +308,17 @@ detect( vital::image_container_sptr image_data ) const
   {
     LOG_WARN( d->m_logger, "Input image is empty." );
     return std::make_shared< vital::detected_object_set >();
+  }
+  else if( d->m_resize_option == "adaptive" )
+  {
+    if( cv_image.rows * cv_image.cols > d->m_chip_adaptive_thresh )
+    {
+      d->m_resize_option = "chip_and_original";
+    }
+    else
+    {
+      d->m_resize_option = "maintain_ar";
+    }
   }
 
   cv::Mat cv_resized_image;
