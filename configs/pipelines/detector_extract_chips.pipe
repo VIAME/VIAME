@@ -32,29 +32,7 @@ process input
 
 # ================================== DETECTOR ======================================
 
-process detector
-  :: image_object_detector
-  :detector:type                    darknet
-
-  # Network config
-  block detector:darknet
-
-    relativepath net_config  =      models/default_yolo_v2.cfg
-    relativepath weight_file =      models/default_yolo_v2.weights
-    relativepath class_names =      models/default_yolo_v2.lbl
-
-  endblock
-
-  # Detector parameters
-  :detector:darknet:thresh          0.25
-  :detector:darknet:hier_thresh     0.01
-  :detector:darknet:gpu_index       0
-
-  # Image scaling parameters
-  :detector:darknet:resize_option   maintain_ar
-  :detector:darknet:resize_ni       544
-  :detector:darknet:resize_nj       544
-  :detector:darknet:scale           1.0
+include common_default_detector.pipe
 
 #connect from downsampler.image
 #        to   detector.image
