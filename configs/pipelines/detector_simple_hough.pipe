@@ -1,9 +1,9 @@
 # ================================================================
 process input
   :: frame_list_input
-  :image_list_file    input_list.txt
-  :frame_time          .3333
-  :image_reader:type   ocv
+  :image_list_file                     input_list.txt
+  :frame_time                          0.3333
+  :image_reader:type                   ocv
 
 # ================================================================
 process detector
@@ -19,17 +19,17 @@ process detector
 # ================================================================
 process draw
   :: draw_detected_object_boxes
-  :default_line_thickness 3
+  :default_line_thickness              3
 
 # ================================================================
 process disp
   :: image_viewer
-  :annotate_image         true
-  # pause_time in seconds. 0 means wait for keystroke.
-  :pause_time             0  # 1.0
-  :title                  NOAA images
-#  :footer                 NOAA images
-#  :header                 header-header
+  :annotate_image                      true
+  # pause_time in seconds.              0 means wait for keystroke
+  :pause_time                          0  # 1.0
+  :title                               NOAA images
+#  :footer                              NOAA images
+#  :header                              header-header
 
 # ================================================================
 # global pipeline config

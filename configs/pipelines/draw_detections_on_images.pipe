@@ -5,26 +5,27 @@
 # ==================================================================
 process image_reader
   :: frame_list_input
-  :image_list_file            input_list.txt
-  :frame_time                 0.03333
-  :image_reader:type          ocv
+  :image_list_file             input_list.txt
+  :frame_time                  0.03333
+  :image_reader:type           vxl
+  :image_reader:vxl:force_byte true
 
 # ==================================================================
 process read_annotations
   :: detected_object_input
-  :file_name                  example_output.csv
-  :reader:type                viame_csv
+  :file_name                   example_output.csv
+  :reader:type                 viame_csv
 
 # ==================================================================
 process draw_box
 :: draw_detected_object_set
-  :draw_algo:type             ocv
+  :draw_algo:type              ocv
 
 # ==================================================================
 process writer
   :: image_writer
-  :file_name_template         image%04d.jpg
-  :image_writer:type          ocv
+  :file_name_template          image%04d.jpg
+  :image_writer:type           ocv
 
 # ==================================================================
 connect from image_reader.image

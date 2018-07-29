@@ -17,6 +17,7 @@ process input
   :image_list_file                             [INSERT_ME]
   :frame_time                                  1
   :image_reader:type                           vxl
+  :image_reader:vxl:force_byte                 true
 
 include ingest_core.cfe.pipe
 

@@ -22,6 +22,7 @@ process out_adapt
 process reader
   :: image_file_reader
   :image_reader:type                           vxl
+  :image_reader:vxl:force_byte                 true
   :frame_time                                  1.0
   :error_mode                                  abort
 

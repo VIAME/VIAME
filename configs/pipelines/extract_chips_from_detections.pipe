@@ -5,15 +5,16 @@
 # ==================================================================
 process image_reader
   :: frame_list_input
-  :image_list_file            input_list.txt
-  :frame_time                 0.03333
-  :image_reader:type          ocv
+  :image_list_file              input_list.txt
+  :frame_time                   0.03333
+  :image_reader:type            vxl
+  :image_reader:vxl:force_byte  true
 
 # ==================================================================
 process read_annotations
   :: detected_object_input
-  :file_name                  example_output.csv
-  :reader:type                viame_csv
+  :file_name                    example_output.csv
+  :reader:type                  viame_csv
 
 # ==================================================================
 process annotation_filter

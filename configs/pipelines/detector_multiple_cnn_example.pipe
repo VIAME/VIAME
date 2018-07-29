@@ -15,9 +15,10 @@ config _pipeline:_edge
 # ====================== INPUT FRAME LIST ========================
 process input
   :: frame_list_input
-  :image_list_file     input_list.txt
-  :frame_time          0.03333
-  :image_reader:type   vxl
+  :image_list_file               input_list.txt
+  :frame_time                    0.03333
+  :image_reader:type             vxl
+  :image_reader:vxl:force_byte   true
 
 # =========================== YOLO v2 ============================
 

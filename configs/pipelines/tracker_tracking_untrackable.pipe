@@ -17,6 +17,7 @@ process input
   :image_list_file               input_list.txt
   :frame_time                    0.03333
   :image_reader:type             vxl
+  :image_reader:vxl:force_byte   true
 
 # ================================== DETECTOR ======================================
 

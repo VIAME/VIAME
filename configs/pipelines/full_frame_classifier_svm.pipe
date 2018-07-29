@@ -14,9 +14,10 @@ config _scheduler
 # ========================== INPUT FRAME LIST ============================
 process input
   :: frame_list_input
-  :image_list_file                   input_list.txt
-  :frame_time                        0.03333
-  :image_reader:type                 ocv
+  :image_list_file                     input_list.txt
+  :frame_time                          0.03333
+  :image_reader:type                   vxl
+  :image_reader:vxl:force_byte         true
 
 # =============================== YOLO v2 ================================
 
@@ -27,32 +28,22 @@ process detector
 
 process descriptor
   :: resnet_descriptors
-  :resnet_model_input_size           224
-  :resnet_batch_size                 32
-  :gpu_list                          0
-  relativepath resnet_model_path =   models/pytorch-resnet50.pt
+  :resnet_model_input_size             224
+  :resnet_batch_size                   32
+  :gpu_list                            0
+  relativepath resnet_model_path =     models/pytorch-resnet50.pt
 
 process svm_refiner
   :: refine_detections
-  :refiner:type                      svm_refine
-  :refiner:svm_refine:model_dir      category_models
-
-process nms_refiner
-  :: refine_detections
-  :refiner:type                      nms
-  
-  block refiner:nms
-    :max_overlap                     0.50
-    :nms_scale_factor                1.5
-    :output_scale_factor             1.1
-  endblock
+  :refiner:type                        svm_refine
+  :refiner:svm_refine:model_dir        category_models
 
 process refined_csv_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                         svm_detections.csv
-  :writer:type                       viame_csv
+  :file_name                           svm_detections.csv
+  :writer:type                         viame_csv
 
 connect from input.image
         to   detector.image
@@ -60,8 +51,6 @@ connect from input.image
         to   descriptor.image
 connect from input.image
         to   svm_refiner.image
-connect from input.image
-        to   nms_refiner.image
 
 connect from input.timestamp
         to   descriptor.timestamp
@@ -74,8 +63,6 @@ connect from detector.detected_object_set
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
 connect from svm_refiner.detected_object_set
-        to   nms_refiner.detected_object_set
-connect from nms_refiner.detected_object_set
         to   refined_csv_writer.detected_object_set
 
 # -- end of file --
