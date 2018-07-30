@@ -132,7 +132,7 @@ def create_pipelines_list( glob_str ):
                                 text=True, dir=temp_dir)
 
   search_str = os.path.join( get_script_path(), glob_str )
-  pipeline_files = glob.glob( search_str )
+  pipeline_files = sorted( glob.glob( search_str ) )
   total_entries = len( pipeline_files )
 
   f = os.fdopen(fd, 'w')
