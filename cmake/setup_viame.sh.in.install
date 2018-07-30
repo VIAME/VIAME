@@ -9,12 +9,12 @@ export CUDA_INSTALL_DIR=/usr/local/cuda
 # Check variable paths
 if [ ! -d "$PYTHON_INSTALL_DIR" ]; then
   echo "Python directory specified in setup_viame.sh does not exist"
-  exit 1
+  return
 fi
 
 if [ ! -d "$CUDA_INSTALL_DIR" ]; then
   echo "CUDA directory specified in setup_viame.sh does not exist"
-  exit 1
+  return
 fi
 
 # Activate python anaconda environment, this can be removed if you already have it
