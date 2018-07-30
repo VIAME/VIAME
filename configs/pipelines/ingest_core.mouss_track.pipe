@@ -101,7 +101,6 @@ process detection_filter
 connect from detector.detected_object_set
         to   detection_filter.detected_object_set
 
-
 process track_initializer_kw18
   :: initialize_object_tracks
   :track_initializer:type                      threshold
@@ -117,7 +116,7 @@ connect from downsampler.output_1
         to   track_initializer_kw18.image
 connect from downsampler.timestamp
         to   track_initializer_kw18.timestamp
-connect from resnet.detected_object_set
+connect from descriptor.detected_object_set
         to   track_initializer_kw18.detected_object_set
 
 process track_writer_kw18
@@ -154,7 +153,7 @@ connect from downsampler.output_1
         to   track_initializer.image
 connect from downsampler.timestamp
         to   track_initializer.timestamp
-connect from resnet.detected_object_set
+connect from descriptor.detected_object_set
         to   track_initializer.detected_object_set
 
 process track_descriptor
