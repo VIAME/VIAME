@@ -13,7 +13,7 @@ process detector
     relativepath class_names =       models/default_yolo_v2.lbl
 
     # Detector parameters
-    :thresh                          0.002
+    :thresh                          0.010
     :hier_thresh                     0.001
     :gpu_index                       0
 
