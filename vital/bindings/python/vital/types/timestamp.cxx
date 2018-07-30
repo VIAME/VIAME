@@ -36,7 +36,7 @@
 namespace py = pybind11;
 using ts = kwiver::vital::timestamp;
 
-PYBIND11_MODULE(bounding_box, m)
+PYBIND11_MODULE(timestamp, m)
 {
   py::class_<ts, std::shared_ptr<ts> > (m, "TimeStamp", R"(
      timestamp for video image.
@@ -49,6 +49,7 @@ PYBIND11_MODULE(bounding_box, m)
 
     )")
 
+    .def(py::init<>())
     .def(py::init<kwiver::vital::time_us_t, kwiver::vital::frame_id_t>())
 
     .def("is_valid", &ts::is_valid)
