@@ -76,6 +76,13 @@ public:
 
   position_map get_camera_position_priors() const;
 
+  void store_image_size(frame_id_t fid, int image_width, int image_height);
+
+  bool get_image_width(frame_id_t fid, int &image_width) const;
+
+  bool get_image_height(frame_id_t fid, int &image_height) const;
+
+  bool get_focal_length_prior(frame_id_t fid, float &focal_length) const;
 
 protected:
 

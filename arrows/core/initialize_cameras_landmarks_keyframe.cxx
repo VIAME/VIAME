@@ -199,6 +199,7 @@ public:
 
   bool metadata_centric_keyframe_initialization(
     simple_camera_perspective_map_sptr cams,
+    bool use_existing_cams,
     landmark_map_sptr& landmarks,
     feature_track_set_sptr tracks,
     sfm_constraints_sptr constraints,
@@ -373,6 +374,9 @@ public:
       feature_track_set_sptr tracks,
       const simple_camera_perspective_map &cams) const;
 
+  void init_base_camera_from_metadata(
+    sfm_constraints_sptr constraints);
+
   bool verbose;
   bool continue_processing;
   double interim_reproj_thresh;
@@ -402,6 +406,7 @@ public:
   int m_max_cams_in_keyframe_init;
   double m_frac_frames_for_init;
   double m_metadata_init_permissive_triang_thresh;
+  bool m_init_intrinsics_from_metadata;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -426,7 +431,8 @@ initialize_cameras_landmarks_keyframe::priv
   m_solution_was_fit_to_constraints(false),
   m_max_cams_in_keyframe_init(20),
   m_frac_frames_for_init(-1.0),
-  m_metadata_init_permissive_triang_thresh(10000)
+  m_metadata_init_permissive_triang_thresh(10000),
+  m_init_intrinsics_from_metadata(true)
 {
 
   }
@@ -2214,29 +2220,45 @@ bool
 initialize_cameras_landmarks_keyframe::priv
 ::metadata_centric_keyframe_initialization(
   simple_camera_perspective_map_sptr cams,
+  bool use_existing_cams,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
   sfm_constraints_sptr constraints,
   std::set<vital::frame_id_t> &keyframes,
   callback_t callback)
 {
-  cams->clear();
-
-  auto frames = tracks->all_frame_ids();
-  for (auto fid : frames)
+  if (!use_existing_cams)
   {
-    vector_3d pos_loc;
-    rotation_d R_loc;
+    cams->clear();
 
-    if (constraints->get_camera_position_prior_local(fid, pos_loc) &&
-        constraints->get_camera_orientation_prior_local(fid, R_loc))
+    auto frames = tracks->all_frame_ids();
+    for (auto fid : frames)
     {
-      auto cam = std::make_shared<simple_camera_perspective>();
+      vector_3d pos_loc;
+      rotation_d R_loc;
 
-      cam->set_center(pos_loc);
-      cam->set_rotation(R_loc);
-      cam->set_intrinsics(m_base_camera.get_intrinsics());
-      cams->insert(fid, cam);
+      if (constraints->get_camera_position_prior_local(fid, pos_loc) &&
+        constraints->get_camera_orientation_prior_local(fid, R_loc))
+      {
+        auto cam = std::make_shared<simple_camera_perspective>();
+
+        cam->set_center(pos_loc);
+        cam->set_rotation(R_loc);
+        cam->set_intrinsics(m_base_camera.get_intrinsics());
+        cams->insert(fid, cam);
+      }
+    }
+  }
+  else
+  {
+    if (m_init_intrinsics_from_metadata)
+    {
+      //set each camera's intrinsics to match the base camera's that was set from the metadata
+      auto sp_cams = cams->simple_perspective_cameras();
+      for (auto cam : sp_cams)
+      {
+        cam.second->set_intrinsics(m_base_camera.get_intrinsics());
+      }
     }
   }
 
@@ -2378,14 +2400,26 @@ initialize_cameras_landmarks_keyframe::priv
     LOG_DEBUG(m_logger, "no keyframes, cannot initilize reconstruction");
     return false;
   }
-  if (!metadata_centric_keyframe_initialization(cams, landmarks, tracks, constraints, keyframes, callback))
-  {
-    return vision_centric_keyframe_initialization(cams, landmarks, tracks, constraints, keyframes, callback);
-  }
-  else
+
+  // first try using the existing cameras to initialize the reconstruction
+  if (metadata_centric_keyframe_initialization(cams, true, landmarks, tracks, constraints, keyframes, callback))
   {
     return true;
   }
+
+  // now try using the metadata to initialize the reconstruction
+  if (metadata_centric_keyframe_initialization(cams, false, landmarks, tracks, constraints, keyframes, callback))
+  {
+    return true;
+  }
+
+  // now try a vision only approach
+  if(vision_centric_keyframe_initialization(cams, landmarks, tracks, constraints, keyframes, callback))
+  {
+    return true;
+  }
+
+  return false;
 }
 
 int
@@ -2973,6 +3007,52 @@ initialize_cameras_landmarks_keyframe::priv
   return true;
 }
 
+void
+initialize_cameras_landmarks_keyframe::priv
+::init_base_camera_from_metadata(
+  sfm_constraints_sptr constraints)
+{
+  if (!constraints)
+  {
+    return;
+  }
+
+  auto base_intrin = m_base_camera.get_intrinsics();
+
+  float focal_length;
+
+  if (constraints->get_focal_length_prior(-1, focal_length))
+  {
+    int im_h, im_w;
+
+    auto pp = base_intrin->principal_point();
+    if (constraints->get_image_height(-1, im_h) && constraints->get_image_width(-1, im_w))
+    {
+      pp[0] = im_w*0.5;
+      pp[1] = im_h*0.5;
+    }
+
+    auto intrin2 = std::make_shared<simple_camera_intrinsics>(focal_length,
+      pp,
+      base_intrin->aspect_ratio(),
+      base_intrin->skew());
+
+    auto dist_coeffs = base_intrin->dist_coeffs();
+    if (dist_coeffs.size() == 5)
+    {
+      Eigen::VectorXd dist;
+      dist.resize(5);
+      for (int i = 0; i < 5; ++i)
+      {
+        dist[i] = dist_coeffs[i];
+      }
+      intrin2->set_dist_coeffs(dist);
+    }
+
+    m_base_camera.set_intrinsics(intrin2);
+  }
+}
+
 //-----------------------------------------------------------------------------
 // start: initialize_cameras_landmarks_keyframe
 
@@ -3063,6 +3143,9 @@ initialize_cameras_landmarks_keyframe
   config->set_value("base_camera:r2", r1, "r^4 radial distortion term");
   config->set_value("base_camera:r3", r1, "r^6 radial distortion term");
 
+  config->set_value("init_intrinsics_from_metadata", m_priv->m_init_intrinsics_from_metadata,
+                    "initialize camera's focal length from metadata");
+
   // nested algorithm configurations
   vital::algo::estimate_essential_matrix
       ::get_nested_algo_configuration("essential_mat_estimator",
@@ -3149,6 +3232,8 @@ initialize_cameras_landmarks_keyframe
       config->get_value<double>("zoom_scale_thresh",
                                 m_priv->zoom_scale_thresh);
 
+
+
   vital::config_block_sptr bc = config->subblock("base_camera");
   simple_camera_intrinsics K2(bc->get_value<double>("focal_length",
                                                     K->focal_length()),
@@ -3223,7 +3308,12 @@ initialize_cameras_landmarks_keyframe
   auto cams = std::make_shared<simple_camera_perspective_map>();
   cams->set_from_base_cams(cameras);
 
-  m_priv->initialize_keyframes(cams, landmarks, tracks, constraints,this->m_callback);
+  if (m_priv->m_init_intrinsics_from_metadata)
+  {
+    m_priv->init_base_camera_from_metadata(constraints);
+  }
+
+  m_priv->initialize_keyframes(cams, landmarks, tracks, constraints, this->m_callback);
 
   m_priv->initialize_remaining_cameras(cams,landmarks,tracks,constraints,this->m_callback);
 
