@@ -38,9 +38,9 @@ if( VIAME_DOWNLOAD_MODELS )
   # Default YOLO Configs
   if( VIAME_ENABLE_YOLO )
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5b5e5aab8d777f06857c17d0/download
-      12f00020f004625c0e6bc4e5007baba5
-      ${VIAME_DOWNLOAD_DIR}/models-default_yolo_v2-v2.0.0.tar.gz
+      https://data.kitware.com/api/v1/item/5b5f00d18d777f06857c17fa/download
+      fad64978df6322605530a5cc6274467c
+      ${VIAME_DOWNLOAD_DIR}/models-default_yolo_v2-v2.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     DownloadAndExtract(
