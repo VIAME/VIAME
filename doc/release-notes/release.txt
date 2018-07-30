@@ -313,6 +313,12 @@ Unit Tests
 Fixes since v1.1.1
 ------------------
 
+General
+
+ * Fixed an issue in the generated setup_KWIVER.bat script in which the
+   PATH environment variable was being replaced with KWIVER paths rather
+   than appending those paths.
+
 Sprokit
 
  * Top level pipeline descriptions that are sourced from a stream do
