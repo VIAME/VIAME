@@ -269,11 +269,16 @@ refine_detections_with_svm
       new_type = det->type();
     }
 
+    double max_score = 0.0;
+
     for( result_map::iterator it = res.begin(); it != res.end(); ++it )
     {
       new_type->set_score( it->first, it->second );
+
+      max_score = std::max( max_score, it->second );
     }
 
+    det->set_confidence( max_score );
     det->set_type( new_type );
 
     delete[] svm_nodes;
