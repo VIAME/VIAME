@@ -144,7 +144,8 @@ refine_detections_nms
         kwiver::vital::intersection(det_bbox, res_bbox);
 
       // Check how much they overlap. Only keep if the overlapped percent isn't too high
-      if((overlap.area() / std::min(det_bbox.area(), res_bbox.area())) > d_->max_overlap)
+      if(overlap.min_x() < overlap.max_x() && overlap.min_y() < overlap.max_y() &&
+         (overlap.area() / std::min(det_bbox.area(), res_bbox.area())) > d_->max_overlap)
       {
         should_add = false;
         break;
