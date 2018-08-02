@@ -2,8 +2,40 @@ KWIVER v1.2.0 Release Notes
 ===========================
 
 This is a minor release of KWIVER that provides both new functionality and
-fixes over the previous v1.1.1 release.
+fixes over the previous v1.1.1 release. There are also a significant number
+of quality of life updates, as well as minor restructuring updates that are 
+included in this release. The primary changes in this release are to Vital, 
+Arrows: Core, and Sprokit.
 
+Vital, the core framework of KWIVER, has been updated in several ways in 
+this release. There is an assortment of new algorithms, functions, and types
+added in this release. Most are in support of a basic object tracker, including
+readers/writers, matrix-based associate detections to track process, a generic
+track initializer, and others. However, there is also a new abstract algorithm
+called integrate_depth_maps for the integration of depth map images to implicit
+surface volume. This release also includes expansions to the video_input API to
+include a seek_frame() and frame_time() methods.
+
+Arrows: Core has received a batch of updates in this release. New features include
+a special feature tracker that augments keyframes with additional detections, new 
+keyframe selection classes, new loop closure algorithm, and more. In addition, there 
+is general restructuring of track merging and descriptions() from some 
+implementations had been removed.
+
+Sprokit has also received a batch of updates in this release. Most of the updates 
+to Sprokit are in the area of managing processes. Process instrumentation calls 
+have been added to all processes, this allows the ability to monitor the activity 
+of processes on a per-process basis. There are new Sprokit processes corresponding 
+to the feature tracker and keyframe selection vital algorithms. As well as an 
+added detect_feature_if_keyframe process that calls the new augment features tracker and 
+also merges tracks.
+
+KWIVER can now be built by utilizing Docker. There is a Dockerfile included in 
+/docker/ for this purpose. Optionally, it can be built by utilizing the dockersetup.sh 
+script in /docker/. This script automatically builds and configures the provided KWIVER 
+Docker container.
+
+There are many other changes in this release. These are detailed in the change log below.
 
 Updates since v1.1.1
 --------------------
@@ -75,8 +107,8 @@ Vital
    range-based for, etc.  This provides a much more efficient mechanism for
    visiting all classifications.
 
- * Improved plugin explorer so it is easier to get information ahout
-   processes and algorithms. Typicl usage for locating processes would
+ * Improved plugin explorer so it is easier to get information about
+   processes and algorithms. Typical usage for locating processes would
    be to enter the following command to find which processes have to
    do with reading.
 
@@ -154,7 +186,7 @@ Vital Bindings
 Arrows: Core
 
  * Added a new frame-indexed track_set_implementation.  When used in place of
-   the default track_set_implementation this implemenation will cache a mapping
+   the default track_set_implementation this implementation will cache a mapping
    from frame number to the set of track states on that frame.  This makes it
    substantially faster to query tracks by frame ID.
 
@@ -241,7 +273,7 @@ Sprokit
      block _instrumentation
        type = logger    # select logger implementation
        block  logger
-          # add config items for specific implementaion
+          # add config items for specific implementation
           # currently the logger has no additional configuration
        endblock
      endblock
@@ -280,6 +312,12 @@ Unit Tests
 
 Fixes since v1.1.1
 ------------------
+
+General
+
+ * Fixed an issue in the generated setup_KWIVER.bat script in which the
+   PATH environment variable was being replaced with KWIVER paths rather
+   than appending those paths.
 
 Sprokit
 
