@@ -1,5 +1,18 @@
 #include <vital/types/sfm_constraints.h>
 
+#ifndef M_PI
+// Source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
+#define M_PI 3.141592653589793238462643383279502884197169399375105820974944592307816406
+#endif
+
+#ifndef DEG_TO_RAD
+#define DEG_TO_RAD (M_PI/180.0)
+#endif
+
+#ifndef RAD_TO_DEG
+#define RAD_TO_DEG (180.0/M_PI)
+#endif
+
 namespace kwiver {
 namespace vital {
 
@@ -13,8 +26,34 @@ public:
   /// Destructor
   ~priv();
 
+  struct im_data {
+    int width;
+    int height;
+
+    im_data() :
+      width(-1),
+      height(-1)
+    {
+
+    }
+    im_data(int w_, int h_):
+      width(w_),
+      height(h_)
+    {
+
+    }
+    im_data(const im_data& other):
+      width(other.width),
+      height(other.height)
+    {
+
+    }
+
+  };
+
   metadata_map_sptr m_md;
   local_geo_cs m_lgcs;
+  std::map<frame_id_t, im_data> m_image_data;
 };
 
 sfm_constraints::priv
@@ -35,6 +74,7 @@ sfm_constraints
 {
   m_priv->m_lgcs = other.m_priv->m_lgcs;
   m_priv->m_md = other.m_priv->m_md;
+  m_priv->m_image_data = other.m_priv->m_image_data;
 }
 
 sfm_constraints
@@ -85,6 +125,60 @@ sfm_constraints
 ::set_local_geo_cs(local_geo_cs const& lgcs)
 {
   m_priv->m_lgcs = lgcs;
+}
+
+bool
+sfm_constraints
+::get_focal_length_prior(frame_id_t fid, float &focal_length) const
+{
+  if (!m_priv->m_md)
+  {
+    return false;
+  }
+
+  auto &md = *m_priv->m_md;
+
+  std::set<frame_id_t> frame_ids_to_try;
+
+  int image_width = -1;
+  if (!get_image_width(fid, image_width))
+  {
+    return false;
+  }
+
+  if (fid >= 0)
+  {
+    frame_ids_to_try.insert(fid);
+  }
+  else
+  {
+    frame_ids_to_try = md.frames();
+  }
+
+  for (auto test_fid : frame_ids_to_try)
+  {
+
+    double hfov;
+
+    if (md.get_horizontal_field_of_view(test_fid, hfov))
+    {
+      focal_length = static_cast<float>((image_width*0.5) / tan(0.5*hfov*DEG_TO_RAD));
+      return true;
+    }
+
+    double target_width, slant_range;
+    bool has_target_width = md.get_target_width(test_fid, target_width);
+    bool has_slant_range = md.get_slant_range(test_fid, slant_range);
+
+    if (has_target_width && has_slant_range)
+    {
+      focal_length = static_cast<float>(image_width * slant_range / target_width);
+
+      return true;
+    }
+  }
+
+  return false;
 }
 
 bool
@@ -202,6 +296,64 @@ sfm_constraints
   }
   return local_positions;
 }
+
+void
+sfm_constraints
+::store_image_size(frame_id_t fid, int image_width, int image_height)
+{
+  m_priv->m_image_data[fid] = priv::im_data(image_width, image_height);
+}
+
+bool
+sfm_constraints
+::get_image_height(frame_id_t fid, int &image_height) const
+{
+  if (fid >= 0)
+  {
+    auto data_it = m_priv->m_image_data.find(fid);
+    if (data_it == m_priv->m_image_data.end())
+    {
+      return false;
+    }
+    image_height = data_it->second.height;
+    return true;
+  }
+  else
+  {
+    if (m_priv->m_image_data.empty())
+    {
+      return false;
+    }
+    image_height = m_priv->m_image_data.begin()->second.height;
+    return true;
+  }
+}
+
+bool
+sfm_constraints
+::get_image_width(frame_id_t fid, int &image_width) const
+{
+  if (fid >= 0)
+  {
+    auto data_it = m_priv->m_image_data.find(fid);
+    if (data_it == m_priv->m_image_data.end())
+    {
+      return false;
+    }
+    image_width = data_it->second.width;
+    return true;
+  }
+  else
+  {
+    if (m_priv->m_image_data.empty())
+    {
+      return false;
+    }
+    image_width = m_priv->m_image_data.begin()->second.width;
+    return true;
+  }
+}
+
 
 }
 }

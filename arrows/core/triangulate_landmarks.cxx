@@ -47,8 +47,13 @@
 #define M_PI 3.141592653589793238462643383279502884197169399375105820974944592307816406
 #endif
 
+#ifndef DEG_TO_RAD
 #define DEG_TO_RAD (M_PI/180.0)
+#endif
+
+#ifndef RAD_TO_DEG
 #define RAD_TO_DEG (180.0/M_PI)
+#endif
 
 namespace kwiver {
 namespace arrows {
