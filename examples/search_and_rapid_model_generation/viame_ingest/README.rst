@@ -216,6 +216,8 @@ datasets.
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_17_saved_models.png
 
+The category models directory should contain only .svm model files.
+
 Re-Run Models on Additional Data
 ================================
 
