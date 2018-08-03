@@ -220,17 +220,20 @@ Re-Run Models on Additional Data
 ================================
 
 If you have one or more .svm model files in your category_models folder, you can run the
-'process_using_svm' script in your project folder. This can either be on the same data you
-just processed, or new data.
+'bash process_list_using_models.sh' script in your project folder. This can either be on
+the same data you just processed, or new data. By default, this script consumes the supplied
+input_list.txt and produces a detection file called 'svm_detections.csv' containing a probability
+for each input model in the category_models directory per detection.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
    :scale: 30
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
 
-The result is a detection .csv file in the same common format that most other examples in VIAME
+The resultant detection .csv file is in the same common format that most other examples in VIAME
 take. You can load this detection file up in the annotation GUI and select a detection threshold
-for your newly-trained detector, `see here`_.
+for your newly-trained detector, `see here`_. You can use these models on any imagery, it doesn't
+need to be the same imagery you trained it on.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
    :scale: 10
@@ -243,14 +246,14 @@ Correct Results and Train a Better Model
 ========================================
 
 If you have a detection .csv file for corresponding imagery, and want to train a better (deep)
-model for the data, you can first correct any mistakes (either mis-classifications, or
-grossly incorrect boxes) in the annotation GUI. To do this, set a detection threshold you want
-to annotate at, do not change it, and make the boxes as perfect as possible at this threshold.
-Over-ride any incorrectly computed classification types, and create new detections for objects
-which were missed by the initial model. Export a new detection csv (File->Export Tracks) after
-correcting as many boxes as you can. Lastly, feed this into the ground-up `detector training example`_.
-Make sure to set whatever threshold you set for annotation in the [train].sh script you use for
-new model training.
+model for the data, you can first correct any mistakes (either mis-classifications,
+grossly incorrect boxes, or missed detections) in the annotation GUI. To do this, set a detection
+threshold you want to annotate at, do not change it, and make the boxes as perfect as possible
+at this threshold. Over-ride any incorrectly computed classification types, and create new
+detections for objects which were missed by the initial model. Export a new detection csv
+(File->Export Tracks) after correcting as many boxes as you can. Lastly, feed this into the
+ground-up `detector training example`_. Make sure to set whatever threshold you set for annotation
+in the [train].sh script you use for new model training.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
    :scale: 30
