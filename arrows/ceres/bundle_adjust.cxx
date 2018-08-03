@@ -262,7 +262,19 @@ bundle_adjust
   feature_track_set_sptr tracks,
   sfm_constraints_sptr constraints) const
 {
-  throw vital::algorithm_exception("ceres bundle adjuster","", "optimize is not defined for a map of base cameras");
+  simple_camera_perspective_map cams;
+  for (auto p : cameras->cameras())
+  {
+    auto c = std::dynamic_pointer_cast<simple_camera_perspective>(p.second);
+    if (c)
+    {
+      cams.insert(p.first, c);
+    }
+  }
+  auto lms = landmarks->landmarks();
+  this->optimize(cams, lms, tracks, {}, {}, constraints);
+  landmarks = std::make_shared<simple_landmark_map>(lms);
+  cameras = std::make_shared<simple_camera_perspective_map>(cams);
 }
 
 
