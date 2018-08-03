@@ -14,10 +14,10 @@ annotation_and_visualization example folder in a VIAME installation.
 .. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/annotation_and_visualization
 
 There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
-GUIs are useful for displaying detections, their respective probabilities, and for making
-new annotations in video. There are additionally simpler GUIs which can be enabled in .pipe
-files that are a part of KWIVER. For examples on how to run both of these GUIs see the
-"annotation_and_visualization" example folder. vpView doesn't load imagery by default,
+GUIs are useful for displaying detections, their respective probabilities, for running detections,
+and for making new annotations in video. There are additionally simpler GUIs which can be
+enabled in .pipe files that are a part of KWIVER. For examples on how to run both of these GUIs
+see the "annotation_and_visualization" example folder. vpView doesn't load imagery by default,
 but instead loads project files (details below) which are simple text files pointing to imagery,
 groundtruth, computed detections, and/or homographies for the input data. If you just want to
 use the tool to make annotations you don't need to specify the later three, and just need to

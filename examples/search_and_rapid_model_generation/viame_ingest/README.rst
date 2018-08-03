@@ -225,7 +225,8 @@ If you have one or more .svm model files in your category_models folder, you can
 'bash process_list_using_models.sh' script in your project folder. This can either be on
 the same data you just processed, or new data. By default, this script consumes the supplied
 input_list.txt and produces a detection file called 'svm_detections.csv' containing a probability
-for each input model in the category_models directory per detection.
+for each input model in the category_models directory per detection. Alternatively this pipeline,
+this can be run from `within the annotation GUI`_.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_18_produced_detections.png
    :scale: 30
@@ -242,6 +243,7 @@ need to be the same imagery you trained it on.
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
 
+.. _within the annotation GUI: https://github.com/Kitware/VIAME/tree/master/examples/object_detection
 .. _see here: https://github.com/Kitware/VIAME/tree/master/examples/annotation_and_visualization
 
 Correct Results and Train a Better Model

@@ -24,9 +24,9 @@ Several different models are found in the examples, trained on a variety of
 different sensors. It can be useful to try out different models to see what works
 best for your problem.
 
-********************
-Running the Examples
-********************
+*********************************
+Running the Command Line Examples
+*********************************
 
 Each run script contains 2 calls. A first ('source setup_viame.sh') which
 runs a script configuring all paths required to run VIAME calls, and a second
@@ -39,6 +39,25 @@ Each pipeline contains 2-10 nodes, including a imagery source, in this case an i
 list loader, the actual detector, detection filters, and detection writers. In the
 habcam example an additional split processes is added early in the pipeline, as
 habcam imagery has stereo pairs typically encoded in the same png.
+
+***************************
+Running Examples in the GUI
+***************************
+
+The annotation GUI can also be used to run object detector or tracking pipelines. To
+accomplish this, load imagery using the `annotation gui`_, then select Tools -> Execute Pipeline
+and select a pipeline to run, see below. Special notes: the 'habcam' pipeline only processes
+the left sides of images, assuming that the image contains side-by-side stereo pairs, and
+the 'svm' pipeline requires '.svm' model files to exist in a 'category_models' directory
+from where the GUI is run. New pipelines can be added to the GUI by adding them to the
+default pipelines folder, with the word 'embedded' in them by default.
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/08/vpview_run_det.png
+   :scale: 30
+   :align: center
+   :target: http://www.viametoolkit.org/wp-content/uploads/2018/08/vpview_run_det.png
+
+.. _annotation gui: https://github.com/Kitware/VIAME/tree/master/examples/annotation_and_visualization
 
 ******************
 Build Requirements

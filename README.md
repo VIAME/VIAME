@@ -63,8 +63,8 @@ folder to point to the location of your installed Anaconda and CUDA distribution
 Lastly, run through some of the examples to validate the installation.
 
 **Installation Requirements:** <br>
-[Anaconda3 5.2.0](https://repo.continuum.io/archive/) <br>
-[CUDA 8.0 GA2](https://developer.nvidia.com/cuda-toolkit-archive) (If you use GPU support) <br>
+[Anaconda3 5.2.0 x86_64](https://repo.continuum.io/archive/) (Note: Anaconda**3 x86_64**, not Anaconda2 or x86) <br>
+[CUDA 8.0 GA2 x86_64](https://developer.nvidia.com/cuda-toolkit-archive) (If you use GPU support) <br>
 
 **Installation Recommendations:** <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
