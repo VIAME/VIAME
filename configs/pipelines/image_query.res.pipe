@@ -66,7 +66,7 @@ connect from reader.image
 connect from detector.detected_object_set
         to   add_fixed_detection.detected_object_set
 
-include common_default_descriptor.pipe
+include common_generic_descriptor.pipe
 
 connect from reader.image
         to   descriptor.image
