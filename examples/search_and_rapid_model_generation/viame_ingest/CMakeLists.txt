@@ -18,7 +18,8 @@ if( WIN32 )
        process_database_using_models.bat
        process_ff_using_models.bat
        process_list_using_models.bat
-       launch_query_gui.bat )
+       launch_query_gui.bat
+       launch_annotation_gui.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
@@ -29,7 +30,8 @@ else()
        process_database_using_models.sh
        process_ff_using_models.sh
        process_list_using_models.sh
-       launch_query_gui.sh )
+       launch_query_gui.sh
+       launch_annotation_gui.sh )
 endif()
 
 ###

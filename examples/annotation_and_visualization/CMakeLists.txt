@@ -10,21 +10,21 @@ set( example_files
 if( WIN32 )
   set( example_files
        ${example_files}
-       run_annotation_gui.bat
+       launch_annotation_gui.bat
        run_chip_pipe.bat
        run_display_pipe.bat
        run_draw_pipe.bat )
 elseif( APPLE )
   set( example_files
        ${example_files}
-       run_annotation_gui.mac.sh
+       launch_annotation_gui.mac.sh
        run_chip_pipe.sh
        run_display_pipe.sh
        run_draw_pipe.sh )
 else()
   set( example_files
        ${example_files}
-       run_annotation_gui.sh
+       launch_annotation_gui.sh
        run_chip_pipe.sh
        run_display_pipe.sh
        run_draw_pipe.sh )
