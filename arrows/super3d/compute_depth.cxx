@@ -98,8 +98,9 @@ public:
   int callback_interval;
 
   bool use_roi;
-  vector_3d minpt, maxpt;
+  int i0, ni, j0, nj;
   double depth_min, depth_max;
+
   vpgl_perspective_camera<double> ref_cam;
 
   compute_depth::callback_t callback;  
@@ -188,12 +189,78 @@ compute_depth::check_configuration(vital::config_block_sptr config) const
 
 //*****************************************************************************
 
-void 
-compute_depth::set_roi(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt)
+bool 
+compute_depth::set_roi(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
+					             const camera_perspective_sptr &cam, int imgwidth, int imgheight,
+                       int &i0_out, int &ni_out, int &j0_out, int &nj_out)
 {
-  d_->minpt = minpt;
-  d_->maxpt = maxpt;
+  vpgl_perspective_camera<double> camera;
+  vxl::vital_to_vpgl_camera<double>(*cam, camera);
+
+	vnl_double_3 points[8] = { vnl_double_3(minpt[0], minpt[1], minpt[2]),
+	                           vnl_double_3(maxpt[0], minpt[1], minpt[2]),
+	                           vnl_double_3(minpt[0], maxpt[1], minpt[2]),
+	                           vnl_double_3(maxpt[0], maxpt[1], minpt[2]),
+	                           vnl_double_3(minpt[0], minpt[1], maxpt[2]),
+	                           vnl_double_3(maxpt[0], minpt[1], maxpt[2]),
+	                           vnl_double_3(minpt[0], maxpt[1], maxpt[2]),
+	                           vnl_double_3(maxpt[0], maxpt[1], maxpt[2]) };
+
+	int i0, j0, i1, j1;
+	double u, v;
+	camera.project(points[0][0], points[0][1], points[0][2], u, v);
+	i0 = i1 = (int)u;
+	j0 = j1 = (int)v;
+  d_->depth_min = d_->depth_max = dot_product(d_->world_plane_normal, points[0]);
+
+	for (int i = 1; i < 8; i++)
+	{
+		camera.project(points[i][0], points[i][1], points[i][2], u, v);
+		int ui = (int)u, vi = (int)v;
+		if (ui < i0)
+			i0 = ui;
+		if (vi < j0)
+			j0 = vi;
+		if (ui > i1)
+			i1 = ui;
+		if (vi > j1)
+			j1 = vi;
+
+		double d = dot_product(d_->world_plane_normal, points[i]);
+		if (d_->depth_min > d)
+      d_->depth_min = d;
+		if (d_->depth_max < d)
+      d_->depth_max = d;
+	}
+
+	//Does roi overlap with frame
+  if (!(i1 > 0 && imgwidth > i0 && j1 > 0 && imgheight > j0))
+  {
+    i0_out = j0_out = 0;
+    ni_out = imgwidth;
+    nj_out = imgheight;
+    d_->use_roi = false;
+    return false;
+  }		
+
+	//clamp to image
+	i0 = std::max<int>(0, i0);
+	j0 = std::max<int>(0, j0);
+	i1 = std::min<int>(imgwidth, i1);
+	j1 = std::min<int>(imgheight, j1);
+
+  d_->i0 = i0;
+  d_->j0 = j0;
+  d_->ni = i1 - i0;
+  d_->nj = j1 - j0;
+
+  i0_out = d_->i0;
+  ni_out = d_->ni;
+  j0_out = d_->j0;
+  nj_out = d_->nj;
+
   d_->use_roi = true;
+  return true;
 }
 
 //*****************************************************************************
@@ -211,53 +278,7 @@ world_space *
 compute_depth::priv
 ::compute_world_space_roi(vpgl_perspective_camera<double> &cam,
                           vil_image_view<double> &frame)
-{
-  vnl_double_3 points[8] = { vnl_double_3(minpt[0], minpt[1], minpt[2]),
-                             vnl_double_3(maxpt[0], minpt[1], minpt[2]),
-                             vnl_double_3(minpt[0], maxpt[1], minpt[2]),
-                             vnl_double_3(maxpt[0], maxpt[1], minpt[2]),
-                             vnl_double_3(minpt[0], minpt[1], maxpt[2]),
-                             vnl_double_3(maxpt[0], minpt[1], maxpt[2]),
-                             vnl_double_3(minpt[0], maxpt[1], maxpt[2]),
-                             vnl_double_3(maxpt[0], maxpt[1], maxpt[2]) };
-
-  int i0, j0, ni, nj;
-  double u, v;
-  cam.project(points[0][0], points[0][1], points[0][2], u, v);
-  i0 = ni = (int)u;
-  j0 = nj = (int)v;
-  depth_min = depth_max = dot_product(world_plane_normal, points[0]);
-
-  for (int i = 1; i < 8; i++)
-  {
-    cam.project(points[i][0], points[i][1], points[i][2], u, v);
-    int ui = (int)u, vi = (int)v;
-    if (ui < i0)
-      i0 = ui;
-    if (vi < j0)
-      j0 = vi;
-    if (ui > ni)
-      ni = ui;
-    if (vi > nj)
-      nj = vi;
-
-    double d = dot_product(world_plane_normal, points[0]);
-    if (depth_min > d)
-      depth_min = d;
-    if (depth_max < d)
-      depth_max = d;
-  }
-
-  //Does roi overlap with ref frame
-  if (!(ni > 0 && frame.ni() > i0 && nj > 0 && frame.nj() > j0))
-    return NULL;
-
-  //clamp to image
-  i0 = std::max<int>(0, (int)u);
-  j0 = std::max<int>(0, (int)v);
-  ni = std::min<int>(frame.ni(), (int)u);
-  nj = std::min<int>(frame.nj(), (int)v);
-  
+{  
   frame = vil_crop(frame, i0, ni, j0, nj);
   cam = crop_camera(cam, i0, j0);
 
@@ -273,7 +294,7 @@ world_space *
 compute_depth::priv
 ::compute_world_space_landmarks(const vpgl_perspective_camera<double> &cam, 
                                 const std::vector<landmark_sptr> &landmarks_in,
-                                int ni, int nj)
+                                int ni_, int nj_)
 {
   //convert landmarks
   std::vector<vnl_double_3> landmarks(landmarks_in.size());
@@ -281,8 +302,12 @@ compute_depth::priv
     landmarks[i] = vnl_vector_fixed<double, 3>(landmarks_in[i]->loc().data());
   }
 
+  this->i0 = this->j0 = 0;
+  this->ni = ni_;
+  this->nj = nj_;
+
   std::vector<vnl_double_3> visible_landmarks =
-    filter_visible_landmarks(cam, 0, ni, 0, nj, landmarks);
+    filter_visible_landmarks(cam, i0, ni, j0, nj, landmarks);
   compute_offset_range(visible_landmarks, world_plane_normal,
                        depth_min, depth_max, 0.1, 0.5);
   world_space *ws = new world_angled_frustum(cam, world_plane_normal,
