@@ -40,6 +40,7 @@
 
 #include <vital/algo/compute_depth.h>
 #include <vital/vital_config.h>
+#include <vital/types/vector.h>
 
 namespace kwiver {
 namespace arrows {
@@ -64,7 +65,9 @@ public:
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
   /// set a 3D region of interest for computing depth in
-  void set_roi(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt);
+  virtual bool set_roi(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
+                       const kwiver::vital::camera_perspective_sptr &cam, int imgwidth, int imgheight,
+                       int &i0_out, int &ni_out, int &j0_out, int &nj_out);
 
   /// remove ROI, will compute depth range using landmarks instead
   void clear_roi();
