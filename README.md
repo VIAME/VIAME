@@ -63,7 +63,7 @@ folder to point to the location of your installed Anaconda and CUDA distribution
 Lastly, run through some of the examples to validate the installation.
 
 **Installation Requirements:** <br>
-CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
+RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 [Anaconda3 5.2.0 x86_64](https://repo.continuum.io/archive/) (Note: Anaconda**3 x86_64**, not Anaconda2 or x86) <br>
 [CUDA 8.0 GA2 x86_64](https://developer.nvidia.com/cuda-toolkit-archive) (If you use GPU support) <br>
 
@@ -73,8 +73,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Linux Binaries:** <br>
 [VIAME v0.9.7.3 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b649a558d777f06857c1a9e/download) <br>
 [VIAME v0.9.7.3 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1X-HK1K9hM3wAYiDAttsL7osweWQretM6) <br>
-[VIAME v0.9.7.3 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b649f1b8d777f06857c1ab2/download) <br>
-[VIAME v0.9.7.3 CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1X1SRwNJABxiZ00yPBBTDxmxaBSsuG8L_)
+[VIAME v0.9.7.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b649f1b8d777f06857c1ab2/download) <br>
+[VIAME v0.9.7.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1X1SRwNJABxiZ00yPBBTDxmxaBSsuG8L_)
 
 **Windows Binaries:** <br>
 [VIAME v0.9.7.2 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b649b228d777f06857c1aa1/download) <br>
