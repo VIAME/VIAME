@@ -57,6 +57,28 @@ public:
 
 
 // ------------------------------------------------------------------
+/// Exception for image loading
+/**
+ * For when image fails to load, or is corrupt.
+ */
+class VITAL_EXCEPTIONS_EXPORT image_load_exception
+  : public image_exception
+{
+public:
+  /// Constructor
+  /**
+   * \param message     Description of circumstances surrounding error.
+   */
+  image_load_exception(std::string message) noexcept;
+  /// Destructor
+  virtual ~image_load_exception() noexcept;
+
+  /// Given error message string
+  std::string m_message;
+};
+
+
+// ------------------------------------------------------------------
 /// Exception for image type mismatch
 /**
  * For when image type equality must be asserted.

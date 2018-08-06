@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,20 @@ image_exception
 
 image_exception
 ::~image_exception() noexcept
+{
+}
+
+
+// ------------------------------------------------------------------
+image_load_exception
+::image_load_exception(std::string message) noexcept
+  : m_message(message)
+{
+  m_what = message;
+}
+
+image_load_exception
+::~image_load_exception() noexcept
 {
 }
 
