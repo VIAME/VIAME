@@ -143,7 +143,7 @@ def create_pipelines_list( glob_str ):
   for ind, full_path in enumerate( pipeline_files ):
     name_id = os.path.splitext( os.path.basename( full_path ) )[0]
     f.write("%s\\Name=\"%s\"\n" % (ind+1, name_id) )
-    f.write("%s\\Path=\"%s\"\n" % (ind+1, full_path) )
+    f.write("%s\\Path=\"%s\"\n" % (ind+1, full_path.replace("\\","\\\\") ) )
 
   f.close()
   return name
