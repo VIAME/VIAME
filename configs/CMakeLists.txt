@@ -14,9 +14,9 @@ if( VIAME_DOWNLOAD_MODELS )
   # PyTorch Tracking Models
   if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5afe6d6d8d777f15ebe1d6f9/download
-      f1fd5436c80911e9e3357835db4cdffd
-      ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.0.0.tar.gz
+      https://data.kitware.com/api/v1/item/5b6890a38d777f06857c1f22/download
+      51b979d61df667b4751000192426f106
+      ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     DownloadAndExtract(
