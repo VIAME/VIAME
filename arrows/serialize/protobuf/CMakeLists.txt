@@ -25,7 +25,8 @@ kwiver_add_library( kwiver_serialize_proto
   )
 
 target_link_libraries( kwiver_serialize_proto
-  PUBLIC               vital_algo
+  PUBLIC               vital
+                       vital_algo
                        vital_types_protobuf
   )
 
