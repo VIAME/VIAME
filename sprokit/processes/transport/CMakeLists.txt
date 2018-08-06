@@ -19,5 +19,5 @@ kwiver_add_plugin(processes_transport
   SUBDIR      sprokit
   SOURCES     ${sources}
               ${private_headers}
-  PRIVATE     sprokit_pipeline
+  PRIVATE     sprokit_pipeline vital_vpm
   )
