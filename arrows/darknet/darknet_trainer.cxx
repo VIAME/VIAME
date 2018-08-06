@@ -331,6 +331,8 @@ format_images( std::string folder, std::string prefix,
   boost::filesystem::create_directories( image_dir );
   boost::filesystem::create_directories( label_dir );
 
+  bool image_loaded_successfully = false;
+
   for( unsigned fid = 0; fid < image_names.size(); ++fid )
   {
     const std::string image_fn = image_names[fid];
@@ -340,15 +342,28 @@ format_images( std::string folder, std::string prefix,
     // Scale and break up image according to settings
     cv::Mat original_image, resized_image;
 
-    auto vital_img = m_image_io->load( image_fn );
-    original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      vital_img->get_image(), kwiver::arrows::ocv::image_container::BGR );
-
-    if( original_image.rows == 0 || original_image.cols == 0 )
+    try
     {
-      std::cout << "Could not load image " << image_fn << std::endl;
-      return std::vector< std::string >();
+      auto vital_img = m_image_io->load( image_fn );
+
+      original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        vital_img->get_image(), kwiver::arrows::ocv::image_container::BGR );
     }
+    catch( const kwiver::vital::vital_exception& )
+    {
+      if( image_loaded_successfully )
+      {
+        std::cout << "WARN: Could not load image " << image_fn << ", skipping." << std::endl;
+        continue;
+      }
+      else
+      {
+        std::cout << "ERROR: Could not load first image " << image_fn << std::endl;
+        return std::vector< std::string >();
+      }
+    }
+
+    image_loaded_successfully = true;
 
     if( m_crop_left )
     {
