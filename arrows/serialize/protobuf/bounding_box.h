@@ -34,13 +34,14 @@
 #include <arrows/serialize/protobuf/kwiver_serialize_proto_export.h>
 #include <vital/algo/data_serializer.h>
 #include <vital/types/bounding_box.h>
+#include <vital/types/protobuf/bounding_box.pb.h>
 
 namespace kwiver {
 namespace arrows {
 namespace serialize {
 namespace proto {
 
-class KWIVER_SERIALIZE_JSON_EXPORT bounding_box
+class KWIVER_SERIALIZE_PROTO_EXPORT bounding_box
   : public vital::algorithm_impl< bounding_box, vital::algo::data_serializer >
 {
 public:
@@ -57,10 +58,12 @@ public:
   virtual std::shared_ptr< std::string > serialize( const serialize_param_t elements );
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
-  // Converters that can be used in cases of nested structures
-  // static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox );
-  // static void load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbox );
+  // Convert between native and protobuf formats
+  static bool convert_protobuf( const vital::protobuf::bounding_box&  proto_bbox,
+                                kwiver::vital::bounding_box_d& bbox );
 
+  static bool convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
+                                vital::protobuf::bounding_box&  proto_bbox );
 };
 
 } } } }       // end namespace kwiver

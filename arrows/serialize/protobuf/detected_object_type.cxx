@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "bounding_box.h"
+#include "detected_object_type.h"
 
 namespace kwiver {
 namespace arrows {
@@ -36,8 +36,8 @@ namespace serialize {
 namespace proto {
 
 // ----------------------------------------------------------------------------
-bounding_box::
-bounding_box()
+detected_object_type::
+detected_object_type()
 {
   m_element_names.insert( DEFAULT_ELEMENT_NAME );
 
@@ -47,25 +47,25 @@ bounding_box()
 }
 
 
-bounding_box::
-~bounding_box()
+detected_object_type::
+~detected_object_type()
 { }
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
-bounding_box::
+detected_object_type::
 serialize( const data_serializer::serialize_param_t elements )
 {
-  kwiver::vital::bounding_box_d bbox =
-    kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( elements.at( DEFAULT_ELEMENT_NAME ) );
+  kwiver::vital::detected_object_type dot =
+    kwiver::vital::any_cast< kwiver::vital::detected_object_type > ( elements.at( DEFAULT_ELEMENT_NAME ) );
 
   std::ostringstream msg;
-  msg << "bounding_box "; // add type tag
+  msg << "detected_object_type "; // add type tag
 
-  vital::protobuf::bounding_box proto_bbox;
-  convert_protobuf( bbox, proto_bbox );
+  vital::protobuf::detected_object_type proto_dot;
+  convert_protobuf( dot, proto_dot );
 
-  if ( ! proto_bbox.SerializeToOstream( &msg ) )
+  if ( ! proto_dot.SerializeToOstream( &msg ) )
   {
     // throw something
   }
@@ -75,59 +75,62 @@ serialize( const data_serializer::serialize_param_t elements )
 
 // ----------------------------------------------------------------------------
 vital::algo::data_serializer::deserialize_result_t
-bounding_box::
+detected_object_type::
 deserialize( std::shared_ptr< std::string > message )
 {
-  kwiver::vital::bounding_box_d bbox{ 0, 0, 0, 0 };
-
+  kwiver::vital::detected_object_type dot;
   std::istringstream msg( *message );
+
   std::string tag;
   msg >> tag;
 
-  if (tag != "bounding_box" )
+  if (tag != "detected_object_type" )
   {
-    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"bounding_box\", received \""
+    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"detected_object_type\", received \""
                << tag << "\". Message dropped." );
   }
   else
   {
     // define our protobuf
-    vital::protobuf::bounding_box proto_bbox;
-    if ( ! proto_bbox.ParseFromIstream( &msg ) )
+    vital::protobuf::detected_object_type proto_dot;
+    if ( ! proto_dot.ParseFromIstream( &msg ) )
     {
       // throw something
     }
 
-    convert_protobuf( proto_bbox, bbox );
+    convert_protobuf( proto_dot, dot );
   }
 
   deserialize_result_t res;
-  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(bbox);
+  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(dot);
 
   return res;
 }
 
 // ----------------------------------------------------------------------------
-bool bounding_box::
-convert_protobuf( const vital::protobuf::bounding_box&  proto_bbox,
-                  kwiver::vital::bounding_box_d& bbox )
+bool detected_object_type::
+convert_protobuf( const vital::protobuf::detected_object_type&  proto_dot,
+                  kwiver::vital::detected_object_type& dot )
  {
-   bbox = kwiver::vital::bounding_box_d( proto_bbox.xmin(),
-                                         proto_bbox.ymin(),
-                                         proto_bbox.xmax(),
-                                         proto_bbox.ymax());
+   const size_t count( proto_dot.name_size() );
+   for (size_t i = 0; i < count; ++i )
+   {
+     dot.set_score( proto_dot.name(i), proto_dot.score(i) );
+   }
+
     return true;
  }
 
 // ----------------------------------------------------------------------------
-bool bounding_box::
-convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
-                  vital::protobuf::bounding_box&  proto_bbox )
+bool detected_object_type::
+convert_protobuf( const kwiver::vital::detected_object_type& dot,
+                  vital::protobuf::detected_object_type&  proto_dot )
 {
-  proto_bbox.set_xmin( bbox.min_x() );
-  proto_bbox.set_ymin( bbox.min_y() );
-  proto_bbox.set_xmax( bbox.max_x() );
-  proto_bbox.set_ymax( bbox.max_y() );
+  for ( auto it: dot )
+  {
+    proto_dot.add_name( *(it.first) );
+    proto_dot.add_score( it.second);
+  }
 
   return true;
 }

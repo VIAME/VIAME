@@ -30,9 +30,7 @@
 
 package vital.protobuf;
 
-message bounding_box {
-  required double xmin = 1;
-  required double ymin = 2;
-  required double xmax = 3;
-  required double ymax = 4;
+message detected_object_type {
+  repeated double score = 1;
+  repeated string name = 2;
 }

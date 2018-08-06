@@ -28,11 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package vital.protobuf;
+#ifndef ARROWS_SERIALIZATION_PROTO_DETECTED_OBJECT_TYPE_H
+#define ARROWS_SERIALIZATION_PROTO_DETECTED_OBJECT_TYPE_H
 
-message bounding_box {
-  required double xmin = 1;
-  required double ymin = 2;
-  required double xmax = 3;
-  required double ymax = 4;
-}
+#include <arrows/serialize/protobuf/kwiver_serialize_proto_export.h>
+#include <vital/algo/data_serializer.h>
+#include <vital/types/detected_object_type.h>
+#include <vital/types/protobuf/detected_object_type.pb.h>
+
+namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace proto {
+
+class KWIVER_SERIALIZE_PROTO_EXPORT detected_object_type
+  : public vital::algorithm_impl< detected_object_type, vital::algo::data_serializer >
+{
+public:
+  // Type name this class supports
+  static constexpr char const* name = "kwiver:detected_object_type";
+
+  static constexpr char const* description =
+    "Serializes a detected_object_type using protobuf notation. "
+    "This implementation only handles a single data item.";
+
+  detected_object_type();
+  virtual ~detected_object_type();
+
+  virtual std::shared_ptr< std::string > serialize( const serialize_param_t elements );
+  virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
+
+  // Convert between native and protobuf formats
+  static bool convert_protobuf( const vital::protobuf::detected_object_type&  proto_bbox,
+                                kwiver::vital::detected_object_type& bbox );
+
+  static bool convert_protobuf( const kwiver::vital::detected_object_type& bbox,
+                                vital::protobuf::detected_object_type&  proto_bbox );
+};
+
+} } } }       // end namespace kwiver
+
+#endif // ARROWS_SERIALIZATION_PROTO_DETECTED_OBJECT_TYPEH

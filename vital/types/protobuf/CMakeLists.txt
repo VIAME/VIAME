@@ -6,6 +6,7 @@ find_package( Protobuf REQUIRED )
 
 set( proto_files
   bounding_box.proto
+  detected_object_type.proto
   )
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})
@@ -18,5 +19,5 @@ kwiver_add_library( vital_types_protobuf
 
 target_link_libraries( vital_types_protobuf
   PUBLIC       vital
-  PRIVATE      ${PROTOBUF_LIBRARIES}
+               ${PROTOBUF_LIBRARIES}
   )
