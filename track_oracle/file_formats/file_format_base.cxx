@@ -6,7 +6,7 @@
 
 #include "file_format_base.h"
 
-#include <regex>
+#include <kwiversys/RegularExpression.hxx>
 
 #include <vul/vul_file.h>
 #include <vul/vul_string.h>
@@ -32,6 +32,8 @@ glob_to_regexp_string( const string& glob )
   // This code is lifted straight from vul_file_iterator.cxx.
   //
 
+  static const string meta_chars = "^$.[()|?+*\\";
+
   string baseglob = vul_file::basename(glob);
   string::iterator i = baseglob.begin();
   bool prev_slash=false, in_sqr_brackets=false;
@@ -39,30 +41,44 @@ glob_to_regexp_string( const string& glob )
   string re = "^"; // match the start of the string
   while (i != baseglob.end())
   {
-    if (*i=='\\' && !prev_slash)
+    const char& c = *i;
+    if (c =='\\' && !prev_slash)
+    {
       prev_slash = true;
+    }
     else if (prev_slash)
     {
       prev_slash = false;
       re.append(1,('\\'));
       re.append(1,*i);
     }
-    else if (*i=='[' && !in_sqr_brackets)
+    else if (c=='[' && !in_sqr_brackets)
     {
       in_sqr_brackets = true;
       re.append(1,'[');
     }
-    else if (*i==']' && in_sqr_brackets)
+    else if (c==']' && in_sqr_brackets)
     {
       in_sqr_brackets = false;
       re.append(1,']');
     }
-    else if (*i=='?' && !in_sqr_brackets)
+    else if (c=='?' && !in_sqr_brackets)
+    {
       re.append(1,'.');
-    else if (*i=='*' && !in_sqr_brackets)
+    }
+    else if (c=='*' && !in_sqr_brackets)
+    {
       re.append( ".*" );
+    }
+    else if (meta_chars.find_first_of( c ) != string::npos)
+    {
+      re.append( "\\" );
+      re.append(1, c );
+    }
     else
-      re.append(1, *i);  // was re.append(vul_reg_exp::protect(*i));
+    {
+      re.append(1, c);
+    }
 
     ++i;
   }
@@ -124,11 +140,10 @@ file_format_base
 ::filename_matches_globs( string fn ) const
 {
   vul_string_downcase( fn );
-  std::smatch matches;
   for (size_t i=0; i<this->globs.size(); ++i)
   {
-    std::regex r( glob_to_regexp_string( this->globs[i] ));
-    if (std::regex_search( fn, matches, r )) return true;
+    kwiversys::RegularExpression r( glob_to_regexp_string( this->globs[i] ));
+    if (r.find( fn )) return true;
   }
   return false;
 }

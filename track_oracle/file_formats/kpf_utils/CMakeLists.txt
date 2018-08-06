@@ -42,5 +42,6 @@ target_link_libraries( kpf_utils
                        kwiver_algo_kpf
   PRIVATE              vital_logger
                        logging_map
+                       kwiversys
                        ${YAML_CPP_LIBRARIES}
 )

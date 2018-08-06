@@ -66,7 +66,8 @@ static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <regex>
+
+#include <kwiversys/RegularExpression.hxx>
 
 using std::map;
 using std::make_pair;
@@ -95,10 +96,10 @@ get_optional_fields()
   string kpf_key_str( KPF::style2str( KPF::packet_style::KV ));
   string kpf_cset_str( KPF::style2str( KPF::packet_style::CSET ));
   // Note that these regexs are tied to the synthesized field names in the reader.
-  std::regex field_dbl("^([a-zA-Z0-9]+)_([0-9]+)$");
-  std::regex field_kv("^"+kpf_key_str+"_([a-zA-Z0-9]+)$");
-  std::regex field_cset("^"+kpf_cset_str+"_([0-9]+)$");
-  std::smatch matches;
+  kwiversys::RegularExpression field_dbl("^([a-zA-Z0-9]+)_([0-9]+)$");
+  kwiversys::RegularExpression field_kv("^"+kpf_key_str+"_([a-zA-Z0-9]+)$");
+  kwiversys::RegularExpression field_cset("^"+kpf_cset_str+"_([0-9]+)$");
+
 
   for (auto i: track_oracle_core::get_all_field_handles())
   {
@@ -108,13 +109,13 @@ get_optional_fields()
     if (e.typeid_str == dbltype)
     {
       // did we find two matches and is the first a KPF style?
-      if ( std::regex_search( e.name, matches, field_dbl ))
+      if ( field_dbl.find( e.name ))
       {
-        auto style = KPF::str2style( matches.str(1) );
+        auto style = KPF::str2style( field_dbl.match(1) );
         if (style != KPF::packet_style::INVALID )
         {
           // Convert the domain and associate a packet with the field
-          optional_fields[i] = KPF::packet_t( KPF::packet_header_t( style, stoi( matches.str(2) )));
+          optional_fields[i] = KPF::packet_t( KPF::packet_header_t( style, stoi( field_dbl.match(2) )));
 
         } // ...not a valid KPF domain
       } // ... didn't find two matches
@@ -123,11 +124,11 @@ get_optional_fields()
     // Is the type string?
     else if (e.typeid_str == strtype)
     {
-      if ( std::regex_search( e.name, matches, field_kv ))
+      if ( field_kv.find( e.name ))
       {
         // Create a partial KV packet with the key
         KPF::packet_t p( (KPF::packet_header_t( KPF::packet_style::KV )) );
-        p.kv.key = matches.str(1);
+        p.kv.key = field_kv.match(1);
         optional_fields[i] = p;
 
       } // ...didn't get exactly one match
@@ -136,13 +137,13 @@ get_optional_fields()
     // Is the type a map<size_t, double>?
     else if (e.typeid_str == csettype)
     {
-      if ( std::regex_search( e.name, matches, field_cset ))
+      if ( field_cset.find( e.name ))
       {
         // Convert the domain, associate a packet with the field
         optional_fields[i] =
           KPF::packet_t(
             KPF::packet_header_t(KPF::packet_style::CSET,
-                                 stoi( matches.str(1))));
+                                 stoi( field_cset.match(1) )));
       } // ...didn't match the cset name
     } // ...didn't match the cset type
 
