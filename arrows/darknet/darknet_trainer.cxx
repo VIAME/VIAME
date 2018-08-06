@@ -129,6 +129,8 @@ darknet_trainer::
 darknet_trainer()
   : d( new priv() )
 {
+  attach_logger( "arrows.darknet.darknet_trainer" );
+  d->m_logger = logger();
 }
 
 darknet_trainer::
@@ -226,7 +228,7 @@ check_configuration( vital::config_block_sptr config ) const
 
   if( net_config.empty() || !kwiversys::SystemTools::FileExists( net_config ) )
   {
-    LOG_ERROR( logger(), "net config file \"" << net_config << "\" not found." );
+    LOG_ERROR( d->m_logger, "net config file \"" << net_config << "\" not found." );
     return false;
   }
 
@@ -307,7 +309,7 @@ train_from_disk(
 
   std::string full_cmd = darknet_cmd + " " + darknet_args;
 
-  std::cout << "Running " << full_cmd << std::endl;
+  LOG_INFO( d->m_logger,  "Running " << full_cmd );
 
   system( full_cmd.c_str() );
 }
@@ -352,16 +354,16 @@ format_images( std::string folder, std::string prefix,
     }
     catch( const kwiver::vital::vital_exception& e )
     {
-      std::cout << "Caught exception reading image: " << e.what() << std::endl;
+      LOG_ERROR( m_logger, "Caught exception reading image: " << e.what() );
 
       if( image_loaded_successfully )
       {
-        std::cout << "WARN: Could not load image " << image_fn << ", skipping." << std::endl;
+        LOG_WARN( m_logger, "Could not load image " << image_fn << ", skipping." );
         continue;
       }
       else
       {
-        std::cout << "ERROR: Could not load first image " << image_fn << std::endl;
+        LOG_ERROR( m_logger, "Could not load first image " << image_fn );
         return std::vector< std::string >();
       }
     }
@@ -501,7 +503,7 @@ print_detections(
 
       if( !(*detection)->type() )
       {
-        std::cout << "Error: Detection missing type" << std::endl;
+        LOG_ERROR( m_logger, "Input detection is missing type category" );
         return false;
       }
 
@@ -513,7 +515,7 @@ print_detections(
       }
       else
       {
-        std::cout << "Warning: Ignoring unlisted class " << category << std::endl;
+        LOG_WARN( m_logger, "Ignoring unlisted class " << category );
         continue;
       }
 
