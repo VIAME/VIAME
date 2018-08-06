@@ -1,0 +1,18 @@
+
+config _pipeline:_edge
+   :capacity                                   10
+
+process input
+  :: frame_list_input
+  :image_list_file                             input_list.txt
+  :frame_time                                  1
+  :image_reader:type                           vxl
+  :image_reader:vxl:force_byte                 true
+
+process output
+  :: image_writer
+  :file_name_template                          image%04d.jpg
+  :image_writer:type                           vxl
+
+connect from input.image
+        to   output.image
