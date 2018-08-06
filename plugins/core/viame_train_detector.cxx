@@ -808,7 +808,8 @@ main( int argc, char* argv[] )
     }
     else // Not okay
     {
-      std::cout << "Error: labels.txt contains multiple classes, but GT is clase-less" << std::endl;
+      std::cout << "Error: labels.txt contains multiple classes, but GT is does "
+                   "not contain classes of interest." << std::endl;
       return 0;
     }
   }
