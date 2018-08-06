@@ -336,7 +336,12 @@ image_io
     }                                                                  \
     break;                                                             \
 
-  switch (img_rsc->pixel_format())
+  if( !img_rsc )
+  {
+    throw vital::image_load_exception( "Unable to load " + filename );
+  }
+
+  switch( img_rsc->pixel_format() )
   {
     DO_CASE(VIL_PIXEL_FORMAT_BOOL);
     DO_CASE(VIL_PIXEL_FORMAT_BYTE);
