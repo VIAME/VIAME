@@ -71,19 +71,19 @@ from kwiver.arrows.pytorch.models import get_config
 
 g_config = get_config()
 
-def print(msg):
-   import threading
-   import traceback
-   try:
-       msg = '[{}] {}'.format(threading.current_thread(), msg)
-   #    with open('database/Logs/SRNN_Tracking_Log', 'a') as f:
-   #        f.write(str(msg) + '\n')
-   except Exception as ex:
-       with open('database/Logs/SRNN_Tracking_Error_Log', 'a') as f:
-           f.write('Error durring print! Attempting to report\n')
-           f.write(repr(ex) + '\n')
-           f.write(traceback.format_exc() + '\n')
-           raise
+#def print(msg):
+   #import threading
+   #import traceback
+   #try:
+       #msg = '[{}] {}'.format(threading.current_thread(), msg)
+   ##    with open('database/Logs/SRNN_Tracking_Log', 'a') as f:
+   ##        f.write(str(msg) + '\n')
+   #except Exception as ex:
+       #with open('database/Logs/SRNN_Tracking_Error_Log', 'a') as f:
+           #f.write('Error durring print! Attempting to report\n')
+           #f.write(repr(ex) + '\n')
+           #f.write(traceback.format_exc() + '\n')
+           #raise
 
 def ts2ot_list(track_set):
     ot_list = [] 
