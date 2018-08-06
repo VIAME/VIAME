@@ -62,7 +62,7 @@ serialize( const data_serializer::serialize_param_t elements )
   std::ostringstream msg;
   msg << "detected_object_type "; // add type tag
 
-  vital::protobuf::detected_object_type proto_dot;
+  ::vital::protobuf::detected_object_type proto_dot;
   convert_protobuf( dot, proto_dot );
 
   if ( ! proto_dot.SerializeToOstream( &msg ) )
@@ -92,7 +92,7 @@ deserialize( std::shared_ptr< std::string > message )
   else
   {
     // define our protobuf
-    vital::protobuf::detected_object_type proto_dot;
+    ::vital::protobuf::detected_object_type proto_dot;
     if ( ! proto_dot.ParseFromIstream( &msg ) )
     {
       // throw something
@@ -109,7 +109,7 @@ deserialize( std::shared_ptr< std::string > message )
 
 // ----------------------------------------------------------------------------
 bool detected_object_type::
-convert_protobuf( const vital::protobuf::detected_object_type&  proto_dot,
+convert_protobuf( const ::vital::protobuf::detected_object_type&  proto_dot,
                   kwiver::vital::detected_object_type& dot )
  {
    const size_t count( proto_dot.name_size() );
@@ -124,7 +124,7 @@ convert_protobuf( const vital::protobuf::detected_object_type&  proto_dot,
 // ----------------------------------------------------------------------------
 bool detected_object_type::
 convert_protobuf( const kwiver::vital::detected_object_type& dot,
-                  vital::protobuf::detected_object_type&  proto_dot )
+                  ::vital::protobuf::detected_object_type&  proto_dot )
 {
   for ( auto it: dot )
   {
