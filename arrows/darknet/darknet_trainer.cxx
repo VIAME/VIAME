@@ -340,17 +340,20 @@ format_images( std::string folder, std::string prefix,
     kwiver::vital::detected_object_set_sptr scaled_detections_ptr = groundtruth[fid]->clone();
 
     // Scale and break up image according to settings
+    kwiver::vital::image_container_sptr vital_image;
     cv::Mat original_image, resized_image;
 
     try
     {
-      auto vital_img = m_image_io->load( image_fn );
+      vital_image = m_image_io->load( image_fn );
 
       original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        vital_img->get_image(), kwiver::arrows::ocv::image_container::BGR );
+        vital_image->get_image(), kwiver::arrows::ocv::image_container::BGR );
     }
-    catch( const kwiver::vital::vital_exception& )
+    catch( const kwiver::vital::vital_exception& e )
     {
+      std::cout << "Caught exception reading image: " << e.what() << std::endl;
+
       if( image_loaded_successfully )
       {
         std::cout << "WARN: Could not load image " << image_fn << ", skipping." << std::endl;
