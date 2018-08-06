@@ -5,7 +5,6 @@ from __future__ import absolute_import
 import torch
 import torch.utils.data as data
 from torchvision import transforms
-from torch.autograd import Variable
 
 from PIL import Image as pilImage
 
@@ -55,12 +54,14 @@ class pytorch_siamese_f_extractor(object):
 
         if GPU_list is None:
             GPU_list = [x for x in range(torch.cuda.device_count())]
-            self._target_GPU = 0
+            target_GPU = 0
         else:
-            self._target_GPU = GPU_list[0]
+            target_GPU = GPU_list[0]
+
+        self._device = torch.device("cuda:{}".format(target_GPU))
 
         # load siamese model
-        self._siamese_model = Siamese().cuda(self._target_GPU)
+        self._siamese_model = Siamese().to(self._device)
         self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
 
         snapshot = torch.load(siamese_model_path)
@@ -94,8 +95,9 @@ class pytorch_siamese_f_extractor(object):
         bbox_loader_class = siameseDataLoader(bbox_list, self._transform, self._frame, self._img_size, MOT_flag) 
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
+        torch.set_grad_enabled(False)
         for idx, imgs in enumerate(bbox_loader):
-            v_imgs = Variable(imgs, volatile=True).cuda(self._target_GPU)
+            v_imgs = imgs.to(self._device)
             output = self._siamese_model(v_imgs)
 
             if idx == 0:

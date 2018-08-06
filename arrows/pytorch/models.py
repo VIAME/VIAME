@@ -38,7 +38,6 @@ class Siamese(nn.Module):
         self.resnet = models.resnet50(pretrained=False)
         self.num_fcin = self.resnet.fc.in_features
         self.resnet.fc = nn.Linear(self.num_fcin, 500)
-        self.pdist = nn.PairwiseDistance(1)
 
     def forward(self, input1):
         output1 = self.resnet(input1)
@@ -63,7 +62,7 @@ class AppearanceLSTM(nn.Module):
         self.fc2 = nn.Linear(g_config.K, 2)
         self.relu = nn.ReLU()
 
-    # FIXME: we may need to add hidden status from previous
+    # TODO: we may need to add hidden status from previous
     def forward(self, track_input, target_input):
         target_out = self.target_fc(target_input)
         r_out, (h_t, c_t) = self.lstm(track_input, None)
