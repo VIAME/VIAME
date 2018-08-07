@@ -71,16 +71,16 @@ RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Binaries:** <br>
-[VIAME v0.9.7.3 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b649a558d777f06857c1a9e/download) <br>
-[VIAME v0.9.7.3 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1X-HK1K9hM3wAYiDAttsL7osweWQretM6) <br>
-[VIAME v0.9.7.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b649f1b8d777f06857c1ab2/download) <br>
-[VIAME v0.9.7.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1X1SRwNJABxiZ00yPBBTDxmxaBSsuG8L_)
+[VIAME v0.9.7.5 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](Will be updated in an hour) <br>
+[VIAME v0.9.7.5 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](Will be updated in an hour) <br>
+[VIAME v0.9.7.5 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b69c0ac8d777f06857c1f69/download) <br>
+[VIAME v0.9.7.5 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](Will be updated in an hour)
 
 **Windows Binaries:** <br>
-[VIAME v0.9.7.4 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b68ca678d777f06857c1f4b/download) <br>
-[VIAME v0.9.7.4 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1dmOTJo_1Eb-TFlriUccCot3W3P8ibazp) <br>
-[VIAME v0.9.7.4 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b68bc5b8d777f06857c1f41/download) <br>
-[VIAME v0.9.7.4 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1t5xmZbU2cUf_NX6LA2VNx9-9JK_rG6KL)
+[VIAME v0.9.7.5 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b69bcb18d777f06857c1f65/download) <br>
+[VIAME v0.9.7.5 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](Will be updated in an hour) <br>
+[VIAME v0.9.7.5 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](Will be updated in an hour) <br>
+[VIAME v0.9.7.5 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](Will be updated in an hour)
 
 
 Quick Build Instructions
