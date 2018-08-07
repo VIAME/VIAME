@@ -268,11 +268,25 @@ train_from_disk(
       test_image_names, test_groundtruth, object_labels );
 
     // Generate train/test image list and header information
+    //
+    // (This code should be re-written at some point, converted to C++)
 #ifdef WIN32
-    std::string python_cmd = "python.exe -c '";
+    std::string python_cmd = "python.exe -c \"";
+    std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
+    std::string header_cmd = "dth.generate_yolo_v2_headers(";
+
+    std::string header_args = "\\\"" + d->m_train_directory + "\\\",[";
+    for( auto label : object_labels->child_class_names() )
+    {
+      header_args = header_args + "\\\"" + label + "\\\",";
+    }
+    header_args = header_args +"]," + std::to_string( d->m_resize_i );
+    header_args = header_args + "," + std::to_string( d->m_resize_j );
+    header_args = header_args + ",\\\"" + d->m_net_config + "\\\"";
+
+    std::string header_end  = ")\"";
 #else
     std::string python_cmd = "python -c '";
-#endif
     std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
     std::string header_cmd = "dth.generate_yolo_v2_headers(";
 
@@ -286,7 +300,7 @@ train_from_disk(
     header_args = header_args + ",\"" + d->m_net_config + "\"";
 
     std::string header_end  = ")'";
-
+#endif
     std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
 
     system( full_cmd.c_str() );
