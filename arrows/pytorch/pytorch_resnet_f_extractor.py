@@ -72,7 +72,8 @@ class pytorch_resnet_f_extractor(object):
         self._device = torch.device("cuda:{}".format(target_GPU))
 
         # load the resnet50 model. Maybe this shouldn't be hardcoded?
-        self._resnet_model = models.resnet50().cuda(device=target_GPU)
+        #self._resnet_model = models.resnet50().cuda(device=target_GPU)
+        self._resnet_model = models.resnet50().to(self._device)
         #self._resnet_model.fc = nn.Linear(2048, 46)
         print( resnet_model_path )
         weights = torch.load( resnet_model_path )
