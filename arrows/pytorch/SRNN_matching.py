@@ -3,7 +3,6 @@ import torch.utils.data as data
 from torch import nn
 
 import numpy as np
-import math
 
 from kwiver.arrows.pytorch.models import TargetLSTM, get_config, RnnType
 
@@ -38,14 +37,14 @@ class TargetRNNDataLoader(data.Dataset):
                 _rnnType = RnnType.Target_RNN_AIM
 
             # only process active and un-unpdated track
-            if (cur_track.active_flag is True) and (cur_track.updated_flag is False) and (_rnnType is self._rnnType):
+            if cur_track.active_flag and not cur_track.updated_flag and (_rnnType is self._rnnType):
                 for ts in range(self._track_states_num):
 
                     # distance between the two bbox's x instead of center
-                    dis = math.fabs(cur_track[-1].bbox[0] - self._track_state_list[ts].bbox[0])
+                    dis = abs(cur_track[-1].bbox[0] - self._track_state_list[ts].bbox[0])
 
-                    bbox_area_ratio = float(cur_track[-1].bbox[2] * cur_track[-1].bbox[3]) / \
-                                        float(self._track_state_list[ts].bbox[2] * self._track_state_list[ts].bbox[3])
+                    bbox_area_ratio = (float(cur_track[-1].bbox[2] * cur_track[-1].bbox[3]) /
+                                       float(self._track_state_list[ts].bbox[2] * self._track_state_list[ts].bbox[3]))
                     if bbox_area_ratio < 1.0:
                         bbox_area_ratio = 1.0 / bbox_area_ratio
 
@@ -53,34 +52,30 @@ class TargetRNNDataLoader(data.Dataset):
                     if (dis < self._track_search_threshold * cur_track[-1].bbox[2] and                      # track dis constraint
                         dis < self._track_search_threshold * self._track_state_list[ts].bbox[2] and         # track_state dis constraint
                         bbox_area_ratio < self._track_search_threshold):                                    # bbox area constraint
-                        cur_data_item = tuple()
+                        cur_data_item = []
 
                         #app feature and app target
                         app_f_tensor = torch.stack([cur_track[i].app_feature for i in range(-g_config.timeStep, 0)])
-                        cur_data_item = cur_data_item + (app_f_tensor, )
-                        cur_data_item = cur_data_item + (self._track_state_list[ts].app_feature, )
+                        cur_data_item += app_f_tensor, self._track_state_list[ts].app_feature
 
                         #motion feature and motion target
                         motion_f_tensor = torch.stack([cur_track[i].motion_feature for i in range(-g_config.timeStep, 0)])
-                        cur_data_item = cur_data_item + (motion_f_tensor, )
-                        motion_target_f = np.asarray(self._track_state_list[ts].bbox_center, dtype=np.float32).reshape(g_config.M_F_num) - \
-                                          np.asarray(cur_track[-1].bbox_center, dtype=np.float32).reshape(g_config.M_F_num)
-                        cur_data_item = cur_data_item + (torch.from_numpy(motion_target_f), )
+                        motion_target_f = (np.asarray(self._track_state_list[ts].bbox_center, dtype=np.float32).reshape(g_config.M_F_num) -
+                                           np.asarray(cur_track[-1].bbox_center, dtype=np.float32).reshape(g_config.M_F_num))
+                        cur_data_item += motion_f_tensor, torch.from_numpy(motion_target_f)
 
                         #interaction feature and interaction target
                         interaction_f_tensor = torch.stack([cur_track[i].interaction_feature for i in range(-g_config.timeStep, 0)])
-                        cur_data_item = cur_data_item + (interaction_f_tensor, )
-                        cur_data_item = cur_data_item + (self._track_state_list[ts].interaction_feature, )
+                        cur_data_item += interaction_f_tensor, self._track_state_list[ts].interaction_feature
 
                         #bbar feature and bbar target
                         bbar_f_tensor = torch.stack([cur_track[i].bbar_feature for i in range(-g_config.timeStep, 0)])
-                        cur_data_item = cur_data_item + (bbar_f_tensor, )
-                        cur_data_item = cur_data_item + (self._track_state_list[ts].bbar_feature, )
+                        cur_data_item += bbar_f_tensor, self._track_state_list[ts].bbar_feature
 
                         #corresponding position of the similarity matrix
-                        cur_data_item = cur_data_item + (t, ts,)
+                        cur_data_item += t, ts
 
-                        _data_list.append(cur_data_item)
+                        _data_list.append(tuple(cur_data_item))
 
         return _data_list
 
