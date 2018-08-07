@@ -105,6 +105,8 @@ refine_detections_with_svm
 ::refine_detections_with_svm()
     : d_( new priv() )
 {
+  attach_logger( "arrows.svm.refine_detections_with_svm" );
+  d_->m_logger = logger();
 }
 
 
@@ -140,9 +142,6 @@ refine_detections_with_svm::priv
   boost::filesystem::path p( model_dir );
   boost::filesystem::directory_iterator it{ p };
 
-  boost::regex file_regex( "^.*\\.svm" );
-  boost::cmatch char_matches;
-
   int *labels = new int[2];
 
   for (; it != boost::filesystem::directory_iterator {}; ++it)
@@ -151,8 +150,11 @@ refine_detections_with_svm::priv
     std::string file_name = (it->path()).filename().string();
     std::string file_name_no_ext = (it->path()).stem().string();
 
-    LOG_ASSERT(m_logger, boost::regex_match(file_name.c_str(), char_matches, file_regex),
-               "All svm files must have .svm extension");
+    if( file_name.substr( file_name.find_last_of(".") ) != ".svm" )
+    {
+      LOG_INFO(m_logger, "Ignoring file without .svm extension: " << file_name);
+      continue;
+    }
 
     svm_model *model = svm_load_model(file_name_with_path.c_str());
     int num_classes = svm_get_nr_class(model);
