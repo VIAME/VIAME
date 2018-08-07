@@ -164,6 +164,9 @@ ExternalProject_Add(fletch
     -Dfletch_ENABLE_pybind11:BOOL=${VIAME_ENABLE_PYTHON}
     -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
 
+    -Dfletch_ENABLE_GDAL:BOOL=${VIAME_ENABLE_GDAL}
+    -Dfletch_ENABLE_libgeotiff:BOOL=${VIAME_ENABLE_GDAL}
+
     # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
 

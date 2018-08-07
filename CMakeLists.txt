@@ -81,6 +81,11 @@ option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       ON )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
 
+###
+# Add assorted other enable flags
+##
+option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
+mark_as_advanced( VIAME_ENABLE_GDAL )
 
 ###
 # Advanced hidden flags used for disabling core features
