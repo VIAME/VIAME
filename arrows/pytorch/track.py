@@ -184,12 +184,12 @@ class track(object):
         self._max_conf = val
 
     def append(self, new_track_state):
-        if len(self._track_state_list) == 0:
+        if not self._track_state_list:
             new_track_state.motion_feature = torch.FloatTensor(2).zero_()
         else:
             pre_bbox_center = np.asarray(self._track_state_list[-1].bbox_center, dtype=np.float32).reshape(2)
             cur_bbox_center = np.asarray(new_track_state.bbox_center, dtype=np.float32).reshape(2)
-            new_track_state._motion_feature = torch.from_numpy(cur_bbox_center - pre_bbox_center)
+            new_track_state.motion_feature = torch.from_numpy(cur_bbox_center - pre_bbox_center)
 
         new_track_state.track_id = self._track_id
         self._track_state_list.append(new_track_state)
