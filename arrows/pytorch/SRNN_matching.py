@@ -17,9 +17,6 @@ class TargetRNNDataLoader(data.Dataset):
         self._track_search_threshold = track_search_threshold
         self._rnnType = rnnType
 
-        self._tracks_num = len(track_set)
-        self._track_states_num = len(track_state_list)
-
         self._data_list = self._make_dataset()
 
     def _make_dataset(self):
