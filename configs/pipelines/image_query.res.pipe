@@ -47,7 +47,7 @@ connect from in_adapt.stream_id
 connect from kwa_writer.complete_flag
         to   out_adapt.complete_flag
 
-include common_default_detector.pipe
+include common_generic_detector.pipe
 
 connect from reader.image
         to   detector.image
@@ -66,7 +66,7 @@ connect from reader.image
 connect from detector.detected_object_set
         to   add_fixed_detection.detected_object_set
 
-include common_generic_descriptor.pipe
+include common_default_descriptor.pipe
 
 connect from reader.image
         to   descriptor.image
