@@ -223,8 +223,7 @@ class track_set(object):
         return list(self._id_ts_dict.items())[idx][1]
 
     def __iter__(self):
-        for _, item in self._id_ts_dict.items():
-            yield item
+        return iter(self._id_ts_dict.values())
 
     def get_track(self, track_id):
         if track_id not in self._id_ts_dict:
@@ -239,7 +238,7 @@ class track_set(object):
         if len(self._id_ts_dict) == 0:
             return 0
         else:
-            return max(self.get_all_trackID())
+            return max(self._id_ts_dict)
 
     def add_new_track(self, track):
         if track.id in self.get_all_trackID():
@@ -278,7 +277,7 @@ class track_set(object):
         self._id_ts_dict[track_id].append(new_track_state)
 
     def reset_updated_flag(self):
-        for k in self._id_ts_dict.keys():
+        for k in self._id_ts_dict:
             self._id_ts_dict[k].updated_flag = False
 
 
