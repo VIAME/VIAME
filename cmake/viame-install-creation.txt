@@ -1,0 +1,19 @@
+To finalize binaries to make an installer:
+------------------------------------------
+
+1. Do a complete build with build_internal_pytorch 'on', 'release' mode, and all depedencies
+2. Except on Ubuntu: Enable 'create_package' temporarily, uncommented two fixup_bundles after running once
+3. Copy in CUDNN binaries into install folder (bin windows, lib linux)
+
+Windows:
+
+4. Copy setup_viame.bat.install over setup_viame.bat
+5. Merge in all libsvm changes
+6. Merge in all postgressql changes
+7. Merge in all pytorch and torchvision changes
+8. Merge in all python opencv changes, only if build is old
+
+Ubuntu:
+
+4. Copy setup_viame.sh.install over setup_viame.sh
+5. Verify libsvm.so link is valid, if not remake
