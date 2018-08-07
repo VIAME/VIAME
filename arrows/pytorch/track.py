@@ -196,19 +196,15 @@ class track(object):
         self._max_conf = max(self._max_conf, new_track_state.conf)
 
     def duplicate_track_state(self, timestep_len = 6):
-        if len(self._track_state_list) >= timestep_len:
-            pass
-        else:
-            #du_track = copy.deepcopy(self)
-            du_track = track(self._track_id)
-            du_track.track_state_list = list(self._track_state_list)
-            du_track.updated_flag = self._updated_flag
-            du_track.active_flag = self._active_flag
-            du_track.max_conf = self._max_conf
+        #du_track = copy.deepcopy(self)
+        du_track = track(self._track_id)
+        du_track.track_state_list = list(self._track_state_list)
+        du_track.updated_flag = self._updated_flag
+        du_track.active_flag = self._active_flag
+        du_track.max_conf = self._max_conf
 
-            cur_size = len(du_track)
-            for i in range(timestep_len - cur_size):
-                du_track.append(du_track[-1])
+        if len(du_track) < timestep_len:
+            du_track += [du_track[-1]] * (timestep_len - len(du_track))
 
         return du_track
 
