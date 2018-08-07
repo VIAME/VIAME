@@ -22,13 +22,13 @@ class TargetRNNDataLoader(data.Dataset):
         self._track_states_num = len(track_state_list)
 
         self._data_list = self._make_dataset()
-        
+
     def _make_dataset(self):
         _data_list = []
 
         for t in range(self._tracks_num):
             cur_track = self._track_set[t]
-            
+
             if len(cur_track) < g_config.timeStep:
                 # if the track does not have enough track_state, we will duplicate to time-step and use Target_RNN_AIM_V
                 _rnnType = RnnType.Target_RNN_AIM_V
@@ -42,15 +42,15 @@ class TargetRNNDataLoader(data.Dataset):
                 for ts in range(self._track_states_num):
 
                     # distance between the two bbox's x instead of center
-                    dis = math.fabs(cur_track[-1].bbox[0] - self._track_state_list[ts].bbox[0]) 
+                    dis = math.fabs(cur_track[-1].bbox[0] - self._track_state_list[ts].bbox[0])
 
                     bbox_area_ratio = float(cur_track[-1].bbox[2] * cur_track[-1].bbox[3]) / \
-                                        float(self._track_state_list[ts].bbox[2] * self._track_state_list[ts].bbox[3]) 
+                                        float(self._track_state_list[ts].bbox[2] * self._track_state_list[ts].bbox[3])
                     if bbox_area_ratio < 1.0:
                         bbox_area_ratio = 1.0 / bbox_area_ratio
 
                     # in the search area, we prepare data and calculate the similarity score
-                    if (dis < self._track_search_threshold * cur_track[-1].bbox[2] and                      # track dis constraint  
+                    if (dis < self._track_search_threshold * cur_track[-1].bbox[2] and                      # track dis constraint
                         dis < self._track_search_threshold * self._track_state_list[ts].bbox[2] and         # track_state dis constraint
                         bbox_area_ratio < self._track_search_threshold):                                    # bbox area constraint
                         cur_data_item = tuple()
@@ -66,7 +66,7 @@ class TargetRNNDataLoader(data.Dataset):
                         motion_target_f = np.asarray(self._track_state_list[ts].bbox_center, dtype=np.float32).reshape(g_config.M_F_num) - \
                                           np.asarray(cur_track[-1].bbox_center, dtype=np.float32).reshape(g_config.M_F_num)
                         cur_data_item = cur_data_item + (torch.from_numpy(motion_target_f), )
-            
+
                         #interaction feature and interaction target
                         interaction_f_tensor = torch.stack([cur_track[i].interaction_feature for i in range(-g_config.timeStep, 0)])
                         cur_data_item = cur_data_item + (interaction_f_tensor, )
@@ -76,24 +76,24 @@ class TargetRNNDataLoader(data.Dataset):
                         bbar_f_tensor = torch.stack([cur_track[i].bbar_feature for i in range(-g_config.timeStep, 0)])
                         cur_data_item = cur_data_item + (bbar_f_tensor, )
                         cur_data_item = cur_data_item + (self._track_state_list[ts].bbar_feature, )
-            
+
                         #corresponding position of the similarity matrix
                         cur_data_item = cur_data_item + (t, ts,)
-            
+
                         _data_list.append(cur_data_item)
 
         return _data_list
 
     def __getitem__(self, index):
-        return self._data_list[index] 
-    
+        return self._data_list[index]
+
     def __len__(self):
         return len(self._data_list)
 
 
 class SRNN_matching(object):
     def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size, GPU_list=None):
-        
+
         if GPU_list is None:
             GPU_list = [x for x in range(torch.cuda.device_count())]
             target_GPU = 0
@@ -142,7 +142,7 @@ class SRNN_matching(object):
         AIM_data_loader = torch.utils.data.DataLoader(
             TargetRNNDataLoader(track_set, track_state_list, track_search_threshold, RnnType.Target_RNN_AIM),
             batch_size=self._batch_size, shuffle=False, **kwargs)
-            
+
         self._est_similarity(AIM_V_data_loader, RnnType.Target_RNN_AIM_V)
         self._est_similarity(AIM_data_loader, RnnType.Target_RNN_AIM)
 
@@ -155,35 +155,34 @@ class SRNN_matching(object):
 
             v_app_seq = app_f_list.to(self._device)
             v_app_target =  app_target_f.to(self._device)
-            v_motion_seq = motion_f_list.to(self._device) 
+            v_motion_seq = motion_f_list.to(self._device)
             v_motion_target = motion_target_f.to(self._device)
-            v_interaction_seq = interaction_f_list.to(self._device) 
+            v_interaction_seq = interaction_f_list.to(self._device)
             v_interaction_target = interaction_target_f.to(self._device)
             v_bbar_seq = bbar_f_list.to(self._device)
             v_bbar_target = bbar_target_f.cuda(self._device)
-        
+
             if rnnType is RnnType.Target_RNN_AIM:
-                output = self._targetRNN_full_model(v_app_seq, v_app_target, v_motion_seq, v_motion_target, 
+                output = self._targetRNN_full_model(v_app_seq, v_app_target, v_motion_seq, v_motion_target,
                                                     v_interaction_seq, v_interaction_target, v_bbar_seq, v_bbar_target)
             elif rnnType is RnnType.Target_RNN_AIM_V:
-                output = self._targetRNN_AIM_V_model(v_app_seq, v_app_target, v_motion_seq, v_motion_target, 
+                output = self._targetRNN_AIM_V_model(v_app_seq, v_app_target, v_motion_seq, v_motion_target,
                                                   v_interaction_seq, v_interaction_target)
-    
+
             F_softmax = nn.Softmax()
             output = F_softmax(output)
             pred = torch.max(output, 1)
-    
+
             #label_mask = torch.ne(pred[1].data, 0)
             label_mask = torch.ne(pred[1].detach(), 0)
-            
+
             r_idx = t.to(self._device)[label_mask]
             c_idx = ts.to(self._device)[label_mask]
             #val = -pred[0].data[label_mask]
             val = -pred[0].detach()[label_mask]
-            
+
             if len(r_idx) == 0:
                 pass
             else:
                 for i in range(r_idx.size(0)):
                     self._similarity_mat[r_idx[i], c_idx[i]] = val[i]
-

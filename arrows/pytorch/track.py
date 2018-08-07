@@ -20,7 +20,7 @@ class track_state(object):
         self._frame_id = frame_id
 
         self._detectedObj = detectedObject
-        
+
         self._sys_frame_id = sys_frame_id
         self._sys_frame_time = sys_frame_time
 
@@ -169,7 +169,7 @@ class track(object):
     @property
     def updated_flag(self):
         return self._updated_flag
-    
+
     @updated_flag.setter
     def updated_flag(self, val):
         self._updated_flag = val
@@ -197,7 +197,7 @@ class track(object):
             pre_bbox_center = np.asarray(self._track_state_list[-1].bbox_center, dtype=np.float32).reshape(2)
             cur_bbox_center = np.asarray(new_track_state.bbox_center, dtype=np.float32).reshape(2)
             new_track_state._motion_feature = torch.from_numpy(cur_bbox_center - pre_bbox_center)
-        
+
         new_track_state.track_id = self._track_id
         self._track_state_list.append(new_track_state)
         self._max_conf = max(self._max_conf, new_track_state.conf)
@@ -206,8 +206,8 @@ class track(object):
         if len(self._track_state_list) >= timestep_len:
             pass
         else:
-            #du_track = copy.deepcopy(self)  
-            du_track = track(self._track_id)  
+            #du_track = copy.deepcopy(self)
+            du_track = track(self._track_id)
             du_track.track_state_list = list(self._track_state_list)
             du_track.updated_flag = self._updated_flag
             du_track.active_flag = self._active_flag
@@ -230,7 +230,7 @@ class track_set(object):
     def __getitem__(self, idx):
         if idx >= len(self._id_ts_dict) or idx < 0:
             raise IndexError
-        # for Py3 
+        # for Py3
         return list(self._id_ts_dict.items())[idx][1]
 
     def __iter__(self):
@@ -245,7 +245,7 @@ class track_set(object):
 
     def get_all_trackID(self):
         return sorted(self._id_ts_dict.keys())
-    
+
     def get_max_track_ID(self):
         if len(self._id_ts_dict) == 0:
             return 0
@@ -258,17 +258,17 @@ class track_set(object):
             raise RuntimeError
 
         self._id_ts_dict[track.id] = track
-    
+
 
     def add_new_track_state(self, track_id, track_state):
         if track_id in self.get_all_trackID():
             print("track ID exsit in the track set!!!")
             raise RuntimeError
-        
+
         new_track = track(track_id)
         new_track.append(track_state)
         self._id_ts_dict[track_id] = new_track
-    
+
     def add_new_track_state_list(self, start_track_id, ts_list, thresh=0.0):
         counter = 0
         for i in range(len(ts_list)):
@@ -300,4 +300,3 @@ if __name__ == '__main__':
 
     for item in t[:]:
         print(item.motion_feature)
-
