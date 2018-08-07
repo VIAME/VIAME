@@ -241,8 +241,8 @@ class track_set(object):
             return max(self._id_ts_dict)
 
     def add_new_track(self, track):
-        if track.id in self.get_all_trackID():
-            print("track ID exsit in the track set!!!")
+        if track.id in self._id_ts_dict:
+            print("track ID exists in the track set!!!")
             raise RuntimeError
 
         self._id_ts_dict[track.id] = track

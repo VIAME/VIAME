@@ -13,7 +13,7 @@ class IOU_tracker(object):
                 # get det with highest iou
                 best_match = max(track_state_list, key=lambda x: self._iou_score(track[-1].bbox, x.bbox))
 
-                # sort the track state list in order to find the case that multiple bbox overlap with the current track
+                # sort the track state list in order to check whether multiple bboxes overlap with the current track
                 sorted_ts_list = sorted(track_state_list, key=lambda x: self._iou_score(track[-1].bbox, x.bbox))
                 best_iou_score = self._iou_score(track[-1].bbox, best_match.bbox)
 
@@ -24,7 +24,7 @@ class IOU_tracker(object):
                         track.updated_flag = True
                         track_set.update_track(track.id, best_match)
 
-                        # remove from best matching detection from detections
+                        # remove best matching detection from detections
                         del track_state_list[track_state_list.index(best_match)]
 
         return track_set, track_state_list
@@ -38,7 +38,7 @@ class IOU_tracker(object):
             bbox2 list of float: bounding box in format x1,y1,w,h.
 
         Returns:
-            int: intersection-over-onion of bbox1, bbox2
+            int: intersection-over-union of bbox1, bbox2
         """
 
         (x1, y1, w1, h1) = bbox1
