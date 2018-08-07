@@ -23,7 +23,8 @@ kwiver_add_library( kwiver_serialize_json
 
 target_link_libraries( kwiver_serialize_json
   PUBLIC               vital
-  PRIVATE              vital_algo
+                       vital_algo
+                       vital_vpm
   )
 
 kwiver_install_headers(
