@@ -90,12 +90,8 @@ class SRNN_matching(object):
     def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size, GPU_list=None):
 
         if GPU_list is None:
-            GPU_list = [x for x in range(torch.cuda.device_count())]
-            target_GPU = 0
-        else:
-            target_GPU = GPU_list[0]
-
-        self._device = torch.device("cuda:{}".format(target_GPU))
+            GPU_list = list(range(torch.cuda.device_count()))
+        self._device = torch.device("cuda:{}".format(GPU_list[0]))
 
         self._batch_size = batch_size
 
@@ -124,11 +120,6 @@ class SRNN_matching(object):
 
         self._similarity_mat = torch.FloatTensor(tracks_num, track_states_num).fill_(1.0).to(self._device)
 
-        # obtain the dict: simailarity row idx->track_id
-        track_idx_list = []
-        for t in range(tracks_num):
-            track_idx_list.append(track_set[t].id)
-
         kwargs = {'num_workers': 0, 'pin_memory': True}
         AIM_V_data_loader = torch.utils.data.DataLoader(
             TargetRNNDataLoader(track_set, track_state_list, track_search_threshold, RnnType.Target_RNN_AIM_V),
@@ -140,6 +131,9 @@ class SRNN_matching(object):
 
         self._est_similarity(AIM_V_data_loader, RnnType.Target_RNN_AIM_V)
         self._est_similarity(AIM_data_loader, RnnType.Target_RNN_AIM)
+
+        # obtain the dict: similarity row idx->track_id
+        track_idx_list = [track.id for track in track_set]
 
         return self._similarity_mat.cpu().numpy(), track_idx_list
 
@@ -176,8 +170,6 @@ class SRNN_matching(object):
             #val = -pred[0].data[label_mask]
             val = -pred[0].detach()[label_mask]
 
-            if len(r_idx) == 0:
-                pass
-            else:
+            if len(r_idx) != 0:
                 for i in range(r_idx.size(0)):
                     self._similarity_mat[r_idx[i], c_idx[i]] = val[i]
