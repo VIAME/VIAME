@@ -10,7 +10,7 @@ REM Run pipeline
 
 viame_train_detector.exe ^
   -i training_data_habcam ^
-  -c "%VIAME_INSTALL%/configs/pipelines/train_yolo_v2_960_habcam.conf" ^
+  -c "%VIAME_INSTALL%/configs/pipelines/train_yolo_v2_704_habcam.conf" ^
   --threshold 0.0
 
 pause
