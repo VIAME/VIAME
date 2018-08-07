@@ -538,7 +538,16 @@ main( int argc, char* argv[] )
 
   if( !g_params.opt_config.empty() )
   {
-    config->merge_config( kwiver::vital::read_config_file( g_params.opt_config ) );
+    try
+    {
+      config->merge_config(kwiver::vital::read_config_file(g_params.opt_config));
+    }
+    catch( const std::exception& e )
+    {
+      std::cerr << "Received exception: " << e.what() << std::endl;
+      std::cerr << "Unable to load configuration file: " << g_params.opt_config << std::endl;
+      exit( 0 );
+    }
   }
   else
   {
@@ -717,7 +726,16 @@ main( int argc, char* argv[] )
       else
       {
         std::string read_fn = get_filename_no_path( image_file );
-        gt_reader->read_set( frame_dets, read_fn );
+        try
+        {
+          gt_reader->read_set(frame_dets, read_fn);
+        }
+        catch( const std::exception& e )
+        {
+          std::cerr << "Received exception: " << e.what() << std::endl;
+          std::cerr << "Unable to load groundtruth file: " << read_fn << std::endl;
+          exit( 0 );
+        }
       }
 
       std::cout << "Read " << frame_dets->size() << " detections for " << image_file << std::endl;
