@@ -86,14 +86,11 @@ g_config = get_config()
            #raise
 
 def ts2ot_list(track_set):
-    ot_list = [] 
-    for t in track_set:
-        ot = Track(id=t.id)
-        ot_list.append(ot)
+    ot_list = [Track(id=t.id) for t in track_set]
 
     for idx, t in enumerate(track_set):
         ot = ot_list[idx]
-        for i, ti in enumerate(t):
+        for ti in t:
             ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time, ti.detectedObj)
             if not ot.append(ot_state):
                 print('cannot add ObjectTrackState')
@@ -331,9 +328,8 @@ class SRNN_tracking(KwiverProcess):
             im = get_pil_image(in_img_c.image()).convert('RGB')
             self._app_feature_extractor.frame = im
 
-            bbox_num = 0
             # Get detection bbox
-            if self._GTbbox_flag is True:
+            if self._GTbbox_flag:
                 dos = self._m_bbox[self._step_id]
                 bbox_num = len(dos)
             else:
@@ -389,23 +385,23 @@ class SRNN_tracking(KwiverProcess):
                     track_state_list.append(cur_ts)
 
                 # if there is no tracks, generate new tracks from the track_state_list
-                if self._track_flag is False:
+                if not self._track_flag:
                     next_trackID = self._track_set.add_new_track_state_list(next_trackID, track_state_list, self._track_initialization_threshold)
                     self._track_flag = True
                 else:
                     # check whether we need to terminate a track
                     for ti in range(len(self._track_set)):
                         # terminating a track based on readin_frame_id or original_frame_id gap
-                        if self._track_set[ti].active_flag is True and  \
-                            (self._step_id - self._track_set[ti][-1].frame_id > self._terminate_track_threshold or \
-                             fid - self._track_set[ti][-1].sys_frame_id > self._sys_terminate_track_threshold):
-                            self._track_set[ti].active_flag = False
+                        self._track_set[ti].active_flag = self._track_set[ti].active_flag and not (
+                            self._step_id - self._track_set[ti][-1].frame_id > self._terminate_track_threshold
+                            or fid - self._track_set[ti][-1].sys_frame_id > self._sys_terminate_track_threshold
+                        )
 
                     #print('track_set len {}'.format(len(self._track_set)))
                     #print('track_state_list len {}'.format(len(track_state_list)))
 
                     # call IOU tracker
-                    if self._IOU_flag is True:
+                    if self._IOU_flag:
                         IOU_begin = timer()
                         self._track_set, track_state_list = self._iou_tracker(self._track_set, track_state_list)
                         IOU_end = timer()
