@@ -10,7 +10,7 @@ REM Run pipeline
 
 viame_train_detector.exe ^
   -i training_data_mouss ^
-  -c "${VIAME_INSTALL}/configs/pipelines/train_yolo_v2_960_kw18.conf" ^
+  -c "%VIAME_INSTALL%/configs/pipelines/train_yolo_v2_960_kw18.conf" ^
   --threshold 0.0
 
 pause
