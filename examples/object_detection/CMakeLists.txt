@@ -17,7 +17,11 @@ if( VIAME_ENABLE_YOLO )
          run_yolo.sh )
   endif()
 
-  if( NOT WIN32 )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_habcam.bat )
+  else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          run_habcam.sh )
@@ -25,7 +29,11 @@ if( VIAME_ENABLE_YOLO )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
-  if( NOT WIN32 )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_lanl.bat )
+  else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          run_lanl.sh )
@@ -33,7 +41,11 @@ if( VIAME_ENABLE_MATLAB )
 endif()
 
 if( VIAME_ENABLE_SCALLOP_TK )
-  if( NOT WIN32 )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_scallop_tk.bat )
+  else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          run_scallop_tk.sh )
