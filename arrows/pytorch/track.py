@@ -253,13 +253,12 @@ class track_set(object):
         self.add_new_track(new_track)
 
     def add_new_track_state_list(self, start_track_id, ts_list, thresh=0.0):
-        counter = 0
-        for i in range(len(ts_list)):
-            cur_track_id = start_track_id + i
-            if ts_list[i].detectedObj.confidence() >= thresh:
-                self.add_new_track_state(cur_track_id, ts_list[i])
-                counter = counter + 1
-        return start_track_id + counter
+        track_id = start_track_id
+        for ts in ts_list:
+            if ts.detectedObj.confidence() >= thresh:
+                self.add_new_track_state(track_id, ts)
+                track_id += 1
+        return track_id
 
     def update_track(self, track_id, new_track_state):
         if track_id not in self._id_ts_dict:
