@@ -138,17 +138,10 @@ class track(object):
         return len(self._track_state_list)
 
     def __getitem__(self, idx):
-        if isinstance(idx, int):
-            if idx >= len(self._track_state_list):
-                raise IndexError
-            return self._track_state_list[idx]
-        elif isinstance(idx, slice):
-            start, stop, step = idx.indices(len(self))
-            return self._track_state_list[start:stop:step]
+        return self._track_state_list[idx]
 
     def __iter__(self):
-        for item in self._track_state_list:
-            yield item
+        return iter(self._track_state_list)
 
     @property
     def id(self):
