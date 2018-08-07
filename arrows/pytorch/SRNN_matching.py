@@ -31,10 +31,9 @@ class TargetRNNDataLoader(data.Dataset):
             else:
                 _rnnType = RnnType.Target_RNN_AIM
 
-            # only process active and un-unpdated track
+            # only process active and un-updated tracks
             if cur_track.active_flag and not cur_track.updated_flag and (_rnnType is self._rnnType):
                 for ts, track_state in enumerate(self._track_state_list):
-
                     # distance between the two bbox's x instead of center
                     dis = abs(cur_track[-1].bbox[0] - track_state.bbox[0])
 
@@ -127,7 +126,7 @@ class SRNN_matching(object):
         self._est_similarity(AIM_V_data_loader, RnnType.Target_RNN_AIM_V)
         self._est_similarity(AIM_data_loader, RnnType.Target_RNN_AIM)
 
-        # obtain the dict: similarity row idx->track_id
+        # obtain the list mapping: similarity row idx->track_id
         track_idx_list = [track.id for track in track_set]
 
         return self._similarity_mat.cpu().numpy(), track_idx_list
