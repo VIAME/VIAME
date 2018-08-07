@@ -18,6 +18,7 @@ set( sources
 
 link_directories(${PROTOBUF_LIBRARY})
 include_directories(${PROTOBUF_INCLUDE_DIR})
+add_compile_options( -include "${CMAKE_BINARY_DIR}/vital/types/protobuf/vital_types_protobuf_export.h" )
 
 kwiver_add_library( kwiver_serialize_proto
   ${headers_public}
