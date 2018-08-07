@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package vital.protobuf;
+package kwiver.protobuf;
 
 message bounding_box {
   required double xmin = 1;

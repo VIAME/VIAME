@@ -59,11 +59,11 @@ public:
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
   // Convert between native and protobuf formats
-  static bool convert_protobuf( const ::vital::protobuf::bounding_box&  proto_bbox,
+  static bool convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
                                 kwiver::vital::bounding_box_d& bbox );
 
   static bool convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
-                                ::vital::protobuf::bounding_box&  proto_bbox );
+                                kwiver::protobuf::bounding_box&  proto_bbox );
 };
 
 } } } }       // end namespace kwiver

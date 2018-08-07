@@ -59,11 +59,11 @@ public:
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
   // Convert between native and protobuf formats
-  static bool convert_protobuf( const ::vital::protobuf::detected_object_type&  proto_bbox,
+  static bool convert_protobuf( const kwiver::protobuf::detected_object_type&  proto_bbox,
                                 kwiver::vital::detected_object_type& bbox );
 
   static bool convert_protobuf( const kwiver::vital::detected_object_type& bbox,
-                                ::vital::protobuf::detected_object_type&  proto_bbox );
+                                kwiver::protobuf::detected_object_type&  proto_bbox );
 };
 
 } } } }       // end namespace kwiver

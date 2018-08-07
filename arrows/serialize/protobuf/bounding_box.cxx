@@ -62,7 +62,7 @@ serialize( const data_serializer::serialize_param_t elements )
   std::ostringstream msg;
   msg << "bounding_box "; // add type tag
 
-  ::vital::protobuf::bounding_box proto_bbox;
+  kwiver::protobuf::bounding_box proto_bbox;
   convert_protobuf( bbox, proto_bbox );
 
   if ( ! proto_bbox.SerializeToOstream( &msg ) )
@@ -92,7 +92,7 @@ deserialize( std::shared_ptr< std::string > message )
   else
   {
     // define our protobuf
-    ::vital::protobuf::bounding_box proto_bbox;
+    kwiver::protobuf::bounding_box proto_bbox;
     if ( ! proto_bbox.ParseFromIstream( &msg ) )
     {
       // throw something
@@ -109,7 +109,7 @@ deserialize( std::shared_ptr< std::string > message )
 
 // ----------------------------------------------------------------------------
 bool bounding_box::
-convert_protobuf( const ::vital::protobuf::bounding_box&  proto_bbox,
+convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
                   kwiver::vital::bounding_box_d& bbox )
  {
    bbox = kwiver::vital::bounding_box_d( proto_bbox.xmin(),
@@ -122,7 +122,7 @@ convert_protobuf( const ::vital::protobuf::bounding_box&  proto_bbox,
 // ----------------------------------------------------------------------------
 bool bounding_box::
 convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
-                  ::vital::protobuf::bounding_box&  proto_bbox )
+                  kwiver::protobuf::bounding_box&  proto_bbox )
 {
   proto_bbox.set_xmin( bbox.min_x() );
   proto_bbox.set_ymin( bbox.min_y() );
