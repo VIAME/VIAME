@@ -166,6 +166,7 @@ ExternalProject_Add(fletch
 
     -Dfletch_ENABLE_GDAL:BOOL=${VIAME_ENABLE_GDAL}
     -Dfletch_ENABLE_libgeotiff:BOOL=${VIAME_ENABLE_GDAL}
+    -Dfletch_ENABLE_openjpeg:BOOL=${VIAME_ENABLE_GDAL}
 
     # Set fletch install path to be viame install path
     -Dfletch_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
