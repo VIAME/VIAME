@@ -342,9 +342,8 @@ close_loops_appearance_indexed::priv
       }
     }
 
-    if (already_joined_matches > 0.7 * validated_matches.size() && already_joined_matches > 0.7*m_min_loop_inlier_matches)
+    if (already_joined_matches == validated_matches.size())
     {
-      //we assume this would have been a success
       num_failed_loop_attempts_in_a_row = 0;
       continue;
     }
