@@ -3320,9 +3320,15 @@ initialize_cameras_landmarks_keyframe
     m_priv->init_base_camera_from_metadata(constraints);
   }
 
-  m_priv->initialize_keyframes(cams, landmarks, tracks, constraints, this->m_callback);
+  if (!m_priv->initialize_keyframes(cams, landmarks, tracks, constraints, this->m_callback))
+  {
+    return;
+  }
 
-  m_priv->initialize_remaining_cameras(cams,landmarks,tracks,constraints,this->m_callback);
+  if (!m_priv->initialize_remaining_cameras(cams, landmarks, tracks, constraints, this->m_callback))
+  {
+    return;
+  }
 
   cameras = std::make_shared<simple_camera_map>(cams->cameras());
 }
