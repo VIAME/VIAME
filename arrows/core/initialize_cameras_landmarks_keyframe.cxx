@@ -407,6 +407,7 @@ public:
   double m_frac_frames_for_init;
   double m_metadata_init_permissive_triang_thresh;
   bool m_init_intrinsics_from_metadata;
+  bool m_config_defines_base_intrinsics;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -432,7 +433,8 @@ initialize_cameras_landmarks_keyframe::priv
   m_max_cams_in_keyframe_init(20),
   m_frac_frames_for_init(-1.0),
   m_metadata_init_permissive_triang_thresh(10000),
-  m_init_intrinsics_from_metadata(true)
+  m_init_intrinsics_from_metadata(true),
+  m_config_defines_base_intrinsics(false)
 {
 
   }
@@ -2236,6 +2238,7 @@ initialize_cameras_landmarks_keyframe::priv
 {
   if (!use_existing_cams)
   {
+    //initialize the cameras from metadata
     cams->clear();
 
     auto frames = tracks->all_frame_ids();
@@ -2258,7 +2261,8 @@ initialize_cameras_landmarks_keyframe::priv
   }
   else
   {
-    if (m_init_intrinsics_from_metadata)
+    //use the existing camera poses
+    if (m_init_intrinsics_from_metadata|| m_config_defines_base_intrinsics)
     {
       //set each camera's intrinsics to match the base camera's that was set from the metadata
       auto sp_cams = cams->simple_perspective_cameras();
@@ -3239,9 +3243,18 @@ initialize_cameras_landmarks_keyframe
       config->get_value<double>("zoom_scale_thresh",
                                 m_priv->zoom_scale_thresh);
 
+  m_priv->m_init_intrinsics_from_metadata =
+    config->get_value<bool>("init_intrinsics_from_metadata", m_priv->m_init_intrinsics_from_metadata);
 
 
   vital::config_block_sptr bc = config->subblock("base_camera");
+
+  m_priv->m_config_defines_base_intrinsics =
+    bc->has_value("focal_length") ||
+    bc->has_value("principal_point") ||
+    bc->has_value("aspect_ratio") ||
+    bc->has_value("skew");
+
   simple_camera_intrinsics K2(bc->get_value<double>("focal_length",
                                                     K->focal_length()),
                               bc->get_value<vector_2d>("principal_point",
