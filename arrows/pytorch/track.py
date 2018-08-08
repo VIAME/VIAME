@@ -208,23 +208,17 @@ class track_set(object):
     def __len__(self):
         return len(self._id_ts_dict)
 
-    def __getitem__(self, idx):
-        if idx >= len(self._id_ts_dict) or idx < 0:
-            raise IndexError
-        # for Py3
-        return list(self._id_ts_dict.items())[idx][1]
-
     def __iter__(self):
         return iter(self._id_ts_dict.values())
 
     def iter_active(self):
         return (self._id_ts_dict[i] for i in self._active_id_set)
 
-    def get_track(self, track_id):
-        if track_id not in self._id_ts_dict:
+    def __getitem__(self, track_id):
+        try:
+            return self._id_ts_dict[track_id]
+        except KeyError:
             raise IndexError
-
-        return self._id_ts_dict[track_id]
 
     def get_all_trackID(self):
         return sorted(self._id_ts_dict.keys())
