@@ -127,6 +127,9 @@ public:
 
   //if intersect over union of track ids between two frames are greather than this then don't try to close the loop.
   float m_skip_loop_detection_track_i_over_u_threshold;
+
+  // Must have this inlier fraction to accept a loop completion
+  float m_min_loop_inlier_fraction;
 };
 
 //-----------------------------------------------------------------------------
@@ -138,7 +141,8 @@ close_loops_appearance_indexed::priv
   m_geometric_verification_inlier_threshold(2.0),
   m_max_loop_attempts_per_frame(200),
   m_tracks_in_common_to_skip_loop_closing(0),
-  m_skip_loop_detection_track_i_over_u_threshold(0.5)
+  m_skip_loop_detection_track_i_over_u_threshold(0.5),
+  m_min_loop_inlier_fraction(0.5)
 {
 }
 
@@ -359,12 +363,20 @@ close_loops_appearance_indexed::priv
         pts_left.push_back(m.second->feature->loc());
       }
 
-      m_f_estimator->estimate(pts_right, pts_left, inliers,
+      auto F = m_f_estimator->estimate(pts_right, pts_left, inliers,
                               m_geometric_verification_inlier_threshold);
+
+      if (!F)
+      {
+        continue;
+      }
 
       unsigned num_inliers =
         static_cast<unsigned>(std::count(inliers.begin(), inliers.end(), true));
-      if (num_inliers < m_min_loop_inlier_matches)
+
+      float inlier_fraction = static_cast<double>(num_inliers) / static_cast<double>(validated_matches.size());
+
+      if (num_inliers < m_min_loop_inlier_matches || inlier_fraction < m_min_loop_inlier_fraction)
       {
         continue;
       }
@@ -664,6 +676,10 @@ close_loops_appearance_indexed
     d_->m_skip_loop_detection_track_i_over_u_threshold,
     "skip loop detection if intersection over union of track ids in two frames is greater than this");
 
+  config->set_value("min_loop_inlier_fraction",
+    d_->m_min_loop_inlier_fraction,
+    "inlier fraction must be this high to accept a loop completion");
+
   return config;
 }
 
@@ -716,6 +732,10 @@ close_loops_appearance_indexed
   d_->m_skip_loop_detection_track_i_over_u_threshold =
     config->get_value<float>("skip_loop_detection_track_i_over_u_threshold",
       d_->m_skip_loop_detection_track_i_over_u_threshold);
+
+  d_->m_min_loop_inlier_fraction =
+    config->get_value<float>("m_min_loop_inlier_fraction",
+      d_->m_min_loop_inlier_fraction);
 }
 
 //-----------------------------------------------------------------------------
