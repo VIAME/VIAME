@@ -212,7 +212,7 @@ class track_set(object):
         return iter(self._id_ts_dict.values())
 
     def iter_active(self):
-        return (self._id_ts_dict[i] for i in self._active_id_set)
+        return (self[i] for i in self._active_id_set)
 
     def __getitem__(self, track_id):
         try:
@@ -221,13 +221,10 @@ class track_set(object):
             raise IndexError
 
     def get_all_trackID(self):
-        return sorted(self._id_ts_dict.keys())
+        return sorted(self._id_ts_dict)
 
     def get_max_track_ID(self):
-        if len(self._id_ts_dict) == 0:
-            return 0
-        else:
-            return max(self._id_ts_dict)
+        return max(self._id_ts_dict) if self._id_ts_dict else 0
 
     def deactivate_track(self, track):
         del self._active_id_set[track.id]
@@ -257,14 +254,11 @@ class track_set(object):
         return track_id
 
     def update_track(self, track_id, new_track_state):
-        if track_id not in self._id_ts_dict:
-            raise IndexError
-
-        self._id_ts_dict[track_id].append(new_track_state)
+        self[track_id].append(new_track_state)
 
     def reset_updated_flag(self):
-        for k in self._id_ts_dict:
-            self._id_ts_dict[k].updated_flag = False
+        for track in self:
+            track.updated_flag = False
 
 
 if __name__ == '__main__':
