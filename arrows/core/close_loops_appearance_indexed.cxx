@@ -134,9 +134,9 @@ public:
 close_loops_appearance_indexed::priv
 ::priv()
   : m_f_estimator(),
-  m_min_loop_inlier_matches(50),
+  m_min_loop_inlier_matches(128),
   m_geometric_verification_inlier_threshold(2.0),
-  m_max_loop_attempts_per_frame(5),
+  m_max_loop_attempts_per_frame(200),
   m_tracks_in_common_to_skip_loop_closing(0),
   m_skip_loop_detection_track_i_over_u_threshold(0.5)
 {
