@@ -46,5 +46,5 @@ algorithms_create_plugin( kwiver_serialize_protobuf
   )
 
 if (KWIVER_ENABLE_TESTS)
-  ## add_subdirectory(tests)
+   add_subdirectory(tests)
 endif()
