@@ -1325,6 +1325,13 @@ initialize_cameras_landmarks_keyframe::priv
     frame_feats.push_back(fts);
     frame_landmarks.push_back(lm_pair(lm_it->first, lm_it->second));
   }
+
+  if (pts2d.size() < 4)
+  {
+    cam = simple_camera_perspective_sptr();
+    return;
+  }
+
   cam = std::static_pointer_cast<simple_camera_perspective>(pnp->estimate(pts2d, pts3d, cam->intrinsics(), inliers));
 
   size_t num_inliers = 0;
