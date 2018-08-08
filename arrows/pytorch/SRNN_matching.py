@@ -32,7 +32,7 @@ class TargetRNNDataLoader(data.Dataset):
                 _rnnType = RnnType.Target_RNN_AIM
 
             # only process active and un-updated tracks
-            if cur_track.active_flag and not cur_track.updated_flag and (_rnnType is self._rnnType):
+            if self._track_set.is_track_active(cur_track) and not cur_track.updated_flag and (_rnnType is self._rnnType):
                 for ts, track_state in enumerate(self._track_state_list):
                     # distance between the two bbox's x instead of center
                     dis = abs(cur_track[-1].bbox[0] - track_state.bbox[0])

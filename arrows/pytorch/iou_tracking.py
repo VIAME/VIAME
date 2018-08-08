@@ -8,8 +8,8 @@ class IOU_tracker(object):
 
     def _track_iou(self, track_set, track_state_list):
         # IOU based tracking
-        for track in track_set:
-            if len(track_state_list) > 0 and track.active_flag is True:
+        if track_state_list:
+            for track in track_set.iter_active():
                 # get det with highest iou
                 best_match = max(track_state_list, key=lambda x: self._iou_score(track[-1].bbox, x.bbox))
 

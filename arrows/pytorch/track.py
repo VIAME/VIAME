@@ -130,7 +130,6 @@ class track(object):
     def __init__(self, id):
         self._track_id = id
         self._track_state_list = []
-        self._active_flag = True
         self._max_conf = 0.0
         self._updated_flag = False
 
@@ -150,14 +149,6 @@ class track(object):
     @id.setter
     def id(self, val):
         self._track_id = val
-
-    @property
-    def active_flag(self):
-        return self._active_flag
-
-    @active_flag.setter
-    def active_flag(self, val):
-        self._active_flag = val
 
     @property
     def updated_flag(self):
@@ -200,7 +191,6 @@ class track(object):
         du_track = track(self._track_id)
         du_track.track_state_list = list(self._track_state_list)
         du_track.updated_flag = self._updated_flag
-        du_track.active_flag = self._active_flag
         du_track.max_conf = self._max_conf
 
         if len(du_track) < timestep_len:
@@ -212,6 +202,8 @@ class track(object):
 class track_set(object):
     def __init__(self):
         self._id_ts_dict = collections.OrderedDict()
+        # We implement an ordered set by mapping to None
+        self._active_id_set = collections.OrderedDict()
 
     def __len__(self):
         return len(self._id_ts_dict)
@@ -224,6 +216,9 @@ class track_set(object):
 
     def __iter__(self):
         return iter(self._id_ts_dict.values())
+
+    def iter_active(self):
+        return (self._id_ts_dict[i] for i in self._active_id_set)
 
     def get_track(self, track_id):
         if track_id not in self._id_ts_dict:
@@ -240,12 +235,19 @@ class track_set(object):
         else:
             return max(self._id_ts_dict)
 
+    def deactivate_track(self, track):
+        del self._active_id_set[track.id]
+
+    def is_track_active(self, track):
+        return track.id in self._active_id_set
+
     def add_new_track(self, track):
         if track.id in self._id_ts_dict:
             print("track ID exists in the track set!!!")
             raise RuntimeError
 
         self._id_ts_dict[track.id] = track
+        self._active_id_set[track.id] = None
 
     def add_new_track_state(self, track_id, track_state):
         new_track = track(track_id)
