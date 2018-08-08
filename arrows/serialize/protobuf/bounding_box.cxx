@@ -67,7 +67,7 @@ serialize( const data_serializer::serialize_param_t elements )
 
   if ( ! proto_bbox.SerializeToOstream( &msg ) )
   {
-    // throw something
+    LOG_ERROR( logger(), "proto_bbox.SerializeToOStream failed" );
   }
 
   return std::make_shared< std::string > ( msg.str() );
@@ -95,7 +95,7 @@ deserialize( std::shared_ptr< std::string > message )
     kwiver::protobuf::bounding_box proto_bbox;
     if ( ! proto_bbox.ParseFromIstream( &msg ) )
     {
-      // throw something
+      LOG_ERROR( logger(), "Incoming protobuf stream did not parse correctly. ParseFromIstream failed." );
     }
 
     convert_protobuf( proto_bbox, bbox );
