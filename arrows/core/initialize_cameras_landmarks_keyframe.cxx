@@ -408,6 +408,7 @@ public:
   double m_metadata_init_permissive_triang_thresh;
   bool m_init_intrinsics_from_metadata;
   bool m_config_defines_base_intrinsics;
+  bool m_do_final_sfm_cleaning;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -434,7 +435,8 @@ initialize_cameras_landmarks_keyframe::priv
   m_frac_frames_for_init(-1.0),
   m_metadata_init_permissive_triang_thresh(10000),
   m_init_intrinsics_from_metadata(true),
-  m_config_defines_base_intrinsics(false)
+  m_config_defines_base_intrinsics(false),
+  m_do_final_sfm_cleaning(false)
 {
 
   }
@@ -2997,17 +2999,19 @@ initialize_cameras_landmarks_keyframe::priv
     }
   }
 
-  std::set<frame_id_t> empty_frames;
-  std::set<landmark_id_t> empty_landmarks;
-  std::vector<frame_id_t> removed_cams;
-  clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
-    empty_frames, empty_landmarks, image_coverage_threshold, interim_reproj_thresh,3);
-
-  for (auto rem_fid : removed_cams)
+  if (m_do_final_sfm_cleaning)
   {
-    m_frames_removed_from_sfm_solution.insert(rem_fid);
-  }
+    std::set<frame_id_t> empty_frames;
+    std::set<landmark_id_t> empty_landmarks;
+    std::vector<frame_id_t> removed_cams;
+    clean_cameras_and_landmarks(*cams, lmks, tracks, m_thresh_triang_cos_ang, removed_cams,
+      empty_frames, empty_landmarks, image_coverage_threshold, interim_reproj_thresh, 3);
 
+    for (auto rem_fid : removed_cams)
+    {
+      m_frames_removed_from_sfm_solution.insert(rem_fid);
+    }
+  }
   return true;
 }
 
@@ -3140,6 +3144,10 @@ initialize_cameras_landmarks_keyframe
   double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
   config->set_value("feature_angle_threshold", ang_thresh_cur,"feature must have this triangulation angle to keep");
 
+  config->set_value("do_final_sfm_cleaning",
+                    m_priv->m_do_final_sfm_cleaning,
+                    "run a final sfm solution cleanup when solution is complete");
+
   double r1 = 0;
   double r2 = 0;
   double r3 = 0;
@@ -3245,6 +3253,9 @@ initialize_cameras_landmarks_keyframe
 
   m_priv->m_init_intrinsics_from_metadata =
     config->get_value<bool>("init_intrinsics_from_metadata", m_priv->m_init_intrinsics_from_metadata);
+
+  m_priv->m_do_final_sfm_cleaning =
+    config->get_value<bool>("do_final_sfm_cleaning", m_priv->m_do_final_sfm_cleaning);
 
 
   vital::config_block_sptr bc = config->subblock("base_camera");
