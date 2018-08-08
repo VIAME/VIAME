@@ -36,7 +36,7 @@
 #include <gtest/gtest.h>
 
 #include <arrows/serialize/protobuf/bounding_box.h>
-//#include <arrows/serialize/tobufjson/detected_object_type.h>
+#include <arrows/serialize/protobuf/detected_object_type.h>
 //#include <arrows/serialize/tobufjson/detected_object.h>
 
 #include <vital/types/bounding_box.h>
@@ -86,3 +86,37 @@ TEST( serialize, bounding_box )
   EXPECT_EQ( bbox, bbox_dser );
 }
 
+// ----------------------------------------------------------------------------
+TEST( serialize, detected_object_type )
+{
+  kasp::detected_object_type dot_ser; // get serializer
+  kwiver::vital::detected_object_type dot;
+
+  dot.set_score( "first", 1 );
+  dot.set_score( "second", 10 );
+  dot.set_score( "third", 101 );
+  dot.set_score( "last", 121 );
+
+  kwiver::vital::any dot_any( dot );
+  kwiver::vital::algo::data_serializer::serialize_param_t sp;
+  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = dot_any;
+
+  auto mes = dot_ser.serialize( sp );
+
+  // std::cout << "Serialized dot: \"" << *mes << "\"\n";
+
+  auto dser = dot_ser.deserialize( mes );
+  kwiver::vital::detected_object_type dot_dser =
+    kwiver::vital::any_cast< kwiver::vital::detected_object_type >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+
+  EXPECT_EQ( dot.size(), dot_dser.size() );
+
+  auto o_it = dot.begin();
+  auto d_it = dot_dser.begin();
+
+  for (size_t i = 0; i < dot.size(); ++i )
+  {
+    EXPECT_EQ( *(o_it->first), *(d_it->first) );
+    EXPECT_EQ( o_it->second, d_it->second );
+  }
+}

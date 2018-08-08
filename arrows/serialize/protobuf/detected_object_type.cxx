@@ -83,6 +83,7 @@ deserialize( std::shared_ptr< std::string > message )
 
   std::string tag;
   msg >> tag;
+  msg.get();  // Eat delimiter
 
   if (tag != "detected_object_type" )
   {
