@@ -123,8 +123,9 @@ class SRNN_matching(object):
             TargetRNNDataLoader(track_set, track_state_list, track_search_threshold, RnnType.Target_RNN_AIM),
             batch_size=self._batch_size, shuffle=False, **kwargs)
 
-        self._est_similarity(AIM_V_data_loader, RnnType.Target_RNN_AIM_V)
-        self._est_similarity(AIM_data_loader, RnnType.Target_RNN_AIM)
+        with torch.no_grad():
+            self._est_similarity(AIM_V_data_loader, RnnType.Target_RNN_AIM_V)
+            self._est_similarity(AIM_data_loader, RnnType.Target_RNN_AIM)
 
         # obtain the list mapping: similarity row idx->track_id
         track_idx_list = [track.id for track in track_set.iter_active()]
@@ -133,7 +134,6 @@ class SRNN_matching(object):
 
 
     def _est_similarity(self, loader, rnnType):
-        torch.set_grad_enabled(False)
         for (app_f_list, app_target_f, motion_f_list, motion_target_f, interaction_f_list, interaction_target_f, bbar_f_list, bbar_target_f, t, ts) in loader:
 
             v_app_seq = app_f_list.to(self._device)
