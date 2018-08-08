@@ -83,6 +83,7 @@ deserialize( std::shared_ptr< std::string > message )
   std::istringstream msg( *message );
   std::string tag;
   msg >> tag;
+  msg.get();  // Eat the delimiter
 
   if (tag != "bounding_box" )
   {
