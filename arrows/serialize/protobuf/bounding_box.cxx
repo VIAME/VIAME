@@ -33,7 +33,7 @@
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace proto {
+namespace protobuf {
 
 // ----------------------------------------------------------------------------
 bounding_box::

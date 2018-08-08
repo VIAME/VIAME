@@ -33,7 +33,7 @@
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace proto {
+namespace protobuf {
 
 // ----------------------------------------------------------------------------
 detected_object_type::

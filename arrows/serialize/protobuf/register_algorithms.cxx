@@ -33,7 +33,7 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <arrows/serialize/protobuf/kwiver_serialize_proto_export.h>
+#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include "bounding_box.h"
@@ -42,7 +42,7 @@
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace proto {
+namespace protobuf {
 
 namespace {
 
@@ -71,7 +71,7 @@ register_algorithm( kwiver::vital::plugin_loader& vpm )
 
 // ----------------------------------------------------------------------------
 extern "C"
-KWIVER_SERIALIZE_PROTO_EXPORT
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
@@ -80,8 +80,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     return;
   }
 
-  register_algorithm< kwiver::arrows::serialize::proto::bounding_box >( vpm );
-  register_algorithm< kwiver::arrows::serialize::proto::detected_object_type >( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::bounding_box >( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::detected_object_type >( vpm );
 
   vpm.mark_module_as_loaded( module_name );
 }

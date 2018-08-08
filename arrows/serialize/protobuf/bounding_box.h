@@ -28,10 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_SERIALIZATION_PROTO_BOUNDING_BOX_H
-#define ARROWS_SERIALIZATION_PROTO_BOUNDING_BOX_H
+#ifndef ARROWS_SERIALIZATION_PROTOBUF_BOUNDING_BOX_H
+#define ARROWS_SERIALIZATION_PROTOBUF_BOUNDING_BOX_H
 
-#include <arrows/serialize/protobuf/kwiver_serialize_proto_export.h>
+#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 #include <vital/algo/data_serializer.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/protobuf/bounding_box.pb.h>
@@ -39,9 +39,9 @@
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace proto {
+namespace protobuf {
 
-class KWIVER_SERIALIZE_PROTO_EXPORT bounding_box
+class KWIVER_SERIALIZE_PROTOBUF_EXPORT bounding_box
   : public vital::algorithm_impl< bounding_box, vital::algo::data_serializer >
 {
 public:

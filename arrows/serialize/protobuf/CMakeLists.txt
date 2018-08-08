@@ -20,12 +20,12 @@ link_directories(${PROTOBUF_LIBRARY})
 include_directories(${PROTOBUF_INCLUDE_DIR})
 add_compile_options( -include "${CMAKE_BINARY_DIR}/vital/types/protobuf/vital_types_protobuf_export.h" )
 
-kwiver_add_library( kwiver_serialize_proto
+kwiver_add_library( kwiver_serialize_protobuf
   ${headers_public}
   ${sources}
   )
 
-target_link_libraries( kwiver_serialize_proto
+target_link_libraries( kwiver_serialize_protobuf
   PUBLIC               vital
                        vital_algo
                        vital_types_protobuf
@@ -41,7 +41,7 @@ kwiver_install_headers(
   NOPATH   SUBDIR     arrows/serialization/protobuf
   )
 
-algorithms_create_plugin( kwiver_serialize_proto
+algorithms_create_plugin( kwiver_serialize_protobuf
   register_algorithms.cxx
   )
 

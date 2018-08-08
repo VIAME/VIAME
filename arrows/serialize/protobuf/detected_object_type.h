@@ -31,7 +31,7 @@
 #ifndef ARROWS_SERIALIZATION_PROTO_DETECTED_OBJECT_TYPE_H
 #define ARROWS_SERIALIZATION_PROTO_DETECTED_OBJECT_TYPE_H
 
-#include <arrows/serialize/protobuf/kwiver_serialize_proto_export.h>
+#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 #include <vital/algo/data_serializer.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/types/protobuf/detected_object_type.pb.h>
@@ -39,9 +39,9 @@
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace proto {
+namespace protobuf {
 
-class KWIVER_SERIALIZE_PROTO_EXPORT detected_object_type
+class KWIVER_SERIALIZE_PROTOBUF_EXPORT detected_object_type
   : public vital::algorithm_impl< detected_object_type, vital::algo::data_serializer >
 {
 public:
