@@ -238,8 +238,8 @@ class track_set(object):
     def deactivate_track(self, track):
         del self._active_id_set[track.id]
 
-    def is_track_active(self, track):
-        return track.id in self._active_id_set
+    def active_count(self):
+        return len(self._active_id_set)
 
     def add_new_track(self, track):
         if track.id in self._id_ts_dict:
