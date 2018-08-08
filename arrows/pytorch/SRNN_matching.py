@@ -22,7 +22,7 @@ class TargetRNNDataLoader(data.Dataset):
     def _make_dataset(self):
         _data_list = []
 
-        for t, cur_track in enumerate(self._track_set):
+        for t, cur_track in enumerate(self._track_set.iter_active()):
             if len(cur_track) < g_config.timeStep:
                 # if the track does not have enough track_state, we will duplicate to time-step and use Target_RNN_AIM_V
                 _rnnType = RnnType.Target_RNN_AIM_V
@@ -32,7 +32,7 @@ class TargetRNNDataLoader(data.Dataset):
                 _rnnType = RnnType.Target_RNN_AIM
 
             # only process active and un-updated tracks
-            if self._track_set.is_track_active(cur_track) and not cur_track.updated_flag and (_rnnType is self._rnnType):
+            if not cur_track.updated_flag and (_rnnType is self._rnnType):
                 for ts, track_state in enumerate(self._track_state_list):
                     # distance between the two bbox's x instead of center
                     dis = abs(cur_track[-1].bbox[0] - track_state.bbox[0])
@@ -109,7 +109,7 @@ class SRNN_matching(object):
         self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, device_ids=GPU_list)
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
-        tracks_num = len(track_set)
+        tracks_num = track_set.active_count()
         track_states_num = len(track_state_list)
 
         self._similarity_mat = torch.FloatTensor(tracks_num, track_states_num).fill_(1.0).to(self._device)
@@ -127,7 +127,7 @@ class SRNN_matching(object):
         self._est_similarity(AIM_data_loader, RnnType.Target_RNN_AIM)
 
         # obtain the list mapping: similarity row idx->track_id
-        track_idx_list = [track.id for track in track_set]
+        track_idx_list = [track.id for track in track_set.iter_active()]
 
         return self._similarity_mat.cpu().numpy(), track_idx_list
 
