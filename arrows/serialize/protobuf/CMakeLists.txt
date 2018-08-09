@@ -9,11 +9,13 @@ endif()
 set( headers_public
   bounding_box.h
   detected_object_type.h
+  detected_object.h
   )
 
 set( sources
   bounding_box.cxx
   detected_object_type.cxx
+  detected_object.cxx
   )
 
 link_directories(${PROTOBUF_LIBRARY})
