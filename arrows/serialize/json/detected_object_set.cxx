@@ -35,6 +35,7 @@
 #include <vital/types/detected_object_set.h>
 
 #include <vital/internal/cereal/cereal.hpp>
+#include <vital/internal/cereal/types/vector.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
 #include <sstream>
@@ -73,7 +74,7 @@ serialize( const serialize_param_t elements )
     cereal::JSONOutputArchive ar( msg );
     save( ar, *obj );
   }
-
+  LOG_INFO( logger(), "Serialized message: '" << msg.str() << "'" ); //+ temp
   return std::make_shared< std::string > ( msg.str() );
 }
 
@@ -112,12 +113,14 @@ detected_object_set::
 save( cereal::JSONOutputArchive&                archive,
       const kwiver::vital::detected_object_set& obj )
 {
-  archive( cereal::make_size_tag( static_cast< cereal::size_type > ( obj.size() ) ) ); // number of elements
-
+  //+ archive( cereal::make_size_tag( static_cast< cereal::size_type > ( obj.size() ) ) ); // number of elements
+  std::vector<kwiver::vital::detected_object_sptr> local_vect;
   for ( const auto& element : const_cast< kwiver::vital::detected_object_set& >(obj) )
   {
-    kasj::detected_object::save( archive, *element );
+    local_vect.push_back( element );
   }
+
+  kasj::detected_object::save( archive, local_vect );
 
   // currently not handling atributes
   //+ TBD
@@ -137,6 +140,7 @@ load( cereal::JSONInputArchive&           archive,
     auto new_obj = std::make_shared< kwiver::vital::detected_object > (
       kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
     kasj::detected_object::load( archive, *new_obj );
+
     obj.add( new_obj );
   }
 

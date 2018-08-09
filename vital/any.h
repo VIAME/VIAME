@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -346,7 +346,7 @@ any_cast( any const& aval )
   // Is the type requested compatible with the type represented.
   if (aval.m_content)
   {
-    if ( std::strcmp( typeid( T ).name() ,  aval.m_content->type().name() ) == 0 )
+    if ( typeid( T ).hash_code() == aval.m_content->type().hash_code() )
     {
       return ( ( any::internal_typed< T >* )aval.m_content )->m_any_data;
     }

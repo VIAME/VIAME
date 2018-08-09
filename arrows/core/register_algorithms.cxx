@@ -48,6 +48,7 @@
 #include <arrows/core/convert_image_bypass.h>
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_input_kw18.h>
+#include <arrows/core/detected_object_set_input_simulator.h>
 #include <arrows/core/detected_object_set_output_csv.h>
 #include <arrows/core/detected_object_set_output_kw18.h>
 #include <arrows/core/dynamic_config_none.h>
@@ -126,6 +127,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< convert_image_bypass >( vpm );
   register_algorithm< detected_object_set_input_csv >( vpm );
   register_algorithm< detected_object_set_input_kw18 >( vpm );
+  register_algorithm< detected_object_set_input_simulator >( vpm );
   register_algorithm< detected_object_set_output_csv >( vpm );
   register_algorithm< detected_object_set_output_kw18 >( vpm );
   register_algorithm< dynamic_config_none >( vpm );

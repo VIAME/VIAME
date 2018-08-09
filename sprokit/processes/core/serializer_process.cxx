@@ -94,7 +94,7 @@ namespace kwiver {
 // (config-key, value-type, default-value, description )
 create_config_trait( serialization_type, std::string, "",
                      "Specifies the method used to serialize the data object. "
-                     "For example this could be json, or protobuf.");
+                     "For example this could be \"json\", or \"protobuf\".");
 
 class serializer_process::priv
 {
@@ -131,6 +131,12 @@ serializer_process
 
   // Examine the configuration
   m_serialization_type = config_value_using_trait( serialization_type );
+
+  if (m_serialization_type.empty())
+  {
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "\"serialization_type\" config parameter not specified");
+  }
 }
 
 
@@ -154,7 +160,7 @@ serializer_process
   // Loop over all registered groups
   for (const auto elem : m_port_group_list )
   {
-    const auto & pg = elem.second;
+    const auto & pg = m_port_group_list[elem.first];
 
     vital::algo::data_serializer::serialize_param_t sp;
 
@@ -174,8 +180,9 @@ serializer_process
 
     // Serialize the collected set of inputs
     auto message = pg.m_serializer->serialize( sp );
+    LOG_INFO( logger(), "Serialized message: '" << *message << "'" ); //+ TEMP
     push_to_port_as < serialized_message_port_trait::type >( pg.m_serialized_port_name, message );
-  }
+  } // end for
 
 } // serializer_process::_step
 

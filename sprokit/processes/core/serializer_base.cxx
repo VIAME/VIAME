@@ -57,7 +57,7 @@ serializer_base
   // scan through our port groups to make sure it all makes sense.
   for ( auto elem : m_port_group_list )
   {
-    auto & pg = elem.second;
+    auto & pg = m_port_group_list[elem.first];
 
     // A group must have at least one port
     if (pg.m_items.size() < 1)
@@ -91,9 +91,16 @@ serializer_base
                  << "\" to \"" << pg.m_algo_name << "\"" );
     }
 
+    // Test to see if the output port has been connected to.
+    if ( ! pg.m_serialized_port_created )
+    {
+      VITAL_THROW( sprokit::missing_connection_exception, m_proc.name(), elem.first,
+                   "Output port has not been connected" );
+    }
+
     // create config items
     // serialize-protobuf:type = <algo-name>
-    // serialize-protobuf:<data type>:foo = bar // possible but not likely
+    // serialize-protobuf:<algo-name>:foo = bar // possible but not likely
 
     auto algo_config = kwiver::vital::config_block::empty_config();
     const std::string ser_algo_type( "serialize-" + m_serialization_type );
@@ -139,7 +146,7 @@ serializer_base::
 vital_typed_port_info( sprokit::process::port_t const& port_name )
 {
   // split port name into algo and item.
-  // port_name ::= <group>/<item>
+  // port_name ::= <group>/<algorithm>/<item>
   //
   // Create port_group for <group>
   // Add entry for item.
@@ -148,29 +155,31 @@ vital_typed_port_info( sprokit::process::port_t const& port_name )
   sprokit::process::ports_t components;
   kwiver::vital::tokenize( port_name, components, "/" );
 
-  if (components.size() > 2 )
+  std::string group_name;
+  std::string algo_name;
+  std::string item_name;
+
+  switch (components.size())
   {
+  case 1:
+    // No item specified. Assume a single item group
+    group_name = components[0];
+    item_name = kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME;
+    break;
+
+  case 3:
+    group_name = components[0];
+    algo_name = components[1];
+    item_name = components[2];
+    break;
+
+  default:
     LOG_ERROR( m_logger, "Port \"" << port_name
                << "\" does not have the correct format. "
-               "Must be in the form \"<group>/<item>\"." );
+               "Must be in the form \"<group>/<algorithm>/<item>\" "
+               "or \"<item>\"." );
     return false;
   }
-
-  std::string algo_name;
-
-  if (components.size() == 1 )
-  {
-    // No item specified. Assume a single item group
-    components.push_back( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME );
-  }
-  else
-  {
-    // In the case where there are multiple items in the group, set the algo name to be the group name
-    algo_name = components[0];
-  }
-
-  const std::string group_name = components[0];
-  const std::string item_name = components[1];
 
   // if port has already been added, do nothing
   if (m_port_group_list.count( group_name ) == 0 )
@@ -195,7 +204,21 @@ vital_typed_port_info( sprokit::process::port_t const& port_name )
 
   pg.m_items[item_name] = di;
   pg.m_serialized_port_name = group_name; // expected port name
-  pg.m_algo_name = algo_name; // can be empty string if single item group.
+
+  if ( pg.m_algo_name.empty() )
+  {
+    pg.m_algo_name = algo_name; // can be empty string if single item group.
+  }
+  else
+  {
+    if ( pg.m_algo_name != algo_name )
+    {
+      LOG_ERROR( m_logger, "Port \"" << port_name
+                 << "\" has been declared with a different algorithm than previously declared. "
+                 << "Previously declared with algorithm \"" << pg.m_algo_name << "\".");
+      return false;
+    }
+  }
 
   LOG_TRACE( m_logger, "Created port item \"" << item_name
              << "\" for group \"" << group_name
@@ -242,20 +265,33 @@ set_port_type( sprokit::process::port_t const&      port_name,
   // Extract GROUP sub-string from port name
   sprokit::process::ports_t components;
   kwiver::vital::tokenize( port_name, components, "/" );
+  std::string group_name;
+  std::string item_name;
 
-  if (components.size() == 1 )
+  switch (components.size())
   {
+  case 1:
     // No item specified. Assume a single item group
-    components.push_back( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME );
-  }
+    group_name = components[0];
+    item_name = kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME;
+    break;
 
-  const std::string group_name = components[0];
-  const std::string item_name = components[1];
+  case 3:
+    group_name = components[0];
+    item_name = components[2];
+    break;
+
+  default:
+    LOG_ERROR( m_logger, "Port \"" << port_name
+               << "\" does not have the correct format. "
+               "Must be in the form \"<group>/<algorithm>/<item>\" "
+               "or \"<item>\"." );
+    return;
+  }
 
   // update port handler
   port_group& pg = m_port_group_list[group_name];
   port_group::data_item& di = pg.m_items[item_name];
-
   di.m_port_type = port_type;
 
   LOG_TRACE( m_logger, "Setting port type for group \"" << port_name
