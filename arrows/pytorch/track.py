@@ -193,8 +193,8 @@ class track(object):
         du_track.updated_flag = self._updated_flag
         du_track.max_conf = self._max_conf
 
-        if len(du_track) < timestep_len:
-            du_track += [du_track[-1]] * (timestep_len - len(du_track))
+        for _ in range(timestep_len - len(du_track)):
+            du_track.append(du_track[-1])
 
         return du_track
 
