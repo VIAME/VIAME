@@ -112,6 +112,15 @@ class SRNN_matching(object):
         tracks_num = track_set.active_count()
         track_states_num = len(track_state_list)
 
+        # obtain the list mapping: similarity row idx->track_id
+        track_idx_list = [track.id for track in track_set.iter_active()]
+
+        if 0 in (tracks_num, track_states_num):
+            # PyTorch doesn't handle zero-length dimensions cleanly
+            # (see https://github.com/pytorch/pytorch/issues/5014);
+            # this computes the intended result.
+            return np.empty((tracks_num, track_states_num), dtype=np.float32), track_idx_list
+
         self._similarity_mat = torch.FloatTensor(tracks_num, track_states_num).fill_(1.0).to(self._device)
 
         kwargs = {'num_workers': 0, 'pin_memory': True}
@@ -126,9 +135,6 @@ class SRNN_matching(object):
         with torch.no_grad():
             self._est_similarity(AIM_V_data_loader, RnnType.Target_RNN_AIM_V)
             self._est_similarity(AIM_data_loader, RnnType.Target_RNN_AIM)
-
-        # obtain the list mapping: similarity row idx->track_id
-        track_idx_list = [track.id for track in track_set.iter_active()]
 
         return self._similarity_mat.cpu().numpy(), track_idx_list
 
