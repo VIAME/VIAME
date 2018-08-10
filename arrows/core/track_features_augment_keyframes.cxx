@@ -75,14 +75,16 @@ track_features_augment_keyframes
         kwiver::vital::image_container_sptr mask) const
 {
 
-  auto fmap = tracks->all_feature_frame_data();
-  auto ftsfd = fmap.find(frame_number);
-  if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
-  {
-    // this is not a keyframe, so return the orignial tracks
-    // no changes made so no deep copy necessary
-    return tracks;
-  }
+  // FORCE DETECTION ON EVERY FRAME
+
+  //auto fmap = tracks->all_feature_frame_data();
+  //auto ftsfd = fmap.find(frame_number);
+  //if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
+  //{
+  //  // this is not a keyframe, so return the orignial tracks
+  //  // no changes made so no deep copy necessary
+  //  return tracks;
+  //}
 
   auto track_states = tracks->frame_states(frame_number);
   auto new_feat = tracks->frame_features(frame_number);

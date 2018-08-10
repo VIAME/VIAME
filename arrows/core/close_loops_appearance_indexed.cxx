@@ -594,18 +594,32 @@ close_loops_appearance_indexed::priv
     return feat_tracks;
   }
 
+  std::vector<frame_id_t> putative_matching_images;
+
   auto fd = std::dynamic_pointer_cast<feature_track_set_frame_data>(feat_tracks->frame_data(frame_number));
   if (!fd || !fd->is_keyframe)
   {
-    return feat_tracks;
+    //not a keyframe so just try to match to the last few frames
+    auto all_fids = feat_tracks->all_frame_ids();
+    for (auto it = all_fids.rbegin(); it != all_fids.rend(); ++it)
+    {
+      if (*it != frame_number)
+      {
+        putative_matching_images.push_back(*it);
+      }
+      if (putative_matching_images.size() >= 5)
+      {
+        break;
+      }
+    }
   }
+  else
+  {
+    auto desc = feat_tracks->frame_descriptors(frame_number);
 
-
-  auto desc = feat_tracks->frame_descriptors(frame_number);
-
-  std::vector<frame_id_t> putative_matching_images =
-    m_bow->query_and_append(desc, frame_number);
-
+    putative_matching_images =
+      m_bow->query_and_append(desc, frame_number);
+  }
   return verify_and_add_image_matches_node_id_guided(feat_tracks, frame_number,
                                       putative_matching_images);
 }
