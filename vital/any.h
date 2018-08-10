@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <typeinfo>
+#include <cstring>
 
 namespace kwiver {
 namespace vital {

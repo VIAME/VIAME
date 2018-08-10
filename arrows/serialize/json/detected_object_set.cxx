@@ -74,7 +74,6 @@ serialize( const serialize_param_t elements )
     cereal::JSONOutputArchive ar( msg );
     save( ar, *obj );
   }
-  LOG_INFO( logger(), "Serialized message: '" << msg.str() << "'" ); //+ temp
   return std::make_shared< std::string > ( msg.str() );
 }
 
@@ -85,7 +84,7 @@ detected_object_set::
 deserialize( std::shared_ptr< std::string > message )
 {
   std::stringstream msg(*message);
-  kwiver::vital::detected_object_set_sptr obj;
+  kwiver::vital::detected_object_set* obj =  new kwiver::vital::detected_object_set();
 
   std::string tag;
   msg >> tag;
@@ -102,7 +101,8 @@ deserialize( std::shared_ptr< std::string > message )
   }
 
   deserialize_result_t res;
-  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(obj);
+  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(
+    kwiver::vital::detected_object_set_sptr( obj ) );
 
   return res;
 }
@@ -113,14 +113,12 @@ detected_object_set::
 save( cereal::JSONOutputArchive&                archive,
       const kwiver::vital::detected_object_set& obj )
 {
-  //+ archive( cereal::make_size_tag( static_cast< cereal::size_type > ( obj.size() ) ) ); // number of elements
-  std::vector<kwiver::vital::detected_object_sptr> local_vect;
+  archive( cereal::make_nvp( "size", obj.size() ) );
+
   for ( const auto& element : const_cast< kwiver::vital::detected_object_set& >(obj) )
   {
-    local_vect.push_back( element );
+    kasj::detected_object::save( archive, *element );
   }
-
-  kasj::detected_object::save( archive, local_vect );
 
   // currently not handling atributes
   //+ TBD
@@ -133,7 +131,7 @@ load( cereal::JSONInputArchive&           archive,
       kwiver::vital::detected_object_set& obj )
 {
   cereal::size_type size;
-  archive( cereal::make_size_tag( size ) );
+  archive( CEREAL_NVP( size ) );
 
   for ( cereal::size_type i = 0; i < size; ++i )
   {
