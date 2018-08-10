@@ -8,6 +8,7 @@ set( proto_files
   bounding_box.proto
   detected_object_type.proto
   detected_object.proto
+  detected_object_set.proto
   )
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})

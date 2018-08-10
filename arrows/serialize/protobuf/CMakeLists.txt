@@ -10,12 +10,14 @@ set( headers_public
   bounding_box.h
   detected_object_type.h
   detected_object.h
+  detected_object_set.h
   )
 
 set( sources
   bounding_box.cxx
   detected_object_type.cxx
   detected_object.cxx
+  detected_object_set.cxx
   )
 
 link_directories(${PROTOBUF_LIBRARY})
