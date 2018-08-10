@@ -407,6 +407,10 @@ frame_index_track_set_impl
   return terminated_tracks;
 }
 
+bool track_less(const track_sptr &t1, const track_sptr &t2)
+{
+  return t1->id() < t2->id();
+}
 
 /// Return the percentage of tracks successfully tracked to the next frame.
 double
@@ -417,19 +421,19 @@ frame_index_track_set_impl
   populate_frame_map_on_demand();
 
   std::vector<track_sptr> tracks1 = this->active_tracks(offset1);
-  std::sort(tracks1.begin(), tracks1.end());
+  std::sort(tracks1.begin(), tracks1.end(), track_less);
   std::vector<track_sptr> tracks2 = this->active_tracks(offset2);
-  std::sort(tracks2.begin(), tracks2.end());
+  std::sort(tracks2.begin(), tracks2.end(), track_less);
 
   std::vector<track_sptr> isect_tracks;
   std::set_intersection(tracks1.begin(), tracks1.end(),
                         tracks2.begin(), tracks2.end(),
-                        std::back_inserter(isect_tracks));
+                        std::back_inserter(isect_tracks), track_less);
 
   std::vector<track_sptr> union_tracks;
   std::set_union(tracks1.begin(), tracks1.end(),
                  tracks2.begin(), tracks2.end(),
-                 std::back_inserter(union_tracks));
+                 std::back_inserter(union_tracks), track_less);
 
   if( union_tracks.empty() )
   {
