@@ -4,11 +4,15 @@ set(sources
   register_processes.cxx
 
   file_transport_send_process.cxx
+  zmq_transport_receive_process.cxx
+  zmq_transport_send_process.cxx
   )
 
 set(private_headers
 
   file_transport_send_process.h
+  zmq_transport_receive_process.h
+  zmq_transport_send_process.h
   )
 
 kwiver_private_header_group( ${private_headers} )

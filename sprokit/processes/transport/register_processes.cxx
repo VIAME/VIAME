@@ -35,6 +35,8 @@
 
 // -- list processes to register --
 #include "file_transport_send_process.h"
+#include "zmq_transport_send_process.h"
+#include "zmq_transport_receive_process.h"
 
 // ---------------------------------------------------------------------------------------
 /** \brief Regsiter processes
@@ -55,15 +57,32 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   // -------------------------------------------------------------------------------------
   auto fact = vpm.ADD_PROCESS( kwiver::file_transport_send_process );
-
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "file_transport_send" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Reads a list of image file names and generates stream of images and associated time stamps." )
+                    "Writes the serialized buffer to a file." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
 
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  fact = vpm.ADD_PROCESS( kwiver::zmq_transport_send_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "zmq_transport_send" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Send serialized buffer to ZMQ transport." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::zmq_transport_receive_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "zmq_transport_receive" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Receives serialized buffer from ZMQ transport and pushes to output." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+
+ // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );
 } // register_processes
