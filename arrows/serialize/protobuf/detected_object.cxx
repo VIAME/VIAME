@@ -130,14 +130,15 @@ convert_protobuf( const kwiver::protobuf::detected_object&  proto_det_object,
     det_object.set_type( new_dot );
   }
 
-  if ( proto_det_object.has_detector_name() )
-  {
-    det_object.set_detector_name( proto_det_object.detector_name() );
-  }
-
   if ( proto_det_object.has_index() )
   {
     det_object.set_index( proto_det_object.index() ) ;
+  }
+
+
+  if ( proto_det_object.has_detector_name() )
+  {
+    det_object.set_detector_name( proto_det_object.detector_name() );
   }
 
   return true;
@@ -148,14 +149,26 @@ bool detected_object::
 convert_protobuf( const kwiver::vital::detected_object& det_object,
                   kwiver::protobuf::detected_object&  proto_det_object )
 {
-  /*
+  proto_det_object.set_confidence( det_object.confidence() );
+
   kwiver::protobuf::bounding_box *proto_bbox = new kwiver::protobuf::bounding_box();
   kwiver::arrows::serialize::protobuf::bounding_box::convert_protobuf( det_object.bounding_box(), *proto_bbox );
   proto_det_object.set_allocated_bbox(proto_bbox);  // proto_det_object takes ownership
 
-  kwiver::protobuf::detected_object_type *proto_dot = new kwiver::protobuf::detected_object_type();
-  */
+  // We're using type() in "const" (read only) way here.  There's utility
+  // in having the source object parameter be const, but type() isn't because
+  // its a pointer into the det_object.  Using const_cast here is a middle ground
+  // though somewhat ugly
+  if ( const_cast<kwiver::vital::detected_object&>(det_object).type() != NULL )
+  {
+    kwiver::protobuf::detected_object_type *proto_dot = new kwiver::protobuf::detected_object_type();
+    kwiver::arrows::serialize::protobuf::detected_object_type::convert_protobuf( * const_cast<kwiver::vital::detected_object&>(det_object).type(), *proto_dot );
+    proto_det_object.set_allocated_classifcations(proto_dot); // proto_det_object takes ownership
+  }
 
+  proto_det_object.set_index( det_object.index() );
+
+  proto_det_object.set_detector_name( det_object.detector_name() );
 
   return true;
 }
