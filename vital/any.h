@@ -266,7 +266,7 @@ public:
     // Construct helpful message
     if( from_type != "")
     {
-      m_message = "KRF vital::bad_any_cast: failed conversion using kwiver::vital::any_cast from type \""
+      m_message = "vital::bad_any_cast: failed conversion using kwiver::vital::any_cast from type \""
         + demangle( from_type ) + "\" to type \"" + demangle( to_type ) + "\"";
     }
     else
@@ -346,7 +346,7 @@ any_cast( any const& aval )
   // Is the type requested compatible with the type represented.
   if (aval.m_content)
   {
-    if ( typeid( T ).hash_code() == aval.m_content->type().hash_code() )
+    if ( std::strcmp( typeid( T ).name(), aval.m_content->type().name() ) == 0  )
     {
       return ( ( any::internal_typed< T >* )aval.m_content )->m_any_data;
     }
