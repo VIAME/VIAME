@@ -127,6 +127,9 @@ public:
 
   //if intersect over union of track ids between two frames are greather than this then don't try to close the loop.
   float m_skip_loop_detection_track_i_over_u_threshold;
+
+  // Must have this inlier fraction to accept a loop completion
+  float m_min_loop_inlier_fraction;
 };
 
 //-----------------------------------------------------------------------------
@@ -134,11 +137,12 @@ public:
 close_loops_appearance_indexed::priv
 ::priv()
   : m_f_estimator(),
-  m_min_loop_inlier_matches(50),
+  m_min_loop_inlier_matches(128),
   m_geometric_verification_inlier_threshold(2.0),
-  m_max_loop_attempts_per_frame(5),
+  m_max_loop_attempts_per_frame(200),
   m_tracks_in_common_to_skip_loop_closing(0),
-  m_skip_loop_detection_track_i_over_u_threshold(0.5)
+  m_skip_loop_detection_track_i_over_u_threshold(0.5),
+  m_min_loop_inlier_fraction(0.5)
 {
 }
 
@@ -342,9 +346,8 @@ close_loops_appearance_indexed::priv
       }
     }
 
-    if (already_joined_matches > 0.7 * validated_matches.size() && already_joined_matches > 0.7*m_min_loop_inlier_matches)
+    if (already_joined_matches == validated_matches.size())
     {
-      //we assume this would have been a success
       num_failed_loop_attempts_in_a_row = 0;
       continue;
     }
@@ -360,12 +363,20 @@ close_loops_appearance_indexed::priv
         pts_left.push_back(m.second->feature->loc());
       }
 
-      m_f_estimator->estimate(pts_right, pts_left, inliers,
+      auto F = m_f_estimator->estimate(pts_right, pts_left, inliers,
                               m_geometric_verification_inlier_threshold);
+
+      if (!F)
+      {
+        continue;
+      }
 
       unsigned num_inliers =
         static_cast<unsigned>(std::count(inliers.begin(), inliers.end(), true));
-      if (num_inliers < m_min_loop_inlier_matches)
+
+      float inlier_fraction = static_cast<double>(num_inliers) / static_cast<double>(validated_matches.size());
+
+      if (num_inliers < m_min_loop_inlier_matches || inlier_fraction < m_min_loop_inlier_fraction)
       {
         continue;
       }
@@ -583,18 +594,32 @@ close_loops_appearance_indexed::priv
     return feat_tracks;
   }
 
+  std::vector<frame_id_t> putative_matching_images;
+
   auto fd = std::dynamic_pointer_cast<feature_track_set_frame_data>(feat_tracks->frame_data(frame_number));
   if (!fd || !fd->is_keyframe)
   {
-    return feat_tracks;
+    //not a keyframe so just try to match to the last few frames
+    auto all_fids = feat_tracks->all_frame_ids();
+    for (auto it = all_fids.rbegin(); it != all_fids.rend(); ++it)
+    {
+      if (*it != frame_number)
+      {
+        putative_matching_images.push_back(*it);
+      }
+      if (putative_matching_images.size() >= 5)
+      {
+        break;
+      }
+    }
   }
+  else
+  {
+    auto desc = feat_tracks->frame_descriptors(frame_number);
 
-
-  auto desc = feat_tracks->frame_descriptors(frame_number);
-
-  std::vector<frame_id_t> putative_matching_images =
-    m_bow->query_and_append(desc, frame_number);
-
+    putative_matching_images =
+      m_bow->query_and_append(desc, frame_number);
+  }
   return verify_and_add_image_matches_node_id_guided(feat_tracks, frame_number,
                                       putative_matching_images);
 }
@@ -665,6 +690,10 @@ close_loops_appearance_indexed
     d_->m_skip_loop_detection_track_i_over_u_threshold,
     "skip loop detection if intersection over union of track ids in two frames is greater than this");
 
+  config->set_value("min_loop_inlier_fraction",
+    d_->m_min_loop_inlier_fraction,
+    "inlier fraction must be this high to accept a loop completion");
+
   return config;
 }
 
@@ -717,6 +746,10 @@ close_loops_appearance_indexed
   d_->m_skip_loop_detection_track_i_over_u_threshold =
     config->get_value<float>("skip_loop_detection_track_i_over_u_threshold",
       d_->m_skip_loop_detection_track_i_over_u_threshold);
+
+  d_->m_min_loop_inlier_fraction =
+    config->get_value<float>("m_min_loop_inlier_fraction",
+      d_->m_min_loop_inlier_fraction);
 }
 
 //-----------------------------------------------------------------------------
