@@ -55,10 +55,10 @@ class integrate_depth_maps::priv
 public:
   /// Constructor
   priv()
-    : ray_potential_thickness(2.0),
-      ray_potential_rho(0.8),
+    : ray_potential_thickness(1.65),
+      ray_potential_rho(1.0),
       ray_potential_eta(0.03),
-      ray_potential_delta(0.3),
+      ray_potential_delta(16.5),
       grid_spacing {1.0, 1.0, 1.0},
       m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
   {
@@ -247,6 +247,14 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
   // Transfer data from device to host
   double *h_volume = new double[vsize];
   cudaMemcpy(h_volume, d_volume, vsize * sizeof(double), cudaMemcpyDeviceToHost);
+
+  //for (int i = 0; i < vsize; i++)
+  //{
+  //  std::cout << h_volume[i] << " ";
+  //}
+  //std::cout << std::endl << vsize << std::endl;
+  std::cout << d_->grid_dims[0] << " " << d_->grid_dims[1] << " " << d_->grid_dims[2] << std::endl;
+  std::cout << d_->grid_spacing[0] << " " << d_->grid_spacing[1] << " " << d_->grid_spacing[2] << std::endl;
 
   spacing = vector_3d(d_->grid_spacing);
   volume = std::shared_ptr<image_container>(new simple_image_container(

@@ -111,8 +111,8 @@ __device__ void rayPotential(double realDistance, double depthMapDistance, doubl
 */
 __device__ int computeVoxelIDGrid(int coordinates[3])
 {
-  int dimX = c_gridDims.x - 1;
-  int dimY = c_gridDims.y - 1;
+  int dimX = c_gridDims.x;
+  int dimY = c_gridDims.y;
   int i = coordinates[0];
   int j = coordinates[1];
   int k = coordinates[2];
@@ -130,8 +130,8 @@ __device__ int computeVoxelIDDepth(int coordinates[3])
   int dimY = c_depthMapDims.y;
   int x = coordinates[0];
   int y = coordinates[1];
-
-  return dimX*y + x;
+  // /!\ vtkImageData has its origin at the bottom left, not top left
+  return (dimX*(dimY - 1 - y)) + x;
 }
 
 // ----------------------------------------------------------------------------
@@ -215,8 +215,8 @@ void cuda_initalize(int h_gridDims[3], 		 // Dimensions of the output volume
 void launch_depth_kernel(double * d_depth, int h_depthMapDims[2], double d_K[size4x4], double d_RT[size4x4], double* d_volume)
 {
   // Organize threads into blocks and grids
-  dim3 dimBlock(grid_dims[0] - 1, 1, 1); // nb threads on each block
-  dim3 dimGrid(1, grid_dims[1] - 1, grid_dims[2] - 1); // nb blocks on a grid
+  dim3 dimBlock(grid_dims[0], 1, 1); // nb threads on each block
+  dim3 dimGrid(1, grid_dims[1], grid_dims[2]); // nb blocks on a grid
   cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int));
   CudaErrorCheck(cudaDeviceSynchronize());
   depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_K, d_RT, d_volume);	
