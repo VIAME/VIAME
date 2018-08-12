@@ -210,6 +210,8 @@ _input_port_info(port_t const& port_name)
         type_flow_dependent,        // port_type
         required,
         port_description_t( "data type to be serialized" ) );
+      // Now that we have a "normal" input port let Sprokit manager them
+      this->set_data_checking_level( check_valid );
     }
   }
 

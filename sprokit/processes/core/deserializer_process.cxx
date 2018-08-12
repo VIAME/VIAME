@@ -185,6 +185,8 @@ _output_port_info(port_t const& port_name)
         type_flow_dependent,        // port_type
         required,
         port_description_t( "deserialized data type" ) );
+      // Now that we have a "normal" output port, let Sprokit manage it
+      this->set_data_checking_level( check_valid );
     }
   }
 
