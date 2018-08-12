@@ -104,3 +104,9 @@ Arrows - VXL
 
  * Fixed issue with ffmpeg video source where the frame metadata was not
    getting set correctly.
+
+Arrows - OpenCV
+
+ * Fixed an issue in which feature detector masks were not working as expected
+   when values were not exactly 0 and 255 due to lossy compression.
+   A threshold at 128 is now applied to force mask values to 0 and 255.
