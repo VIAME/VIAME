@@ -33,6 +33,7 @@
 
 #include <sprokit/pipeline/process.h>
 #include "processes_transport_export.h"
+#include <zmq.hpp>
 
 namespace kwiver {
 
@@ -55,6 +56,7 @@ public:
 
 protected:
   virtual void _configure();
+  virtual void _init();
   virtual void _step();
 
 private:

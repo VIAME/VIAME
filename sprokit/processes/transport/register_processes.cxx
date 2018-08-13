@@ -64,7 +64,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
-
+#if WITH_ZMQ
   fact = vpm.ADD_PROCESS( kwiver::zmq_transport_send_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "zmq_transport_send" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -81,7 +81,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Receives serialized buffer from ZMQ transport and pushes to output." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
-
+#endif
 
  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );
