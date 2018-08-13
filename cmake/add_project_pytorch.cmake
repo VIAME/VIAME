@@ -32,7 +32,7 @@ endif()
 
 if( VIAME_ENABLE_CUDNN )
   set(CUDNN_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}")
-  if(C UDNN_ROOT_DIR )
+  if( CUDNN_ROOT_DIR )
     list(APPEND CUDNN_ENV "CUDNN_INCLUDE_DIR=${CUDNN_ROOT_DIR}/include")
   endif()
 else()
