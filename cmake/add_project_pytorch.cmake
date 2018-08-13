@@ -30,13 +30,21 @@ else()
     pip install ${PYTORCH_PIP_SETTINGS} --user file://${VIAME_PACKAGES_DIR}/torchvision )
 endif()
 
-if(VIAME_ENABLE_CUDNN)
+if( VIAME_ENABLE_CUDNN )
   set(CUDNN_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}")
-  if(CUDNN_ROOT_DIR)
+  if(C UDNN_ROOT_DIR )
     list(APPEND CUDNN_ENV "CUDNN_INCLUDE_DIR=${CUDNN_ROOT_DIR}/include")
   endif()
 else()
   unset(CUDNN_ENV)
+endif()
+
+if( VIAME_ENABLE_CUDA )
+  set( PYTORCH_CUDA_ARCHITECTURES "3.0 3.5 5.0 5.2 6.0 6.1+PTX" )
+  set( TORCH_NVCC_FLAGS "-Xfatbin -compress-all" )
+else()
+  set( PYTORCH_CUDA_ARCHITECTURES )
+  set( TORCH_NVCC_FLAGS )
 endif()
 
 set( PYTHON_BASEPATH
@@ -51,6 +59,8 @@ set( PYTORCH_PYTHON_INSTALL
                       PATH=${CUSTOM_PATH}
                       PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
                       CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
+                      TORCH_CUDA_ARCH_LIST=${PYTORCH_CUDA_ARCHITECTURES}
+                      TORCH_NVCC_FLAGS=${PYTORCH_NVCC_FLAGS}
                       ${CUDNN_ENV}
     ${PYTHON_EXECUTABLE} -m ${PYTORCH_PIP_CMD} )
 set( TORCHVISION_PYTHON_INSTALL
