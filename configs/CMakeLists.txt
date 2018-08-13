@@ -59,9 +59,9 @@ if( VIAME_DOWNLOAD_MODELS )
 
     if( VIAME_DOWNLOAD_MODELS-MOUSS )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5b0455de8d777f15ebe1efbe/download
-        b5f53f45fcc4ebac264d9d33b5e558e4
-        ${VIAME_DOWNLOAD_DIR}/models-mouss-generic-v1.0.0.tar.gz
+        https://data.kitware.com/api/v1/item/5b7216e68d777f06857c4557/download
+        a9a65372d077da45ad037a5aac288b8b
+        ${VIAME_DOWNLOAD_DIR}/models-mouss-v2.0.0.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
   endif()
