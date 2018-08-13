@@ -111,7 +111,7 @@ deserialize( std::shared_ptr< std::string > message )
 }
 
 // ----------------------------------------------------------------------------
-bool detected_object::
+void detected_object::
 convert_protobuf( const kwiver::protobuf::detected_object&  proto_det_object,
                   kwiver::vital::detected_object& det_object )
 {
@@ -140,12 +140,10 @@ convert_protobuf( const kwiver::protobuf::detected_object&  proto_det_object,
   {
     det_object.set_detector_name( proto_det_object.detector_name() );
   }
-
-  return true;
 }
 
 // ----------------------------------------------------------------------------
-bool detected_object::
+void detected_object::
 convert_protobuf( const kwiver::vital::detected_object& det_object,
                   kwiver::protobuf::detected_object&  proto_det_object )
 {
@@ -153,6 +151,7 @@ convert_protobuf( const kwiver::vital::detected_object& det_object,
 
   kwiver::protobuf::bounding_box *proto_bbox = new kwiver::protobuf::bounding_box();
   kwiver::arrows::serialize::protobuf::bounding_box::convert_protobuf( det_object.bounding_box(), *proto_bbox );
+
   proto_det_object.set_allocated_bbox(proto_bbox);  // proto_det_object takes ownership
 
   // We're using type() in "const" (read only) way here.  There's utility
@@ -162,15 +161,15 @@ convert_protobuf( const kwiver::vital::detected_object& det_object,
   if ( const_cast<kwiver::vital::detected_object&>(det_object).type() != NULL )
   {
     kwiver::protobuf::detected_object_type *proto_dot = new kwiver::protobuf::detected_object_type();
-    kwiver::arrows::serialize::protobuf::detected_object_type::convert_protobuf( * const_cast<kwiver::vital::detected_object&>(det_object).type(), *proto_dot );
+    kwiver::arrows::serialize::protobuf::detected_object_type::
+      convert_protobuf( * const_cast<kwiver::vital::detected_object&>(det_object).type(), *proto_dot );
+
     proto_det_object.set_allocated_classifcations(proto_dot); // proto_det_object takes ownership
   }
 
   proto_det_object.set_index( det_object.index() );
 
   proto_det_object.set_detector_name( det_object.detector_name() );
-
-  return true;
 }
 
 } } } } // end namespace

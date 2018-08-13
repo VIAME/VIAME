@@ -59,10 +59,10 @@ public:
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
   // Convert between native and protobuf formats
-  static bool convert_protobuf( const kwiver::protobuf::detected_object_set&  proto_dos,
+  static void convert_protobuf( const kwiver::protobuf::detected_object_set&  proto_dos,
                                 kwiver::vital::detected_object_set& dos );
 
-  static bool convert_protobuf( const kwiver::vital::detected_object_set& dos,
+  static void convert_protobuf( const kwiver::vital::detected_object_set& dos,
                                 kwiver::protobuf::detected_object_set&  proto_dos );
 };
 

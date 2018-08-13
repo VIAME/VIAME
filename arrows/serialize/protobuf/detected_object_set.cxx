@@ -111,25 +111,25 @@ deserialize( std::shared_ptr< std::string > message )
 }
 
 // ----------------------------------------------------------------------------
-bool detected_object_set::
+void detected_object_set::
 convert_protobuf( const kwiver::protobuf::detected_object_set&  proto_dos,
                   kwiver::vital::detected_object_set& dos )
 {
   const size_t count( proto_dos.detected_objects_size() );
   for (size_t i = 0; i < count; ++i )
   {
-    auto det_object_sptr = std::make_shared< kwiver::vital::detected_object >( kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
+    auto det_object_sptr = std::make_shared< kwiver::vital::detected_object >(
+      kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
     auto proto_det_object = proto_dos.detected_objects( i );
 
     kwiver::arrows::serialize::protobuf::detected_object::convert_protobuf(proto_det_object,*det_object_sptr);
+
     dos.add( det_object_sptr );
   }
-
-return true;
 }
 
 // ----------------------------------------------------------------------------
-bool detected_object_set::
+void detected_object_set::
 convert_protobuf( const kwiver::vital::detected_object_set& dos,
                   kwiver::protobuf::detected_object_set&  proto_dos )
 {
@@ -143,8 +143,6 @@ convert_protobuf( const kwiver::vital::detected_object_set& dos,
 
     kwiver::arrows::serialize::protobuf::detected_object::convert_protobuf( *it, *proto_det_object_ptr );
   }
-
-  return true;
 }
 
 } } } } // end namespace

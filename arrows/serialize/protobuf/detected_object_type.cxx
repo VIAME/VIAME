@@ -109,7 +109,7 @@ deserialize( std::shared_ptr< std::string > message )
 }
 
 // ----------------------------------------------------------------------------
-bool detected_object_type::
+void detected_object_type::
 convert_protobuf( const kwiver::protobuf::detected_object_type&  proto_dot,
                   kwiver::vital::detected_object_type& dot )
  {
@@ -118,22 +118,18 @@ convert_protobuf( const kwiver::protobuf::detected_object_type&  proto_dot,
    {
      dot.set_score( proto_dot.name(i), proto_dot.score(i) );
    }
-
-    return true;
  }
 
 // ----------------------------------------------------------------------------
-bool detected_object_type::
+void detected_object_type::
 convert_protobuf( const kwiver::vital::detected_object_type& dot,
                   kwiver::protobuf::detected_object_type&  proto_dot )
 {
-  for ( auto it: dot )
+  for ( auto it : dot )
   {
     proto_dot.add_name( *(it.first) );
     proto_dot.add_score( it.second);
   }
-
-  return true;
 }
 
 } } } } // end namespace
