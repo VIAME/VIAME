@@ -40,6 +40,8 @@ namespace kwiver {
 create_config_trait( port, int, "5550",
                      "Port number to connect/bind to");
 
+create_config_trait( num_publishers, int, "1",
+                     "Number of publishers to subscribe to. ");
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -52,11 +54,12 @@ public:
 
   // Configuration values
   int m_port;
+  int m_num_publishers;
 
   //+ any other connection related data goes here
   zmq::context_t m_context;
   zmq::socket_t m_sub_socket;
-  zmq::socket_t m_sync_socket;
+  std::vector< std::shared_ptr<zmq::socket_t> > m_sync_sockets;
 
   vital::logger_handle_t m_logger; // for logging in priv methods
 
@@ -89,6 +92,7 @@ void zmq_transport_receive_process
 
   // Get process config entries
   d->m_port = config_value_using_trait( port );
+  d->m_num_publishers = config_value_using_trait( num_publishers );
 
   int major, minor, patch;
   zmq_version(&major, &minor, &patch);
@@ -137,12 +141,13 @@ void zmq_transport_receive_process
 ::make_config()
 {
   declare_config_using_trait( port );
+  declare_config_using_trait( num_publishers );
 }
 
 
 // ================================================================
 zmq_transport_receive_process::priv
-::priv() : m_context( 1 ), m_sub_socket( m_context, ZMQ_SUB ), m_sync_socket( m_context, ZMQ_REQ )
+::priv() : m_context( 1 ), m_sub_socket( m_context, ZMQ_SUB )
 {
 }
 
@@ -150,26 +155,34 @@ void
 zmq_transport_receive_process::priv
 ::connect()
 {
+  LOG_DEBUG( m_logger, "Number of publishers " << m_num_publishers );
   m_sub_socket.setsockopt(ZMQ_SUBSCRIBE,"",0);
 
-  std::ostringstream sub_connect_string;
-  sub_connect_string << "tcp://localhost:" << m_port;
-  LOG_TRACE( m_logger, "SUB Connect for " << sub_connect_string.str() );
-	m_sub_socket.connect( sub_connect_string.str() );
+  // We start with our base port.  Even ports are the pub/sub socket
+  // Odd ports (pub/sub + 1) are the sync sockets
+  for ( int i = 0; i < m_num_publishers * 2; i+=2 )
+  {
+    std::shared_ptr< zmq::socket_t > sync_socket = std::make_shared< zmq::socket_t >( m_context, ZMQ_REQ );
+    m_sync_sockets.push_back(sync_socket);
 
+    std::ostringstream sub_connect_string;
+    sub_connect_string << "tcp://localhost:" << m_port + i;
+    LOG_TRACE( m_logger, "SUB Connect for " << sub_connect_string.str() );
+    m_sub_socket.connect( sub_connect_string.str() );
 
-  std::ostringstream sync_connect_string;
-  sync_connect_string << "tcp://localhost:" << ( m_port + 1);
-  LOG_TRACE( m_logger, "SYNC Connect for " << sync_connect_string.str() );
-	m_sync_socket.connect( sync_connect_string.str() );
+    std::ostringstream sync_connect_string;
+    sync_connect_string << "tcp://localhost:" << ( m_port + i + 1);
+    LOG_TRACE( m_logger, "SYNC Connect for " << sync_connect_string.str() );
+    sync_socket->connect( sync_connect_string.str() );
 
-  zmq::message_t datagram;
-  m_sync_socket.send(datagram);
+    zmq::message_t datagram;
+    sync_socket->send(datagram);
 
-  zmq::message_t datagram_i;
-  LOG_TRACE( m_logger, "Waiting for SYNC reply" );
-  m_sync_socket.recv(&datagram_i);
-  LOG_TRACE( m_logger, "SYNC reply received" );
+    zmq::message_t datagram_i;
+    LOG_TRACE( m_logger, "Waiting for SYNC reply, pub: " << i << " at " << m_port + i + 1 );
+    sync_socket->recv(&datagram_i);
+    LOG_TRACE( m_logger, "SYNC reply received, pub: " << i << " at " <<  m_port + i + 1 );
+  }
 }
 
 zmq_transport_receive_process::priv
