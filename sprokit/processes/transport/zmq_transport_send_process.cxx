@@ -37,11 +37,9 @@
 
 namespace kwiver {
 
-
 // (config-key, value-type, default-value, description )
 create_config_trait( port, int, "5550",
                      "Port number to connect/bind to.");
-
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -49,8 +47,9 @@ class zmq_transport_send_process::priv
 {
 public:
   priv() ;
-  void connect();
   ~priv();
+
+  void connect();
 
   // Configuration values
   int m_port;
@@ -93,13 +92,9 @@ void zmq_transport_send_process
   // Get process config entries
   d->m_port = config_value_using_trait( port );
 
-  // connect to port here or do connect in _init() method if this time
-  // is too soon
-  //+ connect to port here or do connect in _init() method if this time
-  //+ is too soon
-   int major, minor, patch;
-   zmq_version(&major, &minor, &patch);
-   LOG_DEBUG( logger(), "ZeroMQ Version: " << major << "." << minor << "." << patch );
+  int major, minor, patch;
+  zmq_version(&major, &minor, &patch);
+  LOG_DEBUG( logger(), "ZeroMQ Version: " << major << "." << minor << "." << patch );
 }
 
 // ----------------------------------------------------------------
@@ -118,11 +113,11 @@ void zmq_transport_send_process
   scoped_step_instrumentation();
 
   // We know that the message is a pointer to a std::string
-  //+ send mess to the transport
+  // send mess to the transport
   LOG_TRACE( logger(), "Sending datagram of size " << mess->size() );
-	zmq::message_t datagram(mess->size());
-	memcpy((void *) datagram.data(), (mess->c_str()), mess->size());
-	d->m_pub_socket.send(datagram);
+  zmq::message_t datagram(mess->size());
+  memcpy((void *) datagram.data(), (mess->c_str()), mess->size());
+  d->m_pub_socket.send(datagram);
 }
 
 
@@ -148,20 +143,30 @@ void zmq_transport_send_process
 
 // ================================================================
 zmq_transport_send_process::priv
-::priv() : m_context( 1 ), m_pub_socket( m_context, ZMQ_PUB ), m_sync_socket( m_context, ZMQ_REP )
+::priv()
+  : m_context( 1 )
+  , m_pub_socket( m_context, ZMQ_PUB )
+  , m_sync_socket( m_context, ZMQ_REP )
 {
 }
 
+
+zmq_transport_send_process::priv
+::~priv()
+{
+}
+
+
+// ----------------------------------------------------------------------------
 void
 zmq_transport_send_process::priv
 ::connect()
 {
-
   // Bind to the publisher socket
   std::ostringstream pub_connect_string;
   pub_connect_string << "tcp://*:" << m_port;
   LOG_TRACE( m_logger, "PUB Connect for " << pub_connect_string.str() );
-	m_pub_socket.bind( pub_connect_string.str() );
+  m_pub_socket.bind( pub_connect_string.str() );
 
   // Wait for replies from expected number of subscribers before sending antying
 #define EXPECTED_SUBSCRIBERS 1
@@ -170,27 +175,21 @@ zmq_transport_send_process::priv
   LOG_TRACE( m_logger, "SYNC Connect for " << sync_connect_string.str() );
   m_sync_socket.bind( sync_connect_string.str() );
 
-
   int subscribers = 0;
-  LOG_TRACE( m_logger, "Entering Sync Loop, waiting for "  << EXPECTED_SUBSCRIBERS << " subscribers" );
+  LOG_TRACE( m_logger, "Entering Sync Loop, waiting for "
+             << EXPECTED_SUBSCRIBERS << " subscribers" );
   while ( subscribers < EXPECTED_SUBSCRIBERS )
   {
     zmq::message_t datagram;
-    m_sync_socket.recv(&datagram);
-    LOG_TRACE( m_logger, "SYNC Loop, received reply from subscriber " << subscribers << " of " << EXPECTED_SUBSCRIBERS );
+    m_sync_socket.recv( &datagram );
+    LOG_TRACE( m_logger, "SYNC Loop, received reply from subscriber "
+               << subscribers << " of " << EXPECTED_SUBSCRIBERS );
 
     zmq::message_t datagram_o;
-    m_sync_socket.send(datagram_o);
+    m_sync_socket.send( datagram_o );
     ++subscribers;
   }
   LOG_TRACE( m_logger, "SYNC Loop done, all " << subscribers << " received" );
-}
-
-
-
-zmq_transport_send_process::priv
-::~priv()
-{
 }
 
 } // end namespace

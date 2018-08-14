@@ -50,13 +50,14 @@ class zmq_transport_receive_process::priv
 public:
   priv();
   ~priv();
+
   void connect();
 
   // Configuration values
   int m_port;
   int m_num_publishers;
 
-  //+ any other connection related data goes here
+  // any other connection related data goes here
   zmq::context_t m_context;
   zmq::socket_t m_sub_socket;
   std::vector< std::shared_ptr<zmq::socket_t> > m_sync_sockets;
@@ -99,6 +100,7 @@ void zmq_transport_receive_process
   LOG_DEBUG( logger(), "ZeroMQ Version: " << major << "." << minor << "." << patch );
 }
 
+
 // ----------------------------------------------------------------
 void zmq_transport_receive_process
 ::_init()
@@ -113,9 +115,9 @@ void zmq_transport_receive_process
 {
   LOG_TRACE( logger(), "Waiting for datagram..." );
 
-  //+ Get binary buffer from port and assign to serialized_message
-	zmq::message_t datagram;
-	d->m_sub_socket.recv(&datagram);
+  zmq::message_t datagram;
+  d->m_sub_socket.recv(&datagram);
+
   auto msg = std::make_shared< std::string >(static_cast<char *>(datagram.data()), datagram.size());
   LOG_TRACE( logger(), "Received datagram of size " << msg->size() );
 
@@ -147,10 +149,20 @@ void zmq_transport_receive_process
 
 // ================================================================
 zmq_transport_receive_process::priv
-::priv() : m_context( 1 ), m_sub_socket( m_context, ZMQ_SUB )
+::priv()
+  : m_context( 1 )
+  , m_sub_socket( m_context, ZMQ_SUB )
 {
 }
 
+
+zmq_transport_receive_process::priv
+::~priv()
+{
+}
+
+
+// ----------------------------------------------------------------------------
 void
 zmq_transport_receive_process::priv
 ::connect()
@@ -183,11 +195,6 @@ zmq_transport_receive_process::priv
     sync_socket->recv(&datagram_i);
     LOG_TRACE( m_logger, "SYNC reply received, pub: " << i << " at " <<  m_port + i + 1 );
   }
-}
-
-zmq_transport_receive_process::priv
-::~priv()
-{
 }
 
 } // end namespace
