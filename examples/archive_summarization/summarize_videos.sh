@@ -5,7 +5,9 @@ export VIAME_INSTALL=./../..
 source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/ingest_video.py --init -d INPUT_DIRECTORY \
-  --detection-plots -species fish -threshold 0.25 -frate 2 -smooth 2 \
+  --detection-plots \
+  -species pristipomoides_auricilla,pristipomoides_zonatus,pristipomoides_sieboldii,etelis_carbunculus,etelis_coruscans,naso,aphareus_rutilans,seriola,hyporthodus_quernus,caranx_melampygus \
+  -threshold 0.25 -frate 2 -smooth 2 \
   -p pipelines/ingest_video.mouss_count.pipe
 
 # Timestamp adjustment hack (will be removed in future iterations), converts milliseconds to seconds

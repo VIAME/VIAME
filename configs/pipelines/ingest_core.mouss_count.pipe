@@ -102,7 +102,7 @@ process track_writer_kw18
 
   # Write out FSO classifications alongside tracks
   :writer:kw18:write_tot             true
-  :writer:kw18:tot_field1_ids        fish
+  :writer:kw18:tot_field1_ids        fish pristipomoides_auricilla pristipomoides_zonatus pristipomoides_sieboldii etelis_carbunculus etelis_coruscans naso aphareus_rutilans seriola hyporthodus_quernus caranx_melampygus
   :writer:kw18:tot_field2_ids        scallop
 
 connect from track_initializer.object_track_set
