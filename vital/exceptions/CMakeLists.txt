@@ -11,6 +11,7 @@ set( public_headers
   metadata.h
   video.h
   plugin.h
+  serialize.h
 )
 
 set( sources
@@ -22,6 +23,7 @@ set( sources
   metadata.cxx
   video.cxx
   plugin.cxx
+  serialize.cxx
   )
 
 

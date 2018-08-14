@@ -38,6 +38,7 @@
 
 #include <vital/algo/data_serializer.h>
 #include <vital/util/string.h>
+#include <vital/exceptions.h>
 
 #include <kwiver_type_traits.h>
 
@@ -99,6 +100,9 @@ deserializer_process
 ::_init()
 {
   base_init();
+
+  // Now that we have a "normal" output port, let Sprokit manage it
+  this->set_data_checking_level( check_valid );
 }
 
 
@@ -112,25 +116,33 @@ deserializer_process
   // Loop over all registered groups
   for (const auto elem : m_port_group_list )
   {
-    const auto & pg = elem.second;
-
-    // Convert input back to vital type
-    auto message = grab_from_port_as< serialized_message_port_trait::type >( pg.m_serialized_port_name );
-    auto deser = pg.m_serializer->deserialize( message );
-
-    // loop over all items that are part of this group.
-    // This disassembles the input byte string into one or more concrete data types.
-    for ( auto pg_item : pg.m_items )
+    try
     {
-      auto & item = pg_item.second;
-      LOG_TRACE( logger(), "Processing port: \"" << item.m_port_name
-                 << "\" of type \"" << item.m_port_type << "\"" );
+      const auto & pg = elem.second;
 
-      // Push one element from the deserializer to the correct port
-      sprokit::datum_t local_datum = sprokit::datum::new_datum( deser[ item.m_element_name ] );
-      push_datum_to_port( item.m_port_name, local_datum );
+      // Convert input back to vital type
+      auto message = grab_from_port_as< serialized_message_port_trait::type >( pg.m_serialized_port_name );
+      auto deser = pg.m_serializer->deserialize( message );
+
+      // loop over all items that are part of this group.
+      // This disassembles the input byte string into one or more concrete data types.
+      for ( auto pg_item : pg.m_items )
+      {
+        auto & item = pg_item.second;
+        LOG_TRACE( logger(), "Processing port: \"" << item.m_port_name
+                   << "\" of type \"" << item.m_port_type << "\"" );
+
+        // Push one element from the deserializer to the correct port
+        sprokit::datum_t local_datum = sprokit::datum::new_datum( deser[ item.m_element_name ] );
+        push_datum_to_port( item.m_port_name, local_datum );
+      }
     }
-  }
+    catch ( const kwiver::vital::vital_exception& e )
+    {
+      // can be kwiver::vital::serialization_exception or kwiver::vital::bad_any_cast
+      LOG_ERROR( logger(), "Error deserializing data element: " << e.what() );
+    }
+  } // end for
 } // deserializer_process::_step
 
 
@@ -185,8 +197,6 @@ _output_port_info(port_t const& port_name)
         type_flow_dependent,        // port_type
         required,
         port_description_t( "deserialized data type" ) );
-      // Now that we have a "normal" output port, let Sprokit manage it
-      this->set_data_checking_level( check_valid );
     }
   }
 

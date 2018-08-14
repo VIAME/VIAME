@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,21 +30,30 @@
 
 /**
  * \file
- * \brief Base include file for all vital exceptions
- *
- * All exception types for vital::core are included through this file.
+ * \brief VITAL Exceptions pertaining to serialization operations
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef VITAL_CORE_EXCEPTIONS_SERIALIZATION_H_
+#define VITAL_CORE_EXCEPTIONS_SERIALIZATION_H_
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/metadata.h"
-#include "exceptions/video.h"
-#include "exceptions/serialize.h"
+#include <string>
 
-#endif // VITAL_EXCEPTIONS_H_
+#include <vital/exceptions/base.h>
+
+namespace kwiver {
+namespace vital {
+
+// ----------------------------------------------------------------------------
+class VITAL_EXCEPTIONS_EXPORT serialization_exception
+  : public vital_exception
+{
+public:
+  /// Constructor
+  serialization_exception( std::string const& str );
+
+  virtual ~serialization_exception() noexcept;
+};
+
+} } // end namespace
+
+#endif // VITAL_CORE_EXCEPTIONS_SERIALIZATION_H_

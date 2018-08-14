@@ -37,6 +37,7 @@
 #include "serializer_process.h"
 
 #include <vital/util/string.h>
+#include <vital/exceptions.h>
 
 #include <kwiver_type_traits.h>
 
@@ -147,6 +148,9 @@ serializer_process
 ::_init()
 {
   base_init();
+
+  // Now that we have a "normal" input ports let Sprokit manager them
+  this->set_data_checking_level( check_valid );
 }
 
 
@@ -178,10 +182,18 @@ serializer_process
       sp[ item.m_element_name ] = local_datum;
     }
 
-    // Serialize the collected set of inputs
-    auto message = pg.m_serializer->serialize( sp );
-    LOG_INFO( logger(), "Serialized message: '" << *message << "'" ); //+ TEMP
-    push_to_port_as < serialized_message_port_trait::type >( pg.m_serialized_port_name, message );
+    try
+    {
+      // Serialize the collected set of inputs
+      auto message = pg.m_serializer->serialize( sp );
+      push_to_port_as < serialized_message_port_trait::type >( pg.m_serialized_port_name, message );
+    }
+    catch ( const kwiver::vital::vital_exception& e )
+    {
+      // can be kwiver::vital::serialization_exception or kwiver::vital::bad_any_cast
+      LOG_ERROR( logger(), "Error serializing data element: " << e.what() );
+    }
+
   } // end for
 
 } // serializer_process::_step
@@ -210,8 +222,6 @@ _input_port_info(port_t const& port_name)
         type_flow_dependent,        // port_type
         required,
         port_description_t( "data type to be serialized" ) );
-      // Now that we have a "normal" input port let Sprokit manager them
-      this->set_data_checking_level( check_valid );
     }
   }
 

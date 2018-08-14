@@ -30,6 +30,8 @@
 
 #include "detected_object_type.h"
 
+#include <vital/exceptions.h>
+
 namespace kwiver {
 namespace arrows {
 namespace serialize {
@@ -67,7 +69,8 @@ serialize( const data_serializer::serialize_param_t elements )
 
   if ( ! proto_dot.SerializeToOstream( &msg ) )
   {
-    // throw something
+    VITAL_THROW( kwiver::vital::serialization_exception,
+                 "Error serializing detected_type from protobuf" );
   }
 
   return std::make_shared< std::string > ( msg.str() );
@@ -96,7 +99,8 @@ deserialize( std::shared_ptr< std::string > message )
     kwiver::protobuf::detected_object_type proto_dot;
     if ( ! proto_dot.ParseFromIstream( &msg ) )
     {
-      // throw something
+      VITAL_THROW( kwiver::vital::serialization_exception,
+                   "Error deserializing detected_type from protobuf" );
     }
 
     convert_protobuf( proto_dot, dot );

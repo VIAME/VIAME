@@ -107,7 +107,7 @@ public:
    * @return Byte string of serialized data item.
    *
    * @throws kwiver::vital::bad_any_cast
-   * @throws std::runtime_error - for unexpected element name
+   * @throws kwiver::vital::serialization - for unexpected element name
    */
   virtual std::shared_ptr< std::string > serialize( const serialize_param_t elements ) = 0;
 
@@ -136,7 +136,7 @@ public:
    * the input.
    *
    * @throws kwiver::vital::bad_any_cast
-   * @throws std::runtime_error - for unexpected element name
+   * @throws kwiver::vital::serialization - for unexpected element name
    */
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message ) = 0;
 
