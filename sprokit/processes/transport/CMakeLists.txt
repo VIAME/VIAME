@@ -10,9 +10,9 @@ if ( KWIVER_ENABLE_ZeroMQ )
     zmq_transport_receive_process.h
     zmq_transport_send_process.h
     )
-  add_compile_definitions(WITH_ZMQ)
-endif ( KWIVER_ENABLE_ZeroMQ )
 
+  set(ZeroMQ_LIBRARIES zmq)
+endif ( KWIVER_ENABLE_ZeroMQ )
 
 set(sources
   register_processes.cxx
@@ -35,5 +35,10 @@ kwiver_add_plugin(processes_transport
   SUBDIR      ${kwiver_plugin_process_subdir}
   SOURCES     ${sources}
               ${private_headers}
-  PRIVATE     sprokit_pipeline vital_vpm zmq
+  PRIVATE     sprokit_pipeline vital_vpm ${ZeroMQ_LIBRARIES}
   )
+
+if ( KWIVER_ENABLE_ZeroMQ )
+  target_compile_definitions( processes_transport
+    PRIVATE    WITH_ZMQ )
+endif()

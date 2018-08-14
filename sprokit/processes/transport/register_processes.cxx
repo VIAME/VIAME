@@ -35,8 +35,11 @@
 
 // -- list processes to register --
 #include "file_transport_send_process.h"
+
+#if WITH_ZMQ
 #include "zmq_transport_send_process.h"
 #include "zmq_transport_receive_process.h"
+#endif
 
 // ---------------------------------------------------------------------------------------
 /** \brief Regsiter processes
