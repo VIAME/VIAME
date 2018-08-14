@@ -23,6 +23,7 @@ elseif( APPLE )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
+       run_mouss_tracker.sh
        run_simple_tracker.sh
        run_tut_tracker.sh
        run_track_viewer.sh )
