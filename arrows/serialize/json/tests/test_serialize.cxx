@@ -79,7 +79,7 @@ TEST( serialize, bounding_box )
   kwiver::vital::bounding_box_d bbox_dser =
     kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
 
-  /*
+  /* useful for debugging
   std::cout << "bbox_dser { " << bbox_dser.min_x() << ", "
             << bbox_dser.min_y() << ", "
             << bbox_dser.max_x() << ", "
@@ -106,6 +106,7 @@ TEST( serialize, detected_object_type )
 
   auto mes = dot_ser.serialize( sp );
 
+  // useful for debugging
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
   auto dser = dot_ser.deserialize( mes );
@@ -147,6 +148,7 @@ TEST( serialize, detected_object )
 
   auto mes = obj_ser.serialize( sp );
 
+  // useful for debugging
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
   auto dser = obj_ser.deserialize( mes );
@@ -204,6 +206,7 @@ TEST( serialize, detected_object_set )
 
   auto mes = obj_ser.serialize( sp );
 
+  // Useful for debugging
   // std::cout << "Serialized dos: \"" << *mes << "\"\n";
 
   auto dser = obj_ser.deserialize( mes );

@@ -54,7 +54,7 @@ bounding_box::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 bounding_box::
-serialize( const data_serializer::serialize_param_t elements )
+serialize( const data_serializer::serialize_param_t& elements )
 {
   kwiver::vital::bounding_box_d bbox =
     kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( elements.at( DEFAULT_ELEMENT_NAME ) );
@@ -109,7 +109,7 @@ deserialize( std::shared_ptr< std::string > message )
 }
 
 // ----------------------------------------------------------------------------
-bool bounding_box::
+void bounding_box::
 convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
                   kwiver::vital::bounding_box_d& bbox )
  {
@@ -117,11 +117,10 @@ convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
                                          proto_bbox.ymin(),
                                          proto_bbox.xmax(),
                                          proto_bbox.ymax());
-    return true;
  }
 
 // ----------------------------------------------------------------------------
-bool bounding_box::
+void bounding_box::
 convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
                   kwiver::protobuf::bounding_box&  proto_bbox )
 {
@@ -129,8 +128,6 @@ convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
   proto_bbox.set_ymin( bbox.min_y() );
   proto_bbox.set_xmax( bbox.max_x() );
   proto_bbox.set_ymax( bbox.max_y() );
-
-  return true;
 }
 
 } } } } // end namespace

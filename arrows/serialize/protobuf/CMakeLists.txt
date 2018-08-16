@@ -22,6 +22,11 @@ set( sources
 
 link_directories(${PROTOBUF_LIBRARY})
 include_directories(${PROTOBUF_INCLUDE_DIR})
+
+# Need to add this include file to the compile because of a defficiency in the protobuf
+# compiler. The compiler has the option to insert an export macro into class definitions
+# but has no way of defining that macro. as of libprotoc 2.6.1 this is the accepted way
+# of defining the export symbols.
 add_compile_options( -include "${CMAKE_BINARY_DIR}/vital/types/protobuf/vital_types_protobuf_export.h" )
 
 kwiver_add_library( kwiver_serialize_protobuf
@@ -30,10 +35,8 @@ kwiver_add_library( kwiver_serialize_protobuf
   )
 
 target_link_libraries( kwiver_serialize_protobuf
-  PUBLIC               vital
-                       vital_vpm
-  PRIVATE              vital_algo
-                       vital_exceptions
+  PUBLIC               vital_algo
+  PRIVATE              vital_exceptions
                        vital_types_protobuf
   )
 

@@ -61,7 +61,7 @@ detected_object::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 detected_object::
-serialize( const serialize_param_t elements )
+serialize( const serialize_param_t& elements )
 {
   // Get native data type from any
   kwiver::vital::detected_object_sptr obj =

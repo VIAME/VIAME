@@ -57,7 +57,7 @@ detected_object_set::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 detected_object_set::
-serialize( const data_serializer::serialize_param_t elements )
+serialize( const data_serializer::serialize_param_t& elements )
 {
   kwiver::vital::detected_object_set_sptr dos_sptr =
     kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr > ( elements.at( DEFAULT_ELEMENT_NAME ) );

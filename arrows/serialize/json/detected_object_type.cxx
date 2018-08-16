@@ -57,7 +57,7 @@ detected_object_type::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 detected_object_type::
-serialize( const serialize_param_t elements )
+serialize( const serialize_param_t& elements )
 {
   kwiver::vital::detected_object_type dot =
     kwiver::vital::any_cast< kwiver::vital::detected_object_type > ( elements.at( DEFAULT_ELEMENT_NAME ) );

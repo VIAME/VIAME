@@ -56,7 +56,7 @@ bounding_box::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 bounding_box::
-serialize( const data_serializer::serialize_param_t elements )
+serialize( const data_serializer::serialize_param_t& elements )
 {
   kwiver::vital::bounding_box_d bbox =
     kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( elements.at( DEFAULT_ELEMENT_NAME ) );

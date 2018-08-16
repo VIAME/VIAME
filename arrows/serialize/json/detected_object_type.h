@@ -59,7 +59,7 @@ public:
   detected_object_type();
   virtual ~detected_object_type();
 
-  virtual std::shared_ptr< std::string > serialize( const serialize_param_t elements );
+  virtual std::shared_ptr< std::string > serialize( const serialize_param_t& elements );
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
   // Converters that can be used in cases of nested structures

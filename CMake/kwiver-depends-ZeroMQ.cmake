@@ -1,4 +1,5 @@
-# Optionally find and configure CUDA dependency
+#
+# Optionally find and configure ZeroMQ dependency
 
 option( KWIVER_ENABLE_ZeroMQ
   "Enable ZeroMQ dependent code and plugins"

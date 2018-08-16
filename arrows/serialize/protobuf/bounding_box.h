@@ -55,14 +55,14 @@ public:
   bounding_box();
   virtual ~bounding_box();
 
-  virtual std::shared_ptr< std::string > serialize( const serialize_param_t elements );
+  virtual std::shared_ptr< std::string > serialize( const serialize_param_t& elements );
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
   // Convert between native and protobuf formats
-  static bool convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
+  static void convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
                                 kwiver::vital::bounding_box_d& bbox );
 
-  static bool convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
+  static void convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
                                 kwiver::protobuf::bounding_box&  proto_bbox );
 };
 

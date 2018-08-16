@@ -81,7 +81,7 @@ public:
   using serialize_param_t = std::map< std::string, vital::any >;
   using deserialize_result_t = std::map< std::string, vital::any >;
 
-/// Return the name of this algorithm
+  /// Return the name of this algorithm
   static std::string static_type_name() { return "data_serializer"; }
 
   /// Serialize the item into a byte string.
@@ -109,7 +109,7 @@ public:
    * @throws kwiver::vital::bad_any_cast
    * @throws kwiver::vital::serialization - for unexpected element name
    */
-  virtual std::shared_ptr< std::string > serialize( const serialize_param_t elements ) = 0;
+  virtual std::shared_ptr< std::string > serialize( const serialize_param_t& elements ) = 0;
 
   /// Deserialize byte string into data type.
   /**

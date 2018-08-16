@@ -35,7 +35,9 @@ kwiver_add_plugin(processes_transport
   SUBDIR      ${kwiver_plugin_process_subdir}
   SOURCES     ${sources}
               ${private_headers}
-  PRIVATE     sprokit_pipeline vital_vpm ${ZeroMQ_LIBRARIES}
+  PRIVATE     sprokit_pipeline
+              vital_vpm
+              ${ZeroMQ_LIBRARIES}
   )
 
 if ( KWIVER_ENABLE_ZeroMQ )
