@@ -28,6 +28,7 @@ set( sources
   initialize_object_tracks_process.cxx
   keyframe_selection_process.cxx
   matcher_process.cxx
+  merge_detection_sets_process.cxx
   print_config_process.cxx
   read_descriptor_process.cxx
   read_object_track_process.cxx
@@ -64,6 +65,7 @@ set( private_headers
   initialize_object_tracks_process.h
   keyframe_selection_process.h
   matcher_process.h
+  merge_detection_sets_process.h
   print_config_process.h
   read_descriptor_process.h
   read_object_track_process.h
