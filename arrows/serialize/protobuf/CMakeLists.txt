@@ -31,6 +31,7 @@ kwiver_add_library( kwiver_serialize_protobuf
 
 target_link_libraries( kwiver_serialize_protobuf
   PUBLIC               vital
+                       vital_vpm
   PRIVATE              vital_algo
                        vital_exceptions
                        vital_types_protobuf
