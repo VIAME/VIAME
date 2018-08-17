@@ -14,6 +14,10 @@ set( proto_files
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+# Need to add this include file to the compile because of a defficiency in the protobuf
+# compiler. The compiler has the option to insert an export macro into class definitions
+# but has no way of defining that macro. as of libprotoc 2.6.1 this is the accepted way
+# of defining the export symbols.
 add_compile_options( -include "${CMAKE_CURRENT_BINARY_DIR}/vital_types_protobuf_export.h" )
 
 PROTOBUF_GENERATE_CPP( cpp_srcs cpp_hdrs EXPORT_MACRO VITAL_TYPES_PROTOBUF_EXPORT ${proto_files} )

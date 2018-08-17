@@ -79,11 +79,11 @@ namespace kwiver {
  serialization_type = json
 
  # -- connect inputs to algo that generates image and mask messages
- connect from foo.image to ser.ImageAndMask/image  # supplies image to ImageAndMask implementation
- connect from bar.image to ser.ImageAndMask/mask   # supplies mask to ImageAndMask implementation
+ connect from foo.image to ser.grp/ImageAndMask/image  # supplies image to ImageAndMask implementation
+ connect from bar.image to ser.grp/ImageAndMask/mask   # supplies mask to ImageAndMask implementation
 
  # -- connect output to transport
- connect ser.ImageAndMask to trans.message
+ connect ser.grp to trans.message
 
  # -- connect a single input algorithm
  connect from foo.detections to ser.detections  # connect detection set to be serialized
