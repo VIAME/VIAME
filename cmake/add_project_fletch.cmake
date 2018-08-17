@@ -55,6 +55,18 @@ else()
   )
 endif()
 
+if( VIAME_ENABLE_VXL OR VIAME_ENABLE_GDAL )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_libgeotiff:BOOL=ON
+  )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_libgeotiff:BOOL=OFF
+  )
+endif()
+
 if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
@@ -165,7 +177,6 @@ ExternalProject_Add(fletch
     -Dfletch_ENABLE_PyBind11:BOOL=${VIAME_ENABLE_PYTHON}
 
     -Dfletch_ENABLE_GDAL:BOOL=${VIAME_ENABLE_GDAL}
-    -Dfletch_ENABLE_libgeotiff:BOOL=${VIAME_ENABLE_GDAL}
     -Dfletch_ENABLE_openjpeg:BOOL=${VIAME_ENABLE_GDAL}
 
     # Set fletch install path to be viame install path
