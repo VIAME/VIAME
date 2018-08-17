@@ -203,6 +203,11 @@ void
 category_hierarchy
 ::add_synonym( const label_t& class_name, const label_t& synonym_name )
 {
+  if( class_name == synonym_name )
+  {
+    return;
+  }
+
   hierarchy_const_itr_t itr = this->find( class_name );
 
   if( has_class_name( synonym_name ) )
