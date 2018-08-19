@@ -56,6 +56,12 @@ namespace kwiver {
 namespace arrows {
 namespace darknet {
 
+#ifdef WIN32
+  const std::string div = "\\";
+#else
+  const std::string div = "/";
+#endif
+
 // =============================================================================
 class darknet_trainer::priv
 {
@@ -338,13 +344,8 @@ format_images( std::string folder, std::string prefix,
 {
   std::vector< std::string > output_fns;
 
-#ifdef WIN32
-  std::string image_folder = folder + "\\" + prefix + "_images";
-  std::string label_folder = folder + "\\" + prefix + "_labels";
-#else
-  std::string image_folder = folder + "/" + prefix + "_images";
-  std::string label_folder = folder + "/" + prefix + "_labels";
-#endif
+  std::string image_folder = folder + div + prefix + "_images";
+  std::string label_folder = folder + div + prefix + "_labels";
 
   boost::filesystem::path image_dir( image_folder );
   boost::filesystem::path label_dir( label_folder );
@@ -585,8 +586,8 @@ generate_fn( std::string image_folder, std::string gt_folder,
   ss << std::setw( 9 ) << std::setfill( '0' ) << sample_counter;
   std::string s = ss.str();
 
-  image = image_folder + "/" + s + ".png";
-  gt = gt_folder + "/" + s + ".txt";
+  image = image_folder + div + s + ".png";
+  gt = gt_folder + div + s + ".txt";
 }
 
 void
