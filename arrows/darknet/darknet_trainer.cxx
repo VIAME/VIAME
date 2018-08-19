@@ -338,8 +338,13 @@ format_images( std::string folder, std::string prefix,
 {
   std::vector< std::string > output_fns;
 
+#ifdef WIN32
+  std::string image_folder = folder + "\\" + prefix + "_images";
+  std::string label_folder = folder + "\\" + prefix + "_labels";
+#else
   std::string image_folder = folder + "/" + prefix + "_images";
   std::string label_folder = folder + "/" + prefix + "_labels";
+#endif
 
   boost::filesystem::path image_dir( image_folder );
   boost::filesystem::path label_dir( label_folder );
