@@ -526,6 +526,11 @@ print_detections(
     kwiver::vital::bounding_box_d det_box = (*detection)->bounding_box();
     kwiver::vital::bounding_box_d overlap = kwiver::vital::intersection( region, det_box );
 
+    if( det_box.width() < m_min_train_box_length || det_box.height() < m_min_train_box_length )
+    {
+      return false;
+    }
+
     if( det_box.area() > 0 &&
         overlap.max_x() > overlap.min_x() &&
         overlap.max_y() > overlap.min_y() &&
