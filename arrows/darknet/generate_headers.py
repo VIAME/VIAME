@@ -10,6 +10,11 @@ import math
 import random
 
 # Helper Utilities
+if os.name == 'nt':
+  div = '\\'
+else:
+  div = '/'
+
 def list_files_in_dir( folder, extension ):
   return glob.glob( folder + '/*' + extension )
 
@@ -54,24 +59,24 @@ def generate_yolo_v2_headers( working_dir, labels, width, height, input_model, \
                 ["[-FILTER_COUNT_INSERT-]",str((len(labels)+5)*5)], \
                 ["[-CLASS_COUNT_INSERT-]",str(len(labels))] ]
 
-  replace_str_in_file( input_model, working_dir + "/" + conf_file, repl_strs )
+  replace_str_in_file( input_model, working_dir + div + conf_file, repl_strs )
 
   # Dump out labels file
-  with open( working_dir + "/" + label_file, "w" ) as f:
+  with open( working_dir + div + label_file, "w" ) as f:
     for item in labels:
       f.write( item + "\n" )
 
   # Dump out special files for varients
-  with open( working_dir + "/" + train_file, "w" ) as f:
-    f.write( "train = " + working_dir + "/train_files.txt\n" )
-    f.write( "valid = " + working_dir + "/test_files.txt\n" )
+  with open( working_dir + div + train_file, "w" ) as f:
+    f.write( "train = " + working_dir + div + "train_files.txt\n" )
+    f.write( "valid = " + working_dir + div + "test_files.txt\n" )
     f.write( "names = " + label_file + "\n" )
-    f.write( "backup = " + working_dir + "/models\n" )
+    f.write( "backup = " + working_dir + div + "models\n" )
 
   # Dump out list files
-  create_dir( working_dir + "/models" )
+  create_dir( working_dir + div + "models" )
 
-  image_list = list_files_in_dir( working_dir + "/train_images", image_ext )
+  image_list = list_files_in_dir( working_dir + div + "train_images", image_ext )
   shuffled_list = image_list
   random.shuffle( shuffled_list )
 
@@ -80,10 +85,10 @@ def generate_yolo_v2_headers( working_dir, labels, width, height, input_model, \
   train_list = shuffled_list[:pivot]
   test_list = shuffled_list[pivot:]
 
-  with open( working_dir + "/train_files.txt", "w" ) as f:
+  with open( working_dir + div + "train_files.txt", "w" ) as f:
     for item in train_list:
       f.write( item + "\n" )
 
-  with open( working_dir + "/test_files.txt", "w" ) as f:
+  with open( working_dir + div +"test_files.txt", "w" ) as f:
     for item in test_list:
       f.write( item + "\n" )
