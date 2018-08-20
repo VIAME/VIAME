@@ -267,6 +267,53 @@ bool file_to_vector( const std::string& fn, std::vector< T >& out )
   return true;
 }
 
+void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
+{
+  if( !dos )
+  {
+    return;
+  }
+
+  for( kwiver::vital::detected_object_sptr do_sptr : *dos )
+  {
+    if( do_sptr->confidence() < 0.0 )
+    {
+      do_sptr->set_confidence( 1.0 );
+    }
+
+    kwiver::vital::bounding_box_d do_box = do_sptr->bounding_box();
+
+    if( do_box.min_x() > do_box.max_x() )
+    {
+      do_box = kwiver::vital::bounding_box_d(
+        do_box.max_x(), do_box.min_y(), do_box.min_x(), do_box.max_y() );
+    }
+    if( do_box.min_y() > do_box.max_y() )
+    {
+      do_box = kwiver::vital::bounding_box_d(
+        do_box.min_x(), do_box.max_y(), do_box.max_x(), do_box.min_y());
+    }
+
+    do_sptr->set_bounding_box( do_box );
+
+    if( do_sptr->type() )
+    {
+      kwiver::vital::detected_object_type_sptr type_sptr = do_sptr->type();
+
+      std::string top_category;
+      double top_score;
+
+      type_sptr->get_most_likely( top_category, top_score );
+
+      if( top_score < 0.0 )
+      {
+        type_sptr->set_score( top_category, 1.0 );
+        do_sptr->set_type( type_sptr );
+      }
+    }
+  }
+}
+
 //==================================================================================================
 // Assorted configuration related helper functions
 static kwiver::vital::config_block_sptr default_config()
@@ -397,7 +444,7 @@ main( int argc, char* argv[] )
 
     vpm.load_plugins( pathl );
 
-    auto fact_list = vpm.get_factories(  "train_detector" );
+    auto fact_list = vpm.get_factories( "train_detector" );
 
     if( fact_list.empty() )
     {
@@ -722,6 +769,8 @@ main( int argc, char* argv[] )
         std::string read_fn = get_filename_no_path( image_file );
         gt_reader->read_set( frame_dets, read_fn );
         gt_reader->close();
+
+        correct_manual_annotations( frame_dets );
       }
       else
       {
@@ -729,6 +778,8 @@ main( int argc, char* argv[] )
         try
         {
           gt_reader->read_set(frame_dets, read_fn);
+
+          correct_manual_annotations( frame_dets );
         }
         catch( const std::exception& e )
         {
@@ -754,10 +805,17 @@ main( int argc, char* argv[] )
           {
             std::string gt_class = *(t.first);
 
-            if( classes->has_class_name( gt_class ) && t.second > threshold )
+            if( classes->has_class_name( gt_class ) )
             {
-              class_count[ classes->get_class_name( gt_class ) ]++;
-              add_detection = true;
+              if( t.second > threshold )
+              {
+                class_count[classes->get_class_name( gt_class )]++;
+                add_detection = true;
+              }
+            }
+            else
+            {
+              det->type()->delete_score( gt_class );
             }
           }
         }
