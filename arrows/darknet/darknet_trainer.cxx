@@ -82,6 +82,7 @@ public:
     , m_random_int_shift( 0.00 )
     , m_chips_w_gt_only( false )
     , m_crop_left( false )
+    , m_min_train_box_length( 5 )
   {}
 
   ~priv()
@@ -103,6 +104,7 @@ public:
   double m_random_int_shift;
   bool m_chips_w_gt_only;
   bool m_crop_left;
+  int m_min_train_box_length;
 
   // Helper functions
   std::vector< std::string > format_images( std::string folder,
@@ -185,6 +187,9 @@ get_configuration() const
     "training." );
   config->set_value( "crop_left", d->m_crop_left,
     "Crop out the left portion of imagery, only using the left side." );
+  config->set_value( "min_train_box_length", d->m_min_train_box_length,
+    "If a box resizes to smaller than this during training, the input frame " 
+    "will not be used in training." );
 
   kwiver::vital::algo::image_io::get_nested_algo_configuration( "image_reader",
     config, d->m_image_io );
@@ -218,6 +223,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
   this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
+  this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
 
   kwiver::vital::algo::image_io_sptr io;
   kwiver::vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
@@ -260,6 +266,12 @@ train_from_disk(
         boost::filesystem::is_directory( d->m_train_directory ) )
     {
       boost::filesystem::remove_all( d->m_train_directory );
+
+      if( boost::filesystem::exists( d->m_train_directory ) )
+      {
+        LOG_ERROR( d->m_logger, "Unable to delete pre-existing training dir" );
+        return;
+      }
     }
 
     boost::filesystem::path dir( d->m_train_directory );
@@ -319,8 +331,8 @@ train_from_disk(
   std::string darknet_cmd = "darknet";
 #endif
   std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
-    " detector train " + d->m_train_directory + "/yolo_v2.data "
-                       + d->m_train_directory + "/yolo_v2.cfg ";
+    " detector train " + d->m_train_directory + div + "yolo_v2.data "
+                       + d->m_train_directory + div + "yolo_v2.cfg ";
 
   if( !d->m_seed_weights.empty() )
   {
