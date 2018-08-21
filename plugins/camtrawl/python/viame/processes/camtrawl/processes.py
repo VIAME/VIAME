@@ -185,7 +185,7 @@ class CamtrawlDetectFishProcess(KwiverProcess):
         Helper to decouple the algorithm and pipeline logic
 
         CommandLine:
-            python -m xdoctest viame.processes.camtrawl.processes CamtrawlDetectFishProcess._dowork
+            xdoctest viame.processes.camtrawl.processes CamtrawlDetectFishProcess._dowork
 
         Example:
             >>> from viame.processes.camtrawl.processes import *
@@ -253,7 +253,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
 
         KwiverProcess.__init__(self, conf)
 
-        camtrawl_setup_config(self, ctalgo.FishStereoMeasurments.default_params())
+        camtrawl_setup_config(self, ctalgo.StereoLengthMeasurments.default_params())
 
         self.add_config_trait('output_fpath', 'output_fpath', 'camtrawl_out.csv',
                               'output file to write detection measurements')
@@ -278,10 +278,10 @@ class CamtrawlMeasureProcess(KwiverProcess):
         #  declare our input port ( port-name,flags)
         # self.declare_input_port_using_trait('camera' + '1', optional)
         # self.declare_input_port_using_trait('camera' + '2', optional)
-        self.declare_input_port_using_trait('image_file_name' + '1', required)
-        self.declare_input_port_using_trait('image_file_name' + '2', required)
         self.declare_input_port_using_trait('detected_object_set' + '1', required)
         self.declare_input_port_using_trait('detected_object_set' + '2', required)
+        self.declare_input_port_using_trait('image_file_name' + '1', required)
+        self.declare_input_port_using_trait('image_file_name' + '2', required)
 
     # ----------------------------------------------
     def _configure(self):
@@ -291,7 +291,7 @@ class CamtrawlMeasureProcess(KwiverProcess):
         logger.info('triangulator config = {}'.format(ub.repr2(config, nl=2)))
         output_fpath = config.pop('output_fpath')
         cal_fpath = config.pop('cal_fpath')
-        self.triangulator = ctalgo.FishStereoMeasurments(**config)
+        self.triangulator = ctalgo.StereoLengthMeasurments(**config)
 
         # Camera loading process is not working correctly.
         # Load camera calibration data here for now.
@@ -327,17 +327,18 @@ class CamtrawlMeasureProcess(KwiverProcess):
             camera2 = self.grab_input_using_trait('camera' + '2')
 
             def _cal_from_vital(vital_camera):
-                vital_intrinsics = vital_camera.intrinsics
+                vci = vital_camera.intrinsics
                 cam_dict = {
                     'extrinsic': {
                         'om': vital_camera.rotation.rodrigues().ravel(),
                         'T': vital_camera.translation.ravel(),
                     },
                     'intrinsic': {
-                        'cc': vital_intrinsics.principle_point.ravel(),
-                        'fc': [vital_intrinsics.focal_length, vital_intrinsics.focal_length / vital_intrinsics.aspect_ratio],
-                        'alpha_c': vital_intrinsics.skew,
-                        'kc': vital_intrinsics.dist_coeffs.ravel(),
+                        'cc': vci.principle_point.ravel(),
+                        'fc': [vci.focal_length,
+                               vci.focal_length / vci.aspect_ratio],
+                        'alpha_c': vci.skew,
+                        'kc': vci.dist_coeffs.ravel(),
                     }
                 }
                 return cam_dict
