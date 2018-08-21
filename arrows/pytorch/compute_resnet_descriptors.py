@@ -1,7 +1,6 @@
 import torch
 import resnet
 import torch.nn as nn
-from torch.autograd import Variable
 from torchvision import datasets, models, transforms
 
 weights_fp = "models/byte_200p/90001.pth.tar"
@@ -36,7 +35,7 @@ image_dataset = datasets.ImageFolder(data_folder, transform)
 dataloader = torch.utils.data.DataLoader(image_dataset, batch_size=batch_size, shuffle=True, num_workers=8)
 
 for inputs, labels in dataloader:
-    inputs = Variable( inputs.cuda() )
+    inputs = inputs.to(torch.device("cuda"))
     out = model( inputs )
     print( out.cpu().detach().numpy().shape )
     break

@@ -6,7 +6,6 @@ import torch
 import torch.utils.data as data
 import torch.nn as nn
 from torchvision import models, transforms, datasets
-from torch.autograd import Variable
 
 from PIL import Image as pilImage
 
@@ -70,8 +69,11 @@ class pytorch_resnet_f_extractor(object):
         else:
             target_GPU = GPU_list[0]
 
+        self._device = torch.device("cuda:{}".format(target_GPU))
+
         # load the resnet50 model. Maybe this shouldn't be hardcoded?
-        self._resnet_model = models.resnet50().cuda(device=target_GPU)
+        #self._resnet_model = models.resnet50().cuda(device=target_GPU)
+        self._resnet_model = models.resnet50().to(self._device)
         #self._resnet_model.fc = nn.Linear(2048, 46)
         print( resnet_model_path )
         weights = torch.load( resnet_model_path )
@@ -107,8 +109,9 @@ class pytorch_resnet_f_extractor(object):
         bbox_loader_class = resnetDataLoader(bbox_list, self._transform, self._frame, self._img_size) 
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
+        torch.set_grad_enabled(False)
         for idx, imgs in enumerate(bbox_loader):
-            v_imgs = Variable(imgs).cuda() # I removed volitile because of the version update
+            v_imgs = imgs.to(self._device)
             output = self._resnet_model(v_imgs)
 
             if idx == 0:
