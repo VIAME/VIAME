@@ -5,3 +5,4 @@ _build
 .emacs*
 *.swp
 *.swo
+*.swn
