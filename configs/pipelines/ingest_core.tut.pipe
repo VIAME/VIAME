@@ -8,7 +8,7 @@
 
 process downsampler
   :: downsample
-  :target_frame_rate                           1
+  :target_frame_rate                           5
   :burst_frame_count                           0
   :burst_frame_break                           0
 
@@ -54,7 +54,7 @@ process tracker
   :siamese_model_input_size                    224
   :detection_select_threshold                  0.01
   :similarity_threshold                        0.05
-  :terminate_track_threshold                   2
+  :terminate_track_threshold                   10
   :add_features_to_detections                  False
   :IOU_tracker_flag                            True
   :IOU_accept_threshold                        0.5
