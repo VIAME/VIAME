@@ -32,41 +32,19 @@ from __future__ import division
 from __future__ import absolute_import
 
 import sys
-import torch
-from torchvision import models, transforms
-from torch.autograd import Variable
-from torch import nn
-import numpy as np
-import scipy as sp
-import scipy.optimize
 import threading
-
-from PIL import Image as pilImage
 
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
-from vital.types import Image
 from vital.types import DetectedObject, DetectedObjectSet
 from vital.types import new_descriptor
 
 from timeit import default_timer as timer
 
-from vital.types import ( 
-    ObjectTrackState,
-    Track,
-    ObjectTrackSet
-)
-
 from vital.util.VitalPIL import get_pil_image
 
 from kwiver.arrows.pytorch.grid import grid
-from kwiver.arrows.pytorch.track import track_state, track, track_set
-from kwiver.arrows.pytorch.SRNN_matching import SRNN_matching, RnnType # this might need to be changed
 from kwiver.arrows.pytorch.pytorch_resnet_f_extractor import pytorch_resnet_f_extractor # the feature extractor
-from kwiver.arrows.pytorch.iou_tracking import IOU_tracker
-
-from kwiver.arrows.pytorch.MOT_bbox import MOT_bbox, GTFileType
-from kwiver.arrows.pytorch.models import get_config
 
 class Resnet_descriptors(KwiverProcess):
 

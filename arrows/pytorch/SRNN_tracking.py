@@ -51,7 +51,7 @@ from vital.types import new_descriptor
 
 from timeit import default_timer as timer
 
-from vital.types import ( 
+from vital.types import (
     ObjectTrackState,
     Track,
     ObjectTrackSet
@@ -86,14 +86,11 @@ g_config = get_config()
            #raise
 
 def ts2ot_list(track_set):
-    ot_list = [] 
-    for t in track_set:
-        ot = Track(id=t.id)
-        ot_list.append(ot)
+    ot_list = [Track(id=t.id) for t in track_set]
 
     for idx, t in enumerate(track_set):
         ot = ot_list[idx]
-        for i, ti in enumerate(t):
+        for ti in t:
             ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time, ti.detectedObj)
             if not ot.append(ot_state):
                 print('cannot add ObjectTrackState')
@@ -112,7 +109,7 @@ class SRNN_tracking(KwiverProcess):
                               'define which GPU to use for SRNN tracking. e.g., all, 1,2')
         self.declare_config_using_trait('GPU_list')
 
-        # siamese 
+        # siamese
         #----------------------------------------------------------------------------------
         self.add_config_trait("siamese_model_path", "siamese_model_path",
                               'siamese/snapshot_epoch_6.pt',
@@ -171,13 +168,13 @@ class SRNN_tracking(KwiverProcess):
         self.add_config_trait("IOU_accept_threshold", "IOU_accept_threshold", '0.5',
                               'IOU accept threshold.')
         self.declare_config_using_trait('IOU_accept_threshold')
-        
+
         # IOU reject threshold
         self.add_config_trait("IOU_reject_threshold", "IOU_reject_threshold", '0.1',
                               'IOU reject threshold.')
         self.declare_config_using_trait('IOU_reject_threshold')
         #----------------------------------------------------------------------------------
-        
+
         # search threshold
         self.add_config_trait("track_search_threshold", "track_search_threshold", '0.1',
                               'track search threshold.')
@@ -186,13 +183,13 @@ class SRNN_tracking(KwiverProcess):
         # matching active track threshold
         self.add_config_trait("terminate_track_threshold", "terminate_track_threshold", '15',
                               'terminate the tracking if the target has been lost for more than '
-                              'termniate_track_threshold readin frames.')
+                              'terminate_track_threshold read-in frames.')
         self.declare_config_using_trait('terminate_track_threshold')
 
         # matching active track threshold
         self.add_config_trait("sys_terminate_track_threshold", "sys_terminate_track_threshold", '50',
                               'terminate the tracking if the target has been lost for more than '
-                              'termniate_track_threshold system (original) frames.')
+                              'terminate_track_threshold system (original) frames.')
         self.declare_config_using_trait('sys_terminate_track_threshold')
 
         # MOT gt detection
@@ -205,12 +202,12 @@ class SRNN_tracking(KwiverProcess):
         #-------------------------------------------------------------------
         self.add_config_trait("AFRL_GTbbox_flag", "AFRL_GTbbox_flag", 'False', 'AFRL GT bbox flag')
         self.declare_config_using_trait('AFRL_GTbbox_flag')
-        
+
         #-------------------------------------------------------------------
 
         # GT bbox file
         #-------------------------------------------------------------------
-        self.add_config_trait("GT_bbox_file_path", "GT_bbox_file_path", 
+        self.add_config_trait("GT_bbox_file_path", "GT_bbox_file_path",
                              '', 'ground truth detection file for testing')
         self.declare_config_using_trait('GT_bbox_file_path')
         #-------------------------------------------------------------------
@@ -287,10 +284,10 @@ class SRNN_tracking(KwiverProcess):
         IOU_flag = self.config_value('IOU_tracker_flag')
         self._IOU_flag = (IOU_flag == 'True')
 
-        self._GTbbox_flag = MOT_GT_flag or AFRL_GT_flag 
+        self._GTbbox_flag = MOT_GT_flag or AFRL_GT_flag
 
         # read GT bbox related
-        if self._GTbbox_flag: 
+        if self._GTbbox_flag:
             GTbbox_file_path = self.config_value('GT_bbox_file_path')
             self._m_bbox = MOT_bbox(GTbbox_file_path, file_format)
 
@@ -331,10 +328,9 @@ class SRNN_tracking(KwiverProcess):
             im = get_pil_image(in_img_c.image()).convert('RGB')
             self._app_feature_extractor.frame = im
 
-            bbox_num = 0
             # Get detection bbox
-            if self._GTbbox_flag is True:
-                dos = self._m_bbox[self._step_id] 
+            if self._GTbbox_flag:
+                dos = self._m_bbox[self._step_id]
                 bbox_num = len(dos)
             else:
                 dos = dos_ptr.select(self._select_threshold)
@@ -343,23 +339,23 @@ class SRNN_tracking(KwiverProcess):
 
             det_obj_set = DetectedObjectSet()
             if bbox_num == 0:
-                print('!!! No bbox is provided on this frame and skip this frame !!!')
+                print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
             else:
                 # interaction features
                 grid_f_begin = timer()
                 grid_feature_list = self._grid(im.size, dos, self._GTbbox_flag)
                 grid_f_end = timer()
-                print('%%%grid feature eclapsed time: {}'.format(grid_f_end - grid_f_begin))
-                
+                print('%%%grid feature elapsed time: {}'.format(grid_f_end - grid_f_begin))
+
                 # appearance features (format: pytorch tensor)
                 app_f_begin = timer()
-                pt_app_features = self._app_feature_extractor(dos, self._GTbbox_flag) 
+                pt_app_features = self._app_feature_extractor(dos, self._GTbbox_flag)
                 app_f_end = timer()
-                print('%%%app feature eclapsed time: {}'.format(app_f_end - app_f_begin))
+                print('%%%app feature elapsed time: {}'.format(app_f_end - app_f_begin))
 
                 track_state_list = []
                 next_trackID = int(self._track_set.get_max_track_ID()) + 1
-            
+
                 # get new track state from new frame and detections
                 for idx, item in enumerate(dos):
                     if self._GTbbox_flag is True:
@@ -381,35 +377,34 @@ class SRNN_tracking(KwiverProcess):
                     det_obj_set.add(d_obj)
 
                     # build track state for current bbox for matching
-                    cur_ts = track_state(frame_id=self._step_id, bbox_center=tuple((bbox.center())), 
+                    cur_ts = track_state(frame_id=self._step_id, bbox_center=tuple((bbox.center())),
                                          interaction_feature=grid_feature_list[idx],
-                                         app_feature=pt_app_features[idx], bbox=[int(bbox.min_x()), int(bbox.min_y()), 
+                                         app_feature=pt_app_features[idx], bbox=[int(bbox.min_x()), int(bbox.min_y()),
                                                                         int(bbox.width()), int(bbox.height())],
                                          detectedObject=d_obj, sys_frame_id=fid, sys_frame_time=ts)
                     track_state_list.append(cur_ts)
-                    
-                # if there is no tracks, generate new tracks from the track_state_list
-                if self._track_flag is False:
+
+                # if there are no tracks, generate new tracks from the track_state_list
+                if not self._track_flag:
                     next_trackID = self._track_set.add_new_track_state_list(next_trackID, track_state_list, self._track_initialization_threshold)
                     self._track_flag = True
                 else:
                     # check whether we need to terminate a track
-                    for ti in range(len(self._track_set)):
-                        # terminating a track based on readin_frame_id or original_frame_id gap  
-                        if self._track_set[ti].active_flag is True and  \
-                            (self._step_id - self._track_set[ti][-1].frame_id > self._terminate_track_threshold or \
-                             fid - self._track_set[ti][-1].sys_frame_id > self._sys_terminate_track_threshold):
-                            self._track_set[ti].active_flag = False
+                    for track in self._track_set.iter_active():
+                        # terminating a track based on readin_frame_id or original_frame_id gap
+                        if (self._step_id - track[-1].frame_id > self._terminate_track_threshold
+                            or fid - track[-1].sys_frame_id > self._sys_terminate_track_threshold):
+                            self._track_set.deactivate_track(track)
 
                     #print('track_set len {}'.format(len(self._track_set)))
                     #print('track_state_list len {}'.format(len(track_state_list)))
-                    
+
                     # call IOU tracker
-                    if self._IOU_flag is True:
+                    if self._IOU_flag:
                         IOU_begin = timer()
                         self._track_set, track_state_list = self._iou_tracker(self._track_set, track_state_list)
                         IOU_end = timer()
-                        print('%%%IOU tracking eclapsed time: {}'.format(IOU_end - IOU_begin))
+                        print('%%%IOU tracking elapsed time: {}'.format(IOU_end - IOU_begin))
 
                     #print('***track_set len {}'.format(len(self._track_set)))
                     #print('***track_state_list len {}'.format(len(track_state_list)))
@@ -418,7 +413,7 @@ class SRNN_tracking(KwiverProcess):
                     ttu_begin = timer()
                     similarity_mat, track_idx_list = self._SRNN_matching(self._track_set, track_state_list, self._ts_threshold)
                     ttu_end = timer()
-                    print('%%%SRNN assication eclapsed time: {}'.format(ttu_end - ttu_begin))
+                    print('%%%SRNN assication elapsed time: {}'.format(ttu_end - ttu_begin))
 
                     # reset update_flag
                     self._track_set.reset_updated_flag()
@@ -427,8 +422,8 @@ class SRNN_tracking(KwiverProcess):
                     hung_begin = timer()
                     row_idx_list, col_idx_list = sp.optimize.linear_sum_assignment(similarity_mat)
                     hung_end = timer()
-                    print('%%%Hungarian alogrithm eclapsed time: {}'.format(hung_end - hung_begin))
-                    
+                    print('%%%Hungarian algorithm elapsed time: {}'.format(hung_end - hung_begin))
+
                     for i in range(len(row_idx_list)):
                         r = row_idx_list[i]
                         c = col_idx_list[i]
@@ -441,8 +436,8 @@ class SRNN_tracking(KwiverProcess):
                         else:
                             # add to existing track
                             self._track_set.update_track(track_idx_list[r], track_state_list[c])
-                    
-                    # for rest unmatched track_state, we initialize new tracks
+
+                    # for the remaining unmatched track states, we initialize new tracks
                     if len(track_state_list) - len(col_idx_list) > 0:
                         for i in range(len(track_state_list)):
                             if i not in col_idx_list and track_state_list[i].detectedObj.confidence() >= self._track_initialization_threshold:
@@ -484,4 +479,3 @@ def __sprokit_register__():
                                 SRNN_tracking)
 
     process_factory.mark_process_module_as_loaded(module_name)
-

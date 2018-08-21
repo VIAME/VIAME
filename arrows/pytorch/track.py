@@ -20,7 +20,7 @@ class track_state(object):
         self._frame_id = frame_id
 
         self._detectedObj = detectedObject
-        
+
         self._sys_frame_id = sys_frame_id
         self._sys_frame_time = sys_frame_time
 
@@ -130,7 +130,6 @@ class track(object):
     def __init__(self, id):
         self._track_id = id
         self._track_state_list = []
-        self._active_flag = True
         self._max_conf = 0.0
         self._updated_flag = False
 
@@ -138,17 +137,10 @@ class track(object):
         return len(self._track_state_list)
 
     def __getitem__(self, idx):
-        if isinstance(idx, int):
-            if idx >= len(self._track_state_list):
-                raise IndexError
-            return self._track_state_list[idx]
-        elif isinstance(idx, slice):
-            start, stop, step = idx.indices(len(self))
-            return self._track_state_list[start:stop:step]
+        return self._track_state_list[idx]
 
     def __iter__(self):
-        for item in self._track_state_list:
-            yield item
+        return iter(self._track_state_list)
 
     @property
     def id(self):
@@ -159,17 +151,9 @@ class track(object):
         self._track_id = val
 
     @property
-    def active_flag(self):
-        return self._active_flag
-
-    @active_flag.setter
-    def active_flag(self, val):
-        self._active_flag = val
-
-    @property
     def updated_flag(self):
         return self._updated_flag
-    
+
     @updated_flag.setter
     def updated_flag(self, val):
         self._updated_flag = val
@@ -191,31 +175,26 @@ class track(object):
         self._max_conf = val
 
     def append(self, new_track_state):
-        if len(self._track_state_list) == 0:
+        if not self._track_state_list:
             new_track_state.motion_feature = torch.FloatTensor(2).zero_()
         else:
             pre_bbox_center = np.asarray(self._track_state_list[-1].bbox_center, dtype=np.float32).reshape(2)
             cur_bbox_center = np.asarray(new_track_state.bbox_center, dtype=np.float32).reshape(2)
-            new_track_state._motion_feature = torch.from_numpy(cur_bbox_center - pre_bbox_center)
-        
+            new_track_state.motion_feature = torch.from_numpy(cur_bbox_center - pre_bbox_center)
+
         new_track_state.track_id = self._track_id
         self._track_state_list.append(new_track_state)
         self._max_conf = max(self._max_conf, new_track_state.conf)
 
     def duplicate_track_state(self, timestep_len = 6):
-        if len(self._track_state_list) >= timestep_len:
-            pass
-        else:
-            #du_track = copy.deepcopy(self)  
-            du_track = track(self._track_id)  
-            du_track.track_state_list = list(self._track_state_list)
-            du_track.updated_flag = self._updated_flag
-            du_track.active_flag = self._active_flag
-            du_track.max_conf = self._max_conf
+        #du_track = copy.deepcopy(self)
+        du_track = track(self._track_id)
+        du_track.track_state_list = list(self._track_state_list)
+        du_track.updated_flag = self._updated_flag
+        du_track.max_conf = self._max_conf
 
-            cur_size = len(du_track)
-            for i in range(timestep_len - cur_size):
-                du_track.append(du_track[-1])
+        for _ in range(timestep_len - len(du_track)):
+            du_track.append(du_track[-1])
 
         return du_track
 
@@ -223,74 +202,63 @@ class track(object):
 class track_set(object):
     def __init__(self):
         self._id_ts_dict = collections.OrderedDict()
+        # We implement an ordered set by mapping to None
+        self._active_id_set = collections.OrderedDict()
 
     def __len__(self):
         return len(self._id_ts_dict)
 
-    def __getitem__(self, idx):
-        if idx >= len(self._id_ts_dict) or idx < 0:
-            raise IndexError
-        # for Py3 
-        return list(self._id_ts_dict.items())[idx][1]
-
     def __iter__(self):
-        for _, item in self._id_ts_dict.items():
-            yield item
+        return iter(self._id_ts_dict.values())
 
-    def get_track(self, track_id):
-        if track_id not in self._id_ts_dict:
+    def iter_active(self):
+        return (self[i] for i in self._active_id_set)
+
+    def __getitem__(self, track_id):
+        try:
+            return self._id_ts_dict[track_id]
+        except KeyError:
             raise IndexError
-
-        return self._id_ts_dict[track_id]
 
     def get_all_trackID(self):
-        return sorted(self._id_ts_dict.keys())
-    
+        return sorted(self._id_ts_dict)
+
     def get_max_track_ID(self):
-        if len(self._id_ts_dict) == 0:
-            return 0
-        else:
-            return max(self.get_all_trackID())
+        return max(self._id_ts_dict) if self._id_ts_dict else 0
+
+    def deactivate_track(self, track):
+        del self._active_id_set[track.id]
+
+    def active_count(self):
+        return len(self._active_id_set)
 
     def add_new_track(self, track):
-        if track.id in self.get_all_trackID():
-            print("track ID exsit in the track set!!!")
+        if track.id in self._id_ts_dict:
+            print("track ID exists in the track set!!!")
             raise RuntimeError
 
         self._id_ts_dict[track.id] = track
-    
+        self._active_id_set[track.id] = None
 
     def add_new_track_state(self, track_id, track_state):
-        if track_id in self.get_all_trackID():
-            print("track ID exsit in the track set!!!")
-            raise RuntimeError
-        
         new_track = track(track_id)
         new_track.append(track_state)
-        self._id_ts_dict[track_id] = new_track
-    
-    def add_new_track_state_list(self, start_track_id, ts_list, thresh=0.0):
-        counter = 0
-        for i in range(len(ts_list)):
-            cur_track_id = start_track_id + i
-            if cur_track_id in self.get_all_trackID():
-                print("track ID {} exsit in the track set!!!".format(cur_track_id))
-                raise RuntimeError
+        self.add_new_track(new_track)
 
-            if ts_list[i].detectedObj.confidence() >= thresh:
-                self.add_new_track_state(cur_track_id, ts_list[i])
-                counter = counter + 1
-        return start_track_id + counter
+    def add_new_track_state_list(self, start_track_id, ts_list, thresh=0.0):
+        track_id = start_track_id
+        for ts in ts_list:
+            if ts.detectedObj.confidence() >= thresh:
+                self.add_new_track_state(track_id, ts)
+                track_id += 1
+        return track_id
 
     def update_track(self, track_id, new_track_state):
-        if track_id not in self._id_ts_dict:
-            raise IndexError
-
-        self._id_ts_dict[track_id].append(new_track_state)
+        self[track_id].append(new_track_state)
 
     def reset_updated_flag(self):
-        for k in self._id_ts_dict.keys():
-            self._id_ts_dict[k].updated_flag = False
+        for track in self:
+            track.updated_flag = False
 
 
 if __name__ == '__main__':
@@ -300,4 +268,3 @@ if __name__ == '__main__':
 
     for item in t[:]:
         print(item.motion_feature)
-
