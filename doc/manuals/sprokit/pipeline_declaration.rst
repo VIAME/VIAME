@@ -464,7 +464,7 @@ can be described as follows::
 
   config _pipeline:_edge_by_conn
      input:up:timestamp:capacity = 20
-   s  tabilize:down:timestamp:capacity = 20
+     stabilize:down:timestamp:capacity = 20
 
 
 Both of these entries refer to the same edge, so in real life, you
