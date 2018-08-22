@@ -6,6 +6,7 @@ if [%1] == [] (
   set config=@CMAKE_BUILD_TYPE@
 ) else (
   set config=%1
+)
 
 set PATH=%~dp0/bin/%config%;%~dp0/lib/%config%/modules;%~dp0/lib/%config%/sprokit;%~dp0/lib/sprokit/%config%;@EXTRA_WIN32_PATH@;%PATH%
 
