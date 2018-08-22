@@ -9,7 +9,8 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
-#include <regex>
+
+#include <kwiversys/RegularExpression.hxx>
 
 #include <vul/vul_awk.h>
 #include <vul/vul_timer.h>
@@ -71,8 +72,7 @@ track_filter_kwe_type
 
   string line;
   size_t nlines = 0;
-  std::regex comment_re( "^ *#" );
-  std::smatch matches;
+  kwiversys::RegularExpression comment_re( "^ *#" );
   vul_timer timer;
   size_t file_size = vul_file::size( fn );
   while (getline( is, line ))
@@ -86,7 +86,7 @@ track_filter_kwe_type
       timer.mark();
     }
 
-    if ( std::regex_search( line, matches, comment_re )) continue;
+    if ( comment_re.find( line )) continue;
 
     event_data_block b;
     if ( ! event_adapter::parse_kwe_line( line, b, wmsgs ))  return false;

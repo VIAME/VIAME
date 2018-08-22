@@ -22,7 +22,7 @@ set config=release
 
 :Start
 
-set PATH=%~dp0/bin/%config%;%~dp0/lib/%config%/modules;%~dp0/lib/%config%/sprokit;%~dp0/lib/sprokit/%config%;@EXTRA_WIN32_PATH@
+set PATH=%PATH%;%~dp0/bin/%config%;%~dp0/lib/%config%/modules;%~dp0/lib/%config%/sprokit;%~dp0/lib/sprokit/%config%;@EXTRA_WIN32_PATH@
 
 set KWIVER_PLUGIN_PATH=%~dp0/lib/%config%/@kwiver_plugin_module_subdir@;%~dp0/lib/%config%/sprokit;%~dp0/lib/@kwiver_plugin_process_subdir@/%config%
 

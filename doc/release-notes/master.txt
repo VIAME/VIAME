@@ -21,6 +21,7 @@ Vital
 
 Vital Bindings
 
+ * Added python bindings for timestamp class.
 
 Arrows: Core
 

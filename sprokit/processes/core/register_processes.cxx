@@ -55,6 +55,7 @@
 #include "initialize_object_tracks_process.h"
 #include "keyframe_selection_process.h"
 #include "matcher_process.h"
+#include "merge_detection_sets_process.h"
 #include "print_config_process.h"
 #include "read_descriptor_process.h"
 #include "read_object_track_process.h"
@@ -404,6 +405,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( "no-test", "introspect" ); // do not include in introspection test
     ;
 
+
+  fact = vpm.ADD_PROCESS( kwiver::merge_detection_sets_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_detection_sets" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Merge two input detection sets into one output set." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

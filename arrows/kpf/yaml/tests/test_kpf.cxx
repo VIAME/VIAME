@@ -249,6 +249,36 @@ write_detections_to_stream( ostream& os,
   }
 }
 
+static const string improper_kpf =
+         "- { geom: { src: ground-truth, g0: 1751 223 1892 652, id0: 1, id1: 1, ts0: 2406, ts1: 0 } }\n"
+         "- { geom: { src: ground-truth, g0: 1349 299 1563 929, id0: 2, id1: 1, ts0: 6873, ts1: 0 } }\n"
+         "- { geom: { src: truth, g0: 1733 212 1888 664, occlusion: , id0: 3, id1: 1, ts0: 2407, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1728 213 1884 667, occlusion: , id0: 4, id1: 1, ts0: 2408, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1723 214 1881 670, occlusion: , id0: 5, id1: 1, ts0: 2409, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1718 215 1877 673, occlusion: , id0: 6, id1: 1, ts0: 2410, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1713 216 1873 676, occlusion: , id0: 7, id1: 1, ts0: 2411, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1709 216 1870 679, occlusion: , id0: 8, id1: 1, ts0: 2412, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1704 217 1866 682, occlusion: , id0: 9, id1: 1, ts0: 2413, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1699 218 1862 685, occlusion: , id0: 10, id1: 1, ts0: 2414, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1694 219 1859 688, occlusion: , id0: 11, id1: 1, ts0: 2415, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1689 220 1855 691, occlusion: , id0: 12, id1: 1, ts0: 2416, ts1: 0 } }\n"
+         "- { geom: { src: truth, g0: 1689 220 1855 691, occlusion: , id0: 13, id1: 1, ts0: 2417, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1681 221 1851 692, occlusion: , id0: 14, id1: 1, ts0: 2418, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1673 222 1847 693, occlusion: , id0: 15, id1: 1, ts0: 2419, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1665 222 1844 694, occlusion: , id0: 16, id1: 1, ts0: 2420, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1657 223 1840 695, occlusion: , id0: 17, id1: 1, ts0: 2421, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1649 224 1836 696, occlusion: , id0: 18, id1: 1, ts0: 2422, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1641 225 1832 697, occlusion: , id0: 19, id1: 1, ts0: 2423, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1633 225 1829 698, occlusion: , id0: 20, id1: 1, ts0: 2424, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1625 226 1825 699, occlusion: , id0: 21, id1: 1, ts0: 2425, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1617 227 1821 700, occlusion: , id0: 22, id1: 1, ts0: 2426, ts1: 0 } }\n"
+         "- { geom: { src: truth, g0: 1617 227 1821 700, occlusion: , id0: 23, id1: 1, ts0: 2427, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1615 227 1821 706, occlusion: , id0: 24, id1: 1, ts0: 2428, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1613 227 1821 711, occlusion: , id0: 25, id1: 1, ts0: 2429, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1611 227 1820 717, occlusion: , id0: 26, id1: 1, ts0: 2430, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1609 227 1820 722, occlusion: , id0: 27, id1: 1, ts0: 2431, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1606 228 1820 728, occlusion: , id0: 28, id1: 1, ts0: 2432, ts1: 0 } }\n"
+         "- { geom: { src: linear-interpolation, g0: 1604 228 1820 733, occlusion: , id0: 29, id1: 1, ts0: 2433, ts1: 0 } }\n";
 
 } // ... anon
 
@@ -283,3 +313,17 @@ IMPLEMENT_TEST( kpf_yaml_complex_io )
   }
 }
 
+IMPLEMENT_TEST( improper_kpf_parse )
+{
+  istringstream iss( improper_kpf );
+
+  KPF::kpf_yaml_parser_t parser( iss );
+  KPF::kpf_reader_t reader( parser );
+
+  while (reader)
+  {
+    reader.next();
+    reader.flush();
+  }
+  TEST_EQUAL( "Got to end of improper kpf_parse", true, true );
+}

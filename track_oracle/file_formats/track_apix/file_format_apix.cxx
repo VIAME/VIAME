@@ -10,7 +10,6 @@
 #include <fstream>
 #include <sstream>
 #include <cstdio>
-#include <regex>
 
 #include <shapefil.h>
 #include <geographic/geo_coords.h>

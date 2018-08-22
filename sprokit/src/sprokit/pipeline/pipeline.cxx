@@ -1182,25 +1182,25 @@ pipeline
 
 
 // ------------------------------------------------------------------
-process_t
+processes_t
 pipeline
-::get_python_process() const
+::get_python_processes() const
 {
   // Run through each process, checking to see if any are python
-  process_t python_process; // Start with a null pointer, return it if no python procs are found
+  processes_t python_processes; // Start with empty list
   for (priv::process_map_t::value_type const& process_index : d->process_map)
   {
     process_t proc = process_index.second;
     auto properties = proc->properties();
     if ( properties.find("_python") != properties.end() )
     {
-      python_process = proc;
-      break;
+      python_processes.push_back( proc );
     }
   }
 
-  return python_process;
+  return python_processes;
 }
+
 
 // ------------------------------------------------------------------
 pipeline::priv

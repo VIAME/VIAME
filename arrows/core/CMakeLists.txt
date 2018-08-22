@@ -11,6 +11,7 @@ set( plugin_core_headers
   compute_association_matrix_from_features.h
   compute_ref_homography_core.h
   convert_image_bypass.h
+  create_detection_grid.h
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   detected_object_set_input_csv.h
@@ -79,6 +80,7 @@ set( plugin_core_sources
   compute_association_matrix_from_features.cxx
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
+  create_detection_grid.cxx
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
   detected_object_set_input_csv.cxx
