@@ -395,7 +395,7 @@ class SRNN_tracking(KwiverProcess):
                     self._track_flag = True
                 else:
                     # check whether we need to terminate a track
-                    for track in self._track_set.iter_active():
+                    for track in list(self._track_set.iter_active()):
                         # terminating a track based on readin_frame_id or original_frame_id gap
                         if (self._step_id - track[-1].frame_id > self._terminate_track_threshold
                             or fid - track[-1].sys_frame_id > self._sys_terminate_track_threshold):
