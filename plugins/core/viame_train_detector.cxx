@@ -777,7 +777,7 @@ main( int argc, char* argv[] )
         std::string read_fn = get_filename_no_path( image_file );
         try
         {
-          gt_reader->read_set(frame_dets, read_fn);
+          gt_reader->read_set( frame_dets, read_fn );
 
           correct_manual_annotations( frame_dets );
         }
