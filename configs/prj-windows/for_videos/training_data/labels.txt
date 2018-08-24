@@ -1,0 +1,2 @@
+add_type1_here optional_type1_synonym
+add_type2_here

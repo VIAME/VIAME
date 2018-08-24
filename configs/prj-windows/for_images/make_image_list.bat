@@ -1,0 +1,1 @@
+dir /s/b "image_frames\*.bmp" > input_list.txt
