@@ -55,29 +55,29 @@ kwiver::vital::simple_camera_rpc read_rpc( std::string filename )
     std::getline( rpc_file, line );
 
     std::stringstream ss(line);
-    std::string word;
+    double value;
     unsigned int word_idx = 0;
-    while ( ss >> word )
+    while ( ss >> value )
     {
       if ( line_idx < 4 )
       {
-        rpc_coeffs( line_idx, word_idx ) = std::stod( word );
+        rpc_coeffs( line_idx, word_idx ) = value;
       }
       else
       {
         switch ( line_idx )
         {
           case 4:
-            world_scale( word_idx ) = std::stod( word );
+            world_scale( word_idx ) = value;
             break;
           case 5:
-            world_offset( word_idx ) = std::stod( word );
+            world_offset( word_idx ) = value;
             break;
           case 6:
-            image_scale( word_idx ) = std::stod( word );
+            image_scale( word_idx ) = value;
             break;
           case 7:
-            image_offset( word_idx ) = std::stod( word );
+            image_offset( word_idx ) = value;
             break;
         }
       }

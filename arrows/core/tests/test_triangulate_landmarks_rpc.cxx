@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,39 +107,6 @@ TEST_F(triangulate_landmarks_rpc, from_data)
 
   double end_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
                                                        landmarks->landmarks(),
-                                                       tracks->tracks() );
-  EXPECT_NEAR(0.0, end_rmse, 0.05) << "RMSE after triangulation";
-}
-
-// ----------------------------------------------------------------------------
-TEST_F(triangulate_landmarks_rpc, noisy_landmarks)
-{
-  kwiver::arrows::core::triangulate_landmarks tri_lm;
-  config_block_sptr cfg = tri_lm.get_configuration();
-
-  landmark_map_sptr landmarks =
-    std::make_shared< simple_landmark_map >( landmark_map );
-
-  camera_map_sptr cameras = std::make_shared< simple_camera_map >( camera_map );
-
-  auto tracks = kwiver::arrows::projected_tracks(landmarks, cameras);
-
-  // add Gaussian noise to the landmark positions
-  landmark_map_sptr landmarks0 =
-    kwiver::testing::noisy_landmarks(landmarks, 0.01);
-
-  double init_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
-                                                        landmarks0->landmarks(),
-                                                        tracks->tracks() );
-  std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
-
-  EXPECT_LE(init_rmse, 5000.0)
-    << "Initial reprojection RMSE should be large before triangulation";;
-
-  tri_lm.triangulate(cameras, tracks, landmarks0);
-
-  double end_rmse = kwiver::arrows::reprojection_rmse( cameras->cameras(),
-                                                       landmarks0->landmarks(),
                                                        tracks->tracks() );
   EXPECT_NEAR(0.0, end_rmse, 0.05) << "RMSE after triangulation";
 }

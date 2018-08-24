@@ -161,7 +161,7 @@ triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
     vital::vector_3d x = ( pt.second - offset ).cwiseQuotient( scale );
 
     // Unit vector along ray
-    vital::vector_3d unit_vec = ( x - p ) / ( x - p ).norm();
+    vital::vector_3d unit_vec = ( x - p ).normalized();
 
     vital::matrix_3x3d tmp_mat =
       vital::matrix_3x3d::Identity() - unit_vec * unit_vec.transpose();
@@ -170,7 +170,8 @@ triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
   }
 
   // Un-normalize before return
-  return ( scale.cwiseProduct( M.inverse() * v ) + offset ).cast<T>();
+  return ( scale.cwiseProduct(
+    M.colPivHouseholderQr().solve( v ) ) + offset ).cast<T>();
 }
 
 /// \cond DoxygenSuppress
