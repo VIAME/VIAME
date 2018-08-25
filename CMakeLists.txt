@@ -219,8 +219,8 @@ if( KWIVER_INSTALL_SET_UP_SCRIPT )
 endif()
 
 if ( fletch_FOUND )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_ROOT}/bin\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_ROOT}/x64/${_vcVersion}/bin\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${fletch_ROOT}/bin;%PATH%;\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${fletch_ROOT}/x64/${_vcVersion}/bin;%PATH%;\n" )
 
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export ${LIBRARY_PATH_VAR}=${fletch_ROOT}/lib:$${LIBRARY_PATH_VAR}\n" )
 endif()
@@ -261,7 +261,7 @@ if (KWIVER_ENABLE_PYTHON)
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# set to suppress loading python modules/processes\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "# export SPROKIT_NO_PYTHON_MODULES\n\n" )
 
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "# Python environment\n")
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" ":: Python environment\n")
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PYTHON_LIBRARY=${PYTHON_LIBRARY}\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PYTHONPATH=%~dp0/lib/%config%/python2.7/site-packages\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "\n:: additional python mudules to load, separated by ':'\n" )
@@ -273,7 +273,7 @@ endif()
 if ( KWIVER_ENABLE_MATLAB )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH\n" )
 
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${Matlab_LIBRARY_DIR}\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${Matlab_LIBRARY_DIR};%PATH%\n" )
 endif()
 
 
