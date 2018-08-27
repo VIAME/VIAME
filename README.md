@@ -77,10 +77,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.9.7.7 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1tf4OV05NRzv__J-LI4S5-huLpRyQHhWK)
 
 **Windows Binaries:** <br>
-[VIAME v0.9.8.0 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b7a71308d777f06857c74d9/download) <br>
-[VIAME v0.9.8.0 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1CTcFSkqYysat67-HofGFqc8NvLd_HAEO) <br>
-[VIAME v0.9.8.0 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b7a66b78d777f06857c730a/download) <br>
-[VIAME v0.9.8.0 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1aN5QusHXSc2z5eTTWfztXb7QtBuGXbnV)
+[VIAME v0.9.8.1 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](Uploading) <br>
+[VIAME v0.9.8.1 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](Uploading) <br>
+[VIAME v0.9.8.1 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](Uploading) <br>
+[VIAME v0.9.8.1 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](Uploading)
 
 
 Quick Build Instructions
