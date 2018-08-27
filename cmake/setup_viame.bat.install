@@ -1,7 +1,7 @@
 
 REM Set these paths to your Anaconda and CUDA installation locations
 
-SET PYTHON_INSTALL_DIR=D:\Anaconda3
+SET PYTHON_INSTALL_DIR=C:\ProgramData\Anaconda3
 SET CUDA_INSTALL_DIR=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0
 
 REM Do not edit the below

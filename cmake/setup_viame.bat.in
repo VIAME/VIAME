@@ -1,5 +1,5 @@
 
-SET PYTHON_INSTALL_DIR=C:\Anaconda3
+SET PYTHON_INSTALL_DIR=C:\ProgramData\Anaconda3
 
 SET VIAME_INSTALL=%~dp0
 
