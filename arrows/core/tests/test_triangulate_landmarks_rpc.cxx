@@ -79,8 +79,8 @@ class triangulate_landmarks_rpc : public ::testing::Test
     }
   }
 
-  landmark_map::map_landmark_t landmark_map;
-  camera_map::map_camera_t camera_map;
+  kwiver::vital::landmark_map::map_landmark_t landmark_map;
+  kwiver::vital::camera_map::map_camera_t camera_map;
 };
 
 // ----------------------------------------------------------------------------
