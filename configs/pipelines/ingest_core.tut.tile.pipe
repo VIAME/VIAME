@@ -22,7 +22,7 @@ connect from input.timestamp
 
 # =================================== DETECTOR =====================================
 
-include common_default_detector.pipe
+include common_generic_detector.pipe
 
 process detector_writer
   :: detected_object_output

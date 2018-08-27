@@ -21,7 +21,7 @@ process input
 
 # =============================== YOLO v2 ================================
 
-include common_default_detector.pipe
+include common_generic_detector.pipe
 include common_default_descriptor.pipe
 
 process svm_refiner
