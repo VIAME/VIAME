@@ -336,7 +336,11 @@ train_from_disk(
 
   if( !d->m_seed_weights.empty() )
   {
+#ifdef WIN32
+    darknet_args = darknet_args + " \"" + d->m_seed_weights + "\"";
+#else
     darknet_args = darknet_args + " " + d->m_seed_weights;
+#endif
   }
 
   std::string full_cmd = darknet_cmd + " " + darknet_args;
