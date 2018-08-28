@@ -1,0 +1,6 @@
+package kwiver.protobuf;
+
+message timestamp {
+  required int64 time = 1;
+  required int64 frame = 2;
+}
