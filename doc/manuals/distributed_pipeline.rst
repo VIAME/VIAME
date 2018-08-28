@@ -101,7 +101,7 @@ name.
 
 Single data type
 ^^^^^^^^^^^^^^^^
-
+::
     process ser :: serializer
       # Select serialization type
       serialization_type = json
@@ -124,7 +124,7 @@ connection. So, if the data type from `input.image` is a
 
 Multiple data type
 ^^^^^^^^^^^^^^^^^^
-
+::
     process ser :: serializer
       # Select serialization type
       serialization_type = protobuf
@@ -146,25 +146,32 @@ data items passed to the `serialize()` method will be "timestamp" and
 "image", as taken from the `connect` line in the pipe file.
 
 The [de]serializer process can support multiple serialization streams
-if specific data element synchronization is needed.
+if specific data element synchronization is needed.::
 
-process ser :: serializer
-  # Select serialization type
-  serialization_type = protobuf
+  process ser :: serializer
+    # Select serialization type
+    serialization_type = protobuf
 
-  # specify algorithm config parameters
-  # these are algo specific
-  serialize-protobuf:ImageTS:foo = 3.1415
+    # Specify algorithm config parameters. These are algo specific.
+    # The block name "serialize-protobuf" is specific to the
+    # serialization_type. This may not be that useful since it will
+    # be applied to instances of that algorithm.
+    block serialize-protobuf
+      ImageTS:foo = 3.1415
+    endblock
 
-  connect from input.timestamp to ser.first/ImageTS/timestamp
-  connect from input.image     to ser.first/ImageTS/image
+    connect from input.timestamp to ser.first/ImageTS/timestamp
+    connect from input.image     to ser.first/ImageTS/image
+    # output port is "first"
 
-  # additional serialization using the same algorithm, but a different output.
-  connect from mask.timestamp to ser.second/ImageTS/timestamp
-  connect from mask.image     to ser.second/ImageTS/image
+    # additional serialization using the same algorithm, but a different output.
+    connect from mask.timestamp to ser.second/ImageTS/timestamp
+    connect from mask.image     to ser.second/ImageTS/image
+    # output port is "second"
 
-  # additional serialization path based on port data type.
-  connect from image_src.image to ser.image
+    # additional serialization path based on port data type.
+    connect from image_src.image to ser.image
+    # output port is "image"
 
 
 [de]serializer process details
@@ -179,13 +186,14 @@ data_serializer algorithms can be displayed with the following command
 `plugin_explorer --fact serialize`
 
 
-Design notes
-============
+Transport Processes
+===================
 
-Maybe the data side port names should all use the same format
-   group/algorithm/data-name
-
-This could lead to some redundant specifications in the single element
-case such as
-
-   image/image/image
+Transport processes take a serialized message (byte buffer) and
+interface to a specific data transport. There are two types of
+transport processes, *send* and *receive*. The **send** type processes
+take the byte buffer from a serializer process and put it on the
+transport.  The **receive** type processes take a message from the
+transport and put it on the output port to go to a deserializer
+process.. The port name for both types of processes is
+"serialized_message".
