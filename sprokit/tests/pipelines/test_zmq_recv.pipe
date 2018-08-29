@@ -3,6 +3,7 @@
 #
 process zmq :: zmq_transport_receive
   port = 5560
+  num_publishers = 1
 
 # --------------------------------------------------
 process dser :: deserializer
