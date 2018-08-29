@@ -61,6 +61,7 @@ public:
     , m_frame_ct(0)
     , m_max_sets(10)
     , m_set_size(4)
+    , m_detection_class( "detection" )
   {
   }
 
@@ -79,6 +80,7 @@ public:
   int m_frame_ct;
   int m_max_sets;
   int m_set_size;
+  std::string m_detection_class;
 };
 
 
@@ -113,6 +115,7 @@ get_configuration() const
   config->set_value( "dy", d->m_dy, "Bounding box y translation per frame." );
   config->set_value( "max_sets", d->m_max_sets, "Number of detection sets to generate." );
   config->set_value( "set_size", d->m_set_size, "Number of detection in a set." );
+  config->set_value( "detection_class", d->m_detection_class, "Label for detection detected object type" );
 
   return config;
 }
@@ -134,6 +137,7 @@ set_configuration(vital::config_block_sptr config_in)
   d->m_dy           = config->get_value<double>( "dy" );
   d->m_max_sets     = config->get_value<double>( "max_sets" );
   d->m_set_size     = config->get_value<double>( "set_size" );
+  d->m_detection_class     = config->get_value<std::string>( "detection_class" );
 }
 
 
@@ -179,7 +183,7 @@ read_set( kwiver::vital::detected_object_set_sptr & detected_set, std::string& i
     ++d->m_frame_ct;
 
     auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-    dot->set_score( "detection", 1.0 );
+    dot->set_score( d->m_detection_class, 1.0 );
 
     detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
   }
