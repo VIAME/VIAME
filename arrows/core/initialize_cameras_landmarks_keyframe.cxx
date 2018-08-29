@@ -2908,6 +2908,9 @@ initialize_cameras_landmarks_keyframe::priv
 
   bool done_registering_keyframes = false;
 
+  bool frames_since_last_ba = 0;
+
+  std::map<frame_id_t, double> last_reproj_by_cam;
   while(!frames_to_register.empty())
   {
     if (max_constraints_used < 10)
@@ -2950,8 +2953,38 @@ initialize_cameras_landmarks_keyframe::priv
     std::set_union(last_ba_landmarks.begin(), last_ba_landmarks.end(), cur_lmks.begin(), cur_lmks.end(), std::back_inserter(union_lmks));
     float i_over_u = static_cast<float>(intersect_lmks.size()) / static_cast<float>(union_lmks.size());
 
-    if (i_over_u < 0.7 || frames_to_register.empty())
+    auto reporj_by_cam = 
+      kwiver::arrows::reprojection_rmse_by_cam(cams->cameras(),
+        lmks, tracks->tracks());
+
+    double rebundle_thresh = final_reproj_thresh * 4.0;
+    bool bundle_because_of_reproj = false;
+    int num_cams_over_thresh = 0;
+    for (auto& cd : reporj_by_cam)
     {
+      if (cd.second > rebundle_thresh)
+      {
+        auto last_it = last_reproj_by_cam.find(cd.first);
+        if (last_it != last_reproj_by_cam.end())
+        {
+          if (last_it->second > rebundle_thresh)
+          {
+            //ignore this one, it didn't get better with bundling.
+            continue;
+          }
+        }
+        ++num_cams_over_thresh;
+        if (num_cams_over_thresh >= 10)
+        {
+          bundle_because_of_reproj = true;
+          break;
+        }        
+      }
+    }    
+    ++frames_since_last_ba;
+    if (bundle_because_of_reproj /*|| i_over_u < 0.7*/ || frames_to_register.empty() || frames_since_last_ba > 50)
+    {
+      frames_since_last_ba = 0;
       windowed_clean_and_bundle(cams, landmarks, lmks, tracks,
         constraints_to_ba, windowed_bundled_cams, frames_since_last_local_ba);
       last_ba_landmarks = cur_lmks;
@@ -2961,6 +2994,9 @@ initialize_cameras_landmarks_keyframe::priv
         windowed_bundled_cams.insert(ll_fid);
       }
       frames_since_last_local_ba.clear();
+      last_reproj_by_cam =
+        kwiver::arrows::reprojection_rmse_by_cam(cams->cameras(),
+          lmks, tracks->tracks());
     }
 
     already_registred_cams.insert(fid_to_register);
