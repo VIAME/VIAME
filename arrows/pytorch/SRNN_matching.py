@@ -81,11 +81,14 @@ class TargetRNNDataLoader(data.Dataset):
 
 
 class SRNN_matching(object):
-    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size, GPU_list=None):
-
-        if GPU_list is None:
-            GPU_list = list(range(torch.cuda.device_count()))
-        self._device = torch.device("cuda:{}".format(GPU_list[0]))
+    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size, GPU_list=None, CPU_only_flag=False):
+        
+        if CPU_only_flag:
+            self._device = torch.device("cpu")
+        else:
+            if GPU_list is None:
+                GPU_list = list(range(torch.cuda.device_count()))
+            self._device = torch.device("cuda:{}".format(GPU_list[0]))
 
         self._batch_size = batch_size
 
@@ -97,7 +100,9 @@ class SRNN_matching(object):
         snapshot = torch.load(targetRNN_full_model_path)
         self._targetRNN_full_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_full_model.eval()
-        self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model, device_ids=GPU_list)
+
+        if !CPU_only_flag:
+            self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model, device_ids=GPU_list)
 
         # load  target AIM_V model, but trained with variable timestep
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
@@ -106,7 +111,9 @@ class SRNN_matching(object):
         snapshot = torch.load(targetRNN_AIM_V_model_path)
         self._targetRNN_AIM_V_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_AIM_V_model.eval()
-        self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, device_ids=GPU_list)
+
+        if !CPU_only_flag:
+            self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, device_ids=GPU_list)
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
         tracks_num = track_set.active_count()

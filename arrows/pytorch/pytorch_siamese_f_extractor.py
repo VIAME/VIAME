@@ -50,19 +50,23 @@ class pytorch_siamese_f_extractor(object):
     model
     """
 
-    def __init__(self, siamese_model_path, img_size, batch_size, GPU_list=None):
-
-        if GPU_list is None:
-            GPU_list = [x for x in range(torch.cuda.device_count())]
-            target_GPU = 0
+    def __init__(self, siamese_model_path, img_size, batch_size, GPU_list=None, CPU_only_flag=False):
+        
+        if CPU_only_flag:
+            self._device = torch.device("cpu")
+            self._siamese_model = Siamese().to(self._device)
         else:
-            target_GPU = GPU_list[0]
-
-        self._device = torch.device("cuda:{}".format(target_GPU))
-
-        # load siamese model
-        self._siamese_model = Siamese().to(self._device)
-        self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
+            if GPU_list is None:
+                GPU_list = [x for x in range(torch.cuda.device_count())]
+                target_GPU = 0
+            else:
+                target_GPU = GPU_list[0]
+    
+            self._device = torch.device("cuda:{}".format(target_GPU))
+    
+            # load siamese model
+            self._siamese_model = Siamese().to(self._device)
+            self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
 
         snapshot = torch.load(siamese_model_path)
         self._siamese_model.load_state_dict(snapshot['state_dict'])
