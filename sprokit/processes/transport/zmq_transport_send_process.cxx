@@ -44,6 +44,41 @@ create_config_trait( port, int, "5550",
 create_config_trait( expected_subscribers, int, "1",
                      "Number of subscribers to wait for before starting to publish");
 
+/**
+ * \class zmq_transport_send_process
+ *
+ * \brief End cap that publishes incoming data on a ZeroMQ PUB Socket
+ *
+ * \process This process can be used to connect separate Sprokit pipelines
+ * to one another in a publishi/subscribe framework.  This process
+ * accepts serialized byte strings from serializer_process and transmits
+ * them on a ZeroMQ PUB socket at the specified port.
+ *
+ * The process can be optionally configured to wait for an expected
+ * number of subscribers before it begins publishing or it can begin
+ * publishing immediately.  Use these options to control whether
+ * subscribers see a consistent amount of data.  Waiting to publish
+ * might be used when a data source is a directory of images, while
+ * publishing immediately might be used when the data source is a
+ * live video feed.
+ *
+ * The PUB/SUB mechanism makes use of two ports.  The actual
+ * PUB/SUB socket pair is created on the port specified in
+ * the configuration. One above that port is used to handle
+ * subscription handshaking.
+ *
+ * \iports
+ *
+ * \iport{serialized_message} the incoming byte string to publish.
+ *
+ * \configs
+ *
+ * \config{port} the port number to publish on.
+ *
+ * \config{expected_subscribers} the number of subscribers that must
+ * connect before publication commences.
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class zmq_transport_send_process::priv

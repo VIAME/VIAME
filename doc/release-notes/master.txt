@@ -18,6 +18,8 @@ Updates since v1.2.0
 
 Vital
 
+ * Added the data_serializer base algorithm to support serilization
+   of Vital types for distributed processing and other uses.
 
 Vital Bindings
 
@@ -43,6 +45,19 @@ Arrows: GDAL
 
 Arrows: OpenCV
 
+Arrows: Serialization
+
+  * Addded JSON Serializers for:
+    - bounding_box
+    - detected_object (partial)
+    - detected_object_set (partial)
+    - detected_object_type
+
+  * Added Protocol Buffer Serializers for:
+    - bounding_box
+    - detected_object (partial)
+    - detected_object_set (partial)
+    - detected_object_type
 
 Arrows: VXL
 
@@ -52,6 +67,11 @@ Sprokit
 
 Sprokit: Processes
 
+  * Added serializer_process and deserializer_process that convert from/to
+    serialized byte strings and Sprokit data ports.
+
+  * Added zmq_transport_send_process and zmq_transport_recieve process to support
+    Publish/Subscribe distributed processing with ZeroMQ.
 
 Tools
 

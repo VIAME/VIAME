@@ -43,6 +43,42 @@ create_config_trait( port, int, "5550",
 create_config_trait( num_publishers, int, "1",
                      "Number of publishers to subscribe to. ");
 
+/**
+ * \class zmq_transport_receive_process
+ *
+ * \brief End cap that subscribes to incoming data on a ZeroMQ SUB
+ * Socket and outputs it on a Sprokit byte string port.
+ *
+ * \process This process can be used to connect separate Sprokit pipelines
+ * to one another in a publishi/subscribe framework.  This process
+ * accepts serialized byte strings from a ZeroMQ SUB socket and
+ * pushes it to a serializer_process for deserialization into
+ * a Sprokit pipeline.
+ *
+ * The PUB/SUB mechanism makes use of two ports.  The actual
+ * PUB/SUB socket pair is created on the port specified in
+ * the configuration. One above that port is used to handle
+ * subscription handshaking.
+ *
+ * The process can be optionally configured to listen to multiple
+ * publishers. It will connect to each publisher starting at
+ * the specified port using port for PUB/SUB and port+1 for
+ * synchronization.  A subsequent publisher will be connected
+ * at port+2 and so on.
+ *
+ * \iports
+ *
+ * \iport{serialized_message} the incoming byte is sent to a
+ * serializer process here.
+ *
+ * \configs
+ *
+ * \config{port} the port number to subscribe on.
+ *
+ * \config{num_publishers} the number of publishers that must
+ * be connected to subscription commences.
+ */
+
 //----------------------------------------------------------------
 // Private implementation class
 class zmq_transport_receive_process::priv
