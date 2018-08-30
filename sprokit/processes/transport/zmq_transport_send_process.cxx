@@ -41,6 +41,9 @@ namespace kwiver {
 create_config_trait( port, int, "5550",
                      "Port number to connect/bind to.");
 
+create_config_trait( expected_subscribers, int, "1",
+                     "Number of subscribers to wait for before starting to publish");
+
 //----------------------------------------------------------------
 // Private implementation class
 class zmq_transport_send_process::priv
@@ -53,6 +56,7 @@ public:
 
   // Configuration values
   int m_port;
+  int m_expected_subscribers;
 
   //+ any other connection related data goes here
   zmq::context_t m_context;
@@ -91,6 +95,7 @@ void zmq_transport_send_process
 
   // Get process config entries
   d->m_port = config_value_using_trait( port );
+  d->m_expected_subscribers = config_value_using_trait( expected_subscribers );
 
   int major, minor, patch;
   zmq_version(&major, &minor, &patch);
@@ -138,6 +143,7 @@ void zmq_transport_send_process
 ::make_config()
 {
   declare_config_using_trait( port );
+  declare_config_using_trait( expected_subscribers );
 }
 
 
@@ -169,7 +175,6 @@ zmq_transport_send_process::priv
   m_pub_socket.bind( pub_connect_string.str() );
 
   // Wait for replies from expected number of subscribers before sending antying
-#define EXPECTED_SUBSCRIBERS 1
   std::ostringstream sync_connect_string;
   sync_connect_string << "tcp://*:" << ( m_port + 1 );
   LOG_TRACE( m_logger, "SYNC Connect for " << sync_connect_string.str() );
@@ -177,13 +182,13 @@ zmq_transport_send_process::priv
 
   int subscribers = 0;
   LOG_TRACE( m_logger, "Entering Sync Loop, waiting for "
-             << EXPECTED_SUBSCRIBERS << " subscribers" );
-  while ( subscribers < EXPECTED_SUBSCRIBERS )
+             << m_expected_subscribers << " subscribers" );
+  while ( subscribers < m_expected_subscribers )
   {
     zmq::message_t datagram;
     m_sync_socket.recv( &datagram );
     LOG_TRACE( m_logger, "SYNC Loop, received reply from subscriber "
-               << subscribers << " of " << EXPECTED_SUBSCRIBERS );
+               << subscribers << " of " << m_expected_subscribers );
 
     zmq::message_t datagram_o;
     m_sync_socket.send( datagram_o );
