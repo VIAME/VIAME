@@ -110,7 +110,7 @@ protected:
       : m_serialized_port_created(false)
     {}
 
-    // This struct defines a single input port.
+    // This struct defines a single port.
     struct data_item
     {
       // Port name to write datum to
@@ -124,7 +124,7 @@ protected:
     };
 
     // indexed by algorithm element_name
-    std::map< std::string , data_item > m_items;
+    std::map< std::string, data_item > m_items;
 
     // port to read serialized data from
     sprokit::process::port_t m_serialized_port_name;
