@@ -82,7 +82,7 @@ class TargetRNNDataLoader(data.Dataset):
 
 class SRNN_matching(object):
     def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size, GPU_list=None, CPU_only_flag=False):
-        
+
         if CPU_only_flag:
             self._device = torch.device("cpu")
         else:
@@ -101,7 +101,7 @@ class SRNN_matching(object):
         self._targetRNN_full_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_full_model.eval()
 
-        if !CPU_only_flag:
+        if not CPU_only_flag:
             self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model, device_ids=GPU_list)
 
         # load  target AIM_V model, but trained with variable timestep
@@ -112,7 +112,7 @@ class SRNN_matching(object):
         self._targetRNN_AIM_V_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_AIM_V_model.eval()
 
-        if !CPU_only_flag:
+        if not CPU_only_flag:
             self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, device_ids=GPU_list)
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
