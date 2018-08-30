@@ -50,7 +50,7 @@ kwiver_install_headers(
   )
 
 kwiver_install_headers(
-  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_serialize_proto_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_serialize_protobuf_export.h
   NOPATH   SUBDIR     arrows/serialization/protobuf
   )
 
