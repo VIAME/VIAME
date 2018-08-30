@@ -49,7 +49,7 @@ class KWIVER_SERIALIZE_JSON_EXPORT ts_image
 {
 public:
   // Type name this class supports
-  static constexpr char const* name = "kwiver:ts_image";
+  static constexpr char const* name = "ts_image";
 
   static constexpr char const* description =
     "Serializes a timestamp and image using JSON notation. "

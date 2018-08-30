@@ -19,7 +19,7 @@ namespace json {
                                     vital::algo::data_serializer >
   {
     public:
-      static constexpr char const* name= "kwiver:timestamp_detected_object_set";
+      static constexpr char const* name= "timestamp_detected_object_set";
       static constexpr char const* description = 
         "Serializes timestamp and detected object set using json notation. "
         " This implementation handles a timestanp, port name \"timestamp\", and "

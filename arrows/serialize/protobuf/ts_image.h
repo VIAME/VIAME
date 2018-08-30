@@ -44,7 +44,7 @@ class KWIVER_SERIALIZE_PROTOBUF_EXPORT ts_image
 {
 public:
   // Type name this class supports
-  static constexpr char const* name = "kwiver:timestamp_image";
+  static constexpr char const* name = "timestamp_image";
 
   static constexpr char const* description =
     "Serializes a timestamp and image using protobuf notation. "
