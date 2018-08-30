@@ -36,7 +36,6 @@
 #include <string>
 #include <sstream>
 #include <memory>
-
 namespace kwiver {
 namespace arrows {
 namespace serialize {
@@ -60,18 +59,17 @@ namespace protobuf {
 template<class T>
 void
 add_proto_to_stream( std::ostringstream& msg,
-                     const T&            proto )
+                     const T& proto )
 {
   // get size of serialized protobuf
-  const size_t proto_size( proto.ByteSise() );
-
+  const size_t proto_size( proto.ByteSize() );
   // Add payload size to stream
   msg << proto_size << " ";
-
-  if ( ! proto.SerializeToOstream( proto ) )
+  if ( ! proto.SerializeToOstream( &msg ) )
   {
     //+ TBD log error / throw
   }
+
 }
 
 

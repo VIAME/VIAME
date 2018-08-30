@@ -29,7 +29,6 @@
  */
 
 #include "protobuf_util.h"
-
 namespace kwiver {
 namespace arrows {
 namespace serialize {
@@ -42,19 +41,20 @@ grab_proto_from_stream( std::istringstream& msg )
   size_t proto_size;
   msg >> proto_size;
   msg.get();  // Eat the delimiter
-
+  
+  int stream_index = static_cast<int> (msg.tellg()); 
   // Make sure the whole payload is in the stream buffer
-  if ( msg.str().size() < proto_size )
+  if ( (stream_index + proto_size) > msg.str().size() )
   {
-    //+ TBD throw something
+    // THROW something TBD 
   }
 
   // copy payload from stream to return string.
-  auto ret_data = new std::string ( msg.str().substr( 0, proto_size ) );
+  auto ret_data = new std::string ( msg.str().substr( stream_index, 
+                                                      proto_size ) );
   std::shared_ptr< std::string >ret_string( ret_data );
-
   // Remove payload from stream
-  msg.ignore( proto_size );
+  msg.seekg( stream_index + proto_size);
 
   return ret_string;
 }
