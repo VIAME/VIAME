@@ -45,6 +45,7 @@
 #include <arrows/serialize/json/detected_object.h>
 #include <arrows/serialize/json/detected_object_set.h>
 #include <arrows/serialize/json/timestamp.h>
+#include <arrows/serialize/json/timestamped_detected_object_set.h>
 
 #include <vital/util/string.h>
 
@@ -240,4 +241,76 @@ TEST( serialize, timestamp)
     kwiver::vital::any_cast< kwiver::vital::timestamp >( dser );
 
   EXPECT_EQ( tstamp, tstamp_dser);
+}
+
+
+// ----------------------------------------------------------------------------
+TEST( serialize, timestamped_detected_object_set)
+{
+  kasj::timestamped_detected_object_set tstamp_dos_ser;
+  
+  kwiver::vital::timestamp tstamp{1, 1};
+  kwiver::vital::any tstamp_any( tstamp );
+
+  kwiver::vital::detected_object_set_sptr dos =
+    std::make_shared<kwiver::vital::detected_object_set>();;
+  auto dot = std::make_shared<kwiver::vital::detected_object_type>();
+
+  dot->set_score( "first", 1 );
+  dot->set_score( "second", 10 );
+  dot->set_score( "third", 101 );
+  dot->set_score( "last", 121 );
+
+  auto det_obj = std::make_shared< kwiver::vital::detected_object>(
+    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, dot );
+  det_obj->set_detector_name( "test_detector" );
+  det_obj->set_index( 1234 );
+
+  dos->add( det_obj );
+  dos->add( det_obj );
+  dos->add( det_obj );
+
+  kwiver::vital::any dos_any( dos );
+
+  kwiver::vital::algo::data_serializer::serialize_param_t sp;
+  sp[ "timestamp"] =  tstamp_any;
+  sp[ "detected_object_set" ] = dos_any;
+  
+  auto mes = tstamp_dos_ser.serialize( sp );
+  auto dser = tstamp_dos_ser.deserialize ( mes );
+
+  kwiver::vital::timestamp tstamp_dser = 
+    kwiver::vital::any_cast< kwiver::vital::timestamp >( 
+        dser[ "timestamp" ] );
+  EXPECT_EQ( tstamp, tstamp_dser);
+
+  auto obj_dser_set = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >(
+    dser[ "detected_object_set" ] );
+
+  EXPECT_EQ( 3, obj_dser_set->size() );
+
+  for ( auto obj_dser : *obj_dser_set )
+  {
+    EXPECT_EQ( det_obj->bounding_box(), obj_dser->bounding_box() );
+    EXPECT_EQ( det_obj->index(), obj_dser->index() );
+    EXPECT_EQ( det_obj->confidence(), obj_dser->confidence() );
+    EXPECT_EQ( det_obj->detector_name(), obj_dser->detector_name() );
+
+    dot = det_obj->type();
+    if (dot)
+    {
+      auto dot_dser = obj_dser->type();
+
+      EXPECT_EQ( dot->size(), dot_dser->size() );
+
+      auto o_it = dot->begin();
+      auto d_it = dot_dser->begin();
+
+      for (size_t i = 0; i < dot->size(); ++i )
+      {
+        EXPECT_EQ( *(o_it->first), *(d_it->first) );
+        EXPECT_EQ( o_it->second, d_it->second );
+      }
+    }
+  }
 }
