@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief test json serializers
+ * \brief test protobuf serializers
  */
 
 #include <gtest/gtest.h>
@@ -40,6 +40,7 @@
 #include <arrows/serialize/protobuf/detected_object.h>
 #include <arrows/serialize/protobuf/detected_object_set.h>
 #include <arrows/serialize/protobuf/timestamp.h>
+#include <arrows/serialize/protobuf/timestamped_detected_object_set.h>
 
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object_type.h>
@@ -224,7 +225,8 @@ TEST( serialize, detected_object_set )
 TEST (serialize, timestamp)
 {
   kasp::timestamp tstamp_ser;
-  kwiver::vital::timestamp tstamp{1, 1};
+
+  kwiver::vital::timestamp tstamp{23, 2};
 
   kwiver::vital::any tstamp_any(tstamp);
 
