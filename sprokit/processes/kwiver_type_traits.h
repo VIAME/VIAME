@@ -66,6 +66,7 @@ namespace vital {
   typedef std::shared_ptr< double_vector > double_vector_sptr;
   typedef std::vector< std::string > string_vector;
   typedef std::shared_ptr< string_vector > string_vector_sptr;
+  using string_sptr =  std::shared_ptr< std::string >;
 
 } }
 
@@ -100,6 +101,7 @@ create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::pat
 create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 
+create_type_trait( serialized_message, "kwiver:serialized_message", kwiver::vital::string_sptr );
 
 // ================================================================
 //
@@ -130,5 +132,7 @@ create_port_trait( image_file_name, image_file_name, "Name of an image file. "
 create_port_trait( video_file_name, video_file_name, "Name of video file." );
 create_port_trait( metadata, metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
+
+create_port_trait( serialized_message, serialized_message, "serialized data type" );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

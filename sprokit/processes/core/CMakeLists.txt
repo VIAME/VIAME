@@ -34,6 +34,9 @@ set( sources
   read_object_track_process.cxx
   read_track_descriptor_process.cxx
   refine_detections_process.cxx
+  serializer_base.cxx
+  serializer_process.cxx
+  deserializer_process.cxx
   split_image_process.cxx
   stabilize_image_process.cxx
   track_features_process.cxx
@@ -71,6 +74,9 @@ set( private_headers
   read_object_track_process.h
   read_track_descriptor_process.h
   refine_detections_process.h
+  serializer_base.h
+  serializer_process.h
+  deserializer_process.h
   split_image_process.h
   stabilize_image_process.h
   track_features_process.h

@@ -13,6 +13,12 @@ add_subdirectory( core )
 add_subdirectory( examples )
 add_subdirectory( flow )
 
+#
+# This may need some enable flags as we start to support other
+# transports that require support libraries such as zeromq.
+#
+add_subdirectory( transport )
+
 if (KWIVER_ENABLE_VXL)
   add_subdirectory( vxl )
 endif()

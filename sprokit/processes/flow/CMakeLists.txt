@@ -1,6 +1,7 @@
 project(sprokit_processes_flow)
 
 set(flow_srcs
+
   collate_process.cxx
   distribute_process.cxx
   pass_process.cxx
@@ -8,6 +9,7 @@ set(flow_srcs
   sink_process.cxx)
 
 set(flow_private_headers
+
   collate_process.h
   distribute_process.h
   pass_process.h
