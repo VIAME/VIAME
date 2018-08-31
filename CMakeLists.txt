@@ -187,7 +187,7 @@ if(fletch_BUILT_WITH_CUDA)
   list(APPEND EXTRA_WIN32_PATH "${CUDA_TOOLKIT_ROOT_DIR}/bin")
 endif()
 if(fletch_BUILT_WITH_CUDNN)
-  list(APPEND EXTRA_WIN32_PATH "${CUDNN_TOOLKIT_ROOT_DIR}/bin")
+  list(APPEND EXTRA_WIN32_PATH "${CUDNN_ROOT_DIR}/bin")
 endif()
 configure_file(
   ${KWIVER_CMAKE_DIR}/setup_KWIVER.bat.in
