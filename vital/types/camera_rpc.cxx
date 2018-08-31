@@ -58,8 +58,7 @@ camera_rpc
 ::project( const vector_3d& pt ) const
 {
   // Normalize points
-  vector_3d norm_pt =
-    ( pt - world_offset() ).cwiseQuotient( world_scale() );
+  vector_3d norm_pt = ( pt - world_offset() ).cwiseQuotient( world_scale() );
 
   // Calculate polynomials
   vector_4d polys = this->rpc_coeffs()*this->power_vector(norm_pt);
@@ -72,10 +71,11 @@ camera_rpc
 /// Project a 2D image point to a 3D point in space
 vector_3d
 camera_rpc
-::back_project( const vector_2d& image_pt, double elev )
+::back_project( const vector_2d& image_pt, double elev ) const
 {
   // Normalize image point
-  vector_2d norm_pt = ( image_pt - image_offset() ).cwiseQuotient( image_scale() );
+  vector_2d norm_pt =
+    ( image_pt - image_offset() ).cwiseQuotient( image_scale() );
   auto norm_elev = ( elev - world_offset()[2] ) / world_scale()[2];
 
   // Use a first order approximation to the RPC to initialize.
@@ -153,7 +153,7 @@ camera_rpc
 
 void
 simple_camera_rpc
-::update_partial_deriv()
+::update_partial_deriv() const
 {
   std::vector<int> dx_ind = { 1, 7, 4, 5, 14 ,17 ,10, 11, 12, 13 };
   std::vector<int> dy_ind = { 2, 4, 8, 6, 12, 10, 18, 14, 15, 16 };
@@ -188,7 +188,7 @@ void
 simple_camera_rpc
 ::jacobian( const vector_3d& pt, matrix_2x2d& J, vector_2d& norm_pt ) const
 {
-  auto pv = this->power_vector( pt );
+  Eigen::Matrix<double, 20, 1> pv = this->power_vector( pt );
   vector_4d ply = this->rpc_coeffs() * pv;
   vector_4d dx_ply = this->dx_coeffs_ * pv.head(10);
   vector_4d dy_ply = this->dy_coeffs_ * pv.head(10);

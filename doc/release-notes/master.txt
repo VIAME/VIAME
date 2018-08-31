@@ -27,6 +27,7 @@ Vital Bindings
 
 Arrows: Core
 
+ * Added support for RPC cameras to the triangulate_landmark implementation.
 
 Arrows: FFmpeg
 
