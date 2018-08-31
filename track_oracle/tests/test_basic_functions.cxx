@@ -114,7 +114,7 @@ TEST(track_oracle, data_term_transfer)
   {
     demo_track_beta beta;
 
-    for (auto i=0; i<n_tracks; ++i)
+    for (size_t i=0; i<n_tracks; ++i)
     {
       // create an instance of beta
       to::track_handle_type h = beta.create();
@@ -134,7 +134,7 @@ TEST(track_oracle, data_term_transfer)
       }
 
       // create some frames
-      for (auto j=0; j<n_frames; ++j)
+      for (size_t j=0; j<n_frames; ++j)
       {
         to::frame_handle_type f = beta( h ).create_frame();
         EXPECT_TRUE( f.is_valid() );
@@ -176,7 +176,7 @@ TEST(track_oracle, data_term_transfer)
     // need explicit term instance since alpha doesn't have timestamps
     to::track_field< to::dt::tracking::timestamp_usecs > ts;
 
-    for (auto i=0; i<n_tracks; ++i)
+    for (size_t i=0; i<n_tracks; ++i)
     {
       const auto& h = tracks[i];
       // verify the ID
@@ -185,7 +185,7 @@ TEST(track_oracle, data_term_transfer)
       // verify the frame data
       auto frames = to::track_oracle_core::get_frames( h );
       EXPECT_EQ( frames.size(), n_frames );
-      for (auto j=0; j<n_frames; ++j)
+      for (size_t j=0; j<n_frames; ++j)
       {
         const auto& f = frames[ j ];
 
