@@ -8,9 +8,9 @@ set(modules_python_private_headers
   )
 
 set(python_noarch FALSE)
-sprokit_create_python_init(sprokit/modules)
+kwiver_create_python_init(sprokit/modules)
 set(python_noarch TRUE)
-sprokit_create_python_init(sprokit/modules)
+kwiver_create_python_init(sprokit/modules)
 set(python_noarch FALSE)
 
 kwiver_private_header_group(${modules_python_private_headers})

@@ -163,8 +163,6 @@ target_link_libraries(python-vital.types-object_track_set
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
-
-
 kwiver_create_python_init(vital/types
   bounding_box
   camera
