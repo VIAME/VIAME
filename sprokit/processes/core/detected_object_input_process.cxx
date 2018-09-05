@@ -104,14 +104,14 @@ void detected_object_input_process
   // validate configuration
   if ( ! algo::detected_object_set_input::check_nested_algo_configuration( "reader", algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
   algo::detected_object_set_input::set_nested_algo_configuration( "reader", algo_config, d->m_reader);
   if ( ! d->m_reader )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
              "Unable to create reader." );
   }
 }

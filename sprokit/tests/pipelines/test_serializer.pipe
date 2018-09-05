@@ -1,0 +1,34 @@
+#
+# Testing connections to serializer process
+#
+
+# --------------------------------------------------
+process sim :: detected_object_input
+        file_name = junk
+        reader:type = simulator
+        reader:simulator:center_x = 100
+        reader:simulator:center_y = 100
+        reader:simulator:dx = 10
+        reader:simulator:dy = 10
+        reader:simulator:height = 200
+        reader:simulator:width = 200
+        reader:simulator:detection_class = simulated
+
+# --------------------------------------------------
+process ser :: serializer
+        serialization_type = json
+
+connect from sim.detected_object_set to ser.dos
+
+# --------------------------------------------------
+process dser :: deserializer
+        serialization_type = json
+
+connect from ser.dos to dser.dos
+
+# --------------------------------------------------
+process sink :: detected_object_output
+        file_name = junk
+        writer:type = csv
+
+connect from dser.dos to sink.detected_object_set

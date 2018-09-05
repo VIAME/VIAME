@@ -188,51 +188,59 @@ bool
 parse_packet( const YAML::const_iterator& it, KPF::packet_t& p )
 {
   bool okay = true;
-  switch (p.header.style)
+  try
   {
-  case KPF::packet_style::TS:
-    new (&p.timestamp) KPFC::timestamp_t( it->second.as<double>() );
-    break;
-
-  case KPF::packet_style::CONF:
-    new (&p.conf) KPFC::conf_t( it->second.as<double>() );
-    break;
-
-  case KPF::packet_style::CSET:
-    okay = parse_cset( p, it->second );
-    break;
-
-  case KPF::packet_style::EVAL:
-    new (&p.eval) KPFC::eval_t( it->second.as<double>() );
-    break;
-
-  case KPF::packet_style::ID:
-    new (&p.id) KPFC::id_t( it->second.as<int>() );
-    break;
-
-  case KPF::packet_style::KV:
-    new (&p.kv) KPFC::kv_t( it->first.as<string>(), it->second.as<string>() );
-    break;
-
-  case KPF::packet_style::META:
-    new (&p.meta) KPFC::meta_t( it->second.as<string>() );
-    p.header.domain = KPF::packet_header_t::NO_DOMAIN;
-    break;
-
-  case KPF::packet_style::POLY:
-    okay = parse_poly( p, it->second );
-    break;
-
-  case KPF::packet_style::GEOM:
-    okay = parse_geom( p, it->second.as<string>() );
-    break;
-
-  default:
+    switch (p.header.style)
     {
-      LOG_ERROR( main_logger, "No implementation for parsing packet of type " << p.header );
-      return false;
-    }
-  } // ...switch
+    case KPF::packet_style::TS:
+      new (&p.timestamp) KPFC::timestamp_t( it->second.as<double>() );
+      break;
+
+    case KPF::packet_style::CONF:
+      new (&p.conf) KPFC::conf_t( it->second.as<double>() );
+      break;
+
+    case KPF::packet_style::CSET:
+      okay = parse_cset( p, it->second );
+      break;
+
+    case KPF::packet_style::EVAL:
+      new (&p.eval) KPFC::eval_t( it->second.as<double>() );
+      break;
+
+    case KPF::packet_style::ID:
+      new (&p.id) KPFC::id_t( it->second.as<int>() );
+      break;
+
+    case KPF::packet_style::KV:
+      new (&p.kv) KPFC::kv_t( it->first.as<string>(), it->second.as<string>() );
+      break;
+
+    case KPF::packet_style::META:
+      new (&p.meta) KPFC::meta_t( it->second.as<string>() );
+      p.header.domain = KPF::packet_header_t::NO_DOMAIN;
+      break;
+
+    case KPF::packet_style::POLY:
+      okay = parse_poly( p, it->second );
+      break;
+
+    case KPF::packet_style::GEOM:
+      okay = parse_geom( p, it->second.as<string>() );
+      break;
+
+    default:
+      {
+        LOG_ERROR( main_logger, "No implementation for parsing packet of type " << p.header );
+        okay = false;
+      }
+    } // ... switch
+  } // ... try
+  catch (const YAML::Exception& e )
+  {
+    LOG_ERROR( main_logger, "YAML exception parsing packet (header " << p.header << "): " << e.what() );
+    okay = false;
+  }
 
   return okay;
 }

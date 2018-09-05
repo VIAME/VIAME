@@ -38,7 +38,7 @@ namespace algo {
 associate_detections_to_tracks
 ::associate_detections_to_tracks()
 {
-  attach_logger( "associate_detections_to_tracks" );
+  attach_logger( "algo.associate_detections_to_tracks" );
 }
 
 } } }

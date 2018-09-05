@@ -17,6 +17,7 @@ install(
         "${utils_dir}/kwiver-flags-clang.cmake"
         "${utils_dir}/kwiver-configcheck.cmake"
         "${utils_dir}/kwiver-cmake-future.cmake"
+        "${utils_dir}/kwiver-setup-python.cmake"
         "${utils_dir}/CommonFindMacros.cmake"
         "${utils_dir}/FindEigen3.cmake"
         "${utils_dir}/FindLog4cxx.cmake"

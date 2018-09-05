@@ -277,7 +277,10 @@ train_from_disk(
 
     std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
 
-    system( full_cmd.c_str() );
+    if ( system( full_cmd.c_str() ) != 0 )
+    {
+      LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
+    }
   }
 
   // Run training routine
@@ -299,7 +302,10 @@ train_from_disk(
 
   std::cout << "Running " << full_cmd << std::endl;
 
-  system( full_cmd.c_str() );
+  if ( system( full_cmd.c_str() ) != 0 )
+  {
+    LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -544,7 +550,7 @@ save_chip( std::string filename, cv::Mat image )
   if( m_random_int_shift > 0.0 )
   {
     double rand_uniform = rand() / ( RAND_MAX + 1.0 );
-    double start = ( 1.0 - m_random_int_shift ); 
+    double start = ( 1.0 - m_random_int_shift );
 
     double sf = start + 2 * m_random_int_shift * rand_uniform;
 

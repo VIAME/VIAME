@@ -6,8 +6,9 @@
 
 #include "file_format_base.h"
 
+#include <kwiversys/RegularExpression.hxx>
+
 #include <vul/vul_file.h>
-#include <vul/vul_reg_exp.h>
 #include <vul/vul_string.h>
 
 #include <track_oracle/core/schema_algorithm.h>
@@ -24,12 +25,14 @@ using std::vector;
 namespace // anon
 {
 
-vul_reg_exp
-glob_to_regexp( const string& glob )
+string
+glob_to_regexp_string( const string& glob )
 {
   //
   // This code is lifted straight from vul_file_iterator.cxx.
   //
+
+  static const string meta_chars = "^$.[()|?+*\\";
 
   string baseglob = vul_file::basename(glob);
   string::iterator i = baseglob.begin();
@@ -38,38 +41,51 @@ glob_to_regexp( const string& glob )
   string re = "^"; // match the start of the string
   while (i != baseglob.end())
   {
-    if (*i=='\\' && !prev_slash)
+    const char& c = *i;
+    if (c =='\\' && !prev_slash)
+    {
       prev_slash = true;
+    }
     else if (prev_slash)
     {
       prev_slash = false;
       re.append(1,('\\'));
       re.append(1,*i);
     }
-    else if (*i=='[' && !in_sqr_brackets)
+    else if (c=='[' && !in_sqr_brackets)
     {
       in_sqr_brackets = true;
       re.append(1,'[');
     }
-    else if (*i==']' && in_sqr_brackets)
+    else if (c==']' && in_sqr_brackets)
     {
       in_sqr_brackets = false;
       re.append(1,']');
     }
-    else if (*i=='?' && !in_sqr_brackets)
+    else if (c=='?' && !in_sqr_brackets)
+    {
       re.append(1,'.');
-    else if (*i=='*' && !in_sqr_brackets)
-      re.append(".*");
+    }
+    else if (c=='*' && !in_sqr_brackets)
+    {
+      re.append( ".*" );
+    }
+    else if (meta_chars.find_first_of( c ) != string::npos)
+    {
+      re.append( "\\" );
+      re.append(1, c );
+    }
     else
-      re.append(vul_reg_exp::protect(*i));
+    {
+      re.append(1, c);
+    }
 
     ++i;
   }
   // match the end of the string
   re += '$';
 
-  return vul_reg_exp( re.c_str() );
-
+  return re;
 }
 
 } // anon
@@ -126,7 +142,7 @@ file_format_base
   vul_string_downcase( fn );
   for (size_t i=0; i<this->globs.size(); ++i)
   {
-    vul_reg_exp r = glob_to_regexp( this->globs[i] );
+    kwiversys::RegularExpression r( glob_to_regexp_string( this->globs[i] ));
     if (r.find( fn )) return true;
   }
   return false;

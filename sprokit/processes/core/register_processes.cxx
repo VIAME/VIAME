@@ -55,11 +55,14 @@
 #include "initialize_object_tracks_process.h"
 #include "keyframe_selection_process.h"
 #include "matcher_process.h"
+#include "merge_detection_sets_process.h"
 #include "print_config_process.h"
 #include "read_descriptor_process.h"
 #include "read_object_track_process.h"
 #include "read_track_descriptor_process.h"
 #include "refine_detections_process.h"
+#include "serializer_process.h"
+#include "deserializer_process.h"
 #include "split_image_process.h"
 #include "stabilize_image_process.h"
 #include "track_features_process.h"
@@ -380,6 +383,36 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
+  fact = vpm.ADD_PROCESS( kwiver::serializer_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "serializer" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Serializes data types to byte streams. "
+                    "Input and output ports are dynamically created based on connection." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::deserializer_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "deserializer" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Deserializes data types from byte streams. "
+                    "Input and output ports are dynamically created based on connection." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::merge_detection_sets_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_detection_sets" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Merge two input detection sets into one output set." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, module_name );

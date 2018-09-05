@@ -374,7 +374,7 @@ track_features_klt
 ::track_features_klt()
 : d_(new priv)
 {
-  attach_logger("ocv_track_features_klt");
+  attach_logger("arrows.ocv.track_features_klt");
   d_->m_logger = this->logger();
 }
 

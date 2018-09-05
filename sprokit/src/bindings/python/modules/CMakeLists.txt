@@ -13,14 +13,14 @@ set(python_noarch TRUE)
 kwiver_create_python_init(sprokit/modules)
 set(python_noarch FALSE)
 
-sprokit_private_header_group(${modules_python_private_headers})
+kwiver_private_header_group(${modules_python_private_headers})
 
 if(UNIX)
   add_definitions( -DSPROKIT_LOAD_PYLIB_SYM )
 endif()
 
 kwiver_add_plugin(modules_python
-  SUBDIR          sprokit
+  SUBDIR          ${kwiver_plugin_process_subdir}
   SOURCES         ${modules_python_srcs}
                   ${modules_python_private_headers}
   PRIVATE         sprokit_pipeline

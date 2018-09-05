@@ -39,6 +39,8 @@ PYBIND11_MODULE(detected_object_type, m)
   py::class_<kwiver::vital::detected_object_type, std::shared_ptr<kwiver::vital::detected_object_type>>(m, "DetectedObjectType")
   .def(py::init<>())
   .def(py::init<std::vector<std::string>, std::vector<double>>())
+  .def(py::init<std::string, double>())
+
   .def("has_class_name", &kwiver::vital::detected_object_type::has_class_name,
     py::arg("class_name"))
   .def("score", &kwiver::vital::detected_object_type::score,

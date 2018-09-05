@@ -42,7 +42,6 @@ target_link_libraries( track_apix
   PRIVATE              kwiver_geographic
                        ${SHAPELIB_LIBRARY}
                        ${Boost_DATE_TIME_LIBRARY}
-                       vul
 )
 
 
