@@ -18,8 +18,13 @@ Updates since v1.2.0
 
 Vital
 
- * Added the data_serializer base algorithm to support serilization
-   of Vital types for distributed processing and other uses.
+ * Added new class to format config block to a stream and deprecated
+   print method in config_block class. Config block formatter provides
+   methods to produce different format outputs. Config block
+   formatting can be extended with plugins.
+
+* Added the data_serializer base algorithm to support serilization
+  of Vital types for distributed processing and other uses.
 
 Vital Bindings
 

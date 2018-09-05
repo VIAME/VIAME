@@ -37,8 +37,9 @@ kwiver_install_headers(
   )
 
 target_link_libraries(vital_vpm
-  PUBLIC              vital
+  PUBLIC              vital_util
   PRIVATE             vital_logger
+                      vital_exceptions
                       kwiversys
   )
 
