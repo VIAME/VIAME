@@ -50,6 +50,7 @@
 #include <arrows/serialize/json/timestamped_detected_object_set.h>
 #include <arrows/serialize/json/image_memory.h>
 #include <arrows/serialize/json/image.h>
+#include <arrows/serialize/json/timestamped_image_detected_object_set.h>
 
 #include <vital/util/string.h>
 
@@ -359,3 +360,85 @@ TEST( serialize, image)
   // Check the content of images
   EXPECT_EQ ( img, img_dser);
 }
+
+// ----------------------------------------------------------------------------
+TEST( serialize, timestamped_image_detected_object_set )
+{
+  kasj::timestamped_image_detected_object_set tstamp_img_obj_ser; // get serializer
+  kwiver::vital::algo::data_serializer::serialize_param_t sp;
+  kwiver::vital::timestamp tstamp{31, 21};
+  kwiver::vital::image img{200, 300, 3};
+
+  auto ser_dos_sptr = std::make_shared< kwiver::vital::detected_object_set >();
+  for ( int i=0; i < 10; i++ )
+  {
+    auto dot_sptr = std::make_shared<kwiver::vital::detected_object_type>();
+
+    dot_sptr->set_score( "first", 1 + i );
+    dot_sptr->set_score( "second", 10 + i );
+    dot_sptr->set_score( "third", 101 + i );
+    dot_sptr->set_score( "last", 121 + i );
+
+    auto det_object_sptr = std::make_shared< kwiver::vital::detected_object>(
+      kwiver::vital::bounding_box_d{ 1.0 + i, 2.0 + i, 3.0 + i, 4.0 + i }, 3.14159, dot_sptr );
+    det_object_sptr->set_detector_name( "test_detector" );
+    det_object_sptr->set_index( 1234 + i);
+
+    ser_dos_sptr->add( det_object_sptr );
+  }
+
+  kwiver::vital::any obj_any( ser_dos_sptr );
+  sp[ "detected_object_set" ] = obj_any;
+  
+  kwiver::vital::any tstamp_any( tstamp );
+  sp[ "timestamp"] = tstamp_any;
+
+  kwiver::vital::any img_any( img );
+  sp[ "image" ] = img_any;
+
+  auto mes = tstamp_img_obj_ser.serialize( sp );
+  
+  auto dser = tstamp_img_obj_ser.deserialize( mes );
+
+  
+  auto deser_dos_sptr = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >
+                              ( dser["detected_object_set"] );
+  for ( int i = 0; i < 10; i++ )
+  {
+    auto ser_do_sptr = ser_dos_sptr->at(i);
+    auto deser_do_sptr = deser_dos_sptr->at(i);
+
+    EXPECT_EQ( ser_do_sptr->bounding_box(), deser_do_sptr->bounding_box() );
+    EXPECT_EQ( ser_do_sptr->index(), deser_do_sptr->index() );
+    EXPECT_EQ( ser_do_sptr->confidence(), deser_do_sptr->confidence() );
+    EXPECT_EQ( ser_do_sptr->detector_name(), deser_do_sptr->detector_name() );
+
+    auto ser_dot_sptr = ser_do_sptr->type();
+    auto deser_dot_sptr = deser_do_sptr->type();
+
+    if ( ser_dot_sptr )
+    {
+      EXPECT_EQ( ser_dot_sptr->size(),deser_dot_sptr->size() );
+
+      auto ser_it = ser_dot_sptr->begin();
+      auto deser_it = deser_dot_sptr->begin();
+
+      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+      {
+        EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
+        EXPECT_EQ( deser_it->second, deser_it->second );
+      }
+    }
+  }
+  
+  kwiver::vital::timestamp tstamp_dser = 
+    kwiver::vital::any_cast< kwiver::vital::timestamp > ( 
+        dser[ "timestamp" ] );
+
+  EXPECT_EQ( tstamp, tstamp_dser );
+
+  kwiver::vital::image img_dser = 
+    kwiver::vital::any_cast< kwiver::vital::image > ( dser[ "image" ] ); 
+  EXPECT_EQ( img, img_dser );
+  
+} 
