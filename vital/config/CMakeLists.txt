@@ -50,9 +50,9 @@ kwiver_add_library( vital_config
   )
 
 target_link_libraries( vital_config
+  PUBLIC               vital_exceptions
   PRIVATE              kwiversys
                        vital_logger
-                       vital_exceptions
                        vital_util
                        vital_vpm
   )
@@ -60,7 +60,9 @@ target_link_libraries( vital_config
 kwiver_add_plugin( format_config
   SOURCES          format_config_block_plugin.cxx
   PRIVATE          vital_config
-                  # vital_vpm
+                   vital_vpm
+                   vital_util
+                   vital_exceptions
   SUBDIR           ${kwiver_plugin_module_subdir}
   )
 
