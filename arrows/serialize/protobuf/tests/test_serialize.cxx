@@ -65,21 +65,12 @@ TEST( serialize, bounding_box )
   kwiver::vital::bounding_box_d bbox { 1, 2, 3, 4 };
 
   kwiver::vital::any bb_any( bbox );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, bb_any);
-  auto mes = bbox_ser.serialize( sp );
-
-  // check element names
-  const auto& names = bbox_ser.element_names();
-
-  EXPECT_EQ( names.size(), 1 );
+  auto mes = bbox_ser.serialize( bb_any );
 
   std::cout << "Serialized bbox: \"" << *mes << "\"\n";
-  std::cout << "List of element names: " << kwiver::vital::join( names, ", " ) << std::endl;
 
-  auto dser = bbox_ser.deserialize( mes );
-  kwiver::vital::bounding_box_d bbox_dser =
-    kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+  auto dser = bbox_ser.deserialize( *mes );
+  kwiver::vital::bounding_box_d bbox_dser = kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser );
 
   std::cout << "bbox_dser { " << bbox_dser.min_x() << ", "
             << bbox_dser.min_y() << ", "
@@ -101,16 +92,13 @@ TEST( serialize, detected_object_type )
   dot.set_score( "last", 121 );
 
   kwiver::vital::any dot_any( dot );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = dot_any;
-
-  auto mes = dot_ser.serialize( sp );
+  auto mes = dot_ser.serialize( dot_any );
 
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
-  auto dser = dot_ser.deserialize( mes );
+  auto dser = dot_ser.deserialize( *mes );
   kwiver::vital::detected_object_type dot_dser =
-    kwiver::vital::any_cast< kwiver::vital::detected_object_type >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+    kwiver::vital::any_cast< kwiver::vital::detected_object_type >( dser );
 
   EXPECT_EQ( dot.size(), dot_dser.size() );
 
@@ -142,15 +130,12 @@ TEST( serialize, detected_object )
   obj->set_index( 1234 );
 
   kwiver::vital::any obj_any( *obj );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = obj_any;
-
-  auto mes = obj_ser.serialize( sp );
+  auto mes = obj_ser.serialize( obj_any );
 
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
-  auto dser = obj_ser.deserialize( mes );
-  auto obj_dser = kwiver::vital::any_cast< kwiver::vital::detected_object_sptr >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+  auto dser = obj_ser.deserialize( *mes );
+  auto obj_dser = kwiver::vital::any_cast< kwiver::vital::detected_object_sptr >( dser );
 
   EXPECT_EQ( obj->bounding_box(), obj_dser->bounding_box() );
   EXPECT_EQ( obj->index(), obj_dser->index() );
@@ -175,6 +160,7 @@ TEST( serialize, detected_object )
   }
 }
 
+// ----------------------------------------------------------------------------
 TEST( serialize, detected_object_set )
 {
   kasp::detected_object_set obj_ser; // get serializer
@@ -198,15 +184,12 @@ TEST( serialize, detected_object_set )
   }
 
   kwiver::vital::any obj_any( ser_dos_sptr );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = obj_any;
-
-  auto mes = obj_ser.serialize( sp );
+  auto mes = obj_ser.serialize( obj_any );
 
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
-  auto dser = obj_ser.deserialize( mes );
-  auto deser_dos_sptr = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+  auto dser = obj_ser.deserialize( *mes );
+  auto deser_dos_sptr = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >( dser );
 
   for ( int i = 0; i < 10; i++ )
   {
@@ -234,53 +217,24 @@ TEST( serialize, detected_object_set )
         EXPECT_EQ( deser_it->second, deser_it->second );
       }
     }
-
-  }
-
-  /*
-  EXPECT_EQ( obj->bounding_box(), obj_dser->bounding_box() );
-  EXPECT_EQ( obj->index(), obj_dser->index() );
-  EXPECT_EQ( obj->confidence(), obj_dser->confidence() );
-  EXPECT_EQ( obj->detector_name(), obj_dser->detector_name() );
-
-  dot = obj->type();
-  if (dot)
-  {
-    auto dot_dser = obj_dser->type();
-
-    EXPECT_EQ( dot->size(), dot_dser->size() );
-
-    auto o_it = dot->begin();
-    auto d_it = dot_dser->begin();
-
-    for (size_t i = 0; i < dot->size(); ++i )
-    {
-      EXPECT_EQ( *(o_it->first), *(d_it->first) );
-      EXPECT_EQ( o_it->second, d_it->second );
-    }
-  }
-  */
+  } // end for
 }
 
+// ----------------------------------------------------------------------------
 TEST (serialize, timestamp)
 {
   kasp::timestamp tstamp_ser;
   kwiver::vital::timestamp tstamp{1, 1};
 
   kwiver::vital::any tstamp_any(tstamp);
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, tstamp_any);
-  auto mes = tstamp_ser.serialize( sp );
- 
-  const auto& tags = tstamp_ser.element_names();
-  auto dser = tstamp_ser.deserialize( mes );
-  kwiver::vital::timestamp tstamp_dser = 
-    kwiver::vital::any_cast< kwiver::vital::timestamp > ( 
-        dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ]);
 
-  std::cout << tstamp_dser.pretty_print() << std::endl;
-  
-  EXPECT_EQ (tstamp, tstamp_dser);  
-} 
+  auto mes = tstamp_ser.serialize( tstamp_any );
+  auto dser = tstamp_ser.deserialize( *mes );
 
+  kwiver::vital::timestamp tstamp_dser =
+    kwiver::vital::any_cast< kwiver::vital::timestamp > ( dser );
 
+  // std::cout << tstamp_dser.pretty_print() << std::endl;
+
+  EXPECT_EQ (tstamp, tstamp_dser);
+}

@@ -17,18 +17,19 @@ process sim :: detected_object_input
 # --------------------------------------------------
 process ser :: serializer
         serialization_type = json
+##        dump_message = true
 
-connect from sim.detected_object_set to ser.dos
+connect from sim.detected_object_set to ser.msg-dos/dos
 
 # --------------------------------------------------
 process dser :: deserializer
         serialization_type = json
 
-connect from ser.dos to dser.dos
+connect from ser.msg-dos to dser.msg-dos
 
 # --------------------------------------------------
 process sink :: detected_object_output
         file_name = junk
         writer:type = csv
 
-connect from dser.dos to sink.detected_object_set
+connect from dser.msg-dos/dos to sink.detected_object_set

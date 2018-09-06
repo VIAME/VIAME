@@ -39,8 +39,6 @@ namespace protobuf {
 bounding_box::
 bounding_box()
 {
-  m_element_names.insert( DEFAULT_ELEMENT_NAME );
-
   // Verify that the version of the library that we linked against is
   // compatible with the version of the headers we compiled against.
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -54,10 +52,10 @@ bounding_box::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 bounding_box::
-serialize( const data_serializer::serialize_param_t& elements )
+serialize( const vital::any& element )
 {
   kwiver::vital::bounding_box_d bbox =
-    kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( elements.at( DEFAULT_ELEMENT_NAME ) );
+    kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( element );
 
   std::ostringstream msg;
   msg << "bounding_box "; // add type tag
@@ -74,13 +72,12 @@ serialize( const data_serializer::serialize_param_t& elements )
 }
 
 // ----------------------------------------------------------------------------
-vital::algo::data_serializer::deserialize_result_t
-bounding_box::
-deserialize( std::shared_ptr< std::string > message )
+vital::any bounding_box::
+deserialize( const std::string& message )
 {
   kwiver::vital::bounding_box_d bbox{ 0, 0, 0, 0 };
 
-  std::istringstream msg( *message );
+  std::istringstream msg( message );
   std::string tag;
   msg >> tag;
   msg.get();  // Eat the delimiter
@@ -102,10 +99,7 @@ deserialize( std::shared_ptr< std::string > message )
     convert_protobuf( proto_bbox, bbox );
   }
 
-  deserialize_result_t res;
-  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(bbox);
-
-  return res;
+  return kwiver::vital::any(bbox);
 }
 
 // ----------------------------------------------------------------------------

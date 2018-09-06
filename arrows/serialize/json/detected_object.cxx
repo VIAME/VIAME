@@ -49,9 +49,7 @@ namespace json {
 // ----------------------------------------------------------------------------
 detected_object::
 detected_object()
-{
-  m_element_names.insert( DEFAULT_ELEMENT_NAME );
-}
+{ }
 
 
 detected_object::
@@ -61,11 +59,11 @@ detected_object::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 detected_object::
-serialize( const serialize_param_t& elements )
+serialize( const vital::any& element )
 {
   // Get native data type from any
   kwiver::vital::detected_object_sptr obj =
-    kwiver::vital::any_cast< kwiver::vital::detected_object_sptr > ( elements.at( DEFAULT_ELEMENT_NAME ) );
+    kwiver::vital::any_cast< kwiver::vital::detected_object_sptr > ( element );
 
   std::stringstream msg;
   msg << "detected_object ";
@@ -77,13 +75,11 @@ serialize( const serialize_param_t& elements )
   return std::make_shared< std::string > ( msg.str() );
 }
 
-
 // ----------------------------------------------------------------------------
-vital::algo::data_serializer::deserialize_result_t
-detected_object::
-deserialize( std::shared_ptr< std::string > message )
+vital::any detected_object::
+deserialize( const std::string& message )
 {
-  std::stringstream msg(*message);
+  std::stringstream msg(message);
   auto obj = std::make_shared< kwiver::vital::detected_object >( kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
 
   std::string tag;
@@ -92,7 +88,7 @@ deserialize( std::shared_ptr< std::string > message )
   if (tag != "detected_object" )
   {
     LOG_ERROR( logger(), "Invalid data type tag received. Expected \"detected_object\", received \""
-               << tag << "\". Message dropped." );
+               << tag << "\". Message dropped. Default object returned." );
   }
   else
   {
@@ -100,10 +96,7 @@ deserialize( std::shared_ptr< std::string > message )
     load( ar, *obj );
   }
 
-  deserialize_result_t res;
-  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(obj);
-
-  return res;
+  return kwiver::vital::any(obj);
 }
 
 // ----------------------------------------------------------------------------

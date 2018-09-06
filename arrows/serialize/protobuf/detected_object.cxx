@@ -43,8 +43,6 @@ namespace protobuf {
 detected_object::
 detected_object()
 {
-  m_element_names.insert( DEFAULT_ELEMENT_NAME );
-
   // Verify that the version of the library that we linked against is
   // compatible with the version of the headers we compiled against.
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -58,10 +56,10 @@ detected_object::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 detected_object::
-serialize( const data_serializer::serialize_param_t& elements )
+serialize( const vital::any& element )
 {
   kwiver::vital::detected_object det_object =
-    kwiver::vital::any_cast< kwiver::vital::detected_object > ( elements.at( DEFAULT_ELEMENT_NAME ) );
+    kwiver::vital::any_cast< kwiver::vital::detected_object > ( element );
 
   std::ostringstream msg;
   msg << "detected_object "; // add type tag
@@ -79,12 +77,12 @@ serialize( const data_serializer::serialize_param_t& elements )
 }
 
 // ----------------------------------------------------------------------------
-vital::algo::data_serializer::deserialize_result_t
-detected_object::
-deserialize( std::shared_ptr< std::string > message )
+vital::any detected_object::
+deserialize( const std::string& message )
 {
-  std::istringstream msg( *message );
-  auto det_object_ptr = std::make_shared< kwiver::vital::detected_object >( kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
+  std::istringstream msg( message );
+  auto det_object_ptr = std::make_shared< kwiver::vital::detected_object >(
+    kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
 
   std::string tag;
   msg >> tag;
@@ -108,10 +106,7 @@ deserialize( std::shared_ptr< std::string > message )
     convert_protobuf( proto_det_object, *det_object_ptr );
   }
 
-  deserialize_result_t res;
-  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any( det_object_ptr );
-
-  return res;
+  return kwiver::vital::any( det_object_ptr );
 }
 
 // ----------------------------------------------------------------------------
