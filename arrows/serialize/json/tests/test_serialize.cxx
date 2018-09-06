@@ -39,6 +39,8 @@
 #include <vital/types/detected_object_type.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/timestamp.h>
+#include <vital/types/image.h>
+#include <vital/types/image.h>
 
 #include <arrows/serialize/json/bounding_box.h>
 #include <arrows/serialize/json/detected_object_type.h>
@@ -46,6 +48,8 @@
 #include <arrows/serialize/json/detected_object_set.h>
 #include <arrows/serialize/json/timestamp.h>
 #include <arrows/serialize/json/timestamped_detected_object_set.h>
+#include <arrows/serialize/json/image_memory.h>
+#include <arrows/serialize/json/image.h>
 
 #include <vital/util/string.h>
 
@@ -313,4 +317,45 @@ TEST( serialize, timestamped_detected_object_set)
       }
     }
   }
+}
+
+// ----------------------------------------------------------------------------
+TEST( serialize, image_memory)
+{
+  kasj::image_memory image_mem_ser;
+  kwiver::vital::image_memory img_mem{200*300*3};
+  kwiver::vital::any img_mem_any(img_mem);
+  
+  kwiver::vital::algo::data_serializer::serialize_param_t sp;
+  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, img_mem_any);
+  auto mes = image_mem_ser.serialize( sp );
+
+  auto dser = image_mem_ser.deserialize( mes );
+  kwiver::vital::image_memory img_mem_dser = 
+    kwiver::vital::any_cast< kwiver::vital::image_memory > (
+        dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+  // Check the size of images
+  EXPECT_EQ ( img_mem.size(), img_mem_dser.size());
+  // Check the content of images
+  EXPECT_EQ ( img_mem, img_mem_dser);
+}
+
+// ----------------------------------------------------------------------------
+TEST( serialize, image)
+{
+  kasj::image image_ser;
+  kwiver::vital::image img{200, 300, 3};
+  kwiver::vital::any img_any(img);
+  
+  kwiver::vital::algo::data_serializer::serialize_param_t sp;
+  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, img_any);
+  auto mes = image_ser.serialize( sp );
+
+  auto dser = image_ser.deserialize( mes );
+  kwiver::vital::image img_dser = 
+    kwiver::vital::any_cast< kwiver::vital::image > (
+        dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+  
+  // Check the content of images
+  EXPECT_EQ ( img, img_dser);
 }
