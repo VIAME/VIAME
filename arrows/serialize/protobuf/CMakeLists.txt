@@ -14,6 +14,7 @@ set( headers_public
   protobuf_util.h
   timestamp.h
   image.h
+  timestamped_image_detected_object_set.h
   )
 
 set( sources
@@ -24,6 +25,7 @@ set( sources
   protobuf_util.cxx
   timestamp.cxx
   image.cxx
+  timestamped_image_detected_object_set.cxx
   )
 
 link_directories(${PROTOBUF_LIBRARY})
