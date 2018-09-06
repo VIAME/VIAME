@@ -115,11 +115,11 @@ namespace protobuf {
   convert_protobuf( const kwiver::protobuf::image&  proto_img,
                     kwiver::vital::image& img )
   {
-    img = kwiver::vital::image(static_cast< size_t >(proto_img.width()),
-                               static_cast< size_t >(proto_img.height()),
-                               static_cast< size_t >(proto_img.depth()));
-    kwiver::arrows::serialize::protobuf::image_memory::convert_protobuf(
-        proto_img.data(), *img.memory());
+    img = kwiver::vital::image(static_cast< size_t >( proto_img.width() ),
+                               static_cast< size_t >( proto_img.height() ),
+                               static_cast< size_t >( proto_img.depth() ) );
+    kwiver::arrows::serialize::protobuf::image_memory::convert_protobuf( 
+        proto_img.data(), *img.memory() );
   }
 
   // ----------------------------------------------------------------------------
