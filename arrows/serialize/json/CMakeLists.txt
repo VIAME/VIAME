@@ -10,6 +10,7 @@ set( headers_public
   timestamped_detected_object_set.h
   image_memory.h
   image.h
+  timestamped_image_detected_object_set.h
   )
 
 set( sources
@@ -22,6 +23,7 @@ set( sources
   timestamped_detected_object_set.cxx
   image_memory.cxx
   image.cxx
+  timestamped_image_detected_object_set.cxx
   )
 
 kwiver_add_library( kwiver_serialize_json
