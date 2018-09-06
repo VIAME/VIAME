@@ -13,6 +13,7 @@ set( headers_public
   detected_object_set.h
   protobuf_util.h
   timestamp.h
+  image.h
   )
 
 set( sources
@@ -22,6 +23,7 @@ set( sources
   detected_object_set.cxx
   protobuf_util.cxx
   timestamp.cxx
+  image.cxx
   )
 
 link_directories(${PROTOBUF_LIBRARY})

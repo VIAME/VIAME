@@ -41,6 +41,8 @@
 #include "detected_object_set.h"
 #include "timestamp.h"
 #include "timestamped_detected_object_set.h"
+#include "image_memory.h"
+#include "image.h"
 
 namespace kwiver {
 namespace arrows {
@@ -88,6 +90,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::protobuf::detected_object_set >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::timestamp >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::timestamped_detected_object_set > ( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::image_memory > ( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::image > ( vpm );
   vpm.mark_module_as_loaded( module_name );
 }
 
