@@ -79,11 +79,12 @@ namespace protobuf {
     kasp::detected_object_set::convert_protobuf( *dos, proto_dos);
     add_proto_to_stream( msg, proto_dos );
 
-    // Serialize image
-    kwiver::vital::image img = 
-      kwiver::vital::any_cast< kwiver::vital::image >( elements.at( "image" ) );
+    // Serialize image_container
+    kwiver::vital::image_container_sptr img_sptr = 
+      kwiver::vital::any_cast< kwiver::vital::image_container_sptr >( 
+                                                      elements.at( "image" ) );
     kwiver::protobuf::image proto_img;
-    kasp::image::convert_protobuf( img, proto_img );
+    kasp::image::convert_protobuf( img_sptr->get_image(), proto_img );
     add_proto_to_stream(msg, proto_img);
     return std::make_shared< std::string > (msg.str());
   }
@@ -141,7 +142,9 @@ namespace protobuf {
       }
       kwiver::vital::image img;
       kasp::image::convert_protobuf( proto_img, img);
-      res[ "image" ] = kwiver::vital::any( img );
+      kwiver::vital::image_container_sptr img_ctr_sptr = 
+              std::make_shared< kwiver::vital::simple_image_container >( img );
+      res[ "image" ] = kwiver::vital::any( img_ctr_sptr );
     }
     return res; 
   }

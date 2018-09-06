@@ -37,6 +37,7 @@
 #include <vital/types/timestamp.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image.h>
+#include <vital/types/image_container.h>
 #include <vital/internal/cereal/cereal.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
@@ -69,8 +70,8 @@ namespace json {
                                                           at( "timestamp" ) );
     auto dos = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >( 
                    elements.at( "detected_object_set" ) );
-    auto img = kwiver::vital::any_cast< kwiver::vital::image >( elements.
-                                                          at( "image" ) );
+    auto img_ctr_sptr = kwiver::vital::any_cast< kwiver::vital::image_container_sptr >(
+                   elements.at( "image" ) );
 
     std::stringstream msg;
     msg << "timestamped_image_detected_object_set ";
@@ -78,7 +79,7 @@ namespace json {
       cereal::JSONOutputArchive ar( msg );
       timestamp::save( ar, tstamp );
       detected_object_set::save( ar, *dos );
-      image::save( ar, img );
+      image::save( ar, img_ctr_sptr->get_image() );
     }
     
     return std::make_shared< std::string > (msg.str());
@@ -110,10 +111,13 @@ namespace json {
       image::load( ar, img );
     }
 
+    kwiver::vital::image_container_sptr img_ctr_sptr = 
+            std::make_shared< kwiver::vital::simple_image_container >( img ); 
+                        
     res[ "timestamp" ] = kwiver::vital::any( tstamp );
     res[ "detected_object_set" ] = kwiver::vital::any( 
                                 kwiver::vital::detected_object_set_sptr(dos) );
-    res[ "image" ] = kwiver::vital::any( img );
+    res[ "image" ] = kwiver::vital::any( img_ctr_sptr );
     return res; 
   }
 } 

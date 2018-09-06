@@ -47,7 +47,7 @@ namespace protobuf {
       static constexpr char const* description = 
         "Serializes timestamp, image and detected object set using protobuf notation. "
         "This implementation handles a timestanp, port name \"timestamp\", "
-        "an image, port name \"image\" and a detected object set, port name "
+        "an image container, port name \"image\" and a detected object set, port name "
         "\"detected_object_set\" as inputs.";
 
       timestamped_image_detected_object_set();

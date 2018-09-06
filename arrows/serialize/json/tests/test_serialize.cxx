@@ -370,7 +370,9 @@ TEST( serialize, timestamped_image_detected_object_set )
   kwiver::vital::algo::data_serializer::serialize_param_t sp;
   kwiver::vital::timestamp tstamp{31, 21};
   kwiver::vital::image img{200, 300, 3};
-
+  kwiver::vital::image_container_sptr img_ctr = 
+            std::make_shared< kwiver::vital::simple_image_container >(img);
+  
   auto ser_dos_sptr = std::make_shared< kwiver::vital::detected_object_set >();
   for ( int i=0; i < 10; i++ )
   {
@@ -395,8 +397,8 @@ TEST( serialize, timestamped_image_detected_object_set )
   kwiver::vital::any tstamp_any( tstamp );
   sp[ "timestamp"] = tstamp_any;
 
-  kwiver::vital::any img_any( img );
-  sp[ "image" ] = img_any;
+  kwiver::vital::any img_ctr_any( img_ctr );
+  sp[ "image" ] = img_ctr_any;
 
   auto mes = tstamp_img_obj_ser.serialize( sp );
   
@@ -439,8 +441,8 @@ TEST( serialize, timestamped_image_detected_object_set )
 
   EXPECT_EQ( tstamp, tstamp_dser );
 
-  kwiver::vital::image img_dser = 
-    kwiver::vital::any_cast< kwiver::vital::image > ( dser[ "image" ] ); 
-  EXPECT_EQ( img, img_dser );
+  auto img_dser = 
+    kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( dser[ "image" ] ); 
+  EXPECT_EQ( img, img_dser->get_image() );
   
 } 
