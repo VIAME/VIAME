@@ -346,19 +346,21 @@ TEST( serialize, image)
 {
   kasj::image image_ser;
   kwiver::vital::image img{200, 300, 3};
-  kwiver::vital::any img_any(img);
+  kwiver::vital::image_container_sptr img_ctr = 
+            std::make_shared< kwiver::vital::simple_image_container >(img);
+  kwiver::vital::any img_any(img_ctr);
   
   kwiver::vital::algo::data_serializer::serialize_param_t sp;
   sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, img_any);
   auto mes = image_ser.serialize( sp );
 
   auto dser = image_ser.deserialize( mes );
-  kwiver::vital::image img_dser = 
-    kwiver::vital::any_cast< kwiver::vital::image > (
+  auto img_dser = 
+    kwiver::vital::any_cast< kwiver::vital::image_container_sptr > (
         dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
   
   // Check the content of images
-  EXPECT_EQ ( img, img_dser);
+  EXPECT_EQ ( img, img_dser->get_image());
 }
 
 // ----------------------------------------------------------------------------

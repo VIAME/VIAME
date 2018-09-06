@@ -34,6 +34,7 @@
 #include <cstddef>
 #include <cstring>
 
+#include <vital/types/image_container.h>
 namespace kwiver {
 namespace arrows {
 namespace serialize {
@@ -56,14 +57,15 @@ namespace protobuf {
   image::
   serialize( const data_serializer::serialize_param_t& elements )
   {
-    kwiver::vital::image img =
-      kwiver::vital::any_cast< kwiver::vital::image > ( elements.at( DEFAULT_ELEMENT_NAME ) );
+    kwiver::vital::image_container_sptr img_sptr =
+      kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( 
+                                          elements.at( DEFAULT_ELEMENT_NAME ) );
 
     std::ostringstream msg;
     msg << "image "; // add type tag
 
     kwiver::protobuf::image proto_img;
-    convert_protobuf( img, proto_img );
+    convert_protobuf( img_sptr->get_image(), proto_img );
 
     if ( ! proto_img.SerializeToOstream( &msg ) )
     {
@@ -79,7 +81,7 @@ namespace protobuf {
   image::
   deserialize( std::shared_ptr< std::string > message )
   {
-    kwiver::vital::image img; 
+    kwiver::vital::image img;
     std::istringstream msg( *message );
 
     std::string tag;
@@ -104,8 +106,10 @@ namespace protobuf {
       convert_protobuf( proto_img, img );
     }
 
+    kwiver::vital::image_container_sptr img_container_sptr = 
+                    std::make_shared< kwiver::vital::simple_image_container >( img );
     deserialize_result_t res;
-    res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(img);
+    res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any( img_container_sptr );
 
     return res;
   }

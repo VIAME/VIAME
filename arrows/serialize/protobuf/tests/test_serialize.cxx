@@ -40,7 +40,7 @@
 #include <arrows/serialize/protobuf/detected_object.h>
 #include <arrows/serialize/protobuf/detected_object_set.h>
 #include <arrows/serialize/protobuf/timestamp.h>
-#include <arrows/serialize/protobuf/image.h>
+
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/types/detected_object.h>
@@ -224,34 +224,17 @@ TEST( serialize, detected_object_set )
 TEST (serialize, timestamp)
 {
   kasp::timestamp tstamp_ser;
-
-  kwiver::vital::timestamp tstamp{ 23, 2 };
+  kwiver::vital::timestamp tstamp{1, 1};
 
   kwiver::vital::any tstamp_any(tstamp);
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, tstamp_any);
-  auto mes = tstamp_ser.serialize( sp );
-  auto dser = tstamp_ser.deserialize( mes );
+
+  auto mes = tstamp_ser.serialize( tstamp_any );
+  auto dser = tstamp_ser.deserialize( *mes );
+
   kwiver::vital::timestamp tstamp_dser =
-    kwiver::vital::any_cast< kwiver::vital::timestamp > (
-        dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ]);
-  EXPECT_EQ( tstamp, tstamp_dser );
-}
+    kwiver::vital::any_cast< kwiver::vital::timestamp > ( dser );
 
-// ----------------------------------------------------------------------------
-TEST( serialize, image)
-{
-  kasp::image image_ser;
-  kwiver::vital::image img{200, 300, 3};
-  auto img_container = std::make_shared<image_container>(img);
+  // std::cout << tstamp_dser.pretty_print() << std::endl;
 
-  kwiver::vital::any img_any(img_container);
-
-  auto mes = image_ser.serialize( img_any );
-  auto dser_any = image_ser.deserialize( mes );
-
-  kwiver::vital::image img_dser = kwiver::vital::any_cast< kwiver::vital::image > ( dser_any );
-
-  // Check the content of images
-  EXPECT_EQ ( img, img_dser);
+  EXPECT_EQ (tstamp, tstamp_dser);
 }

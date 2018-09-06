@@ -32,6 +32,7 @@
 #include "image_memory.h"
 
 #include <vital/types/image.h>
+#include <vital/types/image_container.h>
 #include <vital/internal/cereal/cereal.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
@@ -63,14 +64,15 @@ image::
 serialize( const serialize_param_t& elements )
 {
   // Get native data type from any
-  kwiver::vital::image obj =
-    kwiver::vital::any_cast< kwiver::vital::image > ( elements.at( DEFAULT_ELEMENT_NAME ) );
+  kwiver::vital::image_container_sptr obj =
+    kwiver::vital::any_cast< kwiver::vital::image_container_sptr > (
+                                         elements.at( DEFAULT_ELEMENT_NAME ) );
 
   std::stringstream msg;
   msg << "image ";
   {
     cereal::JSONOutputArchive ar( msg );
-    save( ar, obj );
+    save( ar, obj->get_image() );
   }
 
   return std::make_shared< std::string > ( msg.str() );
@@ -98,9 +100,10 @@ deserialize( std::shared_ptr< std::string > message )
     cereal::JSONInputArchive ar( msg );
     load( ar, img );
   }
-
+  kwiver::vital::image_container_sptr img_ctr_sptr = 
+                std::make_shared< kwiver::vital::simple_image_container >( img );
   deserialize_result_t res;
-  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(img);
+  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any( img_ctr_sptr );
 
   return res;
 }
@@ -108,7 +111,7 @@ deserialize( std::shared_ptr< std::string > message )
 // ----------------------------------------------------------------------------
 void
 image::
-save( cereal::JSONOutputArchive& archive, kwiver::vital::image& obj )
+save( cereal::JSONOutputArchive& archive, const kwiver::vital::image& obj )
 {
   kasj::image_memory::save( archive, *obj.memory() );
   archive( cereal::make_nvp( "width", obj.width() ),

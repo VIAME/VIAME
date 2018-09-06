@@ -63,7 +63,7 @@ public:
   virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
 
   // Converters that can be used in cases of nested structures
-  static void save( cereal::JSONOutputArchive& archive, kwiver::vital::image& obj );
+  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::image& obj );
   static void load( cereal::JSONInputArchive& archive, kwiver::vital::image& obj );
 };
 
