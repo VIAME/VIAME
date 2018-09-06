@@ -11,7 +11,6 @@ Windows:
 5. Merge in all libsvm changes
 6. Merge in all postgressql changes
 7. Merge in all pytorch and torchvision changes
-8. Merge in all python opencv changes, only if build is old
 8. Merge in CPU only pytorch changes, only if CPU only
 9. zip with 7zip
 
