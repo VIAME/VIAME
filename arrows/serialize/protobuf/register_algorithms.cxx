@@ -39,6 +39,7 @@
 #include "bounding_box.h"
 #include "detected_object_type.h"
 #include "detected_object_set.h"
+#include "timestamp.h"
 
 namespace kwiver {
 namespace arrows {
@@ -84,7 +85,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::protobuf::bounding_box >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::detected_object_type >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::detected_object_set >( vpm );
-
+  register_algorithm< kwiver::arrows::serialize::protobuf::timestamp >( vpm );
   vpm.mark_module_as_loaded( module_name );
 }
 

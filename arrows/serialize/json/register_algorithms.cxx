@@ -40,6 +40,7 @@
 #include "detected_object.h"
 #include "detected_object_type.h"
 #include "detected_object_set.h"
+#include "timestamp.h"
 
 namespace kwiver {
 namespace arrows {
@@ -86,7 +87,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::json::detected_object >( vpm );
   register_algorithm< kwiver::arrows::serialize::json::detected_object_type >( vpm );
   register_algorithm< kwiver::arrows::serialize::json::detected_object_set >( vpm );
-
+  register_algorithm< kwiver::arrows::serialize::json::timestamp >( vpm );
   vpm.mark_module_as_loaded( module_name );
 }
 

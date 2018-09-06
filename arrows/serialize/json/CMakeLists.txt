@@ -6,6 +6,7 @@ set( headers_public
   detected_object.h
   detected_object_set.h
   detected_object_type.h
+  timestamp.h
   )
 
 set( sources
@@ -14,6 +15,7 @@ set( sources
   detected_object.cxx
   detected_object_set.cxx
   detected_object_type.cxx
+  timestamp.cxx
   )
 
 kwiver_add_library( kwiver_serialize_json

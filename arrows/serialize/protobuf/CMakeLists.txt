@@ -11,6 +11,7 @@ set( headers_public
   detected_object_type.h
   detected_object.h
   detected_object_set.h
+  timestamp.h
   )
 
 set( sources
@@ -18,6 +19,7 @@ set( sources
   detected_object_type.cxx
   detected_object.cxx
   detected_object_set.cxx
+  timestamp.cxx
   )
 
 link_directories(${PROTOBUF_LIBRARY})
