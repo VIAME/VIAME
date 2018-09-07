@@ -37,11 +37,22 @@ process detector
     :gpu_index                             0
 
     # Image scaling parameters
-    :resize_option                         maintain_ar
+    :resize_option                         chip_and_original
     :resize_ni                             704
     :resize_nj                             704
-    :scale                                 1.0
+    :scale                                 1.25
+    :chip_step                             650
 
+  endblock
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                            nms
+  
+  block refiner:nms
+    :max_overlap                           0.70
+    :nms_scale_factor                      1.0
+    :output_scale_factor                   1.0
   endblock
 
 process detector_writer
@@ -54,7 +65,12 @@ process detector_writer
 connect from downsampler.output_1
         to   detector.image
 
+connect from input.image
+        to   nms_refiner.image
 connect from detector.detected_object_set
+        to   nms_refiner.detected_object_set
+
+connect from nms_refiner.detected_object_set
         to   detector_writer.detected_object_set
 
 
@@ -72,7 +88,7 @@ process detection_filter
   
   endblock
 
-connect from detector.detected_object_set
+connect from nms_refiner.detected_object_set
         to   detection_filter.detected_object_set
 
 process track_initializer
