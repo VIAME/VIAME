@@ -6,6 +6,15 @@ turning that into a Pytorch device.
 
 import torch
 
+def gpu_list_desc(use_for=None):
+    """Generate a description for a GPU list config trait.  The optional
+    use_for argument, if passed, causes text to be included that says
+    what task the GPU list will be used for.
+
+    """
+    return ('define which GPUs to use{}: "all", "None", or a comma-separated list, e.g. "1,2"'
+            .format('' if use_for is None else ' for ' + use_for))
+
 def parse_gpu_list(gpu_list_str):
     """Parse a string representing a list of GPU indices to a list of
     numeric GPU indices.  The indices should be separated by commas.

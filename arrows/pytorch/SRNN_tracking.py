@@ -65,7 +65,7 @@ from kwiver.arrows.pytorch.track import track_state, track, track_set
 from kwiver.arrows.pytorch.SRNN_matching import SRNN_matching, RnnType
 from kwiver.arrows.pytorch.pytorch_siamese_f_extractor import pytorch_siamese_f_extractor
 from kwiver.arrows.pytorch.iou_tracking import IOU_tracker
-from kwiver.arrows.pytorch.parse_gpu_list import parse_gpu_list
+from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 from kwiver.arrows.pytorch.MOT_bbox import MOT_bbox, GTFileType
 from kwiver.arrows.pytorch.models import get_config
@@ -108,7 +108,7 @@ class SRNN_tracking(KwiverProcess):
 
         #GPU list
         self.add_config_trait("gpu_list", "gpu_list", 'all',
-                              'define which GPU to use for SRNN tracking. only three options: None, all, 1,2')
+                              gpu_list_desc(use_for='SRNN tracking'))
         self.declare_config_using_trait('gpu_list')
 
         # siamese
