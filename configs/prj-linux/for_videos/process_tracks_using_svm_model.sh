@@ -1,1 +1,1 @@
-echo "Script not yet implemented"
+echo "Script not yet implemented for processing videos"
