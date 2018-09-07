@@ -43,7 +43,6 @@
 #include <fstream>
 #include <ctime>
 
-#include <vital/math_constants.h>
 #include <vital/exceptions.h>
 #include <vital/io/eigen_io.h>
 
@@ -60,7 +59,10 @@
 #include <arrows/core/triangulate.h>
 #include <arrows/core/transform.h>
 #include <vital/algo/estimate_pnp.h>
+#include <vital/types/camera_perspective_map.h>
 #include <arrows/core/sfm_utils.h>
+
+#define M_PI 3.141592653589793238462643383279
 
 using namespace kwiver::vital;
 
@@ -71,8 +73,6 @@ namespace core {
 typedef std::map< frame_id_t, simple_camera_perspective_sptr >               map_cam_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::iterator       cam_map_itr_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::const_iterator const_cam_map_itr_t;
-typedef camera_map_of_<simple_camera_perspective>                            simple_camera_perspective_map;
-typedef std::shared_ptr<simple_camera_perspective_map>                       simple_camera_perspective_map_sptr;
 
 typedef vital::landmark_map::map_landmark_t map_landmark_t;
 
@@ -132,7 +132,7 @@ public:
   friend std::istream& operator>>(std::istream& s, rel_pose & rp);
 };
 
-const double rel_pose::target_angle = 20.0 * deg_to_rad;
+const double rel_pose::target_angle = 20.0 * M_PI / 180.0;
 
 /// output stream operator for a landmark base class
 std::ostream&
@@ -239,7 +239,7 @@ public:
     simple_camera_perspective_map_sptr cams,
     const std::vector<track_sptr>& trks,
     std::set<landmark_id_t>& inlier_lm_ids,
-    unsigned int min_inlier_observations = 2) const;
+    int min_inlier_observations = 2) const;
 
   void triangulate_landmarks_visible_in_frames(
     landmark_map::map_landmark_t& lmks,
@@ -377,6 +377,10 @@ public:
   void init_base_camera_from_metadata(
     sfm_constraints_sptr constraints);
 
+  void merge_landmarks(map_landmark_t &lmks,
+    simple_camera_perspective_map_sptr const &cams,
+    feature_track_set_sptr &tracks);
+
   bool verbose;
   bool continue_processing;
   double interim_reproj_thresh;
@@ -409,6 +413,8 @@ public:
   bool m_init_intrinsics_from_metadata;
   bool m_config_defines_base_intrinsics;
   bool m_do_final_sfm_cleaning;
+  bool m_force_common_intrinsics;
+  std::set<landmark_id_t> m_already_merged_landmarks;
 };
 
 initialize_cameras_landmarks_keyframe::priv
@@ -426,7 +432,7 @@ initialize_cameras_landmarks_keyframe::priv
   lm_triangulator(new core::triangulate_landmarks()),
   bundle_adjuster(),
   m_logger(vital::get_logger("arrows.core.initialize_cameras_landmarks_keyframe")),
-  m_thresh_triang_cos_ang(cos(deg_to_rad * 2.0)),
+  m_thresh_triang_cos_ang(cos((M_PI / 180.0) * 2.0)),
   m_rng(m_rd()),
   m_reverse_ba_error_ratio(2.0),
   m_enable_BA_callback(false),
@@ -436,7 +442,8 @@ initialize_cameras_landmarks_keyframe::priv
   m_metadata_init_permissive_triang_thresh(10000),
   m_init_intrinsics_from_metadata(true),
   m_config_defines_base_intrinsics(false),
-  m_do_final_sfm_cleaning(false)
+  m_do_final_sfm_cleaning(false),
+  m_force_common_intrinsics(false)
 {
 
   }
@@ -484,7 +491,7 @@ initialize_cameras_landmarks_keyframe::priv
   vector_3d vel;
   vel.setZero();
 
-  auto existing_cams = cams->T_cameras();
+  auto existing_cams = cams->simple_perspective_cameras();
   auto closest_fid = -1;
   auto next_closest_fid = -1;
   auto it = existing_cams.find(vel_frame);
@@ -603,7 +610,7 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   const std::vector<track_sptr>& trks,
   std::set<landmark_id_t>& inlier_lm_ids,
-  unsigned int min_inlier_observations) const
+  int min_inlier_observations) const
 {
   typedef landmark_map::map_landmark_t lm_map_t;
   lm_map_t init_lms;
@@ -774,7 +781,7 @@ initialize_cameras_landmarks_keyframe::priv
   }
 
   //ok now we know what frames the down select tracks cover.  Build a mask for each of these frames.
-  for (auto cam : cams->T_cameras())
+  for (auto cam : cams->simple_perspective_cameras())
   {
     auto fid = cam.first;
     if (fid < first_frame || fid > last_frame)
@@ -873,6 +880,7 @@ initialize_cameras_landmarks_keyframe::priv
 ::calc_rel_pose(frame_id_t frame_0, frame_id_t frame_1,
   const std::vector<track_sptr>& trks) const
 {
+  typedef landmark_map::map_landmark_t lm_map_t;
   // extract coresponding image points and landmarks
   std::vector<vector_2d> pts_right, pts_left;
 
@@ -928,7 +936,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   map_landmark_t lms;
 
-  simple_camera_perspective_map::frame_to_T_sptr_map cams;
+  simple_camera_perspective_map::map_simple_camera_perspective_t cams;
   cams[frame_1] = std::static_pointer_cast<simple_camera_perspective>(cam.clone());
   cams[frame_0] = std::static_pointer_cast<simple_camera_perspective>(m_base_camera.clone());
 
@@ -938,7 +946,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   std::set<frame_id_t> inlier_lm_ids;
   retriangulate(lms, cam_map, trks, inlier_lm_ids);
-  size_t inlier_count_prev = 0;
+  int inlier_count_prev = 0;
 
   //optimizing loop
   while (inlier_lm_ids.size() > inlier_count_prev)
@@ -962,7 +970,12 @@ initialize_cameras_landmarks_keyframe::priv
   rp.well_conditioned_landmark_count = inlier_lm_ids.size();
   rp.angle_sum = 0;
 
+  int im_w = 2.0*cams[frame_0]->intrinsics()->principal_point().x();
+  int im_h = 2.0*cams[frame_0]->intrinsics()->principal_point().y();
   rp.coverage_0 = image_coverage(cam_map, trks, lms, frame_0);
+
+  im_w = 2.0*cams[frame_1]->intrinsics()->principal_point().x();
+  im_h = 2.0*cams[frame_1]->intrinsics()->principal_point().y();
   rp.coverage_1 = image_coverage(cam_map, trks, lms, frame_1);
 
   for (auto lm : lms)
@@ -1051,6 +1064,7 @@ initialize_cameras_landmarks_keyframe::priv
 
     m_kf_match_matrix = match_matrix(tracks, m_kf_mm_frames);
 
+    typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, 1> vectorXu;
     const int cols = m_kf_match_matrix.cols();
 
     const int min_matches = 100;
@@ -1082,7 +1096,7 @@ initialize_cameras_landmarks_keyframe::priv
     }
 
 #pragma omp parallel for schedule(dynamic, 10)
-    for (int64_t i = 0; i < static_cast<int64_t>(pairs_to_process.size()); ++i)
+    for (int64_t i = 0; i < pairs_to_process.size(); ++i)
     {
       const auto &tp = pairs_to_process[i];
       auto fid_0 = tp.first;
@@ -1092,7 +1106,7 @@ initialize_cameras_landmarks_keyframe::priv
       std::sort(tks0.begin(), tks0.end());
       std::sort(tks1.begin(), tks1.end());
       std::vector<kwiver::vital::track_sptr> tks_01;
-      std::set_intersection(tks0.begin(), tks0.end(), tks1.begin(), tks1.end(), std::back_inserter(tks_01));
+      auto tk_it = std::set_intersection(tks0.begin(), tks0.end(), tks1.begin(), tks1.end(), std::back_inserter(tks_01));
 
       //ok now we have the common tracks between the two frames.
       //make the essential matrix, decompose it and store it in a relative pose
@@ -1269,7 +1283,7 @@ initialize_cameras_landmarks_keyframe::priv
   const kwiver::vital::landmark_map::map_landmark_t& lms,
   frame_id_t frame) const
 {
-  simple_camera_perspective_map::frame_to_T_sptr_map cam_map;
+  vital::camera_map::map_camera_t cam_map;
   cam_map[frame] = cams->find(frame);
   std::set<frame_id_t> frames;
   frames.insert(frame);
@@ -1377,7 +1391,15 @@ initialize_cameras_landmarks_keyframe::priv
 {
   LOG_DEBUG(m_logger, "resectioning camera " << fid_to_resection);
   std::shared_ptr<vital::simple_camera_perspective> nc(std::static_pointer_cast<simple_camera_perspective>(m_base_camera.clone()));
-  nc->set_intrinsics(m_base_camera.intrinsics());
+
+  if (m_force_common_intrinsics)
+  {
+    nc->set_intrinsics(m_base_camera.intrinsics());
+  }
+  else
+  {
+    nc->set_intrinsics(m_base_camera.intrinsics()->clone());
+  }
 
   //do 3PT algorithm here
   three_point_pose(fid_to_resection, nc, tracks, lms,
@@ -1440,7 +1462,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   auto pos_priors = constraints->get_camera_position_priors();
 
-  auto persp_cams = cams->T_cameras();
+  auto persp_cams = cams->simple_perspective_cameras();
 
   if (!m_similarity_estimator)
   {
@@ -1453,6 +1475,7 @@ initialize_cameras_landmarks_keyframe::priv
   for (auto &cam : persp_cams)
   {
     auto cam_fid = cam.first;
+    frame_id_t closest_prior_fid = -1;
     int best_fid_difference = std::numeric_limits<int>::max();
     vector_3d closest_prior;
     for (auto &prior : pos_priors)
@@ -1462,6 +1485,7 @@ initialize_cameras_landmarks_keyframe::priv
       if (cur_diff < best_fid_difference)
       {
         best_fid_difference = cur_diff;
+        closest_prior_fid = prior_fid;
         closest_prior = prior.second;
       }
     }
@@ -1481,7 +1505,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   Eigen::Matrix<double, 3, Eigen::Dynamic> cam_mat;
   cam_mat.resize(3, cam_positions.size());
-  for (size_t v = 0; v < cam_positions.size(); ++v)
+  for (int v = 0; v < cam_positions.size(); ++v)
   {
     cam_mat(0, v) = cam_positions[v].x();
     cam_mat(1, v) = cam_positions[v].y();
@@ -1524,7 +1548,7 @@ initialize_cameras_landmarks_keyframe::priv
   }
 
   int net_cams_pointing_up = 0;
-  for (auto &cam : cams->T_cameras())
+  for (auto &cam : cams->simple_perspective_cameras())
   {
     auto Rmatrix = cam.second->rotation().matrix();
     auto Y_axis = Rmatrix.row(1);
@@ -1540,7 +1564,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (net_cams_pointing_up < 0)
   {
-    auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->T_cameras());
+    auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->simple_perspective_cameras());
     auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
     landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
     necker_reverse(nr_cams, ba_lms2, false);
@@ -1579,8 +1603,16 @@ initialize_cameras_landmarks_keyframe::priv
     lms.clear();
     auto cam_0 = std::make_shared<vital::simple_camera_perspective>();
     auto cam_1 = std::make_shared<vital::simple_camera_perspective>();
-    cam_0->set_intrinsics(m_base_camera.intrinsics());
-    cam_1->set_intrinsics(m_base_camera.intrinsics());
+    if (m_force_common_intrinsics)
+    {
+      cam_0->set_intrinsics(m_base_camera.intrinsics());
+      cam_1->set_intrinsics(m_base_camera.intrinsics());
+    }
+    else
+    {
+      cam_0->set_intrinsics(m_base_camera.intrinsics()->clone());
+      cam_1->set_intrinsics(m_base_camera.intrinsics()->clone());
+    }
     cam_1->set_rotation(vital::rotation_d(rp_init.R01));
     cam_1->set_translation(rp_init.t01);
     cams->insert(rp_init.f0, cam_0);
@@ -1654,7 +1686,7 @@ public:
 
   bool remove_set(const std::set<T> &rem_set)
   {
-    size_t hash = hash_set(rem_set);
+    size_t hash = hash_set(test_set);
     auto it_pair = m_map.equal_range(hash);
     for (auto it = it_pair.first; it != it_pair.second; ++it)
     {
@@ -1727,7 +1759,7 @@ void initialize_cameras_landmarks_keyframe::priv
 
   auto c = cams->find(target_frame);
 
-  if (!c || (c->center().x() == 0 && c->center().y() == 0 && c->center().z() == 0))
+  if (!c || c->center().x() == 0 && c->center().y() == 0 && c->center().z() == 0)
   {
     return;
   }
@@ -1812,7 +1844,7 @@ void initialize_cameras_landmarks_keyframe::priv
       std::uniform_int_distribution<size_t> uni(0, cameras.size() - 1); // guaranteed unbiased
       auto ri = uni(m_rng);
       auto cams_it = cameras.begin();
-      for (unsigned int i = 0; i < ri; ++i)
+      for (int i = 0; i < ri; ++i)
       {
         ++cams_it;
       }
@@ -1839,7 +1871,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (m_frac_frames_for_init > 0)
   {
-    size_t num_init_keyframes = keyframes.size() * m_frac_frames_for_init;
+    int num_init_keyframes = keyframes.size() * m_frac_frames_for_init;
     for (auto kfid : keyframes)
     {
       beginning_keyframes.insert(kfid);
@@ -1907,8 +1939,8 @@ initialize_cameras_landmarks_keyframe::priv
   const simple_camera_perspective_map &cams) const
 {
   auto chgs = std::make_shared<feature_track_set_changes>();
-
-  for (auto &cam : cams.T_cameras())
+  /*
+  for (auto &cam : cams.simple_perspective_cameras())
   {
     auto fid = cam.first;
     auto at = tracks->active_tracks(fid);
@@ -1927,6 +1959,7 @@ initialize_cameras_landmarks_keyframe::priv
       chgs->add_change(fid, tk->id(), fts->inlier);
     }
   }
+  */
   return chgs;
 }
 
@@ -1974,7 +2007,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   //list remaining frames to resection
   std::set<frame_id_t> frames_to_resection = keyframes;
-  auto sc_map = cams->T_cameras();
+  auto sc_map = cams->simple_perspective_cameras();
   for (auto c : sc_map)
   {
     frames_to_resection.erase(c.first);
@@ -1996,8 +2029,7 @@ initialize_cameras_landmarks_keyframe::priv
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
   while (!frames_to_resection.empty() &&
-    (m_max_cams_in_keyframe_init < 0 ||
-     cams->size() < static_cast<size_t>(m_max_cams_in_keyframe_init)))
+    (m_max_cams_in_keyframe_init < 0 || cams->size() < m_max_cams_in_keyframe_init))
   {
     frame_id_t next_frame_id = select_next_camera(frames_to_resection, cams, lms, tracks);
     if (next_frame_id == -1)
@@ -2146,7 +2178,7 @@ initialize_cameras_landmarks_keyframe::priv
         {
           // reverse cameras and optimize again
 
-          auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->T_cameras());
+          auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->simple_perspective_cameras());
           auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
 
           landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
@@ -2248,10 +2280,17 @@ initialize_cameras_landmarks_keyframe::priv
 
         cam->set_center(pos_loc);
         cam->set_rotation(R_loc);
-        cam->set_intrinsics(m_base_camera.get_intrinsics());
+        if (m_force_common_intrinsics)
+        {
+          cam->set_intrinsics(m_base_camera.get_intrinsics());
+        }
+        else
+        {
+          cam->set_intrinsics(m_base_camera.get_intrinsics()->clone());
+        }
         cams->insert(fid, cam);
       }
-    }
+    }    
   }
   else
   {
@@ -2259,7 +2298,7 @@ initialize_cameras_landmarks_keyframe::priv
     if (m_init_intrinsics_from_metadata|| m_config_defines_base_intrinsics)
     {
       //set each camera's intrinsics to match the base camera's that was set from the metadata
-      auto sp_cams = cams->T_cameras();
+      auto sp_cams = cams->simple_perspective_cameras();
       for (auto cam : sp_cams)
       {
         cam.second->set_intrinsics(m_base_camera.get_intrinsics());
@@ -2348,6 +2387,40 @@ initialize_cameras_landmarks_keyframe::priv
     double reproj_thresh = iterations < num_permissive_triangulation_iterations ? 50.0*interim_reproj_thresh : 5.0*interim_reproj_thresh;
     clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, reproj_thresh,3);
 
+    auto cc = connected_camera_components(cams->cameras(), lms, tracks);
+
+    if (cc.size() > 1)
+    {
+      int cc_idx = 0;
+      int largest_cc_idx = -1;
+      int largest_cc_size = -1;
+      for (auto c : cc)
+      {
+        int c_size = c.size();
+        if (c_size > largest_cc_size)
+        {
+          largest_cc_size = c_size;
+          largest_cc_idx = cc_idx;
+        }
+        ++cc_idx;
+      }
+
+      std::set<frame_id_t> disconnected_cams;
+      auto largest_c = cc[largest_cc_idx];
+      for (auto cam : cams->cameras())
+      {
+        if (largest_c.find(cam.first) == largest_c.end())
+        {
+          disconnected_cams.insert(cam.first);
+        }
+      }
+
+      for (auto rem_cam : disconnected_cams)
+      {
+        cams->erase(rem_cam);
+      }
+    }
+
     if (cams->size() < 2)
     {
       cams->clear();
@@ -2400,22 +2473,23 @@ initialize_cameras_landmarks_keyframe::priv
 
   // get set of keyframe ids
   auto keyframes = get_keyframe_ids(tracks);
-  if (keyframes.empty())
-  {
-    LOG_DEBUG(m_logger, "no keyframes, cannot initilize reconstruction");
-    return false;
-  }
 
   // first try using the existing cameras to initialize the reconstruction
-  if (metadata_centric_keyframe_initialization(cams, true, landmarks, tracks, constraints, keyframes, callback))
-  {
-    return true;
-  }
+  //if (metadata_centric_keyframe_initialization(cams, true, landmarks, tracks, constraints, keyframes, callback))
+  //{
+  //  return true;
+  //}
 
   // now try using the metadata to initialize the reconstruction
   if (metadata_centric_keyframe_initialization(cams, false, landmarks, tracks, constraints, keyframes, callback))
   {
     return true;
+  }
+
+  if (keyframes.empty())
+  {
+  LOG_DEBUG(m_logger, "no keyframes, cannot initilize reconstruction");
+  return false;
   }
 
   // now try a vision only approach
@@ -2517,7 +2591,7 @@ initialize_cameras_landmarks_keyframe::priv
 {
   //first record all camera positions
   std::map<frame_id_t, vector_3d> orig_positions;
-  auto spc = cams->T_cameras();
+  auto spc = cams->simple_perspective_cameras();
   std::set<frame_id_t> fixed_cams;
   for (auto &c : spc)
   {
@@ -2563,7 +2637,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   //ok, now all cams should be consistent with the first cam.  Do I reverse them all
   //first get all the camera pointers again, in case they have changed.
-  spc = cams->T_cameras();
+  spc = cams->simple_perspective_cameras();
   int reverse_it_if_positive = 0;
   for (auto cur_cam_pair : spc)
   {
@@ -2643,7 +2717,7 @@ initialize_cameras_landmarks_keyframe::priv
   registered_frames.clear();
   non_registered_frames.clear();
 
-  auto pcams_map = cams->T_cameras();
+  auto pcams_map = cams->simple_perspective_cameras();
   non_registered_frames = tracks->all_frame_ids();
   for (auto &p : pcams_map)
   {
@@ -2659,7 +2733,7 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<frame_id_t> &frames_to_register,
   frame_id_t &fid_to_register, frame_id_t &closest_frame) const
 {
-  auto existing_cams = cams->T_cameras();
+  auto existing_cams = cams->simple_perspective_cameras();
   frame_id_t min_frame_diff = std::numeric_limits<frame_id_t>::max();
 
   std::vector<std::pair<frame_id_t,frame_id_t>> min_diff_cams;
@@ -2713,6 +2787,7 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_sptr resectioned_cam, bundled_cam;
   int bundled_inlier_count = 0;
   int resection_inlier_count = 0;
+  bool good_pose = false;
 
   int min_inliers = 50;
 
@@ -2720,6 +2795,24 @@ initialize_cameras_landmarks_keyframe::priv
   cur_fid.insert(fid_to_register);
   auto cur_frame_landmarks = find_visible_landmarks_in_frames(lmks, tracks, cur_fid);
   auto cur_landmarks = get_sub_landmark_map(lmks, cur_frame_landmarks);
+
+  //get a random subset of the current landmarks
+  std::vector<landmark_id_t> lm_ids;
+  lm_ids.reserve(cur_landmarks.size());
+  for (auto &lm : cur_landmarks)
+  {
+    lm_ids.push_back(lm.first);
+  }
+  std::random_shuffle(lm_ids.begin(), lm_ids.end());
+  map_landmark_t cur_landmarks_rand_sub;
+  for (auto lm_id : lm_ids)
+  {
+    cur_landmarks_rand_sub[lm_id] = cur_landmarks[lm_id];
+    if (cur_landmarks_rand_sub.size() >= 250)
+    {
+      break;
+    }
+  }
 
   auto ba_config = bundle_adjuster->get_configuration();
   bool opt_focal_was_set = ba_config->get_value<bool>("optimize_focal_length");
@@ -2736,16 +2829,23 @@ initialize_cameras_landmarks_keyframe::priv
     }
     //use the pose of the closest camera as starting point
     bundled_cam = std::static_pointer_cast<simple_camera_perspective>(closest_cam->clone());
+    if (!m_force_common_intrinsics)
+    {
+      //make sure this camera has it's own intrinsics object
+      bundled_cam->set_intrinsics(closest_cam->intrinsics()->clone());
+    }
+
     //use constant velocity model
     bundled_cam->set_center(closest_cam->center() + (fid_to_register - closest_cam_fid) * vel);
     cams->insert(fid_to_register, bundled_cam);
 
     int prev_bundled_inlier_count = -1;
     int loop_count = 0;
+
     while (bundled_inlier_count > prev_bundled_inlier_count)
     {
       //DOES THIS LOOP HELP?
-      bundle_adjuster->optimize(*cams, cur_landmarks, tracks, already_registred_cams, cur_frame_landmarks, constraints);
+      bundle_adjuster->optimize(*cams, cur_landmarks_rand_sub, tracks, already_registred_cams, cur_frame_landmarks, constraints);
 
       bundled_cam = cams->find(fid_to_register);
       prev_bundled_inlier_count = bundled_inlier_count;
@@ -2863,6 +2963,311 @@ initialize_cameras_landmarks_keyframe::priv
   landmarks = store_landmarks(lmks, variable_landmarks);
 }
 
+
+std::set<uint32_t> hash_point(const vector_3d & X_min, const vector_3d &X, double volume_unit_size)
+{
+  const int bins_per_dim(1000);
+  auto X_bb = X - X_min;
+
+  int x_bin = int(X_bb[0] / volume_unit_size) % bins_per_dim;
+  int y_bin = int(X_bb[1] / volume_unit_size) % bins_per_dim;
+  int z_bin = int(X_bb[2] / volume_unit_size) % bins_per_dim;
+
+  std::set<uint32_t> hash_bins;
+
+  for (int xx = -1; xx <= 1; ++xx)
+  {
+    for (int yy = -1; yy <= 1; ++yy)
+    {
+      for (int zz = -1; zz <= 1; ++zz)
+      {
+        uint32_t hash_val = (x_bin + xx) + bins_per_dim * (y_bin + yy) + bins_per_dim * bins_per_dim * (z_bin + zz);
+        hash_bins.insert(hash_val);
+      }
+    }
+  }
+
+  return hash_bins;
+}
+
+
+void 
+initialize_cameras_landmarks_keyframe::priv
+::merge_landmarks(map_landmark_t &lmks, 
+                  simple_camera_perspective_map_sptr const &cams, 
+                  feature_track_set_sptr &tracks)
+{
+
+  //do I have any landmarks that don't have tracks?
+  int num_landmarks_without_tracks = 0;
+  for (auto &lm : lmks)
+  {
+    if (!tracks->get_track(lm.first))
+    {
+      ++num_landmarks_without_tracks;
+    }
+  }
+
+  if (num_landmarks_without_tracks)
+  {
+    LOG_WARN(m_logger, "beginning num landmarks without tracks " << num_landmarks_without_tracks);
+  }
+
+
+  // get bounding box of landmarks
+  vector_3d X_min, X_max;
+  X_min.setConstant(std::numeric_limits<double>::max());
+  X_max.setConstant(-(std::numeric_limits<double>::max()/2));
+  for (auto &lm : lmks)
+  {
+    auto X = lm.second->loc();
+    for (int i = 0; i < 3; ++i)
+    {
+      X_min[i] = std::min<double>(X_min[i], X[i]);
+      X_max[i] = std::max<double>(X_max[i], X[i]);
+    }
+  }
+
+  // hash all landmarks
+
+  const double volume_unit_size = 2.0;
+
+  std::unordered_map<uint32_t, std::set<landmark_id_t>> lm_hash;
+  lm_hash.reserve(0.5*lmks.size());
+
+  for (auto &lm : lmks)
+  {
+    auto hashes = hash_point(X_min, lm.second->loc(), volume_unit_size);
+    
+    for (auto hv : hashes)
+    {
+      if (lm_hash.count(hv) == 0)
+      {
+        auto new_set = std::set<landmark_id_t>();
+        new_set.insert(lm.first);
+        lm_hash[hv] = new_set;
+      }
+      else
+      {
+        lm_hash[hv].insert(lm.first);
+      }
+    }
+  }
+
+  std::set<landmark_id_t> removed_landmarks;
+
+  for (auto &lm : lmks)
+  {
+    if (m_already_merged_landmarks.count(lm.first) > 0)
+    {
+      //we already tried to merge this landmark
+      continue;
+    }
+
+    if (removed_landmarks.count(lm.first) > 0)
+    {
+      //we already removed this landmark
+      continue;
+    }
+
+    //check to make sure we have a track for the landmark
+    auto cur_tk = tracks->get_track(lm.first);
+    if (!cur_tk)
+    {
+      continue;
+    }
+
+    // Add the landmark to the already merged set so we won't try again.
+    // Only when new landmarks are added to the set will we try to merge them
+    // with landmarks near by.  This could cause problems after loop completion 
+    // when the model is bent significantly.  Therefore, at loop completion we
+    // should clear m_already_marged_landmarks so that we try all the landmarks again.
+    m_already_merged_landmarks.insert(lm.first);
+
+    //ok get all the hashes for the point
+    auto hashes = hash_point(X_min, lm.second->loc(), volume_unit_size);
+
+    //collect all the points in the hash bins
+    std::set< landmark_id_t> nearby_landmarks;
+    for (auto hv : hashes)
+    {
+      auto it = lm_hash.find(hv);
+      if (it == lm_hash.end())
+      {
+        continue; // should not happen
+      }
+      for (auto lm_id : it->second)
+      {
+        if (lm_id != lm.first && removed_landmarks.count(lm_id) == 0)
+        {
+          //a landmark is not near itself
+          // only try to merge landmarks that have not already been removed
+          nearby_landmarks.insert(lm_id);
+        }
+      }
+    }
+
+    for (auto nb_lm_id : nearby_landmarks)
+    {
+      auto lm_nb = lmks.find(nb_lm_id);
+      if (lm_nb == lmks.end())
+      {
+        //should not happen
+        continue;
+      }
+      auto lm_diff = lm_nb->second->loc() - lm.second->loc();
+      if (lm_diff.norm() > volume_unit_size)
+      {
+        //only consider points actualy with one volume unit sphere of each other
+        continue;
+      }
+
+      // average landmarks
+
+      landmark_d lm_merged(0.5*(lm_nb->second->loc() + lm.second->loc()));                
+
+      // check reprojection errors into views of nearby landmark
+      auto nb_tk_sptr = tracks->get_track(nb_lm_id);
+
+      bool merge_successful = true;
+
+      for (auto ts : *nb_tk_sptr)
+      {
+        auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);        
+        if (!fts->inlier)
+        {
+          continue;
+        }
+        auto cam = cams->find(fts->frame());
+        if(!cam)
+        {
+          continue;
+        }           
+
+        double rpj_err = reprojection_error(*cam, lm_merged, *fts->feature);
+        if (rpj_err > interim_reproj_thresh)
+        {
+          merge_successful = false;
+          break;
+        }
+      }
+
+      if (!merge_successful)
+      {
+        continue;
+      }
+
+      
+      // check reprojection errors into views of current landmark
+
+      for (auto ts : *cur_tk)
+      {
+        auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+        if (!fts->inlier)
+        {
+          continue;
+        }
+        auto cam = cams->find(fts->frame());
+        if (!cam)
+        {
+          continue;
+        }
+
+        double rpj_err = reprojection_error(*cam, lm_merged, *fts->feature);
+        if (rpj_err > interim_reproj_thresh)
+        {
+          merge_successful = false;
+          break;
+        }
+      }
+
+      if (!merge_successful)
+      {
+        continue;
+      }
+
+      
+      /// NEED TO FINISH THIS AND TEST IT
+      if (lm.first < nb_lm_id)
+      {        
+        if (tracks->merge_tracks(nb_tk_sptr, cur_tk))
+        {
+          auto lm_d_sptr = std::dynamic_pointer_cast<landmark_d>(lm.second);
+          if (lm_d_sptr)
+          {
+            lm_d_sptr->set_loc(lm_merged.loc());          
+          }
+          else
+          {
+            auto lm_f_sptr = std::dynamic_pointer_cast<landmark_f>(lm.second);
+            if (lm_f_sptr)
+            {
+              lm_f_sptr->set_loc(lm_merged.loc().cast<float>());
+            }
+          }
+          removed_landmarks.insert(nb_tk_sptr->id());
+        }
+      }
+      else
+      {
+        auto nb_lm_it = lmks.find(nb_tk_sptr->id());
+        if (nb_lm_it == lmks.end())
+        {
+          //should not happen
+          continue;
+        }
+        if (tracks->merge_tracks( cur_tk, nb_tk_sptr))
+        {
+          
+          auto lm_d_sptr = std::dynamic_pointer_cast<landmark_d>(nb_lm_it->second);
+          if (lm_d_sptr)
+          {
+            lm_d_sptr->set_loc(lm_merged.loc());
+          }
+          else
+          {
+            auto lm_f_sptr = std::dynamic_pointer_cast<landmark_f>(nb_lm_it->second);
+            if (lm_f_sptr)
+            {
+              lm_f_sptr->set_loc(lm_merged.loc().cast<float>());
+            }
+          }
+          removed_landmarks.insert(cur_tk->id());
+        }
+      }
+
+      //if all reprojection errors check out, merge the landmarks
+      // lowest landmark id persists.  merge the tracks
+      // set the lowest landmark's position to lm_merged
+      // delete the higher id landmark
+    }
+  }
+
+  LOG_WARN(m_logger, "merged " << removed_landmarks.size() << " landmarks");
+  for (auto rm : removed_landmarks)
+  {
+    lmks.erase(rm);
+  }
+
+  //do I have any landmarks that don't have tracks?
+  num_landmarks_without_tracks = 0;
+  for (auto &lm : lmks)
+  {
+    if (!tracks->get_track(lm.first))
+    {
+      ++num_landmarks_without_tracks;
+    }
+  }
+
+  if (num_landmarks_without_tracks)
+  {
+    LOG_WARN(m_logger, "end num landmarks without tracks " << num_landmarks_without_tracks);
+  }
+
+
+}
+
+
 bool
 initialize_cameras_landmarks_keyframe::priv
 ::initialize_remaining_cameras(
@@ -2876,7 +3281,7 @@ initialize_cameras_landmarks_keyframe::priv
   time_t prev_callback_time;
   time(&prev_callback_time);
   const double callback_min_period = 2;
-  int frames_since_last_down_select = 0;
+  int lmks_last_down_select = 0;
 
   auto lmks = landmarks->landmarks();
   sfm_constraints_sptr constraints_to_ba = nullptr;
@@ -2898,12 +3303,26 @@ initialize_cameras_landmarks_keyframe::priv
     }
   }
 
-  frames_to_register = keyframes_to_register;
+  if (keyframes_to_register.empty())
+  {
+    frames_to_register = non_keyframes_to_register;
+  }
+  else
+  {
+    frames_to_register = keyframes_to_register;
+  }
 
   std::set<frame_id_t> frames_since_last_local_ba;
+
+  auto existing_fids = cams->get_frame_ids();
+  for (auto fid : existing_fids)
+  {
+    frames_since_last_local_ba.insert(fid);
+  }
+
   m_frames_removed_from_sfm_solution.clear();
 
-  std::set<landmark_id_t> last_ba_landmarks;
+  //std::set<landmark_id_t> last_ba_landmarks;
   int max_constraints_used = 0;
 
   bool done_registering_keyframes = false;
@@ -2936,26 +3355,28 @@ initialize_cameras_landmarks_keyframe::priv
 
     //Triangulate only landmarks visible in latest cameras
     std::set<frame_id_t> fids_to_triang;
-    fids_to_triang.insert(fid_to_register);
-    triangulate_landmarks_visible_in_frames(lmks, cams, tracks, fids_to_triang,false);
+    fids_to_triang.insert(fid_to_register);    
 
-    if (++frames_since_last_down_select >= 5)
+    triangulate_landmarks_visible_in_frames(lmks, cams, tracks, fids_to_triang,false);    
+
+    if (lmks.size() > 1.4 * lmks_last_down_select || frames_to_register.empty())
     {
+      merge_landmarks(lmks, cams, tracks);
       down_select_landmarks(lmks, cams, tracks, fids_to_triang);
-      frames_since_last_down_select = 0;
+      lmks_last_down_select = lmks.size();
     }
 
     frames_since_last_local_ba.insert(fid_to_register);
 
-    auto cur_lmks = find_visible_landmarks_in_frames(lmks, tracks, fids_to_triang);
-    std::vector<landmark_id_t> intersect_lmks, union_lmks;
-    std::set_intersection(last_ba_landmarks.begin(), last_ba_landmarks.end(), cur_lmks.begin(), cur_lmks.end(), std::back_inserter(intersect_lmks));
-    std::set_union(last_ba_landmarks.begin(), last_ba_landmarks.end(), cur_lmks.begin(), cur_lmks.end(), std::back_inserter(union_lmks));
-    float i_over_u = static_cast<float>(intersect_lmks.size()) / static_cast<float>(union_lmks.size());
+    //auto cur_lmks = find_visible_landmarks_in_frames(lmks, tracks, fids_to_triang);
+    //std::vector<landmark_id_t> intersect_lmks, union_lmks;
+    //std::set_intersection(last_ba_landmarks.begin(), last_ba_landmarks.end(), cur_lmks.begin(), cur_lmks.end(), std::back_inserter(intersect_lmks));
+    //std::set_union(last_ba_landmarks.begin(), last_ba_landmarks.end(), cur_lmks.begin(), cur_lmks.end(), std::back_inserter(union_lmks));
+    //float i_over_u = static_cast<float>(intersect_lmks.size()) / static_cast<float>(union_lmks.size());
 
     auto reporj_by_cam = 
       kwiver::arrows::reprojection_rmse_by_cam(cams->cameras(),
-        lmks, tracks->tracks());
+        lmks, tracks->tracks(),true);
 
     double rebundle_thresh = final_reproj_thresh * 4.0;
     bool bundle_because_of_reproj = false;
@@ -2981,22 +3402,28 @@ initialize_cameras_landmarks_keyframe::priv
         }        
       }
     }    
+
+    bool disable_windowing = true;
     ++frames_since_last_ba;
     if (bundle_because_of_reproj /*|| i_over_u < 0.7*/ || frames_to_register.empty() || frames_since_last_ba > 50)
     {
       frames_since_last_ba = 0;
       windowed_clean_and_bundle(cams, landmarks, lmks, tracks,
         constraints_to_ba, windowed_bundled_cams, frames_since_last_local_ba);
-      last_ba_landmarks = cur_lmks;
+      //last_ba_landmarks = cur_lmks;
 
-      for (auto ll_fid : frames_since_last_local_ba)
+      if (!disable_windowing)
       {
-        windowed_bundled_cams.insert(ll_fid);
+        for (auto ll_fid : frames_since_last_local_ba)
+        {
+          windowed_bundled_cams.insert(ll_fid);
+        }
+        frames_since_last_local_ba.clear();
       }
-      frames_since_last_local_ba.clear();
+
       last_reproj_by_cam =
         kwiver::arrows::reprojection_rmse_by_cam(cams->cameras(),
-          lmks, tracks->tracks());
+          lmks, tracks->tracks(),true);
     }
 
     already_registred_cams.insert(fid_to_register);
@@ -3019,7 +3446,7 @@ initialize_cameras_landmarks_keyframe::priv
         break;
       }
     }
-    if ( frames_to_register.empty() && !done_registering_keyframes)
+    if ( frames_to_register.empty() && !done_registering_keyframes && !keyframes_to_register.empty())
     {
       done_registering_keyframes = true;
       frames_to_register = non_keyframes_to_register;
@@ -3168,7 +3595,7 @@ initialize_cameras_landmarks_keyframe
                     "threshold to apply to triangulation in the first permissive rounds of "
                     "metadata based reconstruction initialization");
 
-  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang) * rad_to_deg;
+  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
   config->set_value("feature_angle_threshold", ang_thresh_cur,"feature must have this triangulation angle to keep");
 
   config->set_value("do_final_sfm_cleaning",
@@ -3186,8 +3613,8 @@ initialize_cameras_landmarks_keyframe
     r3 = dc[4];
   }
   config->set_value("base_camera:r1", r1, "r^2 radial distortion term");
-  config->set_value("base_camera:r2", r2, "r^4 radial distortion term");
-  config->set_value("base_camera:r3", r3, "r^6 radial distortion term");
+  config->set_value("base_camera:r2", r1, "r^4 radial distortion term");
+  config->set_value("base_camera:r3", r1, "r^6 radial distortion term");
 
   config->set_value("init_intrinsics_from_metadata", m_priv->m_init_intrinsics_from_metadata,
                     "initialize camera's focal length from metadata");
@@ -3315,10 +3742,10 @@ initialize_cameras_landmarks_keyframe
 
   m_priv->m_base_camera.set_intrinsics(K2.clone());
 
-  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang) * rad_to_deg;
+  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
   double ang_thresh_config = config->get_value("feature_angle_threshold", ang_thresh_cur);
 
-  m_priv->m_thresh_triang_cos_ang = cos(deg_to_rad * ang_thresh_config);
+  m_priv->m_thresh_triang_cos_ang = cos((M_PI / 180.0) * ang_thresh_config);
 
 
 
@@ -3361,6 +3788,64 @@ initialize_cameras_landmarks_keyframe
              feature_track_set_sptr tracks,
              sfm_constraints_sptr constraints) const
 {
+
+  //Remove static tracks
+
+  std::set<track_sptr> static_tracks;
+  auto tids = tracks->all_track_ids();
+  for (auto tid : tids)
+  {
+    auto tk_sptr = tracks->get_track(tid);
+    vital::vector_2d mean_loc;
+    mean_loc.setZero();
+    double nfts = 0;
+    bool static_track = true;
+    for (auto ts : *tk_sptr)
+    {
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+      if (!fts)
+      {
+        continue;
+      }
+
+      auto loc = fts->feature->loc();
+      mean_loc = mean_loc * (nfts / (nfts + +1.0)) + loc * (1.0 / (nfts + 1.0));
+      nfts += 1.0;
+    }
+    if (nfts <= 0)
+    {
+      continue;
+    }
+
+    for (auto ts : *tk_sptr)
+    {
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
+      if (!fts)
+      {
+        continue;
+      }
+
+      auto loc = fts->feature->loc();
+      auto diff = loc - mean_loc;
+      if (diff.norm() > 10.0)
+      {
+        static_track = false;
+        break;
+      }
+    }
+
+    if (static_track)
+    {
+      static_tracks.insert(tk_sptr);
+    }
+  }
+
+  for (auto tk : static_tracks)
+  {
+    tracks->remove(tk);
+  }  
+
+  m_priv->m_already_merged_landmarks.clear();
   m_priv->check_inputs(tracks);
 
   auto cams = std::make_shared<simple_camera_perspective_map>();
