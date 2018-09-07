@@ -11,7 +11,7 @@ set(examples_private_headers
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-sprokit_private_header_group(${examples_private_headers})
+kwiver_private_header_group(${examples_private_headers})
 
 kwiver_add_plugin( schedulers_examples
   SOURCES        ${examples_srcs}
@@ -24,5 +24,5 @@ kwiver_add_plugin( schedulers_examples
                  ${Boost_THREAD_LIBRARY}
                  ${Boost_SYSTEM_LIBRARY}
                  ${CMAKE_THREAD_LIBS_INIT}
-  SUBDIR         sprokit
+  SUBDIR         ${kwiver_plugin_scheduler_subdir}
   )

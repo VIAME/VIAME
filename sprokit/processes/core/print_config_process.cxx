@@ -30,6 +30,7 @@
 
 #include "print_config_process.h"
 
+#include <vital/config/config_block_formatter.h>
 #include <sprokit/processes/kwiver_type_traits.h>
 
 namespace kwiver {
@@ -70,7 +71,8 @@ _configure()
   scoped_configure_instrumentation();
 
   vital::config_block_sptr my_config = get_config();
-  my_config->print( std::cout );
+  kwiver::vital::config_block_formatter fmt( my_config );
+  fmt.print( std::cout );
 }
 
 

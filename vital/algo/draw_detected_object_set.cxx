@@ -38,7 +38,7 @@ namespace algo {
 draw_detected_object_set
 ::draw_detected_object_set()
 {
-  attach_logger( "draw_detected_object_set" );
+  attach_logger( "algo.draw_detected_object_set" );
 }
 
 } } }

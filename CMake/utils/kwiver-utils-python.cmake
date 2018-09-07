@@ -120,7 +120,11 @@ function (kwiver_add_python_module path     modpath    module)
   set(python_noarchdir)
 
   if (WIN32)
-    set(python_install_path lib)
+    if (python_noarch)
+      return ()
+    else ()
+      set(python_install_path lib)
+    endif ()
   else ()
     if (python_noarch)
       set(python_noarchdir /noarch)
@@ -196,6 +200,9 @@ function (kwiver_create_python_init    modpath)
   endif ()
 
   file(WRITE "${init_template}"      "${copyright_header}\n\n")
+
+  file(APPEND "${init_template}"
+    "from __future__ import absolute_import\n\n")
 
   foreach (module IN LISTS ARGN)
     file(APPEND "${init_template}"      "from .${module} import *\n")

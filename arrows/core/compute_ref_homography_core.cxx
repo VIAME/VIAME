@@ -289,7 +289,7 @@ compute_ref_homography_core
 ::compute_ref_homography_core()
 : d_( new priv() )
 {
-  attach_logger( "compute_ref_homography_core" );
+  attach_logger( "arrows.core.compute_ref_homography_core" );
   d_->m_logger = this->logger();
 }
 

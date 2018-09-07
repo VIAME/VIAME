@@ -81,7 +81,7 @@ public:
    *
    * \throws kwiver::vital::file_not_found_exception
    */
-  void open( std::string const& filename );
+  virtual void open( std::string const& filename );
 
   /// Read detections from an existing stream
   /**

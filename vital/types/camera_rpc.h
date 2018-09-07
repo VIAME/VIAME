@@ -98,7 +98,7 @@ public:
   virtual vector_2d project( const vector_3d& pt ) const;
 
   /// Project a 2D image back to a 3D point in space
-  virtual vector_3d back_project( const vector_2d& image_pt, double elev );
+  virtual vector_3d back_project( const vector_2d& image_pt, double elev ) const;
 
 protected:
   camera_rpc();
@@ -137,7 +137,7 @@ public:
     update_partial_deriv();
   }
 
-/// Constructor - direct from coeffs, scales, and offset
+  /// Constructor - direct from coeffs, scales, and offset
   /**
    *  This constructor constructs a camera directly from the RPC parameters
    */
@@ -191,14 +191,14 @@ protected:
 
   virtual void jacobian( const vector_3d& pt, matrix_2x2d& J, vector_2d& norm_pt ) const;
 
-    // Update the partial derivatives needed to compute the jacobian
-  void update_partial_deriv();
+  // Update the partial derivatives needed to compute the jacobian
+  void update_partial_deriv() const;
 
   // The RPC coefficients
   rpc_matrix rpc_coeffs_;
   // The partial derivatives coefficients
-  rpc_deriv_matrix dx_coeffs_;
-  rpc_deriv_matrix dy_coeffs_;
+  mutable rpc_deriv_matrix dx_coeffs_;
+  mutable rpc_deriv_matrix dy_coeffs_;
   // The world scale and offset
   vector_3d world_scale_;
   vector_3d world_offset_;

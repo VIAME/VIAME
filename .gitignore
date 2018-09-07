@@ -2,3 +2,4 @@ _build
 *.pyc
 *~
 .ipynb_checkpoints
+.emacs*

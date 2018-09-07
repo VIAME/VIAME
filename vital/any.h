@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <typeinfo>
+#include <cstring>
 
 namespace kwiver {
 namespace vital {
@@ -257,7 +258,6 @@ public:
    * This is the CTOR for the bnad any cast exception. A message is
    * created from the supplied mangled type names.
    *
-   *
    * @param from_type Mangled type name.
    * @param to_type Mangled type name.
    */
@@ -347,7 +347,7 @@ any_cast( any const& aval )
   // Is the type requested compatible with the type represented.
   if (aval.m_content)
   {
-    if ( typeid( T ) == aval.m_content->type() )
+    if ( std::strcmp( typeid( T ).name(), aval.m_content->type().name() ) == 0  )
     {
       return ( ( any::internal_typed< T >* )aval.m_content )->m_any_data;
     }

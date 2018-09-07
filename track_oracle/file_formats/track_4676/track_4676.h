@@ -14,12 +14,12 @@
 #include <vgl/vgl_point_2d.h>
 #include <vgl/vgl_point_3d.h>
 
-#include <boost/uuid/uuid.hpp>
+#include <vital/types/uid.h>
 
 namespace vidtk
 {
 
-typedef boost::uuids::uuid uuid_t;
+typedef viat::uid uuid_t;
 
 struct track_4676_type: public track_base< track_4676_type >
 {

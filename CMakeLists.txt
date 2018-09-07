@@ -87,6 +87,9 @@ OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" OFF )
 OPTION(KWIVER_ENABLE_TRACK_ORACLE  "Enable track_oracle" OFF )
 OPTION(KWIVER_ENABLE_EXAMPLES  "Enable examples" OFF )
 
+OPTION(KWIVER_ENABLE_SERIALIZE_PROTOBUF   "Enable protobuf serialization" OFF )
+OPTION(KWIVER_ENABLE_SERIALIZE_JSON       "Enable json serialization" OFF )
+
 # if sprokit enabled
 OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" OFF )
 
@@ -121,6 +124,15 @@ set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 # KWIVER CMake config
 #
 include(kwiver-utils)
+
+# Set directories where loadable modules are stored.
+# These subdirs are under .../lib/
+set( kwiver_plugin_process_subdir                 kwiver/processes )
+set( kwiver_plugin_process_instrumentation_subdir kwiver/modules ) # with modules for now
+set( kwiver_plugin_scheduler_subdir               kwiver/processes ) # with processes for now
+set( kwiver_plugin_module_subdir                  kwiver/modules )
+set( kwiver_plugin_plugin_explorer_subdir         kwiver/modules/plugin_explorer )
+set( kwiver_plugin_logger_subdir                  kwiver/modules )
 
 ##
 # System specific compiler flags
@@ -210,8 +222,8 @@ if( KWIVER_INSTALL_SET_UP_SCRIPT )
 endif()
 
 if ( fletch_FOUND )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_ROOT}/bin\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${fletch_ROOT}/x64/${_vcVersion}/bin\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${fletch_ROOT}/bin;%PATH%;\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${fletch_ROOT}/x64/${_vcVersion}/bin;%PATH%;\n" )
 
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export ${LIBRARY_PATH_VAR}=${fletch_ROOT}/lib:$${LIBRARY_PATH_VAR}\n" )
 endif()
@@ -222,7 +234,7 @@ file( COPY log4cxx.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
 install( FILES log4cxx.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CXX )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cxx_logger\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/${kwiver_plugin_logger_subdir}/vital_log4cxx_logger\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties\n" )
   if(WIN32)
     message(STATUS "Log4CXX is not supported on windows, if no other logger is provided, the default will be used")
@@ -235,7 +247,7 @@ file( COPY log4cplus.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
 install( FILES log4cplus.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
 
 if ( KWIVER_ENABLE_LOG4CPLUS )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/modules/vital_log4cplus_logger\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/${kwiver_plugin_logger_subdir}/vital_log4cplus_logger\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CPLUS_CONFIGURATION=$this_dir/log4cplus.properties\n" )
 
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set VITAL_LOGGER_FACTORY=vital_log4cplus_logger\n" )
@@ -252,7 +264,7 @@ if (KWIVER_ENABLE_PYTHON)
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# set to suppress loading python modules/processes\n" )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "# export SPROKIT_NO_PYTHON_MODULES\n\n" )
 
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "# Python environment\n")
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" ":: Python environment\n")
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PYTHON_LIBRARY=${PYTHON_LIBRARY}\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PYTHONPATH=%~dp0/lib/%config%/python2.7/site-packages\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "\n:: additional python mudules to load, separated by ':'\n" )
@@ -264,7 +276,7 @@ endif()
 if ( KWIVER_ENABLE_MATLAB )
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH\n" )
 
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=%PATH%;${Matlab_LIBRARY_DIR}\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${Matlab_LIBRARY_DIR};%PATH%\n" )
 endif()
 
 
@@ -296,6 +308,7 @@ add_subdirectory( vital )
 # Marking source root for documentation generation
 #
 kwiver_create_doxygen( kwiver "${CMAKE_CURRENT_LIST_DIR}" )
+kwiver_create_sphinx()
 
 
 ##################################################################

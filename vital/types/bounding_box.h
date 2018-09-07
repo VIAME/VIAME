@@ -84,7 +84,7 @@ public:
    * @brief Create a box from four coordinates.
    *
    * @param xmin Minimum x coordinate
-   * @param ymin minimum y coordinate
+   * @param ymin Minimum y coordinate
    * @param xmax Maximum x coordinate
    * @param ymax Maximum y coordinate
    */
@@ -184,16 +184,17 @@ private:
 /**
  * @brief Equality operator for bounding box
  *
- * @param other The box to check against
+ * @param lhs The box to check against
+ * @param rhs The other box to check against
  *
  * @return \b true if boxes are identical
  */
 template <typename T>
 bool operator== ( bounding_box<T> const& lhs, bounding_box<T> const& rhs )
 {
-  if ( ( lhs == &rhs ) ||
-       ( lhs->upper_left() == rhs.upper_left()  &&
-         lhs->lower_right() == rhs.lower_right() )
+  if ( ( &lhs == &rhs ) ||
+       ( lhs.upper_left() == rhs.upper_left()  &&
+         lhs.lower_right() == rhs.lower_right() )
     )
   {
     return true;
