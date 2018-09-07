@@ -23,7 +23,7 @@ class resnetDataLoader(data.Dataset):# This is the same as the siamese one it wa
         bb = self._bbox_list[index].bounding_box()
 
         # unwrap
-        min_x = float( bb.min_x() ) 
+        min_x = float( bb.min_x() )
         min_y = float( bb.min_y() )
         max_x = float( bb.max_x() )
         max_y = float( bb.max_y() )
@@ -53,7 +53,7 @@ class resnetDataLoader(data.Dataset):# This is the same as the siamese one it wa
 
     def __len__(self):
         return self._bbox_list.size()
-    
+
 
 class pytorch_resnet_f_extractor(object):
     """
@@ -83,7 +83,7 @@ class pytorch_resnet_f_extractor(object):
 
         self._resnet_model.train( False ) # is this the same as eval() ?
         self._resnet_model.cuda() # move the model to the GPU
- 
+
         self._transform = transforms.Compose([
             transforms.Scale(img_size),
             transforms.ToTensor(),
@@ -104,9 +104,8 @@ class pytorch_resnet_f_extractor(object):
         return self._obtain_feature(bbox_list, MOT_flag)
 
     def _obtain_feature(self, bbox_list, MOT_flag):
-        
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        bbox_loader_class = resnetDataLoader(bbox_list, self._transform, self._frame, self._img_size) 
+        bbox_loader_class = resnetDataLoader(bbox_list, self._transform, self._frame, self._img_size)
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
         torch.set_grad_enabled(False)

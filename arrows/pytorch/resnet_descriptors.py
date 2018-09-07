@@ -57,7 +57,7 @@ class Resnet_descriptors(KwiverProcess):
                               'define which GPU to use for SRNN tracking. e.g., all, 1,2')
         self.declare_config_using_trait('gpu_list')
 
-        # Resnet 
+        # Resnet
         #----------------------------------------------------------------------------------
         self.add_config_trait("resnet_model_path", "resnet_model_path",
                               'models/resnet50_default.pt',
@@ -140,7 +140,7 @@ class Resnet_descriptors(KwiverProcess):
             else:
                 # appearance features (format: pytorch tensor)
                 app_f_begin = timer()
-                pt_app_features = self._app_feature_extractor(dos, False) 
+                pt_app_features = self._app_feature_extractor(dos, False)
                 app_f_end = timer()
                 print('%%%app feature eclapsed time: {}'.format(app_f_end - app_f_begin))
 
@@ -184,4 +184,3 @@ def __sprokit_register__():
                                 Resnet_descriptors)
 
     process_factory.mark_process_module_as_loaded(module_name)
-

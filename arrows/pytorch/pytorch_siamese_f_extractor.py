@@ -25,7 +25,7 @@ class siameseDataLoader(data.Dataset):
             bb = self._bbox_list[index]
         else:
             bb = self._bbox_list[index].bounding_box()
-        
+
         im = self._frame_img.crop((float(bb.min_x()), float(bb.min_y()),
                       float(bb.max_x()), float(bb.max_y())))
 
@@ -39,10 +39,10 @@ class siameseDataLoader(data.Dataset):
 
     def __len__(self):
         if self._mot_flag is True:
-            return len(self._bbox_list) 
+            return len(self._bbox_list)
         else:
             return self._bbox_list.size()
-    
+
 
 class pytorch_siamese_f_extractor(object):
     """
@@ -94,9 +94,8 @@ class pytorch_siamese_f_extractor(object):
         return self._obtain_feature(bbox_list, MOT_flag)
 
     def _obtain_feature(self, bbox_list, MOT_flag):
-        
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        bbox_loader_class = siameseDataLoader(bbox_list, self._transform, self._frame, self._img_size, MOT_flag) 
+        bbox_loader_class = siameseDataLoader(bbox_list, self._transform, self._frame, self._img_size, MOT_flag)
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
         torch.set_grad_enabled(False)
@@ -110,4 +109,3 @@ class pytorch_siamese_f_extractor(object):
                 app_features = torch.cat((app_features, output.data), dim=0)
 
         return app_features.cpu()
-    
