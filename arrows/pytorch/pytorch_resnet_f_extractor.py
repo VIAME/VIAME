@@ -9,6 +9,7 @@ from torchvision import models, transforms, datasets
 
 from PIL import Image as pilImage
 
+from kwiver.arrows.pytorch.parse_gpu_list import get_device
 from vital.types import BoundingBox
 
 class resnetDataLoader(data.Dataset):# This is the same as the siamese one it was based on
@@ -62,18 +63,10 @@ class pytorch_resnet_f_extractor(object):
     """
 
     def __init__(self, resnet_model_path, img_size, batch_size, GPU_list=None):
-
-        if GPU_list is None:
-            GPU_list = [x for x in range(torch.cuda.device_count())]
-            target_GPU = 0 # I assume this is just hardcoding in using the first GPU
-        else:
-            target_GPU = GPU_list[0]
-
-        self._device = torch.device("cuda:{}".format(target_GPU))
+        self._device, use_gpu_flag = get_device(GPU_list)
 
         # load the resnet50 model. Maybe this shouldn't be hardcoded?
-        #self._resnet_model = models.resnet50().cuda(device=target_GPU)
-        self._resnet_model = models.resnet50().to(self._device)
+        self._resnet_model = models.resnet50()
         #self._resnet_model.fc = nn.Linear(2048, 46)
         print( resnet_model_path )
         weights = torch.load( resnet_model_path )
@@ -82,7 +75,7 @@ class pytorch_resnet_f_extractor(object):
         self._resnet_model = nn.Sequential(*list(self._resnet_model.children())[:-1])
 
         self._resnet_model.train( False ) # is this the same as eval() ?
-        self._resnet_model.cuda() # move the model to the GPU
+        self._resnet_model.to(self._device) # move the model to the GPU
 
         self._transform = transforms.Compose([
             transforms.Scale(img_size),
