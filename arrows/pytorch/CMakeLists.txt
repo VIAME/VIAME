@@ -72,4 +72,8 @@ if( KWIVER_ENABLE_PYTHON )
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/iou_tracking.py
     kwiver/arrows/pytorch
     iou_tracking)
+
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/parse_gpu_list.py
+    kwiver/arrows/pytorch
+    parse_gpu_list)
 endif()
