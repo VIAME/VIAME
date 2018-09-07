@@ -5,6 +5,7 @@ from torch import nn
 import numpy as np
 
 from kwiver.arrows.pytorch.models import TargetLSTM, get_config, RnnType
+from kwiver.arrows.pytorch.parse_gpu_list import get_device
 
 g_config = get_config()
 
@@ -81,15 +82,9 @@ class TargetRNNDataLoader(data.Dataset):
 
 
 class SRNN_matching(object):
-    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size, GPU_list=None, CPU_only_flag=False):
+    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, batch_size, GPU_list=None):
 
-        if CPU_only_flag:
-            self._device = torch.device("cpu")
-        else:
-            if GPU_list is None:
-                GPU_list = list(range(torch.cuda.device_count()))
-            self._device = torch.device("cuda:{}".format(GPU_list[0]))
-
+        self._device, use_gpu_flag = get_device(GPU_list)
         self._batch_size = batch_size
 
         # load target AIM model, trained with fixed variable timestep
@@ -101,7 +96,8 @@ class SRNN_matching(object):
         self._targetRNN_full_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_full_model.eval()
 
-        if not CPU_only_flag:
+        if use_gpu_flag:
+            # DataParallel also understands device_ids=None to mean "all devices", so we're good.
             self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model, device_ids=GPU_list)
 
         # load  target AIM_V model, but trained with variable timestep
@@ -112,7 +108,7 @@ class SRNN_matching(object):
         self._targetRNN_AIM_V_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_AIM_V_model.eval()
 
-        if not CPU_only_flag:
+        if use_gpu_flag:
             self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, device_ids=GPU_list)
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
