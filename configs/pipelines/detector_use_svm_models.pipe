@@ -2,49 +2,45 @@
 #
 # Runs pre-trained object detector followed by SVM class filters.
 
-# ========================= GLOBAL PROPERTIES ============================
+# ============================= GLOBAL PROPERTIES ==================================
 # global pipeline config
 #
 config _pipeline:_edge
-  :capacity 5
+  :capacity                                    5
 
 config _scheduler
-  :type pythread_per_process
+  :type                                        pythread_per_process
 
-# ========================== INPUT FRAME LIST ============================
-process input
-  :: frame_list_input
-  :image_list_file                   input_list.txt
-  :frame_time                        0.03333
-  :image_reader:type                 vxl
-  :image_reader:vxl:force_byte       true
+# ============================== INPUT FRAME LIST ==================================
 
-# =============================== YOLO v2 ================================
+include common_default_input.pipe
+
+# =========================== DETECTOR AND DESCRIPTORS =============================
 
 include common_default_detector.pipe
 include common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
-  :refiner:type                      svm_refine
-  :refiner:svm_refine:model_dir      category_models
+  :refiner:type                                svm_refine
+  :refiner:svm_refine:model_dir                category_models
 
 process nms_refiner
   :: refine_detections
-  :refiner:type                      nms
+  :refiner:type                                nms
   
   block refiner:nms
-    :max_overlap                     0.50
-    :nms_scale_factor                1.5
-    :output_scale_factor             1.1
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.5
+    :output_scale_factor                       1.1
   endblock
 
 process refined_csv_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                         svm_detections.csv
-  :writer:type                       viame_csv
+  :file_name                                   svm_detections.csv
+  :writer:type                                 viame_csv
 
 connect from input.image
         to   detector.image

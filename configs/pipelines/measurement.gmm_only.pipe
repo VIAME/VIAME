@@ -2,14 +2,14 @@
 # Run simple head-length fish measurement using stereo cameras
 
 # ---------------------------------------------------------------------------------
-# global configs
+#                                  Global Configs
 #----------------------------------------------------------------------------------
 
 config _pipeline:_edge
-  :capacity 5
+  :capacity                                    5
 
 config _scheduler
-  :type pythread_per_process
+  :type                                        pythread_per_process
 
 # ================================== VIDEO INPUT ==================================
 

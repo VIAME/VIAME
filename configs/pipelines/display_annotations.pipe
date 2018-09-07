@@ -1,6 +1,12 @@
 #
-# Pipe file to write out images with annotations drawn on them
+# Pipe file to display annotations from test data set
 #
+
+# ==================================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               10
 
 # ==================================================================================
 
@@ -15,12 +21,13 @@ process draw_box
 :: draw_detected_object_set
   :draw_algo:type                              ocv
 
-process writer
-  :: image_writer
-  :file_name_template                          frame%06d.jpg
-  :image_writer:type                           ocv
+process disp
+  :: image_viewer
+ :annotate_image                               true
+ :pause_time                                   4.0
 
 # ==================================================================================
+
 connect from image_reader.image
         to   draw_box.image
 connect from image_reader.image_file_name
@@ -28,4 +35,4 @@ connect from image_reader.image_file_name
 connect from read_annotations.detected_object_set
         to   draw_box.detected_object_set
 connect from draw_box.image
-        to   writer.image
+        to   disp.image

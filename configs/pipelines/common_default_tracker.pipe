@@ -1,0 +1,26 @@
+
+# ==================================================================================
+# Commonly used default tracker when the user hasn't specified one.
+#
+# Current incumbent is a modified version of "Tracking the Untrackable" implemented
+# in pytorch, trained on assorted fish data.
+
+process tracker
+  :: SRNN_tracking
+  :siamese_model_input_size                    224
+  :detection_select_threshold                  0.3
+  :similarity_threshold                        0.2
+  :terminate_track_threshold                   6
+  :IOU_tracker_flag                            True
+  :IOU_accept_threshold                        0.5
+  :IOU_reject_threshold                        0.1
+  :track_search_threshold                      2
+  :gpu_list                                    0
+
+  relativepath siamese_model_path =            models/siamese_model.pt
+  :siamese_batch_size                          128
+
+  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
+  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
+  :targetRNN_batch_size                        256 
+
