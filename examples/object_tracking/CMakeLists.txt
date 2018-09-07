@@ -11,6 +11,7 @@ if( WIN32 )
        ${EXAMPLE_INSTALL_FILES}
        run_mouss_tracker.bat
        run_simple_tracker.bat
+       run_generic_tracker.bat
        run_tut_tracker.bat
        run_track_viewer.bat )
 elseif( APPLE )
@@ -18,6 +19,7 @@ elseif( APPLE )
        ${EXAMPLE_INSTALL_FILES}
        run_mouss_tracker.sh
        run_simple_tracker.sh
+       run_generic_tracker.sh
        run_tut_tracker.sh
        run_track_viewer.mac.sh )
 else()
@@ -25,6 +27,7 @@ else()
        ${EXAMPLE_INSTALL_FILES}
        run_mouss_tracker.sh
        run_simple_tracker.sh
+       run_generic_tracker.sh
        run_tut_tracker.sh
        run_track_viewer.sh )
 endif()
