@@ -10,6 +10,7 @@ from PIL import Image as pilImage
 
 from vital.types import BoundingBox
 from kwiver.arrows.pytorch.models import Siamese
+from kwiver.arrows.pytorch.parse_gpu_list import get_device
 
 
 class siameseDataLoader(data.Dataset):
@@ -50,22 +51,11 @@ class pytorch_siamese_f_extractor(object):
     model
     """
 
-    def __init__(self, siamese_model_path, img_size, batch_size, GPU_list=None, CPU_only_flag=False):
-        
-        if CPU_only_flag:
-            self._device = torch.device("cpu")
-            self._siamese_model = Siamese().to(self._device)
-        else:
-            if GPU_list is None:
-                GPU_list = [x for x in range(torch.cuda.device_count())]
-                target_GPU = 0
-            else:
-                target_GPU = GPU_list[0]
-    
-            self._device = torch.device("cuda:{}".format(target_GPU))
-    
-            # load siamese model
-            self._siamese_model = Siamese().to(self._device)
+    def __init__(self, siamese_model_path, img_size, batch_size, GPU_list=None):
+        self._device, use_gpu_flag = get_device(GPU_list)
+        # load Siamese model
+        self._siamese_model = Siamese().to(self._device)
+        if use_gpu_flag:
             self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
 
         snapshot = torch.load(siamese_model_path)
