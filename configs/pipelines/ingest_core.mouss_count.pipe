@@ -50,7 +50,7 @@ process nms_refiner
   :refiner:type                            nms
   
   block refiner:nms
-    :max_overlap                           0.70
+    :max_overlap                           0.50
     :nms_scale_factor                      1.0
     :output_scale_factor                   1.0
   endblock
@@ -65,7 +65,7 @@ process detector_writer
 connect from downsampler.output_1
         to   detector.image
 
-connect from input.image
+connect from downsampler.output_1
         to   nms_refiner.image
 connect from detector.detected_object_set
         to   nms_refiner.detected_object_set
