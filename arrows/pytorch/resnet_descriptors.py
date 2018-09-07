@@ -45,6 +45,7 @@ from vital.util.VitalPIL import get_pil_image
 
 from kwiver.arrows.pytorch.grid import grid
 from kwiver.arrows.pytorch.pytorch_resnet_f_extractor import pytorch_resnet_f_extractor # the feature extractor
+from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 class Resnet_descriptors(KwiverProcess):
 
@@ -54,7 +55,7 @@ class Resnet_descriptors(KwiverProcess):
 
         # GPU list
         self.add_config_trait("gpu_list", "gpu_list", 'all',
-                              'define which GPU to use for SRNN tracking. e.g., all, 1,2')
+                              gpu_list_desc(use_for='Resnet descriptors'))
         self.declare_config_using_trait('gpu_list')
 
         # Resnet
@@ -97,11 +98,7 @@ class Resnet_descriptors(KwiverProcess):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
 
         # GPU_list
-        GPU_list_str = self.config_value('gpu_list')
-        if GPU_list_str == 'all':
-            self._GPU_list = None
-        else:
-            self._GPU_list = list(map(int, GPU_list_str.split(',')))
+        self._GPU_list = parse_gpu_list(self.config_value('gpu_list'))
 
         # Resnet model config
         resnet_img_size = int(self.config_value('resnet_model_input_size'))
