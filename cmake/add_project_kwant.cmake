@@ -7,6 +7,10 @@
 #   VIAME_ARGS_COMMON -
 ##
 
+if( VIAME_ENABLE_PYTHON )
+  FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
+endif()
+
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwant )
 
 ExternalProject_Add(kwant
@@ -18,6 +22,7 @@ ExternalProject_Add(kwant
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
+    ${VIAME_PYTHON_FLAGS}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
