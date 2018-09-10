@@ -392,6 +392,7 @@ triangulate_landmarks
   for(const map_landmark_t::value_type& p : lms)
   {
     lm_cams.clear();
+    lm_cams_rpc.clear();
     lm_image_pts.clear();
     lm_features.clear();
     // extract the cameras and image points for this landmarks
@@ -426,15 +427,18 @@ triangulate_landmarks
       if (cam_ptr)
       {
         lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
+      }
+      auto rpc_ptr =
+        std::dynamic_pointer_cast<vital::camera_rpc>(c_itr->second);
+      if (rpc_ptr)
+      {
+        lm_cams_rpc.push_back( vital::simple_camera_rpc( *rpc_ptr ) );
+      }
+      if (cam_ptr || rpc_ptr)
+      {
         lm_image_pts.push_back(fts->feature->loc());
         lm_features.push_back(fts);
         ++lm_observations;
-      }
-      else
-      {
-        auto rpc_ptr =
-          std::dynamic_pointer_cast<vital::camera_rpc>(c_itr->second);
-        lm_cams_rpc.push_back( vital::simple_camera_rpc( *rpc_ptr ) );
       }
     }
 
