@@ -125,6 +125,22 @@ reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& camer
                     const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
                     const std::vector< vital::track_sptr>& tracks);
 
+/// Compute a vector of all reprojection errors in the data
+/**
+* \param [in] cameras is the map of frames/cameras used for projection
+* \param [in] landmarks is the map ids/landmarks projected into the cameras
+* \param [in] tracks is the set of tracks providing measurements
+* \param [in] subsample_cams if true only a subset of the cameras' rmse is calculated and returned 
+*             to save compuatation
+* \returns a map containing one reprojection error rms value per camera mapped by the
+*             the cameras' frame ids
+*/
+KWIVER_ALGO_CORE_EXPORT
+std::map<vital::frame_id_t, double>
+reprojection_rmse_by_cam(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
+  const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
+  const std::vector<vital::track_sptr>& tracks,
+  bool subsample_cams);
 
 /// Compute the Root-Mean-Square-Error (RMSE) of the reprojections
 /**

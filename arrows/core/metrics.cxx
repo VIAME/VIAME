@@ -122,6 +122,115 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
   return errors;
 }
 
+/// Compute the per camera Root-Mean-Square-Error (RMSE) of the reprojections
+std::map<frame_id_t, double>
+reprojection_rmse_by_cam(const std::map<frame_id_t, camera_sptr>& cameras,
+  const std::map<landmark_id_t, landmark_sptr>& landmarks,
+  const std::vector<track_sptr>& tracks,
+  bool subsample_cams)
+{
+  typedef std::map<landmark_id_t, landmark_sptr>::const_iterator lm_map_itr_t;
+  typedef std::map<frame_id_t, camera_sptr>::const_iterator cam_map_itr_t;
+  
+  struct err_vals {
+    double num_obs;
+    double sum_error_sq;
+    err_vals(): 
+      num_obs(0), sum_error_sq(0)
+    {
+
+    }
+    err_vals(double num_obs_, double sum_error_sq_) :
+      num_obs(num_obs_), sum_error_sq(sum_error_sq_)
+    {
+
+    }
+  };
+
+  frame_id_t last_frame = cameras.rend()->first;
+
+  std::map<frame_id_t, err_vals> cam_errors;
+
+  for (const track_sptr& t : tracks)
+  {   
+    lm_map_itr_t lmi = landmarks.find(t->id());
+    if (lmi == landmarks.end() || !lmi->second)
+    {
+      // no landmark corresponding to this track
+      continue;
+    }
+    const landmark& lm = *lmi->second;
+    for (track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
+    {
+      auto frame_num = (*tsi)->frame();
+      if (subsample_cams)
+      {
+        if (last_frame - frame_num > 100)
+        {
+          if (frame_num % 100 != 1)
+          {
+            continue;
+          }
+        }
+        else if (last_frame - frame_num > 10)
+        {
+          if (frame_num % 10 != 1)
+          {
+            continue;
+          }
+        }
+      }
+      if (frame_num > last_frame)
+      {
+        continue;
+      }
+
+      auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
+      if (!fts || !fts->feature)
+      {
+        // no feature for this track state.
+        continue;
+      }
+      if (!fts->inlier)
+      {
+        continue; //feature is not marked as an inlier so skip it
+      }
+
+      const feature& feat = *fts->feature;
+      cam_map_itr_t ci = cameras.find(frame_num);
+      if (ci == cameras.end() || !ci->second)
+      {
+        // no camera corresponding to this track state
+        continue;
+      }
+      const camera& cam = *ci->second;
+
+      auto rpe = reprojection_error_sqr(cam, lm, feat);
+      auto ce_it = cam_errors.find(ci->first);
+      if (ce_it == cam_errors.end())
+      {
+        cam_errors[ci->first] = err_vals(1.0, rpe);
+      }
+      else
+      {
+        ce_it->second.num_obs += 1.0;
+        ce_it->second.sum_error_sq += rpe;
+      }
+    }
+  }
+
+  std::map<frame_id_t, double> ret_errs;
+  for (auto& err : cam_errors)
+  {
+    if (err.second.num_obs > 0)
+    {
+      ret_errs[err.first] = std::sqrt(err.second.sum_error_sq / err.second.num_obs);
+    }
+  }
+  return ret_errs;
+}
+
+
 
 /// Compute the Root-Mean-Square-Error (RMSE) of the reprojections
 double
