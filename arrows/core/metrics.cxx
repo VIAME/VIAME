@@ -54,6 +54,34 @@ reprojection_error_vec(const camera& cam,
 }
 
 
+bool
+bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &cameras,
+                         const vital::vector_3d &X,
+                         double cos_ang_thresh)
+{
+  std::vector<vital::vector_3d> rays(cameras.size());
+
+  for (size_t i = 0; i < cameras.size(); ++i)
+  {
+    auto const& cam_i = cameras[i];
+    const vital::vector_3d c_i(cam_i.center().cast<double>());
+    rays[i] = (c_i - X).normalized();
+
+    for (size_t j = 0; j < i; ++j)
+    {
+      // the second camera
+      double cos_ang = rays[i].dot(rays[j]);
+
+      if (cos_ang <= cos_ang_thresh)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+
 /// Compute a vector of all reprojection errors in the data
 std::vector<double>
 reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
