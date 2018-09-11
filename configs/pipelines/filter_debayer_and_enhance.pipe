@@ -30,7 +30,7 @@ process filter
   :: image_filter
   :filter:type                                 burnout_enhancer
 
-  relativepath image_filter:burnout_enhancer_config_file = burnout_enhancement.conf
+  relativepath filter:burnout_enhancer:config_file = burnout_enhancement.conf
 
 connect from debayer.image
         to   filter.image
