@@ -17,9 +17,9 @@ process input
 # =================================== DEBAYER ======================================
 
 process debayer
-  :: filter_image
-  :image_filter:type                           debayer_ocv
-  :image_filter:debayer_ocv:pattern            BG
+  :: image_filter
+  :filter:type                                 debayer_ocv
+  :filter:debayer_ocv:pattern                  BG
 
 connect from input.image
         to   debayer.image
@@ -27,8 +27,8 @@ connect from input.image
 # ==================================== FILTER ======================================
 
 process filter
-  :: filter_image
-  :image_filter:type                           burnout_enhancer
+  :: image_filter
+  :filter:type                                 burnout_enhancer
 
   relativepath image_filter:burnout_enhancer_config_file = burnout_enhancement.conf
 
@@ -38,11 +38,9 @@ connect from debayer.image
 # ==================================== OUTPUT ======================================
 
 process output
-  :: frame_list_output
-  :image_list_file                             input_list.txt
-  :frame_time                                  0.03333
-  :image_reader:type                           vxl
-  :image_reader:vxl:force_byte                 true
+  :: image_writer
+  :file_name_template                          filtered_frame%06d.png
+  :image_writer:type                           vxl
 
 connect from filter.image
         to   output.image
