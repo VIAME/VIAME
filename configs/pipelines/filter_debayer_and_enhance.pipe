@@ -1,0 +1,50 @@
+# Filters input images via debayering them and running basic image filtering
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               5
+
+# ================================= INPUT VIDEO ====================================
+process input
+  :: frame_list_input
+  :image_list_file                             input_list.txt
+  :frame_time                                  0.03333
+  :image_reader:type                           vxl
+  :image_reader:vxl:force_byte                 true
+
+# =================================== DEBAYER ======================================
+
+process debayer
+  :: filter_image
+  :image_filter:type                           debayer_ocv
+  :image_filter:debayer_ocv:pattern            BG
+
+connect from input.image
+        to   debayer.image
+
+# ==================================== FILTER ======================================
+
+process filter
+  :: filter_image
+  :image_filter:type                           burnout_enhancer
+
+  relativepath image_filter:burnout_enhancer_config_file = burnout_enhancement.conf
+
+connect from debayer.image
+        to   filter.image
+
+# ==================================== OUTPUT ======================================
+
+process output
+  :: frame_list_output
+  :image_list_file                             input_list.txt
+  :frame_time                                  0.03333
+  :image_reader:type                           vxl
+  :image_reader:vxl:force_byte                 true
+
+connect from filter.image
+        to   output.image
+
+# -- end of file --
