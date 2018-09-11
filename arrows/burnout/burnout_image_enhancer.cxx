@@ -45,6 +45,9 @@ namespace kwiver {
 namespace arrows {
 namespace burnout {
 
+typedef vidtk::video_enhancement_process< vxl_byte > process_8bit;
+typedef vidtk::video_enhancement_process< vxl_uint_16 > process_16bit;
+
 
 // ==================================================================================
 class burnout_image_enhancer::priv
@@ -52,7 +55,7 @@ class burnout_image_enhancer::priv
 public:
   priv()
     : m_config_file( "burnout_enhancer.conf" )
-    , m_process( "filter" )
+    , is_16bit_mode( false )
   {}
 
   ~priv()
@@ -61,7 +64,16 @@ public:
   // Items from the config
   std::string m_config_file;
 
-  vidtk::video_enhancement_process< vxl_byte > m_process;
+  // VIDTK config block with parameters
+  vidtk::config_block m_vidtk_config;
+  bool is_16bit_mode;
+
+  // Pointer to VIDTK process
+  std::unique_ptr< vidtk::process > m_process;
+
+  // Configure internal process
+  void configure_process( bool for_16bit = false );
+
   vital::logger_handle_t m_logger;
 };
 
@@ -76,8 +88,53 @@ burnout_image_enhancer
 
 burnout_image_enhancer
 ::~burnout_image_enhancer()
-{}
+{
+}
 
+// ----------------------------------------------------------------------------------
+
+void
+burnout_image_enhancer::priv
+::configure_process( bool for_16bit )
+{
+  if( for_16bit == is_16bit_mode )
+  {
+    return;
+  }
+
+  if( for_16bit )
+  {
+    process_16bit* process = new process_16bit( "filter" );
+    m_process.reset( process );
+    is_16bit_mode = true;
+
+    if( !process->set_params( m_vidtk_config ) )
+    {
+      throw std::runtime_error(  "Failed to set pipeline parameters" );
+    }
+  
+    if( !process->initialize() )
+    {
+      throw std::runtime_error( "Failed to initialize pipeline" );
+    }
+  }
+  else
+  {
+    process_8bit* process = new process_8bit( "filter" );
+    m_process.reset( process );
+    is_16bit_mode = false;
+
+    if( !process->set_params( m_vidtk_config ) )
+    {
+      throw std::runtime_error(  "Failed to set pipeline parameters" );
+    }
+  
+    if( !process->initialize() )
+    {
+      throw std::runtime_error( "Failed to initialize pipeline" );
+    }
+  }
+}
 
 // ----------------------------------------------------------------------------------
 vital::config_block_sptr
@@ -102,21 +159,10 @@ burnout_image_enhancer
   config->merge_config( config_in );
 
   d->m_config_file = config->get_value< std::string >( "config_file" );
+  d->m_vidtk_config = process_8bit( "filter" ).params();
+  d->m_vidtk_config.parse( d->m_config_file );
 
-  vidtk::config_block vidtk_config = d->m_process.params();
-  vidtk_config.parse( d->m_config_file );
-
-  if( !d->m_process.set_params( vidtk_config ) )
-  {
-    std::string reason = "Failed to set pipeline parameters";
-    throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
-  }
-
-  if( !d->m_process.initialize() )
-  {
-    std::string reason = "Failed to initialize pipeline";
-    throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
-  }
+  d->configure_process();
 }
 
 
@@ -141,30 +187,55 @@ vital::image_container_sptr
 burnout_image_enhancer
 ::filter( vital::image_container_sptr image_data )
 {
-  // Convert inputs to burnout style inputs
-  vil_image_view< vxl_byte > input_image;
-
-  if( image_data )
-  {
-    input_image = vxl::image_container::vital_to_vxl( image_data->get_image() );
-  }
-  else
+  // Configure for correct bit depth
+  if( !image_data )
   {
     LOG_WARN( logger(), "Empty image received" );
     return vital::image_container_sptr();
   }
 
-  // Process imagery
-  d->m_process.set_source_image( input_image );
+  bool is_16bit = ( image_data->get_image().pixel_traits().num_bytes > 1 );
+  d->configure_process( is_16bit );
 
-  if( !d->m_process.step() )
+  // Convert inputs to burnout style inputs, run through process, return output
+  kwiver::vital::image_container_sptr output;
+
+  if( is_16bit )
   {
-    throw std::runtime_error( "Unable to step burnout filter process" );
+    vil_image_view< vxl_uint_16 > input_image =
+      vxl::image_container::vital_to_vxl( image_data->get_image() );
+
+    process_16bit* process = dynamic_cast< process_16bit* >( d->m_process.get() );
+
+    process->set_source_image( input_image );
+
+    if( !process->step() )
+    {
+      throw std::runtime_error( "Unable to step burnout filter process" );
+    }
+
+    output = kwiver::vital::image_container_sptr(
+      new arrows::vxl::image_container( process->copied_output_image() ) );
+  }
+  else
+  {
+    vil_image_view< vxl_byte > input_image =
+      vxl::image_container::vital_to_vxl( image_data->get_image() );
+
+    process_8bit* process = dynamic_cast< process_8bit* >( d->m_process.get() );
+
+    process->set_source_image( input_image );
+
+    if( !process->step() )
+    {
+      throw std::runtime_error( "Unable to step burnout filter process" );
+    }
+
+    output = kwiver::vital::image_container_sptr(
+      new arrows::vxl::image_container( process->copied_output_image() ) );
   }
 
-  // Return output in KWIVER wrapper
-  return kwiver::vital::image_container_sptr(
-    new arrows::vxl::image_container( d->m_process.copied_output_image() ) );
+  return output;
 }
 
 
