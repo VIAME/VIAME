@@ -53,7 +53,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // add factory                  implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "opencv", viame::ocv_stereo_depth_map );
+  auto fact = vpm.ADD_ALGORITHM( "ocv", viame::ocv_stereo_depth_map );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "OpenCV compute stereo depth map")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -61,7 +61,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
-  fact = vpm.ADD_ALGORITHM( "debayer_opencv", viame::ocv_debayer_filter );
+  fact = vpm.ADD_ALGORITHM( "debayer_ocv", viame::ocv_debayer_filter );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "OpenCV debayer filter for converting to RGB or grayscale")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
