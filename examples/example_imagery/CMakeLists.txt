@@ -39,5 +39,15 @@ if( VIAME_DOWNLOAD_MODELS )
     ${CMAKE_CURRENT_SOURCE_DIR}
     examples/example_imagery
     camtrawl_example_image_set1 )
+
+  # Download auv image set 1
+  DownloadExtractAndInstall(
+    https://data.kitware.com/api/v1/item/5b994eae8d777f43cca716be/download
+    e5ddfa558613232cdaa354bad42d65e6
+    ${VIAME_DOWNLOAD_DIR}/raw_auv_image_set1.tar.gz
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    examples/example_imagery
+    raw_auv_image_set1 )
+
 endif()
 
