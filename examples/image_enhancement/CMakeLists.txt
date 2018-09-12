@@ -9,12 +9,14 @@ if( VIAME_ENABLE_OPENCV )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          input_list.txt
-         debayer_and_enhance.sh )
+         debayer_and_enhance.bat
+         enhance.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          input_list.txt
-         debayer_and_enhance.sh )
+         debayer_and_enhance.sh
+         enhance.sh )
   endif()
 endif()
 
