@@ -52,6 +52,7 @@ public:
     : m_force_8bit( false )
     , m_auto_balance( false )
     , m_clip_limit( 4 )
+    , m_saturation( 1.0 )
   {}
 
   ~priv() {}
@@ -59,6 +60,7 @@ public:
   bool m_force_8bit;
   bool m_auto_balance;
   unsigned m_clip_limit;
+  float m_saturation;
 };
 
 // =================================================================================================
@@ -88,6 +90,7 @@ ocv_clahe_normalization
   config->set_value( "force_8bit", d->m_force_8bit, "Force output to be 8 bit" );
   config->set_value( "auto_balance", d->m_auto_balance, "Perform automatic white balancing" );
   config->set_value( "clip_limit", d->m_clip_limit, "Clip limit used during hist normalization" );
+  config->set_value( "saturation", d->m_saturation, "Saturation scale factor" );
 
   return config;
 }
@@ -101,6 +104,7 @@ ocv_clahe_normalization
   d->m_force_8bit = config->get_value< bool >( "force_8bit" );
   d->m_auto_balance = config->get_value< bool >( "auto_balance" );
   d->m_clip_limit = config->get_value< unsigned >( "clip_limit" );
+  d->m_saturation = config->get_value< float >( "saturation" );
 }
 
 
@@ -120,6 +124,11 @@ ocv_clahe_normalization
 {
   cv::Mat input_ocv = arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
   cv::Mat lab_image, output_ocv;
+
+  if( input_ocv.depth() != CV_8U && input_ocv.depth() != CV_32F )
+  {
+    input_ocv.convertTo( input_ocv, CV_32F );
+  }
 
   if( d->m_auto_balance )
   {
@@ -152,16 +161,50 @@ ocv_clahe_normalization
   std::vector< cv::Mat > lab_planes( 3 );
   cv::split( lab_image, lab_planes );
 
-  cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+  cv::Ptr< cv::CLAHE > clahe = cv::createCLAHE();
   clahe->setClipLimit( d->m_clip_limit );
 
-  cv::Mat tmp;
-  clahe->apply( lab_planes[0], tmp );
-  tmp.copyTo( lab_planes[0] );
+  if( input_ocv.depth() == CV_32F )
+  {
+    double min, max;
+    cv::Mat tmp1, tmp2;
+    cv::minMaxLoc( lab_planes[0], &min, &max );
+    double scale1 = ( max > 0.0 ? 255.0 / ( max - min ) : 1.0 );
+    double shift1 = -( min * scale1 );
+    double scale2 = ( max > 0.0 ?  max / 255.0 : 1.0 );
+    lab_planes[0].convertTo( tmp1, CV_8U, scale1, shift1 );
+    clahe->apply( tmp1, tmp2 );
+    tmp2.convertTo( lab_planes[0], CV_32F, ( 1.0 / scale2 ) );
+  }
+  else
+  {
+    cv::Mat tmp;
+    clahe->apply( lab_planes[0], tmp );
+    tmp.copyTo( lab_planes[0] );
+  }
 
   cv::merge( lab_planes, lab_image );
 
   cv::cvtColor( lab_image, output_ocv, CV_Lab2BGR );
+
+  if( d->m_saturation != 1.0 )
+  {
+    cv::Mat hsv_image;
+    cv::cvtColor( output_ocv, hsv_image, CV_BGR2HSV );
+
+    std::vector< cv::Mat > hsv_channels( 3 );
+
+    cv::split( hsv_image, hsv_channels );
+
+    cv::Mat hue = hsv_channels[0];
+    cv::Mat sat = hsv_channels[1];
+    cv::Mat val = hsv_channels[2];
+
+    sat *= d->m_saturation;
+
+    cv::merge( hsv_channels, output_ocv );
+    cv::cvtColor( output_ocv, output_ocv, CV_HSV2BGR );
+  }
 
   if( d->m_force_8bit && output_ocv.depth() != CV_8U )
   { 
