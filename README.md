@@ -109,9 +109,10 @@ just want to get started on training object detection and/or tracking models. If
 [Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
 [Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html).
 
-Another good initial test is to run the [install-directory]/bin/plugin_explorer program. It
-will generate a prodigious number of log messages and then list all the loadable
-algorithms and any potential issues. The output should look as follows:
+Another good initial test to make sure your installation is working is to run the
+[install-directory]/plugin_explorer.bat program. It will generate a prodigious number of log messages
+and then list all the loadable algorithms and any potential issues. The output should contain the following
+snippets for all algorithms which can be loaded:
 
 ```
 ---- Algorithm search path
@@ -168,16 +169,19 @@ or
 
 	cd [install-directory]/examples/detector_pipelines/
 
-In those directories, run one of the detector pipelines. Which ENABLE_FLAGS you
-enabled will control which detector pipelines you can run, and only run scripts
-with all required dependencies enabled will show up in the install tree. Each
-script is just performing a call to pipeline runner under the hood, e.g.:
+In those directories, run one of the detector pipelines. Which build-level ENABLE_FLAGS
+you enabled will control which detector pipelines you can run, and only run scripts
+with all required dependencies enabled will show up in the install tree. Each script is
+just performing a call to pipeline runner under the hood, e.g.:
 
 	pipeline_runner -p [pipeline-file].pipe
 
 Output detections can then be viewed in the GUI, e.g., see:
 
 [install-directory]/examples/annotation_and_visualization/
+
+For a simpler run experience, this GUI can now also run all detection and tracking pipelines
+within it.
 
 
 Quick Build Instructions
