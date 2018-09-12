@@ -83,6 +83,107 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.9.8.3 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1kBGXdjDQCCJvvYS2_LfchSkULBAwTZ1c)
 
 
+Quick Run Instructions
+----------------------
+
+If building from the source, all final compiled binaries are placed in the
+[build-directory]/install directory, which is the same as the root directory
+in the above pre-built binaries. This will hereby be refered to as the [install-directory].
+
+One way to test the system is to see if you can run the examples in the [install-directory]/examples
+folder, for example, the pipelined object detectors or annotation GUI. There are some environment variables
+that need to be set up before you can run on Linux or Mac, which are all in the
+[install-directory]/setup_viame.sh script. This script is sourced in all of the example run
+scripts, and similar paths are added in the generated windows .bat example scripts, so
+there is no need to modify anything unless you installed to a non-default location. For the
+later case you will need to need to modify the VIAME_INSTALL path at the top of each run script
+to point to your installed location. 
+
+The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
+to copy project files for your operating system, '[install-directory]/configs/prj-linux' or
+'[install-directory]/configs/prj-windows' to a directory of your choice and run things from there. Not all
+functionality is in the default project file scripts, however, but it is a good entry point if you
+just want to get started on training object detection and/or tracking models. If so, we recommend reading the:
+[Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
+[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#rapid-model-generation), 
+[Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
+[Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html).
+
+Another good initial test to make sure your installation is working is to run the
+[install-directory]/plugin_explorer.bat program. It will generate a prodigious number of log messages
+and then list all the loadable algorithms and any potential issues. The output should contain the following
+snippets for all algorithms which can be loaded:
+
+```
+---- Algorithm search path
+
+Factories that create type "image_object_detector"
+---------------------------------------------------------------
+Info on algorithm type "image_object_detector" implementation "darknet"
+  Plugin name: darknet      Version: 1.0
+    Description:        Image object detector using darknet
+    Creates concrete type: kwiver::arrows::darknet::darknet_detector
+    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_darknet_plugin.so
+    Plugin module name: arrows.darknet
+
+Factories that create type "track_features"
+---------------------------------------------------------------
+Info on algorithm type "track_features" implementation "core"
+  Plugin name: core      Version: 1.0
+    Description:        Track features from frame to frame using feature detection, matching, and
+    loop closure.
+    Creates concrete type: kwiver::arrows::core::track_features_core
+    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_core_plugin.so
+    Plugin module name: arrows.core
+
+Factories that create type "video_input"
+---------------------------------------------------------------
+Info on algorithm type "video_input" implementation "vxl"
+  Plugin name: vxl      Version: 1.0
+    Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.
+    Creates concrete type: kwiver::arrows::vxl::vidl_ffmpeg_video_input
+    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_vxl_plugin.so
+    Plugin module name: arrows.vxl
+
+etc...
+```
+
+The plugin loaded line represents the shared objects that have been detected
+and loaded. Each shared object can contain multiple algorithms. The algorithm
+list shows each concrete algorithm that could be loaded and declared in pipeline files.
+Check the log messages to see if there are any libraries that could not be located.
+
+Each algorithm listed consists of two names. The first name is the type of
+algorithm and the second is the actual implementation type. For example the
+entry image_object_detector:hough_circle_detector indicates that it implements
+the image_object_detector interface and it is a hough_circle_detector.
+
+Algorithms can be instantiated in any program and use a configuration based
+approach to select which concrete implementation to instantiate.
+
+For a simple pipeline test, go to -
+
+	cd [install-directory]/examples/hello_world_pipeline/
+
+or
+
+	cd [install-directory]/examples/detector_pipelines/
+
+In those directories, run one of the detector pipelines. Which build-level ENABLE_FLAGS
+you enabled will control which detector pipelines you can run, and only run scripts
+with all required dependencies enabled will show up in the install tree. Each script is
+just performing a call to pipeline runner under the hood, e.g.:
+
+	pipeline_runner -p [pipeline-file].pipe
+
+Output detections can then be viewed in the GUI, e.g., see:
+
+[install-directory]/examples/annotation_and_visualization/
+
+For a simpler run experience, this GUI can now also run all detection and tracking pipelines
+within it.
+
+
 Quick Build Instructions
 ------------------------
 
@@ -177,90 +278,6 @@ you may also need to run:
 
 Just in case the address of submodules has changed. You only need to
 run this command if you get a "cannot fetch hash #hashid" error.
-
-
-Quick Run Instructions
-----------------------
-
-If building from the source, all final compiled binaries are placed in the
-[build-directory]/install directory, which is the same as the root directory
-in the pre-built binaries. This will hereby be refered to as the [install-directory].
-
-One way to test the system is to see if you can run the examples in the [install-directory]/examples
-folder, for example, the pipelined object detectors. There are some environment variables
-that need to be set up before you can run on Linux or Mac, which are all in the
-install/setup_viame.sh script. This script is sourced in all of the example run
-scripts, and similar paths are added in the generated windows .bat example scripts.
-
-Another good initial test is to run the [install-directory]/bin/plugin_explorer program. It
-will generate a prodigious number of log messages and then list all the loadable
-algorithms. The output should look as follows:
-
-```
----- Algorithm search path
-
-Factories that create type "image_object_detector"
----------------------------------------------------------------
-Info on algorithm type "image_object_detector" implementation "darknet"
-  Plugin name: darknet      Version: 1.0
-    Description:        Image object detector using darknet
-    Creates concrete type: kwiver::arrows::darknet::darknet_detector
-    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_darknet_plugin.so
-    Plugin module name: arrows.darknet
-
-Factories that create type "track_features"
----------------------------------------------------------------
-Info on algorithm type "track_features" implementation "core"
-  Plugin name: core      Version: 1.0
-    Description:        Track features from frame to frame using feature detection, matching, and
-    loop closure.
-    Creates concrete type: kwiver::arrows::core::track_features_core
-    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_core_plugin.so
-    Plugin module name: arrows.core
-
-Factories that create type "video_input"
----------------------------------------------------------------
-Info on algorithm type "video_input" implementation "vxl"
-  Plugin name: vxl      Version: 1.0
-    Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.
-    Creates concrete type: kwiver::arrows::vxl::vidl_ffmpeg_video_input
-    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_vxl_plugin.so
-    Plugin module name: arrows.vxl
-
-etc...
-```
-
-The plugin loaded line represents the shared objects that have been detected
-and loaded. Each shared object can contain multiple algorithms. The algorithm
-list shows each concrete algorithm that could be loaded and declared in pipeline files.
-Check the log messages to see if there are any libraries that could not be located.
-
-Each algorithm listed consists of two names. The first name is the type of
-algorithm and the second is the actual implementation type. For example the
-entry image_object_detector:hough_circle_detector indicates that it implements
-the image_object_detector interface and it is a hough_circle_detector.
-
-Algorithms can be instantiated in any program and use a configuration based
-approach to select which concrete implementation to instantiate.
-
-For a simple pipeline test, go to -
-
-	cd [install-directory]/examples/hello_world_pipeline/
-
-or
-
-	cd [install-directory]/examples/detector_pipelines/
-
-In those directories, run one of the detector pipelines. Which ENABLE_FLAGS you
-enabled will control which detector pipelines you can run, and only run scripts
-with all required dependencies enabled will show up in the install tree. Each
-script is just performing a call to pipeline runner under the hood, e.g.:
-
-	pipeline_runner -p [pipeline-file].pipe
-
-Output detections can then be viewed in the GUI, e.g., see:
-
-[install-directory]/examples/annotation_and_visualization/
 
 
 License and Citation

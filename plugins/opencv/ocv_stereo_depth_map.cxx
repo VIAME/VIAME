@@ -52,11 +52,11 @@ public:
   int num_disparities;
   int sad_window_size;
 
-  #ifdef VIAME_OPENCV_VER_2
-    cv::StereoBM algo;
-  #else
-    cv::Ptr<cv::StereoBM> algo;
-  #endif
+#ifdef VIAME_OPENCV_VER_2
+  cv::StereoBM algo;
+#else
+  cv::Ptr<cv::StereoBM> algo;
+#endif
 
   priv()
     : num_disparities( 0 ),
@@ -103,11 +103,11 @@ void ocv_stereo_depth_map
   d->num_disparities = config->get_value< int >( "num_disparities" );
   d->sad_window_size = config->get_value< int >( "sad_window_size" );
 
-  #ifdef VIAME_OPENCV_VER_2
-    d->algo.init( d->num_disparities, d->sad_window_size );
-  #else
-    d->algo = cv::StereoBM::create( d->num_disparities, d->sad_window_size );
-  #endif
+#ifdef VIAME_OPENCV_VER_2
+  d->algo.init( d->num_disparities, d->sad_window_size );
+#else
+  d->algo = cv::StereoBM::create( d->num_disparities, d->sad_window_size );
+#endif
 }
 
 
@@ -129,12 +129,11 @@ kwiver::vital::image_container_sptr ocv_stereo_depth_map
 
   cv::Mat output;
 
-  #ifdef VIAME_OPENCV_VER_2
-    d->algo( ocv1, ocv2, output );
-  #else
-    d->algo->compute( ocv1, ocv2, output );
-  #endif
-
+#ifdef VIAME_OPENCV_VER_2
+  d->algo( ocv1, ocv2, output );
+#else
+  d->algo->compute( ocv1, ocv2, output );
+#endif
 
   return kwiver::vital::image_container_sptr( new arrows::ocv::image_container( output ) );
 }

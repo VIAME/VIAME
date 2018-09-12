@@ -1,0 +1,2 @@
+../example_imagery/raw_auv_image_set1/20170819.183737.00358.pgm
+../example_imagery/raw_auv_image_set1/20170819.183945.00406.pgm

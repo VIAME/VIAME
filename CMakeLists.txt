@@ -338,18 +338,18 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 else()
 
-if( VIAME_ENABLE_FLASK )
-  set(FT_DATA_ROOT "${CMAKE_BINARY_DIR}/data" CACHE STRING "Where fishtracker data is stored")
-  file(COPY "plugins/flask"
-       DESTINATION "plugins/flask"
-       PATTERN "*.in" EXCLUDE)
-  configure_file("plugins/flask/flask/fishtracker.py.in"
-                 "plugins/flask/flask/fishtracker.py"
-                 )
-  configure_file("plugins/flask/Python/run_python_script.sh.in"
-                 "plugins/flask/Python/run_python_script.sh"
-                 )
-endif()
+  if( VIAME_ENABLE_FLASK )
+    set(FT_DATA_ROOT "${CMAKE_BINARY_DIR}/data" CACHE STRING "Where fishtracker data is stored")
+    file(COPY "plugins/flask"
+         DESTINATION "plugins/flask"
+         PATTERN "*.in" EXCLUDE)
+    configure_file("plugins/flask/flask/fishtracker.py.in"
+                   "plugins/flask/flask/fishtracker.py"
+                   )
+    configure_file("plugins/flask/Python/run_python_script.sh.in"
+                   "plugins/flask/Python/run_python_script.sh"
+                   )
+  endif()
 
   ###
   # Look for and use Fletch to find dependencies
