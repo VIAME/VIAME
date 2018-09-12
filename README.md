@@ -97,10 +97,14 @@ install/setup_viame.sh script. This script is sourced in all of the example run
 scripts, and similar paths are added in the generated windows .bat example scripts.
 
 The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
-to copy project files for your operating system, '[install]/configs/prj-linux' or
-'[install]/configs/prj-windows' to a directory of your choice and run things from there. Not all
+to copy project files for your operating system, '[install-directory]/configs/prj-linux' or
+'[install-directory]/configs/prj-windows' to a directory of your choice and run things from there. Not all
 functionality is in the default project file scripts, however, but it is a good entry point if you
-just want to get started on training object detection and/or tracking models.
+just want to get started on training object detection and/or tracking models. If so, we recommend reading:
+[Example Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
+[Rapid Model Generation](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#rapid-model-generation), 
+[Deep Model Generation](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
+[Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html).
 
 Another good initial test is to run the [install-directory]/bin/plugin_explorer program. It
 will generate a prodigious number of log messages and then list all the loadable
