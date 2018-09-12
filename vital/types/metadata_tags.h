@@ -66,6 +66,13 @@ CALL( IMAGE_FILENAME,              "Image Filename",                  std::strin
 CALL( VIDEO_FILENAME,              "Video Filename",                  std::string) \
 CALL( SENSOR_LOCATION,             "Sensor Geodetic Location",        geo_point) \
 CALL( SENSOR_ALTITUDE,             "Sensor Altitude",                 double) /* TODO: merge with previous? */ \
+CALL( SENSOR_LOCAL_X,              "Sensor Local X Coordinate",       double) \
+CALL( SENSOR_LOCAL_Y,              "Sensor Local Y Coordinate",       double) \
+CALL( SENSOR_LOCAL_Z,              "Sensor Local Z Coordinate",       double) \
+CALL( SENSOR_LOCAL_QW,             "Sensor Local Quaterion QW",       double) \
+CALL( SENSOR_LOCAL_QX,             "Sensor Local Quaterion QX",       double) \
+CALL( SENSOR_LOCAL_QY,             "Sensor Local Quaterion QY",       double) \
+CALL( SENSOR_LOCAL_QZ,             "Sensor Local Quaterion QZ",       double) \
 CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View", double) \
 CALL( SENSOR_VERTICAL_FOV,         "Sensor Vertical Field of View",   double) \
 CALL( SENSOR_REL_AZ_ANGLE,         "Sensor Relative Azimuth Angle",   double) \

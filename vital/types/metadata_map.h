@@ -40,9 +40,11 @@
 
 #include <vital/vital_types.h>
 #include <vital/vital_config.h>
+#include <vital/types/geo_point.h>
 
 #include <map>
 #include <memory>
+#include <set>
 
 namespace kwiver {
 namespace vital {
@@ -68,6 +70,31 @@ public:
 
   /// Return a map from integer frame IDs to metadata vectors
   virtual map_metadata_t metadata() const = 0;
+
+  virtual bool get_sensor_location(frame_id_t fid, geo_point &loc) = 0;
+
+  virtual bool get_sensor_altitude(frame_id_t fid, double &altitude) = 0;
+
+  virtual bool get_horizontal_field_of_view(frame_id_t fid, double &fov) = 0;
+
+  virtual bool get_slant_range(frame_id_t fid, double &slant_range) = 0;
+
+  virtual bool get_target_width(frame_id_t fid, double &target_width) = 0;
+
+  virtual bool get_platform_heading_angle(frame_id_t fid, double &heading) = 0;
+
+  virtual bool get_platform_pitch_angle(frame_id_t fid, double &pitch) = 0;
+
+  virtual bool get_platform_roll_angle(frame_id_t fid, double &roll) = 0;
+
+  virtual bool get_sensor_rel_az_angle(frame_id_t fid, double &rel_az_angle) = 0;
+
+  virtual bool get_sensor_rel_el_angle(frame_id_t fid, double &rel_el_angle) = 0;
+
+  virtual bool get_sensor_rel_roll_angle(frame_id_t fid, double &rel_roll_angle) = 0;
+
+  virtual std::set<frame_id_t> frames() = 0;
+
 };
 
 /// typedef for a metadata shared pointer
@@ -92,8 +119,94 @@ public:
   /// Return a map from integer IDs to metadata shared pointers
   virtual map_metadata_t metadata() const { return data_; }
 
+  virtual bool get_sensor_location(frame_id_t fid, geo_point &loc)
+  {
+    return get_value<geo_point>(VITAL_META_SENSOR_LOCATION,fid, loc);
+  }
+
+  virtual bool get_sensor_altitude(frame_id_t fid, double &altitude)
+  {
+    return get_value<double>(VITAL_META_SENSOR_ALTITUDE, fid, altitude);
+  }
+
+  virtual bool get_horizontal_field_of_view(frame_id_t fid, double &fov)
+  {
+    return get_value<double>(VITAL_META_SENSOR_HORIZONTAL_FOV, fid, fov);
+  }
+
+  virtual bool get_slant_range(frame_id_t fid, double &slant_range)
+  {
+    return get_value<double>(VITAL_META_SLANT_RANGE, fid, slant_range);
+  }
+
+  virtual bool get_target_width(frame_id_t fid, double &target_width)
+  {
+    return get_value<double>(VITAL_META_TARGET_WIDTH, fid, target_width);
+  }
+
+  virtual bool get_platform_heading_angle(frame_id_t fid, double &heading)
+  {
+    return get_value<double>(VITAL_META_PLATFORM_HEADING_ANGLE, fid, heading);
+  }
+
+  virtual bool get_platform_pitch_angle(frame_id_t fid, double &pitch)
+  {
+    return get_value<double>(VITAL_META_PLATFORM_PITCH_ANGLE, fid, pitch);
+  }
+
+  virtual bool get_platform_roll_angle(frame_id_t fid, double &roll)
+  {
+    return get_value<double>(VITAL_META_PLATFORM_ROLL_ANGLE, fid, roll);
+  }
+
+  virtual bool get_sensor_rel_az_angle(frame_id_t fid, double &rel_az_angle)
+  {
+    return get_value<double>(VITAL_META_SENSOR_REL_AZ_ANGLE, fid, rel_az_angle);
+  }
+
+  virtual bool get_sensor_rel_el_angle(frame_id_t fid, double &rel_el_angle)
+  {
+    return get_value<double>(VITAL_META_SENSOR_REL_EL_ANGLE, fid, rel_el_angle);
+  }
+
+  virtual bool get_sensor_rel_roll_angle(frame_id_t fid, double &rel_roll_angle)
+  {
+    return get_value<double>(VITAL_META_SENSOR_REL_ROLL_ANGLE, fid, rel_roll_angle);
+  }
+
+  virtual std::set<frame_id_t> frames()
+  {
+    std::set<frame_id_t> fids;
+    for (auto &m : data_)
+    {
+      fids.insert(m.first);
+    }
+    return fids;
+  }
 
 protected:
+
+  template<typename T>
+  bool get_value(vital_metadata_tag tag, frame_id_t fid, T& val)
+  {
+    auto d_it = data_.find(fid);
+    if (d_it == data_.end())
+    {
+      return false;
+    }
+
+    auto &mdv = d_it->second;
+    for (auto md : mdv)
+    {
+      if (md->has(tag))
+      {
+        md->find(tag).data(val);
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// The map from integer IDs to metadata shared pointers
   map_metadata_t data_;
 };
