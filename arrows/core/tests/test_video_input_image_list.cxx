@@ -253,7 +253,7 @@ TEST_F(video_input_image_list, metadata_map)
   while ( std::getline( list_file_stream, file_name ) )
   {
     auto md_file_name = md_map[frame_number][0]->find(
-        kwiver::vital::VITAL_META_IMAGE_FILENAME).as_string();
+        kwiver::vital::VITAL_META_IMAGE_URI).as_string();
     EXPECT_TRUE( md_file_name.find( file_name ) != std::string::npos )
       << "File path in metadata should contain " << file_name;
     frame_number++;

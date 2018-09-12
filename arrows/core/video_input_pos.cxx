@@ -92,7 +92,7 @@ public:
     // Include the path to the image
     if ( metadata )
     {
-      metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+      metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
                                         paths.first) );
     }
 
@@ -313,7 +313,7 @@ video_input_pos
   if ( d->d_metadata )
   {
     d->d_metadata->set_timestamp( ts );
-    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
                                            d->d_current_files->first ) );
   }
 
@@ -362,7 +362,7 @@ video_input_pos
   if ( d->d_metadata )
   {
     d->d_metadata->set_timestamp( ts );
-    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
                                            d->d_current_files->first ) );
   }
 

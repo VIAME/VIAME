@@ -62,8 +62,8 @@ CALL( PLATFORM_INDICATED_AIRSPEED, "Platform Indicated Airspeed",     double) \
 CALL( PLATFORM_DESIGNATION,        "Platform Designation",            std::string) \
 CALL( IMAGE_SOURCE_SENSOR,         "Image Source Sensor",             std::string) \
 CALL( IMAGE_COORDINATE_SYSTEM,     "Image Coordinate System",         std::string) \
-CALL( IMAGE_FILENAME,              "Image Filename",                  std::string) \
-CALL( VIDEO_FILENAME,              "Video Filename",                  std::string) \
+CALL( IMAGE_URI,                   "Image URI",                       std::string) \
+CALL( VIDEO_URI,                   "Video URI",                       std::string) \
 CALL( SENSOR_LOCATION,             "Sensor Geodetic Location",        geo_point) \
 CALL( SENSOR_ALTITUDE,             "Sensor Altitude",                 double) /* TODO: merge with previous? */ \
 CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View", double) \
