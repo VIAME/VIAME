@@ -122,12 +122,51 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
   return errors;
 }
 
+/// subsample the cmaeras favoring more recent cameras
+vital::camera_map::map_camera_t
+subsample_cameras_favor_recent(const vital::camera_map::map_camera_t& cameras)
+{
+  // General idea of this loop is to pick more frames near the last frame in time and 
+  // fewer earlier.  So if we are more than 100 frames back, only pick every hundredth 
+  // frame.  If fewer than 100 but more than 10 frames back pick every tenth and if 
+  // less than ten frames back pick every frame.  
+  // The idea is that more recent cameras are more likely to have high reprojection 
+  // errors while older cameras have been optimized more and so will mostly have low 
+  // reprojection errors and those reprojection errors will be similar to each other. 
+
+  vital::camera_map::map_camera_t ret_cams;
+
+  frame_id_t last_frame = cameras.rend()->first;
+
+  for (auto cam : cameras)
+  {
+    auto frame_num = cam.first;
+    if (last_frame - frame_num > 100)
+    {
+      if (frame_num % 100 != 1)
+      {
+        continue;
+      }
+    }
+    else if (last_frame - frame_num > 10)
+    {
+      if (frame_num % 10 != 1)
+      {
+        continue;
+      }
+    }
+
+    ret_cams[frame_num] = cam.second;
+  }
+
+  return ret_cams;
+}
+
 /// Compute the per camera Root-Mean-Square-Error (RMSE) of the reprojections
 std::map<frame_id_t, double>
 reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
-  const vital::landmark_map::map_landmark_t& landmarks,
-  const std::vector<track_sptr>& tracks,
-  bool subsample_cams)
+                         const vital::landmark_map::map_landmark_t& landmarks,
+                         const std::vector<track_sptr>& tracks)
 {
   typedef std::map<landmark_id_t, landmark_sptr>::const_iterator lm_map_itr_t;
   typedef std::map<frame_id_t, camera_sptr>::const_iterator cam_map_itr_t;
@@ -156,38 +195,9 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
     }
     const landmark& lm = *lmi->second;
     for (track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
-    {
-
-      // General idea of this loop is to pick more frames near the last frame in time and 
-      // fewere earlier.  So if we are more than 100 frames back, only pick every hundredth 
-      // frame.  If fewer than 100 but more than 10 frames back pick every tenth and if 
-      // less than ten frames back pick every frame.  
-      // The idea is that more recent cameras are more likely to have high reprrojection 
-      // errors while older cameras have been optimized more and so will mostly have low 
-      // reprojection errors.  
+    { 
       auto frame_num = (*tsi)->frame();
-      if (subsample_cams)
-      {
-        if (last_frame - frame_num > 100)
-        {
-          if (frame_num % 100 != 1)
-          {
-            continue;
-          }
-        }
-        else if (last_frame - frame_num > 10)
-        {
-          if (frame_num % 10 != 1)
-          {
-            continue;
-          }
-        }
-      }
-      if (frame_num > last_frame)
-      {
-        continue;
-      }
-
+    
       auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
       if (!fts || !fts->feature)
       {

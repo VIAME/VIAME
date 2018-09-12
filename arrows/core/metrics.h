@@ -82,12 +82,12 @@ reprojection_error_sqr(const vital::camera& cam,
   return reprojection_error_vec(cam, lm, f).squaredNorm();
 }
 
-/// Check that at least one pair of rays has angle greater than or equal to ang_thresh
+/// Check that at least one pair of rays has cos(angle) less than or equal to cos_ang_thresh
 /**
 * \param[in] cameras is the set of cameras that view X
 * \param[in] X is the landmark projected into the cameras
 * \param[in] cos_ang_thresh cosine of the angle threshold
-* \returns true if at least one pair of rays has cos(angle) < cos_angl_thresh
+* \returns true if at least one pair of rays has cos(angle) <= cos_ang_thresh
 */
 
 KWIVER_ALGO_CORE_EXPORT
@@ -133,8 +133,6 @@ reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& camer
 * \param [in] cameras is the map of frames/cameras used for projection
 * \param [in] landmarks is the map ids/landmarks projected into the cameras
 * \param [in] tracks is the set of tracks providing measurements
-* \param [in] subsample_cams if true only a subset of the cameras' rmse is calculated and returned 
-*             to save compuatation
 * \returns a map containing one reprojection error rms value per camera mapped by the
 *             the cameras' frame ids
 */
@@ -142,9 +140,22 @@ reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& camer
 KWIVER_ALGO_CORE_EXPORT
 std::map<vital::frame_id_t, double>
 reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
-  const vital::landmark_map::map_landmark_t& landmarks,
-  const std::vector<vital::track_sptr>& tracks,
-  bool subsample_cams);
+                         const vital::landmark_map::map_landmark_t& landmarks,
+                         const std::vector<vital::track_sptr>& tracks);
+
+/// Subsampels cameras favoring more recent cameras
+/**
+* \param[in] subsample_cams if true only a subset of the cameras' rmse is calculated and returned 
+*             to save compuatation.The general idea is to pick more frames near the last frame
+*             in time and fewer earlier.The idea is that more recent cameras are more likely to have
+*             high reprojection errors while older cameras have been optimized more and so will mostly
+*             have similar reprojection errors to each other that are lower.
+* \returns a camera map containint the subsampeld cameras
+*/
+KWIVER_ALGO_CORE_EXPORT
+vital::camera_map::map_camera_t
+subsample_cameras_favor_recent(const vital::camera_map::map_camera_t& cameras);
+
 
 /// Compute the Root-Mean-Square-Error (RMSE) of the reprojections
 /**
