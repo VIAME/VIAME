@@ -40,16 +40,16 @@ but select entries are also listed below, which include some run examples:
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
 [Object Detector Examples](examples/object_detection) <br />
-[Stereo Measurement Examples](examples/measurement_using_stereo) <> 
-[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
-[How to Integrate Your Own Plugin](examples/hello_world_pipeline) <br />
-[Example Integrations](plugins) <>
-[Example Plugin Templates](plugins/templates) <> 
 [GUIs for Visualization and Annotation](examples/annotation_and_visualization) <> 
-[Detector Training API](examples/object_detector_training) <br />
+[Detector Training API](examples/object_detector_training) <>
+[Example Integrations](plugins) <>
+[Example Plugin Templates](plugins/templates) <br />
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <> 
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <>
-[KWIVER Overview](https://github.com/Kitware/kwiver)
+[KWIVER Overview](https://github.com/Kitware/kwiver) <br />
+[Stereo Measurement Examples](examples/measurement_using_stereo) <> 
+[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline)
 
 Pre-Built Binaries
 ------------------
@@ -101,8 +101,8 @@ to point to your installed location.
 
 The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
 to copy project files for your operating system,
-['[install-directory]/configs/prj-linux'](https://github.com/Kitware/VIAME/tree/master/configs/prj-linux) or
-['[install-directory]/configs/prj-windows'](https://github.com/Kitware/VIAME/tree/master/configs/prj-windows)
+[[install-directory]/configs/prj-linux](https://github.com/Kitware/VIAME/tree/master/configs/prj-linux) or
+[[install-directory]/configs/prj-windows](https://github.com/Kitware/VIAME/tree/master/configs/prj-windows)
 to a directory of your choice and run things from there. Not all
 functionality is in the default project file scripts, however, but it is a good entry point if you
 just want to get started on training object detection and/or tracking models. If so, we recommend reading the:
