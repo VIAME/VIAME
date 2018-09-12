@@ -1,16 +1,14 @@
 
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
 <br>
-VIAME is a computer vision library designed to integrate several image and
-video processing algorithms together in a common distributed processing framework,
-majorly targeting marine species analytics. As it contains many common algorithms
-and compiles several other popular repositories together as a part of its build process,
-VIAME is also useful as a general computer vision toolkit. The core infrastructure connecting
-different system components is currently the KWIVER library, which can connect C/C++, python,
-and matlab nodes together in a graph-like pipeline architecture. Alongside the pipelined
-image processing system are a number of standalone utilties for model training, output detection
-visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring),
-image/video search, and rapid model generation.
+VIAME is a computer vision library designed to integrate several image and video processing algorithms together in
+a common distributed processing framework, majorly targeting marine species analytics. As it contains many common
+algorithms and compiles several other popular repositories together as a part of its build process, VIAME is also
+useful as a general computer vision toolkit. The core infrastructure connecting different system components is
+currently the KWIVER library, which can connect C/C++, python, and matlab nodes together in a graph-like pipeline
+architecture. Alongside the pipelined image processing system are a number of standalone utilties for model training,
+output detection visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring), image/video search,
+and rapid model generation.
 
 Example Capabilities
 --------------------
@@ -273,8 +271,7 @@ update your code, it is important to re-run:
 	git submodule update --init --recursive
 
 After switching branches to ensure that you have on the correct hashes
-of sub-packages within the build (e.g. fletch or KWIVER). Very rarely
-you may also need to run:
+of sub-packages within the build. Very rarely you may also need to run:
 
 	git submodule sync
 
@@ -287,5 +284,6 @@ License and Citation
 
 VIAME is released under a BSD-3 license.
 
-A system paper summarizing VIAME was published in IEEE WACV 2017 which is available
-[here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
+Though a bit dated, a system paper summarizing VIAME's image processing pipelining
+architecture and baseline algorithms was published in IEEE WACV 2017 which is
+[available online here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
