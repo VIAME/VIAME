@@ -10,6 +10,12 @@ the top of the each run script. These scripts can be opened and edited in any te
 the VIAME_INSTALL path to the location of your installed (or built) binaries. This is true on both
 Windows, Linux, and Mac.
 
+The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
+to copy project files for your operating system, '[install]/configs/prj-linux' or
+'[install]/configs/prj-windows' to a directory of your choice and run things from there. Not all
+functionality is in the default project file scripts, however, but it is a good entry point if you
+just want to get started on object detection and/or tracking.
+
 Each example is run in a different fashion, but there are 3 core commands you need to know in
 order to run them on Linux:
 
