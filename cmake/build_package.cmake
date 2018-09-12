@@ -72,13 +72,21 @@ include( InstallRequiredSystemLibraries )
 #  endif()
 #endforeach()
 
+if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
+  set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
+  install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
+endif()
+
 if( WIN32 )
   set( PIPELINE_RUNNER_APP "${VIAME_INSTALL_DIR}/bin/pipeline_runner.exe" )
 else()
   set( PIPELINE_RUNNER_APP "${VIAME_INSTALL_DIR}/bin/pipeline_runner" )
 endif()
 
-#fixup_bundle( "${PIPELINE_RUNNER_APP}" "${FIXUP_LIBS}" "${FIXUP_DIRS}" )
+install( CODE "
+  include( BundleUtilities )
+  fixup_bundle( \"${PIPELINE_RUNNER_APP}\" \"${FIXUP_LIBS}\" \"${FIXUP_DIRS}\" )
+  " )
 
 if( VIAME_ENABLE_YOLO )
   if( WIN32 )
@@ -87,13 +95,13 @@ if( VIAME_ENABLE_YOLO )
     set( DARKNET_APP "${VIAME_INSTALL_DIR}/bin/darknet" )
   endif()
 
-  #fixup_bundle( "${DARKNET_APP}" "" "${FIXUP_DIRS}" )
+  install( CODE "
+    include( BundleUtilities )
+    fixup_bundle( \"${DARKNET_APP}\" \"\" \"${FIXUP_DIRS}\" )
+    " )
 endif()
 
-if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
-  set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
-  install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
-endif()
+install( DIRECTORY ${VIAME_INSTALL_DIR}/ DESTINATION . )
 
 #    if( WIN32 AND NOT UNIX )
 #      set( CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")
