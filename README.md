@@ -100,8 +100,10 @@ later case you will need to need to modify the VIAME_INSTALL path at the top of 
 to point to your installed location. 
 
 The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
-to copy project files for your operating system, '[install-directory]/configs/prj-linux' or
-'[install-directory]/configs/prj-windows' to a directory of your choice and run things from there. Not all
+to copy project files for your operating system,
+['[install-directory]/configs/prj-linux'](https://github.com/Kitware/VIAME/tree/master/configs/prj-linux) or
+['[install-directory]/configs/prj-windows'](https://github.com/Kitware/VIAME/tree/master/configs/prj-windows)
+to a directory of your choice and run things from there. Not all
 functionality is in the default project file scripts, however, but it is a good entry point if you
 just want to get started on training object detection and/or tracking models. If so, we recommend reading the:
 [Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
