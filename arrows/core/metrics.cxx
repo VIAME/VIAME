@@ -124,8 +124,8 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
 
 /// Compute the per camera Root-Mean-Square-Error (RMSE) of the reprojections
 std::map<frame_id_t, double>
-reprojection_rmse_by_cam(const std::map<frame_id_t, camera_sptr>& cameras,
-  const std::map<landmark_id_t, landmark_sptr>& landmarks,
+reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
+  const vital::landmark_map::map_landmark_t& landmarks,
   const std::vector<track_sptr>& tracks,
   bool subsample_cams)
 {
@@ -135,16 +135,11 @@ reprojection_rmse_by_cam(const std::map<frame_id_t, camera_sptr>& cameras,
   struct err_vals {
     double num_obs;
     double sum_error_sq;
-    err_vals(): 
-      num_obs(0), sum_error_sq(0)
-    {
+    err_vals() :
+      num_obs(0), sum_error_sq(0) {}
 
-    }
     err_vals(double num_obs_, double sum_error_sq_) :
-      num_obs(num_obs_), sum_error_sq(sum_error_sq_)
-    {
-
-    }
+      num_obs(num_obs_), sum_error_sq(sum_error_sq_) {}
   };
 
   frame_id_t last_frame = cameras.rend()->first;
@@ -162,6 +157,14 @@ reprojection_rmse_by_cam(const std::map<frame_id_t, camera_sptr>& cameras,
     const landmark& lm = *lmi->second;
     for (track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
     {
+
+      // General idea of this loop is to pick more frames near the last frame in time and 
+      // fewere earlier.  So if we are more than 100 frames back, only pick every hundredth 
+      // frame.  If fewer than 100 but more than 10 frames back pick every tenth and if 
+      // less than ten frames back pick every frame.  
+      // The idea is that more recent cameras are more likely to have high reprrojection 
+      // errors while older cameras have been optimized more and so will mostly have low 
+      // reprojection errors.  
       auto frame_num = (*tsi)->frame();
       if (subsample_cams)
       {

@@ -40,7 +40,10 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/camera.h>
+#include <vital/types/camera_map.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/landmark.h>
+#include <vital/types/landmark_map.h>
 #include <vital/types/feature.h>
 #include <vital/types/track.h>
 #include <vector>
@@ -135,10 +138,11 @@ reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& camer
 * \returns a map containing one reprojection error rms value per camera mapped by the
 *             the cameras' frame ids
 */
+
 KWIVER_ALGO_CORE_EXPORT
 std::map<vital::frame_id_t, double>
-reprojection_rmse_by_cam(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
-  const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
+reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
+  const vital::landmark_map::map_landmark_t& landmarks,
   const std::vector<vital::track_sptr>& tracks,
   bool subsample_cams);
 
