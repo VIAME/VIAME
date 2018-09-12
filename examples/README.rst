@@ -58,6 +58,16 @@ Image and Video Search for Rapid Model Generation
    :align: center
    :target: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation
 
+***********************************************
+Illumination Normalization and Color Correction
+***********************************************
+
+.. image:: http://www.viametoolkit.org/wp-content/uploads/2018/09/color_correct.png
+   :scale: 50
+   :align: center
+   :target: https://github.com/Kitware/VIAME/tree/master/examples/image_enhancement
+
+
 *************************************
 GUIs for Visualization and Annotation
 *************************************
