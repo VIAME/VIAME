@@ -8,11 +8,13 @@ include_directories( "${OpenCV_INCLUDE_DIRS}" )
 link_directories( "${OpenCV_LIBRARY_DIR}" )
 
 set( plugin_headers
+  ocv_clahe_normalization.h
   ocv_debayer_filter.h
   ocv_stereo_depth_map.h
   )
 
 set( plugin_sources
+  ocv_clahe_normalization.cxx
   ocv_debayer_filter.cxx
   ocv_stereo_depth_map.cxx
   )
