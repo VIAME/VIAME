@@ -91,24 +91,27 @@ If building from the source, all final compiled binaries are placed in the
 in the above pre-built binaries. This will hereby be refered to as the [install-directory].
 
 One way to test the system is to see if you can run the examples in the [install-directory]/examples
-folder, for example, the pipelined object detectors. There are some environment variables
+folder, for example, the pipelined object detectors or annotation GUI. There are some environment variables
 that need to be set up before you can run on Linux or Mac, which are all in the
-install/setup_viame.sh script. This script is sourced in all of the example run
-scripts, and similar paths are added in the generated windows .bat example scripts.
+[install-directory]/setup_viame.sh script. This script is sourced in all of the example run
+scripts, and similar paths are added in the generated windows .bat example scripts, so
+there is no need to modify anything unless you installed to a non-default location. For the
+later case you will need to need to modify the VIAME_INSTALL path at the top of each run script
+to point to your installed location. 
 
 The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
 to copy project files for your operating system, '[install-directory]/configs/prj-linux' or
 '[install-directory]/configs/prj-windows' to a directory of your choice and run things from there. Not all
 functionality is in the default project file scripts, however, but it is a good entry point if you
-just want to get started on training object detection and/or tracking models. If so, we recommend reading:
-[Example Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
-[Rapid Model Generation](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#rapid-model-generation), 
-[Deep Model Generation](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
+just want to get started on training object detection and/or tracking models. If so, we recommend reading the:
+[Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
+[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#rapid-model-generation), 
+[Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
 [Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html).
 
 Another good initial test is to run the [install-directory]/bin/plugin_explorer program. It
 will generate a prodigious number of log messages and then list all the loadable
-algorithms. The output should look as follows:
+algorithms and any potential issues. The output should look as follows:
 
 ```
 ---- Algorithm search path
