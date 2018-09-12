@@ -88,12 +88,13 @@ If building from the source, all final compiled binaries are placed in the
 [build-directory]/install directory, which is the same as the root directory
 in the above pre-built binaries. This will hereby be refered to as the [install-directory].
 
-One way to test the system is to see if you can run the examples in the [install-directory]/examples
+One way to test the system is to see if you can run the examples in the
+[[install-directory]/examples](https://github.com/Kitware/VIAME/tree/master/examples)
 folder, for example, the pipelined object detectors or annotation GUI. There are some environment variables
 that need to be set up before you can run on Linux or Mac, which are all in the
 [install-directory]/setup_viame.sh script. This script is sourced in all of the example run
 scripts, and similar paths are added in the generated windows .bat example scripts, so
-there is no need to modify anything unless you installed to a non-default location. For the
+there is no need to modify anything unless you installed VIAME to a non-default location. For the
 later case you will need to need to modify the VIAME_INSTALL path at the top of each run script
 to point to your installed location. 
 
