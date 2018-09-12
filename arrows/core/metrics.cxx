@@ -172,12 +172,12 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
   typedef std::map<frame_id_t, camera_sptr>::const_iterator cam_map_itr_t;
   
   struct err_vals {
-    double num_obs;
+    unsigned int num_obs;
     double sum_error_sq;
     err_vals() :
       num_obs(0), sum_error_sq(0) {}
 
-    err_vals(double num_obs_, double sum_error_sq_) :
+    err_vals(unsigned int num_obs_, double sum_error_sq_) :
       num_obs(num_obs_), sum_error_sq(sum_error_sq_) {}
   };
 
@@ -226,7 +226,7 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
       }
       else
       {
-        ce_it->second.num_obs += 1.0;
+        ce_it->second.num_obs += 1;
         ce_it->second.sum_error_sq += rpe;
       }
     }
@@ -237,7 +237,7 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
   {
     if (err.second.num_obs > 0)
     {
-      ret_errs[err.first] = std::sqrt(err.second.sum_error_sq / err.second.num_obs);
+      ret_errs[err.first] = std::sqrt(err.second.sum_error_sq / static_cast<double>(err.second.num_obs));
     }
   }
   return ret_errs;
