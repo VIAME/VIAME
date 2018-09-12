@@ -55,7 +55,7 @@ class burnout_image_enhancer::priv
 public:
   priv()
     : m_config_file( "burnout_enhancer.conf" )
-    , is_16bit_mode( false )
+    , is_16bit_mode( true )
   {}
 
   ~priv()
