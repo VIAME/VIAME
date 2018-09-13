@@ -7,7 +7,7 @@
 #+
 # Create a variable with the windows environment for use in MSVC
 #
-# win32_bats is a list of batch scripts on disk to process
+# SETUP_BATCH_FILES is a list of batch scripts on disk to process
 #
 # Each batch file will be read in and each 'set' of an environment variable 
 # will be extracted and reformed with the proper values for MSVC
@@ -24,10 +24,10 @@ endif()
 function(kwiver_setup_msvc_env)
   
   foreach(setup_batch ${ARGN})
-    list(APPEND win32_bats "${setup_batch}")
+    list(APPEND SETUP_BATCH_FILES "${setup_batch}")
   endforeach()
   
-  foreach(setup_batch ${win32_bats})
+  foreach(setup_batch ${SETUP_BATCH_FILES})
     #message(STATUS "Extracting environment from ${setup_batch}")
     get_filename_component(batch_dir ${setup_batch} DIRECTORY)
     file(READ "${setup_batch}" contents)

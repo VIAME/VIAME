@@ -5,7 +5,9 @@
 set(KWIVER_SETUP_SCRIPT_FILE    "${KWIVER_BINARY_DIR}/setup_KWIVER.sh" )
 # Create initial setup batch script
 set(KWIVER_SETUP_BATCH_FILE    "${KWIVER_BINARY_DIR}/setup_KWIVER.bat" )
-list(APPEND win32_bats "${KWIVER_SETUP_BATCH_FILE}")
+list(APPEND SETUP_BATCH_FILES "${KWIVER_SETUP_BATCH_FILE}")
+# Set the bat to use when setting up a test
+set(KWIVER_TEST_BATCH_FILE ${KWIVER_SETUP_BATCH_FILE})
 
 set(LIBRARY_PATH_VAR "LD_LIBRARY_PATH")
 if( APPLE )
