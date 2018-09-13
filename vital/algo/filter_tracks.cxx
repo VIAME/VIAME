@@ -47,7 +47,7 @@ namespace algo {
 filter_tracks
 ::filter_tracks()
 {
-  attach_logger( "filter_tracks" );
+  attach_logger( "algo.filter_tracks" );
 }
 
 

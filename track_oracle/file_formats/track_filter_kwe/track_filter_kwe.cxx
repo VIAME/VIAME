@@ -10,8 +10,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <kwiversys/RegularExpression.hxx>
+
 #include <vul/vul_awk.h>
-#include <vul/vul_reg_exp.h>
 #include <vul/vul_timer.h>
 #include <vul/vul_sprintf.h>
 #include <vul/vul_file.h>
@@ -71,7 +72,7 @@ track_filter_kwe_type
 
   string line;
   size_t nlines = 0;
-  vul_reg_exp comment_re( "^ *#" );
+  kwiversys::RegularExpression comment_re( "^ *#" );
   vul_timer timer;
   size_t file_size = vul_file::size( fn );
   while (getline( is, line ))

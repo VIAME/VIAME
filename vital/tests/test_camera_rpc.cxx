@@ -34,59 +34,33 @@
  */
 
 #include <test_eigen.h>
+#include <tests/test_gtest.h>
 
 #include <vital/types/camera_rpc.h>
 #include <vital/io/camera_io.h>
+#include <vital/tests/rpc_reader.h>
 
 #include <iostream>
 
 static double epsilon = 1e-8;
+kwiver::vital::path_t g_data_dir;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
   ::testing::InitGoogleTest( &argc, argv );
+  GET_ARG(1, g_data_dir);
   return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
 class camera_rpc : public ::testing::Test
 {
+  TEST_ARG(data_dir);
+
 public:
   void SetUp()
   {
-    rpc_coeffs = kwiver::vital::rpc_matrix::Zero();
-    // sample RPC metadata read by GDAL from the following 2016 MVS Benchmark image
-    // 01SEP15WV031000015SEP01135603-P1BS-500497284040_01_P001_________AAE_0AAAAABPABP0.NTF
-    rpc_coeffs.row(0) << 0.006585953, -1.032582, 0.001740937, 0.03034485,
-                    0.0008819178, -0.000167943, 0.0001519299, -0.00626254,
-                    -0.00107337, 9.099077e-06, 2.608985e-06, -2.947004e-05,
-                    2.231277e-05, 4.587831e-06, 4.16379e-06, 0.0003464555,
-                    3.598323e-08, -2.859541e-06, 5.159311e-06, -1.349187e-07;
-
-    rpc_coeffs.row(1) << 1, 0.0003374458, 0.0008965622, -0.0003730697,
-                    -2.666499e-05, -2.711356e-06, 5.454434e-07, 4.485658e-07,
-                    2.534922e-05, -4.546709e-06, 0, -1.056044e-07,
-                    -5.626866e-07, 2.243313e-08, -2.108053e-07, 9.199534e-07,
-                    0, -3.887594e-08, -1.437016e-08, 0;
-
-    rpc_coeffs.row(2) << 0.0002703625, 0.04284488, 1.046869, 0.004713542,
-                    -0.0001706129, -1.525177e-07, 1.255623e-05, -0.0005820134,
-                    -0.000710512, -2.510676e-07, 3.179984e-06, 3.120413e-06,
-                    3.19923e-05, 4.194369e-06, 7.475295e-05, 0.0003630791,
-                    0.0001021649, 4.493725e-07, 3.156566e-06, 4.596505e-07;
-
-    rpc_coeffs.row(3) << 1, 0.0001912806, 0.0005166397, -1.45044e-05,
-                  -3.860133e-05, 2.634582e-06, -4.551145e-06, 6.859296e-05,
-                  -0.0002410782, 9.753265e-05, -1.456261e-07, 5.310624e-08,
-                  -1.913253e-05, 3.18203e-08, 3.870586e-07, -0.000206842,
-                  9.128349e-08, 0, -2.506197e-06, 0;
-
-    world_scale << 0.0928, 0.0708, 501;
-    world_offset << -58.6096, -34.4732, 31;
-    image_scale << 21250, 21478;
-    image_offset << 21249, 21477;
-
     // Actual world values
     static const size_t num_points = 5;
     double act_x[num_points] =
@@ -111,13 +85,6 @@ public:
     }
   }
 
-  kwiver::vital::vector_3d world_scale;
-  kwiver::vital::vector_3d world_offset;
-  kwiver::vital::vector_2d image_scale;
-  kwiver::vital::vector_2d image_offset;
-
-  kwiver::vital::rpc_matrix rpc_coeffs;
-
   std::vector<kwiver::vital::vector_3d> test_points;
   std::vector<kwiver::vital::vector_2d> test_image_points;
 };
@@ -137,8 +104,8 @@ TEST_F(camera_rpc, identity)
 // ----------------------------------------------------------------------------
 TEST_F(camera_rpc, clone)
 {
-  kwiver::vital::simple_camera_rpc cam( world_scale, world_offset,
-                                        image_scale, image_offset, rpc_coeffs );
+  kwiver::vital::path_t test_rpc_file = data_dir + "/rpc_data.dat";
+  auto cam = read_rpc( test_rpc_file );
   auto cam_clone =
     std::dynamic_pointer_cast<kwiver::vital::camera_rpc>( cam.clone() );
 
@@ -152,8 +119,8 @@ TEST_F(camera_rpc, clone)
 // ----------------------------------------------------------------------------
 TEST_F(camera_rpc, projection)
 {
-  kwiver::vital::simple_camera_rpc cam( world_scale, world_offset,
-                                        image_scale, image_offset, rpc_coeffs );
+  kwiver::vital::path_t test_rpc_file = data_dir + "/rpc_data.dat";
+  auto cam = read_rpc( test_rpc_file );
 
   for (size_t i = 0; i < test_points.size(); ++i)
   {
@@ -166,8 +133,8 @@ TEST_F(camera_rpc, projection)
 // ----------------------------------------------------------------------------
 TEST_F(camera_rpc, back_projection)
 {
-  kwiver::vital::simple_camera_rpc cam( world_scale, world_offset,
-                                        image_scale, image_offset, rpc_coeffs );
+  kwiver::vital::path_t test_rpc_file = data_dir + "/rpc_data.dat";
+  auto cam = read_rpc( test_rpc_file );
 
   for (size_t i = 0; i < test_points.size(); ++i)
   {

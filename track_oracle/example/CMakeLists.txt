@@ -11,7 +11,6 @@ target_link_libraries( track_oracle_example
   data_terms
   vital
   vital_logger
-  ${Boost_SYSTEM_LIBRARY}
 )
 
 #
@@ -26,7 +25,6 @@ target_link_libraries( track_reader_example
  track_oracle
  data_terms
  track_oracle_file_formats
- ${Boost_SYSTEM_LIBRARY}
 )
 
 if( KWIVER_ENABLE_KPF )

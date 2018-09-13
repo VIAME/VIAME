@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,13 +73,13 @@ struct more_second
 } // end namespace
 
 // ------------------------------------------------------------------
-detected_object_type::
-detected_object_type()
+detected_object_type
+::detected_object_type()
 { }
 
-detected_object_type::
-detected_object_type( const std::vector< std::string >& class_names,
-                      const std::vector< double >& scores )
+detected_object_type
+::detected_object_type( const std::vector< std::string >& class_names,
+                        const std::vector< double >& scores )
 {
   if ( class_names.size() != scores.size() )
   {
@@ -87,29 +87,34 @@ detected_object_type( const std::vector< std::string >& class_names,
     throw std::invalid_argument( "Parameter vector sizes differ." );
   }
 
-  if ( class_names.size() == 0 )
+  if ( class_names.empty() )
   {
     // Throw error
     throw std::invalid_argument( "Parameter vector are empty." );
   }
 
-  for (size_t i = 0; i < class_names.size(); i++)
+  for ( size_t i = 0; i < class_names.size(); i++ )
   {
     set_score( class_names[i], scores[i] );
   }
 }
 
-detected_object_type::
-detected_object_type( const std::string& class_name, double score )
+detected_object_type
+::detected_object_type( const std::string& class_name, double score )
 {
+  if ( class_name.empty() )
+  {
+    throw std::invalid_argument( "Must supply a non-empty class name." );
+  }
+
   set_score( class_name, score );
 }
 
 
 // ------------------------------------------------------------------
 bool
-detected_object_type::
-has_class_name( const std::string& class_name ) const
+detected_object_type
+::has_class_name( const std::string& class_name ) const
 {
   try
   {
@@ -124,8 +129,8 @@ has_class_name( const std::string& class_name ) const
 
 // ------------------------------------------------------------------
 double
-detected_object_type::
-score( const std::string& class_name ) const
+detected_object_type
+::score( const std::string& class_name ) const
 {
   const std::string* str_ptr = find_string( class_name );
 
@@ -144,8 +149,8 @@ score( const std::string& class_name ) const
 
 // ------------------------------------------------------------------
 void
-detected_object_type::
-get_most_likely( std::string& max_name ) const
+detected_object_type
+::get_most_likely( std::string& max_name ) const
 {
   if ( m_classes.empty() )
   {
@@ -161,8 +166,8 @@ get_most_likely( std::string& max_name ) const
 
 // ------------------------------------------------------------------
 void
-detected_object_type::
-get_most_likely( std::string& max_name, double& max_score ) const
+detected_object_type
+::get_most_likely( std::string& max_name, double& max_score ) const
 {
   if ( m_classes.empty() )
   {
@@ -179,8 +184,8 @@ get_most_likely( std::string& max_name, double& max_score ) const
 
 // ------------------------------------------------------------------
 void
-detected_object_type::
-set_score( const std::string& class_name, double score )
+detected_object_type
+::set_score( const std::string& class_name, double score )
 {
   // Check to see if class_name is in the master set.
   // If not, add it
@@ -202,8 +207,8 @@ set_score( const std::string& class_name, double score )
 
 // ------------------------------------------------------------------
 void
-detected_object_type::
-delete_score( const std::string& class_name )
+detected_object_type
+::delete_score( const std::string& class_name )
 {
   auto str_ptr = find_string( class_name );
   if ( 0 == m_classes.count( str_ptr ) )
@@ -220,8 +225,8 @@ delete_score( const std::string& class_name )
 
 // ------------------------------------------------------------------
 std::vector< std::string >
-detected_object_type::
-class_names( double threshold ) const
+detected_object_type
+::class_names( double threshold ) const
 {
   std::vector< std::pair< const std::string*, double > > items( m_classes.begin(), m_classes.end() );
 
@@ -247,8 +252,8 @@ class_names( double threshold ) const
 
 // ------------------------------------------------------------------
 size_t
-detected_object_type::
-size() const
+detected_object_type
+::size() const
 {
   return m_classes.size();
 }
@@ -256,8 +261,8 @@ size() const
 
 // ------------------------------------------------------------------
 detected_object_type::class_const_iterator_t
-detected_object_type::
-begin() const
+detected_object_type
+::begin() const
 {
   return m_classes.begin();
 }
@@ -265,8 +270,8 @@ begin() const
 
 // ------------------------------------------------------------------
 detected_object_type::class_const_iterator_t
-detected_object_type::
-end() const
+detected_object_type
+::end() const
 {
   return m_classes.end();
 }
@@ -288,8 +293,8 @@ end() const
  * @throws std::runtime_error if the string is not in the global set.
  */
 const std::string*
-detected_object_type::
-find_string( const std::string& str ) const
+detected_object_type
+::find_string( const std::string& str ) const
 {
   std::lock_guard< std::mutex > lock( detected_object_type::s_table_mutex );
   auto it = s_master_name_set.find( str );
@@ -307,8 +312,8 @@ find_string( const std::string& str ) const
 
 // ------------------------------------------------------------------
 std::vector< std::string >
-detected_object_type::
-all_class_names()
+detected_object_type
+::all_class_names()
 {
   std::lock_guard< std::mutex > lock( detected_object_type::s_table_mutex );
   std::vector< std::string > names( s_master_name_set.begin(), s_master_name_set.end() );

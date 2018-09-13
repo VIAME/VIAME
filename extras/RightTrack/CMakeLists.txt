@@ -17,5 +17,5 @@ kwiver_add_plugin( RightTrack_plugin
                    "${RIGHT_TRACK_LIB}"
                    vcl vpl vul vsl
                    sprokit_pipeline
-  SUBDIR           modules
+  SUBDIR           ${kwiver_plugin_process_instrumentation_subdir}
   )

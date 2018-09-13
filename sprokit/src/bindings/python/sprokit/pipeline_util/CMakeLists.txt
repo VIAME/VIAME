@@ -35,7 +35,7 @@ target_link_libraries(python-sprokit.pipeline_util-load
     vital_util
     ${Boost_IOSTREAMS_LIBRARY})
 
-sprokit_create_python_init(sprokit/pipeline_util)
+kwiver_create_python_init(sprokit/pipeline_util)
 #  bake
 #  export_
 #  load)

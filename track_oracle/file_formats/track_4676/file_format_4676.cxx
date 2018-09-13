@@ -14,8 +14,6 @@
 
 #include <tinyxml.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -74,9 +72,9 @@ extract_track(STANAG_4676::Track::sptr t,
 
   try
   {
-    track.external_id() = boost::lexical_cast<int>(t->getNumber());
+    track.external_id() = t->getNumber().stoi();
   }
-  catch (boost::bad_lexical_cast const&)
+  catch (const std::invalid_argument&)
   {
     LOG_ERROR("Failed to convert track number '" << t->getNumber()
               << "'; ignoring track\n");

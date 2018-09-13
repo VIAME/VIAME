@@ -83,8 +83,6 @@ target_link_libraries( track_oracle
   PUBLIC               scoring_aries_interface
                        vnl
                        vgl
-                       ${Boost_THREAD_LIBRARY}
-                       ${Boost_SYSTEM_LIBRARY}
   PRIVATE              vital_logger
                        vital
                        ${TRACK_ORACLE_SCORABLE_MGRS_LIBRARY}

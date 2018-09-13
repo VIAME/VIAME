@@ -33,5 +33,5 @@ target_link_libraries( track_e2at_callout
   PRIVATE              data_terms
                        track_oracle_tokenizers
                        vital_logger
-                       vul
+                       kwiversys
 )

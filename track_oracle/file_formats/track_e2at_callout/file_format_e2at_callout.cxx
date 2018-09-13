@@ -10,7 +10,7 @@
 #include <fstream>
 #include <sstream>
 
-#include <vul/vul_reg_exp.h>
+#include <kwiversys/RegularExpression.hxx>
 
 #include <track_oracle/utils/tokenizers.h>
 #include <track_oracle/data_terms/data_terms.h>
@@ -39,10 +39,10 @@ namespace { // anon
 pair< string, double >
 parse_time( const string& s )
 {
-  vul_reg_exp re("^([0-9]+):([0-9]+)$");
-  if ( re.find( s ) )
+  kwiversys::RegularExpression re("^([0-9]+):([0-9]+)$");
+  if ( re.find( s ))
   {
-    istringstream iss( re.match(1) + " " +re.match(2) );
+    istringstream iss( re.match(1) + " " + re.match(2) );
     double min, sec;
     if ( (iss >> min >> sec ))
     {
@@ -64,7 +64,8 @@ parse_latlon( const string& s,
               double& lat,
               double& lon )
 {
-  vul_reg_exp re("([0-9\\-\\.]+)([NnSs])([0-9\\-\\.]+)([WwEe])");
+  kwiversys::RegularExpression re("([0-9\\-\\.]+)([NnSs])([0-9\\-\\.]+)([WwEe])");
+
   if ( ! re.find( s )) return false;
   istringstream latss( re.match(1) ), lonss( re.match(3) );
   if ( ! ( latss >> lat ))
