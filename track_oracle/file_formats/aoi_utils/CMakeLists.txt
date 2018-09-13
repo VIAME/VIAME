@@ -27,5 +27,4 @@ target_link_libraries( track_oracle_aoi_utils
                        track_scorable_mgrs
                        vital_logger
                        vgl
-                       ${Boost_REGEX_LIBRARY}
 )

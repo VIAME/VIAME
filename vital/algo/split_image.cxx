@@ -41,7 +41,7 @@ namespace algo {
 split_image
 ::split_image()
 {
-  attach_logger( "split_image" );
+  attach_logger( "algo.split_image" );
 }
 
 } } } // end namespace

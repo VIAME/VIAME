@@ -37,6 +37,7 @@
 
 #include <vital/logger/logger.h>
 #include <vital/config/config_block.h>
+#include <vital/config/config_block_formatter.h>
 #include <vital/util/string.h>
 
 #include <boost/graph/directed_graph.hpp>
@@ -1182,25 +1183,25 @@ pipeline
 
 
 // ------------------------------------------------------------------
-process_t
+processes_t
 pipeline
-::get_python_process() const
+::get_python_processes() const
 {
   // Run through each process, checking to see if any are python
-  process_t python_process; // Start with a null pointer, return it if no python procs are found
+  processes_t python_processes; // Start with empty list
   for (priv::process_map_t::value_type const& process_index : d->process_map)
   {
     process_t proc = process_index.second;
     auto properties = proc->properties();
     if ( properties.find("_python") != properties.end() )
     {
-      python_process = proc;
-      break;
+      python_processes.push_back( proc );
     }
   }
 
-  return python_process;
+  return python_processes;
 }
+
 
 // ------------------------------------------------------------------
 pipeline::priv
@@ -1224,7 +1225,8 @@ pipeline::priv
   if ( IS_DEBUG_ENABLED( m_logger ) )
   {
     std::stringstream msg;
-    config->print(msg);
+    kwiver::vital::config_block_formatter fmt( config );
+    fmt.print(msg);
     LOG_DEBUG( m_logger, "pipeline config:\n" << msg.str() );
   }
 }
@@ -1832,7 +1834,8 @@ pipeline::priv
       {
         std::stringstream msg;
         msg << "-- Edge type config for type \"" << down_type << "\" :\n";
-        edge_type_config->print( msg );
+        kwiver::vital::config_block_formatter fmt( edge_type_config );
+        fmt.print( msg );
         LOG_TRACE( m_logger, msg.str() );
       }
     }
@@ -1858,12 +1861,14 @@ pipeline::priv
             << upstream_name + kwiver::vital::config_block::block_sep
              + upstream_subblock + kwiver::vital::config_block::block_sep + upstream_port
             << "\" :\n";
-        up_config->print(msg);
+        kwiver::vital::config_block_formatter up_fmt( up_config );
+        up_fmt.print(msg);
         msg << "\n-- Down_config for \""
             << downstream_name + kwiver::vital::config_block::block_sep
              + downstream_subblock + kwiver::vital::config_block::block_sep + downstream_port
             << "\" :\n";
-        down_config->print(msg);
+        kwiver::vital::config_block_formatter down_fmt( up_config );
+        down_fmt.print(msg);
         LOG_TRACE( m_logger, msg.str() );
       }
 
@@ -1901,7 +1906,8 @@ pipeline::priv
     if ( IS_DEBUG_ENABLED( m_logger ) )
     {
       std::stringstream msg;
-      edge_config->print(msg);
+      kwiver::vital::config_block_formatter fmt( edge_config );
+      fmt.print(msg);
 
       LOG_TRACE( m_logger,
                  "Edge config for "  << upstream_name << "." <<

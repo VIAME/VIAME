@@ -235,11 +235,11 @@ endif()
 # Build a default set of plugin path dirs
 # Provide that list as the default value for the path option.
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} modules )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
 set( vital_default_module_path ${kwiver_module_path_result} )
 
 if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} modules )
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
   set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
 endif()
 
@@ -286,6 +286,10 @@ add_subdirectory( plugin_loader )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )
+endif()
+
+if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
+  add_subdirectory( types/protobuf )
 endif()
 
 ###

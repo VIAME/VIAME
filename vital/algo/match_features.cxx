@@ -43,7 +43,7 @@ namespace algo {
 match_features
 ::match_features()
 {
-  attach_logger( "match_features" );
+  attach_logger( "algo.match_features" );
 }
 
 } } }

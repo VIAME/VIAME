@@ -90,9 +90,6 @@ compute_track_descriptors_process
   : process( config ),
     d( new compute_track_descriptors_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( vital::get_logger( name() ) );
-
   // Required so that we can do 1 step past the end of video for flushing
   set_data_checking_level( check_none );
 
@@ -111,6 +108,8 @@ compute_track_descriptors_process
 void compute_track_descriptors_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   algo::compute_track_descriptors::set_nested_algo_configuration(
@@ -205,64 +204,67 @@ compute_track_descriptors_process
 
   // Process optional input track set - this is the standard use case
   vital::track_descriptor_set_sptr output;
-
-  if( tracks )
   {
-    output = d->m_computer->compute( ts, image, tracks );
-  }
+    scoped_step_instrumentation();
 
-  // Process optional input detection set - this is an optional use case
-  //  for when we might want to generate descriptors around detects, not
-  //  tracks. To re-use code, detections are added to single frame tracks
-  //  in order to compute the descriptors.
-  if( detections )
-  {
-    std::vector< vital::track_sptr > det_tracks;
-
-    for( unsigned i = 0; i < detections->size(); ++i )
+    if( tracks )
     {
-      vital::track_sptr new_track( vital::track::create() );
-      new_track->set_id( i + d->detection_offset );
-
-      vital::track_state_sptr first_track_state(
-        new vital::object_track_state( ts, detections->begin()[i] ) );
-
-      new_track->append( first_track_state );
-
-      det_tracks.push_back( new_track );
+      output = d->m_computer->compute( ts, image, tracks );
     }
 
-    vital::object_track_set_sptr det_track_set(
-      new vital::object_track_set( det_tracks ) );
-
-    output = d->m_computer->compute( ts, image, det_track_set );
-
-    if( d->inject_to_detections )
+    // Process optional input detection set - this is an optional use case
+    //  for when we might want to generate descriptors around detects, not
+    //  tracks. To re-use code, detections are added to single frame tracks
+    //  in order to compute the descriptors.
+    if( detections )
     {
-      // Reset all descriptors stored in detections
-      for( vital::detected_object_sptr det : *detections )
+      std::vector< vital::track_sptr > det_tracks;
+
+      for( unsigned i = 0; i < detections->size(); ++i )
       {
-        det->set_descriptor( vital::detected_object::descriptor_sptr() );
+        vital::track_sptr new_track( vital::track::create() );
+        new_track->set_id( i + d->detection_offset );
+
+        vital::track_state_sptr first_track_state(
+          new vital::object_track_state( ts, detections->begin()[i] ) );
+
+        new_track->append( first_track_state );
+
+        det_tracks.push_back( new_track );
       }
 
-      // Inject computed descriptors
-      for( vital::track_descriptor_sptr desc : *output )
-      {
-        auto ids = desc->get_track_ids();
+      vital::object_track_set_sptr det_track_set(
+        new vital::object_track_set( det_tracks ) );
 
-        for( auto id : ids )
+      output = d->m_computer->compute( ts, image, det_track_set );
+
+      if( d->inject_to_detections )
+      {
+        // Reset all descriptors stored in detections
+        for( vital::detected_object_sptr det : *detections )
         {
-          detections->begin()[ id - d->detection_offset ]->set_descriptor(
-            desc->get_descriptor() );
+          det->set_descriptor( vital::detected_object::descriptor_sptr() );
+        }
+
+        // Inject computed descriptors
+        for( vital::track_descriptor_sptr desc : *output )
+        {
+          auto ids = desc->get_track_ids();
+
+          for( auto id : ids )
+          {
+            detections->begin()[ id - d->detection_offset ]->set_descriptor(
+              desc->get_descriptor() );
+          }
         }
       }
+
+      d->detection_offset = d->detection_offset + detections->size();
     }
 
-    d->detection_offset = d->detection_offset + detections->size();
+    // Add custom uids
+    d->add_custom_uids( output, std::to_string( ts.get_frame() ) );
   }
-
-  // Add custom uids
-  d->add_custom_uids( output, std::to_string( ts.get_frame() ) );
 
   // Return all outputs
   push_outputs( output );

@@ -212,8 +212,8 @@ public:
    * If the provided key has no description associated with it, an empty
    * \c config_block_description_t value is returned.
    *
-   * \throws no_such_configuration_value_exception Thrown if the requested
-   *                                               key does not exist.
+   * \throws no_such_configuration_value_exception Thrown if the
+   *  requested key does not exist.
    *
    * \param key The name of the parameter to get the description of.
    * \returns The description of the requested key.
@@ -383,6 +383,7 @@ public:
    *
    * \param str Stream to accept formated text.
    */
+  VITAL_CONFIG_DEPRECATED
   void print( std::ostream & str );
 
 

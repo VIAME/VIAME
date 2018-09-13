@@ -71,9 +71,33 @@ TEST(string, format)
 // ----------------------------------------------------------------------------
 TEST(string, join)
 {
-  std::vector<std::string> input;
+  {
+    std::vector<std::string> input_vec;
+    EXPECT_EQ( "", join( input_vec, ", " ) );
+  }
 
-  EXPECT_EQ( "", join( {}, ", " ) );
-  EXPECT_EQ( "one", join( {{ "one" }}, ", " ) );
-  EXPECT_EQ( "one, two, three", join( {{ "one", "two", "three" }}, ", " ) );
+  {
+    std::vector<std::string> input_vec{ "one" };
+    EXPECT_EQ( "one", join( input_vec, ", " ) );
+  }
+
+  {
+    std::vector<std::string> input_vec{ "one", "two", "three" };
+    EXPECT_EQ( "one, two, three", join( input_vec, ", " ) );
+  }
+
+  {
+    std::set<std::string> input_set;
+    EXPECT_EQ( "", join( input_set, ", " ) );
+  }
+
+  {
+    std::set<std::string> input_set{ "one" };
+    EXPECT_EQ( "one", join( input_set, ", " ) );
+  }
+
+  {
+    std::set<std::string> input_set{ "one", "three", "two" };
+    EXPECT_EQ( "one, three, two", join( input_set, ", " ) );
+  }
 }

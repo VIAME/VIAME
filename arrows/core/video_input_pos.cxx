@@ -120,7 +120,7 @@ video_input_pos
 ::video_input_pos()
   : d( new video_input_pos::priv )
 {
-  attach_logger( "video_input_pos" );
+  attach_logger( "arrows.core.video_input_pos" );
 
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );

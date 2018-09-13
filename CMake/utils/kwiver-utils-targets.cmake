@@ -362,7 +362,7 @@ endfunction()
 
 ####
 # This function adds the supplied paths to the default set of paths
-# searched at runtime for modules.
+# searched at **runtime** for modules.
 #
 # Uses the global option KWIVER_USE_CONFIGURATION_SUBDIRECTORY
 # to control adding config specific directories to the path.

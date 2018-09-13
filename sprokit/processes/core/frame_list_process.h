@@ -34,10 +34,7 @@
 #include <sprokit/pipeline/process.h>
 #include "kwiver_processes_export.h"
 
-#include <memory>
-
-namespace kwiver
-{
+namespace kwiver {
 
 // ----------------------------------------------------------------
 /**

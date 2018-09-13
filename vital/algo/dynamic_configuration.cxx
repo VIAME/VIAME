@@ -38,7 +38,7 @@ namespace algo {
 dynamic_configuration
 ::dynamic_configuration()
 {
-  attach_logger( "dynamic_configuration" );
+  attach_logger( "algo.dynamic_configuration" );
 }
 
 } } }
