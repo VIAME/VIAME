@@ -40,6 +40,9 @@ namespace kwiver {
 create_config_trait( port, int, "5550",
                      "Port number to connect/bind to");
 
+create_config_trait( connect_host, std::string, "localhost",
+                     "Hostname (or IP address) to connect to." );
+
 create_config_trait( num_publishers, int, "1",
                      "Number of publishers to subscribe to. ");
 
@@ -92,6 +95,7 @@ public:
   // Configuration values
   int m_port;
   int m_num_publishers;
+  std::string m_connect_host;
 
   // any other connection related data goes here
   zmq::context_t m_context;
@@ -130,6 +134,7 @@ void zmq_transport_receive_process
   // Get process config entries
   d->m_port = config_value_using_trait( port );
   d->m_num_publishers = config_value_using_trait( num_publishers );
+  d->m_connect_host = config_value_using_trait( connect_host );
 
   int major, minor, patch;
   zmq_version(&major, &minor, &patch);
@@ -180,6 +185,7 @@ void zmq_transport_receive_process
 {
   declare_config_using_trait( port );
   declare_config_using_trait( num_publishers );
+  declare_config_using_trait( connect_host );
 }
 
 
@@ -214,12 +220,12 @@ zmq_transport_receive_process::priv
     m_sync_sockets.push_back(sync_socket);
 
     std::ostringstream sub_connect_string;
-    sub_connect_string << "tcp://localhost:" << m_port + i;
+    sub_connect_string << "tcp://" << m_connect_host << ":" << m_port + i;
     LOG_TRACE( m_logger, "SUB Connect for " << sub_connect_string.str() );
     m_sub_socket.connect( sub_connect_string.str() );
 
     std::ostringstream sync_connect_string;
-    sync_connect_string << "tcp://localhost:" << ( m_port + i + 1);
+    sync_connect_string << "tcp://" << m_connect_host << ":" << ( m_port + i + 1);
     LOG_TRACE( m_logger, "SYNC Connect for " << sync_connect_string.str() );
     sync_socket->connect( sync_connect_string.str() );
 
