@@ -80,6 +80,9 @@ create_config_trait( num_publishers, int, "1",
  *
  * \config{num_publishers} the number of publishers that must
  * be connected to subscription commences.
+ *
+ * \config{connect_host} The name of the host to connect
+ * to.  May be a DNS name or an IP address.
  */
 
 //----------------------------------------------------------------
