@@ -217,9 +217,12 @@ ocv_image_enhancement
       output_ocv.convertTo( output_ocv, CV_32F );
     }
 
-    cv::cvtColor( output_ocv, lab_image, CV_BGR2Lab );
+    if( output_ocv.channels() == 3 )
+    {
+      cv::cvtColor( output_ocv, lab_image, CV_BGR2Lab );
+    }
 
-    std::vector< cv::Mat > lab_planes( 3 );
+    std::vector< cv::Mat > lab_planes( output_ocv.channels() );
     cv::split( lab_image, lab_planes );
 
     cv::Ptr< cv::CLAHE > clahe = cv::createCLAHE();
@@ -244,12 +247,24 @@ ocv_image_enhancement
       tmp.copyTo( lab_planes[0] );
     }
 
-    cv::merge( lab_planes, lab_image );
-    cv::cvtColor( lab_image, output_ocv, CV_Lab2BGR );
+    if( output_ocv.channels() != 1 )
+    {
+      cv::merge( lab_planes, lab_image );
+      cv::cvtColor( lab_image, output_ocv, CV_Lab2BGR );
+    }
+    else
+    {
+      lab_planes[0].copyTo( output_ocv );
+    }
   }
 
   if( d->m_saturation != 1.0 )
   {
+    if( output_ocv.channels() != 3 )
+    {
+      throw std::runtime_error( "Saturation can only be performed on 3-channel images" );
+    }
+
     cv::Mat hsv_image;
     cv::cvtColor( output_ocv, hsv_image, CV_BGR2HSV );
 
