@@ -161,6 +161,14 @@ convert_image_helper(const vil_image_view<bool>& src,
   dest = src;
 }
 
+// Helper function to convert images to grayscale
+template <typename inP>
+void
+convert_to_gray(const vil_image_view<inP>& src,
+                vil_image_view<inP>& dest)
+{
+  vil_convert_planes_to_grey(src,dest);
+}
 
 }
 
@@ -173,6 +181,7 @@ public:
   // Constructor
   priv()
   : force_byte(false),
+    force_grayscale(false),
     auto_stretch(false),
     manual_stretch(false),
     intensity_range(0, 255)
@@ -190,7 +199,19 @@ public:
                          this->intensity_range);
   }
 
+  template <typename inP>
+  void optional_grayscale_filter(vil_image_view<inP>& img)
+  {
+    if(force_grayscale)
+    {
+      vil_image_view<inP> tmp;
+      convert_to_gray(img,tmp);
+      img = tmp;
+    }
+  }
+
   bool force_byte;
+  bool force_grayscale;
   bool auto_stretch;
   bool manual_stretch;
   vector_2d intensity_range;
@@ -230,6 +251,11 @@ image_io
                     "before converting. When saving, convert to a byte image "
                     "before writing out the image");
 
+  config->set_value("force_grayscale", d_->force_grayscale,
+                    "When loading, convert any color or multi-channel imagery "
+                    "into a single channel grayscale output using a default "
+                    "method");
+
   config->set_value("auto_stretch", d_->auto_stretch,
                     "Dynamically stretch the range of the input data such that "
                     "the minimum and maximum pixel values in the data map to "
@@ -267,6 +293,8 @@ image_io
 
   d_->force_byte = config->get_value<bool>("force_byte",
                                            d_->force_byte);
+  d_->force_grayscale = config->get_value<bool>("force_grayscale",
+                                                 d_->force_grayscale);
   d_->auto_stretch = config->get_value<bool>("auto_stretch",
                                               d_->auto_stretch);
   d_->manual_stretch = config->get_value<bool>("manual_stretch",
@@ -325,12 +353,14 @@ image_io
       {                                                                \
         vil_image_view<vxl_byte> img;                                  \
         d_->convert_image(img_pix_t, img);                             \
+        d_->optional_grayscale_filter(img);                            \
         return image_container_sptr(new vxl::image_container(img));    \
       }                                                                \
       else                                                             \
       {                                                                \
         vil_image_view<pix_t> img;                                     \
         d_->convert_image(img_pix_t, img);                             \
+        d_->optional_grayscale_filter(img);                            \
         return image_container_sptr(new vxl::image_container(img));    \
       }                                                                \
     }                                                                  \
@@ -363,6 +393,7 @@ image_io
       // minimum and maximum pixel values
       vil_image_view<vxl_byte> img;
       img = vil_convert_stretch_range(vxl_byte(), img_rsc->get_view());
+      d_->optional_grayscale_filter(img);
       return image_container_sptr(new vxl::image_container(img));
     }
     else if( d_->manual_stretch )
@@ -375,6 +406,7 @@ image_io
     {
       vil_image_view<vxl_byte> img;
       img = vil_convert_cast(vxl_byte(), img_rsc->get_view());
+      d_->optional_grayscale_filter(img);
       return image_container_sptr(new vxl::image_container(img));
     }
   }
