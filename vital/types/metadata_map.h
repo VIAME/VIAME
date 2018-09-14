@@ -71,26 +71,92 @@ public:
   /// Return a map from integer frame IDs to metadata vectors
   virtual map_metadata_t metadata() const = 0;
 
+  /// gets the location of the sensor from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] loc the geo location
+  * \returns true if location was found in metadata and set, false otherwise
+  */
   virtual bool get_sensor_location(frame_id_t fid, geo_point &loc) = 0;
 
+  /// gets the altitiude of the sensor from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] altitude the sensor's altitude
+  * \returns true if altitude was found in metadata and set, false otherwise
+  */
   virtual bool get_sensor_altitude(frame_id_t fid, double &altitude) = 0;
 
+  /// gets the horizontal field of view of the sensor from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] fov the field of view 
+  * \returns true if field of view was found in metadata and set, false otherwise
+  */
   virtual bool get_horizontal_field_of_view(frame_id_t fid, double &fov) = 0;
 
+  /// gets the slant range to the target from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] slant range the range to the target
+  * \returns true if slant range was found in metadata and set, false otherwise
+  */
   virtual bool get_slant_range(frame_id_t fid, double &slant_range) = 0;
 
+  /// gets the target width from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] target_width the width of the target
+  * \returns true if target width was found in metadata and set, false otherwise
+  */
   virtual bool get_target_width(frame_id_t fid, double &target_width) = 0;
 
+  /// gets the platform's heading from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] heading the platform's heading
+  * \returns true if the platform's heading was found in metadata and set, false otherwise
+  */
   virtual bool get_platform_heading_angle(frame_id_t fid, double &heading) = 0;
 
+  /// gets the platform's pitch from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] pitch the platform's pitch
+  * \returns true if the platform's pitch was found in metadata and set, false otherwise
+  */
   virtual bool get_platform_pitch_angle(frame_id_t fid, double &pitch) = 0;
 
+  /// gets the platform's roll from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] roll the platform's roll
+  * \returns true if the platform's roll was found in metadata and set, false otherwise
+  */
   virtual bool get_platform_roll_angle(frame_id_t fid, double &roll) = 0;
 
+  /// gets the sensor's azimuth angle from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] rel_az_angle the sensor's azimuth angle relative to the platform
+  * \returns true if the azimuth angle was found in metadata and set, false otherwise
+  */
   virtual bool get_sensor_rel_az_angle(frame_id_t fid, double &rel_az_angle) = 0;
 
+  /// gets the sensor's elevation angle from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] rel_el_angle the sensor's elevation angle relative to the platform
+  * \returns true if the elevation angle was found in metadata and set, false otherwise
+  */
   virtual bool get_sensor_rel_el_angle(frame_id_t fid, double &rel_el_angle) = 0;
 
+  /// gets the sensor's roll angle from the metadata
+  /**
+  * \param[in] fid the frame id
+  * \param[out] rel_roll_angle the sensor's elevation roll relative to the platform
+  * \returns true if the roll angle was found in metadata and set, false otherwise
+  */
   virtual bool get_sensor_rel_roll_angle(frame_id_t fid, double &rel_roll_angle) = 0;
 
   virtual std::set<frame_id_t> frames() = 0;
@@ -123,7 +189,7 @@ public:
   {
     return get_value<geo_point>(VITAL_META_SENSOR_LOCATION,fid, loc);
   }
-
+  
   virtual bool get_sensor_altitude(frame_id_t fid, double &altitude)
   {
     return get_value<double>(VITAL_META_SENSOR_ALTITUDE, fid, altitude);
