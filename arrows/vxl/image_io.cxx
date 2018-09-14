@@ -38,12 +38,15 @@
 #include <vital/io/eigen_io.h>
 #include <vital/types/vector.h>
 #include <vital/exceptions/image.h>
+#include <vital/types/metadata_traits.h>
 
 #include <arrows/vxl/image_container.h>
 
 #include <vil/vil_convert.h>
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
+
+#include <sstream>
 
 using namespace kwiver::vital;
 
@@ -314,6 +317,9 @@ image_io
 {
   LOG_DEBUG( logger(), "Loading image from file: " << filename );
 
+  auto md = std::shared_ptr<kwiver::vital::metadata>( new kwiver::vital::metadata() );
+  md->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_URI, filename) );
+
   vil_image_resource_sptr img_rsc = vil_load_image_resource(filename.c_str());
 
 #define DO_CASE(T)                                                     \
@@ -325,13 +331,17 @@ image_io
       {                                                                \
         vil_image_view<vxl_byte> img;                                  \
         d_->convert_image(img_pix_t, img);                             \
-        return image_container_sptr(new vxl::image_container(img));    \
+        auto img_ptr = image_container_sptr(new vxl::image_container(img)); \
+        img_ptr->set_metadata(md);                                     \
+        return img_ptr;                                                \
       }                                                                \
       else                                                             \
       {                                                                \
         vil_image_view<pix_t> img;                                     \
         d_->convert_image(img_pix_t, img);                             \
-        return image_container_sptr(new vxl::image_container(img));    \
+        auto img_ptr = image_container_sptr(new vxl::image_container(img)); \
+        img_ptr->set_metadata(md);                                     \
+        return img_ptr;                                                \
       }                                                                \
     }                                                                  \
     break;                                                             \
@@ -349,6 +359,7 @@ image_io
     DO_CASE(VIL_PIXEL_FORMAT_INT_64);
     DO_CASE(VIL_PIXEL_FORMAT_FLOAT);
     DO_CASE(VIL_PIXEL_FORMAT_DOUBLE);
+
 #undef DO_CASE
 
   default:
@@ -358,21 +369,27 @@ image_io
       // minimum and maximum pixel values
       vil_image_view<vxl_byte> img;
       img = vil_convert_stretch_range(vxl_byte(), img_rsc->get_view());
-      return image_container_sptr(new vxl::image_container(img));
+      auto img_ptr = image_container_sptr(new vxl::image_container(img));
+      img_ptr->set_metadata(md);
+      return img_ptr;
     }
     else if( d_->manual_stretch )
     {
-      LOG_ERROR( logger(), "Unable to manually stretch pixel type: "
-                << img_rsc->pixel_format());
-      throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_io::load_()");
+      std::stringstream msg;
+      msg << "Unable to manually stretch pixel type: "
+          << img_rsc->pixel_format();
+      VITAL_THROW( vital::image_type_mismatch_exception, msg.str() );
     }
     else
     {
       vil_image_view<vxl_byte> img;
       img = vil_convert_cast(vxl_byte(), img_rsc->get_view());
-      return image_container_sptr(new vxl::image_container(img));
+      auto img_ptr =  image_container_sptr(new vxl::image_container(img));
+      img_ptr->set_metadata(md);
+      return img_ptr;
     }
   }
+
   return image_container_sptr();
 }
 
@@ -436,9 +453,10 @@ image_io
     }
     else if( d_->manual_stretch )
     {
-      LOG_ERROR( logger(), "Unable to manually stretch pixel type: "
-                << view->pixel_format());
-      throw vital::image_type_mismatch_exception("kwiver::arrows::vxl::image_io::save_()");
+      std::stringstream msg;
+      msg <<  "Unable to manually stretch pixel type: "
+          << view->pixel_format();
+      VITAL_THROW( vital::image_type_mismatch_exception, msg.str() );
     }
     else
     {

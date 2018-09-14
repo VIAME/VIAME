@@ -150,10 +150,10 @@ refine_detections_write_to_disk
   // Get input filename if it's in the vital_metadata
   std::string filename = "";
   auto md = image_data->get_metadata();
-  if( md && md->has(VITAL_META_IMAGE_FILENAME) )
+  if( md && md->has(VITAL_META_IMAGE_URI) )
   {
     // Get the full path, and then extract just the filename proper
-    filename = md->find(VITAL_META_IMAGE_FILENAME).as_string();
+    filename = md->find(VITAL_META_IMAGE_URI).as_string();
     std::string path_sep = "/";
 #ifdef WIN32
     path_sep = "\\"; // Windows likes to be different
