@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ reprojection_error_vec(const camera& cam,
 }
 
 
+/// Check that at least one pair of rays has cos(angle) less than or equal to cos_ang_thresh
 bool
 bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &cameras,
                          const vital::vector_3d &X,
@@ -122,17 +123,18 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
   return errors;
 }
 
-/// subsample the cmaeras favoring more recent cameras
+
+/// subsample the cameras favoring more recent cameras
 vital::camera_map::map_camera_t
 subsample_cameras_favor_recent(const vital::camera_map::map_camera_t& cameras)
 {
-  // General idea of this loop is to pick more frames near the last frame in time and 
-  // fewer earlier.  So if we are more than 100 frames back, only pick every hundredth 
-  // frame.  If fewer than 100 but more than 10 frames back pick every tenth and if 
-  // less than ten frames back pick every frame.  
-  // The idea is that more recent cameras are more likely to have high reprojection 
-  // errors while older cameras have been optimized more and so will mostly have low 
-  // reprojection errors and those reprojection errors will be similar to each other. 
+  // General idea of this loop is to pick more frames near the last frame in time and
+  // fewer earlier.  So if we are more than 100 frames back, only pick every hundredth
+  // frame.  If fewer than 100 but more than 10 frames back pick every tenth and if
+  // less than ten frames back pick every frame.
+  // The idea is that more recent cameras are more likely to have high reprojection
+  // errors while older cameras have been optimized more and so will mostly have low
+  // reprojection errors and those reprojection errors will be similar to each other.
 
   vital::camera_map::map_camera_t ret_cams;
 
@@ -162,6 +164,7 @@ subsample_cameras_favor_recent(const vital::camera_map::map_camera_t& cameras)
   return ret_cams;
 }
 
+
 /// Compute the per camera Root-Mean-Square-Error (RMSE) of the reprojections
 std::map<frame_id_t, double>
 reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
@@ -170,7 +173,7 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
 {
   typedef std::map<landmark_id_t, landmark_sptr>::const_iterator lm_map_itr_t;
   typedef std::map<frame_id_t, camera_sptr>::const_iterator cam_map_itr_t;
-  
+
   struct err_vals {
     unsigned int num_obs;
     double sum_error_sq;
@@ -186,7 +189,7 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
   std::map<frame_id_t, err_vals> cam_errors;
 
   for (const track_sptr& t : tracks)
-  {   
+  {
     lm_map_itr_t lmi = landmarks.find(t->id());
     if (lmi == landmarks.end() || !lmi->second)
     {
@@ -195,9 +198,9 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
     }
     const landmark& lm = *lmi->second;
     for (track::history_const_itr tsi = t->begin(); tsi != t->end(); ++tsi)
-    { 
+    {
       auto frame_num = (*tsi)->frame();
-    
+
       auto fts = std::dynamic_pointer_cast<feature_track_state>(*tsi);
       if (!fts || !fts->feature)
       {
@@ -242,7 +245,6 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
   }
   return ret_errs;
 }
-
 
 
 /// Compute the Root-Mean-Square-Error (RMSE) of the reprojections
