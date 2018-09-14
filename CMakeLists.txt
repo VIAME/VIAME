@@ -81,6 +81,12 @@ include(CMakeDependentOption)
 OPTION(KWIVER_BUILD_SHARED     "Build KWIVER components shared or not" TRUE )
 MARK_AS_ADVANCED( KWIVER_BUILD_SHARED )
 
+OPTION(KWIVER_EXPORT_COMPILE_COMMANDS "Export compile commands to support LSP based development." FALSE )
+MARK_AS_ADVANCED( KWIVER_EXPORT_COMPILE_COMMANDS )
+if (KWIVER_EXPORT_COMPILE_COMMANDS )
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ${KWIVER_EXPORT_COMPILE_COMMANDS})
+endif()
+
 OPTION(KWIVER_ENABLE_TESTS     "Enable testing" OFF )
 OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" OFF )
 OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" OFF )
@@ -367,6 +373,13 @@ kwiver_install(
   FILE        kwiver-config-targets.cmake
   )
 
+###
+# link compile commands to root of source tree
+if ( CMAKE_EXPORT_COMPILE_COMMANDS )
+  # link file to root of source tree
+  kwiver_make_symlink( ${CMAKE_BINARY_DIR}/compile_commands.json
+                       ${CMAKE_SOURCE_DIR}/compile_commands.json )
+endif()
 
 # ==================================================================
 # CPack Packaging
