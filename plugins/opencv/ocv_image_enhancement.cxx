@@ -221,6 +221,10 @@ ocv_image_enhancement
     {
       cv::cvtColor( output_ocv, lab_image, CV_BGR2Lab );
     }
+    else
+    {
+      lab_image = output_ocv;
+    }
 
     std::vector< cv::Mat > lab_planes( output_ocv.channels() );
     cv::split( lab_image, lab_planes );
