@@ -37,6 +37,7 @@ Contents:
 
    section_links/building_and_installing_viame
    section_links/example_capabilities
+   section_links/image_enhancement
    section_links/object_detection
    section_links/object_tracking
    section_links/detection_file_conversions

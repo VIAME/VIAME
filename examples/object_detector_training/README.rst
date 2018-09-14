@@ -28,11 +28,11 @@ file structures.
 | ......image001.png
 | ......image002.png
 | ......image003.png
-| ......groundtruth.gt
+| ......groundtruth.csv
 | ...folder2
 | ......image001.png
 | ......image002.png
-| ......groundtruth.gt
+| ......groundtruth.csv
 |
 where groundtruth can be in any file format for which a
 "detected_object_set_input" implementation exists (e.g. viame_csv, kw18, habcam),

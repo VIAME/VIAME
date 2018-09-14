@@ -1,16 +1,14 @@
 
 <img src="http://www.viametoolkit.org/wp-content/uploads/2016/08/viami_logo.png" alt="VIAME Logo" width="200" height="78">
 <br>
-VIAME is a computer vision library designed to integrate several image and
-video processing algorithms together in a common distributed processing framework,
-majorly targeting marine species analytics. As it contains many common algorithms
-and compiles several other popular repositories together as a part of its build process,
-VIAME is also useful as a general computer vision toolkit. The core infrastructure connecting
-different system components is currently the KWIVER library, which can connect C/C++, python,
-and matlab nodes together in a graph-like pipeline architecture. Alongside the pipelined
-image processing system are a number of standalone utilties for model training, output detection
-visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring),
-image/video search, and rapid model generation.
+VIAME is a computer vision library designed to integrate several image and video processing algorithms together in
+a common distributed processing framework, majorly targeting marine species analytics. As it contains many common
+algorithms and compiles several other popular repositories together as a part of its build process, VIAME is also
+useful as a general computer vision toolkit. The core infrastructure connecting different system components is
+currently the KWIVER library, which can connect C/C++, python, and matlab nodes together in a graph-like pipeline
+architecture. Alongside the pipelined image processing system are a number of standalone utilties for model training,
+output detection visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring), image/video search,
+and rapid model generation.
 
 Example Capabilities
 --------------------
@@ -40,16 +38,16 @@ but select entries are also listed below, which include some run examples:
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
 [Object Detector Examples](examples/object_detection) <br />
-[Stereo Measurement Examples](examples/measurement_using_stereo) <> 
-[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
-[How to Integrate Your Own Plugin](examples/hello_world_pipeline) <br />
-[Example Integrations](plugins) <>
-[Example Plugin Templates](plugins/templates) <> 
 [GUIs for Visualization and Annotation](examples/annotation_and_visualization) <> 
-[Detector Training API](examples/object_detector_training) <br />
+[Detector Training API](examples/object_detector_training) <>
+[Example Integrations](plugins) <>
+[Example Plugin Templates](plugins/templates) <br />
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <> 
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <>
-[KWIVER Overview](https://github.com/Kitware/kwiver)
+[KWIVER Overview](https://github.com/Kitware/kwiver) <br />
+[Stereo Measurement Examples](examples/measurement_using_stereo) <> 
+[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline)
 
 Pre-Built Binaries
 ------------------
@@ -90,18 +88,21 @@ If building from the source, all final compiled binaries are placed in the
 [build-directory]/install directory, which is the same as the root directory
 in the above pre-built binaries. This will hereby be refered to as the [install-directory].
 
-One way to test the system is to see if you can run the examples in the [install-directory]/examples
+One way to test the system is to see if you can run the examples in the
+[[install-directory]/examples](https://github.com/Kitware/VIAME/tree/master/examples)
 folder, for example, the pipelined object detectors or annotation GUI. There are some environment variables
 that need to be set up before you can run on Linux or Mac, which are all in the
 [install-directory]/setup_viame.sh script. This script is sourced in all of the example run
 scripts, and similar paths are added in the generated windows .bat example scripts, so
-there is no need to modify anything unless you installed to a non-default location. For the
+there is no need to modify anything unless you installed VIAME to a non-default location. For the
 later case you will need to need to modify the VIAME_INSTALL path at the top of each run script
 to point to your installed location. 
 
 The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
-to copy project files for your operating system, '[install-directory]/configs/prj-linux' or
-'[install-directory]/configs/prj-windows' to a directory of your choice and run things from there. Not all
+to copy project files for your operating system,
+[[install-directory]/configs/prj-linux](https://github.com/Kitware/VIAME/tree/master/configs/prj-linux) or
+[[install-directory]/configs/prj-windows](https://github.com/Kitware/VIAME/tree/master/configs/prj-windows)
+to a directory of your choice and run things from there. Not all
 functionality is in the default project file scripts, however, but it is a good entry point if you
 just want to get started on training object detection and/or tracking models. If so, we recommend reading the:
 [Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
@@ -271,8 +272,7 @@ update your code, it is important to re-run:
 	git submodule update --init --recursive
 
 After switching branches to ensure that you have on the correct hashes
-of sub-packages within the build (e.g. fletch or KWIVER). Very rarely
-you may also need to run:
+of sub-packages within the build. Very rarely you may also need to run:
 
 	git submodule sync
 
@@ -285,5 +285,6 @@ License and Citation
 
 VIAME is released under a BSD-3 license.
 
-A system paper summarizing VIAME was published in IEEE WACV 2017 which is available
-[here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
+Though a bit dated, a system paper summarizing VIAME's image processing pipelining
+architecture and baseline algorithms was published in IEEE WACV 2017 which is
+[available online here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).

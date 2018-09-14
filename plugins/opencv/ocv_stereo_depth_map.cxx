@@ -104,7 +104,7 @@ void ocv_stereo_depth_map
   d->sad_window_size = config->get_value< int >( "sad_window_size" );
 
 #ifdef VIAME_OPENCV_VER_2
-  d->algo.init( d->num_disparities, d->sad_window_size );
+  d->algo.init( 0, d->num_disparities, d->sad_window_size );
 #else
   d->algo = cv::StereoBM::create( d->num_disparities, d->sad_window_size );
 #endif

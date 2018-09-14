@@ -1,0 +1,68 @@
+# Filters input images via debayering them and running basic image filtering
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               5
+
+# =============================== INPUT FRAME LIST =================================
+
+process input
+  :: frame_list_input
+  :image_list_file                             input_list.txt
+  :frame_time                                  1
+  :image_reader:type                           vxl
+  :image_reader:vxl:force_byte                 true
+  :image_reader:vxl:force_grayscale            true
+
+# ================================== CROP INPUTS ===================================
+process split
+  :: split_image
+  :split_image:type                            ocv
+
+connect from input.image
+        to   split.image
+
+# =================================== DEPTH MAP ====================================
+
+process depth_map
+  :: compute_stereo_depth_map
+  :computer:type                               ocv
+  :computer:ocv:num_disparities                256
+  :computer:ocv:sad_window_size                21
+
+connect from split.left_image
+        to   depth_map.left_image
+connect from split.right_image
+        to   depth_map.right_image
+
+
+process filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+  :filter:ocv_enhancer:apply_smoothing         false
+  :filter:ocv_enhancer:smooth_kernel           3
+  :filter:ocv_enhancer:apply_denoising         false
+  :filter:ocv_enhancer:denoise_kernel          3
+  :filter:ocv_enhancer:denoise_coeff           2
+  :filter:ocv_enhancer:auto_balance            false
+  :filter:ocv_enhancer:force_8bit              true
+  :filter:ocv_enhancer:apply_clahe             true
+  :filter:ocv_enhancer:clip_limit              20
+  :filter:ocv_enhancer:saturation              1.0
+
+connect from depth_map.depth_map
+        to   filter.image
+
+# ==================================== OUTPUT ======================================
+
+process output
+  :: image_writer
+  :file_name_template                          depth_map%06d.png
+  :image_writer:type                           vxl
+
+connect from filter.image
+        to   output.image
+
+# -- end of file --

@@ -7,12 +7,14 @@ set( EXAMPLE_INSTALL_FILES
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       run_measurer.bat )
+       run_measurer.bat
+       compute_depth_maps.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
        run_measurer.sh
-       standalone_with_disp.sh )
+       standalone_with_disp.sh
+       compute_depth_maps.sh )
 endif()
 
 install( FILES       ${EXAMPLE_INSTALL_FILES}
