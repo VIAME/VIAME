@@ -205,7 +205,7 @@ class SmqtkProcessQuery (KwiverProcess):
         svm_model = self.iqr_session.rel_index.get_model()
         tmp_file_name = "tmp_svm.model"
 
-        svmutil.svm_save_model(tmp_file_name, svm_model)
+        svmutil.svm_save_model(tmp_file_name.encode(), svm_model)
         with open(tmp_file_name, "rb") as f:
             model_file = f.read()
             b = bytearray(model_file)
@@ -222,14 +222,14 @@ class SmqtkProcessQuery (KwiverProcess):
         # The original model
         svm_model_1 = self.iqr_session.rel_index.get_model()
         model_1_file, model_2_file = "tmp_svm_1.model", "tmp_svm_2.model"
-        svmutil.svm_save_model(model_1_file, svm_model_1)
+        svmutil.svm_save_model(model_1_file.encode(), svm_model_1)
 
         # Get the bytes for the model first.
         bytes = self.get_svm_bytes()
         # Use the bytes to created a model
         svm_model_2 = self.get_model_from_bytes(bytes)
         # Save the model created using the bytes
-        svmutil.svm_save_model(model_2_file, svm_model_2)
+        svmutil.svm_save_model(model_2_file.encode(), svm_model_2)
 
         # Check that the model created using the bytes is the same as the
         # original model.
