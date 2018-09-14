@@ -58,12 +58,6 @@ namespace algo {
  * actually doing the serialization depends on the concrete
  * implementation.
  *
- * This interface allows an implementation to serialize one or more
- * data items into a single transport message byte string by accepting
- * and producing a map of data items indexed by the set of names known
- * to the implementation. It is expected that the element names will
- * reflect the semantic data type.
- *
  * It is expected that implementations of this interface will not
  * require any implementation specific configuration parameters. This
  * is because the implementation is selected at run time based on the
@@ -78,8 +72,6 @@ class VITAL_ALGO_EXPORT data_serializer
   : public kwiver::vital::algorithm_def< data_serializer >
 {
 public:
-  using serialize_param_t = std::map< std::string, vital::any >;
-  using deserialize_result_t = std::map< std::string, vital::any >;
 
   /// Return the name of this algorithm
   static std::string static_type_name() { return "data_serializer"; }
@@ -109,7 +101,7 @@ public:
    * @throws kwiver::vital::bad_any_cast
    * @throws kwiver::vital::serialization - for unexpected element name
    */
-  virtual std::shared_ptr< std::string > serialize( const serialize_param_t& elements ) = 0;
+  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) = 0;
 
   /// Deserialize byte string into data type.
   /**
@@ -138,44 +130,14 @@ public:
    * @throws kwiver::vital::bad_any_cast
    * @throws kwiver::vital::serialization - for unexpected element name
    */
-  virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message ) = 0;
-
-  /// Return list of data elements handled.
-  /**
-   * This method returns the set of supported data element names.
-   *
-   *
-   * @return Set of supported data element names.
-   */
-  virtual const std::set< std::string >& element_names() const;
+  virtual vital::any deserialize( const std::string& message ) = 0;
 
   virtual void set_configuration( kwiver::vital::config_block_sptr config ) { }
   virtual bool check_configuration(config_block_sptr config) const { return true; }
 
-  /**
-   * This is the default element name for implementations that only
-   * support a single data element.
-   */
-  static const std::string DEFAULT_ELEMENT_NAME;
-
 protected:
   data_serializer();
 
-  /// Validate element names against supported set.
-  /**
-   * This method validates the supplied group of element names from
-   * the map against the supported set. An exception is thrown if a
-   * name is found in the map and it is not in the set of element
-   * names.
-   *
-   */
-  bool check_element_names( serialize_param_t elements);
-
-  /**
-   * Set of supported data element names. It is expected that the
-   * implementation will directly add the supported names to this set.
-   */
-  std::set< std::string > m_element_names;
 };
 
 /// Shared pointer for detect_features algorithm definition class

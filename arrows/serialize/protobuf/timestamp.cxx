@@ -37,77 +37,84 @@ namespace arrows {
 namespace serialize {
 namespace protobuf {
 
-  timestamp::timestamp()
-  {
-    m_element_names.insert (DEFAULT_ELEMENT_NAME);
+// ----------------------------------------------------------------------------
+timestamp::timestamp()
+{
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+}
 
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
+timestamp::~timestamp()
+{ }
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+timestamp::
+serialize( const vital::any& element )
+{
+  kwiver::vital::timestamp tstamp = kwiver::vital::any_cast< kwiver::vital::timestamp > ( element );
+  std::ostringstream msg;
+  msg << "timestamp ";
+  kwiver::protobuf::timestamp proto_tstamp;
+
+  convert_protobuf( tstamp, proto_tstamp );
+
+  if ( ! proto_tstamp.SerializeToOstream( &msg ) )
+  {
+    LOG_ERROR( logger(), "proto_timestamp.SerializeToOStream failed" );
   }
 
-  timestamp::~timestamp()
-  { }
+  return std::make_shared< std::string > ( msg.str() );
+}
 
-  std::shared_ptr< std::string > timestamp::
-    serialize( const data_serializer::serialize_param_t& elements)
+
+// ----------------------------------------------------------------------------
+vital::any
+timestamp::deserialize( const std::string& message )
+{
+  kwiver::vital::timestamp tstamp;
+  std::istringstream msg( message );
+  std::string tag;
+  msg >> tag;
+  msg.get();
+  if ( tag != "timestamp" )
   {
-    kwiver::vital::timestamp tstamp =
-      kwiver::vital::any_cast< kwiver::vital::timestamp > ( elements.at (DEFAULT_ELEMENT_NAME));
-    std::ostringstream msg;
-    msg << "timestamp ";
+    LOG_ERROR( logger(), "Invalid data type tag receiver. Expected timestamp"
+               << "received " << tag << ". Message dropped." );
+  }
+  else
+  {
     kwiver::protobuf::timestamp proto_tstamp;
-    convert_protobuf( tstamp, proto_tstamp);
-    if ( !proto_tstamp.SerializeToOstream( &msg ) )
+    if ( ! proto_tstamp.ParseFromIstream( &msg ) )
     {
-      LOG_ERROR( logger(), "proto_timestamp.SerializeToOStream failed" );
-    }    
-    return std::make_shared< std::string > (msg.str() );
-  }
-  
-  vital::algo::data_serializer::deserialize_result_t 
-    timestamp::deserialize( std::shared_ptr< std::string > message)
-  {
-    kwiver::vital::timestamp tstamp;
-    std::istringstream msg( *message );
-    std::string tag;
-    msg >> tag;
-    msg.get();
-    if (tag != "timestamp" )
-    {
-      LOG_ERROR( logger(), "Invalid data type tag receiver. Expected timestamp" 
-          << "received " << tag << ". Message dropped.");
-    } 
-    else 
-    {
-      kwiver::protobuf::timestamp proto_tstamp;
-      if ( !proto_tstamp.ParseFromIstream( &msg ) )
-      {
-        LOG_ERROR( logger(), "Incoming protobuf stream did not parse correctly."
-            << "ParseFromIstream failed.");
-      }
-
-      convert_protobuf( proto_tstamp, tstamp);
+      LOG_ERROR( logger(), "Incoming protobuf stream did not parse correctly."
+                 << "ParseFromIstream failed." );
     }
 
-    deserialize_result_t res;
-    res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(tstamp);
-    return res;
+    convert_protobuf( proto_tstamp, tstamp );
   }
 
-  void timestamp::convert_protobuf (const kwiver::protobuf::timestamp& proto_tstamp,
-                                    kwiver::vital::timestamp& tstamp)
-  {
-    tstamp = kwiver::vital::timestamp( static_cast<kwiver::vital::time_us_t>(proto_tstamp
-        .time()), static_cast<kwiver::vital::frame_id_t>(proto_tstamp.frame()) );
-  }
-  
-  void timestamp::convert_protobuf (const kwiver::vital::timestamp& tstamp,
-                                    kwiver::protobuf::timestamp& proto_tstamp)
-  {
-    proto_tstamp.set_time( static_cast<int64_t>(tstamp.get_time_usec()));
-    proto_tstamp.set_frame( static_cast<int64_t>(tstamp.get_frame()) );
-  }
+  return kwiver::vital::any( tstamp );
+}
 
+
+// ----------------------------------------------------------------------------
+void
+timestamp::convert_protobuf( const kwiver::protobuf::timestamp& proto_tstamp,
+                             kwiver::vital::timestamp&          tstamp )
+{
+  tstamp = kwiver::vital::timestamp(
+    static_cast< kwiver::vital::time_us_t > ( proto_tstamp.time() ),
+    static_cast< kwiver::vital::frame_id_t > ( proto_tstamp.frame() ) );
 }
+
+
+// ----------------------------------------------------------------------------
+void
+timestamp::convert_protobuf( const kwiver::vital::timestamp&  tstamp,
+                             kwiver::protobuf::timestamp&     proto_tstamp )
+{
+  proto_tstamp.set_time( static_cast< int64_t > ( tstamp.get_time_usec() ) );
+  proto_tstamp.set_frame( static_cast< int64_t > ( tstamp.get_frame() ) );
 }
-}
-}
+
+} } } }

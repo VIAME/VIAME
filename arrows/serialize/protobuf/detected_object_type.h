@@ -55,8 +55,8 @@ public:
   detected_object_type();
   virtual ~detected_object_type();
 
-  virtual std::shared_ptr< std::string > serialize( const serialize_param_t& elements );
-  virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
+  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  virtual vital::any deserialize( const std::string& message ) override;
 
   // Convert between native and protobuf formats
   static void convert_protobuf( const kwiver::protobuf::detected_object_type&  proto_bbox,

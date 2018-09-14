@@ -49,10 +49,10 @@ namespace vital {
  * See this Stackexchange entry for further discussion:
  * https://codereview.stackexchange.com/questions/165120/printing-hex-dumps-for-diagnostics
  *
- * @param[out] os Output stream for the formatted string
- * @param[in,out] buffer Input buffer to dump
- * @param[in] bufsize Length of input buffer or number of bytes to dump
- * @param[in] showPrintableCharacter \b true will print printable characters along with hex
+ * @param os Output stream for the formatted string
+ * @param buffer Input buffer to dump
+ * @param bufsize Length of input buffer or number of bytes to dump
+ * @param showPrintableCharacter \b true will print printable characters along with hex
  */
 VITAL_UTIL_EXPORT std::ostream& hex_dump( std::ostream& os,
                                           const void*   buffer,
