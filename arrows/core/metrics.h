@@ -143,14 +143,18 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
                          const vital::landmark_map::map_landmark_t& landmarks,
                          const std::vector<vital::track_sptr>& tracks);
 
-/// Subsampels cameras favoring more recent cameras
+/// Subsamples cameras favoring more recent cameras
 /**
-* \param[in] subsample_cams if true only a subset of the cameras' rmse is calculated and returned 
-*             to save compuatation.The general idea is to pick more frames near the last frame
-*             in time and fewer earlier.The idea is that more recent cameras are more likely to have
-*             high reprojection errors while older cameras have been optimized more and so will mostly
-*             have similar reprojection errors to each other that are lower.
-* \returns a camera map containint the subsampeld cameras
+* This subsampling strategy keeps all cameras within ten frames of the latest frame,
+  then progressively fewer cameras as the cameras are in the more distant past.  
+  It keeps cameras that are between 10 and 100 frames behind the latest frame and 
+  have frame ids modulo 10 of 1, e.g. 11, 21, 31 etc.  Frames that are more than 
+  100 behind the latest frame if their frame ids modulo 100 are 1, e.g. 101, 201 etc.
+  This approach is designed to pick a similar set of cameras on successive calls so
+  that the reprojection errors on those cameras can be compared between successive 
+  calls.
+* \param[in] cameras the map of cameras to be subsampled
+* \returns a camera map containing the subsampled cameras
 */
 KWIVER_ALGO_CORE_EXPORT
 vital::camera_map::map_camera_t
