@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,14 +82,14 @@ reprojection_error_sqr(const vital::camera& cam,
   return reprojection_error_vec(cam, lm, f).squaredNorm();
 }
 
+
 /// Check that at least one pair of rays has cos(angle) less than or equal to cos_ang_thresh
 /**
-* \param[in] cameras is the set of cameras that view X
-* \param[in] X is the landmark projected into the cameras
-* \param[in] cos_ang_thresh cosine of the angle threshold
-* \returns true if at least one pair of rays has cos(angle) <= cos_ang_thresh
-*/
-
+ * \param[in] cameras is the set of cameras that view X
+ * \param[in] X is the landmark projected into the cameras
+ * \param[in] cos_ang_thresh cosine of the angle threshold
+ * \returns true if at least one pair of rays has cos(angle) <= cos_ang_thresh
+ */
 KWIVER_ALGO_CORE_EXPORT
 bool
 bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &cameras,
@@ -128,34 +128,36 @@ reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& camer
                     const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
                     const std::vector< vital::track_sptr>& tracks);
 
+
 /// Compute a vector of all reprojection errors in the data
 /**
-* \param [in] cameras is the map of frames/cameras used for projection
-* \param [in] landmarks is the map ids/landmarks projected into the cameras
-* \param [in] tracks is the set of tracks providing measurements
-* \returns a map containing one reprojection error rms value per camera mapped by the
-*             the cameras' frame ids
-*/
-
+ * \param [in] cameras is the map of frames/cameras used for projection
+ * \param [in] landmarks is the map ids/landmarks projected into the cameras
+ * \param [in] tracks is the set of tracks providing measurements
+ * \returns a map containing one reprojection error rms value per camera mapped by the
+ *          the cameras' frame ids
+ */
 KWIVER_ALGO_CORE_EXPORT
 std::map<vital::frame_id_t, double>
 reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
                          const vital::landmark_map::map_landmark_t& landmarks,
                          const std::vector<vital::track_sptr>& tracks);
 
+
 /// Subsamples cameras favoring more recent cameras
 /**
-* This subsampling strategy keeps all cameras within ten frames of the latest frame,
-  then progressively fewer cameras as the cameras are in the more distant past.  
-  It keeps cameras that are between 10 and 100 frames behind the latest frame and 
-  have frame ids modulo 10 of 1, e.g. 11, 21, 31 etc.  Frames that are more than 
-  100 behind the latest frame if their frame ids modulo 100 are 1, e.g. 101, 201 etc.
-  This approach is designed to pick a similar set of cameras on successive calls so
-  that the reprojection errors on those cameras can be compared between successive 
-  calls.
-* \param[in] cameras the map of cameras to be subsampled
-* \returns a camera map containing the subsampled cameras
-*/
+ * This subsampling strategy keeps all cameras within ten frames of the latest frame,
+ * then progressively fewer cameras as the cameras are in the more distant past.
+ * It keeps cameras that are between 10 and 100 frames behind the latest frame and
+ * have frame ids modulo 10 of 1, e.g. 11, 21, 31 etc.  Frames that are more than
+ * 100 behind the latest frame if their frame ids modulo 100 are 1, e.g. 101, 201 etc.
+ * This approach is designed to pick a similar set of cameras on successive calls so
+ * that the reprojection errors on those cameras can be compared between successive
+ * calls.
+ *
+ * \param[in] cameras the map of cameras to be subsampled
+ * \returns a camera map containing the subsampled cameras
+ */
 KWIVER_ALGO_CORE_EXPORT
 vital::camera_map::map_camera_t
 subsample_cameras_favor_recent(const vital::camera_map::map_camera_t& cameras);
