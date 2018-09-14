@@ -53,6 +53,8 @@ reprojection_error_vec(const camera& cam,
   return pt - f.loc();
 }
 
+
+/// Compute the maximum angle between the rays from X to each camera center
 double
 bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
                  const vital::vector_3d &X)

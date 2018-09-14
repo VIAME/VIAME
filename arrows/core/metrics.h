@@ -62,8 +62,8 @@ namespace arrows {
  */
 KWIVER_ALGO_CORE_EXPORT
 vital::vector_2d reprojection_error_vec(const vital::camera& cam,
-                                 const vital::landmark& lm,
-                                 const vital::feature& f);
+                                        const vital::landmark& lm,
+                                        const vital::feature& f);
 
 
 /// Compute the square reprojection error of lm projected by cam compared to f
@@ -82,15 +82,14 @@ reprojection_error_sqr(const vital::camera& cam,
   return reprojection_error_vec(cam, lm, f).squaredNorm();
 }
 
-/// Compute the maximum angle between the rays in the bundle associated with
-/// the landmark
-/**
-* \param [in] cameras is the set of cameras that view X
-* \param [in] X is the landmark projected into the cameras
-* \returns cos of the maximum angle pair of rays intersecting at lm from the
-           cameras observing lm
-*/
 
+/// Compute the maximum angle between the rays from X to each camera center
+/**
+ * \param [in] cameras is the set of cameras that view X
+ * \param [in] X is the landmark projected into the cameras
+ * \returns cos of the maximum angle pair of rays intersecting at lm from the
+ *          cameras observing lm
+ */
 KWIVER_ALGO_CORE_EXPORT
 double
 bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
