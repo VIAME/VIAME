@@ -14,6 +14,7 @@ process input
   :frame_time                                  1
   :image_reader:type                           vxl
   :image_reader:vxl:force_byte                 true
+  :image_reader:vxl:force_grayscale            true
 
 # ================================== CROP INPUTS ===================================
 process split
@@ -44,10 +45,10 @@ process filter
   :filter:ocv_enhancer:denoise_kernel          3
   :filter:ocv_enhancer:denoise_coeff           2
   :filter:ocv_enhancer:auto_balance            false
-  :filter:ocv_enhancer:force_8bit              false
-  :filter:ocv_enhancer:apply_clahe             false
+  :filter:ocv_enhancer:force_8bit              true
+  :filter:ocv_enhancer:apply_clahe             true
   :filter:ocv_enhancer:clip_limit              3
-  :filter:ocv_enhancer:saturation              1.20
+  :filter:ocv_enhancer:saturation              1.0
 
 connect from depth_map.depth_map
         to   filter.image
