@@ -226,7 +226,7 @@ public:
 
         meta->set_timestamp( ts );
 
-        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_FILENAME,
+        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI,
                                       video_path ) );
         retval.push_back( meta );
       } // end valid metadata packet.
@@ -247,7 +247,7 @@ public:
 
       meta->set_timestamp(ts);
 
-      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_FILENAME,
+      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_URI,
         video_path));
 
       retval.push_back(meta);
