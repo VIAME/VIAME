@@ -8,7 +8,12 @@ config _pipeline:_edge
 
 # =============================== INPUT FRAME LIST =================================
 
-include common_default_input.pipe
+process input
+  :: frame_list_input
+  :image_list_file                             input_list.txt
+  :frame_time                                  1
+  :image_reader:type                           vxl
+  :image_reader:vxl:force_byte                 true
 
 # ================================== CROP INPUTS ===================================
 process split
@@ -18,7 +23,17 @@ process split
 connect from input.image
         to   split.image
 
-# =================================== FILTERS ======================================
+# =================================== DEPTH MAP ====================================
+
+process depth_map
+  :: compute_stereo_depth_map
+  :computer:type                               ocv
+
+connect from split.left_image
+        to   depth_map.left_image
+connect from split.right_image
+        to   depth_map.right_image
+
 
 process filter
   :: image_filter
@@ -28,20 +43,20 @@ process filter
   :filter:ocv_enhancer:apply_denoising         false
   :filter:ocv_enhancer:denoise_kernel          3
   :filter:ocv_enhancer:denoise_coeff           2
-  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:auto_balance            false
   :filter:ocv_enhancer:force_8bit              false
-  :filter:ocv_enhancer:apply_clahe             true
+  :filter:ocv_enhancer:apply_clahe             false
   :filter:ocv_enhancer:clip_limit              3
   :filter:ocv_enhancer:saturation              1.20
 
-connect from input.image
+connect from depth_map.depth_map
         to   filter.image
 
 # ==================================== OUTPUT ======================================
 
 process output
   :: image_writer
-  :file_name_template                          frame%06d.png
+  :file_name_template                          depth_map%06d.png
   :image_writer:type                           vxl
 
 connect from filter.image
