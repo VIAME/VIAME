@@ -54,10 +54,17 @@ public:
 
   sfm_constraints(const sfm_constraints& other);
 
+
+  /// constructor
+  /**
+  * \param[in] md metadata map sptr to store
+  * \param[in] lgcs the local geo coordinate system
+  */
   sfm_constraints(
     metadata_map_sptr md,
     local_geo_cs const& lgcs);
 
+  /// desctructor
   ~sfm_constraints();
 
   /// returns a pointer to the metadata map

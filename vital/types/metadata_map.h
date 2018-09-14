@@ -185,61 +185,73 @@ public:
   /// Return a map from integer IDs to metadata shared pointers
   virtual map_metadata_t metadata() const { return data_; }
 
+  /// gets the location of the sensor from the metadata
   virtual bool get_sensor_location(frame_id_t fid, geo_point &loc)
   {
     return get_value<geo_point>(VITAL_META_SENSOR_LOCATION,fid, loc);
   }
   
+  /// gets the altitude of the sensor from the metadata
   virtual bool get_sensor_altitude(frame_id_t fid, double &altitude)
   {
     return get_value<double>(VITAL_META_SENSOR_ALTITUDE, fid, altitude);
   }
 
+  /// gets the horizontal field of view of the sensor from the metadata
   virtual bool get_horizontal_field_of_view(frame_id_t fid, double &fov)
   {
     return get_value<double>(VITAL_META_SENSOR_HORIZONTAL_FOV, fid, fov);
   }
 
+  /// gets the range to target from the metadata
   virtual bool get_slant_range(frame_id_t fid, double &slant_range)
   {
     return get_value<double>(VITAL_META_SLANT_RANGE, fid, slant_range);
   }
 
+  /// gets the target width from the metadata
   virtual bool get_target_width(frame_id_t fid, double &target_width)
   {
     return get_value<double>(VITAL_META_TARGET_WIDTH, fid, target_width);
   }
 
+  /// gets the platform heading angle from the metadata
   virtual bool get_platform_heading_angle(frame_id_t fid, double &heading)
   {
     return get_value<double>(VITAL_META_PLATFORM_HEADING_ANGLE, fid, heading);
   }
 
+  /// gets the platform pitch angle from the metadata
   virtual bool get_platform_pitch_angle(frame_id_t fid, double &pitch)
   {
     return get_value<double>(VITAL_META_PLATFORM_PITCH_ANGLE, fid, pitch);
   }
 
+  /// gets the platform roll angle from the metadata
   virtual bool get_platform_roll_angle(frame_id_t fid, double &roll)
   {
     return get_value<double>(VITAL_META_PLATFORM_ROLL_ANGLE, fid, roll);
   }
 
+  /// gets the sensor relative azimuth angle from the metadata
   virtual bool get_sensor_rel_az_angle(frame_id_t fid, double &rel_az_angle)
   {
     return get_value<double>(VITAL_META_SENSOR_REL_AZ_ANGLE, fid, rel_az_angle);
   }
 
+  /// gets the sensor relative elevation angle from the metadata
   virtual bool get_sensor_rel_el_angle(frame_id_t fid, double &rel_el_angle)
   {
     return get_value<double>(VITAL_META_SENSOR_REL_EL_ANGLE, fid, rel_el_angle);
   }
 
+  /// gets the sensor relative roll angle from the metadata
   virtual bool get_sensor_rel_roll_angle(frame_id_t fid, double &rel_roll_angle)
   {
     return get_value<double>(VITAL_META_SENSOR_REL_ROLL_ANGLE, fid, rel_roll_angle);
   }
 
+  ///returns the frame ids that have associated metadata
   virtual std::set<frame_id_t> frames()
   {
     std::set<frame_id_t> fids;
@@ -252,6 +264,7 @@ public:
 
 protected:
 
+  /// gets a value from the metadata according to its tag
   template<typename T>
   bool get_value(vital_metadata_tag tag, frame_id_t fid, T& val)
   {
