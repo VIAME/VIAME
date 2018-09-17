@@ -129,8 +129,8 @@ public:
     world_offset_(0.0, 0.0, 0.0),
     image_scale_(1.0, 1.0),
     image_offset_(0.0, 0.0),
-    image_width_(1),
-    image_height_(1)
+    image_width_(0),
+    image_height_(0)
   {
     rpc_coeffs_ = rpc_matrix::Zero();
     rpc_coeffs_(1, 0) = 1.0;
@@ -157,14 +157,6 @@ public:
     image_width_( image_width ),
     image_height_( image_height )
   {
-    if (image_width_ == 0)
-    {
-      image_width_ = static_cast<unsigned int>(std::ceil(image_offset_[0]*2));
-    }
-    if (image_height_ == 0)
-    {
-      image_height_ = static_cast<unsigned int>(std::ceil(image_offset_[1]*2));
-    }
     update_partial_deriv();
   }
 

@@ -141,9 +141,9 @@ public:
     principal_point_(0.0, 0.0),
     aspect_ratio_(1.0),
     skew_(0.0),
-    image_width_(1),
-    image_height_(1),
-    dist_coeffs_()
+    dist_coeffs_(),
+    image_width_(0),
+    image_height_(0)
   {}
 
   /// Constructor for camera intrinsics
@@ -151,33 +151,26 @@ public:
                            const vector_2d& principal_point,
                            const double aspect_ratio=1.0,
                            const double skew=0.0,
+                           const vector_t dist_coeffs=vector_t(),
                            const unsigned int image_width=0,
-                           const unsigned int image_height=0,
-                           const vector_t dist_coeffs=vector_t())
+                           const unsigned int image_height=0)
   : focal_length_(focal_length),
     principal_point_(principal_point),
     aspect_ratio_(aspect_ratio),
     skew_(skew),
+    dist_coeffs_(dist_coeffs),
     image_width_(image_width),
-    image_height_(image_height),
-    dist_coeffs_(dist_coeffs)
-  {
-    if (image_width_ == 0)
-    {
-      image_width_ = static_cast<unsigned int>(std::ceil(principal_point(0)*2));
-    }
-    if (image_height_ == 0)
-    {
-      image_height_ = static_cast<unsigned int>(std::ceil(principal_point_(1)*2));
-    }
-  }
+    image_height_(image_height)
+  {}
 
   /// Constructor from the base class
   explicit simple_camera_intrinsics(const camera_intrinsics& base)
   : focal_length_(base.focal_length()),
     principal_point_(base.principal_point()),
     aspect_ratio_(base.aspect_ratio()),
-    skew_(base.skew())
+    skew_(base.skew()),
+    image_width_(base.image_width()),
+    image_height_(base.image_height())
   {
     std::vector<double> dc = base.dist_coeffs();
     dist_coeffs_ = vector_t::Map(dc.data(), dc.size());
@@ -261,12 +254,12 @@ protected:
   double aspect_ratio_;
   /// skew of camera
   double skew_;
+  /// Lens distortion coefficients
+  vector_t dist_coeffs_;
   /// Image width
   unsigned int image_width_;
   /// Image height
   unsigned int image_height_;
-  /// Lens distortion coefficients
-  vector_t dist_coeffs_;
 };
 
 

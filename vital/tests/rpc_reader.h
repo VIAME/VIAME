@@ -44,7 +44,7 @@ kwiver::vital::simple_camera_rpc read_rpc( std::string filename )
   kwiver::vital::vector_3d world_offset;
   kwiver::vital::vector_2d image_scale;
   kwiver::vital::vector_2d image_offset;
-  kwiver::vital::vector_2i image_dimension;
+  kwiver::vital::vector_2i image_dimension(0, 0);
 
   std::ifstream rpc_file;
   rpc_file.open( filename );
@@ -81,7 +81,8 @@ kwiver::vital::simple_camera_rpc read_rpc( std::string filename )
             image_offset( word_idx ) = value;
             break;
           case 8:
-            image_dimension( word_idx ) = value;
+            image_dimension( word_idx ) = static_cast<int>(value);
+            break;
         }
       }
       word_idx++;
