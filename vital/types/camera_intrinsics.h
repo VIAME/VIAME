@@ -75,6 +75,10 @@ public:
   virtual double aspect_ratio() const = 0;
   /// Access the skew
   virtual double skew() const = 0;
+  /// Access the image width
+  virtual unsigned int image_width() const = 0;
+  /// Access the image height
+  virtual unsigned int image_height() const = 0;
   /// Access the distortion coefficients
   virtual std::vector<double> dist_coeffs() const
   { return std::vector<double>(); }
@@ -137,6 +141,8 @@ public:
     principal_point_(0.0, 0.0),
     aspect_ratio_(1.0),
     skew_(0.0),
+    image_width_(1),
+    image_height_(1),
     dist_coeffs_()
   {}
 
@@ -145,13 +151,26 @@ public:
                            const vector_2d& principal_point,
                            const double aspect_ratio=1.0,
                            const double skew=0.0,
+                           const unsigned int image_width=0,
+                           const unsigned int image_height=0,
                            const vector_t dist_coeffs=vector_t())
   : focal_length_(focal_length),
     principal_point_(principal_point),
     aspect_ratio_(aspect_ratio),
     skew_(skew),
+    image_width_(image_width),
+    image_height_(image_height),
     dist_coeffs_(dist_coeffs)
-  {}
+  {
+    if (image_width_ == 0)
+    {
+      image_width_ = static_cast<unsigned int>(std::ceil(principal_point(0)*2));
+    }
+    if (image_height_ == 0)
+    {
+      image_height_ = static_cast<unsigned int>(std::ceil(principal_point_(1)*2));
+    }
+  }
 
   /// Constructor from the base class
   explicit simple_camera_intrinsics(const camera_intrinsics& base)
@@ -184,6 +203,10 @@ public:
   virtual double aspect_ratio() const { return aspect_ratio_; }
   /// Access the skew
   virtual double skew() const { return skew_; }
+  /// Access the image width
+  virtual unsigned int image_width() const { return image_width_; }
+  /// Access the image height
+  virtual unsigned int image_height() const { return image_height_; }
   /// Access the distortion coefficients
   virtual std::vector<double> dist_coeffs() const
   {
@@ -198,6 +221,10 @@ public:
   const double& get_aspect_ratio() const { return aspect_ratio_; }
   /// Access the skew
   const double& get_skew() const { return skew_; }
+  /// Access the image width
+  const unsigned int& get_image_width() const { return image_width_; }
+  /// Access the image height
+  const unsigned int& get_image_height() const { return image_height_; }
   /// Access the distortion coefficients
   const vector_t& get_dist_coeffs() const { return dist_coeffs_; }
 
@@ -209,6 +236,10 @@ public:
   void set_aspect_ratio(const double& aspect_ratio) { aspect_ratio_ = aspect_ratio; }
   /// Set the skew
   void set_skew(const double& skew) { skew_ = skew; }
+  /// Set the image width
+  void set_image_width(const unsigned int width) { image_width_ = width; }
+  /// Set the image height
+  void set_image_height(const unsigned int height) { image_height_ = height; }
   /// Set the distortion coefficients
   void set_dist_coeffs(const vector_t& d) { dist_coeffs_ = d; }
 
@@ -230,6 +261,10 @@ protected:
   double aspect_ratio_;
   /// skew of camera
   double skew_;
+  /// Image width
+  unsigned int image_width_;
+  /// Image height
+  unsigned int image_height_;
   /// Lens distortion coefficients
   vector_t dist_coeffs_;
 };
