@@ -33,8 +33,8 @@
  * \brief core local_geo_cs interface
  */
 
-#ifndef MAPTK_LOCAL_GEO_CS_H_
-#define MAPTK_LOCAL_GEO_CS_H_
+#ifndef VITAL_LOCAL_GEO_CS_H_
+#define VITAL_LOCAL_GEO_CS_H_
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
@@ -149,8 +149,7 @@ write_local_geo_cs_to_file(local_geo_cs const& lgcs,
 
 VITAL_EXPORT
 bool set_intrinsics_from_metadata(vital::simple_camera_perspective &cam,
-                                  std::map<vital::frame_id_t,
-                                           vital::metadata_sptr> const& md_map,
+                                  std::map<vital::frame_id_t,vital::metadata_sptr> const& md_map,
                                   vital::image_container_sptr const& im);
 
 /// Use a sequence of metadata objects to initialize a sequence of cameras
@@ -167,10 +166,10 @@ bool set_intrinsics_from_metadata(vital::simple_camera_perspective &cam,
  *       and zone are determined from the mean camera easting and northing
  *       at zero altitude.
  */
+
 VITAL_EXPORT
 std::map<vital::frame_id_t, vital::camera_sptr>
-initialize_cameras_with_metadata(std::map<vital::frame_id_t,
-                                          vital::metadata_sptr> const& md_map,
+initialize_cameras_with_metadata(std::map<vital::frame_id_t, vital::metadata_sptr> const& md_map,
                                  vital::simple_camera_perspective const& base_camera,
                                  local_geo_cs& lgcs,
                                  vital::rotation_d const& rot_offset = vital::rotation_d());
@@ -188,13 +187,15 @@ initialize_cameras_with_metadata(std::map<vital::frame_id_t,
  */
 VITAL_EXPORT
 void
-update_metadata_from_cameras(std::map<vital::frame_id_t, vital::camera_sptr> const& cam_map,
+update_metadata_from_cameras(std::map<vital::frame_id_t, 
+                             vital::camera_sptr> const& cam_map,
                              local_geo_cs const& lgcs,
-                             std::map<vital::frame_id_t, vital::metadata_sptr>& md_map);
+                             std::map<vital::frame_id_t, 
+                             vital::metadata_sptr>& md_map);
 
 
-} // end namespace maptk
+} // end namespace vital
 } // end namespace kwiver
 
 
-#endif // MAPTK_LOCAL_GEO_CS_H_
+#endif // VITAL_LOCAL_GEO_CS_H_

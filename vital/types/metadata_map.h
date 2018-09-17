@@ -290,6 +290,7 @@ protected:
   map_metadata_t data_;
 };
 
-}} // end namespace vital
+} // end namespace vital
+} // end namespace kwiver
 
 #endif // KWIVER_VITAL_METADATA_MAP_H_
