@@ -35,6 +35,8 @@
 #include <cstring>
 
 #include <vital/types/image_container.h>
+#include <vital/util/hex_dump.h>
+
 namespace kwiver {
 namespace arrows {
 namespace serialize {
@@ -60,12 +62,17 @@ namespace protobuf {
     kwiver::vital::image_container_sptr img_sptr =
       kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( 
                                           elements.at( DEFAULT_ELEMENT_NAME ) );
-
+    std::cout << "Input size: " << img_sptr->size() << std::endl <<
+                 "Input width: " << img_sptr->width() << std::endl <<
+                 "Input height: " << img_sptr->height() << std::endl <<
+                 "Input depth: " << img_sptr->depth() << std::endl <<
+                 "Input data: " <<  kwiver::vital::hexDump(img_sptr->get_image().memory()->data(),
+                                            img_sptr->get_image().memory()->size() ) << std::endl;
     std::ostringstream msg;
     msg << "image "; // add type tag
-
     kwiver::protobuf::image proto_img;
     convert_protobuf( img_sptr->get_image(), proto_img );
+
 
     if ( ! proto_img.SerializeToOstream( &msg ) )
     {
@@ -105,9 +112,16 @@ namespace protobuf {
 
       convert_protobuf( proto_img, img );
     }
-
     kwiver::vital::image_container_sptr img_container_sptr = 
                     std::make_shared< kwiver::vital::simple_image_container >( img );
+    
+    std::cout << "Output size: " << img_container_sptr->size() << std::endl <<
+                 "Output width: " << img_container_sptr->width() << std::endl <<
+                 "Output height: " << img_container_sptr->height() << std::endl <<
+                 "Output depth: " << img_container_sptr->depth() << std::endl <<
+                 "Output data: " << kwiver::vital::hexDump(img_container_sptr->get_image().memory()->data(), 
+                                    img_container_sptr->get_image().memory()->size()) << 
+                 std::endl;
     deserialize_result_t res;
     res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any( img_container_sptr );
 
@@ -119,9 +133,10 @@ namespace protobuf {
   convert_protobuf( const kwiver::protobuf::image&  proto_img,
                     kwiver::vital::image& img )
   {
-    img = kwiver::vital::image(static_cast< size_t >( proto_img.width() ),
-                               static_cast< size_t >( proto_img.height() ),
-                               static_cast< size_t >( proto_img.depth() ) );
+    img = kwiver::vital::image( static_cast< size_t >( proto_img.width() ),
+                                static_cast< size_t >( proto_img.height() ),
+                                static_cast< size_t >( proto_img.depth() ) );
+
     kwiver::arrows::serialize::protobuf::image_memory::convert_protobuf( 
         proto_img.data(), *img.memory() );
   }
@@ -130,7 +145,9 @@ namespace protobuf {
   void image::
   convert_protobuf( const kwiver::vital::image& img,
                     kwiver::protobuf::image&  proto_img )
-  {
+  { 
+    
+    
     proto_img.set_width( static_cast< int64_t >( img.width()) );
     proto_img.set_height( static_cast< int64_t >( img.height() ) );
     proto_img.set_depth( static_cast< int64_t >( img.depth() ) );
