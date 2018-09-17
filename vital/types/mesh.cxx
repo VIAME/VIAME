@@ -446,9 +446,19 @@ void
 mesh
 ::set_tex_coords(const std::vector<vector_2d>& tc)
 {
+  int sum_of_face_corners = 0;
+  for (int f=0; f < this->num_faces(); ++f)
+  {
+      sum_of_face_corners += this->faces().num_verts(f);
+  }
+
   if (tc.size() == this->num_verts())
   {
     tex_coord_status_ = TEX_COORD_ON_VERT;
+  }
+  else if (tc.size() == sum_of_face_corners)
+  {
+      tex_coord_status_ = TEX_COORD_ON_FACE_CORNER;
   }
   else if (tc.size() == 2*this->num_edges())
   {
