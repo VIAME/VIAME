@@ -206,8 +206,10 @@ endif()
 # include as the last subdir
 add_subdirectory( vital )
 
-# Generate files to inform msvc of the kwiver runtime environment
-kwiver_setup_msvc_env() # Setup .bat scripts need to be complete and on disk
+if(MSVC)
+  # Generate files to inform msvc of the kwiver runtime environment
+  kwiver_setup_msvc_env() # Setup .bat scripts need to be complete and on disk
+endif()
 
 ##############################################################
 # Marking source root for documentation generation
