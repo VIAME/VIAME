@@ -114,6 +114,8 @@ TEST_F(camera_rpc, clone)
   EXPECT_MATRIX_EQ( cam.image_scale(), cam_clone->image_scale() );
   EXPECT_MATRIX_EQ( cam.image_offset(), cam_clone->image_offset() );
   EXPECT_MATRIX_EQ( cam.rpc_coeffs(), cam_clone->rpc_coeffs() );
+  EXPECT_EQ( cam.image_width(), cam_clone->image_width() );
+  EXPECT_EQ( cam.image_height(), cam_clone->image_height() );
 }
 
 // ----------------------------------------------------------------------------
