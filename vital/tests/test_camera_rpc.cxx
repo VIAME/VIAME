@@ -146,3 +146,12 @@ TEST_F(camera_rpc, back_projection)
     EXPECT_MATRIX_NEAR( new_pt, test_points[i], epsilon );
   }
 }
+
+// ----------------------------------------------------------------------------
+TEST_F(camera_rpc, read_missing_image_dimension)
+{
+  kwiver::vital::path_t test_rpc_file = data_dir + "/rpc_data_missing_image_dimension.dat";
+  auto cam = read_rpc( test_rpc_file );
+  EXPECT_EQ( cam.image_width(), 0 );
+  EXPECT_EQ( cam.image_height(), 0 );
+}
