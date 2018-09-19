@@ -1,7 +1,7 @@
 #
 # Setup and define KWIVER sphinx support
 #
- find_package(Sphinx)
+find_package(Sphinx)
 
 include(CMakeDependentOption)
 cmake_dependent_option(${CMAKE_PROJECT_NAME}_ENABLE_SPHINX_DOCS
