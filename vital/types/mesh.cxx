@@ -421,8 +421,8 @@ mesh
     }
     else if (other.has_tex_coords() == TEX_COORD_ON_FACE_CORNER)
     {
-      int nb_face_corners = 0;
-      for (int f = 0; f < this->num_faces(); ++f)
+      unsigned int nb_face_corners = 0;
+      for (unsigned int f = 0; f < this->num_faces(); ++f)
       {
           nb_face_corners += this->faces().num_verts(f);
       }
@@ -455,8 +455,8 @@ void
 mesh
 ::set_tex_coords(const std::vector<vector_2d>& tc)
 {
-  int nb_face_corners = 0;
-  for (int f = 0; f < this->num_faces(); ++f)
+  unsigned int nb_face_corners = 0;
+  for (unsigned int f = 0; f < this->num_faces(); ++f)
   {
       nb_face_corners += this->faces().num_verts(f);
   }
