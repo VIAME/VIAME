@@ -392,3 +392,16 @@ macro( kwiver_make_module_path    root subdir )
     set(kwiver_module_path_result  "${root}/lib${LIB_SUFFIX}/${subdir}" )
   endif()
 endmacro()
+
+###
+# This macro creates a symbolic link from source file to dest file.
+#
+add_custom_target( gen_symlinks ALL )
+macro(kwiver_make_symlink src dest)
+  add_custom_command(
+    TARGET gen_symlinks
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest}
+    DEPENDS  ${dest}
+    COMMENT "mklink ${src} -> ${dest}")
+endmacro()
