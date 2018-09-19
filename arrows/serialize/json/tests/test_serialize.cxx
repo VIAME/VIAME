@@ -39,18 +39,14 @@
 #include <vital/types/detected_object_type.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/timestamp.h>
-#include <vital/types/image.h>
-#include <vital/types/image.h>
+#include <vital/types/image_container.h>
 
 #include <arrows/serialize/json/bounding_box.h>
 #include <arrows/serialize/json/detected_object_type.h>
 #include <arrows/serialize/json/detected_object.h>
 #include <arrows/serialize/json/detected_object_set.h>
 #include <arrows/serialize/json/timestamp.h>
-#include <arrows/serialize/json/timestamped_detected_object_set.h>
-#include <arrows/serialize/json/image_memory.h>
 #include <arrows/serialize/json/image.h>
-#include <arrows/serialize/json/timestamped_image_detected_object_set.h>
 
 #include <vital/util/string.h>
 
@@ -248,201 +244,27 @@ TEST( serialize, timestamp)
   EXPECT_EQ( tstamp, tstamp_dser);
 }
 
-
-// ----------------------------------------------------------------------------
-TEST( serialize, timestamped_detected_object_set)
-{
-  kasj::timestamped_detected_object_set tstamp_dos_ser;
-  
-  kwiver::vital::timestamp tstamp{1, 1};
-  kwiver::vital::any tstamp_any( tstamp );
-
-  kwiver::vital::detected_object_set_sptr dos =
-    std::make_shared<kwiver::vital::detected_object_set>();;
-  auto dot = std::make_shared<kwiver::vital::detected_object_type>();
-
-  dot->set_score( "first", 1 );
-  dot->set_score( "second", 10 );
-  dot->set_score( "third", 101 );
-  dot->set_score( "last", 121 );
-
-  auto det_obj = std::make_shared< kwiver::vital::detected_object>(
-    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, dot );
-  det_obj->set_detector_name( "test_detector" );
-  det_obj->set_index( 1234 );
-
-  dos->add( det_obj );
-  dos->add( det_obj );
-  dos->add( det_obj );
-
-  kwiver::vital::any dos_any( dos );
-
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp[ "timestamp"] =  tstamp_any;
-  sp[ "detected_object_set" ] = dos_any;
-  
-  auto mes = tstamp_dos_ser.serialize( sp );
-  auto dser = tstamp_dos_ser.deserialize ( mes );
-
-  kwiver::vital::timestamp tstamp_dser = 
-    kwiver::vital::any_cast< kwiver::vital::timestamp >( 
-        dser[ "timestamp" ] );
-  EXPECT_EQ( tstamp, tstamp_dser);
-
-  auto obj_dser_set = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >(
-    dser[ "detected_object_set" ] );
-
-  EXPECT_EQ( 3, obj_dser_set->size() );
-
-  for ( auto obj_dser : *obj_dser_set )
-  {
-    EXPECT_EQ( det_obj->bounding_box(), obj_dser->bounding_box() );
-    EXPECT_EQ( det_obj->index(), obj_dser->index() );
-    EXPECT_EQ( det_obj->confidence(), obj_dser->confidence() );
-    EXPECT_EQ( det_obj->detector_name(), obj_dser->detector_name() );
-
-    dot = det_obj->type();
-    if (dot)
-    {
-      auto dot_dser = obj_dser->type();
-
-      EXPECT_EQ( dot->size(), dot_dser->size() );
-
-      auto o_it = dot->begin();
-      auto d_it = dot_dser->begin();
-
-      for (size_t i = 0; i < dot->size(); ++i )
-      {
-        EXPECT_EQ( *(o_it->first), *(d_it->first) );
-        EXPECT_EQ( o_it->second, d_it->second );
-      }
-    }
-  }
-}
-
-// ----------------------------------------------------------------------------
-TEST( serialize, image_memory)
-{
-  kasj::image_memory image_mem_ser;
-  kwiver::vital::image_memory img_mem{200*300*3};
-  kwiver::vital::any img_mem_any(img_mem);
-  
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, img_mem_any);
-  auto mes = image_mem_ser.serialize( sp );
-
-  auto dser = image_mem_ser.deserialize( mes );
-  kwiver::vital::image_memory img_mem_dser = 
-    kwiver::vital::any_cast< kwiver::vital::image_memory > (
-        dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
-  // Check the size of images
-  EXPECT_EQ ( img_mem.size(), img_mem_dser.size());
-  // Check the content of images
-  EXPECT_EQ ( img_mem, img_mem_dser);
-}
-
 // ----------------------------------------------------------------------------
 TEST( serialize, image)
 {
   kasj::image image_ser;
   kwiver::vital::image img{200, 300, 3};
-  kwiver::vital::image_container_sptr img_ctr = 
-            std::make_shared< kwiver::vital::simple_image_container >(img);
-  kwiver::vital::any img_any(img_ctr);
-  
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, img_any);
-  auto mes = image_ser.serialize( sp );
 
-  auto dser = image_ser.deserialize( mes );
-  auto img_dser = 
-    kwiver::vital::any_cast< kwiver::vital::image_container_sptr > (
-        dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
-  
+  char* cp = static_cast< char* >(img.memory()->data() );
+  for ( size_t i = 0; i < img.size(); ++i )
+  {
+    *cp++ = i;
+  }
+
+  kwiver::vital::image_container_sptr img_container =
+    std::make_shared< kwiver::vital::simple_image_container >( img );
+  kwiver::vital::any img_any(img_container);
+
+  auto mes = image_ser.serialize( img_any );
+  auto dser = image_ser.deserialize( *mes );
+
+  auto img_dser = kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( dser );
+
   // Check the content of images
-  EXPECT_EQ ( img, img_dser->get_image());
+  EXPECT_TRUE ( kwiver::vital::equal_content( img_container->get_image(), img_dser->get_image()) );
 }
-
-// ----------------------------------------------------------------------------
-TEST( serialize, timestamped_image_detected_object_set )
-{
-  kasj::timestamped_image_detected_object_set tstamp_img_obj_ser; // get serializer
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  kwiver::vital::timestamp tstamp{31, 21};
-  kwiver::vital::image img{200, 300, 3};
-  kwiver::vital::image_container_sptr img_ctr = 
-            std::make_shared< kwiver::vital::simple_image_container >(img);
-  
-  auto ser_dos_sptr = std::make_shared< kwiver::vital::detected_object_set >();
-  for ( int i=0; i < 10; i++ )
-  {
-    auto dot_sptr = std::make_shared<kwiver::vital::detected_object_type>();
-
-    dot_sptr->set_score( "first", 1 + i );
-    dot_sptr->set_score( "second", 10 + i );
-    dot_sptr->set_score( "third", 101 + i );
-    dot_sptr->set_score( "last", 121 + i );
-
-    auto det_object_sptr = std::make_shared< kwiver::vital::detected_object>(
-      kwiver::vital::bounding_box_d{ 1.0 + i, 2.0 + i, 3.0 + i, 4.0 + i }, 3.14159, dot_sptr );
-    det_object_sptr->set_detector_name( "test_detector" );
-    det_object_sptr->set_index( 1234 + i);
-
-    ser_dos_sptr->add( det_object_sptr );
-  }
-
-  kwiver::vital::any obj_any( ser_dos_sptr );
-  sp[ "detected_object_set" ] = obj_any;
-  
-  kwiver::vital::any tstamp_any( tstamp );
-  sp[ "timestamp"] = tstamp_any;
-
-  kwiver::vital::any img_ctr_any( img_ctr );
-  sp[ "image" ] = img_ctr_any;
-
-  auto mes = tstamp_img_obj_ser.serialize( sp );
-  
-  auto dser = tstamp_img_obj_ser.deserialize( mes );
-
-  
-  auto deser_dos_sptr = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >
-                              ( dser["detected_object_set"] );
-  for ( int i = 0; i < 10; i++ )
-  {
-    auto ser_do_sptr = ser_dos_sptr->at(i);
-    auto deser_do_sptr = deser_dos_sptr->at(i);
-
-    EXPECT_EQ( ser_do_sptr->bounding_box(), deser_do_sptr->bounding_box() );
-    EXPECT_EQ( ser_do_sptr->index(), deser_do_sptr->index() );
-    EXPECT_EQ( ser_do_sptr->confidence(), deser_do_sptr->confidence() );
-    EXPECT_EQ( ser_do_sptr->detector_name(), deser_do_sptr->detector_name() );
-
-    auto ser_dot_sptr = ser_do_sptr->type();
-    auto deser_dot_sptr = deser_do_sptr->type();
-
-    if ( ser_dot_sptr )
-    {
-      EXPECT_EQ( ser_dot_sptr->size(),deser_dot_sptr->size() );
-
-      auto ser_it = ser_dot_sptr->begin();
-      auto deser_it = deser_dot_sptr->begin();
-
-      for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
-      {
-        EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
-        EXPECT_EQ( deser_it->second, deser_it->second );
-      }
-    }
-  }
-  
-  kwiver::vital::timestamp tstamp_dser = 
-    kwiver::vital::any_cast< kwiver::vital::timestamp > ( 
-        dser[ "timestamp" ] );
-
-  EXPECT_EQ( tstamp, tstamp_dser );
-
-  auto img_dser = 
-    kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( dser[ "image" ] ); 
-  EXPECT_EQ( img, img_dser->get_image() );
-  
-} 

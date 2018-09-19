@@ -27,7 +27,6 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-import "image_memory.proto";
 
 package kwiver.protobuf;
 
@@ -35,7 +34,14 @@ message image {
   required int64 width=1;
   required int64 height=2;
   required int64 depth=3;
-  required image_memory data=4;
+  // Image indexing
+  required int64 w_step = 4;
+  required int64 h_step = 5;
+  required int64 d_step = 6;
+
+  required int64 size = 7; // image memory size
+  required bytes data = 8; // actual image pixels
+
   // Currently skipping pixel trait and color space
   // +TBD
 }

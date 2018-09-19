@@ -207,7 +207,7 @@ deserializer_process
           LOG_ERROR( logger(), "Message element type mismatch in message type \""
                      << msg_type << "\". Expecting element type \""
                      << msg_elem.m_port_type << "\" but received \""
-                     << port_type << "\"" );
+                     << port_type << "\". Remaining message dropped." );
           break;
         }
 
@@ -221,8 +221,8 @@ deserializer_process
         {
           LOG_ERROR( logger(), "Message size error. Current element size of "
                      << elem_size << " bytes exceeds " << current_remaining
-                     << " remaining bytes in the payload." );
-        break; // go to next message
+                     << " remaining bytes in the payload_size. Remaining message dropped" );
+        break;
         }
 
         std::string elem_buffer( elem_size, 0 );
@@ -233,6 +233,15 @@ deserializer_process
 
         // deserialize the data
         auto deser_data = msg_elem.m_serializer->deserialize( elem_buffer );
+
+        // test for empty any()
+        if ( deser_data.empty() )
+        {
+          LOG_ERROR( logger(), "Deserializer for type \"" << msg_elem.m_port_type
+                     << "\" from message \"" << msg_type
+                     << "\" returned a null result. Whole message dropped." );
+          break;
+        }
 
         // Push one element from the deserializer to the correct port
         sprokit::datum_t local_datum = sprokit::datum::new_datum( deser_data );

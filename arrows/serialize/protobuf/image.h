@@ -33,7 +33,7 @@
 
 #include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/image.h>
+#include <vital/types/image_container.h>
 #include <vital/types/protobuf/image.pb.h>
 
 namespace kwiver {
@@ -49,20 +49,19 @@ public:
   static constexpr char const* name = "kwiver:image";
 
   static constexpr char const* description =
-    "Serializes a image using protobuf notation. "
-    "This implementation only handles a single data item.";
+    "Serializes an image container using protobuf notation. ";
 
   image();
   virtual ~image();
 
-  virtual std::shared_ptr< std::string > serialize( const serialize_param_t& elements );
-  virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
+  virtual std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
+  virtual vital::any deserialize( const std::string& message ) override;
 
   // Convert between native and protobuf formats
   static void convert_protobuf( const kwiver::protobuf::image&  proto_img,
-                                kwiver::vital::image& img );
+                                kwiver::vital::image_container_sptr& img );
 
-  static void convert_protobuf( const kwiver::vital::image& img,
+  static void convert_protobuf( const kwiver::vital::image_container_sptr img,
                                 kwiver::protobuf::image& proto_img  );
 };
 

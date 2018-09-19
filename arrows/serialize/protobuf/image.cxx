@@ -29,133 +29,206 @@
  */
 
 #include "image.h"
-#include "image_memory.h"
-#include <vital/exceptions.h>
-#include <cstddef>
-#include <cstring>
 
+#include <vital/exceptions.h>
 #include <vital/types/image_container.h>
 #include <vital/util/hex_dump.h>
+
+#include <zlib.h>
+#include <cstddef>
+#include <cstring>
 
 namespace kwiver {
 namespace arrows {
 namespace serialize {
 namespace protobuf {
-  // --------------------------------------------------------------------------
-  image::image()
-  {
-    m_element_names.insert( DEFAULT_ELEMENT_NAME );
 
-    // Verify that the version of the library that we linked against is
-    // compatible with the version of the headers we compiled against.
-    GOOGLE_PROTOBUF_VERIFY_VERSION;
+// --------------------------------------------------------------------------
+image::image()
+{
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+}
+
+
+image::~image()
+{ }
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+image::
+serialize( const vital::any& element )
+{
+  kwiver::vital::image_container_sptr img_sptr =
+    kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( element );
+
+  std::ostringstream msg;
+  msg << "image ";   // add type tag
+  kwiver::protobuf::image proto_img;
+  convert_protobuf( img_sptr, proto_img );
+
+
+  if ( ! proto_img.SerializeToOstream( &msg ) )
+  {
+    VITAL_THROW( kwiver::vital::serialization_exception,
+                 "Error serializing detected_object_set from protobuf" );
   }
 
-  image::~image()
-  { }
+  return std::make_shared< std::string > ( msg.str() );
+}
 
-  // ----------------------------------------------------------------------------
-  std::shared_ptr< std::string >
-  image::
-  serialize( const data_serializer::serialize_param_t& elements )
+
+// ----------------------------------------------------------------------------
+vital::any
+image::
+deserialize( const std::string& message )
+{
+  kwiver::vital::image_container_sptr img_container_sptr;
+  std::istringstream msg( message );
+
+  std::string tag;
+  msg >> tag;
+  msg.get();    // Eat delimiter
+
+  if ( tag != "image" )
   {
-    kwiver::vital::image_container_sptr img_sptr =
-      kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( 
-                                          elements.at( DEFAULT_ELEMENT_NAME ) );
-    std::cout << "Input size: " << img_sptr->size() << std::endl <<
-                 "Input width: " << img_sptr->width() << std::endl <<
-                 "Input height: " << img_sptr->height() << std::endl <<
-                 "Input depth: " << img_sptr->depth() << std::endl <<
-                 "Input data: " <<  kwiver::vital::hexDump(img_sptr->get_image().memory()->data(),
-                                            img_sptr->get_image().memory()->size() ) << std::endl;
-    std::ostringstream msg;
-    msg << "image "; // add type tag
+    LOG_ERROR(
+      logger(), "Invalid data type tag received. Expected \"image\", received \""
+               << tag << "\". Message dropped." );
+  }
+  else
+  {
+    // define our protobuf
     kwiver::protobuf::image proto_img;
-    convert_protobuf( img_sptr->get_image(), proto_img );
-
-
-    if ( ! proto_img.SerializeToOstream( &msg ) )
+    if ( ! proto_img.ParseFromIstream(&msg) )
     {
-      VITAL_THROW( kwiver::vital::serialization_exception,
-                   "Error serializing detected_object_set from protobuf" );
+      VITAL_THROW(kwiver::vital::serialization_exception,
+                  "Error deserializing image_container from protobuf");
     }
 
-    return std::make_shared< std::string > ( msg.str() );
+    convert_protobuf(proto_img, img_container_sptr);
   }
 
-  // ----------------------------------------------------------------------------
-  vital::algo::data_serializer::deserialize_result_t
-  image::
-  deserialize( std::shared_ptr< std::string > message )
+  return kwiver::vital::any( img_container_sptr );
+}
+
+
+// ----------------------------------------------------------------------------
+void
+image::
+convert_protobuf( const kwiver::protobuf::image&      proto_img,
+                  kwiver::vital::image_container_sptr& img )
+{
+  const size_t img_size( proto_img.size() );
+  auto mem_sptr = std::make_shared<vital::image_memory>( img_size );
+
+  // decompress the data
+  uLongf out_size( img_size );
+  Bytef* out_buf = reinterpret_cast< Bytef* >( mem_sptr->data() );
+  Bytef const *in_buf = reinterpret_cast< Bytef const* >( proto_img.data().data() );
+  uLongf in_size = proto_img.data().size(); // compressed size
+
+  int z_rc = uncompress(out_buf, &out_size, // outputs
+                        in_buf, in_size);   // inputs
+  if (Z_OK != z_rc )
   {
-    kwiver::vital::image img;
-    std::istringstream msg( *message );
-
-    std::string tag;
-    msg >> tag;
-    msg.get();  // Eat delimiter
-
-    if (tag != "image" )
+    switch (z_rc)
     {
-      LOG_ERROR( logger(), "Invalid data type tag received. Expected \"image\", received \""
-                 << tag << "\". Message dropped." );
-    }
-    else
-    {
-      // define our protobuf
-      kwiver::protobuf::image proto_img;
-      if ( ! proto_img.ParseFromIstream( &msg ) )
-      {
-        VITAL_THROW( kwiver::vital::serialization_exception,
-                     "Error deserializing detected_object_set from protobuf" );
-      }
+    case Z_MEM_ERROR:
+      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+                 "Error decompressing image data. Not enough memory." );
+      break;
 
-      convert_protobuf( proto_img, img );
-    }
-    kwiver::vital::image_container_sptr img_container_sptr = 
-                    std::make_shared< kwiver::vital::simple_image_container >( img );
-    
-    std::cout << "Output size: " << img_container_sptr->size() << std::endl <<
-                 "Output width: " << img_container_sptr->width() << std::endl <<
-                 "Output height: " << img_container_sptr->height() << std::endl <<
-                 "Output depth: " << img_container_sptr->depth() << std::endl <<
-                 "Output data: " << kwiver::vital::hexDump(img_container_sptr->get_image().memory()->data(), 
-                                    img_container_sptr->get_image().memory()->size()) << 
-                 std::endl;
-    deserialize_result_t res;
-    res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any( img_container_sptr );
+    case Z_BUF_ERROR:
+      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+                 "Error decompressing image data. Not enough room in output buffer." );
+      break;
 
-    return res;
+    default:
+      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+                 "Error decompressing image data." );
+      break;
+    } // end switch
+    return;
   }
 
-  // ----------------------------------------------------------------------------
-  void image::
-  convert_protobuf( const kwiver::protobuf::image&  proto_img,
-                    kwiver::vital::image& img )
+  if (static_cast<uLongf>( img_size ) != out_size)
   {
-    img = kwiver::vital::image( static_cast< size_t >( proto_img.width() ),
-                                static_cast< size_t >( proto_img.height() ),
-                                static_cast< size_t >( proto_img.depth() ) );
-
-    kwiver::arrows::serialize::protobuf::image_memory::convert_protobuf( 
-        proto_img.data(), *img.memory() );
+    LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+               "Uncompressed data not expected size. Possible data corruption.");
+    return;
   }
 
-  // ----------------------------------------------------------------------------
-  void image::
-  convert_protobuf( const kwiver::vital::image& img,
-                    kwiver::protobuf::image&  proto_img )
-  { 
-    
-    
-    proto_img.set_width( static_cast< int64_t >( img.width()) );
-    proto_img.set_height( static_cast< int64_t >( img.height() ) );
-    proto_img.set_depth( static_cast< int64_t >( img.depth() ) );
-    
-    kwiver::protobuf::image_memory *proto_img_mem = new kwiver::protobuf::image_memory();
-    kwiver::arrows::serialize::protobuf::image_memory::convert_protobuf( 
-                                       *img.memory(), *proto_img_mem);
-    proto_img.set_allocated_data(proto_img_mem);
+  // create the image
+  auto vital_image = kwiver::vital::image(
+    mem_sptr, mem_sptr->data(),
+    static_cast< std::size_t > ( proto_img.width() ),
+    static_cast< std::size_t > ( proto_img.height() ),
+    static_cast< std::size_t > ( proto_img.depth() ),
+    static_cast< std::ptrdiff_t > ( proto_img.w_step() ),
+    static_cast< std::ptrdiff_t > ( proto_img.h_step() ),
+    static_cast< std::ptrdiff_t > ( proto_img.d_step() )
+    );
+
+  // return newly constructed image container
+  img = std::make_shared< kwiver::vital::simple_image_container >( vital_image );
+}
+
+
+// ----------------------------------------------------------------------------
+void
+image::
+convert_protobuf( const kwiver::vital::image_container_sptr img,
+                  kwiver::protobuf::image&                  proto_img )
+{
+  auto vital_image = img->get_image();
+
+  // Compress raw pixel data
+  const uLongf size = compressBound( vital_image.size() );
+  uLongf out_size(size);
+  std::vector<uint8_t> image_data( size );
+  Bytef out_buf[size];
+  Bytef const* in_buf = reinterpret_cast< Bytef * >(vital_image.memory()->data());
+
+  int z_rc = compress( out_buf, &out_size, // outputs
+                       in_buf, vital_image.size() ); // inputs
+  if (Z_OK != z_rc )
+  {
+    switch (z_rc)
+    {
+    case Z_MEM_ERROR:
+      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+                 "Error compressing image data. Not enough memory." );
+      break;
+
+    case Z_BUF_ERROR:
+      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+                 "Error compressing image data. Not enough room in output buffer." );
+      break;
+
+    default:
+      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+                 "Error compressing image data." );
+      break;
+    } // end switch
+    return;
   }
 
-} } } }
+  proto_img.set_width( static_cast< int64_t > ( img->width() ) );
+  proto_img.set_height( static_cast< int64_t > ( img->height() ) );
+  proto_img.set_depth( static_cast< int64_t > ( img->depth() ) );
+
+  proto_img.set_w_step( static_cast< int64_t > ( vital_image.w_step() ) );
+  proto_img.set_h_step( static_cast< int64_t > ( vital_image.h_step() ) );
+  proto_img.set_d_step( static_cast< int64_t > ( vital_image.d_step() ) );
+
+  proto_img.set_size( img->size() ); // uncompressed size
+  proto_img.set_data( out_buf, size );
+}
+
+
+}
+}
+}
+}

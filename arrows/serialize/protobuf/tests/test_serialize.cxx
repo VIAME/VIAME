@@ -40,6 +40,7 @@
 #include <arrows/serialize/protobuf/detected_object.h>
 #include <arrows/serialize/protobuf/detected_object_set.h>
 #include <arrows/serialize/protobuf/timestamp.h>
+#include <arrows/serialize/protobuf/image.h>
 
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object_type.h>
@@ -67,16 +68,17 @@ TEST( serialize, bounding_box )
   kwiver::vital::any bb_any( bbox );
   auto mes = bbox_ser.serialize( bb_any );
 
-  std::cout << "Serialized bbox: \"" << *mes << "\"\n";
+  // std::cout << "Serialized bbox: \"" << *mes << "\"\n";
 
   auto dser = bbox_ser.deserialize( *mes );
   kwiver::vital::bounding_box_d bbox_dser = kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser );
 
+  /*
   std::cout << "bbox_dser { " << bbox_dser.min_x() << ", "
             << bbox_dser.min_y() << ", "
             << bbox_dser.max_x() << ", "
             << bbox_dser.max_y() << "}\n";
-
+  */
   EXPECT_EQ( bbox, bbox_dser );
 }
 
@@ -237,4 +239,22 @@ TEST (serialize, timestamp)
   // std::cout << tstamp_dser.pretty_print() << std::endl;
 
   EXPECT_EQ (tstamp, tstamp_dser);
+}
+
+// ----------------------------------------------------------------------------
+TEST( serialize, image)
+{
+  kasp::image image_ser;
+  kwiver::vital::image img{200, 300, 3};
+  kwiver::vital::image_container_sptr img_container =
+    std::make_shared< kwiver::vital::simple_image_container >( img );
+  kwiver::vital::any img_any(img_container);
+
+  auto mes = image_ser.serialize( img_any );
+  auto dser = image_ser.deserialize( *mes );
+
+  auto img_dser = kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( dser );
+
+  // Check the content of images
+  EXPECT_TRUE ( kwiver::vital::equal_content( img_container->get_image(), img_dser->get_image()) );
 }

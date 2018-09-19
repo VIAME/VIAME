@@ -1,6 +1,8 @@
 # Build / Install plugin for serialization
 
 find_package(Protobuf MODULE REQUIRED)
+find_package(ZLIB MODULE REQUIRED)
+include_directories( ${ZLIB_INCLUDE_DIRS} )
 
 if(NOT PROTOBUF_FOUND)
   message(FATAL_ERROR "-- Protobuf is required!")
@@ -11,10 +13,8 @@ set( headers_public
   detected_object_type.h
   detected_object.h
   detected_object_set.h
-  protobuf_util.h
   timestamp.h
   image.h
-  timestamped_image_detected_object_set.h
   )
 
 set( sources
@@ -22,10 +22,8 @@ set( sources
   detected_object_type.cxx
   detected_object.cxx
   detected_object_set.cxx
-  protobuf_util.cxx
   timestamp.cxx
   image.cxx
-  timestamped_image_detected_object_set.cxx
   )
 
 link_directories(${PROTOBUF_LIBRARY})
@@ -46,6 +44,7 @@ target_link_libraries( kwiver_serialize_protobuf
   PUBLIC               vital_algo
   PRIVATE              vital_exceptions
                        vital_types_protobuf
+                       ${ZLIB_LIBRARIES}
   )
 
 kwiver_install_headers(

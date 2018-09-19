@@ -93,7 +93,7 @@ create_config_trait( serialization_type, std::string, "",
                      "Specifies the method used to serialize the data object. "
                      "For example this could be \"json\", or \"protobuf\".");
 
-  create_config_trait( dump_message, bool, "false",
+create_config_trait( dump_message, bool, "false",
                      "Dump printable version of serialized messages of set to true." );
 
 class serializer_process::priv
@@ -215,6 +215,13 @@ serializer_process
       LOG_TRACE( logger(), "Adding element: \"" << element.m_element_name
                  << "\"  Port type: \"" << element.m_port_type << "\"  Size: "
                  << message->size() );
+
+      if ( message->empty() )
+      {
+        LOG_WARN( logger(), "Serializer for message element \"" << element.m_element_name
+                   << "\" for port name \"" << element.m_port_name
+                   << "\" returned a null string. This is not expected." );
+      }
 
       // Add element name and port type to output followed by serialized data
       ser_elements << element.m_element_name << " "
