@@ -19,6 +19,7 @@
 
 if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
+  # Addresses problems with the use of IN_LIST below
 endif()
 
 function(kwiver_setup_msvc_env)
@@ -38,7 +39,7 @@ function(kwiver_setup_msvc_env)
     foreach(line ${contents})
       string(STRIP "${line}" line)
       string(TOLOWER "${line}" search)
-      # Ignore comments
+      # Ignore comments (:: and rem)
       string(FIND "${search}" "::" idx)
       if("${idx}" GREATER -1)
         continue()
@@ -47,11 +48,12 @@ function(kwiver_setup_msvc_env)
       if("${idx}" GREATER -1)
         continue()
       endif()
+      # Ignore the set config line (a kwiver idiom) 
       string(FIND "${search}" "set config" idx)
       if("${idx}" GREATER -1)
         continue()
       endif()
-      # check for set
+      # Is this line setting an env variable?
       string(FIND "${search}" "set " idx)
       string(FIND "${search}" "=" edx)
       if(NOT "${idx}" EQUAL 0 OR ${edx} EQUAL -1)
@@ -59,6 +61,10 @@ function(kwiver_setup_msvc_env)
       endif()
       
       #message(STATUS "I cleaning ${line}")
+      # The line format is
+      # set SOMETHING = VALUE
+      # So we need to make a 'map' of variable names and their list of values
+      # Lots of string index manipulation to get the right indexes to chop of 'set' and '=' strings
       string(LENGTH "${line}" length)
       math(EXPR _vardx "${edx}-4")
       math(EXPR _valdx "${edx}+1")
@@ -67,7 +73,8 @@ function(kwiver_setup_msvc_env)
       # replace batch terms with msvc terms
       string(REPLACE "%config%" "$(Configuration)" _val "${_val}")
       string(REPLACE "%~dp0" "${batch_dir}" _val "${_val}")
-      # remove any recursive sets
+      # remove any recursive sets 
+      # such as PATH=%something%;%PATH% <-- remove the %PATH%
       string(REPLACE "%${_var}%" "" _val "${_val}")
       #message(STATUS "I am setting ${_var} to ${_val}")
       # Keep track of setting the same variable over and over
@@ -88,9 +95,12 @@ function(kwiver_setup_msvc_env)
   endforeach()
   #message(STATUS "Setting MSVC environment to ${MSVC_ENV}")
     
+  # Now loop over all the executable we made and provide a vcxproj file for them
   get_property(executables GLOBAL PROPERTY kwiver_executables)
   get_property(executables_paths GLOBAL PROPERTY kwiver_executables_paths)
   #message(STATUS "Create msvc files for these executables : ${executables}")
+  # Loop over our 2 lists of the same length at the same time
+  # So go from 0 to length-1
   list(LENGTH executables stop)
   math(EXPR stop "${stop}-1")
   foreach(i RANGE 0 ${stop})
