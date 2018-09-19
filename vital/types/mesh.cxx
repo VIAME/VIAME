@@ -626,6 +626,15 @@ mesh
     tex += u * tex_coords_[v2];
     tex += v * tex_coords_[v3];
   }
+  else if (this->tex_coord_status_ == TEX_COORD_ON_FACE_CORNER)
+  {
+    const unsigned int i1 = 3 * tri + 0;
+    const unsigned int i2 = 3 * tri + 1;
+    const unsigned int i3 = 3 * tri + 2;
+    tex += (1-u-v) * tex_coords_[i1];
+    tex += u * tex_coords_[i2];
+    tex += v * tex_coords_[i3];
+  }
   return tex;
 }
 
