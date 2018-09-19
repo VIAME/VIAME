@@ -422,7 +422,7 @@ mesh
     else if (other.has_tex_coords() == TEX_COORD_ON_FACE_CORNER)
     {
       int nb_face_corners = 0;
-      for (int f=0; f < this->num_faces(); ++f)
+      for (int f = 0; f < this->num_faces(); ++f)
       {
           nb_face_corners += this->faces().num_verts(f);
       }
@@ -456,7 +456,7 @@ mesh
 ::set_tex_coords(const std::vector<vector_2d>& tc)
 {
   int nb_face_corners = 0;
-  for (int f=0; f < this->num_faces(); ++f)
+  for (int f = 0; f < this->num_faces(); ++f)
   {
       nb_face_corners += this->faces().num_verts(f);
   }
@@ -631,7 +631,7 @@ mesh
     const unsigned int i1 = 3 * tri + 0;
     const unsigned int i2 = 3 * tri + 1;
     const unsigned int i3 = 3 * tri + 2;
-    tex += (1-u-v) * tex_coords_[i1];
+    tex += (1 - u - v) * tex_coords_[i1];
     tex += u * tex_coords_[i2];
     tex += v * tex_coords_[i3];
   }
@@ -688,13 +688,13 @@ mesh
     {
       valid_tex_faces_.resize(this->num_faces());
       mesh_face_array_base& faces = this->faces();
-      int e=0;
-      for (unsigned int f=0; f<num_faces(); ++f)
+      int e = 0;
+      for (unsigned int f = 0; f < num_faces(); ++f)
       {
         const unsigned int num_v = faces.num_verts(f);
         // compute (2x) area with Green's theorem
         double area = 0.0;
-        for (unsigned int i=0, j=num_v-1; i<num_v; j=i++)
+        for (unsigned int i = 0, j = num_v - 1; i < num_v; j = i++)
         {
           const vector_2d& tex_i = tex_coords_[e + i];
           const vector_2d& tex_j = tex_coords_[e + j];
