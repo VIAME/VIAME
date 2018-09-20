@@ -29,3 +29,23 @@ process detector
     :scale                                     1.25
     :chip_step                                 600
   endblock
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+process detector_filter
+  :: detected_object_filter
+  :filter:type                                 class_probablity_filter
+
+  block filter:class_probablity_filter
+    :threshold                                 0.010
+    :keep_all_classes                          true
+    :keep_classes                              vertebrate;invertebrate
+  endblock
