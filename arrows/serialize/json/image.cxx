@@ -103,6 +103,38 @@ deserialize( const std::string& message )
 }
 
 // ----------------------------------------------------------------------------
+  /*
+   * We still may have a problem in this serialization approach if the
+   * two end point have different byte ordering.
+   *
+   * Since the image is compressed as a byte string, all notion of
+   * multi-byte pixels is lost when the image is saved. When the image
+   * is loaded, there is no indication of byte ordering from the
+   * source. The sender may have the same byte ordering or it may be
+   * different. There is no way of telling.
+   *
+   * Options:
+   *
+   * 1) Save image as a vector of correct pixel data types. This
+   *    approach would preclude compression.
+   *
+   * 2) Write an uncompressed integer or other indicator into the
+   *    stream which the receiver can use to determine the senders
+   *    byte ordering and decode appropriately.
+   *
+   * 3) Refuse to serialize images with multi-byte pixels or say it
+   *    does not work between systems with different byte ordering.
+   *
+   * 4) Use network byte ordering. ( htonl(), ntohl() )
+   *
+   * You can argue that endianess is a message property, but we can't
+   * access message level attributes way down here in the serializer.
+   *
+   * Note that this is only a problem with images where the pixels are
+   * multi-byte.
+   */
+
+// ----------------------------------------------------------------------------
 void
 image::
 save( cereal::JSONOutputArchive& archive, const kwiver::vital::image_container_sptr ctr )
@@ -145,6 +177,9 @@ save( cereal::JSONOutputArchive& archive, const kwiver::vital::image_container_s
   uint8_t* cpe = cp +out_size;
   image_data.assign( cp, cpe );
 
+  // Get pixel trait
+  auto pixel_trait = vital_image.pixel_traits();
+
   archive( cereal::make_nvp( "width",  vital_image.width() ),
            cereal::make_nvp( "height", vital_image.height() ),
            cereal::make_nvp( "depth",  vital_image.depth() ),
@@ -152,6 +187,9 @@ save( cereal::JSONOutputArchive& archive, const kwiver::vital::image_container_s
            cereal::make_nvp( "w_step", vital_image.w_step() ),
            cereal::make_nvp( "h_step", vital_image.h_step() ),
            cereal::make_nvp( "d_step", vital_image.d_step() ),
+
+           cereal::make_nvp( "trait_type", pixel_trait.type ),
+           cereal::make_nvp( "trait_num_bytes", pixel_trait.num_bytes ),
 
            cereal::make_nvp( "img_size", vital_image.size() ), // uncompressed size
            cereal::make_nvp( "img_data", image_data ) // compressed image
@@ -167,6 +205,7 @@ load( cereal::JSONInputArchive& archive, kwiver::vital::image_container_sptr& ct
   std::size_t width, height, depth, img_size;
   std::ptrdiff_t w_step, h_step, d_step;
   std::vector<uint8_t> img_data;
+  int trait_type, trait_num_bytes;
 
   archive( CEREAL_NVP( width ),
            CEREAL_NVP( height ),
@@ -176,12 +215,19 @@ load( cereal::JSONInputArchive& archive, kwiver::vital::image_container_sptr& ct
            CEREAL_NVP( h_step ),
            CEREAL_NVP( d_step ),
 
+           CEREAL_NVP( trait_type ),
+           CEREAL_NVP( trait_num_bytes ),
+
            CEREAL_NVP( img_size ), // uncompressed size
            CEREAL_NVP( img_data )  // compressed image
     );
 
 
   auto img_mem = std::make_shared< kwiver::vital::image_memory >( img_size );
+
+  const kwiver::vital::image_pixel_traits pix_trait(
+    static_cast<kwiver::vital::image_pixel_traits::pixel_type>(trait_type ),
+    trait_num_bytes );
 
   // decompress the data
   Bytef* out_buf = reinterpret_cast< Bytef* >(img_mem->data());
@@ -222,7 +268,8 @@ load( cereal::JSONInputArchive& archive, kwiver::vital::image_container_sptr& ct
 
   auto vital_image = kwiver::vital::image( img_mem, img_mem->data(),
                                            width, height, depth,
-                                           w_step, h_step, d_step);
+                                           w_step, h_step, d_step,
+                                           pix_trait );
 
   // return newly constructed image container
   ctr = std::make_shared< kwiver::vital::simple_image_container >( vital_image );

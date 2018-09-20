@@ -246,6 +246,13 @@ TEST( serialize, image)
 {
   kasp::image image_ser;
   kwiver::vital::image img{200, 300, 3};
+
+  char* cp = static_cast< char* >(img.memory()->data() );
+  for ( size_t i = 0; i < img.size(); ++i )
+  {
+    *cp++ = i;
+  }
+
   kwiver::vital::image_container_sptr img_container =
     std::make_shared< kwiver::vital::simple_image_container >( img );
   kwiver::vital::any img_any(img_container);

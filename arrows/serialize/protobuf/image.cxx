@@ -160,6 +160,11 @@ convert_protobuf( const kwiver::protobuf::image&      proto_img,
     return;
   }
 
+  // create pixel trait
+  const kwiver::vital::image_pixel_traits pix_trait(
+    static_cast<kwiver::vital::image_pixel_traits::pixel_type>(proto_img.trait_type() ),
+    proto_img.trait_num_bytes() );
+
   // create the image
   auto vital_image = kwiver::vital::image(
     mem_sptr, mem_sptr->data(),
@@ -168,7 +173,8 @@ convert_protobuf( const kwiver::protobuf::image&      proto_img,
     static_cast< std::size_t > ( proto_img.depth() ),
     static_cast< std::ptrdiff_t > ( proto_img.w_step() ),
     static_cast< std::ptrdiff_t > ( proto_img.h_step() ),
-    static_cast< std::ptrdiff_t > ( proto_img.d_step() )
+    static_cast< std::ptrdiff_t > ( proto_img.d_step() ),
+    pix_trait
     );
 
   // return newly constructed image container
@@ -222,6 +228,11 @@ convert_protobuf( const kwiver::vital::image_container_sptr img,
   proto_img.set_w_step( static_cast< int64_t > ( vital_image.w_step() ) );
   proto_img.set_h_step( static_cast< int64_t > ( vital_image.h_step() ) );
   proto_img.set_d_step( static_cast< int64_t > ( vital_image.d_step() ) );
+
+  // Get pixel trait
+  auto pixel_trait = vital_image.pixel_traits();
+  proto_img.set_trait_type( pixel_trait.type );
+  proto_img.set_trait_num_bytes( pixel_trait.num_bytes );
 
   proto_img.set_size( img->size() ); // uncompressed size
   proto_img.set_data( out_buf, size );

@@ -31,6 +31,7 @@
 #include "serializer_base.h"
 
 #include <vital/util/hex_dump.h>
+#include <vital/config/config_block_formatter.h>
 
 #include <string>
 #include <sstream>
@@ -87,7 +88,7 @@ serializer_base
       // create config items
       // serialize-protobuf:type = <algo-name>
 
-      auto algo_config = kwiver::vital::config_block::empty_config();
+      auto algo_config = vital::config_block::empty_config();
 
       const std::string ser_algo_type( "serialize-" + m_serialization_type );
       const std::string ser_type( ser_algo_type + vital::config_block::block_sep + "type" );
@@ -95,7 +96,8 @@ serializer_base
       algo_config->set_value( ser_type, elem_spec.m_algo_name );
 
       std::stringstream str;
-      algo_config->print( str );
+      vital::config_block_formatter fmt( algo_config );
+      fmt.print( str );
       LOG_TRACE( m_logger, "Creating algorithm for (config block):\n" << str.str() << std::endl );
 
       vital::algorithm_sptr base_nested_algo;
