@@ -90,7 +90,15 @@ function (kwiver_build_test name libraries)
   target_link_libraries(test-${name}
     LINK_PRIVATE
       ${${libraries}})
+  if(MSVC)
+    # Call setup batch before gtest inspects our executable
+    string(LENGTH ${KWIVER_TEST_BATCH_FILE} len)
+    math(EXPR len "${len}-4")# take off extension so 'call' is not prefixed to cmd
+    string(SUBSTRING ${KWIVER_TEST_BATCH_FILE} 0 ${len} bat)
+    add_custom_command(TARGET test-${name} POST_BUILD COMMAND "${bat}")
+  endif()
   kwiver_declare_test(${name})
+  
 endfunction ()
 
 # ------------------------------------------------------------------
