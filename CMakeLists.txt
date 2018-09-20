@@ -36,10 +36,6 @@ set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 #
 # kwiver module config file.
 set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
-# Create initial setup shell script
-set(KWIVER_SETUP_SCRIPT_FILE    "${KWIVER_BINARY_DIR}/setup_KWIVER.sh" )
-# Create initial setup batch script
-set(KWIVER_SETUP_BATCH_FILE    "${KWIVER_BINARY_DIR}/setup_KWIVER.bat" )
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.10)
     set(_vcVersion vc15)
@@ -80,6 +76,12 @@ include(CMakeDependentOption)
 
 OPTION(KWIVER_BUILD_SHARED     "Build KWIVER components shared or not" TRUE )
 MARK_AS_ADVANCED( KWIVER_BUILD_SHARED )
+
+OPTION(KWIVER_EXPORT_COMPILE_COMMANDS "Export compile commands to support LSP based development." FALSE )
+MARK_AS_ADVANCED( KWIVER_EXPORT_COMPILE_COMMANDS )
+if (KWIVER_EXPORT_COMPILE_COMMANDS )
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ${KWIVER_EXPORT_COMPILE_COMMANDS})
+endif()
 
 OPTION(KWIVER_ENABLE_TESTS     "Enable testing" OFF )
 OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" OFF )
@@ -149,6 +151,10 @@ set(kwiver_export_name      kwiver_exports)
 # External Dependencies and Modules - Most Will be supplied by Fletch
 include( kwiver-depends )
 
+###
+# Configure setup scripts
+include( kwiver-setup-scripts )
+
 # define which boost we are using
 if (DEFINED BOOST_ROOT)
   set(BOOST_ROOT_ARG ${BOOST_ROOT})
@@ -182,104 +188,6 @@ set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
 mark_as_advanced( LIB_SUFFIX )
 
-###
-# Configure setup script.
-set(LIBRARY_PATH_VAR "LD_LIBRARY_PATH")
-if( APPLE )
-  set(LIBRARY_PATH_VAR "DYLD_FALLBACK_LIBRARY_PATH")
-endif()
-
-configure_file(
-  ${KWIVER_CMAKE_DIR}/setup_KWIVER.sh.in
-  ${KWIVER_SETUP_SCRIPT_FILE}
-  @ONLY
-  )
-
-if(fletch_BUILT_WITH_CUDA)
-  list(APPEND EXTRA_WIN32_PATH "${CUDA_TOOLKIT_ROOT_DIR}/bin")
-endif()
-if(fletch_BUILT_WITH_CUDNN)
-  list(APPEND EXTRA_WIN32_PATH "${CUDNN_TOOLKIT_ROOT_DIR}/bin")
-endif()
-configure_file(
-  ${KWIVER_CMAKE_DIR}/setup_KWIVER.bat.in
-  ${KWIVER_SETUP_BATCH_FILE}
-  @ONLY
-  )
-
-
-# install set up script
-option( KWIVER_INSTALL_SET_UP_SCRIPT "Creates a setup_KWIVER script (.sh and .bat) that will add properly add kwiver to a shell/cmd prompt" ON )
-mark_as_advanced( KWIVER_INSTALL_SET_UP_SCRIPT )
-
-if( KWIVER_INSTALL_SET_UP_SCRIPT )
-  install( PROGRAMS   ${KWIVER_SETUP_SCRIPT_FILE}
-    DESTINATION ${CMAKE_INSTALL_PREFIX} )
-  if(WIN32)
-    install( PROGRAMS   ${KWIVER_SETUP_BATCH_FILE}
-      DESTINATION ${CMAKE_INSTALL_PREFIX} )
-  endif()
-endif()
-
-if ( fletch_FOUND )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${fletch_ROOT}/bin;%PATH%;\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${fletch_ROOT}/x64/${_vcVersion}/bin;%PATH%;\n" )
-
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export ${LIBRARY_PATH_VAR}=${fletch_ROOT}/lib:$${LIBRARY_PATH_VAR}\n" )
-endif()
-
-###
-# Install the basic logger properties file.
-file( COPY log4cxx.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
-install( FILES log4cxx.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
-
-if ( KWIVER_ENABLE_LOG4CXX )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/${kwiver_plugin_logger_subdir}/vital_log4cxx_logger\n" )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CXX_CONFIGURATION=$this_dir/log4cxx.properties\n" )
-  if(WIN32)
-    message(STATUS "Log4CXX is not supported on windows, if no other logger is provided, the default will be used")
-  endif()
-
-endif()
-
-###
-file( COPY log4cplus.properties       DESTINATION  "${KWIVER_BINARY_DIR}" )
-install( FILES log4cplus.properties   DESTINATION ${CMAKE_INSTALL_PREFIX} )
-
-if ( KWIVER_ENABLE_LOG4CPLUS )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export VITAL_LOGGER_FACTORY=$this_dir/lib/${kwiver_plugin_logger_subdir}/vital_log4cplus_logger\n" )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LOG4CPLUS_CONFIGURATION=$this_dir/log4cplus.properties\n" )
-
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set VITAL_LOGGER_FACTORY=vital_log4cplus_logger\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set LOG4CPLUS_CONFIGURATION=%~dp0/log4cplus.properties\n" )
-endif()
-
-
-if (KWIVER_ENABLE_PYTHON)
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "# Python environment\n")
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PYTHON_LIBRARY=\"${PYTHON_LIBRARY}\"\n" )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PYTHONPATH=$this_dir/${python_site_packages}:$PYTHONPATH\n" )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# additional python mudules to load, separated by ':'\n" )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export SPROKIT_PYTHON_MODULES=kwiver.processes\n" )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "\n# set to suppress loading python modules/processes\n" )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "# export SPROKIT_NO_PYTHON_MODULES\n\n" )
-
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" ":: Python environment\n")
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PYTHON_LIBRARY=${PYTHON_LIBRARY}\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PYTHONPATH=%~dp0/lib/%config%/python2.7/site-packages\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "\n:: additional python mudules to load, separated by ':'\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set SPROKIT_PYTHON_MODULES=kwiver.processes\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "\n:: set to suppress loading python modules/processes\n" )
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "::set SPROKIT_NO_PYTHON_MODULES=false\n\n" )
-endif()
-
-if ( KWIVER_ENABLE_MATLAB )
-  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export LD_LIBRARY_PATH=${Matlab_LIBRARY_DIR}:$LD_LIBRARY_PATH\n" )
-
-  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${Matlab_LIBRARY_DIR};%PATH%\n" )
-endif()
-
-
 if (KWIVER_ENABLE_TRACK_ORACLE)
   add_subdirectory( track_oracle )
 endif()
@@ -303,6 +211,11 @@ endif()
 ###
 # include as the last subdir
 add_subdirectory( vital )
+
+if(MSVC)
+  # Generate files to inform msvc of the kwiver runtime environment
+  kwiver_setup_msvc_env() # Setup .bat scripts need to be complete and on disk
+endif()
 
 ##############################################################
 # Marking source root for documentation generation
@@ -367,6 +280,13 @@ kwiver_install(
   FILE        kwiver-config-targets.cmake
   )
 
+###
+# link compile commands to root of source tree
+if ( CMAKE_EXPORT_COMPILE_COMMANDS )
+  # link file to root of source tree
+  kwiver_make_symlink( ${CMAKE_BINARY_DIR}/compile_commands.json
+                       ${CMAKE_SOURCE_DIR}/compile_commands.json )
+endif()
 
 # ==================================================================
 # CPack Packaging

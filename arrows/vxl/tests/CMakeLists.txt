@@ -21,7 +21,7 @@ kwiver_discover_gtests(vxl triangulate_landmarks       LIBRARIES ${test_librarie
 kwiver_discover_gtests(vxl vidl_ffmpeg_video_input     LIBRARIES ${test_libraries}  ARGUMENTS "${kwiver_test_data_directory}")
 
 # This test is really for an algorithm in core, but it's here
-# because the test depends on availablity of VXL sub-algorithms
+# because the test depends on availability of VXL sub-algorithms
 set(test_libraries     kwiver_algo_vxl kwiver_algo_core)
 
 kwiver_discover_gtests(vxl initialize_cameras_landmarks LIBRARIES ${test_libraries})
