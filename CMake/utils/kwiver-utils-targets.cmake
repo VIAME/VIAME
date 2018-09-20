@@ -136,12 +136,6 @@ function(kwiver_add_executable name)
     set(component runtime)
   endif()
   
-  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-    # You must acknowledge that you understand MSVC resolved a byte alignment issue in this compiler
-    # We get this due to using Eigen objects and allocating those objects with make_shared
-    target_compile_definitions( ${name} PRIVATE _ENABLE_EXTENDED_ALIGNED_STORAGE )
-  endif()
-
   # Add to global collection variable
   set_property(GLOBAL APPEND
     PROPERTY kwiver_executables "${name}"
@@ -194,12 +188,6 @@ function(kwiver_add_library     name)
     else()
       set( props )
     endif()
-  endif()
-  
-  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-    # You must acknowledge that you understand MSVC resolved a byte alignment issue in this compiler
-    # We get this due to using Eigen objects and allocating those objects with make_shared
-    target_compile_definitions( ${name} PRIVATE _ENABLE_EXTENDED_ALIGNED_STORAGE )
   endif()
 
   set_target_properties("${name}"
