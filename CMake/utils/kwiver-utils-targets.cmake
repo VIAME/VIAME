@@ -128,10 +128,12 @@ function(kwiver_add_executable name)
     set(component runtime)
   endif()
   
-  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-    # You must acknowledge that you understand MSVC resolved a byte alignment issue in this compiler
-    # We get this due to using Eigen objects and allocating those objects with make_shared
-    target_compile_definitions( ${name} PRIVATE _ENABLE_EXTENDED_ALIGNED_STORAGE )
+  if(MSVC)
+    if(${MSVC_VERSION} GREATER_EQUAL 1915)
+      # You must acknowledge that you understand MSVC resolved a byte alignment issue in this compiler
+      # We get this due to using Eigen objects and allocating those objects with make_shared
+      target_compile_definitions( ${name} PRIVATE _ENABLE_EXTENDED_ALIGNED_STORAGE )
+    endif()
   endif()
 
   kwiver_install(
@@ -180,12 +182,14 @@ function(kwiver_add_library     name)
     endif()
   endif()
   
-  if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
-    # You must acknowledge that you understand MSVC resolved a byte alignment issue in this compiler
-    # We get this due to using Eigen objects and allocating those objects with make_shared
-    target_compile_definitions( ${name} PRIVATE _ENABLE_EXTENDED_ALIGNED_STORAGE )
+  if(MSVC)
+    if(${MSVC_VERSION} GREATER_EQUAL 1915)
+      # You must acknowledge that you understand MSVC resolved a byte alignment issue in this compiler
+      # We get this due to using Eigen objects and allocating those objects with make_shared
+      target_compile_definitions( ${name} PRIVATE _ENABLE_EXTENDED_ALIGNED_STORAGE )
+    endif()
   endif()
-
+  
   set_target_properties("${name}"
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
