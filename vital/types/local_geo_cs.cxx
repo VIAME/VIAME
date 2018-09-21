@@ -87,7 +87,7 @@ vital::matrix_3x3d rotation_zyx(double yaw, double pitch, double roll)
   // about z
   Ry << cos(yaw), -sin(yaw), 0,
     sin(yaw), cos(yaw), 0,
-    0, 0, 1;  // Juda's code ends in 0, 0, -1
+    0, 0, 1;
   return Ry*Rp*Rr;
 }
 
