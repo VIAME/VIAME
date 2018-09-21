@@ -235,7 +235,7 @@ local_geo_cs
       geo_origin_.crs());
 
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_LOCATION, gc));
-    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ALTITUDE, c.z()));
+    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ALTITUDE, c.z() + origin_alt_));
   }
 }
 
@@ -272,40 +272,40 @@ bool set_intrinsics_from_metadata(simple_camera_perspective &cam, std::map<vital
   vital::metadata_sptr> const& md_map, vital::image_container_sptr const& im)
 {
   auto intrin = std::dynamic_pointer_cast<simple_camera_intrinsics>(cam.intrinsics());
+  // TODO: Once the camera_intrinsics has the image width and height we won't
+  //       need access to the image
   double im_w = double(im->width());
   double im_h = double(im->height());
 
   for (auto const &md : md_map)
   {
-    bool focal_set = false;
-    if (!focal_set && md.second->has(vital::VITAL_META_SLANT_RANGE) && md.second->has(vital::VITAL_META_TARGET_WIDTH))
+    if (md.second->has(vital::VITAL_META_SLANT_RANGE) && md.second->has(vital::VITAL_META_TARGET_WIDTH))
     {
       double slant_range, target_width;
       md.second->find(vital::VITAL_META_SLANT_RANGE).data(slant_range);
       md.second->find(vital::VITAL_META_TARGET_WIDTH).data(target_width);
       double f = im_w*(slant_range / target_width);
       intrin->set_focal_length(f);
-      focal_set = true;
     }
-
-    if (!focal_set && md.second->has(vital::VITAL_META_SENSOR_HORIZONTAL_FOV))
+    else if (md.second->has(vital::VITAL_META_SENSOR_HORIZONTAL_FOV))
     {
       double hfov;
       md.second->find(vital::VITAL_META_SENSOR_HORIZONTAL_FOV).data(hfov);
       double f = (im_w / 2) / tan(0.5*hfov*deg_to_rad);
 
       intrin->set_focal_length(f);
-      focal_set = true;
     }
-    if (focal_set)
+    else
     {
-      vital::vector_2d pp(0.5*im_w, 0.5*im_h);
-      intrin->set_principal_point(pp);
-      intrin->set_aspect_ratio(1.0);
-      intrin->set_skew(0.0);
-      cam.set_intrinsics(intrin);
-      return true;
+      continue;
     }
+
+    vital::vector_2d pp(0.5*im_w, 0.5*im_h);
+    intrin->set_principal_point(pp);
+    intrin->set_aspect_ratio(1.0);
+    intrin->set_skew(0.0);
+    cam.set_intrinsics(intrin);
+    return true;
   }
 
   return false;
