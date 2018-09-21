@@ -35,16 +35,9 @@
  */
 
 #include "rotation.h"
+
+#include <vital/math_constants.h>
 #include <vital/io/eigen_io.h>
-
-#define _USE_MATH_DEFINES
-#include <math.h>
-
-#if defined M_PIl
-#define LOCAL_PI M_PIl
-#else
-#define LOCAL_PI M_PI
-#endif
 
 #include <cmath>
 #include <limits>
@@ -150,8 +143,8 @@ T
 rotation_< T >
 ::angle() const
 {
-  static const T pi = static_cast< T > ( LOCAL_PI );
-  static const T two_pi = static_cast< T > ( 2.0 * LOCAL_PI );
+  static const T _pi = static_cast< T > ( pi );
+  static const T two_pi = static_cast< T > ( 2.0 * pi );
 
   const double i = Eigen::Matrix< T, 3, 1 > ( q_.x(), q_.y(), q_.z() ).norm();
   const double r = q_.w();
@@ -159,11 +152,11 @@ rotation_< T >
 
   // make sure computed angle lies within a sensible range,
   // i.e. -pi/2 < a < pi/2
-  if ( a >= pi )
+  if ( a >= _pi )
   {
     a -= two_pi;
   }
-  if ( a <= -pi )
+  if ( a <= -_pi )
   {
     a += two_pi;
   }

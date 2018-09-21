@@ -38,30 +38,15 @@
 #include <fstream>
 #include <iomanip>
 
+#include <vital/math_constants.h>
+
 #include <vital/types/geodesy.h>
 #include <vital/types/metadata_traits.h>
-
-#define _USE_MATH_DEFINES
-#include <math.h>
-
-#if defined M_PIl
-#define LOCAL_PI M_PIl
-#else
-#define LOCAL_PI M_PI
-#endif
-
 
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace vital {
-
-
-/// scale factor converting radians to degrees
-  static const double rad2deg = static_cast<double>( 180.0 ) / LOCAL_PI;
-/// scale factor converting degrees to radians
-  static const double deg2rad = static_cast<double>( LOCAL_PI ) / 180.0;
-
 
 /// Constructor
 local_geo_cs
@@ -83,8 +68,6 @@ local_geo_cs
   int crs = (zone.north ? SRID::UTM_WGS84_north : SRID::UTM_WGS84_south) + zone.number;
   geo_origin_ = geo_point(origin.location(crs), crs);
 }
-
-#define TO_RADIAN(X) (X)*M_PI/180.0
 
 vital::matrix_3x3d rotation_zyx(double yaw, double pitch, double roll)
 {
@@ -199,16 +182,16 @@ local_geo_cs
   vital::matrix_3x3d R;
   // rotation from east north up to platform
   // platform has x out nose, y out left wing, z up
-  vital::matrix_3x3d Rp = rotation_zyx(TO_RADIAN(-platform_yaw + 90.0),
-    TO_RADIAN(-platform_pitch),
-    TO_RADIAN(platform_roll));
+  vital::matrix_3x3d Rp = rotation_zyx(deg_to_rad*(-platform_yaw + 90.0),
+    deg_to_rad*(-platform_pitch),
+    deg_to_rad*platform_roll);
 
   // rotation from platform to gimbal
   // gimbal x is camera viewing direction
   // gimbal y is left in image (-x in standard computer vision image coordinates)
-  vital::matrix_3x3d Rs = rotation_zyx(TO_RADIAN(-sensor_yaw),
-    TO_RADIAN(-sensor_pitch),
-    TO_RADIAN(sensor_roll));
+  vital::matrix_3x3d Rs = rotation_zyx(deg_to_rad*(-sensor_yaw),
+    deg_to_rad*(-sensor_pitch),
+    deg_to_rad*sensor_roll);
 
   // rotation from gimbal frame to camera frame
   // camera frame has x right in image, y down, z along optical axis
@@ -235,9 +218,9 @@ local_geo_cs
   {  //we have a complete metadata rotation.  Note that sensor roll is ignored here on purpose.
     double yaw, pitch, roll;
     cam.rotation().get_yaw_pitch_roll(yaw, pitch, roll);
-    yaw *= rad2deg;
-    pitch *= rad2deg;
-    roll *= rad2deg;
+    yaw *= rad_to_deg;
+    pitch *= rad_to_deg;
+    roll *= rad_to_deg;
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_YAW_ANGLE, yaw));
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_PITCH_ANGLE, pitch));
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ROLL_ANGLE, roll));
@@ -309,7 +292,7 @@ bool set_intrinsics_from_metadata(simple_camera_perspective &cam, std::map<vital
     {
       double hfov;
       md.second->find(vital::VITAL_META_SENSOR_HORIZONTAL_FOV).data(hfov);
-      double f = (im_w / 2) / tan(0.5*hfov*deg2rad);
+      double f = (im_w / 2) / tan(0.5*hfov*deg_to_rad);
 
       intrin->set_focal_length(f);
       focal_set = true;
