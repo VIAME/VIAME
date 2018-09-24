@@ -182,22 +182,19 @@ sfm_constraints
 
   for (auto test_fid : frame_ids_to_try)
   {
-
-    double hfov;
-
-    if (md.get_horizontal_field_of_view(test_fid, hfov))
+    if ( md.has<VITAL_META_SENSOR_HORIZONTAL_FOV>(test_fid) )
     {
+      double hfov = md.get<VITAL_META_SENSOR_HORIZONTAL_FOV>(test_fid);
       focal_length = static_cast<float>((image_width*0.5) / tan(0.5*hfov*deg_to_rad));
       return true;
     }
 
-    double target_width, slant_range;
-    bool has_target_width = md.get_target_width(test_fid, target_width);
-    bool has_slant_range = md.get_slant_range(test_fid, slant_range);
-
-    if (has_target_width && has_slant_range)
+    if ( md.has<VITAL_META_TARGET_WIDTH>(test_fid) &&
+         md.has<VITAL_META_SLANT_RANGE>(test_fid) )
     {
-      focal_length = static_cast<float>(image_width * slant_range / target_width);
+      focal_length = static_cast<float>(image_width *
+        md.get<VITAL_META_SLANT_RANGE>(test_fid) /
+        md.get<VITAL_META_TARGET_WIDTH>(test_fid) );
 
       return true;
     }
@@ -223,18 +220,22 @@ sfm_constraints
 
   auto &md = *m_priv->m_md;
 
-  double platform_heading, platform_roll,   platform_pitch;
-  double sensor_rel_az,    sensor_rel_roll, sensor_rel_el;
-
-  if (md.get_platform_heading_angle(fid, platform_heading) &&
-      md.get_platform_roll_angle(   fid, platform_roll) &&
-      md.get_platform_pitch_angle(  fid, platform_pitch) &&
-      md.get_sensor_rel_az_angle(   fid, sensor_rel_az) &&
-      md.get_sensor_rel_el_angle(   fid, sensor_rel_el))
+  if ( md.has<VITAL_META_PLATFORM_HEADING_ANGLE>(fid) &&
+       md.has<VITAL_META_PLATFORM_ROLL_ANGLE>(fid) &&
+       md.has<VITAL_META_PLATFORM_PITCH_ANGLE>(fid) &&
+       md.has<VITAL_META_SENSOR_REL_AZ_ANGLE>(fid) &&
+       md.has<VITAL_META_SENSOR_REL_EL_ANGLE>(fid) )
   {
-    if (!md.get_sensor_rel_roll_angle(fid, sensor_rel_roll))
+    double platform_heading = md.get<VITAL_META_PLATFORM_HEADING_ANGLE>(fid);
+    double platform_roll = md.get<VITAL_META_PLATFORM_ROLL_ANGLE>(fid);
+    double platform_pitch = md.get<VITAL_META_PLATFORM_PITCH_ANGLE>(fid);
+    double sensor_rel_az = md.get<VITAL_META_SENSOR_REL_AZ_ANGLE>(fid);
+    double sensor_rel_el = md.get<VITAL_META_SENSOR_REL_EL_ANGLE>(fid);
+
+    double sensor_rel_roll = 0;
+    if ( md.has<VITAL_META_SENSOR_REL_ROLL_ANGLE>(fid) )
     {
-      sensor_rel_roll = 0;
+      sensor_rel_roll = md.get<VITAL_META_SENSOR_REL_ROLL_ANGLE>(fid);
     }
 
     if (std::isnan(platform_heading) || std::isnan(platform_pitch) || std::isnan(platform_roll) ||
@@ -270,8 +271,13 @@ sfm_constraints
 
   kwiver::vital::geo_point gloc;
   double alt;
-  if (!m_priv->m_md->get_sensor_location(fid, gloc) ||
-      !m_priv->m_md->get_sensor_altitude(fid, alt))
+  if (m_priv->m_md->has<VITAL_META_SENSOR_LOCATION>(fid) &&
+      m_priv->m_md->has<VITAL_META_SENSOR_ALTITUDE>(fid))
+  {
+    gloc = m_priv->m_md->get<VITAL_META_SENSOR_LOCATION>(fid);
+    alt = m_priv->m_md->get<VITAL_META_SENSOR_ALTITUDE>(fid);
+  }
+  else
   {
     return false;
   }
