@@ -327,6 +327,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_pytorch )
   endif()
 
+  if( WIN32 )
+    include( add_project_postgres )
+  endif()
+
   # VIAME plugins, adds this project causing the below else() block to run
   if( VIAME_ENABLE_VIAME_PLUGINS )
     include( add_project_viame )
