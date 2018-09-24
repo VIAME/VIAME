@@ -984,12 +984,10 @@ public:
   /**
    * ON_VERT is one coordinate per vertex
    * ON_CORNER is one coordinate per half edge (i.e. corner)
-   * ON_FACE_CORNER is one coordinate per face corner
    */
   enum tex_coord_type { TEX_COORD_NONE = 0,
                         TEX_COORD_ON_VERT = 1,
-                        TEX_COORD_ON_CORNER = 2,
-                        TEX_COORD_ON_FACE_CORNER = 3};
+                        TEX_COORD_ON_CORNER = 2 };
 
   /// Returns texture coordinate availability
   tex_coord_type has_tex_coords() const { return tex_coord_status_; }

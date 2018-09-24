@@ -510,8 +510,7 @@ write_obj(std::ostream& os, const mesh& mesh)
       if (write_extra)
       {
         os << '/';
-        if (mesh.has_tex_coords() == mesh::TEX_COORD_ON_CORNER ||
-            mesh.has_tex_coords() == mesh::TEX_COORD_ON_FACE_CORNER)
+        if (mesh.has_tex_coords() == mesh::TEX_COORD_ON_CORNER)
         {
           os << ++e;
         }

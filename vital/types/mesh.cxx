@@ -417,16 +417,15 @@ mesh
     }
     else if (other.has_tex_coords() == TEX_COORD_ON_CORNER)
     {
-      tex = std::vector<vector_2d>(2*num_e, vector_2d(0,0));
-    }
-    else if (other.has_tex_coords() == TEX_COORD_ON_FACE_CORNER)
-    {
-      unsigned int nb_face_corners = 0;
-      for (unsigned int f = 0; f < this->num_faces(); ++f)
+      unsigned int nb_corners = faces_->regularity() * num_faces();
+      if (nb_corners == 0)
       {
-          nb_face_corners += this->faces().num_verts(f);
+        for (unsigned int f = 0; f < this->num_faces(); ++f)
+        {
+            nb_corners += this->faces().num_verts(f);
+        }
       }
-      tex = std::vector<vector_2d>(nb_face_corners, vector_2d(0, 0));
+      tex = std::vector<vector_2d>(nb_corners, vector_2d(0, 0));
     }
 
     tex.insert(tex.end(), other.tex_coords().begin(), other.tex_coords().end());
@@ -455,21 +454,20 @@ void
 mesh
 ::set_tex_coords(const std::vector<vector_2d>& tc)
 {
-  unsigned int nb_face_corners = 0;
-  for (unsigned int f = 0; f < this->num_faces(); ++f)
+  unsigned int nb_corners = faces_->regularity() * num_faces();
+  if (nb_corners == 0)
   {
-      nb_face_corners += this->faces().num_verts(f);
+    for (unsigned int f = 0; f < this->num_faces(); ++f)
+    {
+        nb_corners += this->faces().num_verts(f);
+    }
   }
 
   if (tc.size() == this->num_verts())
   {
     tex_coord_status_ = TEX_COORD_ON_VERT;
   }
-  else if (tc.size() == nb_face_corners)
-  {
-      tex_coord_status_ = TEX_COORD_ON_FACE_CORNER;
-  }
-  else if (tc.size() == 2*this->num_edges())
+  else if (tc.size() == nb_corners)
   {
     tex_coord_status_ = TEX_COORD_ON_CORNER;
   }
@@ -626,7 +624,7 @@ mesh
     tex += u * tex_coords_[v2];
     tex += v * tex_coords_[v3];
   }
-  else if (this->tex_coord_status_ == TEX_COORD_ON_FACE_CORNER)
+  else if (this->tex_coord_status_ == TEX_COORD_ON_CORNER)
   {
     const unsigned int i1 = 3 * tri + 0;
     const unsigned int i2 = 3 * tri + 1;
@@ -682,27 +680,6 @@ mesh
       logger_handle_t logger(get_logger( "vital.mesh" ));
       LOG_ERROR(logger, "mesh::label_ccw_tex_faces_valid()"
                         " not implemented for TEX_COORD_ON_CORNER");
-      break;
-    }
-    case TEX_COORD_ON_FACE_CORNER:
-    {
-      valid_tex_faces_.resize(this->num_faces());
-      mesh_face_array_base& faces = this->faces();
-      int e = 0;
-      for (unsigned int f = 0; f < num_faces(); ++f)
-      {
-        const unsigned int num_v = faces.num_verts(f);
-        // compute (2x) area with Green's theorem
-        double area = 0.0;
-        for (unsigned int i = 0, j = num_v - 1; i < num_v; j = i++)
-        {
-          const vector_2d& tex_i = tex_coords_[e + i];
-          const vector_2d& tex_j = tex_coords_[e + j];
-          area += tex_j.x() * tex_i.y() - tex_i.x() * tex_j.y();
-        }
-        valid_tex_faces_[f] = area > 0;
-        e += num_v;
-      }
       break;
     }
     default:
