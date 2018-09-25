@@ -15,6 +15,7 @@ set(KWSYS_USE_RegularExpression    1)
 set(KWSYS_USE_SystemInformation    1)
 set(KWSYS_USE_Directory            1)
 set(KWSYS_USE_CommandLineArguments 1)
+set(KWSYS_USE_MD5 1)
 
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_INCLUDE_DIR  "include")
