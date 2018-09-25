@@ -89,9 +89,6 @@ public:
                      vital::simple_camera_perspective& cam,
                      vital::rotation_d const& rot_offset = vital::rotation_d()) const;
 
-  rotation_d compose_rotation(double platform_yaw, double platform_pitch, double platform_roll,
-                              double sensor_yaw, double sensor_pitch, double sensor_roll) const;
-
   /// Use the camera pose to update the metadata structure
   void update_metadata(vital::simple_camera_perspective const& cam,
                        vital::metadata& md) const;

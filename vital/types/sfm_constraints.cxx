@@ -37,6 +37,7 @@
 #include <vital/types/sfm_constraints.h>
 
 #include <vital/math_constants.h>
+#include <vital/types/rotation.h>
 
 namespace kwiver {
 namespace vital {
@@ -244,8 +245,8 @@ sfm_constraints
       return false;
     }
 
-    R_loc = m_priv->m_lgcs.compose_rotation(platform_heading, platform_pitch, platform_roll,
-                                            sensor_rel_az, sensor_rel_el, sensor_rel_roll);
+    R_loc = compose_rotations<double>(platform_heading, platform_pitch, platform_roll,
+                                      sensor_rel_az, sensor_rel_el, sensor_rel_roll);
 
     return true;
   }

@@ -150,8 +150,8 @@ local_geo_cs
   {
     //only set the camera's rotation if all metadata angles are present
 
-    auto R = compose_rotation(platform_yaw, platform_pitch, platform_roll,
-                              sensor_yaw, sensor_pitch, sensor_roll);
+    auto R = compose_rotations<double>(platform_yaw, platform_pitch, platform_roll,
+                                       sensor_yaw, sensor_pitch, sensor_roll);
 
     cam.set_rotation(R);
 
@@ -172,36 +172,6 @@ local_geo_cs
     translation_set = true;
   }
   return rotation_set || translation_set;
-}
-
-rotation_d
-local_geo_cs
-::compose_rotation(double platform_yaw, double platform_pitch, double platform_roll,
-                   double sensor_yaw,   double sensor_pitch,   double sensor_roll) const
-{
-  vital::matrix_3x3d R;
-  // rotation from east north up to platform
-  // platform has x out nose, y out left wing, z up
-  vital::matrix_3x3d Rp = rotation_zyx(deg_to_rad*(-platform_yaw + 90.0),
-    deg_to_rad*(-platform_pitch),
-    deg_to_rad*platform_roll);
-
-  // rotation from platform to gimbal
-  // gimbal x is camera viewing direction
-  // gimbal y is left in image (-x in standard computer vision image coordinates)
-  vital::matrix_3x3d Rs = rotation_zyx(deg_to_rad*(-sensor_yaw),
-    deg_to_rad*(-sensor_pitch),
-    deg_to_rad*sensor_roll);
-
-  // rotation from gimbal frame to camera frame
-  // camera frame has x right in image, y down, z along optical axis
-  vital::matrix_3x3d R_c;
-  R_c << 0, -1, 0,
-    0, 0, -1,
-    1, 0, 0;
-
-  R = R_c*Rs.transpose()*Rp.transpose();
-  return kwiver::vital::rotation_d(R);
 }
 
 /// Use the camera pose to update the metadata structure
