@@ -10,6 +10,7 @@ set( proto_files
   detected_object.proto
   detected_object_set.proto
   timestamp.proto
+  image.proto
   )
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})
