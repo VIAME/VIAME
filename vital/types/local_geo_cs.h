@@ -53,8 +53,8 @@ namespace vital {
 
 /// Represents a local geo coordinate system origin expressed in UTM
 /**
- *  Provides functions to use global INS data to update local camera pose
- *  and local camera pose to update global INS data.
+ *  Provides functions to use global metadata to update local camera pose
+ *  and local camera pose to update global metadata.
  */
 class VITAL_EXPORT local_geo_cs
 {
@@ -88,9 +88,6 @@ public:
   bool update_camera(vital::metadata const& md,
                      vital::simple_camera_perspective& cam,
                      vital::rotation_d const& rot_offset = vital::rotation_d()) const;
-
-  rotation_d compose_rotation(double platform_yaw, double platform_pitch, double platform_roll,
-                              double sensor_yaw, double sensor_pitch, double sensor_roll) const;
 
   /// Use the camera pose to update the metadata structure
   void update_metadata(vital::simple_camera_perspective const& cam,
@@ -138,7 +135,7 @@ write_local_geo_cs_to_file(local_geo_cs const& lgcs,
 /// Use a sequence of metadata objects to initialize a camera's intrinsics
 /**
 * \param [in,out] cam          A camera whose intrinsics will be set
-* \param [in]     md_map       A mapping from frame number to INS data object
+* \param [in]     md_map       A mapping from frame number to metadata object
 * \param [in]     im           An image from the sequence.  This assumes all images in
 *                              the sequence are the same size.
 * \returns   true if intrinsic calibration is set for the camera from the metadata
@@ -146,7 +143,6 @@ write_local_geo_cs_to_file(local_geo_cs const& lgcs,
 *       the first metadata object that has paramenters that can be used to set the
 *       intrinsics.
 */
-
 VITAL_EXPORT
 bool set_intrinsics_from_metadata(vital::simple_camera_perspective &cam,
                                   std::map<vital::frame_id_t,vital::metadata_sptr> const& md_map,
@@ -154,7 +150,7 @@ bool set_intrinsics_from_metadata(vital::simple_camera_perspective &cam,
 
 /// Use a sequence of metadata objects to initialize a sequence of cameras
 /**
- * \param [in]     md_map       A mapping from frame number to INS data object
+ * \param [in]     md_map       A mapping from frame number to metadata object
  * \param [in]     base_camera  The camera to reposition at each INS pose.
  * \param [in,out] lgcs         The local geographic coordinate system used to
  *                              map lat/long to a local UTM coordinate system
@@ -166,7 +162,6 @@ bool set_intrinsics_from_metadata(vital::simple_camera_perspective &cam,
  *       and zone are determined from the mean camera easting and northing
  *       at zero altitude.
  */
-
 VITAL_EXPORT
 std::map<vital::frame_id_t, vital::camera_sptr>
 initialize_cameras_with_metadata(std::map<vital::frame_id_t, vital::metadata_sptr> const& md_map,
@@ -187,10 +182,10 @@ initialize_cameras_with_metadata(std::map<vital::frame_id_t, vital::metadata_spt
  */
 VITAL_EXPORT
 void
-update_metadata_from_cameras(std::map<vital::frame_id_t, 
+update_metadata_from_cameras(std::map<vital::frame_id_t,
                              vital::camera_sptr> const& cam_map,
                              local_geo_cs const& lgcs,
-                             std::map<vital::frame_id_t, 
+                             std::map<vital::frame_id_t,
                              vital::metadata_sptr>& md_map);
 
 

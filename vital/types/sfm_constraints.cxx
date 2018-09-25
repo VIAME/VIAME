@@ -1,13 +1,43 @@
+/*ckwg +29
+* Copyright 2018 by Kitware, Inc.
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+*  * Redistributions of source code must retain the above copyright notice,
+*    this list of conditions and the following disclaimer.
+*
+*  * Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+*  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+*    to endorse or promote products derived from this software without specific
+*    prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+/**
+* \file
+* \brief Implementation for kwiver::arrows::sfm_constraints class storing
+*        constraints to be used in SfM.
+*/
+
 #include <vital/types/sfm_constraints.h>
 
-#ifndef M_PI
-// Source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
-#define M_PI 3.141592653589793238462643383279502884197169399375105820974944592307816406
-#endif
-
-static const double DEG_TO_RAD(M_PI / 180.0);
-
-static const double RAD_TO_DEG(180.0 / M_PI);
+#include <vital/math_constants.h>
+#include <vital/types/rotation.h>
 
 namespace kwiver {
 namespace vital {
@@ -153,22 +183,19 @@ sfm_constraints
 
   for (auto test_fid : frame_ids_to_try)
   {
-
-    double hfov;
-
-    if (md.get_horizontal_field_of_view(test_fid, hfov))
+    if ( md.has<VITAL_META_SENSOR_HORIZONTAL_FOV>(test_fid) )
     {
-      focal_length = static_cast<float>((image_width*0.5) / tan(0.5*hfov*DEG_TO_RAD));
+      double hfov = md.get<VITAL_META_SENSOR_HORIZONTAL_FOV>(test_fid);
+      focal_length = static_cast<float>((image_width*0.5) / tan(0.5*hfov*deg_to_rad));
       return true;
     }
 
-    double target_width, slant_range;
-    bool has_target_width = md.get_target_width(test_fid, target_width);
-    bool has_slant_range = md.get_slant_range(test_fid, slant_range);
-
-    if (has_target_width && has_slant_range)
+    if ( md.has<VITAL_META_TARGET_WIDTH>(test_fid) &&
+         md.has<VITAL_META_SLANT_RANGE>(test_fid) )
     {
-      focal_length = static_cast<float>(image_width * slant_range / target_width);
+      focal_length = static_cast<float>(image_width *
+        md.get<VITAL_META_SLANT_RANGE>(test_fid) /
+        md.get<VITAL_META_TARGET_WIDTH>(test_fid) );
 
       return true;
     }
@@ -194,18 +221,22 @@ sfm_constraints
 
   auto &md = *m_priv->m_md;
 
-  double platform_heading, platform_roll,   platform_pitch;
-  double sensor_rel_az,    sensor_rel_roll, sensor_rel_el;
-
-  if (md.get_platform_heading_angle(fid, platform_heading) &&
-      md.get_platform_roll_angle(   fid, platform_roll) &&
-      md.get_platform_pitch_angle(  fid, platform_pitch) &&
-      md.get_sensor_rel_az_angle(   fid, sensor_rel_az) &&
-      md.get_sensor_rel_el_angle(   fid, sensor_rel_el))
+  if ( md.has<VITAL_META_PLATFORM_HEADING_ANGLE>(fid) &&
+       md.has<VITAL_META_PLATFORM_ROLL_ANGLE>(fid) &&
+       md.has<VITAL_META_PLATFORM_PITCH_ANGLE>(fid) &&
+       md.has<VITAL_META_SENSOR_REL_AZ_ANGLE>(fid) &&
+       md.has<VITAL_META_SENSOR_REL_EL_ANGLE>(fid) )
   {
-    if (!md.get_sensor_rel_roll_angle(fid, sensor_rel_roll))
+    double platform_heading = md.get<VITAL_META_PLATFORM_HEADING_ANGLE>(fid);
+    double platform_roll = md.get<VITAL_META_PLATFORM_ROLL_ANGLE>(fid);
+    double platform_pitch = md.get<VITAL_META_PLATFORM_PITCH_ANGLE>(fid);
+    double sensor_rel_az = md.get<VITAL_META_SENSOR_REL_AZ_ANGLE>(fid);
+    double sensor_rel_el = md.get<VITAL_META_SENSOR_REL_EL_ANGLE>(fid);
+
+    double sensor_rel_roll = 0;
+    if ( md.has<VITAL_META_SENSOR_REL_ROLL_ANGLE>(fid) )
     {
-      sensor_rel_roll = 0;
+      sensor_rel_roll = md.get<VITAL_META_SENSOR_REL_ROLL_ANGLE>(fid);
     }
 
     if (std::isnan(platform_heading) || std::isnan(platform_pitch) || std::isnan(platform_roll) ||
@@ -214,8 +245,8 @@ sfm_constraints
       return false;
     }
 
-    R_loc = m_priv->m_lgcs.compose_rotation(platform_heading, platform_pitch, platform_roll,
-                                            sensor_rel_az, sensor_rel_el, sensor_rel_roll);
+    R_loc = compose_rotations<double>(platform_heading, platform_pitch, platform_roll,
+                                      sensor_rel_az, sensor_rel_el, sensor_rel_roll);
 
     return true;
   }
@@ -241,8 +272,13 @@ sfm_constraints
 
   kwiver::vital::geo_point gloc;
   double alt;
-  if (!m_priv->m_md->get_sensor_location(fid, gloc) ||
-      !m_priv->m_md->get_sensor_altitude(fid, alt))
+  if (m_priv->m_md->has<VITAL_META_SENSOR_LOCATION>(fid) &&
+      m_priv->m_md->has<VITAL_META_SENSOR_ALTITUDE>(fid))
+  {
+    gloc = m_priv->m_md->get<VITAL_META_SENSOR_LOCATION>(fid);
+    alt = m_priv->m_md->get<VITAL_META_SENSOR_ALTITUDE>(fid);
+  }
+  else
   {
     return false;
   }
