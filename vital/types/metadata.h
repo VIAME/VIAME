@@ -89,7 +89,7 @@ public:
    *
    * @return Metadata tag value.
    */
-  virtual vital_metadata_tag tag() const = 0;
+  vital_metadata_tag tag() const { return m_tag; };
 
 
   /// Get metadata data type.
@@ -198,10 +198,13 @@ public:
   virtual std::ostream& print_value(std::ostream& os) const = 0;
 
 protected:
-  std::string m_name;
-  kwiver::vital::any m_data;
+  metadata_item(std::string name,
+                kwiver::vital::any const& data,
+                vital_metadata_tag tag);
 
-  metadata_item(std::string name, kwiver::vital::any const& data );
+  const std::string m_name;
+  const kwiver::vital::any m_data;
+  const vital_metadata_tag m_tag;
 
 }; // end class metadata_item
 
@@ -231,7 +234,7 @@ class typed_metadata
 {
 public:
   typed_metadata(std::string name, kwiver::vital::any const& data )
-    : metadata_item( name, data )
+    : metadata_item( name, data, TAG )
   {
     if ( data.type() != typeid(TYPE) )
     {
@@ -244,11 +247,10 @@ public:
     }
   }
 
-  virtual ~typed_metadata() { }
+  virtual ~typed_metadata() = default;
 
-  virtual vital_metadata_tag tag() const { return TAG; }
-  virtual std::type_info const& type() const { return typeid( TYPE ); }
-  virtual std::string as_string() const
+  virtual std::type_info const& type() const override { return typeid( TYPE ); }
+  virtual std::string as_string() const override
   {
     if ( this->has_string() )
     {
@@ -256,7 +258,7 @@ public:
     }
 
     // Else convert to a string
-    TYPE var = kwiver::vital::any_cast< TYPE > ( m_data );
+    const auto var = kwiver::vital::any_cast< TYPE > ( m_data );
     std::stringstream ss;
 
     ss << var;
