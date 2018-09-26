@@ -31,6 +31,8 @@
 #ifndef ARROWS_SERIALILIZATION_PROTOBUF_CONVERT_PROTOBUF_H
 #define ARROWS_SERIALILIZATION_PROTOBUF_CONVERT_PROTOBUF_H
 
+#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
+
 #include <vital/types/metadata.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/image_container.h>
@@ -72,81 +74,103 @@ namespace serialize {
 namespace protobuf {
 
 // ---- bounding_box
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
                        kwiver::vital::bounding_box_d&         bbox );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
                        kwiver::protobuf::bounding_box&      proto_bbox );
 
 // ---- detected_object
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::detected_object& proto_det_object,
                        kwiver::vital::detected_object&          det_object );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::detected_object&  det_object,
                        kwiver::protobuf::detected_object&     proto_det_object );
 
 // ---- detected_object_set
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::detected_object_set& proto_dos,
                        kwiver::vital::detected_object_set&          dos );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::detected_object_set&  dos,
                        kwiver::protobuf::detected_object_set&     proto_dos );
 
 // ---- detected_object_type
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::detected_object_type&  proto_bbox,
                        kwiver::vital::detected_object_type&           bbox );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::detected_object_type& bbox,
                        kwiver::protobuf::detected_object_type&    proto_bbox );
 
 // ---- geo_polygon
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::geo_polygon& proto_poly,
                        kwiver::vital::geo_polygon&          poly );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::geo_polygon&  poly,
                        kwiver::protobuf::geo_polygon&     proto_poly );
 
 // ---- geo_point
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::geo_point& proto_point,
                        kwiver::vital::geo_point&          point );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::geo_point&  point,
                        kwiver::protobuf::geo_point&     proto_point );
 
 // ---- polygon
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::polygon& proto_poly,
                        kwiver::vital::polygon&          poly );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::polygon&  poly,
                        kwiver::protobuf::polygon&     proto_poly );
 
 // ---- image container
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::image&       proto_img,
                        kwiver::vital::image_container_sptr& img );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::image_container_sptr  img,
                        kwiver::protobuf::image&                   proto_img  );
 
 // ---- timestamp
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::timestamp& proto_tstamp,
                        kwiver::vital::timestamp&          tstamp );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::timestamp&  tstamp,
                        kwiver::protobuf::timestamp&     proto_tstamp );
 
 
   // Convert between native and protobuf formats
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::metadata_vector&  proto_mvec,
                        kwiver::vital::metadata_vector& mvec );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::metadata_vector& mvec,
                        kwiver::protobuf::metadata_vector&  proto_mvec );
 
   // Single metadata collection
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::protobuf::metadata&  proto,
-                       kwiver::vital::metadata_sptr& metadata );
+                       kwiver::vital::metadata& metadata );
 
-void convert_protobuf( const kwiver::vital::metadata_sptr& metadata,
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::vital::metadata& metadata,
                        kwiver::protobuf::metadata&  proto );
 
 

@@ -30,12 +30,10 @@
 
 #include "convert_protobuf.h"
 
-#include <vital/types/bounding_box.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/types/geo_polygon.h>
-#include <vital/types/metadata.h>
 #include <vital/types/polygon.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/metadata.h>
@@ -58,6 +56,7 @@
 #include <zlib.h>
 #include <cstddef>
 #include <cstring>
+#include <sstream>
 
 namespace kwiver {
 namespace arrows {
@@ -168,7 +167,7 @@ void convert_protobuf( const kwiver::vital::detected_object_set& dos,
   // in having the source object parameter be const, but type() isn't because
   // its a pointer into the det_object.  Using const_cast here is a middle ground
   // though somewhat ugly
-  for ( auto it: const_cast< kwiver::vital::detected_object_set& >( dos ) )
+  for ( const auto it: const_cast< kwiver::vital::detected_object_set& >( dos ) )
   {
     kwiver::protobuf::detected_object *proto_det_object_ptr = proto_dos.add_detected_objects();
 
@@ -191,7 +190,7 @@ void convert_protobuf( const kwiver::protobuf::detected_object_type&  proto_dot,
 void convert_protobuf( const kwiver::vital::detected_object_type& dot,
                        kwiver::protobuf::detected_object_type&  proto_dot )
 {
-  for ( auto it : dot )
+  for ( const auto it : dot )
   {
     proto_dot.add_name( *(it.first) );
     proto_dot.add_score( it.second);
@@ -237,7 +236,7 @@ void convert_protobuf( const kwiver::protobuf::image&      proto_img,
 
   if (static_cast<uLongf>( img_size ) != out_size)
   {
-    LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+    LOG_ERROR( kwiver::vital::get_logger( "image_container" ),
                "Uncompressed data not expected size. Possible data corruption.");
     return;
   }
@@ -261,6 +260,14 @@ void convert_protobuf( const kwiver::protobuf::image&      proto_img,
 
   // return newly constructed image container
   img = std::make_shared< kwiver::vital::simple_image_container >( vital_image );
+
+  // convert metadata if there is any
+  if ( proto_img.has_image_metadata() )
+  {
+    auto meta_ptr = std::make_shared< kwiver::vital::metadata >();
+    convert_protobuf( proto_img.image_metadata(), *meta_ptr );
+    img->set_metadata( meta_ptr );
+  }
 }
 
 
@@ -284,17 +291,17 @@ void convert_protobuf( const kwiver::vital::image_container_sptr img,
     switch (z_rc)
     {
     case Z_MEM_ERROR:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+      LOG_ERROR( kwiver::vital::get_logger( "image_container" ),
                  "Error compressing image data. Not enough memory." );
       break;
 
     case Z_BUF_ERROR:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+      LOG_ERROR( kwiver::vital::get_logger( "image_container" ),
                  "Error compressing image data. Not enough room in output buffer." );
       break;
 
     default:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
+      LOG_ERROR( kwiver::vital::get_logger( "image_container" ),
                  "Error compressing image data." );
       break;
     } // end switch
@@ -316,6 +323,14 @@ void convert_protobuf( const kwiver::vital::image_container_sptr img,
 
   proto_img.set_size( img->size() ); // uncompressed size
   proto_img.set_data( out_buf, size );
+
+  // serialize the metadata if there is any.
+  if ( img->get_metadata() )
+  {
+    auto* proto_meta = new kwiver::protobuf::metadata();
+    convert_protobuf( *img->get_metadata(), *proto_meta );
+    proto_img.set_allocated_image_metadata( proto_meta );
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -342,9 +357,12 @@ void convert_protobuf( const kwiver::protobuf::metadata_vector&  proto_mvec,
                   kwiver::vital::metadata_vector& mvec )
 
 {
-  //
-  // loop collecting individual metadata collections; add to
-
+  for ( const auto& meta : proto_mvec.collection() )
+  {
+    auto meta_ptr = std::make_shared< kwiver::vital::metadata >();
+    convert_protobuf( meta, *meta_ptr );
+    mvec.push_back( meta_ptr );
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -352,20 +370,23 @@ void convert_protobuf( const kwiver::vital::metadata_vector& mvec,
                   kwiver::protobuf::metadata_vector&  proto_mvec )
 {
   // convert to proto
-
-
+  for ( const auto& meta : mvec )
+  {
+    auto* proto_meta = proto_mvec.add_collection();
+    convert_protobuf( *meta, *proto_meta );
+  }
 }
 
 // ----------------------------------------------------------------------------
 void convert_protobuf( const kwiver::protobuf::metadata&  proto,
-                  kwiver::vital::metadata_sptr& metadata )
+                  kwiver::vital::metadata& metadata )
 {
   static kwiver::vital::metadata_traits traits;
 
   // deserialize one metadata collection
-  for ( const auto mi : proto.items() )
+  for ( const auto& mi : proto.items() )
   {
-    auto tag = static_cast< kwiver::vital::vital_metadata_tag >( mi.metadata_tag() );
+    const auto tag = static_cast< kwiver::vital::vital_metadata_tag >( mi.metadata_tag() );
     const auto& trait = traits.find( tag );
     kwiver::vital::any data;
 
@@ -384,37 +405,45 @@ void convert_protobuf( const kwiver::protobuf::metadata&  proto,
     }
     else if ( trait.tag_type() == typeid(kwiver::vital::geo_point) )
     {
-      // It is something else that is encoded as a string
-
+      kwiver::vital::geo_point pt;
+      convert_protobuf( mi.geo_point_value(), pt );
+      data = kwiver::vital::any( pt );
     }
     else if ( trait.tag_type() == typeid(kwiver::vital::geo_polygon) )
     {
-      // It is something else that is encoded as a string
-
+      kwiver::vital::geo_polygon poly;
+      convert_protobuf( mi.geo_polygon_value(), poly );
+      data = kwiver::vital::any( poly );
     }
     else
     {
-      // ERROR unknown/ unsupported data type for serialization_exception
-      // maybe throw
+      std::stringstream str;
+      str << "Found unexpected data type \"" << trait.tag_type().name()
+          << "\" in metadata collection for item name \""
+          << trait.name() << "\".";
+      VITAL_THROW( kwiver::vital::metadata_exception, str.str() );
     }
 
-    metadata->add( trait.create_metadata_item( data ) );
+    metadata.add( trait.create_metadata_item( data ) );
 
   } // end for
 }
 
 // ----------------------------------------------------------------------------
-void convert_protobuf( const kwiver::vital::metadata_sptr& metadata,
-                  kwiver::protobuf::metadata&  proto )
+void convert_protobuf( const kwiver::vital::metadata& metadata,
+                  kwiver::protobuf::metadata&  proto_meta )
 {
+  static kwiver::vital::metadata_traits traits;
+
   // Serialize one metadata collection
-  for ( auto mi : *metadata )
+  for ( const auto& mi : metadata )
   {
-    auto* proto_item = proto.add_items();
+    auto* proto_item = proto_meta.add_items();
 
     // element is <tag, any>
-    auto tag = mi.first;
-    auto metap = mi.second;
+    const auto tag = mi.first;
+    const auto metap = mi.second;
+    const auto& trait = traits.find( tag );
 
     proto_item->set_metadata_tag( tag );
 
@@ -425,6 +454,43 @@ void convert_protobuf( const kwiver::vital::metadata_sptr& metadata,
     else if ( metap->has_uint64() )
     {
       proto_item->set_int_value( metap->as_uint64() );
+    }
+    else if ( metap->has_string() )
+    {
+      proto_item->set_string_value( metap->as_string() );
+    }
+    else if ( trait.tag_type() == typeid(kwiver::vital::geo_point) )
+    {
+      kwiver::vital::geo_point pt;
+      if ( ! metap->data<kwiver::vital::geo_point>( pt ) )
+      {
+        std::stringstream str;
+        str << "Error extracting data item from metadata. "
+            << "Expected \"kwiver::vital::geo_point\" but found \""
+            << metap->data().type_name() << "\"." ;
+        VITAL_THROW( kwiver::vital::metadata_exception, str.str() );
+      }
+
+      auto proto_pt = new kwiver::protobuf::geo_point();
+      convert_protobuf( pt, *proto_pt );
+      proto_item->set_allocated_geo_point_value( proto_pt );
+    }
+    else if ( trait.tag_type() == typeid(kwiver::vital::geo_polygon) )
+    {
+      kwiver::vital::geo_polygon poly;
+      if ( ! metap->data<kwiver::vital::geo_polygon>( poly ) )
+      {
+        std::stringstream str;
+        str << "Error extracting data item from metadata. "
+            << "Expected \"kwiver::vital::geo_polygon\" but found \""
+            << metap->data().type_name() << "\"." ;
+        VITAL_THROW( kwiver::vital::metadata_exception, str.str() );
+
+      }
+
+      auto proto_poly = new kwiver::protobuf::geo_polygon();
+      convert_protobuf( poly, *proto_poly );
+      proto_item->set_allocated_geo_polygon_value( proto_poly );
     }
     else
     {

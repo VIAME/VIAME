@@ -30,26 +30,34 @@
 
 package kwiver.protobuf;
 
-import "metadata.proto";
+import "geo_point.proto";
+import "geo_polygon.proto";
 
-message image {
-  // Image size
-  required int64 width = 1;
-  required int64 height = 2;
-  required int64 depth = 3;
+message metadata {
+  message metadata_item {
 
-  // Image indexing
-  required int64 w_step = 4;
-  required int64 h_step = 5;
-  required int64 d_step = 6;
+    // Metadata tag value
+    required int32  metadata_tag = 1;
 
-  // Pixel traits
-  required int32 trait_type = 7;
-  required int32 trait_num_bytes = 8;
+    // Only one of these should be present. The "oneof" feature can be
+    // used when it becomes available.
+    optional string string_value = 2;
+    optional int64  int_value = 3;
+    optional double double_value = 4;
 
-  // Actual image data
-  required int64 size = 9; // uncompressed image memory size
-  required bytes data = 10; // compressed actual image pixels
+    // It is not ideal to add specific data types to this "union"
+    // but serializing them any other way is no better.
+    optional geo_point geo_point_value = 5;
+    optional geo_polygon geo_polygon_value = 6;
+  }
 
-  optional metadata image_metadata = 11;
+  repeated metadata_item items = 6;
+
+}
+
+// Vector of metadata items
+message metadata_vector {
+
+  repeated metadata collection = 1;
+
 }
