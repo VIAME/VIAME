@@ -30,7 +30,7 @@
 
 /**
 * \file
-* \brief Implementation for kwiver::arrows::sfm_constraints class storing
+* \brief Implementation for kwiver::vital::sfm_constraints class storing
 *        constraints to be used in SfM.
 */
 

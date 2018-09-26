@@ -38,10 +38,6 @@
 #ifndef KWIVER_VITAL_MATH_CONSTANTS_H
 #define KWIVER_VITAL_MATH_CONSTANTS_H
 
-#include <string>
-#include <vector>
-#include <cstdint>
-
 namespace kwiver {
 namespace vital {
 

@@ -151,7 +151,7 @@ bool set_intrinsics_from_metadata(vital::simple_camera_perspective &cam,
 /// Use a sequence of metadata objects to initialize a sequence of cameras
 /**
  * \param [in]     md_map       A mapping from frame number to metadata object
- * \param [in]     base_camera  The camera to reposition at each INS pose.
+ * \param [in]     base_camera  The camera to reposition at each metadata pose.
  * \param [in,out] lgcs         The local geographic coordinate system used to
  *                              map lat/long to a local UTM coordinate system
  * \param [in]     rot_offset   Rotation offset to apply to yaw/pitch/roll

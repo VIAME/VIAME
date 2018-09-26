@@ -101,7 +101,7 @@ public:
     return has_item(tag, fid);
   }
 
-  /// Get value for a metadata itme from the map for given tag and frame id
+  /// Get value for a metadata item from the map for given tag and frame id
   /**
    * \param tag the metadata tag
    * \param fid the frame id
@@ -116,6 +116,7 @@ public:
     return val;
   }
 
+  /// Returns the frame ids that have associated metadata
   virtual std::set<frame_id_t> frames() = 0;
 
 };
@@ -142,7 +143,7 @@ public:
   /// Return a map from integer IDs to metadata shared pointers
   virtual map_metadata_t metadata() const { return data_; }
 
-  ///returns the frame ids that have associated metadata
+  /// Returns the frame ids that have associated metadata
   virtual std::set<frame_id_t> frames()
   {
     std::set<frame_id_t> fids;
@@ -161,7 +162,7 @@ public:
     if (d_it == data_.end())
     {
       std::stringstream msg;
-      msg << "Metadata map does contain frame " << fid;
+      msg << "Metadata map does not contain frame " << fid;
       VITAL_THROW( metadata_exception, msg.str() );
     }
 

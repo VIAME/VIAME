@@ -30,7 +30,7 @@
 
 /**
 * \file
-* \brief Header for kwiver::arrows::sfm_constraints class storing constraints to be
+* \brief Header for kwiver::vital::sfm_constraints class storing constraints to be
 *        used in SfM.
 */
 
@@ -41,8 +41,8 @@
 #include <vital/types/local_geo_cs.h>
 
 
-#ifndef KWIVER_ARROWS_CORE_SFM_CONSTRAINTS_H_
-#define KWIVER_ARROWS_CORE_SFM_CONSTRAINTS_H_
+#ifndef KWIVER_VITAL_SFM_CONSTRAINTS_H_
+#define KWIVER_VITAL_SFM_CONSTRAINTS_H_
 
 namespace kwiver {
 namespace vital {
@@ -116,7 +116,7 @@ public:
 
   /// get the image width
   /**
-  * \param[in] fid the frame 
+  * \param[in] fid the frame
   * \param[out] image_width the width of the image with frame id fid
   * \return true if the image width is recovered from the constraints, false otherwise
   */
