@@ -55,7 +55,7 @@ namespace arrows {
 namespace serialize {
 namespace json {
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox )
 {
   archive( cereal::make_nvp( "min_x", bbox.min_x() ),
@@ -77,7 +77,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbo
   bbox = kwiver::vital::bounding_box_d( min_x, min_y, max_x, max_y );
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object& obj )
 {
   // serialize bounding box
@@ -127,7 +127,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object& ob
   obj.set_type( new_dot );
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive&                archive,
            const kwiver::vital::detected_object_set& obj )
 {
@@ -162,7 +162,7 @@ void load( cereal::JSONInputArchive&           archive,
   //+ TBD
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_type& dot )
 {
 
@@ -220,7 +220,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_typ
  * multi-byte.
  */
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::image_container_sptr ctr )
 {
   kwiver::vital::image vital_image = ctr->get_image();
@@ -357,7 +357,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::image_container_spt
   ctr = std::make_shared< kwiver::vital::simple_image_container >( vital_image );
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive&       archive,
            const kwiver::vital::timestamp&  tstamp )
 {
@@ -378,7 +378,7 @@ void load( cereal::JSONInputArchive&  archive,
                                        frame ) );
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta )
 {
   archive( cereal::make_nvp( "size", meta.size() ) );
@@ -406,7 +406,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::metadata_vector& me
 
 }
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& meta )
 {
   static kwiver::vital::metadata_traits traits;
@@ -535,7 +535,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
 }
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::geo_polygon& poly )
 {
   archive( cereal::make_nvp( "crs", poly.crs() ) );
@@ -553,7 +553,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::geo_polygon& poly )
 }
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::geo_point& point )
 {
   if ( point.is_empty() )
@@ -591,8 +591,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::geo_point& point )
   }
 }
 
-
-// ----------------------------------------------------------------------------
+// ============================================================================
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::polygon& poly )
 {
   auto vert = poly.get_vertices();
