@@ -4,13 +4,16 @@ find_package(ZLIB MODULE REQUIRED)
 include_directories( ${ZLIB_INCLUDE_DIRS} )
 
 set( headers_public
+
   bounding_box.h
   detected_object.h
   detected_object_set.h
   detected_object_type.h
-  timestamp.h
   image.h
+  load_save.h
+  metadata.h
   string.h
+  timestamp.h
   )
 
 set( sources
@@ -19,9 +22,11 @@ set( sources
   detected_object.cxx
   detected_object_set.cxx
   detected_object_type.cxx
-  timestamp.cxx
   image.cxx
+  load_save.cxx
+  metadata.cxx
   string.cxx
+  timestamp.cxx
   )
 
 kwiver_add_library( kwiver_serialize_json
