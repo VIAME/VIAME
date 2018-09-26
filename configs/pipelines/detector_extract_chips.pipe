@@ -22,7 +22,7 @@ process chipper
   :refiner:type                                ocv_write
   :refiner:ocv_write:pattern                   tiles/detection_%05d_%fx%f+%f+%f.png
 
-connect from detector.detected_object_set
+connect from detector_filter.detected_object_set
         to   chipper.detected_object_set
 
 # ============================ NO DOWNSAMPLER OPTION ===============================

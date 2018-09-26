@@ -41,7 +41,7 @@ connect from input.image
 connect from detector.detected_object_set
         to   draw.detected_object_set
 connect from input.image
-        to draw.image
+        to   draw.image
 
 connect from input.timestamp
         to   disp.timestamp
