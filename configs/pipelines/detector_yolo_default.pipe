@@ -16,19 +16,19 @@ include common_default_input.pipe
 
 include common_default_detector_with_filter.pipe
 
-process detector_csv_writer
+process detection_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   output_detections.csv
+  :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
 connect from input.image
         to   detector.image
 connect from input.image_file_name
-        to   detector_csv_writer.image_file_name
+        to   detection_writer.image_file_name
 
 connect from detector_filter.detected_object_set
-        to   detector_csv_writer.detected_object_set
+        to   detection_writer.detected_object_set
 
 # -- end of file --

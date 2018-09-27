@@ -18,7 +18,7 @@ process detector
   endblock
 
 # ==================================================================================
-process writer
+process detection_writer
   :: detected_object_output
 
   # Type of file to output
@@ -31,8 +31,8 @@ connect from input.image
         to   detector.image
 
 connect from detector.detected_object_set
-        to   writer.detected_object_set
+        to   detection_writer.detected_object_set
 connect from input.image_file_name
-        to   writer.image_file_name
+        to   detection_writer.image_file_name
 
 # -- end of file --

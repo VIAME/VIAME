@@ -20,7 +20,7 @@ process detector_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   output/individual_detections.csv
+  :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
 connect from input.image
@@ -112,7 +112,7 @@ connect from track_associator.unused_detections
 
 process track_writer
   :: write_object_track
-  :file_name                                   output/object_tracks.csv
+  :file_name                                   computed_tracks.csv
   :writer:type                                 viame_csv
   :writer:stream_identifier                    input_list.txt
 

@@ -35,7 +35,7 @@ process nms_refiner
     :output_scale_factor                       1.1
   endblock
 
-process refined_csv_writer
+process detection_writer
   :: detected_object_output
 
   # Type of file to output
@@ -55,7 +55,7 @@ connect from input.timestamp
         to   descriptor.timestamp
 
 connect from input.image_file_name
-        to   refined_csv_writer.image_file_name
+        to   detection_writer.image_file_name
 
 connect from detector.detected_object_set
         to   descriptor.detected_object_set
@@ -64,6 +64,6 @@ connect from descriptor.detected_object_set
 connect from svm_refiner.detected_object_set
         to   nms_refiner.detected_object_set
 connect from nms_refiner.detected_object_set
-        to   refined_csv_writer.detected_object_set
+        to   detection_writer.detected_object_set
 
 # -- end of file --
