@@ -4,32 +4,30 @@
 
 set( EXAMPLE_INSTALL_FILES
      README.rst
-     input_list.txt
-     view_detections.prj
-     view_tracks.prj )
+     input_list.txt )
 
 if( WIN32 )
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       create_index.from_detections.bat
+       create_index.around_detections.bat
+       create_index.around_existing_detections.bat
        create_index.full_frame_only.bat
-       create_index.image_list.bat
-       create_index.video_folder.bat
-       process_database_using_models.bat
-       process_ff_using_models.bat
-       process_list_using_models.bat
+       create_index.detection_and_tracking.bat
+       process_database_using_svm_model.bat
+       process_full_frames_using_svm_model.bat
+       generate_detections_using_svm_model.bat
        launch_query_gui.bat
        launch_annotation_gui.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
-       create_index.from_detections.sh
+       create_index.around_detections.sh
+       create_index.around_existing_detections.sh
        create_index.full_frame_only.sh
-       create_index.image_list.sh
-       create_index.video_folder.sh
-       process_database_using_models.sh
-       process_ff_using_models.sh
-       process_list_using_models.sh
+       create_index.detection_and_tracking.sh
+       process_database_using_svm_model.sh
+       process_full_frames_using_svm_model.sh
+       generate_detections_using_svm_model.sh
        launch_query_gui.sh
        launch_annotation_gui.sh )
 endif()
