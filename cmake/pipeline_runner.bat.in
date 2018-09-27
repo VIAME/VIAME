@@ -9,7 +9,7 @@ REM Run pipeline
 set argC=0
 for %%x in (%*) do Set /A argC+=1
 
-IF %argC%==2 pipeline_runner.exe -p "%1" -s input:image_list_file="%2"
+IF %argC%==2 pipeline_runner.exe -p "%1" -s input:video_filename="%2"
 
 IF %argC%==1 pipeline_runner.exe -p "%1"
 
