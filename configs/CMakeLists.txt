@@ -20,9 +20,9 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5afe6d678d777f15ebe1d6f6/download
-      fadc40de1f50b7b502d4a9b1d809cf28
-      ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.0.0.tar.gz
+      https://data.kitware.com/api/v1/item/5bad56178d777f06b908c47c/download
+      3fe6c43e8bf6ab49cb8f6687f38bdbd6
+      ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
@@ -59,9 +59,9 @@ if( VIAME_DOWNLOAD_MODELS )
 
     if( VIAME_DOWNLOAD_MODELS-MOUSS )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5b7216e68d777f06857c4557/download
-        a9a65372d077da45ad037a5aac288b8b
-        ${VIAME_DOWNLOAD_DIR}/models-mouss-v2.0.0.tar.gz
+        https://data.kitware.com/api/v1/item/5bad56158d777f06b908c473/download
+        00aa39ecdc321b205ed54766441c65aa
+        ${VIAME_DOWNLOAD_DIR}/models-mouss-v2.1.0.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
   endif()
