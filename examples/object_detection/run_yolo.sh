@@ -8,5 +8,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_yolo_v2_default.pipe \
+pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_yolo_default.pipe \
                 -s input:image_list_file=input_image_list_small_set.txt

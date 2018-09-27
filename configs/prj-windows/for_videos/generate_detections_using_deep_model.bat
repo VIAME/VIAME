@@ -8,7 +8,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\detector_yolo_v2_default.pipe" ^
+pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\detector_yolo_default.pipe" ^
                     -s input:image_list_file=input_list.txt ^
                     -s detector:detector:darknet:net_config=deep_training\yolo_v2.cfg ^
                     -s detector:detector:darknet:weight_file=deep_training\models\yolo_v2.backup ^

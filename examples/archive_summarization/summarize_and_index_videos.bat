@@ -12,6 +12,6 @@ python.exe "%VIAME_INSTALL%\configs\ingest_video.py" --init -d INPUT_DIRECTORY ^
   --detection-plots ^
   -species pristipomoides_auricilla,pristipomoides_zonatus,pristipomoides_sieboldii,etelis_carbunculus,etelis_coruscans,naso,aphareus_rutilans,seriola,hyporthodus_quernus,caranx_melampygus ^
   -threshold 0.25 -frate 2 -smooth 2 ^
-  -p pipelines\ingest_video.mouss_index.pipe --build-index --ball-tree
+  -p pipelines\index_mouss.res.pipe --build-index --ball-tree
 
 pause

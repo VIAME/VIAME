@@ -8,7 +8,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\tracker_mouss_default.pipe" ^
+pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\tracker_mouss.tut.pipe" ^
                     -s input:image_list_file=input_list.txt
 
 pause

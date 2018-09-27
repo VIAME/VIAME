@@ -29,12 +29,6 @@ if( VIAME_ENABLE_YOLO )
   endif()
 endif()
 
-#if( VIAME_ENABLE_SCALLOP_TK )
-#  set( EXAMPLE_INSTALL_FILES
-#       ${EXAMPLE_INSTALL_FILES}
-#       scallop_tk_detector.pipe )
-#endif()
-
 ###
 # Install pipelines to example directory
 ##
