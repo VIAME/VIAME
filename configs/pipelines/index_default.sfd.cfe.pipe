@@ -2,6 +2,15 @@
 #
 # Runs a multi-node object tracking, descriptor generation, and indexing pipeline
 
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+config _scheduler
+   :type                                       pythread_per_process
+
 # ================================== VIDEO INPUT ===================================
 
 include common_default_input.pipe

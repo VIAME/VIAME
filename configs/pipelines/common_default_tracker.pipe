@@ -8,9 +8,10 @@
 process tracker
   :: SRNN_tracking
   :siamese_model_input_size                    224
-  :detection_select_threshold                  0.3
+  :detection_select_threshold                  0.2
   :similarity_threshold                        0.2
-  :terminate_track_threshold                   6
+  :terminate_track_threshold                   10
+  :add_features_to_detections                  False
   :IOU_tracker_flag                            True
   :IOU_accept_threshold                        0.5
   :IOU_reject_threshold                        0.1
@@ -23,4 +24,3 @@ process tracker
   relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
   relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
   :targetRNN_batch_size                        256 
-

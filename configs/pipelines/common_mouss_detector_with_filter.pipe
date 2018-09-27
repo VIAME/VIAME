@@ -21,7 +21,7 @@ process detector_filter
   :filter:type                          class_probablity_filter
 
   block filter:class_probablity_filter
-    :threshold                          0.010
+    :threshold                          0.30
     :keep_all_classes                   true
     :keep_classes                       vertebrate;invertebrate
   endblock

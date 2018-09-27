@@ -1,10 +1,20 @@
 # Ingest video pipeline using pytorch descriptors
 #
 # Runs a multi-node object tracking, descriptor generation, and indexing pipeline
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
 #
-# This pipe requires an input source node 'input' to be defined elsewhere
+config _pipeline:_edge
+   :capacity                                   10
+
+config _scheduler
+   :type                                       pythread_per_process
 
 # ================================== VIDEO INPUT ===================================
+
+include common_default_input.pipe
+
 process downsampler
   :: downsample
   :target_frame_rate                           2
@@ -20,36 +30,14 @@ connect from input.timestamp
 
 # =================================== DETECTOR =====================================
 
-process detector
-  :: image_object_detector
-  :detector:type                           darknet
-
-  block detector:darknet
-
-    # Network config, weights, and names
-    relativepath net_config  =             models/mouss_yolo_v2_704_species.cfg
-    relativepath weight_file =             models/mouss_yolo_v2_704_species.weights
-    relativepath class_names =             models/mouss_yolo_v2_704_species.lbl
-
-    # Detector parameters
-    :thresh                                0.001
-    :hier_thresh                           0.001
-    :gpu_index                             0
-
-    # Image scaling parameters
-    :resize_option                         maintain_ar
-    :resize_ni                             704
-    :resize_nj                             704
-    :scale                                 1.0
-
-  endblock
+include common_mouss_detector_with_filter.pipe
 
 process detector_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                          [INSERT_ME]
-  :writer:type                        viame_csv
+  :file_name                                   [INSERT_ME]
+  :writer:type                                 viame_csv
 
 connect from downsampler.output_1
         to   detector.image
@@ -60,24 +48,7 @@ connect from detector.detected_object_set
 
 # ================================= CORE TRACKER ===================================
 
-process tracker
-  :: SRNN_tracking
-  :siamese_model_input_size                    224
-  :detection_select_threshold                  0.3
-  :similarity_threshold                        0.2
-  :terminate_track_threshold                   6
-  :IOU_tracker_flag                            True
-  :IOU_accept_threshold                        0.5
-  :IOU_reject_threshold                        0.1
-  :track_search_threshold                      2
-  :gpu_list                                    0
-
-  relativepath siamese_model_path =            models/siamese_model.pt
-  :siamese_batch_size                          64
-
-  relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
-  relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
-  :targetRNN_batch_size                        256 
+include common_default_tracker.pipe
 
 connect from downsampler.output_1
         to   tracker.image

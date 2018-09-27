@@ -1,8 +1,15 @@
 # Ingest video pipeline using pytorch descriptors
 #
 # Runs a multi-node object tracking, descriptor generation, and indexing pipeline
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
 #
-# This pipe requires an input source node 'input' to be defined elsewhere
+config _pipeline:_edge
+   :capacity                                   10
+
+config _scheduler
+   :type                                       pythread_per_process
 
 # ================================== VIDEO INPUT ===================================
 
@@ -23,7 +30,7 @@ connect from input.timestamp
 
 # =================================== DETECTOR =====================================
 
-include common_default_detector_with_filter.pipe
+include common_default_detector.pipe
 
 process detector_writer
   :: detected_object_output

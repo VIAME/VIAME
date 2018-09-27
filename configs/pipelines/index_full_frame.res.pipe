@@ -12,12 +12,8 @@ config _scheduler
    :type                                       pythread_per_process
 
 # ================================== VIDEO INPUT ===================================
-process input
-  :: frame_list_input
-  :image_list_file                             [INSERT_ME]
-  :frame_time                                  1
-  :image_reader:type                           vxl
-  :image_reader:vxl:force_byte                 true
+
+include common_default_input.pipe
 
 process downsampler
   :: downsample
@@ -63,16 +59,7 @@ connect from downsampler.timestamp
 connect from detector.detected_object_set
         to   descriptor.detected_object_set
 
-process track_initializer
-  :: initialize_object_tracks
-  :track_initializer:type                      threshold
-
-  block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.005
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
-  endblock
+include common_default_initializer.pipe
 
 connect from downsampler.output_1
         to   track_initializer.image
