@@ -16,7 +16,7 @@ process out_adapt
 
 # ==================================================================================
 
-include common_default_detector_with_filter.pipe
+include common_default_detector.pipe
 include common_default_descriptor.pipe
 
 process svm_refiner
@@ -55,23 +55,14 @@ connect from svm_refiner.detected_object_set
 
 # ==================================================================================
 
-process track_initializer
-  :: initialize_object_tracks
-  :track_initializer:type                      threshold
-
-  block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.010
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
-  endblock
-
+connect from in_adapt.image
+        to   tracker.image
 connect from in_adapt.timestamp
-        to   track_initializer.timestamp
+        to   tracker.timestamp
 connect from nms_refiner.detected_object_set
-        to   track_initializer.detected_object_set
+        to   tracker.detected_object_set
 
-connect from track_initializer.object_track_set
+connect from tracker.object_track_set
         to   out_adapt.object_track_set
 
 # -- end of file --

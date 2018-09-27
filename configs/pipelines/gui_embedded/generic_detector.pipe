@@ -13,27 +13,18 @@ process out_adapt
 
 # ==================================================================================
 
-include common_generic_detector_with_filter.pipe
+include ../common_generic_detector_with_filter.pipe
 
 connect from in_adapt.image
         to   detector.image
 
 # ==================================================================================
 
-process track_initializer
-  :: initialize_object_tracks
-  :track_initializer:type                      threshold
-
-  block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.010
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
-  endblock
+include ../common_default_initializer.pipe
 
 connect from in_adapt.timestamp
         to   track_initializer.timestamp
-connect from detector.detected_object_set
+connect from detector_filter.detected_object_set
         to   track_initializer.detected_object_set
 
 connect from track_initializer.object_track_set

@@ -6,57 +6,32 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity                 5
+       :capacity                               5
 
 # ============================== INPUT FRAME LIST ==================================
-process input
-  :: frame_list_input
-  :image_list_file               input_list.txt
-  :frame_time                    0.03333
-  :image_reader:type             vxl
-  :image_reader:vxl:force_byte   true
+
+include common_default_input.pipe
 
 # ================================== DETECTOR ======================================
 
-process detector
-  :: image_object_detector
-  :detector:type                 darknet
-
-  block detector:darknet
-
-    # Network config, weights, and names
-    relativepath net_config  =   models/mouss_yolo_v2_960_generic.cfg
-    relativepath weight_file =   models/mouss_yolo_v2_960_generic.weights
-    relativepath class_names =   models/mouss_yolo_v2_960_generic.lbl
-
-    # Detector parameters
-    :thresh                      0.001
-    :hier_thresh                 0.001
-    :gpu_index                   0
-
-    # Image scaling parameters
-    :resize_option               maintain_ar
-    :resize_ni                   960
-    :resize_nj                   960
-    :scale                       1.0
-
-  endblock
+include common_default_detector_with_filter.pipe
 
 process detector_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                     output/individual_detections.csv
-  :writer:type                   viame_csv
+  :file_name                                   output/individual_detections.csv
+  :writer:type                                 viame_csv
 
 connect from input.image
         to   detector.image
-connect from detector.detected_object_set
+
+connect from detector_filter.detected_object_set
         to   detector_writer.detected_object_set
 connect from input.image_file_name
         to   detector_writer.image_file_name
 
-# ================================ CORE TRACKER  ===================================
+# ================================ CORE TRACKER ====================================
 
 process detection_descriptor
  :: compute_track_descriptors
@@ -98,7 +73,7 @@ connect from input.image
         to   detection_descriptor.image
 connect from input.timestamp
         to   detection_descriptor.timestamp
-connect from detector.detected_object_set
+connect from detector_filter.detected_object_set
         to   detection_descriptor.detected_object_set
 
 # Connect inputs to tracker
@@ -133,13 +108,13 @@ connect from track_associator.object_track_set
 connect from track_associator.unused_detections
         to   track_initializer.detected_object_set
 
-# ================================= INDEX DATA  ====================================
+# ================================= OUTPUT DATA ====================================
 
 process track_writer
   :: write_object_track
-  :file_name                        output/object_tracks.csv
-  :writer:type                      viame_csv
-  :writer:stream_identifier         input_list.txt
+  :file_name                                   output/object_tracks.csv
+  :writer:type                                 viame_csv
+  :writer:stream_identifier                    input_list.txt
 
 # Connect inputs to track writer
 connect from track_initializer.object_track_set
