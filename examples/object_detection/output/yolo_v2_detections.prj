@@ -1,2 +1,0 @@
-DataSetSpecifier = ../input_image_list_small_set.txt
-TracksFile = yolo_v2_detections.csv
