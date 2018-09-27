@@ -9,6 +9,10 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} kwiver )
 
+set( VIAME_KWIVER_BUILD_DIR "${VIAME_BUILD_PREFIX}/src/kwiver-build"
+     CACHE STRING "Alternative KWIVER build dir" )
+mark_as_advanced( VIAME_KWIVER_BUILD_DIR )
+
 set( VIAME_KWIVER_DEPS fletch )
 
 if( VIAME_ENABLE_MATLAB )
@@ -43,6 +47,7 @@ ExternalProject_Add(kwiver
   DEPENDS ${VIAME_KWIVER_DEPS}
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/kwiver
+  BINARY_DIR ${VIAME_KWIVER_BUILD_DIR}
   CMAKE_GENERATOR ${gen}
   CMAKE_CACHE_ARGS
     ${VIAME_ARGS_COMMON}
@@ -106,5 +111,5 @@ if ( VIAME_FORCEBUILD )
 endif()
 
 set(VIAME_ARGS_kwiver
-  -Dkwiver_DIR:PATH=${VIAME_BUILD_PREFIX}/src/kwiver-build
+  -Dkwiver_DIR:PATH=${VIAME_KWIVER_BUILD_DIR}
   )
