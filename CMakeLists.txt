@@ -327,6 +327,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_pytorch )
   endif()
 
+  if( WIN32 )
+    include( add_project_postgres )
+  endif()
+
   # VIAME plugins, adds this project causing the below else() block to run
   if( VIAME_ENABLE_VIAME_PLUGINS )
     include( add_project_viame )
@@ -464,5 +468,32 @@ else()
     if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
       install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
     endif()
+
+    if( VIAME_ENABLE_CUDNN )
+      install( FILES ${CUDNN_LIBRARY} DESTINATION lib )
+    endif()
+
+    if( WIN32 )
+      set( PIPELINE_RUNNER_APP "pipeline_runner.exe" )
+    else()
+      set( PIPELINE_RUNNER_APP "pipeline_runner" )
+    endif()
+
+    if( VIAME_ENABLE_YOLO )
+      if( WIN32 )
+        set( DARKNET_APP "darknet.exe" )
+      else()
+        set( DARKNET_APP "darknet" )
+      endif()
+    else()
+      set( DARKNET_APP )
+    endif()
+
+    configure_file(
+      ${CMAKE_SOURCE_DIR}/cmake/viame-install-fixup.cmake.in
+      ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake
+      @ONLY
+      )
+    install( SCRIPT ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake )
   endif()
 endif()

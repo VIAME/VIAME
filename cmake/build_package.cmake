@@ -50,6 +50,11 @@ if( VIAME_ENABLE_MATLAB )
   list( APPEND FIXUP_DIRS ${MATLAB_DLL_PATH} )
 endif()
 
+if( VIAME_ENABLE_CUDNN )
+  get_filename_component( CUDNN_LIB_PATH ${CUDNN_LIBRARY} DIRECTORY )
+  list( APPEND FIXUP_DIRS ${CUDNN_LIB_PATH} )
+endif()
+
 set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "VIAME" )
 set( CPACK_PACKAGE_VENDOR              "Kitware, NOAA, and Friends" )
 set( CPACK_PACKAGE_DESCRIPTION_FILE    "${CMAKE_CURRENT_SOURCE_DIR}/README.md" )
@@ -59,7 +64,6 @@ set( CPACK_PACKAGE_VERSION_MINOR       "9" )
 set( CPACK_PACKAGE_VERSION_PATCH       "1" )
 set( CPACK_PACKAGE_INSTALL_DIRECTORY   "VIAME-${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}" )
 
-include( BundleUtilities )
 include( InstallRequiredSystemLibraries )
 
 #foreach( path_id ${FIXUP_DIRS} )
@@ -77,31 +81,19 @@ if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
   install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION bin COMPONENT System )
 endif()
 
-if( WIN32 )
-  set( PIPELINE_RUNNER_APP "${VIAME_INSTALL_DIR}/bin/pipeline_runner.exe" )
-else()
-  set( PIPELINE_RUNNER_APP "${VIAME_INSTALL_DIR}/bin/pipeline_runner" )
-endif()
-
-install( CODE "
-  include( BundleUtilities )
-  fixup_bundle( \"${PIPELINE_RUNNER_APP}\" \"${FIXUP_LIBS}\" \"${FIXUP_DIRS}\" )
-  " )
-
-if( VIAME_ENABLE_YOLO )
-  if( WIN32 )
-    set( DARKNET_APP "${VIAME_INSTALL_DIR}/bin/darknet.exe" )
-  else()
-    set( DARKNET_APP "${VIAME_INSTALL_DIR}/bin/darknet" )
-  endif()
-
-  install( CODE "
-    include( BundleUtilities )
-    fixup_bundle( \"${DARKNET_APP}\" \"\" \"${FIXUP_DIRS}\" )
-    " )
-endif()
-
 install( DIRECTORY ${VIAME_INSTALL_DIR}/ DESTINATION . )
+
+if( WIN32 )
+  install( FILES ${CMAKE_SOURCE_DIR}/cmake/setup_viame.bat.install
+    DESTINATION .
+    RENAME setup_viame.bat
+    )
+else()
+  install( FILES ${CMAKE_SOURCE_DIR}/cmake/setup_viame.sh.install
+    DESTINATION .
+    RENAME setup_viame.sh
+    )
+endif()
 
 #    if( WIN32 AND NOT UNIX )
 #      set( CPACK_PACKAGE_ICON "${CMake_SOURCE_DIR}/Utilities/Release\\\\InstallIcon.bmp")

@@ -1,0 +1,73 @@
+cmake_minimum_required( VERSION 3.11.4 )
+
+include( BundleUtilities )
+
+function( gp_item_default_embedded_path_override item path_var )
+  set( ${path_var} "@executable_path/../lib" PARENT_SCOPE )
+endfunction()
+
+function( gp_resolved_file_type_override resolved_item type_var )
+  string( TOLOWER "${CMAKE_INSTALL_PREFIX}" install_path )
+  get_filename_component( install_path "${install_path}" ABSOLUTE )
+
+  string( TOLOWER "${resolved_item}" resolved_path )
+  get_filename_component( resolved_path "${resolved_path}" ABSOLUTE )
+
+  string( LENGTH "${install_path}/" install_length )
+  string( LENGTH "${resolved_path}" resolved_length )
+
+  if( "${resolved_length}" GREATER "${install_length}" )
+    string( SUBSTRING "${resolved_path}" 0 "${install_length}" resolved_substring )
+    if( "${resolved_substring}" STREQUAL "${install_path}/" )
+      set( ${type_var} "local" PARENT_SCOPE )
+    endif()
+  endif()
+endfunction()
+
+macro( add_to_fixup_libs dir_path )
+  if( WIN32 )
+    file( GLOB FILES_TO_ADD "${dir_path}/*.dll" )
+    set( FIXUP_LIBS ${FIXUP_LIBS} ${FILES_TO_ADD} )
+  else()
+    file( GLOB FILES_TO_ADD "${dir_path}/*.so" )
+    set( FIXUP_LIBS ${FIXUP_LIBS} ${FILES_TO_ADD} )
+  endif()
+endmacro()
+
+set( FIXUP_LIBS )
+set( FIXUP_DIRS )
+
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/bin )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/include )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/plugins )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/sprokit )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/modules )
+add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/modules )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/modules/plugin_explorer )
+
+if( "@VIAME_ENABLE_MATLAB@" )
+  get_filename_component( MATLAB_LIB_PATH "@Matlab_MEX_LIBRARY@" DIRECTORY )
+  set( MATLAB_DLL_PATH "@Matlab_ROOT_DIR@/bin/win64" )
+  list( APPEND FIXUP_DIRS ${MATLAB_LIB_PATH} )
+  list( APPEND FIXUP_DIRS ${MATLAB_DLL_PATH} )
+endif()
+
+if( "@VIAME_ENABLE_CUDNN@" )
+  get_filename_component( CUDNN_LIB_PATH "@CUDNN_LIBRARY@" DIRECTORY )
+  list( APPEND FIXUP_DIRS ${CUDNN_LIB_PATH} )
+endif()
+
+fixup_bundle(
+  "${CMAKE_INSTALL_PREFIX}/bin/@PIPELINE_RUNNER_APP@"
+  "${FIXUP_LIBS}"
+  "${FIXUP_DIRS}"
+  )
+
+if( "@DARKNET_APP@" )
+  fixup_bundle(
+    "${CMAKE_INSTALL_PREFIX}/bin/@DARKNET_APP@"
+    ""
+    "${FIXUP_DIRS}"
+    )
+endif()
