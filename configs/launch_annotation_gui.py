@@ -168,7 +168,7 @@ if __name__ == "__main__" :
                       help="Predefined query directory, if present")
 
   parser.add_argument("-pipelines", dest="pipelines",
-                      default="pipelines/embedded*.pipe",
+                      default="pipelines/gui_embedded/*.pipe",
                       help="Glob pattern for runable processing pipelines")
 
   parser.add_argument("--debug", dest="debug", action="store_true",
