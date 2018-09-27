@@ -18,23 +18,8 @@ process out_adapt
 
 include ../common_mouss_detector_with_filter.pipe
 
-process nms_refiner
-  :: refine_detections
-  :refiner:type                       nms
-  
-  block refiner:nms
-    :max_overlap                      0.50
-    :nms_scale_factor                 1.0
-    :output_scale_factor              1.0
-  endblock
-
 connect from in_adapt.image
         to   detector.image
-
-connect from in_adapt.image
-        to   nms_refiner.image
-connect from detector_filter.detected_object_set
-        to   nms_refiner.detected_object_set
 
 # ==================================================================================
 
@@ -44,7 +29,7 @@ connect from in_adapt.image
         to   tracker.image
 connect from in_adapt.timestamp
         to   tracker.timestamp
-connect from nms_refiner.detected_object_set
+connect from detector_filter.detected_object_set
         to   tracker.detected_object_set
 
 connect from tracker.object_track_set
