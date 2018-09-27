@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/measurement_depth_map.pipe \
-                -s input:image_list_file=input_list.txt
+                -s input:video_filename=input_list.txt

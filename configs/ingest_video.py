@@ -168,7 +168,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   # Formulate input setting string
   if is_image_list:
-    input_setting = fset( 'input:image_list_file=' + input_name )
+    input_setting = fset( 'input:video_filename=' + input_name )
   else:
     input_setting = fset( 'input:video_filename=' + input_name )
 

@@ -9,4 +9,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # Run pipeline
 
 pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_habcam_system.pipe \
-                -s input:image_list_file=input_image_list_habcam.txt
+                -s input:video_filename=input_image_list_habcam.txt

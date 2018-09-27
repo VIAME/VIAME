@@ -21,7 +21,7 @@ echo "Generating tiles for images ($(wc -l "${IMAGE_LIST}" | cut -d' ' -f1) imag
 mkdir -p "${IMAGE_TILES_DIR}"
 
 pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_extract_chips.pipe \
-                -s input:image_list_file=${IMAGE_LIST}
+                -s input:video_filename=${IMAGE_LIST}
 
 # Perform ingest on computed chips
 bash ingest_image_folder.sh "${IMAGE_TILES_DIR}"

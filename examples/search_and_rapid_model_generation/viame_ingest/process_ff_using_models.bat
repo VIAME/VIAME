@@ -9,6 +9,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 REM Run Pipeline
 
 pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\full_frame_classifier_svm.pipe" ^
-                    -s input:image_list_file=input_list.txt
+                    -s input:video_filename=input_list.txt
 
 pause
