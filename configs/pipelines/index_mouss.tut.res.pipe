@@ -42,7 +42,7 @@ process detector_writer
 connect from downsampler.output_1
         to   detector.image
 
-connect from detector.detected_object_set
+connect from detector_filter.detected_object_set
         to   detector_writer.detected_object_set
 
 
@@ -54,7 +54,7 @@ connect from downsampler.output_1
         to   tracker.image
 connect from downsampler.timestamp
         to   tracker.timestamp
-connect from detector.detected_object_set
+connect from detector_filter.detected_object_set
         to   tracker.detected_object_set
 
 process detection_filter
@@ -69,7 +69,7 @@ process detection_filter
   
   endblock
 
-connect from detector.detected_object_set
+connect from detector_filter.detected_object_set
         to   detection_filter.detected_object_set
 
 process track_initializer_kw18
