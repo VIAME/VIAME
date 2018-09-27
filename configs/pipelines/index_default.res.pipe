@@ -39,6 +39,9 @@ connect from detector.detected_object_set
         to   detector_writer.detected_object_set
 
 # ================================= CORE TRACKER ===================================
+#
+# In this case no tracking is performed due to having single frame detections, we
+# just link them into short 1-frame tracks for database indexing purposes.
 
 include common_default_descriptor.pipe
 
@@ -49,16 +52,7 @@ connect from downsampler.timestamp
 connect from detector.detected_object_set
         to   descriptor.detected_object_set
 
-process track_initializer
-  :: initialize_object_tracks
-  :track_initializer:type                      threshold
-
-  block track_initializer:threshold:filter
-    :type                                      class_probablity_filter
-    :class_probablity_filter:threshold         0.005
-    :class_probablity_filter:keep_all_classes  true
-    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
-  endblock
+include common_default_initializer.pipe
 
 connect from downsampler.output_1
         to   track_initializer.image

@@ -1,10 +1,11 @@
 # Ingest video pipeline via caffe descriptors pipeline
 #
 # Runs a multi-node object tracking, descriptor generation, and indexing pipeline
-#
-# This pipe requires an input source node 'input' to be defined elsewhere
 
 # ================================== VIDEO INPUT ===================================
+
+include common_default_input.pipe
+
 process downsampler
   :: downsample
   :target_frame_rate                           1
@@ -32,7 +33,7 @@ process detector_writer
 connect from downsampler.output_1
         to   detector.image
 
-connect from detector.detected_object_set
+connect from detector_filter.detected_object_set
         to   detector_writer.detected_object_set
 
 # ================================= CORE TRACKER ===================================
@@ -77,7 +78,7 @@ connect from downsampler.output_1
         to   detection_descriptor.image
 connect from downsampler.timestamp
         to   detection_descriptor.timestamp
-connect from detector.detected_object_set
+connect from detector_filter.detected_object_set
         to   detection_descriptor.detected_object_set
 
 # Connect inputs to tracker

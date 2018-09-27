@@ -1,10 +1,10 @@
 # Ingest video pipeline using pytorch descriptors
 #
 # Runs a multi-node object tracking, descriptor generation, and indexing pipeline
-#
-# This pipe requires an input source node 'input' to be defined elsewhere
 
 # ================================== VIDEO INPUT ===================================
+
+include common_default_input.pipe
 
 process downsampler
   :: downsample
