@@ -7,6 +7,15 @@ import contextlib
 import itertools
 import signal
 import subprocess
+import tempfile
+import threading
+
+try:
+  # Python 3
+  import queue
+except ImportError:
+  # Python 2
+  import Queue as queue
 
 sys.dont_write_bytecode = True
 
@@ -30,8 +39,33 @@ def create_dir( dirname, logging=True ):
       print( "Creating " + dirname )
     os.makedirs( dirname )
 
-def execute_command( cmd, stdout=None, stderr=None ):
-  return subprocess.call(cmd, stdout=stdout, stderr=stderr)
+CUDA_VISIBLE_DEVICES = "CUDA_VISIBLE_DEVICES"
+
+def get_real_gpu_index(n):
+  """Return the real index for the nth GPU as a string.  This respects
+  CUDA_VISIBLE_DEVICES
+
+  """
+  cvd = os.environ.get(CUDA_VISIBLE_DEVICES)
+  if not cvd:  # Treat empty string and None the same
+    return str(n)
+  # This is an attempt to respect the fact that an invalid index hides
+  # the GPUs listed after it
+  cvd_parsed = list(itertools.takewhile(lambda i: not i.startswith('-'),
+                                        cvd.split(',')))
+  if 0 <= n < len(cvd_parsed):
+    return cvd_parsed[n]
+  else:
+    raise IndexError('Only {} visible GPUs; you asked for number {}!'
+                     .format(len(cvd_parsed), n))
+
+def execute_command( cmd, stdout=None, stderr=None, gpu=None ):
+  if gpu is None:
+    env = None
+  else:
+    env = dict(os.environ)
+    env[CUDA_VISIBLE_DEVICES] = get_real_gpu_index(gpu)
+  return subprocess.call(cmd, stdout=stdout, stderr=stderr, env=env)
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
@@ -118,9 +152,12 @@ def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
 # Process a single video
-def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='' ):
+def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='', gpu=None ):
 
-  sys.stdout.write( 'Processing: ' + input_name + "... " )
+  if gpu is None:
+    gpu = 0
+
+  sys.stdout.write( 'Processing: {} on GPU {}... '.format(os.path.basename(input_name), gpu) )
   sys.stdout.flush()
 
   # Get video name without extension and full path
@@ -156,15 +193,16 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   # Process command, possibly with logging
   if len( options.log_dir ) > 0 and not options.debug:
     with get_log_output_files(options.log_dir + '/' + basename) as kwargs:
-      res = execute_command(command, **kwargs)
+      res = execute_command(command, gpu=gpu, **kwargs)
   else:
-    res = execute_command(command)
+    res = execute_command(command, gpu=gpu)
 
   if res == 0:
-    print( 'Success' )
+    print( 'Success ({})'.format(gpu) )
   else:
-    print( 'Failure' )
-    exit_with_error( '\nIngest failed, check database/Log files, terminating.\n' )
+    print( 'Failure ({})'.format(gpu) )
+    exit_with_error( '\nIngest failed, check database/Log files for {}, terminating.\n'
+                     .format(os.path.basename(input_name)) )
 
 # Plot settings strings
 def plot_settings_list( basename ):
@@ -174,6 +212,30 @@ def plot_settings_list( basename ):
     fset( 'kwa_writer:base_filename=' + basename ),
     fset( 'kwa_writer:stream_id=' + basename ),
   ))
+
+def split_image_list(image_list_file, n, dir=None):
+  """Create and return the paths to n temp files that when interlaced
+  reproduce the original file
+
+  """
+  prefix, suffix = os.path.splitext(os.path.basename(image_list_file))
+  tempfiles = [tempfile.NamedTemporaryFile(
+    mode='w', prefix=prefix + '_' + str(i) + '_tmp', suffix=suffix,
+    dir=dir, delete=False,
+  ) for i in range(n)]
+  with open(image_list_file) as f:
+    for i, line in enumerate(f):
+      tempfiles[i % n].write(line)
+  # This is bad security practice, but keeping the files open isn't an
+  # option in general. From the docs
+  # (https://docs.python.org/2/library/tempfile.html#tempfile.NamedTemporaryFile):
+  # "Whether the name can be used to open the file a second time,
+  # while the named temporary file is still open, varies across
+  # platforms (it can be so used on Unix; it cannot on Windows NT or
+  # later)"
+  for tf in tempfiles:
+    tf.close()
+  return [tf.name for tf in tempfiles]
 
 # Main Function
 if __name__ == "__main__" :
@@ -246,6 +308,9 @@ if __name__ == "__main__" :
                       "binaries. If this is not specified, it is expected that all "
                       "viame binaries are already in our path.")
 
+  parser.add_argument("-g", "--gpu-count", default=1, type=int, metavar='N',
+                      help="Parallelize the ingest by using the first N GPUs in parallel")
+
   args = parser.parse_args()
 
   # Error checking
@@ -267,19 +332,17 @@ if __name__ == "__main__" :
   if args.init_db:
     database_tool.init()
 
-  # Identify all videos to process
-  video_list = []
-
   if process_data:
 
+    # Identify all videos to process
     if len( args.input_list ) > 0:
-      video_list.append( args.input_list )
+      video_list = split_image_list(args.input_list, args.gpu_count, 'database/')
       is_image_list = True
     elif len( args.input_dir ) > 0:
       video_list = list_files_in_dir( args.input_dir )
       is_image_list = False
     else:
-      video_list.append( args.input_video )
+      video_list = [args.input_video]
       is_image_list = False
 
     if len( video_list ) == 0:
@@ -294,12 +357,35 @@ if __name__ == "__main__" :
       create_dir( args.log_dir )
       sys.stdout.write( "\n" )
 
-    # Process videos
+    # Process videos in parallel, one per GPU
+    video_queue = queue.Queue()
     for video_name in video_list:
-      if os.path.exists( video_name ) and os.path.isfile( video_name ):
-        process_video_kwiver( video_name, args, is_image_list )
+      if os.path.isfile( video_name ):
+        video_queue.put(video_name)
       else:
         print( "Skipping " + video_name )
+
+    def process_video_thread(gpu):
+      while True:
+        try:
+          video_name = video_queue.get_nowait()
+        except queue.Empty:
+          break
+        process_video_kwiver(video_name, args, is_image_list, gpu=gpu)
+
+    threads = [threading.Thread(target=process_video_thread, args=(gpu,))
+               for gpu in range(args.gpu_count)]
+    for thread in threads:
+      thread.start()
+    for thread in threads:
+      thread.join()
+
+    if is_image_list:
+      for image_list in video_list:  # Clean up after split_image_list
+        os.unlink(image_list)
+
+    if not video_queue.empty():
+      exit_with_error("Some videos were not processed!")
 
   # Build out final analytics
   if args.detection_plots:
