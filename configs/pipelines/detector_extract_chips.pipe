@@ -13,7 +13,7 @@ include common_default_input.pipe
 
 # ================================== DETECTOR ======================================
 
-include common_default_detector.pipe
+include common_default_detector_with_filter.pipe
 
 # ================================ IMAGE CHIPPER ===================================
 

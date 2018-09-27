@@ -14,7 +14,7 @@ include common_default_input.pipe
 
 # ====================================== YOLO ======================================
 
-include common_default_detector.pipe
+include common_default_detector_with_filter.pipe
 
 process detector_csv_writer
   :: detected_object_output
