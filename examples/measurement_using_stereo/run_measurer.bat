@@ -12,6 +12,6 @@ SET SPROKIT_PYTHON_MODULES=kwiver.processes;viame.processes;camtrawl_processes
 
 REM Run Pipeline
 
-pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\measurement_head_tail.pipe"
+pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\measurement_default.gmm.tut.pipe"
 
 pause

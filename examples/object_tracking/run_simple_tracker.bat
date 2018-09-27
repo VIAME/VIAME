@@ -8,7 +8,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\tracker_simple_feat_dist.res.pipe" ^
+pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\tracker_default.sfd.res.pipe" ^
                     -s input:image_list_file=input_list.txt
 
 pause

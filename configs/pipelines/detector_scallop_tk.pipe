@@ -1,41 +1,38 @@
-# =============================================================================
+# ==================================================================================
 # global pipeline config
 #
 config _pipeline:_edge
        :capacity 5
 
-# =============================================================================
-process input
-  :: frame_list_input
-  :image_list_file                   input_list.txt
-  :frame_time                        .3333
-  :image_reader:type                 ocv
+# ==================================================================================
 
-# =============================================================================
+include common_default_input.pipe
+
+# ==================================================================================
 process detector
   :: image_object_detector
-  :detector:type                     scallop_tk
+  :detector:type                               scallop_tk
 
   block detector:scallop_tk
-    relativepath config_file =       models/scallop_tk/SYSTEM_SETTINGS
+    relativepath config_file =                 models/scallop_tk/SYSTEM_SETTINGS
   endblock
 
-# =============================================================================
-process writer
+# ==================================================================================
+process detection_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                         output/scallop_tk_detections.csv
-  :writer:type                       viame_csv
+  :file_name                                   scallop_tk_detections.csv
+  :writer:type                                 viame_csv
 
-# =============================================================================
+# ==================================================================================
 # connections
 connect from input.image
         to   detector.image
 
 connect from detector.detected_object_set
-        to   writer.detected_object_set
+        to   detection_writer.detected_object_set
 connect from input.image_file_name
-        to   writer.image_file_name
+        to   detection_writer.image_file_name
 
 # -- end of file --

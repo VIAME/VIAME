@@ -5,53 +5,46 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity                    5
+       :capacity                               5
 
 # ================================= INPUT VIDEO ====================================
-#process input
-#  :: video_input
-#  :input_name                       [video_name]
-#  :video_io:type                    vidl_ffmpeg
 
-process input
-  :: frame_list_input
-  :image_list_file                  input_list.txt
-  :frame_time                       0.03333
-  :image_reader:type                vxl
-  :image_reader:vxl:force_byte      true
-
-# ================================= DOWNSAMPLER ====================================
-
-#process downsampler
-#  :: image_object_detector
-#  :downsampler:type                core
-#  :downsampler:frame_rate          10
-
-#connect from input.image
-#        to   downsampler.image
+include common_default_input.pipe
 
 # ================================== DETECTOR ======================================
 
-include common_default_detector.pipe
-
-#connect from downsampler.image
-#        to   detector.image
-connect from input.image
-        to   detector.image
+include common_default_detector_with_filter.pipe
 
 # ================================ IMAGE CHIPPER ===================================
 
 process chipper
   :: refine_detections
-  :refiner:type                     ocv_write
-  :refiner:ocv_write:pattern        tiles/detection_%05d_%fx%f+%f+%f.png
+  :refiner:type                                ocv_write
+  :refiner:ocv_write:pattern                   tiles/detection_%05d_%fx%f+%f+%f.png
 
-#connect from downsampler.image
-#        to   chipper.image
+connect from detector_filter.detected_object_set
+        to   chipper.detected_object_set
+
+# ============================ NO DOWNSAMPLER OPTION ===============================
+
+connect from input.image
+        to   detector.image
 connect from input.image
         to   chipper.image
 
-connect from detector.detected_object_set
-        to   chipper.detected_object_set
+# ============================== DOWNSAMPLER OPTION ================================
+
+#process downsampler
+#  :: image_object_detector
+#  :downsampler:type                            core
+#  :downsampler:frame_rate                      10
+#
+#connect from input.image
+#        to   downsampler.image
+#
+#connect from downsampler.image
+#        to   detector.image
+#connect from downsampler.image
+#        to   chipper.image
 
 # -- end of file --

@@ -18,7 +18,7 @@ process out_adapt
 # ==================================================================================
 process descriptor_generator
  :: handle_descriptor_request
-  relativepath image_pipeline_file =           image_query.tut.pipe
+  relativepath image_pipeline_file =           query_image_exemplar.tut.pipe
 
 connect from in_adapt.descriptor_request
         to   descriptor_generator.descriptor_request
@@ -36,7 +36,7 @@ process database_query_handler
   :: perform_query
   :external_handler                             true
   relativepath external_pipeline_file =         smqtk_query.pipe
-  #relativepath augmentation_pipeline_file =     augment_queries.res.pipe
+  #relativepath augmentation_pipeline_file =     query_augment_image.res.pipe
   :database_folder                              $CONFIG{global:database_folder}
   :max_result_count                             10000
   :use_tracks_for_history                       true

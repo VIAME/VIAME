@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run simple display pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/display_annotation.pipe
+pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/display_annotations.pipe

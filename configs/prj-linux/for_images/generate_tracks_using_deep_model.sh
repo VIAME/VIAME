@@ -1,0 +1,13 @@
+#!/bin/bash
+
+export VIAME_INSTALL=/opt/noaa/viame
+
+source ${VIAME_INSTALL}/setup_viame.sh
+
+pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/tracker_default.tut.pipe \
+                -s input:image_list_file=input_list.txt \
+                -s detector:detector:darknet:net_config=deep_training/yolo_v2.cfg \
+                -s detector:detector:darknet:weight_file=deep_training/models/yolo_v2.backup \
+                -s detector:detector:darknet:class_names=deep_training/yolo_v2.lbl \
+                -s detector_writer:file_name=deep_detections.csv \
+                -s track_writer:file_name=deep_tracks.csv

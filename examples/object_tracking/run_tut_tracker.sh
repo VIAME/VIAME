@@ -8,5 +8,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/tracker_tracking_untrackable.pipe \
+pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/tracker_default.tut.pipe \
                 -s input:image_list_file=input_list.txt

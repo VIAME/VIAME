@@ -9,74 +9,72 @@
 #    (c) Scallop-TK - Alternative Scallop Detector (disabled by default)
 #    (d) Scallop-Finder - Alternative Scallop Detector (disabled by default)
 #
-# This pipeline assumes stereo imagery together in a composite image as input. The first
-# 'splitting' process selects either the left or right side of the image to perform
-# detection on. Replace 'split.left_image' with 'split.right_image' to perform detection
-# on the other side.
+# This pipeline assumes stereo imagery together in a composite image as input. The
+# first 'splitting' process selects either the left or right side of the image to
+# perform detection on. Replace 'split.left_image' with 'split.right_image' to
+# perform detection on the other side.
 #
-# Notes: YOLOv2, Scallop-TK, and Scallop-Finder algorithm performance still needs to
-# be compared in detail. Speed-wise YOLOv2 is fast if you have a powerful GPU, though
-# Scallop-TK is slightly more accurate. Scallop-Finder does not currently do any sand dollar
-# vs scallop classification, but it's proposal generation technique could still be compared
-# to the other two with an additional classifier built on top.
+# Notes: YOLOv2, Scallop-TK, and Scallop-Finder algorithm performance still needs
+# to be compared in detail. Speed-wise YOLOv2 is fast if you have a powerful GPU,
+# though Scallop-TK is slightly more accurate. Scallop-Finder does not currently
+# do any sand dollar vs scallop classification, but it's proposal generation
+# technique could still be compared to the other two with an additional classifier
+# built on top.
 
-# ================================= GLOBAL PROPERTIES ====================================
+# ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity                     5
+       :capacity                               5
 
-# ================================== INPUT FRAME LIST ====================================
-process input
-  :: frame_list_input
-  :image_list_file                   habcam_list.txt
-  :frame_time                        0.03333
-  :image_reader:type                 ocv
+# =============================== INPUT FRAME LIST =================================
 
-# ===================================== CROP INPUTS ======================================
+include common_default_input.pipe
+
+# ================================== CROP INPUTS ===================================
 process split
   :: split_image
-  :split_image:type                  ocv
+  :split_image:type                            ocv
 
 connect from input.image
         to   split.image
 
-# =================================== YOLO V2 SCALLOP ====================================
+# ================================ YOLO V2 SCALLOP =================================
 
 process scallop_yolo_v2_detector
   :: image_object_detector
-  :detector:type                     darknet
+  :detector:type                               darknet
 
   block detector:darknet
 
     # Network config, weights, and names
-    relativepath net_config =        models/habcam_scallop_yolo_v2.cfg
-    relativepath weight_file =       models/habcam_scallop_yolo_v2.weights
-    relativepath class_names =       models/habcam_scallop_yolo_v2.lbl
+    relativepath net_config =                  models/habcam_scallop_yolo_v2.cfg
+    relativepath weight_file =                 models/habcam_scallop_yolo_v2.weights
+    relativepath class_names =                 models/habcam_scallop_yolo_v2.lbl
 
     # Detector parameters
-    :thresh                          0.001
-    :hier_thresh                     0.001
-    :gpu_index                       0
+    :thresh                                    0.001
+    :hier_thresh                               0.001
+    :gpu_index                                 0
 
     # Image scaling parameters
-    :resize_option                   maintain_ar
-    :resize_ni                       960
-    :resize_nj                       960
-    :scale                           1.0
+    :resize_option                             maintain_ar
+    :resize_ni                                 960
+    :resize_nj                                 960
+    :scale                                     1.0
 
   endblock
 
 process scallop_yolo_v2_filter
   :: detected_object_filter
-  :filter:type                       class_probablity_filter
+  :filter:type                                 class_probablity_filter
 
   block filter:class_probablity_filter
 
     # Filter parameters
-    :threshold                       0.100
-    :keep_all_classes                false
-    :keep_classes                    live_scallop;dead_scallop
+    :threshold                                 0.100
+    :keep_all_classes                          false
+    :keep_classes                              live_scallop;dead_scallop
   
   endblock
 
@@ -84,8 +82,8 @@ process scallop_yolo_v2_csv_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                         output/scallop_yolo_v2_detections.csv
-  :writer:type                       viame_csv
+  :file_name                                   scallop_yolo_v2_detections.csv
+  :writer:type                                 viame_csv
 
 connect from split.left_image
         to   scallop_yolo_v2_detector.image
@@ -96,42 +94,42 @@ connect from scallop_yolo_v2_filter.detected_object_set
 connect from input.image_file_name
         to   scallop_yolo_v2_csv_writer.image_file_name
 
-# ==================================== YOLO V2 FISH ======================================
+# ================================= YOLO V2 FISH ===================================
 
 process fish_yolo_v2_detector
   :: image_object_detector
-  :detector:type                     darknet
+  :detector:type                               darknet
 
   block detector:darknet
 
     # Network config, weights, and names
-    relativepath net_config =        models/habcam_fish_yolo_v2.cfg
-    relativepath weight_file =       models/habcam_fish_yolo_v2.weights
-    relativepath class_names =       models/habcam_fish_yolo_v2.lbl
+    relativepath net_config =                  models/habcam_fish_yolo_v2.cfg
+    relativepath weight_file =                 models/habcam_fish_yolo_v2.weights
+    relativepath class_names =                 models/habcam_fish_yolo_v2.lbl
 
     # Detector parameters
-    :thresh                          0.001
-    :hier_thresh                     0.001
-    :gpu_index                       0
+    :thresh                                    0.001
+    :hier_thresh                               0.001
+    :gpu_index                                 0
 
     # Image scaling parameters
-    :resize_option                   maintain_ar
-    :resize_ni                       704
-    :resize_nj                       704
-    :scale                           1.0
+    :resize_option                             maintain_ar
+    :resize_ni                                 704
+    :resize_nj                                 704
+    :scale                                     1.0
 
   endblock
 
 process fish_yolo_v2_filter
   :: detected_object_filter
-  :filter:type                       class_probablity_filter
+  :filter:type                                 class_probablity_filter
 
   block filter:class_probablity_filter
 
     # Filter parameters
-    :threshold                       0.100
-    :keep_all_classes                false
-    :keep_classes                    skate;roundfish;flatfish;otherfish
+    :threshold                                 0.100
+    :keep_all_classes                          false
+    :keep_classes                              skate;roundfish;flatfish;otherfish
 
   endblock
 
@@ -139,8 +137,8 @@ process fish_yolo_v2_csv_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                         output/fish_yolo_v2_detections.csv
-  :writer:type                       viame_csv
+  :file_name                                   fish_yolo_v2_detections.csv
+  :writer:type                                 viame_csv
 
 connect from split.left_image
         to   fish_yolo_v2_detector.image
@@ -152,22 +150,22 @@ connect from input.image_file_name
         to   fish_yolo_v2_csv_writer.image_file_name
 
 
-# ====================================== SCALLOP-TK ======================================
+# =================================== SCALLOP-TK ===================================
 
 #process scallop_tk_detector
 #  :: image_object_detector
-#  :detector:type    scallop_tk
+#  :detector:type                               scallop_tk
 #
 #  block detector:scallop_tk
-#    relativepath config_file =      models/scallop_tk/SYSTEM_SETTINGS
+#    relativepath config_file =                 models/scallop_tk/SYSTEM_SETTINGS
 #  endblock
 #
 #process scallop_tk_csv_writer
 #  :: detected_object_output
 #
 #  # Type of file to output
-#  :file_name                        output/scallop_tk_detections.csv
-#  :writer:type                      viame_csv
+#  :file_name                                   scallop_tk_detections.csv
+#  :writer:type                                 viame_csv
 #
 #connect from split.left_image
 #        to   scallop_tk_detector.image
@@ -176,19 +174,19 @@ connect from input.image_file_name
 #connect from input.image_file_name
 #        to   scallop_tk_csv_writer.image_file_name
 
-# ==================================== SCALLOP-FINDER ====================================
+# ================================= SCALLOP-FINDER =================================
 
 #process lanl_detector
 #  :: image_object_detector
-#   :detector:type                    matlab
-#   :detector:matlab:program_file     ../../matlab/lanl_scallop_finder/ScallopFinder.m
+#   :detector:type                              matlab
+#   :detector:matlab:program_file  ../../matlab/lanl_scallop_finder/ScallopFinder.m
 #
 #process lanl_csv_writer
 #  :: detected_object_output
 #
 #  # Type of file to output
-#  :file_name                         output/lanl_detections.csv
-#  :writer:type                       viame_csv
+#  :file_name                                   lanl_detections.csv
+#  :writer:type                                 viame_csv
 #
 #
 #connect from split.left_image

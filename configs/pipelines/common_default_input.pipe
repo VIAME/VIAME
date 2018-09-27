@@ -1,0 +1,9 @@
+
+# ==================================================================================
+# Commonly used default input file source.
+#
+
+process input
+  :: video_input
+  :video_filename                              [INSERT_ME]
+  :video_reader:type                           vidl_ffmpeg

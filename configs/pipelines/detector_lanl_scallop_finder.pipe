@@ -1,28 +1,25 @@
-# =============================================================================
-process input
-  :: frame_list_input
-  :image_list_file     input_list.txt
-  :frame_time          .3333
-  :image_reader:type   ocv
-
-# =============================================================================
-process detector
-  :: image_object_detector
-   :detector:type   matlab
-   :detector:matlab:program_file ../../matlab/lanl_scallop_finder/ScallopFinder.m
-
-# =============================================================================
-process draw
-  :: draw_detected_object_boxes
-  :default_line_thickness 3
-
-# =============================================================================
+# ==================================================================================
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 1
+       :capacity                               1
 
-# =============================================================================
+# ==================================================================================
+
+include common_default_input.pipe
+
+# ==================================================================================
+process detector
+  :: image_object_detector
+   :detector:type                              matlab
+   :detector:matlab:program_file  ../../matlab/lanl_scallop_finder/ScallopFinder.m
+
+# ==================================================================================
+process draw
+  :: draw_detected_object_boxes
+  :default_line_thickness                      3
+
+# ==================================================================================
 # connections
 
 # Connect detector

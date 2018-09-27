@@ -2,67 +2,60 @@
 #
 # Runs pre-trained object detector followed by SVM class filters.
 
-# ========================= GLOBAL PROPERTIES ============================
+# ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
 #
 config _pipeline:_edge
-  :capacity 5
+  :capacity                                    5
 
 config _scheduler
-  :type pythread_per_process
+  :type                                        pythread_per_process
 
-# ========================== INPUT FRAME LIST ============================
-process input
-  :: frame_list_input
-  :image_list_file                     input_list.txt
-  :frame_time                          0.03333
-  :image_reader:type                   vxl
-  :image_reader:vxl:force_byte         true
+# =============================== INPUT FRAME LIST =================================
 
-# =============================== YOLO v2 ================================
+include common_default_input.pipe
+
+# ================================== DESCRIPTOR ====================================
 
 process detector
   :: image_object_detector
-  :detector:type                       full_frame
-  :detector:full_frame:detection_type  generic_object_proposal
+  :detector:type                               full_frame
+  :detector:full_frame:detection_type          generic_object_proposal
 
-process descriptor
-  :: resnet_descriptors
-  :resnet_model_input_size             224
-  :resnet_batch_size                   32
-  :gpu_list                            0
-  relativepath resnet_model_path =     models/pytorch-resnet50.pt
-
-process svm_refiner
-  :: refine_detections
-  :refiner:type                        svm_refine
-  :refiner:svm_refine:model_dir        category_models
-
-process refined_csv_writer
-  :: detected_object_output
-
-  # Type of file to output
-  :file_name                           svm_detections.csv
-  :writer:type                         viame_csv
+include common_default_descriptor.pipe
 
 connect from input.image
         to   detector.image
+
 connect from input.image
         to   descriptor.image
-connect from input.image
-        to   svm_refiner.image
-
 connect from input.timestamp
         to   descriptor.timestamp
-
-connect from input.image_file_name
-        to   refined_csv_writer.image_file_name
-
 connect from detector.detected_object_set
         to   descriptor.detected_object_set
+
+# ================================== CLASSIFIER ====================================
+
+process svm_refiner
+  :: refine_detections
+  :refiner:type                                svm_refine
+  :refiner:svm_refine:model_dir                category_models
+
+process detection_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   computed_detections.csv
+  :writer:type                                 viame_csv
+
+connect from input.image
+        to   svm_refiner.image
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
+
+connect from input.image_file_name
+        to   detection_writer.image_file_name
 connect from svm_refiner.detected_object_set
-        to   refined_csv_writer.detected_object_set
+        to   detection_writer.detected_object_set
 
 # -- end of file --

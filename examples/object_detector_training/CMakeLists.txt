@@ -17,23 +17,17 @@ if( VIAME_ENABLE_YOLO )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_yolo_v2_habcam.bat
-         train_yolo_v2_viame_csv.bat
-         train_yolo_v2_kw18.bat )
+         train_yolo_habcam.bat
+         train_yolo_viame_csv.bat
+         train_yolo_kw18.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_yolo_v2_habcam.sh
-         train_yolo_v2_viame_csv.sh
-         train_yolo_v2_kw18.sh )
+         train_yolo_habcam.sh
+         train_yolo_viame_csv.sh
+         train_yolo_kw18.sh )
   endif()
 endif()
-
-#if( VIAME_ENABLE_SCALLOP_TK )
-#  set( EXAMPLE_INSTALL_FILES
-#       ${EXAMPLE_INSTALL_FILES}
-#       scallop_tk_detector.pipe )
-#endif()
 
 ###
 # Install pipelines to example directory

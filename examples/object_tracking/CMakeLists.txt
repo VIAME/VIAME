@@ -37,5 +37,3 @@ endif()
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/object_tracking )
-install( FILES       output/view_tracks.prj
-         DESTINATION examples/object_tracking/output )

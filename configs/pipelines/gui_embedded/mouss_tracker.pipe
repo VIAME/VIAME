@@ -1,0 +1,53 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+config _scheduler
+   :type                                       pythread_per_process
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+include ../common_mouss_detector_with_filter.pipe
+
+process nms_refiner
+  :: refine_detections
+  :refiner:type                       nms
+  
+  block refiner:nms
+    :max_overlap                      0.50
+    :nms_scale_factor                 1.0
+    :output_scale_factor              1.0
+  endblock
+
+connect from in_adapt.image
+        to   detector.image
+
+connect from in_adapt.image
+        to   nms_refiner.image
+connect from detector_filter.detected_object_set
+        to   nms_refiner.detected_object_set
+
+# ==================================================================================
+
+include ../common_default_tracker.pipe
+
+connect from in_adapt.image
+        to   tracker.image
+connect from in_adapt.timestamp
+        to   tracker.timestamp
+connect from nms_refiner.detected_object_set
+        to   tracker.detected_object_set
+
+connect from tracker.object_track_set
+        to   out_adapt.object_track_set
+
+# -- end of file --

@@ -7,11 +7,8 @@ config _pipeline:_edge
        :capacity                               5
 
 # ================================= INPUT VIDEO ====================================
-process input
-  :: frame_list_input
-  :image_list_file                             input_list.txt
-  :frame_time                                  0.03333
-  :image_reader:type                           vxl
+
+include common_default_input.pipe
 
 # =================================== DEBAYER ======================================
 

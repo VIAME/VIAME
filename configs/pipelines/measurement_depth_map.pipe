@@ -8,13 +8,7 @@ config _pipeline:_edge
 
 # =============================== INPUT FRAME LIST =================================
 
-process input
-  :: frame_list_input
-  :image_list_file                             input_list.txt
-  :frame_time                                  1
-  :image_reader:type                           vxl
-  :image_reader:vxl:force_byte                 true
-  :image_reader:vxl:force_grayscale            true
+include common_default_input.pipe
 
 # ================================== CROP INPUTS ===================================
 process split
@@ -36,7 +30,6 @@ connect from split.left_image
         to   depth_map.left_image
 connect from split.right_image
         to   depth_map.right_image
-
 
 process filter
   :: image_filter

@@ -1,43 +1,40 @@
-# =============================================================================
-process input
-  :: frame_list_input
-  :image_list_file     input_list.txt
-  :frame_time          .3333
-  :image_reader:type   ocv
+# ==================================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               1
 
-# =============================================================================
+# ==================================================================================
+
+include common_default_input.pipe
+
+# ==================================================================================
 process detector
   :: image_object_detector
-   :detector:type   matlab
-   :detector:matlab:program_file ../../matlab/camtrawl/camtrawl_detector.m
+   :detector:type                              matlab
+   :detector:matlab:program_file         ../../matlab/camtrawl/camtrawl_detector.m
 
    # Specify initial config for the detector
-   :detector:matlab:config:min_aspect       3.5
-   :detector:matlab:config:max_aspect       7.5
-   :detector:matlab:config:min_size         2000
-   :detector:matlab:config:ROI              [12,12,412*2-24,309*2-24]
-   :detector:matlab:config:factor           2
-   :detector:matlab:config:num_frames       30
-   :detector:matlab:config:init_var         900
+   :detector:matlab:config:min_aspect          3.5
+   :detector:matlab:config:max_aspect          7.5
+   :detector:matlab:config:min_size            2000
+   :detector:matlab:config:ROI                 [12,12,412*2-24,309*2-24]
+   :detector:matlab:config:factor              2
+   :detector:matlab:config:num_frames          30
+   :detector:matlab:config:init_var            900
 
-# =============================================================================
+# ==================================================================================
 #process classifier
 #  :: refine_detections
 #   :refiner:type                               uw_predictor_classifier
 #   :refiner:uw_predictor_classifier:model_file Model_SVM.xml
 
-# =============================================================================
+# ==================================================================================
 #process draw
 #  :: draw_detected_object_boxes
-#  :default_line_thickness 3
+#  :default_line_thickness                     3
 
-# =============================================================================
-# global pipeline config
-#
-config _pipeline:_edge
-       :capacity 1
-
-# =============================================================================
+# ==================================================================================
 # connections
 
 # Connect detector

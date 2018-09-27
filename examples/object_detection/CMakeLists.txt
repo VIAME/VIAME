@@ -57,5 +57,3 @@ endif()
 ##
 install( FILES       ${EXAMPLE_INSTALL_FILES}
          DESTINATION examples/object_detection )
-install( FILES       output/yolo_v2_detections.prj
-         DESTINATION examples/object_detection/output )

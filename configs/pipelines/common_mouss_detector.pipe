@@ -1,0 +1,30 @@
+
+# ==================================================================================
+# Commonly used mouss detector definition.
+#
+# This serves as an alternative to the 'default' detector in the system.
+
+process detector
+  :: image_object_detector
+  :detector:type                        darknet
+
+  block detector:darknet
+
+    # Network config, weights, and names
+    relativepath net_config  =          models/mouss_yolo_v2_704_species.cfg
+    relativepath weight_file =          models/mouss_yolo_v2_704_species.weights
+    relativepath class_names =          models/mouss_yolo_v2_704_species.lbl
+
+    # Detector parameters
+    :thresh                             0.001
+    :hier_thresh                        0.001
+    :gpu_index                          0
+
+    # Image scaling parameters
+    :resize_option                      chip_and_original
+    :resize_ni                          704
+    :resize_nj                          704
+    :scale                              1.25
+    :chip_step                          650
+
+  endblock

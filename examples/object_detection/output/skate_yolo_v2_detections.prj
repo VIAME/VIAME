@@ -1,2 +1,0 @@
-DataSetSpecifier = ../input_image_list_habcam.txt
-TracksFile = skate_yolo_v2_detections.csv
