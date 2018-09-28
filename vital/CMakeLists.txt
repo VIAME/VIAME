@@ -68,6 +68,7 @@ set( vital_public_headers
   attribute_set.h
   exceptions.h
   iterator.h
+  math_constants.h
 
   io/camera_from_metadata.h
   io/camera_io.h
@@ -111,6 +112,7 @@ set( vital_public_headers
   types/image_container.h
   types/landmark.h
   types/landmark_map.h
+  types/local_geo_cs.h
   types/match_set.h
   types/matrix.h
   types/mesh.h
@@ -122,6 +124,7 @@ set( vital_public_headers
   types/polygon.h
   types/query_plan.h
   types/rotation.h
+  types/sfm_constraints.h
   types/similarity.h
   types/timestamp.h
   types/timestamp_config.h
@@ -170,6 +173,7 @@ set( vital_sources
   types/homography_f2w.cxx
   types/image.cxx
   types/landmark.cxx
+  types/local_geo_cs.cxx
   types/mesh.cxx
   types/metadata.cxx
   types/metadata_traits.cxx
@@ -177,6 +181,7 @@ set( vital_sources
   types/polygon.cxx
   types/query_plan.cxx
   types/rotation.cxx
+  types/sfm_constraints.cxx
   types/similarity.cxx
   types/timestamp.cxx
   types/track.cxx

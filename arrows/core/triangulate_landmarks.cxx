@@ -42,13 +42,7 @@
 #include <arrows/core/triangulate.h>
 #include <arrows/core/metrics.h>
 
-#ifndef M_PI
- // Source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
-#define M_PI 3.141592653589793238462643383279502884197169399375105820974944592307816406
-#endif
-
-#define DEG_TO_RAD (M_PI/180.0)
-#define RAD_TO_DEG (180.0/M_PI)
+#include <vital/math_constants.h>
 
 namespace kwiver {
 namespace arrows {
@@ -381,7 +375,7 @@ triangulate_landmarks
 
 
   //minimum triangulation angle
-  double thresh_triang_cos_ang = cos(DEG_TO_RAD * d_->m_min_angle_deg);
+  double thresh_triang_cos_ang = cos(vital::deg_to_rad * d_->m_min_angle_deg);
 
   std::vector<vital::simple_camera_perspective> lm_cams;
   std::vector<vital::simple_camera_rpc> lm_cams_rpc;
