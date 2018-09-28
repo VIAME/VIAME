@@ -56,13 +56,21 @@ namespace kwiver {
 
 //                 (config-key, value-type, default-value, description )
 create_config_trait( video_reader, std::string, "", "Name of video input algorithm. "
-  " Name of the video reader algorithm plugin is specified as video_reader:type = <algo-name>" );
+                     "Name of the video reader algorithm plugin is specified as "
+                     "video_reader:type = <algo-name>" );
+
 create_config_trait( video_filename, std::string, "", "Name of video file." );
+
 create_config_trait( frame_time, double, "0.03333333",
                      "Inter frame time in seconds. "
                      "If the input video stream does not supply frame times, "
                      "this value is used to create a default timestamp. "
                      "If the video stream has frame times, then those are used." );
+
+create_config_trait( no_path_in_name, bool, "true",
+                     "Set to true if the output file path should not contain a "
+                     "full path to the image or video file and just contain the "
+                     "file name for the image." );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -76,6 +84,7 @@ public:
   std::string                           m_config_video_filename;
   kwiver::vital::time_us_t              m_config_frame_time;
   bool                                  m_has_config_frame_time;
+  bool                                  m_no_path_in_name;
 
   kwiver::vital::algo::video_input_sptr m_video_reader;
   kwiver::vital::algorithm_capabilities m_video_traits;
@@ -116,6 +125,7 @@ void video_input_process
   d->m_config_video_filename = config_value_using_trait( video_filename );
   d->m_config_frame_time = static_cast<vital::time_us_t>(
                                config_value_using_trait( frame_time ) * 1e6); // in usec
+  d->m_no_path_in_name = config_value_using_trait( no_path_in_name );
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
   if( algo_config->has_value( "frame_time" ) )
@@ -237,12 +247,24 @@ void video_input_process
       }
     }
 
+    kwiver::vital::path_t filename = d->m_video_reader->filename();
+
+    if ( d->m_no_path_in_name )
+    {
+      const size_t last_slash_idx = filename.find_last_of("\\/");
+      if ( std::string::npos != last_slash_idx )
+      {
+        filename.erase( 0, last_slash_idx + 1 );
+      }
+    }
+
     if( ts.get_frame() < 4294967000 && ts.get_frame() > 0 )
     {
       push_to_port_using_trait( timestamp, ts );
       push_to_port_using_trait( image, frame );
       push_to_port_using_trait( metadata, metadata );
       push_to_port_using_trait( frame_rate, d->m_video_reader->frame_rate() );
+      push_to_port_using_trait( file_name, filename );
     }
   }
   else
@@ -257,6 +279,7 @@ void video_input_process
     push_datum_to_port_using_trait( image, dat );
     push_datum_to_port_using_trait( metadata, dat );
     push_datum_to_port_using_trait( frame_rate, dat );
+    push_datum_to_port_using_trait( file_name, dat );
   }
 }
 
@@ -272,6 +295,7 @@ void video_input_process
   declare_output_port_using_trait( image, optional );
   declare_output_port_using_trait( metadata, optional );
   declare_output_port_using_trait( frame_rate, optional );
+  declare_output_port_using_trait( file_name, optional );
 }
 
 
@@ -279,6 +303,7 @@ void video_input_process
 void video_input_process
 ::make_config()
 {
+  declare_config_using_trait( no_path_in_name );
   declare_config_using_trait( video_reader );
   declare_config_using_trait( video_filename );
   declare_config_using_trait( frame_time );
@@ -289,6 +314,7 @@ void video_input_process
 video_input_process::priv
 ::priv()
   : m_has_config_frame_time( false ),
+    m_no_path_in_name( true ),
     m_frame_number( 1 ),
     m_frame_time( 0 )
 {
