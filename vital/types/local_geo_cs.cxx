@@ -69,28 +69,6 @@ local_geo_cs
   geo_origin_ = geo_point(origin.location(crs), crs);
 }
 
-vital::matrix_3x3d rotation_zyx(double yaw, double pitch, double roll)
-{
-  vital::matrix_3x3d Rr;
-  vital::matrix_3x3d Rp;
-  vital::matrix_3x3d Ry;
-  // about x
-  Rr << 1, 0, 0,
-    0, cos(roll), -sin(roll),
-    0, sin(roll), cos(roll);
-
-  // about y
-  Rp << cos(pitch), 0, sin(pitch),
-    0, 1, 0,
-    -sin(pitch), 0, cos(pitch);
-
-  // about z
-  Ry << cos(yaw), -sin(yaw), 0,
-    sin(yaw), cos(yaw), 0,
-    0, 0, 1;
-  return Ry*Rp*Rr;
-}
-
 /// Use the pose data provided by metadata to update camera pose
 bool
 local_geo_cs
