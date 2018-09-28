@@ -53,7 +53,7 @@ connect from input.image
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
 
-connect from input.image_file_name
+connect from input.file_name
         to   detection_writer.image_file_name
 connect from svm_refiner.detected_object_set
         to   detection_writer.detected_object_set

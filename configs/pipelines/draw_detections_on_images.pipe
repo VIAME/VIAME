@@ -23,7 +23,7 @@ process writer
 # ==================================================================================
 connect from input.image
         to   draw_box.image
-connect from input.image_file_name
+connect from input.file_name
         to   read_annotations.image_file_name
 connect from read_annotations.detected_object_set
         to   draw_box.detected_object_set

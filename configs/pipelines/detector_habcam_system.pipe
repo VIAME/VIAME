@@ -91,7 +91,7 @@ connect from scallop_yolo_v2_detector.detected_object_set
         to   scallop_yolo_v2_filter.detected_object_set
 connect from scallop_yolo_v2_filter.detected_object_set
         to   scallop_yolo_v2_csv_writer.detected_object_set
-connect from input.image_file_name
+connect from input.file_name
         to   scallop_yolo_v2_csv_writer.image_file_name
 
 # ================================= YOLO V2 FISH ===================================
@@ -146,7 +146,7 @@ connect from fish_yolo_v2_detector.detected_object_set
         to   fish_yolo_v2_filter.detected_object_set
 connect from fish_yolo_v2_filter.detected_object_set
         to   fish_yolo_v2_csv_writer.detected_object_set
-connect from input.image_file_name
+connect from input.file_name
         to   fish_yolo_v2_csv_writer.image_file_name
 
 
@@ -171,7 +171,7 @@ connect from input.image_file_name
 #        to   scallop_tk_detector.image
 #connect from scallop_tk_detector.detected_object_set
 #        to   scallop_tk_csv_writer.detected_object_set
-#connect from input.image_file_name
+#connect from input.file_name
 #        to   scallop_tk_csv_writer.image_file_name
 
 # ================================= SCALLOP-FINDER =================================
@@ -193,7 +193,7 @@ connect from input.image_file_name
 #        to   lanl_detector.image
 #connect from lanl_detector.detected_object_set
 #        to   lanl_csv_writer.detected_object_set
-#connect from input.image_file_name
+#connect from input.file_name
 #        to   lanl_csv_writer.image_file_name
 
 # -- end of file --

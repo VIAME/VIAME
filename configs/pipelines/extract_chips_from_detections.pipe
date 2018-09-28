@@ -28,7 +28,7 @@ process chipper
 
 # ==================================================================================
 
-connect from input.image_file_name
+connect from input.file_name
         to   read_annotations.image_file_name
 connect from input.image
         to   chipper.image
