@@ -41,7 +41,7 @@ process svm_refiner
   :refiner:type                                svm_refine
   :refiner:svm_refine:model_dir                category_models
 
-process detection_writer
+process detector_writer
   :: detected_object_output
 
   # Type of file to output
@@ -54,8 +54,8 @@ connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
 
 connect from input.file_name
-        to   detection_writer.image_file_name
+        to   detector_writer.image_file_name
 connect from svm_refiner.detected_object_set
-        to   detection_writer.detected_object_set
+        to   detector_writer.detected_object_set
 
 # -- end of file --

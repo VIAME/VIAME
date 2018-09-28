@@ -1,5 +1,14 @@
 @echo off
 
-echo Script not yet implemented on Windows (but will be shortly)
+REM Setup VIAME Paths (no need to set if installed to registry or already set up)
+
+SET VIAME_INSTALL=C:\Program Files\VIAME
+
+CALL "%VIAME_INSTALL%\setup_viame.bat"
+
+REM Run Pipeline
+
+pipeline_runner.exe -p "%VIAME_INSTALL%\configs\pipelines\tracker_use_svm_models.tut.pipe" ^
+                    -s input:video_filename=input_list.txt
 
 pause

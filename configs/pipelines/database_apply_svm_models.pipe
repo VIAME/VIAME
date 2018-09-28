@@ -43,7 +43,7 @@ process nms_refiner
     :output_scale_factor                     1.1
   endblock
 
-process detection_writer
+process detector_writer
   :: detected_object_output
 
   # Type of file to output
@@ -61,6 +61,6 @@ connect from unwrapper.detected_object_set
 connect from svm_refiner.detected_object_set
         to   nms_refiner.detected_object_set
 connect from nms_refiner.detected_object_set
-        to   detection_writer.detected_object_set
+        to   detector_writer.detected_object_set
 
 # -- end of file --
