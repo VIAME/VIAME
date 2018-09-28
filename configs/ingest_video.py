@@ -372,6 +372,7 @@ if __name__ == "__main__" :
 
     threads = [threading.Thread(target=process_video_thread, args=(gpu,))
                for gpu in range(args.gpu_count)]
+
     for thread in threads:
       thread.start()
     for thread in threads:
