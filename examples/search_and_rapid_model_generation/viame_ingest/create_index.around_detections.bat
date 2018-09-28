@@ -8,6 +8,8 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
+REM To change this script to process a directory of videos, as opposed to images change "-l input_list.txt" to "-d videos" if videos is a directory with videos
+
 python.exe "%VIAME_INSTALL%\configs\ingest_video.py" --init -l input_list.txt -p pipelines\index_default.res.pipe --build-index --ball-tree -install "%VIAME_INSTALL%"
 
 pause
