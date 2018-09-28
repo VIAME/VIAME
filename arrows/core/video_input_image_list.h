@@ -93,6 +93,7 @@ public:
   virtual bool good() const;
   virtual bool seekable() const;
   virtual size_t num_frames() const;
+  virtual kwiver::vital::path_t filename() const;
 
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 );
