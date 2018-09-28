@@ -104,9 +104,6 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
 
                 fig, ax = video_plots[filename]
                 ax.plot(x, y, label=s)
-                ax.locator_params(axis='x', nbins=7)
-                ax.set_ylim(ymin=0)
-                ax.set_xlim(xmin=0)
 
         sorted_frames.sort(key=lambda line: line[2], reverse=True)
         with open(os.path.join(directory, s + ".sorted.output.csv"), "w") as outfile:
@@ -116,6 +113,9 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
 
     for filename in video_plots:
         fig, ax = video_plots[filename]
+        ax.set_ylim(ymin=0)
+        ax.set_xlim(xmin=0)
+        ax.locator_params(axis='x', nbins=7)
         ax.legend()
         fig.savefig(os.path.join(directory, filename + ".png"))
 
