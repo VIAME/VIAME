@@ -3,7 +3,7 @@
 export VIAME_INSTALL=/opt/noaa/viame
 
 export VIDEO_NAME=[video_name]
-export FRAME_RATE=10
+export FRAME_RATE=5
 export OUTPUT_DIR=images
 
 source ${VIAME_INSTALL}/setup_viame.sh
