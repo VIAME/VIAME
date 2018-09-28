@@ -309,7 +309,7 @@ public:
    *
    * \return The time stamp of the current frame.
    */
-  virtual kwiver::vital::timestamp frame_timestamp( ) const = 0;
+  virtual kwiver::vital::timestamp frame_timestamp() const = 0;
 
 
   /**
@@ -326,7 +326,7 @@ public:
    *
    * \throws video_stream_exception when there is an error in the video stream.
    */
-  virtual kwiver::vital::image_container_sptr frame_image( ) = 0;
+  virtual kwiver::vital::image_container_sptr frame_image() = 0;
 
 
   /**
@@ -371,6 +371,16 @@ public:
    * \return Frame rate.
    */
   virtual double frame_rate();
+
+
+  /**
+   * \brief Get filename for the current video or video frame.
+   *
+   * If filename is not supported by the implementation, returns an empty string.
+   *
+   * \return Current filename.
+   */
+  virtual kwiver::vital::path_t filename() const;
 
 
   /**

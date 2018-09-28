@@ -76,6 +76,15 @@ video_input
 
 
 // ------------------------------------------------------------------
+kwiver::vital::path_t
+video_input
+::filename() const
+{
+  return "";
+}
+
+
+// ------------------------------------------------------------------
 algorithm_capabilities const&
 video_input
 ::get_implementation_capabilities() const
