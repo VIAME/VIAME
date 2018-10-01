@@ -201,7 +201,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     print( 'Success ({})'.format(gpu) )
   else:
     print( 'Failure ({})'.format(gpu) )
-    exit_with_error( '\nIngest failed, check database/Log files for {}, terminating.\n'
+    exit_with_error( '\nIngest failed, check database/Logs for {}, terminating.\n'
                      .format(os.path.basename(input_name)) )
 
 # Plot settings strings
