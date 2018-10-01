@@ -170,7 +170,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   input_setting = fset( 'input:video_filename=' + input_name )
 
   if not is_image_list:
-    input_setting = input_setting + fset( 'input:reader:type=vidl_ffmpeg' )
+    input_setting = input_setting + fset( 'input:video_reader:type=vidl_ffmpeg' )
 
   # Formulate command
   command = (get_pipeline_cmd( options.debug ) +
