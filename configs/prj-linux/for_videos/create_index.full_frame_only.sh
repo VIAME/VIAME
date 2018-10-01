@@ -13,8 +13,8 @@ export MAX_IMAGE_HEIGHT=1000
 source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/ingest_video.py --init \
-  -d ${INPUT_DIRECTORY} \
+  -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
   -p pipelines/index_full_frame.res.pipe \
-  --build-index --ball-tree -frate ${FRAME_RATE} \
   -archive-width ${MAX_IMAGE_WIDTH} -archive-height ${MAX_IMAGE_HEIGHT} \
+  --build-index --ball-tree \
   -install ${VIAME_INSTALL}

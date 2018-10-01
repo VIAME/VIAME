@@ -11,7 +11,7 @@ export FRAME_RATE=5
 source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/ingest_video.py --init \
-  -d ${INPUT_DIRECTORY} \
+  -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
   -p pipelines/index_default.tut.res.pipe \
-  --build-index --ball-tree -frate ${FRAME_RATE} \
+  --build-index --ball-tree \
   -install ${VIAME_INSTALL}

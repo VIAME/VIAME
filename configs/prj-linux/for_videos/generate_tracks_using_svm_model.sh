@@ -10,4 +10,6 @@ export FRAME_RATE=5
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-DO ME
+python ${VIAME_INSTALL}/configs/ingest_video.py \
+  -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
+  -p pipelines/tracker_use_svm_models.tut.pipe
