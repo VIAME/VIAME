@@ -43,6 +43,8 @@ public:
   priv()
   : nms_scale_factor( 1.0 ),
     output_scale_factor( 1.0 ),
+    max_scale_difference( 4.0 ),
+    min_scale_difference( 0.25 ),
     max_overlap( 0.5 )
   {
   }
@@ -55,6 +57,8 @@ public:
   /// Parameters
   double nms_scale_factor;
   double output_scale_factor;
+  double max_scale_difference;
+  double min_scale_difference;
   double max_overlap;
 };
 
@@ -87,6 +91,10 @@ refine_detections_nms
   config->set_value( "output_scale_factor", d_->output_scale_factor,
                      "The factor by which the refined final detections are scaled." );
 
+  config->set_value( "max_scale_difference", d_->max_scale_difference,
+                     "If the ratio of the areas of two boxes are different by more "
+                     "than this amount [1.0,inf], then don't suppress them." );
+
   config->set_value( "max_overlap", d_->max_overlap,
                      "The maximum percent a detection can overlap with another "
                      "before it's discarded. Range [0.0,1.0]." );
@@ -105,7 +113,21 @@ refine_detections_nms
 
   d_->nms_scale_factor = config->get_value<double>( "nms_scale_factor" );
   d_->output_scale_factor = config->get_value<double>( "output_scale_factor" );
+  d_->max_scale_difference = config->get_value<double>( "max_scale_difference" );
   d_->max_overlap = config->get_value<double>( "max_overlap" );
+
+  if( d_->max_scale_difference != 0 )
+  {
+    if( d_->max_scale_difference < 1.0 )
+    {
+      d_->min_scale_difference = d_->max_scale_difference;
+      d_->max_scale_difference = 1.0 / d_->min_scale_difference;
+    }
+    else
+    {
+      d_->min_scale_difference = 1.0 / d_->max_scale_difference;
+    }
+  }
 }
 
 /// Check that the algorithm's currently configuration is valid
@@ -147,8 +169,13 @@ refine_detections_nms
       if(overlap.min_x() < overlap.max_x() && overlap.min_y() < overlap.max_y() &&
          (overlap.area() / std::min(det_bbox.area(), res_bbox.area())) > d_->max_overlap)
       {
-        should_add = false;
-        break;
+        double area_ratio = det_bbox.area() / res_bbox.area();
+
+        if(area_ratio >= d_->min_scale_difference && area_ratio <= d_->max_scale_difference)
+        {
+          should_add = false;
+          break;
+        }
       }
     }
     if(should_add) // It doesn't overlap too much, add it in
