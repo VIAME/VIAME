@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
 
+# Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
 pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/database_apply_svm_models.pipe \

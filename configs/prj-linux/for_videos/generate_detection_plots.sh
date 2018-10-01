@@ -1,14 +1,20 @@
-#!/bin/sh
+#!/bin/bash
 
+# Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
-export VIDEO_DIRECTORY=videos
-export SPECIES_LIST=pristipomoides_auricilla,pristipomoides_zonatus,pristipomoides_sieboldii,etelis_carbunculus,etelis_coruscans,naso,aphareus_rutilans,seriola,hyporthodus_quernus,caranx_melampygus
 
+# Processing options
+export INPUT_DIRECTORY=videos
+export OBJECT_LIST=pristipomoides_auricilla,pristipomoides_zonatus,pristipomoides_sieboldii,etelis_carbunculus,etelis_coruscans,naso,aphareus_rutilans,seriola,hyporthodus_quernus,caranx_melampygus
+export FRAME_RATE=5
+export DETECTION_THRESHOLD=0.25
+
+# Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-# Generate plots and video ingests
-python ${VIAME_INSTALL}/configs/ingest_video.py --init -d ${VIDEO_DIRECTORY} \
+python ${VIAME_INSTALL}/configs/ingest_video.py --init \
+  -d ${INPUT_DIRECTORY} \
   --detection-plots \
-  -species ${SPECIES_LIST} \
-  -threshold 0.25 -frate 2 -smooth 2 \
+  -species ${OBJECT_LIST} \
+  -threshold ${DETECTION_THRESHOLD} -frate ${FRAME_RATE} -smooth 2 \
   -p ${VIAME_INSTALL}/configs/pipelines/index_mouss.no_desc.pipe

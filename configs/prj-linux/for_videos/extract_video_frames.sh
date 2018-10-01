@@ -1,11 +1,16 @@
 #!/bin/bash
 
+# Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
 
+# Processing options
 export VIDEO_NAME=[video_name]
 export FRAME_RATE=5
+export START_TIME=00:00:00.00
+export END_TIME=00:05:00.00
 export OUTPUT_DIR=images
 
+# Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
 mkdir -p ${OUTPUT_DIR}
