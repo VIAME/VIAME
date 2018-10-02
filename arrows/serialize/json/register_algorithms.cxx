@@ -42,6 +42,7 @@
 #include "detected_object_set.h"
 #include "timestamp.h"
 #include "image.h"
+#include "string.h"
 
 namespace kwiver {
 namespace arrows {
@@ -108,7 +109,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::json::timestamp >( vpm );
   register_algorithm< kwiver::arrows::serialize::json::image >( vpm );
   register_algorithm< kwiver::arrows::serialize::json::image >( vpm, "kwiver:mask" );
-
+  register_algorithm< kwiver::arrows::serialize::json::string >( vpm );
   vpm.mark_module_as_loaded( module_name );
 }
 
