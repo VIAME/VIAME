@@ -11,6 +11,7 @@ set( proto_files
   detected_object_set.proto
   timestamp.proto
   image.proto
+  string.proto
   )
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})

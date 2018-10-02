@@ -41,7 +41,7 @@
 #include <arrows/serialize/protobuf/detected_object_set.h>
 #include <arrows/serialize/protobuf/timestamp.h>
 #include <arrows/serialize/protobuf/image.h>
-
+#include <arrows/serialize/protobuf/string.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/types/detected_object.h>
@@ -264,4 +264,23 @@ TEST( serialize, image)
 
   // Check the content of images
   EXPECT_TRUE ( kwiver::vital::equal_content( img_container->get_image(), img_dser->get_image()) );
+}
+
+// ----------------------------------------------------------------------------
+TEST (serialize, string)
+{
+  kasp::string str_ser;
+  std::string str("Test string");
+
+  kwiver::vital::any str_any(str);
+
+  auto mes = str_ser.serialize( str_any );
+  auto dser = str_ser.deserialize( *mes );
+
+  std::string str_dser =
+    kwiver::vital::any_cast< std::string > ( dser );
+
+  // std::cout << tstamp_dser.pretty_print() << std::endl;
+
+  EXPECT_EQ (str, str_dser);
 }
