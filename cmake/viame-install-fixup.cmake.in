@@ -3,7 +3,11 @@ cmake_minimum_required( VERSION 3.11.4 )
 include( BundleUtilities )
 
 function( gp_item_default_embedded_path_override item path_var )
-  set( ${path_var} "@executable_path/../lib" PARENT_SCOPE )
+  if( WIN32 )
+    set( ${path_var} "@executable_path/../bin" PARENT_SCOPE )
+  else()
+    set( ${path_var} "@executable_path/../lib" PARENT_SCOPE )
+  endif()
 endfunction()
 
 function( gp_resolved_file_type_override resolved_item type_var )
