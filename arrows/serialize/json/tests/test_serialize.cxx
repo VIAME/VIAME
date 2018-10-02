@@ -47,6 +47,7 @@
 #include <arrows/serialize/json/detected_object_set.h>
 #include <arrows/serialize/json/timestamp.h>
 #include <arrows/serialize/json/image.h>
+#include <arrows/serialize/json/string.h>
 
 #include <vital/util/string.h>
 
@@ -267,4 +268,23 @@ TEST( serialize, image)
 
   // Check the content of images
   EXPECT_TRUE ( kwiver::vital::equal_content( img_container->get_image(), img_dser->get_image()) );
+}
+
+// ----------------------------------------------------------------------------
+TEST (serialize, string)
+{
+  kasj::string str_ser;
+  std::string str("Test string");
+
+  kwiver::vital::any str_any(str);
+
+  auto mes = str_ser.serialize( str_any );
+  auto dser = str_ser.deserialize( *mes );
+
+  std::string str_dser =
+    kwiver::vital::any_cast< std::string > ( dser );
+
+  // std::cout << tstamp_dser.pretty_print() << std::endl;
+
+  EXPECT_EQ (str, str_dser);
 }
