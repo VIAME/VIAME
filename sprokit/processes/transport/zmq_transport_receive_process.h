@@ -38,13 +38,11 @@
 namespace kwiver {
 
 // ----------------------------------------------------------------
-/**
- * \class zmq_transport_receive_process
+/*
+ * zmq_transport_receive_process
  *
- * \brief Writes serialized data to a file.
+ *  Writes serialized data to a file.
  *
- *
- * \oport{message}
  */
 class PROCESSES_TRANSPORT_NO_EXPORT zmq_transport_receive_process
   : public sprokit::process
