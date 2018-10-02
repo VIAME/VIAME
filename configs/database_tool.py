@@ -3,6 +3,7 @@
 import sys
 import os
 import shutil
+import subprocess
 
 if os.name == 'nt':
   div = '\\'
@@ -83,7 +84,7 @@ def sequence_cmd( prefix, cmd, args  ):
   return prefix + " && " + format_cmd( cmd ) + " " + args
 
 def execute_cmd( cmd, args  ):
-  os.system( format_cmd( cmd ) + " " + args )
+  subprocess.check_output( format_cmd( cmd ) + " " + args, shell=True )
 
 def execute_pycmd( install_dir, cmd, args  ):
   os.system( format_pycmd( install_dir, cmd ) + " " + args )
