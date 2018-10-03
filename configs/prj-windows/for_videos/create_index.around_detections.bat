@@ -1,13 +1,15 @@
 @echo off
 
-REM Setup VIAME Paths (no need to set if installed to registry or already set up)
-
+REM Path to VIAME installation
 SET VIAME_INSTALL=C:\Program Files\VIAME
 
+REM Processing options
+SET INPUT_DIRECTORY=videos
+SET FRAME_RATE=5
+
+REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-REM Run Pipeline
-
-python.exe "%VIAME_INSTALL%\configs\ingest_video.py" --init -l input_list.txt -p pipelines\index_default.res.pipe --build-index --ball-tree -install "%VIAME_INSTALL%"
+python.exe "%VIAME_INSTALL%\configs\ingest_video.py" --init -d "%INPUT_DIRECTORY%" -frate %FRAME_RATE% -p pipelines\index_default.res.pipe --build-index --ball-tree -install "%VIAME_INSTALL%"
 
 pause
