@@ -66,7 +66,7 @@ def format_cmd( cmd ):
 def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
   if is_windows():
     if len( install_dir ) > 0:
-      output = "\"" + sys.executable + "\" \"" + install_dir + div + "Python" + str( sys.version_info[0] ) + str( sys.version_info[1] )
+      output = sys.executable + " \"" + install_dir + div + "Python" + str( sys.version_info[0] ) + str( sys.version_info[1] )
       output = output + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py\""
       return output
     else:
