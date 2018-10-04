@@ -47,6 +47,7 @@
 #include <vital/internal/cereal/archives/json.hpp>
 #include <vital/internal/cereal/types/vector.hpp>
 #include <vital/internal/cereal/types/map.hpp>
+#include <vital/internal/cereal/types/utility.hpp>
 
 #include <zlib.h>
 
@@ -426,17 +427,17 @@ void save( cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& me
     if ( metap->has_double() )
     {
       const double data = metap->as_double();
-      CEREAL_NVP( data );
+      archive( CEREAL_NVP( data ));
     }
     else if ( metap->has_uint64() )
     {
       const uint64_t data = metap->as_uint64();
-      CEREAL_NVP( data );
+      archive( CEREAL_NVP( data ));
     }
     else if ( metap->has_string() )
     {
       const std::string str = metap->as_string();
-      CEREAL_NVP( str );
+      archive( CEREAL_NVP( str ));
     }
     else if ( trait.tag_type() == typeid(kwiver::vital::geo_point) )
     {
@@ -550,6 +551,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::geo_polygon& poly )
 
   archive( CEREAL_NVP( crs ) );
   load( archive, raw_poly ); // load raw polygon
+  poly.set_polygon( raw_poly, crs );
 }
 
 
