@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
+def fish_aggregate(directory, objects, threshold, frame_rate, smooth=1):
     def format_x(x, pos):
         t = datetime.timedelta(seconds=x)
         return str(t)
@@ -27,41 +27,41 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
             ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s)" % filename)
             ax.grid()
 
-            video_species = videos[filename] = dict()
-            for s in species:
-                video_species[s] = dict()
+            video_objects = videos[filename] = dict()
+            for s in objects:
+                video_objects[s] = dict()
             with open(os.path.join(directory, filename), "r") as f:
                 for line in f:
                     line = line.rstrip()
                     if line[0] != "#":
                         columns = line.split(",")
                         frame_id = int(columns[2])
-                        for s in species:
-                            if frame_id not in video_species[s]:
-                                video_species[s][frame_id] = 0
+                        for s in objects:
+                            if frame_id not in video_objects[s]:
+                                video_objects[s][frame_id] = 0
 
                         detection_columns = columns[9:]
                         name = None
                         for column in detection_columns:
                             if name is not None:
-                                if name in species:
+                                if name in objects:
                                     value = float(column)
                                     if value >= threshold:
-                                        video_species[name][frame_id] += 1
+                                        video_objects[name][frame_id] += 1
                                 name = None
                             else:
                                 name = column
 
-            for s in species:
+            for s in objects:
                 smoothed_video_frames = dict()
-                for frame_id in sorted(video_species[s]):
+                for frame_id in sorted(video_objects[s]):
                     lower_bound = frame_id - smooth // 2
                     upper_bound = lower_bound + smooth
 
-                    max_count = video_species[s][frame_id]
+                    max_count = video_objects[s][frame_id]
                     for i in range(lower_bound, upper_bound):
                         try:
-                            val = video_species[s][i]
+                            val = video_objects[s][i]
                             if val > max_count:
                                 max_count = val
                         except KeyError:
@@ -69,22 +69,22 @@ def fish_aggregate(directory, species, threshold, frame_rate, smooth=1):
 
                     smoothed_video_frames[frame_id] = max_count
 
-                video_species[s] = smoothed_video_frames
+                video_objects[s] = smoothed_video_frames
 
-    for s in species:
+    for s in objects:
         sorted_frames = list()
         with open(os.path.join(directory, s + ".output.csv"), "w") as outfile:
             outfile.write("#video_id,frame_id,detection_count\n")
             for filename in sorted(videos):
-                video_species = videos[filename]
+                video_objects = videos[filename]
                 times = list()
                 fish_counts = list()
-                for frame_id in sorted(video_species[s]):
+                for frame_id in sorted(video_objects[s]):
                     times.append(frame_id / frame_rate)
-                    fish_counts.append(video_species[s][frame_id])
-                    outfile.write(filename + "," + str(frame_id) + "," + str(video_species[s][frame_id]) + "\n")
+                    fish_counts.append(video_objects[s][frame_id])
+                    outfile.write(filename + "," + str(frame_id) + "," + str(video_objects[s][frame_id]) + "\n")
 
-                    sorted_frames.append((filename, frame_id, video_species[s][frame_id]))
+                    sorted_frames.append((filename, frame_id, video_objects[s][frame_id]))
 
                 x = np.array(times)
                 y = np.array(fish_counts)

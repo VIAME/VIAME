@@ -15,6 +15,6 @@ source ${VIAME_INSTALL}/setup_viame.sh
 python ${VIAME_INSTALL}/configs/ingest_video.py --init \
   -d ${INPUT_DIRECTORY} \
   --detection-plots \
-  -species ${OBJECT_LIST} \
+  -objects ${OBJECT_LIST} \
   -threshold ${DETECTION_THRESHOLD} -frate ${FRAME_RATE} -smooth 2 \
   -p ${VIAME_INSTALL}/configs/pipelines/index_mouss.no_desc.pipe

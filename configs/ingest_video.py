@@ -118,7 +118,7 @@ def fset( setting_str ):
 
 def video_output_settings_list( basename ):
   return list(itertools.chain(
-    fset( 'detector_writer:file_name=database/' + basename + '.csv' ),
+    fset( 'detector_writer:file_name=database/' + basename + '_detections.csv' ),
     fset( 'track_writer:file_name=database/' + basename + '_tracks.csv' ),
     fset( 'track_writer:stream_identifier=' + basename ),
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
@@ -186,8 +186,8 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   if len( options.input_detections ) > 0:
     command += fset( "detection_reader:file_name=" + options.input_detections )
 
-  if len( options.extra_options ) > 0:
-    for extra_option in options.extra_options:
+  if len( options.extra_settings ) > 0:
+    for extra_option in options.extra_settings:
       command += fset( extra_option )
 
   # Process command, possibly with logging
@@ -255,7 +255,7 @@ if __name__ == "__main__" :
   parser.add_argument("-p", dest="pipeline", default="pipelines/ingest_video.tut.pipe",
                       help="Input pipeline for ingesting video or image data")
 
-  parser.add_argument("-e", dest="extra_options", default="",
+  parser.add_argument("-s", dest="extra_settings", default="", action='append', nargs='*',
                       help="Extra command line arguments for the pipeline runner")
 
   parser.add_argument("-id", dest="input_detections", default="",
@@ -270,8 +270,8 @@ if __name__ == "__main__" :
   parser.add_argument("-fskip", dest="batch_skip", default="",
                       help="If batching frames, number of frames to skip between batches")
 
-  parser.add_argument("-species", dest="species", default="fish",
-                      help="Species to generate plots for")
+  parser.add_argument("-objects", dest="objects", default="fish",
+                      help="Objects to generate plots for")
 
   parser.add_argument("-threshold", dest="threshold", default="0.25",
                       help="Threshold to generate plots for")
@@ -391,7 +391,7 @@ if __name__ == "__main__" :
   # Build out final analytics
   if args.detection_plots:
     print( "Generating data plots" )
-    aggregate_plots.fish_aggregate( "database", args.species.split(","),
+    aggregate_plots.fish_aggregate( "database", args.objects.split(","),
                                     float( args.threshold ),
                                     float( args.frame_rate ),
                                     int( args.smooth ) )
