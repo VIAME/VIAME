@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Processing options
-export INPUT_DIRECTORY=images
+export INPUT_DIRECTORY=frames/*
 export IMAGE_EXTENSION=*
 
 ls ${INPUT_DIRECTORY}/*.${IMAGE_EXTENSION} > input_list.txt

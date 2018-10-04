@@ -8,13 +8,15 @@ SET INPUT_DIRECTORY=videos
 SET FRAME_RATE=5
 SET START_TIME=00:00:00.00
 SET CLIP_DURATION=00:05:00.00
-SET OUTPUT_DIR=images
+SET OUTPUT_DIR=frames
 
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 if not exist "%OUTPUT_DIR%" mkdir "%OUTPUT_DIR%"
 
-ffmpeg.exe -i [video_name].avi -r %FRAME_RATE% -ss %START_TIME% -t %CLIP_DURATION% %OUTPUT_DIR%/frame%%06d.png
+for /r %%FILE in (%INPUT_DIRECTORY%\*) do ^
+  if not exist "%OUTPUT_DIR%\%FILE%" mkdir "%OUTPUT_DIR%\%FILE%" && ^
+  ffmpeg.exe -i "%FILE%" -r %FRAME_RATE% -ss %START_TIME% -t %CLIP_DURATION% "%OUTPUT_DIR%\%i%\frame%%06d.png"
 
 pause
