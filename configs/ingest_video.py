@@ -116,16 +116,28 @@ def signal_handler( signal, frame ):
 def fset( setting_str ):
   return ['-s', setting_str]
 
-def video_output_settings_list( basename ):
+def video_output_settings_list( options, basename ):
+  output_dir = options.output_directory
+
   return list(itertools.chain(
-    fset( 'detector_writer:file_name=database/' + basename + '_detections.csv' ),
-    fset( 'track_writer:file_name=database/' + basename + '_tracks.csv' ),
+    fset( 'detector_writer:file_name=' + output_dir + '/' + basename + '_detections.csv' ),
+    fset( 'track_writer:file_name=' + output_dir + '/' + basename + '_tracks.csv' ),
     fset( 'track_writer:stream_identifier=' + basename ),
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
-    fset( 'track_writer_kw18:file_name=database/' + basename + '.kw18' ),
+    fset( 'track_writer_kw18:file_name=' + output_dir + '/' + basename + '.kw18' ),
     fset( 'descriptor_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_descriptor:uid_basename=' + basename ),
-    fset( 'kwa_writer:output_directory=database ' ),
+    fset( 'kwa_writer:output_directory=' + output_dir ),
+    fset( 'kwa_writer:base_filename=' + basename ),
+    fset( 'kwa_writer:stream_id=' + basename ),
+  ))
+
+def plot_settings_list( options, basename ):
+  output_dir = options.output_directory
+
+  return list(itertools.chain(
+    fset( 'detector_writer:file_name=' + output_dir + '/' + basename + '_detections.csv' ),
+    fset( 'kwa_writer:output_directory=' + output_dir ),
     fset( 'kwa_writer:base_filename=' + basename ),
     fset( 'kwa_writer:stream_id=' + basename ),
   ))
@@ -180,7 +192,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   if not is_image_list:
     command += video_frame_rate_settings_list( options )
 
-  command += video_output_settings_list( basename )
+  command += video_output_settings_list( options, basename )
   command += archive_dimension_settings_list( options )
 
   if len( options.input_detections ) > 0:
@@ -191,27 +203,20 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
       command += fset( extra_option )
 
   # Process command, possibly with logging
-  if len( options.log_dir ) > 0 and not options.debug:
-    with get_log_output_files(options.log_dir + '/' + basename) as kwargs:
-      res = execute_command(command, gpu=gpu, **kwargs)
+  if len( options.log_directory ) > 0 and not options.debug:
+    log_file = options.output_directory + '/' + options.log_directory + '/' + basename
+    with get_log_output_files( log_file ) as kwargs:
+      res = execute_command( command, gpu=gpu, **kwargs )
   else:
-    res = execute_command(command, gpu=gpu)
+    res = execute_command( command, gpu=gpu )
 
   if res == 0:
     print( 'Success ({})'.format(gpu) )
   else:
     print( 'Failure ({})'.format(gpu) )
-    exit_with_error( '\nIngest failed, check database/Logs for {}, terminating.\n'
-                     .format(os.path.basename(input_name)) )
-
-# Plot settings strings
-def plot_settings_list( basename ):
-  return list(itertools.chain(
-    fset( 'detector_writer:file_name=database/' + basename + '_detections.csv' ),
-    fset( 'kwa_writer:output_directory=database ' ),
-    fset( 'kwa_writer:base_filename=' + basename ),
-    fset( 'kwa_writer:stream_id=' + basename ),
-  ))
+    exit_with_error( '\nIngest failed, check ' + options.output_directory + '/' +
+                     outputs.log_directory + ' for {}, terminating.\n'
+                     .format( os.path.basename( input_name ) ) )
 
 def split_image_list(image_list_file, n, dir=None):
   """Create and return the paths to n temp files that when interlaced
@@ -261,6 +266,12 @@ if __name__ == "__main__" :
   parser.add_argument("-id", dest="input_detections", default="",
                       help="Input detections around which to create descriptors")
 
+  parser.add_argument("-o", dest="output_directory", default="database",
+                      help="Output directory to store files in")
+
+  parser.add_argument("-logs", dest="log_directory", default="Logs",
+                      help="Output sub-directory for log files, if empty will not use files")
+
   parser.add_argument("-frate", dest="frame_rate", default="",
                       help="Frame rate over-ride to process videos at")
 
@@ -284,9 +295,6 @@ if __name__ == "__main__" :
 
   parser.add_argument("-archive-width", dest="archive_width", default="",
                       help="Advanced: Optional video archive width over-ride")
-
-  parser.add_argument("-logs", dest="log_dir", default="database/Logs",
-                      help="Directory for log files, if empty will not use files")
 
   parser.add_argument("--init-db", dest="init_db", action="store_true",
                       help="Re-initialize database")
@@ -336,7 +344,7 @@ if __name__ == "__main__" :
 
     # Identify all videos to process
     if len( args.input_list ) > 0:
-      video_list = split_image_list(args.input_list, args.gpu_count, 'database/')
+      video_list = split_image_list(args.input_list, args.gpu_count, args.output_directory)
       is_image_list = True
     elif len( args.input_dir ) > 0:
       video_list = list_files_in_dir( args.input_dir )
@@ -353,25 +361,29 @@ if __name__ == "__main__" :
     # Get required paths
     pipeline_loc = args.pipeline
 
-    if len( args.log_dir ) > 0:
-      create_dir( args.log_dir )
+    if len( args.output_directory ) > 0:
+      create_dir( args.output_directory )
+      sys.stdout.write( "\n" )
+
+    if len( args.log_directory ) > 0:
+      create_dir( args.output_directory + '/' + args.log_directory )
       sys.stdout.write( "\n" )
 
     # Process videos in parallel, one per GPU
     video_queue = queue.Queue()
     for video_name in video_list:
       if os.path.isfile( video_name ):
-        video_queue.put(video_name)
+        video_queue.put( video_name )
       else:
         print( "Skipping " + video_name )
 
-    def process_video_thread(gpu):
+    def process_video_thread( gpu ):
       while True:
         try:
           video_name = video_queue.get_nowait()
         except queue.Empty:
           break
-        process_video_kwiver(video_name, args, is_image_list, gpu=gpu)
+        process_video_kwiver( video_name, args, is_image_list, gpu=gpu )
 
     threads = [threading.Thread(target=process_video_thread, args=(gpu,))
                for gpu in range(args.gpu_count)]
@@ -391,7 +403,8 @@ if __name__ == "__main__" :
   # Build out final analytics
   if args.detection_plots:
     print( "Generating data plots" )
-    aggregate_plots.aggregate_plot( "database", args.objects.split(","),
+    aggregate_plots.aggregate_plot( args.output_directory,
+                                    args.objects.split(","),
                                     float( args.threshold ),
                                     float( args.frame_rate ),
                                     int( args.smooth ) )
