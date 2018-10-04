@@ -9,3 +9,4 @@ set( test_libraries vital vital_vpm vital_algo vital_util kwiver_serialize_proto
 ##############################
 
 kwiver_discover_gtests(serialize-protobuf serialize         LIBRARIES ${test_libraries})
+kwiver_discover_gtests(serialize-protobuf convert_protobuf  LIBRARIES ${test_libraries})

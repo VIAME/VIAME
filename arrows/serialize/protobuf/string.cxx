@@ -30,6 +30,10 @@
 
 #include "string.h"
 
+#include "convert_protobuf.h"
+
+#include <vital/types/protobuf/string.pb.h>
+
 namespace kwiver {
 namespace arrows {
 namespace serialize {
@@ -45,13 +49,15 @@ string::string()
 string::~string()
 { }
 
+
+// ----------------------------------------------------------------------------
 std::shared_ptr< std::string > string::
 serialize( const vital::any& element )
 {
   const std::string data = kwiver::vital::any_cast< std::string >( element );
   std::ostringstream msg;
   msg << "string ";
-  
+
   kwiver::protobuf::string proto_string;
   convert_protobuf( data, proto_string );
 
@@ -62,6 +68,7 @@ serialize( const vital::any& element )
   return std::make_shared< std::string > ( msg.str() );
 }
 
+// ----------------------------------------------------------------------------
 vital::any string::deserialize( const std::string& message )
 {
   std::string data;
@@ -80,23 +87,11 @@ vital::any string::deserialize( const std::string& message )
     kwiver::protobuf::string proto_str;
     if ( !proto_str.ParseFromIstream( &msg ) )
     {
-      LOG_ERROR( logger(), "Incoming protobuf stream did not parse correctly"); 
+      LOG_ERROR( logger(), "Incoming protobuf stream did not parse correctly");
     }
     convert_protobuf( proto_str, data);
   }
   return kwiver::vital::any(data);
-}
-
-void string::convert_protobuf( const kwiver::protobuf::string& proto_string,
-                                std::string& str )
-{
-  str = std::string(proto_string.data());
-}
-
-void string::convert_protobuf( const std::string& str,
-                               kwiver::protobuf::string& proto_string )
-{
-  proto_string.set_data(str);
 }
 
 } } } }

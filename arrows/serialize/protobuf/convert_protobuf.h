@@ -63,6 +63,7 @@ namespace protobuf {
   class metadata;
   class metadata_vector;
   class polygon;
+  class string;
   class timestamp;
 
 } } // end namespace
@@ -172,6 +173,15 @@ void convert_protobuf( const kwiver::protobuf::metadata&  proto,
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const kwiver::vital::metadata& metadata,
                        kwiver::protobuf::metadata&  proto );
+
+  // Convert between native and protobuf formats
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::protobuf::string&  proto_string,
+                       std::string&  str );
+
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const std::string& str,
+                       kwiver::protobuf::string&  proto_string );
 
 
 } } } }  // end namespace

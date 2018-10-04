@@ -51,6 +51,7 @@
 #include <vital/types/protobuf/polygon.pb.h>
 #include <vital/types/protobuf/timestamp.pb.h>
 #include <vital/types/protobuf/metadata.pb.h>
+#include <vital/types/protobuf/string.pb.h>
 #include <vital/types/protobuf/image.pb.h>
 
 #include <zlib.h>
@@ -567,5 +568,18 @@ void convert_protobuf( const kwiver::vital::polygon& poly,
   }
 }
 
+// ----------------------------------------------------------------------------
+void convert_protobuf( const kwiver::protobuf::string& proto_string,
+                       std::string& str )
+{
+  str = std::string(proto_string.data());
+}
+
+// ----------------------------------------------------------------------------
+void convert_protobuf( const std::string& str,
+                       kwiver::protobuf::string& proto_string )
+{
+  proto_string.set_data(str);
+}
 
 } } } } // end namespace
