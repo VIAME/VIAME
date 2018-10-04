@@ -391,7 +391,7 @@ if __name__ == "__main__" :
   # Build out final analytics
   if args.detection_plots:
     print( "Generating data plots" )
-    aggregate_plots.fish_aggregate( "database", args.objects.split(","),
+    aggregate_plots.aggregate_plot( "database", args.objects.split(","),
                                     float( args.threshold ),
                                     float( args.frame_rate ),
                                     int( args.smooth ) )

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def fish_aggregate(directory, objects, threshold, frame_rate, smooth=1):
+def aggregate_plot(directory, objects, threshold, frame_rate, smooth=1):
     def format_x(x, pos):
         t = datetime.timedelta(seconds=x)
         return str(t)
@@ -125,4 +125,4 @@ if __name__ == "__main__":
         smooth = int(sys.argv[4])
     except IndexError:
         smooth = 1
-    fish_aggregate(".", sys.argv[1].split(","), float(sys.argv[2]), float(sys.argv[3]), smooth)
+    aggregate_plot(".", sys.argv[1].split(","), float(sys.argv[2]), float(sys.argv[3]), smooth)
