@@ -83,7 +83,9 @@ def get_pipeline_cmd( debug=False ):
       return ['pipeline_runner']
 
 def exit_with_error( error_str ):
-  print( error_str )
+  sys.stdout.write( '\n\nERROR: ' + error_str + '\n\n' )
+  sys.stdout.flush()
+  os.kill(os.getpid(), signal.SIGKILL)
   sys.exit(0)
 
 def check_file( filename ):
