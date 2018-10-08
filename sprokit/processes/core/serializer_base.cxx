@@ -30,8 +30,13 @@
 
 #include "serializer_base.h"
 
+#include <vital/util/hex_dump.h>
+#include <vital/config/config_block_formatter.h>
+
 #include <string>
 #include <sstream>
+#include <iostream>
+#include <cstdint>
 
 namespace kwiver {
 
@@ -54,89 +59,73 @@ void
 serializer_base
 ::base_init()
 {
-  // scan through our port groups to make sure it all makes sense.
-  for ( auto elem : m_port_group_list )
+  // Scan through our port groups to make sure it all makes sense.
+  // The port group name is used as the message-name
+  for ( auto msg_elem : m_message_spec_list )
   {
-    auto & pg = m_port_group_list[elem.first];
+    auto& pg = m_message_spec_list[msg_elem.first];
 
     // A group must have at least one port
-    if (pg.m_items.size() < 1)
+    if (pg.m_elements.size() < 1)
     {
       std::stringstream str;
-      str <<  "There are no data items for group \"" << elem.first << "\"";
+      str <<  "There are no data elements for group \"" << msg_elem.first << "\"";
 
       VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), str.str() );
-    }
-
-    // determine which algorithm we should use. If m_algo_name is set
-    // at this point, we are dealing with a multi-item packing
-    // serializer.
-    //
-    // If it is not set, then we are dealing with a single item
-    // converter and can use the input port type as the algorithm name.
-    if ( pg.m_algo_name.empty() )
-    {
-      // There should only be one item in the group
-      if (pg.m_items.size() != 1)
-      {
-        std::stringstream str;
-        str <<  "Port group \"" << elem.first << "\" has more than one element.";
-
-        VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), str.str() );
-      }
-
-      pg.m_algo_name = pg.m_items.cbegin()->second.m_port_type;
-
-      LOG_TRACE( m_logger, "Setting algo name for port group \"" << elem.first
-                 << "\" to \"" << pg.m_algo_name << "\"" );
     }
 
     // Test to see if the output port has been connected to.
     if ( ! pg.m_serialized_port_created )
     {
-      VITAL_THROW( sprokit::missing_connection_exception, m_proc.name(), elem.first,
+      VITAL_THROW( sprokit::missing_connection_exception, m_proc.name(), msg_elem.first,
                    "Output port has not been connected" );
     }
 
-    // create config items
-    // serialize-protobuf:type = <algo-name>
-    // serialize-protobuf:<algo-name>:foo = bar // possible but not likely
-
-    auto algo_config = kwiver::vital::config_block::empty_config();
-    const std::string ser_algo_type( "serialize-" + m_serialization_type );
-    const std::string ser_type( ser_algo_type + vital::config_block::block_sep + "type" );
-
-    algo_config->set_value( ser_type, pg.m_algo_name );
-
-    std::stringstream str;
-    algo_config->print( str );
-    LOG_TRACE( m_logger, "Creating algorithm for (config block):\n" << str.str() << std::endl );
-
-    vital::algorithm_sptr base_nested_algo;
-
-    // create serialization algorithm
-    vital::algorithm::set_nested_algo_configuration( ser_algo_type, // data type name
-                                                     ser_algo_type, // config block name
-                                                     algo_config,
-                                                     base_nested_algo );
-
-    pg.m_serializer = std::dynamic_pointer_cast< vital::algo::data_serializer > ( base_nested_algo );
-    if ( ! pg.m_serializer )
+    for ( auto it : pg.m_elements )
     {
+      auto& elem_spec = pg.m_elements.at(it.first);
+
+      // create config items
+      // serialize-protobuf:type = <algo-name>
+
+      auto algo_config = vital::config_block::empty_config();
+
+      const std::string ser_algo_type( "serialize-" + m_serialization_type );
+      const std::string ser_type( ser_algo_type + vital::config_block::block_sep + "type" );
+
+      algo_config->set_value( ser_type, elem_spec.m_algo_name );
+
       std::stringstream str;
-      str << "Unable to create serializer for type \""
-          << pg.m_algo_name << "\" for " << m_serialization_type;
+      vital::config_block_formatter fmt( algo_config );
+      fmt.print( str );
+      LOG_TRACE( m_logger, "Creating algorithm for (config block):\n" << str.str() << std::endl );
 
-      VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), str.str() );
-    }
+      vital::algorithm_sptr base_nested_algo;
 
-    if ( ! vital::algorithm::check_nested_algo_configuration( ser_algo_type,
-                                                              ser_algo_type,
-                                                              algo_config ) )
-    {
-      VITAL_THROW( sprokit::invalid_configuration_exception,
-                   m_proc.name(), "Configuration check failed." );
-    }
+      // create serialization algorithm
+      vital::algorithm::set_nested_algo_configuration( ser_algo_type, // data type name
+                                                       ser_algo_type, // config block name
+                                                       algo_config,
+                                                       base_nested_algo );
+
+      elem_spec.m_serializer = std::dynamic_pointer_cast< vital::algo::data_serializer > ( base_nested_algo );
+      if ( ! elem_spec.m_serializer )
+      {
+        std::stringstream str;
+        str << "Unable to create serializer for type \""
+            << elem_spec.m_algo_name << "\" for " << m_serialization_type;
+
+        VITAL_THROW( sprokit::invalid_configuration_exception, m_proc.name(), str.str() );
+      }
+
+      if ( ! vital::algorithm::check_nested_algo_configuration( ser_algo_type,
+                                                                ser_algo_type,
+                                                                algo_config ) )
+      {
+        VITAL_THROW( sprokit::invalid_configuration_exception,
+                     m_proc.name(), "Configuration check failed." );
+      }
+    } // end for
   } // end for
 }
 
@@ -145,84 +134,56 @@ bool
 serializer_base::
 vital_typed_port_info( sprokit::process::port_t const& port_name )
 {
-  // split port name into algo and item.
-  // port_name ::= <group>/<algorithm>/<item>
+  // split port name into algo and element.
+  // port_name ::= <message-name>/<element>
   //
-  // Create port_group for <group>
-  // Add entry for item.
+  // Create message_spec for <message-name>
+  // Add entry for element.
 
   // Extract GROUP sub-string from port name
   sprokit::process::ports_t components;
   kwiver::vital::tokenize( port_name, components, "/" );
 
-  std::string group_name;
-  std::string algo_name;
-  std::string item_name;
+  std::string message_name;
+  std::string element_name;
 
-  switch (components.size())
+  if ( components.size() != 2 )
   {
-  case 1:
-    // No item specified. Assume a single item group
-    group_name = components[0];
-    item_name = kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME;
-    break;
-
-  case 3:
-    group_name = components[0];
-    algo_name = components[1];
-    item_name = components[2];
-    break;
-
-  default:
     LOG_ERROR( m_logger, "Port \"" << port_name
                << "\" does not have the correct format. "
-               "Must be in the form \"<group>/<algorithm>/<item>\" "
-               "or \"<item>\"." );
+               "Must be in the form \"<message-name>/<element>\"." );
     return false;
   }
+
+  message_name = components[0];
+  element_name = components[1];
 
   // if port has already been added, do nothing
-  if (m_port_group_list.count( group_name ) == 0 )
+  if (m_message_spec_list.count( message_name ) == 0 )
   {
     // create a new empty group
-    m_port_group_list[ group_name ] = port_group();
-    LOG_TRACE( m_logger, "Creating new group \"" << group_name << "\" for typed port" );
+    m_message_spec_list[ message_name ] = message_spec();
+    LOG_TRACE( m_logger, "Creating new group \"" << message_name << "\" for typed port" );
   }
 
-  port_group& pg = m_port_group_list[ group_name ];
+  message_spec& pg = m_message_spec_list[ message_name ];
 
-  // See if the item already exists in the item list. If so, then
+  // See if the element already exists in the element list. If so, then
   // the port has already been created.
-  if ( pg.m_items.count( item_name ) != 0 )
+  if ( pg.m_elements.count( element_name ) != 0 )
   {
     return false;
   }
 
-  port_group::data_item di;
+  message_spec::message_element di;
   di.m_port_name = port_name;
-  di.m_element_name = item_name;
+  di.m_element_name = element_name;
 
-  pg.m_items[item_name] = di;
-  pg.m_serialized_port_name = group_name; // expected port name
+  pg.m_elements[element_name] = di;
+  pg.m_serialized_port_name = message_name; // expected port name
 
-  if ( pg.m_algo_name.empty() )
-  {
-    pg.m_algo_name = algo_name; // can be empty string if single item group.
-  }
-  else
-  {
-    if ( pg.m_algo_name != algo_name )
-    {
-      LOG_ERROR( m_logger, "Port \"" << port_name
-                 << "\" has been declared with a different algorithm than previously declared. "
-                 << "Previously declared with algorithm \"" << pg.m_algo_name << "\".");
-      return false;
-    }
-  }
-
-  LOG_TRACE( m_logger, "Created port item \"" << item_name
-             << "\" for group \"" << group_name
-             << "\" with algo name \"" << algo_name << "\"" );
+  LOG_TRACE( m_logger, "Created port element \"" << element_name
+             << "\" for message name \"" << message_name << "\"" );
 
   return true;
 }
@@ -232,14 +193,14 @@ bool
 serializer_base::
 byte_string_port_info( sprokit::process::port_t const& port_name )
 {
-  if (m_port_group_list.count( port_name ) == 0 )
+  if (m_message_spec_list.count( port_name ) == 0 )
   {
     // create a new empty group
-    m_port_group_list[ port_name ] = port_group();
+    m_message_spec_list[ port_name ] = message_spec();
     LOG_TRACE( m_logger, "Creating new group for byte_string port \"" << port_name << "\"" );
   }
 
-  port_group& pg = m_port_group_list[ port_name ];
+  message_spec& pg = m_message_spec_list[ port_name ];
 
   if ( ! pg.m_serialized_port_created )
   {
@@ -262,40 +223,128 @@ serializer_base::
 set_port_type( sprokit::process::port_t const&      port_name,
                sprokit::process::port_type_t const& port_type )
 {
-  // Extract GROUP sub-string from port name
+  // Extract sub-strings from port name
   sprokit::process::ports_t components;
   kwiver::vital::tokenize( port_name, components, "/" );
-  std::string group_name;
-  std::string item_name;
+  std::string message_name;
+  std::string element_name;
 
-  switch (components.size())
+  if ( components.size() != 2 )
   {
-  case 1:
-    // No item specified. Assume a single item group
-    group_name = components[0];
-    item_name = kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME;
-    break;
-
-  case 3:
-    group_name = components[0];
-    item_name = components[2];
-    break;
-
-  default:
     LOG_ERROR( m_logger, "Port \"" << port_name
                << "\" does not have the correct format. "
-               "Must be in the form \"<group>/<algorithm>/<item>\" "
-               "or \"<item>\"." );
+               "Must be in the form \"<group>/<algorithm>/<element>\" "
+               "or \"<element>\"." );
     return;
   }
 
+  message_name = components[0];
+  element_name = components[1];
+
   // update port handler
-  port_group& pg = m_port_group_list[group_name];
-  port_group::data_item& di = pg.m_items[item_name];
+  message_spec& pg = m_message_spec_list[message_name];
+  message_spec::message_element& di = pg.m_elements[element_name];
   di.m_port_type = port_type;
 
-  LOG_TRACE( m_logger, "Setting port type for group \"" << port_name
-             << "\" item \"" << item_name << "\" to \"" << port_type << "\"" );
+  // Currently, the algo name is the same as the data type on that port.
+  di.m_algo_name = port_type;
+
+  LOG_TRACE( m_logger, "Setting port type for message \"" << message_name
+             << "\" element \"" << element_name << "\" to \"" << port_type << "\"" );
 }
+
+// ----------------------------------------------------------------------------
+void serializer_base::
+decode_message( const std::string& message )
+{
+  std::istringstream raw_stream( message );
+  const int64_t end_offset = message.size();
+
+  // check for expected message type
+  std::string msg_type;
+  raw_stream >> msg_type;
+
+  // number of bytes left in the buffer
+  int64_t payload_size;
+  raw_stream >> payload_size;
+
+  std::cout << "Message tag: \"" << msg_type << "\"  Payload size in bytes: " << payload_size << std::endl;
+
+  if ( payload_size != (end_offset - raw_stream.tellg()) )
+  {
+    std::cout << "WARNING: Payload size does not equal data count in stream.\n";
+  }
+
+  while ( true )
+  {
+    std::string element_name;
+    std::string port_type;
+    int64_t elem_size;
+
+    raw_stream >> element_name >> port_type >> elem_size;
+    raw_stream.get(); // eat delimiter
+
+    std::cout << "   Element name: \"" << element_name
+              << "\"  Port type: \"" << port_type
+              << "\"  Element size: " << elem_size
+              << std::endl;
+
+    const int64_t current_remaining = end_offset - raw_stream.tellg();
+
+    if ( elem_size > current_remaining )
+    {
+      std::cout << "Message size error. Current element size of "
+                << elem_size << " bytes exceeds " << payload_size << " remaining bytes in the payload."
+                << std::endl;
+      return;
+    }
+
+
+    std::string elem_buffer( elem_size, 0 );
+    raw_stream.read( &elem_buffer[0], elem_size );
+
+    // Dump the serialized data element
+    kwiver::vital::hex_dump( std::cout, elem_buffer.c_str(), elem_size );
+    std::cout << std::endl;
+
+    // check to see if we are at the end
+    if ( elem_size == current_remaining )
+    {
+      break;
+    }
+  } // end while
+
+}
+
+// ----------------------------------------------------------------------------
+void serializer_base::
+dump_msg_spec()
+{
+  for ( const auto it : m_message_spec_list )
+  {
+    std::cout << "Message tag: " << it.first << std::endl;
+
+    const auto& msg_spec = it.second;
+
+    std::cout << "   Serialized port name: " << msg_spec.m_serialized_port_name << std::endl;
+
+    for ( const auto elem_it : msg_spec.m_elements )
+    {
+      const auto& msg_elem = elem_it.second;
+
+      std::cout << "    Msg element: " << elem_it.first << std::endl
+                << "        Port name: " << msg_elem.m_port_name << std::endl
+                << "        Port type: " << msg_elem.m_port_type << std::endl
+                << "        Element name: " << msg_elem.m_element_name << std::endl
+                << "        Algo name: " << msg_elem.m_algo_name << std::endl;
+    } // end for
+
+    std::cout << std::endl;
+
+  } // end for
+
+}
+
+
 
 } // end namespace kwiver

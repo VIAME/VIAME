@@ -40,65 +40,79 @@ namespace kwiver {
 namespace arrows {
 namespace serialize {
 namespace json {
-  timestamp::timestamp()
+
+// ----------------------------------------------------------------------------
+timestamp::timestamp()
+{ }
+
+timestamp::~timestamp()
+{ }
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+timestamp
+::serialize( const vital::any& element )
+{
+  kwiver::vital::timestamp tstamp =
+    kwiver::vital::any_cast< kwiver::vital::timestamp > ( element );
+  std::stringstream msg;
+  msg << "timestamp ";
   {
-    m_element_names.insert( DEFAULT_ELEMENT_NAME );
+    cereal::JSONOutputArchive ar( msg );
+    save( ar, tstamp );
   }
+  return std::make_shared< std::string > ( msg.str() );
+}
 
-  timestamp::~timestamp() 
-  { }
 
-  std::shared_ptr< std::string > timestamp
-    ::serialize (const data_serializer::serialize_param_t& elements)
+// ----------------------------------------------------------------------------
+vital::any
+timestamp
+::deserialize( const std::string& message )
+{
+  std::stringstream msg( message );
+  kwiver::vital::timestamp tstamp;
+
+  std::string tag;
+  msg >> tag;
+  if ( tag != "timestamp" )
   {
-    kwiver::vital::timestamp tstamp = 
-      kwiver::vital::any_cast < kwiver::vital::timestamp >( elements.at( DEFAULT_ELEMENT_NAME ) );
-    std::stringstream msg;
-    msg << "timestamp ";
-    {
-      cereal::JSONOutputArchive ar( msg );
-      save( ar, tstamp );
-    }
-    return std::make_shared< std::string > ( msg.str() );
+    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"timestamp\""
+               << ",  received \"" << tag << "\". Message dropped." );
   }
-
-  vital::algo::data_serializer::deserialize_result_t timestamp
-    ::deserialize( std::shared_ptr< std::string > message)
+  else
   {
-    std::stringstream msg( *message );
-    kwiver::vital::timestamp tstamp;
-
-    std::string tag;
-    msg >> tag;
-    if ( tag != "timestamp" )
-    {
-      LOG_ERROR( logger(), "Invalid data type tag received. Expected \"timestamp\"" <<
-                  ",  received \"" << tag << "\". Message dropped." );
-    }
-    else
-    {
-      cereal::JSONInputArchive ar(msg);
-      load( ar, tstamp );
-    }
-    
-    deserialize_result_t res;
-    res [DEFAULT_ELEMENT_NAME] = kwiver::vital::any(tstamp);
-    return res;
+    cereal::JSONInputArchive ar( msg );
+    load( ar, tstamp );
   }
 
-  void timestamp::save( cereal::JSONOutputArchive& archive, 
-      const kwiver::vital::timestamp& tstamp)
-  {
-    archive ( cereal::make_nvp( "time", tstamp.get_time_usec()),
-              cereal::make_nvp( "frame", tstamp.get_frame() ) );        
-  }
+  return kwiver::vital::any( tstamp );
+}
 
-  void timestamp::load( cereal::JSONInputArchive& archive, 
-                        kwiver::vital::timestamp& tstamp){
-    int64_t time, frame;
-    archive ( CEREAL_NVP ( time ),
-              CEREAL_NVP ( frame ) );
-    tstamp = kwiver::vital::timestamp(static_cast< kwiver::vital::time_us_t >(time),
-                                  static_cast< kwiver::vital::frame_id_t >(frame));
-  }
+
+// ----------------------------------------------------------------------------
+void
+timestamp::save( cereal::JSONOutputArchive&       archive,
+                 const kwiver::vital::timestamp&  tstamp )
+{
+  archive( cereal::make_nvp( "time", tstamp.get_time_usec() ),
+           cereal::make_nvp( "frame", tstamp.get_frame() ) );
+}
+
+
+// ----------------------------------------------------------------------------
+void
+timestamp::load( cereal::JSONInputArchive&  archive,
+                 kwiver::vital::timestamp&  tstamp )
+{
+  int64_t time, frame;
+
+  archive( CEREAL_NVP( time ),
+           CEREAL_NVP( frame ) );
+  tstamp = kwiver::vital::timestamp( static_cast< kwiver::vital::time_us_t > ( time ),
+                                     static_cast< kwiver::vital::frame_id_t > (
+                                       frame ) );
+}
+
+
 } } } }

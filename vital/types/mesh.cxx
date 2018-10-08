@@ -417,7 +417,15 @@ mesh
     }
     else if (other.has_tex_coords() == TEX_COORD_ON_CORNER)
     {
-      tex = std::vector<vector_2d>(2*num_e, vector_2d(0,0));
+      unsigned int nb_corners = faces_->regularity() * num_faces();
+      if (nb_corners == 0)
+      {
+        for (unsigned int f = 0; f < this->num_faces(); ++f)
+        {
+            nb_corners += this->faces().num_verts(f);
+        }
+      }
+      tex = std::vector<vector_2d>(nb_corners, vector_2d(0, 0));
     }
 
     tex.insert(tex.end(), other.tex_coords().begin(), other.tex_coords().end());
@@ -446,11 +454,20 @@ void
 mesh
 ::set_tex_coords(const std::vector<vector_2d>& tc)
 {
+  unsigned int nb_corners = faces_->regularity() * num_faces();
+  if (nb_corners == 0)
+  {
+    for (unsigned int f = 0; f < this->num_faces(); ++f)
+    {
+        nb_corners += this->faces().num_verts(f);
+    }
+  }
+
   if (tc.size() == this->num_verts())
   {
     tex_coord_status_ = TEX_COORD_ON_VERT;
   }
-  else if (tc.size() == 2*this->num_edges())
+  else if (tc.size() == nb_corners)
   {
     tex_coord_status_ = TEX_COORD_ON_CORNER;
   }
@@ -606,6 +623,15 @@ mesh
     tex += (1-u-v) * tex_coords_[v1];
     tex += u * tex_coords_[v2];
     tex += v * tex_coords_[v3];
+  }
+  else if (this->tex_coord_status_ == TEX_COORD_ON_CORNER)
+  {
+    const unsigned int i1 = 3 * tri + 0;
+    const unsigned int i2 = 3 * tri + 1;
+    const unsigned int i3 = 3 * tri + 2;
+    tex += (1 - u - v) * tex_coords_[i1];
+    tex += u * tex_coords_[i2];
+    tex += v * tex_coords_[i3];
   }
   return tex;
 }

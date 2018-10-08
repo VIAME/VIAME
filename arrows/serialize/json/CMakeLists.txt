@@ -1,12 +1,16 @@
 # Build / Install plugin for serialization
 
-set( headers_public
+find_package(ZLIB MODULE REQUIRED)
+include_directories( ${ZLIB_INCLUDE_DIRS} )
 
+set( headers_public
   bounding_box.h
   detected_object.h
   detected_object_set.h
   detected_object_type.h
   timestamp.h
+  image.h
+  string.h
   )
 
 set( sources
@@ -16,6 +20,8 @@ set( sources
   detected_object_set.cxx
   detected_object_type.cxx
   timestamp.cxx
+  image.cxx
+  string.cxx
   )
 
 kwiver_add_library( kwiver_serialize_json
@@ -27,6 +33,7 @@ target_link_libraries( kwiver_serialize_json
   PUBLIC               vital
                        vital_vpm
   PRIVATE              vital_algo
+                       ${ZLIB_LIBRARIES}
   )
 
 kwiver_install_headers(

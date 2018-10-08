@@ -74,6 +74,12 @@ public:
   /// Project a 3D point into a 2D image point
   virtual vector_2d project( const vector_3d& pt ) const = 0;
 
+  /// Accessor for the image width
+  virtual unsigned int image_width() const = 0;
+
+  /// Accessor for the image height
+  virtual unsigned int image_height() const = 0;
+
 protected:
   camera() {};
 };

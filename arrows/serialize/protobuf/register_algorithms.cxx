@@ -38,8 +38,11 @@
 
 #include "bounding_box.h"
 #include "detected_object_type.h"
+#include "detected_object.h"
 #include "detected_object_set.h"
 #include "timestamp.h"
+#include "image.h"
+#include "string.h"
 
 namespace kwiver {
 namespace arrows {
@@ -53,15 +56,31 @@ static auto const module_version      = std::string{ "1.0" };
 static auto const module_organization = std::string{ "Kitware Inc." };
 
 // ----------------------------------------------------------------------------
+/**
+ * @brief Helper function for registering algorithms
+ *
+ * This function registers the specified algorithm with the plugin
+ * manager. The optional plugin name can be used in cases where an
+ * algorithm needs to be registered under two names. This can happen
+ * when the same vital data type is used top represent multiple
+ * different semantic data types.
+ *
+ * @param vpm Reference to the plugin manager
+ * @param name Optional plugin name
+ */
 template < typename algorithm_t >
 void
-register_algorithm( kwiver::vital::plugin_loader& vpm )
+register_algorithm( kwiver::vital::plugin_loader& vpm, const std::string& name = std::string("") )
 {
   using kvpf = kwiver::vital::plugin_factory;
+  std::string algo_name = algorithm_t::name;
+  if ( ! name.empty() )
+  {
+    algo_name = name;
+  }
   auto fact = vpm.add_factory( new kwiver::vital::algorithm_factory_0< algorithm_t > (
                                  "serialize-protobuf", // group name
-                                 algorithm_t::name ) ); // instance name
-
+                                 algo_name ) ); // instance name
   fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
     .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
     .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
@@ -84,8 +103,12 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   register_algorithm< kwiver::arrows::serialize::protobuf::bounding_box >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::detected_object_type >( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::detected_object >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::detected_object_set >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::timestamp >( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::image > ( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::image > ( vpm, "kwiver:mask" );
+  register_algorithm< kwiver::arrows::serialize::protobuf::string > ( vpm);
   vpm.mark_module_as_loaded( module_name );
 }
 
