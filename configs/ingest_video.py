@@ -217,7 +217,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   else:
     print( 'Failure ({})'.format(gpu) )
     exit_with_error( '\nIngest failed, check ' + options.output_directory + '/' +
-                     outputs.log_directory + ' for {}, terminating.\n'
+                     options.log_directory + ' for {}, terminating.\n'
                      .format( os.path.basename( input_name ) ) )
 
 def split_image_list(image_list_file, n, dir=None):
