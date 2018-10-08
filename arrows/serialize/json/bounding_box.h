@@ -59,8 +59,8 @@ public:
   bounding_box();
   virtual ~bounding_box();
 
-  virtual std::shared_ptr< std::string > serialize( const serialize_param_t& elements );
-  virtual deserialize_result_t deserialize( std::shared_ptr< std::string > message );
+  virtual std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
+  virtual vital::any deserialize( const std::string& message ) override;
 
   // Converters that can be used in cases of nested structures
   static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox );

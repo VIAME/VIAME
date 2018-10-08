@@ -93,6 +93,15 @@ public:
   void set_port_type( sprokit::process::port_t const&      port_name,
                       sprokit::process::port_type_t const& port_type );
 
+  /**
+   * @brief Analyze message and print components
+   *
+   * @param message The serialized message
+   */
+  void decode_message( const std::string& message );
+
+  void dump_msg_spec();
+
 
 protected:
   sprokit::process& m_proc; // associated process
@@ -104,40 +113,41 @@ protected:
    * A port group defines a set of ports that provide data to a single
    * serializer algo.
    */
-  struct port_group
+  struct message_spec
   {
-    port_group()
+    message_spec()
       : m_serialized_port_created(false)
     {}
 
     // This struct defines a single port.
-    struct data_item
+    struct message_element
     {
-      // Port name to write datum to
+      // Full Port name to write datum to
       sprokit::process::port_t m_port_name;
 
-      // canonical port type name string
+      // canonical (logical) port type name string
       sprokit::process::port_type_t m_port_type;
 
       // name of data element to pass to serializer
       std::string m_element_name;
+
+      // Algorithm name as constructed from serialization type and data type
+      std::string m_algo_name;
+
+      // Algorithm handles a group of data items
+      vital::algo::data_serializer_sptr m_serializer;
     };
 
-    // indexed by algorithm element_name
-    std::map< std::string, data_item > m_items;
+    // indexed by m_element_name
+    std::map< std::string, message_element > m_elements;
 
     // port to read serialized data from
     sprokit::process::port_t m_serialized_port_name;
     bool m_serialized_port_created;
-
-    std::string m_algo_name;
-
-    // Algorithm handles a group of data items
-    vital::algo::data_serializer_sptr m_serializer;
   };
 
-  // map is indexed by group/port name
-  std::map< std::string, port_group > m_port_group_list;
+  // map is indexed by message-name
+  std::map< std::string, message_spec > m_message_spec_list;
 
 
 private:

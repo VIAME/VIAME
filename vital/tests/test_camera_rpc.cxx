@@ -114,6 +114,8 @@ TEST_F(camera_rpc, clone)
   EXPECT_MATRIX_EQ( cam.image_scale(), cam_clone->image_scale() );
   EXPECT_MATRIX_EQ( cam.image_offset(), cam_clone->image_offset() );
   EXPECT_MATRIX_EQ( cam.rpc_coeffs(), cam_clone->rpc_coeffs() );
+  EXPECT_EQ( cam.image_width(), cam_clone->image_width() );
+  EXPECT_EQ( cam.image_height(), cam_clone->image_height() );
 }
 
 // ----------------------------------------------------------------------------
@@ -143,4 +145,13 @@ TEST_F(camera_rpc, back_projection)
 
     EXPECT_MATRIX_NEAR( new_pt, test_points[i], epsilon );
   }
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(camera_rpc, read_missing_image_dimension)
+{
+  kwiver::vital::path_t test_rpc_file = data_dir + "/rpc_data_missing_image_dimension.dat";
+  auto cam = read_rpc( test_rpc_file );
+  EXPECT_EQ( cam.image_width(), 0 );
+  EXPECT_EQ( cam.image_height(), 0 );
 }

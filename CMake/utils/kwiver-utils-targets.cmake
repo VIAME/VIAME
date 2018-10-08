@@ -31,6 +31,14 @@ include (GenerateExportHeader)
 
 
 # Global collection variables
+define_property(GLOBAL PROPERTY kwiver_executables
+  BRIEF_DOCS "KWIVER Executables"
+  FULL_DOCS "List of KWIVER executables created by the kwiver_add_executable function."
+  )
+define_property(GLOBAL PROPERTY kwiver_executables_paths
+  BRIEF_DOCS "KWIVER Executables Paths"
+  FULL_DOCS "List of the binary/build paths for all KWIVER executables created by the kwiver_add_executable function."
+  )
 define_property(GLOBAL PROPERTY kwiver_export_targets
   BRIEF_DOCS "Targets exported by KWIVER"
   FULL_DOCS "List of KWIVER targets to be exported in build and install trees."
@@ -127,6 +135,14 @@ function(kwiver_add_executable name)
   if(NOT component)
     set(component runtime)
   endif()
+
+  # Add to global collection variable
+  set_property(GLOBAL APPEND
+    PROPERTY kwiver_executables "${name}"
+    )
+  set_property(GLOBAL APPEND
+    PROPERTY kwiver_executables_paths "${CMAKE_CURRENT_BINARY_DIR}"
+    )
 
   kwiver_install(
     TARGETS     ${name}
@@ -391,4 +407,17 @@ macro( kwiver_make_module_path    root subdir )
   else()  # Other Unix systems
     set(kwiver_module_path_result  "${root}/lib${LIB_SUFFIX}/${subdir}" )
   endif()
+endmacro()
+
+###
+# This macro creates a symbolic link from source file to dest file.
+#
+add_custom_target( gen_symlinks ALL )
+macro(kwiver_make_symlink src dest)
+  add_custom_command(
+    TARGET gen_symlinks
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest}
+    DEPENDS  ${dest}
+    COMMENT "mklink ${src} -> ${dest}")
 endmacro()

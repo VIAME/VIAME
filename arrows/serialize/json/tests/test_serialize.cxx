@@ -39,12 +39,15 @@
 #include <vital/types/detected_object_type.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/timestamp.h>
+#include <vital/types/image_container.h>
 
 #include <arrows/serialize/json/bounding_box.h>
 #include <arrows/serialize/json/detected_object_type.h>
 #include <arrows/serialize/json/detected_object.h>
 #include <arrows/serialize/json/detected_object_set.h>
 #include <arrows/serialize/json/timestamp.h>
+#include <arrows/serialize/json/image.h>
+#include <arrows/serialize/json/string.h>
 
 #include <vital/util/string.h>
 
@@ -64,22 +67,14 @@ TEST( serialize, bounding_box )
   kwiver::vital::bounding_box_d bbox { 1, 2, 3, 4 };
 
   kwiver::vital::any bb_any( bbox );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, bb_any);
-  auto mes = bbox_ser.serialize( sp );
-
-
-  // check element names
-  const auto& names = bbox_ser.element_names();
-
-  EXPECT_EQ( names.size(), 1 );
+  auto mes = bbox_ser.serialize( bb_any );
 
   // std::cout << "Serialized bbox: \"" << *mes << "\"\n";
   // std::cout << "List of element names: " << kwiver::vital::join( names, ", " ) << std::endl;
 
-  auto dser = bbox_ser.deserialize( mes );
+  auto dser = bbox_ser.deserialize( *mes );
   kwiver::vital::bounding_box_d bbox_dser =
-    kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+    kwiver::vital::any_cast< kwiver::vital::bounding_box_d >( dser );
 
   /* useful for debugging
   std::cout << "bbox_dser { " << bbox_dser.min_x() << ", "
@@ -103,17 +98,14 @@ TEST( serialize, detected_object_type )
   dot.set_score( "last", 121 );
 
   kwiver::vital::any dot_any( dot );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = dot_any;
-
-  auto mes = dot_ser.serialize( sp );
+  auto mes = dot_ser.serialize( dot_any );
 
   // useful for debugging
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
-  auto dser = dot_ser.deserialize( mes );
+  auto dser = dot_ser.deserialize( *mes );
   kwiver::vital::detected_object_type dot_dser =
-    kwiver::vital::any_cast< kwiver::vital::detected_object_type >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+    kwiver::vital::any_cast< kwiver::vital::detected_object_type >( dser );
 
   EXPECT_EQ( dot.size(), dot_dser.size() );
 
@@ -145,16 +137,13 @@ TEST( serialize, detected_object )
   obj->set_index( 1234 );
 
   kwiver::vital::any obj_any( obj );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = obj_any;
-
-  auto mes = obj_ser.serialize( sp );
+  auto mes = obj_ser.serialize( obj_any );
 
   // useful for debugging
   // std::cout << "Serialized dot: \"" << *mes << "\"\n";
 
-  auto dser = obj_ser.deserialize( mes );
-  auto obj_dser = kwiver::vital::any_cast< kwiver::vital::detected_object_sptr >( dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+  auto dser = obj_ser.deserialize( *mes );
+  auto obj_dser = kwiver::vital::any_cast< kwiver::vital::detected_object_sptr >( dser );
 
   EXPECT_EQ( obj->bounding_box(), obj_dser->bounding_box() );
   EXPECT_EQ( obj->index(), obj_dser->index() );
@@ -203,17 +192,13 @@ TEST( serialize, detected_object_set )
   dos->add( det_obj );
 
   kwiver::vital::any obj_any( dos );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] = obj_any;
-
-  auto mes = obj_ser.serialize( sp );
+  auto mes = obj_ser.serialize( obj_any );
 
   // Useful for debugging
   // std::cout << "Serialized dos: \"" << *mes << "\"\n";
 
-  auto dser = obj_ser.deserialize( mes );
-  auto obj_dser_set = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >(
-    dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME ] );
+  auto dser = obj_ser.deserialize( *mes );
+  auto obj_dser_set = kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr >( dser );
 
   EXPECT_EQ( 3, obj_dser_set->size() );
 
@@ -250,14 +235,56 @@ TEST( serialize, timestamp)
   kwiver::vital::timestamp tstamp{1, 1};
 
   kwiver::vital::any tstamp_any( tstamp );
-  kwiver::vital::algo::data_serializer::serialize_param_t sp;
-  sp.emplace( kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME, tstamp_any);
 
-  auto mes = tstamp_ser.serialize( sp );
-  auto dser = tstamp_ser.deserialize ( mes );
+  auto mes = tstamp_ser.serialize( tstamp_any );
+  auto dser = tstamp_ser.deserialize ( *mes );
 
-  kwiver::vital::timestamp tstamp_dser = 
-    kwiver::vital::any_cast< kwiver::vital::timestamp >( 
-        dser[ kwiver::vital::algo::data_serializer::DEFAULT_ELEMENT_NAME] );
+  kwiver::vital::timestamp tstamp_dser =
+    kwiver::vital::any_cast< kwiver::vital::timestamp >( dser );
+
   EXPECT_EQ( tstamp, tstamp_dser);
+}
+
+// ----------------------------------------------------------------------------
+TEST( serialize, image)
+{
+  kasj::image image_ser;
+  kwiver::vital::image img{200, 300, 3};
+
+  char* cp = static_cast< char* >(img.memory()->data() );
+  for ( size_t i = 0; i < img.size(); ++i )
+  {
+    *cp++ = i;
+  }
+
+  kwiver::vital::image_container_sptr img_container =
+    std::make_shared< kwiver::vital::simple_image_container >( img );
+  kwiver::vital::any img_any(img_container);
+
+  auto mes = image_ser.serialize( img_any );
+  auto dser = image_ser.deserialize( *mes );
+
+  auto img_dser = kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( dser );
+
+  // Check the content of images
+  EXPECT_TRUE ( kwiver::vital::equal_content( img_container->get_image(), img_dser->get_image()) );
+}
+
+// ----------------------------------------------------------------------------
+TEST (serialize, string)
+{
+  kasj::string str_ser;
+  std::string str("Test string");
+
+  kwiver::vital::any str_any(str);
+
+  auto mes = str_ser.serialize( str_any );
+  auto dser = str_ser.deserialize( *mes );
+
+  std::string str_dser =
+    kwiver::vital::any_cast< std::string > ( dser );
+
+  // std::cout << tstamp_dser.pretty_print() << std::endl;
+
+  EXPECT_EQ (str, str_dser);
 }

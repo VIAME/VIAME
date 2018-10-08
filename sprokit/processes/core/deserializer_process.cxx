@@ -46,6 +46,7 @@
 #include <sprokit/pipeline/process_exception.h>
 
 #include <sstream>
+#include <cstdint>
 
 // ----------------------------------------------------------------------------
 namespace kwiver {
@@ -53,13 +54,18 @@ namespace kwiver {
 // (config-key, value-type, default-value, description )
 create_config_trait( serialization_type, std::string, "",
                      "Specifies the method used to serialize the data object. "
-                     "For example this could be json, or protobuf.");
+                     "For example this could be \"json\", or \"protobuf\".");
+
+create_config_trait( dump_message, bool, "false",
+                     "Dump printable version of serialized messages of set to true." );
 
 class deserializer_process::priv
 {
 public:
   priv();
   ~priv();
+
+  bool opt_dump_message;
 };
 
 // ============================================================================
@@ -90,6 +96,14 @@ deserializer_process
 
   // Examine the configuration
   m_serialization_type = config_value_using_trait( serialization_type );
+  d->opt_dump_message =  config_value_using_trait( dump_message );
+
+  if (m_serialization_type.empty())
+  {
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "\"serialization_type\" config parameter not specified");
+  }
+
 }
 
 
@@ -103,6 +117,11 @@ deserializer_process
 
   // Now that we have a "normal" output port, let Sprokit manage it
   this->set_data_checking_level( check_valid );
+
+  if (d->opt_dump_message)
+  {
+    dump_msg_spec();
+  }
 }
 
 
@@ -114,28 +133,128 @@ deserializer_process
   scoped_step_instrumentation();
 
   // Loop over all registered groups
-  for (const auto elem : m_port_group_list )
+  for (const auto msg_spec_it : m_message_spec_list )
   {
+    // Each iteration of this loop expects a multi-element message
+    // with the following format
+    //
+    // message ::= <message-type> <size-of-payload> <element-list>
+    // element_list ::= <element> <element_list>
+    // element ::= <element-name> <port-type> <length> <serialized-bytes>
+    //         |
+
     try
     {
-      const auto & pg = elem.second;
+      const auto& msg_spec = msg_spec_it.second;
 
       // Convert input back to vital type
-      auto message = grab_from_port_as< serialized_message_port_trait::type >( pg.m_serialized_port_name );
-      auto deser = pg.m_serializer->deserialize( message );
+      auto message = grab_from_port_as< serialized_message_port_trait::type >( msg_spec.m_serialized_port_name );
 
-      // loop over all items that are part of this group.
-      // This disassembles the input byte string into one or more concrete data types.
-      for ( auto pg_item : pg.m_items )
+      std::istringstream raw_stream( *message );
+      const int64_t end_offset = message->size();
+      int64_t current_remaining;
+
+      if (d->opt_dump_message)
       {
-        auto & item = pg_item.second;
-        LOG_TRACE( logger(), "Processing port: \"" << item.m_port_name
-                   << "\" of type \"" << item.m_port_type << "\"" );
+        decode_message( *message );
+      }
+
+      // check for expected message type
+      std::string msg_type;
+      raw_stream >> msg_type;
+
+      // This must be the expected message type.
+      if ( msg_type != msg_spec_it.first )
+      {
+        LOG_ERROR( logger(), "Unexpected message type. Expected \""
+                   << msg_spec_it.first << "\" but received \"" << msg_type << "\". Message dropped." );
+        return;
+      }
+
+      // number of bytes left in the buffer
+      int64_t payload_size;
+      raw_stream >> payload_size;
+
+      if ( payload_size != (end_offset - raw_stream.tellg()) )
+      {
+        LOG_WARN( logger(), "Payload size does not equal data count in stream." );
+      }
+
+      // Loop over all elements in the message
+      for ( size_t i = 0; i < msg_spec.m_elements.size(); ++i )
+      {
+        std::string element_name;
+        std::string port_type;
+
+        raw_stream >> element_name >> port_type;
+
+        // Find corresponding entry for element_name
+        if ( msg_spec.m_elements.count( element_name ) == 0 )
+        {
+          LOG_ERROR( logger(), "Message component \"" << element_name
+                     << "\" not specified for this process. Message dropped. " );
+          break;
+        }
+
+        // Get element specification
+        const auto& msg_elem = msg_spec.m_elements.at( element_name );
+
+        LOG_TRACE( logger(), "Processing port: \"" << msg_elem.m_port_name
+                   << "\" of type \"" << msg_elem.m_port_type << "\"" );
+
+        if ( port_type != msg_elem.m_port_type )
+        {
+          LOG_ERROR( logger(), "Message element type mismatch in message type \""
+                     << msg_type << "\". Expecting element type \""
+                     << msg_elem.m_port_type << "\" but received \""
+                     << port_type << "\". Remaining message dropped." );
+          break;
+        }
+
+        // Get size of next element
+        int64_t elem_size;
+        raw_stream >> elem_size;
+        raw_stream.get(); // eat delimiter
+
+        current_remaining = end_offset - raw_stream.tellg();
+        if ( elem_size > current_remaining )
+        {
+          LOG_ERROR( logger(), "Message size error. Current element size of "
+                     << elem_size << " bytes exceeds " << current_remaining
+                     << " remaining bytes in the payload_size. Remaining message dropped" );
+        break;
+        }
+
+        std::string elem_buffer( elem_size, 0 );
+        // raw_stream.read( elem_buffer.data(), elem_size );
+        raw_stream.read( &elem_buffer[0], elem_size );
+
+        current_remaining = end_offset - raw_stream.tellg();
+
+        // deserialize the data
+        auto deser_data = msg_elem.m_serializer->deserialize( elem_buffer );
+
+        // test for empty any()
+        if ( deser_data.empty() )
+        {
+          LOG_ERROR( logger(), "Deserializer for type \"" << msg_elem.m_port_type
+                     << "\" from message \"" << msg_type
+                     << "\" returned a null result. Whole message dropped." );
+          break;
+        }
 
         // Push one element from the deserializer to the correct port
-        sprokit::datum_t local_datum = sprokit::datum::new_datum( deser[ item.m_element_name ] );
-        push_datum_to_port( item.m_port_name, local_datum );
+        sprokit::datum_t local_datum = sprokit::datum::new_datum( deser_data );
+        push_datum_to_port( msg_elem.m_port_name, local_datum );
+      } // end for
+
+      // test residual payload size - should be zero
+      if ( current_remaining > 0 )
+      {
+        LOG_ERROR( logger(), "Message contained more elements than expected. Message processed with "
+                   << current_remaining << " bytes remaining." );
       }
+
     }
     catch ( const kwiver::vital::vital_exception& e )
     {
@@ -232,11 +351,13 @@ void deserializer_process
 ::make_config()
 {
   declare_config_using_trait( serialization_type );
+  declare_config_using_trait( dump_message );
 }
 
 // ------------------------------------------------------------------
 deserializer_process::priv
 ::priv()
+  : opt_dump_message( false )
 {
 }
 

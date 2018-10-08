@@ -50,9 +50,7 @@ namespace json {
 // ----------------------------------------------------------------------------
 detected_object_set::
 detected_object_set()
-{
-  m_element_names.insert( DEFAULT_ELEMENT_NAME );
-}
+{ }
 
 
 
@@ -63,10 +61,10 @@ detected_object_set::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 detected_object_set::
-serialize( const serialize_param_t& elements )
+serialize( const vital::any& element )
 {
   kwiver::vital::detected_object_set_sptr obj =
-    kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr > ( elements.at( DEFAULT_ELEMENT_NAME ) );
+    kwiver::vital::any_cast< kwiver::vital::detected_object_set_sptr > ( element );
 
   std::stringstream msg;
   msg << "detected_object_set ";
@@ -79,11 +77,10 @@ serialize( const serialize_param_t& elements )
 
 
 // ----------------------------------------------------------------------------
-vital::algo::data_serializer::deserialize_result_t
-detected_object_set::
-deserialize( std::shared_ptr< std::string > message )
+vital::any detected_object_set::
+deserialize( const std::string& message )
 {
-  std::stringstream msg(*message);
+  std::stringstream msg(message);
   kwiver::vital::detected_object_set* obj =  new kwiver::vital::detected_object_set();
 
   std::string tag;
@@ -100,11 +97,7 @@ deserialize( std::shared_ptr< std::string > message )
     load( ar, *obj );
   }
 
-  deserialize_result_t res;
-  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(
-    kwiver::vital::detected_object_set_sptr( obj ) );
-
-  return res;
+  return kwiver::vital::any( kwiver::vital::detected_object_set_sptr( obj ) );
 }
 
 // ----------------------------------------------------------------------------

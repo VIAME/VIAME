@@ -1,5 +1,5 @@
-Arrow Architecture
-===================
+Arrows
+======
 
 Arrows is the collection of plugins that provides implementations of the
 algorithms declared in Vital.  Each arrow can be enabled or disabled

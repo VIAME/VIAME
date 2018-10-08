@@ -1,16 +1,13 @@
 Tools
 =====
 
-KWIVER provides the following tools
-
+KWIVER provides commands line tools that help explore and leverage the use of KWIVER
+and its capabilities without requiring any code to written.  ``plugin_exploroer``
+allows the exploration of KWIVER's plugin space, including the available Arrows
+and Sprokit processes.  ``pipeline_runner``  runs Sprokit pipelines and provides
+way to dynacially configure them.
 
 .. toctree::
-  :hidden:
 
   tools/plugin_explorer
   tools/pipeline_runner
-
-================================================ ====================================================
-:doc:`Plugin Explorer</tools/plugin_explorer>`   Provides information about Processes and Algorithms
-:doc:`Pipeline Runner</tools/pipeline_runner>`   Executes a pipe file
-================================================ ====================================================

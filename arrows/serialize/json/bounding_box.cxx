@@ -44,9 +44,7 @@ namespace json {
 // ----------------------------------------------------------------------------
 bounding_box::
 bounding_box()
-{
-  m_element_names.insert( DEFAULT_ELEMENT_NAME );
-}
+{ }
 
 
 bounding_box::
@@ -56,10 +54,10 @@ bounding_box::
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
 bounding_box::
-serialize( const data_serializer::serialize_param_t& elements )
+serialize( const vital::any& element )
 {
   kwiver::vital::bounding_box_d bbox =
-    kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( elements.at( DEFAULT_ELEMENT_NAME ) );
+    kwiver::vital::any_cast< kwiver::vital::bounding_box_d > ( element );
 
   std::stringstream msg;
   msg << "bounding_box "; // add type tag
@@ -73,11 +71,10 @@ serialize( const data_serializer::serialize_param_t& elements )
 
 
 // ----------------------------------------------------------------------------
-vital::algo::data_serializer::deserialize_result_t
-bounding_box::
-deserialize( std::shared_ptr< std::string > message )
+vital::any bounding_box::
+deserialize( const std::string& message )
 {
-  std::stringstream msg(*message);
+  std::stringstream msg(message);
   kwiver::vital::bounding_box_d bbox{ 0, 0, 0, 0 };
   std::string tag;
   msg >> tag;
@@ -85,7 +82,7 @@ deserialize( std::shared_ptr< std::string > message )
   if (tag != "bounding_box" )
   {
     LOG_ERROR( logger(), "Invalid data type tag received. Expected \"bounding_box\", received \""
-               << tag << "\". Message dropped." );
+               << tag << "\". Message dropped, returning default object." );
   }
   else
   {
@@ -93,10 +90,7 @@ deserialize( std::shared_ptr< std::string > message )
     load( ar, bbox );
   }
 
-  deserialize_result_t res;
-  res[ DEFAULT_ELEMENT_NAME ] = kwiver::vital::any(bbox);
-
-  return res;
+  return kwiver::vital::any(bbox);
 }
 
 // ----------------------------------------------------------------------------
