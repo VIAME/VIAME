@@ -16,8 +16,8 @@ process out_adapt
 
 # ==================================================================================
 
-include common_default_detector.pipe
-include common_default_descriptor.pipe
+include ../common_default_detector.pipe
+include ../common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
@@ -54,6 +54,8 @@ connect from svm_refiner.detected_object_set
         to   nms_refiner.detected_object_set
 
 # ==================================================================================
+
+include ../common_default_tracker.pipe
 
 connect from in_adapt.image
         to   tracker.image

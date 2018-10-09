@@ -16,8 +16,8 @@ process out_adapt
 
 # ==================================================================================
 
-include common_default_detector.pipe
-include common_default_descriptor.pipe
+include ../common_default_detector.pipe
+include ../common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
