@@ -46,8 +46,8 @@
 #if BOOST_VERSION < 105000
 #include <boost/date_time/posix_time/posix_time.hpp>
 #endif
+
 #include <boost/thread/thread.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <memory>
 
@@ -479,7 +479,7 @@ IMPLEMENT_TEST(capacity)
 {
   kwiver::vital::config_block_sptr const config = kwiver::vital::config_block::empty_config();
 
-  kwiver::vital::config_block_value_t const value_capacity = boost::lexical_cast<kwiver::vital::config_block_value_t>(1);
+  kwiver::vital::config_block_value_t const value_capacity = "1";
 
   config->set_value(sprokit::edge::config_capacity, value_capacity);
 
