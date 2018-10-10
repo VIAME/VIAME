@@ -36,7 +36,6 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
 #include <string>

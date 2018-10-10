@@ -36,12 +36,12 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/util/string.h>
+#include <vital/internal/optional.h>
 
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
-#include <boost/optional.hpp>
 
 #include <map>
 #include <utility>
@@ -189,14 +189,14 @@ class process::priv
 
     typedef port_t tag_t;
 
-    typedef boost::optional<port_type_t> flow_tag_port_type_t;
+    typedef kwiver::vital::optional<port_type_t> flow_tag_port_type_t;
     typedef std::map<tag_t, flow_tag_port_type_t> flow_tag_port_type_map_t;
 
     typedef std::map<tag_t, ports_t> flow_tag_port_map_t;
 
     typedef std::map<port_t, tag_t> port_tag_map_t;
 
-    typedef boost::optional<port_frequency_t> core_frequency_t;
+    typedef kwiver::vital::optional<port_frequency_t> core_frequency_t;
 
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
     void check_tag(tag_t const& tag);
@@ -2344,4 +2344,4 @@ process::priv::output_port_info_t
 {
 }
 
-} // end namespace
+} // end name space
