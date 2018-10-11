@@ -4,6 +4,9 @@
 config _pipeline:_edge
    :capacity                                   10
 
+config _scheduler
+   :type                                       pythread_per_process
+
 # ==================================================================================
 process in_adapt
  :: input_adapter
