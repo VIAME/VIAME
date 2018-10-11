@@ -42,7 +42,6 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <boost/weak_ptr.hpp>
 
 #include <deque>
 
