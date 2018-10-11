@@ -9,8 +9,8 @@
 //
 // Added to Kwiver as a place-holder until optional is added to std.
 
-# ifndef ___OPTIONAL_HPP___
-# define ___OPTIONAL_HPP___
+# ifndef _VITAL_INTERNAL_OPTIONAL_HPP___
+# define _VITAL_INTERNAL_OPTIONAL_HPP___
 
 # include <utility>
 # include <type_traits>
@@ -19,6 +19,8 @@
 # include <functional>
 # include <string>
 # include <stdexcept>
+
+#include "in_place.hpp"
 
 # define TR2_OPTIONAL_REQUIRES(...) typename std::enable_if<__VA_ARGS__::value, bool>::type = false
 
@@ -255,10 +257,6 @@ namespace swap_ns
 
 
 constexpr struct trivial_init_t{} trivial_init{};
-
-
-// 20.5.6, In-place construction
-constexpr struct in_place_t{} in_place{};
 
 
 // 20.5.7, Disengaged state indicator
@@ -1070,4 +1068,4 @@ struct hash< kwiver::vital::optional< T& > >
 # undef TR2_OPTIONAL_REQUIRES
 # undef TR2_OPTIONAL_ASSERTED_EXPRESSION
 
-# endif //___OPTIONAL_HPP___
+# endif //_VITAL_INTERNAL_OPTIONAL_HPP___
