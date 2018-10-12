@@ -22,10 +22,10 @@ process sim :: detected_object_input
 process ser :: serializer
         serialization_type = protobuf
 
-connect from sim.detected_object_set to ser.dos
+connect from sim.detected_object_set to ser.test/dos
 
 # --------------------------------------------------
 process zmq :: zmq_transport_send
         port = 5560
 
-connect from ser.dos to zmq.serialized_message
+connect from ser.test to zmq.serialized_message
