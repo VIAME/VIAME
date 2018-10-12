@@ -121,7 +121,6 @@ void downsample_process
   d->ds_counter_ = 0.0;
   d->burst_counter_ = 0;
   d->burst_skip_mode_ = false;
-  d->renumber_frames_ = false;
   d->output_counter_ = 0;
 }
 
