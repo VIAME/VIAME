@@ -1,0 +1,62 @@
+# Filters input images via debayering them and running basic image filtering
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               5
+
+# ================================= INPUT VIDEO ====================================
+
+include common_default_input.pipe
+
+process downsampler
+  :: downsample
+  :target_frame_rate                           5
+  :burst_frame_count                           0
+  :burst_frame_break                           0
+
+connect from input.image
+        to   downsampler.input_1
+connect from input.frame_rate
+        to   downsampler.frame_rate
+connect from input.timestamp
+        to   downsampler.timestamp
+
+# =================================== FILTERS ======================================
+
+process filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+  :filter:ocv_enhancer:apply_smoothing         false
+  :filter:ocv_enhancer:smooth_kernel           3
+  :filter:ocv_enhancer:apply_denoising         false
+  :filter:ocv_enhancer:denoise_kernel          3
+  :filter:ocv_enhancer:denoise_coeff           2
+  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:force_8bit              false
+  :filter:ocv_enhancer:apply_clahe             true
+  :filter:ocv_enhancer:clip_limit              3
+  :filter:ocv_enhancer:saturation              1.0
+
+connect from downsampler.output_1
+        to   filter.image
+
+# ==================================== OUTPUT ======================================
+
+process kwa_writer
+  :: kw_archive_writer
+  :output_directory                            [INSERT_ME]
+  :base_filename                               [INSERT_ME]
+  :separate_meta                               true
+  :stream_id                                   [INSERT_ME]
+  :compress_image                              true
+  :static/gsd[ro]                              common:fixed_gsd
+  :static/corner_points[ro]                    0 0 0 0 0 0 0 0
+
+connect from downsampler.timestamp
+        to   kwa_writer.timestamp
+connect from filter.image
+        to   kwa_writer.image
+
+# -- end of file --

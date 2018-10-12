@@ -17,7 +17,7 @@ include common_default_input.pipe
 
 process downsampler
   :: downsample
-  :target_frame_rate                           2
+  :target_frame_rate                           5
   :burst_frame_count                           0
   :burst_frame_break                           0
 
