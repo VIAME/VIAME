@@ -81,7 +81,10 @@ cluster_bakery
 
   // Run splitter over vector of blocks to make collections by block type.
   // These lists end up in "cluster"
-  std::for_each( subblocks.begin(), subblocks.end(), boost::apply_visitor( splitter ) );
+  for ( auto sb : subblocks )
+  {
+    kwiver::vital::visit( splitter, sb );
+  }
 
   m_cluster = cluster;
 

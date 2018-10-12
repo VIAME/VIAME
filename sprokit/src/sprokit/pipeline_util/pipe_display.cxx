@@ -55,8 +55,7 @@ namespace sprokit {
 namespace {
 
 // ==================================================================
-class config_printer :
-  public boost::static_visitor< >
+class config_printer
 {
 public:
   config_printer( std::ostream& ostr );
@@ -223,7 +222,10 @@ display_pipe_blocks( const sprokit::pipe_blocks blocks )
 
   m_ostr << "Number of blocks in list: " << blocks.size() << std::endl;
 
-  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(printer));
+  for ( auto b : blocks )
+  {
+    kwiver::vital::visit( printer, b );
+  }
 }
 
 } // end namespace
