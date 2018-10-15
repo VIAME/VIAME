@@ -7,6 +7,7 @@ import argparse
 import atexit
 import shutil
 import tempfile
+import subprocess
 
 temp_dir = tempfile.mkdtemp(prefix='vpview-tmp')
 atexit.register(lambda: shutil.rmtree(temp_dir))
@@ -18,10 +19,12 @@ else:
 
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
-  return [
-    os.path.join(folder, f) for f in sorted(os.listdir(folder))
-    if not f.startswith('.')
-  ]
+  if os.path.exists( folder ):
+    return [
+      os.path.join( folder, f ) for f in sorted( os.listdir( folder ) )
+      if not f.startswith('.')
+    ]
+  return []
 
 def list_files_in_dir_w_ext( folder, extension ):
   return [f for f in list_files_in_dir(folder) if f.endswith(extension)]
@@ -100,18 +103,18 @@ def get_pipeline_cmd( debug=False ):
     else:
       return ['pipeline_runner']
 
-def generate_index_for_video( args, file_path, basename )
+def generate_index_for_video( args, file_path, basename ):
 
   if not os.path.isfile( file_path ):
     print( "Unable to find file: " + file_path )
     sys.exit( 0 )
 
-  cmd = get_pipeline_cmd() +
-    ["-p", find_file( args.cache_pipeline ) ] +
-    ["-s", 'input:video_filename=' + file_path ] +
-    ["-s", 'input:video_reader:type=vidl_ffmpeg' ] +
-    ["-s", 'kwa_writer:output_directory=' + args.cache_dir ] +
-    ["-s", 'kwa_writer:base_filename=' + basename ] + 
+  cmd = get_pipeline_cmd() +                                   \
+    ["-p", find_file( args.cache_pipeline ) ] +                \
+    ["-s", 'input:video_filename=' + file_path ] +             \
+    ["-s", 'input:video_reader:type=vidl_ffmpeg' ] +           \
+    ["-s", 'kwa_writer:output_directory=' + args.cache_dir ] + \
+    ["-s", 'kwa_writer:base_filename=' + basename ] +          \
     ["-s", 'kwa_writer:stream_id=' + basename ]
 
   if len( args.frame_rate ) > 0:
@@ -197,7 +200,7 @@ def process_video_dir( args ):
                                 text=True, dir=temp_dir)
 
   ftmp = os.fdopen(fd, 'w')
-  ftmp.write( "DataSetSpecifier=" + file_path + "\n" )
+  ftmp.write( "DataSetSpecifier=" + os.path.abspath( file_path ) + "\n" )
   ftmp.close()
 
   execute_command( get_gui_cmd() + [ "-p", name ] + default_annotator_args( args ) )
