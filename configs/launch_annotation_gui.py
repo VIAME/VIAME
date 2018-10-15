@@ -167,8 +167,11 @@ def process_video_dir( args ):
 
   print( "" )
   counter = 1
-  for fname in net_files:
-    print( "(" + str(counter) + ") " + fname )
+  for fname, is_cached in zip( net_files, has_index ):
+    cache_str = ""
+    if is_cached:
+      cache_str = " (cached in: " + args.cache_dir + ")"
+    print( "(" + str(counter) + ") " + fname + cache_str )
     counter = counter + 1
 
   sys.stdout.write( "\nSelect File: " )

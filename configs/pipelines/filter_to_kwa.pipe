@@ -36,7 +36,7 @@ process filter
   :filter:ocv_enhancer:auto_balance            true
   :filter:ocv_enhancer:force_8bit              false
   :filter:ocv_enhancer:apply_clahe             true
-  :filter:ocv_enhancer:clip_limit              3
+  :filter:ocv_enhancer:clip_limit              2
   :filter:ocv_enhancer:saturation              1.0
 
 connect from downsampler.output_1
