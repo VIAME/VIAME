@@ -41,7 +41,7 @@ def find_file( filename ):
 # Main Function
 if __name__ == "__main__" :
 
-  parser = argparse.ArgumentParser(description="Launch annotation GUI",
+  parser = argparse.ArgumentParser(description="Launch track viewer GUI",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
   parser.add_argument("-d", dest="input_dir", default="database",
@@ -75,7 +75,7 @@ if __name__ == "__main__" :
   else:
     choice = input().lower()
 
-  if int(choice) < 0 or int(choice) > len( files ):
+  if int(choice) < 1 or int(choice) > len( files ):
     print( "Invalid selection, must be a number" )
     sys.exit(0)
 

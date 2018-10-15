@@ -8,20 +8,23 @@ import atexit
 import shutil
 import tempfile
 
+temp_dir = tempfile.mkdtemp(prefix='vpview-tmp')
+atexit.register(lambda: shutil.rmtree(temp_dir))
+
 if os.name == 'nt':
   div = '\\'
 else:
   div = '/'
 
-temp_dir = tempfile.mkdtemp(prefix='vpview-tmp')
-atexit.register(lambda: shutil.rmtree(temp_dir))
-
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
-  return glob.glob( folder + '/*' )
+  return [
+    os.path.join(folder, f) for f in sorted(os.listdir(folder))
+    if not f.startswith('.')
+  ]
 
-def list_files_in_dir( folder, extension ):
-  return glob.glob( folder + '/*' + extension )
+def list_files_in_dir_w_ext( folder, extension ):
+  return [f for f in list_files_in_dir(folder) if f.endswith(extension)]
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
@@ -36,15 +39,12 @@ def create_dir( dirname ):
 
 def get_gui_cmd():
   if os.name == 'nt':
-    return 'vpView.exe '
+    return ['vpView.exe']
   else:
-    return 'vpView '
+    return ['vpView']
 
-def execute_command( cmd ):
-  if os.name == 'nt':
-    return os.system( cmd )
-  else:
-    return os.system( '/bin/bash -c \"' + cmd + '\"'  )
+def execute_command( cmd, stdout=None, stderr=None ):
+  return subprocess.call(cmd, stdout=stdout, stderr=stderr)
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
@@ -57,74 +57,6 @@ def find_file( filename ):
   else:
     print( "Unable to find " + filename )
     sys.exit( 0 )
-
-def get_writer_cmd():
-  if os.name == 'nt':
-    return 'kwa_tool.exe '
-  else:
-    return 'kwa_tool '
-
-def process_video( args ):
-  print( "Function not yet implemented" )
-  sys.exit(0)
-
-def process_list( args ):
-  print( "Function not yet implemented" )
-  sys.exit(0)
-
-def process_dir( args ):
-  print( "Function not yet implemented" )
-  sys.exit(0)
-
-  files = list_files_in_dir( args.input_dir, "index" )
-
-  if len( files ) == 0:
-    print( "No computed results in input directory" )
-    sys.exit(0)
-
-  files.sort()
-
-  print( "" )
-  counter = 1
-  for filen in files:
-    print( "(" + str(counter) + ") " + filen )
-    counter = counter + 1
-
-  sys.stdout.write( "\nSelect File: " )
-  sys.stdout.flush()
-
-  if sys.version_info[0] < 3:
-    choice = raw_input().lower()
-  else:
-    choice = input().lower()
-
-  if int(choice) < 0 or int(choice) > len( files ):
-    print( "Invalid selection, must be a number" )
-    sys.exit(0)
-
-  sys.stdout.write( "\n" )
-
-  filename = files[int(choice)-1]
-  base, ext = os.path.splitext( filename )
-  basename = os.path.splitext( os.path.basename( filename ) )[0] 
-
-  image_dir = args.input_dir + "/Raw/" + basename
-  project_file = image_dir + "/view_detections.prj"
-
-  print( "Dumping out frames to directory" )
-  if not os.path.exists( image_dir ) or not os.path.exists( image_dir + "/frame000010.png" ):
-    create_dir( image_dir )
-    os.system( get_writer_cmd() + " --input " + filename +
-               " --output-pattern " + image_dir + "/frame%06d.png" +
-               " --mode extract" )
-
-  fout = open( project_file, 'w' )
-  fout.write( "DataSetSpecifier=*.png\n" )
-  fout.write( "TracksFile=../../" + base + "_detections.kw18" )
-  fout.close()
-
-  cmd = get_gui_cmd() + " -p " + project_file
-  os.system( cmd )
 
 def create_pipelines_list( glob_str ):
   (fd, name) = tempfile.mkstemp(prefix='vpview-pipelines-',
@@ -148,14 +80,142 @@ def create_pipelines_list( glob_str ):
   f.close()
   return name
 
+def default_annotator_args( args ):
+  command_args = []
+  if len( args.gui_theme ) > 0:
+    command_args += [ "--theme", find_file( args.gui_theme ) ]
+  if len( args.pipelines ) > 0:
+    command_args += [ "--import-config", create_pipelines_list( args.pipelines ) ]
+  return command_args
+
+def get_pipeline_cmd( debug=False ):
+  if os.name == 'nt':
+    if debug:
+      return ['pipeline_runner.exe']
+    else:
+      return ['pipeline_runner.exe']
+  else:
+    if debug:
+      return ['gdb', '--args', 'pipeline_runner']
+    else:
+      return ['pipeline_runner']
+
+def generate_index_for_video( args, file_path, basename )
+
+  if not os.path.isfile( file_path ):
+    print( "Unable to find file: " + file_path )
+    sys.exit( 0 )
+
+  cmd = get_pipeline_cmd() +
+    ["-p", find_file( args.cache_pipeline ) ] +
+    ["-s", 'input:video_filename=' + file_path ] +
+    ["-s", 'input:video_reader:type=vidl_ffmpeg' ] +
+    ["-s", 'kwa_writer:output_directory=' + args.cache_dir ] +
+    ["-s", 'kwa_writer:base_filename=' + basename ] + 
+    ["-s", 'kwa_writer:stream_id=' + basename ]
+
+  if len( args.frame_rate ) > 0:
+    cmd += ["-s", 'downsampler:target_frame_rate=' + args.frame_rate ]
+
+  execute_command( cmd )
+
+  return args.cache_dir + div + basename + ".index"
+
+def process_video( args ):
+  print( "Function not yet implemented" )
+  sys.exit(0)
+
+def process_list( args ):
+  print( "Function not yet implemented" )
+  sys.exit(0)
+
+def process_video_dir( args ):
+  
+  video_files = list_files_in_dir( args.video_dir )
+  index_files = list_files_in_dir_w_ext( args.cache_dir, "index" )
+
+  video_files.sort()
+  index_files.sort()
+
+  video_files_no_ext_no_path = [os.path.splitext(os.path.basename(f))[0] for f in video_files]
+  index_files_no_ext_no_path = [os.path.splitext(os.path.basename(f))[0] for f in index_files]
+
+  net_files = video_files_no_ext_no_path
+  net_full_paths = video_files
+
+  total_video_count = len( video_files_no_ext_no_path )
+  total_index_count = len( index_files_no_ext_no_path )
+
+  has_index = [False] * total_video_count
+
+  for fpath, fname in zip( index_files, index_files_no_ext_no_path ):
+    if fname in net_files:
+      index = net_files.index( fname )
+      has_index[ index ] = True
+      net_full_paths[ index ] = fpath
+    else:
+      net_files.append( fname )
+      has_index.append( True )
+      net_full_paths.append( fpath )
+
+  if len( net_files ) == 0:
+    print( "No videos found in input directory: " + args.video_dir )
+    sys.exit(0)
+
+  print( "" )
+  counter = 1
+  for fname in net_files:
+    print( "(" + str(counter) + ") " + fname )
+    counter = counter + 1
+
+  sys.stdout.write( "\nSelect File: " )
+  sys.stdout.flush()
+
+  if sys.version_info[0] < 3:
+    choice = raw_input().lower()
+  else:
+    choice = input().lower()
+
+  if int(choice) < 1 or int(choice) > len(net_files):
+    print( "Invalid selection, must be a valid number" )
+    sys.exit(0)
+
+  sys.stdout.write( "\n" )
+
+  file_id = int(choice)-1
+  file_no_ext = net_files[file_id]
+  file_has_index = has_index[file_id]
+  file_path = net_full_paths[file_id]
+
+  if not file_has_index:
+    create_dir( args.cache_dir )
+    print( "Generating cache for video file, this may take up to a few minutes.\n" )
+    file_path = generate_index_for_video( args, file_path, file_no_ext )
+
+  (fd, name) = tempfile.mkstemp(prefix='vpview-project-',
+                                suffix='.prj',
+                                text=True, dir=temp_dir)
+
+  ftmp = os.fdopen(fd, 'w')
+  ftmp.write( "DataSetSpecifier=" + file_path + "\n" )
+  ftmp.close()
+
+  execute_command( get_gui_cmd() + [ "-p", name ] + default_annotator_args( args ) )
+
 # Main Function
 if __name__ == "__main__" :
 
   parser = argparse.ArgumentParser(description="Launch annotation GUI",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-  parser.add_argument("-d", dest="input_dir", default="",
-                      help="Input directory to run annotator on")
+  parser.add_argument("-d", dest="video_dir", default="",
+                      help="Input directory containing videos to run annotator on")
+
+  parser.add_argument("-c", dest="cache_dir", default="",
+                      help="Input directory containing cached video .index files")
+
+  parser.add_argument("-o", dest="output_directory", default="database",
+                      help="Output directory to store files in")
 
   parser.add_argument("-v", dest="input_video", default="",
                       help="Input video file to run annotator on")
@@ -168,8 +228,15 @@ if __name__ == "__main__" :
                       help="Predefined query directory, if present")
 
   parser.add_argument("-pipelines", dest="pipelines",
-                      default="pipelines/gui_embedded/*.pipe",
+                      default="pipelines" + div + "gui_embedded" + div + "*.pipe",
                       help="Glob pattern for runable processing pipelines")
+
+  parser.add_argument("-cache-pipe", dest="cache_pipeline",
+                      default="pipelines" + div + "filter_to_kwa.pipe",
+                      help="Pipeline used for generative video .index files")
+
+  parser.add_argument("-frate", dest="frame_rate", default="",
+                      help="Frame rate over-ride to process videos at")
 
   parser.add_argument("--debug", dest="debug", action="store_true",
                       help="Run with debugger attached to process")
@@ -178,16 +245,11 @@ if __name__ == "__main__" :
 
   args = parser.parse_args()
 
-  if len( args.input_dir ) > 0:
-    process_dir( args )
+  if len( args.video_dir ) > 0 or len( args.cache_dir ) > 0:
+    process_video_dir( args )
   elif len( args.input_video ) > 0:
     process_video( args )
   elif len( args.input_list ) > 0:
     process_list( args )
   else:
-    command = get_gui_cmd()
-    if len( args.gui_theme ) > 0:
-      command = command + " --theme \"" + find_file( args.gui_theme ) + "\" "
-    if len( args.pipelines ) > 0:
-      command = command + " --import-config \"" + create_pipelines_list( args.pipelines ) + "\" "
-    execute_command( command )
+    execute_command( get_gui_cmd() + default_annotator_args( args ) )

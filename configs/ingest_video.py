@@ -22,6 +22,11 @@ sys.dont_write_bytecode = True
 import aggregate_plots
 import database_tool
 
+if os.name == 'nt':
+  div = '\\'
+else:
+  div = '/'
+
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
   return [
@@ -85,8 +90,8 @@ def get_pipeline_cmd( debug=False ):
 def exit_with_error( error_str ):
   sys.stdout.write( '\n\nERROR: ' + error_str + '\n\n' )
   sys.stdout.flush()
-  os.kill(os.getpid(), signal.SIGKILL)
-  sys.exit(0)
+  os.kill(os.getpid(), signal.SIGKILL) # Required for pythread exit
+  sys.exit(0)                          # Just in case ;)
 
 def check_file( filename ):
   if not os.path.exists( filename ):
@@ -106,8 +111,8 @@ def get_log_output_files( output_prefix ):
 def find_file( filename ):
   if( os.path.exists( filename ) ):
     return filename
-  elif os.path.exists( get_script_path() + "/" + filename ):
-    return get_script_path() + "/" + filename
+  elif os.path.exists( get_script_path() + div + filename ):
+    return get_script_path() + div + filename
   else:
     exit_with_error( "Unable to find " + filename )
 
@@ -122,11 +127,11 @@ def video_output_settings_list( options, basename ):
   output_dir = options.output_directory
 
   return list(itertools.chain(
-    fset( 'detector_writer:file_name=' + output_dir + '/' + basename + '_detections.csv' ),
-    fset( 'track_writer:file_name=' + output_dir + '/' + basename + '_tracks.csv' ),
+    fset( 'detector_writer:file_name=' + output_dir + div + basename + '_detections.csv' ),
+    fset( 'track_writer:file_name=' + output_dir + div + basename + '_tracks.csv' ),
     fset( 'track_writer:stream_identifier=' + basename ),
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
-    fset( 'track_writer_kw18:file_name=' + output_dir + '/' + basename + '.kw18' ),
+    fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
     fset( 'descriptor_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_descriptor:uid_basename=' + basename ),
     fset( 'kwa_writer:output_directory=' + output_dir ),
@@ -138,7 +143,7 @@ def plot_settings_list( options, basename ):
   output_dir = options.output_directory
 
   return list(itertools.chain(
-    fset( 'detector_writer:file_name=' + output_dir + '/' + basename + '_detections.csv' ),
+    fset( 'detector_writer:file_name=' + output_dir + div + basename + '_detections.csv' ),
     fset( 'kwa_writer:output_directory=' + output_dir ),
     fset( 'kwa_writer:base_filename=' + basename ),
     fset( 'kwa_writer:stream_id=' + basename ),
@@ -206,7 +211,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   # Process command, possibly with logging
   if len( options.log_directory ) > 0 and not options.debug:
-    log_file = options.output_directory + '/' + options.log_directory + '/' + basename
+    log_file = options.output_directory + div + options.log_directory + div + basename
     with get_log_output_files( log_file ) as kwargs:
       res = execute_command( command, gpu=gpu, **kwargs )
   else:
@@ -216,7 +221,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     print( 'Success ({})'.format(gpu) )
   else:
     print( 'Failure ({})'.format(gpu) )
-    exit_with_error( '\nIngest failed, check ' + options.output_directory + '/' +
+    exit_with_error( '\nIngest failed, check ' + options.output_directory + div +
                      options.log_directory + ' for {}, terminating.\n'
                      .format( os.path.basename( input_name ) ) )
 
@@ -259,7 +264,7 @@ if __name__ == "__main__" :
   parser.add_argument("-l", dest="input_list", default="",
                       help="Input list of image or video files to ingest")
 
-  parser.add_argument("-p", dest="pipeline", default="pipelines/ingest_video.tut.pipe",
+  parser.add_argument("-p", dest="pipeline", default="pipelines" + div + "ingest_video.tut.pipe",
                       help="Input pipeline for ingesting video or image data")
 
   parser.add_argument("-s", dest="extra_settings", default="", action='append', nargs='*',
@@ -368,7 +373,7 @@ if __name__ == "__main__" :
       sys.stdout.write( "\n" )
 
     if len( args.log_directory ) > 0:
-      create_dir( args.output_directory + '/' + args.log_directory )
+      create_dir( args.output_directory + div + args.log_directory )
       sys.stdout.write( "\n" )
 
     # Process videos in parallel, one per GPU
