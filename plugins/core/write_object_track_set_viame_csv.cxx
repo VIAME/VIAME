@@ -176,7 +176,7 @@ write_object_track_set_viame_csv
   d->m_active_writing =
     config->get_value<bool>( "active_writing", d->m_active_writing );
   d->m_write_time_as_uid =
-    config->get_value<bool>( "write_time_as_uid", d->m_active_writing );
+    config->get_value<bool>( "write_time_as_uid", d->m_write_time_as_uid );
 }
 
 
