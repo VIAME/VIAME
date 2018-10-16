@@ -76,10 +76,16 @@ std::string write_object_track_set_viame_csv::priv
   if( m_write_time_as_uid )
   {
     char output[10];
-    time_t rawtime = ts->time();
-    struct tm* tmp = localtime( &rawtime );
+    time_t rawtime = ts->time() / 1e6;
+    unsigned msec = ts->time() / 1e4;
+    std::string msec_str = std::to_string( msec );
+    while( msec_str.size() < 3 )
+    {
+      msec_str = "0" + msec_str;
+    }
+    struct tm* tmp = gmtime( &rawtime );
     strftime( output, sizeof( output ), "%H:%M:%S", tmp );
-    return output;
+    return std::string( output ) + "." + msec_str + " UTC";
   }
   else
   {
