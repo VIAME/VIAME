@@ -290,6 +290,8 @@ public:
     }
 
     // Determine which option has been selected to generate frame time;
+    d_have_frame_time = true;
+
     if ( time_source == "misp" )
     {
       retval = misp_time();
@@ -344,10 +346,6 @@ public:
     {
       retval = false;
     }
-
-    // if, after advancing, the PTS is still zero, then we can not
-    // establish a relative time reference
-    d_have_frame_time = ( 0 != d_video_stream.current_pts() );
 
     // Clear any old metadata
     metadata_collection.clear();
