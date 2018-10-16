@@ -94,8 +94,7 @@ def ts2ot_list(track_set):
         for ti in t:
             ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time, ti.detectedObj)
             if not ot.append(ot_state):
-                print('cannot add ObjectTrackState')
-                exit(1)
+                print('Error: Cannot add ObjectTrackState')
 
     return ot_list
 
