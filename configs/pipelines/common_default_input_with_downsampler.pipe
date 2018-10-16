@@ -12,7 +12,7 @@ process input
   :video_reader:type                                    image_list
   :video_reader:image_list:image_reader:type            vxl
   :video_reader:image_list:image_reader:vxl:force_byte  true
-  :video_reader:vidl_ffmpeg:time_source                 current
+  :video_reader:vidl_ffmpeg:time_source                 presentation
 
 process downsampler
   :: downsample
