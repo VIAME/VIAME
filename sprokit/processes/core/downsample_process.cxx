@@ -42,6 +42,7 @@ using sprokit::process;
 create_config_trait( target_frame_rate, double, "1.0", "Target frame rate" );
 create_config_trait( burst_frame_count, unsigned, "0", "Burst frame count" );
 create_config_trait( burst_frame_break, unsigned, "0", "Burst frame break" );
+create_config_trait( renumber_frames, bool, "false", "Renumber output frames" );
 
 class downsample_process::priv
 {
@@ -56,11 +57,13 @@ public:
   double target_frame_rate_;
   unsigned burst_frame_count_;
   unsigned burst_frame_break_;
+  bool renumber_frames_;
 
   double ds_factor_;
   double ds_counter_;
   unsigned burst_counter_;
   bool burst_skip_mode_;
+  unsigned output_counter_;
 
   static port_t const port_inputs[5];
   static port_t const port_outputs[5];
@@ -108,6 +111,7 @@ void downsample_process
   d->target_frame_rate_ = config_value_using_trait( target_frame_rate );
   d->burst_frame_count_ = config_value_using_trait( burst_frame_count );
   d->burst_frame_break_ = config_value_using_trait( burst_frame_break );
+  d->renumber_frames_ = config_value_using_trait( renumber_frames );
 }
 
 
@@ -117,6 +121,8 @@ void downsample_process
   d->ds_counter_ = 0.0;
   d->burst_counter_ = 0;
   d->burst_skip_mode_ = false;
+  d->renumber_frames_ = false;
+  d->output_counter_ = 0;
 }
 
 
@@ -129,6 +135,11 @@ void downsample_process
 
   if( send_frame )
   {
+    if( d->renumber_frames_ )
+    {
+      ts.set_frame( d->output_counter_++ );
+    }
+
     LOG_DEBUG( logger(), "Sending frame " << ts.get_frame() );
     push_to_port_using_trait( timestamp, ts );
   }
@@ -182,6 +193,7 @@ void downsample_process
   declare_config_using_trait( target_frame_rate );
   declare_config_using_trait( burst_frame_count );
   declare_config_using_trait( burst_frame_break );
+  declare_config_using_trait( renumber_frames );
 }
 
 
