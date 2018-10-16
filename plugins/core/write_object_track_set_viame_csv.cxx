@@ -36,6 +36,8 @@
 #include "write_object_track_set_viame_csv.h"
 
 #include <ctime>
+#include <sstream>
+#include <iomanip>
 
 namespace viame {
 
@@ -48,10 +50,10 @@ public:
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "write_object_track_set_viame_csv" ) )
     , m_first( true )
-    , m_frame_number( 0 )
     , m_delim( "," )
     , m_stream_identifier( "" )
     , m_active_writing( false )
+    , m_write_time_as_uid( false )
   { }
 
   ~priv() { }
@@ -59,12 +61,31 @@ public:
   write_object_track_set_viame_csv* m_parent;
   kwiver::vital::logger_handle_t m_logger;
   bool m_first;
-  int m_frame_number;
   std::string m_delim;
   std::string m_stream_identifier;
   std::map< unsigned, kwiver::vital::track_sptr > m_tracks;
   bool m_active_writing;
+  bool m_write_time_as_uid;
+
+  std::string format_image_id( const kwiver::vital::object_track_state* ts );
 };
+
+std::string write_object_track_set_viame_csv::priv
+::format_image_id( const kwiver::vital::object_track_state* ts )
+{
+  if( m_write_time_as_uid )
+  {
+    char output[10];
+    time_t rawtime = ts->time();
+    struct tm* tmp = localtime( &rawtime );
+    strftime( output, sizeof( output ), "%H:%M:%S", tmp );
+    return output;
+  }
+  else
+  {
+    return m_stream_identifier;
+  }
+}
 
 
 // ===============================================================================
@@ -113,15 +134,15 @@ void write_object_track_set_viame_csv
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
       auto confidence = ( det ? det->confidence() : 0 );
   
-      stream() << trk_ptr->id() << d->m_delim           // 1: track id
-               << d->m_stream_identifier << d->m_delim  // 2: video or image id
-               << ts->frame() << d->m_delim             // 3: frame number
-               << bbox.min_x() << d->m_delim            // 4: TL-x
-               << bbox.min_y() << d->m_delim            // 5: TL-y
-               << bbox.max_x() << d->m_delim            // 6: BR-x
-               << bbox.max_y() << d->m_delim            // 7: BR-y
-               << confidence << d->m_delim              // 8: confidence
-               << "0";                                  // 9: length
+      stream() << trk_ptr->id() << d->m_delim            // 1: track id
+               << d->format_image_id( ts ) << d->m_delim // 2: video or image id
+               << ts->frame() << d->m_delim              // 3: frame number
+               << bbox.min_x() << d->m_delim             // 4: TL-x
+               << bbox.min_y() << d->m_delim             // 5: TL-y
+               << bbox.max_x() << d->m_delim             // 6: BR-x
+               << bbox.max_y() << d->m_delim             // 7: BR-y
+               << confidence << d->m_delim               // 8: confidence
+               << "0";                                   // 9: length
   
       if( det )
       {
@@ -154,6 +175,8 @@ write_object_track_set_viame_csv
     config->get_value<std::string>( "stream_identifier", d->m_stream_identifier );
   d->m_active_writing =
     config->get_value<bool>( "active_writing", d->m_active_writing );
+  d->m_write_time_as_uid =
+    config->get_value<bool>( "write_time_as_uid", d->m_active_writing );
 }
 
 
@@ -241,15 +264,15 @@ write_object_track_set_viame_csv
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
       auto confidence = ( det ? det->confidence() : 0 );
   
-      stream() << trk_ptr->id() << d->m_delim           // 1: track id
-               << d->m_stream_identifier << d->m_delim  // 2: video or image id
-               << state->frame() << d->m_delim          // 3: frame number
-               << bbox.min_x() << d->m_delim            // 4: TL-x
-               << bbox.min_y() << d->m_delim            // 5: TL-y
-               << bbox.max_x() << d->m_delim            // 6: BR-x
-               << bbox.max_y() << d->m_delim            // 7: BR-y
-               << confidence << d->m_delim              // 8: confidence
-               << "0";                                  // 9: length
+      stream() << trk_ptr->id() << d->m_delim               // 1: track id
+               << d->format_image_id( state ) << d->m_delim // 2: video or image id
+               << state->frame() << d->m_delim              // 3: frame number
+               << bbox.min_x() << d->m_delim                // 4: TL-x
+               << bbox.min_y() << d->m_delim                // 5: TL-y
+               << bbox.max_x() << d->m_delim                // 6: BR-x
+               << bbox.max_y() << d->m_delim                // 7: BR-y
+               << confidence << d->m_delim                  // 8: confidence
+               << "0";                                      // 9: length
   
       if( det )
       {

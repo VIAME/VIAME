@@ -188,8 +188,12 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   # Formulate input setting string
   input_setting = fset( 'input:video_filename=' + input_name )
 
-  if not is_image_list:
+  if is_image_list:
+    name_no_path = os.path.basename( input_name )
+    input_setting = input_setting + fset( 'track_writer:viame_csv:stream_identifier=' + name_no_path )
+  else:
     input_setting = input_setting + fset( 'input:video_reader:type=vidl_ffmpeg' )
+    input_setting = input_setting + fset( 'track_writer:viame_csv:write_time_as_uid=true' )
 
   # Formulate command
   command = (get_pipeline_cmd( options.debug ) +
