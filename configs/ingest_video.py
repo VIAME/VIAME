@@ -235,6 +235,7 @@ def split_image_list(image_list_file, n, dir):
   deterministically like "orig_name_part0.ext", "orig_name_part1.ext",
   etc., but with the original name used as is when n == 1.
 
+  Existing files with the same names are overwritten without question.
   Deleting the files is the responsibility of the caller.
 
   """
@@ -249,10 +250,6 @@ def split_image_list(image_list_file, n, dir):
       for i in range(n)
     ]
   file_names = [os.path.join(dir, fn) for fn in file_names]
-  # Fail if any of the names already exist in the target directory
-  for fn in file_names:
-    if os.path.exists(fn):
-      exit_with_error("Refusing to overwrite existing file: " + fn)
 
   try:
     # Build manually to have the intermediate state in case of error
