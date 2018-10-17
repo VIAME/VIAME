@@ -209,9 +209,12 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   if len( options.input_detections ) > 0:
     command += fset( "detection_reader:file_name=" + options.input_detections )
 
-  if len( options.extra_settings ) > 0:
-    for extra_option in options.extra_settings:
-      command += fset( extra_option )
+  try:
+    if len( options.extra_settings ) > 0:
+      for extra_option in options.extra_settings:
+        command += fset( " ".join( extra_option ) )
+  except:
+    pass
 
   # Process command, possibly with logging
   if len( options.log_directory ) > 0 and not options.debug:
@@ -282,7 +285,7 @@ if __name__ == "__main__" :
   parser.add_argument("-p", dest="pipeline", default="pipelines" + div + "ingest_video.tut.pipe",
                       help="Input pipeline for ingesting video or image data")
 
-  parser.add_argument("-s", dest="extra_settings", default="", action='append', nargs='*',
+  parser.add_argument("-s", dest="extra_settings", action='append', nargs='*',
                       help="Extra command line arguments for the pipeline runner")
 
   parser.add_argument("-id", dest="input_detections", default="",
