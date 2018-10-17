@@ -229,29 +229,40 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
                      options.log_directory + ' for {}, terminating.\n'
                      .format( os.path.basename( input_name ) ) )
 
-def split_image_list(image_list_file, n, dir=None):
+def split_image_list(image_list_file, n, dir):
   """Create and return the paths to n temp files that when interlaced
-  reproduce the original file
+  reproduce the original file.  The names are created
+  deterministically like "orig_name_part0.ext", "orig_name_part1.ext",
+  etc., but with the original name used as is when n == 1.
+
+  Existing files with the same names are overwritten without question.
+  Deleting the files is the responsibility of the caller.
 
   """
-  prefix, suffix = os.path.splitext(os.path.basename(image_list_file))
-  tempfiles = [tempfile.NamedTemporaryFile(
-    mode='w', prefix=prefix + '_' + str(i) + '_tmp', suffix=suffix,
-    dir=dir, delete=False,
-  ) for i in range(n)]
-  with open(image_list_file) as f:
-    for i, line in enumerate(f):
-      tempfiles[i % n].write(line)
-  # This is bad security practice, but keeping the files open isn't an
-  # option in general. From the docs
-  # (https://docs.python.org/2/library/tempfile.html#tempfile.NamedTemporaryFile):
-  # "Whether the name can be used to open the file a second time,
-  # while the named temporary file is still open, varies across
-  # platforms (it can be so used on Unix; it cannot on Windows NT or
-  # later)"
-  for tf in tempfiles:
-    tf.close()
-  return [tf.name for tf in tempfiles]
+  bn = os.path.basename(image_list_file)
+  if n == 1:
+    file_names = [bn]
+  else:
+    prefix, suffix = os.path.splitext(bn)
+    num_width = len(str(n - 1))
+    file_names = [
+      prefix + '_part{:0{}}'.format(i, num_width) + suffix
+      for i in range(n)
+    ]
+  file_names = [os.path.join(dir, fn) for fn in file_names]
+
+  try:
+    # Build manually to have the intermediate state in case of error
+    tempfiles = []
+    for fn in file_names:
+      tempfiles.append(open(fn, 'w'))
+    with open(image_list_file) as f:
+      for i, line in enumerate(f):
+        tempfiles[i % n].write(line)
+  finally:
+    for f in tempfiles:
+      f.close()
+  return file_names
 
 # Main Function
 if __name__ == "__main__" :
