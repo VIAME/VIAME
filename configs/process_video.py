@@ -162,6 +162,16 @@ def archive_dimension_settings_list( options ):
     ))
   return []
 
+def object_detector_settings_list( options ):
+  if len( options.detection_threshold ) > 0:
+    return list(itertools.chain(
+      fset( 'detector:detector:darknet:thresh=' + options.detection_threshold ),
+      fset( 'detector_filter:filter:class_probablity_filter:threshold=' + options.detection_threshold ),
+      fset( 'track_initializer:track_initializer:threshold:'
+            'filter:class_probablity_filter:threshold=' + options.detection_threshold ),
+    ))
+  return []
+
 def video_frame_rate_settings_list( options ):
   output = []
   if len( options.frame_rate ) > 0:
@@ -210,6 +220,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   command += video_output_settings_list( options, basename )
   command += archive_dimension_settings_list( options )
+  command += object_detector_settings_list( options )
 
   if len( options.input_detections ) > 0:
     command += fset( "detection_reader:file_name=" + options.input_detections )
@@ -314,8 +325,11 @@ if __name__ == "__main__" :
   parser.add_argument("-objects", dest="objects", default="fish",
                       help="Objects to generate plots for")
 
-  parser.add_argument("-threshold", dest="threshold", default="0.25",
+  parser.add_argument("-plot-threshold", dest="plot_threshold", default="0.25",
                       help="Threshold to generate plots for")
+
+  parser.add_argument("-detection-threshold", dest="detection_threshold", default="",
+                      help="Optional detection threshold over-ride parameter")
 
   parser.add_argument("-smooth", dest="smooth", default="1",
                       help="Smoothing factor for plots")
@@ -435,7 +449,7 @@ if __name__ == "__main__" :
     print( "Generating data plots" )
     aggregate_plots.aggregate_plot( args.output_directory,
                                     args.objects.split(","),
-                                    float( args.threshold ),
+                                    float( args.plot_threshold ),
                                     float( args.frame_rate ),
                                     int( args.smooth ) )
 
