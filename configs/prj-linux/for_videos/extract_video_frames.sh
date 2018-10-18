@@ -7,7 +7,6 @@ export VIAME_INSTALL=/opt/noaa/viame
 export INPUT_DIRECTORY=videos
 export FRAME_RATE=5
 export START_TIME=00:00:00.00
-export CLIP_DURATION=00:05:00.00
 export OUTPUT_DIR=frames
 
 # Setup paths and run command
@@ -21,7 +20,7 @@ do
   output_folder=${OUTPUT_DIR}/${file_no_path}
   mkdir -p ${output_folder}
 
-  ffmpeg -i ${VIDEO_NAME} -r ${FRAME_RATE} \
-    -ss ${START_TIME} -t ${CLIP_DURATION} \
+  ffmpeg -i ${file} -r ${FRAME_RATE} \
+    -ss ${START_TIME} \
     ${output_folder}/frame%06d.png
 done
