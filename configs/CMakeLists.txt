@@ -91,9 +91,9 @@ install( DIRECTORY prj-windows
 set( RUN_SCRIPT_FILES
      database_tool.py
      process_video.py
-     launch_query_gui.py
-     launch_track_viewer.py
-     launch_annotation_gui.py
+     launch_search_interface.py
+     launch_timeline_interface.py
+     launch_annotation_interface.py
      aggregate_plots.py )
 
 install( FILES       ${RUN_SCRIPT_FILES}

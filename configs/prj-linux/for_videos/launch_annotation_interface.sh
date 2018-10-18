@@ -11,5 +11,5 @@ export FRAME_RATE=5
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/launch_annotation_gui.py \
+python ${VIAME_INSTALL}/configs/launch_annotation_interface.py \
   -d ${INPUT_DIRECTORY} -c ${CACHE_DIRECTORY} -frate ${FRAME_RATE} 
