@@ -123,7 +123,7 @@ def find_file( filename ):
 
 # Other helpers
 def signal_handler( signal, frame ):
-  exit_with_error( 'Ingest aborted, see you next time' )
+  exit_with_error( 'Processing aborted, see you next time' )
 
 def fset( setting_str ):
   return ['-s', setting_str]
@@ -286,20 +286,20 @@ def split_image_list(image_list_file, n, dir):
 # Main Function
 if __name__ == "__main__" :
 
-  parser = argparse.ArgumentParser(description="Ingest new videos",
+  parser = argparse.ArgumentParser(description="Process new videos",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
   parser.add_argument("-v", dest="input_video", default="",
-                      help="Input single video to ingest")
+                      help="Input single video to process")
 
   parser.add_argument("-d", dest="input_dir", default="",
-                      help="Input directory to ingest")
+                      help="Input directory to process")
 
   parser.add_argument("-l", dest="input_list", default="",
-                      help="Input list of image or video files to ingest")
+                      help="Input list of image or video files to process")
 
   parser.add_argument("-p", dest="pipeline", default="pipelines" + div + "index_default.res.pipe",
-                      help="Input pipeline for ingesting video or image data")
+                      help="Input pipeline for processing video or image data")
 
   parser.add_argument("-s", dest="extra_settings", action='append', nargs='*',
                       help="Extra command line arguments for the pipeline runner")

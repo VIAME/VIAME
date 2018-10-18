@@ -90,6 +90,7 @@ install( DIRECTORY prj-windows
 
 set( RUN_SCRIPT_FILES
      database_tool.py
+     extract_video_frames.py
      process_video.py
      launch_search_interface.py
      launch_timeline_interface.py
