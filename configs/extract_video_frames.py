@@ -19,7 +19,7 @@ except ImportError:
 
 sys.dont_write_bytecode = True
 
-import aggregate_plots
+import generate_detection_plots
 import database_tool
 
 if os.name == 'nt':
@@ -447,7 +447,7 @@ if __name__ == "__main__" :
   # Build out final analytics
   if args.detection_plots:
     print( "Generating data plots" )
-    aggregate_plots.aggregate_plot( args.output_directory,
+    generate_detection_plots.aggregate_plot( args.output_directory,
                                     args.objects.split(","),
                                     float( args.plot_threshold ),
                                     float( args.frame_rate ),

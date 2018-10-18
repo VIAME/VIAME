@@ -94,7 +94,7 @@ set( RUN_SCRIPT_FILES
      launch_search_interface.py
      launch_timeline_interface.py
      launch_annotation_interface.py
-     aggregate_plots.py )
+     generate_detection_plots.py )
 
 install( FILES       ${RUN_SCRIPT_FILES}
          DESTINATION configs )
