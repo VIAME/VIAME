@@ -64,6 +64,7 @@ public:
   unsigned burst_counter_;
   bool burst_skip_mode_;
   unsigned output_counter_;
+  bool is_first_;
 
   static port_t const port_inputs[5];
   static port_t const port_outputs[5];
@@ -122,6 +123,7 @@ void downsample_process
   d->burst_counter_ = 0;
   d->burst_skip_mode_ = false;
   d->output_counter_ = 0;
+  d->is_first_ = true;
 }
 
 
@@ -200,7 +202,18 @@ bool downsample_process::priv
 ::skip_frame( vital::timestamp const& ts, double frame_rate )
 {
   ds_factor_ = frame_rate / target_frame_rate_;
-  ds_counter_ += 1.0;
+
+  if( is_first_ )
+  {
+    // Triggers always sending the first frame
+    ds_counter_ = ds_factor_;
+    is_first_ = false;
+  }
+  else
+  {
+    ds_counter_ += 1.0;
+  }
+
   if( ds_counter_ < ds_factor_ )
   {
     return true;
