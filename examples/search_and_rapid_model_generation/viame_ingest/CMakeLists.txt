@@ -16,8 +16,8 @@ if( WIN32 )
        process_database_using_svm_model.bat
        process_full_frames_using_svm_model.bat
        generate_detections_using_svm_model.bat
-       launch_query_gui.bat
-       launch_annotation_gui.bat )
+       launch_search_interface.bat
+       launch_annotation_interface.bat )
 else()
   set( EXAMPLE_INSTALL_FILES
        ${EXAMPLE_INSTALL_FILES}
@@ -28,8 +28,8 @@ else()
        process_database_using_svm_model.sh
        process_full_frames_using_svm_model.sh
        generate_detections_using_svm_model.sh
-       launch_query_gui.sh
-       launch_annotation_gui.sh )
+       launch_search_interface.sh
+       launch_annotation_interface.sh )
 endif()
 
 ###

@@ -77,7 +77,7 @@ of your database/Logs folder and console output to 'viame.developers@gmail.com'.
 Perform an Image Query
 ======================
 
-After performing an ingest 'bash launch_query_gui.sh' should be called to launch the GUI.
+After performing an ingest 'bash launch_search_interface.sh' should be called to launch the GUI.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_3_launch_gui.png
    :scale: 30

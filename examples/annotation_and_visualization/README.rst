@@ -23,7 +23,7 @@ groundtruth, computed detections, and/or homographies for the input data. If you
 use the tool to make annotations you don't need to specify the later three, and just need to
 set a DataSetSpecifier.
 
-There are 2 default run scripts in this folder. "launch_annotation_gui" launches the main vpview
+There are 2 default run scripts in this folder. "launch_annotation_interface" launches the main vpview
 annotation and results display GUI while "run_display_pipe" runs the simpler in-pipeline
 display GUI. Lastly, "run_chip_pipe" creates image chips and "run_draw_pipe" does the same
 as display, only writing out images with boxes drawn on top of them to file.
