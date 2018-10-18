@@ -287,7 +287,7 @@ if __name__ == "__main__" :
   parser.add_argument("-l", dest="input_list", default="",
                       help="Input list of image or video files to ingest")
 
-  parser.add_argument("-p", dest="pipeline", default="pipelines" + div + "ingest_video.tut.pipe",
+  parser.add_argument("-p", dest="pipeline", default="pipelines" + div + "index_default.res.pipe",
                       help="Input pipeline for ingesting video or image data")
 
   parser.add_argument("-s", dest="extra_settings", action='append', nargs='*',
