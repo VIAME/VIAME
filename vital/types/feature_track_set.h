@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,16 +45,20 @@
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
+#include <vital/range/transform.h>
+
 #include <limits>
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace kwiver {
 namespace vital {
 
-class feature_track_state;
-typedef std::shared_ptr<feature_track_state> feature_track_state_sptr;
+class feature_track_set_frame_data;
+using feature_track_set_frame_data_sptr =
+  std::shared_ptr< feature_track_set_frame_data >;
 
+// ============================================================================
 /// A derived track_state for feature tracks
 class VITAL_EXPORT feature_track_state : public track_state
 {
@@ -75,16 +79,23 @@ public:
     return std::make_shared<feature_track_state>(*this);
   }
 
+  static std::shared_ptr< feature_track_state > downcast(
+    track_state_sptr const& sp )
+  {
+    return std::dynamic_pointer_cast< feature_track_state >( sp );
+  }
+
+  static constexpr auto downcast_transform = range::transform( downcast );
+
   feature_sptr feature;
   descriptor_sptr descriptor;
   bool inlier;
 };
 
+/// Shared pointer for feature_track_state type
+using feature_track_state_sptr = std::shared_ptr< feature_track_state >;
 
-
-class feature_track_set_frame_data;
-typedef std::shared_ptr<feature_track_set_frame_data> feature_track_set_frame_data_sptr;
-
+// ============================================================================
 /// A derived track_state_frame_data for feature tracks
 class VITAL_EXPORT feature_track_set_frame_data
  : public track_set_frame_data
@@ -108,10 +119,6 @@ public:
 };
 
 typedef std::shared_ptr< feature_info> feature_info_sptr;
-
-class feature_track_set;
-/// Shared pointer for feature_track_set type
-typedef std::shared_ptr< feature_track_set > feature_track_set_sptr;
 
 /// A collection of 2D feature point tracks
 class VITAL_EXPORT feature_track_set : public track_set
@@ -208,6 +215,12 @@ public:
   feature_track_set_frame_data_sptr feature_frame_data(frame_id_t offset = -1) const;
 };
 
+/// Shared pointer for feature_track_set type
+using feature_track_set_sptr = std::shared_ptr< feature_track_set >;
+
+/// Helper to iterate over the states of a track as object track states
+static constexpr auto as_feature_track =
+  feature_track_state::downcast_transform;
 
 } } // end namespace vital
 
