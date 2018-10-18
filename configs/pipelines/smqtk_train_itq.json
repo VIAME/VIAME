@@ -39,5 +39,6 @@
         }
 
     },
+    "max_descriptors": 100000,
     "uuids_list_filepath": null
 }
