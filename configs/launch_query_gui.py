@@ -262,4 +262,6 @@ if __name__ == "__main__" :
   database_tool.start()
 
   # Process command
+  print( "\n\nLaunching query GUI. When finished, make sure this console is closed.\n" )
+
   res = execute_command( command )

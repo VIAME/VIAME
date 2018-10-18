@@ -203,7 +203,7 @@ def process_video_dir( args ):
                                 text=True, dir=temp_dir)
 
   ftmp = os.fdopen(fd, 'w')
-  ftmp.write( "DataSetSpecifier=" + os.path.abspath( file_path ) + "\n" )
+  ftmp.write( "DataSetSpecifier=" + os.path.abspath( file_path ).replace("\\","\\\\") + "\n" )
   ftmp.close()
 
   execute_command( get_gui_cmd() + [ "-p", name ] + default_annotator_args( args ) )
