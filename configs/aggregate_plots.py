@@ -24,7 +24,7 @@ def aggregate_plot(directory, objects, threshold, frame_rate, smooth=1):
 
             ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
             ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
-            ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s)" % filename)
+            ax.set(xlabel="Time", ylabel="Object Count", title="Object Count (%s)" % filename)
             ax.grid()
 
             video_objects = videos[filename] = dict()
@@ -78,22 +78,22 @@ def aggregate_plot(directory, objects, threshold, frame_rate, smooth=1):
             for filename in sorted(videos):
                 video_objects = videos[filename]
                 times = list()
-                fish_counts = list()
+                object_counts = list()
                 for frame_id in sorted(video_objects[s]):
                     times.append(frame_id / frame_rate)
-                    fish_counts.append(video_objects[s][frame_id])
+                    object_counts.append(video_objects[s][frame_id])
                     outfile.write(filename + "," + str(frame_id) + "," + str(video_objects[s][frame_id]) + "\n")
 
                     sorted_frames.append((filename, frame_id, video_objects[s][frame_id]))
 
                 x = np.array(times)
-                y = np.array(fish_counts)
+                y = np.array(object_counts)
 
                 fig, ax = plt.subplots()
                 ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
                 ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
                 plt.locator_params(axis='x', nbins=6)
-                ax.set(xlabel="Time", ylabel="Fish Count", title="Fish Count (%s) (%s)" % (s, filename))
+                ax.set(xlabel="Time", ylabel="Object Count", title="Object Count (%s) (%s)" % (s, filename))
                 ax.grid()
 
                 ax.plot(x, y)
