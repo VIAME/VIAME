@@ -12,7 +12,7 @@ export MAX_IMAGE_HEIGHT=1000
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/ingest_video.py --init \
+python ${VIAME_INSTALL}/configs/process_video.py --init \
   -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
   -p pipelines/index_full_frame.res.pipe \
   -archive-width ${MAX_IMAGE_WIDTH} -archive-height ${MAX_IMAGE_HEIGHT} \

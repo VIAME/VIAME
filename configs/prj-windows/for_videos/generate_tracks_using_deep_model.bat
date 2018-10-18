@@ -10,7 +10,7 @@ SET FRAME_RATE=5
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python.exe "%VIAME_INSTALL%\configs\ingest_video.py" ^
+python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
   -d "%INPUT_DIRECTORY%" -frate %FRAME_RATE% ^
   -p pipelines\tracker_default.tut.pipe ^
   -s input:video_filename=input_list.txt ^

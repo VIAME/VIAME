@@ -13,6 +13,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-python.exe "%VIAME_INSTALL%\configs\ingest_video.py" --init -l input_list.txt -p pipelines\index_full_frame.res.pipe --build-index --ball-tree -archive-width %MAX_IMAGE_WIDTH% -archive-height %MAX_IMAGE_HEIGHT% -install "%VIAME_INSTALL%"
+python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -l input_list.txt -p pipelines\index_full_frame.res.pipe --build-index --ball-tree -archive-width %MAX_IMAGE_WIDTH% -archive-height %MAX_IMAGE_HEIGHT% -install "%VIAME_INSTALL%"
 
 pause

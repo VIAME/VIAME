@@ -10,7 +10,7 @@ export FRAME_RATE=5
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-python ${VIAME_INSTALL}/configs/ingest_video.py \
+python ${VIAME_INSTALL}/configs/process_video.py \
   -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
   -p pipelines/tracker_default.tut.pipe \
   -s detector:detector:darknet:net_config=deep_training/yolo_v2.cfg \
