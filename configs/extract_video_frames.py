@@ -45,12 +45,6 @@ def exit_with_error( error_str ):
 # Main Function
 if __name__ == "__main__" :
 
-export INPUT_DIRECTORY=videos
-export FRAME_RATE=5
-export START_TIME=00:00:00.00
-export DURATION=99:99:99.99
-export OUTPUT_DIR=frames
-
   parser = argparse.ArgumentParser(description="Ingest new videos",
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -86,7 +80,7 @@ export OUTPUT_DIR=frames
       cmd += [ "-r", args.frame_rate ]
     if len( args.start_time ) > 0:
       cmd += [ "-ss", args.start_time ]
-    if len( args.duration ) > 0 and args.duration not invalid_time:
+    if len( args.duration ) > 0 and args.duration != invalid_time:
       cmd += [ "-t", args.duration ]
     cmd += [ output_folder + div + args.pattern ]
     subprocess.call( cmd )
