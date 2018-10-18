@@ -16,5 +16,5 @@ python ${VIAME_INSTALL}/configs/process_video.py --init \
   -d ${INPUT_DIRECTORY} \
   --detection-plots \
   -objects ${OBJECT_LIST} \
-  -threshold ${DETECTION_THRESHOLD} -frate ${FRAME_RATE} -smooth 2 \
+  -plot-threshold ${DETECTION_THRESHOLD} -frate ${FRAME_RATE} -smooth 2 \
   -p ${VIAME_INSTALL}/configs/pipelines/index_mouss.no_desc.pipe
