@@ -29,6 +29,8 @@ else:
 
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
+  if not os.path.isdir( folder ):
+    exit_with_error( "Input folder \"" + folder + "\" does not exist" )
   return [
     os.path.join(folder, f) for f in sorted(os.listdir(folder))
     if not f.startswith('.')
@@ -90,7 +92,10 @@ def get_pipeline_cmd( debug=False ):
 def exit_with_error( error_str ):
   sys.stdout.write( '\n\nERROR: ' + error_str + '\n\n' )
   sys.stdout.flush()
-  os.kill(os.getpid(), signal.SIGKILL) # Required for pythread exit
+  if os.name == 'nt':
+    os.kill(os.getpid(), signal.SIGTERM)
+  else:
+    os.kill(os.getpid(), signal.SIGKILL) # Required for pythread exit
   sys.exit(0)                          # Just in case ;)
 
 def check_file( filename ):
