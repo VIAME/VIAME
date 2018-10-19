@@ -84,3 +84,5 @@ if __name__ == "__main__" :
       cmd += [ "-t", args.duration ]
     cmd += [ output_folder + div + args.pattern ]
     subprocess.call( cmd )
+
+  print( "\n\nFrame extraction complete, exiting.\n\n" )
