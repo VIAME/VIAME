@@ -400,7 +400,7 @@ if __name__ == "__main__" :
     if len( video_list ) == 0:
       exit_with_error( "No videos found for ingest in given folder, exiting.\n" )
     elif not is_image_list:
-      print( "\nProcessing " + str( len( video_list ) ) + " videos\n" )
+      print( "\nProcessing " + str( len( video_list ) ) + " videos" )
 
     # Get required paths
     pipeline_loc = args.pipeline
@@ -462,4 +462,4 @@ if __name__ == "__main__" :
       database_tool.build_standard_index( remove_quotes( args.install_dir ) )
 
   # Output complete message
-  print( "\n\nIngest complete, close this window before launching any GUI.\n" )
+  print( "\n\nProcessing complete, close this window before launching any GUI.\n" )
