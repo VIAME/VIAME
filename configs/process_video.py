@@ -462,4 +462,7 @@ if __name__ == "__main__" :
       database_tool.build_standard_index( remove_quotes( args.install_dir ) )
 
   # Output complete message
-  print( "\n\nProcessing complete, close this window before launching any GUI.\n" )
+  if os.name == 'nt':
+    print( "\n\nProcessing complete, close this window before launching any GUI.\n" )
+  else:
+    print( "\n\nProcessing complete\n" )
