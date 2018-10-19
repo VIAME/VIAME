@@ -462,4 +462,4 @@ if __name__ == "__main__" :
       database_tool.build_standard_index( remove_quotes( args.install_dir ) )
 
   # Output complete message
-  print( "\n\nIngest complete, close this window before launching the query GUI.\n" )
+  print( "\n\nIngest complete, close this window before launching any GUI.\n" )
