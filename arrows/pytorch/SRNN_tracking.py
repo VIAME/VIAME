@@ -65,6 +65,7 @@ from kwiver.arrows.pytorch.track import track_state, track, track_set
 from kwiver.arrows.pytorch.SRNN_matching import SRNN_matching, RnnType
 from kwiver.arrows.pytorch.pytorch_siamese_f_extractor import pytorch_siamese_f_extractor
 from kwiver.arrows.pytorch.iou_tracking import IOU_tracker
+from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 from kwiver.arrows.pytorch.MOT_bbox import MOT_bbox, GTFileType
 from kwiver.arrows.pytorch.models import get_config
@@ -106,7 +107,7 @@ class SRNN_tracking(KwiverProcess):
 
         #GPU list
         self.add_config_trait("gpu_list", "gpu_list", 'all',
-                              'define which GPU to use for SRNN tracking. only three options: None, all, 1,2')
+                              gpu_list_desc(use_for='SRNN tracking'))
         self.declare_config_using_trait('gpu_list')
 
         # siamese
@@ -248,27 +249,19 @@ class SRNN_tracking(KwiverProcess):
         self._track_initialization_threshold = float(self.config_value('track_initialization_threshold'))
 
         #GPU_list
-        self._CPU_only_flag = False
-        GPU_list_str = self.config_value('gpu_list')
-
-        if GPU_list_str == 'None':
-            self._CPU_only_flag = True
-        elif GPU_list_str == 'all':
-            self._GPU_list = None
-        else:
-            self._GPU_list = list(map(int, GPU_list_str.split(',')))
+        self._GPU_list = parse_gpu_list(self.config_value('gpu_list'))
 
         # Siamese model config
         siamese_img_size = int(self.config_value('siamese_model_input_size'))
         siamese_batch_size = int(self.config_value('siamese_batch_size'))
         siamese_model_path = self.config_value('siamese_model_path')
-        self._app_feature_extractor = pytorch_siamese_f_extractor(siamese_model_path, siamese_img_size, siamese_batch_size, self._GPU_list, self._CPU_only_flag)
+        self._app_feature_extractor = pytorch_siamese_f_extractor(siamese_model_path, siamese_img_size, siamese_batch_size, self._GPU_list)
 
         # targetRNN_full model config
         targetRNN_batch_size = int(self.config_value('targetRNN_batch_size'))
         targetRNN_AIM_model_path = self.config_value('targetRNN_AIM_model_path')
         targetRNN_AIM_V_model_path = self.config_value('targetRNN_AIM_V_model_path')
-        self._SRNN_matching = SRNN_matching(targetRNN_AIM_model_path, targetRNN_AIM_V_model_path, targetRNN_batch_size, self._GPU_list, self._CPU_only_flag)
+        self._SRNN_matching = SRNN_matching(targetRNN_AIM_model_path, targetRNN_AIM_V_model_path, targetRNN_batch_size, self._GPU_list)
 
         self._GTbbox_flag = False
         # use MOT gt detection
