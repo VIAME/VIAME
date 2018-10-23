@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2018 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for ObjectTrackState class
+Tests for ObjectTrackState 
 
 """
 import unittest
@@ -45,15 +45,28 @@ from vital.types import ObjectTrackState, BoundingBox, DetectedObjectType, \
 class TestObjectTrackState (unittest.TestCase):
 
     def _create_detected_object(self):
+        """
+        Helper function to generate a detected object for the track state
+        :return: Detected object with bounding box coordinates of 
+                 (10, 10, 20, 20), confidence of 0.4 and "test" label
+        """
         bbox = BoundingBox(10, 10, 20, 20)
         dot  = DetectedObjectType("test", 0.4)
         do = DetectedObject(bbox, 0.4, dot)
+        return do
 
     def test_new_ts(self):
+        """
+        Test object track set creation with and without a detected object
+        """
         do = self._create_detected_object()
+        ObjectTrackState(0, 0, None)
         ObjectTrackState(0, 0, do)
 
     def test_frame_id(self):
+        """
+        Test frame id stored in a track state with >= 0 values
+        """
         do = self._create_detected_object()
         ts = ObjectTrackState(0, 0, do)
         nose.tools.assert_equal(ts.frame_id, 0)
@@ -62,6 +75,9 @@ class TestObjectTrackState (unittest.TestCase):
         nose.tools.assert_equal(ts.frame_id, 14691234578)
     
     def test_time_usec(self):
+        """
+        Test time in microsecond stored in a track state with >= 0 values
+        """
         do = self._create_detected_object()
         ts = ObjectTrackState(0, 0, do)
         nose.tools.assert_equal(ts.time_usec, 0)
@@ -71,31 +87,11 @@ class TestObjectTrackState (unittest.TestCase):
 
 
     def test_detection(self):
+        """
+        Test detected object set in track state
+        """
         do = self._create_detected_object()
         ts = ObjectTrackState(0, 0, do)
         nose.tools.assert_equal(ts.detection, do)
 
 
-'''
-    def test_feat_empty(self):
-        ts = TrackState(0)
-        nose.tools.assert_is_none(ts.feature)
-
-    def test_desc_empty(self):
-        ts = TrackState(0)
-        nose.tools.assert_is_none(ts.descriptor)
-
-    def test_feat(self):
-        f = Feature()
-        ts = TrackState(0, f)
-        nose.tools.assert_equal(ts.feature, f)
-
-    def test_desc(self):
-        # Some random initialized descriptor
-        d = Descriptor()
-        d[:] = 1
-        nose.tools.assert_equal(d.sum(), d.size)
-
-        ts = TrackState(0, descriptor=d)
-        numpy.testing.assert_equal(d, ts.descriptor)
-'''

@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2018 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ==============================================================================
 
-Tests for ObjectTrackSet class
+Tests for ObjectTrackSet 
 
 """
 import unittest
@@ -44,9 +44,14 @@ from vital.types import ObjectTrackSet, ObjectTrackState, BoundingBox, \
         DetectedObjectType, DetectedObject, Track
 
 
-class TestObjectTrackState (unittest.TestCase):
-
+class TestObjectTrackSet (unittest.TestCase):
     def _create_track(self):
+        """
+        Helper function to create a track 
+        :return: Track with 10 object track state. Every track state has same
+                    detected object however the fram number and time varies from
+                    [0, 10)
+        """
         bbox = BoundingBox(10, 10, 20, 20)
         dot  = DetectedObjectType("test", 0.4)
         do = DetectedObject(bbox, 0.4, dot)
@@ -56,27 +61,45 @@ class TestObjectTrackState (unittest.TestCase):
         return track
 
     def test_new_ts(self):
+        """
+        Test creation of object track set
+        """
         track = self._create_track()
         ObjectTrackSet([track])
 
     def test_all_frame_ids(self):
+        """
+        Test all frame ids stored in object track set are between [0, 10)
+        """
         obs = ObjectTrackSet([self._create_track()])
         nose.tools.assert_equal(obs.all_frame_ids(), set(range(10)))
     
     def test_first_frame(self):
+        """
+        Test first frame id in the track set is 0
+        """
         obs = ObjectTrackSet([self._create_track()])
         nose.tools.assert_equal(obs.first_frame(), 0)
     
     def test_last_frame(self):
+        """
+        Test last frame id in the track set is 9
+        """
         obs = ObjectTrackSet([self._create_track()])
         nose.tools.assert_equal(obs.last_frame(), 9)
    
     def test_tracks(self):
+        """
+        Test indexed retrival of tracks. 
+        """
         obj_track = self._create_track()
         obs = ObjectTrackSet([obj_track])
         nose.tools.assert_equal(obs.tracks()[0], obj_track)
     
     def test_get_track(self):
+        """
+        Test track retrival using track id
+        """
         obj_track = self._create_track()
         obs = ObjectTrackSet([obj_track])
         nose.tools.assert_equal(obs.get_track(0), obj_track)
