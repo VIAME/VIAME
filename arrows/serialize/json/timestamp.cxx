@@ -109,7 +109,7 @@ timestamp::load( cereal::JSONInputArchive&  archive,
 
   archive( CEREAL_NVP( time ),
            CEREAL_NVP( frame ) );
-  tstamp = kwiver::vital::timestamp( static_cast< kwiver::vital::time_us_t > ( time ),
+  tstamp = kwiver::vital::timestamp( static_cast< kwiver::vital::time_usec_t > ( time ),
                                      static_cast< kwiver::vital::frame_id_t > (
                                        frame ) );
 }

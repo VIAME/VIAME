@@ -154,7 +154,7 @@ Vital
 
  * Refactor timestamp types for time and frame number. Standardized on
    the base kwiver::vital types for frame_id and time. Renamed time_t
-   to time_us_t to provide some distance from std::time_t and make the
+   to time_usec_t to provide some distance from std::time_t and make the
    units apparent.
 
  * Added frame_time() method to video_input to access the current time stamp.

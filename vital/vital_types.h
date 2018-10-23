@@ -59,7 +59,7 @@ typedef int64_t track_id_t;
 typedef int64_t frame_id_t;
 
 // Time in micro-seconds
-typedef int64_t time_us_t;
+typedef int64_t time_usec_t;
 
 // -- concrete types --
 typedef double gsd_t;
