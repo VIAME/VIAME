@@ -66,6 +66,7 @@ fixup_bundle(
   "${CMAKE_INSTALL_PREFIX}/bin/@PIPELINE_RUNNER_APP@"
   "${FIXUP_LIBS}"
   "${FIXUP_DIRS}"
+  IGNORE_ITEM "libpython3.6m.so.1.0"
   )
 
 if( "@DARKNET_APP@" )
@@ -73,5 +74,6 @@ if( "@DARKNET_APP@" )
     "${CMAKE_INSTALL_PREFIX}/bin/@DARKNET_APP@"
     ""
     "${FIXUP_DIRS}"
+    IGNORE_ITEM "libpython3.6m.so.1.0"
     )
 endif()
