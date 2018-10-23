@@ -158,10 +158,10 @@ public:
   bool d_have_loop_vars;
 
   double pts_of_meta_ts;            // probably seconds
-  vital::time_us_t meta_ts; // time in usec
+  vital::time_usec_t meta_ts; // time in usec
 
   // used to create timestamp output
-  vital::time_us_t d_frame_time; // usec
+  vital::time_usec_t d_frame_time; // usec
   vital::frame_id_t d_frame_number;
 
   // frames to add or subtract to make first frame number == 1.

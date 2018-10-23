@@ -59,7 +59,7 @@ TEST(interpolate_track_spline, create)
 
 namespace {
 
-constexpr static auto FRAME_RATE = kv::time_us_t{ 3000 };
+constexpr static auto FRAME_RATE = kv::time_usec_t{ 3000 };
 
 // ----------------------------------------------------------------------------
 void add_track_state( kv::track_sptr track, kv::frame_id_t frame,
