@@ -12,6 +12,9 @@ v0.9.8.6 - 10/24/2018
 -Fixes to Windows CPU-only binaries
 
 
+-Fixes for properly processing greyscale imagery
+
+
 
 v0.9.8.5 - 10/18/2018
 =====================
