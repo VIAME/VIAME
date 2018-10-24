@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,11 +55,11 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver {
 
 //                 (config-key, value-type, default-value, description )
+create_config_trait( video_filename, std::string, "", "Name of video file." );
+
 create_config_trait( video_reader, std::string, "", "Name of video input algorithm. "
                      "Name of the video reader algorithm plugin is specified as "
                      "video_reader:type = <algo-name>" );
-
-create_config_trait( video_filename, std::string, "", "Name of video file." );
 
 create_config_trait( frame_time, double, "0.03333333",
                      "Inter frame time in seconds. "
@@ -71,6 +71,12 @@ create_config_trait( no_path_in_name, bool, "true",
                      "Set to true if the output file path should not contain a "
                      "full path to the image or video file and just contain the "
                      "file name for the image." );
+
+create_config_trait( exit_on_invalid, bool, "true",
+                     "If a frame in the middle of a sequence is invalid, do not "
+                     "exit and throw an error, continue processing data. If the "
+                     "first frame cannot be read, always exit regardless of this "
+                     "setting." );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -85,12 +91,14 @@ public:
   kwiver::vital::time_us_t              m_config_frame_time;
   bool                                  m_has_config_frame_time;
   bool                                  m_no_path_in_name;
+  bool                                  m_exit_on_invalid;
 
   kwiver::vital::algo::video_input_sptr m_video_reader;
   kwiver::vital::algorithm_capabilities m_video_traits;
 
   kwiver::vital::frame_id_t             m_frame_number;
   kwiver::vital::time_us_t              m_frame_time;
+  bool                                  m_first_frame;
 
   kwiver::vital::metadata_vector        m_last_metadata;
 
@@ -126,6 +134,7 @@ void video_input_process
   d->m_config_frame_time = static_cast<vital::time_us_t>(
                                config_value_using_trait( frame_time ) * 1e6); // in usec
   d->m_no_path_in_name = config_value_using_trait( no_path_in_name );
+  d->m_exit_on_invalid = config_value_using_trait( exit_on_invalid );
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
   if( algo_config->has_value( "frame_time" ) )
@@ -167,14 +176,41 @@ void video_input_process
 {
   kwiver::vital::timestamp ts;
 
-  if ( d->m_video_reader->next_frame( ts ) )
+  bool frame_read = false;
+  bool bad_frame = false;
+
+  try
+  {
+    frame_read = d->m_video_reader->next_frame( ts );
+  }
+  catch( const kwiver::vital::image_exception& e )
+  {
+    if ( d->m_exit_on_invalid || d->m_first_frame )
+    {
+      throw e;
+    }
+    else
+    {
+      frame_read = true;
+      bad_frame = true;
+
+      LOG_WARN( logger(), "Video source skipping corrupt frame." );
+    }
+  }
+
+  d->m_first_frame = false;
+
+  if ( frame_read )
   {
     kwiver::vital::metadata_vector metadata;
     kwiver::vital::image_container_sptr frame;
     {
       scoped_step_instrumentation();
 
-      frame = d->m_video_reader->frame_image();
+      if( !bad_frame )
+      {
+        frame = d->m_video_reader->frame_image();
+      }
 
       // --- debug
 #if defined DEBUG
@@ -304,6 +340,7 @@ void video_input_process
 ::make_config()
 {
   declare_config_using_trait( no_path_in_name );
+  declare_config_using_trait( exit_on_invalid );
   declare_config_using_trait( video_reader );
   declare_config_using_trait( video_filename );
   declare_config_using_trait( frame_time );
@@ -315,8 +352,10 @@ video_input_process::priv
 ::priv()
   : m_has_config_frame_time( false ),
     m_no_path_in_name( true ),
+    m_exit_on_invalid( true ),
     m_frame_number( 1 ),
-    m_frame_time( 0 )
+    m_frame_time( 0 ),
+    m_first_frame( true )
 {
 }
 
