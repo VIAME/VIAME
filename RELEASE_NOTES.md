@@ -1,13 +1,12 @@
 
-v0.9.8.6 - 11/1/2018
+v0.9.8.5b - 10/24/2018
 =====================
 
 
 -Fixed a bug in debayer and color correction filter .pipe which was causing garbled results in the example
 
 
--Fixed filter exporting from the annotation GUI
-
+-Added RELEASE_NODES to binaries
 
 
 
