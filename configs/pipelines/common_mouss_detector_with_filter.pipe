@@ -25,7 +25,7 @@ process detector
     :resize_ni                          704
     :resize_nj                          704
     :scale                              1.25
-    :chip_step                          650
+    :chip_step                          600
 
   endblock
 
@@ -34,9 +34,10 @@ process nms_refiner
   :refiner:type                         nms
   
   block refiner:nms
-    :max_overlap                        0.50
+    :max_overlap                        0.30
     :nms_scale_factor                   1.0
     :output_scale_factor                1.0
+    :max_scale_difference               0
   endblock
 
 process detector_filter
