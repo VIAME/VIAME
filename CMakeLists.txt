@@ -463,6 +463,8 @@ else()
   # Install system libs if packaging enabled
   ##
   if( VIAME_CREATE_PACKAGE )
+    install( FILES "RELEASE_NOTES.md" )
+
     set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
     include( InstallRequiredSystemLibraries )
     if( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS )
