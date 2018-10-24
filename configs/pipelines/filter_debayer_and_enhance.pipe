@@ -8,7 +8,14 @@ config _pipeline:_edge
 
 # ================================= INPUT VIDEO ====================================
 
-include common_default_input.pipe
+process input
+  :: video_input
+  :video_filename                                       input_list.txt
+  :frame_time                                           1
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type            vxl
+  :video_reader:image_list:image_reader:vxl:force_byte  false
+  :video_reader:vidl_ffmpeg:time_source                 current
 
 # =================================== DEBAYER ======================================
 
