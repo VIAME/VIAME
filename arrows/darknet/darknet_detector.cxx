@@ -394,6 +394,13 @@ detect( vital::image_container_sptr image_data ) const
       double scaled_original_scale = scale_image_maintaining_ar( cv_image,
         scaled_original, d->m_resize_i, d->m_resize_j );
 
+      if( d->m_gs_to_rgb && scaled_original.channels() == 1 )
+      {
+        cv::Mat color_image;
+        cv::cvtColor(scaled_original, color_image, CV_GRAY2BGR);
+        scaled_original = color_image;
+      }
+
       vital::detected_object_set_sptr new_dets = d->process_image( scaled_original );
 
       new_dets->scale( 1.0 / scaled_original_scale );
