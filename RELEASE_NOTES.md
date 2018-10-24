@@ -11,3 +11,5 @@ v0.9.8.5 - 10/18/2018
 
 -Additional annotation GUI embedded pipelines added, directory structure improved
 
+
+-Fixed a bug in debayer and color correction filter .pipe
