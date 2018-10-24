@@ -6,7 +6,10 @@ v0.9.8.5b - 10/24/2018
 -Fixed a bug in debayer and color correction filter .pipe which was causing garbled results in the example
 
 
--Added RELEASE_NODES to binaries
+-Added RELEASE_NOTES to binaries
+
+
+-Fixes to Windows CPU-only binaries
 
 
 
