@@ -169,12 +169,20 @@ refine_detections_nms
       if(overlap.min_x() < overlap.max_x() && overlap.min_y() < overlap.max_y() &&
          (overlap.area() / std::min(det_bbox.area(), res_bbox.area())) > d_->max_overlap)
       {
-        double area_ratio = det_bbox.area() / res_bbox.area();
-
-        if(area_ratio >= d_->min_scale_difference && area_ratio <= d_->max_scale_difference)
+        if(d_->max_scale_difference == 0 ) // disabled
         {
           should_add = false;
           break;
+        }
+        else
+        {
+          double area_ratio = det_bbox.area() / res_bbox.area();
+
+          if(area_ratio >= d_->min_scale_difference && area_ratio <= d_->max_scale_difference)
+          {
+            should_add = false;
+            break;
+          }
         }
       }
     }
