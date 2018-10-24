@@ -24,7 +24,7 @@ process filter
   :filter:ocv_enhancer:force_8bit              false
   :filter:ocv_enhancer:apply_clahe             true
   :filter:ocv_enhancer:clip_limit              3
-  :filter:ocv_enhancer:saturation              1.20
+  :filter:ocv_enhancer:saturation              1.00
 
 connect from input.image
         to   filter.image
