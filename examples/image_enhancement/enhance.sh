@@ -9,4 +9,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # Run pipeline
 
 pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/filter_enhance.pipe \
-                -s input:video_filename=input_list.txt
+                -s input:video_filename=input_list_rgb_images.txt

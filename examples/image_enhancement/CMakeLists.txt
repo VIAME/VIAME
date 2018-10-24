@@ -8,13 +8,15 @@ if( VIAME_ENABLE_OPENCV )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         input_list.txt
+         input_list_raw_images.txt
+         input_list_rgb_images.txt
          debayer_and_enhance.bat
          enhance.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         input_list.txt
+         input_list_raw_images.txt
+         input_list_rgb_images.txt
          debayer_and_enhance.sh
          enhance.sh )
   endif()
