@@ -15,6 +15,12 @@ v0.9.8.6 - 10/24/2018
 -Fixes for properly processing greyscale imagery
 
 
+-Non-maximum suppression tuning
+
+
+-If there is a corrupt frame in the middle of a sequence, keep on processing in both GUI and CLI
+
+
 
 v0.9.8.5 - 10/18/2018
 =====================
