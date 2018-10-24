@@ -303,6 +303,12 @@ detect( vital::image_container_sptr image_data ) const
 {
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
 
+  if( !image_data )
+  {
+    LOG_WARN( d->m_logger, "Input image is empty." );
+    return std::make_shared< vital::detected_object_set >();
+  }
+
   cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
     image_data->get_image(), kwiver::arrows::ocv::image_container::BGR );
 
