@@ -35,7 +35,7 @@ process nms_refiner
   :refiner:type                         nms
   
   block refiner:nms
-    :max_overlap                        0.30
+    :max_overlap                        0.5
     :nms_scale_factor                   1.0
     :output_scale_factor                1.0
     :max_scale_difference               0
