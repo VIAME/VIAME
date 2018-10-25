@@ -37,8 +37,6 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 
-#include <boost/ref.hpp>
-
 #include <map>
 #include <ostream>
 #include <queue>
