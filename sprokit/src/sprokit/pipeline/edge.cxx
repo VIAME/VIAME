@@ -35,7 +35,6 @@
 #include "types.h"
 
 #include <vital/logger/logger.h>
-#include <vital/internal/optional.h>
 
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/locks.hpp>

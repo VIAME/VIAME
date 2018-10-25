@@ -35,7 +35,7 @@
 
 #include <vital/config/config_block.h>
 #include <vital/noncopyable.h>
-#include <vital/internal/optional.h>
+#include <vital/optional.h>
 
 #include "types.h"
 

@@ -69,6 +69,7 @@ set( vital_public_headers
   attribute_set.h
   exceptions.h
   iterator.h
+  optional.h
 
   io/camera_from_metadata.h
   io/camera_io.h

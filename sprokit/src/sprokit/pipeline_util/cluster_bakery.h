@@ -38,7 +38,7 @@
 
 #include "bakery_base.h"
 
-#include <vital/internal/optional.h>
+#include <vital/optional.h>
 
 #include <vector>
 

@@ -36,7 +36,7 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/util/string.h>
-#include <vital/internal/optional.h>
+#include <vital/optional.h>
 
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
