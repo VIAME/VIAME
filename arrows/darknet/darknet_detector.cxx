@@ -374,13 +374,17 @@ detect( vital::image_container_sptr image_data ) const
       {
         int tj = std::min( lj + d->m_resize_j, cv_resized_image.rows );
 
-        cv::Rect roi( li, lj, ti-li, tj-lj );
+        cv::Rect resized_roi( li, lj, ti-li, tj-lj );
+        cv::Rect original_roi( li / scale_factor,
+                               lj / scale_factor,
+                               (ti-li) / scale_factor,
+                               (tj-lj) / scale_factor );
 
-        cv::Mat cropped_image = cv_resized_image( roi );
+        cv::Mat cropped_chip = cv_resized_image( resized_roi );
         cv::Mat scaled_crop, tmp_cropped;
 
         double scaled_crop_scale = scale_image_maintaining_ar(
-          cropped_image, scaled_crop, d->m_resize_i, d->m_resize_j );
+          cropped_chip, scaled_crop, d->m_resize_i, d->m_resize_j );
         cv::cvtColor( scaled_crop, tmp_cropped, cv::COLOR_BGR2RGB );
 
         vital::detected_object_set_sptr new_dets = d->process_image( tmp_cropped );
@@ -388,7 +392,7 @@ detect( vital::image_container_sptr image_data ) const
         new_dets->shift( li, lj );
         new_dets->scale( 1.0 / scale_factor );
 
-        detections->add( d->filter_detections( new_dets, roi, d->m_chip_edge_filter ) );
+        detections->add( d->filter_detections( new_dets, original_roi, d->m_chip_edge_filter ) );
       }
     }
 
@@ -586,6 +590,10 @@ filter_detections( const vital::detected_object_set_sptr& dets, const cv::Rect& 
 
   for( auto det : *dets )
   {
+    if( !det )
+    {
+      continue;
+    }
     if( roi.x > 0 && det->bounding_box().min_x() < roi.x + dist )
     {
       continue;
