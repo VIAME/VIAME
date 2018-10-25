@@ -82,7 +82,7 @@ public:
     , m_resize_j( 0 )
     , m_chip_step( 100 )
     , m_gs_to_rgb( true )
-    , m_chip_edge_filter( -1 )
+    , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
     , m_names( 0 )
     , m_boxes( 0 )
@@ -577,7 +577,10 @@ vital::detected_object_set_sptr
 darknet_detector::priv::
 filter_detections( const vital::detected_object_set_sptr& dets, const cv::Rect& roi, int dist )
 {
-  return dets;
+  if( dist <= 0 )
+  {
+    return dets;
+  }
 
   std::vector< vital::detected_object_sptr > filtered_dets;
 
