@@ -77,8 +77,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Windows Binaries:** <br>
 [VIAME v0.9.8.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd2128f8d777f06b93871d5/download) <br>
 [VIAME v0.9.8.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1wbwzMEjV7Ixbzuj-9g-uMsXmeUNWBavH) <br>
-[VIAME v0.9.8.5 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bcfb42b8d777f06b933bd66/download) <br>
-[VIAME v0.9.8.5 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=19LAnbJOcI45hRKhXiQzQkCaA5NVgOUxp)
+[VIAME v0.9.8.7 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd236ae8d777f06b938c1d6/download) <br>
+[VIAME v0.9.8.7 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1ShhbzjlVodQMm0o6KdhPlX3SIvtnzkaX)
 
 
 Quick Run Instructions
