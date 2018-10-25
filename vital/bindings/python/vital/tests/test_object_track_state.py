@@ -43,7 +43,6 @@ from vital.types import ObjectTrackState, BoundingBox, DetectedObjectType, \
 
 
 class TestObjectTrackState (unittest.TestCase):
-
     def _create_detected_object(self):
         """
         Helper function to generate a detected object for the track state
@@ -70,7 +69,6 @@ class TestObjectTrackState (unittest.TestCase):
         do = self._create_detected_object()
         ts = ObjectTrackState(0, 0, do)
         nose.tools.assert_equal(ts.frame_id, 0)
-
         ts = ObjectTrackState(14691234578, 0, do)
         nose.tools.assert_equal(ts.frame_id, 14691234578)
     
@@ -81,10 +79,8 @@ class TestObjectTrackState (unittest.TestCase):
         do = self._create_detected_object()
         ts = ObjectTrackState(0, 0, do)
         nose.tools.assert_equal(ts.time_usec, 0)
-
         ts = ObjectTrackState(0, 14691234578 , do)
         nose.tools.assert_equal(ts.time_usec, 14691234578)
-
 
     def test_detection(self):
         """
@@ -93,5 +89,3 @@ class TestObjectTrackState (unittest.TestCase):
         do = self._create_detected_object()
         ts = ObjectTrackState(0, 0, do)
         nose.tools.assert_equal(ts.detection, do)
-
-
