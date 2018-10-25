@@ -25,7 +25,7 @@ process detector
     :resize_ni                          704
     :resize_nj                          704
     :scale                              1.25
-    :chip_step                          510
+    :chip_step                          550
 
   endblock
 
