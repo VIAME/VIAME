@@ -1,4 +1,12 @@
 
+v0.9.8.7 - 10/25/2018
+=====================
+
+
+-Additional bug fixes and parameter tuning relating to tile boundaries when chipping enabled in detectors
+
+
+
 v0.9.8.6 - 10/24/2018
 =====================
 
