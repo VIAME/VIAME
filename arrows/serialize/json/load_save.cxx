@@ -34,9 +34,8 @@
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/detected_object_type.h>
+#include <vital/types/geo_point.h>
 #include <vital/types/geo_polygon.h>
-#include <vital/types/metadata.h>
-#include <vital/types/metadata_traits.h>
 #include <vital/types/polygon.h>
 #include <vital/types/timestamp.h>
 #include <vital/util/hex_dump.h>
@@ -51,22 +50,19 @@
 
 #include <zlib.h>
 
-namespace kwiver {
-namespace arrows {
-namespace serialize {
-namespace json {
+namespace cereal {
 
 // ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox )
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox )
 {
-  archive( cereal::make_nvp( "min_x", bbox.min_x() ),
-           cereal::make_nvp( "min_y", bbox.min_y() ),
-           cereal::make_nvp( "max_x", bbox.max_x() ),
-           cereal::make_nvp( "max_y", bbox.max_y() ) );
+  archive( ::cereal::make_nvp( "min_x", bbox.min_x() ),
+           ::cereal::make_nvp( "min_y", bbox.min_y() ),
+           ::cereal::make_nvp( "max_x", bbox.max_x() ),
+           ::cereal::make_nvp( "max_y", bbox.max_y() ) );
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbox )
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbox )
 {
   double min_x, min_y, max_x, max_y;
 
@@ -79,14 +75,14 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbo
 }
 
 // ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object& obj )
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object& obj )
 {
   // serialize bounding box
   save( archive, obj.bounding_box() );
 
-  archive( cereal::make_nvp( "confidence", obj.confidence() ),
-           cereal::make_nvp( "index", obj.index() ),
-           cereal::make_nvp( "detector_name", obj.detector_name() ) );
+  archive( ::cereal::make_nvp( "confidence", obj.confidence() ),
+           ::cereal::make_nvp( "index", obj.index() ),
+           ::cereal::make_nvp( "detector_name", obj.detector_name() ) );
 
   // This pointer may be null
   const auto dot_ptr = const_cast< kwiver::vital::detected_object& >(obj).type();
@@ -104,7 +100,7 @@ void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_obj
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object& obj )
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::detected_object& obj )
 {
   // deserialize bounding box
   kwiver::vital::bounding_box_d bbox { 0, 0, 0, 0 };
@@ -129,10 +125,10 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object& ob
 }
 
 // ============================================================================
-void save( cereal::JSONOutputArchive&                archive,
+void save( ::cereal::JSONOutputArchive&                archive,
            const kwiver::vital::detected_object_set& obj )
 {
-  archive( cereal::make_nvp( "size", obj.size() ) );
+  archive( ::cereal::make_nvp( "size", obj.size() ) );
 
   for ( const auto& element : const_cast< kwiver::vital::detected_object_set& >(obj) )
   {
@@ -144,13 +140,13 @@ void save( cereal::JSONOutputArchive&                archive,
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive&           archive,
+void load( ::cereal::JSONInputArchive&           archive,
            kwiver::vital::detected_object_set& obj )
 {
-  cereal::size_type size;
+  ::cereal::size_type size;
   archive( CEREAL_NVP( size ) );
 
-  for ( cereal::size_type i = 0; i < size; ++i )
+  for ( ::cereal::size_type i = 0; i < size; ++i )
   {
     auto new_obj = std::make_shared< kwiver::vital::detected_object > (
       kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
@@ -164,7 +160,7 @@ void load( cereal::JSONInputArchive&           archive,
 }
 
 // ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_type& dot )
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_type& dot )
 {
 
   // recreate the class/score map so we don't break encapsulation.
@@ -178,7 +174,7 @@ void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_obj
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_type& dot )
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::detected_object_type& dot )
 {
   std::map< std::string, double > class_map;
   archive( CEREAL_NVP( class_map ) );
@@ -222,7 +218,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_typ
  */
 
 // ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::image_container_sptr ctr )
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::image_container_sptr ctr )
 {
   kwiver::vital::image vital_image = ctr->get_image();
 
@@ -265,24 +261,24 @@ void save( cereal::JSONOutputArchive& archive, const kwiver::vital::image_contai
   // Get pixel trait
   auto pixel_trait = vital_image.pixel_traits();
 
-  archive( cereal::make_nvp( "width",  vital_image.width() ),
-           cereal::make_nvp( "height", vital_image.height() ),
-           cereal::make_nvp( "depth",  vital_image.depth() ),
+  archive( ::cereal::make_nvp( "width",  vital_image.width() ),
+           ::cereal::make_nvp( "height", vital_image.height() ),
+           ::cereal::make_nvp( "depth",  vital_image.depth() ),
 
-           cereal::make_nvp( "w_step", vital_image.w_step() ),
-           cereal::make_nvp( "h_step", vital_image.h_step() ),
-           cereal::make_nvp( "d_step", vital_image.d_step() ),
+           ::cereal::make_nvp( "w_step", vital_image.w_step() ),
+           ::cereal::make_nvp( "h_step", vital_image.h_step() ),
+           ::cereal::make_nvp( "d_step", vital_image.d_step() ),
 
-           cereal::make_nvp( "trait_type", pixel_trait.type ),
-           cereal::make_nvp( "trait_num_bytes", pixel_trait.num_bytes ),
+           ::cereal::make_nvp( "trait_type", pixel_trait.type ),
+           ::cereal::make_nvp( "trait_num_bytes", pixel_trait.num_bytes ),
 
-           cereal::make_nvp( "img_size", vital_image.size() ), // uncompressed size
-           cereal::make_nvp( "img_data", image_data ) // compressed image
+           ::cereal::make_nvp( "img_size", vital_image.size() ), // uncompressed size
+           ::cereal::make_nvp( "img_data", image_data ) // compressed image
     );
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::image_container_sptr& ctr )
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::image_container_sptr& ctr )
 {
   // deserialize image
   std::size_t width, height, depth, img_size;
@@ -359,15 +355,15 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::image_container_spt
 }
 
 // ============================================================================
-void save( cereal::JSONOutputArchive&       archive,
+void save( ::cereal::JSONOutputArchive&       archive,
            const kwiver::vital::timestamp&  tstamp )
 {
-  archive( cereal::make_nvp( "time", tstamp.get_time_usec() ),
-           cereal::make_nvp( "frame", tstamp.get_frame() ) );
+  archive( ::cereal::make_nvp( "time", tstamp.get_time_usec() ),
+           ::cereal::make_nvp( "frame", tstamp.get_frame() ) );
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive&  archive,
+void load( ::cereal::JSONInputArchive&  archive,
            kwiver::vital::timestamp&  tstamp )
 {
   int64_t time, frame;
@@ -380,171 +376,14 @@ void load( cereal::JSONInputArchive&  archive,
 }
 
 // ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta )
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::geo_polygon& poly )
 {
-  archive( cereal::make_nvp( "size", meta.size() ) );
-
-  for ( const auto& element : meta )
-  {
-    save( archive, *element );
-  }
-
-}
-
-// ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::metadata_vector& meta )
-{
-  cereal::size_type size;
-  archive( CEREAL_NVP( size ) );
-
-  for ( cereal::size_type i = 0; i < size; ++i )
-  {
-    auto new_obj = std::make_shared< kwiver::vital::metadata > ();
-    load( archive, *new_obj );
-
-    meta.push_back( new_obj );
-  }
-
-}
-
-// ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::metadata& meta )
-{
-  static kwiver::vital::metadata_traits traits;
-
-  archive( cereal::make_nvp( "size", meta.size() ) );
-
-  // Serialize one metadata collection
-  for ( const auto& mi : meta )
-  {
-    // element is <tag, any>
-    const auto tag = mi.first;
-    const auto metap = mi.second;
-    const auto& trait = traits.find( tag );
-
-    archive( CEREAL_NVP( tag ) );
-
-    if ( metap->has_double() )
-    {
-      const double data = metap->as_double();
-      archive( CEREAL_NVP( data ));
-    }
-    else if ( metap->has_uint64() )
-    {
-      const uint64_t data = metap->as_uint64();
-      archive( CEREAL_NVP( data ));
-    }
-    else if ( metap->has_string() )
-    {
-      const std::string str = metap->as_string();
-      archive( CEREAL_NVP( str ));
-    }
-    else if ( trait.tag_type() == typeid(kwiver::vital::geo_point) )
-    {
-      kwiver::vital::geo_point data;
-      if ( ! metap->data<kwiver::vital::geo_point>( data ) )
-      {
-        std::stringstream str;
-        str << "Error extracting data item from metadata. "
-            << "Expected \"kwiver::vital::geo_point\" but found \""
-            << metap->data().type_name() << "\"." ;
-        VITAL_THROW( kwiver::vital::metadata_exception, str.str() );
-      }
-      save( archive, data );
-    }
-    else if ( trait.tag_type() == typeid(kwiver::vital::geo_polygon) )
-    {
-      kwiver::vital::geo_polygon geo_poly;
-      if ( ! metap->data<kwiver::vital::geo_polygon>( geo_poly ) )
-      {
-        std::stringstream str;
-        str << "Error extracting data item from metadata. "
-            << "Expected \"kwiver::vital::geo_polygon\" but found \""
-            << metap->data().type_name() << "\"." ;
-        VITAL_THROW( kwiver::vital::metadata_exception, str.str() );
-
-      }
-      save( archive, geo_poly );
-    }
-    else
-    {
-      // encode as string.
-      const std::string str = metap->as_string();
-      CEREAL_NVP( str );
-    }
-
-  } // end for
-}
-
-// ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
-{
-  static kwiver::vital::metadata_traits traits;
-  cereal::size_type size;
-  archive( CEREAL_NVP( size ) ); // get size
-
-  for ( cereal::size_type i = 0; i < size; ++i )
-  {
-    kwiver::vital::vital_metadata_tag tag;
-    archive( CEREAL_NVP( tag ) );
-
-    const auto& trait = traits.find( tag );
-    kwiver::vital::any tag_data;
-
-    if ( trait.is_floating_point() )
-    {
-      double data;
-      archive( CEREAL_NVP( data ) );
-      tag_data = kwiver::vital::any( data );
-    }
-    else if ( trait.is_integral() )
-    {
-      uint64_t data;
-      archive( CEREAL_NVP( data ) );
-      tag_data = kwiver::vital::any( data );
-    }
-    else if ( trait.tag_type() == typeid(std::string) )
-    {
-      // is natively a string
-      std::string data;
-      archive( CEREAL_NVP( data ) );
-      tag_data = kwiver::vital::any( data );
-    }
-    else if ( trait.tag_type() == typeid(kwiver::vital::geo_point) )
-    {
-      kwiver::vital::geo_point pt;
-      load( archive, pt );
-      tag_data = kwiver::vital::any( pt );
-    }
-    else if ( trait.tag_type() == typeid(kwiver::vital::geo_polygon) )
-    {
-      kwiver::vital::geo_polygon poly;
-      load( archive, poly );
-      tag_data = kwiver::vital::any( poly );
-    }
-    else
-    {
-      std::stringstream str;
-      str << "Found unexpected data type \"" << trait.tag_type().name()
-          << "\" in metadata collection for item name \""
-          << trait.name() << "\".";
-      VITAL_THROW( kwiver::vital::metadata_exception, str.str() );
-    }
-
-    meta.add( trait.create_metadata_item( tag_data ) );
-  }
-}
-
-
-// ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::geo_polygon& poly )
-{
-  archive( cereal::make_nvp( "crs", poly.crs() ) );
+  archive( ::cereal::make_nvp( "crs", poly.crs() ) );
   save( archive, poly.polygon() ); // save plain polygon
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::geo_polygon& poly )
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::geo_polygon& poly )
 {
   int crs;
   kwiver::vital::polygon raw_poly;
@@ -556,7 +395,7 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::geo_polygon& poly )
 
 
 // ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::geo_point& point )
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::geo_point& point )
 {
   if ( point.is_empty() )
   {
@@ -567,15 +406,15 @@ void save( cereal::JSONOutputArchive& archive, const kwiver::vital::geo_point& p
   {
     const auto loc = point.location( point.crs() );
 
-    archive( cereal::make_nvp( "crs", point.crs() ),
-             cereal::make_nvp( "x", loc[0] ),
-             cereal::make_nvp( "y", loc[1] )
+    archive( ::cereal::make_nvp( "crs", point.crs() ),
+             ::cereal::make_nvp( "x", loc[0] ),
+             ::cereal::make_nvp( "y", loc[1] )
       );
   }
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::geo_point& point )
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::geo_point& point )
 {
   int crs;
   archive( CEREAL_NVP(crs) );
@@ -594,14 +433,14 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::geo_point& point )
 }
 
 // ============================================================================
-void save( cereal::JSONOutputArchive& archive, const kwiver::vital::polygon& poly )
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::polygon& poly )
 {
   auto vert = poly.get_vertices();
-  archive( cereal::make_nvp( "points", vert ) );
+  archive( ::cereal::make_nvp( "points", vert ) );
 }
 
 // ----------------------------------------------------------------------------
-void load( cereal::JSONInputArchive& archive, kwiver::vital::polygon& poly )
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::polygon& poly )
 {
   std::vector< kwiver::vital::polygon::point_t > points;
   archive( CEREAL_NVP( points ) );
@@ -612,4 +451,4 @@ void load( cereal::JSONInputArchive& archive, kwiver::vital::polygon& poly )
   }
 }
 
-} } } } // end namespace
+} // end namespace

@@ -24,6 +24,7 @@ set( sources
   detected_object_type.cxx
   image.cxx
   load_save.cxx
+  load_save_metadata.cxx
   metadata.cxx
   string.cxx
   timestamp.cxx

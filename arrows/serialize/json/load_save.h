@@ -49,14 +49,9 @@ namespace vital {
 } } // end namespace
 
 namespace cereal {
+
   class JSONOutputArchive;
   class JSONInputArchive;
-}
-
-namespace kwiver {
-namespace arrows {
-namespace serialize {
-namespace json {
 
 KWIVER_SERIALIZE_JSON_EXPORT
 void save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox );
@@ -113,6 +108,6 @@ void save( cereal::JSONOutputArchive& archive, const kwiver::vital::polygon& pol
 KWIVER_SERIALIZE_JSON_EXPORT
 void load( cereal::JSONInputArchive& archive, kwiver::vital::polygon& poly );
 
-} } } } // end namespace
+}
 
 #endif // ARROWS_SERIALIZATION_JSON_LOAD_SAVE_H

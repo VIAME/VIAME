@@ -331,4 +331,32 @@ std::ostream& print_metadata( std::ostream& str, metadata const& metadata )
   return str;
 }
 
+
+// ----------------------------------------------------------------------------
+bool test_equal_content( const kwiver::vital::metadata& one,
+                         const kwiver::vital::metadata& other )
+{
+  // They must be the same size to be the same content
+  if ( one.size() != other.size() ) { return false; }
+
+  for ( const auto& mi : one )
+  {
+    // element is <tag, any>
+    const auto tag = mi.first;
+    const auto metap = mi.second;
+
+    if ( ! other.has( tag ) ) { return false; }
+
+    const auto& omi = other.find( tag );
+
+    // It is simpler to just do a string comparison than to try to do
+    // a type specific comparison.
+    if ( metap->as_string() != omi.as_string() ) { return false; }
+
+  } // end for
+
+  return true;
+}
+
+
 } } // end namespace

@@ -36,9 +36,15 @@
 #include <gtest/gtest.h>
 
 #include <arrows/serialize/protobuf/metadata.h>
-
 #include <arrows/serialize/protobuf/convert_protobuf.h>
+
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_tags.h>
+#include <vital/types/metadata_traits.h>
+#include <vital/types/polygon.h>
+#include <vital/types/geo_polygon.h>
+#include <vital/types/geodesy.h>
+
 
 namespace kasp = kwiver::arrows::serialize::protobuf;
 
@@ -60,5 +66,60 @@ TEST( serialize_metadata, metadata )
   // duplicate that collection and make some modifications
   // put both collections in a vector
 
+  static kwiver::vital::metadata_traits traits;
+  auto meta_sptr = std::make_shared< kwiver::vital::metadata>();
 
+  {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_METADATA_ORIGIN );
+    auto* item = info.create_metadata_item( kwiver::vital::any(std::string ("test-source")) );
+    meta_sptr->add( item );
+  }
+
+  {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_UNIX_TIMESTAMP );
+    auto* item = info.create_metadata_item( kwiver::vital::any((uint64_t)12345678) );
+    meta_sptr->add( item );
+  }
+
+  {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_SENSOR_VERTICAL_FOV );
+    auto* item = info.create_metadata_item( kwiver::vital::any((double)12345.678) );
+    meta_sptr->add( item );
+  }
+
+  {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
+    kwiver::vital::geo_point pt ( { 42.50, 73.54 }, kwiver::vital::SRID::lat_lon_WGS84 );
+    auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
+    meta_sptr->add( item );
+  }
+
+  {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_CORNER_POINTS );
+    kwiver::vital::polygon raw_obj;
+    raw_obj.push_back( 100, 100 );
+    raw_obj.push_back( 400, 100 );
+    raw_obj.push_back( 400, 400 );
+    raw_obj.push_back( 100, 400 );
+
+    kwiver::vital::geo_polygon poly( raw_obj, kwiver::vital::SRID::lat_lon_WGS84 );
+    auto* item = info.create_metadata_item( kwiver::vital::any(poly) );
+    meta_sptr->add( item );
+  }
+
+  kasp::metadata meta_ser;      // The serializer
+
+  kwiver::vital::metadata_vector mvec;
+  mvec.push_back( meta_sptr );
+  mvec.push_back( meta_sptr ); // just so there is more than one
+
+  kwiver::vital::any meta_any( mvec );
+  auto mes = meta_ser.serialize( meta_any );
+  auto meta_dser_any = meta_ser.deserialize( *mes );
+
+  kwiver::vital::metadata_vector meta_dser =
+    kwiver::vital::any_cast< kwiver::vital::metadata_vector >( meta_dser_any );
+
+  // test for equality
+  EXPECT_TRUE( test_equal_content( *meta_sptr, *meta_dser[0] ));
 }

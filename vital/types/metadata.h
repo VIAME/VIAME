@@ -487,6 +487,8 @@ typedef std::vector< metadata_sptr > metadata_vector;
 
 
 VITAL_EXPORT std::ostream& print_metadata( std::ostream& str, metadata const& metadata );
+VITAL_EXPORT bool test_equal_content( const kwiver::vital::metadata& one,
+                                      const kwiver::vital::metadata& other );
 
 } } // end namespace
 

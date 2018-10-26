@@ -397,7 +397,7 @@ void convert_protobuf( const kwiver::protobuf::metadata&  proto,
     }
     else if ( trait.is_integral() )
     {
-      data = kwiver::vital::any( mi.int_value() );
+      data = kwiver::vital::any( static_cast<uint64_t>(mi.int_value()) );
     }
     else if ( trait.tag_type() == typeid(std::string) )
     {

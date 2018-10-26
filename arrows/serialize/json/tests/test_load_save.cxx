@@ -52,9 +52,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace kasj = kwiver::arrows::serialize::json;
-
-#define DEBUG 1
+#define DEBUG 0
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -71,7 +69,7 @@ TEST( load_save, bounding_box )
   std::stringstream msg;
   {
     cereal::JSONOutputArchive ar( msg );
-    kasj::save( ar, obj );
+    cereal::save( ar, obj );
   }
 
 #if DEBUG
@@ -81,7 +79,7 @@ TEST( load_save, bounding_box )
   kwiver::vital::bounding_box_d obj_dser { 0, 0, 0, 0 };
   {
     cereal::JSONInputArchive ar( msg );
-    kasj::load( ar, obj_dser );
+    cereal::load( ar, obj_dser );
   }
 
   EXPECT_EQ( obj, obj_dser );
@@ -99,7 +97,7 @@ TEST( load_save, polygon )
   std::stringstream msg;
   {
     cereal::JSONOutputArchive ar( msg );
-    kasj::save( ar, obj );
+    cereal::save( ar, obj );
   }
 
 #if DEBUG
@@ -109,7 +107,7 @@ TEST( load_save, polygon )
   kwiver::vital::polygon obj_dser;
   {
     cereal::JSONInputArchive ar( msg );
-    kasj::load( ar, obj_dser );
+    cereal::load( ar, obj_dser );
   }
 
   EXPECT_EQ( obj.num_vertices(), obj_dser.num_vertices() );
@@ -127,7 +125,7 @@ TEST( load_save, geo_point )
   std::stringstream msg;
   {
     cereal::JSONOutputArchive ar( msg );
-    kasj::save( ar, obj );
+    cereal::save( ar, obj );
   }
 
 #if DEBUG
@@ -137,7 +135,7 @@ TEST( load_save, geo_point )
   kwiver::vital::geo_point obj_dser;
   {
     cereal::JSONInputArchive ar( msg );
-    kasj::load( ar, obj_dser );
+    cereal::load( ar, obj_dser );
   }
 
   EXPECT_EQ( obj.location(), obj_dser.location() );
@@ -157,7 +155,7 @@ TEST( load_save, geo_polygon )
   std::stringstream msg;
   {
     cereal::JSONOutputArchive ar( msg );
-    kasj::save( ar, obj );
+    cereal::save( ar, obj );
   }
 
 #if DEBUG
@@ -167,7 +165,7 @@ TEST( load_save, geo_polygon )
   kwiver::vital::geo_polygon obj_dser;
   {
     cereal::JSONInputArchive ar( msg );
-    kasj::load( ar, obj_dser );
+    cereal::load( ar, obj_dser );
   }
 
   kwiver::vital::polygon dser_raw_obj = obj_dser.polygon();
@@ -181,7 +179,7 @@ TEST( load_save, geo_polygon )
 }
 
 // ----------------------------------------------------------------------------
-TEST( load_save, metadata )
+kwiver::vital::metadata create_meta_collection()
 {
   static kwiver::vital::metadata_traits traits;
   kwiver::vital::metadata meta;
@@ -224,21 +222,96 @@ TEST( load_save, metadata )
     meta.add( item );
   }
 
+  return meta;
+}
+
+// ----------------------------------------------------------------------------
+void compare_meta_collection( const kwiver::vital::metadata& lhs,
+                              const kwiver::vital::metadata& rhs )
+{
+  // Check to make sure they are the same
+  for ( const auto& it : lhs )
+  {
+    const auto lhs_item = it.second;
+
+    EXPECT_TRUE( rhs.has( lhs_item->tag() ) );
+
+    const auto& rhs_item = rhs.find( lhs_item->tag() );
+
+    // test for data being the same
+    EXPECT_EQ( lhs_item->data().type(), rhs_item.data().type() );
+
+    //+ TBD check data values for equal
+  } // end for
+
+}
+
+// ----------------------------------------------------------------------------
+TEST( load_save, metadata )
+{
+  kwiver::vital::metadata meta = create_meta_collection();
+
   std::stringstream msg;
+
+  try
   {
     cereal::JSONOutputArchive ar( msg );
-    kasj::save( ar, meta);
+    cereal::save( ar, meta);
+  }
+  catch(std::exception const& e) {
+    std::cout << "Exception caught: " << e.what() << std::endl;
   }
 
 #if DEBUG
-  std::cout << "geo_point as json - " << msg.str() << std::endl;
+  std::cout << "metadata as json - " << msg.str() << std::endl;
 #endif
 
   kwiver::vital::metadata obj_dser;
   {
     cereal::JSONInputArchive ar( msg );
-    kasj::load( ar, obj_dser );
+    cereal::load( ar, obj_dser );
   }
 
+  compare_meta_collection( meta, obj_dser );
+}
 
+
+// ----------------------------------------------------------------------------
+TEST( load_save, metadata_vector )
+{
+  kwiver::vital::metadata_sptr meta = std::make_shared<kwiver::vital::metadata>( create_meta_collection() );
+  kwiver::vital::metadata_vector meta_vect;
+
+  meta_vect.push_back( meta );
+  meta_vect.push_back( meta );
+
+
+  std::stringstream msg;
+
+  try
+  {
+    cereal::JSONOutputArchive ar( msg );
+    cereal::save( ar, meta_vect);
+  }
+  catch(std::exception const& e) {
+    std::cout << "Exception caught: " << e.what() << std::endl;
+  }
+
+#if DEBUG
+  std::cout << "metadata vector as json - " << msg.str() << std::endl;
+#endif
+
+  kwiver::vital::metadata_vector obj_dser;
+  {
+    cereal::JSONInputArchive ar( msg );
+    cereal::load( ar, obj_dser );
+  }
+
+  EXPECT_EQ( meta_vect.size(), obj_dser.size() );
+
+  // Check to make sure they are the same
+  for (size_t i = 0; i < meta_vect.size(); i++)
+  {
+    compare_meta_collection( *meta_vect[i], *obj_dser[i] );
+  }
 }

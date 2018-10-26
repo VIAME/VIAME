@@ -40,7 +40,6 @@
 #include <vital/types/geodesy.h>
 #include <vital/types/image_container.h>
 #include <vital/types/metadata.h>
-#include <vital/types/metadata.h>
 #include <vital/types/metadata_tags.h>
 #include <vital/types/metadata_traits.h>
 #include <vital/types/polygon.h>
