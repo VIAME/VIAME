@@ -20,8 +20,6 @@
 # include <string>
 # include <stdexcept>
 
-#include "in_place.hpp"
-
 # define TR2_OPTIONAL_REQUIRES(...) typename std::enable_if<__VA_ARGS__::value, bool>::type = false
 
 # if defined __GNUC__ // NOTE: GNUC is also defined for Clang
@@ -318,13 +316,6 @@ struct optional_base
 
     explicit constexpr optional_base(T&& v) : init_(true), storage_(constexpr_move(v)) {}
 
-    template <class... Args> explicit optional_base(in_place_t, Args&&... args)
-        : init_(true), storage_(constexpr_forward<Args>(args)...) {}
-
-    template <class U, class... Args, TR2_OPTIONAL_REQUIRES(is_constructible<T, std::initializer_list<U>>)>
-    explicit optional_base(in_place_t, std::initializer_list<U> il, Args&&... args)
-        : init_(true), storage_(il, std::forward<Args>(args)...) {}
-
     ~optional_base() { if (init_) storage_.value_.T::~T(); }
 };
 
@@ -340,13 +331,6 @@ struct constexpr_optional_base
     explicit constexpr constexpr_optional_base(const T& v) : init_(true), storage_(v) {}
 
     explicit constexpr constexpr_optional_base(T&& v) : init_(true), storage_(constexpr_move(v)) {}
-
-    template <class... Args> explicit constexpr constexpr_optional_base(in_place_t, Args&&... args)
-      : init_(true), storage_(constexpr_forward<Args>(args)...) {}
-
-    template <class U, class... Args, TR2_OPTIONAL_REQUIRES(is_constructible<T, std::initializer_list<U>>)>
-    OPTIONAL_CONSTEXPR_INIT_LIST explicit constexpr_optional_base(in_place_t, std::initializer_list<U> il, Args&&... args)
-      : init_(true), storage_(il, std::forward<Args>(args)...) {}
 
     ~constexpr_optional_base() = default;
 };
@@ -364,8 +348,6 @@ template <class T>
 class optional : private OptionalBase<T>
 {
   static_assert( !std::is_same<typename std::decay<T>::type, nullopt_t>::value, "bad T" );
-  static_assert( !std::is_same<typename std::decay<T>::type, in_place_t>::value, "bad T" );
-
 
   constexpr bool initialized() const noexcept { return OptionalBase<T>::init_; }
   typename std::remove_const<T>::type* dataptr() {  return std::addressof(OptionalBase<T>::storage_.value_); }
@@ -434,14 +416,6 @@ public:
   constexpr optional(const T& v) : OptionalBase<T>(v) {}
 
   constexpr optional(T&& v) : OptionalBase<T>(constexpr_move(v)) {}
-
-  template <class... Args>
-  explicit constexpr optional(in_place_t, Args&&... args)
-  : OptionalBase<T>(in_place_t{}, constexpr_forward<Args>(args)...) {}
-
-  template <class U, class... Args, TR2_OPTIONAL_REQUIRES(is_constructible<T, std::initializer_list<U>>)>
-  OPTIONAL_CONSTEXPR_INIT_LIST explicit optional(in_place_t, std::initializer_list<U> il, Args&&... args)
-  : OptionalBase<T>(in_place_t{}, il, constexpr_forward<Args>(args)...) {}
 
   // 20.5.4.2, Destructor
   ~optional() = default;
@@ -621,7 +595,6 @@ template <class T>
 class optional<T&>
 {
   static_assert( !std::is_same<T, nullopt_t>::value, "bad T" );
-  static_assert( !std::is_same<T, in_place_t>::value, "bad T" );
   T* ref;
 
 public:
@@ -637,10 +610,6 @@ public:
 
   constexpr optional(const optional& rhs) noexcept : ref(rhs.ref) {}
 
-  explicit constexpr optional(in_place_t, T& v) noexcept : ref(detail_::static_addressof(v)) {}
-
-  explicit optional(in_place_t, T&&) = delete;
-
   ~optional() = default;
 
   // 20.5.5.2, mutation
@@ -648,16 +617,6 @@ public:
     ref = nullptr;
     return *this;
   }
-
-  // optional& operator=(const optional& rhs) noexcept {
-    // ref = rhs.ref;
-    // return *this;
-  // }
-
-  // optional& operator=(optional&& rhs) noexcept {
-    // ref = rhs.ref;
-    // return *this;
-  // }
 
   template <typename U>
   auto operator=(U&& rhs) noexcept
