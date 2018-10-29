@@ -364,16 +364,6 @@ public:
 
 
   /**
-   * \brief Get frame rate from the video.
-   *
-   * If frame rate is not supported, return -1.
-   *
-   * \return Frame rate.
-   */
-  virtual double frame_rate();
-
-
-  /**
    * \brief Get metadata map for video.
    *
    * This method returns a metadata map for the video assuming the video is
