@@ -225,7 +225,7 @@ read_object_track_set_db::priv
      * manner as may be done by streaming writers.
      */
     vital::frame_id_t frame_index;
-    vital::time_us_t frame_time;
+    vital::time_usec_t frame_time;
     int track_index;
 
     row.fetch( 0, track_index );
