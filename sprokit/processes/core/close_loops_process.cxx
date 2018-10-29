@@ -117,8 +117,6 @@ public:
   : process( config ),
     d( new close_loops_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
   d->m_logger = this->logger();
   make_ports();
   make_config();
@@ -141,7 +139,6 @@ void close_loops_process
 ::_configure()
 {
   scoped_configure_instrumentation();
-
 
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();

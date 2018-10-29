@@ -65,7 +65,7 @@ class VITAL_EXPORT timestamp
 {
 public:
   typedef kwiver::vital::frame_id_t frame_t;
-  typedef kwiver::vital::time_us_t  time_t;
+  typedef kwiver::vital::time_usec_t  time_t;
 
   /**
    * \brief Default constructor.
@@ -83,7 +83,7 @@ public:
    * @param t Time for timestamp in micro-seconds
    * @param f Frame number for timestamp
    */
-  explicit timestamp( time_us_t t, frame_id_t f);
+  explicit timestamp( time_usec_t t, frame_id_t f);
 
   /**
    * \brief Is timestamp valid.
@@ -126,7 +126,7 @@ public:
    *
    * @return Frame time in micro-seconds
    */
-  time_us_t get_time_usec() const { return m_time; }
+  time_usec_t get_time_usec() const { return m_time; }
 
 
   /**
@@ -158,7 +158,7 @@ public:
    *
    * @param t Time for frame.
    */
-  timestamp& set_time_usec( time_us_t t );
+  timestamp& set_time_usec( time_usec_t t );
 
 
   /**
@@ -219,7 +219,7 @@ private:
   bool m_valid_time;            ///< indicates valid time
   bool m_valid_frame;           ///< indicates valid frame number
 
-  time_us_t m_time;             ///< frame time in seconds
+  time_usec_t m_time;             ///< frame time in seconds
   frame_id_t  m_frame;          ///< frame number
 
   // index used to determine the time domain for this timestamp.

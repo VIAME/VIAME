@@ -49,6 +49,7 @@
 #include <vital/types/object_track_set.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/types/timestamp.h>
+#include <vital/types/geo_polygon.h>
 
 #include <limits>
 #include <string>
@@ -142,12 +143,24 @@ PYBIND11_MODULE(datum, m)
   m.def("new_string_vector", &new_datum<std::shared_ptr<std::vector<std::string>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a string vector.");
+  m.def("new_bounding_box", &new_datum<kwiver::vital::bounding_box_d>
+    , (arg("dat"))
+    , "Creates a new bounding box");
+  m.def("new_timestamp", &new_datum<kwiver::vital::timestamp>
+    , (arg("dat"))
+    , "Creates a new timestamp");
+  m.def("new_corner_points", &new_datum<kwiver::vital::geo_polygon>
+    , (arg("dat"))
+    , "Creates a new set of corner points");
   m.def("new_uchar_vector", &new_datum<std::shared_ptr<std::vector<unsigned char>>>
     , (arg("dat"))
     , "Creates a new datum packet containing an unsigned char vector.");
+
   m.def("datum_from_capsule", &datum_from_capsule
     , (arg("dptr"))
     , "Converts datum* in capsule to datum_t");
+
+
   m.def("empty", &empty_datum
     , "Creates an empty datum packet.");
   m.def("flush", &flush_datum
@@ -191,8 +204,15 @@ PYBIND11_MODULE(datum, m)
       , "Convert the data to a double vector")
     .def("get_string_vector", &datum_get_object<std::shared_ptr<std::vector<std::string>>>
       , "Convert the data to a string vector")
+    .def("get_bounding_box", &datum_get_object<kwiver::vital::bounding_box_d>
+         , "Convert the data to a bounding box")
+    .def("get_timestamp", &datum_get_object<kwiver::vital::timestamp>
+         , "Convert the data to a timestamp")
+    .def("get_corner_points", &datum_get_object<kwiver::vital::geo_polygon>
+         , "Convert the data to a set of corner points")
     .def("get_uchar_vector", &datum_get_object<std::shared_ptr<std::vector<unsigned char>>>
       , "Convert the data to an unsigned char vector")
+
   ;
 
 } // end module

@@ -1,0 +1,23 @@
+https://github.com/Kitware/kwiver
+Kitware 2018 - KWIVER Docker 1.2.0
+
+Purpose:
+Build the latest release versions of Fletch/Kwiver inside a docker container on top of Ubuntu:Trusty 14.04, 
+ with CMake 3.11.3. 
+
+Script optionally sets up a mounted shared volume between the host and container
+in the folder /kwiver/src/docker/SharedKWIVER/KWIVER1.2.0 (host) and in /SharedKWIVER/KWIVER1.2.0 (container)
+**enable this in dockersetup.sh
+
+Requirements:
+- Script must run in /src/docker/ directory for pathing purposes
+- Ensure Docker (tested on version 17.21.1 or higher) is installed on the host that is building KWIVER docker
+
+Process:
+Navigate to the directory where the dockerfile is in the KWIVER local repo (src/docker/dockerfile typically) 
+
+If necessary, 
+1) modify the dockerfile to build KWIVER/FLETCH with required configuration, otherwise default is used 
+2) modify the docketsetup.sh to run KWIVER/FLETCH with required configuration, otherwise default is used
+
+Run the script “dockersetup.sh” this will build, configure, and run KWIVER docker for continued use

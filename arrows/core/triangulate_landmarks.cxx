@@ -177,6 +177,7 @@ triangulate_landmarks
 
     // extract the cameras and image points for this landmarks
     std::vector<vital::simple_camera_perspective> lm_cams;
+    std::vector<vital::simple_camera_rpc> lm_cams_rpc;
     std::vector<vital::vector_2d> lm_image_pts;
 
     auto lm_observations = unsigned{0};
@@ -196,7 +197,17 @@ triangulate_landmarks
       }
       auto cam_ptr =
         std::dynamic_pointer_cast<vital::camera_perspective>(c_itr->second);
-      lm_cams.push_back(vital::simple_camera_perspective(*cam_ptr));
+      if ( cam_ptr )
+      {
+        lm_cams.push_back( vital::simple_camera_perspective( *cam_ptr ) );
+      }
+      else
+      {
+        auto rpc_ptr =
+          std::dynamic_pointer_cast<vital::camera_rpc>(c_itr->second);
+        lm_cams_rpc.push_back( vital::simple_camera_rpc( *rpc_ptr ) );
+      }
+
       lm_image_pts.push_back(fts->feature->loc());
       ++lm_observations;
     }
@@ -244,6 +255,17 @@ triangulate_landmarks
         lm->set_observations(lm_observations);
         triangulated_lms[p.first] = lm;
       }
+    }
+    else if ( lm_cams_rpc.size() > 1 )
+    {
+      vital::vector_3d pt3d =
+        kwiver::arrows::triangulate_rpc(lm_cams_rpc, lm_image_pts);
+
+      // TODO: is there a way to check for bad triangulations for RPC cameras?
+      auto lm = std::make_shared<vital::landmark_d>(*p.second);
+      lm->set_loc(pt3d);
+      lm->set_observations(lm_observations);
+      triangulated_lms[p.first] = lm;
     }
     else
     {

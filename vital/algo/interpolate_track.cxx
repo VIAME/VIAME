@@ -45,7 +45,7 @@ interpolate_track::
 interpolate_track()
   : m_progress_callback( nullptr )
 {
-  attach_logger( "interpolate_track" );
+  attach_logger( "algo.interpolate_track" );
 }
 
 // ----------------------------------------------------------------------------

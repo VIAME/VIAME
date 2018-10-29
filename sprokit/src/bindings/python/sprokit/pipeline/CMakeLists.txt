@@ -1,6 +1,6 @@
 project(sprokit_python_sprokit_pipeline)
 
-_sprokit_add_python_library(config
+kwiver_add_python_library(config
   sprokit/pipeline
   config.cxx)
 target_link_libraries(python-sprokit.pipeline-config
@@ -8,7 +8,7 @@ target_link_libraries(python-sprokit.pipeline-config
                       sprokit_python_util
                       vital_exceptions)
 
-_sprokit_add_python_library(datum
+kwiver_add_python_library(datum
   sprokit/pipeline
   datum.cxx)
 target_link_libraries(python-sprokit.pipeline-datum
@@ -16,14 +16,14 @@ target_link_libraries(python-sprokit.pipeline-datum
                       sprokit_python_util
                       vital vital_util)
 
-_sprokit_add_python_library(edge
+kwiver_add_python_library(edge
   sprokit/pipeline
   edge.cxx)
 target_link_libraries(python-sprokit.pipeline-edge
   PRIVATE             sprokit_pipeline
                       sprokit_python_util)
 
-_sprokit_add_python_library(modules
+kwiver_add_python_library(modules
   sprokit/pipeline
   modules.cxx)
 target_link_libraries(python-sprokit.pipeline-modules
@@ -33,14 +33,14 @@ target_link_libraries(python-sprokit.pipeline-modules
                       vital_vpm
   )
 
-_sprokit_add_python_library(pipeline
+kwiver_add_python_library(pipeline
   sprokit/pipeline
   pipeline.cxx)
 target_link_libraries(python-sprokit.pipeline-pipeline
   PRIVATE             sprokit_pipeline
                       sprokit_python_util)
 
-_sprokit_add_python_library(process
+kwiver_add_python_library(process
   sprokit/pipeline
   process.cxx)
 target_link_libraries(python-sprokit.pipeline-process
@@ -48,14 +48,14 @@ target_link_libraries(python-sprokit.pipeline-process
                       sprokit_python_util
                       vital_util)
 
-_sprokit_add_python_library(process_cluster
+kwiver_add_python_library(process_cluster
   sprokit/pipeline
   process_cluster.cxx)
 target_link_libraries(python-sprokit.pipeline-process_cluster
   PRIVATE             sprokit_pipeline
                       sprokit_python_util)
 
-_sprokit_add_python_library(process_factory
+kwiver_add_python_library(process_factory
   sprokit/pipeline
   process_factory.cxx)
 target_link_libraries(python-sprokit.pipeline-process_factory
@@ -64,14 +64,14 @@ target_link_libraries(python-sprokit.pipeline-process_factory
                       vital_vpm
     )
 
-_sprokit_add_python_library(scheduler
+kwiver_add_python_library(scheduler
   sprokit/pipeline
   scheduler.cxx)
 target_link_libraries(python-sprokit.pipeline-scheduler
   PRIVATE             sprokit_pipeline
                       sprokit_python_util)
 
-_sprokit_add_python_library(scheduler_factory
+kwiver_add_python_library(scheduler_factory
   sprokit/pipeline
   scheduler_factory.cxx)
 target_link_libraries(python-sprokit.pipeline-scheduler_factory
@@ -80,28 +80,28 @@ target_link_libraries(python-sprokit.pipeline-scheduler_factory
                       vital_vpm
   )
 
-_sprokit_add_python_library(stamp
+kwiver_add_python_library(stamp
   sprokit/pipeline
   stamp.cxx)
 target_link_libraries(python-sprokit.pipeline-stamp
   PRIVATE             sprokit_pipeline
                       sprokit_python_util)
 
-_sprokit_add_python_library(utils
+kwiver_add_python_library(utils
   sprokit/pipeline
   utils.cxx)
 target_link_libraries(python-sprokit.pipeline-utils
   PRIVATE             sprokit_pipeline
                       sprokit_python_util)
 
-_sprokit_add_python_library(version
+kwiver_add_python_library(version
   sprokit/pipeline
   version.cxx)
 target_link_libraries(python-sprokit.pipeline-version
   PRIVATE             sprokit_pipeline
                       sprokit_python_util)
 
-sprokit_create_python_init(sprokit/pipeline
+kwiver_create_python_init(sprokit/pipeline
   config
   datum
   edge

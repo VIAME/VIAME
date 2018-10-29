@@ -36,9 +36,9 @@ sprokit_configure_file(cluster-paths.h
 
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
 
-sprokit_private_header_group(${clusters_private_headers})
+kwiver_private_header_group(${clusters_private_headers})
 kwiver_add_plugin(processes_clusters
-  SUBDIR       sprokit
+  SUBDIR       ${kwiver_plugin_process_subdir}
   SOURCES      ${clusters_srcs}
                ${clusters_private_headers}
   PUBLIC       vital_logger

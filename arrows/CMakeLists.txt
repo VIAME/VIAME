@@ -71,6 +71,11 @@ if( KWIVER_ENABLE_KPF )
   add_subdirectory( kpf )
 endif()
 
+# if GDAL is enabled
+if ( KWIVER_ENABLE_GDAL )
+  add_subdirectory( gdal )
+endif()
+
 # if uuid is enabled
 if( KWIVER_ENABLE_UUID )
   add_subdirectory( uuid )
@@ -84,3 +89,10 @@ if( KWIVER_ENABLE_PYTHON )
   kwiver_create_python_plugin_init( kwiver/arrows )
   add_subdirectory( pytorch )
 endif()
+
+# if FFMPEG is enabled
+if( KWIVER_ENABLE_FFMPEG)
+  add_subdirectory( ffmpeg )
+endif()
+
+add_subdirectory( serialize )

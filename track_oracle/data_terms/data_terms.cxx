@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2014-2018 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -364,6 +364,20 @@ ostream& time_stamp::to_csv( ostream& os, const vital::timestamp& ts ) const
   pair< string, string > ts_strings = kwiver_ts_to_strings( ts );
   os << ts_strings.first << "," << ts_strings.second;
   return os;
+}
+
+//
+// uid
+//
+
+ostream& track_uuid::to_stream( ostream& os, const vital::uid& uid ) const
+{
+  return kwiver_write( os, uid );
+}
+
+bool track_uuid::from_str( const string& s, vital::uid& uid ) const
+{
+  return kwiver_read( s, uid );
 }
 
 } // ...tracking

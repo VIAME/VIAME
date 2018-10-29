@@ -47,7 +47,7 @@ timestamp::timestamp()
 { }
 
 
-timestamp::timestamp( time_us_t t, frame_id_t f )
+timestamp::timestamp( time_usec_t t, frame_id_t f )
   : m_valid_time( true ),
     m_valid_frame( true ),
     m_time( t ),
@@ -58,7 +58,7 @@ timestamp::timestamp( time_us_t t, frame_id_t f )
 
 // ------------------------------------------------------------------
 timestamp& timestamp
-::set_time_usec( time_us_t t )
+::set_time_usec( time_usec_t t )
 {
   m_time = t;
   m_valid_time = true;
@@ -71,7 +71,7 @@ timestamp& timestamp
 timestamp& timestamp
 ::set_time_seconds( double t )
 {
-  m_time = static_cast< time_us_t >(t * 1e6);     // Convert to usec
+  m_time = static_cast< time_usec_t >(t * 1e6);     // Convert to usec
   m_valid_time = true;
 
   return *this;

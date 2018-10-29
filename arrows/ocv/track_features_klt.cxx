@@ -374,7 +374,7 @@ track_features_klt
 ::track_features_klt()
 : d_(new priv)
 {
-  attach_logger("ocv_track_features_klt");
+  attach_logger("arrows.ocv.track_features_klt");
   d_->m_logger = this->logger();
 }
 
@@ -456,7 +456,7 @@ track_features_klt
   }
 
 
-  cv::Mat cv_img = ocv::image_container::vital_to_ocv(image_data->get_image());
+  cv::Mat cv_img = ocv::image_container::vital_to_ocv(image_data->get_image(), ocv::image_container::RGB_COLOR);
   cv::Mat cv_mask;
 
   // Only initialize a mask image if the given mask image container contained
@@ -482,7 +482,7 @@ track_features_klt
                    s.first_pixel(),
                    s.width(),  s.height(), 1 /*depth*/,
                    s.w_step(), s.h_step(), s.d_step(), s.pixel_traits());
-    cv_mask = ocv::image_container::vital_to_ocv(i);
+    cv_mask = ocv::image_container::vital_to_ocv(i, ocv::image_container::OTHER_COLOR);
   }
 
   //setup stuff complete

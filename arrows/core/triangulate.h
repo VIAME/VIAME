@@ -40,6 +40,7 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/camera_perspective.h>
+#include <vital/types/camera_rpc.h>
 
 
 namespace kwiver {
@@ -81,6 +82,21 @@ Eigen::Matrix<T,4,1>
 triangulate_homog(const std::vector<vital::simple_camera_perspective >& cameras,
                   const std::vector<Eigen::Matrix<T,2,1> >& points);
 
+
+/// Triangulate a 3D point from a set of RPC cameras and 2D image points
+/**
+ *  This function constructs rays at two arbitary heights using the cameras and
+ *  image points. Then a least squares solution is used to find the 3D point
+ *
+ *  \param cameras a vector of RPC camera objects
+ *  \param points a vector of image points corresponding to each camera
+ *  \return a 3D triangulated point location
+ */
+template <typename T>
+KWIVER_ALGO_CORE_EXPORT
+Eigen::Matrix<T,3,1>
+triangulate_rpc(const std::vector<vital::simple_camera_rpc >& cameras,
+                const std::vector<Eigen::Matrix<T,2,1> >& points);
 
 } // end namespace arrows
 } // end namespace kwiver

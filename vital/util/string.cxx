@@ -73,10 +73,12 @@ string_format( const std::string fmt_str, ... )
 
 // ------------------------------------------------------------------
 std::string
-join( const std::vector<std::string>& elements, const std::string& str_separator)
+join( const std::vector< std::string >& elements,
+      const std::string&                str_separator )
 {
   const char* const separator = str_separator.c_str();
-  switch (elements.size())
+
+  switch ( elements.size() )
   {
   case 0:
     return "";
@@ -87,12 +89,24 @@ join( const std::vector<std::string>& elements, const std::string& str_separator
   default:
   {
     std::ostringstream os;
-    std::copy(elements.begin(), elements.end()-1,
-              std::ostream_iterator<std::string>(os, separator));
-    os << *elements.rbegin();
+    std::copy( elements.cbegin(), elements.cend() - 1,
+               std::ostream_iterator< std::string > ( os, separator ) );
+    os << *elements.crbegin();
     return os.str();
   }
   } // end switch
+}
+
+
+// ------------------------------------------------------------------
+std::string
+join( const std::set< std::string >&  elements,
+      const std::string&              str_separator )
+{
+  std::vector< std::string > vec_elem( elements.size() );
+  std::copy( elements.begin(), elements.end(), vec_elem.begin() );
+
+  return join( vec_elem, str_separator );
 }
 
 

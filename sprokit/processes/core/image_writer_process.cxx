@@ -118,7 +118,7 @@ void image_writer_process
   // Get process config entries
   d->m_file_template = config_value_using_trait( file_name_template );
 
-  // Get algo conrig entries
+  // Get algo config entries
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
   algo::image_io::set_nested_algo_configuration( "image_writer", algo_config, d->m_image_writer);
   if ( ! d->m_image_writer )

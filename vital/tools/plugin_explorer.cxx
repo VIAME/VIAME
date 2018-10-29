@@ -402,15 +402,14 @@ void print_config( kwiver::vital::config_block_sptr const config )
  *
  * @param path Directory of where to look for these plugins.
  */
-void load_explorer_plugins( const std::string& path )
+void load_explorer_plugins()
 {
-  LOG_DEBUG( G_logger, "Loading explorer plugins from: " << path );
-
   // need a dedicated loader to just load the explorer_context files.
   kwiver::vital::plugin_loader pl( "register_explorer_plugin", SHARED_LIB_SUFFIX );
 
   kwiver::vital::path_list_t pathl;
   const std::string& default_module_paths( DEFAULT_MODULE_PATHS );
+  LOG_DEBUG( G_logger, "Loading explorer plugins from: " << DEFAULT_MODULE_PATHS );
 
   ST::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
 
@@ -597,7 +596,7 @@ main( int argc, char* argv[] )
 
   // Need to load plugins before we display help since they can add
   // command line options.
-  load_explorer_plugins( DEFAULT_MODULE_PATHS );
+  load_explorer_plugins();
 
   // See if there are no args specified. If so, then default to full listing
   if ( argc == 1 )

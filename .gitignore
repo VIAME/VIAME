@@ -1,6 +1,6 @@
 _build
 *.pyc
+*.swp
 *~
 .ipynb_checkpoints
-
-*.swp
+.emacs*

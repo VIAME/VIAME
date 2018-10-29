@@ -394,6 +394,16 @@ public:
 
 
   /**
+   * \brief Get frame rate from the video.
+   *
+   * If frame rate is not supported, return -1.
+   *
+   * \return Frame rate.
+   */
+  virtual double frame_rate();
+
+
+  /**
    * \brief Return capabilities of concrete implementation.
    *
    * This method returns the capabilities for the currently opened

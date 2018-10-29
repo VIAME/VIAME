@@ -55,7 +55,7 @@ read_object_track_set
   : m_stream( 0 )
   , m_stream_owned( false )
 {
-  attach_logger( "read_object_track_set" );
+  attach_logger( "algo.read_object_track_set" );
 }
 
 
