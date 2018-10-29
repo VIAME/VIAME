@@ -212,7 +212,6 @@ PYBIND11_MODULE(datum, m)
          , "Convert the data to a set of corner points")
     .def("get_uchar_vector", &datum_get_object<std::shared_ptr<std::vector<unsigned char>>>
       , "Convert the data to an unsigned char vector")
-
   ;
 
 } // end module

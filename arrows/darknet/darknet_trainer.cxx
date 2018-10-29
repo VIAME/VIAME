@@ -319,6 +319,7 @@ train_from_disk(
 
     std::string header_end  = ")'";
 #endif
+
     std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
 
     if ( system( full_cmd.c_str() ) != 0 )

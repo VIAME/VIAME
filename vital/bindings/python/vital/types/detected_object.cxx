@@ -59,11 +59,9 @@ PYBIND11_MODULE(detected_object, m)
 {
   /*
    *
-    
     Developer:
         python -c "import vital.types; help(vital.types.DetectedObject)"
         python -m xdoctest vital.types DetectedObject --xdoc-dynamic
-
    *
    */
 
@@ -97,21 +95,6 @@ PYBIND11_MODULE(detected_object, m)
           confidence: confidence in this detection (default=1.0)
           classifications: optional object classification (default=None)
     ")"))
-  .def(py::init<kwiver::vital::bounding_box<double>, double, kwiver::vital::detected_object_type_sptr>(),
-    py::arg("bbox"), py::arg("confidence")=1.0, py::arg("classifications")=kwiver::vital::detected_object_type_sptr())
-  .def("bounding_box", &det_obj::bounding_box)
-  .def("set_bounding_box", &det_obj::set_bounding_box,
-    py::arg("bbox"))
-  .def("confidence", &det_obj::confidence)
-  .def("set_confidence", &det_obj::set_confidence,
-    py::arg("d"))
-  .def("descriptor", &det_obj::descriptor)
-  .def("set_descriptor", &det_obj::set_descriptor,
-		py::arg("descriptor"))
-  .def("type", &det_obj::type)
-  .def("set_type", &det_obj::set_type,
-    py::arg("c"))
-  .def_property("mask", &det_obj::mask, &det_obj::set_mask)
   .def("__nice__", [](det_obj& self) -> std::string {
     auto locals = py::dict(py::arg("self")=self);
     py::exec(R"(
@@ -137,5 +120,18 @@ PYBIND11_MODULE(detected_object, m)
     )", py::globals(), locals);
     return locals["retval"].cast<std::string>();
     })
+  .def("bounding_box", &det_obj::bounding_box)
+  .def("set_bounding_box", &det_obj::set_bounding_box,
+    py::arg("bbox"))
+  .def("confidence", &det_obj::confidence)
+  .def("set_confidence", &det_obj::set_confidence,
+    py::arg("d"))
+  .def("descriptor", &det_obj::descriptor)
+  .def("set_descriptor", &det_obj::set_descriptor,
+		py::arg("descriptor"))
+  .def("type", &det_obj::type)
+  .def("set_type", &det_obj::set_type,
+    py::arg("c"))
+  .def_property("mask", &det_obj::mask, &det_obj::set_mask)
   ;
 }

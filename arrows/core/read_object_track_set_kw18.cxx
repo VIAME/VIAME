@@ -102,7 +102,7 @@ public:
   std::map< vital::frame_id_t, vital::track_sptr > m_all_tracks;
 
   // Compilation of all loaded track IDs, track id -> type string
-  std::map< vital::frame_id_t, std::string > m_track_ids;
+  std::map< vital::track_id_t, std::string > m_track_ids;
 };
 
 
