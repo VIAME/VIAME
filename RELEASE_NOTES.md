@@ -1,4 +1,12 @@
 
+v0.9.8.8 - 10/29/2018
+=====================
+
+
+-Fix issue with measurement example after config refactor
+
+
+
 v0.9.8.7 - 10/25/2018
 =====================
 
