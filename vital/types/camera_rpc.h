@@ -93,12 +93,14 @@ public:
   virtual vector_3d world_offset() const = 0;
   virtual vector_2d image_scale() const = 0;
   virtual vector_2d image_offset() const = 0;
+  virtual unsigned int image_width() const = 0;
+  virtual unsigned int image_height() const = 0;
 
   /// Project a 3D point into a 2D image point
   virtual vector_2d project( const vector_3d& pt ) const;
 
   /// Project a 2D image back to a 3D point in space
-  virtual vector_3d back_project( const vector_2d& image_pt, double elev );
+  virtual vector_3d back_project( const vector_2d& image_pt, double elev ) const;
 
 protected:
   camera_rpc();
@@ -126,7 +128,9 @@ public:
     world_scale_(1.0, 1.0, 1.0),
     world_offset_(0.0, 0.0, 0.0),
     image_scale_(1.0, 1.0),
-    image_offset_(0.0, 0.0)
+    image_offset_(0.0, 0.0),
+    image_width_(0),
+    image_height_(0)
   {
     rpc_coeffs_ = rpc_matrix::Zero();
     rpc_coeffs_(1, 0) = 1.0;
@@ -137,18 +141,21 @@ public:
     update_partial_deriv();
   }
 
-/// Constructor - direct from coeffs, scales, and offset
+  /// Constructor - direct from coeffs, scales, and offset
   /**
    *  This constructor constructs a camera directly from the RPC parameters
    */
   simple_camera_rpc ( vector_3d &world_scale, vector_3d &world_offset,
                       vector_2d &image_scale, vector_2d &image_offset,
-                      rpc_matrix &rpc_coeffs ) :
+                      rpc_matrix &rpc_coeffs, unsigned int image_width=0,
+                      unsigned int image_height=0) :
     world_scale_( world_scale ),
     world_offset_( world_offset ),
     image_scale_( image_scale ),
     image_offset_( image_offset ),
-    rpc_coeffs_( rpc_coeffs )
+    rpc_coeffs_( rpc_coeffs ),
+    image_width_( image_width ),
+    image_height_( image_height )
   {
     update_partial_deriv();
   }
@@ -159,7 +166,9 @@ public:
     world_offset_( base.world_offset() ),
     image_scale_( base.image_scale() ),
     image_offset_( base.image_offset() ),
-    rpc_coeffs_( base.rpc_coeffs() )
+    rpc_coeffs_( base.rpc_coeffs() ),
+    image_width_( base.image_width() ),
+    image_height_( base.image_height() )
   {
     update_partial_deriv();
   }
@@ -175,6 +184,8 @@ public:
   virtual vector_3d world_offset() const { return world_offset_; }
   virtual vector_2d image_scale() const { return image_scale_; }
   virtual vector_2d image_offset() const { return image_offset_; }
+  virtual unsigned int image_width() const { return image_width_; }
+  virtual unsigned int image_height() const { return image_height_; }
 
   // Setters
   void set_rpc_coeffs(rpc_matrix coeffs)
@@ -186,25 +197,30 @@ public:
   void set_world_offset(vector_3d& offset) { world_offset_ = offset; }
   void set_image_scale(vector_2d& scale) { image_scale_ = scale; }
   void set_image_offset(vector_2d& offset) { image_offset_ = offset; }
+  void set_image_width(unsigned int width) { image_width_ = width; }
+  void set_image_height(unsigned int height) { image_height_ = height; }
 
 protected:
 
   virtual void jacobian( const vector_3d& pt, matrix_2x2d& J, vector_2d& norm_pt ) const;
 
-    // Update the partial derivatives needed to compute the jacobian
-  void update_partial_deriv();
+  // Update the partial derivatives needed to compute the jacobian
+  void update_partial_deriv() const;
 
   // The RPC coefficients
   rpc_matrix rpc_coeffs_;
   // The partial derivatives coefficients
-  rpc_deriv_matrix dx_coeffs_;
-  rpc_deriv_matrix dy_coeffs_;
+  mutable rpc_deriv_matrix dx_coeffs_;
+  mutable rpc_deriv_matrix dy_coeffs_;
   // The world scale and offset
   vector_3d world_scale_;
   vector_3d world_offset_;
   // The image scale and offset
   vector_2d image_scale_;
   vector_2d image_offset_;
+  // The image width and height
+  unsigned int image_width_;
+  unsigned int image_height_;
 };
 
 

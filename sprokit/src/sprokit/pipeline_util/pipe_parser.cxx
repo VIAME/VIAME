@@ -272,7 +272,6 @@ parse_cluster( std::istream& input, const std::string& name )
     if ( t->token_type() == TK_PROCESS )
     {
       PARSER_TRACE( "parse_cluster processes: " << *t );
-
       m_lexer.unget_token( t );
       process_pipe_block ppb;
       process_definition( ppb );

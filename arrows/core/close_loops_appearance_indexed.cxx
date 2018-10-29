@@ -278,7 +278,7 @@ close_loops_appearance_indexed
 ::close_loops_appearance_indexed()
 {
   d_ = std::make_shared<priv>();
-  attach_logger("close_loops_appearance_indexed");
+  attach_logger("arrows.core.close_loops_appearance_indexed");
   d_->m_logger = this->logger();
 }
 

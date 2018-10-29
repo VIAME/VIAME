@@ -162,10 +162,10 @@ TEST( track_oracle, track_oracle_threadsafe )
   }
 
   const size_t max_threads = 4; // arbitrary
-  for (auto n_threads = 2; n_threads < max_threads; ++n_threads )
+  for (size_t n_threads = 2; n_threads < max_threads; ++n_threads )
   {
     vector< thread > threads;
-    for (auto i=0; i<n_threads; ++i)
+    for (size_t i=0; i<n_threads; ++i)
     {
       ostringstream oss;
       oss << "Thread " << i+1 << " / " << n_threads;

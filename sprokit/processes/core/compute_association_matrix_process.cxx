@@ -69,9 +69,6 @@ compute_association_matrix_process
   : process( config ),
     d( new compute_association_matrix_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( vital::get_logger( name() ) );
-
   // Required for negative feedback loop
   set_data_checking_level( check_none );
 
@@ -90,6 +87,8 @@ compute_association_matrix_process
 void compute_association_matrix_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   algo::compute_association_matrix::set_nested_algo_configuration(
@@ -167,12 +166,15 @@ compute_association_matrix_process
     tracks = grab_from_port_using_trait( object_track_set );
   }
 
-  // Get output matrix and detections
   vital::matrix_d matrix_output;
   vital::detected_object_set_sptr detection_output;
+  {
+    scoped_step_instrumentation();
 
-  d->m_matrix_generator->compute( frame_id, image, tracks,
-    detections, matrix_output, detection_output );
+    // Get output matrix and detections
+    d->m_matrix_generator->compute( frame_id, image, tracks,
+                                    detections, matrix_output, detection_output );
+  }
 
   // Return all outputs
   push_to_port_using_trait( matrix_d, matrix_output );

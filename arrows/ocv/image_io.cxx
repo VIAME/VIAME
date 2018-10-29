@@ -57,7 +57,7 @@ image_io
 ::load_(const std::string& filename) const
 {
   auto md = std::shared_ptr<kwiver::vital::metadata>(new kwiver::vital::metadata());
-  md->add(NEW_METADATA_ITEM(kwiver::vital::VITAL_META_IMAGE_FILENAME, filename));
+  md->add(NEW_METADATA_ITEM(kwiver::vital::VITAL_META_IMAGE_URI, filename));
 
   cv::Mat img = cv::imread(filename.c_str(), -1);
   auto img_ptr = vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR_COLOR));

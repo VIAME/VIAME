@@ -51,7 +51,7 @@ namespace algo {
 estimate_canonical_transform
 ::estimate_canonical_transform()
 {
-  attach_logger( "estimate_canonical_transform" );
+  attach_logger( "algo.estimate_canonical_transform" );
 }
 
 } } } // end namespace

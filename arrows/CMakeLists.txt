@@ -85,3 +85,5 @@ endif()
 if( KWIVER_ENABLE_FFMPEG)
   add_subdirectory( ffmpeg )
 endif()
+
+add_subdirectory( serialize )

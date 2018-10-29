@@ -37,6 +37,7 @@
 
 #include <vital/config/config_block.h>
 #include <vital/config/config_block_io.h>
+#include <vital/config/config_block_formatter.h>
 #include <vital/exceptions.h>
 #include <vital/util/get_paths.h>
 
@@ -146,7 +147,8 @@ int main( int argc, char** argv )
       return EXIT_FAILURE;
     }
 
-    config->print( fout );
+    kwiver::vital::config_block_formatter fmt( config );
+    fmt.print( fout );
     std::cout << "Wrote config to \"" << opt_out_config << "\". Exiting.\n";
     return EXIT_SUCCESS;
   }

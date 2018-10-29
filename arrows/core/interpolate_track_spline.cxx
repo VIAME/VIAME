@@ -47,12 +47,12 @@ public:
 namespace {
 
 // ----------------------------------------------------------------------------
-time_us_t
-lerp( time_us_t a, time_us_t b, double k )
+time_usec_t
+lerp( time_usec_t a, time_usec_t b, double k )
 {
   auto const x = static_cast< double >( a );
   auto const y = static_cast< double >( b );
-  return static_cast< time_us_t >( ( ( 1.0 - k ) * x ) + ( k * y ) );
+  return static_cast< time_usec_t >( ( ( 1.0 - k ) * x ) + ( k * y ) );
 }
 
 // ----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ interpolate( track_sptr input_track )
   if ( !input_track ) return nullptr;
 
   // Extract states, for easier iteration over intervals to be filled
-  std::map< frame_id_t, std::pair< time_us_t, detected_object_sptr > > states;
+  std::map< frame_id_t, std::pair< time_usec_t, detected_object_sptr > > states;
   for ( auto const& sp : *input_track )
   {
     auto const osp = std::dynamic_pointer_cast< object_track_state >( sp );
@@ -125,7 +125,7 @@ interpolate( track_sptr input_track )
   auto new_track = track::create( input_track->data() );
   new_track->set_id( input_track->id() );
 
-  auto append = [&new_track]( frame_id_t frame, time_us_t time,
+  auto append = [&new_track]( frame_id_t frame, time_usec_t time,
                               detected_object_sptr detection ){
     new_track->append(
       std::make_shared< object_track_state >( frame, time, detection ) );

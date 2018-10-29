@@ -34,3 +34,5 @@ if(KWIVER_ENABLE_ARROWS)
   include( kwiver-depends-ffmpeg )
   include( kwiver-depends-GDAL )
 endif()
+
+include(kwiver-depends-ZeroMQ )

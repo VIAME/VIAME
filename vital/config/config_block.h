@@ -212,8 +212,8 @@ public:
    * If the provided key has no description associated with it, an empty
    * \c config_block_description_t value is returned.
    *
-   * \throws no_such_configuration_value_exception Thrown if the requested
-   *                                               key does not exist.
+   * \throws no_such_configuration_value_exception Thrown if the
+   *  requested key does not exist.
    *
    * \param key The name of the parameter to get the description of.
    * \returns The description of the requested key.
@@ -383,6 +383,7 @@ public:
    *
    * \param str Stream to accept formated text.
    */
+  VITAL_CONFIG_DEPRECATED
   void print( std::ostream & str );
 
 
@@ -574,7 +575,7 @@ config_block_get_value_cast( config_block_value_t const& value )
   std::stringstream str;
   str << value;
 
-  kwiver::vital::time_us_t t;
+  kwiver::vital::time_usec_t t;
   str >> t;
   obj.set_time( t );
 

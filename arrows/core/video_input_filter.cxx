@@ -68,7 +68,7 @@ video_input_filter
 ::video_input_filter()
   : d( new video_input_filter::priv )
 {
-  attach_logger( "video_input_filter" );
+  attach_logger( "arrows.core.video_input_filter" );
 }
 
 
