@@ -126,7 +126,10 @@ kwiver::vital::image_container_sptr
 ocv_debayer_filter
 ::filter( kwiver::vital::image_container_sptr image_data )
 {
-  cv::Mat input_ocv = arrows::ocv::image_container::vital_to_ocv( image_data->get_image() );
+  cv::Mat input_ocv =
+    arrows::ocv::image_container::vital_to_ocv( image_data->get_image(),
+      kwiver::arrows::ocv::image_container::BGR_COLOR );
+
   cv::Mat output_ocv;
 
   if( d->m_pattern == "BG" )
@@ -152,7 +155,9 @@ ocv_debayer_filter
     output_ocv.convertTo( output_ocv, CV_8U );
   }
 
-  kwiver::vital::image_container_sptr output( new arrows::ocv::image_container( output_ocv ) );
+  kwiver::vital::image_container_sptr output(
+    new arrows::ocv::image_container( output_ocv,
+      kwiver::arrows::ocv::image_container::BGR_COLOR ) );
 
   return output;
 }
