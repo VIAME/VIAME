@@ -41,7 +41,6 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <boost/weak_ptr.hpp>
 
 #include <deque>
 
@@ -116,8 +115,8 @@ class edge::priv
     bool full_of_data() const;
     void complete_check() const;
 
-    bool push(edge_datum_t const& datum, boost::optional<duration_t> const& duration = boost::none);
-    boost::optional<edge_datum_t> pop(boost::optional<duration_t> const& duration = boost::none);
+    bool push(edge_datum_t const& datum, kwiver::vital::optional<duration_t> const& duration = kwiver::vital::nullopt);
+    kwiver::vital::optional<edge_datum_t> pop(kwiver::vital::optional<duration_t> const& duration = kwiver::vital::nullopt);
 
     /// This flag indicates that this edge connection should or should
     /// not imply a dependency. Generally set to false if a backwards
@@ -248,7 +247,7 @@ edge
   }
   else
   {
-    d->push( datum);
+    d->push( datum );
   }
 }
 
@@ -314,7 +313,7 @@ edge
 
 
 // ------------------------------------------------------------------
-boost::optional<edge_datum_t>
+kwiver::vital::optional<edge_datum_t>
 edge
 ::try_get_datum(duration_t const& duration)
 {
@@ -460,7 +459,7 @@ edge::priv
 // ------------------------------------------------------------------
 bool
 edge::priv
-::push(edge_datum_t const& datum, boost::optional<duration_t> const& duration)
+::push(edge_datum_t const& datum, kwiver::vital::optional<duration_t> const& duration)
 {
   {
     shared_lock_t const lock(complete_mutex);
@@ -507,9 +506,9 @@ edge::priv
 
 
 // ------------------------------------------------------------------
-boost::optional<edge_datum_t>
+kwiver::vital::optional<edge_datum_t>
 edge::priv
-::pop(boost::optional<duration_t> const& duration)
+::pop(kwiver::vital::optional<duration_t> const& duration)
 {
   complete_check();
 
@@ -523,7 +522,7 @@ edge::priv
     {
       if (!cond_have_data.wait_for(lock, *duration, predicate))
       {
-        return boost::none;
+        return kwiver::vital::nullopt;
       }
     }
     else

@@ -43,7 +43,7 @@ namespace algo {
 image_object_detector
 ::image_object_detector()
 {
-  attach_logger( "image_object_detector" ); // specify a logger
+  attach_logger( "algo.image_object_detector" ); // specify a logger
 }
 
 } } }

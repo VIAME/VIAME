@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,7 +100,7 @@ IMPLEMENT_TEST(unexpected_exception)
 TEST_PROPERTY(ENVIRONMENT, TEST_ENVVAR=test_value)
 IMPLEMENT_TEST(environment)
 {
-  sprokit::envvar_name_t const envvar = "TEST_ENVVAR";
+  const std::string envvar = "TEST_ENVVAR";
 
   std::string envvalue;
   kwiversys::SystemTools::GetEnv( envvar, envvalue );

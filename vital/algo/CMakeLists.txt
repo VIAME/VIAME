@@ -20,6 +20,7 @@ set( public_headers
   compute_stereo_depth_map.h
   compute_track_descriptors.h
   convert_image.h
+  data_serializer.h
   detect_features.h
   detected_object_filter.h
   detected_object_set_input.h
@@ -77,6 +78,7 @@ set( sources
   compute_stereo_depth_map.cxx
   compute_track_descriptors.cxx
   convert_image.cxx
+  data_serializer.cxx
   detect_features.cxx
   detected_object_filter.cxx
   detected_object_set_input.cxx
@@ -151,7 +153,7 @@ if (KWIVER_ENABLE_TOOLS)
 ###
 #     plugins for plugin explorer
 kwiver_add_plugin( algo_explorer_plugin
-  SUBDIR   modules/plugin_explorer
+  SUBDIR   ${kwiver_plugin_plugin_explorer_subdir}
   SOURCES  algo_explorer_plugin.cxx
   PRIVATE  vital
            vital_vpm

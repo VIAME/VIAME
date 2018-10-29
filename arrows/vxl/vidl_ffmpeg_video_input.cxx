@@ -158,10 +158,10 @@ public:
   bool d_have_loop_vars;
 
   double pts_of_meta_ts;            // probably seconds
-  vital::time_us_t meta_ts; // time in usec
+  vital::time_usec_t meta_ts; // time in usec
 
   // used to create timestamp output
-  vital::time_us_t d_frame_time; // usec
+  vital::time_usec_t d_frame_time; // usec
   vital::frame_id_t d_frame_number;
 
   // frames to add or subtract to make first frame number == 1.
@@ -230,7 +230,7 @@ public:
 
         meta->set_timestamp( ts );
 
-        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_FILENAME,
+        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI,
                                       video_path ) );
         this->metadata_collection.push_back( meta );
 
@@ -254,7 +254,7 @@ public:
 
       meta->set_timestamp(ts);
 
-      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_FILENAME,
+      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_URI,
         video_path));
 
       this->metadata_collection.push_back(meta);
@@ -508,7 +508,7 @@ vidl_ffmpeg_video_input
 ::vidl_ffmpeg_video_input()
   : d( new priv() )
 {
-  attach_logger( "video_input" ); // get appropriate logger
+  attach_logger( "arrows.vxl.video_input" ); // get appropriate logger
   d->d_logger = this->logger();
 }
 
@@ -738,6 +738,7 @@ vidl_ffmpeg_video_input
   set_capability(vital::algo::video_input::HAS_FRAME_DATA, true);
   set_capability(vital::algo::video_input::HAS_FRAME_NUMBERS, true );
   set_capability(vital::algo::video_input::HAS_FRAME_TIME, d->d_have_frame_time  );
+  set_capability(vital::algo::video_input::HAS_FRAME_RATE, true );
   set_capability(vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME,
                  (d->d_have_frame_time & d->d_have_abs_frame_time) );
   set_capability(vital::algo::video_input::HAS_METADATA, d->d_have_metadata  );
@@ -988,6 +989,15 @@ vidl_ffmpeg_video_input
   d->process_loop_dependencies();
 
   return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);
+}
+
+
+// ------------------------------------------------------------------
+double
+vidl_ffmpeg_video_input
+::frame_rate()
+{
+  return d->d_video_stream.frame_rate();
 }
 
 

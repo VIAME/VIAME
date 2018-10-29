@@ -31,6 +31,8 @@
 #include <test_common.h>
 
 #include <vital/config/config_block.h>
+#include <vital/util/string.h>
+
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/pipeline_exception.h>
 #include <sprokit/pipeline/process.h>
@@ -39,10 +41,9 @@
 #include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/scheduler.h>
 
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/lexical_cast.hpp>
-
 #include <memory>
+#include <sstream>
+#include <string>
 
 #define TEST_ARGS ()
 
@@ -602,7 +603,7 @@ IMPLEMENT_TEST( setup_pipeline_type_force_cascade_up )
 
   sprokit::process::port_info_t const info = process->output_port_info( port_name );
 
-  if ( boost::starts_with( info->type, sprokit::process::type_flow_dependent ) )
+  if ( kwiver::vital::starts_with( info->type, sprokit::process::type_flow_dependent ) )
   {
     TEST_ERROR( "Dependent types were not propagated properly up the pipeline" );
   }
@@ -642,7 +643,7 @@ IMPLEMENT_TEST( setup_pipeline_type_force_cascade_down )
 
   sprokit::process::port_info_t const info = process3->input_port_info( port_name2 );
 
-  if ( boost::starts_with( info->type, sprokit::process::type_flow_dependent ) )
+  if ( kwiver::vital::starts_with( info->type, sprokit::process::type_flow_dependent ) )
   {
     TEST_ERROR( "Dependent types were not propagated properly down the pipeline" );
   }
@@ -689,14 +690,14 @@ IMPLEMENT_TEST( setup_pipeline_type_force_cascade_both )
 
   info = process->output_port_info( port_name );
 
-  if ( boost::starts_with( info->type, sprokit::process::type_flow_dependent ) )
+  if ( kwiver::vital::starts_with( info->type, sprokit::process::type_flow_dependent ) )
   {
     TEST_ERROR( "Dependent types were not propagated properly within the pipeline" );
   }
 
   info = process3->input_port_info( port_name2 );
 
-  if ( boost::starts_with( info->type, sprokit::process::type_flow_dependent ) )
+  if ( kwiver::vital::starts_with( info->type, sprokit::process::type_flow_dependent ) )
   {
     TEST_ERROR( "Dependent types were not propagated properly within the pipeline" );
   }
@@ -794,7 +795,7 @@ IMPLEMENT_TEST( setup_pipeline_data_dependent_set )
 
   sprokit::process::port_info_t const info = process2->input_port_info( port_name2 );
 
-  if ( boost::starts_with( info->type, sprokit::process::type_flow_dependent ) )
+  if ( kwiver::vital::starts_with( info->type, sprokit::process::type_flow_dependent ) )
   {
     TEST_ERROR( "Dependent types were not propagated properly down the pipeline after initialization" );
   }
@@ -868,14 +869,14 @@ IMPLEMENT_TEST( setup_pipeline_data_dependent_set_cascade )
 
   info = process2->input_port_info( port_name2 );
 
-  if ( boost::starts_with( info->type, sprokit::process::type_flow_dependent ) )
+  if ( kwiver::vital::starts_with( info->type, sprokit::process::type_flow_dependent ) )
   {
     TEST_ERROR( "Dependent types were not propagated properly down the pipeline after initialization" );
   }
 
   info = process3->input_port_info( port_name2 );
 
-  if ( boost::starts_with( info->type, sprokit::process::type_flow_dependent ) )
+  if ( kwiver::vital::starts_with( info->type, sprokit::process::type_flow_dependent ) )
   {
     TEST_ERROR( "Dependent types were not propagated properly down the pipeline after initialization" );
   }
@@ -1133,7 +1134,7 @@ IMPLEMENT_TEST( setup_pipeline_frequency_connect )
   sprokit::process::name_t const proc_named = sprokit::process::name_t( "downstream" );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "copies" );
-  kwiver::vital::config_block_value_t const copies = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 1 );
+  kwiver::vital::config_block_value_t const copies = "1";
 
   kwiver::vital::config_block_sptr const configt = kwiver::vital::config_block::empty_config();
 
@@ -1176,8 +1177,8 @@ IMPLEMENT_TEST( setup_pipeline_frequency_linear )
   sprokit::process::name_t const proc_named = sprokit::process::name_t( "downstream" );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "copies" );
-  kwiver::vital::config_block_value_t const copies1 = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 1 );
-  kwiver::vital::config_block_value_t const copies2 = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 2 );
+  kwiver::vital::config_block_value_t const copies1 = "1";
+  kwiver::vital::config_block_value_t const copies2 = "2";
 
   kwiver::vital::config_block_sptr const configt1 = kwiver::vital::config_block::empty_config();
 
@@ -1228,8 +1229,8 @@ IMPLEMENT_TEST( setup_pipeline_frequency_split_to_outputs )
   sprokit::process::name_t const proc_named2 = sprokit::process::name_t( "downstream2" );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "copies" );
-  kwiver::vital::config_block_value_t const copies1 = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 1 );
-  kwiver::vital::config_block_value_t const copies2 = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 2 );
+  kwiver::vital::config_block_value_t const copies1 = "1";
+  kwiver::vital::config_block_value_t const copies2 = "2";
 
   kwiver::vital::config_block_sptr const configt1 = kwiver::vital::config_block::empty_config();
 
@@ -1284,8 +1285,8 @@ IMPLEMENT_TEST( setup_pipeline_frequency_split_to_inputs )
   sprokit::process::name_t const proc_named2 = sprokit::process::name_t( "downstream2" );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "skip" );
-  kwiver::vital::config_block_value_t const skip1 = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 1 );
-  kwiver::vital::config_block_value_t const skip2 = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 2 );
+  kwiver::vital::config_block_value_t const skip1 = "1";
+  kwiver::vital::config_block_value_t const skip2 = "2";
 
   kwiver::vital::config_block_sptr const configt1 = kwiver::vital::config_block::empty_config();
 
@@ -1340,7 +1341,7 @@ IMPLEMENT_TEST( setup_pipeline_frequency_incompatible_via_flow )
   sprokit::process::name_t const proc_named = sprokit::process::name_t( "sink" );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "copies" );
-  kwiver::vital::config_block_value_t const copies = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 1 );
+  kwiver::vital::config_block_value_t const copies = "1";
 
   kwiver::vital::config_block_sptr const configf = kwiver::vital::config_block::empty_config();
 
@@ -1394,8 +1395,8 @@ IMPLEMENT_TEST( setup_pipeline_frequency_synchronized_fork )
   sprokit::process::name_t const proc_named = sprokit::process::name_t( "sink" );
 
   kwiver::vital::config_block_key_t const key = kwiver::vital::config_block_key_t( "copies" );
-  kwiver::vital::config_block_value_t const copies2 = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 1 );
-  kwiver::vital::config_block_value_t const copies3 = boost::lexical_cast< kwiver::vital::config_block_value_t > ( 2 );
+  kwiver::vital::config_block_value_t const copies2 = "1";
+  kwiver::vital::config_block_value_t const copies3 = "2";
 
   kwiver::vital::config_block_sptr const configf2 = kwiver::vital::config_block::empty_config();
 

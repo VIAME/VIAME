@@ -36,6 +36,7 @@
 #include <stdarg.h>  // For va_start, etc.
 #include <string>
 #include <vector>
+#include <set>
 
 namespace kwiver {
 namespace vital {
@@ -70,6 +71,7 @@ starts_with( const std::string& input, const std::string& pattern)
   return (0 == input.compare( 0, pattern.size(), pattern ) );
 }
 
+//@}
 /**
  * @brief Join a set of strings with specified separator.
  *
@@ -77,7 +79,7 @@ starts_with( const std::string& input, const std::string& pattern)
  * strings with the specified separator inserted between
  * strings. There is no trailing separator.
  *
- * @param elements Vector of elements to join
+ * @param elements Container of elements to join
  * @param str_separator String to be placed between elements
  *
  * @return Single string with all elements joined with separator.
@@ -85,6 +87,9 @@ starts_with( const std::string& input, const std::string& pattern)
 VITAL_UTIL_EXPORT std::string
 join( const std::vector<std::string>& elements, const std::string& str_separator);
 
+VITAL_UTIL_EXPORT std::string
+join( const std::set<std::string>& elements, const std::string& str_separator);
+//@}
 
 /**
  * @brief Removes duplicate strings while preserving original order.
@@ -93,7 +98,7 @@ join( const std::vector<std::string>& elements, const std::string& str_separator
  * forward iteration. The result is a unique vector of strings that preserves
  * the forwards order.
  *
- * @param items Vector of strings to modify inplace
+ * @param[in,out] items Vector of strings to modify inplace
  */
 VITAL_UTIL_EXPORT void
 erase_duplicates(std::vector<std::string>& items);
@@ -103,11 +108,13 @@ erase_duplicates(std::vector<std::string>& items);
  * @brief Removes whitespace from left side of string.
  *
  * @param[in,out] s String to be trimmed in place.
+ * @return Modified string
  */
-inline void
+inline std::string&
 left_trim( std::string& s )
 {
   s.erase(  0, s.find_first_not_of( " \t\n\r\f\v" ) );
+  return s;
 }
 
 
@@ -115,11 +122,13 @@ left_trim( std::string& s )
  * @brief Removes whitespace from right size of string.
  *
  * @param[in,out] s String to be trimmed in place
+ * @return Modified string
  */
-inline void
+inline std::string&
 right_trim( std::string& s )
 {
   s.erase( s.find_last_not_of( " \t\n\r\f\v" ) + 1 );
+  return s;
 }
 
 
@@ -127,12 +136,14 @@ right_trim( std::string& s )
  * @brief Removes whitespace from both ends of a string.
  *
  * @param[in,out] s String to be trimmed in place
+ * @return Modified string
  */
-inline void
+inline std::string&
 string_trim( std::string& s )
 {
   right_trim(s);
   left_trim(s);
+  return s;
 }
 
 } } // end namespace

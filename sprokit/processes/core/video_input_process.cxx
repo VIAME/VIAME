@@ -74,13 +74,14 @@ public:
 
   // Configuration values
   std::string                           m_config_video_filename;
-  kwiver::vital::time_us_t              m_config_frame_time;
+  kwiver::vital::time_usec_t              m_config_frame_time;
+  bool                                  m_has_config_frame_time;
 
   kwiver::vital::algo::video_input_sptr m_video_reader;
   kwiver::vital::algorithm_capabilities m_video_traits;
 
   kwiver::vital::frame_id_t             m_frame_number;
-  kwiver::vital::time_us_t              m_frame_time;
+  kwiver::vital::time_usec_t              m_frame_time;
 
   kwiver::vital::metadata_vector        m_last_metadata;
 
@@ -113,10 +114,14 @@ void video_input_process
 
   // Examine the configuration
   d->m_config_video_filename = config_value_using_trait( video_filename );
-  d->m_config_frame_time = static_cast<vital::time_us_t>(
+  d->m_config_frame_time = static_cast<vital::time_usec_t>(
                                config_value_using_trait( frame_time ) * 1e6); // in usec
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+  if( algo_config->has_value( "frame_time" ) )
+  {
+    d->m_has_config_frame_time = true;
+  }
 
   if ( ! algo::video_input::check_nested_algo_configuration( "video_reader", algo_config ) )
   {
@@ -195,7 +200,17 @@ void video_input_process
       if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_TIME ) )
       {
         // create an internal time standard
-        d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
+        double frame_rate = d->m_video_reader->frame_rate();
+        if( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_RATE ) ||
+            frame_rate <= 0.0 || d->m_has_config_frame_time )
+        {
+          d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
+        }
+        else
+        {
+          time_t frame_time_usec = ( 1.0 / frame_rate ) * 1e6;
+          d->m_frame_time = d->m_frame_number * frame_time_usec;
+        }
         ts.set_time_usec( d->m_frame_time );
       }
 
@@ -225,6 +240,7 @@ void video_input_process
     push_to_port_using_trait( timestamp, ts );
     push_to_port_using_trait( image, frame );
     push_to_port_using_trait( metadata, metadata );
+    push_to_port_using_trait( frame_rate, d->m_video_reader->frame_rate() );
   }
   else
   {
@@ -237,6 +253,7 @@ void video_input_process
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( image, dat );
     push_datum_to_port_using_trait( metadata, dat );
+    push_datum_to_port_using_trait( frame_rate, dat );
   }
 }
 
@@ -251,6 +268,7 @@ void video_input_process
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
   declare_output_port_using_trait( metadata, optional );
+  declare_output_port_using_trait( frame_rate, optional );
 }
 
 
@@ -267,7 +285,8 @@ void video_input_process
 // ================================================================
 video_input_process::priv
 ::priv()
-  : m_frame_number( 1 ),
+  : m_has_config_frame_time( false ),
+    m_frame_number( 1 ),
     m_frame_time( 0 )
 {
 }

@@ -1,0 +1,19 @@
+#
+# Testing connections to serializer process
+#
+process zmq :: zmq_transport_receive
+  port = 5560
+  num_publishers = 1
+
+# --------------------------------------------------
+process dser :: deserializer
+        serialization_type = protobuf
+
+connect from zmq.serialized_message to dser.test
+
+# --------------------------------------------------
+process sink :: detected_object_output
+        file_name = received_dos.csv
+        writer:type = csv
+
+connect from dser.test/dos to sink.detected_object_set

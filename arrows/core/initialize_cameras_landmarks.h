@@ -78,7 +78,17 @@ public:
   /**
    * The algorithm creates an initial estimate of any missing cameras and
    * landmarks using the available cameras, landmarks, and feature tracks.
-   * It may optionally revise the estimates of exisiting cameras and landmarks.
+   * If the input cameras map is a NULL pointer then the algorithm should try
+   * to initialize all cameras covered by the track set.  If the input camera
+   * map exists then the algorithm should only initialize cameras on frames for
+   * which the camera is set to NULL.  Frames not in the map will not be
+   * initialized.  This allows the caller to control which subset of cameras to
+   * initialize without needing to manipulate the feature tracks.
+   * The analogous behavior is also applied to the input landmarks map to
+   * select which track IDs should be used to initialize landmarks.
+   *
+   * \note This algorithm may optionally revise the estimates of existing
+   * cameras and landmarks passed as input.
    *
    * \param [in,out] cameras the cameras to initialize
    * \param [in,out] landmarks the landmarks to initialize

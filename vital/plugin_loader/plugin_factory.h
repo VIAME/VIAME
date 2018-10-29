@@ -31,7 +31,6 @@
 #ifndef KWIVER_VITAL_PLUGIN_FACTORY_H
 #define KWIVER_VITAL_PLUGIN_FACTORY_H
 
-#include <vital/vital_config.h>
 #include <vital/plugin_loader/vital_vpm_export.h>
 
 #include <vital/noncopyable.h>
