@@ -393,7 +393,7 @@ format_images( std::string folder, std::string prefix,
       vital_image = m_image_io->load( image_fn );
 
       original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-        vital_image->get_image(), kwiver::arrows::ocv::image_container::BGR );
+        vital_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
     }
     catch( const kwiver::vital::vital_exception& e )
     {
