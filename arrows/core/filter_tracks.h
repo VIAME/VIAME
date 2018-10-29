@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,13 @@ class KWIVER_ALGO_CORE_EXPORT filter_tracks
   : public vital::algorithm_impl<filter_tracks, vital::algo::filter_tracks>
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "core";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "Filter tracks by track length or matrix matrix importance.";
+
   /// Constructor
   filter_tracks();
 

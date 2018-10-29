@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,19 +46,18 @@ namespace arrows {
 namespace ceres {
 
 
-/// Private implementation class
+// Private implementation class
 class optimize_cameras::priv
   : public solver_options,
     public camera_options
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
   : camera_options(),
     verbose(false),
     loss_function_type(TRIVIAL_LOSS),
-    loss_function_scale(1.0),
-    m_logger( vital::get_logger( "arrows.ceres.optimize_cameras" ))
+    loss_function_scale(1.0)
   {
   }
 
@@ -66,47 +65,38 @@ public:
   : camera_options(other),
     verbose(other.verbose),
     loss_function_type(other.loss_function_type),
-    loss_function_scale(other.loss_function_scale),
-    m_logger( vital::get_logger( "arrows.ceres.optimize_cameras" ))
+    loss_function_scale(other.loss_function_scale)
   {
   }
 
-  /// verbose output
+  // verbose output
   bool verbose;
-  /// the robust loss function type to use
+  // the robust loss function type to use
   LossFunctionType loss_function_type;
-  /// the scale of the loss function
+  // the scale of the loss function
   double loss_function_scale;
-
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 optimize_cameras
 ::optimize_cameras()
 : d_(new priv)
 {
+  attach_logger( "arrows.ceres.optimize_cameras" );
 }
 
 
-/// Copy Constructor
-optimize_cameras
-::optimize_cameras(const optimize_cameras& other)
-: d_(new priv(*other.d_))
-{
-}
-
-
-/// Destructor
+// Destructor
 optimize_cameras
 ::~optimize_cameras()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
 config_block_sptr
 optimize_cameras
 ::get_configuration() const
@@ -132,7 +122,8 @@ optimize_cameras
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 optimize_cameras
 ::set_configuration(config_block_sptr in_config)
@@ -162,7 +153,8 @@ optimize_cameras
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's currently configuration is valid
 bool
 optimize_cameras
 ::check_configuration(config_block_sptr config) const
@@ -170,14 +162,15 @@ optimize_cameras
   std::string msg;
   if( !d_->options.IsValid(&msg) )
   {
-    LOG_ERROR( d_->m_logger, msg);
+    LOG_ERROR( logger(), msg);
     return false;
   }
   return true;
 }
 
 
-/// Optimize camera parameters given sets of landmarks and feature tracks
+// ----------------------------------------------------------------------------
+// Optimize camera parameters given sets of landmarks and feature tracks
 void
 optimize_cameras
 ::optimize(vital::camera_map_sptr & cameras,
@@ -307,7 +300,7 @@ optimize_cameras
   ::ceres::Solve(d_->options, &problem, &summary);
   if( d_->verbose )
   {
-    LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+    LOG_DEBUG(logger(), "Ceres Full Report:\n" << summary.FullReport());
   }
 
   // Update the cameras with the optimized values
@@ -317,10 +310,11 @@ optimize_cameras
 }
 
 
-/// Optimize a single camera given corresponding features and landmarks
+// ----------------------------------------------------------------------------
+// Optimize a single camera given corresponding features and landmarks
 void
 optimize_cameras
-::optimize(vital::camera_sptr& camera,
+::optimize(vital::camera_perspective_sptr& camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
            kwiver::vital::metadata_vector metadata) const
@@ -390,7 +384,7 @@ optimize_cameras
   ::ceres::Solve(d_->options, &problem, &summary);
   if( d_->verbose )
   {
-    LOG_DEBUG(d_->m_logger, "Ceres Full Report:\n" << summary.FullReport());
+    LOG_DEBUG(logger(), "Ceres Full Report:\n" << summary.FullReport());
   }
 
   // update the cameras from optimized parameters
@@ -401,7 +395,7 @@ optimize_cameras
     d_->update_camera_intrinsics(new_K, &cam_intrinsic_params[0]);
     K = new_K;
   }
-  auto new_camera = std::make_shared<simple_camera>();
+  auto new_camera = std::make_shared<simple_camera_perspective>();
   new_camera->set_intrinsics(K);
   d_->update_camera_extrinsics(new_camera, &cam_extrinsic_params[0]);
   camera = new_camera;

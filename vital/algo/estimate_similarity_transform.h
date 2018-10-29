@@ -42,7 +42,7 @@
 #include <vector>
 
 #include <vital/algo/algorithm.h>
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark.h>
 #include <vital/types/landmark_map.h>
@@ -86,8 +86,9 @@ public:
    *          \c from space to camera centers in the \c to space.
    */
   virtual kwiver::vital::similarity_d
-  estimate_transform(std::vector<kwiver::vital::camera_sptr> const& from,
-                     std::vector<kwiver::vital::camera_sptr> const& to) const;
+  estimate_transform(
+      std::vector<kwiver::vital::camera_perspective_sptr> const& from,
+      std::vector<kwiver::vital::camera_perspective_sptr> const& to) const;
 
   /// Estimate the similarity transform between two corresponding sets of landmarks.
   /**

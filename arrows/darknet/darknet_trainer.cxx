@@ -31,7 +31,6 @@
 #include "darknet_trainer.h"
 #include "darknet_custom_resize.h"
 
-#include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
 
 #include <arrows/ocv/image_container.h>
@@ -278,7 +277,10 @@ train_from_disk(
 
     std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
 
-    system( full_cmd.c_str() );
+    if ( system( full_cmd.c_str() ) != 0 )
+    {
+      LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
+    }
   }
 
   // Run training routine
@@ -300,7 +302,10 @@ train_from_disk(
 
   std::cout << "Running " << full_cmd << std::endl;
 
-  system( full_cmd.c_str() );
+  if ( system( full_cmd.c_str() ) != 0 )
+  {
+    LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
+  }
 }
 
 // -----------------------------------------------------------------------------

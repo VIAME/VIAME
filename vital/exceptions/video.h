@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,8 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /// Generic video exception
-class VITAL_EXPORT video_exception
-  : public vital_core_base_exception
+class VITAL_EXCEPTIONS_EXPORT video_exception
+  : public vital_exception
 {
 public:
   /// Constructor
@@ -63,7 +63,7 @@ public:
  * This exception is thrown when the video_input::next_frame() method
  * timeout expires.
  */
-class VITAL_EXPORT video_input_timeout_exception
+class VITAL_EXCEPTIONS_EXPORT video_input_timeout_exception
   : public video_exception
 {
 public:
@@ -81,7 +81,7 @@ public:
  * This exception is thrown when there is exceptional condition while
  * streaming video.
  */
-class VITAL_EXPORT video_stream_exception
+class VITAL_EXCEPTIONS_EXPORT video_stream_exception
   : public video_exception
 {
 public:
@@ -99,7 +99,7 @@ public:
  * This exception is thrown when there is exceptional condition is
  * found in the configuration.
  */
-class VITAL_EXPORT video_config_exception
+class VITAL_EXCEPTIONS_EXPORT video_config_exception
   : public video_exception
 {
 public:
@@ -116,7 +116,7 @@ public:
  * This exception is thrown when there is exceptional condition while
  * processing the a video.
  */
-class VITAL_EXPORT video_runtime_exception
+class VITAL_EXCEPTIONS_EXPORT video_runtime_exception
   : public video_exception
 {
 public:

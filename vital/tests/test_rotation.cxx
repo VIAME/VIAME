@@ -40,14 +40,8 @@
 #include <iostream>
 #include <vector>
 
-#define _USE_MATH_DEFINES
-#include <cmath>
 
-#if defined M_PIl
-#define LOCAL_PI M_PIl
-#else
-#define LOCAL_PI M_PI
-#endif
+static constexpr double pi = 3.14159265358979323846;
 
 using namespace kwiver::vital;
 
@@ -158,8 +152,6 @@ TEST(rotation, compose)
 // ----------------------------------------------------------------------------
 TEST(rotation, interpolation)
 {
-  constexpr static double pi = LOCAL_PI;
-
   rotation_d x{ 0, vector_3d{ 1, 0, 0 } };
   rotation_d y{ pi / 2, vector_3d{ 0, 1, 0 } };
   rotation_d z = interpolate_rotation( x, y, 0.5 );
@@ -175,7 +167,6 @@ TEST(rotation, interpolation)
 // ----------------------------------------------------------------------------
 TEST(rotation, multiple_interpolations)
 {
-  constexpr static double pi = LOCAL_PI;
   rotation_d x{ 0, vector_3d{ 1, 0, 0 } };
   rotation_d y{ pi / 2, vector_3d{ 0, 1, 0 } };
   std::vector<rotation_d> rots;

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,9 @@
 #include "compute_homography_process.h"
 #include "compute_stereo_depth_map_process.h"
 #include "compute_track_descriptors_process.h"
+#include "detect_features_if_keyframe_process.h"
 #include "detect_features_process.h"
+#include "close_loops_process.h"
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
@@ -53,14 +55,20 @@
 #include "image_object_detector_process.h"
 #include "image_writer_process.h"
 #include "initialize_object_tracks_process.h"
+#include "keyframe_selection_process.h"
 #include "matcher_process.h"
+#include "merge_detection_sets_process.h"
 #include "perform_query_process.h"
+#include "print_config_process.h"
 #include "read_descriptor_process.h"
 #include "read_object_track_process.h"
 #include "read_track_descriptor_process.h"
 #include "refine_detections_process.h"
+#include "serializer_process.h"
+#include "deserializer_process.h"
 #include "split_image_process.h"
 #include "stabilize_image_process.h"
+#include "track_features_process.h"
 #include "video_input_process.h"
 #include "write_object_track_process.h"
 #include "write_track_descriptor_process.h"
@@ -284,12 +292,62 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
+  fact = vpm.ADD_PROCESS( kwiver::track_features_process);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "feature_tracker")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Tracks features from frame to frame.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::keyframe_selection_process);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Selects keyframes from a track set.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::detect_features_if_keyframe_process);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_features_if_keyframe")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Detects feautres in an image if it is a keyframe.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::close_loops_process);
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "close_loops")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Detects loops in a track set using features with descriptors.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    ;
+
+
   fact = vpm.ADD_PROCESS( kwiver::read_object_track_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_object_track" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Reads object track sets from an input file." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::print_config_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "print_config" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Print process configuration.\n\n"
+                    "This process is a debugging aide and performs no other function in a pipeline. "
+                    "The supplied configuration is printed when it is presented to the process. "
+                    "All ports connections to the process are accepted and the supplied data is taken from the port and "
+                    "discarded. This process produces no outputs and has no output ports.")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
     ;
 
 
@@ -328,27 +386,59 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+  fact = vpm.ADD_PROCESS( kwiver::serializer_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "serializer" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Serializes data types to byte streams. "
+                    "Input and output ports are dynamically created based on connection." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::deserializer_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "deserializer" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Deserializes data types from byte streams. "
+                    "Input and output ports are dynamically created based on connection." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::merge_detection_sets_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_detection_sets" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Merge two input detection sets into one output set." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
   fact = vpm.ADD_PROCESS( kwiver::handle_descriptor_request_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "handle_descriptor_request" );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-    "Handle a new descriptor request, producing desired descriptors on the input." );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "handle_descriptor_request" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Handle a new descriptor request, producing desired descriptors on the input." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
   fact = vpm.ADD_PROCESS( kwiver::compute_track_descriptors_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_track_descriptors" );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-    "Compute track descriptors on the input tracks or detections." );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_track_descriptors" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Compute track descriptors on the input tracks or detections." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
   fact = vpm.ADD_PROCESS( kwiver::perform_query_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "perform_query" );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-    "Perform a query." );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "perform_query" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Perform a query." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

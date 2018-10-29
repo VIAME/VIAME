@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ public:
   , d_current_files( d_img_md_files.end() )
   , d_frame_number( 0 )
   , d_metadata( nullptr )
+  , d_have_metadata_map( false )
   {}
 
   // Configuration values
@@ -67,9 +68,50 @@ public:
   typedef std::pair < vital::path_t, vital::path_t > path_pair_t;
   std::vector < path_pair_t > d_img_md_files;
   std::vector < path_pair_t >::const_iterator d_current_files;
-  kwiver::vital::timestamp::frame_t d_frame_number;
+  kwiver::vital::frame_id_t d_frame_number;
 
   vital::metadata_sptr d_metadata;
+
+  // metadata map
+  bool d_have_metadata_map;
+  vital::metadata_map::map_metadata_t d_metadata_map;
+
+  // Read and process metadata from file
+  vital::metadata_sptr process_metadata(path_pair_t paths,
+                        vital::timestamp::frame_t frame,
+                        vital::timestamp& ts)
+  {
+    vital::metadata_sptr metadata = nullptr;
+
+    if ( ! paths.second.empty() )
+    {
+      // Open next file in the list
+      metadata = vital::read_pos_file( paths.second );
+    }
+
+    // Include the path to the image
+    if ( metadata )
+    {
+      metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
+                                        paths.first) );
+    }
+
+    // Return timestamp
+    ts.set_frame( frame );
+    if ( metadata )
+    {
+      if ( metadata->has( vital::VITAL_META_GPS_SEC ) )
+      {
+        double gps_sec = metadata->find( vital::VITAL_META_GPS_SEC ).as_double();
+        // TODO: also use gps_week and convert to UTC to get abosolute time
+        // or subtract off first frame time to get time relative to start
+        ts.set_time_seconds( gps_sec );
+      }
+      metadata->set_timestamp( ts );
+    }
+
+    return metadata;
+  }
 };
 
 
@@ -78,7 +120,7 @@ video_input_pos
 ::video_input_pos()
   : d( new video_input_pos::priv )
 {
-  attach_logger( "video_input_pos" );
+  attach_logger( "arrows.core.video_input_pos" );
 
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );
@@ -88,6 +130,7 @@ video_input_pos
   set_capability( vital::algo::video_input::HAS_FRAME_DATA, false );
   set_capability( vital::algo::video_input::HAS_ABSOLUTE_FRAME_TIME, false ); // MAYBE
   set_capability( vital::algo::video_input::HAS_TIMEOUT, false );
+  set_capability( vital::algo::video_input::IS_SEEKABLE, true );
 }
 
 
@@ -212,6 +255,21 @@ video_input_pos
   return d->d_frame_number > 0 && ! this->end_of_video();
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_pos
+::seekable() const
+{
+  return true;
+}
+
+// ------------------------------------------------------------------
+size_t
+video_input_pos
+::num_frames() const
+{
+  return d->d_img_md_files.size();
+}
 
 // ------------------------------------------------------------------
 bool
@@ -248,14 +306,83 @@ video_input_pos
     d->d_metadata = vital::read_pos_file( d->d_current_files->second );
   }
 
+  // Return timestamp
+  ts = this->frame_timestamp();
+
   // Include the path to the image
   if ( d->d_metadata )
   {
-    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+    d->d_metadata->set_timestamp( ts );
+    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
                                            d->d_current_files->first ) );
   }
 
+  return true;
+}
+
+// ------------------------------------------------------------------
+bool
+video_input_pos
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout )
+{
+  // reset current metadata packet and timestamp
+  d->d_metadata = nullptr;
+  ts = kwiver::vital::timestamp();
+
+  // Check if requested frame exists
+  if (frame_number > static_cast<int>( d->d_img_md_files.size() ) || frame_number <= 0)
+  {
+    return false;
+  }
+
+  // Adjust frame number if this is the first call to seek_frame or next_frame
+  if (d->d_frame_number == 0)
+  {
+    d->d_frame_number = 1;
+  }
+
+  // Calculate distance to new frame
+  kwiver::vital::timestamp::frame_t frame_diff =
+    frame_number - d->d_frame_number;
+  d->d_current_files += frame_diff;
+  d->d_frame_number = frame_number;
+
+  if ( ! d->d_current_files->second.empty() )
+  {
+    // Open next file in the list
+    d->d_metadata = vital::read_pos_file( d->d_current_files->second );
+  }
+
   // Return timestamp
+  ts = this->frame_timestamp();
+
+  // Include the path to the image
+  if ( d->d_metadata )
+  {
+    d->d_metadata->set_timestamp( ts );
+    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
+                                           d->d_current_files->first ) );
+  }
+
+  return true;
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_pos
+::frame_timestamp() const
+{
+  // Check for at end of video
+  if ( this->end_of_video() )
+  {
+    return {};
+  }
+
+  kwiver::vital::timestamp ts;
+
   ts.set_frame( d->d_frame_number );
   if ( d->d_metadata )
   {
@@ -266,12 +393,10 @@ video_input_pos
       // or subtract off first frame time to get time relative to start
       ts.set_time_seconds( gps_sec );
     }
-    d->d_metadata->set_timestamp( ts );
   }
 
-  return true;
+  return ts;
 }
-
 
 // ------------------------------------------------------------------
 kwiver::vital::image_container_sptr
@@ -294,6 +419,32 @@ video_input_pos
   }
 
   return vect;
+}
+
+kwiver::vital::metadata_map_sptr
+video_input_pos
+::metadata_map()
+{
+  if ( !d->d_have_metadata_map )
+  {
+    kwiver::vital::timestamp::frame_t fn = 0;
+    for (const auto& f: d->d_img_md_files)
+    {
+      ++fn;
+      kwiver::vital::timestamp ts;
+      auto md = d->process_metadata(f, fn, ts);
+      if (md)
+      {
+        vital::metadata_vector mdv(1, md);
+        std::pair<vital::timestamp::frame_t, vital::metadata_vector> el(fn, mdv);
+        d->d_metadata_map.insert( el );
+      }
+    }
+
+    d->d_have_metadata_map = true;
+  }
+
+  return std::make_shared<kwiver::vital::simple_metadata_map>(d->d_metadata_map);
 }
 
 } } }     // end namespace

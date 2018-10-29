@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -147,8 +147,9 @@ process_cluster
 {
   if (d->has_name(name_))
   {
-    throw mapping_after_process_exception(name(), key,
-                                          name_, mapped_key);
+    VITAL_THROW( mapping_after_process_exception,
+                 name(), key,
+                 name_, mapped_key);
   }
 
   priv::config_mapping_t const mapping = priv::config_mapping_t(key, mapped_key);
@@ -164,7 +165,8 @@ process_cluster
 {
   if (d->processes.count(name_))
   {
-    throw duplicate_process_name_exception(name_);
+    VITAL_THROW( duplicate_process_name_exception,
+                 name_);
   }
 
   typedef std::set<kwiver::vital::config_block_key_t> key_set_t;
@@ -199,7 +201,8 @@ process_cluster
     {
       kwiver::vital::config_block_value_t const new_value = new_conf->get_value<kwiver::vital::config_block_value_t>(mapped_key);
 
-      throw mapping_to_read_only_value_exception(name(), key, value, name_, mapped_key, new_value);
+      VITAL_THROW( mapping_to_read_only_value_exception,
+                   name(), key, value, name_, mapped_key, new_value);
     }
 
     if (new_conf->has_value(mapped_key))
@@ -237,7 +240,8 @@ process_cluster
 
   if (!proc->input_port_info(mapped_port))
   {
-    throw no_such_port_exception(name_, mapped_port);
+    VITAL_THROW( no_such_port_exception,
+                 name_, mapped_port);
 
     return;
   }
@@ -253,7 +257,8 @@ process_cluster
     if ((process_name == real_name) &&
         (process_port == mapped_port))
     {
-      throw port_reconnect_exception(process_name, mapped_port);
+      VITAL_THROW( port_reconnect_exception,
+                   process_name, mapped_port);
     }
   }
 
@@ -279,7 +284,8 @@ process_cluster
 
   if (!proc->output_port_info(mapped_port))
   {
-    throw no_such_port_exception(name_, mapped_port);
+    VITAL_THROW( no_such_port_exception,
+                 name_, mapped_port);
 
     return;
   }
@@ -291,7 +297,8 @@ process_cluster
 
     if (cluster_port == port)
     {
-      throw port_reconnect_exception(name(), port);
+      VITAL_THROW( port_reconnect_exception,
+                   name(), port);
     }
   }
 
@@ -319,14 +326,16 @@ process_cluster
 
   if (!up_proc->output_port_info(upstream_port))
   {
-    throw no_such_port_exception(upstream_name, upstream_port);
+    VITAL_THROW( no_such_port_exception,
+                 upstream_name, upstream_port);
   }
 
   process_t const& down_proc = d->processes[downstream_name];
 
   if (!down_proc->input_port_info(downstream_port))
   {
-    throw no_such_port_exception(downstream_name, downstream_port);
+    VITAL_THROW( no_such_port_exception,
+                 downstream_name, downstream_port);
   }
 
   name_t const up_real_name = convert_name(name(), upstream_name);
@@ -370,7 +379,7 @@ void
 process_cluster
 ::_step()
 {
-  throw process_exception();
+  VITAL_THROW( process_exception );
 }
 
 
@@ -468,7 +477,8 @@ process_cluster::priv
 {
   if (!has_name(name))
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,
+                 name);
   }
 }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,14 @@ class KWIVER_ALGO_CORE_EXPORT filter_features_magnitude
   : public vital::algorithm_impl<filter_features_magnitude, vital::algo::filter_features>
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "magnitude";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "Filter features using a threshold"
+    " on the magnitude of the detector response function.";
+
   /// Constructor
   filter_features_magnitude();
 

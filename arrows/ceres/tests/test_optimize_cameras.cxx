@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,14 @@ using namespace kwiver::vital;
 
 using kwiver::arrows::ceres::optimize_cameras;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 static constexpr double noisy_center_tolerance = 1e-8;
 static constexpr double noisy_rotation_tolerance = 2e-9;
 static constexpr double noisy_intrinsics_tolerance = 2e-6;
+#elif defined(__clang__)
+static constexpr double noisy_center_tolerance = 1e-8;
+static constexpr double noisy_rotation_tolerance = 1e-9;
+static constexpr double noisy_intrinsics_tolerance = 5e-6;
 #else
 static constexpr double noisy_center_tolerance = 1e-9;
 static constexpr double noisy_rotation_tolerance = 1e-11;

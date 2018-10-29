@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@
 #include "darknet_custom_resize.h"
 
 // kwiver includes
-#include <vital/logger/logger.h>
 #include <vital/util/cpu_timer.h>
+#include <vital/config/config_block_formatter.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -48,7 +48,7 @@
 // Since we need to wrap darknet.h in an extern C
 // We need to include CUDA/CUDNN before darknet does
 // so C++ gets a hold of them first
-// We may want to wrap all the declarations in darknet.h in 
+// We may want to wrap all the declarations in darknet.h in
 // an extern C rather than have to do it here.
 
 #ifdef DARKNET_USE_GPU
@@ -137,9 +137,11 @@ darknet_detector::
 darknet_detector()
   : d( new priv() )
 {
+  attach_logger( "arrows.darknet.darknet_detector" );
+  d->m_logger = logger();
+
   // set darknet global GPU index
   gpu_index = d->m_gpu_index;
-  d->m_logger = logger();
 }
 
 
@@ -254,7 +256,8 @@ check_configuration( vital::config_block_sptr config ) const
   if( net_config.empty() )
   {
     std::stringstream str;
-    config->print( str );
+    kwiver::vital::config_block_formatter fmt( config );
+    fmt.print( str );
     LOG_ERROR( logger(), "Required net config file not specified. "
       "Configuration is as follows:\n" << str.str() );
     success = false;
@@ -268,7 +271,8 @@ check_configuration( vital::config_block_sptr config ) const
   if( class_file.empty() )
   {
     std::stringstream str;
-    config->print( str );
+    kwiver::vital::config_block_formatter fmt( config );
+    fmt.print( str );
     LOG_ERROR( logger(), "Required class name list file not specified, "
       "Configuration is as follows:\n" << str.str() );
     success = false;

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ read_track_descriptor_set
   : m_stream( 0 )
   , m_stream_owned( false )
 {
-  attach_logger( "read_track_descriptor_set" );
+  attach_logger( "algo.read_track_descriptor_set" );
 }
 
 
@@ -86,19 +86,19 @@ read_track_descriptor_set
   // Make sure that the given file path exists and is a file.
   if( ! kwiversys::SystemTools::FileExists( filename ) )
   {
-    throw path_not_exists(filename);
+    VITAL_THROW( path_not_exists, filename);
   }
 
   if( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw path_not_a_file(filename);
+    VITAL_THROW( path_not_a_file, filename);
   }
 
   // try to open the file
   std::istream* file( new std::ifstream( filename ) );
   if( ! file )
   {
-    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    VITAL_THROW( file_not_found_exception, filename, "open failed" );
   }
 
   m_stream = file;

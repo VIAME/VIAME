@@ -35,6 +35,7 @@
 
 #include <vital/config/config_block.h>
 #include <vital/noncopyable.h>
+#include <vital/optional.h>
 
 #include "types.h"
 
@@ -45,7 +46,6 @@
 #endif
 #include <boost/chrono/system_clocks.hpp>
 #include <boost/operators.hpp>
-#include <boost/optional.hpp>
 #ifdef WIN32
 #pragma warning (pop)
 #endif
@@ -276,7 +276,7 @@ public:
    *
    * \returns The next datum available from the edge, or \c boost::none if the timeout was reached.
    */
-  boost::optional< edge_datum_t > try_get_datum( duration_t const& duration );
+  kwiver::vital::optional< edge_datum_t > try_get_datum( duration_t const& duration );
 
   /**
    * \brief Trigger the edge to flush all data and not accept any more data.

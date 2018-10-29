@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -240,7 +240,7 @@ public:
           << demangle( data.type().name() )
           << ") different from type object was created with ("
           << demangle( typeid(TYPE).name() ) << ")";
-      throw metadata_exception( msg.str() );
+      VITAL_THROW( metadata_exception, msg.str() );
     }
   }
 

@@ -36,7 +36,7 @@
 #include <vital/algo/algorithm.h>
 #include <vital/algo/estimate_similarity_transform.h>
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark.h>
 #include <vital/types/landmark_map.h>
@@ -106,11 +106,11 @@ TEST(estimate_similarity_transform, baseline)
 TEST(estimate_similarity_transform, vector_of_cameras)
 {
   size_t N(100);
-  vector<camera_sptr> from_cams, to_cams;
+  vector<camera_perspective_sptr> from_cams, to_cams;
   for(size_t i=0; i<N; ++i)
   {
-    from_cams.push_back(camera_sptr(new simple_camera()));
-    to_cams.push_back(camera_sptr(new simple_camera()));
+    from_cams.push_back(camera_perspective_sptr(new simple_camera_perspective()));
+    to_cams.push_back(camera_perspective_sptr(new simple_camera_perspective()));
   }
 
   algo::estimate_similarity_transform_sptr est(new dummy_est(N));
@@ -140,8 +140,8 @@ TEST(estimate_similarity_transform, sync_camera_map)
   camera_map::map_camera_t from_map, to_map;
   for(frame_id_t i=0; i<static_cast<frame_id_t>(N); ++i)
   {
-    from_map[i] = camera_sptr(new simple_camera());
-    to_map[i] = camera_sptr(new simple_camera());
+    from_map[i] = camera_sptr(new simple_camera_perspective());
+    to_map[i] = camera_sptr(new simple_camera_perspective());
   }
   camera_map_sptr from_cmap(new simple_camera_map(from_map)),
                   to_cmap(new simple_camera_map(to_map));
@@ -161,11 +161,11 @@ TEST(estimate_similarity_transform, disjoint_camera_maps)
   camera_map::map_camera_t from_map, to_map;
   for(frame_id_t i=i_b; i<i_e; ++i)
   {
-    from_map[i] = camera_sptr(new simple_camera());
+    from_map[i] = camera_sptr(new simple_camera_perspective());
   }
   for(frame_id_t j=j_b; j<j_e; ++j)
   {
-    to_map[j] = camera_sptr(new simple_camera());
+    to_map[j] = camera_sptr(new simple_camera_perspective());
   }
   camera_map_sptr from_cmap(new simple_camera_map(from_map)),
                   to_cmap(new simple_camera_map(to_map));
@@ -177,20 +177,20 @@ TEST(estimate_similarity_transform, disjoint_camera_maps)
   // disjoint overlap
   from_map = camera_map::map_camera_t();
   to_map = camera_map::map_camera_t();
-  from_map[0] = camera_sptr(new simple_camera());
-  from_map[1] = camera_sptr(new simple_camera());
-  from_map[3] = camera_sptr(new simple_camera());
-  from_map[4] = camera_sptr(new simple_camera());
-  from_map[5] = camera_sptr(new simple_camera());
-  from_map[9] = camera_sptr(new simple_camera());
-  to_map  [1] = camera_sptr(new simple_camera());
-  to_map  [2] = camera_sptr(new simple_camera());
-  to_map  [3] = camera_sptr(new simple_camera());
-  to_map  [5] = camera_sptr(new simple_camera());
-  to_map  [6] = camera_sptr(new simple_camera());
-  to_map  [9] = camera_sptr(new simple_camera());
-  to_map [11] = camera_sptr(new simple_camera());
-  to_map [94] = camera_sptr(new simple_camera());
+  from_map[0] = camera_sptr(new simple_camera_perspective());
+  from_map[1] = camera_sptr(new simple_camera_perspective());
+  from_map[3] = camera_sptr(new simple_camera_perspective());
+  from_map[4] = camera_sptr(new simple_camera_perspective());
+  from_map[5] = camera_sptr(new simple_camera_perspective());
+  from_map[9] = camera_sptr(new simple_camera_perspective());
+  to_map  [1] = camera_sptr(new simple_camera_perspective());
+  to_map  [2] = camera_sptr(new simple_camera_perspective());
+  to_map  [3] = camera_sptr(new simple_camera_perspective());
+  to_map  [5] = camera_sptr(new simple_camera_perspective());
+  to_map  [6] = camera_sptr(new simple_camera_perspective());
+  to_map  [9] = camera_sptr(new simple_camera_perspective());
+  to_map [11] = camera_sptr(new simple_camera_perspective());
+  to_map [94] = camera_sptr(new simple_camera_perspective());
   camera_map_sptr from_cmap2(new simple_camera_map(from_map)),
                   to_cmap2(new simple_camera_map(to_map));
 

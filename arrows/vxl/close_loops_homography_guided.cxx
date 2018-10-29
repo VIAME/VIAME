@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,8 +125,7 @@ public:
   : enabled_( true ),
     max_checkpoint_frames_( 10000 ),
     checkpoint_percent_overlap_( 0.70 ),
-    homography_filename_( "" ),
-    m_logger( vital::get_logger( "arrows.vxl.close_loops_homography_guided" ))
+    homography_filename_( "" )
   {
   }
 
@@ -154,15 +153,15 @@ public:
 
   /// The feature matching algorithm to use
   vital::algo::match_features_sptr matcher_;
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
+// ----------------------------------------------------------------------------
 close_loops_homography_guided
 ::close_loops_homography_guided()
 : d_( new priv() )
 {
+  attach_logger( "arrows.vxl.close_loops_homography_guided" );
 }
 
 
@@ -172,6 +171,7 @@ close_loops_homography_guided
 }
 
 
+// ----------------------------------------------------------------------------
 vital::config_block_sptr
 close_loops_homography_guided
 ::get_configuration() const
@@ -353,7 +353,7 @@ close_loops_homography_guided
     if( mset->size() > 0 ) // If matches are good
     {
       // Logging
-      LOG_INFO(d_->m_logger, "Stitching frames " << prior_frame << " and " << frame_number);
+      LOG_INFO(logger(), "Stitching frames " << prior_frame << " and " << frame_number);
 
       // Get all tracks on the past frame
       std::vector< track_sptr > prior_trks = input->active_tracks( prior_frame );

@@ -40,6 +40,7 @@
 
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/core/eigen.hpp>
+#include <arrows/ocv/camera_intrinsics.h>
 
 using namespace kwiver::vital;
 
@@ -58,12 +59,14 @@ static void test_distortion(const Eigen::VectorXd& d)
 
   cv::Mat cam_mat;
   cv::eigen2cv(K.as_matrix(), cam_mat);
-  int rows = d.rows() < 4 ? 4 : d.rows();
-  cv::Mat dist = cv::Mat::zeros(1, rows, CV_64F);
-  for(unsigned int i=0; i<d.rows(); ++i)
-  {
-    dist.at<double>(i) = d[i];
-  }
+
+  cv::Mat d_cvmat;
+  cv::eigen2cv(d, d_cvmat);
+
+  std::vector<double> cv_dist = kwiver::arrows::ocv::dist_coeffs_to_ocv(d_cvmat);
+
+  cv::Mat dist = cv::Mat(cv_dist);
+
   cv::Mat tvec = cv::Mat::zeros(1,3,CV_64F);
   cv::Mat rvec = tvec;
 

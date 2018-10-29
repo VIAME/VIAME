@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include <vital/util/token_type_symtab.h>
 #include <vital/util/token_type_sysenv.h>
 #include <vital/util/token_type_env.h>
+#include <vital/util/string.h>
 #include <vital/config/token_type_config.h>
 
 #include <vital/logger/logger.h>
@@ -60,33 +61,6 @@ namespace kwiver {
 namespace vital {
 
 namespace {
-
-// trim from start
-static inline std::string&
-ltrim( std::string& s )
-{
-  s.erase( s.begin(), std::find_if( s.begin(), s.end(),
-                                    std::not1( std::ptr_fun< int, int > ( std::isspace ) ) ) );
-  return s;
-}
-
-
-// trim from end
-static inline std::string&
-rtrim( std::string& s )
-{
-  s.erase( std::find_if( s.rbegin(), s.rend(),
-                         std::not1( std::ptr_fun< int, int > ( std::isspace ) ) ).base(), s.end() );
-  return s;
-}
-
-
-// trim from both ends
-static inline std::string&
-trim( std::string& s )
-{
-  return ltrim( rtrim( s ) );
-}
 
 // ------------------------------------------------------------------
 typedef kwiversys::SystemTools ST;
@@ -158,7 +132,7 @@ public:
    */
   void process_file( config_path_t const&  file_path)
   {
-    std::shared_ptr< std::string > file_path_sptr( new std::string( file_path ) );
+    auto file_path_sptr( std::make_shared< std::string >( ST::GetRealPath(file_path) ) );
     m_current_file = file_path;
 
     // Reset token parser since we are starting a new file
@@ -169,15 +143,16 @@ public:
     std::ifstream in_stream( file_path.c_str() );
     if ( ! in_stream )
     {
-      throw config_file_not_found_exception( file_path, std::strerror( errno ) );
+      VITAL_THROW( config_file_not_found_exception,
+                   file_path, std::strerror( errno ) );
     }
 
     // update file count
     ++m_file_count;
-    m_include_stack.push_back( file_path );
+    m_include_stack.push_back( file_path_sptr );
 
     // Get directory part of the input file
-    config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( file_path ) );
+    config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( *file_path_sptr ) );
     // if file_path has no directory prefix then use "." for the current directory
     if ( "" == config_file_dir )
     {
@@ -222,7 +197,8 @@ public:
 
           if ( m_parse_error )
           {
-            throw config_file_not_parsed_exception( file_path, "Errors in config file" );
+            VITAL_THROW( config_file_not_parsed_exception,
+                         file_path, "Errors in config file" );
           }
         } // end of main file EOF handling
         return;
@@ -246,7 +222,8 @@ public:
           sstr << "file included from " << file_path << ":" << m_line_number
                << " could not be found in search path.";
 
-          throw config_file_not_found_exception( exp_filename, sstr.str() );
+          VITAL_THROW( config_file_not_found_exception,
+                       exp_filename, sstr.str() );
         }
 
         flush_line(); // force read of new line
@@ -261,7 +238,8 @@ public:
           sstr << "file included from " << file_path << ":" << m_line_number
                << " could not be found in search path.";
 
-          throw config_file_not_found_exception( exp_filename, sstr.str() );
+          VITAL_THROW( config_file_not_found_exception,
+                       exp_filename, sstr.str() );
         }
 
         if ( kwiversys::SystemTools::FileIsDirectory( resolv_filename ) )
@@ -270,7 +248,8 @@ public:
           sstr << "file included from " << file_path << ":" << m_line_number
                << " is not a regular file!";
 
-          throw config_file_not_found_exception( resolv_filename, sstr.str() );
+          VITAL_THROW( config_file_not_found_exception,
+                       resolv_filename, sstr.str() );
         }
 
         process_file( resolv_filename ); // process included file
@@ -331,7 +310,8 @@ public:
           reason << "\"endblock\" found without matching \"block\" at "
                  << file_path << ":" << m_line_number;
 
-          throw config_file_not_parsed_exception( file_path, reason.str() );
+          VITAL_THROW( config_file_not_parsed_exception,
+                       file_path, reason.str() );
         }
 
         // Restore previous block context
@@ -487,7 +467,7 @@ public:
       ++ m_line_number; // count line number
       m_last_line = line; // save for error reporting
 
-      trim( line ); // trim off spaces
+      string_trim( line ); // trim off spaces
 
       if ( line.size() == 0 )
       {
@@ -500,7 +480,7 @@ public:
       if ( idx != std::string::npos )
       {
         line.erase( line.find_first_of( "#" ) );
-        trim( line );
+        string_trim( line );
 
         // We may have made a blank line
         if ( line.size() == 0 )
@@ -555,14 +535,14 @@ public:
     {
       token.type = token_t::TK_LOCAL_ASSIGN;
       token.value = m_token_line.substr( 2 ); // get rest of line
-      trim( token.value );
+      string_trim( token.value );
       m_token_line.clear();
     }
     else if ( m_token_line[0] == '=' )
     {
       token.type = token_t::TK_ASSIGN;
       token.value = m_token_line.substr( 1 ); // get rest of line
-      trim( token.value );
+      string_trim( token.value );
       m_token_line.clear();
     }
     else if ( re_flag.find( m_token_line ) )
@@ -571,7 +551,7 @@ public:
       token.value = re_flag.match( 0 );
 
       m_token_line = m_token_line.substr( re_flag.end(0) ); // remove token from input
-      trim( m_token_line );
+      string_trim( m_token_line );
     }
     else if ( re_word.find( m_token_line ) )
     {
@@ -579,7 +559,7 @@ public:
       token.value = re_word.match( 0 );
 
       m_token_line = m_token_line.substr( re_word.end(0) ); // remove token from input
-      trim( m_token_line );
+      string_trim( m_token_line );
     }
     else
     {
@@ -653,23 +633,20 @@ public:
     // File not found in regular path, search backwards in current
     // include stack. First we have to reverse the include stack and
     // remove duplicate paths.
-    std::set< std::string > dir_set;
     config_path_list_t include_paths;
     const auto eit = m_include_stack.rend();
     for ( auto it = m_include_stack.rbegin(); it != eit; ++it )
     {
-      config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( *it ) );
+      config_path_t config_file_dir( kwiversys::SystemTools::GetFilenamePath( **it ) );
       if ( "" == config_file_dir )
       {
         config_file_dir = ".";
       }
 
-      if ( 0 == dir_set.count( config_file_dir ) )
-      {
-        dir_set.insert( config_file_dir );
-        include_paths.push_back( config_file_dir );
-      }
+      include_paths.push_back( config_file_dir );
     } // end for
+
+    erase_duplicates( include_paths );
 
     return kwiversys::SystemTools::FindFile( file_name, include_paths, true );
   }
@@ -692,7 +669,7 @@ public:
 
   // Include file stack. A file is pushed when it is opened. Popped
   // when closed.
-  std::vector< std::string > m_include_stack;
+  std::vector< std::shared_ptr<std::string> > m_include_stack;
 
   // current line number of input file
   int m_line_number;

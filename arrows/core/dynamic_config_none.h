@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,15 @@ class KWIVER_ALGO_CORE_EXPORT dynamic_config_none
   : public vital::algorithm_impl<dynamic_config_none, vital::algo::dynamic_configuration>
 {
 public:
-  /// default constructor
+  /// Name of the algorithm
+  static constexpr char const* name = "none";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "Null implementation of dynamic_configuration.\n\n"
+    "This algorithm always returns an empty configuration block.";
+
+  /// Default constructor
   dynamic_config_none();
 
   virtual void set_configuration( kwiver::vital::config_block_sptr config );

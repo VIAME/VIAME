@@ -107,6 +107,9 @@ convert_metadata
                            kwiver::vital::vital_metadata_tag vital_tag,
                            kwiver::vital::any const& data )
 {
+  LOG_TRACE( m_logger, "Converting 0601 tag to Vital: "
+             << m_metadata_traits.tag_to_symbol( vital_tag ) );
+
   // If the input data is already in the correct type
   if ( metadata::typeid_for_tag( vital_tag ) == data.type() )
   {
@@ -183,6 +186,10 @@ convert_metadata
 
     // Convert a single tag
     const klv_0601_tag tag( klv_0601_get_tag( itr->first ) ); // get tag code from key
+
+    LOG_TRACE( logger, "Processing 0601 tag: "
+               << klv_0601_tag_to_string( tag ) );
+
 
     // Extract relevant data from associated data bytes.
     kwiver::vital::any data = klv_0601_value( tag,

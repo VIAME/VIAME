@@ -40,7 +40,7 @@
 #include <vital/vital_config.h>
 #include <arrows/vxl/kwiver_algo_vxl_export.h>
 
-#include <vital/types/camera.h>
+#include <vital/types/camera_perspective.h>
 
 #include <vpgl/vpgl_perspective_camera.h>
 
@@ -52,19 +52,19 @@ namespace vxl {
 /// Construct a camera_sptr from a vpgl_perspective_camera
 template <typename T>
 KWIVER_ALGO_VXL_EXPORT
-vital::camera_sptr vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam);
+vital::camera_perspective_sptr vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam);
 
 
 /// Convert a vpgl_perspective_camera to a vital::camera_
 template <typename T>
 KWIVER_ALGO_VXL_EXPORT
 void vpgl_camera_to_vital(const vpgl_perspective_camera<T>& vcam,
-                          vital::simple_camera& mcam);
+                          vital::simple_camera_perspective& mcam);
 
 /// Convert a vital::camera_ to a vpgl_perspective_camera
 template <typename T>
 KWIVER_ALGO_VXL_EXPORT
-void vital_to_vpgl_camera(const vital::camera& mcam,
+void vital_to_vpgl_camera(const vital::camera_perspective& mcam,
                           vpgl_perspective_camera<T>& vcam);
 
 

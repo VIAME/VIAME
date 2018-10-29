@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ video_input_split
 ::video_input_split()
   : d( new video_input_split::priv )
 {
-  attach_logger( "video_input_split" );
+  attach_logger( "arrows.core.video_input_split" );
 }
 
 
@@ -160,6 +160,9 @@ video_input_split
   d->d_has_timeout = ms_caps.capability( vi::HAS_TIMEOUT ) &&
                      is_caps.capability( vi::HAS_TIMEOUT );
   set_capability( vi::HAS_TIMEOUT, d->d_has_timeout );
+  set_capability( vi::IS_SEEKABLE,
+                  is_caps.capability( vi::IS_SEEKABLE) &&
+                  ms_caps.capability( vi::IS_SEEKABLE) );
 }
 
 
@@ -198,6 +201,30 @@ video_input_split
          (d->d_metadata_source && d->d_metadata_source->good());
 }
 
+// ------------------------------------------------------------------
+bool
+video_input_split
+::seekable() const
+{
+  return (d->d_image_source && d->d_image_source->seekable()) &&
+         (d->d_metadata_source && d->d_metadata_source->seekable());
+}
+
+// ------------------------------------------------------------------
+size_t
+video_input_split
+::num_frames() const
+{
+  if (d->d_image_source && d->d_metadata_source)
+  {
+    return std::min(d->d_image_source->num_frames(),
+                    d->d_metadata_source->num_frames());
+  }
+  else
+  {
+    return 0;
+  }
+}
 
 // ------------------------------------------------------------------
 bool
@@ -229,6 +256,37 @@ video_input_split
   }
 
   // Both timestamps should be the same
+  ts = merge_timestamps( image_ts, metadata_ts );
+
+  return true;
+} // video_input_split::next_frame
+
+// ------------------------------------------------------------------
+bool
+video_input_split
+::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
+              kwiver::vital::timestamp::frame_t frame_number,
+              uint32_t                  timeout )
+{
+  // if timeout is not supported by both sources
+  // then do not pass a time out value to either
+  if ( ! d->d_has_timeout )
+  {
+    timeout = 0;
+  }
+
+  kwiver::vital::timestamp image_ts;
+  bool image_stat = d->d_image_source->seek_frame( image_ts, frame_number, timeout );
+
+  kwiver::vital::timestamp metadata_ts;
+  bool meta_stat = d->d_metadata_source->seek_frame( metadata_ts, frame_number, timeout );
+
+  if( !image_stat || !meta_stat )
+  {
+    return false;
+  }
+
+  // Both timestamps should be the same
   ts = metadata_ts;
   if (image_ts != metadata_ts )
   {
@@ -251,7 +309,24 @@ video_input_split
   }
 
   return true;
-} // video_input_split::next_frame
+} // video_input_split::seek_frame
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_split
+::frame_timestamp() const
+{
+  // Check for at end of data
+  if ( this->end_of_video() )
+  {
+    return {};
+  }
+
+  auto const& image_ts = d->d_image_source->frame_timestamp();
+  auto const& metadata_ts = d->d_metadata_source->frame_timestamp();
+
+  return merge_timestamps( image_ts, metadata_ts );
+}
 
 
 // ------------------------------------------------------------------
@@ -268,7 +343,79 @@ kwiver::vital::metadata_vector
 video_input_split
 ::frame_metadata()
 {
-  return d->d_metadata_source->frame_metadata();
+  auto md_vec1 = d->d_image_source->frame_metadata();
+  auto md_vec2 = d->d_metadata_source->frame_metadata();
+  md_vec1.insert( md_vec1.end(), md_vec2.begin(), md_vec2.end() );
+  return md_vec1;
+}
+
+kwiver::vital::metadata_map_sptr
+video_input_split
+::metadata_map()
+{
+  vital::metadata_map::map_metadata_t output_map;
+
+  auto md_map1 = d->d_image_source->metadata_map()->metadata();
+  auto md_map2 = d->d_metadata_source->metadata_map()->metadata();
+  std::set<kwiver::vital::frame_id_t> merged_keys;
+  for ( auto& md : md_map1 )
+  {
+    if ( md_map2.find(md.first) != md_map2.end() )
+    {
+      md.second.insert( md.second.end(),
+                        md_map2[md.first].begin(),
+                        md_map2[md.first].end() );
+      merged_keys.insert(md.first);
+    }
+  }
+  for (auto md : md_map2 )
+  {
+    if ( md_map1.find(md.first) != md_map1.end() &&
+         merged_keys.find(md.first) == merged_keys.end() )
+    {
+      md_map1[md.first].insert( md_map1[md.first].end(),
+                                md.second.begin(),
+                                md.second.end() );
+    }
+  }
+
+  return std::make_shared<kwiver::vital::simple_metadata_map>(md_map1);
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::timestamp
+video_input_split
+::merge_timestamps(
+    kwiver::vital::timestamp const& image_ts,
+    kwiver::vital::timestamp const& metadata_ts ) const
+{
+  auto ts = metadata_ts;
+  if ( image_ts != metadata_ts )
+  {
+    if ( image_ts.get_frame() == metadata_ts.get_frame() )
+    {
+      if ( image_ts.has_valid_time() && metadata_ts.has_valid_time() )
+      {
+        LOG_WARN( logger(), "Timestamps from image and metadata sources have different time" );
+      }
+      else if ( image_ts.has_valid_time() )
+      {
+        ts.set_time_usec( image_ts.get_time_usec() );
+      }
+      else if ( metadata_ts.has_valid_time() )
+      {
+        ts.set_time_usec( metadata_ts.get_time_usec() );
+      }
+    }
+    else
+    {
+      // throw something?
+      LOG_WARN( logger(), "Timestamps from image and metadata sources are out of sync" );
+    }
+  }
+
+  return ts;
 }
 
 } } }     // end namespace

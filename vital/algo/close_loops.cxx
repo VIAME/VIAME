@@ -38,7 +38,7 @@ namespace algo {
 close_loops
 ::close_loops()
 {
-  attach_logger( "close_loops" );
+  attach_logger( "algo.close_loops" );
 }
 
 } } }

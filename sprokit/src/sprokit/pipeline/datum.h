@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -185,6 +185,7 @@ class SPROKIT_PIPELINE_EXPORT datum
     kwiver::vital::any const m_datum;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class datum_exception datum.h <sprokit/pipeline/datum.h>
  *
@@ -206,6 +207,7 @@ class SPROKIT_PIPELINE_EXPORT datum_exception
     virtual ~datum_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class bad_datum_cast_exception datum.h <sprokit/pipeline/datum.h>
  *
@@ -244,6 +246,7 @@ class SPROKIT_PIPELINE_EXPORT bad_datum_cast_exception
     std::string const m_reason;
 };
 
+// ----------------------------------------------------------------------------
 template <typename T>
 datum_t
 datum::new_datum(T const& dat)
@@ -251,6 +254,7 @@ datum::new_datum(T const& dat)
   return new_datum(kwiver::vital::any(dat));
 }
 
+// ----------------------------------------------------------------------------
 template <typename T>
 T
 datum::get_datum() const
@@ -264,10 +268,12 @@ datum::get_datum() const
     std::string const req_type_name = typeid(T).name();
     std::string const type_name = m_datum.type().name();
 
-    throw bad_datum_cast_exception(req_type_name, type_name, m_type, m_error, e.what());
+    VITAL_THROW( bad_datum_cast_exception,
+                 req_type_name, type_name, m_type, m_error, e.what());
   }
 }
 
+// ----------------------------------------------------------------------------
 template <>
 inline
 kwiver::vital::any

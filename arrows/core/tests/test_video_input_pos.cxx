@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,20 @@
 #include <test_gtest.h>
 
 #include <arrows/core/video_input_pos.h>
+#include <vital/io/metadata_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <memory>
 #include <string>
+#include <fstream>
 #include <iostream>
 
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
+static int num_expected_frames = 50;
+static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
 int
@@ -83,7 +87,7 @@ TEST_F(video_input_pos, read_list)
   vip.check_configuration( config );
   vip.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vip.open( list_file );
 
   kwiver::vital::timestamp ts;
@@ -101,8 +105,12 @@ TEST_F(video_input_pos, read_list)
     ++num_frames;
     EXPECT_EQ( num_frames, ts.get_frame() )
       << "Frame numbers should be sequential";
+
+    EXPECT_EQ( ts.get_time_usec(), vip.frame_timestamp().get_time_usec() );
+    EXPECT_EQ( ts.get_frame(), vip.frame_timestamp().get_frame() );
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
+  EXPECT_EQ( num_expected_frames, vip.num_frames() );
 }
 
 // ----------------------------------------------------------------------------
@@ -117,7 +125,7 @@ TEST_F(video_input_pos, is_good)
   EXPECT_TRUE( vip.check_configuration( config ) );
   vip.set_configuration( config );
 
-  kwiver::vital::path_t list_file = data_dir + "/frame_list.txt";
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   kwiver::vital::timestamp ts;
 
   EXPECT_FALSE( vip.good() )
@@ -148,5 +156,95 @@ TEST_F(video_input_pos, is_good)
     EXPECT_TRUE( vip.good() )
       << "Video state on frame " << ts.get_frame();
   }
-  EXPECT_EQ( 5, num_frames );
+  EXPECT_EQ( num_expected_frames, num_frames );
+}
+
+TEST_F(video_input_pos, seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "metadata_directory", data_dir + "/pos" );
+
+  kwiver::arrows::core::video_input_pos vip;
+
+  EXPECT_TRUE( vip.check_configuration( config ) );
+  vip.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vip.open( list_file );
+
+  // Video should be seekable
+  EXPECT_TRUE( vip.seekable() );
+
+  // Test various valid seeks
+  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
+    {3, 23, 46, 34, 50, 1};
+  for (auto requested_frame : valid_seeks)
+  {
+    EXPECT_TRUE( vip.seek_frame( ts, requested_frame) );
+    EXPECT_EQ( requested_frame, ts.get_frame() );
+  }
+
+  // Test various invalid seeks past end of video
+  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
+    {-3, -1, 51, 55};
+  for (auto requested_frame : in_valid_seeks)
+  {
+    EXPECT_FALSE( vip.seek_frame( ts, requested_frame) );
+    EXPECT_NE( requested_frame, ts.get_frame() );
+  }
+
+  vip.close();
+}
+
+TEST_F(video_input_pos, metadata_map)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+  config->set_value( "metadata_directory", data_dir + "/pos" );
+
+  kwiver::arrows::core::video_input_pos vip;
+
+  EXPECT_TRUE( vip.check_configuration( config ) );
+  vip.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+  kwiver::vital::timestamp ts;
+
+  // Open the video
+  vip.open( list_file );
+
+  // Get metadata map
+  auto md_map = vip.metadata_map()->metadata();
+
+  EXPECT_EQ( md_map.size(), num_expected_frames )
+    << "There should be metadata for every frame";
+
+  // Open the list file directly and construct metadata file names and compare
+  std::ifstream list_file_stream( list_file );
+  int frame_number = 1;
+  std::string file_name;
+  while ( std::getline( list_file_stream, file_name ) )
+  {
+    file_name.replace(0, 6, "pos");
+    file_name.replace(file_name.length() - 3, 3, "pos");
+
+    auto md_test = kwiver::vital::read_pos_file( data_dir + "/" + file_name );
+    auto md = md_map[frame_number][0];
+
+    // Loop over metadata items and compare
+    for (auto iter = md_test->begin(); iter != md_test->end(); ++iter)
+    {
+      EXPECT_TRUE( md->has( iter->first ))
+        << "Metadata should have item " << iter->second->name();
+    }
+
+    frame_number++;
+  }
+  list_file_stream.close();
+
+  vip.close();
 }

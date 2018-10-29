@@ -57,9 +57,6 @@ public:
   /// Destructor
   virtual ~optimize_cameras();
 
-  /// Copy Constructor
-  optimize_cameras(const optimize_cameras& other);
-
   /// Get this algorithm's \link vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
   /// Set this algorithm's properties via a config block
@@ -105,7 +102,7 @@ public:
    *                          optimization.
    */
   virtual void
-  optimize(vital::camera_sptr & camera,
+  optimize(vital::camera_perspective_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
            kwiver::vital::metadata_vector metadata

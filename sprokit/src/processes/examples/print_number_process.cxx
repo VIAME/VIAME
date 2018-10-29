@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,7 +109,8 @@ print_number_process
     static std::string const reason = "The path given was empty";
     kwiver::vital::config_block_value_t const value = d->path.string<kwiver::vital::config_block_value_t>();
 
-    throw invalid_configuration_value_exception(name(), priv::config_path, value, reason);
+    VITAL_THROW( invalid_configuration_value_exception,
+                 name(), priv::config_path, value, reason);
   }
 
   d->fout.open(d->path);
@@ -119,7 +120,8 @@ print_number_process
     std::string const file_path = d->path.string<std::string>();
     std::string const reason = "Failed to open the path: " + file_path;
 
-    throw invalid_configuration_exception(name(), reason);
+    VITAL_THROW( invalid_configuration_exception,
+                 name(), reason);
   }
 
   process::_configure();

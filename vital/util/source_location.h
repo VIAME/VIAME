@@ -105,7 +105,8 @@ public:
    *
    * Sometimes it is necessary to create an object of this type that
    * is not yet initialized or in cases where the location can not be
-   * determined. This method determines if the object contains a valid location.
+   * determined. This method determines if the object contains a valid
+   * location.
    *
    * @return \b true if location is valid.
    */

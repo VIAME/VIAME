@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,21 +56,21 @@ basename_from_metadata(metadata_sptr md,
   typedef kwiversys::SystemTools  ST;
 
   std::string basename = "frame";
-  if( md && md->has( kwiver::vital::VITAL_META_IMAGE_FILENAME ) )
+  if( md && md->has( kwiver::vital::VITAL_META_IMAGE_URI ) )
   {
-    std::string img_name = md->find( VITAL_META_IMAGE_FILENAME ).as_string();
+    std::string img_name = md->find( VITAL_META_IMAGE_URI ).as_string();
     basename = ST::GetFilenameWithoutLastExtension( img_name );
   }
   else
   {
-    if ( md && md->has( kwiver::vital::VITAL_META_VIDEO_FILENAME ) )
+    if ( md && md->has( kwiver::vital::VITAL_META_VIDEO_URI ) )
     {
-      std::string vid_name = md->find( VITAL_META_VIDEO_FILENAME ).as_string();
+      std::string vid_name = md->find( VITAL_META_VIDEO_URI ).as_string();
       basename = ST::GetFilenameWithoutLastExtension( vid_name );
     }
     char frame_str[6];
     std::snprintf(frame_str, 6, "%05d", static_cast<int>(frame));
-    basename += std::string(frame_str);
+    basename += "-" + std::string(frame_str);
   }
   return basename;
 }
@@ -83,20 +83,21 @@ read_pos_file( path_t const& file_path )
   // Check that file exists
   if ( ! kwiversys::SystemTools::FileExists( file_path ) )
   {
-    throw file_not_found_exception( file_path, "File does not exist." );
+    VITAL_THROW( file_not_found_exception,
+                 file_path, "File does not exist." );
   }
   else if (  kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw file_not_found_exception( file_path,
-          "Path given doesn't point to a regular file!" );
+    VITAL_THROW( file_not_found_exception,
+                 file_path, "Path given doesn't point to a regular file!" );
   }
 
   // Reading in input file data
   std::ifstream in_stream( file_path.c_str(), std::fstream::in );
   if ( ! in_stream )
   {
-    throw file_not_read_exception( file_path, "Could not open file at given "
-                                              "path." );
+    VITAL_THROW( file_not_read_exception, file_path,
+                 "Could not open file at given path." );
   }
 
   // Read the file
@@ -170,8 +171,8 @@ write_pos_file( metadata const& md,
   // If the given path is a directory, we obviously can't write to it.
   if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw file_write_exception( file_path,
-          "Path given is a directory, can not write file." );
+    VITAL_THROW( file_write_exception, file_path,
+                 "Path given is a directory, can not write file." );
   }
 
   // Check that the directory of the given filepath exists, creating necessary
@@ -182,8 +183,8 @@ write_pos_file( metadata const& md,
   {
     if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
-      throw file_write_exception( parent_dir,
-           "Attempted directory creation, but no directory created! No idea what happened here..." );
+      VITAL_THROW( file_write_exception, parent_dir,
+                   "Attempted directory creation, but no directory created! No idea what happened here..." );
     }
   }
 

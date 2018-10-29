@@ -13,7 +13,6 @@
 
 #include <shapefil.h>
 #include <geographic/geo_coords.h>
-#include <vul/vul_reg_exp.h>
 
 
 #include <vital/logger/logger.h>

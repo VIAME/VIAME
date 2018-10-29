@@ -127,7 +127,8 @@ void vital_camera_map_get_map( vital_camera_map_t *cam_map,
     for( vital::camera_map::map_camera_t::value_type const& p : map_cams )
     {
       (*frame_numbers)[i] = p.first;
-      vital_c::CAMERA_SPTR_CACHE.store( p.second );
+      auto cam_ptr = std::dynamic_pointer_cast< vital::camera_perspective >( p.second );
+      vital_c::CAMERA_SPTR_CACHE.store( cam_ptr );
       (*cameras)[i] = reinterpret_cast< vital_camera_t* >( p.second.get() );
       ++i;
     }

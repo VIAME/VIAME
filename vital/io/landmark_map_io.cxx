@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,14 +57,14 @@ write_ply_file( landmark_map_sptr const&  landmarks,
   // If the landmark map is empty, throw
   if ( ! landmarks || ( landmarks->size() == 0 ) )
   {
-    throw file_write_exception( file_path,
+    VITAL_THROW( file_write_exception, file_path,
          "No landmarks in the given landmark map!" );
   }
 
   // If the given path is a directory, we obviously can't write to it.
   if ( kwiversys::SystemTools::FileIsDirectory( file_path ) )
   {
-    throw file_write_exception( file_path,
+    VITAL_THROW( file_write_exception, file_path,
          "Path given is a directory, can not write file." );
   }
 
@@ -76,7 +76,7 @@ write_ply_file( landmark_map_sptr const&  landmarks,
   {
     if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
-      throw file_write_exception( parent_dir,
+      VITAL_THROW( file_write_exception, parent_dir,
             "Attempted directory creation, but no directory created! No idea what happened here..." );
     }
   }
@@ -153,7 +153,7 @@ read_ply_file( path_t const& file_path )
 {
   if ( ! kwiversys::SystemTools::FileExists( file_path ) )
   {
-    throw file_not_found_exception( file_path, "Cannot find file." );
+    VITAL_THROW( file_not_found_exception, file_path, "Cannot find file." );
   }
 
   landmark_map::map_landmark_t landmarks;
@@ -163,7 +163,7 @@ read_ply_file( path_t const& file_path )
 
   if ( ! ifile )
   {
-    throw file_not_read_exception( file_path, "Cannot read file." );
+    VITAL_THROW( file_not_read_exception, file_path, "Cannot read file." );
   }
 
   // mapping between PLY vertex property names and our enum

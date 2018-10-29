@@ -49,18 +49,21 @@ namespace ocv {
 descriptor_set_sptr
 extract_descriptors
 ::extract(image_container_sptr image_data,
-          feature_set_sptr features,
+          feature_set_sptr &features,
           image_container_sptr /* image_mask */) const
 {
   if( !image_data || !features )
   {
     return descriptor_set_sptr();
   }
-  cv::Mat img = image_container_to_ocv_matrix(*image_data, ocv::image_container::BGR);
+  cv::Mat img = image_container_to_ocv_matrix(*image_data, ocv::image_container::BGR_COLOR);
   std::vector<cv::KeyPoint> kpts = features_to_ocv_keypoints(*features);
 
   cv::Mat desc;
   extractor->compute( img, kpts, desc );
+
+  //keypoint order may have changed.  We must output keypoints.
+  features = std::make_shared<feature_set>(kpts);
 
   return descriptor_set_sptr(new ocv::descriptor_set(desc));
 }

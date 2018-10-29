@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
  */
 #include "filter_features_scale.h"
 
-#include <vital/logger/logger.h>
-
 #include <algorithm>
 
 using namespace kwiver::vital;
@@ -54,19 +52,21 @@ struct feature_at_index_is_greater
   }
 };
 
-/// Private implementation class
+
+// Private implementation class
 class filter_features_scale::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
     : top_fraction(0.2),
       min_features(100),
-      max_features(1000),
-      m_logger( vital::get_logger( "arrows.core.filter_features_scale" ))
+      max_features(1000)
   {
   }
 
+
+// ----------------------------------------------------------------------------
   feature_set_sptr
   filter(feature_set_sptr feat, std::vector<unsigned int> &ind) const
   {
@@ -126,22 +126,26 @@ public:
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 filter_features_scale
 ::filter_features_scale()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.filter_features_scale" );
+  d_->m_logger = logger();
 }
 
 
-/// Destructor
+// Destructor
 filter_features_scale
 ::~filter_features_scale()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
   vital::config_block_sptr
 filter_features_scale
 ::get_configuration() const
@@ -163,7 +167,8 @@ filter_features_scale
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 filter_features_scale
 ::set_configuration(vital::config_block_sptr config)
@@ -174,7 +179,7 @@ filter_features_scale
 }
 
 
-/// Check that the algorithm's configuration vital::config_block is valid
+// Check that the algorithm's configuration vital::config_block is valid
 bool
 filter_features_scale
 ::check_configuration(vital::config_block_sptr config) const
@@ -182,7 +187,7 @@ filter_features_scale
   double top_fraction = config->get_value<double>("top_fraction", d_->top_fraction);
   if( top_fraction <= 0.0 || top_fraction > 1.0 )
   {
-    LOG_ERROR( d_->m_logger,
+    LOG_ERROR( logger(),
              "top_fraction parameter is " << top_fraction << ", needs to be in (0.0, 1.0].");
     return false;
   }
@@ -193,7 +198,7 @@ filter_features_scale
     config->get_value<unsigned int>("max_features", d_->max_features);
   if( max_features > 0 && max_features < min_features )
   {
-    LOG_ERROR( d_->m_logger, "max_features (" << max_features
+    LOG_ERROR( logger(), "max_features (" << max_features
                              << ") must be zero or greater than min_features ("
                              << min_features << ")" );
     return false;
@@ -202,7 +207,8 @@ filter_features_scale
 }
 
 
-/// Filter feature set
+// ----------------------------------------------------------------------------
+// Filter feature set
 vital::feature_set_sptr
 filter_features_scale
 ::filter(vital::feature_set_sptr feat, std::vector<unsigned int> &indices) const

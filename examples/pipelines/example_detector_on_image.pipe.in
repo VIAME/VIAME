@@ -16,8 +16,9 @@ process detector
 
 # ================================================================
 process draw
-  :: draw_detected_object_boxes
-  default_line_thickness = 3
+  :: draw_detected_object_set
+  draw_algo:type = ocv
+  draw_algo:ocv:default_line_thickness = 3
 
 # ================================================================
 process disp

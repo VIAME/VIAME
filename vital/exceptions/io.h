@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,8 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /// VITAL Generic IO exception
-class VITAL_EXPORT io_exception
-  : public vital_core_base_exception
+class VITAL_EXCEPTIONS_EXPORT io_exception
+  : public vital_exception
 {
 public:
   /// Constructor
@@ -58,7 +58,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a given path doesn't point to anything on the filesystem
-class VITAL_EXPORT path_not_exists
+class VITAL_EXCEPTIONS_EXPORT path_not_exists
   : public io_exception
 {
 public:
@@ -74,7 +74,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a given path doesn't point to a file.
-class VITAL_EXPORT path_not_a_file
+class VITAL_EXCEPTIONS_EXPORT path_not_a_file
   : public io_exception
 {
 public:
@@ -90,7 +90,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a given path doesn't point to a directory.
-class VITAL_EXPORT path_not_a_directory
+class VITAL_EXCEPTIONS_EXPORT path_not_a_directory
   : public io_exception
 {
 public:
@@ -106,7 +106,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for an encounter with an invalid file by some metric.
-class VITAL_EXPORT invalid_file
+class VITAL_EXCEPTIONS_EXPORT invalid_file
   : public io_exception
 {
 public:
@@ -123,7 +123,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for an encounter with invalid data by some metric
-class VITAL_EXPORT invalid_data
+class VITAL_EXCEPTIONS_EXPORT invalid_data
   : public io_exception
 {
 public:
@@ -136,7 +136,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a file could not be found
-class VITAL_EXPORT file_not_found_exception
+class VITAL_EXCEPTIONS_EXPORT file_not_found_exception
   : public io_exception
 {
 public:
@@ -153,7 +153,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a file could not be read for whatever reason.
-class VITAL_EXPORT file_not_read_exception
+class VITAL_EXCEPTIONS_EXPORT file_not_read_exception
   : public io_exception
 {
 public:
@@ -170,7 +170,7 @@ public:
 
 // ------------------------------------------------------------------
 /// Exception for when a file was not able to be written
-class VITAL_EXPORT file_write_exception
+class VITAL_EXCEPTIONS_EXPORT file_write_exception
   : public io_exception
 {
 public:

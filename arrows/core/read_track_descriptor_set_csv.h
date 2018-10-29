@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,11 @@ class KWIVER_ALGO_CORE_EXPORT read_track_descriptor_set_csv
       vital::algo::read_track_descriptor_set >
 {
 public:
+  static constexpr char const* name = "csv";
+
+  static constexpr char const* description =
+    "Track descriptor csv reader";
+
   read_track_descriptor_set_csv();
   virtual ~read_track_descriptor_set_csv();
 

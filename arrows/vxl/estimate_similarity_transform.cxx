@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ estimate_similarity_transform
     std::ostringstream sstr;
     sstr << "from and to sets for similarity estimation are not of equivalent "
          << "size! (from: " << from.size() << ", to: " << to.size() << ")";
-    throw algorithm_exception(this->type_name(), this->impl_name(),
+    VITAL_THROW( algorithm_exception, this->type_name(), this->impl_name(),
                               sstr.str());
   }
   else if (from.size() < 3)
@@ -72,7 +72,7 @@ estimate_similarity_transform
     std::ostringstream sstr;
     sstr << "At least 3 or more point pairs must be give in order to estimate "
          << "the similarity transformation. Given: " << from.size();
-    throw algorithm_exception(this->type_name(), this->impl_name(), sstr.str());
+    VITAL_THROW( algorithm_exception, this->type_name(), this->impl_name(), sstr.str());
   }
 
   // TODO: Test for collinearity

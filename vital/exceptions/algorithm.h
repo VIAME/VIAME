@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,11 @@ namespace vital {
 
 // ------------------------------------------------------------------
 /// Base class for all algorithm related exceptions
-class VITAL_EXPORT algorithm_exception
-  : public vital_core_base_exception
+/**
+ * \ingroup exceptions
+ */
+class VITAL_EXCEPTIONS_EXPORT algorithm_exception
+  : public vital_exception
 {
   public:
     /// Constructor
@@ -68,7 +71,10 @@ class VITAL_EXPORT algorithm_exception
 
 // ------------------------------------------------------------------
 /// Exception for when an algorithm receives an invalid configuration
-class VITAL_EXPORT algorithm_configuration_exception
+/**
+ * \ingroup exceptions
+ */
+class VITAL_EXCEPTIONS_EXPORT algorithm_configuration_exception
   : public algorithm_exception
 {
   public:
@@ -83,7 +89,10 @@ class VITAL_EXPORT algorithm_configuration_exception
 
 // ------------------------------------------------------------------
 /// Exception for when checking an invalid impl name against an algo def
-class VITAL_EXPORT invalid_name_exception
+/**
+ * \ingroup exceptions
+ */
+class VITAL_EXCEPTIONS_EXPORT invalid_name_exception
   : public algorithm_exception
 {
   public:

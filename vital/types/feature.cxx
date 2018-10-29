@@ -92,6 +92,13 @@ feature_< T >
 {
 }
 
+template < typename T >
+feature_sptr
+feature_< T >
+::clone() const {
+  return std::make_shared<feature_<T>>(this->loc_, this->magnitude_, this->scale_, this->angle_, this->color_);
+}
+
 
 /// output stream operator for a feature
 template < typename T >

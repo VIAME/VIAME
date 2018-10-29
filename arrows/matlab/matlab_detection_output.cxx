@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 #include "matlab_engine.h"
 #include "matlab_util.h"
 
-#include <vital/logger/logger.h>
 #include <kwiversys/SystemTools.hxx>
 
 #include <string>
@@ -52,7 +51,6 @@ class matlab_detection_output::priv
 public:
   priv( matlab_detection_output* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "matlab_detection_output" ) )
     , m_first( true )
   { }
 
@@ -77,6 +75,7 @@ public:
 
     return m_matlab_engine.get();
   }
+
 
   // ------------------------------------------------------------------
   void check_result()
@@ -157,6 +156,8 @@ matlab_detection_output::
 matlab_detection_output()
   : d( new matlab_detection_output::priv( this ) )
 {
+  attach_logger( "arrows.matlab.matlab_detection_output" );
+  d->m_logger = logger;
 }
 
 

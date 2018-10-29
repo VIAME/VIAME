@@ -73,7 +73,7 @@ public:
    *
    * @return Output track with missing states filled in.
    */
-  virtual track_sptr interpolate( const track_sptr init_states ) = 0;
+  virtual track_sptr interpolate( track_sptr init_states ) = 0;
 
   /// Typedef for the callback function signature
   typedef std::function<void(int, int)> progress_callback_t;

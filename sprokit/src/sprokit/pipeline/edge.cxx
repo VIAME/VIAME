@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <boost/weak_ptr.hpp>
 
 #include <deque>
 
@@ -116,8 +115,8 @@ class edge::priv
     bool full_of_data() const;
     void complete_check() const;
 
-    bool push(edge_datum_t const& datum, boost::optional<duration_t> const& duration = boost::none);
-    boost::optional<edge_datum_t> pop(boost::optional<duration_t> const& duration = boost::none);
+    bool push(edge_datum_t const& datum, kwiver::vital::optional<duration_t> const& duration = kwiver::vital::nullopt);
+    kwiver::vital::optional<edge_datum_t> pop(kwiver::vital::optional<duration_t> const& duration = kwiver::vital::nullopt);
 
     /// This flag indicates that this edge connection should or should
     /// not imply a dependency. Generally set to false if a backwards
@@ -162,7 +161,7 @@ edge
 {
   if (!config)
   {
-    throw null_edge_config_exception();
+    VITAL_THROW( null_edge_config_exception );
   }
 
   bool const depends    = config->get_value<bool>(config_dependency, true);
@@ -248,7 +247,7 @@ edge
   }
   else
   {
-    d->push( datum);
+    d->push( datum );
   }
 }
 
@@ -314,7 +313,7 @@ edge
 
 
 // ------------------------------------------------------------------
-boost::optional<edge_datum_t>
+kwiver::vital::optional<edge_datum_t>
 edge
 ::try_get_datum(duration_t const& duration)
 {
@@ -364,14 +363,15 @@ edge
 {
   if (!process)
   {
-    throw null_process_connection_exception();
+    VITAL_THROW( null_process_connection_exception );
   }
 
   if (!d->upstream.expired())
   {
     process_t const up = d->upstream.lock();
 
-    throw input_already_connected_exception(up->name(), process->name());
+    VITAL_THROW( input_already_connected_exception,
+                 up->name(), process->name());
   }
 
   d->upstream = process;
@@ -385,14 +385,15 @@ edge
 {
   if (!process)
   {
-    throw null_process_connection_exception();
+    VITAL_THROW( null_process_connection_exception );
   }
 
   if (!d->downstream.expired())
   {
     process_t const down = d->downstream.lock();
 
-    throw output_already_connected_exception(down->name(), process->name());
+    VITAL_THROW( output_already_connected_exception,
+                 down->name(), process->name());
   }
 
   d->downstream = process;
@@ -450,7 +451,7 @@ edge::priv
 
   if (downstream_complete)
   {
-    throw datum_requested_after_complete();
+    VITAL_THROW( datum_requested_after_complete );
   }
 }
 
@@ -458,7 +459,7 @@ edge::priv
 // ------------------------------------------------------------------
 bool
 edge::priv
-::push(edge_datum_t const& datum, boost::optional<duration_t> const& duration)
+::push(edge_datum_t const& datum, kwiver::vital::optional<duration_t> const& duration)
 {
   {
     shared_lock_t const lock(complete_mutex);
@@ -505,9 +506,9 @@ edge::priv
 
 
 // ------------------------------------------------------------------
-boost::optional<edge_datum_t>
+kwiver::vital::optional<edge_datum_t>
 edge::priv
-::pop(boost::optional<duration_t> const& duration)
+::pop(kwiver::vital::optional<duration_t> const& duration)
 {
   complete_check();
 
@@ -521,7 +522,7 @@ edge::priv
     {
       if (!cond_have_data.wait_for(lock, *duration, predicate))
       {
-        return boost::none;
+        return kwiver::vital::nullopt;
       }
     }
     else

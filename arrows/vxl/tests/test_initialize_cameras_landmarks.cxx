@@ -106,11 +106,16 @@ evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
   vital::camera_map::map_camera_t new_cams = est_cams->cameras();
   for (auto const& p : orig_cams)
   {
-    vital::camera_sptr new_cam_t = arrows::transform(new_cams[p.first], global_sim);
-    vital::rotation_d dR = new_cam_t->rotation().inverse() * p.second->rotation();
+    auto orig_cam =
+      std::dynamic_pointer_cast<vital::camera_perspective>(p.second);
+    auto new_cam =
+      std::dynamic_pointer_cast<vital::camera_perspective>(new_cams[p.first]);
+    vital::camera_perspective_sptr new_cam_t =
+      arrows::transform(new_cam, global_sim);
+    vital::rotation_d dR = new_cam_t->rotation().inverse() * orig_cam->rotation();
     EXPECT_NEAR(0.0, dR.angle(), tol) << "Rotation difference magnitude";
 
-    double dt = (p.second->center() - new_cam_t->center()).norm();
+    double dt = (orig_cam->center() - new_cam_t->center()).norm();
     EXPECT_NEAR(0.0, dt, tol) << "Camera center difference";
   }
 
@@ -142,7 +147,9 @@ TEST(initialize_cameras_landmarks, ideal_points)
   // create tracks from the projections
   feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
-  vital::camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
+  auto first_cam =
+    std::dynamic_pointer_cast<vital::camera_perspective>(cameras->cameras()[0]);
+  vital::camera_intrinsics_sptr K = first_cam->intrinsics();
   configure_algo(init, K);
 
   vital::camera_map_sptr new_cameras;
@@ -174,7 +181,9 @@ TEST(initialize_cameras_landmarks, ideal_points_from_last)
   vital::config_block_sptr cfg = init.get_configuration();
   cfg->set_value("init_from_last", "true");
   init.set_configuration(cfg);
-  vital::camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
+  auto first_cam =
+    std::dynamic_pointer_cast<vital::camera_perspective>(cameras->cameras()[0]);
+  vital::camera_intrinsics_sptr K = first_cam->intrinsics();
   configure_algo(init, K);
 
   vital::camera_map_sptr new_cameras;
@@ -206,7 +215,9 @@ TEST(initialize_cameras_landmarks, noisy_points)
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
 
-  camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
+  auto first_cam =
+    std::dynamic_pointer_cast<vital::camera_perspective>(cameras->cameras()[0]);
+  camera_intrinsics_sptr K = first_cam->intrinsics();
   configure_algo(init, K);
 
   vital::camera_map_sptr new_cameras;
@@ -241,7 +252,9 @@ TEST(initialize_cameras_landmarks, noisy_points_from_last)
   vital::config_block_sptr cfg = init.get_configuration();
   cfg->set_value("init_from_last", "true");
   init.set_configuration(cfg);
-  vital::camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
+  auto first_cam =
+    std::dynamic_pointer_cast<vital::camera_perspective>(cameras->cameras()[0]);
+  vital::camera_intrinsics_sptr K = first_cam->intrinsics();
   configure_algo(init, K);
 
   vital::camera_map_sptr new_cameras;
@@ -270,7 +283,9 @@ TEST(initialize_cameras_landmarks, subset_init)
   // create tracks from the projections
   vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
 
-  vital::camera_intrinsics_sptr K = cameras->cameras()[0]->intrinsics();
+  auto first_cam =
+    std::dynamic_pointer_cast<vital::camera_perspective>(cameras->cameras()[0]);
+  vital::camera_intrinsics_sptr K = first_cam->intrinsics();
   configure_algo(init, K);
 
   // mark every 3rd camera for initialization

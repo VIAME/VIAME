@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,17 @@ class KWIVER_ALGO_CORE_EXPORT video_input_image_list
   : public vital::algorithm_impl < video_input_image_list, vital::algo::video_input >
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "image_list";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "Read a list of images from a list of file names"
+    " and presents them in the same way as reading a video."
+    " The actual algorithm to read an image is specified"
+    " in the \"image_reader\" config block."
+    " Read an image list as a video stream.";
+
   /// Constructor
   video_input_image_list();
   virtual ~video_input_image_list();
@@ -80,12 +91,20 @@ public:
 
   virtual bool end_of_video() const;
   virtual bool good() const;
+  virtual bool seekable() const;
+  virtual size_t num_frames() const;
 
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 );
 
+  virtual bool seek_frame( kwiver::vital::timestamp& ts,
+                           kwiver::vital::timestamp::frame_t frame_number,
+                           uint32_t timeout = 0 );
+
+  virtual kwiver::vital::timestamp frame_timestamp() const;
   virtual kwiver::vital::image_container_sptr frame_image();
   virtual kwiver::vital::metadata_vector frame_metadata();
+  virtual kwiver::vital::metadata_map_sptr metadata_map();
 
 private:
   /// private implementation class

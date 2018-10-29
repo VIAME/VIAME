@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,15 @@
 #ifndef VITAL_OBJECT_TRACK_SET_H_
 #define VITAL_OBJECT_TRACK_SET_H_
 
+#include "timestamp.h"
 #include "track_set.h"
 #include "detected_object.h"
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
+
+#include <vital/range/transform.h>
 
 #include <vector>
 #include <memory>
@@ -59,15 +62,26 @@ public:
 
   /// Default constructor
   object_track_state( frame_id_t frame,
+                      time_usec_t time,
                       detected_object_sptr d = nullptr )
     : track_state( frame )
     , detection( d )
+    , time_( time )
+  {}
+
+  /// Alternative constructor
+  object_track_state( const timestamp& ts,
+                      detected_object_sptr d = nullptr )
+    : track_state( ts.get_frame() )
+    , detection( d )
+    , time_( ts.get_time_usec() )
   {}
 
   /// Copy constructor
   object_track_state( object_track_state const& ot )
     : track_state( ot.frame() )
     , detection( ot.detection )
+    , time_( ot.time() )
   {}
 
   /// Clone the track state (polymorphic copy constructor)
@@ -76,7 +90,23 @@ public:
     return std::make_shared< object_track_state >( *this );
   }
 
+  time_usec_t time() const
+  {
+    return time_;
+  }
+
   detected_object_sptr detection;
+
+  static std::shared_ptr< object_track_state > downcast(
+    track_state_sptr const& sp )
+  {
+    return std::dynamic_pointer_cast< object_track_state >( sp );
+  }
+
+  static constexpr auto downcast_transform = range::transform( downcast );
+
+private:
+  time_usec_t time_;
 };
 
 
@@ -106,6 +136,9 @@ public:
 
 /// Shared pointer for object_track_set type
 typedef std::shared_ptr< object_track_set > object_track_set_sptr;
+
+/// Helper to iterate over the states of a track as object track states
+static constexpr auto as_object_track = object_track_state::downcast_transform;
 
 } } // end namespace vital
 

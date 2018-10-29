@@ -1,0 +1,53 @@
+# ================================================================
+config ser
+#   type = json
+   type = protobuf
+
+# ================================================================
+process input
+  :: frame_list_input
+# Input file containing new-line separated paths to sequential image
+# files.
+  image_list_file = @EXAMPLE_DIR@/pipelines/image_list.txt
+  frame_time = .9
+
+# Algorithm to use for 'image_reader'.
+# Must be one of the following options:
+# 	- ocv
+# 	- vxl
+  image_reader:type = ocv
+
+# ================================================================
+process ser :: serializer
+  serialization_type = $CONFIG{ser:type}
+
+connect from input.image  to ser.its/image
+connect from input.timestamp to ser.its/timestamp
+
+# ================================================================
+process deser :: deserializer
+  serialization_type = $CONFIG{ser:type}
+
+connect from ser.its to deser.its
+
+# ================================================================
+process disp
+  :: image_viewer
+:annotate_image         true
+:pause_time             2.0
+:footer                 footer_footer
+:header                 header-header
+
+# ================================================================
+# connections
+connect from deser.its/image     to   disp.image
+connect from deser.its/timestamp to   disp.timestamp
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       capacity = 1
+
+
+# -- end of file --

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,38 +48,38 @@ namespace kwiver {
 namespace arrows {
 namespace vxl {
 
-/// Private implementation class
+// Private implementation class
 class triangulate_landmarks::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
-  : m_logger( vital::get_logger( "arrows.vxl.triangulate_landmarks" ))
   {
   }
 
-  /// parameters - none yet
-  /// Logger handle
-  vital::logger_handle_t m_logger;
+  // parameters - none yet
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 triangulate_landmarks
 ::triangulate_landmarks()
 : d_(new priv)
 {
+  attach_logger( "arrows.vxl.triangulate_landmarks" );
 }
 
 
-/// Destructor
+// Destructor
 triangulate_landmarks
 ::~triangulate_landmarks()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 triangulate_landmarks
 ::get_configuration() const
@@ -90,7 +90,8 @@ triangulate_landmarks
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 triangulate_landmarks
 ::set_configuration(vital::config_block_sptr in_config)
@@ -98,7 +99,8 @@ triangulate_landmarks
 }
 
 
-/// Check that the algorithm's currently configuration is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's currently configuration is valid
 bool
 triangulate_landmarks
 ::check_configuration(vital::config_block_sptr config) const
@@ -107,7 +109,8 @@ triangulate_landmarks
 }
 
 
-/// Triangulate the landmark locations given sets of cameras and feature tracks
+// ----------------------------------------------------------------------------
+// Triangulate the landmark locations given sets of cameras and feature tracks
 void
 triangulate_landmarks
 ::triangulate(vital::camera_map_sptr cameras,
@@ -203,7 +206,7 @@ triangulate_landmarks
   }
   if( !failed_landmarks.empty() )
   {
-    LOG_ERROR(d_->m_logger, "failed to triangulate " << failed_landmarks.size()
+    LOG_ERROR(logger(), "failed to triangulate " << failed_landmarks.size()
                             << " of " << lms.size() << " landmarks");
   }
   landmarks = landmark_map_sptr(new simple_landmark_map(triangulated_lms));

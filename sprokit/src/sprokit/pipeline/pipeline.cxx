@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,11 @@
 
 #include <vital/logger/logger.h>
 #include <vital/config/config_block.h>
+#include <vital/config/config_block_formatter.h>
+#include <vital/util/string.h>
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
-#include <boost/math/common_factor_rt.hpp>
 
 #include <functional>
 #include <map>
@@ -61,8 +61,55 @@
  * \brief Implementation of the base class for \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace sprokit
+namespace sprokit {
+
+namespace {
+
+/**
+ * @brief Greatest common denominator
+ *
+ * gcd algorithm ref:
+ * Knuth, Donald. "Art of Computer Programming", Volume 2, Third edition, pp. 337
+ *
+ * @param a First number
+ * @param b Second number
+ *
+ * @return GCD
+ */
+template <typename T>
+T
+gcd( T a, T b )
 {
+  while (b != 0)
+  {
+    T r = a % b;
+    a = b;
+    b = r;
+  } // end while
+
+  return a;
+}
+
+
+/**
+ * @brief Find least common multiple of two values
+ *
+ * @param a First value
+ * @param b Second value
+ *
+ * @return Least common multiple.
+ */
+template <typename T>
+T
+lcm( T a, T b )
+{
+  T temp = gcd( a, b );
+
+  return temp ? ( a / temp * b ) : 0;
+}
+
+} // end namespace
+
 
 class pipeline::priv
 {
@@ -212,7 +259,7 @@ pipeline
 {
   if (!config)
   {
-    throw null_pipeline_config_exception();
+    VITAL_THROW( null_pipeline_config_exception );
   }
 
   d.reset(new priv(this, config));
@@ -231,12 +278,13 @@ pipeline
 {
   if (!process)
   {
-    throw null_process_addition_exception();
+    VITAL_THROW( null_process_addition_exception );
   }
 
   if (d->setup)
   {
-    throw add_after_setup_exception(process->name());
+    VITAL_THROW( add_after_setup_exception,
+                 process->name());
   }
 
   process::name_t const name = process->name();
@@ -301,7 +349,8 @@ pipeline
 {
   if (d->setup)
   {
-    throw remove_after_setup_exception(name);
+    VITAL_THROW( remove_after_setup_exception,
+                 name);
   }
 
   priv::cluster_map_t::iterator const i = d->cluster_map.find(name);
@@ -328,7 +377,8 @@ pipeline
 
   if (!d->process_map.count(name))
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,
+                 name);
   }
 
   d->process_map.erase(name);
@@ -347,8 +397,9 @@ pipeline
 {
   if (d->setup && !d->setup_in_progress)
   {
-    throw connection_after_setup_exception(upstream_name, upstream_port,
-                                           downstream_name, downstream_port);
+    VITAL_THROW( connection_after_setup_exception,
+                 upstream_name, upstream_port,
+                 downstream_name, downstream_port);
   }
 
   process::port_addr_t const up_addr = process::port_addr_t(upstream_name, upstream_port);
@@ -388,8 +439,9 @@ pipeline
 
   if (!d->check_connection_flags(connection, up_flags, down_flags))
   {
-    throw connection_flag_mismatch_exception(upstream_name, upstream_port,
-                                             downstream_name, downstream_port);
+    VITAL_THROW( connection_flag_mismatch_exception,
+                 upstream_name, upstream_port,
+                 downstream_name, downstream_port);
   }
 
   process::port_type_t const& up_type = up_info->type;
@@ -401,8 +453,9 @@ pipeline
     return;
 
   case priv::type_mismatch:
-    throw connection_type_mismatch_exception(upstream_name, upstream_port, up_type,
-                                             downstream_name, downstream_port, down_type);
+    VITAL_THROW( connection_type_mismatch_exception,
+                 upstream_name, upstream_port, up_type,
+                 downstream_name, downstream_port, down_type);
   case priv::type_compatible:
   default:
     break;
@@ -422,8 +475,9 @@ pipeline
 {
   if (d->setup)
   {
-    throw disconnection_after_setup_exception(upstream_name, upstream_port,
-                                              downstream_name, downstream_port);
+    VITAL_THROW( disconnection_after_setup_exception,
+                 upstream_name, upstream_port,
+                 downstream_name, downstream_port);
   }
 
   process::port_addr_t const upstream_addr = process::port_addr_t(upstream_name, upstream_port);
@@ -459,7 +513,7 @@ pipeline
 {
   if (d->setup)
   {
-    throw pipeline_duplicate_setup_exception();
+    VITAL_THROW( pipeline_duplicate_setup_exception );
   }
 
   d->check_for_processes();
@@ -519,7 +573,7 @@ pipeline
 {
   if (d->running)
   {
-    throw reset_running_pipeline_exception();
+    VITAL_THROW( reset_running_pipeline_exception );
   }
 
   d->setup = false;
@@ -572,7 +626,7 @@ pipeline
 {
   if (!d->setup)
   {
-    throw reconfigure_before_setup_exception();
+    VITAL_THROW( reconfigure_before_setup_exception );
   }
 
   // reconfigure all top level processes
@@ -642,7 +696,7 @@ pipeline
 
   if (i == d->process_map.end())
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,name);
   }
 
   return i->second;
@@ -658,7 +712,7 @@ pipeline
 
   if (i == d->process_parent_map.end())
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,name);
   }
 
   return i->second;
@@ -692,7 +746,8 @@ pipeline
 
   if (i == d->cluster_map.end())
   {
-    throw no_such_process_exception(name);
+    VITAL_THROW( no_such_process_exception,
+                 name);
   }
 
   return i->second;
@@ -1128,25 +1183,25 @@ pipeline
 
 
 // ------------------------------------------------------------------
-process_t
+processes_t
 pipeline
-::get_python_process() const
+::get_python_processes() const
 {
   // Run through each process, checking to see if any are python
-  process_t python_process; // Start with a null pointer, return it if no python procs are found
+  processes_t python_processes; // Start with empty list
   for (priv::process_map_t::value_type const& process_index : d->process_map)
   {
     process_t proc = process_index.second;
     auto properties = proc->properties();
     if ( properties.find("_python") != properties.end() )
     {
-      python_process = proc;
-      break;
+      python_processes.push_back( proc );
     }
   }
 
-  return python_process;
+  return python_processes;
 }
+
 
 // ------------------------------------------------------------------
 pipeline::priv
@@ -1170,7 +1225,8 @@ pipeline::priv
   if ( IS_DEBUG_ENABLED( m_logger ) )
   {
     std::stringstream msg;
-    config->print(msg);
+    kwiver::vital::config_block_formatter fmt( config );
+    fmt.print(msg);
     LOG_DEBUG( m_logger, "pipeline config:\n" << msg.str() );
   }
 }
@@ -1188,7 +1244,8 @@ pipeline::priv
 {
   if (process_map.count(name) || cluster_map.count(name))
   {
-    throw duplicate_process_name_exception(name);
+    VITAL_THROW( duplicate_process_name_exception,
+                 name);
   }
 }
 
@@ -1236,8 +1293,8 @@ pipeline::priv
     return type_deferred;
   }
 
-  bool const up_flow_dep = boost::starts_with(up_type, process::type_flow_dependent);
-  bool const down_flow_dep = boost::starts_with(down_type, process::type_flow_dependent);
+  bool const up_flow_dep = kwiver::vital::starts_with(up_type, process::type_flow_dependent);
+  bool const down_flow_dep = kwiver::vital::starts_with(down_type, process::type_flow_dependent);
 
   if (up_flow_dep || down_flow_dep)
   {
@@ -1346,7 +1403,7 @@ pipeline::priv
         process::port_info_t const info = proc->input_port_info(downstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
+        bool const flow_dep = kwiver::vital::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
@@ -1354,9 +1411,10 @@ pipeline::priv
 
           if (!up_proc->set_output_port_type(upstream_port, type))
           {
-            throw propagation_exception(upstream_name, upstream_port,
-                                        downstream_name, downstream_port,
-                                        type, true);
+            VITAL_THROW( propagation_exception,
+                         upstream_name, upstream_port,
+                         downstream_name, downstream_port,
+                         type, true);
           }
 
           resolved = true;
@@ -1373,7 +1431,7 @@ pipeline::priv
         process::port_info_t const info = proc->output_port_info(upstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
+        bool const flow_dep = kwiver::vital::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
@@ -1381,9 +1439,10 @@ pipeline::priv
 
           if (!down_proc->set_input_port_type(downstream_port, type))
           {
-            throw propagation_exception(upstream_name, upstream_port,
-                                        downstream_name, downstream_port,
-                                        type, false);
+            VITAL_THROW( propagation_exception,
+                         upstream_name, upstream_port,
+                         downstream_name, downstream_port,
+                         type, false);
           }
 
           resolved = true;
@@ -1412,7 +1471,7 @@ pipeline::priv
 {
   if (process_map.empty())
   {
-    throw no_processes_exception();
+    VITAL_THROW( no_processes_exception );
   }
 }
 
@@ -1451,7 +1510,8 @@ pipeline::priv
 
           if (cluster_it == cluster_map.end())
           {
-            throw no_such_process_exception(cluster_name);
+            VITAL_THROW( no_such_process_exception,
+                         cluster_name);
           }
 
           process_cluster_t const& cluster = cluster_it->second;
@@ -1467,7 +1527,8 @@ pipeline::priv
 
           if (mapped_connections.empty())
           {
-            throw no_such_port_exception(cluster_name, cluster_port);
+            VITAL_THROW( no_such_port_exception,
+                         cluster_name, cluster_port);
           }
           else if (mapped_connections.size() != 1)
           {
@@ -1498,7 +1559,8 @@ pipeline::priv
 
           if (cluster_it == cluster_map.end())
           {
-            throw no_such_process_exception(cluster_name);
+            VITAL_THROW( no_such_process_exception,
+                         cluster_name);
           }
 
           process_cluster_t const& cluster = cluster_it->second;
@@ -1514,7 +1576,8 @@ pipeline::priv
 
           if (mapped_connections.empty())
           {
-            throw no_such_port_exception(cluster_name, cluster_port);
+            VITAL_THROW( no_such_port_exception,
+                         cluster_name, cluster_port);
           }
 
           for (process::connection_t const& mapped_port_conn : mapped_connections)
@@ -1576,7 +1639,8 @@ pipeline::priv
 
         if (info->type == process::type_data_dependent)
         {
-          throw untyped_data_dependent_exception(data_name, data_port);
+          VITAL_THROW( untyped_data_dependent_exception,
+                       data_name, data_port);
         }
 
         resolved_types = true;
@@ -1659,9 +1723,10 @@ pipeline::priv
       case push_upstream:
         if (!up_proc->set_output_port_type(upstream_port, down_type))
         {
-          throw connection_dependent_type_exception(upstream_name, upstream_port,
-                                                    downstream_name, downstream_port,
-                                                    down_type, true);
+          VITAL_THROW( connection_dependent_type_exception,
+                       upstream_name, upstream_port,
+                       downstream_name, downstream_port,
+                       down_type, true);
         }
 
         name = upstream_name;
@@ -1673,9 +1738,10 @@ pipeline::priv
       case push_downstream:
         if (!down_proc->set_input_port_type(downstream_port, up_type))
         {
-          throw connection_dependent_type_exception(upstream_name, upstream_port,
-                                                    downstream_name, downstream_port,
-                                                    up_type, false);
+          VITAL_THROW( connection_dependent_type_exception,
+                       upstream_name, upstream_port,
+                       downstream_name, downstream_port,
+                       up_type, false);
         }
 
         name = downstream_name;
@@ -1694,10 +1760,11 @@ pipeline::priv
     }
     catch (propagation_exception const& e)
     {
-      throw connection_dependent_type_cascade_exception(name, port, type,
-                                                        e.m_upstream_name, e.m_upstream_port,
-                                                        e.m_downstream_name, e.m_downstream_port,
-                                                        e.m_type, e.m_push_upstream);
+      VITAL_THROW( connection_dependent_type_cascade_exception,
+                   name, port, type,
+                   e.m_upstream_name, e.m_upstream_port,
+                   e.m_downstream_name, e.m_downstream_port,
+                   e.m_type, e.m_push_upstream);
     }
 
     // Retry the connection.
@@ -1719,7 +1786,7 @@ pipeline::priv
 {
   if (!untyped_connections.empty())
   {
-    throw untyped_connection_exception();
+    VITAL_THROW( untyped_connection_exception );
   }
 }
 
@@ -1767,7 +1834,8 @@ pipeline::priv
       {
         std::stringstream msg;
         msg << "-- Edge type config for type \"" << down_type << "\" :\n";
-        edge_type_config->print( msg );
+        kwiver::vital::config_block_formatter fmt( edge_type_config );
+        fmt.print( msg );
         LOG_TRACE( m_logger, msg.str() );
       }
     }
@@ -1793,12 +1861,14 @@ pipeline::priv
             << upstream_name + kwiver::vital::config_block::block_sep
              + upstream_subblock + kwiver::vital::config_block::block_sep + upstream_port
             << "\" :\n";
-        up_config->print(msg);
+        kwiver::vital::config_block_formatter up_fmt( up_config );
+        up_fmt.print(msg);
         msg << "\n-- Down_config for \""
             << downstream_name + kwiver::vital::config_block::block_sep
              + downstream_subblock + kwiver::vital::config_block::block_sep + downstream_port
             << "\" :\n";
-        down_config->print(msg);
+        kwiver::vital::config_block_formatter down_fmt( up_config );
+        down_fmt.print(msg);
         LOG_TRACE( m_logger, msg.str() );
       }
 
@@ -1836,7 +1906,8 @@ pipeline::priv
     if ( IS_DEBUG_ENABLED( m_logger ) )
     {
       std::stringstream msg;
-      edge_config->print(msg);
+      kwiver::vital::config_block_formatter fmt( edge_config );
+      fmt.print(msg);
 
       LOG_TRACE( m_logger,
                  "Edge config for "  << upstream_name << "." <<
@@ -1906,7 +1977,8 @@ pipeline::priv
             {
               static std::string const reason = "The input port has the required flag";
 
-              throw missing_connection_exception(cur_proc, port, reason);
+              VITAL_THROW( missing_connection_exception,
+                           cur_proc, port, reason);
             }
           }
         }
@@ -1924,7 +1996,8 @@ pipeline::priv
             {
               static std::string const reason = "The output port has the required flag";
 
-              throw missing_connection_exception(cur_proc, port, reason);
+              VITAL_THROW( missing_connection_exception,
+                           cur_proc, port, reason);
             }
           }
         }
@@ -1950,7 +2023,7 @@ pipeline::priv
 
   if (procs.size() != process_map.size())
   {
-    throw orphaned_processes_exception();
+    VITAL_THROW( orphaned_processes_exception );
   }
 }
 
@@ -2021,7 +2094,7 @@ pipeline::priv
   }
   catch (boost::not_a_dag const&)
   {
-    throw not_a_dag_exception();
+    VITAL_THROW( not_a_dag_exception );
   }
 }
 
@@ -2137,8 +2210,9 @@ pipeline::priv
 
       if (down_proc_freq != expect_freq)
       {
-        throw frequency_mismatch_exception(upstream_name, upstream_port, up_proc_freq, up_port_freq,
-                                           downstream_name, downstream_port, down_proc_freq, down_port_freq);
+        VITAL_THROW( frequency_mismatch_exception,
+                     upstream_name, upstream_port, up_proc_freq, up_port_freq,
+                     downstream_name, downstream_port, down_proc_freq, down_port_freq);
       }
     }
     // Propagate the frequency downstream.
@@ -2175,7 +2249,7 @@ pipeline::priv
     process::port_frequency_t const& freq = proc_freq.second;
     process::frequency_component_t const denom = freq.denominator();
 
-    freq_gcd = boost::math::lcm(freq_gcd, denom);
+    freq_gcd = lcm(freq_gcd, denom);
   }
 
   for (process_frequency_map_t::value_type const& proc_freq : freq_map)
@@ -2199,12 +2273,12 @@ pipeline::priv
 {
   if (!setup)
   {
-    throw pipeline_not_setup_exception();
+    VITAL_THROW( pipeline_not_setup_exception );
   }
 
   if (!setup_in_progress && !setup_successful)
   {
-    throw pipeline_not_ready_exception();
+    VITAL_THROW( pipeline_not_ready_exception );
   }
 }
 

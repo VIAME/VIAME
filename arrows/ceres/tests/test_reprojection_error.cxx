@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 /// Test the reprojection error of a single residual
 static void
 test_reprojection_error(
-  camera const& cam, landmark const& lm, feature const& f,
+  camera_perspective const& cam, landmark const& lm, feature const& f,
   kwiver::arrows::ceres::LensDistortionType dist_type )
 {
   ::ceres::CostFunction* cost_func =
@@ -103,7 +103,7 @@ static Eigen::VectorXd distortion_coefficients( int dim )
 {
   Eigen::VectorXd dc{ 8 };
   dc << -0.01, 0.002, 0.001, -0.005, -0.004, 0.02, -0.007, 0.0001;
-  dc.resize( dim );
+  dc.conservativeResize( dim );
   return dc;
 }
 
@@ -188,8 +188,8 @@ TEST_P(reprojection_error, compare_projections)
 
       SCOPED_TRACE( "At track frame " + std::to_string( ts->frame() ) );
 
-      auto const& cam = *ci->second;
-      test_reprojection_error( cam, lm, feat, dist_type );
+      auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>(ci->second);
+      test_reprojection_error( *cam_ptr, lm, feat, dist_type );
     }
   }
 }

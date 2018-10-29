@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,15 @@ class KWIVER_ALGO_CORE_EXPORT video_input_split
   : public vital::algorithm_impl < video_input_split, vital::algo::video_input >
 {
 public:
+  /// Name of the algorithm
+  static constexpr char const* name = "split";
+
+  /// Description of the algorithm
+  static constexpr char const* description =
+    "Coordinate two video readers."
+    " One reader supplies the image/data stream."
+    " The other reader supplies the metadata stream.";
+
   /// Constructor
   video_input_split();
   virtual ~video_input_split();
@@ -67,14 +76,26 @@ public:
 
   virtual bool end_of_video() const;
   virtual bool good() const;
+  virtual bool seekable() const;
+  virtual size_t num_frames() const;
 
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 );
 
+  virtual bool seek_frame( kwiver::vital::timestamp& ts,
+                           kwiver::vital::timestamp::frame_t frame_number,
+                           uint32_t timeout = 0 );
+
+  virtual kwiver::vital::timestamp frame_timestamp() const;
   virtual kwiver::vital::image_container_sptr frame_image();
   virtual kwiver::vital::metadata_vector frame_metadata();
+  virtual kwiver::vital::metadata_map_sptr metadata_map();
 
 private:
+  kwiver::vital::timestamp merge_timestamps(
+    kwiver::vital::timestamp const& image_ts,
+    kwiver::vital::timestamp const& metadata_ts ) const;
+
   /// private implementation class
   class priv;
   const std::unique_ptr<priv> d;

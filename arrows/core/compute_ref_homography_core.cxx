@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@
 #include <memory>
 
 #include <vital/algo/estimate_homography.h>
-#include <vital/logger/logger.h>
 
 #include <Eigen/LU>
 
@@ -290,7 +289,7 @@ compute_ref_homography_core
 ::compute_ref_homography_core()
 : d_( new priv() )
 {
-  attach_logger( "compute_ref_homography_core" );
+  attach_logger( "arrows.core.compute_ref_homography_core" );
   d_->m_logger = this->logger();
 }
 
@@ -388,7 +387,7 @@ compute_ref_homography_core
 ::estimate( frame_id_t frame_number,
             feature_track_set_sptr tracks ) const
 {
-  LOG_DEBUG( d_->m_logger,
+  LOG_DEBUG( logger(),
              "Starting ref homography estimation for frame " << frame_number );
 
   // Get active tracks for the current frame
@@ -423,7 +422,7 @@ compute_ref_homography_core
       new_tracks.push_back( trk );
     }
   }
-  LOG_DEBUG( d_->m_logger,
+  LOG_DEBUG( logger(),
              active_tracks.size() << " tracks on current frame (" <<
              (active_tracks.size() - new_tracks.size()) << " active, " <<
              new_tracks.size() << " new)" );
@@ -447,7 +446,7 @@ compute_ref_homography_core
       earliest_ref = ti.ref_id;
     }
   }
-  LOG_DEBUG( d_->m_logger,
+  LOG_DEBUG( logger(),
              "Earliest Ref: " << earliest_ref );
 
   // Add new tracks to buffer.
@@ -506,7 +505,7 @@ compute_ref_homography_core
       }
     }
   }
-  LOG_DEBUG( d_->m_logger,
+  LOG_DEBUG( logger(),
              "Using " << pts_ref.size() << " points for estimation" );
 
   // Compute homography if possible
@@ -518,7 +517,7 @@ compute_ref_homography_core
 
   if( bad_homog )
   {
-    LOG_DEBUG( d_->m_logger, "estimation FAILED" );
+    LOG_DEBUG( logger(), "estimation FAILED" );
     // Start of new shot. Both frames the same and identity transform.
     output = f2f_homography_sptr( new f2f_homography( frame_number ) );
     d_->frames_since_reset = 0;
@@ -526,7 +525,7 @@ compute_ref_homography_core
   }
   else
   {
-    LOG_DEBUG( d_->m_logger, "estimation SUCCEEDED" );
+    LOG_DEBUG( logger(), "estimation SUCCEEDED" );
     // extend current shot
     h = h->normalize();
     output = f2f_homography_sptr( new f2f_homography( h, frame_number, earliest_ref ) );
@@ -585,9 +584,9 @@ compute_ref_homography_core
     }
   }
 
-  if ( IS_DEBUG_ENABLED( d_->m_logger ) &&  ti_reset_count )
+  if ( IS_DEBUG_ENABLED( logger() ) &&  ti_reset_count )
   {
-    LOG_DEBUG( d_->m_logger,
+    LOG_DEBUG( logger(),
                "Resetting " << ti_reset_count <<
                " tracks to reference frame: " << frame_number );
   }

@@ -55,7 +55,7 @@ detected_object_set_output
   : m_stream( 0 )
   , m_stream_owned( false )
 {
-  attach_logger( "detected_object_set_output" );
+  attach_logger( "algo.detected_object_set_output" );
 }
 
 

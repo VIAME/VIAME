@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,16 +47,15 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// Private implementation class
+// Private implementation class
 class match_features_homography::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
   : inlier_scale(1.0),
     min_required_inlier_count(0),
-    min_required_inlier_percent(0.0),
-    m_logger( vital::get_logger( "arrows.core.match_features_homography" ))
+    min_required_inlier_percent(0.0)
   {
   }
 
@@ -68,27 +67,28 @@ public:
 
   // min inlier percent required to make any matches
   double min_required_inlier_percent;
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 match_features_homography
 ::match_features_homography()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.match_features_homography" );
 }
 
 
-/// Destructor
+// Destructor
 match_features_homography
 ::~match_features_homography()
 {
 }
 
 
-/// Get this alg's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 match_features_homography
 ::get_configuration() const
@@ -121,6 +121,7 @@ match_features_homography
 }
 
 
+// ----------------------------------------------------------------------------
 void
 match_features_homography
 ::set_configuration(vital::config_block_sptr in_config)
@@ -146,6 +147,8 @@ match_features_homography
   d_->min_required_inlier_percent = config->get_value<double>("min_required_inlier_percent");
 }
 
+
+// ----------------------------------------------------------------------------
 bool
 match_features_homography
 ::check_configuration(vital::config_block_sptr config) const
@@ -175,8 +178,9 @@ match_features_homography
 }
 
 
+// ----------------------------------------------------------------------------
 namespace {
-/// Compute the average feature scale
+// Compute the average feature scale
 double
 average_feature_scale(feature_set_sptr features)
 {
@@ -197,7 +201,7 @@ average_feature_scale(feature_set_sptr features)
 }
 
 
-/// Compute the minimum feature scale
+// Compute the minimum feature scale
 double
 min_feature_scale(feature_set_sptr features)
 {
@@ -216,7 +220,7 @@ min_feature_scale(feature_set_sptr features)
 }
 
 
-/// Match one set of features and corresponding descriptors to another
+// Match one set of features and corresponding descriptors to another
 match_set_sptr
 match_features_homography
 ::match(feature_set_sptr feat1, descriptor_set_sptr desc1,
@@ -253,7 +257,7 @@ match_features_homography
                                min_feature_scale(feat2) );
 
   double scale_ratio = avg_scale / min_scale;
-  LOG_DEBUG( d_->m_logger, "Filtered scale ratio: " << scale_ratio );
+  LOG_DEBUG( logger(), "Filtered scale ratio: " << scale_ratio );
 
 
   // compute the initial matches
@@ -268,7 +272,7 @@ match_features_homography
   // count the number of inliers
   int inlier_count = static_cast<int>(std::count(inliers.begin(),
                                                  inliers.end(), true));
-  LOG_INFO(d_->m_logger, "inlier ratio: " <<
+  LOG_INFO(logger(), "inlier ratio: " <<
                          inlier_count << "/" << inliers.size());
 
   // verify matching criteria are met

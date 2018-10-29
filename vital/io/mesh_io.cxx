@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ check_output_file(const std::string& filename)
   // If the given path is a directory, we obviously can't write to it.
   if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw file_write_exception( filename,
+    VITAL_THROW( file_write_exception, filename,
           "Path given is a directory, can not write file." );
   }
 
@@ -69,8 +69,8 @@ check_output_file(const std::string& filename)
   {
     if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
-      throw file_write_exception( parent_dir,
-           "Attempted directory creation, but no directory created!" );
+      VITAL_THROW( file_write_exception, parent_dir,
+                   "Attempted directory creation, but no directory created!" );
     }
   }
 
@@ -86,20 +86,21 @@ check_input_file(const std::string& filename)
   // Check that file exists
   if ( ! kwiversys::SystemTools::FileExists( filename ) )
   {
-    throw file_not_found_exception( filename, "File does not exist." );
+    VITAL_THROW( file_not_found_exception,
+                 filename, "File does not exist." );
   }
   else if (  kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw file_not_found_exception( filename,
-          "Path given doesn't point to a regular file!" );
+    VITAL_THROW( file_not_found_exception, filename,
+                 "Path given doesn't point to a regular file!" );
   }
 
   // Reading in input file data
   std::ifstream input_stream( filename.c_str(), std::fstream::in );
   if ( ! input_stream )
   {
-    throw file_not_read_exception( filename,
-                                   "Could not open file at given path." );
+    VITAL_THROW( file_not_read_exception, filename,
+                 "Could not open file at given path." );
   }
 }
 

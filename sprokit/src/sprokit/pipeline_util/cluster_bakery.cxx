@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ cluster_bakery
   // an error.  Only one cluster can be baked at a time.
   if ( m_cluster )
   {
-    throw multiple_cluster_blocks_exception();
+    VITAL_THROW( multiple_cluster_blocks_exception );
   }
 
   m_type = cluster_block_.type;
@@ -81,7 +81,10 @@ cluster_bakery
 
   // Run splitter over vector of blocks to make collections by block type.
   // These lists end up in "cluster"
-  std::for_each( subblocks.begin(), subblocks.end(), boost::apply_visitor( splitter ) );
+  for ( auto sb : subblocks )
+  {
+    kwiver::vital::visit( splitter, sb );
+  }
 
   m_cluster = cluster;
 

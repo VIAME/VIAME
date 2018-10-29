@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ build_lookup_map( const track_handle_list_type& ref_tracks,
                   map< unsigned, track_handle_type >& lookup_map )
 {
   track_field< dt::tracking::external_id > id_field;
-  for (auto i=0; i<ref_tracks.size(); ++i)
+  for (size_t i=0; i<ref_tracks.size(); ++i)
   {
     auto probe = id_field.get( ref_tracks[i].row );
     if ( ! probe.first )

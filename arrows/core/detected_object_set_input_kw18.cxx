@@ -37,7 +37,6 @@
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
-#include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 
 #include <kwiversys/SystemTools.hxx>
@@ -79,7 +78,6 @@ class detected_object_set_input_kw18::priv
 public:
   priv( detected_object_set_input_kw18* parent )
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "detected_object_set_input_kw18" ) )
     , m_first( true )
   { }
 
@@ -88,7 +86,6 @@ public:
   void read_all();
 
   detected_object_set_input_kw18* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
 
   int m_current_idx;
@@ -108,6 +105,7 @@ detected_object_set_input_kw18::
 detected_object_set_input_kw18()
   : d( new detected_object_set_input_kw18::priv( this ) )
 {
+  attach_logger( "arrows.core.detected_object_set_input_kw18" );
 }
 
 

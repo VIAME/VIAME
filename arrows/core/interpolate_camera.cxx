@@ -41,9 +41,9 @@ namespace arrows {
 
 
 /// Generate an interpolated camera between \c A and \c B by a given fraction \c f
-vital::simple_camera
-interpolate_camera(vital::simple_camera const& A,
-                   vital::simple_camera const& B, double f)
+vital::simple_camera_perspective
+interpolate_camera(vital::simple_camera_perspective const& A,
+                   vital::simple_camera_perspective const& B, double f)
 {
   const double f1 = 1.0 - f;
 
@@ -59,7 +59,7 @@ interpolate_camera(vital::simple_camera const& A,
 
   if( k1 == k2 )
   {
-    return vital::simple_camera(c, R, k1);
+    return vital::simple_camera_perspective(c, R, k1);
   }
 
   double focal_len = f1*k1->focal_length() + f*k2->focal_length();
@@ -67,16 +67,16 @@ interpolate_camera(vital::simple_camera const& A,
   double aspect_ratio = f1*k1->aspect_ratio() + f*k2->aspect_ratio();
   double skew = f1*k1->skew() + f*k2->skew();
   vital::simple_camera_intrinsics k(focal_len, principal_point, aspect_ratio, skew);
-  return vital::simple_camera(c, R, k);
+  return vital::simple_camera_perspective(c, R, k);
 }
 
 
 /// Generate N evenly interpolated cameras in between \c A and \c B
 void
-interpolated_cameras(vital::simple_camera const& A,
-                     vital::simple_camera const& B,
+interpolated_cameras(vital::simple_camera_perspective const& A,
+                     vital::simple_camera_perspective const& B,
                      size_t n,
-                     std::vector< vital::simple_camera > & interp_cams)
+                     std::vector< vital::simple_camera_perspective > & interp_cams)
 {
   interp_cams.reserve(interp_cams.capacity() + n);
   size_t denom = n + 1;
@@ -88,16 +88,17 @@ interpolated_cameras(vital::simple_camera const& A,
 
 
 /// Genreate an interpolated camera from sptrs
-vital::camera_sptr
-interpolate_camera(vital::camera_sptr A,
-                   vital::camera_sptr B, double f)
+vital::camera_perspective_sptr
+interpolate_camera(vital::camera_perspective_sptr A,
+                   vital::camera_perspective_sptr B, double f)
 {
   if( A == B )
   {
     return A;
   }
-  return interpolate_camera(vital::simple_camera(*A),
-                            vital::simple_camera(*B), f).clone();
+  return std::dynamic_pointer_cast<vital::camera_perspective>(
+    interpolate_camera(vital::simple_camera_perspective(*A),
+    vital::simple_camera_perspective(*B), f).clone());
 }
 
 

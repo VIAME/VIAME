@@ -62,8 +62,8 @@ CALL( PLATFORM_INDICATED_AIRSPEED, "Platform Indicated Airspeed",     double) \
 CALL( PLATFORM_DESIGNATION,        "Platform Designation",            std::string) \
 CALL( IMAGE_SOURCE_SENSOR,         "Image Source Sensor",             std::string) \
 CALL( IMAGE_COORDINATE_SYSTEM,     "Image Coordinate System",         std::string) \
-CALL( IMAGE_FILENAME,              "Image Filename",                  std::string) \
-CALL( VIDEO_FILENAME,              "Video Filename",                  std::string) \
+CALL( IMAGE_URI,                   "Image URI",                       std::string) \
+CALL( VIDEO_URI,                   "Video URI",                       std::string) \
 CALL( SENSOR_LOCATION,             "Sensor Geodetic Location",        geo_point) \
 CALL( SENSOR_ALTITUDE,             "Sensor Altitude",                 double) /* TODO: merge with previous? */ \
 CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View", double) \
@@ -125,7 +125,21 @@ CALL( EASTING_VEL,                 "Easting velocity",                double ) \
 CALL( UP_VEL,                      "UP velocity",                     double ) \
 CALL( IMU_STATUS,                  "IMU status",                      int ) \
 CALL( LOCAL_ADJ,                   "Local adj",                       int ) \
-CALL( DST_FLAGS,                   "Dst flags",                       int )
+CALL( DST_FLAGS,                   "Dst flags",                       int ) \
+CALL( RPC_HEIGHT_OFFSET,           "RPC height offset",               double ) \
+CALL( RPC_HEIGHT_SCALE,            "RPC height scale",                double ) \
+CALL( RPC_LONG_OFFSET,             "RPC longitude offset",            double ) \
+CALL( RPC_LONG_SCALE,              "RPC longitude scale",             double ) \
+CALL( RPC_LAT_OFFSET,              "RPC latitude offset",             double ) \
+CALL( RPC_LAT_SCALE,               "RPC latitude scale",              double ) \
+CALL( RPC_ROW_OFFSET,              "RPC row offset",                  double ) \
+CALL( RPC_ROW_SCALE,               "RPC row scale",                   double ) \
+CALL( RPC_COL_OFFSET,              "RPC column offset",               double ) \
+CALL( RPC_COL_SCALE ,              "RPC column scale",                double ) \
+CALL( RPC_ROW_NUM_COEFF,           "RPC row numerator coefficients",       std::string ) \
+CALL( RPC_ROW_DEN_COEFF,           "RPC row denominator coefficients",     std::string ) \
+CALL( RPC_COL_NUM_COEFF,           "RPC column numerator coefficients",    std::string ) \
+CALL( RPC_COL_DEN_COEFF,           "RPC column denominator coefficients",  std::string )
 
 // ------------------------------------------------------------------
 //

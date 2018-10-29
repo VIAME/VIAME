@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,12 +81,12 @@ sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      na
 {
   if ( ! config )
   {
-    throw null_scheduler_registry_config_exception();
+    VITAL_THROW( null_scheduler_registry_config_exception );
   }
 
   if (!pipe)
   {
-    throw null_scheduler_registry_pipeline_exception();
+    VITAL_THROW( null_scheduler_registry_pipeline_exception );
   }
 
   typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > instrumentation_factory;
@@ -102,14 +102,14 @@ sprokit::scheduler_t create_scheduler( const sprokit::scheduler::type_t&      na
     auto logger = kwiver::vital::get_logger( "sprokit.scheduler_factory" );
     LOG_DEBUG( logger, "Plugin factory not found: " << e.what() );
 
-    throw no_such_scheduler_type_exception( name );
+    VITAL_THROW( no_such_scheduler_type_exception, name );
   }
 
   sprokit::scheduler_factory* pf = dynamic_cast< sprokit::scheduler_factory* > ( a_fact.get() );
   if (0 == pf)
   {
     // wrong type of factory returned
-    throw no_such_scheduler_type_exception( name );
+    VITAL_THROW( no_such_scheduler_type_exception, name );
   }
 
   return pf->create_object( pipe, config );

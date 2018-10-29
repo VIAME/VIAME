@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -210,7 +210,7 @@ bakery_base
       }
       else
       {
-        throw unrecognized_config_flag_exception(full_key, flag);
+        throw unrecognized_config_flag_exception( full_key, flag);
       }
     } // end foreach over flags
   }
@@ -316,8 +316,9 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
       }
       else
       {
-        throw relativepath_exception( "Can not resolve relative path because original source file is not known.",
-          info.defined_loc );
+        throw relativepath_exception(
+               "Can not resolve relative path because original source file is not known.",
+               info.defined_loc );
       }
     }
 

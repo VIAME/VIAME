@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,6 @@
  */
 
 #include "utils.h"
-
-#include <vital/logger/logger.h>
 
 #ifdef HAVE_PTHREAD_NAMING
 #define NAME_THREAD_USING_PTHREAD
@@ -70,7 +68,7 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <boost/scoped_array.hpp>
+
 #include <windows.h>
 
 #else
@@ -105,6 +103,7 @@ static bool name_thread_pthread(thread_name_t const& name);
 static bool name_thread_win32(thread_name_t const& name);
 #endif
 
+// ----------------------------------------------------------------------------
 bool
 name_thread(thread_name_t const& name)
 {
@@ -141,45 +140,8 @@ name_thread(thread_name_t const& name)
   return ret;
 }
 
-envvar_value_t
-get_envvar(envvar_name_t const& name)
-{
-  kwiver::vital::logger_handle_t m_logger(kwiver::vital::get_logger("sprokit.pipeline_utilities"));
 
-  envvar_value_t value;
-
-#if defined(_WIN32) || defined(_WIN64)
-  char const* const name_cstr = name.c_str();
-
-  DWORD sz = GetEnvironmentVariable(name_cstr, NULL, 0);
-
-  if (sz)
-  {
-    typedef boost::scoped_array<char> raw_envvar_value_t;
-    raw_envvar_value_t const envvalue(new char[sz]);
-
-    sz = GetEnvironmentVariable(name_cstr, envvalue.get(), sz);
-
-    value = envvalue.get();
-  }
-
-  // Check return code
-  if ( 0 == sz)
-  {
-    LOG_ERROR( m_logger, "Error reading environment");
-  }
-#else
-  char const* const envvalue = getenv(name.c_str());
-
-  if (envvalue)
-  {
-    value = envvalue;
-  }
-#endif
-
-  return value;
-}
-
+// ----------------------------------------------------------------------------
 #ifdef NAME_THREAD_USING_PRCTL
 bool
 name_thread_prctl(thread_name_t const& name)
@@ -190,6 +152,8 @@ name_thread_prctl(thread_name_t const& name)
 }
 #endif
 
+
+// ----------------------------------------------------------------------------
 #ifdef NAME_THREAD_USING_SETPROCTITLE
 bool
 name_thread_setproctitle(thread_name_t const& name)
@@ -198,6 +162,8 @@ name_thread_setproctitle(thread_name_t const& name)
 }
 #endif
 
+
+// ----------------------------------------------------------------------------
 #ifdef NAME_THREAD_USING_PTHREAD
 bool
 name_thread_pthread(thread_name_t const& name)
@@ -222,6 +188,8 @@ name_thread_pthread(thread_name_t const& name)
 }
 #endif
 
+
+// ----------------------------------------------------------------------------
 #ifdef NAME_THREAD_USING_WIN32
 static void set_thread_name(DWORD thread_id, LPCSTR name);
 
@@ -246,6 +214,8 @@ typedef struct tagTHREADNAME_INFO
 } THREADNAME_INFO;
 #pragma pack(pop)
 
+
+// ----------------------------------------------------------------------------
 void
 set_thread_name(DWORD thread_id, LPCSTR name)
 {

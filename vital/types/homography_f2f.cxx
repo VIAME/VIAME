@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,7 +110,8 @@ f2f_homography
 {
   if( this->from_id() != rhs.to_id() )
   {
-    throw invalid_matrix_operation( "Homography frame identifiers do not match up" );
+    VITAL_THROW( invalid_matrix_operation,
+                 "Homography frame identifiers do not match up" );
   }
 
   Eigen::Matrix<double,3,3> new_h = this->h_->matrix() * rhs.h_->matrix();

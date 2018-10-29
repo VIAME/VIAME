@@ -215,7 +215,9 @@ test_ba_using_distortion( kwiver::vital::config_block_sptr cfg,
   // compare actual to estimated distortion parameters
   if ( estimate_tolerance != 0.0 )
   {
-    auto vdc2 = cameras0->cameras()[0]->intrinsics()->dist_coeffs();
+    auto cam0_ptr =
+      std::dynamic_pointer_cast<camera_perspective>(cameras0->cameras()[0]);
+    auto vdc2 = cam0_ptr->intrinsics()->dist_coeffs();
     // The estimated parameter vector can be longer and zero padded; lop off
     // any additional trailing values
     ASSERT_GE( vdc2.size(), dc.size() );
@@ -400,7 +402,8 @@ test_ba_intrinsic_sharing( camera_map_sptr cameras,
   std::set<camera_intrinsics_sptr> intrin_set;
   for ( auto const& ci : cameras0->cameras() )
   {
-    intrin_set.insert(ci.second->intrinsics());
+    auto cam_ptr = std::dynamic_pointer_cast<camera_perspective>( ci.second );
+    intrin_set.insert(cam_ptr->intrinsics());
   }
 
   return static_cast<unsigned int>(intrin_set.size());

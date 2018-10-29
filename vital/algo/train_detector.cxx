@@ -44,7 +44,7 @@ namespace algo {
 train_detector
 ::train_detector()
 {
-  attach_logger( "train_detector" );
+  attach_logger( "algo.train_detector" );
 }
 
 void

@@ -63,11 +63,11 @@ static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __
 #include <arrows/kpf/yaml/kpf_reader.h>
 #include <arrows/kpf/yaml/kpf_yaml_parser.h>
 
-#include <kwiversys/RegularExpression.hxx>
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+#include <kwiversys/RegularExpression.hxx>
 
 using std::map;
 using std::make_pair;
@@ -100,6 +100,7 @@ get_optional_fields()
   kwiversys::RegularExpression field_kv("^"+kpf_key_str+"_([a-zA-Z0-9]+)$");
   kwiversys::RegularExpression field_cset("^"+kpf_cset_str+"_([0-9]+)$");
 
+
   for (auto i: track_oracle_core::get_all_field_handles())
   {
     element_descriptor e = track_oracle_core::get_element_descriptor( i );
@@ -108,7 +109,7 @@ get_optional_fields()
     if (e.typeid_str == dbltype)
     {
       // did we find two matches and is the first a KPF style?
-      if (field_dbl.find( e.name ))
+      if ( field_dbl.find( e.name ))
       {
         auto style = KPF::str2style( field_dbl.match(1) );
         if (style != KPF::packet_style::INVALID )
@@ -123,7 +124,7 @@ get_optional_fields()
     // Is the type string?
     else if (e.typeid_str == strtype)
     {
-      if (field_kv.find( e.name ))
+      if ( field_kv.find( e.name ))
       {
         // Create a partial KV packet with the key
         KPF::packet_t p( (KPF::packet_header_t( KPF::packet_style::KV )) );
@@ -136,13 +137,13 @@ get_optional_fields()
     // Is the type a map<size_t, double>?
     else if (e.typeid_str == csettype)
     {
-      if (field_cset.find( e.name ))
+      if ( field_cset.find( e.name ))
       {
         // Convert the domain, associate a packet with the field
         optional_fields[i] =
           KPF::packet_t(
             KPF::packet_header_t(KPF::packet_style::CSET,
-                                 stoi( field_cset.match(1))));
+                                 stoi( field_cset.match(1) )));
       } // ...didn't match the cset name
     } // ...didn't match the cset type
 

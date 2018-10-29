@@ -109,7 +109,7 @@ public:
 
   // ------------------------------------------------------------------
   cv::Mat
-  annotate_image( cv::Mat cv_img, kwiver::vital::timestamp::frame_t frame)
+  annotate_image( cv::Mat cv_img, kwiver::vital::frame_id_t frame)
   {
     static const int font_face = cv::FONT_HERSHEY_SIMPLEX;
     static const double font_scale( 1.0 );
@@ -244,7 +244,7 @@ image_viewer_process
 
   LOG_DEBUG( logger(), "Processing frame " << frame_time );
 
-  cv::Mat image = arrows::ocv::image_container::vital_to_ocv( img->get_image(), arrows::ocv::image_container::BGR );
+  cv::Mat image = arrows::ocv::image_container::vital_to_ocv( img->get_image(), arrows::ocv::image_container::BGR_COLOR );
 
   if ( d->m_annotate_image )
   {

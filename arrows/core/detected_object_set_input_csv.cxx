@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
-#include <vital/logger/logger.h>
 #include <vital/exceptions.h>
 
 #include <sstream>
@@ -64,7 +63,6 @@ class detected_object_set_input_csv::priv
 public:
   priv( detected_object_set_input_csv* parent)
     : m_parent( parent )
-    , m_logger( kwiver::vital::get_logger( "detected_object_set_input_csv" ) )
     , m_first( true )
     , m_frame_number( 0 )
     , m_delim( "," )
@@ -79,7 +77,6 @@ public:
 
   // -------------------------------------
   detected_object_set_input_csv* m_parent;
-  kwiver::vital::logger_handle_t m_logger;
   bool m_first;
   int m_frame_number;
   std::string m_delim;
@@ -96,6 +93,7 @@ detected_object_set_input_csv::
 detected_object_set_input_csv()
   : d( new detected_object_set_input_csv::priv( this ) )
 {
+  attach_logger( "arrows.core.detected_object_set_input_csv" );
 }
 
 

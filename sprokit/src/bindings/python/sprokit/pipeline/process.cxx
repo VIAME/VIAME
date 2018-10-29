@@ -50,7 +50,7 @@ PYBIND11_MAKE_OPAQUE(string_set)
 
 using namespace pybind11;
 
-// Publicist class to access protected methods 
+// Publicist class to access protected methods
 class wrap_process
   : public sprokit::process
 {
@@ -62,7 +62,7 @@ class wrap_process
     using process::_reset;
     using process::_flush;
     using process::_step;
-    using process::_reconfigure; 
+    using process::_reconfigure;
     using process::_properties;
     using process::_input_ports;
     using process::_output_ports;
@@ -146,7 +146,7 @@ void declare_configuration_key_4(sprokit::process &self,
                                  kwiver::vital::config_block_description_t const& description_,
                                  bool tunable_);
 
-wrap_edge_datum peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, unsigned int idx);
+wrap_edge_datum peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, std::size_t idx);
 wrap_edge_datum grab_from_port(sprokit::process &self, sprokit::process::port_t const& port);
 sprokit::datum grab_datum_from_port(sprokit::process &self, sprokit::process::port_t const& port);
 object grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port);
@@ -775,7 +775,7 @@ declare_configuration_key_4(sprokit::process &self,
 }
 
 wrap_edge_datum
-peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, unsigned int idx)
+peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, std::size_t idx)
 {
   sprokit::process* self_ptr = &self;
   return wrap_edge_datum(((wrap_process*) self_ptr)->peek_at_port(port, idx));

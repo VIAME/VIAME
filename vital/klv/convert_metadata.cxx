@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,7 @@ void convert_metadata
     if ( ! klv_0601_checksum( klv ) )
     {
       // serious error
-      throw metadata_exception( "checksum error on 0601 packet");
+      VITAL_THROW( metadata_exception, "checksum error on 0601 packet");
     }
 
     klv_lds_vector_t lds = parse_klv_lds( klv );

@@ -57,6 +57,11 @@ namespace vital {
  * double precision interface.  The templated derived class
  * can store values in either single or double precision.
  */
+
+class feature;
+/// Shared pointer for base feature type
+typedef std::shared_ptr< feature > feature_sptr;
+
 class feature
 {
 public:
@@ -79,6 +84,8 @@ public:
   /// Accessor for the RGB color
   virtual rgb_color color() const = 0;
 
+  virtual feature_sptr clone() const = 0;
+
   /// Equality operator
   bool operator==( feature const& other ) const
   {
@@ -97,9 +104,6 @@ public:
     return ! operator==(other);
   }
 };
-
-/// Shared pointer for base feature type
-typedef std::shared_ptr< feature > feature_sptr;
 
 /// output stream operator for base class feature
 /**
@@ -197,6 +201,8 @@ public:
   {
     archive( loc_, magnitude_, scale_, angle_, covar_, color_ );
   }
+
+  feature_sptr clone() const;
 
 protected:
   /// location of feature

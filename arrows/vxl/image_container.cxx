@@ -91,6 +91,10 @@ image_container
     { \
       typedef vil_pixel_format_type_of<F >::component_type pix_t; \
       vil_image_view<pix_t> img(data_); \
+      if( !img.memory_chunk() ) \
+      { \
+        return 0; \
+      } \
       return img.memory_chunk()->size(); \
     }
     CONVERT_CASE( VIL_PIXEL_FORMAT_BYTE)

@@ -85,8 +85,8 @@ TEST(estimate_fundamental_matrix, ideal_points)
   const frame_id_t frame2 = 10;
 
   camera_map::map_camera_t cams = cameras->cameras();
-  camera_sptr cam1 = cams[frame1];
-  camera_sptr cam2 = cams[frame2];
+  auto cam1 = std::dynamic_pointer_cast<camera_perspective>(cams[frame1]);
+  auto cam2 = std::dynamic_pointer_cast<camera_perspective>(cams[frame2]);
   camera_intrinsics_sptr cal1 = cam1->intrinsics();
   camera_intrinsics_sptr cal2 = cam2->intrinsics();
 
@@ -147,8 +147,8 @@ TEST(estimate_fundamental_matrix, noisy_points)
   const frame_id_t frame2 = 10;
 
   camera_map::map_camera_t cams = cameras->cameras();
-  camera_sptr cam1 = cams[frame1];
-  camera_sptr cam2 = cams[frame2];
+  auto cam1 = std::dynamic_pointer_cast<camera_perspective>(cams[frame1]);
+  auto cam2 = std::dynamic_pointer_cast<camera_perspective>(cams[frame2]);
   camera_intrinsics_sptr cal1 = cam1->intrinsics();
   camera_intrinsics_sptr cal2 = cam2->intrinsics();
 
@@ -207,8 +207,8 @@ TEST(estimate_fundamental_matrix, outlier_points)
   const frame_id_t frame2 = 10;
 
   camera_map::map_camera_t cams = cameras->cameras();
-  camera_sptr cam1 = cams[frame1];
-  camera_sptr cam2 = cams[frame2];
+  auto cam1 = std::dynamic_pointer_cast<camera_perspective>(cams[frame1]);
+  auto cam2 = std::dynamic_pointer_cast<camera_perspective>(cams[frame2]);
   camera_intrinsics_sptr cal1 = cam1->intrinsics();
   camera_intrinsics_sptr cal2 = cam2->intrinsics();
 

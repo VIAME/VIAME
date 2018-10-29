@@ -37,6 +37,7 @@ Test Python interface to vital::image
 import nose.tools
 
 from vital.types import Image
+import numpy as np
 
 
 class TestVitalImage (object):
@@ -92,3 +93,85 @@ class TestVitalImage (object):
         val1 = img[0,0]
         val2 = img[0,0,0]
         nose.tools.assert_equal(val1, val2)
+
+    def test_numpy_conversion(self):
+        # TODO: do pytest parametarize once we move to pytest
+        dtype_names = ['bool',
+                       'int8', 'int16', 'int32',
+                       'uint8', 'uint16', 'uint32',
+                       # 'float16',  # currently not supported
+                       'float32',
+                       'float64']
+
+        def _test_numpy(dtype_name, nchannels, order='c'):
+            if nchannels is None:
+                shape = (5, 4)
+            else:
+                shape = (5, 4, nchannels)
+            size = np.prod(shape)
+
+            dtype = np.dtype(dtype_name)
+
+            if dtype_name == 'bool':
+                np_img = np.zeros(size, dtype=dtype).reshape(shape)
+                np_img[0::2] = 1
+            else:
+                np_img = np.arange(size, dtype=dtype).reshape(shape)
+
+            if order.startswith('c'):
+                np_img = np.ascontiguousarray(np_img)
+            elif order.startswith('fortran'):
+                np_img = np.asfortranarray(np_img)
+            else:
+                raise KeyError(order)
+            if order.endswith('-reverse'):
+                np_img = np_img[::-1, ::-1]
+
+            vital_img = Image(np_img)
+            recast = vital_img.asarray()
+
+            if nchannels is None:
+                # asarray always returns 3 channels
+                np_img = np_img[..., None]
+
+            pixel_type_name = vital_img.pixel_type_name()
+
+            if dtype_name == 'float16':
+                want = 'float16'
+            if dtype_name == 'float32':
+                want = 'float'
+            elif dtype_name == 'float64':
+                want = 'double'
+            else:
+                want = dtype_name
+
+            assert pixel_type_name == want, 'want={} but got={}'.format(
+                want, pixel_type_name)
+
+            if not np.all(np_img == recast):
+                raise AssertionError(
+                    'Failed dtype={}, nchannels={}, order={}'.format(
+                        dtype_name, nchannels, order))
+
+        n_pass = 0
+        for order in ['c', 'fortran', 'c-reverse', 'fortran-reverse']:
+            for nchannels in [None, 1, 3, 4]:
+                for dtype_name in dtype_names:
+                    _test_numpy(dtype_name, nchannels)
+                    n_pass += 1
+        # print('n_pass = {!r}'.format(n_pass))
+        # vital_img = Image(np.asfortranarray(np_img))
+        # assert vital_img.pixel_type_name() == 'float'
+
+    def test_numpy_share_memory(self):
+        # TODO: do pytest parametarize once we move to pytest
+
+        np_img = np.arange(4 * 5 * 3, dtype=np.uint8).reshape(4, 5, 3)
+        vital_img = Image(np_img)
+
+        assert np.all(np_img == vital_img.asarray()), (
+            'must be initially the same')
+
+        np_img += 1
+        assert np.all(np_img != vital_img.asarray()), (
+            'we do not share memory yet')

@@ -40,6 +40,7 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/optimize_cameras.h>
+#include <vital/types/camera_perspective.h>
 
 #include <string>
 
@@ -73,7 +74,7 @@ public:
    *                          optimization.
    */
   virtual void
-  optimize(vital::camera_sptr & camera,
+  optimize(kwiver::vital::camera_perspective_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
            kwiver::vital::metadata_vector metadata

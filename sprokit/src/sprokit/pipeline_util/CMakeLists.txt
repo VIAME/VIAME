@@ -89,7 +89,7 @@ set_source_files_properties(load_pipe.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${load_pipe_build_options}")
 
-sprokit_private_header_group(${pipeline_util_private_headers})
+kwiver_private_header_group(${pipeline_util_private_headers})
 
 kwiver_add_library(sprokit_pipeline_util
   ${pipeline_util_srcs}
@@ -103,6 +103,7 @@ target_link_libraries(sprokit_pipeline_util
             ${Boost_SYSTEM_LIBRARY}
   PRIVATE     vital_config
               vital_util
+              vital_exceptions
             ${Boost_CHRONO_LIBRARY}
             ${Boost_THREAD_LIBRARY}
             ${CMAKE_THREAD_LIBS_INIT}

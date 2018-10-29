@@ -57,6 +57,7 @@ public:
   bool opt_scheduler;
   bool opt_summary;
   bool opt_attrs;
+  bool opt_skip_relative;
 
   std::ostream* m_out_stream;
 
@@ -98,6 +99,7 @@ public:
     opt_all = false;
     opt_summary = false;
     opt_attrs = false;
+    opt_skip_relative = false;
 
     opt_attr_filter = false;
     opt_fact_filt = false;

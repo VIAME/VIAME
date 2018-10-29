@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,25 @@ class KWIVER_ALGO_CORE_EXPORT detected_object_set_output_kw18
   : public vital::algorithm_impl<detected_object_set_output_kw18, vital::algo::detected_object_set_output>
 {
 public:
+  static constexpr char const* name = "kw18";
+
+  // NOTE: Keep description in sync with detected_object_set_input_kw18
+  static constexpr char const* description =
+    "Detected object set writer using kw18 format.\n\n"
+    "  - Column(s) 1: Track-id\n"
+    "  - Column(s) 2: Track-length (number of detections)\n"
+    "  - Column(s) 3: Frame-number (-1 if not available)\n"
+    "  - Column(s) 4-5: Tracking-plane-loc(x,y) (could be same as World-loc)\n"
+    "  - Column(s) 6-7: Velocity(x,y)\n"
+    "  - Column(s) 8-9: Image-loc(x,y)\n"
+    "  - Column(s) 10-13: Img-bbox(TL_x,TL_y,BR_x,BR_y)"
+    " (location of top-left & bottom-right vertices)\n"
+    "  - Column(s) 14: Area\n"
+    "  - Column(s) 15-17: World-loc(x,y,z)"
+    " (longitude, latitude, 0 - when available)\n"
+    "  - Column(s) 18: Timesetamp (-1 if not available)\n"
+    "  - Column(s) 19: Track-confidence (-1 if not available)\n";
+
   detected_object_set_output_kw18();
   virtual ~detected_object_set_output_kw18();
 

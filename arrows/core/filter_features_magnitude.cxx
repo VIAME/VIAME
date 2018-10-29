@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
  */
 #include "filter_features_magnitude.h"
 
-#include <vital/logger/logger.h>
-
 #include <algorithm>
 
 using namespace kwiver::vital;
@@ -60,8 +58,7 @@ public:
   /// Constructor
   priv()
     : top_fraction(0.2),
-      min_features(100),
-      m_logger( vital::get_logger( "arrows.core.filter_features_magnitude" ))
+      min_features(100)
   {
   }
 
@@ -116,22 +113,26 @@ public:
 };
 
 
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 filter_features_magnitude
 ::filter_features_magnitude()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.filter_features_magnitude" );
+  d_->m_logger = logger();
 }
 
 
-/// Destructor
+// Destructor
 filter_features_magnitude
 ::~filter_features_magnitude()
 {
 }
 
 
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's \link vital::config_block configuration block \endlink
   vital::config_block_sptr
 filter_features_magnitude
 ::get_configuration() const
@@ -150,7 +151,8 @@ filter_features_magnitude
 }
 
 
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 filter_features_magnitude
 ::set_configuration(vital::config_block_sptr config)
@@ -160,7 +162,8 @@ filter_features_magnitude
 }
 
 
-/// Check that the algorithm's configuration vital::config_block is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's configuration vital::config_block is valid
 bool
 filter_features_magnitude
 ::check_configuration(vital::config_block_sptr config) const
@@ -168,7 +171,7 @@ filter_features_magnitude
   double top_fraction = config->get_value<double>("top_fraction", d_->top_fraction);
   if( top_fraction <= 0.0 || top_fraction > 1.0 )
   {
-    LOG_ERROR( d_->m_logger,
+    LOG_ERROR( logger(),
              "top_fraction parameter is " << top_fraction << ", needs to be in (0.0, 1.0].");
     return false;
   }
@@ -176,7 +179,8 @@ filter_features_magnitude
 }
 
 
-/// Filter feature set
+// ----------------------------------------------------------------------------
+// Filter feature set
 vital::feature_set_sptr
 filter_features_magnitude
 ::filter(vital::feature_set_sptr feat, std::vector<unsigned int> &indices) const

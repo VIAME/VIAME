@@ -31,7 +31,6 @@
 #include <sprokit/pipeline_util/load_pipe.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
-// #include <sprokit/pipeline_util/path.h>
 
 #include <sprokit/pipeline/process.h>
 
@@ -208,7 +207,6 @@ PYBIND11_MODULE(load, m)
 }
 
 class pipe_block_visitor
-  : public boost::static_visitor<object>
 {
   public:
     typedef enum
@@ -233,7 +231,7 @@ class pipe_block_visitor
 object
 pipe_block_config(sprokit::pipe_block const& block)
 {
-  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
+  return kwiver::vital::visit( pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
 }
 
 void
@@ -245,7 +243,7 @@ pipe_block_config_set(sprokit::pipe_block& block, sprokit::config_pipe_block con
 object
 pipe_block_process(sprokit::pipe_block const& block)
 {
-  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
+  return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
 }
 
 void
@@ -257,7 +255,7 @@ pipe_block_process_set(sprokit::pipe_block& block, sprokit::process_pipe_block c
 object
 pipe_block_connect(sprokit::pipe_block const& block)
 {
-  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
+  return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
 }
 
 void
@@ -267,7 +265,6 @@ pipe_block_connect_set(sprokit::pipe_block& block, sprokit::connect_pipe_block c
 }
 
 class cluster_subblock_visitor
-  : public boost::static_visitor<object>
 {
   public:
     typedef enum
@@ -290,7 +287,7 @@ class cluster_subblock_visitor
 object
 cluster_subblock_config(sprokit::cluster_subblock_t const& subblock)
 {
-  return boost::apply_visitor(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_CONFIG), subblock);
+  return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_CONFIG), subblock);
 }
 
 void
@@ -302,7 +299,7 @@ cluster_subblock_config_set(sprokit::cluster_subblock_t& subblock, sprokit::clus
 object
 cluster_subblock_input(sprokit::cluster_subblock_t const& subblock)
 {
-  return boost::apply_visitor(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_INPUT), subblock);
+  return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_INPUT), subblock);
 }
 
 void
@@ -314,7 +311,7 @@ cluster_subblock_input_set(sprokit::cluster_subblock_t& subblock, sprokit::clust
 object
 cluster_subblock_output(sprokit::cluster_subblock_t const& subblock)
 {
-  return boost::apply_visitor(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_OUTPUT), subblock);
+  return kwiver::vital::visit(cluster_subblock_visitor(cluster_subblock_visitor::BLOCK_OUTPUT), subblock);
 }
 
 void
@@ -326,7 +323,7 @@ cluster_subblock_output_set(sprokit::cluster_subblock_t& subblock, sprokit::clus
 object
 cluster_block_config(sprokit::cluster_block const& block)
 {
-  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
+  return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONFIG), block);
 }
 
 void
@@ -338,7 +335,7 @@ cluster_block_config_set(sprokit::cluster_block& block, sprokit::config_pipe_blo
 object
 cluster_block_process(sprokit::cluster_block const& block)
 {
-  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
+  return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_PROCESS), block);
 }
 
 void
@@ -350,7 +347,7 @@ cluster_block_process_set(sprokit::cluster_block& block, sprokit::process_pipe_b
 object
 cluster_block_connect(sprokit::cluster_block const& block)
 {
-  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
+  return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CONNECT), block);
 }
 
 void
@@ -362,7 +359,7 @@ cluster_block_connect_set(sprokit::cluster_block& block, sprokit::connect_pipe_b
 object
 cluster_block_cluster(sprokit::cluster_block const& block)
 {
-  return boost::apply_visitor(pipe_block_visitor(pipe_block_visitor::BLOCK_CLUSTER), block);
+  return kwiver::vital::visit(pipe_block_visitor(pipe_block_visitor::BLOCK_CLUSTER), block);
 }
 
 void

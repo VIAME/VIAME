@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,9 +57,8 @@ class close_loops_exhaustive::priv
 public:
   /// Constructor
   priv()
-    : match_req(100),
-      num_look_back(-1),
-      m_logger( vital::get_logger( "arrows.core.close_loops_exhaustive" ))
+    : match_req(100)
+    , num_look_back(-1)
   {
   }
 
@@ -71,9 +70,6 @@ public:
 
   /// The feature matching algorithm to use
   vital::algo::match_features_sptr matcher;
-
-  /// Logger handle
-  vital::logger_handle_t m_logger;
 };
 
 
@@ -83,6 +79,7 @@ close_loops_exhaustive
 ::close_loops_exhaustive()
 : d_(new priv)
 {
+  attach_logger( "arrows.core.close_loops_exhaustive" );
 }
 
 
@@ -207,9 +204,9 @@ close_loops_exhaustive
       }
     }
 
-    LOG_INFO(d_->m_logger, "Matching frame " << frame_number << " to " << f
-                           << " has "<< num_matched << " matches and "
-                           << num_linked << " joined tracks");
+    LOG_INFO(logger(), "Matching frame " << frame_number << " to " << f
+                       << " has "<< num_matched << " matches and "
+                       << num_linked << " joined tracks");
   }
 
   return input;

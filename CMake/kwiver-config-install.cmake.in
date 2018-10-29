@@ -11,15 +11,28 @@ if (WIN32)
   set(libdir "bin")
   add_definitions(-DBOOST_ALL_NO_LIB)
   add_definitions(-DBOOST_PROGRAM_OPTIONS_DYN_LINK)
+  if(${MSVC_VERSION} GREATER_EQUAL 1915)
+    # You must acknowledge that you understand MSVC
+    # resolved a byte alignment issue in this compiler.
+    # We get this due to using Eigen objects and
+    # allocating those objects with make_shared
+    add_definitions(-D_ENABLE_EXTENDED_ALIGNED_STORAGE)
+  endif()
 else ()
   set(libdir "lib@LIB_SUFFIX@")
 endif ()
 
 # kwiver include directory
 set(KWIVER_INCLUDE_DIR        "@CMAKE_INSTALL_PREFIX@/include")
-set(KWIVER_INCLUDE_DIRS       "${KWIVER_INCLUDE_DIR}"  "@KWIVER_INCLUDE_DIRS@" )
+set(KWIVER_INCLUDE_DIRS "${KWIVER_INCLUDE_DIR}")
+foreach(incdir @KWIVER_INCLUDE_DIRS@)
+  list(APPEND KWIVER_INCLUDE_DIRS "${incdir}")
+endforeach()
 set(KWIVER_LIBRARY_DIR        "@CMAKE_INSTALL_PREFIX@/lib@LIB_SUFFIX@")
-set(KWIVER_LIBRARY_DIRS       "${KWIVER_LIBRARY_DIR}"  "@KWIVER_LIBRARY_DIRS@")
+set(KWIVER_LIBRARY_DIRS       "${KWIVER_LIBRARY_DIR}")
+foreach(libdir @KWIVER_LIBRARY_DIRS@)
+  list(APPEND KWIVER_LIBRARY_DIRS "${libdir}")
+endforeach()
 set(KWIVER_MODULE_DIR         "${KWIVER_LIBRARY_DIR}/modules")
 set(KWIVER_DOCUMENTATION_DIR  "@CMAKE_INSTALL_PREFIX@/share/doc/kwiver-@KWIVER_VERSION@")
 set(KWIVER_CMAKE_DIR          "${KWIVER_LIBRARY_DIR}/cmake/kwiver")

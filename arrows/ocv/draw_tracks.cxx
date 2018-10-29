@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 
 #include "draw_tracks.h"
 
-#include <vital/logger/logger.h>
 #include <vital/exceptions/io.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/util/string.h>
@@ -366,7 +365,7 @@ draw_tracks
     bool write_image_to_disk = d->write_images_to_disk;
 
     // Clone a copy of the current image (so we don't modify the original input).
-    cv::Mat img = ocv::image_container::vital_to_ocv( ctr_sptr->get_image() ).clone();
+    cv::Mat img = ocv::image_container::vital_to_ocv( ctr_sptr->get_image(), ocv::image_container::BGR_COLOR ).clone();
 
     // Convert to 3 channel image if not one already
     if( img.channels() == 1 )
@@ -532,9 +531,9 @@ draw_tracks
       {
         if( ! ST::MakeDirectory( parent_dir ) )
         {
-          throw file_write_exception(parent_dir, "Attempted directory creation, "
-                                                 "but no directory created! No "
-                                                 "idea what happened here...");
+          VITAL_THROW( file_write_exception,parent_dir,
+                       "Attempted directory creation, but no directory created! "
+                       "No idea what happened here...");
         }
       }
       cv::imwrite( ofn.c_str(), output_image );
@@ -556,7 +555,7 @@ draw_tracks
   d->cur_frame_id = fid;
 
   // Return the last generated image
-  return image_container_sptr( new ocv::image_container( output_image ) );
+  return image_container_sptr( new ocv::image_container( output_image, ocv::image_container::BGR_COLOR) );
 }
 
 } // end namespace ocv

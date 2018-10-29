@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PIPELINE_UTILS_H
-#define SPROKIT_PIPELINE_UTILS_H
-
-#include <sprokit/pipeline/sprokit_pipeline_export.h>
-
-#include <boost/optional.hpp>
-
-#include <string>
-#include <typeinfo>
-
 /**
  * \file utils.h
  *
  * \brief Common utilities when dealing with pipelines.
  */
 
-namespace sprokit
-{
+#ifndef SPROKIT_PIPELINE_UTILS_H
+#define SPROKIT_PIPELINE_UTILS_H
+
+#include <sprokit/pipeline/sprokit_pipeline_export.h>
+
+#include <string>
+#include <typeinfo>
+
+namespace sprokit {
 
 /// The type for the name of a thread.
 typedef std::string thread_name_t;
-
-/// The type for an environment variable name.
-typedef std::string envvar_name_t;
-/// The type of an environment variable value.
-typedef boost::optional<std::string> envvar_value_t;
 
 /**
  * \brief Name the thread that the function was called from.
@@ -70,16 +62,6 @@ typedef boost::optional<std::string> envvar_value_t;
  * \returns True if the name was successfully set, false otherwise.
  */
 SPROKIT_PIPELINE_EXPORT bool name_thread(thread_name_t const& name);
-
-/**
- * \brief Retrieve the value of an environment variable.
- *
- * \param name The variable to retrieve from the environement.
- *
- * \returns The value of the environment variable, \c NULL if it was not set.
- */
-SPROKIT_PIPELINE_EXPORT envvar_value_t get_envvar(envvar_name_t const& name);
-
 
 } // end namespace
 

@@ -15,6 +15,7 @@ set(KWSYS_USE_RegularExpression    1)
 set(KWSYS_USE_SystemInformation    1)
 set(KWSYS_USE_Directory            1)
 set(KWSYS_USE_CommandLineArguments 1)
+set(KWSYS_USE_MD5 1)
 
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_INCLUDE_DIR  "include")
@@ -66,18 +67,11 @@ set( vital_public_headers
   any.h
   algorithm_capabilities.h
   attribute_set.h
-  iterator.h
-
   exceptions.h
-  exceptions/algorithm.h
-  exceptions/base.h
-  exceptions/image.h
-  exceptions/io.h
-  exceptions/math.h
-  exceptions/metadata.h
-  exceptions/video.h
-  exceptions/plugin.h
+  iterator.h
+  optional.h
 
+  io/camera_from_metadata.h
   io/camera_io.h
   io/camera_map_io.h
   io/eigen_io.h
@@ -89,6 +83,8 @@ set( vital_public_headers
   types/bounding_box.h
   types/camera.h
   types/camera_intrinsics.h
+  types/camera_perspective.h
+  types/camera_rpc.h
   types/camera_map.h
   types/category_hierarchy.h
   types/color.h
@@ -147,15 +143,7 @@ set( vital_sources
   algorithm_capabilities.cxx
   attribute_set.cxx
 
-  exceptions/algorithm.cxx
-  exceptions/base.cxx
-  exceptions/image.cxx
-  exceptions/io.cxx
-  exceptions/math.cxx
-  exceptions/metadata.cxx
-  exceptions/video.cxx
-  exceptions/plugin.cxx
-
+  io/camera_from_metadata.cxx
   io/camera_io.cxx
   io/camera_map_io.cxx
   io/landmark_map_io.cxx
@@ -164,8 +152,9 @@ set( vital_sources
   io/track_set_io.cxx
 
   types/bounding_box.cxx
-  types/camera.cxx
   types/camera_intrinsics.cxx
+  types/camera_perspective.cxx
+  types/camera_rpc.cxx
   types/category_hierarchy.cxx
   types/database_query.cxx
   types/descriptor_request.cxx
@@ -224,6 +213,7 @@ kwiver_add_library( vital
 target_link_libraries( vital
   PRIVATE         kwiversys
   PUBLIC          vital_config
+                  vital_exceptions
                   vital_logger
                   vital_util
   )
@@ -250,11 +240,11 @@ endif()
 # Build a default set of plugin path dirs
 # Provide that list as the default value for the path option.
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} modules )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
 set( vital_default_module_path ${kwiver_module_path_result} )
 
 if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} modules )
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
   set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
 endif()
 
@@ -289,8 +279,10 @@ configure_file(
 
 ###
 #
+add_subdirectory( exceptions )
 add_subdirectory( algo )
 add_subdirectory( util )
+add_subdirectory( range )
 add_subdirectory( bindings )
 add_subdirectory( config )
 add_subdirectory( klv )
@@ -299,6 +291,10 @@ add_subdirectory( plugin_loader )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )
+endif()
+
+if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
+  add_subdirectory( types/protobuf )
 endif()
 
 ###

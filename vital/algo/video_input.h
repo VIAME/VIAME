@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_map.h>
 #include <vital/types/timestamp.h>
 
 #include <string>
@@ -113,6 +114,9 @@ namespace algo {
  * HAS_TIMEOUT - This capability is set if the implementation supports the
  *     timeout parameter on the next_frame() method.
  *
+ * IS_SEEKABLE - This capability is set if the video source can seek to a
+ *      specific frame.
+ *
  * All implementations \b must support the basic traits, in that they
  * are registered with a \b true or \b false value. Additional
  * implementation specific (extended) traits may be added. The
@@ -137,9 +141,11 @@ public:
   static const algorithm_capabilities::capability_name_t HAS_FRAME_NUMBERS;
   static const algorithm_capabilities::capability_name_t HAS_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_FRAME_DATA;
+  static const algorithm_capabilities::capability_name_t HAS_FRAME_RATE;
   static const algorithm_capabilities::capability_name_t HAS_ABSOLUTE_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_METADATA;
   static const algorithm_capabilities::capability_name_t HAS_TIMEOUT;
+  static const algorithm_capabilities::capability_name_t IS_SEEKABLE;
 
   virtual ~video_input();
 
@@ -204,6 +210,26 @@ public:
    */
   virtual bool good() const = 0; // like io stream API
 
+  /**
+   * \brief Return whether video stream is seekable.
+   *
+   * This method returns whether the video stream is seekable.
+   *
+   * \return \b true if video stream is seekable, \b false otherwise.
+   */
+  virtual bool seekable() const = 0;
+
+  /**
+   * \brief Get the number of frames in the video stream.
+   *
+   * Get the number of frames available in the video stream.
+   *
+   * \return the number of frames in the video stream, or 0 if the video stream
+   * is not seekable.
+   *
+   * \throws video_stream_exception when there is an error in the video stream.
+   */
+  virtual size_t num_frames() const = 0;
 
   /**
    * \brief Advance to next frame in video stream.
@@ -235,6 +261,55 @@ public:
    */
   virtual bool next_frame( kwiver::vital::timestamp& ts,
                            uint32_t timeout = 0 ) = 0;
+
+  /**
+   * \brief Seek to the given frame number in video stream.
+   *
+   * This method seeks the video stream to the requested frame, making
+   * the image and metadata available. The returned timestamp is for
+   * new current frame.
+   *
+   * The timestamp returned may be missing the time.
+   *
+   * Calling this method will make a new image and metadata packets
+   * available. They can be retrieved by calling frame_image() and
+   * frame_metadata().
+   *
+   * Check the HAS_TIMEOUT capability from the concrete implementation to
+   * see if the timeout feature is supported.
+   *
+   * If the frame requested does not exist, then calling this method
+   * will return \b false.
+   *
+   * If the video input is not seekable then calling this method will return
+   * \b false.
+   *
+   * \param[out] ts Time stamp of new frame.
+   * \param[in] frame_number The frame to seek to.
+   * \param[in] timeout Number of seconds to wait. 0 = no timeout.
+   *
+   * \return \b true if frame returned, \b false if end of video.
+   *
+   * \throws video_input_timeout_exception when the timeout expires.
+   * \throws video_stream_exception when there is an error in the video stream.
+   */
+  virtual bool seek_frame( kwiver::vital::timestamp& ts,
+                           kwiver::vital::timestamp::frame_t frame_number,
+                           uint32_t timeout = 0 ) = 0;
+
+  /**
+   * \brief Obtain the time stamp of the current frame.
+   *
+   * This method returns the time stamp of the current frame, if any, or an
+   * invalid time stamp. The returned time stamp shall have the same value
+   * as was set by the most recent call to \c next_frame().
+   *
+   * This method is idempotent. Calling it multiple times without
+   * calling next_frame() will return the same time stamp.
+   *
+   * \return The time stamp of the current frame.
+   */
+  virtual kwiver::vital::timestamp frame_timestamp( ) const = 0;
 
 
   /**
@@ -286,6 +361,36 @@ public:
    * \throws video_stream_exception when there is an error in the video stream.
    */
   virtual kwiver::vital::metadata_vector frame_metadata() = 0;
+
+
+  /**
+   * \brief Get metadata map for video.
+   *
+   * This method returns a metadata map for the video assuming the video is
+   * seekable. If the video is not seekable it will return an empty map.
+   * Depending on the implementation if the metamap has not been previously
+   * requested then the video will have to loop over to create and store the
+   * metadata map.
+   *
+   * In video streams without metadata (as determined by the stream
+   * capability), this method will return an empty map, indicating no
+   * metadata has been found.
+   *
+   * @return Map of vectors of metadata pointers.
+   *
+   * \throws video_stream_exception when there is an error in the video stream.
+   */
+  virtual kwiver::vital::metadata_map_sptr metadata_map() = 0;
+
+
+  /**
+   * \brief Get frame rate from the video.
+   *
+   * If frame rate is not supported, return -1.
+   *
+   * \return Frame rate.
+   */
+  virtual double frame_rate();
 
 
   /**

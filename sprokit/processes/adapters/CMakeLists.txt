@@ -64,7 +64,7 @@ set( proc_sources
 ###
 # make processes plugin
 kwiver_add_plugin( kwiver_processes_adapter
-  SUBDIR          sprokit
+  SUBDIR          ${kwiver_plugin_process_subdir}
   SOURCES         ${proc_sources}
   PRIVATE         kwiver_adapter sprokit_pipeline
                   vital_config

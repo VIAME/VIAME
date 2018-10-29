@@ -71,8 +71,7 @@ vital_trackset_new( size_t length, vital_track_t **tracks,
       track_vec.push_back( vital_c::TRACK_SPTR_CACHE.get( tracks[i] ) );
     }
 
-    kwiver::vital::track_set_sptr ts_sptr( new kwiver::vital::track_set( track_vec )
-                                         );
+    auto ts_sptr = std::make_shared<kwiver::vital::track_set>( track_vec );
 
     kwiver::vital_c::TRACK_SET_SPTR_CACHE.store( ts_sptr );
     return reinterpret_cast< vital_trackset_t* > ( ts_sptr.get() );

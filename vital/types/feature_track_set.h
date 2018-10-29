@@ -51,6 +51,8 @@
 namespace kwiver {
 namespace vital {
 
+class feature_track_state;
+typedef std::shared_ptr<feature_track_state> feature_track_state_sptr;
 
 /// A derived track_state for feature tracks
 class VITAL_EXPORT feature_track_state : public track_state
@@ -68,13 +70,41 @@ public:
   /// Clone the track state (polymorphic copy constructor)
   virtual track_state_sptr clone() const
   {
-    return std::make_shared<feature_track_state>( *this );
+    return std::make_shared<feature_track_state>(*this);
   }
 
   feature_sptr feature;
   descriptor_sptr descriptor;
 };
 
+
+
+class feature_track_set_frame_data;
+typedef std::shared_ptr<feature_track_set_frame_data> feature_track_set_frame_data_sptr;
+
+/// A derived track_state_frame_data for feature tracks
+class VITAL_EXPORT feature_track_set_frame_data
+ : public track_set_frame_data
+{
+public:
+  // Dynamic copy constructor
+  virtual track_set_frame_data_sptr clone() const
+  {
+    return std::make_shared<feature_track_set_frame_data>(*this);
+  }
+
+  bool is_keyframe;
+};
+
+
+class feature_info {
+public:
+  feature_set_sptr features;
+  descriptor_set_sptr descriptors;
+  std::vector<track_sptr> corresponding_tracks;
+};
+
+typedef std::shared_ptr< feature_info> feature_info_sptr;
 
 class feature_track_set;
 /// Shared pointer for feature_track_set type
@@ -101,6 +131,11 @@ public:
 
   /// Destructor
   virtual ~feature_track_set() = default;
+
+  /**
+  * \note returns a deep copy of the feature_track_set
+  */
+  virtual track_set_sptr clone() const;
 
   /// Return the set of features in tracks on the last frame
   virtual feature_set_sptr last_frame_features() const;
@@ -131,6 +166,29 @@ public:
    * \returns a descriptor_set_sptr for all features on the give frame.
    */
   virtual descriptor_set_sptr frame_descriptors( frame_id_t offset = -1 ) const;
+
+  /// Return a map of all feature_track_set_frame_data
+  /**
+   * This function is similar to \c all_frame_data() except that it checks
+   * the type of the frame data and dynamically casts it to the specialized
+   * frame data for feature_track_set.  Any frame data of a different type
+   * is not included in this ouput.
+   */
+  virtual std::map<frame_id_t, feature_track_set_frame_data_sptr>
+    all_feature_frame_data() const;
+
+  /// Return the set of all keyframes in the track set
+  /**
+   * Keyframes are designated as frames which have an associated
+   * feature_track_set_frame_data marked with is_keyframe == true
+   */
+  virtual std::set<frame_id_t> keyframes() const;
+
+  virtual feature_info_sptr frame_feature_info(frame_id_t offset = -1,
+    bool only_features_with_descriptors = true) const;
+
+  /// Return the additional data associated with all feature tracks on the given frame
+  feature_track_set_frame_data_sptr feature_frame_data(frame_id_t offset = -1) const;
 
 };
 

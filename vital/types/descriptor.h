@@ -50,6 +50,10 @@ namespace vital {
 /// Convenience typedef for a byte
 typedef unsigned char byte;
 
+/// Shared pointer for base descriptor type
+class descriptor;
+typedef std::shared_ptr< descriptor > descriptor_sptr;
+
 // ------------------------------------------------------------------
 /// A representation of a feature descriptor used in matching.
 class descriptor
@@ -57,6 +61,8 @@ class descriptor
 public:
   /// Destructor
   virtual ~descriptor() = default;
+
+  virtual descriptor_sptr clone() const = 0;
 
   /// Access the type info of the underlying data (double or float)
   virtual std::type_info const& data_type() const = 0;
@@ -101,9 +107,6 @@ public:
   }
 };
 
-/// Shared pointer for base descriptor type
-typedef std::shared_ptr< descriptor > descriptor_sptr;
-
 
 // ------------------------------------------------------------------
 /// Abstract base class of a descriptor containing an array of type T
@@ -130,10 +133,10 @@ public:
   /// Return the descriptor as a vector of doubles
   std::vector< double > as_double() const
   {
-    const size_t length = this->size();
+    const std::size_t length = this->size();
     std::vector< double > double_data( length );
 
-    for ( size_t i = 0; i < length; ++i )
+    for ( std::size_t i = 0; i < length; ++i )
     {
       double_data[i] = static_cast< double > ( this->raw_data()[i] );
     }
@@ -192,6 +195,12 @@ public:
   /// Return an pointer to the raw data array
   const T* raw_data() const { return data_; }
 
+  virtual descriptor_sptr clone() const
+  {
+    auto new_desc = std::make_shared<descriptor_fixed<T, N>>();
+    memcpy(&new_desc->data_, &data_, N*sizeof(T));
+    return new_desc;
+  }
 
 protected:
   /// data array
@@ -230,6 +239,12 @@ public:
   /// Return an pointer to the raw data array
   const T* raw_data() const { return data_; }
 
+  virtual  descriptor_sptr clone() const
+  {
+    auto ptr = std::make_shared<descriptor_dynamic<T>>(length_);
+    memcpy(ptr->data_, data_, length_ * sizeof(T));
+    return ptr;
+  }
 
 protected:
   /// data array

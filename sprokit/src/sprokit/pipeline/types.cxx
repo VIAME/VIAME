@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011, 2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,26 +36,18 @@
  * \brief Implementation of base type logic.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 pipeline_exception
 ::pipeline_exception() noexcept
-  : std::exception()
-  , m_what()
+: kwiver::vital::vital_exception()
 {
 }
+
 
 pipeline_exception
 ::~pipeline_exception() noexcept
 {
-}
-
-char const*
-pipeline_exception
-::what() const noexcept
-{
-  return m_what.c_str();
 }
 
 }

@@ -38,6 +38,7 @@
 
 #include <vital/vital_export.h>
 
+#include <string>
 #include <vector>
 #include <map>
 #include <memory>
@@ -234,6 +235,11 @@ private:
 
     std::vector< category* > parents;
     std::vector< category* > children;
+
+    category()
+     : category_name(""),
+       category_id(-1)
+    {}
   };
 
   using category_sptr = std::shared_ptr< category >;

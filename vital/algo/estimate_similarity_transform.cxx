@@ -51,7 +51,7 @@ namespace algo {
 estimate_similarity_transform
 ::estimate_similarity_transform()
 {
-  attach_logger( "estimate_similarity_transform" );
+  attach_logger( "algo.estimate_similarity_transform" );
 }
 
 
@@ -59,16 +59,16 @@ estimate_similarity_transform
 /// Estimate the similarity transform between two corresponding sets of cameras
 similarity_d
 estimate_similarity_transform
-::estimate_transform(std::vector<camera_sptr> const& from,
-                     std::vector<camera_sptr> const& to) const
+::estimate_transform(std::vector<camera_perspective_sptr> const& from,
+                     std::vector<camera_perspective_sptr> const& to) const
 {
   std::vector<vector_3d> from_pts, to_pts;
-  for( camera_sptr c : from)
+  for( camera_perspective_sptr c : from)
   {
     from_pts.push_back(c->center());
   }
 
-  for(camera_sptr c : to)
+  for(camera_perspective_sptr c : to)
   {
     to_pts.push_back(c->center());
   }
@@ -157,8 +157,35 @@ estimate_similarity_transform
   std::vector<vector_3d> from_pts, to_pts;
   camera_map::map_camera_t from_map = from->cameras(),
                            to_map = to->cameras();
-  map_to_pts< camera_map::map_camera_t, &camera::center >
-    (from_map, to_map, from_pts, to_pts);
+
+  auto from_it = from_map.begin();
+  auto to_it = to_map.begin();
+
+  // STL map structure's stored data is ordered (binary search tree impl
+  // O(from.size + to.size)
+  while (from_it != from_map.end() && to_it != to_map.end())
+  {
+    // increment the lesser of the two when the frame IDs don't match
+    if (from_it->first > to_it->first)
+    {
+      ++to_it;
+    }
+    else if (from_it->first < to_it->first)
+    {
+      ++from_it;
+    }
+    else // equal
+    {
+      auto from_cam_ptr =
+        std::dynamic_pointer_cast<camera_perspective>(from_it->second);
+      auto to_cam_ptr =
+        std::dynamic_pointer_cast<camera_perspective>(to_it->second);
+      from_pts.push_back( from_cam_ptr->center() );
+      to_pts.push_back( to_cam_ptr->center() );
+      ++from_it; ++to_it;
+    }
+  }
+
   return this->estimate_transform(from_pts, to_pts);
 }
 

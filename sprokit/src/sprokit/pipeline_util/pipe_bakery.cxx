@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,10 @@ bake_pipe_blocks( pipe_blocks const& blocks )
   pipe_bakery bakery;
 
   // apply main visitor to collect
-  std::for_each( blocks.begin(), blocks.end(), boost::apply_visitor( bakery ) );
+  for ( auto b : blocks )
+  {
+    kwiver::vital::visit( bakery, b );
+  }
 
   bakery_base::config_decls_t& configs = bakery.m_configs;
 
@@ -167,18 +170,21 @@ bake_cluster_blocks( cluster_blocks const& blocks )
 {
   cluster_bakery bakery;
 
-  std::for_each( blocks.begin(), blocks.end(), boost::apply_visitor( bakery ) );
+  for ( auto b : blocks )
+  {
+    kwiver::vital::visit( bakery, b );
+  }
 
   if ( bakery.m_processes.empty() )
   {
-    throw cluster_without_processes_exception();
+    VITAL_THROW( cluster_without_processes_exception );
   }
 
   cluster_bakery::opt_cluster_component_info_t const& opt_cluster = bakery.m_cluster;
 
   if ( ! opt_cluster )
   {
-    throw missing_cluster_block_exception();
+    VITAL_THROW( missing_cluster_block_exception );
   }
 
   cluster_bakery::cluster_component_info_t const& cluster = *opt_cluster;
@@ -186,7 +192,7 @@ bake_cluster_blocks( cluster_blocks const& blocks )
   if ( cluster.m_inputs.empty() &&
        cluster.m_outputs.empty() )
   {
-    throw cluster_without_ports_exception();
+    VITAL_THROW( cluster_without_ports_exception );
   }
 
   process::type_t const& type = bakery.m_type;
@@ -205,7 +211,10 @@ extract_configuration( pipe_blocks const& blocks )
 {
   pipe_bakery bakery;
 
-  std::for_each( blocks.begin(), blocks.end(), boost::apply_visitor( bakery ) );
+  for (auto b : blocks )
+  {
+    kwiver::vital::visit( bakery, b );
+  }
 
   bakery_base::config_decls_t& configs = bakery.m_configs;
 
