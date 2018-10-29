@@ -44,7 +44,7 @@ namespace algo {
 bundle_adjust
 ::bundle_adjust()
 {
-  attach_logger( "bundle_adjust" );
+  attach_logger( "algo.bundle_adjust" );
 }
 
 /// Set a callback function to report intermediate progress

@@ -36,6 +36,7 @@ target_link_libraries( track_oracle_format_base
   PUBLIC              track_oracle
                       vul
   PRIVATE             vital_logger
+                      kwiversys
                       ${TinyXML_LIBRARY}
 )
 set_target_properties( track_oracle_format_base PROPERTIES CXX_VISIBILITY_PRESET default)
@@ -133,7 +134,6 @@ target_link_libraries( track_oracle_file_formats
                        ${TRACK_ORACLE_APIX_LIBRARY}
                        ${TRACK_KPF_LIBRARIES}
                        track_noaa_csv
-  PRIVATE              ${Boost_THREAD_LIBRARY}
-                       vital
+  PRIVATE              vital
                        vul
 )

@@ -91,7 +91,8 @@ public:
   /**
    * \param message     Description of circumstances surrounding error.
    */
-  image_type_mismatch_exception(std::string message) noexcept;
+
+  image_type_mismatch_exception( const std::string& message) noexcept;
   /// Destructor
   virtual ~image_type_mismatch_exception() noexcept;
 
@@ -117,7 +118,7 @@ public:
    * \param given_w     Actual image width
    * \param given_h     Actual image height
    */
-  image_size_mismatch_exception(std::string message,
+  image_size_mismatch_exception( const std::string& message,
                                 size_t correct_w, size_t correct_h,
                                 size_t given_w, size_t given_h) noexcept;
   /// Destructor

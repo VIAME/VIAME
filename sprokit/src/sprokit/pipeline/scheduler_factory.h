@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,16 +42,14 @@
 
 #include <sprokit/pipeline/scheduler.h>
 
-#include <boost/make_shared.hpp>
-
 #include <functional>
 #include <memory>
 
 namespace sprokit {
 
 // returns: scheduler_t - shared_ptr<scheduler>
-  typedef std::function< scheduler_t( pipeline_t const& pipe,
-                                      kwiver::vital::config_block_sptr const& config ) > scheduler_factory_func_t;
+typedef std::function< scheduler_t( pipeline_t const& pipe,
+        kwiver::vital::config_block_sptr const& config ) > scheduler_factory_func_t;
 
 // ------------------------------------------------------------------
 /**

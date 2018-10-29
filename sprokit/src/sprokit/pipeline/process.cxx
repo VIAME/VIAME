@@ -35,15 +35,13 @@
 #include "stamp.h"
 
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/util/string.h>
+#include <vital/optional.h>
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/optional.hpp>
-#include <boost/make_shared.hpp>
 
 #include <map>
 #include <utility>
@@ -191,14 +189,14 @@ class process::priv
 
     typedef port_t tag_t;
 
-    typedef boost::optional<port_type_t> flow_tag_port_type_t;
+    typedef kwiver::vital::optional<port_type_t> flow_tag_port_type_t;
     typedef std::map<tag_t, flow_tag_port_type_t> flow_tag_port_type_map_t;
 
     typedef std::map<tag_t, ports_t> flow_tag_port_map_t;
 
     typedef std::map<port_t, tag_t> port_tag_map_t;
 
-    typedef boost::optional<port_frequency_t> core_frequency_t;
+    typedef kwiver::vital::optional<port_frequency_t> core_frequency_t;
 
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
     void check_tag(tag_t const& tag);
@@ -816,7 +814,7 @@ process
   }
 
   bool const is_data_dependent = (old_type == type_data_dependent);
-  bool const is_flow_dependent = boost::starts_with(old_type, type_flow_dependent);
+  bool const is_flow_dependent = kwiver::vital::starts_with(old_type, type_flow_dependent);
   bool const is_any = (old_type == type_any);
 
   if (!is_data_dependent && !is_flow_dependent && !is_any)
@@ -890,7 +888,7 @@ process
   }
 
   bool const is_data_dependent = (old_type == type_data_dependent);
-  bool const is_flow_dependent = boost::starts_with(old_type, type_flow_dependent);
+  bool const is_flow_dependent = kwiver::vital::starts_with(old_type, type_flow_dependent);
   bool const is_any = (old_type == type_any);
 
   if (!is_data_dependent && !is_flow_dependent && !is_any)
@@ -1985,9 +1983,11 @@ process::priv
 /**
  * @brief Check all required ports.
  *
- * This method checks all required
+ * This method checks all *required* input ports to see if real data
+ * is present. The current 'check_input_level' is used to determine
+ * level of checking required.
  *
- * @return
+ * @return Null datum_t if data is on the *required* input ports.
  */
 datum_t
 process::priv
@@ -2238,7 +2238,7 @@ process::priv::tag_t
 process::priv
 ::port_flow_tag_name(port_type_t const& port_type) const
 {
-  if (boost::starts_with(port_type, type_flow_dependent))
+  if (kwiver::vital::starts_with(port_type, type_flow_dependent))
   {
     return port_type.substr(type_flow_dependent.size());
   }
@@ -2344,4 +2344,4 @@ process::priv::output_port_info_t
 {
 }
 
-} // end namespace
+} // end name space

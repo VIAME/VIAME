@@ -100,14 +100,14 @@ public:
 
   // Configuration values
   std::string m_config_image_list_filename;
-  kwiver::vital::time_us_t m_config_frame_time;
+  kwiver::vital::time_usec_t m_config_frame_time;
   std::vector< std::string > m_config_path;
 
   // process local data
   std::vector < kwiver::vital::path_t > m_files;
   std::vector < kwiver::vital::path_t >::const_iterator m_current_file;
   kwiver::vital::frame_id_t m_frame_number;
-  kwiver::vital::time_us_t m_frame_time;
+  kwiver::vital::time_usec_t m_frame_time;
   bool m_zero_based_id;
   bool m_no_path_in_name;
   bool m_disable_file_load;

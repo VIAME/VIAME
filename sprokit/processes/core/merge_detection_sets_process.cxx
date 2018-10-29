@@ -43,6 +43,9 @@ create_port_trait( detected_object_set1, detected_object_set,
 create_port_trait( detected_object_set2, detected_object_set,
    "A second detected object set");
 
+create_port_trait( detected_object_set_out, detected_object_set,
+   "A detected object set to output");
+
 merge_detection_sets_process
 ::merge_detection_sets_process( vital::config_block_sptr const& config )
   : process( config )
@@ -75,7 +78,7 @@ merge_detection_sets_process
   set_out->add(set1);
   set_out->add(set2);
 
-  push_to_port_using_trait(detected_object_set, set_out);
+  push_to_port_using_trait(detected_object_set_out, set_out);
 }
 
 void
@@ -92,7 +95,7 @@ merge_detection_sets_process
   declare_input_port_using_trait(detected_object_set2, optional);
 
   // -- output --
-  declare_output_port_using_trait(detected_object_set, required);
+  declare_output_port_using_trait(detected_object_set_out, required);
 }
 
 void

@@ -41,7 +41,7 @@ namespace algo {
 handle_descriptor_request
 ::handle_descriptor_request()
 {
-  attach_logger( "handle_descriptor_request" );
+  attach_logger( "algo.handle_descriptor_request" );
 }
 
 

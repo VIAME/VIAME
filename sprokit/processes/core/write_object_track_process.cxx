@@ -96,6 +96,8 @@ write_object_track_process
 void write_object_track_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
@@ -164,7 +166,11 @@ void write_object_track_process
     ts = grab_from_port_using_trait( timestamp );
   }
 
-  d->m_writer->write_set( ts, input );
+  {
+    scoped_step_instrumentation();
+
+    d->m_writer->write_set( ts, input );
+  }
 }
 
 

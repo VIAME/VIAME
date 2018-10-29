@@ -72,6 +72,7 @@ namespace vital {
   typedef std::shared_ptr< string_vector > string_vector_sptr;
   typedef std::vector< unsigned char > uchar_vector;
   typedef std::shared_ptr< uchar_vector > uchar_vector_sptr;
+  using string_sptr =  std::shared_ptr< std::string >;
 
 } }
 
@@ -85,7 +86,7 @@ namespace vital {
 create_type_trait( bounding_box, "kwiver:bounding_box", kwiver::vital::bounding_box_d );
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
 create_type_trait( gsd, "kwiver:gsd", double );
-create_type_trait( corner_points, "corner_points", kwiver::vital::geo_polygon );
+create_type_trait( corner_points, "kwiver:corner_points", kwiver::vital::geo_polygon );
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( image_set, "kwiver:image", kwiver::vital::image_container_sptr_list );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
@@ -113,6 +114,7 @@ create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector )
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 create_type_trait( frame_rate, "kwiver:frame_rate", double );
 
+create_type_trait( serialized_message, "kwiver:serialized_message", kwiver::vital::string_sptr );
 
 // ==================================================================================
 //
@@ -150,5 +152,7 @@ create_port_trait( video_file_name, file_name, "Name of a video file." );
 create_port_trait( metadata, metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
 create_port_trait( frame_rate, frame_rate, "Video frame rate." );
+
+create_port_trait( serialized_message, serialized_message, "serialized data type" );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

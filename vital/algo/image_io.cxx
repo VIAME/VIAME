@@ -53,7 +53,7 @@ namespace algo {
 image_io
 ::image_io()
 {
-  attach_logger( "image_io" );
+  attach_logger( "algo.image_io" );
 }
 
 

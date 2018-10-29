@@ -146,7 +146,15 @@ class KwiverProcess(process.PythonProcess):
         # If there is no converter in sprokit and a conversion function is not
         # specified as part of the trait, fire will rain from above.
         #
-        self.add_type_trait("timestamp", "kwiver:timestamp")
+        self.add_type_trait("bounding_box", "kwiver:bounding_box",
+                            datum.Datum.get_bounding_box,
+                            datum.new_bounding_box)
+        self.add_type_trait("timestamp", "kwiver:timestamp",
+                            datum.Datum.get_timestamp,
+                            datum.new_timestamp)
+        self.add_type_trait("corner_points", "kwiver:corner_points",
+                            datum.Datum.get_corner_points,
+                            datum.new_corner_points)
         self.add_type_trait("gsd", "kwiver:gsd")
         self.add_type_trait("image", "kwiver:image",
                             datum.Datum.get_image_container,
@@ -222,6 +230,8 @@ class KwiverProcess(process.PythonProcess):
                             "2-dimensional double matrix.")
         self.add_port_trait("string_vector", "string_vector",
                             "Vector of strings.")
+        self.add_port_trait("timestamp", "timestamp",
+                            "time stamp.")
 
     def add_type_trait(self, ttn, tn, conv_in=None, conv_out=None):
         """

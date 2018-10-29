@@ -41,8 +41,6 @@
 
 #include <vital/vital_config.h>
 #include <vital/exceptions/base.h>
-#include <exception>
-#include <string>
 #include <memory>
 
 /**

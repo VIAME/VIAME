@@ -365,7 +365,7 @@ draw_tracks
     bool write_image_to_disk = d->write_images_to_disk;
 
     // Clone a copy of the current image (so we don't modify the original input).
-    cv::Mat img = ocv::image_container::vital_to_ocv( ctr_sptr->get_image() ).clone();
+    cv::Mat img = ocv::image_container::vital_to_ocv( ctr_sptr->get_image(), ocv::image_container::BGR_COLOR ).clone();
 
     // Convert to 3 channel image if not one already
     if( img.channels() == 1 )
@@ -555,7 +555,7 @@ draw_tracks
   d->cur_frame_id = fid;
 
   // Return the last generated image
-  return image_container_sptr( new ocv::image_container( output_image ) );
+  return image_container_sptr( new ocv::image_container( output_image, ocv::image_container::BGR_COLOR) );
 }
 
 } // end namespace ocv

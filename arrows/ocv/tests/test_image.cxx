@@ -137,7 +137,7 @@ TYPED_TEST(image_io, type)
   kwiver::vital::image_of<pix_t> img( 200, 300, TypeParam::depth );
   populate_vital_image<pix_t>( img );
 
-  auto const image_path = kwiver::testing::temp_file_name( "test-", ".tiff" );
+  auto const image_path = kwiver::testing::temp_file_name( "test-", ".png" );
 
   auto c = std::make_shared<simple_image_container>( img );
   ocv::image_io io;
@@ -159,7 +159,7 @@ void
 run_ocv_conversion_tests( cv::Mat const& img )
 {
   // Convert to a vital image and verify that the properties are correct
-  image const& vimg = ocv::image_container::ocv_to_vital( img );
+  image const& vimg = ocv::image_container::ocv_to_vital( img, ocv::image_container::RGB_COLOR );
   EXPECT_EQ( sizeof(T), vimg.pixel_traits().num_bytes );
   EXPECT_EQ( image_pixel_traits_of<T>::static_type, vimg.pixel_traits().type );
   EXPECT_EQ( static_cast<size_t>( img.channels() ), vimg.depth() );
@@ -199,7 +199,7 @@ run_ocv_conversion_tests( cv::Mat const& img )
   }();
 
   // Convert back to cv::Mat and test again
-  cv::Mat img2 = ocv::image_container::vital_to_ocv( vimg );
+  cv::Mat img2 = ocv::image_container::vital_to_ocv( vimg, ocv::image_container::RGB_COLOR );
   ASSERT_NE( nullptr, img2.data )
     << "OpenCV re-conversion did not produce a valid cv::Mat";
 
@@ -228,7 +228,7 @@ run_vital_conversion_tests( kwiver::vital::image_of<T> const& img,
                             bool requires_copy = false )
 {
   // convert to a cv::Mat and verify that the properties are correct
-  cv::Mat ocv_img =  ocv::image_container::vital_to_ocv(img);
+  cv::Mat ocv_img =  ocv::image_container::vital_to_ocv(img, ocv::image_container::RGB_COLOR);
   ASSERT_NE( nullptr, ocv_img.data )
     << "Vital image conversion did not produce a valid cv::Mat";
 
@@ -258,7 +258,7 @@ run_vital_conversion_tests( kwiver::vital::image_of<T> const& img,
   }();
 
   // Convert back to vital::image and test again
-  image img2 = ocv::image_container::ocv_to_vital( ocv_img );
+  image img2 = ocv::image_container::ocv_to_vital( ocv_img, ocv::image_container::RGB_COLOR );
   EXPECT_EQ( sizeof(T), img2.pixel_traits().num_bytes );
   EXPECT_EQ( image_pixel_traits_of<T>::static_type, img2.pixel_traits().type );
   EXPECT_TRUE( equal_content( img, img2 ) );
@@ -345,16 +345,92 @@ TYPED_TEST(image_conversion, vital_to_ocv_interleaved)
 }
 
 // ----------------------------------------------------------------------------
+template <typename T>
+class image_bgr_conversion : public ::testing::Test
+{
+};
+
+using image_bgr_types = ::testing::Types<uint8_t, uint16_t, float>;
+TYPED_TEST_CASE(image_bgr_conversion, image_bgr_types);
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(image_bgr_conversion, bgr_to_rgb)
+{
+  kwiver::vital::image_of<TypeParam> img{ 200, 300, 3 };
+  populate_vital_image<TypeParam>( img );
+  cv::Mat ocv_img =  ocv::image_container::vital_to_ocv(img, ocv::image_container::BGR_COLOR);
+  {
+    int const num_c = ocv_img.channels();
+    for( int j = 0; j < ocv_img.rows; ++j )
+    {
+      for( int i = 0; i < ocv_img.cols; ++i )
+      {
+        for( int c = 0; c < 3; ++c )
+        {
+          ASSERT_EQ( img( i, j, c ), ocv_img.ptr<TypeParam>( j )[ num_c * i + (2-c) ] )
+              << "Pixels differ at " << i << ", " << j << ", (" << c << "," << (2-c) << ")";
+        }
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(image_bgr_conversion, bgra_to_rgba)
+{
+  kwiver::vital::image_of<TypeParam> img{ 200, 300, 4 };
+  populate_vital_image<TypeParam>( img );
+  cv::Mat ocv_img =  ocv::image_container::vital_to_ocv(img, ocv::image_container::BGR_COLOR);
+  {
+    int const num_c = ocv_img.channels();
+    for( int j = 0; j < ocv_img.rows; ++j )
+    {
+      for( int i = 0; i < ocv_img.cols; ++i )
+      {
+        for( int c = 0; c < 3; ++c )
+        {
+          ASSERT_EQ( img( i, j, c ), ocv_img.ptr<TypeParam>( j )[ num_c * i + (2-c) ] )
+              << "Pixels differ at " << i << ", " << j << ", (" << c << "," << (2-c) << ")";
+        }
+        ASSERT_EQ( img( i, j, 3 ), ocv_img.ptr<TypeParam>( j )[ num_c * i + (3) ] )
+              << "Pixels differ at " << i << ", " << j << ", (3,3)";
+      }
+    }
+  }
+}
+
+// ----------------------------------------------------------------------------
+TEST(image, bgr_to_rgb_bad_types)
+{
+  EXPECT_THROW( ocv::image_container::vital_to_ocv(
+                  image_of<int8_t>{ 200, 300, 3 },
+                  ocv::image_container::BGR_COLOR ),
+                image_type_mismatch_exception );
+  EXPECT_THROW( ocv::image_container::vital_to_ocv(
+                  image_of<int16_t>{ 200, 300, 3 },
+                  ocv::image_container::BGR_COLOR ),
+                image_type_mismatch_exception );
+  EXPECT_THROW( ocv::image_container::vital_to_ocv(
+                  image_of<int32_t>{ 200, 300, 3 },
+                  ocv::image_container::BGR_COLOR ),
+                image_type_mismatch_exception );
+  EXPECT_THROW( ocv::image_container::vital_to_ocv(
+                  image_of<double>{ 200, 300, 3 },
+                  ocv::image_container::BGR_COLOR ),
+                image_type_mismatch_exception );
+}
+
+// ----------------------------------------------------------------------------
 TEST(image, bad_conversions)
 {
   // Some types not supported by OpenCV and should throw an exception
   EXPECT_THROW( ocv::image_container::vital_to_ocv(
-                  image_of<uint32_t>( 200, 300 ) ),
+                  image_of<uint32_t>( 200, 300 ), ocv::image_container::RGB_COLOR ),
                 image_type_mismatch_exception );
   EXPECT_THROW( ocv::image_container::vital_to_ocv(
-                  image_of<int64_t>( 200, 300 ) ),
+                  image_of<int64_t>( 200, 300 ), ocv::image_container::RGB_COLOR ),
                 image_type_mismatch_exception );
   EXPECT_THROW( ocv::image_container::vital_to_ocv(
-                  image_of<uint64_t>( 200, 300 ) ),
+                  image_of<uint64_t>( 200, 300 ), ocv::image_container::RGB_COLOR ),
                 image_type_mismatch_exception );
 }

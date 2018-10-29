@@ -1,7 +1,8 @@
 Tutorials
 ================
-The following links describe a set of kwiver tutorials. 
-All the source code mentioned here is provided by the `repository <https://github.com/Kitware/kwiver/tree/master/examples>`_. 
+
+The following links describe a set of kwiver tutorials.
+All the source code mentioned here is provided by the `repository <https://github.com/Kitware/kwiver/tree/master/examples>`_.
 
 Visit the `repository <https://github.com/Kitware/kwiver>`_ on how to get and build the KWIVER code base.
 
@@ -17,6 +18,13 @@ As always, we would be happy to hear your comments and receive your contribution
 
 Basic Image and Video
 ---------------------
+
+.. toctree::
+  :hidden:
+
+  vital/images
+  pipelines/image_display
+  pipelines/video_display
 
 Images and video are the most fundamental data needed for computer vision.
 The following tutorials will demonstrate the basic functionality provided in kwiver associated with getting image and video data into the framework.
@@ -37,6 +45,14 @@ The following example sprokit pipelines are provided to demonstrait using these 
 Detection Types and Algorithms
 ------------------------------
 
+.. toctree::
+  :hidden:
+
+  vital/detectors
+  pipelines/example_detection
+  pipelines/hough_detection
+  pipelines/darknet_detection
+
 Object dectection is the first step in tracking and identifying an activity.
 The following tutorials will demonstrate the basic functionality provided in kwiver associated with detecting objets in images and video.
 
@@ -48,8 +64,8 @@ This example demonstrates instantiating and executing various detections algorit
 The following example sprokit pipelines are provided to demonstrait using these algorithms and types in a streaming process.
 
 ========================================================== ====================================================================
-:doc:`Example Detection</pipelines/example_detection>`     A very basic implementation of the dection algorithm 
-:doc:`Hough Detection</pipelines/hough_detection>`         Detect circles in images using a hough detector 
+:doc:`Example Detection</pipelines/example_detection>`     A very basic implementation of the dection algorithm
+:doc:`Hough Detection</pipelines/hough_detection>`         Detect circles in images using a hough detector
 :doc:`Darknet Detection</pipelines/darknet_detection>`     Object detection using the Darnket library
 ========================================================== ====================================================================
 

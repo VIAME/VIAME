@@ -84,7 +84,7 @@ video_input_image_list
 ::video_input_image_list()
   : d( new video_input_image_list::priv )
 {
-  attach_logger( "video_input_image_list" );
+  attach_logger( "arrows.core.video_input_image_list" );
 
   set_capability( vital::algo::video_input::HAS_EOV, true );
   set_capability( vital::algo::video_input::HAS_FRAME_NUMBERS, true );
@@ -405,7 +405,7 @@ video_input_image_list
   }
   // For now, the only metadata is the filename of the image
   auto md = std::make_shared<vital::metadata>();
-  md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME,
+  md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
                               *d->m_current_file ) );
   vital::metadata_vector mdv(1, md);
   return mdv;
@@ -423,7 +423,7 @@ video_input_image_list
       ++fn;
       // For now, the only metadata is the filename
       auto md = std::make_shared<vital::metadata>();
-      md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_FILENAME, f ) );
+      md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI, f ) );
       vital::metadata_vector mdv(1, md);
       d->m_metadata_map[fn] = mdv;
     }

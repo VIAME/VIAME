@@ -146,7 +146,7 @@ void declare_configuration_key_4(sprokit::process &self,
                                  kwiver::vital::config_block_description_t const& description_,
                                  bool tunable_);
 
-wrap_edge_datum peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, unsigned int idx);
+wrap_edge_datum peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, std::size_t idx);
 wrap_edge_datum grab_from_port(sprokit::process &self, sprokit::process::port_t const& port);
 sprokit::datum grab_datum_from_port(sprokit::process &self, sprokit::process::port_t const& port);
 object grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port);
@@ -775,7 +775,7 @@ declare_configuration_key_4(sprokit::process &self,
 }
 
 wrap_edge_datum
-peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, unsigned int idx)
+peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, std::size_t idx)
 {
   sprokit::process* self_ptr = &self;
   return wrap_edge_datum(((wrap_process*) self_ptr)->peek_at_port(port, idx));

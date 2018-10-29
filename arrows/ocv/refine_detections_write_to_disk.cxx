@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@
 
 #include <vital/vital_config.h>
 #include <vital/exceptions/io.h>
+#include <vital/util/string.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -59,34 +60,35 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-typedef kwiversys::SystemTools ST;
+using ST = kwiversys::SystemTools;
 
-/// Private implementation class
+// ----------------------------------------------------------------------------
+// Private implementation class
 class refine_detections_write_to_disk::priv
 {
 public:
 
-  /// Constructor
+  // Constructor
   priv()
   : pattern( "detection_%10d.png" ),
     id( 0 )
   {
   }
 
-  /// Destructor
+  // Destructor
   ~priv()
   {
   }
 
-  /// Parameters
+  // Parameters
   std::string pattern;
 
-  /// Variables
+  // Variables
   unsigned id;
 };
 
-
-/// Constructor
+// ----------------------------------------------------------------------------
+// Constructor
 refine_detections_write_to_disk
 ::refine_detections_write_to_disk()
 : d_( new priv() )
@@ -94,14 +96,14 @@ refine_detections_write_to_disk
 }
 
 
-/// Destructor
+// Destructor
 refine_detections_write_to_disk
 ::~refine_detections_write_to_disk()
 {
 }
 
-
-/// Get this algorithm's \link vital::config_block configuration block \endlink
+// ----------------------------------------------------------------------------
+// Get this algorithm's vital::config_block configuration block
 vital::config_block_sptr
 refine_detections_write_to_disk
 ::get_configuration() const
@@ -110,17 +112,17 @@ refine_detections_write_to_disk
 
   config->set_value( "pattern", d_->pattern,
                      "The output pattern for writing images to disk. "
-                     "Parameters that may be included in the pattern are "
-                     "the id (an integer) and four values for the chip coordinate: "
+                     "Parameters that may be included in the pattern are (in formatting order)"
+                     "the id (an integer), the source image filename (a string), "
+                     "and four values for the chip coordinate: "
                      "top left x, top left y, width, height (all floating point numbers). "
-                     "For information on how to format the pattern, see "
-                     "www.cplusplus.com/reference/cstdio/printf." );
-
+                     "A possible full pattern would be '%d-%s-%f-%f-%f-%f.png'. "
+                     "The pattern must contain the correct file extension." );
   return config;
 }
 
-
-/// Set this algorithm's properties via a config block
+// ----------------------------------------------------------------------------
+// Set this algorithm's properties via a config block
 void
 refine_detections_write_to_disk
 ::set_configuration( vital::config_block_sptr in_config )
@@ -131,7 +133,8 @@ refine_detections_write_to_disk
   d_->pattern = config->get_value<std::string>( "pattern" );
 }
 
-/// Check that the algorithm's currently configuration is valid
+// ----------------------------------------------------------------------------
+// Check that the algorithm's currently configuration is valid
 bool
 refine_detections_write_to_disk
 ::check_configuration(vital::config_block_sptr config) const
@@ -139,18 +142,28 @@ refine_detections_write_to_disk
   return true;
 }
 
-/// Output images with tracked features drawn on them
+// ----------------------------------------------------------------------------
+// Output images with tracked features drawn on them
 vital::detected_object_set_sptr
 refine_detections_write_to_disk
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
   cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image(),
-    kwiver::arrows::ocv::image_container::BGR );
+    kwiver::arrows::ocv::image_container::BGR_COLOR );
 
   if( !detections )
   {
     return detections;
+  }
+
+  // Get input filename if it's in the vital_metadata
+  std::string filename;
+  auto md = image_data->get_metadata();
+  if( md && md->has(VITAL_META_IMAGE_URI) )
+  {
+    // Get the full path, and then extract just the filename proper
+    filename = ST::GetFilenameName( md->find(VITAL_META_IMAGE_URI).as_string() );
   }
 
   for( auto det : *detections )
@@ -159,31 +172,30 @@ refine_detections_write_to_disk
 
     cv::Size s = img.size();
     vital::bounding_box_d bounds( vital::bounding_box_d::vector_type( 0, 0 ),
-      vital::bounding_box_d::vector_type( s.width, s.height ) );
+                                  vital::bounding_box_d::vector_type( s.width, s.height ) );
 
+    // Clip detection box to image bounds.
     bbox = intersection( bounds, bbox );
 
     // Generate output filename
-    std::string ofn;
-    size_t max_len = d_->pattern.size() + 4096;
-    ofn.resize( max_len );
-    int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), d_->id++,
-                                                bbox.upper_left()[0], bbox.upper_left()[1],
-                                                bbox.width(), bbox.height() );
-
-    if( num_bytes < 0 )
+    std::string ofn = kwiver::vital::string_format( d_->pattern,
+                      d_->id++, filename.c_str(),
+                      bbox.upper_left()[0], bbox.upper_left()[1],
+                      bbox.width(), bbox.height() );
+    if( ofn.empty() )
     {
       LOG_ERROR( logger(), "Could not format output file name: \"" << d_->pattern << "\"" );
+      return detections;
     }
 
     // Output image to file
     // Make CV rect for out bbox coordinates
     cv::Rect r( bbox.upper_left()[0], bbox.upper_left()[1],
-      bbox.width(), bbox.height() );
+                bbox.width(), bbox.height() );
 
     cv::Mat crop = img( r );
     cv::imwrite( ofn, crop );
-  }
+  } // end for
 
   return detections;
 }

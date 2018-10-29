@@ -55,12 +55,14 @@ public:
   priv()
     : width(0)
     , height(0)
+    , x_step(0)
+    , y_step(0)
     , m_logger( vital::get_logger(
         "arrows.core.create_detection_grid" ) )
   {
   }
 
-  double width, height;
+  double width, height, x_step, y_step;
 
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -93,6 +95,10 @@ create_detection_grid
     "Width of each detection in the output grid." );
   config->set_value( "detection_height", d_->height,
     "Height of each detection in the output grid." );
+  config->set_value( "x_step", d_->x_step,
+    "How far apart along the x axis each detection is." );
+  config->set_value( "y_step", d_->y_step,
+    "How far apart along the y axis each detection is." );
 
   return config;
 }
@@ -108,6 +114,9 @@ create_detection_grid
 
   d_->width = config->get_value<double>( "detection_width" );
   d_->height = config->get_value<double>( "detection_height" );
+
+  d_->x_step = config->get_value<double>( "x_step" );
+  d_->y_step = config->get_value<double>( "y_step" );
 }
 
 
@@ -120,6 +129,11 @@ create_detection_grid
     LOG_ERROR(d_->m_logger, "Detection width and height must be positive values");
     return false;
   }
+  if(config->get_value<double>("x_step") <= 0 && config->get_value<double>("y_step") <= 0)
+  {
+    LOG_ERROR(d_->m_logger, "Detection steps must be positive values");
+    return false;
+  }
   return true;
 }
 
@@ -129,8 +143,8 @@ create_detection_grid::
 detect( vital::image_container_sptr image_data) const
 {
   vital::detected_object_set_sptr grid(new vital::detected_object_set());
-  size_t img_width = image_data->width();
-  size_t img_height = image_data->height();
+  const size_t img_width = image_data->width();
+  const size_t img_height = image_data->height();
 
   if(d_->width > img_width || d_->height > img_height)
   {
@@ -140,9 +154,9 @@ detect( vital::image_container_sptr image_data) const
 
   // Get any non-overlapping grid spaces
   // Note that the last column and row are missing here
-  for(int i = 0; i + d_->width < img_width ; i+=d_->width)
+  for(int i = 0; i + d_->width < img_width ; i+=d_->x_step)
   {
-    for(int j = 0; j + d_->height < img_height ; j+=d_->height)
+    for(int j = 0; j + d_->height < img_height ; j+=d_->y_step)
     {
       vital::bounding_box<double> bbox(i, j, i+d_->width-1, j+d_->height-1);
       vital::detected_object_sptr det_obj(new vital::detected_object(bbox));
@@ -151,7 +165,7 @@ detect( vital::image_container_sptr image_data) const
   }
 
   // Now get the bottom row
-  for (int i = 0; i + d_->width < img_width ; i+=d_->width)
+  for (int i = 0; i + d_->width < img_width ; i+=d_->x_step)
   {
     vital::bounding_box<double> bbox(i, img_height - d_->height, i+d_->width-1, img_height-1);
     vital::detected_object_sptr det_obj(new vital::detected_object(bbox));
@@ -159,7 +173,7 @@ detect( vital::image_container_sptr image_data) const
   }
 
   // Now get the bottom column
-  for (int j = 0; j + d_->height < img_height ; j+=d_->height)
+  for (int j = 0; j + d_->height < img_height ; j+=d_->y_step)
   {
     vital::bounding_box<double> bbox(img_width - d_->width, j , img_width-1, j+d_->height-1);
     vital::detected_object_sptr det_obj(new vital::detected_object(bbox));

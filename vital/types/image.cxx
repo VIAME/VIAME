@@ -159,11 +159,18 @@ image_memory
   return *this;
 }
 
+/// Equality operator
+bool image_memory::operator==( const image_memory& other) const
+{
+  return other.size_ == size_ &&
+        std::strcmp(static_cast< char* >( other.data_ ), 
+                    static_cast< char* >( data_ )) == 0;
+}
 
 /// Return a pointer to the allocated memory
 void*
 image_memory
-::data()
+::data() 
 {
   return data_;
 }
@@ -287,6 +294,16 @@ image
   return *this;
 }
 
+/// Equality operator
+bool image::
+operator==( const image& other_image ) const
+{
+  return *(data_.get()) == *(other_image.data_.get()) &&
+          pixel_traits_ == other_image.pixel_traits_ &&
+          width_ == other_image.width_ &&
+          height_ == other_image.height_ &&
+          depth_ == other_image.depth_;
+}
 
 /// The size of the image data in bytes
 size_t
