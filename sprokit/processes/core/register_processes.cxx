@@ -299,7 +299,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
 
   fact = vpm.ADD_PROCESS( kwiver::keyframe_selection_process);
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection_process")
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Selects keyframes from a track set.")
@@ -308,7 +308,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
 
   fact = vpm.ADD_PROCESS( kwiver::detect_features_if_keyframe_process);
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_features_if_keyframe_process")
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_features_if_keyframe")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Detects feautres in an image if it is a keyframe.")
@@ -317,7 +317,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
 
   fact = vpm.ADD_PROCESS( kwiver::close_loops_process);
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "close_loops_process")
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "close_loops")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Detects loops in a track set using features with descriptors.")

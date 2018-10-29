@@ -109,7 +109,12 @@ refine_detections_write_to_disk
   vital::config_block_sptr config = vital::algo::refine_detections::get_configuration();
 
   config->set_value( "pattern", d_->pattern,
-                     "The output pattern for writing images to disk." );
+                     "The output pattern for writing images to disk. "
+                     "Parameters that may be included in the pattern are "
+                     "the id (an integer), the source image filename (a string), and four values for the chip coordinate: "
+                     "top left x, top left y, width, height (all floating point numbers). "
+                     "For information on how to format the pattern, see "
+                     "www.cplusplus.com/reference/cstdio/printf." );
 
   return config;
 }
@@ -140,22 +145,28 @@ refine_detections_write_to_disk
 ::refine( vital::image_container_sptr image_data,
           vital::detected_object_set_sptr detections ) const
 {
-  cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image() );
+  cv::Mat img = ocv::image_container::vital_to_ocv( image_data->get_image(), ocv::image_container::BGR_COLOR );
+
+  // Get input filename if it's in the vital_metadata
+  std::string filename = "";
+  auto md = image_data->get_metadata();
+  if( md && md->has(VITAL_META_IMAGE_FILENAME) )
+  {
+    // Get the full path, and then extract just the filename proper
+    filename = md->find(VITAL_META_IMAGE_FILENAME).as_string();
+    std::string path_sep = "/";
+#ifdef WIN32
+    path_sep = "\\"; // Windows likes to be different
+#endif
+    size_t filename_pos = filename.rfind(path_sep);
+    if(filename_pos < filename.length()) // make sure we actually need to extract a filename from a path
+    {
+      filename = filename.substr(filename_pos+path_sep.length());
+    }
+  }
 
   for( auto det : *detections )
   {
-    // Generate output filename
-    std::string ofn;
-    size_t max_len = d_->pattern.size() + 4096;
-    ofn.resize( max_len );
-    int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), d_->id++ );
-
-    if( num_bytes < 0 )
-    {
-      LOG_ERROR( logger(), "Could not format output file name: \"" << d_->pattern << "\"" );
-    }
-
-    // Output image to file
     vital::bounding_box_d bbox = det->bounding_box();
 
     cv::Size s = img.size();
@@ -164,6 +175,20 @@ refine_detections_write_to_disk
 
     bbox = intersection( bounds, bbox );
 
+    // Generate output filename
+    std::string ofn;
+    size_t max_len = d_->pattern.size() + 4096;
+    ofn.resize( max_len );
+    int num_bytes = snprintf( &ofn[0], max_len, d_->pattern.c_str(), d_->id++,
+                                                bbox.upper_left()[0], bbox.upper_left()[1],
+                                                bbox.width(), bbox.height(), filename.c_str() );
+
+    if( num_bytes < 0 )
+    {
+      LOG_ERROR( logger(), "Could not format output file name: \"" << d_->pattern << "\"" );
+    }
+
+    // Output image to file
     // Make CV rect for out bbox coordinates
     cv::Rect r( bbox.upper_left()[0], bbox.upper_left()[1],
       bbox.width(), bbox.height() );

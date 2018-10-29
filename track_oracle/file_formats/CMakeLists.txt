@@ -131,8 +131,7 @@ target_link_libraries( track_oracle_file_formats
                        ${TRACK_FILTER_KWE_LIBRARY}
                        ${TRACK_ORACLE_APIX_LIBRARY}
                        ${TRACK_KPF_LIBRARIES}
-                       
-  PRIVATE              ${Boost_THREAD_LIBRARY}
-                       vital
+
+  PRIVATE              vital
                        vul
 )

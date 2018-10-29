@@ -6,8 +6,9 @@
 
 #include "file_format_base.h"
 
+#include <regex>
+
 #include <vul/vul_file.h>
-#include <vul/vul_reg_exp.h>
 #include <vul/vul_string.h>
 
 #include <track_oracle/core/schema_algorithm.h>
@@ -24,8 +25,8 @@ using std::vector;
 namespace // anon
 {
 
-vul_reg_exp
-glob_to_regexp( const string& glob )
+string
+glob_to_regexp_string( const string& glob )
 {
   //
   // This code is lifted straight from vul_file_iterator.cxx.
@@ -59,17 +60,16 @@ glob_to_regexp( const string& glob )
     else if (*i=='?' && !in_sqr_brackets)
       re.append(1,'.');
     else if (*i=='*' && !in_sqr_brackets)
-      re.append(".*");
+      re.append( ".*" );
     else
-      re.append(vul_reg_exp::protect(*i));
+      re.append(1, *i);  // was re.append(vul_reg_exp::protect(*i));
 
     ++i;
   }
   // match the end of the string
   re += '$';
 
-  return vul_reg_exp( re.c_str() );
-
+  return re;
 }
 
 } // anon
@@ -124,10 +124,11 @@ file_format_base
 ::filename_matches_globs( string fn ) const
 {
   vul_string_downcase( fn );
+  std::smatch matches;
   for (size_t i=0; i<this->globs.size(); ++i)
   {
-    vul_reg_exp r = glob_to_regexp( this->globs[i] );
-    if (r.find( fn )) return true;
+    std::regex r( glob_to_regexp_string( this->globs[i] ));
+    if (std::regex_search( fn, matches, r )) return true;
   }
   return false;
 }

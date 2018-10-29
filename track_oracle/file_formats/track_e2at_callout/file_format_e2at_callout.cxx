@@ -9,8 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-
-#include <vul/vul_reg_exp.h>
+#include <regex>
 
 #include <track_oracle/utils/tokenizers.h>
 #include <track_oracle/data_terms/data_terms.h>
@@ -39,10 +38,11 @@ namespace { // anon
 pair< string, double >
 parse_time( const string& s )
 {
-  vul_reg_exp re("^([0-9]+):([0-9]+)$");
-  if ( re.find( s ) )
+  std::regex re("^([0-9]+):([0-9]+)$");
+  std::smatch matches;
+  if ( std::regex_search( s, matches, re ) )
   {
-    istringstream iss( re.match(1) + " " +re.match(2) );
+    istringstream iss( matches.str(1) + " " + matches.str(2) );
     double min, sec;
     if ( (iss >> min >> sec ))
     {
@@ -64,25 +64,26 @@ parse_latlon( const string& s,
               double& lat,
               double& lon )
 {
-  vul_reg_exp re("([0-9\\-\\.]+)([NnSs])([0-9\\-\\.]+)([WwEe])");
-  if ( ! re.find( s )) return false;
-  istringstream latss( re.match(1) ), lonss( re.match(3) );
+  std::regex re("([0-9\\-\\.]+)([NnSs])([0-9\\-\\.]+)([WwEe])");
+  std::smatch matches;
+  if ( ! std::regex_search( s, matches, re )) return false;
+  istringstream latss( matches[1] ), lonss( matches[3] );
   if ( ! ( latss >> lat ))
   {
-    LOG_ERROR( main_logger, "Logic error: expected to parse a latitude from '" << re.match(1) << "'" );
+    LOG_ERROR( main_logger, "Logic error: expected to parse a latitude from '" << matches[1] << "'" );
     return false;
   }
   if ( ! ( lonss >> lon ))
   {
-    LOG_ERROR( main_logger, "Logic error: expected to parse a longitude from '" << re.match(3) << "'" );
+    LOG_ERROR( main_logger, "Logic error: expected to parse a longitude from '" << matches[3] << "'" );
     return false;
   }
-  char ns = re.match(2)[0];
+  char ns = matches.str(2)[0];
   if ((ns == 's') || (ns == 'S'))
   {
     lat = -1.0 * lat;
   }
-  char ew = re.match(4)[0];
+  char ew = matches.str(4)[0];
   if ((ew == 'w') || (ew == 'W'))
   {
     lon = -1.0 * lon;

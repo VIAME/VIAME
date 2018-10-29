@@ -283,7 +283,7 @@ detect( vital::image_container_sptr image_data ) const
 {
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
 
-  cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image(), kwiver::arrows::ocv::image_container::BGR );
+  cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
   cv::Mat cv_resized_image;
 
@@ -315,11 +315,11 @@ detect( vital::image_container_sptr image_data ) const
     detections = std::make_shared< vital::detected_object_set >();
 
     // Chip up and process scaled image
-    for( int li = 0; li < cv_resized_image.cols; li += d->m_chip_step )
+    for( int li = 0; li < cv_resized_image.cols - d->m_resize_i + d->m_chip_step; li += d->m_chip_step )
     {
       int ti = std::min( li + d->m_resize_i, cv_resized_image.cols );
 
-      for( int lj = 0; lj < cv_resized_image.rows; lj += d->m_chip_step )
+      for( int lj = 0; lj < cv_resized_image.rows - d->m_resize_j + d->m_chip_step; lj += d->m_chip_step )
       {
         int tj = std::min( lj + d->m_resize_j, cv_resized_image.rows );
 

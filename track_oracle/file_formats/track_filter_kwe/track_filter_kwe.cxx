@@ -9,9 +9,9 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <regex>
 
 #include <vul/vul_awk.h>
-#include <vul/vul_reg_exp.h>
 #include <vul/vul_timer.h>
 #include <vul/vul_sprintf.h>
 #include <vul/vul_file.h>
@@ -71,7 +71,8 @@ track_filter_kwe_type
 
   string line;
   size_t nlines = 0;
-  vul_reg_exp comment_re( "^ *#" );
+  std::regex comment_re( "^ *#" );
+  std::smatch matches;
   vul_timer timer;
   size_t file_size = vul_file::size( fn );
   while (getline( is, line ))
@@ -85,7 +86,7 @@ track_filter_kwe_type
       timer.mark();
     }
 
-    if ( comment_re.find( line )) continue;
+    if ( std::regex_search( line, matches, comment_re )) continue;
 
     event_data_block b;
     if ( ! event_adapter::parse_kwe_line( line, b, wmsgs ))  return false;

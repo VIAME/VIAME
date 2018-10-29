@@ -1,5 +1,5 @@
 /*ckwg +5
- * Copyright 2014-2016 by Kitware, Inc. All Rights Reserved. Please refer to
+ * Copyright 2014-2018 by Kitware, Inc. All Rights Reserved. Please refer to
  * KITWARE_LICENSE.TXT for licensing information, or contact General Counsel,
  * Kitware, Inc., 28 Corporate Drive, Clifton Park, NY 12065.
  */
@@ -46,6 +46,7 @@
 #include <vgl/vgl_point_3d.h>
 
 #include <vital/types/timestamp.h>
+#include <vital/types/uid.h>
 
 class TiXmlElement;
 
@@ -94,7 +95,7 @@ namespace tracking {
   DECL_DT_W_STR( latitude,  double, "latitude, -90 to 90" );
   DECL_DT_W_STR( longitude, double, "longitude, -180 to 180" );
   DECL_DT_RW_STRXMLCSV( time_stamp, vital::timestamp, "timestamp (carries both time and framenumber); epoch is data-dependent" );
-  DECL_DT( track_uuid, std::string, "UUID associated with the track" );
+  DECL_DT_RW_STR( track_uuid, vital::uid, "UUID associated with the track" );
   DECL_DT( track_style, std::string, "track_style, typically indicating the source (tracker, detector, etc.)" );
 
 } // ...tracking

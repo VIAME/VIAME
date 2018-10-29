@@ -35,15 +35,13 @@
 #include "stamp.h"
 
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/util/string.h>
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <boost/optional.hpp>
-#include <boost/make_shared.hpp>
 
 #include <map>
 #include <utility>
@@ -816,7 +814,7 @@ process
   }
 
   bool const is_data_dependent = (old_type == type_data_dependent);
-  bool const is_flow_dependent = boost::starts_with(old_type, type_flow_dependent);
+  bool const is_flow_dependent = kwiver::vital::starts_with(old_type, type_flow_dependent);
   bool const is_any = (old_type == type_any);
 
   if (!is_data_dependent && !is_flow_dependent && !is_any)
@@ -890,7 +888,7 @@ process
   }
 
   bool const is_data_dependent = (old_type == type_data_dependent);
-  bool const is_flow_dependent = boost::starts_with(old_type, type_flow_dependent);
+  bool const is_flow_dependent = kwiver::vital::starts_with(old_type, type_flow_dependent);
   bool const is_any = (old_type == type_any);
 
   if (!is_data_dependent && !is_flow_dependent && !is_any)
@@ -2238,7 +2236,7 @@ process::priv::tag_t
 process::priv
 ::port_flow_tag_name(port_type_t const& port_type) const
 {
-  if (boost::starts_with(port_type, type_flow_dependent))
+  if (kwiver::vital::starts_with(port_type, type_flow_dependent))
   {
     return port_type.substr(type_flow_dependent.size());
   }

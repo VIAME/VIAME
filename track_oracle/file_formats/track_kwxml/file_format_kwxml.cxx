@@ -12,10 +12,7 @@
 #include <cstdio>
 #include <utility>
 
-#include <vul/vul_reg_exp.h>
-
 #include <tinyxml.h>
-#include <boost/lexical_cast.hpp>
 
 #include <track_oracle/utils/tokenizers.h>
 #include <track_oracle/utils/logging_map.h>
@@ -937,8 +934,7 @@ file_format_kwxml
         }
         try
         {
-          meta.timestamp_microseconds_since_1970 =
-            boost::lexical_cast<long long>(str_time_stamp);
+          meta.timestamp_microseconds_since_1970 = std::stoll( str_time_stamp );
         }
         catch(...)
         {

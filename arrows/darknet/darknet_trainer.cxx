@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,13 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 
 namespace kwiver {
 namespace arrows {
 namespace darknet {
 
-// ==================================================================
+// =============================================================================
 class darknet_trainer::priv
 {
 public:
@@ -63,14 +64,16 @@ public:
     , m_output_weights( "" )
     , m_train_directory( "darknet_training" )
     , m_skip_format( false )
-    , m_gpu_index( -1 )
+    , m_gpu_index( 0 )
     , m_resize_option( "maintain_ar" )
     , m_scale( 1.0 )
     , m_resize_i( 0 )
     , m_resize_j( 0 )
     , m_chip_step( 100 )
     , m_overlap_required( 0.05 )
+    , m_random_int_shift( 0.00 )
     , m_chips_w_gt_only( false )
+    , m_crop_left( false )
   {}
 
   ~priv()
@@ -89,27 +92,36 @@ public:
   int m_resize_j;
   int m_chip_step;
   double m_overlap_required;
+  double m_random_int_shift;
   bool m_chips_w_gt_only;
+  bool m_crop_left;
 
   // Helper functions
   std::vector< std::string > format_images( std::string folder,
+    std::string prefix,
     std::vector< std::string > image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > groundtruth );
+    std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
+    vital::category_hierarchy_sptr object_labels );
 
   bool print_detections(
     std::string filename,
     kwiver::vital::detected_object_set_sptr all_detections,
-    kwiver::vital::bounding_box_d region );
+    kwiver::vital::bounding_box_d region,
+    vital::category_hierarchy_sptr object_labels );
 
   void generate_fn(
-    std::string folder, std::string& gt,
-    std::string& img, const int len = 10 );
+    std::string image_folder, std::string gt_folder,
+    std::string& image, std::string& gt, const int len = 10 );
+
+  void save_chip(
+    std::string filename,
+    cv::Mat image );
 
   kwiver::vital::logger_handle_t m_logger;
 };
 
 
-// ==================================================================
+// =============================================================================
 darknet_trainer::
 darknet_trainer()
   : d( new priv() )
@@ -122,7 +134,7 @@ darknet_trainer::
 }
 
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 vital::config_block_sptr
 darknet_trainer::
 get_configuration() const
@@ -134,8 +146,6 @@ get_configuration() const
     "Name of network config file." );
   config->set_value( "seed_weights", d->m_seed_weights,
     "Optional input seed weights file." );
-  config->set_value( "output_weights", d->m_output_weights,
-    "Output weights file." );
   config->set_value( "train_directory", d->m_train_directory,
     "Temp directory for all files used in training." );
   config->set_value( "skip_format", d->m_skip_format,
@@ -157,15 +167,19 @@ get_configuration() const
   config->set_value( "overlap_required", d->m_overlap_required,
     "Percentage of which a target must appear on a chip for it to be included "
     "as a training sample for said chip." );
+  config->set_value( "random_int_shift", d->m_random_int_shift,
+    "Random intensity shift to add to each extracted chip [0.0,1.0]." );
   config->set_value( "chips_w_gt_only", d->m_chips_w_gt_only,
     "Only chips with valid groundtruth objects on them will be included in "
     "training." );
+  config->set_value( "crop_left", d->m_crop_left,
+    "Crop out the left portion of imagery, only using the left side." );
 
   return config;
 }
 
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
 darknet_trainer::
 set_configuration( vital::config_block_sptr config_in )
@@ -178,7 +192,6 @@ set_configuration( vital::config_block_sptr config_in )
 
   this->d->m_net_config  = config->get_value< std::string >( "net_config" );
   this->d->m_seed_weights = config->get_value< std::string >( "seed_weights" );
-  this->d->m_output_weights = config->get_value< std::string >( "output_weights" );
   this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
   this->d->m_skip_format = config->get_value< bool >( "skip_format" );
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
@@ -188,11 +201,13 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
+  this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
+  this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
 }
 
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 bool
 darknet_trainer::
 check_configuration( vital::config_block_sptr config ) const
@@ -209,10 +224,12 @@ check_configuration( vital::config_block_sptr config ) const
 }
 
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
 darknet_trainer::
-train_from_disk(std::vector< std::string > train_image_names,
+train_from_disk(
+  vital::category_hierarchy_sptr object_labels,
+  std::vector< std::string > train_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
   std::vector< std::string > test_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
@@ -233,18 +250,32 @@ train_from_disk(std::vector< std::string > train_image_names,
     // Format train images
     std::vector< std::string > train_list, test_list;
 
-    train_list = d->format_images( d->m_train_directory + "/train_images",
-      train_image_names, train_groundtruth );
-    test_list = d->format_images( d->m_train_directory + "/test_images",
-      test_image_names, test_groundtruth );
+    train_list = d->format_images( d->m_train_directory, "train",
+      train_image_names, train_groundtruth, object_labels );
+    test_list = d->format_images( d->m_train_directory, "test",
+      test_image_names, test_groundtruth, object_labels );
 
     // Generate train/test image list and header information
+#ifdef WIN32
+    std::string python_cmd = "python.exe -c '";
+#else
     std::string python_cmd = "python -c '";
-    std::string import_cmd = "import kwiver.arrows.darknet;";
-    std::string header_cmd = "generate_header()";
-    std::string end_quote  = "'";
+#endif
+    std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
+    std::string header_cmd = "dth.generate_yolo_v2_headers(";
 
-    std::string full_cmd = python_cmd + " " + import_cmd + " " + header_cmd;
+    std::string header_args = "\"" + d->m_train_directory + "\",[";
+    for( auto label : object_labels->child_class_names() )
+    {
+      header_args = header_args + "\"" + label + "\",";
+    }
+    header_args = header_args +"]," + std::to_string( d->m_resize_i );
+    header_args = header_args + "," + std::to_string( d->m_resize_j );
+    header_args = header_args + ",\"" + d->m_net_config + "\"";
+
+    std::string header_end  = ")'";
+
+    std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
 
     system( full_cmd.c_str() );
   }
@@ -256,8 +287,8 @@ train_from_disk(std::vector< std::string > train_image_names,
   std::string darknet_cmd = "darknet";
 #endif
   std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
-    " detector train " + d->m_train_directory + "/YOLOv2.data " +
-    d->m_net_config;
+    " detector train " + d->m_train_directory + "/yolo_v2.data "
+                       + d->m_train_directory + "/yolo_v2.cfg ";
 
   if( !d->m_seed_weights.empty() )
   {
@@ -266,20 +297,29 @@ train_from_disk(std::vector< std::string > train_image_names,
 
   std::string full_cmd = darknet_cmd + " " + darknet_args;
 
+  std::cout << "Running " << full_cmd << std::endl;
+
   system( full_cmd.c_str() );
 }
 
-// --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 std::vector< std::string >
 darknet_trainer::priv::
-format_images( std::string folder,
+format_images( std::string folder, std::string prefix,
   std::vector< std::string > image_names,
-  std::vector< kwiver::vital::detected_object_set_sptr > groundtruth )
+  std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
+  vital::category_hierarchy_sptr object_labels )
 {
   std::vector< std::string > output_fns;
 
-  boost::filesystem::path dir( folder );
-  boost::filesystem::create_directories( dir );
+  std::string image_folder = folder + "/" + prefix + "_images";
+  std::string label_folder = folder + "/" + prefix + "_labels";
+
+  boost::filesystem::path image_dir( image_folder );
+  boost::filesystem::path label_dir( label_folder );
+
+  boost::filesystem::create_directories( image_dir );
+  boost::filesystem::create_directories( label_dir );
 
   for( unsigned fid = 0; fid < image_names.size(); ++fid )
   {
@@ -295,6 +335,12 @@ format_images( std::string folder,
     {
       std::cout << "Could not load image " << image_fn << std::endl;
       return std::vector< std::string >();
+    }
+
+    if( m_crop_left )
+    {
+      original_image = cv::Mat( original_image,
+        cv::Rect( 0, 0, original_image.cols/2, original_image.rows ) );
     }
 
     double resized_scale = 1.0;
@@ -313,19 +359,19 @@ format_images( std::string folder,
 
     if( m_resize_option != "chip" && m_resize_option != "chip_and_original" )
     {
-      std::string gt_file, img_file;
-      generate_fn( folder, gt_file, img_file );
+      std::string img_file, gt_file;
+      generate_fn( image_folder, label_folder, img_file, gt_file );
 
       kwiver::vital::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
-      if( print_detections( gt_file, scaled_detections_ptr, roi_box ) )
+      if( print_detections( gt_file, scaled_detections_ptr, roi_box, object_labels ) )
       {
-        cv::imwrite( img_file, resized_image );
+        save_chip( img_file, resized_image );
       }
     }
     else
     {
       // Chip up and process scaled image
-      for( int i = 0; i < resized_image.cols; i += m_chip_step )
+      for( int i = 0; i < resized_image.cols - m_resize_i + m_chip_step; i += m_chip_step )
       {
         int cw = i + m_resize_i;
 
@@ -338,7 +384,7 @@ format_images( std::string folder,
           cw = m_resize_i;
         }
 
-        for( int j = 0; j < resized_image.rows; j += m_chip_step )
+        for( int j = 0; j < resized_image.rows - m_resize_j + m_chip_step; j += m_chip_step )
         {
           int ch = j + m_resize_j;
 
@@ -357,13 +403,13 @@ format_images( std::string folder,
           scale_image_maintaining_ar( cropped_image,
             resized_crop, m_resize_i, m_resize_j );
 
-          std::string gt_file, img_file;
-          generate_fn( folder, gt_file, img_file );
+          std::string img_file, gt_file;
+          generate_fn( image_folder, label_folder, img_file, gt_file );
 
           kwiver::vital::bounding_box_d roi_box( i, j, i + m_resize_i, j + m_resize_j );
-          if( print_detections( gt_file, scaled_detections_ptr, roi_box ) )
+          if( print_detections( gt_file, scaled_detections_ptr, roi_box, object_labels ) )
           {
-            cv::imwrite( img_file, resized_crop );
+            save_chip( img_file, resized_crop );
           }
         }
       }
@@ -379,15 +425,15 @@ format_images( std::string folder,
         kwiver::vital::detected_object_set_sptr scaled_original_dets_ptr = groundtruth[fid]->clone();
         scaled_original_dets_ptr->scale( scaled_original_scale );
 
-        std::string gt_file, img_file;
-        generate_fn( folder, gt_file, img_file );
+        std::string img_file, gt_file;
+        generate_fn( image_folder, label_folder, img_file, gt_file );
 
         kwiver::vital::bounding_box_d roi_box( 0, 0,
           scaled_original.cols, scaled_original.rows );
 
-        if( print_detections( gt_file, scaled_original_dets_ptr, roi_box ) )
+        if( print_detections( gt_file, scaled_original_dets_ptr, roi_box, object_labels ) )
         {
-          cv::imwrite( img_file, scaled_original );
+          save_chip( img_file, scaled_original );
         }
       }
     }
@@ -401,14 +447,15 @@ darknet_trainer::priv::
 print_detections(
   std::string filename,
   kwiver::vital::detected_object_set_sptr all_detections,
-  kwiver::vital::bounding_box_d region )
+  kwiver::vital::bounding_box_d region,
+  vital::category_hierarchy_sptr object_labels )
 {
   std::vector< std::string > to_write;
 
   const double width = region.width();
   const double height = region.height();
 
-  auto ie =  all_detections->cend();
+  auto ie = all_detections->cend();
   for ( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
     kwiver::vital::bounding_box_d det_box = (*detection)->bounding_box();
@@ -419,9 +466,25 @@ print_detections(
         overlap.max_y() > overlap.min_y() &&
         overlap.area() / det_box.area() >= m_overlap_required )
     {
-      std::string category = "1";
-      //double tmp;
-      //detection->type()->get_most_likely( category, tmp );
+      std::string category;
+
+      if( !(*detection)->type() )
+      {
+        std::cout << "Error: Detection missing type" << std::endl;
+        return false;
+      }
+
+      (*detection)->type()->get_most_likely( category );
+
+      if( object_labels->has_class_name( category ) )
+      {
+        category = std::to_string( object_labels->get_class_id( category ) );
+      }
+      else
+      {
+        std::cout << "Warning: Ignoring unlisted class " << category << std::endl;
+        continue;
+      }
 
       double min_x = overlap.min_x() - region.min_x();
       double min_y = overlap.min_y() - region.min_y();
@@ -459,22 +522,39 @@ print_detections(
 
 void
 darknet_trainer::priv::
-generate_fn( std::string folder, std::string& gt, std::string& img, const int len )
+generate_fn( std::string image_folder, std::string gt_folder,
+  std::string& image, std::string& gt, const int len )
 {
-  static const char alphanum[] =
-    "0123456789"
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz";
+  static int sample_counter = 0;
 
-  std::string s( len, ' ' );
+  sample_counter++;
 
-  for( int i = 0; i < len; ++i )
+  std::ostringstream ss;
+  ss << std::setw( 9 ) << std::setfill( '0' ) << sample_counter;
+  std::string s = ss.str();
+
+  image = image_folder + "/" + s + ".png";
+  gt = gt_folder + "/" + s + ".txt";
+}
+
+void
+darknet_trainer::priv::
+save_chip( std::string filename, cv::Mat image )
+{
+  if( m_random_int_shift > 0.0 )
   {
-    s[i] = alphanum[ rand() % (sizeof(alphanum) - 1) ];
-  }
+    double rand_uniform = rand() / ( RAND_MAX + 1.0 );
+    double start = ( 1.0 - m_random_int_shift ); 
 
-  gt = folder + "/" + s + ".txt";
-  img = folder + "/" + s + ".png";
+    double sf = start + 2 * m_random_int_shift * rand_uniform;
+
+    cv::Mat scaled_image = image * sf;
+    cv::imwrite( filename, scaled_image );
+  }
+  else
+  {
+    cv::imwrite( filename, image );
+  }
 }
 
 } } } // end namespace

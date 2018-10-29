@@ -1,0 +1,29 @@
+###
+# Build vital/range library
+#
+# A hard requirement for the vital_range library is that it not depend
+# on vital library.
+#
+
+# ==================================================================
+###
+# These headers are installed
+#
+set( public_headers
+  defs.h
+  filter.h
+  integer_sequence.h
+  sliding.h
+  transform.h
+  )
+
+kwiver_install_headers(
+  ${public_headers}
+  SUBDIR   vital/range
+  )
+
+###
+# Add tests if enabled
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory( tests )
+endif()

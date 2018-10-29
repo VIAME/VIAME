@@ -37,11 +37,10 @@
 
 #include <vital/logger/logger.h>
 #include <vital/config/config_block.h>
+#include <vital/util/string.h>
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
-#include <boost/integer/common_factor_rt.hpp>
 
 #include <functional>
 #include <map>
@@ -61,8 +60,55 @@
  * \brief Implementation of the base class for \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace sprokit
+namespace sprokit {
+
+namespace {
+
+/**
+ * @brief Greatest common denominator
+ *
+ * gcd algorithm ref:
+ * Knuth, Donald. "Art of Computer Programming", Volume 2, Third edition, pp. 337
+ *
+ * @param a First number
+ * @param b Second number
+ *
+ * @return GCD
+ */
+template <typename T>
+T
+gcd( T a, T b )
 {
+  while (b != 0)
+  {
+    T r = a % b;
+    a = b;
+    b = r;
+  } // end while
+
+  return a;
+}
+
+
+/**
+ * @brief Find least common multiple of two values
+ *
+ * @param a First value
+ * @param b Second value
+ *
+ * @return Least common multiple.
+ */
+template <typename T>
+T
+lcm( T a, T b )
+{
+  T temp = gcd( a, b );
+
+  return temp ? ( a / temp * b ) : 0;
+}
+
+} // end namespace
+
 
 class pipeline::priv
 {
@@ -1245,8 +1291,8 @@ pipeline::priv
     return type_deferred;
   }
 
-  bool const up_flow_dep = boost::starts_with(up_type, process::type_flow_dependent);
-  bool const down_flow_dep = boost::starts_with(down_type, process::type_flow_dependent);
+  bool const up_flow_dep = kwiver::vital::starts_with(up_type, process::type_flow_dependent);
+  bool const down_flow_dep = kwiver::vital::starts_with(down_type, process::type_flow_dependent);
 
   if (up_flow_dep || down_flow_dep)
   {
@@ -1355,7 +1401,7 @@ pipeline::priv
         process::port_info_t const info = proc->input_port_info(downstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
+        bool const flow_dep = kwiver::vital::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
@@ -1383,7 +1429,7 @@ pipeline::priv
         process::port_info_t const info = proc->output_port_info(upstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
+        bool const flow_dep = kwiver::vital::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
@@ -2197,7 +2243,7 @@ pipeline::priv
     process::port_frequency_t const& freq = proc_freq.second;
     process::frequency_component_t const denom = freq.denominator();
 
-    freq_gcd = boost::integer::lcm(freq_gcd, denom);
+    freq_gcd = lcm(freq_gcd, denom);
   }
 
   for (process_frequency_map_t::value_type const& proc_freq : freq_map)
