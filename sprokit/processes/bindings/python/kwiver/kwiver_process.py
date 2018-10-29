@@ -211,11 +211,13 @@ class KwiverProcess(process.PythonProcess):
                             "Set of object tracks")
         self.add_port_trait("homography_src_to_ref", "homography_src_to_ref",
                             "Source image to ref image homography.")
-        self.add_port_trait("image_file_name", "image_file_name",
+        self.add_port_trait("image_file_name", "file_name",
                             "Name of an image file. Usually a single frame of "
-                            "a video.")
-        self.add_port_trait("video_file_name", "video_file_name",
+                            "a video or image sequence.")
+        self.add_port_trait("video_file_name", "file_name",
                             "Name of video file.")
+        self.add_port_trait("file_name", "file_name",
+                            "Name of some generic file.")
         self.add_port_trait("matrix_d", "matrix_d",
                             "2-dimensional double matrix.")
         self.add_port_trait("string_vector", "string_vector",
