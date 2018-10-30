@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,7 +148,7 @@ estimate_fundamental_matrix
            std::vector<bool>& inliers,
            double inlier_scale) const
 {
-  vcl_vector<vgl_homg_point_2d<double> > right_points, left_points;
+  std::vector<vgl_homg_point_2d<double> > right_points, left_points;
   for(const vector_2d& v : pts1)
   {
     right_points.push_back(vgl_homg_point_2d<double>(v.x(), v.y()));
