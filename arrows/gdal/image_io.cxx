@@ -203,15 +203,21 @@ image_io
     }
 
     // Loop over bands and copy data
-    CPLErr err;
     for (int i = 1; i <= imgDepth; ++i)
     {
+      CPLErr err;
+
       GDALRasterBand* band = gdalDataset->GetRasterBand(i);
       bandType = band->GetRasterDataType();
       err = band->RasterIO(GF_Read, 0, 0, imgWidth, imgHeight,
         static_cast<void*>(reinterpret_cast<GByte*>(
           img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
         imgWidth, imgHeight, bandType, 0, 0);
+
+      if ( err != CE_None )
+      {
+        LOG_WARN( logger(), "RasterIO completed with code: " << err );
+      }
     }
 
     // Get and translate metadata
