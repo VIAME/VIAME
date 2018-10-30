@@ -30,17 +30,41 @@
 
 #include <pybind11/stl.h>
 
-#include "descriptor_class.cxx"
+#include <vital/types/descriptor_set.h>
 
 namespace py = pybind11;
 
+typedef kwiver::vital::descriptor_set desc_set;
+typedef kwiver::vital::simple_descriptor_set s_desc_set;
+
+std::shared_ptr<s_desc_set>
+new_desc_set()
+{
+  return std::shared_ptr<s_desc_set>(new s_desc_set());
+}
+
+std::shared_ptr<s_desc_set>
+new_desc_set1(py::list py_list)
+{
+  std::vector<std::shared_ptr<kwiver::vital::descriptor>> desc_list;
+  for(auto py_desc : py_list)
+  {
+    desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
+  }
+  return std::shared_ptr<s_desc_set>(new s_desc_set(desc_list));
+}
+
 PYBIND11_MODULE(descriptor_set, m)
 {
-  py::class_<PyDescriptorSet, std::shared_ptr<PyDescriptorSet>>(m, "DescriptorSet")
-  .def(py::init<>())
-  .def(py::init<py::list>())
-  .def("descriptors", &PyDescriptorSet::get_descriptors)
-  .def("size", &PyDescriptorSet::size)
-  .def("__len__", &PyDescriptorSet::size)
+  py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");
+
+  py::class_<s_desc_set, desc_set, std::shared_ptr<s_desc_set>>(m, "DescriptorSet")
+  .def(py::init(&new_desc_set))
+  .def(py::init(&new_desc_set1),
+    py::arg("list"))
+  .def("descriptors", &s_desc_set::descriptors)
+  .def("size", &s_desc_set::size)
+  .def("__len__", &s_desc_set::size)
   ;
+
 }

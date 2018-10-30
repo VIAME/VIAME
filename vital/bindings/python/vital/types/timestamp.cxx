@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -31,9 +31,11 @@
 #include <vital/types/timestamp.h>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 #include <pybind11/embed.h>
 
 namespace py = pybind11;
+
 using ts = kwiver::vital::timestamp;
 
 PYBIND11_MODULE(timestamp, m)
@@ -56,14 +58,15 @@ PYBIND11_MODULE(timestamp, m)
     .def("has_valid_time", &ts::has_valid_time)
     .def("has_valid_frame", &ts::has_valid_frame)
     .def("get_time_usec", &ts::get_time_usec)
+    .def("get_time_seconds", &ts::get_time_seconds)
     .def("get_frame", &ts::get_frame)
+    .def("get_time_domain_index", &ts::get_time_domain_index)
 
+    .def("set_invalid", &ts::set_invalid)
     .def("set_time_usec", &ts::set_time_usec, py::arg("time"))
     .def("set_time_seconds", &ts::set_time_seconds, py::arg("time"))
     .def("set_frame", &ts::set_frame, py::arg("frame"))
-    .def("set_invalid", &ts::set_invalid)
-    .def("set_time_domain_index", &ts::set_time_domain_index, py::arg("index"))
-
+    .def("set_time_domain_index", &ts::set_time_domain_index, py::arg("domain"))
 
     .def("__nice__", [](ts& self) -> std::string {
         auto locals = py::dict(py::arg("self")=self);
@@ -83,14 +86,12 @@ PYBIND11_MODULE(timestamp, m)
     return locals["retval"].cast<std::string>();
     })
 
-    .def("__str__", [](py::object& self) -> std::string {
-    auto locals = py::dict(py::arg("self")=self);
-    py::exec(R"(
-        classname = self.__class__.__name__
-        devnice = self.__nice__()
-        retval = '<%s(%s)>' % (classname, devnice)
-    )", py::globals(), locals);
-    return locals["retval"].cast<std::string>();
-    })
+    .def("__str__", &kwiver::vital::timestamp::pretty_print)
+    .def(py::self == py::self)
+    .def(py::self != py::self)
+    .def(py::self <= py::self)
+    .def(py::self >= py::self)
+    .def(py::self < py::self)
+    .def(py::self > py::self)
     ;
 }

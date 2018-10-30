@@ -181,10 +181,10 @@ kwiver_create_python_init(vital/types
   image
   image_container
   landmark
+  object_track_set
   rotation
   similarity
   timestamp
   track
   track_set
-  object_track_set
 )
