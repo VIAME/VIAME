@@ -106,7 +106,7 @@ to a directory of your choice and run things from there. Not all
 functionality is in the default project file scripts, however, but it is a good entry point if you
 just want to get started on training object detection and/or tracking models. If so, we recommend reading the:
 [Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
-[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#rapid-model-generation), 
+[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#video-and-image-search-using-viame), 
 [Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
 [Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html).
 
