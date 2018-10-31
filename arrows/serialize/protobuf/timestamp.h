@@ -33,8 +33,6 @@
 
 #include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/timestamp.h>
-#include <vital/types/protobuf/timestamp.pb.h>
 
 namespace kwiver {
 namespace arrows {
@@ -54,12 +52,6 @@ public:
 
   virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
   virtual vital::any deserialize( const std::string& message ) override;
-
-  static void convert_protobuf( const kwiver::protobuf::timestamp&  proto_tstamp,
-                                kwiver::vital::timestamp&           tstamp );
-
-  static void convert_protobuf( const kwiver::vital::timestamp& tstamp,
-                                kwiver::protobuf::timestamp&    proto_tstamp );
 };
 
 } } } }

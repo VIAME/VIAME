@@ -4,13 +4,16 @@ find_package(ZLIB MODULE REQUIRED)
 include_directories( ${ZLIB_INCLUDE_DIRS} )
 
 set( headers_public
+
   bounding_box.h
   detected_object.h
   detected_object_set.h
   detected_object_type.h
-  timestamp.h
   image.h
+  load_save.h
+  metadata.h
   string.h
+  timestamp.h
   )
 
 set( sources
@@ -19,9 +22,12 @@ set( sources
   detected_object.cxx
   detected_object_set.cxx
   detected_object_type.cxx
-  timestamp.cxx
   image.cxx
+  load_save.cxx
+  load_save_metadata.cxx
+  metadata.cxx
   string.cxx
+  timestamp.cxx
   )
 
 kwiver_add_library( kwiver_serialize_json
@@ -30,10 +36,8 @@ kwiver_add_library( kwiver_serialize_json
   )
 
 target_link_libraries( kwiver_serialize_json
-  PUBLIC               vital
-                       vital_vpm
-  PRIVATE              vital_algo
-                       ${ZLIB_LIBRARIES}
+  PUBLIC               vital_algo
+  PRIVATE              ${ZLIB_LIBRARIES}
   )
 
 kwiver_install_headers(

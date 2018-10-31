@@ -33,16 +33,17 @@
  * \brief Defaults plugin algorithm registration interface impl
  */
 
-#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
+#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
 #include "bounding_box.h"
-#include "detected_object_type.h"
 #include "detected_object.h"
 #include "detected_object_set.h"
-#include "timestamp.h"
+#include "detected_object_type.h"
 #include "image.h"
+#include "metadata.h"
 #include "string.h"
+#include "timestamp.h"
 
 namespace kwiver {
 namespace arrows {
@@ -92,7 +93,7 @@ register_algorithm( kwiver::vital::plugin_loader& vpm, const std::string& name =
 
 // ----------------------------------------------------------------------------
 extern "C"
-KWIVER_SERIALIZE_PROTOBUF_EXPORT
+KWIVER_SERIALIZE_PROTOBUF_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
@@ -106,9 +107,11 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::protobuf::detected_object >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::detected_object_set >( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::timestamp >( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::metadata > ( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::image > ( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::image > ( vpm, "kwiver:mask" );
   register_algorithm< kwiver::arrows::serialize::protobuf::string > ( vpm);
+
   vpm.mark_module_as_loaded( module_name );
 }
 

@@ -41,7 +41,6 @@
 #include <vital/exceptions/algorithm.h>
 #include <vital/types/rotation.h>
 
-#include <vcl_vector.h>
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_quaternion.h>
 #include <vnl/vnl_vector_fixed.h>

@@ -52,7 +52,7 @@ list(INSERT CMAKE_MODULE_PATH 0 ${KWIVER_CMAKE_DIR})
 # import CMake future modules
 include(kwiver-cmake-future)
 
-# ================================================================
+# ===========================================================================================
 # project global includes
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_SOURCE_DIR}/sprokit/src")
@@ -65,11 +65,11 @@ include_directories("${KWIVER_SOURCE_DIR}/vital/internal")
 # kwiversys includes are generated in the binary directory
 include_directories("${KWIVER_BINARY_DIR}/vital/kwiversys")
 
-# ================================================================
+# ===========================================================================================
 
 include_directories( SYSTEM ${CMAKE_CURRENT_SOURCE_DIR} )
 
-# ================================================================
+# ===========================================================================================
 ###
 # User options
 include(CMakeDependentOption)
@@ -77,75 +77,85 @@ include(CMakeDependentOption)
 OPTION(KWIVER_BUILD_SHARED     "Build KWIVER components shared or not" TRUE )
 MARK_AS_ADVANCED( KWIVER_BUILD_SHARED )
 
-OPTION(KWIVER_EXPORT_COMPILE_COMMANDS "Export compile commands to support LSP based development." FALSE )
+OPTION(KWIVER_EXPORT_COMPILE_COMMANDS "Export compile commands to support LSP development." FALSE )
 MARK_AS_ADVANCED( KWIVER_EXPORT_COMPILE_COMMANDS )
 if (KWIVER_EXPORT_COMPILE_COMMANDS )
   set(CMAKE_EXPORT_COMPILE_COMMANDS ${KWIVER_EXPORT_COMPILE_COMMANDS})
 endif()
 
-OPTION(KWIVER_ENABLE_TESTS     "Enable testing" OFF )
-OPTION(KWIVER_ENABLE_ARROWS    "Enable building arrows" OFF )
-OPTION(KWIVER_ENABLE_TOOLS     "Enable tools" OFF )
-OPTION(KWIVER_ENABLE_TRACK_ORACLE  "Enable track_oracle" OFF )
-OPTION(KWIVER_ENABLE_EXAMPLES  "Enable examples" OFF )
+OPTION(KWIVER_ENABLE_TESTS                "Enable testing" OFF )
+OPTION(KWIVER_ENABLE_ARROWS               "Enable building arrows" OFF )
+OPTION(KWIVER_ENABLE_TOOLS                "Enable tools" OFF )
+OPTION(KWIVER_ENABLE_TRACK_ORACLE         "Enable track_oracle" OFF )
+OPTION(KWIVER_ENABLE_EXAMPLES             "Enable examples" OFF )
 
 OPTION(KWIVER_ENABLE_SERIALIZE_PROTOBUF   "Enable protobuf serialization" OFF )
 OPTION(KWIVER_ENABLE_SERIALIZE_JSON       "Enable json serialization" OFF )
 
 # if sprokit enabled
-OPTION(KWIVER_ENABLE_SPROKIT "Enable building sprokit" OFF )
+OPTION(KWIVER_ENABLE_SPROKIT              "Enable building sprokit" OFF )
 
-CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES "Should the KWIVER Sprokit Processes Be Built?" OFF
+CMAKE_DEPENDENT_OPTION(KWIVER_ENABLE_PROCESSES
+  "Should the KWIVER Sprokit Processes Be Built?" OFF
   "KWIVER_ENABLE_ARROWS AND KWIVER_ENABLE_SPROKIT" OFF )
 
-OPTION(KWIVER_USE_BUILD_TREE "Whether to include the build-tree plugin directory to the default plugin path list" OFF )
+OPTION(KWIVER_USE_BUILD_TREE "Include build-tree plugin directory to the default plugin path list" OFF )
 MARK_AS_ADVANCED(KWIVER_USE_BUILD_TREE)
 
 option( KWIVER_ENABLE_EXTRAS "Enable extras content" OFF )
 
 ## TODO: How should pytgon and c lib interact?
-OPTION( KWIVER_ENABLE_C_BINDINGS     "Enable C bindings libraries" OFF)
-CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTHON    "Enable python code" OFF
+OPTION( KWIVER_ENABLE_C_BINDINGS               "Enable C bindings libraries" OFF)
+CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTHON   "Enable python code" OFF
   KWIVER_ENABLE_C_BINDINGS OFF )
+
+if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
+  if (WIN32)
+    message( WARNING "Protobuf serialization not supported for windows. Being disabled." )
+    set(KWIVER_ENABLE_SERIALIZE_PROTOBUF OFF )
+  endif()
+endif()
 
 if (KWIVER_ENABLE_PYTHON)
 
   if (NOT WIN32)
-    OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying. Allows for more dynamic python development." Off)
+    OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
   endif()
 
   if ( NOT KWIVER_ENABLE_C_BINDINGS )
-    message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS is also enabled." )
+    message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS "
+      "is also enabled." )
   endif()
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
-# ==================================================================
+# ===========================================================================================
 ###
 # KWIVER CMake config
 #
-include(kwiver-utils)
+include( kwiver-utils )
 
 # Set directories where loadable modules are stored.
 # These subdirs are under .../lib/
-set( kwiver_plugin_process_subdir                 kwiver/processes )
-set( kwiver_plugin_process_instrumentation_subdir kwiver/modules ) # with modules for now
-set( kwiver_plugin_scheduler_subdir               kwiver/processes ) # with processes for now
-set( kwiver_plugin_module_subdir                  kwiver/modules )
-set( kwiver_plugin_plugin_explorer_subdir         kwiver/modules/plugin_explorer )
-set( kwiver_plugin_logger_subdir                  kwiver/modules )
+set( kwiver_plugin_subdir                         kwiver )
+set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
+set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
+set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
+set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
+set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
+set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
 
 ##
 # System specific compiler flags
-include(kwiver-flags)
+include( kwiver-flags )
 
 ##
 # check compiler support
 include( kwiver-configcheck )
 
-# set the name for our package exports
-set(kwiver_export_name      kwiver_exports)
+# set the name for our package export
+set( kwiver_export_name      kwiver_exports )
 
 ###
 # External Dependencies and Modules - Most Will be supplied by Fletch
@@ -162,10 +172,10 @@ else()
   set(BOOST_ROOT_ARG ${Boost_LIBRARY_DIR}/..)
 endif()
 
-# ================================================================
+# ===========================================================================================
 link_directories( ${KWIVER_BINARY_DIR}/lib )
 
-# ================================================================
+# ===========================================================================================
 ###
 # Add tests if enabled
 if (KWIVER_ENABLE_TESTS)
@@ -179,10 +189,11 @@ if (KWIVER_ENABLE_TESTS)
 endif()
 
 if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
-  message(FATAL_ERROR "KWIVER does not support a relative install prefix (${CMAKE_INSTALL_PREFIX}).")
+  message(FATAL_ERROR "KWIVER does not support a relative install prefix "
+    "(${CMAKE_INSTALL_PREFIX}).")
 endif ()
 
-# ==================================================================
+# =============================================================================================
 
 set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
@@ -217,14 +228,14 @@ if(MSVC)
   kwiver_setup_msvc_env() # Setup .bat scripts need to be complete and on disk
 endif()
 
-##############################################################
+#############################################################################################
 # Marking source root for documentation generation
 #
 kwiver_create_doxygen( kwiver "${CMAKE_CURRENT_LIST_DIR}" )
 kwiver_create_sphinx()
 
 
-##################################################################
+#############################################################################################
 # Top level installation
 #
 set(kwiver_cmake_install_dir lib${LIB_SUFFIX}/cmake/kwiver)
@@ -288,7 +299,7 @@ if ( CMAKE_EXPORT_COMPILE_COMMANDS )
                        ${CMAKE_SOURCE_DIR}/compile_commands.json )
 endif()
 
-# ==================================================================
+# ===========================================================================================
 # CPack Packaging
 #
 
@@ -315,6 +326,8 @@ set(CPACK_PACKAGE_VERSION_PATCH     "${KWIVER_VERSION_PATCH}")
 set(CPACK_PACKAGE_VERSION           "${KWIVER_VERSION}")
 set(CPACK_RESOURCE_FILE_LICENSE     "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGING_INSTALL_PREFIX  "${CMAKE_INSTALL_PREFIX}")
-set(CPACK_PACKAGE_FILE_NAME         "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+set(CPACK_PACKAGE_FILE_NAME         "${CPACK_PACKAGE_NAME}-"
+                                    "${CPACK_PACKAGE_VERSION}-"
+                                    "${CPACK_SYSTEM_NAME}")
 
 include (CPack)

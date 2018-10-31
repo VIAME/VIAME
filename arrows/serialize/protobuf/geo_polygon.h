@@ -28,28 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package kwiver.protobuf;
+#ifndef ARROWS_SERIALIZATION_PROTOBUF_GEO_POLYGON_H
+#define ARROWS_SERIALIZATION_PROTOBUF_GEO_POLYGON_H
 
-import "metadata.proto";
+#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
+#include <vital/algo/data_serializer.h>
 
-message image {
-  // Image size
-  required int64 width = 1;
-  required int64 height = 2;
-  required int64 depth = 3;
+namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace protobuf {
 
-  // Image indexing
-  required int64 w_step = 4;
-  required int64 h_step = 5;
-  required int64 d_step = 6;
+class KWIVER_SERIALIZE_PROTOBUF_EXPORT geo_polygon
+  : public vital::algorithm_impl< geo_polygon, vital::algo::data_serializer >
+{
+public:
+  // Type name this class supports
+  static constexpr char const* name = "kwiver:corner_points";
 
-  // Pixel traits
-  required int32 trait_type = 7;
-  required int32 trait_num_bytes = 8;
+  static constexpr char const* description =
+    "Serializes a geo_polygon using protobuf notation. ";
 
-  // Actual image data
-  required int64 size = 9; // uncompressed image memory size
-  required bytes data = 10; // compressed actual image pixels
+  geo_polygon();
+  virtual ~geo_polygon();
 
-  optional metadata image_metadata = 11;
-}
+  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  virtual vital::any deserialize( const std::string& message ) override;
+};
+
+} } } }       // end namespace kwiver
+
+#endif // ARROWS_SERIALIZATION_PROTOBUF_GEO_POLYGON_H

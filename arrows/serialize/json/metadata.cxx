@@ -28,28 +28,70 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package kwiver.protobuf;
+#include "metadata.h"
+#include "load_save.h"
 
-import "metadata.proto";
+#include <vital/types/metadata.h>
+#include <vital/internal/cereal/cereal.hpp>
+#include <vital/internal/cereal/archives/json.hpp>
 
-message image {
-  // Image size
-  required int64 width = 1;
-  required int64 height = 2;
-  required int64 depth = 3;
+#include <sstream>
 
-  // Image indexing
-  required int64 w_step = 4;
-  required int64 h_step = 5;
-  required int64 d_step = 6;
+namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace json {
 
-  // Pixel traits
-  required int32 trait_type = 7;
-  required int32 trait_num_bytes = 8;
+// ----------------------------------------------------------------------------
+metadata::
+metadata()
+{ }
 
-  // Actual image data
-  required int64 size = 9; // uncompressed image memory size
-  required bytes data = 10; // compressed actual image pixels
 
-  optional metadata image_metadata = 11;
+metadata::
+~metadata()
+{ }
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+metadata::
+serialize( const vital::any& element )
+{
+  const kwiver::vital::metadata_vector meta =
+    kwiver::vital::any_cast< kwiver::vital::metadata_vector > ( element );
+
+  std::stringstream msg;
+  msg << "metadata "; // add type tag
+  {
+    cereal::JSONOutputArchive ar( msg );
+    save( ar, meta );
+  }
+
+  return std::make_shared< std::string > ( msg.str() );
 }
+
+
+// ----------------------------------------------------------------------------
+vital::any metadata::
+deserialize( const std::string& message )
+{
+  std::stringstream msg(message);
+  kwiver::vital::metadata_vector meta;
+  std::string tag;
+  msg >> tag;
+
+  if (tag != "metadata" )
+  {
+    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"metadata\", received \""
+               << tag << "\". Message dropped, returning default object." );
+  }
+  else
+  {
+    cereal::JSONInputArchive ar( msg );
+    load( ar, meta );
+  }
+
+  return kwiver::vital::any(meta);
+}
+
+} } } }       // end namespace kwiver
