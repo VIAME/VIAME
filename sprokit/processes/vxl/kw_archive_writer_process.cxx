@@ -421,7 +421,7 @@ kw_archive_writer_process
   declare_input_port_using_trait( filename, opt_static );
   declare_input_port_using_trait( stream_id, opt_static );
 
-  declare_output_port_using_trait( complete_flag, opt_static );
+  declare_output_port_using_trait( complete_flag, optional );
 }
 
 
