@@ -388,10 +388,6 @@ public:
     meta_ts = 0;
     d_have_abs_frame_time = true;
 
-    while ( ( meta_ts == 0.0 )
-            && d_video_stream.advance()
-            && (( c_time_scan_frame_limit == 0) || frame_count-- ));
-
     return true;
   } // start_at_0_time
 
@@ -407,10 +403,6 @@ public:
     meta_ts = current_time_ms.time_since_epoch().count();
 
     d_have_abs_frame_time = true;
-
-    while ( ( meta_ts == 0.0 )
-            && d_video_stream.advance()
-            && (( c_time_scan_frame_limit == 0) || frame_count-- ));
 
     return true;
   } // current_time
