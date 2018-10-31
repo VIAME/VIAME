@@ -39,7 +39,7 @@
 #include "geo_polygon.h"
 #include "timestamp.h"
 #include "track_descriptor_set.h"
-#include "vital::uid.h"
+#include "uid.h"
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
