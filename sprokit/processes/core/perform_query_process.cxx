@@ -44,8 +44,6 @@
 namespace kwiver
 {
 
-#define DUMMY_OUTPUT 1
-
 namespace algo = vital::algo;
 
 create_port_trait( external_descriptor_set, descriptor_set,
@@ -305,7 +303,6 @@ perform_query_process
       }
     }
 
-#ifndef DUMMY_OUTPUT
     // Format data to simplified format for external
     std::vector< vital::descriptor_sptr > exemplar_raw_descs;
 
@@ -332,34 +329,6 @@ perform_query_process
     // Receive data from external process (halts until finished)
     result_uids = grab_from_port_using_trait( result_descriptor_uids );
     result_scores = grab_from_port_using_trait( result_descriptor_scores );
-#else
-    // Format data to simplified format for external
-    vital::string_vector_sptr result_uids( new vital::string_vector() );
-    vital::double_vector_sptr result_scores( new vital::double_vector() );
-
-    result_uids->push_back( "output_frame_final_item_14" );
-    result_uids->push_back( "output_frame_final_item_13" );
-    result_uids->push_back( "output_frame_final_item_12" );
-    result_uids->push_back( "output_frame_final_item_11" );
-    result_uids->push_back( "output_frame_final_item_10" );
-    result_uids->push_back( "output_frame_final_item_9" );
-    result_uids->push_back( "output_frame_final_item_8" );
-    result_uids->push_back( "output_frame_final_item_7" );
-    result_uids->push_back( "output_frame_final_item_21" );
-    result_uids->push_back( "output_frame_final_item_24" );
-
-    result_scores->push_back( 0.98 );
-    result_scores->push_back( 0.95 );
-    result_scores->push_back( 0.92 );
-    result_scores->push_back( 0.91 );
-    result_scores->push_back( 0.90 );
-    result_scores->push_back( 0.80 );
-    result_scores->push_back( 0.79 );
-    result_scores->push_back( 0.69 );
-    result_scores->push_back( 0.68 );
-    result_scores->push_back( 0.50 );
-    result_scores->push_back( 0.45 );
-#endif
 
     // Handle forced positive examples, set score to 1, make sure at front
     for( auto itr = d->forced_positives.begin();
