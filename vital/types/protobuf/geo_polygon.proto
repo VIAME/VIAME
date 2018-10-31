@@ -30,26 +30,9 @@
 
 package kwiver.protobuf;
 
-import "metadata.proto";
+import "polygon.proto";
 
-message image {
-  // Image size
-  required int64 width = 1;
-  required int64 height = 2;
-  required int64 depth = 3;
-
-  // Image indexing
-  required int64 w_step = 4;
-  required int64 h_step = 5;
-  required int64 d_step = 6;
-
-  // Pixel traits
-  required int32 trait_type = 7;
-  required int32 trait_num_bytes = 8;
-
-  // Actual image data
-  required int64 size = 9; // uncompressed image memory size
-  required bytes data = 10; // compressed actual image pixels
-
-  optional metadata image_metadata = 11;
+message geo_polygon {
+  required int32 crs = 1;
+  required polygon point_list = 2;
 }

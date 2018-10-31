@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief test json serializers
+ * \brief test protobuf serializers
  */
 
 #include <gtest/gtest.h>
@@ -42,7 +42,10 @@
 #include <arrows/serialize/protobuf/timestamp.h>
 #include <arrows/serialize/protobuf/image.h>
 #include <arrows/serialize/protobuf/string.h>
+#include <arrows/serialize/protobuf/convert_protobuf.h>
+
 #include <vital/types/bounding_box.h>
+#include <vital/types/detected_object_set.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/timestamp.h>

@@ -30,7 +30,10 @@
 
 #include "detected_object_set.h"
 #include "detected_object.h"
+#include "convert_protobuf.h"
 
+#include <vital/types/detected_object_set.h>
+#include <vital/types/protobuf/detected_object_set.pb.h>
 #include <vital/exceptions.h>
 
 namespace kwiver {
@@ -105,41 +108,6 @@ deserialize( const std::string& message )
   }
 
   return kwiver::vital::any(dos_sptr);
-}
-
-// ----------------------------------------------------------------------------
-void detected_object_set::
-convert_protobuf( const kwiver::protobuf::detected_object_set&  proto_dos,
-                  kwiver::vital::detected_object_set& dos )
-{
-  const size_t count( proto_dos.detected_objects_size() );
-  for (size_t i = 0; i < count; ++i )
-  {
-    auto det_object_sptr = std::make_shared< kwiver::vital::detected_object >(
-      kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
-    auto proto_det_object = proto_dos.detected_objects( i );
-
-    kwiver::arrows::serialize::protobuf::detected_object::convert_protobuf(proto_det_object,*det_object_sptr);
-
-    dos.add( det_object_sptr );
-  }
-}
-
-// ----------------------------------------------------------------------------
-void detected_object_set::
-convert_protobuf( const kwiver::vital::detected_object_set& dos,
-                  kwiver::protobuf::detected_object_set&  proto_dos )
-{
-  // We're using type() in "const" (read only) way here.  There's utility
-  // in having the source object parameter be const, but type() isn't because
-  // its a pointer into the det_object.  Using const_cast here is a middle ground
-  // though somewhat ugly
-  for ( auto it: const_cast< kwiver::vital::detected_object_set& >( dos ) )
-  {
-    kwiver::protobuf::detected_object *proto_det_object_ptr = proto_dos.add_detected_objects();
-
-    kwiver::arrows::serialize::protobuf::detected_object::convert_protobuf( *it, *proto_det_object_ptr );
-  }
 }
 
 } } } } // end namespace

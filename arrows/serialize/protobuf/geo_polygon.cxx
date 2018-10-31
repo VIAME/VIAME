@@ -28,76 +28,82 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "image.h"
-#include "load_save.h"
+#include "geo_polygon.h"
+#include "convert_protobuf.h"
 
-#include <vital/types/image_container.h>
-
-#include <vital/internal/cereal/cereal.hpp>
-#include <vital/internal/cereal/archives/json.hpp>
-
-#include <sstream>
-
-namespace kasj = kwiver::arrows::serialize::json;
+#include <vital/types/geo_polygon.h>
+#include <vital/types/protobuf/geo_polygon.pb.h>
 
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace json {
+namespace protobuf {
 
 // ----------------------------------------------------------------------------
-image::
-image()
-{ }
+geo_polygon::
+geo_polygon()
+{
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+}
 
 
-image::
-~image()
+geo_polygon::
+~geo_polygon()
 { }
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
-image::
+geo_polygon::
 serialize( const vital::any& element )
 {
-  // Get native data type from any
-  kwiver::vital::image_container_sptr obj =
-    kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( element );
+  kwiver::vital::geo_polygon_d bbox =
+    kwiver::vital::any_cast< kwiver::vital::geo_polygon_d > ( element );
 
-  std::stringstream msg;
-  msg << "image ";
+  std::ostringstream msg;
+  msg << "geo_polygon "; // add type tag
+
+  kwiver::protobuf::geo_polygon proto_bbox;
+  convert_protobuf( bbox, proto_bbox );
+
+  if ( ! proto_bbox.SerializeToOstream( &msg ) )
   {
-    cereal::JSONOutputArchive ar( msg );
-    save( ar, obj );
+    LOG_ERROR( logger(), "proto_bbox.SerializeToOStream failed" );
   }
 
   return std::make_shared< std::string > ( msg.str() );
 }
 
-
 // ----------------------------------------------------------------------------
-vital::any
-image::
+vital::any geo_polygon::
 deserialize( const std::string& message )
 {
-  std::stringstream msg(message);
-  kwiver::vital::image_container_sptr img_ctr_sptr;
+  kwiver::vital::geo_polygon_d bbox{ 0, 0, 0, 0 };
 
+  std::istringstream msg( message );
   std::string tag;
   msg >> tag;
+  msg.get();  // Eat the delimiter
 
-  if (tag != "image" )
+  if (tag != "geo_polygon" )
   {
-    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"image\", received \""
+    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"geo_polygon\", received \""
                << tag << "\". Message dropped." );
   }
   else
   {
-    cereal::JSONInputArchive ar( msg );
-    load( ar, img_ctr_sptr );
+    // define our protobuf
+    kwiver::protobuf::geo_polygon proto_bbox;
+    if ( ! proto_bbox.ParseFromIstream( &msg ) )
+    {
+      LOG_ERROR( logger(), "Incoming protobuf stream did not parse correctly. ParseFromIstream failed." );
+    }
+
+    convert_protobuf( proto_bbox, bbox );
   }
 
-  return kwiver::vital::any( img_ctr_sptr );
+  return kwiver::vital::any(bbox);
 }
 
-} } } }       // end namespace kwiver
+} } } } // end namespace

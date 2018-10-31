@@ -28,76 +28,83 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "image.h"
-#include "load_save.h"
+#include "metadata.h"
+#include "convert_protobuf.h"
 
-#include <vital/types/image_container.h>
+#include <vital/types/metadata.h>
+#include <vital/types/protobuf/metadata.pb.h>
 
-#include <vital/internal/cereal/cereal.hpp>
-#include <vital/internal/cereal/archives/json.hpp>
-
-#include <sstream>
-
-namespace kasj = kwiver::arrows::serialize::json;
+#include <typeinfo>
 
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace json {
+namespace protobuf {
 
 // ----------------------------------------------------------------------------
-image::
-image()
-{ }
+metadata::
+metadata()
+{
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+}
 
 
-image::
-~image()
+metadata::
+~metadata()
 { }
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
-image::
+metadata::
 serialize( const vital::any& element )
 {
-  // Get native data type from any
-  kwiver::vital::image_container_sptr obj =
-    kwiver::vital::any_cast< kwiver::vital::image_container_sptr > ( element );
+  kwiver::vital::metadata_vector mvec =
+    kwiver::vital::any_cast< kwiver::vital::metadata_vector > ( element );
 
-  std::stringstream msg;
-  msg << "image ";
+  std::ostringstream msg;
+  msg << "metadata "; // add type tag
+
+  kwiver::protobuf::metadata_vector proto_mvec;
+  convert_protobuf( mvec, proto_mvec );
+
+  if ( ! proto_mvec.SerializeToOstream( &msg ) )
   {
-    cereal::JSONOutputArchive ar( msg );
-    save( ar, obj );
+    LOG_ERROR( logger(), "proto_mvec.SerializeToOStream failed" );
   }
 
   return std::make_shared< std::string > ( msg.str() );
 }
 
-
 // ----------------------------------------------------------------------------
-vital::any
-image::
+vital::any metadata::
 deserialize( const std::string& message )
 {
-  std::stringstream msg(message);
-  kwiver::vital::image_container_sptr img_ctr_sptr;
-
+  kwiver::vital::metadata_vector mvec;
+  std::istringstream msg( message );
   std::string tag;
   msg >> tag;
+  msg.get();  // Eat the delimiter
 
-  if (tag != "image" )
+  if (tag != "metadata" )
   {
-    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"image\", received \""
+    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"metadata\", received \""
                << tag << "\". Message dropped." );
   }
   else
   {
-    cereal::JSONInputArchive ar( msg );
-    load( ar, img_ctr_sptr );
+    // define our protobuf
+    kwiver::protobuf::metadata_vector proto_mvec;
+    if ( ! proto_mvec.ParseFromIstream( &msg ) )
+    {
+      LOG_ERROR( logger(), "Incoming protobuf stream did not parse correctly. ParseFromIstream failed." );
+    }
+
+    convert_protobuf( proto_mvec, mvec );
   }
 
-  return kwiver::vital::any( img_ctr_sptr );
+  return kwiver::vital::any(mvec);
 }
 
-} } } }       // end namespace kwiver
+} } } } // end namespace
