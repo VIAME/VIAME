@@ -153,8 +153,6 @@ kw_archive_writer_process
   : process( config ),
     d( new kw_archive_writer_process::priv( this ) )
 {
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -368,7 +366,7 @@ kw_archive_writer_process
     LOG_DEBUG( logger(), "processing frame " << frame_time );
 
     *d->m_index_stream
-      << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
+      << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " "
       << static_cast< int64_t > ( d->m_data_stream->tellp() )
       << std::endl;
 
