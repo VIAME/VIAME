@@ -63,7 +63,7 @@ namespace kwiver {
 namespace arrows {
 namespace vxl {
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 // Private implementation class
 class vidl_ffmpeg_video_input::priv
 {
@@ -178,7 +178,7 @@ public:
   static std::mutex s_open_mutex;
 
 
-  // ===============================================================================================
+  // =====================================================================================
   /*
    * @brief Process metadata byte stream.
    *
@@ -268,7 +268,7 @@ public:
   }
 
 
-  // -----------------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   /*
    * @brief Initialize timestamp for video.
    *
@@ -353,7 +353,7 @@ public:
     return retval;
   } // init_timestamp
 
-  // -----------------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   bool misp_time()
   {
     int frame_count( c_time_scan_frame_limit );
@@ -380,7 +380,7 @@ public:
     return retval;
   } // misp_time
 
-  // -----------------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   bool presentation_time()
   {
     int frame_count( c_time_scan_frame_limit );
@@ -395,7 +395,7 @@ public:
     return true;
   } // presentation_time
 
-  // -----------------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   bool current_time()
   {
     int frame_count( c_time_scan_frame_limit );
@@ -415,9 +415,11 @@ public:
     return true;
   } // presentation_time
 
-  // -----------------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   bool klv_time( std::string type )
   {
+    using namespace kwiver::vital;
+
     int frame_count( c_time_scan_frame_limit );
     bool retval(false);
 
@@ -439,18 +441,19 @@ public:
         for( auto meta : this->metadata_collection)
         {
           // Test to see if the collection is from the specified standard (0104/0601)
-          if (meta->has( kwiver::vital::VITAL_META_METADATA_ORIGIN ) )
+          if (meta->has( VITAL_META_METADATA_ORIGIN ) )
           {
-            collection_type = meta->find( kwiver::vital::VITAL_META_METADATA_ORIGIN ).as_string();
+            collection_type = meta->find( VITAL_META_METADATA_ORIGIN ).as_string();
 
             if (type == collection_type)
             {
-              if (meta->has( kwiver::vital::VITAL_META_UNIX_TIMESTAMP ) )
+              if (meta->has( VITAL_META_UNIX_TIMESTAMP ) )
               {
                 // Get unix timestamp as usec
-                meta_ts = meta->find( kwiver::vital::VITAL_META_UNIX_TIMESTAMP ).as_uint64();
+                meta_ts = meta->find( VITAL_META_UNIX_TIMESTAMP ).as_uint64();
 
-                LOG_DEBUG( this->d_logger, "Found initial " << type << " timestamp: " << meta_ts );
+                LOG_DEBUG( this->d_logger, "Found initial " << type <<
+                           " timestamp: " << meta_ts );
 
                 d_have_abs_frame_time = true;
                 retval = true;
@@ -467,7 +470,7 @@ public:
     return retval;
   } // klv_time
 
-  // -----------------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   void push_metadata_to_map(vital::timestamp::frame_t fn)
   {
     if (fn >= c_start_at_frame &&
@@ -485,7 +488,7 @@ public:
     }
   }
 
-  // -----------------------------------------------------------------------------------------------
+  // -------------------------------------------------------------------------------------
   void process_loop_dependencies()
   {
     // is stream open?
@@ -544,7 +547,7 @@ public:
 std::mutex vidl_ffmpeg_video_input::priv::s_open_mutex;
 
 
-// =================================================================================================
+// =======================================================================================
 vidl_ffmpeg_video_input
 ::vidl_ffmpeg_video_input()
   : d( new priv() )
@@ -561,7 +564,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 // Get this algorithm's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
 vidl_ffmpeg_video_input
@@ -571,22 +574,24 @@ vidl_ffmpeg_video_input
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
   config->set_value( "time_scan_frame_limit", d->c_time_scan_frame_limit,
-                     "Number of frames to be scanned searching input video for embedded time. "
-                      "If the value is zero, the whole video will be scanned." );
+                     "Number of frames to be scanned searching input video for "
+                     "embedded time. If the value is zero, the whole video will "
+                     "be scanned." );
 
   config->set_value( "start_at_frame", d->c_start_at_frame,
                      "Frame number (from 1) to start processing video input. "
                      "If set to zero, start at the beginning of the video." );
 
   config->set_value( "stop_after_frame", d->c_stop_after_frame,
-                     "Number of frames to supply. If set to zero then supply all frames after "
-                     "start frame." );
+                     "Number of frames to supply. If set to zero then supply all "
+                     "frames after start frame." );
 
   config->set_value( "output_nth_frame", d->c_frame_skip,
-                     "Only outputs every nth frame of the video starting at the first frame. The "
-                     "output of num_frames still reports the total frames in the video but "
-                     "skip_frame is valid every nth frame only and there are metadata_map entries "
-                     "for only every nth frame.");
+                     "Only outputs every nth frame of the video starting at the "
+                     "first frame. The output of num_frames still reports the total "
+                     "frames in the video but skip_frame is valid every nth frame "
+                     "only and there are metadata_map entries for only every nth "
+                     "frame.");
 
   config->set_value( "use_metadata", d->c_use_metadata,
                      "Whether to use any metadata provided by the for video stream." );
@@ -595,10 +600,10 @@ vidl_ffmpeg_video_input
                      "List of sources for absolute frame time information. "
                      "This entry specifies a comma separated list of sources that are "
                      "tried in order until a valid time source is found. "
-                     "If an absolute time source is found, it is used in the output time stamp. "
-                     "Absolute times are derived from the metadata in the video stream. "
-                     "Valid source names are \"none\", \"presentation\", \"misp\", \"klv0601\", "
-                     "\"klv0104\", \"current\".\n"
+                     "If an absolute time source is found, it is used in the output "
+                     "time stamp. Absolute times are derived from the metadata in the "
+                     "video stream. Valid source names are \"none\", \"presentation\", "
+                     "\"misp\", \"klv0601\", \"klv0104\", \"current\".\n"
                      "Where:\n"
                      "    none - do not supply absolute time\n"
                      "    presentation - start video time from posix epoch\n"
@@ -606,17 +611,17 @@ vidl_ffmpeg_video_input
                      "    misp - use frame embedded time stamps.\n"
                      "    klv0601 - use klv 0601 format metadata for frame time\n"
                      "    klv0104 - use klv 0104 format metadata for frame time\n"
-                     "Note that when \"none\" is found in the list no further time sources will be "
-                     "evaluated, the output timestamp will be marked as invalid, and the "
-                     "HAS_ABSOLUTE_FRAME_TIME capability will be set to false.  The same behavior "
-                     "occurs when all specified sources are tried and no valid time source is found."
-    );
+                     "Note that when \"none\" is found in the list no further time "
+                     "sources will be evaluated, the output timestamp will be marked "
+                     "as invalid, and the HAS_ABSOLUTE_FRAME_TIME capability will be "
+                     "set to false.  The same behavior occurs when all specified sources "
+                     "are tried and no valid time source is found." );
 
   return config;
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 // Set this algorithm's properties via a config block
 void
 vidl_ffmpeg_video_input
@@ -642,7 +647,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
 ::check_configuration(vital::config_block_sptr config) const
@@ -693,7 +698,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 void
 vidl_ffmpeg_video_input
 ::open( std::string video_name )
@@ -795,7 +800,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 void
 vidl_ffmpeg_video_input
 ::close()
@@ -816,7 +821,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
 ::next_frame( kwiver::vital::timestamp& ts,
@@ -871,7 +876,7 @@ vidl_ffmpeg_video_input
   return true;
 }
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
 ::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
@@ -956,7 +961,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 kwiver::vital::timestamp
 vidl_ffmpeg_video_input
 ::frame_timestamp() const
@@ -973,7 +978,7 @@ vidl_ffmpeg_video_input
   return ts;
 }
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 kwiver::vital::image_container_sptr
 vidl_ffmpeg_video_input
 ::frame_image( )
@@ -1007,7 +1012,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 kwiver::vital::metadata_vector
 vidl_ffmpeg_video_input
 ::frame_metadata()
@@ -1039,7 +1044,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 double
 vidl_ffmpeg_video_input
 ::frame_rate()
@@ -1048,7 +1053,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
 ::end_of_video() const
@@ -1057,7 +1062,7 @@ vidl_ffmpeg_video_input
 }
 
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
 ::good() const
@@ -1065,7 +1070,7 @@ vidl_ffmpeg_video_input
   return d->d_video_stream.is_valid() && d->d_frame_advanced;
 }
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 bool
 vidl_ffmpeg_video_input
 ::seekable() const
@@ -1073,7 +1078,7 @@ vidl_ffmpeg_video_input
   return d->d_video_stream.is_seekable();
 }
 
-// -------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 size_t
 vidl_ffmpeg_video_input
 ::num_frames() const
