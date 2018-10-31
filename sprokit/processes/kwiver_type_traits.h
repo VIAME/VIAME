@@ -96,8 +96,7 @@ create_type_trait( matrix_d, "kwiver:matrix_d", kwiver::vital::matrix_d );
 
 create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
-create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
-create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
+create_type_trait( file_name, "kwiver:file_name", kwiver::vital::path_t );
 create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 create_type_trait( frame_rate, "kwiver:frame_rate", double );
@@ -128,9 +127,9 @@ create_port_trait( track_descriptor_set, track_descriptor_set, "Set of track des
 create_port_trait( matrix_d, matrix_d, "2-dimensional double matrix." );
 
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
-create_port_trait( image_file_name, image_file_name, "Name of an image file. "
-                   "The file name may contain leading path components." );
-create_port_trait( video_file_name, video_file_name, "Name of video file." );
+create_port_trait( file_name, file_name, "Name of an arbitrary data file." );
+create_port_trait( image_file_name, file_name, "Name of an image file." );
+create_port_trait( video_file_name, file_name, "Name of a video file." );
 create_port_trait( metadata, metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
 create_port_trait( frame_rate, frame_rate, "Video frame rate." );

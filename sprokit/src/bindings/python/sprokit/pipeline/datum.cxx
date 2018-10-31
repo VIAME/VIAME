@@ -178,6 +178,8 @@ PYBIND11_MODULE(datum, m)
          , "Convert the data to a timestamp")
     .def("get_corner_points", &datum_get_object<kwiver::vital::geo_polygon>
          , "Convert the data to a set of corner points")
+    .def("get_string", &datum_get_object<std::string>,
+            "Convert the data to a string")
 
   ;
 

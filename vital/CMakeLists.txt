@@ -133,7 +133,6 @@ set( vital_public_headers
   types/track_descriptor_set.h
   types/vector.h
   types/uid.h
-
 )
 
 # ----------------------
