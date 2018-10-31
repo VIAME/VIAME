@@ -39,7 +39,7 @@
 #include "geo_polygon.h"
 #include "timestamp.h"
 #include "track_descriptor_set.h"
-#include "uid.h"
+#include "vital::uid.h"
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
@@ -82,7 +82,7 @@ public:
   ~database_query() = default;
 
   /// Accessor for query plan unique identifier. \see set_id
-  uid id() const;
+  vital::uid id() const;
   /// Accessor for query plan type. \see set_type
   query_type type() const;
 
@@ -115,7 +115,7 @@ public:
    * query plan has been seen by any component other than the original creator,
    * the identifier should be changed if the query plan is modified in any way.
    */
-  void set_id( uid const& );
+  void set_id( vital::uid const& );
   void set_type( query_type );
 
   /**
@@ -183,7 +183,7 @@ public:
 
 protected:
 
-  uid m_id;
+  vital::uid m_id;
   query_type m_type;
   query_filter m_temporal_filter;
   timestamp m_temporal_lower;
