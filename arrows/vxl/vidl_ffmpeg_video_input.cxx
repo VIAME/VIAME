@@ -73,7 +73,7 @@ public:
     : c_start_at_frame( 0 ),
       c_stop_after_frame( 0 ),
       c_frame_skip( 1 ),
-      c_time_source( "presentation" ),
+      c_time_source( "start_at_0" ),
       c_time_scan_frame_limit( 100 ),
       c_use_metadata( true ),
       d_have_frame( false ),
@@ -304,9 +304,9 @@ public:
     {
       retval = klv_time( kwiver::vital::convert_metadata::MISB_0104 );
     }
-    else if ( time_source == "presentation" )
+    else if ( time_source == "start_at_0" )
     {
-      retval = presentation_time();
+      retval = start_at_0_time();
     }
     else if ( time_source == "current" )
     {
@@ -381,7 +381,7 @@ public:
   } // misp_time
 
   // -------------------------------------------------------------------------------------
-  bool presentation_time()
+  bool start_at_0_time()
   {
     int frame_count( c_time_scan_frame_limit );
 
@@ -393,7 +393,7 @@ public:
             && (( c_time_scan_frame_limit == 0) || frame_count-- ));
 
     return true;
-  } // presentation_time
+  } // start_at_0_time
 
   // -------------------------------------------------------------------------------------
   bool current_time()
@@ -413,7 +413,7 @@ public:
             && (( c_time_scan_frame_limit == 0) || frame_count-- ));
 
     return true;
-  } // presentation_time
+  } // current_time
 
   // -------------------------------------------------------------------------------------
   bool klv_time( std::string type )
@@ -602,11 +602,11 @@ vidl_ffmpeg_video_input
                      "tried in order until a valid time source is found. "
                      "If an absolute time source is found, it is used in the output "
                      "time stamp. Absolute times are derived from the metadata in the "
-                     "video stream. Valid source names are \"none\", \"presentation\", "
+                     "video stream. Valid source names are \"none\", \"start_at_0\", "
                      "\"misp\", \"klv0601\", \"klv0104\", \"current\".\n"
                      "Where:\n"
                      "    none - do not supply absolute time\n"
-                     "    presentation - start video time from posix epoch\n"
+                     "    start_at_0 - start video time from posix epoch\n"
                      "    current - start video time from current wallclock time\n"
                      "    misp - use frame embedded time stamps.\n"
                      "    klv0601 - use klv 0601 format metadata for frame time\n"
@@ -663,7 +663,7 @@ vidl_ffmpeg_video_input
   for (auto source : time_source)
   {
     if (source != "none"
-        && source != "presentation"
+        && source != "start_at_0"
         && source != "current"
         && source != "misp"
         && source != "klv0601"
@@ -677,7 +677,7 @@ vidl_ffmpeg_video_input
   if ( ! valid_src )
   {
     LOG_ERROR( logger(), "time source must be a comma separated list of one or more "
-               "of the following strings: \"none\", \"presentation\", \"misp\", "
+               "of the following strings: \"none\", \"start_at_0\", \"misp\", "
                "\"klv0601\", \"klv0104\", \"current\"" );
     retcode = false;
   }
