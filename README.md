@@ -69,16 +69,16 @@ RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Binaries:** <br>
-[VIAME v0.9.7.5 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5b69d8548d777f06857c1f97/download) <br>
-[VIAME v0.9.7.5 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1kD3soOyYE6NqHf7L7SOhXDlk0gDP-3JM) <br>
+[VIAME v0.9.8.8 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd79fd68d777f06b93e7ad5/download) <br>
+[VIAME v0.9.8.8 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Yjs5oSlRkS-8ypIjBuna42qFSxqSGgb7) <br>
 [VIAME v0.9.8.8 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd7947d8d777f06b93e5dba/download) <br>
 [VIAME v0.9.8.8 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1XF2LLkEhhi-bj42CB_kkr0hjdJbhcn4P)
 
 **Windows Binaries:** <br>
-[VIAME v0.9.8.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd2128f8d777f06b93871d5/download) <br>
-[VIAME v0.9.8.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1wbwzMEjV7Ixbzuj-9g-uMsXmeUNWBavH) <br>
-[VIAME v0.9.8.7 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd236ae8d777f06b938c1d6/download) <br>
-[VIAME v0.9.8.7 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1ShhbzjlVodQMm0o6KdhPlX3SIvtnzkaX)
+[VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd7983b8d777f06b93e73b9/download) <br>
+[VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1ob0KBVlG1hsczCleeJwDkJA_-gSY_j8a) <br>
+[VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd798718d777f06b93e73ec/download) <br>
+[VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1USdZDUxoPy7Jq1-k4y6eLR19uhwVtJjn)
 
 
 Quick Run Instructions
@@ -106,7 +106,7 @@ to a directory of your choice and run things from there. Not all
 functionality is in the default project file scripts, however, but it is a good entry point if you
 just want to get started on training object detection and/or tracking models. If so, we recommend reading the:
 [Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
-[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#rapid-model-generation), 
+[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#video-and-image-search-using-viame), 
 [Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
 [Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html).
 
