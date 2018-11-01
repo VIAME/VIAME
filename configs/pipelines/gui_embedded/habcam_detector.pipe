@@ -25,9 +25,9 @@ process scallop_yolo_v2_detector
   block detector:darknet
 
     # Network config, weights, and names
-    relativepath net_config =        models/habcam_scallop_yolo_v2.cfg
-    relativepath weight_file =       models/habcam_scallop_yolo_v2.weights
-    relativepath class_names =       models/habcam_scallop_yolo_v2.lbl
+    relativepath net_config =        ../models/habcam_scallop_yolo_v2.cfg
+    relativepath weight_file =       ../models/habcam_scallop_yolo_v2.weights
+    relativepath class_names =       ../models/habcam_scallop_yolo_v2.lbl
 
     # Detector parameters
     :thresh                          0.001
@@ -67,9 +67,9 @@ process fish_yolo_v2_detector
   block detector:darknet
 
     # Network config, weights, and names
-    relativepath net_config =        models/habcam_fish_yolo_v2.cfg
-    relativepath weight_file =       models/habcam_fish_yolo_v2.weights
-    relativepath class_names =       models/habcam_fish_yolo_v2.lbl
+    relativepath net_config =        ../models/habcam_fish_yolo_v2.cfg
+    relativepath weight_file =       ../models/habcam_fish_yolo_v2.weights
+    relativepath class_names =       ../models/habcam_fish_yolo_v2.lbl
 
     # Detector parameters
     :thresh                          0.001
