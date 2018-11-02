@@ -224,7 +224,7 @@ read_object_track_set_kw18::priv
      * manner as may be done by streaming writers.
      */
     vital::frame_id_t frame_index = atoi( col[COL_FRAME].c_str() );
-    vital::time_us_t frame_time = atof( col[COL_TIME].c_str() );
+    vital::time_usec_t frame_time = atof( col[COL_TIME].c_str() );
     int track_index = atoi( col[COL_ID].c_str() );
 
     vital::bounding_box_d bbox(

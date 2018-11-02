@@ -220,7 +220,7 @@ public:
   vital::image_container_sptr draw_detections( vital::image_container_sptr      image_data,
                                                vital::detected_object_set_sptr  in_set ) const
   {
-    cv::Mat image = image_container_to_ocv_matrix( *image_data, arrows::ocv::image_container::BGR ).clone();
+    cv::Mat image = image_container_to_ocv_matrix( *image_data, arrows::ocv::image_container::BGR_COLOR ).clone();
 
     // process the detection set
     auto ie =  in_set->cend();
@@ -261,7 +261,7 @@ public:
       }
     } // end foreach
 
-    return vital::image_container_sptr( new arrows::ocv::image_container( image, arrows::ocv::image_container::BGR ) );
+    return vital::image_container_sptr( new arrows::ocv::image_container( image, arrows::ocv::image_container::BGR_COLOR ) );
   } // end draw_detections
 
 
@@ -383,7 +383,7 @@ get_configuration() const
   config->set_value( "alpha_blend_prob", d->m_do_alpha,
                      "If true, those who are less likely will be more transparent." );
   config->set_value( "default_line_thickness", d->m_default_params.thickness,
-                     "The default line thickness for a class, in pixels." );
+                     "The default line thickness, in pixels." );
   config->set_value( "default_color", "0 0 255",
                      "The default color for a class (RGB)." );
   config->set_value( "custom_class_color", "",

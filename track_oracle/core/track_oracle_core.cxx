@@ -7,8 +7,7 @@
 #include "track_oracle_core.h"
 #include <track_oracle/core/element_descriptor.h>
 #include <track_oracle/core/track_oracle_core_impl.h>
-
-#include <boost/thread/mutex.hpp>
+#include <mutex>
 
 
 using std::ostream;
@@ -18,7 +17,7 @@ using std::vector;
 
 namespace // anon
 {
-boost::mutex instance_lock;
+std::mutex instance_lock;
 };
 
 namespace kwiver {
@@ -30,7 +29,7 @@ track_oracle_core
 {
   if ( ! track_oracle_core::impl )
   {
-    boost::unique_lock< boost::mutex > lock( instance_lock );
+    std::lock_guard< std::mutex > lock( instance_lock );
     if ( ! track_oracle_core::impl )
     {
       track_oracle_core::impl = new track_oracle_core_impl();

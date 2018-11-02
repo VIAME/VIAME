@@ -13,6 +13,12 @@ add_subdirectory( core )
 add_subdirectory( examples )
 add_subdirectory( flow )
 
+#
+# This may need some enable flags as we start to support other
+# transports that require support libraries such as zeromq.
+#
+add_subdirectory( transport )
+
 if (KWIVER_ENABLE_VXL)
   add_subdirectory( vxl )
 endif()
@@ -43,7 +49,7 @@ if (KWIVER_ENABLE_TOOLS)
 ###
 #     plugins for plugin explorer
 kwiver_add_plugin( process_explorer_plugin
-  SUBDIR   modules/plugin_explorer
+  SUBDIR   ${kwiver_plugin_plugin_explorer_subdir}
   SOURCES  process_explorer_plugin.cxx
   PRIVATE  vital
            vital_vpm

@@ -37,11 +37,11 @@
 
 #include <vital/logger/logger.h>
 #include <vital/config/config_block.h>
+#include <vital/config/config_block_formatter.h>
+#include <vital/util/string.h>
 
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/graph/directed_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
-#include <boost/integer/common_factor_rt.hpp>
 
 #include <functional>
 #include <map>
@@ -61,8 +61,55 @@
  * \brief Implementation of the base class for \link sprokit::pipeline pipelines\endlink.
  */
 
-namespace sprokit
+namespace sprokit {
+
+namespace {
+
+/**
+ * @brief Greatest common denominator
+ *
+ * gcd algorithm ref:
+ * Knuth, Donald. "Art of Computer Programming", Volume 2, Third edition, pp. 337
+ *
+ * @param a First number
+ * @param b Second number
+ *
+ * @return GCD
+ */
+template <typename T>
+T
+gcd( T a, T b )
 {
+  while (b != 0)
+  {
+    T r = a % b;
+    a = b;
+    b = r;
+  } // end while
+
+  return a;
+}
+
+
+/**
+ * @brief Find least common multiple of two values
+ *
+ * @param a First value
+ * @param b Second value
+ *
+ * @return Least common multiple.
+ */
+template <typename T>
+T
+lcm( T a, T b )
+{
+  T temp = gcd( a, b );
+
+  return temp ? ( a / temp * b ) : 0;
+}
+
+} // end namespace
+
 
 class pipeline::priv
 {
@@ -1136,25 +1183,25 @@ pipeline
 
 
 // ------------------------------------------------------------------
-process_t
+processes_t
 pipeline
-::get_python_process() const
+::get_python_processes() const
 {
   // Run through each process, checking to see if any are python
-  process_t python_process; // Start with a null pointer, return it if no python procs are found
+  processes_t python_processes; // Start with empty list
   for (priv::process_map_t::value_type const& process_index : d->process_map)
   {
     process_t proc = process_index.second;
     auto properties = proc->properties();
     if ( properties.find("_python") != properties.end() )
     {
-      python_process = proc;
-      break;
+      python_processes.push_back( proc );
     }
   }
 
-  return python_process;
+  return python_processes;
 }
+
 
 // ------------------------------------------------------------------
 pipeline::priv
@@ -1178,7 +1225,8 @@ pipeline::priv
   if ( IS_DEBUG_ENABLED( m_logger ) )
   {
     std::stringstream msg;
-    config->print(msg);
+    kwiver::vital::config_block_formatter fmt( config );
+    fmt.print(msg);
     LOG_DEBUG( m_logger, "pipeline config:\n" << msg.str() );
   }
 }
@@ -1245,8 +1293,8 @@ pipeline::priv
     return type_deferred;
   }
 
-  bool const up_flow_dep = boost::starts_with(up_type, process::type_flow_dependent);
-  bool const down_flow_dep = boost::starts_with(down_type, process::type_flow_dependent);
+  bool const up_flow_dep = kwiver::vital::starts_with(up_type, process::type_flow_dependent);
+  bool const down_flow_dep = kwiver::vital::starts_with(down_type, process::type_flow_dependent);
 
   if (up_flow_dep || down_flow_dep)
   {
@@ -1355,7 +1403,7 @@ pipeline::priv
         process::port_info_t const info = proc->input_port_info(downstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
+        bool const flow_dep = kwiver::vital::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
@@ -1383,7 +1431,7 @@ pipeline::priv
         process::port_info_t const info = proc->output_port_info(upstream_port);
         process::port_type_t const& type = info->type;
 
-        bool const flow_dep = boost::starts_with(type, process::type_flow_dependent);
+        bool const flow_dep = kwiver::vital::starts_with(type, process::type_flow_dependent);
 
         if (!flow_dep)
         {
@@ -1786,7 +1834,8 @@ pipeline::priv
       {
         std::stringstream msg;
         msg << "-- Edge type config for type \"" << down_type << "\" :\n";
-        edge_type_config->print( msg );
+        kwiver::vital::config_block_formatter fmt( edge_type_config );
+        fmt.print( msg );
         LOG_TRACE( m_logger, msg.str() );
       }
     }
@@ -1812,12 +1861,14 @@ pipeline::priv
             << upstream_name + kwiver::vital::config_block::block_sep
              + upstream_subblock + kwiver::vital::config_block::block_sep + upstream_port
             << "\" :\n";
-        up_config->print(msg);
+        kwiver::vital::config_block_formatter up_fmt( up_config );
+        up_fmt.print(msg);
         msg << "\n-- Down_config for \""
             << downstream_name + kwiver::vital::config_block::block_sep
              + downstream_subblock + kwiver::vital::config_block::block_sep + downstream_port
             << "\" :\n";
-        down_config->print(msg);
+        kwiver::vital::config_block_formatter down_fmt( up_config );
+        down_fmt.print(msg);
         LOG_TRACE( m_logger, msg.str() );
       }
 
@@ -1855,7 +1906,8 @@ pipeline::priv
     if ( IS_DEBUG_ENABLED( m_logger ) )
     {
       std::stringstream msg;
-      edge_config->print(msg);
+      kwiver::vital::config_block_formatter fmt( edge_config );
+      fmt.print(msg);
 
       LOG_TRACE( m_logger,
                  "Edge config for "  << upstream_name << "." <<
@@ -2197,7 +2249,7 @@ pipeline::priv
     process::port_frequency_t const& freq = proc_freq.second;
     process::frequency_component_t const denom = freq.denominator();
 
-    freq_gcd = boost::integer::lcm(freq_gcd, denom);
+    freq_gcd = lcm(freq_gcd, denom);
   }
 
   for (process_frequency_map_t::value_type const& proc_freq : freq_map)

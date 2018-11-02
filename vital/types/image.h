@@ -219,6 +219,13 @@ public:
    * \param other image_memory to copy from.
    */
   image_memory& operator=( const image_memory& other );
+  
+  /// Equality operator
+  /**
+   * Compares the data in other image memory with this image data.
+   * \param other image_memory to compare with
+   */
+  bool operator==( const image_memory& other ) const;
 
   /// Destructor
   virtual ~image_memory();
@@ -379,6 +386,14 @@ public:
 
   /// Return true if the pixels accessible in this image form a contiguous memory block
   bool is_contiguous() const;
+
+  /// Equality operator
+  /**
+   * Compares this image to another image. Uses image data, pixel trait and image 
+   * dimension for comparision
+   * \param other image to compare with
+   */
+  bool operator==( const image& other_image ) const;
 
   /// Access pixels in the first channel of the image
   /**

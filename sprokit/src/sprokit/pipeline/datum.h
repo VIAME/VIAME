@@ -185,6 +185,7 @@ class SPROKIT_PIPELINE_EXPORT datum
     kwiver::vital::any const m_datum;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class datum_exception datum.h <sprokit/pipeline/datum.h>
  *
@@ -206,6 +207,7 @@ class SPROKIT_PIPELINE_EXPORT datum_exception
     virtual ~datum_exception() noexcept;
 };
 
+// ----------------------------------------------------------------------------
 /**
  * \class bad_datum_cast_exception datum.h <sprokit/pipeline/datum.h>
  *
@@ -244,6 +246,7 @@ class SPROKIT_PIPELINE_EXPORT bad_datum_cast_exception
     std::string const m_reason;
 };
 
+// ----------------------------------------------------------------------------
 template <typename T>
 datum_t
 datum::new_datum(T const& dat)
@@ -251,6 +254,7 @@ datum::new_datum(T const& dat)
   return new_datum(kwiver::vital::any(dat));
 }
 
+// ----------------------------------------------------------------------------
 template <typename T>
 T
 datum::get_datum() const
@@ -269,6 +273,7 @@ datum::get_datum() const
   }
 }
 
+// ----------------------------------------------------------------------------
 template <>
 inline
 kwiver::vital::any

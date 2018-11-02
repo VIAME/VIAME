@@ -89,6 +89,7 @@ is_valid_lon_lat( vector_2d const& vec )
 
 } // end namespace
 
+// ----------------------------------------------------------------------------
 /**
  * @brief Normalize metadata tag data types.
  *

@@ -133,10 +133,10 @@ public:
   /// Return the descriptor as a vector of doubles
   std::vector< double > as_double() const
   {
-    const size_t length = this->size();
+    const std::size_t length = this->size();
     std::vector< double > double_data( length );
 
-    for ( size_t i = 0; i < length; ++i )
+    for ( std::size_t i = 0; i < length; ++i )
     {
       double_data[i] = static_cast< double > ( this->raw_data()[i] );
     }

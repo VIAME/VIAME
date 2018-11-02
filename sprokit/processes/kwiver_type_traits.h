@@ -66,6 +66,7 @@ namespace vital {
   typedef std::shared_ptr< double_vector > double_vector_sptr;
   typedef std::vector< std::string > string_vector;
   typedef std::shared_ptr< string_vector > string_vector_sptr;
+  using string_sptr =  std::shared_ptr< std::string >;
 
 } }
 
@@ -79,7 +80,7 @@ namespace vital {
 create_type_trait( bounding_box, "kwiver:bounding_box", kwiver::vital::bounding_box_d );
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
 create_type_trait( gsd, "kwiver:gsd", double );
-create_type_trait( corner_points, "corner_points", kwiver::vital::geo_polygon );
+create_type_trait( corner_points, "kwiver:corner_points", kwiver::vital::geo_polygon );
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( bool, "kwiver:bool", bool );
@@ -98,11 +99,11 @@ create_type_trait( matrix_d, "kwiver:matrix_d", kwiver::vital::matrix_d );
 create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
 create_type_trait( file_name, "kwiver:file_name", kwiver::vital::path_t );
-create_type_trait( image_file_name, "kwiver:image_file_name", kwiver::vital::path_t );
-create_type_trait( video_file_name, "kwiver:video_file_name", kwiver::vital::path_t );
 create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
+create_type_trait( frame_rate, "kwiver:frame_rate", double );
 
+create_type_trait( serialized_message, "kwiver:serialized_message", kwiver::vital::string_sptr );
 
 // ================================================================
 //
@@ -128,10 +129,13 @@ create_port_trait( track_descriptor_set, track_descriptor_set, "Set of track des
 create_port_trait( matrix_d, matrix_d, "2-dimensional double matrix." );
 
 create_port_trait( homography_src_to_ref, homography_src_to_ref, "Source image to ref image homography." );
-create_port_trait( image_file_name, image_file_name, "Name of an image file. "
-                   "The file name may contain leading path components." );
-create_port_trait( video_file_name, video_file_name, "Name of video file." );
+create_port_trait( file_name, file_name, "Name of an arbitrary data file." );
+create_port_trait( image_file_name, file_name, "Name of an image file." );
+create_port_trait( video_file_name, file_name, "Name of a video file." );
 create_port_trait( metadata, metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
+create_port_trait( frame_rate, frame_rate, "Video frame rate." );
+
+create_port_trait( serialized_message, serialized_message, "serialized data type" );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2017 by Kitware, Inc.
+* Copyright 2017-2018 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -69,11 +69,11 @@ void how_to_part_02_detections()
 
   // We can take this detection set and create a new image with the detections overlaid on the image
   kwiver::vital::algo::draw_detected_object_set_sptr drawer = kwiver::vital::algo::draw_detected_object_set::create("ocv");
-  drawer->set_configuration(drawer->get_configuration());// This will default the configuration 
+  drawer->set_configuration(drawer->get_configuration());// This will default the configuration
   kwiver::vital::image_container_sptr hough_img = drawer->draw(hough_detections, ocv_img);
 
   // Let's see what it looks like
-  cv::Mat hough_mat = kwiver::arrows::ocv::image_container::vital_to_ocv(hough_img->get_image());
+  cv::Mat hough_mat = kwiver::arrows::ocv::image_container::vital_to_ocv(hough_img->get_image(), kwiver::arrows::ocv::image_container::RGB_COLOR);
   cv::namedWindow("Hough Detections", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Hough Detections", hough_mat);                     // Show our image inside it.
   cv::waitKey(5);
@@ -139,7 +139,7 @@ void how_to_part_02_detections()
 
   kwiver::vital::image_container_sptr img_detections = drawer->draw(detections, ocv_img);
   // Let's see what it looks like
-  cv::Mat mat = kwiver::arrows::ocv::image_container::vital_to_ocv(img_detections->get_image());
+  cv::Mat mat = kwiver::arrows::ocv::image_container::vital_to_ocv(img_detections->get_image(), kwiver::arrows::ocv::image_container::RGB_COLOR);
   cv::namedWindow("Detections", cv::WINDOW_AUTOSIZE);// Create a window for display.
   cv::imshow("Detections", mat);                     // Show our image inside it.
   cv::waitKey(5);

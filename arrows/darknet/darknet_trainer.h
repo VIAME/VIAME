@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,8 @@ public:
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
   virtual void
-  train_from_disk(std::vector< std::string > train_image_names,
+  train_from_disk(vital::category_hierarchy_sptr object_labels,
+    std::vector< std::string > train_image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
     std::vector< std::string > test_image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);

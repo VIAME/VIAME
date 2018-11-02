@@ -15,6 +15,7 @@ set(KWSYS_USE_RegularExpression    1)
 set(KWSYS_USE_SystemInformation    1)
 set(KWSYS_USE_Directory            1)
 set(KWSYS_USE_CommandLineArguments 1)
+set(KWSYS_USE_MD5 1)
 
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_INCLUDE_DIR  "include")
@@ -66,7 +67,9 @@ set( vital_public_headers
   any.h
   algorithm_capabilities.h
   attribute_set.h
+  exceptions.h
   iterator.h
+  optional.h
 
   io/camera_from_metadata.h
   io/camera_io.h
@@ -83,6 +86,7 @@ set( vital_public_headers
   types/camera_perspective.h
   types/camera_rpc.h
   types/camera_map.h
+  types/category_hierarchy.h
   types/color.h
   types/covariance.h
   types/descriptor.h
@@ -129,7 +133,6 @@ set( vital_public_headers
   types/track_descriptor_set.h
   types/vector.h
   types/uid.h
-
 )
 
 # ----------------------
@@ -149,6 +152,7 @@ set( vital_sources
   types/camera_intrinsics.cxx
   types/camera_perspective.cxx
   types/camera_rpc.cxx
+  types/category_hierarchy.cxx
   types/descriptor_request.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx
@@ -231,11 +235,11 @@ endif()
 # Build a default set of plugin path dirs
 # Provide that list as the default value for the path option.
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} modules )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
 set( vital_default_module_path ${kwiver_module_path_result} )
 
 if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} modules )
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
   set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
 endif()
 
@@ -273,6 +277,7 @@ configure_file(
 add_subdirectory( exceptions )
 add_subdirectory( algo )
 add_subdirectory( util )
+add_subdirectory( range )
 add_subdirectory( bindings )
 add_subdirectory( config )
 add_subdirectory( klv )
@@ -281,6 +286,10 @@ add_subdirectory( plugin_loader )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )
+endif()
+
+if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
+  add_subdirectory( types/protobuf )
 endif()
 
 ###

@@ -201,6 +201,10 @@ configurations into smaller reusable pieces.
 
 ``include filename``
 
+The ``filename`` specified may contain references to an ENV or SYSENV
+macro. The macro reference is expanded before the file is located. No
+other macro providers are supported.
+
 If the file name is not an absolute path, it is located by scanning
 the current config search path.  The manner in which the config
 include path is created is described in a following section.  If the
@@ -464,7 +468,7 @@ can be described as follows::
 
   config _pipeline:_edge_by_conn
      input:up:timestamp:capacity = 20
-   s  tabilize:down:timestamp:capacity = 20
+     stabilize:down:timestamp:capacity = 20
 
 
 Both of these entries refer to the same edge, so in real life, you

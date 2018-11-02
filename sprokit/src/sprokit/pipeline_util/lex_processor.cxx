@@ -53,6 +53,8 @@
 // token traffic
 #define LEX_DEBUG 0
 
+using kst = kwiversys::SystemTools;
+
 namespace sprokit {
 
 namespace {
@@ -69,14 +71,20 @@ class include_context
 {
 public:
   include_context( const std::string& file_name )
-    : m_fstream( file_name ) // open file stream
+    : m_fstream( file_name, std::ios_base::in ) // open file stream
     , m_stream( &m_fstream )
     , m_reader( m_fstream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >( kwiversys::SystemTools::GetRealPath(file_name) ) )
+    , m_filename( std::make_shared< std::string >( kst::GetRealPath(file_name) ) )
   {
     if ( ! m_stream )
     {
-      throw kwiver::vital::config_file_not_found_exception( file_name, "could not open file");
+      VITAL_THROW( kwiver::vital::config_file_not_found_exception, file_name, "could not open file");
+    }
+
+    // make sure file is readable
+    if ( ! kst::TestFileAccess( file_name, kwiversys::TEST_FILE_OK | kwiversys::TEST_FILE_READ ) )
+    {
+      VITAL_THROW( kwiver::vital::config_file_not_found_exception, file_name, "could not access file");
     }
   }
 
@@ -154,18 +162,6 @@ public:
   bool get_line();
 
   /**
-   * @brief Trim spaces from string/
-   *
-   * This method removes leading and trailing spaces from the supplied
-   * string. The string is returned in place.
-   *
-   * @param[in,out] str String to be trimmed.
-   *
-   * @return \b true is returned if the string has been changed.
-   */
-  bool trim_string( std::string& str );
-
-  /**
    * @brief Flush current line.
    *
    */
@@ -211,11 +207,6 @@ public:
    * is the last entry on the stack when a real EOF token is retrned.
    */
   std::vector< std::shared_ptr< include_context > > m_include_stack;
-
-  /**
-   * This is used to remove leading and trailing strings.
-   */
-  kwiver::vital::string_editor m_trim_string;
 
   // file search path list
   kwiver::vital::config_path_list_t m_search_path;
@@ -273,7 +264,7 @@ lex_processor::
 get_rest_of_line()
 {
   std::string line( m_priv->m_cur_char, m_priv->m_input_line.end() );
-  m_priv->trim_string( line );
+  kwiver::vital::string_trim( line );
 
   m_priv->flush_line();
   return line;
@@ -390,7 +381,7 @@ get_next_token()
       m_priv->m_cur_char += 8;
 
       std::string file_name( m_priv->m_cur_char, m_priv->m_input_line.end() );
-      m_priv->trim_string( file_name );
+      kwiver::vital::string_trim( file_name );
 
       // Perform macro substitutions first
       file_name = m_priv->m_token_expander.expand_token( file_name );
@@ -399,11 +390,10 @@ get_next_token()
       if ( "" == resolv_filename ) // could not resolve
       {
         std::ostringstream sstr;
-        sstr << "File included from " << current_location()
+        sstr << file_name << " included from " << current_location()
              << " could not be found in search path.";
 
-        LOG_ERROR( m_logger, sstr.str() );
-        throw sprokit::file_no_exist_exception( file_name );
+        VITAL_THROW( sprokit::file_no_exist_exception, sstr.str() );
       }
 
       LOG_TRACE( m_logger, "Including file: \"" << resolv_filename << "\"" );
@@ -464,7 +454,7 @@ get_next_token()
       {
         // Collect description text from after token to EOL
         std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
-        m_priv->trim_string( text );
+        kwiver::vital::string_trim( text );
         t = std::make_shared< token > ( TK_CLUSTER_DESC, text );
         t->set_location( current_location() );
 
@@ -485,7 +475,7 @@ get_next_token()
       {
         // Collect rest of line as text
         std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
-        m_priv->trim_string( text );
+        kwiver::vital::string_trim( text );
         token_sptr t = std::make_shared< token > ( m_priv->find_res_word( ":=" ), text );
         t->set_location( current_location() );
 
@@ -502,7 +492,7 @@ get_next_token()
       // assignment operator
       // Collect rest of line as text
       std::string text( m_priv->m_cur_char, m_priv->m_input_line.end() );
-      m_priv->trim_string( text );
+      kwiver::vital::string_trim( text );
       t = std::make_shared< token > ( TK_ASSIGN, text );
       t->set_location( current_location() );
 
@@ -566,8 +556,6 @@ priv()
   , m_absorb_whitespace( true )
 {
   m_cur_char = m_input_line.end();
-  m_trim_string.add( new kwiver::vital::edit_operation::left_trim );
-  m_trim_string.add( new kwiver::vital::edit_operation::right_trim );
 
   //
   // Fill in the keyword map. An alternate approach would be to use
@@ -658,7 +646,7 @@ lex_processor::priv::
 current_loc() const
 {
   // Get current location from the include file stack top element
-  return kwiver::vital::source_location( std::make_shared< std::string >( *(m_include_stack.back()->m_filename) ),
+  return kwiver::vital::source_location( m_include_stack.back()->m_filename,
            static_cast<int>(m_include_stack.back()->m_reader.line_number()) );
 }
 
@@ -675,15 +663,6 @@ get_line()
     m_cur_char = m_input_line.begin();
   }
   return status;
-}
-
-
-// ------------------------------------------------------------------
-bool
-lex_processor::priv::
-trim_string( std::string& str )
-{
-  return m_trim_string.edit( str );
 }
 
 
