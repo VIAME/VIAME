@@ -45,7 +45,7 @@ iqr_feedback
 }
 
 // ----------------------------------------------------------------------------
-uid
+vital::uid
 iqr_feedback
 ::query_id() const
 {
@@ -55,7 +55,7 @@ iqr_feedback
 // ----------------------------------------------------------------------------
 void
 iqr_feedback
-::set_query_id( uid const& id )
+::set_query_id( vital::uid const& id )
 {
   m_query_id = id;
 }

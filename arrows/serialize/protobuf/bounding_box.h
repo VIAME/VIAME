@@ -33,8 +33,6 @@
 
 #include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/bounding_box.h>
-#include <vital/types/protobuf/bounding_box.pb.h>
 
 namespace kwiver {
 namespace arrows {
@@ -49,8 +47,7 @@ public:
   static constexpr char const* name = "kwiver:bounding_box";
 
   static constexpr char const* description =
-    "Serializes a bounding_box using protobuf notation. "
-    "This implementation only handles a single data item.";
+    "Serializes a bounding_box using protobuf notation. ";
 
   bounding_box();
   virtual ~bounding_box();
@@ -58,12 +55,6 @@ public:
   virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
   virtual vital::any deserialize( const std::string& message ) override;
 
-  // Convert between native and protobuf formats
-  static void convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
-                                kwiver::vital::bounding_box_d& bbox );
-
-  static void convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
-                                kwiver::protobuf::bounding_box&  proto_bbox );
 };
 
 } } } }       // end namespace kwiver

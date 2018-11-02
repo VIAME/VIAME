@@ -64,6 +64,7 @@ struct vital_meta_trait_base
   virtual bool is_integral() const = 0;
   virtual bool is_floating_point() const = 0;
   virtual vital_metadata_tag tag() const = 0;
+  virtual metadata_item* create_metadata_item( const kwiver::vital::any& data ) const = 0;
 };
 
 

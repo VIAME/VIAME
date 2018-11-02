@@ -33,7 +33,7 @@
 
 #include <arrows/serialize/json/kwiver_serialize_json_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/detected_object.h>
+#include "load_save.h"
 
 namespace cereal {
   class JSONOutputArchive;
@@ -51,20 +51,14 @@ class KWIVER_SERIALIZE_JSON_EXPORT detected_object
 public:
   // Type name this class supports
   static constexpr char const* name = "kwiver:detected_object";
-
   static constexpr char const* description =
-    "Serializes a detected_object using JSON notation. "
-    "This implementation only handles a single data item.";
+    "Serializes a detected_object using JSON notation.";
 
   detected_object();
   virtual ~detected_object();
 
   virtual std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
   virtual vital::any deserialize( const std::string& message ) override;
-
-  // Converters that can be used in cases of nested structures
-  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object& obj );
-  static void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object& obj );
 };
 
 } } } }       // end namespace kwiver

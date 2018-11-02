@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015-2017 by Kitware, Inc.
+Copyright 2015-2018 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -146,22 +146,22 @@ class KwiverProcess(process.PythonProcess):
         # If there is no converter in sprokit and a conversion function is not
         # specified as part of the trait, fire will rain from above.
         #
-        self.add_type_trait("bounding_box", "kwiver:bounding_box",
-                            datum.Datum.get_bounding_box,
-                            datum.new_bounding_box)
-        self.add_type_trait("timestamp", "kwiver:timestamp",
-                            datum.Datum.get_timestamp,
-                            datum.new_timestamp)
-        self.add_type_trait("corner_points", "kwiver:corner_points",
-                            datum.Datum.get_corner_points,
-                            datum.new_corner_points)
-        self.add_type_trait("gsd", "kwiver:gsd")
         self.add_type_trait("image", "kwiver:image",
                             datum.Datum.get_image_container,
                             datum.new_image_container)
         self.add_type_trait("mask", "kwiver:image",
                             datum.Datum.get_image_container,
                             datum.new_image_container)
+        self.add_type_trait("timestamp", "kwiver:timestamp",
+                            datum.Datum.get_timestamp,
+                            datum.new_timestamp)
+        self.add_type_trait("bounding_box", "kwiver:bounding_box",
+                            datum.Datum.get_bounding_box,
+                            datum.new_bounding_box)
+        self.add_type_trait("corner_points", "kwiver:corner_points",
+                            datum.Datum.get_corner_points,
+                            datum.new_corner_points)
+        self.add_type_trait("gsd", "kwiver:gsd")
         self.add_type_trait("feature_set", "kwiver:feature_set")
         self.add_type_trait("descriptor_set", "kwiver:descriptor_set",
                             datum.Datum.get_descriptor_set,
@@ -178,16 +178,12 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("object_track_set", "kwiver:object_track_set",
                             datum.Datum.get_object_track_set,
                             datum.new_object_track_set)
-        self.add_type_trait("timestamp", "kwiver:timestamp",
-                            datum.Datum.get_timestamp,
-                            datum.new_timestamp)
 
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
-        self.add_type_trait("image_file_name", "kwiver:file_name",
+        self.add_type_trait("file_name", "kwiver:file_name",
                             datum.Datum.get_string,
                             datum.new_string)
-        self.add_type_trait("video_file_name", "kwiver:file_name")
         self.add_type_trait("matrix_d", "kwiver:matrix_d")
 
         self.add_type_trait("double_vector", "kwiver:d_vector",
@@ -201,10 +197,10 @@ class KwiverProcess(process.PythonProcess):
                             datum.new_uchar_vector)
 
         #                   port-name    type-trait-name    description
-        self.add_port_trait("timestamp", "timestamp",
-                            "Timestamp for input image")
         self.add_port_trait("image", "image", "Single frame input image")
         self.add_port_trait("mask", "mask", "Imput mask image")
+        self.add_port_trait("timestamp", "timestamp",
+                            "Timestamp containing frame ID and time")
         self.add_port_trait("feature_set", "feature_set",
                             "Set of detected features")
         self.add_port_trait("descriptor_set", "descriptor_set",
@@ -219,19 +215,17 @@ class KwiverProcess(process.PythonProcess):
                             "Set of object tracks")
         self.add_port_trait("homography_src_to_ref", "homography_src_to_ref",
                             "Source image to ref image homography.")
-        self.add_port_trait("image_file_name", "image_file_name",
-                            "Name of an image file. Usually a single frame of "
-                            "a video or image sequence.")
-        self.add_port_trait("video_file_name", "video_file_name",
-                            "Name of video file.")
         self.add_port_trait("file_name", "file_name",
                             "Name of some generic file.")
+        self.add_port_trait("image_file_name", "file_name",
+                            "Name of an image file. Usually a single frame of "
+                            "a video or image sequence.")
+        self.add_port_trait("video_file_name", "file_name",
+                            "Name of video file.")
         self.add_port_trait("matrix_d", "matrix_d",
                             "2-dimensional double matrix.")
         self.add_port_trait("string_vector", "string_vector",
                             "Vector of strings.")
-        self.add_port_trait("timestamp", "timestamp",
-                            "time stamp.")
 
     def add_type_trait(self, ttn, tn, conv_in=None, conv_out=None):
         """

@@ -109,6 +109,13 @@ OPTION( KWIVER_ENABLE_C_BINDINGS               "Enable C bindings libraries" OFF
 CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTHON   "Enable python code" OFF
   KWIVER_ENABLE_C_BINDINGS OFF )
 
+if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
+  if (WIN32)
+    message( WARNING "Protobuf serialization not supported for windows. Being disabled." )
+    set(KWIVER_ENABLE_SERIALIZE_PROTOBUF OFF )
+  endif()
+endif()
+
 if (KWIVER_ENABLE_PYTHON)
 
   if (NOT WIN32)

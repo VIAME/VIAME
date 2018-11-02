@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2015 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,9 +146,6 @@ PYBIND11_MODULE(datum, m)
   m.def("new_bounding_box", &new_datum<kwiver::vital::bounding_box_d>
     , (arg("dat"))
     , "Creates a new bounding box");
-  m.def("new_timestamp", &new_datum<kwiver::vital::timestamp>
-    , (arg("dat"))
-    , "Creates a new timestamp");
   m.def("new_corner_points", &new_datum<kwiver::vital::geo_polygon>
     , (arg("dat"))
     , "Creates a new set of corner points");
@@ -206,8 +203,6 @@ PYBIND11_MODULE(datum, m)
       , "Convert the data to a string vector")
     .def("get_bounding_box", &datum_get_object<kwiver::vital::bounding_box_d>
          , "Convert the data to a bounding box")
-    .def("get_timestamp", &datum_get_object<kwiver::vital::timestamp>
-         , "Convert the data to a timestamp")
     .def("get_corner_points", &datum_get_object<kwiver::vital::geo_polygon>
          , "Convert the data to a set of corner points")
     .def("get_uchar_vector", &datum_get_object<std::shared_ptr<std::vector<unsigned char>>>

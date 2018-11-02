@@ -9,20 +9,24 @@ if(NOT PROTOBUF_FOUND)
 endif()
 
 set( headers_public
+  convert_protobuf.h
   bounding_box.h
   detected_object_type.h
   detected_object.h
   detected_object_set.h
+  metadata.h
   timestamp.h
   image.h
   string.h
   )
 
 set( sources
+  convert_protobuf.cxx
   bounding_box.cxx
   detected_object_type.cxx
   detected_object.cxx
   detected_object_set.cxx
+  metadata.cxx
   timestamp.cxx
   image.cxx
   string.cxx

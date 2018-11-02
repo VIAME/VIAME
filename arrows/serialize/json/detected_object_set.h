@@ -51,21 +51,14 @@ class KWIVER_SERIALIZE_JSON_EXPORT detected_object_set
 public:
   // Type name this class supports
   static constexpr char const* name = "kwiver:detected_object_set";
-
   static constexpr char const* description =
-    "Serializes a detected_object_set using JSON notation. "
-    "This implementation only handles a single data item.";
+    "Serializes a detected_object_set using JSON notation.";
 
   detected_object_set();
   virtual ~detected_object_set();
 
   virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
   virtual vital::any deserialize( const std::string& message ) override;
-
-  // Converters that can be used in cases of nested structures
-  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_set& obj );
-  static void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_set& obj );
-
 };
 
 } } } }       // end namespace kwiver

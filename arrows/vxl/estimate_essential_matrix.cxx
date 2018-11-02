@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -139,7 +139,7 @@ estimate_essential_matrix
   vital_to_vpgl_calibration(*cal1, vcal1);
   vital_to_vpgl_calibration(*cal2, vcal2);
 
-  vcl_vector<vgl_point_2d<double> > right_points, left_points;
+  std::vector<vgl_point_2d<double> > right_points, left_points;
   for(const vector_2d& v : pts1)
   {
     right_points.push_back(vgl_point_2d<double>(v.x(), v.y()));
