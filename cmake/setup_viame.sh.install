@@ -27,8 +27,10 @@ source $PYTHON_INSTALL_DIR/bin/activate
 this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
 
 # Paths for loading algorithm plugins
-export KWIVER_PLUGIN_PATH=$this_dir/lib/modules:$KWIVER_PLUGIN_PATH
-export KWIVER_PLUGIN_PATH=$this_dir/lib/sprokit:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/modules:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/modules:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/processes:$KWIVER_PLUGIN_PATH
 
 # Paths for loading process plugins
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
