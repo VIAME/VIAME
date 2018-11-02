@@ -90,6 +90,7 @@ create_type_trait( corner_points, "kwiver:corner_points", kwiver::vital::geo_pol
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
 create_type_trait( image_set, "kwiver:image", kwiver::vital::image_container_sptr_list );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
+create_type_trait( bool, "kwiver:bool", bool );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
 create_type_trait( database_query, "kwiver:database_query", kwiver::vital::database_query_sptr );
 create_type_trait( descriptor_set, "kwiver:descriptor_set", kwiver::vital::descriptor_set_sptr );
