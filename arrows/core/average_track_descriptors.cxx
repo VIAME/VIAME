@@ -121,10 +121,9 @@ average_track_descriptors
 
         if( ots && ots->detection && ots->detection->descriptor() )
         {
-          auto avg_it = d->m_history.find( track->id() );
           std::vector< double > descriptor = ots->detection->descriptor()->as_double();
           std::vector< double > average;
-          if( avg_it == d->m_history.end() )
+          if( !d->m_rolling && !d->m_history.count( track->id() ) )
           {
             // This is the first detection in the track, so output it
             // as-is.  This ensures that every input track has a
@@ -135,10 +134,10 @@ average_track_descriptors
           }
           else
           {
-            std::deque< std::vector< double > >& average_history = avg_it->second;
+            std::deque< std::vector< double > >& average_history = d->m_history[ track->id() ];
 
             average_history.push_back( std::move( descriptor ) );
-            if( average_history.size() != d->m_interval )
+            if( !d->m_rolling && average_history.size() != d->m_interval )
             {
               continue;
             }
@@ -175,7 +174,10 @@ average_track_descriptors
 
               if( d->m_rolling )
               {
-                average_history.pop_front();
+                if( average_history.size() == d->m_interval )
+                {
+                  average_history.pop_front();
+                }
               }
               else
               {
