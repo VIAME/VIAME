@@ -383,8 +383,6 @@ public:
   // -------------------------------------------------------------------------------------
   bool start_at_0_time()
   {
-    int frame_count( c_time_scan_frame_limit );
-
     meta_ts = 0;
     d_have_abs_frame_time = true;
 
@@ -394,8 +392,6 @@ public:
   // -------------------------------------------------------------------------------------
   bool current_time()
   {
-    int frame_count( c_time_scan_frame_limit );
-
     using namespace std::chrono;
     auto current_time = system_clock::now();
     auto current_time_ms = time_point_cast<microseconds>(current_time);
