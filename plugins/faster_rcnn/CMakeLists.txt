@@ -40,6 +40,10 @@ target_link_libraries( viame_faster_rcnn
                        ${Caffe_LIBRARIES}
   )
 
+set_target_properties( viame_faster_rcnn PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
+  )
+
 algorithms_create_plugin( viame_faster_rcnn
   register_algorithms.cxx
   )

@@ -55,6 +55,10 @@ target_link_libraries( viame_uw_predictor
                        opencv_objdetect
   )
 
+set_target_properties( viame_uw_predictor PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
+  )
+
 algorithms_create_plugin( viame_uw_predictor
   register_algorithms.cxx
   )

@@ -124,8 +124,10 @@ kwiver::vital::image_container_sptr ocv_stereo_depth_map
 ::compute( kwiver::vital::image_container_sptr left_image,
            kwiver::vital::image_container_sptr right_image ) const
 {
-  cv::Mat ocv1 = arrows::ocv::image_container::vital_to_ocv( left_image->get_image() );
-  cv::Mat ocv2 = arrows::ocv::image_container::vital_to_ocv( right_image->get_image() );
+  cv::Mat ocv1 = arrows::ocv::image_container::vital_to_ocv( left_image->get_image(),
+    kwiver::arrows::ocv::image_container::BGR_COLOR );
+  cv::Mat ocv2 = arrows::ocv::image_container::vital_to_ocv( right_image->get_image(),
+    kwiver::arrows::ocv::image_container::BGR_COLOR  );
 
   cv::Mat output;
 
@@ -135,7 +137,8 @@ kwiver::vital::image_container_sptr ocv_stereo_depth_map
   d->algo->compute( ocv1, ocv2, output );
 #endif
 
-  return kwiver::vital::image_container_sptr( new arrows::ocv::image_container( output ) );
+  return kwiver::vital::image_container_sptr( new arrows::ocv::image_container( output,
+    kwiver::arrows::ocv::image_container::BGR_COLOR ) );
 }
 
 } //end namespace viame

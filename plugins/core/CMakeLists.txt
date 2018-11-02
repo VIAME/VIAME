@@ -41,6 +41,10 @@ target_link_libraries( viame_core
                        kwiversys
   )
 
+set_target_properties( viame_core PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
+  )
+
 algorithms_create_plugin( viame_core
   register_algorithms.cxx
   )

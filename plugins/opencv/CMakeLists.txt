@@ -34,13 +34,13 @@ kwiver_add_library( viame_opencv
   ${plugin_sources}
   )
 
-get_target_property(results viame_opencv COMPILE_DEFINITIONS )
+get_target_property( results viame_opencv COMPILE_DEFINITIONS )
 
-if (VIAME_OPENCV_VERSION MATCHES "2.*")
-  target_compile_definitions(viame_opencv PRIVATE -DVIAME_OPENCV_VER_2)
+if( VIAME_OPENCV_VERSION MATCHES "2.*" )
+  target_compile_definitions( viame_opencv PRIVATE -DVIAME_OPENCV_VER_2 )
 endif()
 
-get_target_property(results viame_opencv COMPILE_DEFINITIONS )
+get_target_property( results viame_opencv COMPILE_DEFINITIONS )
 
 target_link_libraries( viame_opencv
   PUBLIC               vital
@@ -52,6 +52,10 @@ target_link_libraries( viame_opencv
                        kwiversys
                        kwiver_algo_ocv
                        ${OpenCV_LIBRARIES}
+  )
+
+set_target_properties( viame_opencv PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
   )
 
 algorithms_create_plugin( viame_opencv

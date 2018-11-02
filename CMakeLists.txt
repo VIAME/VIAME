@@ -7,6 +7,10 @@ set( CMAKE_CXX_STANDARD 11 )
 
 project( VIAME )
 
+set( VIAME_VERSION_MAJOR 0 )
+set( VIAME_VERSION_MINOR 9 )
+set( VIAME_VERSION_PATCH 8 )
+
 include( CMakeDependentOption )
 
 
@@ -392,8 +396,16 @@ else()
   # check compiler support
   include( kwiver-configcheck )
 
-  # set the name for our package exports
-  set( kwiver_export_name      viame_exports )
+  # set the name for our package exports and plugin directories
+  set( kwiver_export_name                           viame_exports )
+
+  set( kwiver_plugin_subdir                         viame )
+  set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
+  set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
+  set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
+  set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
+  set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
+  set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
 
   # Setup python directories for plugin processes in same style as KWIVER
   if( VIAME_ENABLE_PYTHON )
