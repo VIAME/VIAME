@@ -36,6 +36,10 @@ target_link_libraries( viame_hello_world
                        ${OpenCV_LIBRARIES}
   )
 
+set_target_properties( viame_hello_world PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
+  )
+
 algorithms_create_plugin( viame_hello_world
   register_algorithms.cxx
   )

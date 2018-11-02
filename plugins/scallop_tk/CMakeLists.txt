@@ -43,6 +43,10 @@ target_link_libraries( viame_scallop_tk
                        ScallopTK
   )
 
+set_target_properties( viame_scallop_tk PROPERTIES
+  SOVERSION            ${VIAME_VERSION_MAJOR}
+  )
+
 if( VIAME_ENABLE_CAFFE AND WIN32 )
   target_link_libraries( viame_scallop_tk
     PUBLIC             caffe glog )
