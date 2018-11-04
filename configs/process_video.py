@@ -296,7 +296,7 @@ if __name__ == "__main__" :
                       help="Input directory to process")
 
   parser.add_argument("-l", dest="input_list", default="",
-                      help="Input list of image or video files to process")
+                      help="Input list of image files to process")
 
   parser.add_argument("-p", dest="pipeline", default="pipelines" + div + "index_default.res.pipe",
                       help="Input pipeline for processing video or image data")
