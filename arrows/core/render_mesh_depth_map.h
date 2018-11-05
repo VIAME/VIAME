@@ -66,10 +66,14 @@ vital::image_container_sptr render_mesh_depth_map(kwiver::vital::mesh_sptr mesh,
  * @param image_points [in] image coordinates of vertices
  * @param depth [in]
  * @param image [out]
+ * @param check_partial_intersection [in] the pixels which partially intersect
+ * with a triangle can be assigned to it.
  */
 KWIVER_ALGO_CORE_EXPORT
-void rasterize_depth(vital::mesh_sptr mesh, const std::vector<vital::vector_2d> &image_points,
-                     const std::vector<double> &depth, vital::image_of<double> &image);
+void rasterize_depth(const vital::mesh_regular_face_array<3> &triangles,
+                     const std::vector<vital::vector_2d> &image_points,
+                     const std::vector<double> &depth, vital::image_of<double> &image,
+                     bool check_partial_intersection=false);
 
 }
 }

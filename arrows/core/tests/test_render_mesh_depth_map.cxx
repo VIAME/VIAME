@@ -49,7 +49,7 @@ namespace
   const vector_3d C( 0.0,  5.0, 1.0);
 
   const std::vector<vector_3d> vertices = {A, B, C};
-  const std::vector<unsigned int> face = {0, 1, 2};
+  const mesh_regular_face<3> face = std::vector<unsigned int>({0, 1, 2});
 }
 
 // ----------------------------------------------------------------------------
@@ -62,9 +62,8 @@ int main(int argc, char** argv)
 kwiver::vital::mesh_sptr generate_mesh()
 {
   std::unique_ptr<mesh_vertex_array_base> verts(new mesh_vertex_array<3>(vertices));
-  mesh_face_array* mesh_faces = new mesh_face_array();
-  mesh_faces->push_back(face);
-  std::unique_ptr<mesh_face_array_base> faces(mesh_faces);
+  std::unique_ptr<mesh_regular_face_array<3>> faces(new mesh_regular_face_array<3>());
+  faces->push_back(face);
   mesh_sptr mesh(new kwiver::vital::mesh(std::move(verts), std::move(faces)));
   return mesh;
 }

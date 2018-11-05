@@ -33,6 +33,7 @@ Vital Bindings
 Arrows: Core
 
  * Added support for RPC cameras to the triangulate_landmark implementation.
+ * Added a function to render a depth map of a mesh from a perspective camera.
 
 Arrows: FFmpeg
 

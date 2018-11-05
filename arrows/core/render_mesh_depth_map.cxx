@@ -108,7 +108,14 @@ vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::
     }
   }
 
-  rasterize_depth(mesh, points_2d, points_depth, z_buffer);
+  if (mesh->faces().regularity() == 3)
+  {
+    rasterize_depth(dynamic_cast< const vital::mesh_regular_face_array<3>& >(mesh->faces()), points_2d, points_depth, z_buffer);
+  }
+  else
+  {
+    LOG_ERROR(vital::get_logger("arrows.core.render_mesh_depth_map" ), "The mesh has to be triangular.");
+  }
 
   // Re-compute the real depth
   for (size_t j = 0; j < z_buffer.height(); ++j)
@@ -125,27 +132,29 @@ vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::
 }
 
 
-void rasterize_depth(vital::mesh_sptr mesh, const std::vector<vital::vector_2d> &image_points,
-                     const std::vector<double> &depth, vital::image_of<double>& image)
+void rasterize_depth(const vital::mesh_regular_face_array<3> &triangles,
+                     const std::vector<vital::vector_2d> &image_points,
+                     const std::vector<double> &depth,
+                     vital::image_of<double>& image,
+                     bool check_partial_intersection)
 {
   int width = image.width();
   int height = image.height();
   // Write faces on z_buffer with depth test
-  vital::mesh_face_array& faces = dynamic_cast< vital::mesh_face_array& >(mesh->faces());
-  for (unsigned int f_id = 0; f_id < faces.size(); ++f_id)
+  for (unsigned int f_id = 0; f_id < triangles.size(); ++f_id)
   {
-    const vital::vector_2d& a_uv = image_points[faces(f_id, 0)];
-    const vital::vector_2d& b_uv = image_points[faces(f_id, 1)];
-    const vital::vector_2d& c_uv = image_points[faces(f_id, 2)];
+    const vital::vector_2d& a_uv = image_points[triangles(f_id, 0)];
+    const vital::vector_2d& b_uv = image_points[triangles(f_id, 1)];
+    const vital::vector_2d& c_uv = image_points[triangles(f_id, 2)];
 
     // skip the face if the three points are outside the image
     if ((a_uv[0] < 0 || a_uv[0] >= width || a_uv[1] < 0 || a_uv[1] >= height) &&
         (b_uv[0] < 0 || b_uv[0] >= width || b_uv[1] < 0 || b_uv[1] >= height) &&
         (c_uv[0] < 0 || c_uv[0] >= width || c_uv[1] < 0 || c_uv[1] >= height))
       continue;
-    double a_depth = depth[faces(f_id, 0)];
-    double b_depth = depth[faces(f_id, 1)];
-    double c_depth = depth[faces(f_id, 2)];
+    double a_depth = depth[triangles(f_id, 0)];
+    double b_depth = depth[triangles(f_id, 1)];
+    double c_depth = depth[triangles(f_id, 2)];
 
     // rasterization is done over the face axis-aligned bounding box
     int u_min = std::max(0, static_cast<int>(std::round(std::min(a_uv[0], std::min(b_uv[0], c_uv[0])))));
@@ -161,9 +170,10 @@ void rasterize_depth(vital::mesh_sptr mesh, const std::vector<vital::vector_2d> 
 
         // Handle pixels on triangle boundaries. Assignment rules:
         //  - if the pixel center is inside the triangle
-        //  - if the pixel is not alread assigned and if the pixel intersects the triangle
+        //  - if the pixel is not already assigned and if the pixel intersects the triangle
+        //    [only if check_partial_intersection]
         bool pixel_belongs_to_triangle = is_point_inside_triangle(p, a_uv, b_uv, c_uv);
-        if (! pixel_belongs_to_triangle && std::isinf(image(u, v)))
+        if (check_partial_intersection && !pixel_belongs_to_triangle && std::isinf(image(u, v)))
         {
           // check for pixel - triangle intersection, by sub-sampling points in the pixel
           for (float dy = -0.5; dy <= 0.5; dy += 0.5)
