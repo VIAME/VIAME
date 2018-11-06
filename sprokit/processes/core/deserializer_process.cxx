@@ -280,7 +280,7 @@ _input_port_info(port_t const& port_name)
       port_flags_t required;
       required.insert( flag_required );
 
-      // Create output port
+      // Create input port
       declare_input_port(
         port_name,                                // port name
         serialized_message_port_trait::type_name, // port type

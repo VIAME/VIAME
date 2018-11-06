@@ -341,8 +341,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Print process configuration.\n\n"
                     "This process is a debugging aide and performs no other function in a pipeline. "
                     "The supplied configuration is printed when it is presented to the process. "
-                    "All ports connections to the process are accepted and the supplied data is taken from the port and "
-                    "discarded. This process produces no outputs and has no output ports.")
+                    "All ports connections to the process are accepted and the supplied data is "
+                    "taken from the port and discarded. This process produces no outputs and "
+                    "has no output ports.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( "no-test", "introspect" ); // do not include in introspection test
     ;
@@ -410,8 +411,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_detection_sets" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Merge two input detection sets into one output set." )
+                    "Merge multiple input detection sets into one output set.\n\n"
+                    "This process will accept one or more input ports of detected_object_set "
+                    "type. They will all be added to the output detection set. "
+                    "The input port names do not matter since they will be connected "
+                    "upon connection.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
     ;
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
