@@ -195,7 +195,8 @@ detect_features_SURF
 #ifndef KWIVER_HAS_OPENCV_VER_3
   p_->update( detector );
 #else
-  p_->update( detector.dynamicCast<cv_SURF_t>() );
+  // version 3.x doesn't have parameter update methods
+  detector = p_->create();
 #endif
 }
 
@@ -244,7 +245,8 @@ extract_descriptors_SURF
 #ifndef KWIVER_HAS_OPENCV_VER_3
   p_->update( extractor );
 #else
-  p_->update( extractor.dynamicCast<cv_SURF_t>() );
+  // version 3.x doesn't have parameter update methods
+  extractor = p_->create();
 #endif
 }
 
