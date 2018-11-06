@@ -44,6 +44,7 @@
 #include "metadata.h"
 #include "string.h"
 #include "timestamp.h"
+#include "track_state.h"
 
 namespace kwiver {
 namespace arrows {
@@ -111,6 +112,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::protobuf::image > ( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::image > ( vpm, "kwiver:mask" );
   register_algorithm< kwiver::arrows::serialize::protobuf::string > ( vpm);
+  register_algorithm< kwiver::arrows::serialize::protobuf::track_state > ( vpm );
 
   vpm.mark_module_as_loaded( module_name );
 }

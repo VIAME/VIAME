@@ -16,6 +16,11 @@ set( proto_files
   polygon.proto
   string.proto
   timestamp.proto
+  track.proto
+  track_state.proto
+  track_set.proto
+  object_track_state.proto
+  object_track_set.proto
   )
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})

@@ -36,6 +36,9 @@
 #include <vital/types/metadata.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/image_container.h>
+#include <vital/types/track.h>
+#include <vital/types/track_set.h>
+#include <vital/types/object_track_set.h>
 
 namespace kwiver {
 namespace vital {
@@ -45,9 +48,10 @@ namespace vital {
   class detected_object_type;
   class geo_point;
   class geo_polygon;
+  class object_track_state;
   class polygon;
   class timestamp;
-
+  class track_state;
 } } // end namespace
 
 namespace kwiver {
@@ -62,9 +66,14 @@ namespace protobuf {
   class image;
   class metadata;
   class metadata_vector;
+  class object_track_state;
+  class object_track_set;
   class polygon;
   class string;
   class timestamp;
+  class track;
+  class track_set;
+  class track_state;
 
 } } // end namespace
 
@@ -182,8 +191,50 @@ void convert_protobuf( const kwiver::protobuf::string&  proto_string,
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const std::string& str,
                        kwiver::protobuf::string&  proto_string );
+  //  track state
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::protobuf::track_state& proto_trk_state,
+                       kwiver::vital::track_state& trk_state );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::vital::track_state& trk_state,
+                        kwiver::protobuf::track_state& proto_trk_state );
+  
+  // object track state
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::protobuf::object_track_state& proto_obj_trk_state,
+                       kwiver::vital::object_track_state& obj_trk_state );
 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::vital::object_track_state& obj_trk_state,
+                        kwiver::protobuf::object_track_state& proto_obj_trk_state );
+
+  // track 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::protobuf::track& proto_trk,
+                       kwiver::vital::track_sptr& trk_sptr );
+
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::vital::track_sptr& trk_sptr,
+                        kwiver::protobuf::track& proto_trk );
+
+  // track set 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::protobuf::track_set& proto_trk_set,
+                       kwiver::vital::track_set_sptr& trk_set_sptr );
+
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::vital::track_set_sptr& trk_set_sptr,
+                        kwiver::protobuf::track_set& proto_trk_set );
+
+  // object track set 
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::protobuf::object_track_set& proto_obj_trk_set,
+                       kwiver::vital::object_track_set_sptr& obj_trk_set_sptr );
+
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const kwiver::vital::object_track_set_sptr& obj_trk_set_sptr,
+                        kwiver::protobuf::object_track_set& proto_obj_trk_set );
 } } } }  // end namespace
 
 #endif // ARROWS_SERIALILIZATION_PROTOBUF_CONVERT_PROTOBUF_H

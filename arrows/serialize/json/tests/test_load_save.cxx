@@ -28,7 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../load_save.h"
+#include <arrows/serialize/json/load_save.h>
+#include <arrows/serialize/json/load_save_track_state.h>
+#include <arrows/serialize/json/load_save_track_set.h>
 
 #include <gtest/gtest.h>
 
@@ -45,7 +47,12 @@
 #include <vital/types/polygon.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/geodesy.h>
+#include <vital/types/track_set.h>
+#include <vital/types/track.h>
+#include <vital/types/object_track_set.h>
+#include <vital/vital_types.h>
 
+#include <arrows/serialize/json/track.h>
 #include <vital/internal/cereal/cereal.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
@@ -294,7 +301,7 @@ TEST( load_save, metadata_vector )
     cereal::save( ar, meta_vect);
   }
   catch(std::exception const& e) {
-    std::cout << "Exception caught: " << e.what() << std::endl;
+    std::cout << "exception caught: " << e.what() << std::endl;
   }
 
 #if DEBUG
@@ -314,4 +321,252 @@ TEST( load_save, metadata_vector )
   {
     compare_meta_collection( *meta_vect[i], *obj_dser[i] );
   }
+}
+
+// ----------------------------------------------------------------------------
+TEST( load_save, track_state)
+{
+  kwiver::vital::track_state trk_state{1};
+  std::stringstream msg;
+
+  try
+  {
+    cereal::JSONOutputArchive ar( msg );
+    cereal::save( ar, trk_state);
+  }
+  catch(std::exception const& e) {
+    std::cout << "exception caught: " << e.what() << std::endl;
+  }
+
+#if DEBUG
+  std::cout << "track state as json - " << msg.str() << std::endl;
+#endif
+
+  kwiver::vital::track_state obj_dser;
+  {
+    cereal::JSONInputArchive ar( msg );
+    cereal::load( ar, obj_dser );
+  }
+
+
+  EXPECT_EQ( trk_state.frame(), obj_dser.frame() );
+}
+// ----------------------------------------------------------------------------
+TEST( load_save, object_track_state)
+{
+  auto dot = std::make_shared<kwiver::vital::detected_object_type>();
+
+  dot->set_score( "first", 1 );
+  dot->set_score( "second", 10 );
+  dot->set_score( "third", 101 );
+  dot->set_score( "last", 121 );
+
+  auto obj = std::make_shared< kwiver::vital::detected_object>(
+    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, dot );
+  obj->set_detector_name( "test_detector" );
+  obj->set_index( 1234 );
+
+
+  kwiver::vital::object_track_state obj_trk_state(1, 1, obj);
+  std::stringstream msg;
+
+  try
+  {
+    cereal::JSONOutputArchive ar( msg );
+    cereal::save( ar, obj_trk_state);
+  }
+  catch(std::exception const& e) {
+    std::cout << "exception caught: " << e.what() << std::endl;
+  }
+
+#if DEBUG
+  std::cout << "object track state as json - " << msg.str() << std::endl;
+#endif
+
+  kwiver::vital::object_track_state obj_dser;
+  {
+    cereal::JSONInputArchive ar( msg );
+    cereal::load( ar, obj_dser );
+  }
+
+
+  auto do_sptr = obj_trk_state.detection;
+  auto do_sptr_dser = obj_dser.detection;
+
+  EXPECT_EQ( do_sptr->bounding_box(), do_sptr_dser->bounding_box() );
+  EXPECT_EQ( do_sptr->index(), do_sptr_dser->index() );
+  EXPECT_EQ( do_sptr->confidence(), do_sptr_dser->confidence() );
+  EXPECT_EQ( do_sptr->detector_name(), do_sptr_dser->detector_name() );
+
+  auto dot_sptr_dser = do_sptr_dser->type();
+
+  if ( dot )
+  {
+    EXPECT_EQ( dot->size(), dot_sptr_dser->size() );
+
+    auto it = dot->begin();
+    auto it_dser = dot_sptr_dser->begin();
+
+    for ( size_t i = 0; i < dot->size(); ++i )
+    {
+      EXPECT_EQ( *(it->first), *(it_dser->first) );
+      EXPECT_EQ( it->second, it_dser->second );
+    }
+  }
+  EXPECT_EQ(obj_trk_state.time(), obj_dser.time());
+  EXPECT_EQ(obj_trk_state.frame(), obj_dser.frame());
+}
+// ============================================================================
+TEST( load_save, track_set )
+{
+  auto trk_set_sptr = std::make_shared< kwiver::vital::track_set >();
+  auto trk_set_sptr_dser = std::make_shared< kwiver::vital::track_set >();
+  for ( kwiver::vital::track_id_t trk_id=1; trk_id<5; ++trk_id )
+  {
+    auto trk = kwiver::vital::track::create();
+    trk->set_id( trk_id );
+   
+    for ( int i=trk_id*10; i < ( trk_id+1 )*10; i++ )
+    {
+      auto trk_state_sptr = std::make_shared< kwiver::vital::track_state>( i );
+      bool insert_success = trk->insert( trk_state_sptr );  
+      if ( !insert_success )
+      {
+        std::cerr << "Failed to insert track state" << std::endl;
+      }
+    }
+    trk_set_sptr->insert(trk);
+  }
+  std::stringstream msg;
+
+  try
+  {
+    cereal::JSONOutputArchive ar( msg );
+    cereal::save( ar, *trk_set_sptr);
+  }
+  catch(std::exception const& e) {
+    std::cout << "exception caught: " << e.what() << std::endl;
+  }
+
+#if DEBUG
+  std::cout << "track set as json - " << msg.str() << std::endl;
+#endif
+
+  {
+    cereal::JSONInputArchive ar( msg );
+    cereal::load( ar, *trk_set_sptr_dser );
+  }
+
+  for ( kwiver::vital::track_id_t trk_id=1; trk_id<5; ++trk_id )
+  {
+    auto trk = trk_set_sptr->get_track( trk_id );
+    auto trk_dser = trk_set_sptr_dser->get_track( trk_id );  
+    EXPECT_EQ( trk->id(), trk_dser->id() );
+    for ( int i=trk_id*10; i < ( trk_id+1 )*10; i++ )
+    {
+      auto obj_trk_state_sptr = *trk->find( i );
+      auto dser_trk_state_sptr = *trk_dser->find( i );
+
+      EXPECT_EQ( obj_trk_state_sptr->frame(), dser_trk_state_sptr->frame() );    
+    }
+  }  
+
+}
+
+// ---------------------------------------------------------------------------
+TEST( load_save, object_track_set )
+{
+  auto obj_trk_set_sptr = std::make_shared< kwiver::vital::object_track_set >();
+  auto obj_trk_set_sptr_dser = std::make_shared< kwiver::vital::object_track_set >();
+  for ( kwiver::vital::track_id_t trk_id=1; trk_id<3; ++trk_id )
+  {
+    auto trk = kwiver::vital::track::create();
+    trk->set_id( trk_id );
+    for ( int i=trk_id*2; i < ( trk_id+1 )*2; i++ )
+    {
+      auto dot = std::make_shared<kwiver::vital::detected_object_type>();
+
+      dot->set_score( "first", 1 );
+      dot->set_score( "second", 10 );
+      dot->set_score( "third", 101 );
+      dot->set_score( "last", 121 );
+
+      auto dobj_sptr = std::make_shared< kwiver::vital::detected_object>( 
+                              kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 
+                                  3.14159265, dot );
+      dobj_sptr->set_detector_name( "test_detector" );
+      dobj_sptr->set_index( 1234 );
+      auto obj_trk_state_sptr = std::make_shared< kwiver::vital::object_track_state > 
+                                  ( i, i, dobj_sptr );
+
+      bool insert_success = trk->insert( obj_trk_state_sptr );  
+      if ( !insert_success )
+      {
+        std::cerr << "Failed to insert object track state" << std::endl;
+      }
+    }
+    obj_trk_set_sptr->insert(trk);
+  }
+  std::stringstream msg;
+
+  try
+  {
+    cereal::JSONOutputArchive ar( msg );
+    cereal::save( ar, *obj_trk_set_sptr);
+  }
+  catch(std::exception const& e) {
+    std::cout << "exception caught: " << e.what() << std::endl;
+  }
+
+#if DEBUG
+  std::cout << "object track set as json - " << msg.str() << std::endl;
+#endif
+
+  {
+    cereal::JSONInputArchive ar( msg );
+    cereal::load( ar, *obj_trk_set_sptr_dser );
+  }
+  
+  for ( kwiver::vital::track_id_t trk_id=1; trk_id<3; ++trk_id )
+  {
+    auto trk = obj_trk_set_sptr->get_track( trk_id );
+    auto trk_dser = obj_trk_set_sptr_dser->get_track( trk_id );  
+    EXPECT_EQ( trk->id(), trk_dser->id() );
+    for ( int i=trk_id*2; i < ( trk_id+1 )*2; i++ )
+    {
+      auto trk_state_sptr = *trk->find( i );
+      auto dser_trk_state_sptr = *trk_dser->find( i );
+      
+      EXPECT_EQ( trk_state_sptr->frame(), dser_trk_state_sptr->frame() );
+      auto obj_trk_state_sptr = kwiver::vital::object_track_state::downcast( trk_state_sptr );   
+      auto dser_obj_trk_state_sptr = kwiver::vital::object_track_state::
+                                                      downcast( dser_trk_state_sptr );
+
+
+      auto ser_do_sptr = obj_trk_state_sptr->detection;
+      auto dser_do_sptr = dser_obj_trk_state_sptr->detection;
+
+      EXPECT_EQ( ser_do_sptr->bounding_box(), dser_do_sptr->bounding_box() );
+      EXPECT_EQ( ser_do_sptr->index(), dser_do_sptr->index() );
+      EXPECT_EQ( ser_do_sptr->confidence(), dser_do_sptr->confidence() );
+      EXPECT_EQ( ser_do_sptr->detector_name(), dser_do_sptr->detector_name() );
+
+      auto ser_dot_sptr = ser_do_sptr->type();
+      auto dser_dot_sptr = dser_do_sptr->type();
+
+      if ( ser_dot_sptr )
+      {
+        EXPECT_EQ( ser_dot_sptr->size(),dser_dot_sptr->size() );
+
+        auto ser_it = ser_dot_sptr->begin();
+        auto dser_it = dser_dot_sptr->begin();
+
+        for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+        {
+          EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
+          EXPECT_EQ( dser_it->second, dser_it->second );
+        }
+      }
+    }    
+  }  
 }

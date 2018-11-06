@@ -29,6 +29,9 @@
  */
 
 #include <arrows/serialize/json/load_save.h>
+#include <arrows/serialize/json/load_save_track_state.h>
+#include <arrows/serialize/json/load_save_track_set.h>
+#include <arrows/serialize/json/track_item.h>
 
 #include <vital/exceptions.h>
 #include <vital/types/detected_object.h>
@@ -38,6 +41,9 @@
 #include <vital/types/geo_polygon.h>
 #include <vital/types/polygon.h>
 #include <vital/types/timestamp.h>
+#include <vital/types/track_set.h>
+#include <vital/types/object_track_set.h>
+#include <vital/vital_types.h>
 #include <vital/util/hex_dump.h>
 
 #include <vital/logger/logger.h>
@@ -49,6 +55,8 @@
 #include <vital/internal/cereal/types/utility.hpp>
 
 #include <zlib.h>
+#include <iostream>
+
 
 namespace cereal {
 
@@ -269,12 +277,13 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::image_cont
            ::cereal::make_nvp( "h_step", vital_image.h_step() ),
            ::cereal::make_nvp( "d_step", vital_image.d_step() ),
 
-           ::cereal::make_nvp( "trait_type", pixel_trait.type ),
+           ::cereal::make_nvp( "trait_type", static_cast<int> (pixel_trait.type) ),
            ::cereal::make_nvp( "trait_num_bytes", pixel_trait.num_bytes ),
 
            ::cereal::make_nvp( "img_size", vital_image.size() ), // uncompressed size
            ::cereal::make_nvp( "img_data", image_data ) // compressed image
     );
+
 }
 
 // ----------------------------------------------------------------------------
@@ -449,6 +458,100 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::polygon& poly )
   {
     poly.push_back( pt );
   }
+}
+
+// ============================================================================
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::track_state& trk_state )
+{
+  kwiver::vital::frame_id_t frame = trk_state.frame();
+  archive(  ::cereal::make_nvp( "track_frame", frame ) );
+}
+
+// ----------------------------------------------------------------------------
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::track_state& trk_state )
+{
+  int64_t track_frame;
+  archive( CEREAL_NVP( track_frame ) );
+  trk_state.set_frame( track_frame );
+}
+
+// ============================================================================
+void save( ::cereal::JSONOutputArchive& archive,
+          const kwiver::vital::object_track_state& obj_trk_state )
+{
+  archive( ::cereal::base_class< kwiver::vital::track_state >( std::addressof( obj_trk_state ) ) );
+  archive( ::cereal::make_nvp( "track_time", obj_trk_state.time() ) );
+  save( archive, *obj_trk_state.detection );
+}
+
+// ----------------------------------------------------------------------------
+void load( ::cereal::JSONInputArchive& archive,
+            kwiver::vital::object_track_state& obj_trk_state )
+{
+  int64_t track_time;
+  auto detection = std::make_shared< kwiver::vital::detected_object >(
+                      kwiver::vital::bounding_box_d{0, 0, 0, 0});
+  archive( ::cereal::base_class< kwiver::vital::track_state >( std::addressof( obj_trk_state ) ) );
+  archive( CEREAL_NVP( track_time ) );
+  obj_trk_state.set_time(track_time);
+  load(archive, *detection);
+  obj_trk_state.detection = detection;
+}
+
+
+// ============================================================================
+void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::track_set& trk_set )
+{
+  std::vector<kwiver::arrows::serialize::json::track_item> track_items;
+  for ( auto trk_sptr : trk_set.tracks())
+  {
+    track_items.push_back( kwiver::arrows::serialize::json::track_item( trk_sptr ) );
+  }
+  archive( cereal::make_nvp( "trk_items", track_items ) );
+}
+
+// ----------------------------------------------------------------------------
+void load( ::cereal::JSONInputArchive& archive, kwiver::vital::track_set& trk_set )
+{
+  std::vector< kwiver::arrows::serialize::json::track_item > trk_items;
+  archive ( CEREAL_NVP(trk_items) );
+  std::vector< kwiver::vital::track_sptr > tracks;
+  for (auto trk_item : trk_items)
+  {
+    tracks.push_back(trk_item.get_track());
+  }
+  trk_set.set_tracks(tracks);
+}
+
+// ============================================================================
+void save( ::cereal::JSONOutputArchive& archive,
+          const kwiver::vital::object_track_set& obj_trk_set )
+{
+  //TBD: Inheritance is not working between track set and object track set
+  // Causes the object associated with the track set to be a list
+  //
+  //archive( ::cereal::base_class< kwiver::vital::track_set >( std::addressof( obj_trk_set ) ) );
+  std::vector<kwiver::arrows::serialize::json::track_item> track_items;
+  for ( auto trk_sptr : obj_trk_set.tracks())
+  {
+    track_items.push_back( kwiver::arrows::serialize::json::track_item( trk_sptr ) );
+  }
+  archive( cereal::make_nvp( "object_trk_items", track_items ) );
+}
+
+// ----------------------------------------------------------------------------
+void load( ::cereal::JSONInputArchive& archive,
+            kwiver::vital::object_track_set& obj_trk_set )
+{
+  //archive( ::cereal::base_class< kwiver::vital::object_track_set >( std::addressof( obj_trk_set ) ) );
+  std::vector< kwiver::arrows::serialize::json::track_item > object_trk_items;
+  archive ( CEREAL_NVP(object_trk_items) );
+  std::vector< kwiver::vital::track_sptr > object_tracks;
+  for (auto object_trk_item : object_trk_items)
+  {
+    object_tracks.push_back(object_trk_item.get_track());
+  }
+  obj_trk_set.set_tracks(object_tracks);
 }
 
 } // end namespace
