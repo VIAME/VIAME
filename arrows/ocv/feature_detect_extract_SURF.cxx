@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,23 +88,16 @@ public:
 #endif
   }
 
+#ifndef KWIVER_HAS_OPENCV_VER_3
   // Update algorithm with current parameter
   void update( cv::Ptr<cv_SURF_t> a ) const
   {
-#ifndef KWIVER_HAS_OPENCV_VER_3
     a->set( "hessianThreshold", hessian_threshold );
     a->set( "nOctaves", n_octaves );
     a->set( "nOctaveLayers", n_octave_layers );
     a->set( "extended", extended );
     a->set( "upright", upright );
-#else
-    a->setHessianThreshold( hessian_threshold );
-    a->setNOctaves( n_octaves );
-    a->setNOctaveLayers( n_octave_layers );
-    a->setExtended( extended );
-    a->setUpright( upright );
 #endif
-  }
 
   // Update config block with current parameter values
   void update_config( config_block_sptr config ) const
