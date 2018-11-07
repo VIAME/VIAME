@@ -145,6 +145,7 @@ set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/proces
 set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
 set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
 set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
+set( kwiver_plugin_applets                        ${kwiver_plugin_subdir}/modules/applets )
 
 ##
 # System specific compiler flags
@@ -217,6 +218,10 @@ endif()
 
 if (KWIVER_ENABLE_EXAMPLES)
   add_subdirectory(examples)
+endif()
+
+if (KWIVER_ENABLE_TOOLS)
+  add_subdirectory(tools)
 endif()
 
 ###
