@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,16 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief config_explorer tool
- */
+#include "config_explorer.h"
 
-// Would be nice to provide better insight into config reading process.
-// - Scan search path and report files found in a concise list.
-// - How config_parser resolves include files.
-//
-
+#include <vital/plugin_loader/plugin_manager.h>
 #include <vital/config/config_block_io.h>
 #include <vital/config/config_block.h>
 #include <vital/config/config_parser.h>
@@ -50,25 +43,34 @@
 
 typedef kwiversys::CommandLineArguments argT;
 
-// Global options
-bool opt_config( false );
-bool opt_detail_ds( false );
-bool opt_detail_dc( false );
-bool opt_help( false );
-std::vector< std::string > opt_path;
-std::string opt_app_name( "config_explorer" );
-std::string opt_app_version;
-std::string opt_install_prefix;
+namespace kwiver {
+namespace tools {
+
+namespace {
+
+  // Global options
+  bool opt_detail_ds;
+  bool opt_detail_dc;
+  bool opt_help;
+  std::vector< std::string > opt_path;
+  std::string opt_app_name;
+  std::string opt_app_version;
+  std::string opt_install_prefix;
+
+} // end namespace
 
 
 // ------------------------------------------------------------------
 void
-print_help()
+config_explorer::
+usage( std::ostream& outstream ) const
 {
-  std::cout << "This program assists in debugging config loading problems. It loads a \n"
+  outstream << "This program assists in debugging config loading problems. It loads a \n"
             << "configuration and displays the contents or displays the search path.\n"
             << "Additional paths can be specified in \"KWIVER_CONFIG_PATH\" environment variable\n"
             << "or on the command line with the -I or --path options.\n"
+            << "\n"
+            << "Usage: kwiver " << applet_name() << " <config-file-name> <options>\n"
             << "\n"
             << "Options are:\n"
             << "  -h / --help      displays usage information\n"
@@ -95,7 +97,7 @@ print_help()
 
 
 // ------------------------------------------------------------------
-int
+static int
 path_callback( const char*  argument,   // name of argument
                const char*  value,      // value of argument
                void*        call_data ) // data from register call
@@ -107,15 +109,22 @@ path_callback( const char*  argument,   // name of argument
 }
 
 
-// ------------------------------------------------------------------
+// ============================================================================
+config_explorer::
+config_explorer()
+{ }
+
+
+// ----------------------------------------------------------------------------
 int
-main( int argc, char* argv[] )
+config_explorer::
+run( const std::vector<std::string>& argv )
 {
-  std::string plugin_name;
+  opt_app_name = applet_name();
 
   kwiversys::CommandLineArguments arg;
 
-  arg.Initialize( argc, argv );
+  arg.Initialize( argv );
   arg.StoreUnusedArguments( true );
 
   arg.AddArgument( "-h",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
@@ -143,7 +152,7 @@ main( int argc, char* argv[] )
 
   if ( opt_help )
   {
-    print_help();
+    usage( std::cout );
     return EXIT_SUCCESS;
   }
 
@@ -177,11 +186,11 @@ main( int argc, char* argv[] )
 
 
   // Read in config
-  if( newArgc == 1 )
+  if( newArgc <= 1 )
   {
     std::cout << "Missing file name.\n"
-              << "Usage: " << newArgv[0] << "  config-file-name\n"
-              << "   " << newArgv[0] << " --help for usage details\n"
+              << "Usage: " << newArgv[0] << " " << applet_name() << "  config-file-name\n"
+              << "   " << newArgv[0] << " " << applet_name() << " --help for usage details\n"
               << std::endl;
 
     return EXIT_FAILURE;
@@ -224,4 +233,6 @@ main( int argc, char* argv[] )
   }
 
   return EXIT_SUCCESS;
-} // main
+} // run
+
+} } // end namespace
