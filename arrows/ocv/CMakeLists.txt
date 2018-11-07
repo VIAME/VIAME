@@ -37,6 +37,7 @@ set( ocv_headers_public
   match_features_bruteforce.h
   match_features_flannbased.h
   match_set.h
+  merge_images.h
   refine_detections_write_to_disk.h
   split_image.h
   track_features_klt.h
@@ -86,6 +87,7 @@ set( ocv_sources
   match_features_bruteforce.cxx
   match_features_flannbased.cxx
   match_set.cxx
+  merge_images.cxx
   refine_detections_write_to_disk.cxx
   split_image.cxx
   track_features_klt.cxx
