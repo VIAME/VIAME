@@ -246,7 +246,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     print( 'Failure ({})'.format(gpu) )
 
     if res == -11:
-	  print( '\n\nOut of disk space\n\n' )
+      print( '\n\nOut of disk space\n\n' )
 
     exit_with_error( 'Ingest failed, check ' + options.output_directory + div +
                      options.log_directory + ' for {}, terminating.\n'
