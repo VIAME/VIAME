@@ -189,7 +189,8 @@ detect_features_SURF
 #ifndef KWIVER_HAS_OPENCV_VER_3
   p_->update( detector );
 #else
-  // version 3.x doesn't have parameter update methods
+  // Create a new detector rather than update on version 3.
+  // Use of the update function requires a dynamic_cast which fails on Mac
   detector = p_->create();
 #endif
 }
@@ -239,7 +240,8 @@ extract_descriptors_SURF
 #ifndef KWIVER_HAS_OPENCV_VER_3
   p_->update( extractor );
 #else
-  // version 3.x doesn't have parameter update methods
+  // Create a new detector rather than update on version 3.
+  // Use of the update function requires a dynamic_cast which fails on Mac
   extractor = p_->create();
 #endif
 }
