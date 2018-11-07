@@ -110,7 +110,8 @@ vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::
 
   if (mesh->faces().regularity() == 3)
   {
-    rasterize_depth(dynamic_cast< const vital::mesh_regular_face_array<3>& >(mesh->faces()), points_2d, points_depth, z_buffer);
+    auto const& triangles = static_cast< const vital::mesh_regular_face_array<3>& >(mesh->faces());
+    rasterize_depth(triangles, points_2d, points_depth, z_buffer);
   }
   else
   {
