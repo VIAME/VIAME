@@ -428,7 +428,7 @@ public:
 
 /// An array of mesh faces of arbitrary size
 template <unsigned int s>
-class mesh_regular_face_array : public mesh_face_array_base
+class VITAL_EXPORT mesh_regular_face_array : public mesh_face_array_base
 {
   std::vector<mesh_regular_face<s> > faces_;
 
