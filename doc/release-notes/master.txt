@@ -51,6 +51,10 @@ Arrows: GDAL
 
 Arrows: OpenCV
 
+  * Fix and issue in the feature_detect_extract_SURF arrow. The arrow was using a dynamicCast
+    which causes a segfault on the Mac. On the Mac, symbols exported from an image loaded with
+    RTLD_GLOBAL mode are not available to other images unless built with -flat_namespace.
+
 Arrows: Serialization
 
   * Addded JSON Serializers for:

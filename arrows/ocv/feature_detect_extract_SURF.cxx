@@ -97,6 +97,7 @@ public:
     a->set( "nOctaveLayers", n_octave_layers );
     a->set( "extended", extended );
     a->set( "upright", upright );
+  }
 #endif
 
   // Update config block with current parameter values
