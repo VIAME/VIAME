@@ -15,7 +15,7 @@ log_file = os.path.join(database_dir, "SQL_Log_File")
 
 SMQTK_ITQ_TRAIN_CONFIG = os.path.join(pipelines_dir, "smqtk_train_itq.json")
 SMQTK_HCODE_CONFIG = os.path.join(pipelines_dir, "smqtk_compute_hashes.json")
-SMQTK_HCODE_PICKLE = os.path.join(database_dir, "ITQ", "alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle")
+SMQTK_HCODE_PICKLE = os.path.join(database_dir, "ITQ", "lsh_hash_to_descriptor_ids.pickle")
 SMQTK_BTREE_CONFIG = os.path.join(pipelines_dir, "smqtk_make_balltree.json")
 
 def query_yes_no(question, default="yes"):
@@ -64,10 +64,17 @@ def format_cmd( cmd ):
 
 def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
   if len( install_dir ) > 0:
-    python_prefix = "Python" if is_windows() else "python"
+    python_prefix = "Python" if is_windows() else "lib/python"
+
+    python_postfix = str( sys.version_info[0] )
+    if is_windows():
+      python_postfix = python_postfix + str( sys.version_info[1] )
+    else:
+      python_postfix = python_postfix + "." + str( sys.version_info[1] )
+
     output = [ sys.executable, os.path.join(
         install_dir,
-        python_prefix + str( sys.version_info[0] ) + str( sys.version_info[1] ),
+        python_prefix + python_postfix,
         "site-packages",
         "smqtk",
         "bin",
