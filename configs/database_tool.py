@@ -5,10 +5,10 @@ import os
 import os.path
 import shutil
 import subprocess
+import threading
 
 database_dir = "database"
 pipelines_dir = "pipelines"
-
 status_log_file = ""
 
 sql_dir = os.path.join(database_dir, "SQL")
@@ -50,6 +50,19 @@ def query_yes_no(question, default="yes"):
     else:
       sys.stdout.write("Please respond with 'yes' or 'no' "
                        "(or 'y' or 'n').\n")
+
+def animated_loading():
+  chars = "/-\\|" 
+  for char in chars:
+    sys.stdout.write( '\r' + char )
+    time.sleep( 0.1 )
+    sys.stdout.flush()
+
+def run_with_animation( fun, *args ):
+  process = threading.Thread( name='process', target=fun, kwargs=args )
+  process.start()
+  while process.isAlive():
+    animated_loading();
 
 def remove_dir( dirname ):
   if os.path.exists( dirname ):
@@ -188,7 +201,7 @@ def build_balltree_index( install_dir="", log_file="" ):
   try:
     global status_log_file
     status_log_file = log_file
-    log_info( "  Generating Ball Tree... " )
+    log_info( "  (3/3) Generating Ball Tree... " )
     execute_pycmd( install_dir, "make_balltree",
       [ "-vc", find_config( smqtk_btree_config ) ] )
     log_info( "Success" + lb1 )
@@ -202,10 +215,10 @@ def build_standard_index( install_dir="", log_file="" ):
   try:
     global status_log_file
     status_log_file = log_file
-    log_info( "  Training ITQ Model... " )
+    log_info( "  (1/3) Training ITQ Model... " )
     execute_pycmd( install_dir, "train_itq",
       [ "-vc", find_config( smqtk_itq_train_config ) ] )
-    log_info( "Success" + lb1 + "  Computing Hash Codes... " )
+    log_info( "Success" + lb1 + "  (2/3) Computing Hash Codes... " )
     execute_pycmd( install_dir, "compute_hash_codes",
       [ "-vc", find_config( smqtk_hcode_config ) ] )
     log_info( "Success" + lb1 )

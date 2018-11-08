@@ -399,7 +399,6 @@ if __name__ == "__main__" :
       init_log_file = ""
     if not database_tool.init( log_file=init_log_file ):
       exit_with_error( "Unable to initialize database" )
-    log_info( lb1 )
 
   # Call processing pipelines on all input data
   if process_data:
@@ -471,7 +470,7 @@ if __name__ == "__main__" :
 
   # Build searchable index
   if args.build_index:
-    log_info( lb2 + "Building searchable index" + lb2 )
+    log_info( lb1 + "Building searchable index" + lb2 )
 
     if len( args.log_directory ) > 0:
       index_log_file = args.output_directory + div + args.log_directory + div + "smqtk_indexer.txt"
@@ -489,6 +488,6 @@ if __name__ == "__main__" :
 
   # Output complete message
   if os.name == 'nt':
-    log_info( lb2 + "Processing complete, close this window before launching any GUI." + lb2 )
+    log_info( lb1 + "Processing complete, close this window before launching any GUI." + lb2 )
   else:
-    log_info( lb2 + "Processing complete" + lb2 )
+    log_info( lb1 + "Processing complete" + lb2 )
