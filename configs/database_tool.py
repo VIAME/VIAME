@@ -9,14 +9,20 @@ import subprocess
 database_dir = "database"
 pipelines_dir = "pipelines"
 
-sql_dir = os.path.join(database_dir, "SQL")
-init_file = os.path.join(pipelines_dir, "sql_init_table.sql")
-log_file = os.path.join(database_dir, "SQL_Log_File")
+status_log_file = ""
 
-SMQTK_ITQ_TRAIN_CONFIG = os.path.join(pipelines_dir, "smqtk_train_itq.json")
-SMQTK_HCODE_CONFIG = os.path.join(pipelines_dir, "smqtk_compute_hashes.json")
-SMQTK_HCODE_PICKLE = os.path.join(database_dir, "ITQ", "lsh_hash_to_descriptor_ids.pickle")
-SMQTK_BTREE_CONFIG = os.path.join(pipelines_dir, "smqtk_make_balltree.json")
+sql_dir = os.path.join(database_dir, "SQL")
+sql_init_file = os.path.join(pipelines_dir, "sql_init_table.sql")
+sql_log_file = os.path.join(database_dir, "SQL_Log_File")
+
+smqtk_itq_train_config = os.path.join(pipelines_dir, "smqtk_train_itq.json")
+smqtk_hcode_config = os.path.join(pipelines_dir, "smqtk_compute_hashes.json")
+smqtk_hcode_pickle = os.path.join(database_dir, "ITQ", "lsh_hash_to_descriptor_ids.pickle")
+smqtk_btree_config = os.path.join(pipelines_dir, "smqtk_make_balltree.json")
+
+lb1 = '\n'
+lb2 = lb1 + lb1
+lb3 = lb2 + lb1
 
 def query_yes_no(question, default="yes"):
   valid = {"yes": True, "y": True, "ye": True,
@@ -52,6 +58,10 @@ def remove_dir( dirname ):
     else:
       print( "Exiting without initializing database" )
       sys.exit(0)
+
+def remove_file( filename ):
+  if os.path.exists( filename ):
+    os.remove( filename )
 
 def is_windows():
   return ( os.name == 'nt' )
@@ -89,12 +99,24 @@ def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
 def execute_cmd( cmd, args ):
   all_args = [ format_cmd( cmd ) ]
   all_args.extend( args )
-  subprocess.check_call( all_args )
+  log = None
+  if len( status_log_file ) > 0:
+    log_dir = os.path.dirname( status_log_file )
+    if not os.path.exists( log_dir ):
+      os.makedirs( log_dir )
+    log = open( status_log_file, 'a' )
+  subprocess.check_call( all_args, stdout=log, stderr=log )
 
 def execute_pycmd( install_dir, cmd, args ):
   all_args = format_pycmd( install_dir, cmd )
   all_args.extend( args )
-  subprocess.check_call( all_args )
+  log = None
+  if len( status_log_file ) > 0:
+    log_dir = os.path.dirname( status_log_file )
+    if not os.path.exists( log_dir ):
+      os.makedirs( log_dir )
+    log = open( status_log_file, 'a' )
+  subprocess.check_call( all_args, stdout=log, stderr=log )
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
@@ -107,25 +129,46 @@ def find_config( filename ):
   else:
     print( "Unable to find " + filename )
     sys.exit( 0 )
-  
-def init():
-  # Kill and remove existing database
-  stop()
 
-  remove_dir( database_dir )
+def log_info( msg ):
+  sys.stdout.write( msg )
+  sys.stdout.flush()
 
-  # Generate new database
-  execute_cmd( "initdb", [ "-D", sql_dir ] )
-  start()
-  status()
-  execute_cmd( "createuser", [ "-e", "-E", "-s", "-i", "-r", "-d", "postgres" ] )
-  execute_cmd( "psql", [ "-f", find_config( init_file ), "postgres" ] )
+def init( log_file="" ):
+
+  # Set new log file, flush file since this is a new database
+  global status_log_file
+  status_log_file = log_file
+
+  if len( log_file ) > 0:
+    remove_file( log_file )
+
+  try:
+    # Kill and remove existing database
+    stop()
+
+    # Remove directory, will be remade in next step
+    remove_dir( database_dir )
+
+    # Generate new database
+    log_info( "Initializing database... " )
+    execute_cmd( "initdb", [ "-D", sql_dir ] )
+    start()
+    status()
+    execute_cmd( "createuser", [ "-e", "-E", "-s", "-i", "-r", "-d", "postgres" ] )
+    execute_cmd( "psql", [ "-f", find_config( sql_init_file ), "postgres" ] )
+    log_info( "Success" + lb2 )
+    return True
+
+  except:
+    log_info( "Failure" + lb2 )
+    return False
 
 def status():
   execute_cmd( "pg_ctl", [ "-D", sql_dir, "status" ] )
 
 def start():
-  execute_cmd( "pg_ctl", [ "-D", sql_dir, "-w", "-t", "20", "-l", log_file, "start" ] )
+  execute_cmd( "pg_ctl", [ "-D", sql_dir, "-w", "-t", "20", "-l", sql_log_file, "start" ] )
 
 def stop():
   try:
@@ -139,19 +182,38 @@ def stop():
     # No problem - just ignore the error.
     pass
 
-def build_balltree_index( install_dir="" ):
-  build_standard_index( install_dir )
-  print( "3. Generating Ball Tree" )
-  execute_pycmd( install_dir, "make_balltree",
-    [ "-vc", find_config( SMQTK_BTREE_CONFIG ) ] )
+def build_balltree_index( install_dir="", log_file="" ):
+  if not build_standard_index( install_dir, log_file ):
+    return False
+  try:
+    global status_log_file
+    status_log_file = log_file
+    log_info( "  Generating Ball Tree... " )
+    execute_pycmd( install_dir, "make_balltree",
+      [ "-vc", find_config( smqtk_btree_config ) ] )
+    log_info( "Success" + lb1 )
+    return True
+  except:
+    if len( log_file ) > 0:
+      log_info( "Failure" + lb2 + "Check log: " + log_file + lb2 )
+    return False
 
-def build_standard_index( install_dir="" ):
-  print( "1. Training ITQ Model" )
-  execute_pycmd( install_dir, "train_itq",
-    [ "-vc", find_config( SMQTK_ITQ_TRAIN_CONFIG ) ] )
-  print( "2. Computing Hash Codes" )
-  execute_pycmd( install_dir, "compute_hash_codes",
-    [ "-vc", find_config( SMQTK_HCODE_CONFIG ) ] )
+def build_standard_index( install_dir="", log_file="" ):
+  try:
+    global status_log_file
+    status_log_file = log_file
+    log_info( "  Training ITQ Model... " )
+    execute_pycmd( install_dir, "train_itq",
+      [ "-vc", find_config( smqtk_itq_train_config ) ] )
+    log_info( "Success" + lb1 + "  Computing Hash Codes... " )
+    execute_pycmd( install_dir, "compute_hash_codes",
+      [ "-vc", find_config( smqtk_hcode_config ) ] )
+    log_info( "Success" + lb1 )
+    return True
+  except:
+    if len( log_file ) > 0:
+      log_info( "Failure" + lb2 + "Check log: " + log_file + lb2 )
+    return False
 
 def output_usage():
   print( "Usage: database_tool.py [initialize | status | start | stop | index]" )

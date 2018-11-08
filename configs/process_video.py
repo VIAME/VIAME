@@ -22,10 +22,15 @@ sys.dont_write_bytecode = True
 import generate_detection_plots
 import database_tool
 
+# Character short-cuts
 if os.name == 'nt':
   div = '\\'
 else:
   div = '/'
+
+lb1 = '\n'
+lb2 = lb1 + lb1
+lb3 = lb2 + lb1
 
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
@@ -90,8 +95,7 @@ def get_pipeline_cmd( debug=False ):
       return ['pipeline_runner']
 
 def exit_with_error( error_str ):
-  sys.stdout.write( '\n\nERROR: ' + error_str + '\n\n' )
-  sys.stdout.flush()
+  print( lb2 + 'ERROR: ' + error_str + lb2 )
   if os.name == 'nt':
     os.kill(os.getpid(), signal.SIGTERM)
   else:
@@ -102,6 +106,10 @@ def check_file( filename ):
   if not os.path.exists( filename ):
     exit_with_error( "Unable to find: " + filename )
   return filename
+
+def log_info( msg ):
+  sys.stdout.write( msg )
+  sys.stdout.flush()
 
 @contextlib.contextmanager
 def get_log_output_files( output_prefix ):
@@ -191,8 +199,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   if gpu is None:
     gpu = 0
 
-  sys.stdout.write( 'Processing: {} on GPU {}... '.format(os.path.basename(input_name), gpu) )
-  sys.stdout.flush()
+  log_info( 'Processing: {} on GPU {}... '.format(os.path.basename(input_name), gpu) )
 
   # Get video name without extension and full path
   if len( base_ovrd ) > 0:
@@ -241,16 +248,16 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     res = execute_command( command, gpu=gpu )
 
   if res == 0:
-    print( 'Success ({})'.format(gpu) )
+    log_info( 'Success ({})'.format(gpu) + lb1 )
   else:
-    print( 'Failure ({})'.format(gpu) )
+    log_info( 'Failure ({})'.format(gpu) + lb1 )
 
     if res == -11:
-      print( '\n\nOut of disk space\n\n' )
+      log_info( lb2 + 'Out of disk space' + lb2 )
 
     exit_with_error( 'Ingest failed, check ' + options.output_directory + div +
-                     options.log_directory + ' for {}, terminating.\n'
-                     .format( os.path.basename( input_name ) ) )
+                     options.log_directory + ' for {}, terminating.'
+                     .format( os.path.basename( input_name ) ) + lb1 )
 
 def split_image_list(image_list_file, n, dir):
   """Create and return the paths to n temp files that when interlaced
@@ -386,13 +393,20 @@ if __name__ == "__main__" :
 
   # Initialize database
   if args.init_db:
-    database_tool.init()
+    if len( args.log_directory ) > 0:
+      init_log_file = args.output_directory + div + args.log_directory + div + "database_log.txt"
+    else:
+      init_log_file = ""
+    if not database_tool.init( log_file=init_log_file ):
+      exit_with_error( "Unable to initialize database" )
+    log_info( lb1 )
 
+  # Call processing pipelines on all input data
   if process_data:
 
     # Identify all videos to process
     if len( args.input_list ) > 0:
-      video_list = split_image_list(args.input_list, args.gpu_count, args.output_directory)
+      video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
       is_image_list = True
     elif len( args.input_dir ) > 0:
       video_list = list_files_in_dir( args.input_dir )
@@ -402,20 +416,18 @@ if __name__ == "__main__" :
       is_image_list = False
 
     if len( video_list ) == 0:
-      exit_with_error( "No videos found for ingest in given folder, exiting.\n" )
+      exit_with_error( "No videos found for ingest in given folder, exiting." )
     elif not is_image_list:
-      print( "\nProcessing " + str( len( video_list ) ) + " videos" )
+      log_info( lb1 + "Processing " + str( len( video_list ) ) + " videos" + lb1 )
 
     # Get required paths
     pipeline_loc = args.pipeline
 
     if len( args.output_directory ) > 0:
       create_dir( args.output_directory )
-      sys.stdout.write( "\n" )
 
     if len( args.log_directory ) > 0:
       create_dir( args.output_directory + div + args.log_directory )
-      sys.stdout.write( "\n" )
 
     # Process videos in parallel, one per GPU
     video_queue = queue.Queue()
@@ -423,7 +435,7 @@ if __name__ == "__main__" :
       if os.path.isfile( video_name ):
         video_queue.put( video_name )
       else:
-        print( "Skipping " + video_name )
+        log_info( "Skipping " + video_name + lb1 )
 
     def process_video_thread( gpu ):
       while True:
@@ -446,27 +458,37 @@ if __name__ == "__main__" :
         os.unlink(image_list)
 
     if not video_queue.empty():
-      exit_with_error("Some videos were not processed!")
+      exit_with_error( "Some videos were not processed!" )
 
-  # Build out final analytics
+  # Build out detection vs time plots
   if args.detection_plots:
-    print( "Generating data plots" )
+    log_info( "Generating data plots" + lb1 )
     generate_detection_plots.aggregate_plot( args.output_directory,
                                     args.objects.split(","),
                                     float( args.plot_threshold ),
                                     float( args.frame_rate ),
                                     int( args.smooth ) )
 
-  # Build index
+  # Build searchable index
   if args.build_index:
-    print( "\n\nBuilding searchable index\n" )
-    if args.ball_tree:
-      database_tool.build_balltree_index( remove_quotes( args.install_dir ) )
+    log_info( lb2 + "Building searchable index" + lb2 )
+
+    if len( args.log_directory ) > 0:
+      index_log_file = args.output_directory + div + args.log_directory + div + "smqtk_indexer.txt"
     else:
-      database_tool.build_standard_index( remove_quotes( args.install_dir ) )
+      index_log_file = ""
+
+    if args.ball_tree:
+      if not database_tool.build_balltree_index( remove_quotes( args.install_dir ),
+                                                log_file=index_log_file ):
+        exit_with_error( "Unable to build index" )
+    else:
+      if not database_tool.build_standard_index( remove_quotes( args.install_dir ),
+                                                 log_file=index_log_file ):
+        exit_with_error( "Unable to build index" )
 
   # Output complete message
   if os.name == 'nt':
-    print( "\n\nProcessing complete, close this window before launching any GUI.\n" )
+    log_info( lb2 + "Processing complete, close this window before launching any GUI." + lb2 )
   else:
-    print( "\n\nProcessing complete\n" )
+    log_info( lb2 + "Processing complete" + lb2 )
