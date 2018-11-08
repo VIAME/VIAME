@@ -2,22 +2,21 @@
 
 import sys
 import os
+import os.path
 import shutil
+import subprocess
 
-if os.name == 'nt':
-  div = '\\'
-else:
-  div = '/'
+database_dir = "database"
+pipelines_dir = "pipelines"
 
-database_dir="database"
-sql_dir=database_dir + div + "SQL"
-init_file="pipelines" + div + "sql_init_table.sql"
-log_file="database" + div + "SQL_Log_File"
+sql_dir = os.path.join(database_dir, "SQL")
+init_file = os.path.join(pipelines_dir, "sql_init_table.sql")
+log_file = os.path.join(database_dir, "SQL_Log_File")
 
-SMQTK_ITQ_TRAIN_CONFIG="pipelines" + div + "smqtk_train_itq.json"
-SMQTK_HCODE_CONFIG="pipelines" + div + "smqtk_compute_hashes.json"
-SMQTK_HCODE_PICKLE="database" + div + "ITQ" + div + "alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle"
-SMQTK_BTREE_CONFIG="pipelines" + div + "smqtk_make_balltree.json"
+SMQTK_ITQ_TRAIN_CONFIG = os.path.join(pipelines_dir, "smqtk_train_itq.json")
+SMQTK_HCODE_CONFIG = os.path.join(pipelines_dir, "smqtk_compute_hashes.json")
+SMQTK_HCODE_PICKLE = os.path.join(database_dir, "ITQ", "alexnet_fc7.itq_b256_i50_n2_r0.lsh_hash2uuids.pickle")
+SMQTK_BTREE_CONFIG = os.path.join(pipelines_dir, "smqtk_make_balltree.json")
 
 def query_yes_no(question, default="yes"):
   valid = {"yes": True, "y": True, "ye": True,
@@ -64,89 +63,88 @@ def format_cmd( cmd ):
     return cmd
 
 def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
-  if is_windows():
-    if len( install_dir ) > 0:
-      output = sys.executable + " \"" + install_dir + div + "Python" + str( sys.version_info[0] ) + str( sys.version_info[1] )
-      output = output + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py\""
-      return output
-    else:
-      return cmd + ".exe"
+  if len( install_dir ) > 0:
+    python_prefix = "Python" if is_windows() else "python"
+    output = [ sys.executable, os.path.join(
+        install_dir,
+        python_prefix + str( sys.version_info[0] ) + str( sys.version_info[1] ),
+        "site-packages",
+        "smqtk",
+        "bin",
+        cmd + ".py" )
+    ]
+    return output
+  elif is_windows():
+    return [ cmd + ".exe" ]
   else:
-    if len( install_dir ) > 0:
-      output = sys.executable + " " + install_dir + div + "lib" + div + "python" + str( sys.version_info[0] ) + "." + str( sys.version_info[1] )
-      output = output + div + "site-packages" + div + "smqtk" + div + "bin" + div + cmd + ".py"
-      return output
-    else:
-      return cmd
+    return [ cmd ]
 
-def sequence_cmd( prefix, cmd, args  ):
-  return prefix + " && " + format_cmd( cmd ) + " " + args
+def execute_cmd( cmd, args ):
+  all_args = [ format_cmd( cmd ) ]
+  all_args.extend( args )
+  subprocess.check_call( all_args )
 
-def execute_cmd( cmd, args  ):
-  os.system( format_cmd( cmd ) + " " + args )
-
-def execute_pycmd( install_dir, cmd, args  ):
-  os.system( format_pycmd( install_dir, cmd ) + " " + args )
+def execute_pycmd( install_dir, cmd, args ):
+  all_args = format_pycmd( install_dir, cmd )
+  all_args.extend( args )
+  subprocess.check_call( all_args )
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
 def find_config( filename ):
-  if( os.path.exists( filename ) ):
+  if os.path.exists( filename ):
     return filename
-  elif os.path.exists( get_script_path() + div + filename ):
-    return get_script_path() + div + filename
+  elif os.path.exists( os.path.join( get_script_path(), filename ) ):
+    return os.path.join( get_script_path(), filename )
   else:
     print( "Unable to find " + filename )
     sys.exit( 0 )
   
 def init():
   # Kill and remove existing database
-  execute_cmd( "pg_ctl", "stop -D " + sql_dir )
-
-  if not is_windows():
-    execute_cmd( "pkill", "postgres" )
-  else:
-    os.system( "net stop \"postgresql-x64-9.5 (64-bit windows)\" 2> nul" )
+  stop()
 
   remove_dir( database_dir )
 
   # Generate new database
-  cmd = format_cmd( "initdb" ) + " -D " + sql_dir
-
-  cmd = sequence_cmd( cmd, "pg_ctl", "-w -t 20 -D " + sql_dir + " -l " + log_file + " start" )
-  cmd = sequence_cmd( cmd, "pg_ctl", "status -D " + sql_dir )
-  cmd = sequence_cmd( cmd, "createuser", "-e -E -s -i -r -d postgres" )
-  cmd = sequence_cmd( cmd, "psql", "-f \"" + find_config( init_file ) + "\" postgres" )
-
-  os.system( cmd )
+  execute_cmd( "initdb", [ "-D", sql_dir ] )
+  start()
+  status()
+  execute_cmd( "createuser", [ "-e", "-E", "-s", "-i", "-r", "-d", "postgres" ] )
+  execute_cmd( "psql", [ "-f", find_config( init_file ), "postgres" ] )
 
 def status():
-  execute_cmd( "pg_ctl", "status -D " + sql_dir )
+  execute_cmd( "pg_ctl", [ "-D", sql_dir, "status" ] )
 
 def start():
-  execute_cmd( "pg_ctl", "-w -t 20 -D " + sql_dir + " -l " + log_file + " start" )
+  execute_cmd( "pg_ctl", [ "-D", sql_dir, "-w", "-t", "20", "-l", log_file, "start" ] )
 
 def stop():
-  execute_cmd( "pg_ctl", "stop -D " + sql_dir )
-  if is_windows():
-    os.system( "net stop \"postgresql-x64-9.5 (64-bit windows)\" 2> nul" )
-  else:
-     execute_cmd( "pkill", "postgres" )
+  try:
+    execute_cmd( "pg_ctl", [ "-D", sql_dir, "stop" ] )
+    if is_windows():
+      execute_cmd( "net", [ "stop", "postgresql-x64-9.5 (64-bit windows)" ] )
+    else:
+      execute_cmd( "pkill", [ "postgres" ] )
+  except subprocess.CalledProcessError:
+    # Most likely happened because the database wasn't started in the first place.
+    # No problem - just ignore the error.
+    pass
 
 def build_balltree_index( install_dir="" ):
   build_standard_index( install_dir )
   print( "3. Generating Ball Tree" )
   execute_pycmd( install_dir, "make_balltree",
-    "-vc \"" + find_config( SMQTK_BTREE_CONFIG ) + "\"" )
+    [ "-vc", find_config( SMQTK_BTREE_CONFIG ) ] )
 
 def build_standard_index( install_dir="" ):
   print( "1. Training ITQ Model" )
   execute_pycmd( install_dir, "train_itq",
-    "-v -c \"" + find_config( SMQTK_ITQ_TRAIN_CONFIG ) + "\"" )
+    [ "-vc", find_config( SMQTK_ITQ_TRAIN_CONFIG ) ] )
   print( "2. Computing Hash Codes" )
   execute_pycmd( install_dir, "compute_hash_codes",
-    "-v -c \"" + find_config( SMQTK_HCODE_CONFIG ) + "\"" )
+    [ "-vc", find_config( SMQTK_HCODE_CONFIG ) ] )
 
 def output_usage():
   print( "Usage: database_tool.py [initialize | status | start | stop | index]" )
