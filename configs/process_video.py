@@ -29,8 +29,8 @@ else:
   div = '/'
 
 lb1 = '\n'
-lb2 = lb1 + lb1
-lb3 = lb2 + lb1
+lb2 = lb1 * 2
+lb3 = lb1 * 3
 
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
@@ -132,6 +132,35 @@ def find_file( filename ):
   else:
     exit_with_error( "Unable to find " + filename )
 
+def make_filelist_for_image_dir( input_dir, output_dir, output_name ):
+  # The most common extension in the folder is most likely images.
+  # Sometimes people have small text files alongside the images
+  # so just choose the most common filetype.
+  exts = dict()
+  files = dict()
+  for f in os.listdir( input_dir ):
+    f_fp = os.path.join( input_dir, f )
+    if os.path.isfile( f_fp ):
+      _, ext = os.path.splitext( f )
+      if ext in exts:
+        exts[ext] += 1
+        files[ext].append( f_fp )
+      else:
+        exts[ext] = 1
+        files[ext] = [ f_fp ]
+  if len(exts) == 0:
+    return ""
+
+  top_ext = sorted( exts, key=exts.get, reverse=True )[0]
+
+  # Write out list to file
+  output_file = os.path.join( output_dir, output_name + ".txt" )
+  fout = open( output_file, "w" )
+  for f in files[top_ext]:
+    fout.write( f + lb1 )
+  fout.close()
+  return output_file
+
 # Other helpers
 def signal_handler( signal, frame ):
   exit_with_error( 'Processing aborted, see you next time' )
@@ -211,6 +240,16 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     basename = os.path.splitext( os.path.basename( input_name ) )[0]
 
   # Formulate input setting string
+  if not os.path.exists( input_name ):
+    log_info( 'Skipped ({})'.format(gpu) + lb1 )
+    return
+  elif os.path.isdir( input_name ):
+    input_name = make_filelist_for_image_dir( input_name, options.output_directory, basename )
+    if len( input_name ) == 0:
+      log_info( 'Skipped ({})'.format(gpu) + lb1 )
+      return
+    is_image_list = True
+
   input_setting = fset( 'input:video_filename=' + input_name )
 
   if is_image_list:
