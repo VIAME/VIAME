@@ -100,12 +100,14 @@ def log_info( msg ):
 
 def exit_with_error( error_str, force=False ):
   log_info( lb1 + 'ERROR: ' + error_str + lb2 )
+  # Kill this process to end all threads
   if not isinstance(threading.current_thread(), threading._MainThread):
     if os.name == 'nt':
       os.kill(os.getpid(), signal.SIGTERM)
     else:
-      os.kill(os.getpid(), signal.SIGKILL) # Required for pythread exit
-  sys.exit(0)                          # Just in case ;)
+      os.kill(os.getpid(), signal.SIGKILL)
+  # Default exit case, if main thread
+  sys.exit(0)
 
 def check_file( filename ):
   if not os.path.exists( filename ):
