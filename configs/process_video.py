@@ -94,22 +94,23 @@ def get_pipeline_cmd( debug=False ):
     else:
       return ['pipeline_runner']
 
-def exit_with_error( error_str ):
-  print( lb1 + 'ERROR: ' + error_str + lb2 )
-  if os.name == 'nt':
-    os.kill(os.getpid(), signal.SIGTERM)
-  else:
-    os.kill(os.getpid(), signal.SIGKILL) # Required for pythread exit
+def log_info( msg ):
+  sys.stdout.write( msg )
+  sys.stdout.flush()
+
+def exit_with_error( error_str, force=False ):
+  log_info( lb1 + 'ERROR: ' + error_str + lb2 )
+  if not isinstance(threading.current_thread(), threading._MainThread):
+    if os.name == 'nt':
+      os.kill(os.getpid(), signal.SIGTERM)
+    else:
+      os.kill(os.getpid(), signal.SIGKILL) # Required for pythread exit
   sys.exit(0)                          # Just in case ;)
 
 def check_file( filename ):
   if not os.path.exists( filename ):
     exit_with_error( "Unable to find: " + filename )
   return filename
-
-def log_info( msg ):
-  sys.stdout.write( msg )
-  sys.stdout.flush()
 
 @contextlib.contextmanager
 def get_log_output_files( output_prefix ):
@@ -417,7 +418,8 @@ if __name__ == "__main__" :
     if len( video_list ) == 0:
       exit_with_error( "No videos found for ingest in given folder, exiting." )
     elif not is_image_list:
-      log_info( lb1 + "Processing " + str( len( video_list ) ) + " videos" + lb1 )
+      video_str = " video" if len( video_list ) == 1 else " videos"
+      log_info( "Processing " + str( len( video_list ) ) + video_str + lb2 )
 
     # Get required paths
     pipeline_loc = args.pipeline
