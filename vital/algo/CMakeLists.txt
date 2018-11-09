@@ -37,8 +37,8 @@ set( public_headers
   extract_descriptors.h
   feature_descriptor_io.h
   filter_features.h
-  formulate_query.h
   filter_tracks.h
+  handle_descriptor_request.h
   image_filter.h
   image_io.h
   image_object_detector.h
@@ -94,8 +94,8 @@ set( sources
   extract_descriptors.cxx
   feature_descriptor_io.cxx
   filter_features.cxx
-  formulate_query.cxx
   filter_tracks.cxx
+  handle_descriptor_request.cxx
   image_filter.cxx
   image_io.cxx
   image_object_detector.cxx

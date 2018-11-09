@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2016-2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_ALGO_FORMULATE_QUERY_H_
-#define VITAL_ALGO_FORMULATE_QUERY_H_
+#include <vital/algo/algorithm.txx>
 
-#include <vital/vital_config.h>
+#include "handle_descriptor_request.h"
 
-#include <string>
-#include <memory>
-
-#include <vital/algo/algorithm.h>
-#include <vital/types/image_container.h>
-#include <vital/types/track_descriptor_set.h>
-#include <vital/types/descriptor_request.h>
+INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::handle_descriptor_request );
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for formulating descriptors for queries
-class VITAL_ALGO_EXPORT formulate_query
-  : public kwiver::vital::algorithm_def<formulate_query>
+handle_descriptor_request
+::handle_descriptor_request()
 {
-public:
-  /// Return the name of this algorithm
-  static std::string static_type_name() { return "formulate_query"; }
+  attach_logger( "algo.handle_descriptor_request" );
+}
 
-  /// Set this algorithm's properties via a config block
-  virtual void set_configuration( kwiver::vital::config_block_sptr config );
-  /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  /// Formulate query
-  virtual kwiver::vital::track_descriptor_set_sptr formulate(
-    kwiver::vital::descriptor_request_sptr request ) = 0;
+/// Set this algorithm's properties via a config block
+void
+handle_descriptor_request
+::set_configuration( kwiver::vital::config_block_sptr config )
+{
+  (void) config;
+}
 
-protected:
-  formulate_query();
-
-};
-
-typedef std::shared_ptr<formulate_query> formulate_query_sptr;
+/// Check that the algorithm's current configuration is valid
+bool
+handle_descriptor_request
+::check_configuration( kwiver::vital::config_block_sptr config ) const
+{
+  (void) config;
+  return true;
+}
 
 } } } // end namespace
-
-#endif // VITAL_ALGO_CONVERT_IMAGE_H_

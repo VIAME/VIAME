@@ -153,6 +153,8 @@ kw_archive_writer_process
   : process( config ),
     d( new kw_archive_writer_process::priv( this ) )
 {
+  attach_logger( kwiver::vital::get_logger( name() ) );
+
   make_ports();
   make_config();
 }

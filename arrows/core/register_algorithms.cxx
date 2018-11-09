@@ -59,7 +59,7 @@
 #include <arrows/core/filter_features_magnitude.h>
 #include <arrows/core/filter_features_scale.h>
 #include <arrows/core/filter_tracks.h>
-#include <arrows/core/formulate_query_core.h>
+#include <arrows/core/handle_descriptor_request_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
 #include <arrows/core/initialize_object_tracks_threshold.h>
@@ -139,7 +139,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< filter_features_magnitude >( vpm );
   register_algorithm< filter_features_scale >( vpm );
   register_algorithm< filter_tracks >( vpm );
-  register_algorithm< formulate_query_core >( vpm );
+  register_algorithm< handle_descriptor_request_core >( vpm );
   register_algorithm< hierarchical_bundle_adjust >( vpm );
   register_algorithm< initialize_cameras_landmarks >( vpm );
   register_algorithm< initialize_object_tracks_threshold >( vpm );

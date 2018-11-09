@@ -30,96 +30,160 @@
 
 /**
  * \file
- * \brief This file contains the implementation of a descriptor request.
+ * \brief This file contains the implementation of a query result.
  */
 
-#include "descriptor_request.h"
+#include "query_result.h"
 
 namespace kwiver {
 namespace vital {
 
 // ----------------------------------------------------------------------------
-descriptor_request
-::descriptor_request()
+query_result
+::query_result()
 {
 }
 
 // ----------------------------------------------------------------------------
 uid
-descriptor_request
-::id() const
+query_result
+::query_id() const
 {
-  return m_id;
+  return m_query_id;
 }
 
 // ----------------------------------------------------------------------------
 void
-descriptor_request
-::set_id( uid const& id )
+query_result
+::set_query_id( uid const& id )
 {
-  m_id = id;
-}
-
-// ----------------------------------------------------------------------------
-timestamp
-descriptor_request
-::temporal_lower_bound() const
-{
-  return m_temporal_lower;
-}
-
-// ----------------------------------------------------------------------------
-timestamp
-descriptor_request
-::temporal_upper_bound() const
-{
-  return m_temporal_upper;
-}
-
-// ----------------------------------------------------------------------------
-void
-descriptor_request
-::set_temporal_bounds( timestamp const& lower, timestamp const& upper )
-{
-  m_temporal_lower = lower;
-  m_temporal_upper = upper;
-}
-
-// ----------------------------------------------------------------------------
-std::vector< bounding_box_i >
-descriptor_request
-::spatial_regions() const
-{
-  return m_spatial_regions;
-}
-
-// ----------------------------------------------------------------------------
-void
-descriptor_request
-::set_spatial_regions( std::vector< bounding_box_i > const& r )
-{
-  m_spatial_regions = r;
+  m_query_id = id;
 }
 
 // ----------------------------------------------------------------------------
 std::string
-descriptor_request
-::data_location() const
+query_result
+::stream_id() const
 {
-  return m_data_location;
+  return m_stream_id;
 }
 
 // ----------------------------------------------------------------------------
 void
-descriptor_request
-::set_data_location( std::string const& l )
+query_result
+::set_stream_id( std::string const& id )
 {
-  m_data_location = l;
+  m_stream_id = id;
 }
 
 // ----------------------------------------------------------------------------
-std::vector< image_container_sptr>
-descriptor_request
+unsigned
+query_result
+::instance_id() const
+{
+  return m_instance_id;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_instance_id( unsigned id )
+{
+  m_instance_id = id;
+}
+
+// ----------------------------------------------------------------------------
+double
+query_result
+::relevancy_score() const
+{
+  return m_relevancy_score;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_relevancy_score( double s )
+{
+  m_relevancy_score = s;
+}
+
+// ----------------------------------------------------------------------------
+timestamp
+query_result
+::start_time() const
+{
+  return m_start_time;
+}
+
+// ----------------------------------------------------------------------------
+timestamp
+query_result
+::end_time() const
+{
+  return m_end_time;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_temporal_bounds( timestamp const& lower, timestamp const& upper )
+{
+  m_start_time = lower;
+  m_end_time = upper;
+}
+
+// ----------------------------------------------------------------------------
+vital::geo_point
+query_result
+::location() const
+{
+  return m_location;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_location( vital::geo_point l )
+{
+  m_location = l;
+}
+
+// ----------------------------------------------------------------------------
+vital::object_track_set_sptr
+query_result
+::tracks() const
+{
+  return m_tracks;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_tracks( vital::object_track_set_sptr t )
+{
+  m_tracks = t;
+}
+
+// ----------------------------------------------------------------------------
+vital::track_descriptor_set_sptr
+query_result
+::descriptors() const
+{
+  return m_descriptors;
+}
+
+// ----------------------------------------------------------------------------
+void
+query_result
+::set_descriptors( vital::track_descriptor_set_sptr d )
+{
+  m_descriptors = d;
+}
+
+// ----------------------------------------------------------------------------
+std::vector< image_container_sptr >
+query_result
 ::image_data() const
 {
   return m_image_data;
@@ -127,8 +191,8 @@ descriptor_request
 
 // ----------------------------------------------------------------------------
 void
-descriptor_request
-::set_image_data( std::vector< image_container_sptr> const& i )
+query_result
+::set_image_data( std::vector< image_container_sptr > const& i )
 {
   m_image_data = i;
 }

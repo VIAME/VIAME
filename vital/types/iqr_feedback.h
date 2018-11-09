@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,56 +28,58 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
-#define _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
+/**
+ * \file
+ * \brief This file contains the interface for iterative query refinement feedback.
+ */
 
-#include "kwiver_processes_export.h"
+#ifndef VITAL_IQR_FEEDBACK_H_
+#define VITAL_IQR_FEEDBACK_H_
 
-#include <sprokit/pipeline/process.h>
+#include "image_container.h"
+#include "timestamp.h"
+#include "track_descriptor.h"
+#include "uid.h"
 
-#include <vital/types/track_descriptor_set.h>
+#include <vital/vital_export.h>
+#include <vital/vital_config.h>
 
 #include <memory>
+#include <string>
 
-namespace kwiver
+namespace kwiver {
+namespace vital {
+
+// ----------------------------------------------------------------------------
+/// A representation of iterative query refinement feedback.
+class VITAL_EXPORT iqr_feedback
 {
+public:
 
-// -----------------------------------------------------------------------------
-/**
- * \class compute_track_descriptors_process
- *
- * \brief Computes track descriptors along object tracks or object detections.
- *
- * \iports
- * \iport{timestamp}
- * \iport{image}
- * \iport{tracks}
- * \iport{detections}
- *
- * \oports
- * \oport{track_descriptor_set}
- */
-class KWIVER_PROCESSES_NO_EXPORT compute_track_descriptors_process
-  : public sprokit::process
-{
-  public:
-  compute_track_descriptors_process( vital::config_block_sptr const& config );
-  virtual ~compute_track_descriptors_process();
+  iqr_feedback();
+  ~iqr_feedback() VITAL_DEFAULT_DTOR
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+  vital::uid query_id() const;
 
-  private:
-    void make_ports();
-    void make_config();
+  std::vector< unsigned > const& positive_ids() const;
+  std::vector< unsigned > const& negative_ids() const;
 
-    void push_outputs( vital::track_descriptor_set_sptr& to_output );
+  void set_query_id( vital::uid const& );
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class compute_track_descriptors_process
+  void set_positive_ids( std::vector< unsigned > const& );
+  void set_negative_ids( std::vector< unsigned > const& );
 
+protected:
 
-} // end namespace
-#endif /* _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_ */
+  vital::uid m_query_id;
+
+  std::vector< unsigned > m_positive_ids;
+  std::vector< unsigned > m_negative_ids;
+};
+
+/// Shared pointer for query plan
+typedef std::shared_ptr< iqr_feedback > iqr_feedback_sptr;
+
+} } // end namespace vital
+
+#endif // VITAL_IQR_FEEDBACK_H_

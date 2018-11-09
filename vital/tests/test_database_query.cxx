@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,56 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
-#define _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
-
-#include "kwiver_processes_export.h"
-
-#include <sprokit/pipeline/process.h>
-
-#include <vital/types/track_descriptor_set.h>
-
-#include <memory>
-
-namespace kwiver
-{
-
-// -----------------------------------------------------------------------------
 /**
- * \class compute_track_descriptors_process
- *
- * \brief Computes track descriptors along object tracks or object detections.
- *
- * \iports
- * \iport{timestamp}
- * \iport{image}
- * \iport{tracks}
- * \iport{detections}
- *
- * \oports
- * \oport{track_descriptor_set}
+ * \file
+ * \brief test database_query class
  */
-class KWIVER_PROCESSES_NO_EXPORT compute_track_descriptors_process
-  : public sprokit::process
+
+#include <vital/types/database_query.h>
+
+#include <gtest/gtest.h>
+
+using namespace kwiver::vital;
+
+namespace {
+
+std::vector<unsigned> const positive_samples  = { 2, 5, 6, 7, 8 };
+std::vector<unsigned> const negative_samples  = { 1, 3, 4 };
+
+}
+
+// ----------------------------------------------------------------------------
+int main(int argc, char** argv)
 {
-  public:
-  compute_track_descriptors_process( vital::config_block_sptr const& config );
-  virtual ~compute_track_descriptors_process();
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
+}
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+// ----------------------------------------------------------------------------
+TEST(database_query, ensure_values)
+{
+  database_query::query_type qt = database_query::RETRIEVAL;
 
-  private:
-    void make_ports();
-    void make_config();
+  database_query query;
+  query.set_type( qt );
 
-    void push_outputs( vital::track_descriptor_set_sptr& to_output );
-
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class compute_track_descriptors_process
-
-
-} // end namespace
-#endif /* _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_ */
+  EXPECT_EQ( query.type(), database_query::RETRIEVAL );
+}

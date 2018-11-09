@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,38 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/algo/algorithm.txx>
+#ifndef _KWIVER_PERFORM_QUERY_PROCESS_H_
+#define _KWIVER_PERFORM_QUERY_PROCESS_H_
 
-#include "formulate_query.h"
+#include "kwiver_processes_export.h"
 
-INSTANTIATE_ALGORITHM_DEF( kwiver::vital::algo::formulate_query );
+#include <sprokit/pipeline/process.h>
 
-namespace kwiver {
-namespace vital {
-namespace algo {
+#include <memory>
 
-formulate_query
-::formulate_query()
+namespace kwiver
 {
-  attach_logger( "algo.formulate_query" );
-}
 
-
-/// Set this algorithm's properties via a config block
-void
-formulate_query
-::set_configuration( kwiver::vital::config_block_sptr config )
+// -----------------------------------------------------------------------------
+/**
+ * \class perform_query_process
+ *
+ * \brief Runs a database query and produces an output result
+ *
+ * \iports
+ * \iport{database_query}
+ * \iport{iqr_feedback}
+ *
+ * \oports
+ * \oport{query_result}
+ */
+class KWIVER_PROCESSES_NO_EXPORT perform_query_process
+  : public sprokit::process
 {
-  (void) config;
-}
+public:
+  perform_query_process( vital::config_block_sptr const& config );
+  virtual ~perform_query_process();
 
-/// Check that the algorithm's current configuration is valid
-bool
-formulate_query
-::check_configuration( kwiver::vital::config_block_sptr config ) const
-{
-  (void) config;
-  return true;
-}
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-} } } // end namespace
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class perform_query_process
+
+} // end namespace
+
+#endif /* _KWIVER_PERFORM_QUERY_PROCESS_H_ */

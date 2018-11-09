@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,56 +28,68 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
-#define _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_
-
-#include "kwiver_processes_export.h"
-
-#include <sprokit/pipeline/process.h>
-
-#include <vital/types/track_descriptor_set.h>
-
-#include <memory>
-
-namespace kwiver
-{
-
-// -----------------------------------------------------------------------------
 /**
- * \class compute_track_descriptors_process
- *
- * \brief Computes track descriptors along object tracks or object detections.
- *
- * \iports
- * \iport{timestamp}
- * \iport{image}
- * \iport{tracks}
- * \iport{detections}
- *
- * \oports
- * \oport{track_descriptor_set}
+ * \file
+ * \brief This file contains the implementation of iqr feedback
  */
-class KWIVER_PROCESSES_NO_EXPORT compute_track_descriptors_process
-  : public sprokit::process
+
+#include "iqr_feedback.h"
+
+namespace kwiver {
+namespace vital {
+
+// ----------------------------------------------------------------------------
+iqr_feedback
+::iqr_feedback()
 {
-  public:
-  compute_track_descriptors_process( vital::config_block_sptr const& config );
-  virtual ~compute_track_descriptors_process();
+}
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+// ----------------------------------------------------------------------------
+vital::uid
+iqr_feedback
+::query_id() const
+{
+  return m_query_id;
+}
 
-  private:
-    void make_ports();
-    void make_config();
+// ----------------------------------------------------------------------------
+void
+iqr_feedback
+::set_query_id( vital::uid const& id )
+{
+  m_query_id = id;
+}
 
-    void push_outputs( vital::track_descriptor_set_sptr& to_output );
+// ----------------------------------------------------------------------------
+std::vector< unsigned > const&
+iqr_feedback
+::positive_ids() const
+{
+  return m_positive_ids;
+}
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class compute_track_descriptors_process
+// ----------------------------------------------------------------------------
+void
+iqr_feedback
+::set_positive_ids( std::vector< unsigned > const& ids )
+{
+  m_positive_ids = ids;
+}
 
+// ----------------------------------------------------------------------------
+std::vector< unsigned > const&
+iqr_feedback
+::negative_ids() const
+{
+  return m_negative_ids;
+}
 
-} // end namespace
-#endif /* _KWIVER_COMPUTE_TRACK_DESCRIPTORS_PROCESS_H_ */
+// ----------------------------------------------------------------------------
+void
+iqr_feedback
+::set_negative_ids( std::vector< unsigned > const& ids )
+{
+  m_negative_ids = ids;
+}
+
+} } // end namespace
