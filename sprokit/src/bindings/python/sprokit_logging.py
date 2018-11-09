@@ -107,6 +107,9 @@ def getLogger(name):
         >>> from sprokit import sprokit_logging
         >>> logger = sprokit_logging.getLogger(__name__)
         >>> logger.info('Hello World')
+
+    This really should get a vital logger rather than a python logger.
+    The vital loggers use the logger back-end and can be configured by a file.
     """
     _logger = logging.getLogger(name)
     # _logger.debug('created logger for ' + name)
