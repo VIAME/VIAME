@@ -259,9 +259,10 @@ if __name__ == "__main__" :
     command = command + config_args
 
   # Make sure database online
-  database_tool.start()
+  database_tool.start( quiet=True )
+  database_tool.status()
 
   # Process command
-  print( "\n\nLaunching search GUI. When finished, make sure this console is closed.\n" )
+  print( "\nLaunching search GUI. When finished, make sure this console is closed.\n" )
 
   res = execute_command( command )

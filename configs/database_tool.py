@@ -109,26 +109,28 @@ def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
   else:
     return [ cmd ]
 
+def setup_stream( log_file ):
+  log = None
+  if len( log_file ) > 0:
+    if log_file == "NULL":
+      log=open( os.devnull, 'w' )
+    else:
+      log_dir = os.path.dirname( log_file )
+      if not os.path.exists( log_dir ):
+        os.makedirs( log_dir )
+      log = open( log_file, 'a' )
+  return log
+
 def execute_cmd( cmd, args ):
   all_args = [ format_cmd( cmd ) ]
   all_args.extend( args )
-  log = None
-  if len( status_log_file ) > 0:
-    log_dir = os.path.dirname( status_log_file )
-    if not os.path.exists( log_dir ):
-      os.makedirs( log_dir )
-    log = open( status_log_file, 'a' )
+  log = setup_stream( status_log_file )
   subprocess.check_call( all_args, stdout=log, stderr=log )
 
 def execute_pycmd( install_dir, cmd, args ):
   all_args = format_pycmd( install_dir, cmd )
   all_args.extend( args )
-  log = None
-  if len( status_log_file ) > 0:
-    log_dir = os.path.dirname( status_log_file )
-    if not os.path.exists( log_dir ):
-      os.makedirs( log_dir )
-    log = open( status_log_file, 'a' )
+  log = setup_stream( status_log_file )
   subprocess.check_call( all_args, stdout=log, stderr=log )
 
 def get_script_path():
@@ -157,7 +159,7 @@ def init( log_file="" ):
     remove_file( log_file )
 
   try:
-    # Kill and remove existing database
+    # Kill and remove existing database, call may fail (if no existing db) and that's okay
     stop()
 
     # Remove directory, will be remade in next step
@@ -166,8 +168,8 @@ def init( log_file="" ):
     # Generate new database
     log_info( "Initializing database... " )
     execute_cmd( "initdb", [ "-D", sql_dir ] )
-    start()
-    status()
+    execute_cmd( "pg_ctl", [ "-D", sql_dir, "-w", "-t", "20", "-l", sql_log_file, "start" ] )
+    execute_cmd( "pg_ctl", [ "-D", sql_dir, "status" ] )
     execute_cmd( "createuser", [ "-e", "-E", "-s", "-i", "-r", "-d", "postgres" ] )
     execute_cmd( "psql", [ "-f", find_config( sql_init_file ), "postgres" ] )
     log_info( "Success" + lb2 )
@@ -180,8 +182,17 @@ def init( log_file="" ):
 def status():
   execute_cmd( "pg_ctl", [ "-D", sql_dir, "status" ] )
 
-def start():
-  execute_cmd( "pg_ctl", [ "-D", sql_dir, "-w", "-t", "20", "-l", sql_log_file, "start" ] )
+def start( quiet=False ):
+  global status_log_file
+  original_log_file = status_log_file
+  status_log_file= "NULL" if quiet else status_log_file
+  try:
+    execute_cmd( "pg_ctl", [ "-D", sql_dir, "-w", "-t", "20", "-l", sql_log_file, "start" ] )
+    status_log_file = original_log_file
+    return True
+  except:
+    status_log_file = original_log_file
+    return False
 
 def stop():
   try:
