@@ -95,7 +95,7 @@ def get_pipeline_cmd( debug=False ):
       return ['pipeline_runner']
 
 def exit_with_error( error_str ):
-  print( lb2 + 'ERROR: ' + error_str + lb2 )
+  print( lb1 + 'ERROR: ' + error_str + lb2 )
   if os.name == 'nt':
     os.kill(os.getpid(), signal.SIGTERM)
   else:

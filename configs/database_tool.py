@@ -64,14 +64,6 @@ def run_with_animation( fun, *args ):
   while process.isAlive():
     animated_loading();
 
-def remove_dir( dirname ):
-  if os.path.exists( dirname ):
-    if query_yes_no( "\nYou are about to reset \"" + dirname + "\", continue?" ):
-      shutil.rmtree( dirname )
-    else:
-      print( "Exiting without initializing database" )
-      sys.exit(0)
-
 def remove_file( filename ):
   if os.path.exists( filename ):
     os.remove( filename )
@@ -162,8 +154,12 @@ def init( log_file="" ):
     # Kill and remove existing database, call may fail (if no existing db) and that's okay
     stop()
 
-    # Remove directory, will be remade in next step
-    remove_dir( database_dir )
+    # Remove directory, will be remade in next step, query user in case this was a mistake
+    if os.path.exists( database_dir ):
+      if query_yes_no( lb1 + "You are about to reset \"" + database_dir + "\", continue?" ):
+        shutil.rmtree( database_dir )
+      else:
+        return False;
 
     # Generate new database
     log_info( "Initializing database... " )
