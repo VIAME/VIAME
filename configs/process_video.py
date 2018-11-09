@@ -32,6 +32,9 @@ lb1 = '\n'
 lb2 = lb1 * 2
 lb3 = lb1 * 3
 
+# Global flag to see if any video has successfully completed processing
+any_video_complete = False
+
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
   if not os.path.isdir( folder ):
@@ -282,24 +285,32 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     pass
 
   # Process command, possibly with logging
+  log_base = ""
   if len( options.log_directory ) > 0 and not options.debug:
-    log_file = options.output_directory + div + options.log_directory + div + basename
-    with get_log_output_files( log_file ) as kwargs:
+    log_base = options.output_directory + div + options.log_directory + div + basename
+    with get_log_output_files( log_base ) as kwargs:
       res = execute_command( command, gpu=gpu, **kwargs )
   else:
     res = execute_command( command, gpu=gpu )
 
+  global any_video_complete
+
   if res == 0:
     log_info( 'Success ({})'.format(gpu) + lb1 )
+    any_video_complete = True
   else:
     log_info( 'Failure ({})'.format(gpu) + lb1 )
 
     if res == -11:
       exit_with_error( 'Out of disk space' )
 
-    exit_with_error( 'Processing failed, check ' + options.output_directory + div +
-                     options.log_directory + '/{}.txt, terminating.'
-                     .format( os.path.basename( input_name ) ) )
+    if not any_video_complete:
+      if len( log_base ) > 0:
+        exit_with_error( 'Processing failed, check ' + log_base + '.txt, terminating.' )
+      else:
+        exit_with_error( 'Processing failed, terminating.' )
+    elif len( log_base ) > 0:
+      log_info( lb1 + 'Check ' + log_base + '.txt for error messages' + lb1 )
 
 def split_image_list(image_list_file, n, dir):
   """Create and return the paths to n temp files that when interlaced
