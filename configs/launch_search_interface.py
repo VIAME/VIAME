@@ -89,6 +89,14 @@ def full_path( dirname ):
   return os.path.abspath( dirname )
 
 #------------------------------------------------------------------------------
+def is_valid_database( options ):
+  if not os.path.exists( options.input_dir ):
+    print( "Error: \"" + options.input_dir + "\" directory does not exist, "
+           "was your create_index call successful?" )
+    return False
+  return True
+
+#------------------------------------------------------------------------------
 def get_import_config_args( config_files ):
   args = ''
   command = '--import-config '
@@ -230,6 +238,10 @@ if __name__ == "__main__" :
   parser.set_defaults( debug=False )
 
   args = parser.parse_args()
+
+  # Basic checking
+  if not is_valid_database():
+    sys.exit(0)
 
   # Create required directories
   create_dir( args.query_dir )
