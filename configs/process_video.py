@@ -256,11 +256,11 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     log_info( 'Failure ({})'.format(gpu) + lb1 )
 
     if res == -11:
-      log_info( lb2 + 'Out of disk space' + lb2 )
+      exit_with_error( 'Out of disk space' )
 
-    exit_with_error( 'Ingest failed, check ' + options.output_directory + div +
-                     options.log_directory + ' for {}, terminating.'
-                     .format( os.path.basename( input_name ) ) + lb1 )
+    exit_with_error( 'Processing failed, check ' + options.output_directory + div +
+                     options.log_directory + '/{}.txt, terminating.'
+                     .format( os.path.basename( input_name ) ) )
 
 def split_image_list(image_list_file, n, dir):
   """Create and return the paths to n temp files that when interlaced
@@ -435,10 +435,8 @@ if __name__ == "__main__" :
     # Process videos in parallel, one per GPU
     video_queue = queue.Queue()
     for video_name in video_list:
-      if os.path.isfile( video_name ):
+      if os.path.isfile( video_name ) or os.path.isdir( video_name ):
         video_queue.put( video_name )
-      else:
-        log_info( "Skipping " + video_name + lb1 )
 
     def process_video_thread( gpu ):
       while True:
