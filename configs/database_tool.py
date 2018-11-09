@@ -215,7 +215,7 @@ def build_balltree_index( install_dir="", log_file="" ):
     return True
   except:
     if len( log_file ) > 0:
-      log_info( "Failure" + lb2 + "Check log: " + log_file + lb2 )
+      log_info( "Failure" + lb1 + "  Check log: " + log_file + lb2 )
     return False
 
 def build_standard_index( install_dir="", log_file="" ):
@@ -232,7 +232,7 @@ def build_standard_index( install_dir="", log_file="" ):
     return True
   except:
     if len( log_file ) > 0:
-      log_info( "Failure" + lb2 + "Check log: " + log_file + lb2 )
+      log_info( "Failure" + lb1 + "  Check log: " + log_file + lb2 )
     return False
 
 def output_usage():
