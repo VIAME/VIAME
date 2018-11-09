@@ -91,8 +91,12 @@ def full_path( dirname ):
 #------------------------------------------------------------------------------
 def is_valid_database( options ):
   if not os.path.exists( options.input_dir ):
-    print( "Error: \"" + options.input_dir + "\" directory does not exist, "
-           "was your create_index call successful?" )
+    print( "\nERROR: \"" + options.input_dir + "\" directory does not exist, "
+           "was your create_index call successful?\n" )
+    return False
+  if len( glob.glob( os.path.join( options.input_dir, "*.index" ) ) ) == 0:
+    print( "\nERROR: \"" + options.input_dir + "\" is empty, "
+           "was your create_index call successful?\n" )
     return False
   return True
 
@@ -240,7 +244,7 @@ if __name__ == "__main__" :
   args = parser.parse_args()
 
   # Basic checking
-  if not is_valid_database():
+  if not is_valid_database( args ):
     sys.exit(0)
 
   # Create required directories
