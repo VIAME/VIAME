@@ -357,7 +357,7 @@ if __name__ == "__main__" :
                       help="Input single video to process")
 
   parser.add_argument("-d", dest="input_dir", default="",
-                      help="Input directory to process")
+                      help="Input directory of videos or image folders to process")
 
   parser.add_argument("-l", dest="input_list", default="",
                       help="Input list of image files to process")
