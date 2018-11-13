@@ -33,6 +33,8 @@
 
 #include <vital/util/wrap_text_block.h>
 
+#include <tools/cxxopts.hpp>
+
 #include <memory>
 #include <ostream>
 
@@ -43,6 +45,8 @@ namespace tools {
 /**
  * @brief Applet context provided by the tool runner.
  *
+ * This class contains data that are shared between the tool runner
+ * and the applet.
  */
 class applet_context
 {
@@ -53,6 +57,13 @@ public:
 
   // name of the applet. as in kwiver <applet> <args..>
   std::string m_applet_name;
+
+    /**
+   * Results from parsing the command options. Note that you do not
+   * own this storage.
+   */
+  cxxopts::ParseResult*  m_result;
+
 
 }; // end class applet_context
 

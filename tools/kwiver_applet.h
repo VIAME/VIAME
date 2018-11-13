@@ -33,6 +33,8 @@
 
 #include <tools/kwiver_tools_applet_export.h>
 
+#include <tools/cxxopts.hpp>
+
 #include <ostream>
 #include <memory>
 #include <vector>
@@ -46,6 +48,9 @@ class applet_context;
 
 /**
  * @brief Abstract base class for all kwiver tools.
+ *
+ * This class represents the abstract base class for all loadable
+ * applets.
  */
 class KWIVER_TOOLS_APPLET_EXPORT kwiver_applet
 {
@@ -53,10 +58,59 @@ public:
   kwiver_applet();
   virtual ~kwiver_applet();
 
-  void initialize( kwiver::tools::applet_context* ctxt);
+  void initialize( kwiver::tools::applet_context* ctxt );
 
-  virtual int run( const std::vector<std::string>& argv ) = 0;
-  virtual void usage( std::ostream& outstream ) const = 0;
+  virtual int run() = 0;
+
+  /**
+   * @brief Add command line options to parser.
+   *
+   * This method adds the program description and command line options
+   * to the command line parser.
+   *
+   * Command line specification is added directly to this->m_cmd_options.
+   *
+   * Positional arguments
+   \code
+   m_cmd_options.add_options()
+    ("input", "Input file", cxxopts::value<std::string>())
+    ("output", "Output file", cxxopts::value<std::string>())
+    ("positional", "Positional parameters",
+      cxxopts::value<std::vector<std::string>>())
+  ;
+
+  m_cmd_options.parse_positional({"input", "output", "positional"});
+
+  \endcode
+  *
+  * Adding command option groups
+  *
+  *
+\code
+m_cmd_options.add_option("group")
+( "I,path", "Add directory search path")
+;
+
+\endcode
+  */
+  virtual void add_command_options() = 0;
+
+  /**
+   * @brief Return ref to parse results
+   *
+   * This method returns a reference to the command line parser
+   * results.
+   *
+   * @return Ref to parser results.
+   */
+  cxxopts::ParseResult& command_args();
+
+  /**
+   * Command line options specification. This is initialized by the
+   * add_command_options() method as delegated to the derived applet.
+   * This is managed by unique pointer to delay creation.
+   */
+  std::unique_ptr< cxxopts::Options > m_cmd_options;
 
 protected:
 
@@ -83,7 +137,11 @@ protected:
   std::string wrap_text( const std::string& text );
 
 private:
+  /**
+   * Context provided by the applet runner.
+   */
   kwiver::tools::applet_context* m_context;
+
 };
 
 typedef std::shared_ptr<kwiver_applet> kwiver_applet_sptr;

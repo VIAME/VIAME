@@ -12,6 +12,7 @@ set( sources
 set( headers
   config_explorer.h
   dump_klv.h
+  cxxopts.hpp
   )
 
 ###
@@ -65,6 +66,7 @@ kwiver_add_plugin( kwiver_tools
 
 kwiver_install_headers(
   kwiver_applet.h
+  cxxopts.hpp
   SUBDIR      tools
   )
 

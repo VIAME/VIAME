@@ -49,13 +49,27 @@ kwiver_applet::
 
 
 // ----------------------------------------------------------------------------
+cxxopts::ParseResult&
+kwiver_applet::
+command_args()
+{
+  if (m_context)
+  {
+    return *m_context->m_result;
+  }
+
+  throw std::runtime_error( "Invalid context pointer" );
+}
+
+
+// ----------------------------------------------------------------------------
 void
 kwiver_applet::
 initialize( kwiver::tools::applet_context* ctxt)
 {
   m_context = ctxt;
+  m_cmd_options.reset( new cxxopts::Options( applet_name(), "" ) );
 }
-
 
 // ----------------------------------------------------------------------------
 std::string

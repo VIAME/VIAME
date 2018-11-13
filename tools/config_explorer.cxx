@@ -48,66 +48,49 @@ namespace tools {
 
 namespace {
 
-  // Global options
-  bool opt_detail_ds;
-  bool opt_detail_dc;
-  bool opt_help;
-  std::vector< std::string > opt_path;
-  std::string opt_app_name;
-  std::string opt_app_version;
-  std::string opt_install_prefix;
 
 } // end namespace
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 config_explorer::
-usage( std::ostream& outstream ) const
+add_command_options()
 {
-  outstream << "This program assists in debugging config loading problems. It loads a \n"
-            << "configuration and displays the contents or displays the search path.\n"
-            << "Additional paths can be specified in \"KWIVER_CONFIG_PATH\" environment variable\n"
-            << "or on the command line with the -I or --path options.\n"
-            << "\n"
-            << "Usage: kwiver " << applet_name() << " <config-file-name> <options>\n"
-            << "\n"
-            << "Options are:\n"
-            << "  -h / --help      displays usage information\n"
-            << "  --path name      add directory to config search path(can appear multiple times)\n"
-            << "  -Iname           add directory to config search path(can appear multiple times)\n"
-            << "  -ds              generate detailed application-specific search paths\n"
-            << "  -dc              generate detailed config contents output\n"
-            << "  -a name          alternate application name\n"
-            << "  -v version       optional application version string\n"
-            << "  --prefix dir     optional non-standard install prefix directory\n"
-            << "\n"
-            << "If -ds is specified, the detailed search paths that apply to the application are\n"
-            << "displayed only otherwise, the config file is loaded.\n"
-            << "\n"
-            << "The option -dc only has effect when a config file is specified and causes a\n"
-            << "detailed output of the config entries.\n"
-            << "\n"
-            << "If -I or --path are specified, then the config file is only searched for using\n"
-            << "the specified path. The application name based paths are not used.\n"
-  ;
+  m_cmd_options->custom_help( wrap_text( "[options] config-file\n"
+    "This program assists in debugging config loading problems. It loads a "
+    "configuration and displays the contents or displays the search path."
+    "Additional paths can be specified in \"KWIVER_CONFIG_PATH\" environment variable"
+    "or on the command line with the -I or --path options."
+    "If -ds is specified, the detailed search paths that apply to the application are"
+    "displayed only, otherwise the config file is loaded."
+    "\n\n"
+    "The option -dc only has effect when a config file is specified and causes a"
+    "detailed output of the config entries."
+    "\n\n"
+    "If -I or --path are specified, then the config file is only searched for using"
+    "the specified path. The application name based paths are not used."
+                                ) );
 
-  return;
+ m_cmd_options->positional_help( "\n  config-file  - name of configuration file." );
+
+  m_cmd_options->add_options()
+    ( "h,help", "Display applet usage" )
+    ( "ds", "Display detailed application search path" )
+    ( "dc", "Display detailed config contents" )
+    ( "I,path", "Add directory to config search path", cxxopts::value<std::vector<std::string>>() )
+    ( "a,application", "Application name", cxxopts::value<std::string>() )
+    ( "v,version", "Application version", cxxopts::value<std::string>() )
+    ( "p,prefix", "Non-standard installation prefix. (e.g. /opt/kitware)", cxxopts::value<std::string>() )
+
+    // positional parameters
+    ( "config-file", "configuration file", cxxopts::value<std::string>())
+    ( "extra", "Extra command line args",  cxxopts::value<std::vector<std::string>>())
+    ;
+
+  m_cmd_options->parse_positional({"config-file", "extra"});
+
 }
-
-
-// ------------------------------------------------------------------
-static int
-path_callback( const char*  argument,   // name of argument
-               const char*  value,      // value of argument
-               void*        call_data ) // data from register call
-{
-  const std::string p( value );
-
-  opt_path.push_back( p );
-  return 1;   // return true for OK
-}
-
 
 // ============================================================================
 config_explorer::
@@ -118,53 +101,53 @@ config_explorer()
 // ----------------------------------------------------------------------------
 int
 config_explorer::
-run( const std::vector<std::string>& argv )
+run()
 {
-  opt_app_name = applet_name();
+  std::string opt_app_name = applet_name();
 
-  kwiversys::CommandLineArguments arg;
+  auto& cmd_args = command_args();
 
-  arg.Initialize( argv );
-  arg.StoreUnusedArguments( true );
-
-  arg.AddArgument( "-h",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-  arg.AddArgument( "--help",    argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-
-  // details
-  arg.AddArgument( "-ds",       argT::NO_ARGUMENT, &opt_detail_ds, "Display detailed application search path" );
-  arg.AddArgument( "-dc",       argT::NO_ARGUMENT, &opt_detail_dc, "Display detailed config contents" );
-
-  // manual search path
-  arg.AddCallback( "--path",    argT::SPACE_ARGUMENT, path_callback, 0, "Add directory to config search path" );
-  arg.AddCallback( "-I",        argT::CONCAT_ARGUMENT, path_callback, 0, "Add directory to config search path" );
-
-  // auto search path generation
-  arg.AddArgument( "-a",        argT::SPACE_ARGUMENT, &opt_app_name, "Application name" );
-  arg.AddArgument( "-v",        argT::SPACE_ARGUMENT, &opt_app_version, "Application version string" );
-  arg.AddArgument( "--prefix",  argT::SPACE_ARGUMENT, &opt_install_prefix,
-                   "Non-standard installation prefix. (e.g. /opt/kitware)" );
-
-  if ( ! arg.Parse() )
+  if ( cmd_args["help"].as<bool>() )
   {
-    std::cerr << "Problem parsing arguments" << std::endl;
-    exit( 0 );
-  }
-
-  if ( opt_help )
-  {
-    usage( std::cout );
+    std::cout << m_cmd_options->help();
     return EXIT_SUCCESS;
   }
 
-  char** newArgv = 0;
-  int newArgc = 0;
-  arg.GetUnusedArguments(&newArgc, &newArgv);
+  bool opt_detail_ds = cmd_args["ds"].as<bool>();
+  bool opt_detail_dc = cmd_args["dc"].as<bool>();
 
-  //
+  // Note that you have to determine that the options is there before getting value
+  // Seg-fault otherwise
+  std::string opt_app_version = cmd_args.count("version") ? cmd_args["version"].as<std::string>() : "";
+  std::string opt_install_prefix = cmd_args.count("prefix") ? cmd_args["prefix"].as<std::string>() : "";
+  std::vector< std::string > opt_path;
+
+  if ( cmd_args.count("path") > 0 )
+  {
+    opt_path = cmd_args["path"].as<std::vector<std::string>>();
+  }
+
+  std::string opt_config_file;
+
+  if ( cmd_args.count("application") )
+  {
+    opt_app_name = cmd_args["application"].as<std::string>();
+  }
+
   // Display application specific search path.
-  //
   if ( opt_detail_ds )
   {
+    // test for invalid option combination
+    if ( opt_detail_dc
+         || cmd_args.count("application")
+         || cmd_args.count("version")
+         || cmd_args.count("prefix")
+      )
+    {
+      std::cerr << "Invalid set of options specified with --ds\n";
+      return EXIT_FAILURE;
+    }
+
     kwiver::vital::config_path_list_t search_path =
       kwiver::vital::application_config_file_paths( opt_app_name,
                                                     opt_app_version,
@@ -184,34 +167,31 @@ run( const std::vector<std::string>& argv )
     return EXIT_SUCCESS;
   }
 
-
-  // Read in config
-  if( newArgc <= 1 )
+  if ( cmd_args.count("config-file") )
   {
-    std::cout << "Missing file name.\n"
-              << "Usage: " << newArgv[0] << " " << applet_name() << "  config-file-name\n"
-              << "   " << newArgv[0] << " " << applet_name() << " --help for usage details\n"
-              << std::endl;
+    opt_config_file = cmd_args["config-file"].as<std::string>();
+  }
+  else
+  {
+    std::cout << "Missing config-file name.\n"
+      <<  m_cmd_options->help()
+      << std::endl;
 
     return EXIT_FAILURE;
   }
-
-  const std::string config_file = newArgv[1];
-
-  arg.DeleteRemainingArguments(newArgc, &newArgv);
 
   kwiver::vital::config_block_sptr config;
 
   if ( ! opt_path.empty() )
   {
     std::cout << "Using custom search path.\n";
-    config = kwiver::vital::read_config_file( config_file,
+    config = kwiver::vital::read_config_file( opt_config_file,
                                               opt_path );
   }
   else
   {
     std::cout << "Using application default search path.\n";
-    config = kwiver::vital::read_config_file( config_file,
+    config = kwiver::vital::read_config_file( opt_config_file,
                                               opt_app_name,
                                               opt_app_version,
                                               opt_install_prefix,

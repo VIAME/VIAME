@@ -52,12 +52,9 @@ public:
     "configuration and displays the contents or displays the search path.";
 
 
-  virtual int run( const std::vector<std::string>& argv );
-  virtual void usage( std::ostream& outstream ) const;
+  virtual int run() override;
 
-protected:
-
-private:
+  virtual void add_command_options() override;
 
 }; // end of class
 
