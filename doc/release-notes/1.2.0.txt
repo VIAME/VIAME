@@ -1,0 +1,334 @@
+KWIVER v1.2.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and
+fixes over the previous v1.1.1 release. There are also a significant number
+of quality of life updates, as well as minor restructuring updates that are 
+included in this release. The primary changes in this release are to Vital, 
+Arrows: Core, and Sprokit.
+
+Vital, the core framework of KWIVER, has been updated in several ways in 
+this release. There is an assortment of new algorithms, functions, and types
+added in this release. Most are in support of a basic object tracker, including
+readers/writers, matrix-based associate detections to track process, a generic
+track initializer, and others. However, there is also a new abstract algorithm
+called integrate_depth_maps for the integration of depth map images to implicit
+surface volume. This release also includes expansions to the video_input API to
+include a seek_frame() and frame_time() methods.
+
+Arrows: Core has received a batch of updates in this release. New features include
+a special feature tracker that augments keyframes with additional detections, new 
+keyframe selection classes, new loop closure algorithm, and more. In addition, there 
+is general restructuring of track merging and descriptions() from some 
+implementations had been removed.
+
+Sprokit has also received a batch of updates in this release. Most of the updates 
+to Sprokit are in the area of managing processes. Process instrumentation calls 
+have been added to all processes, this allows the ability to monitor the activity 
+of processes on a per-process basis. There are new Sprokit processes corresponding 
+to the feature tracker and keyframe selection vital algorithms. As well as an 
+added detect_feature_if_keyframe process that calls the new augment features tracker and 
+also merges tracks.
+
+KWIVER can now be built by utilizing Docker. There is a Dockerfile included in 
+/docker/ for this purpose. Optionally, it can be built by utilizing the dockersetup.sh 
+script in /docker/. This script automatically builds and configures the provided KWIVER 
+Docker container.
+
+There are many other changes in this release. These are detailed in the change log below.
+
+Updates since v1.1.1
+--------------------
+
+Vital
+
+ * C++11 feature test macros have been removed.  The current version of KWIVER
+   assumes a fully C++11 compliant compiler; C++11 features should be used
+   directly.  VITAL_FOREACH (and the header vital_foreach.h which provided
+   this), has also been removed.  Remaining compatibility shims are deprecated
+   and should not be used in new code and will eventually be removed also.
+   Note also that [[noreturn]] must appear before <lib>_EXPORT; this was not
+   the case with the old definition of VITAL_NO_RETURN.
+
+ * Added a small range utilities library.  This implements a small subset of
+   range adapters inspired by the upcoming Ranges TS.
+
+ * Added new data types geo_point and geo_polygon for representing points
+   and polygons in geographic coordinates.  These new types use the new
+   geodetic conversion function and know how to convert themselves into
+   different coordinate systems.  These replace the old geo_UTM, geo_lat_lon
+   and geo_corner_points types.
+
+ * The geo_map algorithm has been replaced with a new non-algorithm mechanism
+   for geodetic conversion.  The new approach uses member functions on the new
+   geodetic types to request conversions in combination with a conversion
+   algorithm that must be provided and registered by a suitable plugin (e.g.
+   the PROJ.4 arrow).  Registration is automatic when the plugin is loaded,
+   with a mechanism in place for users to register their own algorithm if
+   desired.  The new API is also more general and supports arbitrary datums,
+   not just WGS84.
+
+ * Generalized the track and track_state types to be useful for both feature
+   and object tracks.  Data that is specific to features or objects is now
+   stored in subclasses of track_state.
+
+ * Generalized the track_set to be useful for both feature and object tracks.
+   Added derived classes for feature_track_set and object_track_set to
+   indicate the type of tracks in the set and provide specialized helper
+   functions.  Algorithm APIs previously using track_set now use either
+   feature_track_set or object_track_set.
+
+ * The track_set class now has a separate implementation class named
+   track_set_implementation.  Using a bridge design pattern this allows
+   any combination of implementations and derived track_set types.  Custom
+   track_set implementations allow alternative storage and query mechanisms
+   for better scalability and speed under different use cases.
+
+ * The track_set is now a mutable class and has new member functions including
+   'insert', 'remove', and 'merge_tracks' to allow in place modification.
+   The intent is that most algorithms will now modify a track_set in place
+   and return it rather than creating a new track_set from the tracks.  This
+   is important for a track_set because it is often a very large structure
+   and may now have backend implementations with bookkeeping that we would
+   like to persist.
+
+ * Track states now have a pointer (std::weak_ptr) back to the track object
+   which contains them.  This means that each track state can belong to at
+   most one track, and tracks and track states must now be created and
+   referenced only via shared_ptr.  Constructors for track are now protected
+   and "make()" static member is used for construction.  A "clone()" function
+   is now used for track copy construction.
+
+ * Array descriptors are now iterable (have begin/end methods), allowing them
+   to be used in standard algorithms, range-based for, etc.
+
+ * Detected object classifications (detected_object_type) are now iterable
+   (have begin/end methods), allowing them to be used in standard algorithms,
+   range-based for, etc.  This provides a much more efficient mechanism for
+   visiting all classifications.
+
+ * Improved plugin explorer so it is easier to get information about
+   processes and algorithms. Typical usage for locating processes would
+   be to enter the following command to find which processes have to
+   do with reading.
+
+   $ plugin_explorer --proc read
+
+   Then enter the following command when the specific process has been
+   identified to get a detailed output about the process.
+
+   $ plugin_explorer --proc image_file_reader -d
+
+ * Added macros to access low level datum objects using port traits.
+
+ * Select operations on detected_object_set now return the selected
+   subset as a new detected_object_set.
+
+ * Detected object set is iterable. begin() and end() methods have
+   been added in place of returning the vector of detections. This
+   allows iteration over arbitrarily large detection sets. Also
+   simplifies the select methods that now return a detected_object_set
+   rather than a vector of detections.
+
+ * Added method to return a vector of values from a single config
+   entry. The method is templated on the vector element type.
+
+ * Added at() method to detected_object_set to provide bounds checked
+   direct indexing.
+
+ * Added process properties that are bound to the process
+   object. Process properties were created based on the process class
+   hierarchy, where the derived process would create the set of
+   properties. There are cases where the derived process does not know
+   all the properties, such as when process instrumentation is
+   enabled. The solution is to add a set of properties that is part of
+   the process object that can accumulate these condition based
+   properties. Properties from the derived class are merged with the
+   fixed set of properties when the set of properties is requested.
+
+ * The video_metadata library has been removed by refactoring its contents
+   into other parts of Vital.  The video_metadata type has moved into
+   vital/types and was renamed to "metadata".  The file I/O functions have
+   moved into vital/io, and the KLV conversion functions have moved into
+   vital/klv.
+
+ * Refactor timestamp types for time and frame number. Standardized on
+   the base kwiver::vital types for frame_id and time. Renamed time_t
+   to time_usec_t to provide some distance from std::time_t and make the
+   units apparent.
+
+ * Added frame_time() method to video_input to access the current time stamp.
+
+ * Expanded video_input API to include a seek_frame() method which will seek
+   the video source to specific frame and a seekable() method which returns
+   true if the video source supports frame seeking. This allows
+   implementations to support seeking to a specific frame if possible.
+
+ * Added a new abstract algorithm, integrate_depth_maps, for the integration
+   of depth map images into an implicit surface volume using truncated signed
+   distance functions (TSDF) or similar approaches.
+
+ * Added clone() functions to the track_set and the class that it contains
+   to allow deep copies of track sets.
+
+ * Added a track_set_frame_data class to store frame-level data along side
+   the tracks.  The feature_track_set uses this to mark frames as key frames.
+
+ * Added an assortment of types and algorithms in support of a basic object
+   tracker, including readers/writers, a matrix-based associate detections to
+   tracks process, a generic track initializer, and others.
+
+Vital Bindings
+
+ * Vital C and Python bindings have been updated with respect the refactoring
+   of tracks and track_sets to account for both feature and object tracks.
+
+Arrows: Core
+
+ * Added a new frame-indexed track_set_implementation.  When used in place of
+   the default track_set_implementation this implementation will cache a mapping
+   from frame number to the set of track states on that frame.  This makes it
+   substantially faster to query tracks by frame ID.
+
+ * Modified feature tracking and loop closure algorithms to modify the
+   track_set object in place and return the same object.
+
+ * Renamed merge_tracks.h to match_tracks.h and removed all track merging
+   functions.  Track merging is now a function of the track_set itself.
+
+ * Removed description() methods from some implementations. This
+   method is no longer used.
+
+ * Implemented the seekable() and seek_frame() methods for the various
+   video_input implementations. In general this means most of these
+   implementations now support seeking to a specific frame in the video.
+
+ * Implemented a num_frames() method for the various video_input
+   implementations. This method returns the number of frames available in
+   the video or 0 if the video is not seekable.
+
+ * Expanding the tests for the video_input implementations to test the new
+   seek frame functionality.
+
+ * Tests of the video_input implementations now test against new test imagery
+   that allows an additional check that the video source is on the correct
+   frame. This done using barcodes embedded in the test imagery that encode
+   the frame number.
+
+ * Added keyframe selection classes.  These facilitate choosing particularly
+   important frames in an image sequence and then only doing later operations
+   (e.g. structure from motion) on these frames.
+
+ * Added a new loop closure algorithm that uses bag of words image matching.
+
+ * Added a special feature tracker that augments keyframes with additional
+   detections.  This tracker does not actually "track" anything but runs
+   a feature detector and descriptor only on key frames and creates single
+   frame tracks for later matching and linking.
+
+ * Added an assortment of algorithm implementations in support of a basic object
+   tracking support, including readers/writers, a matrix-based associate detections
+   to tracks process, a generic track initializer, and others.
+
+Arrows: OpenCV
+
+ * Added an OpenCV based KLT feature tracker.
+
+ * Added perspective three point pose estimation.
+
+Arrows: DBoW2
+
+ * Added bag of words image matching based on DBoW2 library.  Includes a new vital
+   algorithm base class bag_of_words_matching.
+
+Arrows: VXL
+
+ * Implemented the seekable() and seek_frame() methods for the
+   vidl_ffmpeg_video_input video source. This source now supports seeking by
+   frame if the underlying video stream supports it.
+
+ * Implemented a num_frames() method for the vidl_ffmpeg_video_input video
+   source. This method returns the number of frames available in the video or
+   0 if the video is not seekable.
+
+ * Added a test for the vidl_ffmpeg_video_input. This test tests the same
+   functionality as the tests for video_input implementations in Core. This
+   includes the new seek frame functionality.
+
+Sprokit
+
+ * Removed the CMake function sprokit_add_plugin and replaced it with the more
+   general kwiver_add_plugin function that is used elsewhere in KWIVER.
+
+ * Process instrumentation calls have been added to all
+   processes. Process instrumentation provides the ability to monitor
+   the activity of processes on a per-process basis. It can be used to
+   trace process execution when debugging a pipeline hang or to
+   collect performance data. These instrumentation calls are handled
+   by an instrumentation provider selected at runtime on a per process
+   basis with the default implementation doing nothing. The following
+   is an example for how to specify a instrumentation handler.
+
+   process my_process :: process_type
+     block _instrumentation
+       type = logger    # select logger implementation
+       block  logger
+          # add config items for specific implementation
+          # currently the logger has no additional configuration
+       endblock
+     endblock
+
+   The list of available implementations can be determined using the
+   following command:
+
+     $plugin_explorer --fact instrumentation
+
+ * Added test to threaded scheduler to detect when a python process is
+   in the pipeline. If a python process is found, an exception is
+   thrown.
+
+Sprokit: Processes
+
+ * Added sprokit processes corresponding the feature tracker and keyframe
+   selection vital algorithms.
+
+ * Added a detect_feature_if_keyframe process that calls the new augment
+   features tracker and also merges tracks.  This may be refactored in the
+   future to split out track merging and reuse the feature tracker process.
+
+Tools
+
+ * Added built-in plugin search paths to the plugin_explorer and dump_klv
+   tools.  These search paths are relative to the executable location so
+   plugins are can be found in installations without an environment variable.
+
+Unit Tests
+
+ * KWIVER now uses Google Test as its primary testing framework.  This means
+   that Google Test is now a hard dependency when KWIVER_ENABLE_TESTS is ON.
+   (Recent versions of Fletch include Google Test.)  The Sprokit tests will
+   continue to use their own framework.
+
+
+Fixes since v1.1.1
+------------------
+
+General
+
+ * Fixed an issue in the generated setup_KWIVER.bat script in which the
+   PATH environment variable was being replaced with KWIVER paths rather
+   than appending those paths.
+
+Sprokit
+
+ * Top level pipeline descriptions that are sourced from a stream do
+   not have a file name to use when relativepath config entries are
+   specified. The fix is to add an optional parameter supplying the
+   directory and file name that represent the location of the pipeline
+   definition and can be used to supply needed directory for
+   relativepath.
+
+Vital
+
+ * Fixed problem #503 where relativepath modifier in a config entry
+   would not supply the correct directory. See MR #504.
