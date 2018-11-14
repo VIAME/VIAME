@@ -37,6 +37,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <numeric>
 #include <Eigen/Dense>
 #include <vital/exceptions.h>
 
@@ -50,9 +51,9 @@ struct triangle_t
   kwiver::vital::vector_2d a;
   kwiver::vital::vector_2d b;
   kwiver::vital::vector_2d c;
-  int face_id;
-  int height;
-  int width;
+  unsigned int face_id;
+  unsigned int height;
+  unsigned int width;
 };
 }
 
@@ -158,7 +159,7 @@ parameterize_mesh::parameterize(kwiver::vital::mesh_sptr mesh) const
   // Map each triangle in 2d. The longest edge should be horizontal and its left point is (0, 0)
   std::vector<triangle_t> triangles(mesh->num_faces());
   double total_area = 0.0;
-  for (int f = 0; f < static_cast<int>(mesh->num_faces()); ++f)
+  for (unsigned int f = 0; f < mesh->num_faces(); ++f)
   {
     // face 3d points
     vector_3d pt1 = vertices[faces(f, 0)];
@@ -170,9 +171,9 @@ parameterize_mesh::parameterize(kwiver::vital::mesh_sptr mesh) const
     vector_3d pt1pt3 = pt3 - pt1;
     vector_3d pt2pt3 = pt3 - pt2;
 
-    if (pt1pt2.norm() == 0 || pt1pt3.norm() == 0 || pt2pt3.norm() == 0 || (pt1pt2.cross(pt1pt3)).norm() < 1e-5)
+    if (pt1pt2.norm() < 1e-5 || pt1pt3.norm() < 1e-5 || pt2pt3.norm() < 1e-5 || (pt1pt2.cross(pt1pt3)).norm() < 1e-5)
     {
-      triangles[f] = {{0, 0}, {0, 0}, {0, 0}, f, 0};
+      triangles[f] = {{0, 0}, {0, 0}, {0, 0}, f, 0, 0};
     }
     else
     {
@@ -210,8 +211,8 @@ parameterize_mesh::parameterize(kwiver::vital::mesh_sptr mesh) const
       c /= d_->resolution;
 
       total_area += 0.5 * (b(0) * c(1));
-      int w = std::floor(std::max(b(0), c(0))) + 1;
-      int h = std::floor(c(1)) + 1;
+      unsigned int w = static_cast<unsigned int>(std::floor(std::max(b(0), c(0)))) + 1;
+      unsigned int h = static_cast<unsigned int>(std::floor(c(1))) + 1;
       if (longest_edge == 0)
       {
         // pt1 is A, pt2 is B, pt3 is C
@@ -231,10 +232,10 @@ parameterize_mesh::parameterize(kwiver::vital::mesh_sptr mesh) const
   }
 
   // Sort triangles by height
-  std::vector<int> face_indices(triangles.size(), 0);
+  std::vector<unsigned int> face_indices(triangles.size(), 0);
   std::iota(face_indices.begin(), face_indices.end(), 0);
 
-  std::sort(face_indices.begin(), face_indices.end(), [&triangles](int i, int j)
+  std::sort(face_indices.begin(), face_indices.end(), [&triangles](unsigned int i, unsigned int j)
   {
     return triangles[i].height < triangles[j].height;
   });
@@ -243,14 +244,14 @@ parameterize_mesh::parameterize(kwiver::vital::mesh_sptr mesh) const
   std::vector<vector_2d> tcoords(mesh->num_faces() * 3);
 
   // approximate max_width to have a more or less square texture atlas
-  const int max_width = std::ceil(sqrt(total_area * 2));
+  const unsigned int max_width = static_cast<unsigned int>(std::ceil(sqrt(total_area * 2)));
 
-  int current_u = d_->exterior_margin;
-  int current_v = d_->exterior_margin;
-  int next_v = current_v;
+  unsigned int current_u = d_->exterior_margin;
+  unsigned int current_v = d_->exterior_margin;
+  unsigned int next_v = current_v;
   vital::vector_2d shift(0.0, 0.0);
-  int max_u = 0.0, max_v = 0.0;
-  for (int f : face_indices)
+  unsigned int max_u = 0, max_v = 0;
+  for (unsigned int f : face_indices)
   {
     if (current_u + triangles[f].width + d_->exterior_margin >= max_width)
     {
@@ -275,7 +276,7 @@ parameterize_mesh::parameterize(kwiver::vital::mesh_sptr mesh) const
   unsigned int width = max_u + d_->exterior_margin;
   unsigned int height = max_v + d_->exterior_margin;
 
-  // Normalize the texture coordinates
+  // Normalize texture coordinates
   vector_2d norm(width, height);
   for (unsigned int i = 0; i < triangles.size(); ++i)
   {
@@ -283,7 +284,6 @@ parameterize_mesh::parameterize(kwiver::vital::mesh_sptr mesh) const
     tcoords[i * 3 + 1] = triangles[i].b.cwiseQuotient(norm);
     tcoords[i * 3 + 2] = triangles[i].c.cwiseQuotient(norm);
   }
-
   mesh->set_tex_coords(tcoords);
 
   return std::make_pair(width, height);

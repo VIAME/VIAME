@@ -30,7 +30,6 @@
 
 
 #include <arrows/core/parameterize_mesh.h>
-#include <vital/algo/parameterize_mesh.h>
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/types/mesh.h>
 
@@ -92,21 +91,17 @@ public:
 TEST_F(compute_mesh_uv_parameterization, check_texture_coordinates)
 {
   double resolution = 0.03;   // mesh unit/pixel
-  int max_width = 100;
-  int interior_margin = 2;
-  int exterior_margin = 2;
+  unsigned int interior_margin = 2;
+  unsigned int exterior_margin = 2;
 
-  kwiver::vital::algo::parameterize_mesh_sptr uv_param =
-      kwiver::vital::algo::parameterize_mesh::create("core");
-
-  kwiver::vital::config_block_sptr algo_config = uv_param->get_configuration();
+  kwiver::arrows::core::parameterize_mesh uv_param;
+  kwiver::vital::config_block_sptr algo_config = uv_param.get_configuration();
   algo_config->set_value<double>("resolution", resolution);
-  algo_config->set_value<unsigned int>("max_texture_width", max_width);
   algo_config->set_value<unsigned int>("interior_margin", interior_margin);
-  algo_config->set_value<unsigned int>("exterior margin", exterior_margin);
-  uv_param->set_configuration(algo_config);
+  algo_config->set_value<unsigned int>("exterior_margin", exterior_margin);
+  uv_param.set_configuration(algo_config);
 
-  uv_param->parameterize(mesh);
+  uv_param.parameterize(mesh);
 
   // check that texture coordinates are between 0 and 1
   const std::vector<vector_2d>& tcoords = mesh->tex_coords();
@@ -123,21 +118,18 @@ TEST_F(compute_mesh_uv_parameterization, check_texture_coordinates)
 TEST_F(compute_mesh_uv_parameterization, check_faces_area)
 {
   double resolution = 0.03;   // mesh unit/pixel
-  int max_width = 100;
-  int interior_margin = 2;
-  int exterior_margin = 2;
+  unsigned int interior_margin = 2;
+  unsigned int exterior_margin = 2;
 
-  kwiver::vital::algo::parameterize_mesh_sptr uv_param =
-      kwiver::vital::algo::parameterize_mesh::create("core");
+  kwiver::arrows::core::parameterize_mesh uv_param;
 
-  kwiver::vital::config_block_sptr algo_config = uv_param->get_configuration();
+  kwiver::vital::config_block_sptr algo_config = uv_param.get_configuration();
   algo_config->set_value<double>("resolution", resolution);
-  algo_config->set_value<unsigned int>("max_texture_width", max_width);
   algo_config->set_value<unsigned int>("interior_margin", interior_margin);
-  algo_config->set_value<unsigned int>("exterior margin", exterior_margin);
-  uv_param->set_configuration(algo_config);
+  algo_config->set_value<unsigned int>("exterior_margin", exterior_margin);
+  uv_param.set_configuration(algo_config);
 
-  std::pair<unsigned int, unsigned int> atlas_dim = uv_param->parameterize(mesh);
+  std::pair<unsigned int, unsigned int> atlas_dim = uv_param.parameterize(mesh);
 
   const std::vector<vector_2d>& tcoords = mesh->tex_coords();
   // check that the faces area are preserved (with a resolution factor)

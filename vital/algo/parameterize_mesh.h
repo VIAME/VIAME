@@ -52,7 +52,7 @@ class VITAL_ALGO_EXPORT parameterize_mesh
 {
 public:
   /// Return the name of this algorithm
-  static std::string static_type_name() { return "compute_mesh_uv_parameterization"; }
+  static std::string static_type_name() { return "parameterize_mesh"; }
 
   // Compute the mesh uv parameterization
   /**
