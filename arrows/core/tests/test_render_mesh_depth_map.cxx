@@ -35,6 +35,7 @@
 #include <arrows/core/render_mesh_depth_map.h>
 
 #include <vital/types/camera_perspective.h>
+#include <vital/types/camera_rpc.h>
 #include <vital/types/image_container.h>
 #include <vital/types/mesh.h>
 #include <vital/types/vector.h>
@@ -44,12 +45,72 @@ using namespace kwiver::vital;
 
 namespace
 {
-  const vector_3d A(-5.0, -5.0, 0.0);
-  const vector_3d B( 5.0, -5.0, 0.0);
+  const vector_3d A(-5.0, -5.0, -2);
+  const vector_3d B( 5.0, -5.0, -2);
   const vector_3d C( 0.0,  5.0, 1.0);
 
-  const std::vector<vector_3d> vertices = {A, B, C};
-  const mesh_regular_face<3> face = std::vector<unsigned int>({0, 1, 2});
+  const vector_3d D(-5.5, -5.5, -1.0);
+  const vector_3d E(-3.0, -5.5, -1.0);
+  const vector_3d F(-5.0, -3.0, -1.0);
+
+  const std::vector<vector_3d> vertices = {A, B, C, D, E, F};
+  const mesh_regular_face<3> face1 = std::vector<unsigned int>({0, 1, 2});
+  const mesh_regular_face<3> face2 = std::vector<unsigned int>({3, 4, 5});
+
+  double check_neighbouring_pixels(const kwiver::vital::image& image, double x, double y)
+  {
+    /// check the four closest pixels and return the average of the finite values
+    int x1 = static_cast<int>(x);
+    int y1 = static_cast<int>(y);
+
+    double v1;
+    double sum = 0.0;
+    int nb = 0;
+
+    if (x1 >= 0 && x1 < image.width() && y1 >= 0 && y1 < image.height())
+    {
+      v1 = image.at<double>(x1, y1);
+      if (!std::isinf(v1))
+      {
+        sum += v1;
+        nb++;
+      }
+    }
+    ++x1;
+    if (x1 >= 0 && x1 < image.width() && y1 >= 0 && y1 < image.height())
+    {
+      v1 = image.at<double>(x1, y1);
+      if (!std::isinf(v1))
+      {
+        sum += v1;
+        nb++;
+      }
+    }
+    ++y1;
+    if (x1 >= 0 && x1 < image.width() && y1 >= 0 && y1 < image.height())
+    {
+      v1 = image.at<double>(x1, y1);
+      if (!std::isinf(v1))
+      {
+        sum += v1;
+        nb++;
+      }
+    }
+    --x1;
+    if (x1 >= 0 && x1 < image.width() && y1 >= 0 && y1 < image.height())
+    {
+      v1 = image.at<double>(x1, y1);
+      if (!std::isinf(v1))
+      {
+        sum += v1;
+        nb++;
+      }
+    }
+    if (nb > 0)
+      return sum / nb;
+    else
+      return std::numeric_limits<double>::infinity();
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -63,7 +124,8 @@ kwiver::vital::mesh_sptr generate_mesh()
 {
   std::unique_ptr<mesh_vertex_array_base> verts(new mesh_vertex_array<3>(vertices));
   std::unique_ptr<mesh_regular_face_array<3>> faces(new mesh_regular_face_array<3>());
-  faces->push_back(face);
+  faces->push_back(face1);
+  faces->push_back(face2);
   mesh_sptr mesh(new kwiver::vital::mesh(std::move(verts), std::move(faces)));
   return mesh;
 }
@@ -104,23 +166,58 @@ TEST(render_mesh_depth_map, perspective_camera)
   vector_2d c = camera->project(C);
   vector_2d bary = camera->project(barycenter);
 
-  double measured_depth_A = depth_map->get_image().at<double>(static_cast<int>(std::round(a(0))),
-                                                              static_cast<int>(std::round(a(1))));
+  double measured_depth_A = check_neighbouring_pixels(depth_map->get_image(), a(0), a(1));
+  double measured_depth_B = check_neighbouring_pixels(depth_map->get_image(), b(0), b(1));
+  double measured_depth_C = check_neighbouring_pixels(depth_map->get_image(), c(0), c(1));
+  double measured_depth_bary = check_neighbouring_pixels(depth_map->get_image(), bary(0), bary(1));
 
-  double measured_depth_B = depth_map->get_image().at<double>(static_cast<int>(std::round(b(0))),
-                                                              static_cast<int>(std::round(b(1))));
+  EXPECT_LT( measured_depth_A, real_depth_A );    // A is hidden by face DEF
 
-  double measured_depth_C = depth_map->get_image().at<double>(static_cast<int>(std::round(c(0))),
-                                                              static_cast<int>(std::round(c(1))));
+  EXPECT_NEAR( real_depth_B, measured_depth_B, 1e-2 );
 
-  double measured_depth_bary = depth_map->get_image().at<double>(static_cast<int>(std::round(bary(0))),
-                                                                 static_cast<int>(std::round(bary(1))));
+  EXPECT_NEAR( real_depth_C, measured_depth_C, 1e-2 );
 
-  EXPECT_NEAR( real_depth_A, measured_depth_A, 1e-2 );
+  EXPECT_NEAR( real_depth_bary, measured_depth_bary, 1e-2 );
+}
 
-  EXPECT_NEAR( real_depth_B, measured_depth_B, 1e-2 ) ;
 
-  EXPECT_NEAR( real_depth_C, measured_depth_C, 1e-2 ) ;
+TEST(render_mesh_height_map, camera_rpc)
+{
+  // Mesh
+  mesh_sptr mesh = generate_mesh();
 
-  EXPECT_NEAR( real_depth_bary, measured_depth_bary, 1e-2 ) ;
+  // Camera RPC
+  std::shared_ptr<simple_camera_rpc> camera(new simple_camera_rpc);
+  camera->set_image_scale(kwiver::vital::vector_2d(100, 100));
+  camera->set_image_offset(kwiver::vital::vector_2d(550, 550));
+  camera->set_image_width(1200);
+  camera->set_image_height(1200);
+
+  image_container_sptr height_map = kwiver::arrows::render_mesh_height_map(mesh, camera);
+
+  // Check barycenter;
+  vector_3d barycenter = (A + B + C) / 3;
+
+  double real_height_A = A.z();
+  double real_height_B = B.z();
+  double real_height_C = C.z();
+  double real_height_bary = barycenter.z();
+
+  vector_2d a = camera->project(A);
+  vector_2d b = camera->project(B);
+  vector_2d c = camera->project(C);
+  vector_2d bary = camera->project(barycenter);
+
+  double measured_height_A = check_neighbouring_pixels(height_map->get_image(), a(0), a(1));
+  double measured_height_B = check_neighbouring_pixels(height_map->get_image(), b(0), b(1));
+  double measured_height_C = check_neighbouring_pixels(height_map->get_image(), c(0), c(1));
+  double measured_height_bary = check_neighbouring_pixels(height_map->get_image(), bary(0), bary(1));
+
+  EXPECT_GT(measured_height_A, real_height_A);    // A is hidden by face DEF
+
+  EXPECT_NEAR( real_height_B, measured_height_B, 1e-2 );
+
+  EXPECT_NEAR( real_height_C, measured_height_C, 1e-2 );
+
+  EXPECT_NEAR( real_height_bary, measured_height_bary, 1e-2 );
 }
