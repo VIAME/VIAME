@@ -42,5 +42,6 @@ kwiver_discover_gtests(vital similarity                     LIBRARIES ${test_lib
 kwiver_discover_gtests(vital timestamp                      LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital track                          LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital track_set                      LIBRARIES ${test_libraries})
+kwiver_discover_gtests(vital triangle_scan_iterator         LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital vector                         LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital uid                            LIBRARIES ${test_libraries})
