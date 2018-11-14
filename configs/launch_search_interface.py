@@ -116,29 +116,29 @@ def get_query_server_uri( options ):
 
 #------------------------------------------------------------------------------
 def create_archive_file( options ):
-    (fd, name) = tempfile.mkstemp(prefix='viqui-archive-',
-                                  suffix='.archive',
-                                  text=True, dir=temp_dir)
-    f = os.fdopen(fd, 'w')
+  (fd, name) = tempfile.mkstemp(prefix='viqui-archive-',
+                                suffix='.archive',
+                                text=True, dir=temp_dir)
+  f = os.fdopen(fd, 'w')
 
-    f.write('archive1\n')
-    for index_file in list_files_in_dir( options.input_dir, 'index' ):
-        f.write( os.path.abspath( index_file ) + "\n" )
-    f.close()
-    return name
+  f.write('archive1\n')
+  for index_file in list_files_in_dir( options.input_dir, 'index' ):
+      f.write( os.path.abspath( index_file ) + "\n" )
+  f.close()
+  return name
 
 #------------------------------------------------------------------------------
 def get_predefined_query_dir( options ):
 
-    if options.predefined_dir:
-      query_dir = options.predefined_dir
+  if options.predefined_dir:
+    query_dir = options.predefined_dir
 
-    if os.path.exists( query_dir ):
-        if not os.path.isdir( query_dir ):
-            print( '%s is not a directory.' % (query_dir) )
-            sys.exit(1)
+  if os.path.exists( query_dir ):
+      if not os.path.isdir( query_dir ):
+          print( '%s is not a directory.' % (query_dir) )
+          sys.exit(1)
 
-    return query_dir
+  return query_dir
 
 #------------------------------------------------------------------------------
 config_template= string.Template('''

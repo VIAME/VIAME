@@ -246,7 +246,7 @@ if __name__ == "__main__" :
 
   parser.add_argument("--debug", dest="debug", action="store_true",
                       help="Run with debugger attached to process")
-                      
+
   parser.set_defaults( debug=False )
 
   args = parser.parse_args()
