@@ -67,7 +67,7 @@ namespace
     double sum = 0.0;
     int nb = 0;
 
-    if (x1 >= 0 && x1 < image.width() && y1 >= 0 && y1 < image.height())
+    if (x1 >= 0 && x1 < static_cast<int>(image.width()) && y1 >= 0 && y1 < static_cast<int>(image.height()))
     {
       v1 = image.at<double>(x1, y1);
       if (!std::isinf(v1))
@@ -77,7 +77,7 @@ namespace
       }
     }
     ++x1;
-    if (x1 >= 0 && x1 < image.width() && y1 >= 0 && y1 < image.height())
+    if (x1 >= 0 && x1 < static_cast<int>(image.width()) && y1 >= 0 && y1 < static_cast<int>(image.height()))
     {
       v1 = image.at<double>(x1, y1);
       if (!std::isinf(v1))
@@ -87,7 +87,7 @@ namespace
       }
     }
     ++y1;
-    if (x1 >= 0 && x1 < image.width() && y1 >= 0 && y1 < image.height())
+    if (x1 >= 0 && x1 < static_cast<int>(image.width()) && y1 >= 0 && y1 < static_cast<int>(image.height()))
     {
       v1 = image.at<double>(x1, y1);
       if (!std::isinf(v1))
@@ -97,7 +97,7 @@ namespace
       }
     }
     --x1;
-    if (x1 >= 0 && x1 < image.width() && y1 >= 0 && y1 < image.height())
+    if (x1 >= 0 && x1 < static_cast<int>(image.width()) && y1 >= 0 && y1 < static_cast<int>(image.height()))
     {
       v1 = image.at<double>(x1, y1);
       if (!std::isinf(v1))
