@@ -81,7 +81,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1USdZDUxoPy7Jq1-k4y6eLR19uhwVtJjn)
 
 **Optional Patches:** <br>
-[Low GPU Memory (4Gb) Patch, All Operating Systems](https://data.kitware.com/api/v1/item/5becf3f08d777f2179a9cbca/download)
+[Low GPU Memory Usage (2-4Gb) Patch, All Operating Systems](https://data.kitware.com/api/v1/item/5becf3f08d777f2179a9cbca/download)
 
 
 Quick Run Instructions
