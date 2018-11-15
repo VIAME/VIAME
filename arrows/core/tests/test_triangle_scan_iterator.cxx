@@ -33,8 +33,8 @@
  * \brief core triangle_scan_iterator class tests
  */
 
-#include <vital/types/triangle_scan_iterator.h>
-
+#include <arrows/core/triangle_scan_iterator.h>
+#include <vital/types/vector.h>
 #include <gtest/gtest.h>
 
 using namespace kwiver::vital;
@@ -56,7 +56,7 @@ const vector_2d pt3(5, 10);
 // ----------------------------------------------------------------------------
 TEST(triangle_scan_iterator, iterate)
 {
-  triangle_scan_iterator iter(pt1, pt2, pt3);
+  kwiver::arrows::core::triangle_scan_iterator iter(pt1, pt2, pt3);
 
   for (iter.reset(); iter.next(); )
   {

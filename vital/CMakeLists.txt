@@ -134,7 +134,6 @@ set( vital_public_headers
   types/track_set.h
   types/track_descriptor.h
   types/track_descriptor_set.h
-  types/triangle_scan_iterator.h
   types/vector.h
   types/uid.h
 )
@@ -188,7 +187,6 @@ set( vital_sources
   types/track.cxx
   types/track_descriptor.cxx
   types/track_set.cxx
-  types/triangle_scan_iterator.cxx
   types/uid.cxx
 )
 

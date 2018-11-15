@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief core triangle_scan_iterator implementation
+ * \brief Implementation of core triangle_scan_iterator
  */
 
 #include "triangle_scan_iterator.h"
@@ -45,7 +45,8 @@ void min_max(double a, double b, double c, double &min, double &max)
 }
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
+namespace core {
 
 void triangle_scan_iterator::reset()
 {
@@ -62,9 +63,9 @@ void triangle_scan_iterator::reset()
 
   g = ((a + b + c) / 3).array().floor();
 
-  vector_2d ga(a(0) - g(0), a(1) - g(1));
-  vector_2d gb(b(0) - g(0), b(1) - g(1));
-  vector_2d gc(c(0) - g(0), c(1) - g(1));
+  vital::vector_2d ga(a(0) - g(0), a(1) - g(1));
+  vital::vector_2d gb(b(0) - g(0), b(1) - g(1));
+  vital::vector_2d gc(c(0) - g(0), c(1) - g(1));
 
   data[0][0] = gb(1) - gc(1); data[0][1] = gc(0) - gb(0); data[0][2] = gb(0) * gc(1) - gb(1) * gc(0);
   data[1][0] = gc(1) - ga(1); data[1][1] = ga(0) - gc(0); data[1][2] = gc(0) * ga(1) - gc(1) * ga(0);
@@ -97,7 +98,7 @@ bool triangle_scan_iterator::next()
   {
     double a_ = i[0];
     double b_ = i[1] * (scan_y_ - g(1)) + i[2];
-    if (a_ != 0)
+    if (std::abs(a_) > 1e-5)
     {
       double x = -b_ / a_;
       if (a_ > 0)
@@ -117,5 +118,6 @@ bool triangle_scan_iterator::next()
   return true;
 }
 
+}
 }
 }

@@ -151,7 +151,7 @@ TEST(render_mesh_depth_map, perspective_camera)
                                                                cam_orientation.inverse(),
                                                                camera_intrinsic));
 
-  image_container_sptr depth_map = kwiver::arrows::render_mesh_depth_map(mesh, camera);
+  image_container_sptr depth_map = kwiver::arrows::core::render_mesh_depth_map(mesh, camera);
 
   // Check barycenter;
   vector_3d barycenter = (A + B + C) / 3;
@@ -181,6 +181,56 @@ TEST(render_mesh_depth_map, perspective_camera)
 }
 
 
+// ----------------------------------------------------------------------------
+TEST(render_mesh_height_map, perspective_camera)
+{
+  // Mesh
+  mesh_sptr mesh = generate_mesh();
+
+  // Perspective camera
+  camera_intrinsics_sptr camera_intrinsic(new simple_camera_intrinsics(780, {500, 500},
+                                                                       1.0, 0.0, {},
+                                                                       1000, 1000));
+  matrix_3x3d rot = matrix_3x3d::Zero();
+  rot(0, 0) = 1.0;
+  rot(1, 1) = -1.0;
+  rot(2, 2) = -1.0;
+  rotation_d cam_orientation(rot);
+  vector_3d cam_position(0.0, 0.0, 10.0);
+  camera_perspective_sptr camera(new simple_camera_perspective(cam_position,
+                                                               cam_orientation.inverse(),
+                                                               camera_intrinsic));
+
+  image_container_sptr height_map = kwiver::arrows::core::render_mesh_height_map(mesh, camera);
+
+  // Check barycenter;
+  vector_3d barycenter = (A + B + C) / 3;
+
+  double real_height_A = A.z();
+  double real_height_B = B.z();
+  double real_height_C = C.z();
+  double real_height_bary = barycenter.z();
+
+  vector_2d a = camera->project(A);
+  vector_2d b = camera->project(B);
+  vector_2d c = camera->project(C);
+  vector_2d bary = camera->project(barycenter);
+
+  double measured_height_A = check_neighbouring_pixels(height_map->get_image(), a(0), a(1));
+  double measured_height_B = check_neighbouring_pixels(height_map->get_image(), b(0), b(1));
+  double measured_height_C = check_neighbouring_pixels(height_map->get_image(), c(0), c(1));
+  double measured_height_bary = check_neighbouring_pixels(height_map->get_image(), bary(0), bary(1));
+
+  EXPECT_GT( measured_height_A, real_height_A );    // A is hidden by face DEF
+
+  EXPECT_NEAR( real_height_B, measured_height_B, 1e-2 );
+
+  EXPECT_NEAR( real_height_C, measured_height_C, 1e-2 );
+
+  EXPECT_NEAR( real_height_bary, measured_height_bary, 1e-2 );
+}
+
+
 TEST(render_mesh_height_map, camera_rpc)
 {
   // Mesh
@@ -193,7 +243,7 @@ TEST(render_mesh_height_map, camera_rpc)
   camera->set_image_width(1200);
   camera->set_image_height(1200);
 
-  image_container_sptr height_map = kwiver::arrows::render_mesh_height_map(mesh, camera);
+  image_container_sptr height_map = kwiver::arrows::core::render_mesh_height_map(mesh, camera);
 
   // Check barycenter;
   vector_3d barycenter = (A + B + C) / 3;
