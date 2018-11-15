@@ -38,6 +38,7 @@ set( plugin_core_headers
   track_features_augment_keyframes.h
   track_features_core.h
   transform.h
+  triangle_scan_iterator.h
   triangulate_landmarks.h
   video_input_filter.h
   video_input_image_list.h
@@ -108,6 +109,7 @@ set( plugin_core_sources
   track_features_augment_keyframes.cxx
   track_features_core.cxx
   transform.cxx
+  triangle_scan_iterator.cxx
   triangulate_landmarks.cxx
   video_input_filter.cxx
   video_input_image_list.cxx
