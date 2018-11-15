@@ -95,3 +95,6 @@ Bug Fixes
    which causes a segmentation fault on the Mac. On the Mac, symbols exported from an image loaded with
    RTLD_GLOBAL mode are not available to other images unless built with -flat_namespace.
 
+ * Fixed issue with loading logger plugins on Windows due to a semicolon
+   that gets appended to environment variables
+
