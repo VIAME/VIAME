@@ -112,6 +112,10 @@ kwiver_logger_manager
   else
   {
     factory_name = factory;
+    if (*factory_name.rbegin() == ';')
+    {
+      factory_name = factory_name.substr(0, factory_name.size() - 1);
+    }
   }
   factory_name += DL::LibExtension();
 
