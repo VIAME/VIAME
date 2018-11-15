@@ -138,7 +138,7 @@ if __name__ == "__main__" :
       lis = line.strip().split()
       if len( lis ) != 2:
         continue
-      ts_vec.append( lis[0] )
+      ts_vec.append( str( float( lis[0] ) / 1e6 ) )
 
   if len( ts_vec ) == 0:
     print( "Error: Selected video file is empty" )
