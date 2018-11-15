@@ -149,7 +149,7 @@ if __name__ == "__main__" :
                                         suffix='.kw18',
                                         text=True, dir=temp_dir )
   (fd2, class_file) = tempfile.mkstemp( prefix='vsplay-tmp-tracks-',
-                                        suffix='.pvo.txt',
+                                        suffix='.fso.txt',
                                         text=True, dir=temp_dir )
 
   ftrk = os.fdopen( fd1, 'w' )
