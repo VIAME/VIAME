@@ -16,6 +16,10 @@ Vital Bindings
  
 Arrows: Core
 
+ * Created a new plugin for core applets
+
+ * Added an applet to render meshes into depth or height maps
+
  * Added mesh_operations.h, initially with a function to triangulate a mesh.
    That is, subdivide mesh faces into triangles.
 
