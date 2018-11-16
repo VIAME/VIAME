@@ -13,6 +13,9 @@ Vital Bindings
  
 Arrows: Core
 
+ * Added mesh_operations.h, initially with a function to triangulate a mesh.
+   That is, subdivide mesh faces into triangles.
+
 Arrows: FFmpeg
 
 Arrows: GDAL
