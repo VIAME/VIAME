@@ -1,4 +1,21 @@
 
+v0.9.8.9 - 11/12/2018
+=====================
+
+
+-Allow video projects to process directory of directory of images
+
+
+-Additional error checking on index formation
+
+
+-Improvements to launch_timeline_viewer script
+
+
+-Added GUI display dynamic range parameters for 16-bit imagery
+
+
+
 v0.9.8.8 - 10/29/2018
 =====================
 
