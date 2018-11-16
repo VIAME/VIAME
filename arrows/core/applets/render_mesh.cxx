@@ -48,6 +48,7 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 
+#include <arrows/core/mesh_operations.h>
 #include <arrows/core/render_mesh_depth_map.h>
 
 #include <kwiversys/CommandLineArguments.hxx>
@@ -196,6 +197,7 @@ run( const std::vector<std::string>& argv )
 
 
   std::cout << "Rendering" << std::endl;
+  kwiver::arrows::core::mesh_triangulate(*mesh);
   auto image = render_mesh_depth_map(mesh, camera);
 
   std::cout << "Saving" << std::endl;
