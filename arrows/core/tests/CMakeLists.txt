@@ -13,6 +13,7 @@ kwiver_discover_gtests(core epipolar_geometry         LIBRARIES ${test_libraries
 kwiver_discover_gtests(core feature_descriptor_io     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core interpolate_camera        LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core interpolate_track_spline  LIBRARIES ${test_libraries})
+kwiver_discover_gtests(core mesh_operations           LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core render_mesh_depth_map     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core track_set_impl            LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core triangle_scan_iterator    LIBRARIES ${test_libraries})
