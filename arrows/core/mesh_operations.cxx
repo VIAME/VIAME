@@ -45,16 +45,22 @@ using namespace kwiver::vital;
 
 /// Subdivide mesh faces into triangle
 std::unique_ptr<mesh_regular_face_array<3> >
-mesh_triangulate(const mesh_face_array_base& faces)
+mesh_triangulate(mesh_face_array_base const& faces)
 {
   std::unique_ptr<mesh_regular_face_array<3> > tris(new mesh_regular_face_array<3>);
   int group = -1;
   if (faces.has_groups())
+  {
     group = 0;
-  for (unsigned int f=0; f<faces.size(); ++f) {
+  }
+  for (unsigned int f=0; f<faces.size(); ++f)
+  {
     for (unsigned i=2; i<faces.num_verts(f); ++i)
-      tris->push_back(mesh_tri(faces(f,0),faces(f,i-1),faces(f,i)));
-    if (group >= 0 && f+1 >= faces.groups()[group].second) {
+    {
+      tris->push_back(mesh_tri(faces(f, 0), faces(f, i-1), faces(f, i)));
+    }
+    if (group >= 0 && f+1 >= faces.groups()[group].second)
+    {
       tris->make_group(faces.groups()[group++].first);
     }
   }
@@ -64,17 +70,21 @@ mesh_triangulate(const mesh_face_array_base& faces)
 
 /// Subdivide quadrilaterals into triangle
 std::unique_ptr<mesh_regular_face_array<3> >
-mesh_triangulate(const mesh_regular_face_array<4>& faces)
+mesh_triangulate(mesh_regular_face_array<4> const& faces)
 {
   std::unique_ptr<mesh_regular_face_array<3> > tris(new mesh_regular_face_array<3>);
   int group = -1;
   if (faces.has_groups())
+  {
     group = 0;
-  for (unsigned int f=0; f<faces.size(); ++f) {
+  }
+  for (unsigned int f=0; f<faces.size(); ++f)
+  {
     const mesh_regular_face<4>& face = faces[f];
-    tris->push_back(mesh_tri(face[0],face[1],face[2]));
-    tris->push_back(mesh_tri(face[0],face[2],face[3]));
-    if (group >= 0 && f+1 >= faces.groups()[group].second) {
+    tris->push_back(mesh_tri(face[0], face[1], face[2]));
+    tris->push_back(mesh_tri(face[0], face[2], face[3]));
+    if (group >= 0 && f+1 >= faces.groups()[group].second)
+    {
       tris->make_group(faces.groups()[group++].first);
     }
   }
@@ -91,8 +101,8 @@ mesh_triangulate(mesh& mesh)
     case 3: break;
     case 4:
     {
-      std::unique_ptr<mesh_face_array_base> tris(
-          mesh_triangulate(static_cast<const mesh_regular_face_array<4>&>(mesh.faces())));
+      std::unique_ptr<mesh_face_array_base> tris( mesh_triangulate(
+        static_cast<mesh_regular_face_array<4> const&>(mesh.faces())));
       mesh.set_faces(std::move(tris));
       break;
     }

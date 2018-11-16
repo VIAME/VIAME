@@ -53,7 +53,7 @@ namespace core {
  */
 KWIVER_ALGO_CORE_EXPORT
 std::unique_ptr<kwiver::vital::mesh_regular_face_array<3> >
-mesh_triangulate(const kwiver::vital::mesh_face_array_base& faces);
+mesh_triangulate(kwiver::vital::mesh_face_array_base const& faces);
 
 
 /// Subdivide quadrilaterals into triangles
@@ -63,7 +63,7 @@ mesh_triangulate(const kwiver::vital::mesh_face_array_base& faces);
  */
 KWIVER_ALGO_CORE_EXPORT
 std::unique_ptr<kwiver::vital::mesh_regular_face_array<3> >
-mesh_triangulate(const kwiver::vital::mesh_regular_face_array<4>& faces);
+mesh_triangulate(kwiver::vital::mesh_regular_face_array<4> const& faces);
 
 
 /// Triangulate the faces of the mesh (in place)
