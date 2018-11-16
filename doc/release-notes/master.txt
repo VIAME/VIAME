@@ -1,0 +1,36 @@
+KWIVER v1.4.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and
+fixes over the previous v1.3.0 release.
+
+Updates since v1.3.0
+--------------------
+
+Vital
+
+Vital Bindings 
+ 
+Arrows: Core
+
+Arrows: FFmpeg
+
+Arrows: GDAL
+
+Arrows: OpenCV
+
+Arrows: Serialization
+
+Arrows: VXL
+
+Sprokit
+
+Sprokit: Processes
+
+Tools
+
+Unit Tests
+
+Bug Fixes
+--------
+
