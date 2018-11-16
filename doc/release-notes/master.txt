@@ -9,6 +9,9 @@ Updates since v1.3.0
 
 Vital
 
+ * Added constructors taking initalizer lists to mesh types for easier
+   initialization.
+
 Vital Bindings 
  
 Arrows: Core
