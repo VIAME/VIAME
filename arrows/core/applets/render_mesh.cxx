@@ -62,6 +62,8 @@ namespace {
 bool        opt_help( false );
 std::string opt_config;         // config file name
 std::string opt_out_config;     // output config file name
+int opt_width = 1920;           // image width
+int opt_height = 1080;          // image height
 
 // ------------------------------------------------------------------
 static kwiver::vital::config_block_sptr default_config()
@@ -118,6 +120,8 @@ run( const std::vector<std::string>& argv )
   arg.AddArgument( "-h",              argT::NO_ARGUMENT, &opt_help, "Display usage information" );
   arg.AddArgument( "-c",            argT::SPACE_ARGUMENT, &opt_config, "Configuration file for tool" );
   arg.AddArgument( "--output-config", argT::SPACE_ARGUMENT, &opt_out_config, "Dump configuration for tool" );
+  arg.AddArgument( "-x",            argT::SPACE_ARGUMENT, &opt_width, "Output image width");
+  arg.AddArgument( "-y",            argT::SPACE_ARGUMENT, &opt_height, "Output image height");
 
   if ( ! arg.Parse() )
   {
@@ -186,8 +190,8 @@ run( const std::vector<std::string>& argv )
   std::cout << "Reading Camera" << std::endl;
   auto camera = kwiver::vital::read_krtd_file(camera_file);
   auto K = std::make_shared<kwiver::vital::simple_camera_intrinsics>(*camera->intrinsics());
-  K->set_image_width(1920);
-  K->set_image_height(1080);
+  K->set_image_width(opt_width);
+  K->set_image_height(opt_height);
   std::dynamic_pointer_cast<kwiver::vital::simple_camera_perspective>(camera)->set_intrinsics(K);
 
 
