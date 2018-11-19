@@ -52,33 +52,30 @@ vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::
   vital::mesh_vertex_array<3>& vertices = dynamic_cast< vital::mesh_vertex_array<3>& >(mesh->vertices());
 
   std::vector<vital::vector_2d> points_2d(vertices.size());
+  std::vector<double> depths(vertices.size());
   for (unsigned int i = 0; i < vertices.size(); ++i)
   {
     points_2d[i] = camera->project(vertices[i]);
+    depths[i] = camera->depth(vertices[i]);
   }
 
   vital::image_of<double> zbuffer(camera->image_width(), camera->image_height(), 1);
-  for (unsigned int j = 0; j < zbuffer.height(); ++j)
-  {
-    for (unsigned int i = 0; i < zbuffer.width(); ++i)
-    {
-      zbuffer(i, j) = std::numeric_limits<double>::infinity();
-    }
-  }
+  // fill each pixel with infinity
+  transform_image(zbuffer, [](double){ return std::numeric_limits<double>::infinity(); } );
 
   if (mesh->faces().regularity() == 3)
   {
     auto const& triangles = static_cast< const vital::mesh_regular_face_array<3>& >(mesh->faces());
     double d1, d2, d3;
-    for (unsigned int f = 0; f < triangles.size(); ++f)
+    for (auto const& tri : triangles)
     {
-      vital::vector_2d& v1 = points_2d[triangles(f, 0)];
-      vital::vector_2d& v2 = points_2d[triangles(f, 1)];
-      vital::vector_2d& v3 = points_2d[triangles(f, 2)];
+      vital::vector_2d const& v1 = points_2d[tri[0]];
+      vital::vector_2d const& v2 = points_2d[tri[1]];
+      vital::vector_2d const& v3 = points_2d[tri[2]];
 
-      d1 = -1.0 / camera->depth(vertices[triangles(f, 0)]);
-      d2 = -1.0 / camera->depth(vertices[triangles(f, 1)]);
-      d3 = -1.0 / camera->depth(vertices[triangles(f, 2)]);
+      d1 = -1.0 / depths[tri[0]];
+      d2 = -1.0 / depths[tri[1]];
+      d3 = -1.0 / depths[tri[2]];
 
       render_triangle(v1, v2, v3, d1, d2, d3, zbuffer);
     }
