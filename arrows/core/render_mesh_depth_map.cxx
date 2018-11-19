@@ -66,18 +66,25 @@ vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::
   if (mesh->faces().regularity() == 3)
   {
     auto const& triangles = static_cast< const vital::mesh_regular_face_array<3>& >(mesh->faces());
-    double d1, d2, d3;
     for (auto const& tri : triangles)
     {
+      double const& d1 = depths[tri[0]];
+      double const& d2 = depths[tri[1]];
+      double const& d3 = depths[tri[2]];
+      // for now, skip any triangle that is even partly behind the camera
+      // TODO clip triangles that are partly behind the camera
+      if (d1 <= 0.0 || d2 <= 0.0 || d3 <= 0.0)
+      {
+        continue;
+      }
+
       vital::vector_2d const& v1 = points_2d[tri[0]];
       vital::vector_2d const& v2 = points_2d[tri[1]];
       vital::vector_2d const& v3 = points_2d[tri[2]];
 
-      d1 = -1.0 / depths[tri[0]];
-      d2 = -1.0 / depths[tri[1]];
-      d3 = -1.0 / depths[tri[2]];
-
-      render_triangle(v1, v2, v3, d1, d2, d3, zbuffer);
+      render_triangle(v1, v2, v3,
+                      -1.0 / d1, -1.0 / d2, -1.0 / d3,
+                      zbuffer);
     }
     transform_image(zbuffer, [](double d){ return std::isinf(d) ? d : (-1.0 / d); } );
   }
