@@ -41,6 +41,7 @@ set( plugin_core_headers
   transform.h
   triangle_scan_iterator.h
   triangulate_landmarks.h
+  uv_unwrap_mesh.h
   video_input_filter.h
   video_input_image_list.h
   video_input_pos.h
@@ -113,6 +114,7 @@ set( plugin_core_sources
   transform.cxx
   triangle_scan_iterator.cxx
   triangulate_landmarks.cxx
+  uv_unwrap_mesh.cxx
   video_input_filter.cxx
   video_input_image_list.cxx
   video_input_pos.cxx

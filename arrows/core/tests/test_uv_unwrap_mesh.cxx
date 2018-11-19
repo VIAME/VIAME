@@ -29,16 +29,17 @@
  */
 
 
-#include <arrows/core/parameterize_mesh.h>
+#include <arrows/core/uv_unwrap_mesh.h>
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/types/mesh.h>
 
+#include <Eigen/Dense>
 #include <gtest/gtest.h>
 
 #include <algorithm>
 
 using namespace kwiver::vital;
-using namespace kwiver::arrows;
+using namespace kwiver::arrows::core;
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -48,7 +49,7 @@ int main(int argc, char** argv)
   return RUN_ALL_TESTS();
 }
 
-class compute_mesh_uv_parameterization : public ::testing::Test
+class uv_unwrap_mesh_test : public ::testing::Test
 {
 public:
   void SetUp()
@@ -88,20 +89,14 @@ public:
 
 
 // ----------------------------------------------------------------------------
-TEST_F(compute_mesh_uv_parameterization, check_texture_coordinates)
+TEST_F(uv_unwrap_mesh_test, check_texture_coordinates)
 {
-  double resolution = 0.03;   // mesh unit/pixel
-  unsigned int interior_margin = 2;
-  unsigned int exterior_margin = 2;
+  uv_unwrap_mesh mesh_unwrap;
+  config_block_sptr algo_config = mesh_unwrap.get_configuration();
+  algo_config->set_value<double>("spacing", 0.005);
+  mesh_unwrap.set_configuration(algo_config);
 
-  kwiver::arrows::core::parameterize_mesh uv_param;
-  kwiver::vital::config_block_sptr algo_config = uv_param.get_configuration();
-  algo_config->set_value<double>("resolution", resolution);
-  algo_config->set_value<unsigned int>("interior_margin", interior_margin);
-  algo_config->set_value<unsigned int>("exterior_margin", exterior_margin);
-  uv_param.set_configuration(algo_config);
-
-  uv_param.parameterize(mesh);
+  mesh_unwrap.unwrap(mesh);
 
   // check that texture coordinates are between 0 and 1
   const std::vector<vector_2d>& tcoords = mesh->tex_coords();
@@ -111,35 +106,5 @@ TEST_F(compute_mesh_uv_parameterization, check_texture_coordinates)
     EXPECT_GE(tc[1], 0.0);
     EXPECT_LE(tc[0], 1.0);
     EXPECT_LE(tc[1], 1.0);
-  }
-}
-
-// ----------------------------------------------------------------------------
-TEST_F(compute_mesh_uv_parameterization, check_faces_area)
-{
-  double resolution = 0.03;   // mesh unit/pixel
-  unsigned int interior_margin = 2;
-  unsigned int exterior_margin = 2;
-
-  kwiver::arrows::core::parameterize_mesh uv_param;
-
-  kwiver::vital::config_block_sptr algo_config = uv_param.get_configuration();
-  algo_config->set_value<double>("resolution", resolution);
-  algo_config->set_value<unsigned int>("interior_margin", interior_margin);
-  algo_config->set_value<unsigned int>("exterior_margin", exterior_margin);
-  uv_param.set_configuration(algo_config);
-
-  std::pair<unsigned int, unsigned int> atlas_dim = uv_param.parameterize(mesh);
-
-  const std::vector<vector_2d>& tcoords = mesh->tex_coords();
-  // check that the faces area are preserved (with a resolution factor)
-  for (unsigned int i = 0; i < tcoords.size(); i += 3)
-  {
-      vector_2d v1 = tcoords[i + 1] - tcoords[i + 0];
-      vector_2d v2 = tcoords[i + 2] - tcoords[i + 0];
-      v1 = v1.cwiseProduct(vector_2d(atlas_dim.first, atlas_dim.second));
-      v2 = v2.cwiseProduct(vector_2d(atlas_dim.first, atlas_dim.second));
-      double triangle_area = (std::abs(v1[0] * v2[1] - v1[1] * v2[0]) / 2) * (resolution * resolution);
-      EXPECT_NEAR(triangle_area, 0.5, 1e-5);
   }
 }
