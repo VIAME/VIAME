@@ -98,6 +98,24 @@ void render_triangle(const vital::vector_2d& v1, const vital::vector_2d& v2, con
                      vital::image_of<double>& depth_img);
 
 
+/// Compute a triangle attribute linear interpolation vector
+/**
+  * \param v1 [in]  2D triangle vertex
+  * \param v2 [in]  2D triangle vertex
+  * \param v3 [in]  2D triangle vertex
+  * \param a1 [in]  attribute value associated with v1
+  * \param a2 [in]  attribute value associated with v2
+  * \param a3 [in]  attribute value associated with v3
+  * \returns a 3D vector V such that the dot product of V and (x,y,1) is the
+  *          interpolated attribute value at location (x,y)
+  */
+vital::vector_3d
+triangle_attribute_vector(vital::vector_2d const& v1,
+                          vital::vector_2d const& v2,
+                          vital::vector_2d const& v3,
+                          double a1, double a2, double a3);
+
+
 /// This function renders a triangle and linearly interpolating attributes
 /**
  * \param v1 [in] 2D triangle point
@@ -125,19 +143,9 @@ void render_triangle(const vital::vector_2d& v1, const vital::vector_2d& v2, con
   double attrib_v3_d = static_cast<double>(attrib_v3);
 
   // Linear interpolation attributes
-  vital::vector_3d b1(v2.x()-v1.x(), v2.y()-v1.y(), attrib_v2_d - attrib_v1_d);
-  vital::vector_3d b2(v3.x()-v1.x(), v3.y()-v1.y(), attrib_v3_d - attrib_v1_d);
-  vital::vector_3d n = b1.cross(b2);
-  double A = -n.x()/n.z();
-  double B = -n.y()/n.z();
-  double C = (v1.x() * n.x() + v1.y() * n.y() + attrib_v1_d * n.z()) / n.z();
+  auto Va = triangle_attribute_vector(v1, v2, v3, attrib_v1_d, attrib_v2_d, attrib_v3_d);
   // Linear interpolation depth
-  vital::vector_3d b1_d(v2.x()-v1.x(), v2.y()-v1.y(), depth_v2 - depth_v1);
-  vital::vector_3d b2_d(v3.x()-v1.x(), v3.y()-v1.y(), depth_v3 - depth_v1);
-  vital::vector_3d n_d = b1_d.cross(b2_d);
-  double A_d = -n_d.x()/n_d.z();
-  double B_d = -n_d.y()/n_d.z();
-  double C_d = (v1.x() * n_d.x() + v1.y() * n_d.y() + depth_v1 * n_d.z()) / n_d.z();
+  auto Vd = triangle_attribute_vector(v1, v2, v3, depth_v1, depth_v2, depth_v3);
 
   for (tsi.reset(); tsi.next(); )
   {
@@ -147,12 +155,12 @@ void render_triangle(const vital::vector_2d& v1, const vital::vector_2d& v2, con
     int min_x = std::max(0, tsi.start_x());
     int max_x = std::min(static_cast<int>(img.width()) - 1, tsi.end_x());
 
-    double new_i = B * y + C;
-    double new_i_d = B_d * y + C_d;
+    double new_i = Va.y() * y + Va.z();
+    double new_i_d = Vd.y() * y + Vd.z();
     for (int x = min_x; x <= max_x; ++x)
     {
-      double attrib = new_i + A * x;
-      double depth = new_i_d + A_d * x;
+      double attrib = new_i + Va.x() * x;
+      double depth = new_i_d + Vd.x() * x;
       if (depth < depth_img(x, y))
       {
         img(x, y) =  static_cast<T>(attrib);
@@ -184,12 +192,7 @@ void render_triangle(const vital::vector_2d& v1, const vital::vector_2d& v2, con
   triangle_scan_iterator tsi(v1, v2, v3);
 
   // Linear interpolation depth
-  vital::vector_3d b1(v2.x()-v1.x(), v2.y()-v1.y(), depth_v2 - depth_v1);
-  vital::vector_3d b2(v3.x()-v1.x(), v3.y()-v1.y(), depth_v3 - depth_v1);
-  vital::vector_3d n = b1.cross(b2);
-  double A = -n.x()/n.z();
-  double B = -n.y()/n.z();
-  double C = (v1.x() * n.x() + v1.y() * n.y() + depth_v1 * n.z()) / n.z();
+  auto Vd = triangle_attribute_vector(v1, v2, v3, depth_v1, depth_v2, depth_v3);
 
   for (tsi.reset(); tsi.next(); )
   {
@@ -199,10 +202,10 @@ void render_triangle(const vital::vector_2d& v1, const vital::vector_2d& v2, con
     int min_x = std::max(0, tsi.start_x());
     int max_x = std::min(static_cast<int>(img.width()) - 1, tsi.end_x());
 
-    double new_i = B * y + C;
+    double new_i = Vd.y() * y + Vd.z();
     for (int x = min_x; x <= max_x; ++x)
     {
-      double depth = new_i + A * x;
+      double depth = new_i + Vd.x() * x;
       if (depth < depth_img(x, y))
       {
         depth_img(x, y) = depth;
