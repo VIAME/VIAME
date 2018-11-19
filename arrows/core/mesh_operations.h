@@ -50,6 +50,9 @@ namespace core {
 /**
  * \param [in]  faces  An array of generic mesh faces to triangulate
  * \returns     An array of triangles covering the input faces
+ *
+ * \note This implementation assumes that each face is convex and does not
+ *       consider mesh geometry when deciding how to best split faces.
  */
 KWIVER_ALGO_CORE_EXPORT
 std::unique_ptr<kwiver::vital::mesh_regular_face_array<3> >
@@ -60,6 +63,9 @@ mesh_triangulate(kwiver::vital::mesh_face_array_base const& faces);
 /**
  * \param [in]  faces  An array of quad mesh faces to triangulate
  * \returns     An array of triangles covering the input faces
+ *
+ * \note This implementation assumes that each face is convex and does not
+ *       consider mesh geometry when deciding how to best split faces.
  */
 KWIVER_ALGO_CORE_EXPORT
 std::unique_ptr<kwiver::vital::mesh_regular_face_array<3> >
@@ -69,6 +75,9 @@ mesh_triangulate(kwiver::vital::mesh_regular_face_array<4> const& faces);
 /// Triangulate the faces of the mesh (in place)
 /**
  * \param [in,out]  mesh  A mesh to triangulate faces in place
+ *
+ * \note This implementation assumes that each face is convex and does not
+ *       consider mesh geometry when deciding how to best split faces.
  */
 KWIVER_ALGO_CORE_EXPORT
 void
