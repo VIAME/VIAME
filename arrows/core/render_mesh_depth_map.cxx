@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, SAS.
+ * Copyright 2018 by Kitware, SAS., 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ namespace arrows {
 namespace core {
 
 
+/// This function renders a depth map of a triangular mesh seen by a camera
 vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::camera_perspective_sptr camera)
 {
   vital::mesh_vertex_array<3>& vertices = dynamic_cast< vital::mesh_vertex_array<3>& >(mesh->vertices());
@@ -91,6 +92,7 @@ vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::
 }
 
 
+/// This function renders a height map of a triangular mesh
 vital::image_container_sptr render_mesh_height_map(vital::mesh_sptr mesh, vital::camera_sptr camera)
 {
   vital::image_of<double> height_map(camera->image_width(), camera->image_height(), 1);
@@ -147,6 +149,7 @@ vital::image_container_sptr render_mesh_height_map(vital::mesh_sptr mesh, vital:
 }
 
 
+/// This function converts a depth map into a height map obtained with a perspective camera
 void depth_map_to_height_map(vital::camera_perspective_sptr const& camera,
                              vital::image_of<double>& depth_map,
                              vital::image_of<double>& height_map)
@@ -184,6 +187,7 @@ triangle_attribute_vector(vital::vector_2d const& v1,
 }
 
 
+/// This functions renders a triangle and fills it with depth
 void render_triangle(const vital::vector_2d& v1, const vital::vector_2d& v2, const vital::vector_2d& v3,
                      double depth_v1, double depth_v2, double depth_v3,
                      vital::image_of<double>& depth_img)
