@@ -50,7 +50,6 @@ set( public_headers
   match_descriptor_sets.h
   match_features.h
   optimize_cameras.h
-  parameterize_mesh.h
   read_object_track_set.h
   read_track_descriptor_set.h
   refine_detections.h
@@ -109,7 +108,6 @@ set( sources
   match_descriptor_sets.cxx
   match_features.cxx
   optimize_cameras.cxx
-  parameterize_mesh.cxx
   read_object_track_set.cxx
   read_track_descriptor_set.cxx
   refine_detections.cxx
