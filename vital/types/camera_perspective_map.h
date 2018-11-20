@@ -33,6 +33,7 @@
  * \brief Header file for a map from frame IDs to cameras
  */
 
+#if 0
 #ifndef VITAL_CAMERA_PERSPECTIVE_MAP_H_
 #define VITAL_CAMERA_PERSPECTIVE_MAP_H_
 
@@ -48,22 +49,25 @@
 namespace kwiver {
 namespace vital {
 
-class simple_camera_perspective_map;
+template<class T>
+class camera_map_of_;
 
-typedef std::shared_ptr<simple_camera_perspective_map> simple_camera_perspective_map_sptr;
+template<class T> 
+using camera_map_of_sptr = std::shared_ptr<camera_map_of_<T>>;
 
 /// A concrete camera_map that simply wraps a std::map.
-class simple_camera_perspective_map :
+template<class T>
+class camera_map_of_:
   public camera_map
 {
 public:
-  typedef std::map< frame_id_t, simple_camera_perspective_sptr > map_simple_camera_perspective_t;
+  typedef std::map< frame_id_t, std::shared_ptr<T> > frame_to_T_sptr_map;
 
   /// Default Constructor
-  simple_camera_perspective_map() { }
+  camera_map_of_() { }
 
   /// Constructor from a std::map of cameras
-  explicit simple_camera_perspective_map( map_simple_camera_perspective_t const& cameras )
+  explicit camera_map_of_(frame_to_T_sptr_map const& cameras )
     : data_( cameras ) { }
 
   /// Return the number of cameras in the map
@@ -93,15 +97,15 @@ public:
 
   /// Find a camera in the map
   /**
-* \param [in] fid the frame id of the camera to return
-* \return     the camera if found or a null camera if it is not found
-*/
-  simple_camera_perspective_sptr find(frame_id_t fid) const
+  * \param [in] fid the frame id of the camera to return
+  * \return     the camera if found or a null camera if it is not found
+  */
+  std::shared_ptr<T> find(frame_id_t fid) const
   {
     auto it = data_.find(fid);
     if (it == data_.end())
     {
-      return simple_camera_perspective_sptr();
+      return std::shared_sptr<T>();
     }
     else
     {
@@ -110,9 +114,9 @@ public:
   }
 
   /// Erase a camera from the map
-/**
-* \param [in] fid the frame id of the camera to erase
-*/
+  /**
+  * \param [in] fid the frame id of the camera to erase
+  */
   void erase(frame_id_t fid)
   {
     data_.erase(fid);
@@ -123,7 +127,7 @@ public:
   * \param [in] fid the frame id of the camera to insert
   * \param [in] cam the camera to insert
   */
-  void insert(frame_id_t fid, simple_camera_perspective_sptr cam)
+  void insert(frame_id_t fid, std::shared_ptr<T> cam)
   {
     data_[fid] = cam;
   }
@@ -157,7 +161,7 @@ public:
     clear();
     for (auto &c : base_cams_map)
     {
-      auto pc = std::dynamic_pointer_cast<simple_camera_perspective>(c.second);
+      auto pc = std::dynamic_pointer_cast<T>(c.second);
       if (pc)
       {
         data_[c.first] = pc;
@@ -166,24 +170,26 @@ public:
   }
 
   /// Create a clone of the map cloning each cameara in the map
-  simple_camera_perspective_map_sptr clone()
+  camera_map_of_sptr<T> clone()
   {
-    auto the_clone = std::make_shared<simple_camera_perspective_map>();
+    auto the_clone = std::make_shared<camera_map_of_<T>>();
     for (auto &d : data_)
     {
-      the_clone->insert(d.first, std::static_pointer_cast<simple_camera_perspective>(d.second->clone()));
+      the_clone->insert(d.first, std::static_pointer_cast<T>(d.second->clone()));
     }
     return the_clone;
   }
 
   /// return a map from integer IDs to simple perspective camera shared pointers
-  virtual map_simple_camera_perspective_t const& simple_perspective_cameras() const { return data_;  }
+  virtual frame_to_T_sptr_map const& T_cameras() const { return data_;  }
 
 protected:
   /// The map from integer IDs to camera shared pointers
-  map_simple_camera_perspective_t data_;
+  frame_to_T_sptr_map data_;
+
 };
 
 }} // end namespace vital
 
 #endif // VITAL_CAMERA_PERSPECTIVE_MAP_H_
+#endif
