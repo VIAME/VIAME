@@ -46,6 +46,9 @@ Arrows - Core
 
  * Added a new video_input implementation, video_input_splice, that
    splices multiple video sources together into a single video source. 
+   
+ * Added a convenience class for storing maps of arbitrary cameras and 
+   adapted SfM utils to use it.
 
 Arrows - Ceres
 
