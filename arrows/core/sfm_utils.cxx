@@ -49,7 +49,7 @@ namespace core {
 /// Calculate fraction of each image that is covered by landmark projections
 frame_coverage_vec
 image_coverages(
-  std::vector<track_sptr> const& trks,  
+  std::vector<track_sptr> const& trks,
   vital::landmark_map::map_landmark_t const& lms,
   vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams )
 {
@@ -369,7 +369,7 @@ detect_bad_landmarks(
   size_t num_far_lm_removed = 0;
 
   if (median_distance_multiple > 0)
-  {    
+  {
     int med_loc = static_cast<int>(depths.size()*0.5);
     std::nth_element(depths.begin(), depths.begin() + med_loc, depths.end());
     double depth_thresh = -1;
@@ -562,7 +562,7 @@ clean_cameras_and_landmarks(
       detect_bad_cameras(det_cams, det_lms, tracks, image_coverage_threshold);
 
     for (auto frame_id : cams_to_remove)
-    {      
+    {
       //set all features on removed camera to outliers
       for (auto ts : tracks->frame_states(frame_id))
       {

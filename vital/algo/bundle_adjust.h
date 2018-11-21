@@ -42,7 +42,6 @@
 #include <vital/algo/algorithm.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/types/camera_map.h>
-#include <vital/types/camera_perspective_map.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/sfm_constraints.h>
 
@@ -86,9 +85,8 @@ public:
    * \param [in] fixed_landmarks landmark ids for landmarks to be fixed in the optimization
    * \param [in] metadata the frame metadata to use as constraints
    */
-
   virtual void
-  optimize(kwiver::vital::simple_camera_perspective_map &cameras,
+  optimize(kwiver::vital::camera_map_of_<kwiver::vital::simple_camera_perspective> &cameras,
            kwiver::vital::landmark_map::map_landmark_t &landmarks,
            vital::feature_track_set_sptr tracks,
            const std::set<vital::frame_id_t>& fixed_cameras,

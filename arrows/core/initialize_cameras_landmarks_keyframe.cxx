@@ -59,7 +59,6 @@
 #include <arrows/core/triangulate.h>
 #include <arrows/core/transform.h>
 #include <vital/algo/estimate_pnp.h>
-#include <vital/types/camera_perspective_map.h>
 #include <arrows/core/sfm_utils.h>
 
 #define M_PI 3.141592653589793238462643383279
@@ -73,6 +72,8 @@ namespace core {
 typedef std::map< frame_id_t, simple_camera_perspective_sptr >               map_cam_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::iterator       cam_map_itr_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::const_iterator const_cam_map_itr_t;
+typedef camera_map_of_<simple_camera_perspective>                            simple_camera_perspective_map;
+typedef std::shared_ptr<simple_camera_perspective_map>                       simple_camera_perspective_map_sptr;
 
 typedef vital::landmark_map::map_landmark_t map_landmark_t;
 
@@ -484,7 +485,7 @@ initialize_cameras_landmarks_keyframe::priv
   vector_3d vel;
   vel.setZero();
 
-  auto existing_cams = cams->simple_perspective_cameras();
+  auto existing_cams = cams->T_cameras();
   auto closest_fid = -1;
   auto next_closest_fid = -1;
   auto it = existing_cams.find(vel_frame);
@@ -774,7 +775,7 @@ initialize_cameras_landmarks_keyframe::priv
   }
 
   //ok now we know what frames the down select tracks cover.  Build a mask for each of these frames.
-  for (auto cam : cams->simple_perspective_cameras())
+  for (auto cam : cams->T_cameras())
   {
     auto fid = cam.first;
     if (fid < first_frame || fid > last_frame)
@@ -929,7 +930,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   map_landmark_t lms;
 
-  simple_camera_perspective_map::map_simple_camera_perspective_t cams;
+  simple_camera_perspective_map::frame_to_T_sptr_map cams;
   cams[frame_1] = std::static_pointer_cast<simple_camera_perspective>(cam.clone());
   cams[frame_0] = std::static_pointer_cast<simple_camera_perspective>(m_base_camera.clone());
 
@@ -1276,7 +1277,7 @@ initialize_cameras_landmarks_keyframe::priv
   const kwiver::vital::landmark_map::map_landmark_t& lms,
   frame_id_t frame) const
 {
-  vital::camera_map::map_camera_t cam_map;
+  simple_camera_perspective_map::frame_to_T_sptr_map cam_map;
   cam_map[frame] = cams->find(frame);
   std::set<frame_id_t> frames;
   frames.insert(frame);
@@ -1447,7 +1448,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   auto pos_priors = constraints->get_camera_position_priors();
 
-  auto persp_cams = cams->simple_perspective_cameras();
+  auto persp_cams = cams->T_cameras();
 
   if (!m_similarity_estimator)
   {
@@ -1533,7 +1534,7 @@ initialize_cameras_landmarks_keyframe::priv
   }
 
   int net_cams_pointing_up = 0;
-  for (auto &cam : cams->simple_perspective_cameras())
+  for (auto &cam : cams->T_cameras())
   {
     auto Rmatrix = cam.second->rotation().matrix();
     auto Y_axis = Rmatrix.row(1);
@@ -1549,7 +1550,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (net_cams_pointing_up < 0)
   {
-    auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->simple_perspective_cameras());
+    auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->T_cameras());
     auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
     landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
     necker_reverse(nr_cams, ba_lms2, false);
@@ -1917,7 +1918,7 @@ initialize_cameras_landmarks_keyframe::priv
 {
   auto chgs = std::make_shared<feature_track_set_changes>();
 
-  for (auto &cam : cams.simple_perspective_cameras())
+  for (auto &cam : cams.T_cameras())
   {
     auto fid = cam.first;
     auto at = tracks->active_tracks(fid);
@@ -1983,7 +1984,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   //list remaining frames to resection
   std::set<frame_id_t> frames_to_resection = keyframes;
-  auto sc_map = cams->simple_perspective_cameras();
+  auto sc_map = cams->T_cameras();
   for (auto c : sc_map)
   {
     frames_to_resection.erase(c.first);
@@ -2154,7 +2155,7 @@ initialize_cameras_landmarks_keyframe::priv
         {
           // reverse cameras and optimize again
 
-          auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->simple_perspective_cameras());
+          auto nr_cams_perspec = std::make_shared<simple_camera_perspective_map>(cams->T_cameras());
           auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
 
           landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
@@ -2267,7 +2268,7 @@ initialize_cameras_landmarks_keyframe::priv
     if (m_init_intrinsics_from_metadata|| m_config_defines_base_intrinsics)
     {
       //set each camera's intrinsics to match the base camera's that was set from the metadata
-      auto sp_cams = cams->simple_perspective_cameras();
+      auto sp_cams = cams->T_cameras();
       for (auto cam : sp_cams)
       {
         cam.second->set_intrinsics(m_base_camera.get_intrinsics());
@@ -2525,7 +2526,7 @@ initialize_cameras_landmarks_keyframe::priv
 {
   //first record all camera positions
   std::map<frame_id_t, vector_3d> orig_positions;
-  auto spc = cams->simple_perspective_cameras();
+  auto spc = cams->T_cameras();
   std::set<frame_id_t> fixed_cams;
   for (auto &c : spc)
   {
@@ -2571,7 +2572,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   //ok, now all cams should be consistent with the first cam.  Do I reverse them all
   //first get all the camera pointers again, in case they have changed.
-  spc = cams->simple_perspective_cameras();
+  spc = cams->T_cameras();
   int reverse_it_if_positive = 0;
   for (auto cur_cam_pair : spc)
   {
@@ -2651,7 +2652,7 @@ initialize_cameras_landmarks_keyframe::priv
   registered_frames.clear();
   non_registered_frames.clear();
 
-  auto pcams_map = cams->simple_perspective_cameras();
+  auto pcams_map = cams->T_cameras();
   non_registered_frames = tracks->all_frame_ids();
   for (auto &p : pcams_map)
   {
@@ -2667,7 +2668,7 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<frame_id_t> &frames_to_register,
   frame_id_t &fid_to_register, frame_id_t &closest_frame) const
 {
-  auto existing_cams = cams->simple_perspective_cameras();
+  auto existing_cams = cams->T_cameras();
   frame_id_t min_frame_diff = std::numeric_limits<frame_id_t>::max();
 
   std::vector<std::pair<frame_id_t,frame_id_t>> min_diff_cams;
