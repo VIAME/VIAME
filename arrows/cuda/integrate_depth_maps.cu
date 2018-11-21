@@ -66,9 +66,9 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 
 __device__ void computeVoxelCenter(int voxelCoordinate[3], double output[3])
 {
-	output[0] = c_gridOrig[0] + (voxelCoordinate[0] + 0.5) * c_gridSpacing[0];
-	output[1] = c_gridOrig[1] + (voxelCoordinate[1] + 0.5) * c_gridSpacing[1];
-	output[2] = c_gridOrig[2] + (voxelCoordinate[2] + 0.5) * c_gridSpacing[2];
+  output[0] = c_gridOrig[0] + (voxelCoordinate[0] + 0.5) * c_gridSpacing[0];
+  output[1] = c_gridOrig[1] + (voxelCoordinate[1] + 0.5) * c_gridSpacing[1];
+  output[2] = c_gridOrig[2] + (voxelCoordinate[2] + 0.5) * c_gridSpacing[2];
 }
 
 // ----------------------------------------------------------------------------
@@ -159,7 +159,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   transformFrom4Matrix(matrixK, voxelCenterCamera, voxelCenterHomogen);
   if (voxelCenterHomogen[2] < 0)
     return;
-	
+  
   // Get voxel center on depth map coord
   double voxelCenterDepthMap[2];
   voxelCenterDepthMap[0] = voxelCenterHomogen[0] / voxelCenterHomogen[2];
@@ -191,12 +191,12 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
 // ----------------------------------------------------------------------------
 // Initialize cuda constant
 void cuda_initalize(int h_gridDims[3], 		 // Dimensions of the output volume
-					double h_gridOrig[3],  // Origin of the output volume
-					double h_gridSpacing[3], // Spacing of the output volume
-					double h_rayPThick,
-					double h_rayPRho,
-					double h_rayPEta,
-					double h_rayPDelta)
+          double h_gridOrig[3],  // Origin of the output volume
+          double h_gridSpacing[3], // Spacing of the output volume
+          double h_rayPThick,
+          double h_rayPRho,
+          double h_rayPEta,
+          double h_rayPDelta)
 {
   cudaMemcpyToSymbol(c_gridDims, h_gridDims, 3 * sizeof(int));
   cudaMemcpyToSymbol(c_gridOrig, h_gridOrig, 3 * sizeof(double));
