@@ -100,13 +100,8 @@ vital::image_container_sptr render_mesh_depth_map(vital::mesh_sptr mesh, vital::
 vital::image_container_sptr render_mesh_height_map(vital::mesh_sptr mesh, vital::camera_sptr camera)
 {
   vital::image_of<double> height_map(camera->image_width(), camera->image_height(), 1);
-  for (unsigned int j = 0; j < height_map.height(); ++j)
-  {
-    for (unsigned int i = 0; i < height_map.width(); ++i)
-    {
-      height_map(i, j) = std::numeric_limits<double>::infinity();
-    }
-  }
+  // fill each pixel with infinity
+  transform_image(height_map, [](double){ return std::numeric_limits<double>::infinity(); } );
 
   if (mesh->faces().regularity() == 3)
   {
