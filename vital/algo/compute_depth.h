@@ -42,6 +42,7 @@
 #include <vital/types/camera_perspective.h>
 #include <vital/types/image_container.h>
 #include <vital/types/landmark.h>
+#include <vital/types/bounding_box.h>
 
 #include <vector>
 
@@ -57,15 +58,6 @@ public:
   /// Return the name of this algorithm
   static std::string static_type_name() { return "compute_depth"; }
 
-  /// set a 3D region of interest for computing depth range and crop and return
-  /// the extents of the region projected into a camera
-  virtual bool set_roi(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
-                       const camera_perspective_sptr &cam, int imgwidth, int imgheight,
-                       int &i0_out, int &ni_out, int &j0_out, int &nj_out) = 0;
-
-  /// remove ROI, will compute depth range using landmarks instead
-  virtual void clear_roi() = 0;
-
   /// Compute a depth map from an image sequence
   /**
   * Implementations of this function should not modify the underlying objects
@@ -74,17 +66,20 @@ public:
   *
   * \param [in] image sequence to compute depth with
   * \param [in] cameras corresponding to the image sequence
-  * \param [in] landmarks from the bundle adjustment, used to compute a bounding volume
+  * \param [in] minimum depth expected
+  * \param [in] maximum depth expected
   * \param [in] index into image sequence denoting the frame that depth is computed on
+  * \param [in] region of interest within reference image (can be entire image)
   * \param [in] optional masks corresponding to the image sequence
   */
-  virtual image_container_sptr
-  compute(const std::vector<image_container_sptr> &frames,
-          const std::vector<camera_perspective_sptr> &cameras,
-          const std::vector<landmark_sptr> &landmarks,
-          unsigned int reference_frame,
-          const std::vector<image_container_sptr> &masks =
-            std::vector<image_container_sptr>()) const = 0;
+  virtual kwiver::vital::image_container_sptr
+    compute(const std::vector<kwiver::vital::image_container_sptr> &frames,
+            const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
+            double depth_min, double depth_max,
+            unsigned int reference_frame,
+            vital::bounding_box<double> &roi,
+            const std::vector<kwiver::vital::image_container_sptr> &masks =
+            std::vector<kwiver::vital::image_container_sptr>()) const = 0;
 
   /// Typedef for the callback function signature
   typedef std::function<bool (kwiver::vital::image_container_sptr,

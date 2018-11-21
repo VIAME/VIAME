@@ -43,6 +43,7 @@
 #include <vil/vil_convert.h>
 #include <vil/vil_crop.h>
 #include <vpgl/vpgl_perspective_camera.h>
+#include <vital/types/bounding_box.h>
 
 #include <sstream>
 #include <memory>
@@ -72,7 +73,6 @@ public:
       gw_alpha(20),
       epsilon(0.01),
       iterations(2000),
-      use_roi(false),
       world_plane_normal(0.0, 0.0, 1.0),
       callback_interval(-1),    //default is no callback
       callback(NULL),
@@ -81,11 +81,11 @@ public:
   }
 
   bool iterative_update_callback(depth_refinement_monitor::update_data data);
-  world_space *compute_world_space_landmarks(const vpgl_perspective_camera<double> &cam,
-                                     const std::vector<landmark_sptr> &landmarks_in,
-                                     int ni, int nj);
-  world_space *compute_world_space_roi(vpgl_perspective_camera<double> &cam,
-                                       vil_image_view<double> &frame);
+
+  std::unique_ptr<world_space> compute_world_space_roi(vpgl_perspective_camera<double> &cam,
+                                                       vil_image_view<double> &frame,
+                                                       double depth_min, double depth_max,
+                                                       const vital::bounding_box<double> &roi);
 
   unsigned int S;
   double theta0;
@@ -97,8 +97,6 @@ public:
   vnl_double_3 world_plane_normal;
   int callback_interval;
 
-  bool use_roi;
-  int i0, ni, j0, nj;
   double depth_min, depth_max;
 
   vpgl_perspective_camera<double> ref_cam;
@@ -189,141 +187,31 @@ compute_depth::check_configuration(vital::config_block_sptr config) const
 
 //*****************************************************************************
 
-bool 
-compute_depth::set_roi(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
-					             const camera_perspective_sptr &cam, int imgwidth, int imgheight,
-                       int &i0_out, int &ni_out, int &j0_out, int &nj_out)
-{
-  vpgl_perspective_camera<double> camera;
-  vxl::vital_to_vpgl_camera<double>(*cam, camera);
-
-	vnl_double_3 points[8] = { vnl_double_3(minpt[0], minpt[1], minpt[2]),
-	                           vnl_double_3(maxpt[0], minpt[1], minpt[2]),
-	                           vnl_double_3(minpt[0], maxpt[1], minpt[2]),
-	                           vnl_double_3(maxpt[0], maxpt[1], minpt[2]),
-	                           vnl_double_3(minpt[0], minpt[1], maxpt[2]),
-	                           vnl_double_3(maxpt[0], minpt[1], maxpt[2]),
-	                           vnl_double_3(minpt[0], maxpt[1], maxpt[2]),
-	                           vnl_double_3(maxpt[0], maxpt[1], maxpt[2]) };
-
-	int i0, j0, i1, j1;
-	double u, v;
-	camera.project(points[0][0], points[0][1], points[0][2], u, v);
-	i0 = i1 = (int)u;
-	j0 = j1 = (int)v;
-  d_->depth_min = d_->depth_max = dot_product(d_->world_plane_normal, points[0]);
-
-	for (int i = 1; i < 8; i++)
-	{
-		camera.project(points[i][0], points[i][1], points[i][2], u, v);
-		int ui = (int)u, vi = (int)v;
-		if (ui < i0)
-			i0 = ui;
-		if (vi < j0)
-			j0 = vi;
-		if (ui > i1)
-			i1 = ui;
-		if (vi > j1)
-			j1 = vi;
-
-		double d = dot_product(d_->world_plane_normal, points[i]);
-		if (d_->depth_min > d)
-      d_->depth_min = d;
-		if (d_->depth_max < d)
-      d_->depth_max = d;
-	}
-
-	//Does roi overlap with frame
-  if (!(i1 > 0 && imgwidth > i0 && j1 > 0 && imgheight > j0))
-  {
-    i0_out = j0_out = 0;
-    ni_out = imgwidth;
-    nj_out = imgheight;
-    d_->use_roi = false;
-    return false;
-  }		
-
-	//clamp to image
-	i0 = std::max<int>(0, i0);
-	j0 = std::max<int>(0, j0);
-	i1 = std::min<int>(imgwidth, i1);
-	j1 = std::min<int>(imgheight, j1);
-
-  d_->i0 = i0;
-  d_->j0 = j0;
-  d_->ni = i1 - i0;
-  d_->nj = j1 - j0;
-
-  i0_out = d_->i0;
-  ni_out = d_->ni;
-  j0_out = d_->j0;
-  nj_out = d_->nj;
-
-  d_->use_roi = true;
-  return true;
-}
-
-//*****************************************************************************
-
-void
-compute_depth::clear_roi()
-{
-  d_->use_roi = false;
-}
-
-//*****************************************************************************
-
 //Will crop the reference camera and frame passed in
-world_space *
+std::unique_ptr<world_space>
 compute_depth::priv
 ::compute_world_space_roi(vpgl_perspective_camera<double> &cam,
-                          vil_image_view<double> &frame)
+                          vil_image_view<double> &frame,
+                          double depth_min, double depth_max,
+                          const vital::bounding_box<double> &roi)
 {  
-  frame = vil_crop(frame, i0, ni, j0, nj);
-  cam = crop_camera(cam, i0, j0);
+  frame = vil_crop(frame, roi.min_x(), roi.width(), roi.min_y(), roi.height());
+  cam = crop_camera(cam, roi.min_x(), roi.min_y());
 
-  world_space *ws = new world_angled_frustum(cam, world_plane_normal,
-                                             depth_min, depth_max, ni, nj);
-
-  return ws;
-}
-
-//*****************************************************************************
-
-world_space *
-compute_depth::priv
-::compute_world_space_landmarks(const vpgl_perspective_camera<double> &cam, 
-                                const std::vector<landmark_sptr> &landmarks_in,
-                                int ni_, int nj_)
-{
-  //convert landmarks
-  std::vector<vnl_double_3> landmarks(landmarks_in.size());
-  for (unsigned int i = 0; i < landmarks.size(); i++) {
-    landmarks[i] = vnl_vector_fixed<double, 3>(landmarks_in[i]->loc().data());
-  }
-
-  this->i0 = this->j0 = 0;
-  this->ni = ni_;
-  this->nj = nj_;
-
-  std::vector<vnl_double_3> visible_landmarks =
-    filter_visible_landmarks(cam, i0, ni, j0, nj, landmarks);
-  compute_offset_range(visible_landmarks, world_plane_normal,
-                       depth_min, depth_max, 0.1, 0.5);
-  world_space *ws = new world_angled_frustum(cam, world_plane_normal,
-                                             depth_min, depth_max, ni, nj);
-
-  return ws;
+  return std::unique_ptr<world_space>(new world_angled_frustum(cam, world_plane_normal,
+                                                                depth_min, depth_max, roi.width(), roi.height()));
 }
 
 //*****************************************************************************
 
 image_container_sptr
-compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
-                       const std::vector<camera_perspective_sptr> &cameras_in,
-                       const std::vector<landmark_sptr> &landmarks_in,
-                       unsigned int ref_frame,
-                       const std::vector<image_container_sptr> &masks_in) const
+compute_depth
+::compute(const std::vector<kwiver::vital::image_container_sptr> &frames_in,
+          const std::vector<kwiver::vital::camera_perspective_sptr> &cameras_in,
+          double depth_min, double depth_max,
+          unsigned int ref_frame,
+          vital::bounding_box<double> &roi,
+          const std::vector<kwiver::vital::image_container_sptr> &masks_in) const
 {
   //convert frames
   std::vector<vil_image_view<double> > frames(frames_in.size());
@@ -333,6 +221,9 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
     vil_convert_planes_to_grey(img, frames[i]);
     vil_math_scale_values(frames[i], 1.0 / 255.0);
   }
+
+  d_->depth_min = depth_min;
+  d_->depth_max = depth_max;
 
   //convert optional mask images
   std::vector<vil_image_view<bool> > masks;
@@ -351,25 +242,15 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   for (unsigned int i = 0; i < cameras.size(); i++) {
     vxl::vital_to_vpgl_camera<double>(*cameras_in[i], cameras[i]);
   }  
-
+  
   int ni = frames[ref_frame].ni(), nj = frames[ref_frame].nj();
-  world_space *ws;
-  if (d_->use_roi)  
-    ws = d_->compute_world_space_roi(cameras[ref_frame], frames[ref_frame]);  
-  else  
-    ws = d_->compute_world_space_landmarks(cameras[ref_frame], landmarks_in, ni, nj);
-
-  //region is outside of reference frame, return empty depth image
-  if (!ws)
-  {
-    return vital::image_container_sptr(new vxl::image_container(vil_image_view<double>()));
-  }
+  std::unique_ptr<world_space> ws = d_->compute_world_space_roi(cameras[ref_frame], frames[ref_frame], depth_min, depth_max, roi);
 
   d_->ref_cam = cameras[ref_frame];
   vil_image_view<double> g;
   vil_image_view<double> cost_volume;
 
-  compute_world_cost_volume(frames, cameras, ws, ref_frame,
+  compute_world_cost_volume(frames, cameras, ws.get(), ref_frame,
                             d_->S, cost_volume, masks);
   compute_g(frames[ref_frame], g, d_->gw_alpha, 1.0, ref_mask);
 
@@ -394,13 +275,11 @@ compute_depth::compute(const std::vector<image_container_sptr> &frames_in,
   }
 
   // map depth from normalized range back into true depth
-  double scale = d_->depth_max - d_->depth_min;
-  vil_math_scale_and_offset_values(height_map, scale, d_->depth_min);
+  double scale = depth_max - depth_min;
+  vil_math_scale_and_offset_values(height_map, scale, depth_min);
 
   vil_image_view<double> depth;
   height_map_to_depth_map(d_->ref_cam, height_map, depth);
-
-  delete ws;
 
   return vital::image_container_sptr(new vxl::image_container(depth));
 }
