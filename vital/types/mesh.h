@@ -135,6 +135,10 @@ public:
   mesh_vertex_array<d>(const std::vector<vert_t>& verts)
   : verts_(verts) {}
 
+  /// Constructor (from initializer list)
+  mesh_vertex_array<d>(const std::initializer_list<vert_t>& verts)
+  : verts_(verts) {}
+
   /// Produce a clone of this object (dynamic copy)
   virtual mesh_vertex_array_base* clone() const
   {
@@ -211,6 +215,14 @@ public:
     assert(verts.size()==s);
     std::copy(verts.begin(), verts.end(), verts_);
   }
+
+  /// Constructor from an initializer list
+  mesh_regular_face(const std::initializer_list<unsigned int>& verts)
+  {
+    assert(verts.size()==s);
+    std::copy(verts.begin(), verts.end(), verts_);
+  }
+
 
   /// return the number of vertices
   unsigned int num_verts() const { return s; }
@@ -356,6 +368,10 @@ public:
   mesh_face_array(const std::vector<std::vector<unsigned int> >& faces)
   : faces_(faces) {}
 
+  /// Constructor (from an initializer list)
+  mesh_face_array(const std::initializer_list<std::vector<unsigned int> >& faces)
+  : faces_(faces) {}
+
   /// Copy Constructor
   mesh_face_array(const mesh_face_array& other)
   : mesh_face_array_base(other), faces_(other.faces_) {}
@@ -441,6 +457,10 @@ public:
 
   /// Constructor (from a vector)
   mesh_regular_face_array<s>(const std::vector<mesh_regular_face<s> >& faces) : faces_(faces) {}
+
+  /// Constructor (from an initializer list)
+  mesh_regular_face_array<s>(const std::initializer_list<mesh_regular_face<s> >& faces)
+    : faces_(faces) {}
 
   /// returns the number of vertices per face if the same for all faces
   /**
