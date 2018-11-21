@@ -219,6 +219,23 @@ public:
 using feature_track_set_sptr = std::shared_ptr< feature_track_set >;
 
 /// Helper to iterate over the states of a track as object track states
+/**
+ * This object is an instance of a range transform adapter that can be applied
+ * to a track_sptr in order to directly iterate over the underlying
+ * feature_track_state instances.
+ *
+ * \par Example:
+ * \code
+ * namespace kv = kwiver::vital;
+ * namespace r = kwiver::vital::range;
+ *
+ * kv::track_sptr ft = get_the_feature_track();
+ * for ( auto s : ft | kv::as_feature_track )
+ *   std::cout << s->inlier << std::endl;
+ * \endcode
+ *
+ * \sa kwiver::vital::range::transform_view
+ */
 static constexpr auto as_feature_track =
   feature_track_state::downcast_transform;
 
