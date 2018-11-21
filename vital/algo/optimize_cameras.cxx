@@ -45,7 +45,7 @@ namespace algo {
 optimize_cameras
 ::optimize_cameras()
 {
-  attach_logger( "optimize_cameras" );
+  attach_logger( "algo.optimize_cameras" );
 }
 
 

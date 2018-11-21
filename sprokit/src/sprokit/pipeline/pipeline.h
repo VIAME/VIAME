@@ -239,6 +239,9 @@ class SPROKIT_PIPELINE_EXPORT pipeline
      * connections/edges are cleared. Then all connections are
      * reestablished.
      *
+     * Note that setup_pipeline() must be called after reset to get
+     * the pipeline in running condition.
+     *
      * \throws reset_running_pipeline_exception Thrown when the
      * pipeline is running.
      */
@@ -493,9 +496,13 @@ class SPROKIT_PIPELINE_EXPORT pipeline
     /**
      * \brief Check to see if the pipeline has any python processes.
      *
-     * \returns Return a python process if any exist, or a null pointer otherwise
+     * This method returns a list python processes from the
+     * pipeline. An empty list is returned if there are no python
+     * processes.
+     *
+     * \returns Return a list of python processes
      */
-    process_t get_python_process() const;
+    processes_t get_python_processes() const;
 
   private:
     friend class scheduler;

@@ -108,9 +108,6 @@ public:
   : process( config ),
     d( new track_features_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -127,7 +124,6 @@ void track_features_process
 ::_configure()
 {
   scoped_configure_instrumentation();
-
 
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();

@@ -56,16 +56,16 @@ basename_from_metadata(metadata_sptr md,
   typedef kwiversys::SystemTools  ST;
 
   std::string basename = "frame";
-  if( md && md->has( kwiver::vital::VITAL_META_IMAGE_FILENAME ) )
+  if( md && md->has( kwiver::vital::VITAL_META_IMAGE_URI ) )
   {
-    std::string img_name = md->find( VITAL_META_IMAGE_FILENAME ).as_string();
+    std::string img_name = md->find( VITAL_META_IMAGE_URI ).as_string();
     basename = ST::GetFilenameWithoutLastExtension( img_name );
   }
   else
   {
-    if ( md && md->has( kwiver::vital::VITAL_META_VIDEO_FILENAME ) )
+    if ( md && md->has( kwiver::vital::VITAL_META_VIDEO_URI ) )
     {
-      std::string vid_name = md->find( VITAL_META_VIDEO_FILENAME ).as_string();
+      std::string vid_name = md->find( VITAL_META_VIDEO_URI ).as_string();
       basename = ST::GetFilenameWithoutLastExtension( vid_name );
     }
     char frame_str[6];

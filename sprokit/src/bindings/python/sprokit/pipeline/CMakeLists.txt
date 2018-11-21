@@ -101,7 +101,7 @@ target_link_libraries(python-sprokit.pipeline-version
   PRIVATE             sprokit_pipeline
                       sprokit_python_util)
 
-sprokit_create_python_init(sprokit/pipeline
+kwiver_create_python_init(sprokit/pipeline
   config
   datum
   edge

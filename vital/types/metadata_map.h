@@ -41,6 +41,7 @@
 #include <vital/vital_types.h>
 #include <vital/vital_config.h>
 #include <vital/types/geo_point.h>
+#include <vital/types/metadata_traits.h>
 
 #include <map>
 #include <memory>
@@ -71,28 +72,51 @@ public:
   /// Return a map from integer frame IDs to metadata vectors
   virtual map_metadata_t metadata() const = 0;
 
-  virtual bool get_sensor_location(frame_id_t fid, geo_point &loc) = 0;
+  /// Check if metadata is present in the map for given tag and frame id
+  /**
+   * \param tag the metadata tag
+   * \param fid the frame id
+   * \returns true if the metadata item is present for the given tag and frame id
+   */
+  virtual bool has_item(vital_metadata_tag tag, frame_id_t fid) const = 0;
 
-  virtual bool get_sensor_altitude(frame_id_t fid, double &altitude) = 0;
+  /// Get a metadata item from the map according to its tag and the frame
+  /**
+   * \param tag the metadata tag
+   * \parma fid the frame id
+   * \returns the metadata item for the requested tag and frame id
+   */
+  virtual metadata_item const&
+  get_item(vital_metadata_tag tag, frame_id_t fid) const = 0;
 
-  virtual bool get_horizontal_field_of_view(frame_id_t fid, double &fov) = 0;
+  /// Templated version of has_item to match get method.
+  /**
+   * \param tag the metadata tag
+   * \param fid the frame id
+   * \returns true if the metadata item is present for the given tag and frame id
+   */
+  template <vital_metadata_tag tag>
+  bool has(frame_id_t fid)
+  {
+    return has_item(tag, fid);
+  }
 
-  virtual bool get_slant_range(frame_id_t fid, double &slant_range) = 0;
+  /// Get value for a metadata item from the map for given tag and frame id
+  /**
+   * \param tag the metadata tag
+   * \param fid the frame id
+   * \returns the metadata value
+   */
+  template <vital_metadata_tag tag>
+  typename vital_meta_trait<tag>::type
+  get(frame_id_t fid) const
+  {
+    typename vital_meta_trait<tag>::type val;
+    this->get_item(tag, fid).data(val);
+    return val;
+  }
 
-  virtual bool get_target_width(frame_id_t fid, double &target_width) = 0;
-
-  virtual bool get_platform_heading_angle(frame_id_t fid, double &heading) = 0;
-
-  virtual bool get_platform_pitch_angle(frame_id_t fid, double &pitch) = 0;
-
-  virtual bool get_platform_roll_angle(frame_id_t fid, double &roll) = 0;
-
-  virtual bool get_sensor_rel_az_angle(frame_id_t fid, double &rel_az_angle) = 0;
-
-  virtual bool get_sensor_rel_el_angle(frame_id_t fid, double &rel_el_angle) = 0;
-
-  virtual bool get_sensor_rel_roll_angle(frame_id_t fid, double &rel_roll_angle) = 0;
-
+  /// Returns the frame ids that have associated metadata
   virtual std::set<frame_id_t> frames() = 0;
 
 };
@@ -119,61 +143,7 @@ public:
   /// Return a map from integer IDs to metadata shared pointers
   virtual map_metadata_t metadata() const { return data_; }
 
-  virtual bool get_sensor_location(frame_id_t fid, geo_point &loc)
-  {
-    return get_value<geo_point>(VITAL_META_SENSOR_LOCATION,fid, loc);
-  }
-
-  virtual bool get_sensor_altitude(frame_id_t fid, double &altitude)
-  {
-    return get_value<double>(VITAL_META_SENSOR_ALTITUDE, fid, altitude);
-  }
-
-  virtual bool get_horizontal_field_of_view(frame_id_t fid, double &fov)
-  {
-    return get_value<double>(VITAL_META_SENSOR_HORIZONTAL_FOV, fid, fov);
-  }
-
-  virtual bool get_slant_range(frame_id_t fid, double &slant_range)
-  {
-    return get_value<double>(VITAL_META_SLANT_RANGE, fid, slant_range);
-  }
-
-  virtual bool get_target_width(frame_id_t fid, double &target_width)
-  {
-    return get_value<double>(VITAL_META_TARGET_WIDTH, fid, target_width);
-  }
-
-  virtual bool get_platform_heading_angle(frame_id_t fid, double &heading)
-  {
-    return get_value<double>(VITAL_META_PLATFORM_HEADING_ANGLE, fid, heading);
-  }
-
-  virtual bool get_platform_pitch_angle(frame_id_t fid, double &pitch)
-  {
-    return get_value<double>(VITAL_META_PLATFORM_PITCH_ANGLE, fid, pitch);
-  }
-
-  virtual bool get_platform_roll_angle(frame_id_t fid, double &roll)
-  {
-    return get_value<double>(VITAL_META_PLATFORM_ROLL_ANGLE, fid, roll);
-  }
-
-  virtual bool get_sensor_rel_az_angle(frame_id_t fid, double &rel_az_angle)
-  {
-    return get_value<double>(VITAL_META_SENSOR_REL_AZ_ANGLE, fid, rel_az_angle);
-  }
-
-  virtual bool get_sensor_rel_el_angle(frame_id_t fid, double &rel_el_angle)
-  {
-    return get_value<double>(VITAL_META_SENSOR_REL_EL_ANGLE, fid, rel_el_angle);
-  }
-
-  virtual bool get_sensor_rel_roll_angle(frame_id_t fid, double &rel_roll_angle)
-  {
-    return get_value<double>(VITAL_META_SENSOR_REL_ROLL_ANGLE, fid, rel_roll_angle);
-  }
-
+  /// Returns the frame ids that have associated metadata
   virtual std::set<frame_id_t> frames()
   {
     std::set<frame_id_t> fids;
@@ -184,10 +154,36 @@ public:
     return fids;
   }
 
-protected:
+  /// get a metadata item from the map according to its tag and the frame
+  virtual metadata_item const&
+  get_item(vital_metadata_tag tag, frame_id_t fid) const
+  {
+    auto d_it = data_.find(fid);
+    if (d_it == data_.end())
+    {
+      std::stringstream msg;
+      msg << "Metadata map does not contain frame " << fid;
+      VITAL_THROW( metadata_exception, msg.str() );
+    }
 
-  template<typename T>
-  bool get_value(vital_metadata_tag tag, frame_id_t fid, T& val)
+    auto &mdv = d_it->second;
+    for (auto md : mdv)
+    {
+      if (md->has(tag))
+      {
+        return md->find(tag);
+      }
+    }
+
+    std::stringstream msg;
+    metadata_traits md_traits;
+    msg << "Metadata item for tag " << md_traits.tag_to_name(tag)
+        << " is not present for frame " << fid;
+    VITAL_THROW( metadata_exception, msg.str() );
+  }
+
+  /// check if metadata item is in map for given tag and frame id
+  virtual bool has_item(vital_metadata_tag tag, frame_id_t fid) const
   {
     auto d_it = data_.find(fid);
     if (d_it == data_.end())
@@ -198,19 +194,19 @@ protected:
     auto &mdv = d_it->second;
     for (auto md : mdv)
     {
-      if (md->has(tag))
-      {
-        md->find(tag).data(val);
-        return true;
-      }
+      return true;
     }
+
     return false;
   }
+
+protected:
 
   /// The map from integer IDs to metadata shared pointers
   map_metadata_t data_;
 };
 
-}} // end namespace vital
+} // end namespace vital
+} // end namespace kwiver
 
 #endif // KWIVER_VITAL_METADATA_MAP_H_

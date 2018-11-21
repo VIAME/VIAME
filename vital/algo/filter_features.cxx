@@ -47,7 +47,7 @@ namespace algo {
 filter_features
 ::filter_features()
 {
-  attach_logger( "filter_features" );
+  attach_logger( "algo.filter_features" );
 }
 
 

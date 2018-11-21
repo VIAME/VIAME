@@ -166,34 +166,6 @@ plugin_loader
     return fact_handle;
   }
 
-  // Make sure factory is not already in the list.
-  // Check the two types as a signature.
-  if ( m_impl->m_plugin_map.count( interface_type ) != 0)
-  {
-    for( auto const fact : m_impl->m_plugin_map[interface_type] )
-    {
-      std::string interf;
-      fact->get_attribute( plugin_factory::INTERFACE_TYPE, interf );
-
-      std::string inst;
-      fact->get_attribute( plugin_factory::CONCRETE_TYPE, inst );
-
-      if ( (interface_type == interf) && (concrete_type == inst) )
-      {
-        std::string old_file;
-        fact->get_attribute( plugin_factory::PLUGIN_FILE_NAME, old_file );
-
-        std::stringstream str;
-        str << "Factory for \"" << demangle( interface_type ) << "\" : \""
-            << demangle( concrete_type ) << "\" already has been registered by "
-            << old_file << ".  This factory from "
-            << m_impl->m_current_filename << " will not be registered.";
-
-        VITAL_THROW( plugin_already_exists, str.str() );
-      }
-    } // end foreach
-  }
-
   // Add factory to rest of its family
   m_impl->m_plugin_map[interface_type].push_back( fact_handle );
 
@@ -420,7 +392,7 @@ plugin_loader_impl
     }
 
     LOG_INFO( m_parent->m_logger, "plugin_loader:: Unable to bind to function \"" << m_init_function << "()\" : "
-              << last_error );
+              << str );
 
     DL::CloseLibrary( lib_handle );
     return;
@@ -455,11 +427,76 @@ plugin_loader
 
 
 // ------------------------------------------------------------------
+/**
+ * @brief Detault add_factory hook
+ *
+ * This is the default implementation for the add_factory hook. This
+ * checks to see if the plugin is already registered. If it is, then
+ * an exception is thrown.
+ *
+ * The signature of a plugin consists of interface-type,
+ * concrete-type, and plugin-name.
+ *
+ * Note that derived classes can override this hook to give different
+ * behaviour.
+ *
+ * @param fact Factory object handle
+ *
+ * @return \b true if factory is to be added; \b false if factory
+ * should not be added.
+ *
+ * @throws plugin_already_exists if plugin is already registered
+ */
 bool
 plugin_loader
 ::add_factory_hook( plugin_factory_handle_t fact ) const
 {
-  return true; // default is to always register factory
+  // Add the current file name as an attribute.
+  fact->add_attribute( plugin_factory::PLUGIN_FILE_NAME, m_impl->m_current_filename );
+
+  std::string interface_type;
+  fact->get_attribute( plugin_factory::INTERFACE_TYPE, interface_type );
+
+  std::string concrete_type;
+  fact->get_attribute( plugin_factory::CONCRETE_TYPE, concrete_type );
+
+  std::string new_name;
+  fact->get_attribute( plugin_factory::PLUGIN_NAME, new_name );
+
+  // Make sure factory is not already in the list.
+  // Check the two types and name as a signature.
+  if ( m_impl->m_plugin_map.count( interface_type ) != 0)
+  {
+    for( auto const fact : m_impl->m_plugin_map[interface_type] )
+    {
+      std::string interf;
+      fact->get_attribute( plugin_factory::INTERFACE_TYPE, interf );
+
+      std::string inst;
+      fact->get_attribute( plugin_factory::CONCRETE_TYPE, inst );
+
+      std::string name;
+      fact->get_attribute( plugin_factory::PLUGIN_NAME, name );
+
+      if ( (interface_type == interf) &&
+           (concrete_type == inst) &&
+           (new_name == name) )
+      {
+        std::string old_file;
+        fact->get_attribute( plugin_factory::PLUGIN_FILE_NAME, old_file );
+
+        std::stringstream str;
+        str << "Factory for \"" << demangle( interface_type ) << "\" : \""
+            << demangle( concrete_type ) << "\" already has been registered by "
+            << old_file << ".  This factory from "
+            << m_impl->m_current_filename << " will not be registered.";
+
+        VITAL_THROW( plugin_already_exists, str.str() );
+      }
+    } // end foreach
+  }
+
+  return true;
 }
 
 } } // end namespace

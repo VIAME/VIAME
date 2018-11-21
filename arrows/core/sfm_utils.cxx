@@ -49,9 +49,9 @@ namespace core {
 /// Calculate fraction of each image that is covered by landmark projections
 frame_coverage_vec
 image_coverages(
-  std::vector<track_sptr> const& trks,
-  kwiver::vital::landmark_map::map_landmark_t const& lms,
-  camera_map::map_camera_t const& cams )
+  std::vector<track_sptr> const& trks,  
+  vital::landmark_map::map_landmark_t const& lms,
+  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams )
 {
   const int mask_w(16);
   const int mask_h(16);
@@ -166,7 +166,7 @@ remove_landmarks(const std::set<track_id_t>& to_remove,
 /// find connected components of cameras
 camera_components
 connected_camera_components(
-  camera_map::map_camera_t const& cams,
+  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
   landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks)
 {
@@ -267,12 +267,13 @@ connected_camera_components(
 /// Detect underconstrained landmarks.
 std::set<landmark_id_t>
 detect_bad_landmarks(
-  camera_map::map_camera_t const& cams,
+  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
   landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
   double error_tol,
-  int min_landmark_inliers)
+  int min_landmark_inliers,
+  double median_distance_multiple)
 {
 
   double stdev_bound = 3;
@@ -289,6 +290,8 @@ detect_bad_landmarks(
   size_t num_lm_found_from_tracks = 0;
   size_t num_unconstrained_landmarks_found = 0;
 
+  int observing_cams_thresh = std::max(2, min_landmark_inliers);
+
   std::vector<double> depths;
   for (auto const &lm_it: lms)
   {
@@ -298,7 +301,7 @@ detect_bad_landmarks(
       continue;
     }
 
-    //ok this track has an associated landmark
+    //this landmark has not already been marked for removal
 
     const auto lm = lm_it.second;
     auto t_id = lm_it.first;
@@ -330,7 +333,7 @@ detect_bad_landmarks(
 
       fts->inlier = false;
 
-      const auto cam = std::static_pointer_cast<simple_camera_perspective>(ci->second);
+      const auto cam = ci->second;
 
       auto d = cam->depth(lm->loc());
       if (d <= 0)
@@ -348,7 +351,7 @@ detect_bad_landmarks(
     }
 
     bool bad_ang = false;
-    if (observing_cams.size() < 2 || (min_landmark_inliers > 0 && observing_cams.size() < min_landmark_inliers))
+    if (observing_cams.size() < observing_cams_thresh)
     {
       ++num_unconstrained_landmarks_found;
       landmarks_to_remove.insert(lm_it.first);
@@ -364,64 +367,67 @@ detect_bad_landmarks(
   }
 
   size_t num_far_lm_removed = 0;
-  std::sort(depths.begin(), depths.end());
-  double depth_thresh = -1;
-  if (!depths.empty())
-  {
-    depth_thresh = depths[depths.size()*0.5] * 10;
-    for (auto const &lm_it : lms)
+
+  if (median_distance_multiple > 0)
+  {    
+    int med_loc = static_cast<int>(depths.size()*0.5);
+    std::nth_element(depths.begin(), depths.begin() + med_loc, depths.end());
+    double depth_thresh = -1;
+    if (!depths.empty())
     {
-      if (landmarks_to_remove.find(lm_it.first) != landmarks_to_remove.end())
+      depth_thresh = depths[med_loc] * median_distance_multiple;
+      for (auto const &lm_it : lms)
       {
-        //already removed, no need to process further.
-        continue;
-      }
-
-      //ok this track has an associated landmark
-
-      const auto lm = lm_it.second;
-      auto t_id = lm_it.first;
-
-      bool lm_too_far = false;
-
-      auto t = tracks->get_track(t_id);
-      if (!t)
-      {
-        continue;
-      }
-      for (auto ts : *t)
-      {
-        auto fts = std::static_pointer_cast<feature_track_state>(ts);
-        if (!fts || !fts->feature)
+        if (landmarks_to_remove.find(lm_it.first) != landmarks_to_remove.end())
         {
-          // no feature for this track state.
-          continue;
-        }
-        if (!fts->inlier)
-        {
+          //already removed, no need to process further.
           continue;
         }
 
-        const feature& feat = *fts->feature;
-        auto ci = cams.find(ts->frame());
-        if (ci == cams.end() || !ci->second)
+        const auto lm = lm_it.second;
+        auto t_id = lm_it.first;
+
+        bool lm_too_far = false;
+
+        auto t = tracks->get_track(t_id);
+        if (!t)
         {
-          // no camera corresponding to this track state
           continue;
         }
-        const auto cam = std::static_pointer_cast<simple_camera_perspective>(ci->second);
-        auto d = cam->depth(lm->loc());
-        if (d > depth_thresh)
+        for (auto ts : *t)
         {
-          landmarks_to_remove.insert(lm_it.first);
-          ++num_far_lm_removed;
-          lm_too_far = true;
+          auto fts = std::static_pointer_cast<feature_track_state>(ts);
+          if (!fts || !fts->feature)
+          {
+            // no feature for this track state.
+            continue;
+          }
+          if (!fts->inlier)
+          {
+            continue;
+          }
+
+          const feature& feat = *fts->feature;
+          auto ci = cams.find(ts->frame());
+          if (ci == cams.end() || !ci->second)
+          {
+            // no camera corresponding to this track state
+            continue;
+          }
+          const auto cam = std::static_pointer_cast<simple_camera_perspective>(ci->second);
+          auto d = cam->depth(lm->loc());
+          if (d > depth_thresh)
+          {
+            landmarks_to_remove.insert(lm_it.first);
+            ++num_far_lm_removed;
+            lm_too_far = true;
+            break;
+          }
+        }
+        if (lm_too_far)
+        {
           break;
         }
-      }
-      if (lm_too_far)
-      {
-        break;
       }
     }
   }
@@ -455,7 +461,7 @@ detect_bad_landmarks(
 /// detect bad cameras in sfm solution
 std::set<frame_id_t>
 detect_bad_cameras(
-  camera_map::map_camera_t const& cams,
+  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
   landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks,
   float coverage_thresh)
@@ -477,7 +483,7 @@ detect_bad_cameras(
 /// clean structure from motion solution
 void
 clean_cameras_and_landmarks(
-  vital::simple_camera_perspective_map& cams_persp,
+  vital::camera_map_of_<vital::simple_camera_perspective>& cams_persp,
   landmark_map::map_landmark_t& lms,
   feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
@@ -489,7 +495,7 @@ clean_cameras_and_landmarks(
   int min_landmark_inliers)
 {
 
-  auto cams = cams_persp.cameras();
+  auto cams = cams_persp.T_cameras();
 
   landmark_map::map_landmark_t det_lms;
   if (active_lms.empty())
@@ -509,7 +515,7 @@ clean_cameras_and_landmarks(
     }
   }
 
-  camera_map::map_camera_t det_cams;
+  camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map det_cams;
   if (active_cams.empty())
   {
     det_cams = cams;
@@ -556,17 +562,11 @@ clean_cameras_and_landmarks(
       detect_bad_cameras(det_cams, det_lms, tracks, image_coverage_threshold);
 
     for (auto frame_id : cams_to_remove)
-    {
+    {      
       //set all features on removed camera to outliers
-      auto at = tracks->active_tracks(frame_id);
-      for (auto t : at)
+      for (auto ts : tracks->frame_states(frame_id))
       {
-        auto ts_it = t->find(frame_id);
-        if (ts_it == t->end())
-        {
-          continue;
-        }
-        auto fts = std::dynamic_pointer_cast<feature_track_state>(*ts_it);
+        auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
         if (!fts)
         {
           continue;

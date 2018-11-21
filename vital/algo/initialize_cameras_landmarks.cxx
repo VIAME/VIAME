@@ -45,7 +45,7 @@ namespace algo {
 initialize_cameras_landmarks
 ::initialize_cameras_landmarks()
 {
-  attach_logger( "initialize_cameras_landmarks" );
+  attach_logger( "algo.initialize_cameras_landmarks" );
 }
 
 /// Set a callback function to report intermediate progress
