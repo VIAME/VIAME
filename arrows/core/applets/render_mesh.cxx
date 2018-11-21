@@ -65,6 +65,7 @@ std::string opt_config;         // config file name
 std::string opt_out_config;     // output config file name
 int opt_width = 1920;           // image width
 int opt_height = 1080;          // image height
+bool opt_height_map = false;    // render a height map instead of a depth map
 
 // ------------------------------------------------------------------
 static kwiver::vital::config_block_sptr default_config()
@@ -123,6 +124,7 @@ run( const std::vector<std::string>& argv )
   arg.AddArgument( "--output-config", argT::SPACE_ARGUMENT, &opt_out_config, "Dump configuration for tool" );
   arg.AddArgument( "-x",            argT::SPACE_ARGUMENT, &opt_width, "Output image width");
   arg.AddArgument( "-y",            argT::SPACE_ARGUMENT, &opt_height, "Output image height");
+  arg.AddArgument( "--height-map",  argT::NO_ARGUMENT, &opt_height_map, "Render a height map instead of a depth map" );
 
   if ( ! arg.Parse() )
   {
@@ -196,9 +198,21 @@ run( const std::vector<std::string>& argv )
   std::dynamic_pointer_cast<kwiver::vital::simple_camera_perspective>(camera)->set_intrinsics(K);
 
 
+  if ( mesh->faces().regularity() != 3 )
+  {
+    std::cout << "Triangulating Mesh" << std::endl;
+    kwiver::arrows::core::mesh_triangulate(*mesh);
+  }
   std::cout << "Rendering" << std::endl;
-  kwiver::arrows::core::mesh_triangulate(*mesh);
-  auto image = render_mesh_depth_map(mesh, camera);
+  vital::image_container_sptr image;
+  if ( opt_height_map )
+  {
+    image = render_mesh_height_map(mesh, camera);
+  }
+  else
+  {
+    image = render_mesh_depth_map(mesh, camera);
+  }
 
   std::cout << "Saving" << std::endl;
   image_writer->save(image_file, image);
