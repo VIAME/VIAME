@@ -230,7 +230,7 @@ void uv_unwrap_mesh::unwrap(kwiver::vital::mesh_sptr mesh) const
   double correction = 0.0;
   for (auto& t : triangles)
     correction += margin * (t.width + t.height);
-  max_width = std::ceil(sqrt(total_area * 2 + correction));
+  max_width = std::ceil(sqrt(total_area + correction));
 
   // Pack triangles
   std::vector<vector_2d> tcoords(mesh->num_faces() * 3);
