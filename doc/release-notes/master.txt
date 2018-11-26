@@ -12,8 +12,8 @@ Vital
  * Added constructors taking initalizer lists to mesh types for easier
    initialization.
 
-Vital Bindings 
- 
+Vital Bindings
+
 Arrows: Core
 
  * Added mesh_operations.h, initially with a function to triangulate a mesh.
@@ -33,10 +33,17 @@ Sprokit
 
 Sprokit: Processes
 
+  * Added new methods which are called when a requested port is
+    missing. This can be used to dynamically create ports. Previously
+    this was done by overriding the _{input,output}_port_info()
+    method.  The new approach is an optimization because the
+    _*_port_info() methods are also called to locate ports for data
+    transfer. The process specific override can add a lot of overhead
+    to the port info calls.
+
 Tools
 
 Unit Tests
 
 Bug Fixes
 --------
-

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,14 +78,8 @@ class PROCESSES_FLOW_NO_EXPORT distribute_process
      */
     properties_t _properties() const;
 
-    /**
-     * \brief Output port information.
-     *
-     * \param port The port to get information about.
-     *
-     * \returns Information about an output port.
-     */
-    port_info_t _output_port_info(port_t const& port);
+    void output_port_undefined(port_t const& port) override;
+
   private:
     class priv;
     std::unique_ptr<priv> d;
