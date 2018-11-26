@@ -1,11 +1,9 @@
 #!/bin/sh
 
-# Setup VIAME Paths (no need to run multiple times if you already ran it)
-
+# Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
 
+# Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh 
-
-# Run vpView annotation GUI
 
 python ${VIAME_INSTALL}/configs/launch_annotation_interface.py

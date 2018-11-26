@@ -223,6 +223,8 @@ def video_frame_rate_settings_list( options ):
     output += fset( 'downsampler:burst_frame_count=' + options.batch_size )
   if len( options.batch_skip ) > 0:
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
+  if len( options.input_frame_rate ) > 0:
+    output += fset( 'input:frame_time' + options.input_frame_rate )
   return output
 
 def remove_quotes( input_str ):
@@ -378,13 +380,19 @@ if __name__ == "__main__" :
                       help="Output sub-directory for log files, if empty will not use files")
 
   parser.add_argument("-frate", dest="frame_rate", default="",
-                      help="Frame rate over-ride to process videos at")
+                      help="Processing frame rate over-ride to process videos at, specified "
+                      "in hertz (frames per second)" )
 
   parser.add_argument("-fbatch", dest="batch_size", default="",
                       help="Optional number of frames to process in batches")
 
   parser.add_argument("-fskip", dest="batch_skip", default="",
                       help="If batching frames, number of frames to skip between batches")
+
+  parser.add_argument("-ifrate", dest="input_frame_rate", default="",
+                      help="Input frame rate over-ride to process videos at. This is useful "
+                      "for specifying the frame rate of input image lists, which typically "
+                      "don't have frame rates")
 
   parser.add_argument("-objects", dest="objects", default="fish",
                       help="Objects to generate plots for")

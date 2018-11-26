@@ -1,12 +1,10 @@
 @echo off
 
-REM Setup VIAME Paths (no need to set if installed to registry or already set up)
-
+REM Path to VIAME installation
 SET VIAME_INSTALL=C:\Program Files\VIAME
 
+REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
-
-REM Run pipeline
 
 viame_train_detector.exe ^
   -i training_data ^
