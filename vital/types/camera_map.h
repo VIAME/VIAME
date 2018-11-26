@@ -150,7 +150,7 @@ public:
     auto it = data_.find(fid);
     if (it == data_.end())
     {
-      return std::shared_sptr<T>();
+      return std::shared_ptr<T>();
     }
     else
     {
@@ -183,7 +183,7 @@ public:
     data_.clear();
   }
 
-  /// Set the map from a map of base cameras.      
+  /// Set the map from a map of base cameras.
   /**
   * Only simple perspective cameras will be added to the map.  All
   * others are ignored.  The map is emptied before the cameras are added.
@@ -195,7 +195,7 @@ public:
     set_from_base_camera_map(base_cams_map);
   }
 
-  /// Set the map from a map of base cameras.      
+  /// Set the map from a map of base cameras.
   /**
   * Only simple perspective cameras will be added to the map.  All
   * others are ignored.
