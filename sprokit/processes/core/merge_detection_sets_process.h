@@ -53,7 +53,7 @@ protected:
   virtual void _step();
   virtual void _init();
 
-  virtual sprokit::process::port_info_t _input_port_info( port_t const& port );
+  virtual void input_port_undefined( port_t const& port ) override;
 
 
 private:

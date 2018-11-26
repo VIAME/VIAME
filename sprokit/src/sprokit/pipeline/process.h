@@ -811,6 +811,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns The names of all input ports available in the subclass.
      */
     virtual ports_t _input_ports() const;
+
     /**
      * \brief Subclass output ports.
      *
@@ -828,6 +829,22 @@ class SPROKIT_PIPELINE_EXPORT process
     virtual port_info_t _input_port_info(port_t const& port);
 
     /**
+     * \brief Process handler for undefined input port
+     *
+     * This method is called when port_info is is being requested for
+     * this process and the port is not defined. The default
+     * implementation is to do nothing, which will cause the process
+     * to throw an exception.
+     *
+     * The process can override this method and create the undefined
+     * port. This is a form of just-in-time port creation which is
+     * used for processes that can handle multiple inputs.
+     *
+     * \param port Name of the port
+     */
+    virtual void input_port_undefined(port_t const& port);
+
+    /**
      * \brief Subclass output port information.
      *
      * \param port The port to get information about.
@@ -835,6 +852,22 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns Information about an output port.
      */
     virtual port_info_t _output_port_info(port_t const& port);
+
+    /**
+     * \brief Process handler for undefined output port
+     *
+     * This method is called when port_info is is being requested for
+     * this process and the port is not defined. The default
+     * implementation is to do nothing, which will cause the process
+     * to throw an exception.
+     *
+     * The process can override this method and create the undefined
+     * port. This is a form of just-in-time port creation which is
+     * used for processes that can handle multiple outputs.
+     *
+     * \param port Name of the port
+     */
+    virtual void output_port_undefined(port_t const& port);
 
     /**
      * \brief Subclass input port type setting.
