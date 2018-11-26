@@ -460,7 +460,9 @@ if __name__ == "__main__" :
       init_log_file = ""
     if not database_tool.init( log_file=init_log_file ):
       if len( args.log_directory ) > 0:
-        exit_with_error( "Unable to initialize database, check " + init_log_file )
+        exit_with_error( "Unable to initialize database, check " + init_log_file + lb2 +
+                         "You may have another database running on your system, or ran "
+                         "a failed operation in the past and need to re-log or restart." )
       else:
         exit_with_error( "Unable to initialize database" )
 
