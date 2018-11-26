@@ -150,7 +150,7 @@ public:
     auto it = data_.find(fid);
     if (it == data_.end())
     {
-      return nullptr;
+      return std::shared_ptr<T>();
     }
     else
     {
