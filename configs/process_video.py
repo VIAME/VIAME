@@ -459,7 +459,10 @@ if __name__ == "__main__" :
     else:
       init_log_file = ""
     if not database_tool.init( log_file=init_log_file ):
-      exit_with_error( "Unable to initialize database" )
+      if len( args.log_directory ) > 0:
+        exit_with_error( "Unable to initialize database, check " + init_log_file )
+      else:
+        exit_with_error( "Unable to initialize database" )
 
   # Call processing pipelines on all input data
   if process_data:
