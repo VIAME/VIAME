@@ -71,14 +71,14 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Linux Binaries:** <br>
 [VIAME v0.9.8.8 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd79fd68d777f06b93e7ad5/download) <br>
 [VIAME v0.9.8.8 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Yjs5oSlRkS-8ypIjBuna42qFSxqSGgb7) <br>
-[VIAME v0.9.8.9 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bee719b8d777f2179ac7cea/download) <br>
-[VIAME v0.9.8.9 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1jbEJsl4I22ZvUCqCSHhmeupr-yWr3SXx)
+[VIAME v0.9.8.10 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bfdc76b8d777f2179c2997e/download) <br>
+[VIAME v0.9.8.10 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1FmvXu3PSpL2nXIttJhMmDkRtmkEqb-Np)
 
 **Windows Binaries:** <br>
-[VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd7983b8d777f06b93e73b9/download) <br>
-[VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1ob0KBVlG1hsczCleeJwDkJA_-gSY_j8a) <br>
-[VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd798718d777f06b93e73ec/download) <br>
-[VIAME v0.9.8.8 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1USdZDUxoPy7Jq1-k4y6eLR19uhwVtJjn)
+[VIAME v0.9.8.10 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bfdc0278d777f2179c29408/download) <br>
+[VIAME v0.9.8.10 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1gQardsEmmdBY7CLiwpBqaU8mwpxPG4jF) <br>
+[VIAME v0.9.8.10 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bfdc0498d777f2179c29445/download) <br>
+[VIAME v0.9.8.10 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1htsqvuB8tK4e1SHU-8BS09m0ix7OU6vy)
 
 **Optional Patches:** <br>
 [Low GPU Memory Usage (2-4Gb) Patch, All Operating Systems](https://data.kitware.com/api/v1/item/5becf3f08d777f2179a9cbca/download)
