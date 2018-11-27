@@ -120,3 +120,6 @@ Arrows - OpenCV
  * Fixed an issue in which feature detector masks were not working as expected
    when values were not exactly 0 and 255 due to lossy compression.
    A threshold at 128 is now applied to force mask values to 0 and 255.
+
+ * Fixed an issue in the FAST detector where too many features were initially
+   detected.
