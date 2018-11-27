@@ -282,7 +282,7 @@ hierarchical_bundle_adjust
 ::optimize(camera_map_sptr & cameras,
            landmark_map_sptr & landmarks,
            feature_track_set_sptr tracks,
-           metadata_map_sptr metadata) const
+           sfm_constraints_sptr constraints) const
 {
   using namespace std;
 
@@ -325,7 +325,7 @@ hierarchical_bundle_adjust
     // updated active_cam_map and landmarks
     { // scope block
       kwiver::vital::scoped_cpu_timer t( "inner-SBA iteration" );
-      d_->sba->optimize(active_cam_map, landmarks, tracks, metadata);
+      d_->sba->optimize(active_cam_map, landmarks, tracks, constraints);
     }
 
     double rmse = kwiver::arrows::reprojection_rmse(active_cam_map->cameras(),
@@ -422,7 +422,7 @@ hierarchical_bundle_adjust
 
         { // scope block
           kwiver::vital::scoped_cpu_timer t( "\t- cameras optimization" );
-          d_->camera_optimizer->optimize(interped_cams_p, tracks, landmarks, metadata);
+          d_->camera_optimizer->optimize(interped_cams_p, tracks, landmarks, constraints);
         }
 
         if (d_->rmse_reporting_enabled)

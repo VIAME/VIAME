@@ -259,12 +259,12 @@ bundle_adjust
 ::optimize(camera_map_sptr& cameras,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata) const
+  sfm_constraints_sptr constriants) const
 {
   //both fixed cameras and fixed landmarks are empty for default call.
   std::set<vital::frame_id_t> fixed_cameras;
   std::set<vital::landmark_id_t> fixed_landmarks;
-  optimize(cameras, landmarks, tracks, fixed_cameras, fixed_landmarks, metadata);
+  optimize(cameras, landmarks, tracks, fixed_cameras, fixed_landmarks, constriants);
 }
 
 
@@ -277,7 +277,7 @@ bundle_adjust
            feature_track_set_sptr tracks,
            const std::set<vital::frame_id_t>& to_fix_cameras,
            const std::set<vital::landmark_id_t>& to_fix_landmarks,
-           metadata_map_sptr metadata) const
+           sfm_constraints_sptr constriants) const
 {
   if( !cameras || !landmarks || !tracks )
   {
