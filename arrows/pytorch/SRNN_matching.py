@@ -89,7 +89,7 @@ class SRNN_matching(object):
 
         # load target AIM model, trained with fixed variable timestep
         full_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
-        self._targetRNN_full_model = TargetLSTM(model_list=full_model_list)
+        self._targetRNN_full_model = TargetLSTM(model_list=full_model_list, use_gpu_flag=self._use_gpu_flag)
         self._targetRNN_full_model = self._targetRNN_full_model.to(self._device)
 
         if self._use_gpu_flag:
