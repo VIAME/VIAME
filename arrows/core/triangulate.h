@@ -86,12 +86,6 @@ triangulate_fast_two_view(const vital::simple_camera_perspective &camera0,
                           const Eigen::Matrix<T, 2, 1> &point0,
                           const Eigen::Matrix<T, 2, 1> &point1);
 
-template <typename T>
-KWIVER_ALGO_CORE_EXPORT
-Eigen::Matrix<T, 3, 1>
-triangulate_fast_two_view(const std::vector<vital::simple_camera_perspective> &cameras,
-                          const std::vector<Eigen::Matrix<T, 2, 1> >& points);
-
 /// Triangulate a homogeneous 3D point from a set of cameras and 2D image points
 /**
  *  This function computes a linear least squares solution find a homogeneous
