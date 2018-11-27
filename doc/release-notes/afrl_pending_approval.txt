@@ -78,6 +78,9 @@ Arrows - Ceres
    remove offending items.  Only the largest connected map component is
    kept.  Underconstrained landmarks are removed etc.
 
+ * Switch from std::map to std::unordered_map for internal bookkeeping for
+   efficiency.
+
 General
 
  * Changes to track_set_impl to facilitate passing track changes between

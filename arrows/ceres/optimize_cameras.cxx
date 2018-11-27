@@ -200,12 +200,12 @@ optimize_cameras
   }
 
   // a map from frame number to extrinsic parameters
-  typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
+  typedef std::unordered_map<frame_id_t, std::vector<double> > cam_param_map_t;
   cam_param_map_t camera_params;
   // vector of unique camera intrinsic parameters
   std::vector<std::vector<double> > camera_intr_params;
   // a map from frame number to index of unique camera intrinsics in camera_intr_params
-  std::map<frame_id_t, unsigned int> frame_to_intr_map;
+  std::unordered_map<frame_id_t, unsigned int> frame_to_intr_map;
 
   // Extract the raw camera parameter into the provided maps
   d_->extract_camera_parameters(cams,
