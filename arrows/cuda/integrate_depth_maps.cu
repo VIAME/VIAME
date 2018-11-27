@@ -38,20 +38,22 @@
 
 #define size4x4 16
 
-// ----------------------------------------------------------------------------
-/* Define texture and constants */
-__constant__ double c_gridOrig[3]; 	// Origin of the output volume
-__constant__ int3 c_gridDims; 						// Dimensions of the output volume
-__constant__ double c_gridSpacing[3]; 	// Spacing of the output volume
-__constant__ int2 c_depthMapDims; 					// Dimensions of all depths map
-__constant__ double c_rayPotentialThick; 		// Thickness threshold for the ray potential function
+//*****************************************************************************
+
+// Define texture and constants
+__constant__ double c_gridOrig[3];    	  // Origin of the output volume
+__constant__ int3 c_gridDims; 				    // Dimensions of the output volume
+__constant__ double c_gridSpacing[3]; 	  // Spacing of the output volume
+__constant__ int2 c_depthMapDims; 				// Dimensions of all depths map
+__constant__ double c_rayPotentialThick; 	// Thickness threshold for the ray potential function
 __constant__ double c_rayPotentialRho; 		// Rho at the Y axis for the ray potential function
 __constant__ double c_rayPotentialEta;
 __constant__ double c_rayPotentialDelta;
 int grid_dims[3];
 
-// ----------------------------------------------------------------------------
-/* Macro called to catch cuda error when cuda functions is called */
+//*****************************************************************************
+
+// Macro called to catch cuda error when cuda functions are called
 #define CudaErrorCheck(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
 {
@@ -62,7 +64,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
   }
 }
 
-// ----------------------------------------------------------------------------
+//*****************************************************************************
 
 __device__ void computeVoxelCenter(int voxelCoordinate[3], double output[3])
 {
@@ -71,8 +73,9 @@ __device__ void computeVoxelCenter(int voxelCoordinate[3], double output[3])
   output[2] = c_gridOrig[2] + (voxelCoordinate[2] + 0.5) * c_gridSpacing[2];
 }
 
-// ----------------------------------------------------------------------------
-/* Apply a 4x4 matrix to a 3D points */
+//*****************************************************************************
+
+//Apply a 3x4 matrix to a 3D points (assumes last row of M is 0, 0, 0, 1)
 __device__ void transformFrom4Matrix(double M[size4x4], double point[3], double output[3])
 {
   output[0] = M[0 * 4 + 0] * point[0] + M[0 * 4 + 1] * point[1] + M[0 * 4 + 2] * point[2] + M[0 * 4 + 3];
@@ -80,14 +83,16 @@ __device__ void transformFrom4Matrix(double M[size4x4], double point[3], double 
   output[2] = M[2 * 4 + 0] * point[0] + M[2 * 4 + 1] * point[1] + M[2 * 4 + 2] * point[2] + M[2 * 4 + 3];
 }
 
-// ----------------------------------------------------------------------------
-// Compute the norm of a table with 3 double
+//*****************************************************************************
+
+// Compute the norm of a 3 vec
 __device__ double norm(double vec[3])
 {
   return sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
 }
 
-// ----------------------------------------------------------------------------
+//*****************************************************************************
+
 //Ray potential function which computes the increment to the current voxel
 __device__ void rayPotential(double realDistance, double depthMapDistance, double& res)
 {
@@ -105,10 +110,9 @@ __device__ void rayPotential(double realDistance, double depthMapDistance, doubl
     res = (c_rayPotentialRho / c_rayPotentialThick) * diff;
 }
 
-// ----------------------------------------------------------------------------
-/* Compute the voxel Id on a 1D table according to its 3D coordinates
-  coordinates : 3D coordinates
-*/
+//*****************************************************************************
+
+// Compute the voxel Id on a 1D table according to its 3D coordinates
 __device__ int computeVoxelIDGrid(int coordinates[3])
 {
   int dimX = c_gridDims.x;
@@ -119,11 +123,9 @@ __device__ int computeVoxelIDGrid(int coordinates[3])
   return (k*dimY + j)*dimX + i;
 }
  
-// ----------------------------------------------------------------------------
-/* Compute the pixel Id on a 1D table according to its 3D coordinates
-  (third coordinate is not used)
-coordinates : 3D coordinates
-*/
+//*****************************************************************************
+
+//Compute the pixel Id on a 1D table according to its 3D coordinates (third coordinate is not used)
 __device__ int computeVoxelIDDepth(int coordinates[3])
 {
   int dimX = c_depthMapDims.x;
@@ -134,13 +136,9 @@ __device__ int computeVoxelIDDepth(int coordinates[3])
   return (dimX*(dimY - 1 - y)) + x;
 }
 
-// ----------------------------------------------------------------------------
-/* Main function called inside the kernel
-  depths : depth map values
-  matrixK : matrixK
-  matrixRT : matrixRT
-  output : double table that will be filled at the end of function
-*/
+//*****************************************************************************
+
+// Main kernel for adding a depth map to the volume
 __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double matrixRT[size4x4],
   double* output)
 {
@@ -188,8 +186,9 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   output[gridId] += newValue;
 }
 
-// ----------------------------------------------------------------------------
-// Initialize cuda constant
+//*****************************************************************************
+
+// Initialize cuda constants
 void cuda_initalize(int h_gridDims[3], 		 // Dimensions of the output volume
           double h_gridOrig[3],  // Origin of the output volume
           double h_gridSpacing[3], // Spacing of the output volume
@@ -211,7 +210,8 @@ void cuda_initalize(int h_gridDims[3], 		 // Dimensions of the output volume
   grid_dims[2] = h_gridDims[2]; 
 }
 
-// ----------------------------------------------------------------------------
+//*****************************************************************************
+
 void launch_depth_kernel(double * d_depth, int h_depthMapDims[2], double d_K[size4x4], double d_RT[size4x4], double* d_volume)
 {
   // Organize threads into blocks and grids

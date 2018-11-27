@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2017-2018 by Kitware, Inc.
+* Copyright 2016, Kitware SAS, Copyright 2018 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -154,7 +154,7 @@ double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
   unsigned int size = h_depth->height() * h_depth->width();
   double* temp = new double[size];
 
-  //have to copy in case depth is cropped
+  //copy to cuda format
   kwiver::vital::image img = h_depth->get_image();
   for (unsigned int i = 0; i < h_depth->width(); i++)
   {
@@ -215,7 +215,10 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
   vector_3d diff = maxpt_bound - minpt_bound;
   vector_3d orig = minpt_bound;
 
-  for (int i = 0; i < 3; i++) d_->grid_dims[i] = (int)(diff[i] / d_->grid_spacing[i]);
+  for (int i = 0; i < 3; i++) 
+  {
+    d_->grid_dims[i] = static_cast<int>((diff[i] / d_->grid_spacing[i]));
+  }    
 
   std::cerr << d_->grid_dims[0] << " " << d_->grid_dims[1] << " " << d_->grid_dims[2] << "\n";
 
@@ -247,14 +250,6 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
   // Transfer data from device to host
   double *h_volume = new double[vsize];
   cudaMemcpy(h_volume, d_volume, vsize * sizeof(double), cudaMemcpyDeviceToHost);
-
-  //for (int i = 0; i < vsize; i++)
-  //{
-  //  std::cout << h_volume[i] << " ";
-  //}
-  //std::cout << std::endl << vsize << std::endl;
-  std::cout << d_->grid_dims[0] << " " << d_->grid_dims[1] << " " << d_->grid_dims[2] << std::endl;
-  std::cout << d_->grid_spacing[0] << " " << d_->grid_spacing[1] << " " << d_->grid_spacing[2] << std::endl;
 
   spacing = vector_3d(d_->grid_spacing);
   volume = std::shared_ptr<image_container>(new simple_image_container(
