@@ -1,4 +1,18 @@
 
+v0.9.8.10 - 11/26/2018
+======================
+
+
+-Add automatic dynamic range compute for 16-bit imagery in GUI
+
+
+-Expose video rate for image list processing in default project files
+
+
+-Added extra error checking on indexing scripts involving databases, improved error reporting
+
+
+
 v0.9.8.9 - 11/12/2018
 =====================
 
