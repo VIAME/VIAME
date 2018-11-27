@@ -101,7 +101,7 @@ public:
 
   vpgl_perspective_camera<double> ref_cam;
 
-  compute_depth::callback_t callback;  
+  compute_depth::callback_t callback;
 
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -210,7 +210,7 @@ compute_depth
           const std::vector<kwiver::vital::camera_perspective_sptr> &cameras_in,
           double depth_min, double depth_max,
           unsigned int ref_frame,
-          vital::bounding_box<double> &roi,
+          const vital::bounding_box<double> &roi,
           const std::vector<kwiver::vital::image_container_sptr> &masks_in) const
 {
   //convert frames

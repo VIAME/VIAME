@@ -83,7 +83,7 @@ public:
           const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
           double depth_min, double depth_max,
           unsigned int reference_frame,
-          vital::bounding_box<double> &roi,
+          const vital::bounding_box<double> &roi,
           const std::vector<kwiver::vital::image_container_sptr> &masks =
           std::vector<kwiver::vital::image_container_sptr>()) const;
 

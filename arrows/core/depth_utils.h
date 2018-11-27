@@ -48,70 +48,106 @@ using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
-
+namespace core {
 
 /// Compute the range of depths of landmarks from a camera
-/// A bounding box is used to define a crop or the full image
-/// \param landmarks a vector of landmarks
-/// \param camera the perspective camera depth is measured from
-/// \param roi region of interest in the image (or the full dimensions of the image)
-/// \retval minimum depth from camera
-/// \retval maximum depth from camera
-/// \param the direction the depth is sliced in world coordinates
+/**
+* A bounding box is used to define a crop or the full image
+* \param landmarks a vector of landmarks
+* \param camera the perspective camera depth is measured from
+* \param roi region of interest in the image (or the full dimensions of the image)
+* \retval minimum depth from camera
+* \retval maximum depth from camera
+*/
 KWIVER_ALGO_CORE_EXPORT
 void
-compute_depth_range_from_landmarks(const std::vector<landmark_sptr> &landmarks, camera_perspective_sptr camera, 
-                                   const bounding_box<double> &roi, double &depth_min, double &depth_max,
-                                   const vector_3d &world_nomal = vector_3d(0.0, 0.0, 1.0));
+compute_depth_range_from_landmarks(const std::vector<landmark_sptr> &landmarks, camera_perspective_sptr camera,
+                                   const bounding_box<double> &roi, double &depth_min, double &depth_max);
 
+/// Compute the range of heights of landmarks seen by camera along a normal direction
+/**
+* A bounding box is used to define a crop or the full image
+* \param landmarks a vector of landmarks
+* \param cam the camera used to find visible landmarks
+* \param roi region of interest in the image (or the full dimensions of the image)
+* \retval minimum height along normal
+* \retval maximum height along normal
+* \param the direction the depth is sliced in world coordinates
+*/
+KWIVER_ALGO_CORE_EXPORT
+void
+compute_height_range_from_landmarks(const std::vector<landmark_sptr> &landmarks, const camera_sptr &cam,
+                                    const bounding_box<double> &roi, double &height_min, double &height_max,
+                                    const vector_3d &world_normal = vector_3d(0.0, 0.0, 1.0));
 
 /// Return the axis aligned 2D box of a 3D box projected into an image
-/// \param minpt is one of the points defining the 3D region
-/// \param maxpt is the other point defining the 3D region
-/// \param cam is the perspective camera
-/// \param imgwidth width of the image
-/// \param imgheight height of the image
-/// \param world_normal the direction the depth is sliced in world coordinates
+/**
+* \param minpt is one of the points defining the 3D region
+* \param maxpt is the other point defining the 3D region
+* \param cam is the camera
+* \param imgwidth width of the image
+* \param imgheight height of the image
+* \param world_normal the direction the depth is sliced in world coordinates
+*/
 KWIVER_ALGO_CORE_EXPORT
 vital::bounding_box<double>
 project_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
-                  const camera_perspective_sptr &cam, int imgwidth, int imgheight,
-                  const vector_3d &world_nomal = vector_3d(0.0, 0.0, 1.0));
+                  const camera_sptr &cam, int imgwidth, int imgheight);
 
 
-///Return the depth range of a 3d region along a normal
-/// \param minpt is one of the points defining the 3D region
-/// \param maxpt is the other point defining the 3D region
-/// \retval depth_min min of depth range
-/// \retval depth_max max of depth range
-/// \param world_normal the direction the depth is sliced in world coordinates
+///Return the height range of a 3d region along a normal
+/**
+* \param minpt is one of the points defining the 3D region
+* \param maxpt is the other point defining the 3D region
+* \retval height_min min of depth range
+* \retval depth_max max of depth range
+* \param world_normal the direction the depth is sliced in world coordinates
+*/
+KWIVER_ALGO_CORE_EXPORT
+void
+height_range_from_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
+                            double &height_min, double &height_max,
+                            const vector_3d &world_normal = vector_3d(0.0, 0.0, 1.0));
+
+///Return the depth range of a 3d region from a camera
+/**
+* \param minpt is one of the points defining the 3D region
+* \param maxpt is the other point defining the 3D region
+* \param cam is the camera the depth is measured from
+* \retval depth_min min of depth range
+* \retval depth_max max of depth range
+*/
 KWIVER_ALGO_CORE_EXPORT
 void
 depth_range_from_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
-                           double &depth_min, double &depth_max,
-                           const vector_3d &world_nomal = vector_3d(0.0, 0.0, 1.0));
+                           const camera_perspective_sptr &cam,
+                           double &depth_min, double &depth_max);
 
 
 /// Return a subset of landmark points that project into the given region of interest
-/// \param camera is the camera used to project the points
-/// \param roi region of interest within image (or entire image)
-/// \param landmarks is the set of 3D landmark points to project
-/// \return the subset of \p landmarks that project into the ROI
+/**
+* \param cam is the camera used to project the points
+* \param roi region of interest within image (or entire image)
+* \param landmarks is the set of 3D landmark points to project
+* \return the subset of \p landmarks that project into the ROI
+*/
 std::vector<vector_3d>
-filter_visible_landmarks(camera_perspective_sptr camera,
+filter_visible_landmarks(const camera_sptr &cam,
                          const bounding_box<double> &roi,
                          const std::vector<vital::landmark_sptr> &landmarks);
 
 
 /// Robustly compute the bounding planes of the landmarks in a given direction
-/// \param  landmarks is the set of 3D landmark points
-/// \param  normal is the normal vector of the plane
-/// \retval min_offset is the minimum plane offset
-/// \retval max_offset is the maximum plane offset
-/// \param  outlier_thresh is the threshold for fraction of outlier offsets to
-///         reject at both the top and bottom
-/// \param  safety_margin_factor is the fraction of total offset range to pad
-///         both top and bottom to account for insufficient landmark samples
+/**
+* \param  landmarks is the set of 3D landmark points
+* \param  normal is the normal vector of the plane
+* \retval min_offset is the minimum plane offset
+* \retval max_offset is the maximum plane offset
+* \param  outlier_thresh is the threshold for fraction of outlier offsets to
+*         reject at both the top and bottom
+* \param  safety_margin_factor is the fraction of total offset range to pad
+*         both top and bottom to account for insufficient landmark samples
+*/
 void
 compute_offset_range(const std::vector<vector_3d> &landmarks,
                      const vector_3d &normal,
@@ -119,7 +155,25 @@ compute_offset_range(const std::vector<vector_3d> &landmarks,
                      const double outlier_thresh = 0.1,
                      const double safety_margin_factor = 0.5);
 
+/// Robustly compute the bounding planes of the landmarks along a camera's view axis
+/**
+* \param  landmarks is the set of 3D landmark points
+* \param  cam is the perspective camera to compute the range from
+* \retval depth_min is the minimum of the depth range
+* \retval depth_max is the maximum of the depth range
+* \param  outlier_thresh is the threshold for fraction of outlier offsets to
+*         reject at both the top and bottom
+* \param  safety_margin_factor is the fraction of total offset range to pad
+*         both top and bottom to account for insufficient landmark samples
+*/
+void
+compute_depth_range(const std::vector<vector_3d> &landmarks,
+                    const camera_perspective_sptr &cam,
+                    double &depth_min, double &depth_max,
+                    const double outlier_thresh = 0.1,
+                    const double safety_margin_factor = 0.5);
 
+} //end namespace core
 } //end namespace arrows
 } //end namespace kwiver
 
