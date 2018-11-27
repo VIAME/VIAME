@@ -43,6 +43,9 @@
 #include <vital/types/sfm_constraints.h>
 #include <arrows/ceres/types.h>
 
+#include <unordered_map>
+
+
 namespace kwiver {
 namespace arrows {
 namespace ceres {

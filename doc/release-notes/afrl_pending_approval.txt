@@ -78,6 +78,9 @@ Arrows - Ceres
    remove offending items.  Only the largest connected map component is
    kept.  Underconstrained landmarks are removed etc.
 
+ * Switch from std::map to std::unordered_map for internal bookkeeping for
+   efficiency.
+
 General
 
  * Changes to track_set_impl to facilitate passing track changes between
@@ -98,6 +101,10 @@ Vital
    to return a raw pointer to the bytes instead of a vector of bytes.
    This API change avoids many memory copies when comparing descriptors
    at the byte level.
+
+ * Added a sfm_constraints class and pass this to the structure-from-motion
+   algorithms (initialize_cameras_landmark, bundle_adjust, optimize_cameras)
+   instead of passing the raw metadata.
 
 
 Fixes since last public release

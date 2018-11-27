@@ -93,7 +93,6 @@ public:
            const std::set<vital::landmark_id_t>& fixed_landmarks,
            kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
 
-
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,
                              kwiver::vital::landmark_map_sptr,
