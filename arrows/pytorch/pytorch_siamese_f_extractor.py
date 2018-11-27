@@ -57,9 +57,13 @@ class pytorch_siamese_f_extractor(object):
         self._siamese_model = Siamese().to(self._device)
         if use_gpu_flag:
             self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
+            snapshot = torch.load(siamese_model_path)
+            self._siamese_model.load_state_dict(snapshot['state_dict'])
+        else:
+            snapshot = torch.load(siamese_model_path, map_location='cpu')
+            tmp = {k[len('module.'):]: v for k, v in snapshot['state_dict'].items()}
+            self._siamese_model.load_state_dict( tmp )
 
-        snapshot = torch.load(siamese_model_path)
-        self._siamese_model.load_state_dict(snapshot['state_dict'])
         print('Model loaded from {}'.format(siamese_model_path))
         self._siamese_model.train(False)
 

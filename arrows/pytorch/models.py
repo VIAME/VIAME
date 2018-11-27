@@ -188,31 +188,44 @@ class BBoxLSTM(nn.Module):
 # ==================================================================
 class TargetLSTM(nn.Module):
     def __init__(self, app_model='', motion_model='', interaction_model='', bbox_model='',
-                 model_list=(RnnType.Appearance, RnnType.Motion, RnnType.Interaction)):
+                 model_list=(RnnType.Appearance, RnnType.Motion, RnnType.Interaction),
+                 use_gpu_flag=True):
         super(TargetLSTM, self).__init__()
 
         self.model_list = model_list
 
         if RnnType.Appearance in self.model_list:
-            self.appearance = AppearanceLSTM().cuda()
+            if use_gpu_flag:
+                self.appearance = AppearanceLSTM().cuda()
+            else:
+                self.appearance = AppearanceLSTM()
             if app_model is not '':
                 snapshot = torch.load(app_model)
                 self.appearance.load_state_dict(snapshot['state_dict'])
 
         if RnnType.Motion in self.model_list:
-            self.motion = MotionLSTM().cuda()
+            if use_gpu_flag:
+                self.motion = MotionLSTM().cuda()
+            else:
+                self.motion = MotionLSTM()
             if motion_model is not '':
                 snapshot = torch.load(motion_model)
                 self.motion.load_state_dict(snapshot['state_dict'])
 
         if RnnType.Interaction in self.model_list:
-            self.interaction = InteractionLSTM().cuda()
+            if use_gpu_flag:
+                self.interaction = InteractionLSTM().cuda()
+            else:
+                self.interaction = InteractionLSTM()
             if interaction_model is not '':
                 snapshot = torch.load(interaction_model)
                 self.interaction.load_state_dict(snapshot['state_dict'])
 
         if RnnType.BBox in self.model_list:
-            self.bbar = BBoxLSTM().cuda()
+            if use_gpu_flag:
+                self.bbar = BBoxLSTM().cuda()
+            else:
+                self.bbar = BBoxLSTM()
             if bbox_model is not '':
                 snapshot = torch.load(bbox_model)
                 self.bbar.load_state_dict(snapshot['state_dict'])
