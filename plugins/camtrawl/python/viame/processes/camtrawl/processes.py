@@ -270,8 +270,8 @@ class CamtrawlMeasureProcess(KwiverProcess):
         # self.add_port_trait('camera' + '2', 'camera', 'Right camera calibration')
         self.add_port_trait('detected_object_set' + '1', 'detected_object_set', 'Detections from camera1')
         self.add_port_trait('detected_object_set' + '2', 'detected_object_set', 'Detections from camera2')
-        self.add_port_trait('image_file_name' + '1', 'image_file_name', 'desc1')
-        self.add_port_trait('image_file_name' + '2', 'image_file_name', 'desc2')
+        self.add_port_trait('image_file_name' + '1', 'file_name', 'desc1')
+        self.add_port_trait('image_file_name' + '2', 'file_name', 'desc2')
         # self.add_port_trait('frame_id1', 'int', 'frame id')
         # self.add_port_trait('frame_id2', 'int', 'frame id')
 
