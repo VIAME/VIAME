@@ -121,6 +121,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::protobuf::track > ( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::track_set > ( vpm );
   register_algorithm< kwiver::arrows::serialize::protobuf::object_track_set > ( vpm );
+  register_algorithm< kwiver::arrows::serialize::protobuf::string > ( vpm, "kwiver:file_name" );
+  register_algorithm< kwiver::arrows::serialize::protobuf::string > ( vpm, "kwiver:image_name" );
+  register_algorithm< kwiver::arrows::serialize::protobuf::string > ( vpm, "kwiver:video_name" );
 
   vpm.mark_module_as_loaded( module_name );
 }

@@ -120,6 +120,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::json::track >( vpm );
   register_algorithm< kwiver::arrows::serialize::json::track_set >( vpm );
   register_algorithm< kwiver::arrows::serialize::json::object_track_set >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:file_name" );
+  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:image_name" );
+  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:video_name" );
 
   vpm.mark_module_as_loaded( module_name );
 }
