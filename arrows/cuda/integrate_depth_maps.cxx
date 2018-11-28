@@ -100,7 +100,7 @@ integrate_depth_maps::get_configuration() const
   // get base config from base class
   vital::config_block_sptr config = vital::algo::integrate_depth_maps::get_configuration();
 
-  config->set_value("ray_potential_thickness", d_->ray_potential_thickness, "ray potential thickness"); 
+  config->set_value("ray_potential_thickness", d_->ray_potential_thickness, "ray potential thickness");
   config->set_value("ray_potential_rho", d_->ray_potential_rho, "ray potential rho");
   config->set_value("ray_potential_eta", d_->ray_potential_eta,
                      "0 < Eta < 1 : will be applied as a percentage of rho ");
@@ -130,7 +130,7 @@ integrate_depth_maps::set_configuration(vital::config_block_sptr in_config)
   d_->ray_potential_thickness = config->get_value<double>("ray_potential_thickness", d_->ray_potential_thickness);
   d_->ray_potential_eta = config->get_value<double>("ray_potential_eta", d_->ray_potential_eta);
   d_->ray_potential_delta = config->get_value<double>("ray_potential_delta", d_->ray_potential_delta);
-  
+
   std::ostringstream ostream;
   ostream << d_->grid_spacing[0] << " " << d_->grid_spacing[1] << " " << d_->grid_spacing[2];
   std::string spacing = config->get_value<std::string>("grid_spacing", ostream.str());
@@ -215,10 +215,10 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
   vector_3d diff = maxpt_bound - minpt_bound;
   vector_3d orig = minpt_bound;
 
-  for (int i = 0; i < 3; i++) 
+  for (int i = 0; i < 3; i++)
   {
     d_->grid_dims[i] = static_cast<int>((diff[i] / d_->grid_spacing[i]));
-  }    
+  }
 
   std::cerr << d_->grid_dims[0] << " " << d_->grid_dims[1] << " " << d_->grid_dims[2] << "\n";
 

@@ -41,12 +41,12 @@
 //*****************************************************************************
 
 // Define texture and constants
-__constant__ double c_gridOrig[3];    	  // Origin of the output volume
-__constant__ int3 c_gridDims; 				    // Dimensions of the output volume
-__constant__ double c_gridSpacing[3]; 	  // Spacing of the output volume
-__constant__ int2 c_depthMapDims; 				// Dimensions of all depths map
-__constant__ double c_rayPotentialThick; 	// Thickness threshold for the ray potential function
-__constant__ double c_rayPotentialRho; 		// Rho at the Y axis for the ray potential function
+__constant__ double c_gridOrig[3];        // Origin of the output volume
+__constant__ int3 c_gridDims;             // Dimensions of the output volume
+__constant__ double c_gridSpacing[3];     // Spacing of the output volume
+__constant__ int2 c_depthMapDims;         // Dimensions of all depths map
+__constant__ double c_rayPotentialThick;  // Thickness threshold for the ray potential function
+__constant__ double c_rayPotentialRho;    // Rho at the Y axis for the ray potential function
 __constant__ double c_rayPotentialEta;
 __constant__ double c_rayPotentialDelta;
 int grid_dims[3];
@@ -122,7 +122,7 @@ __device__ int computeVoxelIDGrid(int coordinates[3])
   int k = coordinates[2];
   return (k*dimY + j)*dimX + i;
 }
- 
+
 //*****************************************************************************
 
 //Compute the pixel Id on a 1D table according to its 3D coordinates (third coordinate is not used)
@@ -157,7 +157,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   transformFrom4Matrix(matrixK, voxelCenterCamera, voxelCenterHomogen);
   if (voxelCenterHomogen[2] < 0)
     return;
-  
+
   // Get voxel center on depth map coord
   double voxelCenterDepthMap[2];
   voxelCenterDepthMap[0] = voxelCenterHomogen[0] / voxelCenterHomogen[2];
@@ -177,7 +177,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   double depth = depths[depthMapId];
   if (depth == -1)
     return;
-  
+
   int gridId = computeVoxelIDGrid(voxelIndex);  // Get the distance between voxel and camera
   double realDepth = voxelCenterCamera[2];
   double newValue;
@@ -189,7 +189,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
 //*****************************************************************************
 
 // Initialize cuda constants
-void cuda_initalize(int h_gridDims[3], 		 // Dimensions of the output volume
+void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
           double h_gridOrig[3],  // Origin of the output volume
           double h_gridSpacing[3], // Spacing of the output volume
           double h_rayPThick,
@@ -207,7 +207,7 @@ void cuda_initalize(int h_gridDims[3], 		 // Dimensions of the output volume
 
   grid_dims[0] = h_gridDims[0];
   grid_dims[1] = h_gridDims[1];
-  grid_dims[2] = h_gridDims[2]; 
+  grid_dims[2] = h_gridDims[2];
 }
 
 //*****************************************************************************
@@ -219,7 +219,7 @@ void launch_depth_kernel(double * d_depth, int h_depthMapDims[2], double d_K[siz
   dim3 dimGrid(1, grid_dims[1], grid_dims[2]); // nb blocks on a grid
   cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int));
   CudaErrorCheck(cudaDeviceSynchronize());
-  depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_K, d_RT, d_volume);	
+  depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_K, d_RT, d_volume);
 }
 
 
