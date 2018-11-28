@@ -224,7 +224,7 @@ def video_frame_rate_settings_list( options ):
   if len( options.batch_skip ) > 0:
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
   if len( options.input_frame_rate ) > 0:
-    output += fset( 'input:frame_time' + options.input_frame_rate )
+    output += fset( 'input:frame_time=' + options.input_frame_rate )
   return output
 
 def remove_quotes( input_str ):
