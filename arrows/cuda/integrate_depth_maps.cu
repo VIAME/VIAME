@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018 by Kitware, Inc.
+* Copyright 2016 by Kitware SAS, 2018 Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
