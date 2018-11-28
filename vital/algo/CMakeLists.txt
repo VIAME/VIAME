@@ -58,6 +58,7 @@ set( public_headers
   train_detector.h
   triangulate_landmarks.h
   uuid_factory.h
+  uv_unwrap_mesh.h
   video_input.h
   write_object_track_set.h
   write_track_descriptor_set.h
@@ -115,6 +116,7 @@ set( sources
   train_detector.cxx
   triangulate_landmarks.cxx
   uuid_factory.cxx
+  uv_unwrap_mesh.cxx
   video_input.cxx
   write_object_track_set.cxx
   write_track_descriptor_set.cxx

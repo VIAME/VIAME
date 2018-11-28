@@ -11,6 +11,7 @@ Vital
 
  * Added constructors taking initalizer lists to mesh types for easier
    initialization.
+ * Added a new abstract algorithm, uv_unwrap_mesh, which unwraps a mesh and generates normalized texture coordinates.
 
 Vital Bindings
 
@@ -18,6 +19,7 @@ Arrows: Core
 
  * Added mesh_operations.h, initially with a function to triangulate a mesh.
    That is, subdivide mesh faces into triangles.
+ * Added an implementation for triangular mesh unwrapping. The method transforms each face independently to 2D and packs them in an almost square texture.
 
 Arrows: FFmpeg
 
