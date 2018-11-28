@@ -74,6 +74,13 @@ Arrows - Ceres
    enough measurements to constrain them etc.  The corrections typically
    remove offending items.  Only the largest connected map component is
    kept.  Underconstrained landmarks are removed etc.
+   
+Arrows CUDA
+ * Added CUDA arrow
+ 
+ * Added depth map integration using CUDA. The algorithm takes a set of
+   depth maps and associated cameras to produce a volume that a surface
+   can be extracted from using an algorithm like marching cubes.
 
 General
 
