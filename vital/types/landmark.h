@@ -87,6 +87,7 @@ public:
   virtual unsigned observations() const = 0;
   /// Accessor for the maximum intersection angle of rays triangulating this landmark
   virtual double cos_obs_angle() const = 0;
+
 };
 
 /// output stream operator for a base class landmark
