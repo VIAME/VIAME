@@ -71,17 +71,16 @@ public:
   * \param [in]     depth_maps  the set of floating point depth map images
   * \param [in]     cameras     the set of cameras, one for each depth map
   * \param [in,out] volume      the fused volumetric data
-  * \param [in,out] spacing     the spacing of the grid used to create the volume
   *
   * \note the volume data is stored as a 3D image.  Metadata fields on the
   * image specify the origin and scale of the volume in world coordinates.
   */
   virtual void
-    integrate(const kwiver::vital::vector_3d &minpt_bound, const kwiver::vital::vector_3d &maxpt_bound,
-      const std::vector<kwiver::vital::image_container_sptr> &depth_maps,
-      const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
-      kwiver::vital::image_container_sptr& volume,
-      kwiver::vital::vector_3d &spacing) const;
+    integrate(kwiver::vital::vector_3d const& minpt_bound,
+              kwiver::vital::vector_3d const& maxpt_bound,
+              std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
+              std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
+              kwiver::vital::image_container_sptr& volume) const;
 
 
 

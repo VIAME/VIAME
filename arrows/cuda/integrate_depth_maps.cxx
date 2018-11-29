@@ -206,11 +206,11 @@ void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera, double* d
 //*****************************************************************************
 
 void
-integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &maxpt_bound,
-                                const std::vector<kwiver::vital::image_container_sptr> &depth_maps,
-                                const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
-                                kwiver::vital::image_container_sptr& volume,
-                                kwiver::vital::vector_3d &spacing) const
+integrate_depth_maps::integrate(
+  vector_3d const& minpt_bound, vector_3d const& maxpt_bound,
+  std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
+  std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
+  kwiver::vital::image_container_sptr& volume) const
 {
   vector_3d diff = maxpt_bound - minpt_bound;
   vector_3d orig = minpt_bound;
@@ -253,7 +253,6 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
   double *h_volume = new double[vsize];
   cudaMemcpy(h_volume, d_volume, vsize * sizeof(double), cudaMemcpyDeviceToHost);
 
-  spacing = vector_3d(d_->grid_spacing);
   volume = std::shared_ptr<image_container>(new simple_image_container(
     image(h_volume, d_->grid_dims[0], d_->grid_dims[1], d_->grid_dims[2],
       1, d_->grid_dims[0], d_->grid_dims[0] * d_->grid_dims[1],
