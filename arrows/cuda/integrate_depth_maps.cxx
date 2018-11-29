@@ -151,7 +151,7 @@ integrate_depth_maps::check_configuration(vital::config_block_sptr config) const
 
 double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
 {
-  unsigned int size = h_depth->height() * h_depth->width();
+  size_t size = h_depth->height() * h_depth->width();
   double* temp = new double[size];
 
   //copy to cuda format
@@ -236,8 +236,8 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
   for (int i = 0; i < depth_maps.size(); i++)
   {
     int depthmap_dims[2];
-    depthmap_dims[0] = depth_maps[i]->width();
-    depthmap_dims[1] = depth_maps[i]->height();
+    depthmap_dims[0] = static_cast<int>(depth_maps[i]->width());
+    depthmap_dims[1] = static_cast<int>(depth_maps[i]->height());
     double *d_depth = copy_depth_map_to_gpu(depth_maps[i]);
     copy_camera_to_gpu(cameras[i], d_K, d_RT);
 
