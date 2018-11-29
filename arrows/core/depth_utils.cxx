@@ -44,7 +44,7 @@ namespace core {
 
 /// Compute the range of depths of landmarks from a camera
 void
-compute_depth_range_from_landmarks(std::vector<landmark_sptr> const& landmarks, 
+compute_depth_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
                                    camera_perspective const& cam,
                                    bounding_box<double> const& roi,
                                    double &depth_min, double &depth_max)
