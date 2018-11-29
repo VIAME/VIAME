@@ -220,9 +220,11 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
     d_->grid_dims[i] = static_cast<int>((diff[i] / d_->grid_spacing[i]));
   }
 
-  std::cerr << d_->grid_dims[0] << " " << d_->grid_dims[1] << " " << d_->grid_dims[2] << "\n";
+  LOG_DEBUG( logger(), "grid: " << d_->grid_dims[0]
+                       << " "   << d_->grid_dims[1]
+                       << " "   << d_->grid_dims[2] );
 
-  std::cout << "initialize\n";
+  LOG_INFO( logger(), "initialize" );
   cuda_initalize(d_->grid_dims, orig.data(), d_->grid_spacing,
     d_->ray_potential_thickness, d_->ray_potential_rho, d_->ray_potential_eta, d_->ray_potential_delta);
   const int vsize = d_->grid_dims[0] * d_->grid_dims[1] * d_->grid_dims[2];
@@ -242,7 +244,7 @@ integrate_depth_maps::integrate(const vector_3d &minpt_bound, const vector_3d &m
     copy_camera_to_gpu(cameras[i], d_K, d_RT);
 
     // run code on device
-    std::cout << "depth map " << i << std::endl;
+    LOG_INFO( logger(), "depth map " << i );
     launch_depth_kernel(d_depth, depthmap_dims, d_K, d_RT, d_volume);
     cudaFree(d_depth);
   }
