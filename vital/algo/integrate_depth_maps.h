@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,11 +80,12 @@ public:
    * \param [in,out] spacing     the spacing of the grid used to create the volume
    */
   virtual void
-    integrate(const kwiver::vital::vector_3d &minpt_bound, const kwiver::vital::vector_3d &maxpt_bound,
-      const std::vector<kwiver::vital::image_container_sptr> &depth_maps,
-      const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
-      kwiver::vital::image_container_sptr& volume,
-      kwiver::vital::vector_3d &spacing) const = 0;
+    integrate(kwiver::vital::vector_3d const& minpt_bound,
+              kwiver::vital::vector_3d const& maxpt_bound,
+              std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
+              std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
+              kwiver::vital::image_container_sptr& volume,
+              kwiver::vital::vector_3d &spacing) const = 0;
 
 protected:
   integrate_depth_maps();
