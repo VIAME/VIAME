@@ -15,6 +15,7 @@ set(KWSYS_USE_RegularExpression    1)
 set(KWSYS_USE_SystemInformation    1)
 set(KWSYS_USE_Directory            1)
 set(KWSYS_USE_CommandLineArguments 1)
+set(KWSYS_USE_MD5 1)
 
 set(KWSYS_INSTALL_EXPORT_NAME  ${kwiver_export_name})
 set(KWSYS_INSTALL_INCLUDE_DIR  "include")
@@ -68,6 +69,7 @@ set( vital_public_headers
   attribute_set.h
   exceptions.h
   iterator.h
+  math_constants.h
 
   io/camera_from_metadata.h
   io/camera_io.h
@@ -111,6 +113,7 @@ set( vital_public_headers
   types/image_container.h
   types/landmark.h
   types/landmark_map.h
+  types/local_geo_cs.h
   types/match_set.h
   types/matrix.h
   types/mesh.h
@@ -122,6 +125,7 @@ set( vital_public_headers
   types/polygon.h
   types/query_plan.h
   types/rotation.h
+  types/sfm_constraints.h
   types/similarity.h
   types/timestamp.h
   types/timestamp_config.h
@@ -170,6 +174,7 @@ set( vital_sources
   types/homography_f2w.cxx
   types/image.cxx
   types/landmark.cxx
+  types/local_geo_cs.cxx
   types/mesh.cxx
   types/metadata.cxx
   types/metadata_traits.cxx
@@ -177,6 +182,7 @@ set( vital_sources
   types/polygon.cxx
   types/query_plan.cxx
   types/rotation.cxx
+  types/sfm_constraints.cxx
   types/similarity.cxx
   types/timestamp.cxx
   types/track.cxx
@@ -235,11 +241,11 @@ endif()
 # Build a default set of plugin path dirs
 # Provide that list as the default value for the path option.
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} modules )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
 set( vital_default_module_path ${kwiver_module_path_result} )
 
 if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} modules )
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
   set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
 endif()
 
@@ -286,6 +292,10 @@ add_subdirectory( plugin_loader )
 
 if (KWIVER_ENABLE_TOOLS)
   add_subdirectory( tools )
+endif()
+
+if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
+  add_subdirectory( types/protobuf )
 endif()
 
 ###

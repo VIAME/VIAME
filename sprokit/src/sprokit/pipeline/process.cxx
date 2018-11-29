@@ -1983,9 +1983,11 @@ process::priv
 /**
  * @brief Check all required ports.
  *
- * This method checks all required
+ * This method checks all *required* input ports to see if real data
+ * is present. The current 'check_input_level' is used to determine
+ * level of checking required.
  *
- * @return
+ * @return Null datum_t if data is on the *required* input ports.
  */
 datum_t
 process::priv

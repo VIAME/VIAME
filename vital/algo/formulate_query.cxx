@@ -41,7 +41,7 @@ namespace algo {
 formulate_query
 ::formulate_query()
 {
-  attach_logger( "formulate_query" );
+  attach_logger( "algo.formulate_query" );
 }
 
 

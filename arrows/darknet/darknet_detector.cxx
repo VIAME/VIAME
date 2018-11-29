@@ -33,6 +33,7 @@
 
 // kwiver includes
 #include <vital/util/cpu_timer.h>
+#include <vital/config/config_block_formatter.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -240,7 +241,8 @@ check_configuration( vital::config_block_sptr config ) const
   if( net_config.empty() )
   {
     std::stringstream str;
-    config->print( str );
+    kwiver::vital::config_block_formatter fmt( config );
+    fmt.print( str );
     LOG_ERROR( logger(), "Required net config file not specified. "
       "Configuration is as follows:\n" << str.str() );
     success = false;
@@ -254,7 +256,8 @@ check_configuration( vital::config_block_sptr config ) const
   if( class_file.empty() )
   {
     std::stringstream str;
-    config->print( str );
+    kwiver::vital::config_block_formatter fmt( config );
+    fmt.print( str );
     LOG_ERROR( logger(), "Required class name list file not specified, "
       "Configuration is as follows:\n" << str.str() );
     success = false;

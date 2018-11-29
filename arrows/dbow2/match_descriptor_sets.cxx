@@ -445,7 +445,7 @@ match_descriptor_sets
 ::match_descriptor_sets()
  : d_(new priv)
 {
-  attach_logger("match_descriptor_sets");
+  attach_logger("arrows.dbow2.match_descriptor_sets");
   d_->m_logger = this->logger();
 }
 
@@ -580,6 +580,22 @@ check_configuration(vital::config_block_sptr config) const
     LOG_ERROR(d_->m_logger,
       "max_num_candidate_matches_from_vocabulary_tree must be a positive "
       "(nonzero) integer");
+    config_valid = false;
+  }
+
+  auto voc_path = config->get_value<std::string>("vocabulary_path",
+                                                 d_->vocabulary_path);
+  auto train_path = config->get_value<std::string>("training_image_list_path",
+                                                   d_->training_image_list_path);
+  if ((!kwiversys::SystemTools::FileExists(voc_path) ||
+       kwiversys::SystemTools::FileIsDirectory(voc_path)) &&
+      (!kwiversys::SystemTools::FileExists(train_path) ||
+       kwiversys::SystemTools::FileIsDirectory(train_path)))
+  {
+    LOG_ERROR(d_->m_logger,
+      "Could not find a valid vocabulary file or training image list\n"
+      "  voc file: " << voc_path << "\n"
+      "  train list: " << train_path);
     config_valid = false;
   }
 

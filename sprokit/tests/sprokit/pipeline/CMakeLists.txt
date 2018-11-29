@@ -32,8 +32,8 @@ sprokit_discover_tests(edge edge_libraries test_edge.cxx)
 ##############################
 function (sprokit_add_test_plugin    name    directory)
   kwiver_add_plugin("${name}"
-    SUBDIR   sprokit
-    SOURCES  ${ARGN}
+    SUBDIR     ${kwiver_plugin_process_subdir}
+    SOURCES    ${ARGN}
     PRIVATE    vital_vpm
                sprokit_pipeline)
 

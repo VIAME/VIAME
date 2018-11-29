@@ -24,7 +24,7 @@ kwiver_add_plugin( instrumentation_plugin
                    vital_util
                    vital_logger
                    sprokit_pipeline
-  SUBDIR           modules
+  SUBDIR           ${kwiver_plugin_process_instrumentation_subdir}
   )
 
 
@@ -32,7 +32,7 @@ if (KWIVER_ENABLE_TOOLS)
 ###
 #     plugins for plugin explorer
 kwiver_add_plugin( process_instrumentation_plugin
-  SUBDIR   modules/plugin_explorer
+  SUBDIR   ${kwiver_plugin_plugin_explorer_subdir}
   SOURCES  process_instrumentation_plugin.cxx
   PRIVATE  vital
            vital_vpm

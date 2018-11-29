@@ -1,16 +1,5 @@
-vital Configuration Usage
-============================
-
-Meta: The goal if this document is to provide a single reference on
-how to *use* the config library not necessarily the detailed config
-specification syntax or the API. (but maybe it should) There is a
-config file format document which may be useful as a separate
-document/section at the end.
-
-  - what is a config
-  - how to create them
-  - best practices
-
+Configuration Usage
+===================
 
 Introduction
 ------------

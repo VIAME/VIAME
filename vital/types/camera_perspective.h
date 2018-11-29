@@ -88,6 +88,10 @@ public:
   virtual rotation_d rotation() const = 0;
   /// Accessor for the intrinsics
   virtual camera_intrinsics_sptr intrinsics() const = 0;
+  /// Accessor for the image width
+  virtual unsigned int image_width() const { return intrinsics()->image_width(); }
+  /// Accessor for the image height
+  virtual unsigned int image_height() const { return intrinsics()->image_height(); }
 
   /// Create a clone of this camera that is rotated to look at the given point
   /**

@@ -11,7 +11,6 @@
 #include <sstream>
 
 #include <vul/vul_awk.h>
-#include <vul/vul_reg_exp.h>
 
 #include <track_oracle/aries_interface/aries_interface.h>
 #include <track_oracle/data_terms/data_terms.h>

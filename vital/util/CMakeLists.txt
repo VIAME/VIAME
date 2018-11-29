@@ -21,6 +21,7 @@ set( public_headers
   source_location.h
 
   data_stream_reader.h
+  hex_dump.h
   string.h
   string_editor.h
   thread_pool.h
@@ -49,6 +50,7 @@ set( sources
   source_location.cxx
 
   data_stream_reader.cxx
+  hex_dump.cxx
   string.cxx
   string_editor.cxx
   thread_pool.cxx

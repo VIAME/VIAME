@@ -226,7 +226,7 @@ public:
 
         meta->set_timestamp( ts );
 
-        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_FILENAME,
+        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI,
                                       video_path ) );
         retval.push_back( meta );
       } // end valid metadata packet.
@@ -247,7 +247,7 @@ public:
 
       meta->set_timestamp(ts);
 
-      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_FILENAME,
+      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_URI,
         video_path));
 
       retval.push_back(meta);
@@ -493,7 +493,7 @@ vidl_ffmpeg_video_input
 ::vidl_ffmpeg_video_input()
   : d( new priv() )
 {
-  attach_logger( "video_input" ); // get appropriate logger
+  attach_logger( "arrows.vxl.video_input" ); // get appropriate logger
   d->d_logger = this->logger();
 }
 

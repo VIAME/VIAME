@@ -11,6 +11,7 @@
 #include <utility>
 #include <limits>
 #include <algorithm>
+#include <mutex>
 
 #include <vital/logger/logger.h>
 static kwiver::vital::logger_handle_t main_logger( kwiver::vital::get_logger( __FILE__ ) );
@@ -95,7 +96,7 @@ field_handle_type
 track_oracle_core_impl
 ::create_element( const element_descriptor& e )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   return this->unlocked_create_element<T>( e );
 }
 
@@ -129,7 +130,7 @@ void
 track_oracle_core_impl
 ::remove_field( oracle_entry_handle_type row, field_handle_type field )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   pair< map< oracle_entry_handle_type, T >*, T > probe = this->lookup_table<T>( field );
   probe.first->erase( row );
 }
@@ -156,7 +157,7 @@ T&
 track_oracle_core_impl
 ::get_field( oracle_entry_handle_type track, field_handle_type field )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   return this->unlocked_get_field<T>( track, field );
 }
 
@@ -165,7 +166,7 @@ pair< bool, T >
 track_oracle_core_impl
 ::get( oracle_entry_handle_type row, field_handle_type field )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   const pair< map< oracle_entry_handle_type, T >*, T> f_probe = this->lookup_table<T>( field );
   typename map< oracle_entry_handle_type, T >::const_iterator probe = f_probe.first->find( row );
   return
@@ -180,7 +181,7 @@ oracle_entry_handle_type
 track_oracle_core_impl
 ::lookup( field_handle_type field, const T& val, domain_handle_type domain )
 {
-  boost::unique_lock< boost::mutex > lock( this->api_lock );
+  std::lock_guard< std::mutex > lock( this->api_lock );
   pair< map< oracle_entry_handle_type, T >*, T > probe = this->lookup_table<T>( field );
   map< oracle_entry_handle_type, T >& data_column = *(probe.first);
   if ( domain == DOMAIN_ALL )

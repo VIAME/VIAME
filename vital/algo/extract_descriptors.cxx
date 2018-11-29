@@ -43,7 +43,7 @@ namespace algo {
 extract_descriptors
 ::extract_descriptors()
 {
-  attach_logger( "extract_descriptors" );
+  attach_logger( "algo.extract_descriptors" );
 }
 
 } } }

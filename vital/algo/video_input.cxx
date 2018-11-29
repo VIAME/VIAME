@@ -55,7 +55,7 @@ const algorithm_capabilities::capability_name_t video_input::IS_SEEKABLE( "is-se
 video_input
 ::video_input()
 {
-  attach_logger( "video_input" );
+  attach_logger( "algo.video_input" );
 }
 
 

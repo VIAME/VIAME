@@ -53,6 +53,8 @@
 // token traffic
 #define LEX_DEBUG 0
 
+using kst = kwiversys::SystemTools;
+
 namespace sprokit {
 
 namespace {
@@ -69,14 +71,20 @@ class include_context
 {
 public:
   include_context( const std::string& file_name )
-    : m_fstream( file_name ) // open file stream
+    : m_fstream( file_name, std::ios_base::in ) // open file stream
     , m_stream( &m_fstream )
     , m_reader( m_fstream ) // assign stream to reader
-    , m_filename( std::make_shared< std::string >( kwiversys::SystemTools::GetRealPath(file_name) ) )
+    , m_filename( std::make_shared< std::string >( kst::GetRealPath(file_name) ) )
   {
     if ( ! m_stream )
     {
-      throw kwiver::vital::config_file_not_found_exception( file_name, "could not open file");
+      VITAL_THROW( kwiver::vital::config_file_not_found_exception, file_name, "could not open file");
+    }
+
+    // make sure file is readable
+    if ( ! kst::TestFileAccess( file_name, kwiversys::TEST_FILE_OK | kwiversys::TEST_FILE_READ ) )
+    {
+      VITAL_THROW( kwiver::vital::config_file_not_found_exception, file_name, "could not access file");
     }
   }
 
@@ -399,11 +407,10 @@ get_next_token()
       if ( "" == resolv_filename ) // could not resolve
       {
         std::ostringstream sstr;
-        sstr << "File included from " << current_location()
+        sstr << file_name << " included from " << current_location()
              << " could not be found in search path.";
 
-        LOG_ERROR( m_logger, sstr.str() );
-        throw sprokit::file_no_exist_exception( file_name );
+        VITAL_THROW( sprokit::file_no_exist_exception, sstr.str() );
       }
 
       LOG_TRACE( m_logger, "Including file: \"" << resolv_filename << "\"" );

@@ -43,7 +43,7 @@ namespace algo {
 track_features
 ::track_features()
 {
-  attach_logger( "track_features" );
+  attach_logger( "algo.track_features" );
 }
 
 } } }

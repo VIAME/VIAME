@@ -66,9 +66,6 @@ initialize_object_tracks_process
   : process( config ),
     d( new initialize_object_tracks_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -84,6 +81,8 @@ initialize_object_tracks_process
 void initialize_object_tracks_process
 ::_configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   algo::initialize_object_tracks::set_nested_algo_configuration(
@@ -140,8 +139,12 @@ initialize_object_tracks_process
     old_tracks = grab_from_port_using_trait( object_track_set );
   }
 
-  // Compute new tracks
-  new_tracks = d->m_track_initializer->initialize( frame_id, image, detections );
+  {
+    scoped_step_instrumentation();
+
+    // Compute new tracks
+    new_tracks = d->m_track_initializer->initialize( frame_id, image, detections );
+  }
 
   // Union optional input tracks if available
   if( old_tracks )

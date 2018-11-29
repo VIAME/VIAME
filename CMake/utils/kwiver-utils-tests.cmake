@@ -91,6 +91,7 @@ function (kwiver_build_test name libraries)
     LINK_PRIVATE
       ${${libraries}})
   kwiver_declare_test(${name})
+  
 endfunction ()
 
 # ------------------------------------------------------------------

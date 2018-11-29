@@ -256,6 +256,9 @@ public:
    * @brief Get list of all class_names in use.
    *
    * This method returns an ordered vector of all class_name strings.
+   * This set of strings represents the superset of all class_names
+   * used to classify objects. Strings are added to this set when a
+   * previously unseen class_name is passed to the CTOR or
    *
    * @return Vector of class names.
    */

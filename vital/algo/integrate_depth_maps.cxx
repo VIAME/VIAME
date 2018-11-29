@@ -45,7 +45,7 @@ namespace algo {
 integrate_depth_maps
 ::integrate_depth_maps()
 {
-  attach_logger( "integrate_depth_maps" );
+  attach_logger( "algo.integrate_depth_maps" );
 }
 
 } } }

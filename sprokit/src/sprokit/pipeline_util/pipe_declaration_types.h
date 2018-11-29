@@ -48,8 +48,7 @@
  * \brief Types for the AST of a pipeline declaration.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 /// The type for a token in the AST.
 typedef std::string token_t;
