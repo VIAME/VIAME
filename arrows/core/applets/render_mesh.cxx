@@ -45,6 +45,7 @@
 #include <vital/io/mesh_io.h>
 #include <vital/io/camera_io.h>
 #include <vital/util/get_paths.h>
+#include <vital/util/transform_image.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -66,6 +67,7 @@ std::string opt_out_config;     // output config file name
 int opt_width = 1920;           // image width
 int opt_height = 1080;          // image height
 bool opt_height_map = false;    // render a height map instead of a depth map
+bool opt_byte_img = false;      // render as a byte image with stretched range
 
 // ------------------------------------------------------------------
 static kwiver::vital::config_block_sptr default_config()
@@ -88,6 +90,40 @@ static kwiver::vital::config_block_sptr default_config()
 
 typedef kwiversys::CommandLineArguments argT;
 
+
+// ----------------------------------------------------------------------------
+template <typename T>
+kwiver::vital::image_of<uint8_t>
+stretch_to_byte_image(kwiver::vital::image_of<T> const& in_image)
+{
+  // get the range of finite values in the image
+  double min_v = std::numeric_limits<T>::infinity();
+  double max_v = -std::numeric_limits<T>::infinity();
+  kwiver::vital::foreach_pixel(in_image, [&min_v, &max_v](T p)
+  {
+    if( std::isfinite(p) )
+    {
+      min_v = std::min(min_v, p);
+      max_v = std::max(max_v, p);
+    }
+  });
+
+  // map the range of finite values to [1, 255] and use 0 for all non-finite values
+  T scale = 254.0 / (max_v - min_v);
+  T offset = 1.0 - min_v * scale;
+  kwiver::vital::image_of<uint8_t> byte_image(in_image.width(), in_image.height());
+  kwiver::vital::transform_image(in_image, byte_image,
+                                 [scale, offset](T p) -> uint8_t
+  {
+    if (std::isfinite(p))
+    {
+      return static_cast<uint8_t>(p * scale + offset);
+    }
+    return 0;
+  });
+
+  return byte_image;
+}
 
 
 // ----------------------------------------------------------------------------
@@ -125,6 +161,7 @@ run( const std::vector<std::string>& argv )
   arg.AddArgument( "-x",            argT::SPACE_ARGUMENT, &opt_width, "Output image width");
   arg.AddArgument( "-y",            argT::SPACE_ARGUMENT, &opt_height, "Output image height");
   arg.AddArgument( "--height-map",  argT::NO_ARGUMENT, &opt_height_map, "Render a height map instead of a depth map" );
+  arg.AddArgument( "--byte",        argT::NO_ARGUMENT, &opt_byte_img, "Render as a byte image with scaled range" );
 
   if ( ! arg.Parse() )
   {
@@ -212,6 +249,14 @@ run( const std::vector<std::string>& argv )
   else
   {
     image = render_mesh_depth_map(mesh, camera);
+  }
+
+  if ( opt_byte_img )
+  {
+    std::cout << "Converting to byte image" << std::endl;
+    kwiver::vital::image_of<double> d_image(image->get_image());
+    image = std::make_shared<kwiver::vital::simple_image_container>(
+              stretch_to_byte_image(d_image));
   }
 
   std::cout << "Saving" << std::endl;
