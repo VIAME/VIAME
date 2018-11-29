@@ -11,18 +11,16 @@ if ( KWIVER_ENABLE_ZeroMQ )
     zmq_transport_send_process.h
     )
 
-  set(ZeroMQ_LIBRARIES zmq)
+  find_package( ZeroMQ REQUIRED)
 endif ( KWIVER_ENABLE_ZeroMQ )
 
 set(sources
   register_processes.cxx
-
   file_transport_send_process.cxx
   ${zmq_sources}
   )
 
 set(private_headers
-
   file_transport_send_process.h
   ${zmq_headers}
   )
@@ -41,6 +39,7 @@ kwiver_add_plugin( kwiver_processes_transport
   )
 
 if ( KWIVER_ENABLE_ZeroMQ )
-  target_compile_definitions( kwiver_processes_transport
-    PRIVATE    WITH_ZMQ )
+  target_compile_definitions(
+    kwiver_processes_transport
+    PRIVATE WITH_ZMQ )
 endif()
