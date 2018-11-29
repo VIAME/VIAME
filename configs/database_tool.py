@@ -193,13 +193,16 @@ def start( quiet=False ):
 def stop():
   try:
     execute_cmd( "pg_ctl", [ "-D", sql_dir, "stop" ] )
+  except subprocess.CalledProcessError:
+    # Most likely happened because the database wasn't started in the first place.
+    # No problem - just ignore the error.
+    pass
+  try:
     if is_windows():
       execute_cmd( "net", [ "stop", "postgresql-x64-9.5 (64-bit windows)" ] )
     else:
       execute_cmd( "pkill", [ "postgres" ] )
   except subprocess.CalledProcessError:
-    # Most likely happened because the database wasn't started in the first place.
-    # No problem - just ignore the error.
     pass
 
 def build_balltree_index( install_dir="", log_file="" ):
