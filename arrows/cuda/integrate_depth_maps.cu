@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018 by Kitware, Inc.
+* Copyright 2016 by Kitware SAS, 2018 Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -38,20 +38,22 @@
 
 #define size4x4 16
 
-// ----------------------------------------------------------------------------
-/* Define texture and constants */
-__constant__ double c_gridOrig[3]; 	// Origin of the output volume
-__constant__ int3 c_gridDims; 						// Dimensions of the output volume
-__constant__ double c_gridSpacing[3]; 	// Spacing of the output volume
-__constant__ int2 c_depthMapDims; 					// Dimensions of all depths map
-__constant__ double c_rayPotentialThick; 		// Thickness threshold for the ray potential function
-__constant__ double c_rayPotentialRho; 		// Rho at the Y axis for the ray potential function
+//*****************************************************************************
+
+// Define texture and constants
+__constant__ double c_gridOrig[3];        // Origin of the output volume
+__constant__ int3 c_gridDims;             // Dimensions of the output volume
+__constant__ double c_gridSpacing[3];     // Spacing of the output volume
+__constant__ int2 c_depthMapDims;         // Dimensions of all depths map
+__constant__ double c_rayPotentialThick;  // Thickness threshold for the ray potential function
+__constant__ double c_rayPotentialRho;    // Rho at the Y axis for the ray potential function
 __constant__ double c_rayPotentialEta;
 __constant__ double c_rayPotentialDelta;
 int grid_dims[3];
 
-// ----------------------------------------------------------------------------
-/* Macro called to catch cuda error when cuda functions is called */
+//*****************************************************************************
+
+// Macro called to catch cuda error when cuda functions are called
 #define CudaErrorCheck(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
 {
@@ -62,17 +64,18 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
   }
 }
 
-// ----------------------------------------------------------------------------
+//*****************************************************************************
 
 __device__ void computeVoxelCenter(int voxelCoordinate[3], double output[3])
 {
-	output[0] = c_gridOrig[0] + (voxelCoordinate[0] + 0.5) * c_gridSpacing[0];
-	output[1] = c_gridOrig[1] + (voxelCoordinate[1] + 0.5) * c_gridSpacing[1];
-	output[2] = c_gridOrig[2] + (voxelCoordinate[2] + 0.5) * c_gridSpacing[2];
+  output[0] = c_gridOrig[0] + (voxelCoordinate[0] + 0.5) * c_gridSpacing[0];
+  output[1] = c_gridOrig[1] + (voxelCoordinate[1] + 0.5) * c_gridSpacing[1];
+  output[2] = c_gridOrig[2] + (voxelCoordinate[2] + 0.5) * c_gridSpacing[2];
 }
 
-// ----------------------------------------------------------------------------
-/* Apply a 4x4 matrix to a 3D points */
+//*****************************************************************************
+
+//Apply a 3x4 matrix to a 3D points (assumes last row of M is 0, 0, 0, 1)
 __device__ void transformFrom4Matrix(double M[size4x4], double point[3], double output[3])
 {
   output[0] = M[0 * 4 + 0] * point[0] + M[0 * 4 + 1] * point[1] + M[0 * 4 + 2] * point[2] + M[0 * 4 + 3];
@@ -80,14 +83,16 @@ __device__ void transformFrom4Matrix(double M[size4x4], double point[3], double 
   output[2] = M[2 * 4 + 0] * point[0] + M[2 * 4 + 1] * point[1] + M[2 * 4 + 2] * point[2] + M[2 * 4 + 3];
 }
 
-// ----------------------------------------------------------------------------
-// Compute the norm of a table with 3 double
+//*****************************************************************************
+
+// Compute the norm of a 3 vec
 __device__ double norm(double vec[3])
 {
   return sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
 }
 
-// ----------------------------------------------------------------------------
+//*****************************************************************************
+
 //Ray potential function which computes the increment to the current voxel
 __device__ void rayPotential(double realDistance, double depthMapDistance, double& res)
 {
@@ -105,10 +110,9 @@ __device__ void rayPotential(double realDistance, double depthMapDistance, doubl
     res = (c_rayPotentialRho / c_rayPotentialThick) * diff;
 }
 
-// ----------------------------------------------------------------------------
-/* Compute the voxel Id on a 1D table according to its 3D coordinates
-  coordinates : 3D coordinates
-*/
+//*****************************************************************************
+
+// Compute the voxel Id on a 1D table according to its 3D coordinates
 __device__ int computeVoxelIDGrid(int coordinates[3])
 {
   int dimX = c_gridDims.x;
@@ -118,12 +122,10 @@ __device__ int computeVoxelIDGrid(int coordinates[3])
   int k = coordinates[2];
   return (k*dimY + j)*dimX + i;
 }
- 
-// ----------------------------------------------------------------------------
-/* Compute the pixel Id on a 1D table according to its 3D coordinates
-  (third coordinate is not used)
-coordinates : 3D coordinates
-*/
+
+//*****************************************************************************
+
+//Compute the pixel Id on a 1D table according to its 3D coordinates (third coordinate is not used)
 __device__ int computeVoxelIDDepth(int coordinates[3])
 {
   int dimX = c_depthMapDims.x;
@@ -134,13 +136,9 @@ __device__ int computeVoxelIDDepth(int coordinates[3])
   return (dimX*(dimY - 1 - y)) + x;
 }
 
-// ----------------------------------------------------------------------------
-/* Main function called inside the kernel
-  depths : depth map values
-  matrixK : matrixK
-  matrixRT : matrixRT
-  output : double table that will be filled at the end of function
-*/
+//*****************************************************************************
+
+// Main kernel for adding a depth map to the volume
 __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double matrixRT[size4x4],
   double* output)
 {
@@ -159,7 +157,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   transformFrom4Matrix(matrixK, voxelCenterCamera, voxelCenterHomogen);
   if (voxelCenterHomogen[2] < 0)
     return;
-	
+
   // Get voxel center on depth map coord
   double voxelCenterDepthMap[2];
   voxelCenterDepthMap[0] = voxelCenterHomogen[0] / voxelCenterHomogen[2];
@@ -179,7 +177,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   double depth = depths[depthMapId];
   if (depth == -1)
     return;
-  
+
   int gridId = computeVoxelIDGrid(voxelIndex);  // Get the distance between voxel and camera
   double realDepth = voxelCenterCamera[2];
   double newValue;
@@ -188,15 +186,16 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   output[gridId] += newValue;
 }
 
-// ----------------------------------------------------------------------------
-// Initialize cuda constant
-void cuda_initalize(int h_gridDims[3], 		 // Dimensions of the output volume
-					double h_gridOrig[3],  // Origin of the output volume
-					double h_gridSpacing[3], // Spacing of the output volume
-					double h_rayPThick,
-					double h_rayPRho,
-					double h_rayPEta,
-					double h_rayPDelta)
+//*****************************************************************************
+
+// Initialize cuda constants
+void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
+          double h_gridOrig[3],  // Origin of the output volume
+          double h_gridSpacing[3], // Spacing of the output volume
+          double h_rayPThick,
+          double h_rayPRho,
+          double h_rayPEta,
+          double h_rayPDelta)
 {
   cudaMemcpyToSymbol(c_gridDims, h_gridDims, 3 * sizeof(int));
   cudaMemcpyToSymbol(c_gridOrig, h_gridOrig, 3 * sizeof(double));
@@ -208,10 +207,11 @@ void cuda_initalize(int h_gridDims[3], 		 // Dimensions of the output volume
 
   grid_dims[0] = h_gridDims[0];
   grid_dims[1] = h_gridDims[1];
-  grid_dims[2] = h_gridDims[2]; 
+  grid_dims[2] = h_gridDims[2];
 }
 
-// ----------------------------------------------------------------------------
+//*****************************************************************************
+
 void launch_depth_kernel(double * d_depth, int h_depthMapDims[2], double d_K[size4x4], double d_RT[size4x4], double* d_volume)
 {
   // Organize threads into blocks and grids
@@ -219,7 +219,7 @@ void launch_depth_kernel(double * d_depth, int h_depthMapDims[2], double d_K[siz
   dim3 dimGrid(1, grid_dims[1], grid_dims[2]); // nb blocks on a grid
   cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int));
   CudaErrorCheck(cudaDeviceSynchronize());
-  depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_K, d_RT, d_volume);	
+  depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_K, d_RT, d_volume);
 }
 
 
