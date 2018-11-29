@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, SAS.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,62 +29,67 @@
  */
 
 /**
- * \file distribute_process.h
- *
- * \brief Declaration of the distribute process.
+ * \file
+ * \brief Header for mesh uv unwrapping
  */
 
-#ifndef SPROKIT_PROCESSES_FLOW_DISTRIBUTE_PROCESS_H
-#define SPROKIT_PROCESSES_FLOW_DISTRIBUTE_PROCESS_H
+#ifndef KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
+#define KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
 
-#include "processes_flow_export.h"
+#include <arrows/core/kwiver_algo_core_export.h>
 
-#include <sprokit/pipeline/process.h>
+#include <vital/algo/uv_unwrap_mesh.h>
+#include <vital/types/mesh.h>
+#include <vital/vital_config.h>
 
-namespace sprokit {
 
-class PROCESSES_FLOW_NO_EXPORT distribute_process
-  : public process
+namespace kwiver {
+namespace arrows {
+namespace core {
+
+/// A class for unwrapping a mesh and generating texture coordinates
+class KWIVER_ALGO_CORE_EXPORT uv_unwrap_mesh
+    : public vital::algorithm_impl<uv_unwrap_mesh, vital::algo::uv_unwrap_mesh>
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    distribute_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~distribute_process();
-  protected:
-    /**
-     * \brief Initialize the process.
-     */
-    void _init();
+public:
+  /// Name of the algorithm
+  static constexpr char const* name = "core";
 
-    /**
-     * \brief Reset the process.
-     */
-    void _reset();
+  /// Description of the algorithm
+  static constexpr char const* description = "Unwrap a mesh and generate texture coordinates";
 
-    /**
-     * \brief Step the process.
-     */
-    void _step();
+  /// Get configuration
+  virtual vital::config_block_sptr get_configuration() const;
 
-    /**
-     * \brief The properties on the process.
-     */
-    properties_t _properties() const;
+  /// Set configuration
+  virtual void set_configuration(vital::config_block_sptr in_config);
 
-    void output_port_undefined(port_t const& port) override;
+  /// Check configuration
+  virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  private:
-    class priv;
-    std::unique_ptr<priv> d;
+  /// Constructor
+  uv_unwrap_mesh();
+
+  /// Destructor
+  virtual ~uv_unwrap_mesh();
+
+  /// Copy Constructor
+  uv_unwrap_mesh(const uv_unwrap_mesh& other);
+
+  /// Unwrap a mesh and generate texture coordinate
+  /**
+   * \param mesh [in/out]
+   */
+  virtual void unwrap(kwiver::vital::mesh_sptr mesh) const;
+
+private:
+  /// private implementation class
+  class priv;
+  const std::unique_ptr<priv> d_;
 };
 
 }
+}
+}
 
-#endif // SPROKIT_PROCESSES_FLOW_DISTRIBUTE_PROCESS_H
+#endif // KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H

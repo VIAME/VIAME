@@ -126,11 +126,11 @@ merge_detection_sets_process
 }
 
 // ----------------------------------------------------------------------------
-sprokit::process::port_info_t
+void
 merge_detection_sets_process
-::_input_port_info(port_t const& port_name)
+::input_port_undefined(port_t const& port_name)
 {
-  LOG_TRACE( logger(), "Processing input port info: \"" << port_name << "\"" );
+  LOG_TRACE( logger(), "Processing undefined input port: \"" << port_name << "\"" );
 
   // Just create an input port to read detections from
   if (! kwiver::vital::starts_with( port_name, "_" ) )
@@ -151,9 +151,6 @@ merge_detection_sets_process
       d->p_port_list.insert( port_name );
     }
   }
-
-  // call base class implementation
-  return process::_input_port_info( port_name );
 }
 
 } // end namespace

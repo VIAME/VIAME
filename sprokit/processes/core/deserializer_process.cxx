@@ -266,9 +266,9 @@ deserializer_process
 
 
 // ----------------------------------------------------------------------------
-sprokit::process::port_info_t
+void
 deserializer_process::
-_input_port_info(port_t const& port_name)
+input_port_undefined(port_t const& port_name)
 {
   LOG_TRACE( logger(), "Processing input port info: \"" << port_name << "\"" );
 
@@ -288,15 +288,13 @@ _input_port_info(port_t const& port_name)
         "serialized input" );
     }
   }
-
-  return process::_input_port_info( port_name );
 }
 
 
 // ----------------------------------------------------------------------------
-sprokit::process::port_info_t
+void
 deserializer_process::
-_output_port_info(port_t const& port_name)
+output_port_undefined(port_t const& port_name)
 {
   LOG_TRACE( logger(), "Processing output port info: \"" << port_name << "\"" );
 
@@ -318,8 +316,6 @@ _output_port_info(port_t const& port_name)
         port_description_t( "deserialized data type" ) );
     }
   }
-
-  return process::_output_port_info( port_name );
 }
 
 
@@ -343,7 +339,7 @@ deserializer_process
 
   // pass to base class
   return process::_set_output_port_type( port_name, port_type );
-} // deserializer_process::_output_port_info
+}
 
 
 // ----------------------------------------------------------------

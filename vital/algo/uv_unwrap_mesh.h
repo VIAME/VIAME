@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, SAS.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,44 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H
-#define ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H
+/**
+ * \file
+ * \brief uv_unwrap_mesh algorithm definition
+ */
 
-#include <sprokit/pipeline/process.h>
+#ifndef VITAL_ALGO_UV_UNWRAP_MESH_H
+#define VITAL_ALGO_UV_UNWRAP_MESH_H
 
-#include "kwiver_processes_export.h"
 
-#include <vital/config/config_block.h>
+#include <vital/vital_config.h>
+#include <vital/algo/algorithm.h>
+
+#include <vital/types/mesh.h>
 
 namespace kwiver {
+namespace vital {
+namespace algo {
 
-// ----------------------------------------------------------------
-/**
- * @brief Image object detector process.
- *
- */
-class KWIVER_PROCESSES_NO_EXPORT print_config_process
-  : public sprokit::process
+/// \brief Abstract base class for mesh uv unwrapping.
+class VITAL_ALGO_EXPORT uv_unwrap_mesh
+    : public kwiver::vital::algorithm_def<uv_unwrap_mesh>
 {
 public:
-  print_config_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~print_config_process();
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "uv_unwrap_mesh"; }
 
+  /// Unwrap a mesh and generate texture coordinates
+  /**
+   * \param mesh [in/out] mesh to unwrap
+   */
+  virtual void unwrap(kwiver::vital::mesh_sptr mesh) const = 0;
 
 protected:
-  virtual void _configure();
-  virtual void _step();
+  uv_unwrap_mesh();
 
-  // This is used to intercept connections and make ports JIT
-  virtual void input_port_undefined(port_t const& port) override;
+};
 
-private:
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class object_detector_process
+typedef std::shared_ptr<uv_unwrap_mesh> uv_unwrap_mesh_sptr;
 
-
-
-} // end namespace
-
-#endif // ARROWS_PROCESSES_PRINT_CONFIG_PROCESS_H
+} } }
+#endif // VITAL_ALGO_UV_UNWRAP_MESH_H
