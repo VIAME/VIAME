@@ -44,8 +44,10 @@ namespace core {
 
 /// Compute the range of depths of landmarks from a camera
 void
-compute_depth_range_from_landmarks(const std::vector<landmark_sptr> &landmarks, const camera_perspective_sptr &cam,
-                                   const bounding_box<double> &roi, double &depth_min, double &depth_max)
+compute_depth_range_from_landmarks(std::vector<landmark_sptr> const& landmarks, 
+                                   camera_perspective const& cam,
+                                   bounding_box<double> const& roi,
+                                   double &depth_min, double &depth_max)
 {
   std::vector<vector_3d> visible_landmarks = filter_visible_landmarks(cam, roi, landmarks);
   compute_depth_range(visible_landmarks, cam, depth_min, depth_max);
@@ -55,18 +57,20 @@ compute_depth_range_from_landmarks(const std::vector<landmark_sptr> &landmarks, 
 
 /// Compute the range of heights of landmarks seen by camera along a normal direction
 void
-compute_height_range_from_landmarks(const std::vector<landmark_sptr> &landmarks, const camera_sptr &cam,
-                                   const bounding_box<double> &roi, double &height_min, double &height_max,
-                                   const vector_3d &world_plane_normal)
+compute_height_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
+                                    camera const& cam, bounding_box<double> const& roi,
+                                    double &height_min, double &height_max,
+                                    vector_3d const& world_normal)
 {
   std::vector<vector_3d> visible_landmarks = filter_visible_landmarks(cam, roi, landmarks);
-  compute_offset_range(visible_landmarks, world_plane_normal, height_min, height_max);
+  compute_offset_range(visible_landmarks, world_normal, height_min, height_max);
 }
 
 //*****************************************************************************
 
 std::vector<vector_3d>
-points_of_box(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt)
+points_of_box(kwiver::vital::vector_3d const& minpt,
+              kwiver::vital::vector_3d const& maxpt)
 {
   std::vector<vector_3d> points(8);
   points[0] = vector_3d(minpt[0], minpt[1], minpt[2]);
@@ -84,29 +88,25 @@ points_of_box(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &m
 
 /// Return the axis aligned 2D box of a 3D box projected into an image
 vital::bounding_box<double>
-project_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
-                  const camera_sptr &cam, int imgwidth, int imgheight)
+project_3d_bounds(kwiver::vital::vector_3d const& minpt,
+                  kwiver::vital::vector_3d const& maxpt,
+                  camera const& cam, int imgwidth, int imgheight)
 {
   std::vector<vector_3d> points = points_of_box(minpt, maxpt);
 
   int i0, j0, i1, j1;
-  vector_2d pp = cam->project(points[0]);
+  vector_2d pp = cam.project(points[0]);
   i0 = i1 = (int)pp[0];
   j0 = j1 = (int)pp[1];
 
-
-  for (int i = 1; i < 8; i++)
+  for (vector_3d const& p : points)
   {
-    vector_2d pp = cam->project(points[i]);
+    vector_2d pp = cam.project(p);
     int ui = (int)pp[0], vi = (int)pp[1];
-    if (ui < i0)
-      i0 = ui;
-    if (vi < j0)
-      j0 = vi;
-    if (ui > i1)
-      i1 = ui;
-    if (vi > j1)
-      j1 = vi;
+    i0 = std::min(i0, ui);
+    j0 = std::min(j0, vi);
+    i1 = std::max(i1, ui);
+    j1 = std::max(j1, vi);
   }
 
   vital::bounding_box<double> roi(i0, j0, i1, j1);
@@ -119,20 +119,19 @@ project_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3
 
 ///Return the depth range of a 3d region along a normal
 void
-height_range_from_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
+height_range_from_3d_bounds(kwiver::vital::vector_3d const& minpt,
+                            kwiver::vital::vector_3d const& maxpt,
                             double &height_min, double &height_max,
-                            const vector_3d &world_plane_normal)
+                            vector_3d const& world_plane_normal)
 {
   std::vector<vector_3d> points = points_of_box(minpt, maxpt);
 
   height_min = height_max = world_plane_normal.dot(points[0]);
-  for (int i = 1; i < 8; i++)
+  for (vector_3d const& p : points)
   {
-    double d = world_plane_normal.dot(points[i]);
-    if (height_min > d)
-      height_min = d;
-    if (height_max < d)
-      height_max = d;
+    double h = world_plane_normal.dot(p);
+    height_min = std::min(height_min, h);
+    height_max = std::max(height_max, h);
   }
 }
 
@@ -140,8 +139,9 @@ height_range_from_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital
 
 ///Return the depth range of a 3d region from a camera
 void
-depth_range_from_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
-                           const camera_perspective_sptr &cam,
+depth_range_from_3d_bounds(kwiver::vital::vector_3d const& minpt,
+                           kwiver::vital::vector_3d const& maxpt,
+                           camera_perspective const& cam,
                            double &depth_min, double &depth_max)
 {
   std::vector<vector_3d> points = points_of_box(minpt, maxpt);
@@ -149,16 +149,11 @@ depth_range_from_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital:
 
   depth_min = std::numeric_limits<double>::infinity();
   depth_max = -std::numeric_limits<double>::infinity();
-  for (unsigned int i = 0; i < 8; i++)
+  for (vector_3d const& p : points)
   {
-    const vector_3d &p = points[i];
-    vector_4d pt(p[0], p[1], p[2], 1.0);
-    vector_3d res = cam->as_matrix() * pt;
-    double d = res[2];
-    if (depth_min > d)
-      depth_min = d;
-    if (depth_max < d)
-      depth_max = d;
+    double d = cam.depth(p);
+    depth_min = std::min(depth_min, d);
+    depth_max = std::max(depth_max, d);
   }
 }
 
@@ -166,16 +161,16 @@ depth_range_from_3d_bounds(kwiver::vital::vector_3d &minpt, const kwiver::vital:
 
 /// Return a subset of landmark points that project into the given region of interest
 std::vector<vector_3d>
-filter_visible_landmarks(const camera_sptr &cam,
-                         const bounding_box<double> &roi,
-                         const std::vector<vital::landmark_sptr> &landmarks)
+filter_visible_landmarks(camera const& cam,
+                         bounding_box<double> const& roi,
+                         std::vector<vital::landmark_sptr> const& landmarks)
 {
   std::vector<vector_3d> visible_landmarks;
 
   for (unsigned int i = 0; i < landmarks.size(); i++)
   {
     vector_3d p = landmarks[i]->loc();
-    vector_2d pp = cam->project(p);
+    vector_2d pp = cam.project(p);
     if (roi.contains(pp))
     {
       visible_landmarks.push_back(p);
@@ -189,8 +184,8 @@ filter_visible_landmarks(const camera_sptr &cam,
 
 /// Robustly compute the bounding planes of the landmarks in a given direction
 void
-compute_offset_range(const std::vector<vector_3d> &landmarks,
-                     const vector_3d &normal,
+compute_offset_range(std::vector<vector_3d> const& landmarks,
+                     vector_3d const& normal,
                      double &min_offset, double &max_offset,
                      const double outlier_thresh,
                      const double safety_margin_factor)
@@ -221,8 +216,8 @@ compute_offset_range(const std::vector<vector_3d> &landmarks,
 
 /// Robustly compute the bounding planes of the landmarks along a camera's view axis
 void
-compute_depth_range(const std::vector<vector_3d> &landmarks,
-                    const camera_perspective_sptr &cam,
+compute_depth_range(std::vector<vector_3d> const& landmarks,
+                    camera_perspective const& cam,
                     double &depth_min, double &depth_max,
                     const double outlier_thresh,
                     const double safety_margin_factor)
@@ -234,10 +229,7 @@ compute_depth_range(const std::vector<vector_3d> &landmarks,
 
   for (unsigned int i = 0; i < landmarks.size(); i++)
   {
-    const vector_3d &p = landmarks[i];
-    vector_4d pt(p[0], p[1], p[2], 1.0);
-    vector_3d res = cam->as_matrix() * pt;
-    depths.push_back(res[2]);
+    depths.push_back(cam.depth(landmarks[i]));
   }
   std::sort(depths.begin(), depths.end());
 
