@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "processes_transport_export.h"
+#include "kwiver_processes_transport_export.h"
 
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
@@ -47,7 +47,7 @@
  *
  */
 extern "C"
-PROCESSES_TRANSPORT_EXPORT
+KWIVER_PROCESSES_TRANSPORT_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {

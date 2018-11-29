@@ -32,8 +32,9 @@
 #define KWIVER_TRANSPORT_ZMQ_TRANSPORT_SEND_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
-#include "processes_transport_export.h"
 #include <zmq.hpp>
+
+#include "kwiver_processes_transport_export.h"
 
 namespace kwiver {
 
@@ -43,7 +44,7 @@ namespace kwiver {
  *
  *  Writes serialized data to a file.
  */
-class PROCESSES_TRANSPORT_NO_EXPORT zmq_transport_send_process
+class KWIVER_PROCESSES_TRANSPORT_NO_EXPORT zmq_transport_send_process
   : public sprokit::process
 {
 public:

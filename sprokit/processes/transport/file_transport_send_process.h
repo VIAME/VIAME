@@ -32,7 +32,8 @@
 #define KWIVER_TRANSPORT_FILE_TRANSPORT_SEND_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
-#include "processes_transport_export.h"
+
+#include "kwiver_processes_transport_export.h"
 
 namespace kwiver {
 
@@ -45,7 +46,7 @@ namespace kwiver {
  *
  * \oport{message}
  */
-class PROCESSES_TRANSPORT_NO_EXPORT file_transport_send_process
+class KWIVER_PROCESSES_TRANSPORT_NO_EXPORT file_transport_send_process
   : public sprokit::process
 {
 public:
