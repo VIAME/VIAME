@@ -12,6 +12,9 @@ Vital
  * Added constructors taking initalizer lists to mesh types for easier
    initialization.
 
+ * Added a foreach_pixel helper function to apply an operation at every
+   pixel of a const image.
+
 Vital Bindings 
  
 Arrows: Core
