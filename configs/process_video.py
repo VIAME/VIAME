@@ -2,6 +2,7 @@
 
 import sys
 import os
+import numpy as np
 import argparse
 import contextlib
 import itertools
@@ -28,9 +29,13 @@ if os.name == 'nt':
 else:
   div = '/'
 
-lb1 = '\n'
-lb2 = lb1 * 2
-lb3 = lb1 * 3
+lb  = '\n'
+lb1 = lb
+lb2 = lb * 2
+lb3 = lb * 3
+
+detection_ext = "_detections.csv"
+track_ext = "_tracks.csv"
 
 # Global flag to see if any video has successfully completed processing
 any_video_complete = False
@@ -175,8 +180,8 @@ def video_output_settings_list( options, basename ):
   output_dir = options.output_directory
 
   return list(itertools.chain(
-    fset( 'detector_writer:file_name=' + output_dir + div + basename + '_detections.csv' ),
-    fset( 'track_writer:file_name=' + output_dir + div + basename + '_tracks.csv' ),
+    fset( 'detector_writer:file_name=' + output_dir + div + basename + detection_ext ),
+    fset( 'track_writer:file_name=' + output_dir + div + basename + track_ext ),
     fset( 'track_writer:stream_identifier=' + basename ),
     fset( 'track_writer_db:writer:db:video_name=' + basename ),
     fset( 'track_writer_kw18:file_name=' + output_dir + div + basename + '.kw18' ),
@@ -191,7 +196,7 @@ def plot_settings_list( options, basename ):
   output_dir = options.output_directory
 
   return list(itertools.chain(
-    fset( 'detector_writer:file_name=' + output_dir + div + basename + '_detections.csv' ),
+    fset( 'detector_writer:file_name=' + output_dir + div + basename + detection_ext ),
     fset( 'kwa_writer:output_directory=' + output_dir ),
     fset( 'kwa_writer:base_filename=' + basename ),
     fset( 'kwa_writer:stream_id=' + basename ),
@@ -236,7 +241,13 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   if gpu is None:
     gpu = 0
 
-  log_info( 'Processing: {} on GPU {}... '.format(os.path.basename(input_name), gpu) )
+  multi_threaded = ( options.gpu_count * args.pipes > 1 )
+  input_basename = os.path.basename(input_name)
+
+  if multi_threaded:
+    log_info( 'Processing: {} on GPU {}... '.format( input_basename, gpu ) + lb1 )
+  else:
+    log_info( 'Processing: {} on GPU... '.format( input_basename ) )
 
   # Get video name without extension and full path
   if len( base_ovrd ) > 0:
@@ -246,12 +257,18 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   # Formulate input setting string
   if not os.path.exists( input_name ):
-    log_info( 'Skipped ({})'.format(gpu) + lb1 )
+    if multi_threaded:
+      log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+    else:
+      log_info( 'Skipped' + lb1 )
     return
   elif os.path.isdir( input_name ):
     input_name = make_filelist_for_image_dir( input_name, options.output_directory, basename )
     if len( input_name ) == 0:
-      log_info( 'Skipped ({})'.format(gpu) + lb1 )
+      if multi_threaded:
+        log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+      else:
+        log_info( 'Skipped' + lb1 )
       return
     is_image_list = True
 
@@ -265,9 +282,9 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     input_setting += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
 
   # Formulate command
-  command = (get_pipeline_cmd( options.debug ) +
-             ['-p', find_file( options.pipeline )] +
-             input_setting)
+  command = ( get_pipeline_cmd( options.debug ) +
+              ['-p', find_file( options.pipeline )] +
+              input_setting )
 
   if not is_image_list:
     command += video_frame_rate_settings_list( options )
@@ -298,10 +315,16 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   global any_video_complete
 
   if res == 0:
-    log_info( 'Success ({})'.format(gpu) + lb1 )
+    if multi_threaded:
+      log_info( 'Completed: {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+    else:
+      log_info( 'Success' + lb1 )
     any_video_complete = True
   else:
-    log_info( 'Failure ({})'.format(gpu) + lb1 )
+    if multi_threaded:
+      log_info( 'Failure: {} on GPU {} Failed'.format( input_basename, gpu ) + lb1 )
+    else:
+      log_info( 'Failure' + lb1 )
 
     if res == -11:
       log_info( lb1 + 'Pipeline failed with code 11. This is typically indicative of an '
@@ -404,23 +427,29 @@ if __name__ == "__main__" :
                       "for specifying the frame rate of input image lists, which typically "
                       "don't have frame rates")
 
-  parser.add_argument("-objects", dest="objects", default="fish",
-                      help="Objects to generate plots for")
-
-  parser.add_argument("-plot-threshold", dest="plot_threshold", default="0.25",
-                      help="Threshold to generate plots for")
-
   parser.add_argument("-detection-threshold", dest="detection_threshold", default="",
                       help="Optional detection threshold over-ride parameter")
-
-  parser.add_argument("-smooth", dest="smooth", default="1",
-                      help="Smoothing factor for plots")
 
   parser.add_argument("-archive-height", dest="archive_height", default="",
                       help="Advanced: Optional video archive height over-ride")
 
   parser.add_argument("-archive-width", dest="archive_width", default="",
                       help="Advanced: Optional video archive width over-ride")
+
+  parser.add_argument("-objects", dest="objects", default="fish",
+                      help="Objects to generate plots for")
+
+  parser.add_argument("-plot-threshold", dest="plot_threshold", default=0.25, type=float,
+                      help="Threshold to generate plots for")
+
+  parser.add_argument("-smooth", dest="smooth", default=1, type=int,
+                      help="Smoothing factor for plots")
+
+  parser.add_argument("-g", "--gpu-count", default=1, type=int, metavar='N',
+                      help="Parallelize the ingest by using the first N GPUs in parallel")
+
+  parser.add_argument("-pipes-per-gpu", "--pipes", default=1, type=int, metavar='N',
+                      help="Parallelize the ingest by using the first N GPUs in parallel")
 
   parser.add_argument("--init-db", dest="init_db", action="store_true",
                       help="Re-initialize database")
@@ -441,9 +470,6 @@ if __name__ == "__main__" :
                       help="Optional install dir over-ride for all application "
                       "binaries. If this is not specified, it is expected that all "
                       "viame binaries are already in our path.")
-
-  parser.add_argument("-g", "--gpu-count", default=1, type=int, metavar='N',
-                      help="Parallelize the ingest by using the first N GPUs in parallel")
 
   args = parser.parse_args()
 
@@ -519,8 +545,9 @@ if __name__ == "__main__" :
           break
         process_video_kwiver( video_name, args, is_image_list, gpu=gpu )
 
+    gpu_thread_list = np.array( range( args.gpu_count * args.pipes ) ) / args.pipes
     threads = [threading.Thread(target=process_video_thread, args=(gpu,))
-               for gpu in range(args.gpu_count)]
+               for gpu in gpu_thread_list]
 
     for thread in threads:
       thread.start()
@@ -538,10 +565,9 @@ if __name__ == "__main__" :
   if args.detection_plots:
     log_info( lb1 + "Generating data plots" + lb1 )
     generate_detection_plots.aggregate_plot( args.output_directory,
-                                    args.objects.split(","),
-                                    float( args.plot_threshold ),
-                                    float( args.frame_rate ),
-                                    int( args.smooth ) )
+      args.objects.split(","), float( args.plot_threshold ),
+      float( args.frame_rate ), int( args.smooth ),
+      ext=detection_ext, top_category_only=True )
 
   # Build searchable index
   if args.build_index:
