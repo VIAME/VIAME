@@ -50,7 +50,7 @@ def list_files_in_dir( folder ):
   ]
 
 def list_files_in_dir_w_ext( folder, extension ):
-  return [f for f in list_files_in_dir(folder) if f.endswith(extension)]
+  return [ f for f in list_files_in_dir(folder) if f.endswith(extension) ]
 
 # Create a directory if it doesn't exist
 def create_dir( dirname, logging=True ):
@@ -109,11 +109,11 @@ def log_info( msg ):
 def exit_with_error( error_str, force=False ):
   log_info( lb1 + 'ERROR: ' + error_str + lb2 )
   # Kill this process to end all threads
-  if not isinstance(threading.current_thread(), threading._MainThread):
+  if not isinstance( threading.current_thread(), threading._MainThread ):
     if os.name == 'nt':
-      os.kill(os.getpid(), signal.SIGTERM)
+      os.kill( os.getpid(), signal.SIGTERM )
     else:
-      os.kill(os.getpid(), signal.SIGKILL)
+      os.kill( os.getpid(), signal.SIGKILL )
   # Default exit case, if main thread
   sys.exit(0)
 
@@ -125,12 +125,12 @@ def check_file( filename ):
 @contextlib.contextmanager
 def get_log_output_files( output_prefix ):
   if os.name == 'nt':
-    with open(output_prefix + '.out.txt', 'w') as fo, \
-         open(output_prefix + '.err.txt', 'w') as fe:
-      yield dict(stdout=fo, stderr=fe)
+    with open( output_prefix + '.out.txt', 'w' ) as fo, \
+         open( output_prefix + '.err.txt', 'w' ) as fe:
+      yield dict( stdout=fo, stderr=fe)
   else:
-    with open(output_prefix + '.txt', 'w') as fo:
-      yield dict(stdout=fo, stderr=fo)
+    with open( output_prefix + '.txt', 'w' ) as fo:
+      yield dict( stdout=fo, stderr=fo )
 
 def find_file( filename ):
   if( os.path.exists( filename ) ):
