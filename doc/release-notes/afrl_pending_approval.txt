@@ -46,6 +46,8 @@ Arrows - Core
 
  * Added a new video_input implementation, video_input_splice, that
    splices multiple video sources together into a single video source. 
+   
+ * Added depth utilities to compute depth ranges based on landmarks
 
 Arrows - Ceres
 
@@ -74,6 +76,16 @@ Arrows - Ceres
    enough measurements to constrain them etc.  The corrections typically
    remove offending items.  Only the largest connected map component is
    kept.  Underconstrained landmarks are removed etc.
+
+Arrows CUDA
+ * Added CUDA arrow
+
+ * Added depth map integration using CUDA. The algorithm takes a set of
+   depth maps and associated cameras to produce a volume that a surface
+   can be extracted from using an algorithm like marching cubes.
+
+Arrows super3d
+ * Added region of interest specification for depth maps
 
 General
 
@@ -104,9 +116,3 @@ Arrows - VXL
 
  * Fixed issue with ffmpeg video source where the frame metadata was not
    getting set correctly.
-
-Arrows - OpenCV
-
- * Fixed an issue in which feature detector masks were not working as expected
-   when values were not exactly 0 and 255 due to lossy compression.
-   A threshold at 128 is now applied to force mask values to 0 and 255.

@@ -64,21 +64,21 @@ public:
   * contained in the input structures. Output references should either be new
   * instances or the same as input.
   *
-  * \param [in] image sequence to compute depth with
+  * \param [in] frames image sequence to compute depth with
   * \param [in] cameras corresponding to the image sequence
-  * \param [in] minimum depth expected
-  * \param [in] maximum depth expected
-  * \param [in] index into image sequence denoting the frame that depth is computed on
-  * \param [in] region of interest within reference image (can be entire image)
-  * \param [in] optional masks corresponding to the image sequence
+  * \param [in] depth_min minimum depth expected
+  * \param [in] depth_max maximum depth expected
+  * \param [in] reference_frame index into image sequence denoting the frame that depth is computed on
+  * \param [in] roi region of interest within reference image (can be entire image)
+  * \param [in] masks optional masks corresponding to the image sequence
   */
   virtual kwiver::vital::image_container_sptr
-    compute(const std::vector<kwiver::vital::image_container_sptr> &frames,
-            const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
+    compute(std::vector<kwiver::vital::image_container_sptr> const& frames,
+            std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
             double depth_min, double depth_max,
             unsigned int reference_frame,
-            const vital::bounding_box<double> &roi,
-            const std::vector<kwiver::vital::image_container_sptr> &masks =
+            vital::bounding_box<int> const& roi,
+            std::vector<kwiver::vital::image_container_sptr> const& masks =
             std::vector<kwiver::vital::image_container_sptr>()) const = 0;
 
   /// Typedef for the callback function signature

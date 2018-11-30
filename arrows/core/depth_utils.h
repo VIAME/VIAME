@@ -63,7 +63,7 @@ KWIVER_ALGO_CORE_EXPORT
 void
 compute_depth_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
                                    camera_perspective const& cam,
-                                   bounding_box<double> const& roi,
+                                   bounding_box<int> const& roi,
                                    double &depth_min, double &depth_max);
 
 /// Compute the range of heights of landmarks seen by camera along a normal direction
@@ -79,7 +79,7 @@ compute_depth_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
 KWIVER_ALGO_CORE_EXPORT
 void
 compute_height_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
-                                    camera const& cam,  bounding_box<double> const& roi,
+                                    camera const& cam,  bounding_box<int> const& roi,
                                     double &height_min, double &height_max,
                                     vector_3d const& world_normal = vector_3d(0.0, 0.0, 1.0));
 
@@ -94,7 +94,7 @@ compute_height_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
 * \returns bounding box in 2d
 */
 KWIVER_ALGO_CORE_EXPORT
-vital::bounding_box<double>
+vital::bounding_box<int>
 project_3d_bounds(kwiver::vital::vector_3d const& minpt,
                   kwiver::vital::vector_3d const& maxpt,
                   camera const& cam, int imgwidth, int imgheight);
@@ -140,7 +140,7 @@ depth_range_from_3d_bounds(kwiver::vital::vector_3d const& minpt,
 */
 std::vector<vector_3d>
 filter_visible_landmarks(camera const& cam,
-                         bounding_box<double> const& roi,
+                         bounding_box<int> const& roi,
                          std::vector<vital::landmark_sptr> const& landmarks);
 
 

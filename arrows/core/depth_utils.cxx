@@ -46,7 +46,7 @@ namespace core {
 void
 compute_depth_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
                                    camera_perspective const& cam,
-                                   bounding_box<double> const& roi,
+                                   bounding_box<int> const& roi,
                                    double &depth_min, double &depth_max)
 {
   std::vector<vector_3d> visible_landmarks = filter_visible_landmarks(cam, roi, landmarks);
@@ -58,7 +58,7 @@ compute_depth_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
 /// Compute the range of heights of landmarks seen by camera along a normal direction
 void
 compute_height_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
-                                    camera const& cam, bounding_box<double> const& roi,
+                                    camera const& cam, bounding_box<int> const& roi,
                                     double &height_min, double &height_max,
                                     vector_3d const& world_normal)
 {
@@ -87,7 +87,7 @@ points_of_box(kwiver::vital::vector_3d const& minpt,
 //*****************************************************************************
 
 /// Return the axis aligned 2D box of a 3D box projected into an image
-vital::bounding_box<double>
+vital::bounding_box<int>
 project_3d_bounds(kwiver::vital::vector_3d const& minpt,
                   kwiver::vital::vector_3d const& maxpt,
                   camera const& cam, int imgwidth, int imgheight)
@@ -96,23 +96,23 @@ project_3d_bounds(kwiver::vital::vector_3d const& minpt,
 
   int i0, j0, i1, j1;
   vector_2d pp = cam.project(points[0]);
-  i0 = i1 = (int)pp[0];
-  j0 = j1 = (int)pp[1];
+  i0 = i1 = static_cast<int>(pp[0]);
+  j0 = j1 = static_cast<int>(pp[1]);
 
   for (vector_3d const& p : points)
   {
     vector_2d pp = cam.project(p);
-    int ui = (int)pp[0], vi = (int)pp[1];
+    int ui = static_cast<int>(pp[0]), vi = static_cast<int>(pp[1]);
     i0 = std::min(i0, ui);
     j0 = std::min(j0, vi);
     i1 = std::max(i1, ui);
     j1 = std::max(j1, vi);
   }
 
-  vital::bounding_box<double> roi(i0, j0, i1, j1);
-  vital::bounding_box<double> img_bounds(0, imgwidth, 0, imgheight);
+  vital::bounding_box<int> roi(i0, j0, i1, j1);
+  vital::bounding_box<int> img_bounds(0, imgwidth, 0, imgheight);
 
-  return intersection<double>(roi, img_bounds);
+  return intersection<int>(roi, img_bounds);
 }
 
 //*****************************************************************************
@@ -162,7 +162,7 @@ depth_range_from_3d_bounds(kwiver::vital::vector_3d const& minpt,
 /// Return a subset of landmark points that project into the given region of interest
 std::vector<vector_3d>
 filter_visible_landmarks(camera const& cam,
-                         bounding_box<double> const& roi,
+                         bounding_box<int> const& roi,
                          std::vector<vital::landmark_sptr> const& landmarks)
 {
   std::vector<vector_3d> visible_landmarks;
@@ -171,7 +171,7 @@ filter_visible_landmarks(camera const& cam,
   {
     vector_3d p = landmarks[i]->loc();
     vector_2d pp = cam.project(p);
-    if (roi.contains(pp))
+    if (roi.contains(pp.cast<int>()))
     {
       visible_landmarks.push_back(p);
     }

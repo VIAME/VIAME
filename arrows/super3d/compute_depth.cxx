@@ -85,7 +85,7 @@ public:
   std::unique_ptr<world_space> compute_world_space_roi(vpgl_perspective_camera<double> &cam,
                                                        vil_image_view<double> &frame,
                                                        double depth_min, double depth_max,
-                                                       const vital::bounding_box<double> &roi);
+                                                       vital::bounding_box<int> const& roi);
 
   unsigned int S;
   double theta0;
@@ -193,7 +193,7 @@ compute_depth::priv
 ::compute_world_space_roi(vpgl_perspective_camera<double> &cam,
                           vil_image_view<double> &frame,
                           double depth_min, double depth_max,
-                          const vital::bounding_box<double> &roi)
+                          vital::bounding_box<int> const& roi)
 {  
   frame = vil_crop(frame, roi.min_x(), roi.width(), roi.min_y(), roi.height());
   cam = crop_camera(cam, roi.min_x(), roi.min_y());
@@ -206,12 +206,12 @@ compute_depth::priv
 
 image_container_sptr
 compute_depth
-::compute(const std::vector<kwiver::vital::image_container_sptr> &frames_in,
-          const std::vector<kwiver::vital::camera_perspective_sptr> &cameras_in,
+::compute(std::vector<kwiver::vital::image_container_sptr> const& frames_in,
+          std::vector<kwiver::vital::camera_perspective_sptr> const& cameras_in,
           double depth_min, double depth_max,
           unsigned int ref_frame,
-          const vital::bounding_box<double> &roi,
-          const std::vector<kwiver::vital::image_container_sptr> &masks_in) const
+          vital::bounding_box<int> const& roi,
+          std::vector<kwiver::vital::image_container_sptr> const& masks_in) const
 {
   //convert frames
   std::vector<vil_image_view<double> > frames(frames_in.size());
