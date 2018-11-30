@@ -22,6 +22,7 @@ set( plugin_core_headers
   compute_ref_homography_core.h
   convert_image_bypass.h
   create_detection_grid.h
+  depth_utils.h
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   detected_object_set_input_csv.h
@@ -94,6 +95,7 @@ set( plugin_core_sources
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
   create_detection_grid.cxx
+  depth_utils.cxx
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
   detected_object_set_input_csv.cxx

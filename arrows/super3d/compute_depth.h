@@ -64,34 +64,28 @@ public:
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /// set a 3D region of interest for computing depth in
-  virtual bool set_roi(kwiver::vital::vector_3d &minpt, const kwiver::vital::vector_3d &maxpt,
-                       const kwiver::vital::camera_perspective_sptr &cam, int imgwidth, int imgheight,
-                       int &i0_out, int &ni_out, int &j0_out, int &nj_out);
-
-  /// remove ROI, will compute depth range using landmarks instead
-  void clear_roi();
-
-
   /// Compute a depth map from an image sequence
   /**
   * Implementations of this function should not modify the underlying objects
   * contained in the input structures. Output references should either be new
   * instances or the same as input.
   *
-  * \param [in] image sequence to compute depth with
+  * \param [in] frames image sequence to compute depth with
   * \param [in] cameras corresponding to the image sequence
-  * \param [in] landmarks from the bundle adjustment, used to compute a bounding volume
-  * \param [in] index into image sequence denoting the frame that depth is computed on
-  * \param [in] optional masks corresponding to the image sequence
+  * \param [in] depth_min minimum depth expected
+  * \param [in] depth_max maximum depth expected
+  * \param [in] reference_frame index into image sequence denoting the frame that depth is computed on
+  * \param [in] roi region of interest within reference image (can be entire image)
+  * \param [in] masks optional masks corresponding to the image sequence
   */
   virtual kwiver::vital::image_container_sptr
-  compute(const std::vector<kwiver::vital::image_container_sptr> &frames,
-          const std::vector<kwiver::vital::camera_perspective_sptr> &cameras,
-          const std::vector<kwiver::vital::landmark_sptr> &landmarks,
+  compute(std::vector<kwiver::vital::image_container_sptr> const& frames,
+          std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
+          double depth_min, double depth_max,
           unsigned int reference_frame,
-          const std::vector<kwiver::vital::image_container_sptr> &masks =
-            std::vector<kwiver::vital::image_container_sptr>()) const;
+          vital::bounding_box<int> const& roi,
+          std::vector<kwiver::vital::image_container_sptr> const& masks =
+          std::vector<kwiver::vital::image_container_sptr>()) const;
 
   /// Set callback for receiving incremental updates
   virtual void set_callback(callback_t cb);
