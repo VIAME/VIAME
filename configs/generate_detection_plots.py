@@ -9,30 +9,35 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+import warnings
 
-def aggregate_plot(directory, objects, threshold, frame_rate, smooth=1, ext=".csv", top_only=False):
-  def format_x(x, pos):
-    t = datetime.timedelta(seconds=x)
-    return str(t)
+def aggregate_plot( directory, objects, threshold, frame_rate, smooth=1, ext=".csv",
+                    top_category_only=False ):
+
+  def format_x( x, pos ):
+    t = datetime.timedelta( seconds = x )
+    return str( t )
+
+  warnings.filterwarnings( "ignore" )
 
   videos = dict()
   video_plots = dict()
 
-  for filename in os.listdir(directory):
-    if filename.endswith(ext) and not filename.endswith(".output.csv"):
+  for filename in os.listdir( directory ):
+    if filename.endswith( ext ) and not filename.endswith( ".output.csv" ):
       fig, ax = video_plots[filename] = plt.subplots()
 
       plot_title = "Aggregate - " + filename
 
-      ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(format_x))
-      ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
-      ax.set(xlabel="Time", ylabel="Object Count", title=plot_title)
+      ax.xaxis.set_major_formatter( matplotlib.ticker.FuncFormatter( format_x ) )
+      ax.xaxis.set_major_locator( matplotlib.ticker.MaxNLocator( integer=True ) )
+      ax.set( xlabel="Time", ylabel="Object Count", title=plot_title )
       ax.grid()
 
       video_objects = videos[filename] = dict()
       for obj in objects:
         video_objects[obj] = dict()
-      with open(os.path.join(directory, filename), "r") as f:
+      with open( os.path.join(directory, filename), "r" ) as f:
         for line in f:
           line = line.rstrip()
           if line[0] != "#":
@@ -42,7 +47,7 @@ def aggregate_plot(directory, objects, threshold, frame_rate, smooth=1, ext=".cs
               if frame_id not in video_objects[obj]:
                 video_objects[obj][frame_id] = 0
 
-            detection_columns = columns[9:11] if top_only else columns[9:]
+            detection_columns = columns[9:11] if top_category_only else columns[9:]
             name = None
             for column in detection_columns:
               if name is not None:
@@ -100,12 +105,12 @@ def aggregate_plot(directory, objects, threshold, frame_rate, smooth=1, ext=".cs
         ax.set(xlabel="Time", ylabel="Object Count", title=plot_title)
         ax.grid()
 
-        ax.plot(x, y)
-        ax.set_ylim(ymin=0)
-        ax.set_xlim(xmin=0)
-        if np.max( y ) < 5:
-          ax.set_ylim(ymax=5)
-        ax.locator_params(axis='x', nbins=7)
+        ax.plot( x, y )
+        ax.set_ylim( ymin = 0 )
+        ax.set_xlim( xmin = 0 )
+        if np.size( y ) > 0 and np.max( y ) < 5:
+          ax.set_ylim( ymax = 5 )
+        ax.locator_params( axis='x', nbins = 7 )
         fig.savefig(os.path.join(directory, filename + "." + obj + ".png"))
 
         fig, ax = video_plots[filename]
@@ -119,16 +124,17 @@ def aggregate_plot(directory, objects, threshold, frame_rate, smooth=1, ext=".cs
 
   for filename in video_plots:
     fig, ax = video_plots[filename]
-    ax.set_ylim(ymin=0)
-    ax.set_xlim(xmin=0)
-    ax.locator_params(axis='x', nbins=7)
+    ax.set_ylim( ymin = 0 )
+    ax.set_xlim( xmin = 0 )
+    ax.locator_params( axis='x', nbins = 7 )
     ax.legend()
-    fig.savefig(os.path.join(directory, filename + ".png"))
-
+    fig.savefig( os.path.join( directory, filename + ".png" ) )
 
 if __name__ == "__main__":
   try:
-    smooth = int(sys.argv[4])
+    smooth = int( sys.argv[4] )
   except IndexError:
     smooth = 1
-  aggregate_plot(".", sys.argv[1].split(","), float(sys.argv[2]), float(sys.argv[3]), smooth)
+  aggregate_plot( ".", sys.argv[1].split(","),
+                  float( sys.argv[2] ), float( sys.argv[3] ),
+                  smooth )
