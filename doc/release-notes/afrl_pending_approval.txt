@@ -47,6 +47,8 @@ Arrows - Core
  * Added a new video_input implementation, video_input_splice, that
    splices multiple video sources together into a single video source. 
    
+ * Added depth utilities to compute depth ranges based on landmarks
+
  * Added a convenience class for storing maps of arbitrary cameras and 
    adapted SfM utils to use it.
 
@@ -87,6 +89,16 @@ Arrows CUDA
 
  * Switch from std::map to std::unordered_map for internal bookkeeping for
    efficiency.
+
+Arrows CUDA
+ * Added CUDA arrow
+
+ * Added depth map integration using CUDA. The algorithm takes a set of
+   depth maps and associated cameras to produce a volume that a surface
+   can be extracted from using an algorithm like marching cubes.
+
+Arrows super3d
+ * Added region of interest specification for depth maps
 
 General
 
