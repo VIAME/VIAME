@@ -146,7 +146,7 @@ def make_filelist_for_image_dir( input_dir, output_dir, output_name ):
   # so just choose the most common filetype.
   exts = dict()
   files = dict()
-  for f in os.listdir( input_dir ):
+  for f in sorted( os.listdir( input_dir ) ):
     f_fp = os.path.join( input_dir, f )
     if os.path.isfile( f_fp ):
       _, ext = os.path.splitext( f )
@@ -242,7 +242,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     gpu = 0
 
   multi_threaded = ( options.gpu_count * args.pipes > 1 )
-  input_basename = os.path.basename(input_name)
+  input_basename = os.path.basename( input_name )
 
   if multi_threaded:
     log_info( 'Processing: {} on GPU {}'.format( input_basename, gpu ) + lb1 )
@@ -513,7 +513,7 @@ if __name__ == "__main__" :
       video_list = list_files_in_dir( args.input_dir )
       is_image_list = False
     else:
-      video_list = [args.input_video]
+      video_list = [ args.input_video ]
       is_image_list = False
 
     if len( video_list ) == 0:
@@ -546,8 +546,8 @@ if __name__ == "__main__" :
         process_video_kwiver( video_name, args, is_image_list, gpu=gpu )
 
     gpu_thread_list = np.array( range( args.gpu_count * args.pipes ) ) / args.pipes
-    threads = [threading.Thread(target=process_video_thread, args=(gpu,))
-               for gpu in gpu_thread_list]
+    threads = [ threading.Thread( target = process_video_thread, args = (gpu,) )
+                for gpu in gpu_thread_list ]
 
     for thread in threads:
       thread.start()
@@ -556,7 +556,7 @@ if __name__ == "__main__" :
 
     if is_image_list:
       for image_list in video_list:  # Clean up after split_image_list
-        os.unlink(image_list)
+        os.unlink( image_list )
 
     if not video_queue.empty():
       exit_with_error( "Some videos were not processed!" )
@@ -565,9 +565,9 @@ if __name__ == "__main__" :
   if args.detection_plots:
     log_info( lb1 + "Generating data plots" + lb1 )
     generate_detection_plots.aggregate_plot( args.output_directory,
-      args.objects.split(","), float( args.plot_threshold ),
+      args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
-      ext=detection_ext, top_category_only=True )
+      ext = detection_ext, top_category_only = True )
 
   # Build searchable index
   if args.build_index:
@@ -580,11 +580,11 @@ if __name__ == "__main__" :
 
     if args.ball_tree:
       if not database_tool.build_balltree_index( remove_quotes( args.install_dir ),
-                                                log_file=index_log_file ):
+                                                 log_file = index_log_file ):
         exit_with_error( "Unable to build index" )
     else:
       if not database_tool.build_standard_index( remove_quotes( args.install_dir ),
-                                                 log_file=index_log_file ):
+                                                 log_file = index_log_file ):
         exit_with_error( "Unable to build index" )
 
   # Output complete message
