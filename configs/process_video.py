@@ -45,12 +45,12 @@ def list_files_in_dir( folder ):
   if not os.path.isdir( folder ):
     exit_with_error( "Input folder \"" + folder + "\" does not exist" )
   return [
-    os.path.join(folder, f) for f in sorted(os.listdir(folder))
+    os.path.join(folder, f) for f in sorted( os.listdir( folder ) )
     if not f.startswith('.')
   ]
 
 def list_files_in_dir_w_ext( folder, extension ):
-  return [ f for f in list_files_in_dir(folder) if f.endswith(extension) ]
+  return [ f for f in list_files_in_dir(folder) if f.endswith( extension ) ]
 
 # Create a directory if it doesn't exist
 def create_dir( dirname, logging=True ):
@@ -66,26 +66,26 @@ def get_real_gpu_index(n):
   CUDA_VISIBLE_DEVICES
 
   """
-  cvd = os.environ.get(CUDA_VISIBLE_DEVICES)
+  cvd = os.environ.get( CUDA_VISIBLE_DEVICES )
   if not cvd:  # Treat empty string and None the same
     return str(n)
   # This is an attempt to respect the fact that an invalid index hides
   # the GPUs listed after it
-  cvd_parsed = list(itertools.takewhile(lambda i: not i.startswith('-'),
-                                        cvd.split(',')))
-  if 0 <= n < len(cvd_parsed):
+  cvd_parsed = list( itertools.takewhile( lambda i: not i.startswith('-'),
+                                          cvd.split(',') ) )
+  if 0 <= n < len( cvd_parsed ):
     return cvd_parsed[n]
   else:
     raise IndexError('Only {} visible GPUs; you asked for number {}!'
-                     .format(len(cvd_parsed), n))
+                     .format( len( cvd_parsed ), n) )
 
 def execute_command( cmd, stdout=None, stderr=None, gpu=None ):
   if gpu is None:
     env = None
   else:
     env = dict(os.environ)
-    env[CUDA_VISIBLE_DEVICES] = get_real_gpu_index(gpu)
-  return subprocess.call(cmd, stdout=stdout, stderr=stderr, env=env)
+    env[ CUDA_VISIBLE_DEVICES ] = get_real_gpu_index( gpu )
+  return subprocess.call( cmd, stdout=stdout, stderr=stderr, env=env )
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
@@ -93,14 +93,14 @@ def get_script_path():
 def get_pipeline_cmd( debug=False ):
   if os.name == 'nt':
     if debug:
-      return ['pipeline_runner.exe']
+      return [ 'pipeline_runner.exe' ]
     else:
-      return ['pipeline_runner.exe']
+      return [ 'pipeline_runner.exe' ]
   else:
     if debug:
-      return ['gdb', '--args', 'pipeline_runner']
+      return [ 'gdb', '--args', 'pipeline_runner' ]
     else:
-      return ['pipeline_runner']
+      return [ 'pipeline_runner' ]
 
 def log_info( msg ):
   sys.stdout.write( msg )
