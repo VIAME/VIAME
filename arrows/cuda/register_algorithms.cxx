@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,42 @@
 
 /**
  * \file
- * \brief Instantiation of \link kwiver::vital::algo::algorithm_def algorithm_def<T>
- *        \endlink for \link kwiver::vital::algo::bundle_adjust bundle_adjust \endlink
+ * \brief Register depth algorithms implementation
  */
 
-#include <vital/algo/bundle_adjust.h>
-#include <vital/algo/algorithm.txx>
-#include <vital/logger/logger.h>
+#include <arrows/cuda/kwiver_algo_cuda_plugin_export.h>
+#include <vital/algo/algorithm_factory.h>
+
+#include <arrows/cuda/integrate_depth_maps.h>
 
 namespace kwiver {
-namespace vital {
-namespace algo {
+namespace arrows {
+namespace cuda {
 
-bundle_adjust
-::bundle_adjust()
-{
-  attach_logger( "algo.bundle_adjust" );
-}
-
-/// Set a callback function to report intermediate progress
+extern "C"
+KWIVER_ALGO_CUDA_PLUGIN_EXPORT
 void
-bundle_adjust
-::set_callback(callback_t cb)
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  this->m_callback = cb;
-}
-
-void
-bundle_adjust
-::optimize(vital::camera_map_sptr& cameras,
-           vital::landmark_map_sptr& landmarks,
-           vital::feature_track_set_sptr tracks,
-           const std::set<vital::frame_id_t>& fixed_cameras,
-           const std::set<vital::landmark_id_t>& fixed_landmarks,
-           vital::sfm_constraints_sptr constraints) const
-{
-  if (!fixed_cameras.empty() || !fixed_landmarks.empty())
+  static auto const module_name = std::string( "arrows.cuda" );
+  if (vpm.is_module_loaded( module_name ) )
   {
-    LOG_WARN(logger(), "This implementation does not support fixing cameras or landmarks");
+    return;
   }
-  optimize(cameras, landmarks, tracks, constraints);
+
+  // add factory               implementation-name       type-to-create
+  auto fact = vpm.ADD_ALGORITHM("cuda", kwiver::arrows::cuda::integrate_depth_maps);
+  fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+    "cuda algorithms: depth map fusion")
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
+    .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")
+    ;
+
+
+  vpm.mark_module_as_loaded( module_name );
 }
 
-} } }
-
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::bundle_adjust);
-/// \endcond
+} // end namespace cuda
+} // end namespace arrows
+} // end namespace kwiver

@@ -104,13 +104,13 @@ public:
   // the input landmarks to update in place
   landmark_map::map_landmark_t lms;
   // a map from track id to landmark parameters
-  std::map<track_id_t, std::vector<double> > landmark_params;
+  std::unordered_map<track_id_t, std::vector<double> > landmark_params;
   // a map from frame number to extrinsic parameters
-  std::map<frame_id_t, std::vector<double> > camera_params;
+  std::unordered_map<frame_id_t, std::vector<double> > camera_params;
   // vector of unique camera intrinsic parameters
   std::vector<std::vector<double> > camera_intr_params;
   // a map from frame number to index of unique camera intrinsics in camera_intr_params
-  std::map<frame_id_t, unsigned int> frame_to_intr_map;
+  std::unordered_map<frame_id_t, unsigned int> frame_to_intr_map;
   // the ceres callback class
   StateCallback ceres_callback;
 };
@@ -259,12 +259,12 @@ bundle_adjust
 ::optimize(camera_map_sptr& cameras,
   landmark_map_sptr& landmarks,
   feature_track_set_sptr tracks,
-  metadata_map_sptr metadata) const
+  sfm_constraints_sptr constriants) const
 {
   //both fixed cameras and fixed landmarks are empty for default call.
   std::set<vital::frame_id_t> fixed_cameras;
   std::set<vital::landmark_id_t> fixed_landmarks;
-  optimize(cameras, landmarks, tracks, fixed_cameras, fixed_landmarks, metadata);
+  optimize(cameras, landmarks, tracks, fixed_cameras, fixed_landmarks, constriants);
 }
 
 
@@ -277,7 +277,7 @@ bundle_adjust
            feature_track_set_sptr tracks,
            const std::set<vital::frame_id_t>& to_fix_cameras,
            const std::set<vital::landmark_id_t>& to_fix_landmarks,
-           metadata_map_sptr metadata) const
+           sfm_constraints_sptr constriants) const
 {
   if( !cameras || !landmarks || !tracks )
   {
@@ -300,8 +300,8 @@ bundle_adjust
     d_->landmark_params[lm.first] = std::vector<double>(loc.data(), loc.data()+3);
   }
 
-  typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
-  typedef std::map<frame_id_t, std::vector<double> > cam_param_map_t;
+  typedef std::unordered_map<track_id_t, std::vector<double> > lm_param_map_t;
+  typedef std::unordered_map<frame_id_t, std::vector<double> > cam_param_map_t;
 
   d_->camera_params.clear();
   d_->camera_intr_params.clear();

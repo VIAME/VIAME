@@ -113,6 +113,9 @@ public:
   std::map<DBoW2::EntryId, kwiver::vital::frame_id_t> m_entry_to_frame;
 
   int m_max_num_candidate_matches_from_vocabulary_tree;
+
+  // returns node ids this many levels up from the base of the voc tree
+  int m_levels_up;
 };
 
 //-----------------------------------------------------------------------------
@@ -122,6 +125,7 @@ match_descriptor_sets::priv
   :training_image_list_path("")
   ,vocabulary_path("kwiver_voc.yml.gz")
   ,m_max_num_candidate_matches_from_vocabulary_tree(10)
+  ,m_levels_up(2)
 {
 
 }
@@ -186,7 +190,7 @@ match_descriptor_sets::priv
   //run them through the vocabulary to get the BOW vector
   DBoW2::BowVector bow_vec;
   DBoW2::FeatureVector feat_vec;
-  m_voc->transform(desc_mats, bow_vec, feat_vec, 0);
+  m_voc->transform(desc_mats, bow_vec, feat_vec, m_levels_up);
 
   //store node ids in feature_track_states
   for (auto node_data : feat_vec)
@@ -235,7 +239,7 @@ match_descriptor_sets::priv
   //run them through the vocabulary to get the BOW vector
   DBoW2::BowVector bow_vec;
   DBoW2::FeatureVector feat_vec;  //vector of [node id][descriptor index]
-  m_voc->transform(desc_mats, bow_vec, feat_vec, 3);
+  m_voc->transform(desc_mats, bow_vec, feat_vec, m_levels_up);
 
 
   //store node ids in feature_track_states
@@ -367,14 +371,8 @@ match_descriptor_sets::priv
       "unable to open training image file");
   }
 
-  int ln_num = 0;
   while (std::getline(im_list, line))
   {
-    if (ln_num++ != 10)
-    {
-      continue;
-    }
-    ln_num = 0;
     image_container_sptr im = m_image_io->load(line);
     LOG_INFO(m_logger, "Extracting features for image " + line);
 

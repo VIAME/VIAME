@@ -49,6 +49,9 @@ Arrows - Core
    
  * Added depth utilities to compute depth ranges based on landmarks
 
+ * Added a convenience class for storing maps of arbitrary cameras and 
+   adapted SfM utils to use it.
+
 Arrows - Ceres
 
  * Added ability to fix either cameras or landmarks in bundle adjustment.
@@ -76,6 +79,16 @@ Arrows - Ceres
    enough measurements to constrain them etc.  The corrections typically
    remove offending items.  Only the largest connected map component is
    kept.  Underconstrained landmarks are removed etc.
+   
+Arrows CUDA
+ * Added CUDA arrow
+ 
+ * Added depth map integration using CUDA. The algorithm takes a set of
+   depth maps and associated cameras to produce a volume that a surface
+   can be extracted from using an algorithm like marching cubes.
+
+ * Switch from std::map to std::unordered_map for internal bookkeeping for
+   efficiency.
 
 Arrows CUDA
  * Added CUDA arrow
@@ -108,6 +121,10 @@ Vital
    This API change avoids many memory copies when comparing descriptors
    at the byte level.
 
+ * Added a sfm_constraints class and pass this to the structure-from-motion
+   algorithms (initialize_cameras_landmark, bundle_adjust, optimize_cameras)
+   instead of passing the raw metadata.
+
 
 Fixes since last public release
 -------------------------------
@@ -116,3 +133,12 @@ Arrows - VXL
 
  * Fixed issue with ffmpeg video source where the frame metadata was not
    getting set correctly.
+
+Arrows - OpenCV
+
+ * Fixed an issue in which feature detector masks were not working as expected
+   when values were not exactly 0 and 255 due to lossy compression.
+   A threshold at 128 is now applied to force mask values to 0 and 255.
+
+ * Fixed an issue in the FAST detector where too many features were initially
+   detected.
