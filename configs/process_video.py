@@ -222,14 +222,14 @@ def object_detector_settings_list( options ):
 
 def video_frame_rate_settings_list( options ):
   output = []
+  if len( options.input_frame_rate ) > 0:
+    output += fset( 'input:frame_time=' + options.input_frame_rate )
   if len( options.frame_rate ) > 0:
     output += fset( 'downsampler:target_frame_rate=' + options.frame_rate )
   if len( options.batch_size ) > 0:
     output += fset( 'downsampler:burst_frame_count=' + options.batch_size )
   if len( options.batch_skip ) > 0:
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
-  if len( options.input_frame_rate ) > 0:
-    output += fset( 'input:frame_time=' + options.input_frame_rate )
   return output
 
 def remove_quotes( input_str ):
@@ -286,9 +286,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
               ['-p', find_file( options.pipeline )] +
               input_setting )
 
-  if not is_image_list:
-    command += video_frame_rate_settings_list( options )
-
+  command += video_frame_rate_settings_list( options )
   command += video_output_settings_list( options, basename )
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
