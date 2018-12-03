@@ -200,17 +200,18 @@ def process_video_dir( args ):
   else:
     no_file = "With No Imagery Loaded"
 
-  file_list = sorted( file_list )
-  file_list.append( no_file )
+  file_list = [no_file] + sorted( file_list )
   file_id = select_option( file_list )
 
-  if file_id == len( file_list ) - 1:
+  if file_id == 0:
     execute_command( get_gui_cmd() + default_annotator_args( args ) )
     sys.exit(0)
+  else:
+    file_id = file_id - 1
 
-  file_no_ext = net_files[file_id]
-  file_has_index = has_index[file_id]
-  file_path = net_full_paths[file_id]
+  file_no_ext = net_files[ file_id ]
+  file_has_index = has_index[ file_id ]
+  file_path = net_full_paths[ file_id ]
 
   # Scan for possible detection file
   detection_list = []
@@ -232,9 +233,9 @@ def process_video_dir( args ):
       no_file = "with_no_detections"
     else:
       no_file = "Launch Without Loading Detections"
-    detection_list.append( no_file )
+    detection_list = [ no_file ] + detection_list
     detection_id = select_option( detection_list )
-    if detection_id != len( detection_list ) - 1:
+    if detection_id != 0:
       detection_file = detection_list[ detection_id ]
 
   # Launch GUI with required options
