@@ -552,7 +552,7 @@ if __name__ == "__main__" :
         except queue.Empty:
           break
         process_video_kwiver( video_name, args, is_image_list,
-                              gpu=gpu, write_track_time=is_image_list )
+                              gpu=gpu, write_track_time=not is_image_list )
 
     gpu_thread_list = np.array( range( args.gpu_count * args.pipes ) ) / args.pipes
     threads = [ threading.Thread( target = process_video_thread, args = (gpu,) )
