@@ -159,7 +159,7 @@ def init( log_file="" ):
       if query_yes_no( lb1 + "You are about to reset \"" + database_dir + "\", continue?" ):
         shutil.rmtree( database_dir )
       else:
-        return False;
+        return [ False, True ]
 
     # Generate new database
     log_info( "Initializing database... " )
@@ -169,11 +169,11 @@ def init( log_file="" ):
     execute_cmd( "createuser", [ "-e", "-E", "-s", "-i", "-r", "-d", "postgres" ] )
     execute_cmd( "psql", [ "-f", find_config( sql_init_file ), "postgres" ] )
     log_info( "Success" + lb2 )
-    return True
+    return [ True, True ]
 
   except:
     log_info( "Failure" + lb2 )
-    return False
+    return [ False, False ]
 
 def status():
   execute_cmd( "pg_ctl", [ "-D", sql_dir, "status" ] )
