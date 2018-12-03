@@ -588,7 +588,7 @@ if __name__ == "__main__" :
     detection_plot_dir = args.plot_dir_prefix + "_detections"
     create_dir( detection_plot_dir, logging=False )
     generate_detection_plots.aggregate_plot( args.output_directory,
-      args.plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
+      detection_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
       ext = detection_ext, top_category_only = False )
 
@@ -596,7 +596,7 @@ if __name__ == "__main__" :
     track_plot_dir = args.plot_dir_prefix + "_tracks"
     create_dir( track_plot_dir, logging=False )
     generate_detection_plots.aggregate_plot( args.output_directory,
-      args.plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
+      track_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
       ext = track_ext, top_category_only = True )
 
