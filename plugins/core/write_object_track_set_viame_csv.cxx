@@ -175,6 +175,10 @@ void write_object_track_set_viame_csv
   {
     auto trk_ptr = trk_pair.second;
 
+    const kwiver::vital::detected_object_type_sptr trk_average_tot =
+          ( d->m_tot_option == "detection" ? kwiver::vital::detected_object_type_sptr()
+            : compute_average_tot( trk_ptr, d->m_tot_option == "weighted_average" ) );
+
     for( auto ts_ptr : *trk_ptr )
     {
       kwiver::vital::object_track_state* ts =
@@ -206,8 +210,7 @@ void write_object_track_set_viame_csv
       if( det )
       {
         const kwiver::vital::detected_object_type_sptr dot =
-          ( d->m_tot_option == "detection" ? det->type() :
-            compute_average_tot( trk_ptr, d->m_tot_option == "weighted_average" ) );
+          ( d->m_tot_option == "detection" ? det->type() : trk_average_tot );
 
         if( dot )
         {
