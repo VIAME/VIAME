@@ -97,12 +97,13 @@ if __name__ == "__main__" :
 
   base, ext = os.path.splitext( filename )
 
-  detection_file = os.path.join( base + "_detections.csv" )
-
   # Find detection file and confirm it exits
+  detection_file = os.path.join( base + "_tracks.csv" )
   if not os.path.isfile( detection_file ):
-    print( "Error: Detection file does not exist" )
-    sys.exit(0)
+    detection_file = os.path.join( base + "_detections.csv" )
+    if not os.path.isfile( detection_file ):
+      print( "Error: Detection file does not exist" )
+      sys.exit(0)
 
   # Look for object category instances in file
   unique_ids = set()
