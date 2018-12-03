@@ -437,6 +437,15 @@ if __name__ == "__main__" :
   parser.add_argument("-archive-width", dest="archive_width", default="",
                       help="Advanced: Optional video archive width over-ride")
 
+  parser.add_argument("-gpus", "--gpu-count", default=1, type=int, metavar='N',
+                      help="Parallelize the ingest by using the first N GPUs in parallel")
+
+  parser.add_argument("-pipes-per-gpu", "--pipes", default=1, type=int, metavar='N',
+                      help="Parallelize the ingest by using the first N GPUs in parallel")
+
+  parser.add_argument("--detection-plots", dest="detection_plots", action="store_true",
+                      help="Produce per-video detection plot summaries")
+
   parser.add_argument("-objects", dest="objects", default="fish",
                       help="Objects to generate plots for")
 
@@ -446,11 +455,8 @@ if __name__ == "__main__" :
   parser.add_argument("-smooth", dest="smooth", default=1, type=int,
                       help="Smoothing factor for plots")
 
-  parser.add_argument("-gpus", "--gpu-count", default=1, type=int, metavar='N',
-                      help="Parallelize the ingest by using the first N GPUs in parallel")
-
-  parser.add_argument("-pipes-per-gpu", "--pipes", default=1, type=int, metavar='N',
-                      help="Parallelize the ingest by using the first N GPUs in parallel")
+  parser.add_argument("-plot-dir", dest="plot_dir", default="database",
+                      help="Directory to dump detection plots into")
 
   parser.add_argument("--init-db", dest="init_db", action="store_true",
                       help="Re-initialize database")
@@ -463,9 +469,6 @@ if __name__ == "__main__" :
 
   parser.add_argument("--debug", dest="debug", action="store_true",
                       help="Run with debugger attached to process")
-
-  parser.add_argument("--detection-plots", dest="detection_plots", action="store_true",
-                      help="Produce per-video detection plot summaries")
 
   parser.add_argument("-install", dest="install_dir", default="",
                       help="Optional install dir over-ride for all application "
@@ -565,7 +568,8 @@ if __name__ == "__main__" :
   # Build out detection vs time plots
   if args.detection_plots:
     log_info( lb1 + "Generating data plots" + lb1 )
-    generate_detection_plots.aggregate_plot( args.output_directory,
+    create_dir( args.plot_dir, logging=False )
+    generate_detection_plots.aggregate_plot( args.plot_dir,
       args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
       ext = detection_ext, top_category_only = True )
