@@ -446,7 +446,7 @@ if __name__ == "__main__" :
   parser.add_argument("-smooth", dest="smooth", default=1, type=int,
                       help="Smoothing factor for plots")
 
-  parser.add_argument("-g", "--gpu-count", default=1, type=int, metavar='N',
+  parser.add_argument("-gpus", "--gpu-count", default=1, type=int, metavar='N',
                       help="Parallelize the ingest by using the first N GPUs in parallel")
 
   parser.add_argument("-pipes-per-gpu", "--pipes", default=1, type=int, metavar='N',
