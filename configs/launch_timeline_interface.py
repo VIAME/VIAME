@@ -62,7 +62,7 @@ def select_option( option_list, display_str="Select File:" ):
     choice = input().lower()
 
   if int( choice ) < 1 or int( choice ) > len( option_list ):
-    print( "Invalid selection, must be a number" )
+    print( "Invalid selection, must be a valid number" )
     sys.exit(0)
 
   return option_list[ int(choice)-1 ]

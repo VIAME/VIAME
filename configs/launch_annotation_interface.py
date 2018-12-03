@@ -29,6 +29,9 @@ def list_files_in_dir( folder ):
 def list_files_in_dir_w_ext( folder, extension ):
   return [f for f in list_files_in_dir(folder) if f.endswith(extension)]
 
+def glob_files_in_folder( folder, prefix, extension ):
+  return glob.glob( os.path.join( folder, prefix ) + "*" + extension )
+
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
@@ -124,6 +127,28 @@ def generate_index_for_video( args, file_path, basename ):
 
   return args.cache_dir + div + basename + ".index"
 
+def select_option( option_list, display_str="Select File:" ):
+  sys.stdout.write( "\n" )
+
+  counter = 1
+  for option in option_list:
+    print( "(" + str(counter) + ") " + option )
+    counter = counter + 1
+
+  sys.stdout.write( "\n" + display_str + " " )
+  sys.stdout.flush()
+
+  if sys.version_info[0] < 3:
+    choice = raw_input().lower()
+  else:
+    choice = input().lower()
+
+  if int( choice ) < 1 or int( choice ) > len( option_list ):
+    print( "Invalid selection, must be a valid number" )
+    sys.exit(0)
+
+  return int(choice)-1
+
 def process_video( args ):
   print( "Function not yet implemented" )
   sys.exit(0)
@@ -162,37 +187,55 @@ def process_video_dir( args ):
       net_full_paths.append( fpath )
 
   if len( net_files ) == 0:
-    print( "No videos found in input directory: " + args.video_dir )
-    sys.exit(0)
+    print( "Error: No videos found in input directory: " + args.video_dir + "\n" )
+    print( "If you want to load videos, not just images, make sure it is non-empty\n" )
 
-  print( "" )
-  counter = 1
+  # Have user select video file
+  file_list = []
   for fname, is_cached in zip( net_files, has_index ):
-    cache_str = ""
-    if is_cached:
-      cache_str = " (cached in: " + args.cache_dir + ")"
-    print( "(" + str(counter) + ") " + fname + cache_str )
-    counter = counter + 1
+    file_list.append( fname + " (cached in: " + args.cache_dir + ")" if is_cached else "" )
 
-  sys.stdout.write( "\nSelect File: " )
-  sys.stdout.flush()
-
-  if sys.version_info[0] < 3:
-    choice = raw_input().lower()
+  if len( file_list ) > 0 and file_list[0].islower():
+    no_file = "with_no_imagery_loaded"
   else:
-    choice = input().lower()
+    no_file = "With No Imagery Loaded"
 
-  if int(choice) < 1 or int(choice) > len(net_files):
-    print( "Invalid selection, must be a valid number" )
+  file_list.append( no_file )
+  file_id = select_option( file_list )
+
+  if file_id == len( file_list ) - 1:
+    execute_command( get_gui_cmd() + default_annotator_args( args ) )
     sys.exit(0)
 
-  sys.stdout.write( "\n" )
-
-  file_id = int(choice)-1
   file_no_ext = net_files[file_id]
   file_has_index = has_index[file_id]
   file_path = net_full_paths[file_id]
 
+  # Scan for possible detection file
+  detection_list = []
+  detection_file = ""
+
+  detection_search = glob_files_in_folder( '.', file_no_ext, "csv" )
+  if len( detection_search ) > 0:
+    detection_list.extend( detection_search )
+  if len( args.video_dir ) > 0 and args.video_dir != '.':
+    detection_search = glob_files_in_folder( args.video_dir, file_no_ext, "csv" )
+    detection_list.extend( detection_search )
+  if len( args.cache_dir ) > 0 and args.cache_dir != '.' and args.cache_dir != args.video_dir:
+    detection_search = glob_files_in_folder( args.cache_dir, file_no_ext, "csv" )
+    detection_list.extend( detection_search )
+
+  if len( detection_list ) > 0:
+    if len( detection_list ) > 0 and detection_list[0].islower():
+      no_file = "with_no_detections"
+    else:
+      no_file = "Launch Without Loading Detections"
+    detection_list.append( no_file )
+    detection_id = select_option( detection_list )
+    if detection_id != len( detection_list ) - 1:
+      detection_file = detection_list[ detection_id ]
+
+  # Launch GUI with required options
   if not file_has_index:
     create_dir( args.cache_dir )
     print( "Generating cache for video file, this may take up to a few minutes.\n" )
@@ -204,6 +247,8 @@ def process_video_dir( args ):
 
   ftmp = os.fdopen(fd, 'w')
   ftmp.write( "DataSetSpecifier=" + os.path.abspath( file_path ).replace("\\","\\\\") + "\n" )
+  if len( detection_file ) > 0:
+    ftmp.write( "TracksFile=" + os.path.abspath( detection_file ).replace("\\","\\\\") + "\n" )
   ftmp.close()
 
   execute_command( get_gui_cmd() + [ "-p", name ] + default_annotator_args( args ) )
