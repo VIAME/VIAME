@@ -54,6 +54,7 @@ public:
     , m_stream_identifier( "" )
     , m_active_writing( false )
     , m_write_time_as_uid( false )
+    , m_tot_option( "weighted_average" )
   { }
 
   ~priv() { }
@@ -66,6 +67,7 @@ public:
   std::map< unsigned, kwiver::vital::track_sptr > m_tracks;
   bool m_active_writing;
   bool m_write_time_as_uid;
+  std::string m_tot_option;
 
   std::string format_image_id( const kwiver::vital::object_track_state* ts );
 };
@@ -91,6 +93,57 @@ std::string write_object_track_set_viame_csv::priv
   {
     return m_stream_identifier;
   }
+}
+
+kwiver::vital::detected_object_type_sptr
+compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
+{
+  std::map< std::string, double > class_map;
+
+  std::vector< std::string > class_names;
+  std::vector< double > scores;
+
+  if( trk_ptr )
+  {
+    double total_mass = 0.0;
+
+    for( auto ts_ptr : *trk_ptr )
+    {
+      kwiver::vital::object_track_state* ts =
+        static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
+
+      if( !ts->detection )
+      {
+        continue;
+      }
+
+      kwiver::vital::detected_object_type_sptr dot = ts->detection->type();
+
+      if( dot )
+      {
+        double weight = ( weighted ? ts->detection->confidence() : 1.0 );
+
+        for( const auto name : dot->class_names() )
+        {
+          class_map[ name ] += ( dot->score( name ) * weight );
+        }
+
+        total_mass += weight;
+      }
+    }
+
+    if( total_mass > 0.0 )
+    {
+      for( auto itr : class_map )
+      {
+        class_names.push_back( itr.first );
+        scores.push_back( itr.second / total_mass );
+      }
+    }
+  }
+
+  return kwiver::vital::detected_object_type_sptr(
+    new kwiver::vital::detected_object_type( class_names, scores ) );
 }
 
 
@@ -152,7 +205,10 @@ void write_object_track_set_viame_csv
   
       if( det )
       {
-        const auto dot = det->type();
+        const kwiver::vital::detected_object_type_sptr dot =
+          ( d->m_tot_option == "detection" ? det->type() :
+            compute_average_tot( trk_ptr, d->m_tot_option == "weighted_average" ) );
+
         if( dot )
         {
           const auto name_list( dot->class_names() );
@@ -183,6 +239,8 @@ write_object_track_set_viame_csv
     config->get_value<bool>( "active_writing", d->m_active_writing );
   d->m_write_time_as_uid =
     config->get_value<bool>( "write_time_as_uid", d->m_write_time_as_uid );
+  d->m_tot_option =
+    config->get_value<std::string>( "tot_option", d->m_tot_option );
 }
 
 
@@ -282,7 +340,10 @@ write_object_track_set_viame_csv
   
       if( det )
       {
-        const auto dot = det->type();
+        const kwiver::vital::detected_object_type_sptr dot =
+          ( d->m_tot_option == "detection" ? det->type() :
+            compute_average_tot( trk_ptr, d->m_tot_option == "weighted_average" ) );
+
         if( dot )
         {
           const auto name_list( dot->class_names() );
