@@ -11,6 +11,10 @@ import numpy as np
 
 import warnings
 
+def create_dir( dirname ):
+  if not os.path.exists( dirname ):
+    os.makedirs( dirname )
+
 def aggregate_plot( input_directory, output_directory, objects, threshold, frame_rate,
                     smooth=1, ext=".csv", top_category_only=False ):
 
@@ -42,7 +46,7 @@ def aggregate_plot( input_directory, output_directory, objects, threshold, frame
           line = line.rstrip()
           if line[0] != "#":
             columns = line.split(",")
-            frame_id = int(columns[2])
+            frame_id = int( columns[2] )
             for obj in objects:
               if frame_id not in video_objects[obj]:
                 video_objects[obj][frame_id] = 0
@@ -61,12 +65,12 @@ def aggregate_plot( input_directory, output_directory, objects, threshold, frame
 
       for obj in objects:
         smoothed_video_frames = dict()
-        for frame_id in sorted(video_objects[obj]):
+        for frame_id in sorted( video_objects[obj] ):
           lower_bound = frame_id - smooth // 2
           upper_bound = lower_bound + smooth
 
           max_count = video_objects[obj][frame_id]
-          for i in range(lower_bound, upper_bound):
+          for i in range( lower_bound, upper_bound ):
             try:
               val = video_objects[obj][i]
               if val > max_count:

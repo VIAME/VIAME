@@ -587,8 +587,7 @@ if __name__ == "__main__" :
     create_dir( args.plot_dir, logging=False )
     generate_detection_plots.aggregate_plot( args.output_directory,
       args.plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
-      float( args.frame_rate ), int( args.smooth ),
-      ext = detection_ext, top_category_only = True )
+      float( args.frame_rate ), int( args.smooth ), top_category_only = True )
 
   # Build searchable index
   if args.build_index:
