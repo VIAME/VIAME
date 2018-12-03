@@ -215,9 +215,15 @@ def object_detector_settings_list( options ):
     return list(itertools.chain(
       fset( 'detector:detector:darknet:thresh=' + options.detection_threshold ),
       fset( 'detector_filter:filter:class_probablity_filter:threshold=' + options.detection_threshold ),
+    ))
+  return []
+
+def object_tracker_settings_list( options ):
+  if len( options.detection_threshold ) > 0:
+    return list(itertools.chain(
       fset( 'track_initializer:track_initializer:threshold:'
-            'filter:class_probablity_filter:threshold=' + options.detection_threshold ),
-      fset( 'tracker:detection_select_threshold=' + options.detection_threshold ),
+            'filter:class_probablity_filter:threshold=' + options.tracker_threshold ),
+      fset( 'tracker:detection_select_threshold=' + options.tracker_threshold ),
     ))
   return []
 
@@ -288,6 +294,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   command += video_output_settings_list( options, basename )
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
+  command += object_tracker_settings_list( options )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
@@ -431,6 +438,9 @@ if __name__ == "__main__" :
 
   parser.add_argument("-detection-threshold", dest="detection_threshold", default="",
                       help="Optional detection threshold over-ride parameter")
+
+  parser.add_argument("-tracker-threshold", dest="tracker_threshold", default="",
+                      help="Optional tracking threshold over-ride parameter")
 
   parser.add_argument("-archive-height", dest="archive_height", default="",
                       help="Advanced: Optional video archive height over-ride")
