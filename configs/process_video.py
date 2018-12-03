@@ -466,8 +466,8 @@ if __name__ == "__main__" :
   parser.add_argument("-smooth", dest="smooth", default=1, type=int,
                       help="Smoothing factor for plots")
 
-  parser.add_argument("-plot-dir", dest="plot_dir", default="database",
-                      help="Directory to dump detection plots into")
+  parser.add_argument("-plot-dir-prefix", dest="plot_dir_prefix", default="plots",
+                      help="Directory prefix to dump detection plots into")
 
   parser.add_argument("--init-db", dest="init_db", action="store_true",
                       help="Re-initialize database")
@@ -581,13 +581,24 @@ if __name__ == "__main__" :
     if not video_queue.empty():
       exit_with_error( "Some videos were not processed!" )
 
-  # Build out detection vs time plots
+  # Build out detection vs time plots for both detections and tracks
   if args.detection_plots:
-    log_info( lb1 + "Generating data plots" + lb1 )
-    create_dir( args.plot_dir, logging=False )
+
+    log_info( lb1 + "Generating data plots for detections" + lb1 )
+    detection_plot_dir = args.plot_dir_prefix + "_detections"
+    create_dir( detection_plot_dir, logging=False )
     generate_detection_plots.aggregate_plot( args.output_directory,
       args.plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
-      float( args.frame_rate ), int( args.smooth ), top_category_only = True )
+      float( args.frame_rate ), int( args.smooth ),
+      ext = detection_ext, top_category_only = False )
+
+    log_info( lb1 + "Generating data plots for tracks" + lb1 )
+    track_plot_dir = args.plot_dir_prefix + "_tracks"
+    create_dir( track_plot_dir, logging=False )
+    generate_detection_plots.aggregate_plot( args.output_directory,
+      args.plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
+      float( args.frame_rate ), int( args.smooth ),
+      ext = track_ext, top_category_only = True )
 
   # Build searchable index
   if args.build_index:
