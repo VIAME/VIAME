@@ -236,7 +236,8 @@ def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
 # Process a single video
-def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='', gpu=None ):
+def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='', gpu=None,
+                          write_track_time=True ):
 
   if gpu is None:
     gpu = 0
@@ -272,24 +273,25 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
       return
     is_image_list = True
 
-  input_setting = fset( 'input:video_filename=' + input_name )
-
-  if is_image_list:
-    name_no_path = os.path.basename( input_name )
-    input_setting += fset( 'track_writer:writer:viame_csv:stream_identifier=' + name_no_path )
-  else:
-    input_setting += fset( 'input:video_reader:type=vidl_ffmpeg' )
-    input_setting += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
-
   # Formulate command
+  input_settings = fset( 'input:video_filename=' + input_name )
+
+  if not is_image_list:
+    input_settings += fset( 'input:video_reader:type=vidl_ffmpeg' )
+
   command = ( get_pipeline_cmd( options.debug ) +
-              ['-p', find_file( options.pipeline )] +
-              input_setting )
+              ['-p', find_file( options.pipeline ) ] +
+              input_settings )
 
   command += video_frame_rate_settings_list( options )
   command += video_output_settings_list( options, basename )
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
+
+  if write_track_time:
+    command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
+  else:
+    command += fset( 'track_writer:writer:viame_csv:stream_identifier=' + input_basename )
 
   if len( options.input_detections ) > 0:
     command += fset( "detection_reader:file_name=" + options.input_detections )
@@ -545,7 +547,8 @@ if __name__ == "__main__" :
           video_name = video_queue.get_nowait()
         except queue.Empty:
           break
-        process_video_kwiver( video_name, args, is_image_list, gpu=gpu )
+        process_video_kwiver( video_name, args, is_image_list,
+                              gpu=gpu, write_track_time=is_image_list )
 
     gpu_thread_list = np.array( range( args.gpu_count * args.pipes ) ) / args.pipes
     threads = [ threading.Thread( target = process_video_thread, args = (gpu,) )
