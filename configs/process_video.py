@@ -217,6 +217,7 @@ def object_detector_settings_list( options ):
       fset( 'detector_filter:filter:class_probablity_filter:threshold=' + options.detection_threshold ),
       fset( 'track_initializer:track_initializer:threshold:'
             'filter:class_probablity_filter:threshold=' + options.detection_threshold ),
+      fset( 'tracker:detection_select_threshold=' + options.detection_threshold ),
     ))
   return []
 
