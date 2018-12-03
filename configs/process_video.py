@@ -223,7 +223,7 @@ def object_detector_settings_list( options ):
 def video_frame_rate_settings_list( options ):
   output = []
   if len( options.input_frame_rate ) > 0:
-    output += fset( 'input:frame_time=' + options.input_frame_rate )
+    output += fset( 'input:frame_time=' + str( 1.0 / float( options.input_frame_rate ) ) )
   if len( options.frame_rate ) > 0:
     output += fset( 'downsampler:target_frame_rate=' + options.frame_rate )
   if len( options.batch_size ) > 0:
