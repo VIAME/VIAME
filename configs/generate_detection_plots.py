@@ -11,8 +11,8 @@ import numpy as np
 
 import warnings
 
-def aggregate_plot( directory, objects, threshold, frame_rate, smooth=1, ext=".csv",
-                    top_category_only=False ):
+def aggregate_plot( input_directory, output_directory, objects, threshold, frame_rate,
+                    smooth=1, ext=".csv", top_category_only=False ):
 
   def format_x( x, pos ):
     t = datetime.timedelta( seconds = x )
@@ -23,7 +23,7 @@ def aggregate_plot( directory, objects, threshold, frame_rate, smooth=1, ext=".c
   videos = dict()
   video_plots = dict()
 
-  for filename in os.listdir( directory ):
+  for filename in os.listdir( input_directory ):
     if filename.endswith( ext ) and not filename.endswith( ".output.csv" ):
       fig, ax = video_plots[filename] = plt.subplots()
 
@@ -37,7 +37,7 @@ def aggregate_plot( directory, objects, threshold, frame_rate, smooth=1, ext=".c
       video_objects = videos[filename] = dict()
       for obj in objects:
         video_objects[obj] = dict()
-      with open( os.path.join(directory, filename), "r" ) as f:
+      with open( os.path.join( input_directory, filename ), "r" ) as f:
         for line in f:
           line = line.rstrip()
           if line[0] != "#":
@@ -80,8 +80,8 @@ def aggregate_plot( directory, objects, threshold, frame_rate, smooth=1, ext=".c
 
   for obj in objects:
     sorted_frames = list()
-    with open(os.path.join(directory, obj + ".output.csv"), "w") as outfile:
-      outfile.write("#video_id,frame_id,detection_count\n")
+    with open( os.path.join( output_directory, obj + ".output.csv" ), "w" ) as outfile:
+      outfile.write( "#video_id,frame_id,detection_count\n" )
       for filename in sorted(videos):
         video_objects = videos[filename]
         times = list()
@@ -111,13 +111,13 @@ def aggregate_plot( directory, objects, threshold, frame_rate, smooth=1, ext=".c
         if np.size( y ) > 0 and np.max( y ) < 5:
           ax.set_ylim( ymax = 5 )
         ax.locator_params( axis='x', nbins = 7 )
-        fig.savefig(os.path.join(directory, filename + "." + obj + ".png"))
+        fig.savefig( os.path.join( output_directory, filename + "." + obj + ".png" ) )
 
         fig, ax = video_plots[filename]
         ax.plot(x, y, label=obj)
 
     sorted_frames.sort(key=lambda line: line[2], reverse=True)
-    with open(os.path.join(directory, obj + ".sorted.output.csv"), "w") as outfile:
+    with open( os.path.join( output_directory, obj + ".sorted.output.csv" ), "w" ) as outfile:
       outfile.write("#video_id,frame_id,detection_count\n")
       for filename, frame_id, count in sorted_frames:
         outfile.write(filename + "," + str(frame_id) + "," + str(count) + "\n")
@@ -128,7 +128,7 @@ def aggregate_plot( directory, objects, threshold, frame_rate, smooth=1, ext=".c
     ax.set_xlim( xmin = 0 )
     ax.locator_params( axis='x', nbins = 7 )
     ax.legend()
-    fig.savefig( os.path.join( directory, filename + ".png" ) )
+    fig.savefig( os.path.join( output_directory, filename + ".png" ) )
 
 if __name__ == "__main__":
   try:

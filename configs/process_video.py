@@ -585,8 +585,8 @@ if __name__ == "__main__" :
   if args.detection_plots:
     log_info( lb1 + "Generating data plots" + lb1 )
     create_dir( args.plot_dir, logging=False )
-    generate_detection_plots.aggregate_plot( args.plot_dir,
-      args.objects.split( "," ), float( args.plot_threshold ),
+    generate_detection_plots.aggregate_plot( args.output_directory,
+      args.plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
       ext = detection_ext, top_category_only = True )
 
