@@ -329,8 +329,8 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     if res == -11:
       s = os.statvfs( options.output_directory )
 
-      if s.f_bavail == 0 or s.f_frsize == 0:
-        exit_with_error( lb1 + 'Clean up disk space and then re-run.' )
+      if s.f_bavail * s.f_frsize < 100000000:
+        exit_with_error( lb1 + 'Out of disk space. Clean up space and then re-run.' )
 
       log_info( lb1 + 'Pipeline failed with code 11. This is typically indicative of an '
                 'issue with system resources, e.g. low disk space or running out of '
@@ -346,7 +346,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
       else:
         exit_with_error( 'Processing failed, terminating.' )
     elif len( log_base ) > 0:
-      log_info( lb1 + 'Check ' + log_base + '.txt for error messages' + lb1 )
+      log_info( lb1 + 'Check ' + log_base + '.txt for error messages' + lb2 )
 
 def split_image_list(image_list_file, n, dir):
   """Create and return the paths to n temp files that when interlaced
