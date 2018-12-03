@@ -200,6 +200,7 @@ def process_video_dir( args ):
   else:
     no_file = "With No Imagery Loaded"
 
+  file_list = sorted( file_list )
   file_list.append( no_file )
   file_id = select_option( file_list )
 
@@ -224,6 +225,7 @@ def process_video_dir( args ):
   if len( args.cache_dir ) > 0 and args.cache_dir != '.' and args.cache_dir != args.video_dir:
     detection_search = glob_files_in_folder( args.cache_dir, file_no_ext, "csv" )
     detection_list.extend( detection_search )
+  detection_list = sorted( detection_list )
 
   if len( detection_list ) > 0:
     if len( detection_list ) > 0 and detection_list[0].islower():
