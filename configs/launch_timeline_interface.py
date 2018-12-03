@@ -196,8 +196,8 @@ if __name__ == "__main__" :
       # 8: Target Length
       # 9,10+ : class-name score (this pair may be omitted or repeated)
 
-      c_x = int( ( int( lis[3] ) + int( lis[5] ) ) / 2 )
-      c_y = int( ( int( lis[4] ) + int( lis[6] ) ) / 2 )
+      c_x = int( ( float( lis[3] ) + float( lis[5] ) ) / 2 )
+      c_y = int( ( float( lis[4] ) + float( lis[6] ) ) / 2 )
 
       ftrk.write( lis[0] + ' 1 ' + lis[2] + ' 0 0 0 0 ' + str( c_x ) + ' ' + str( c_y ) )
       ftrk.write( ' ' + lis[3] + ' ' + lis[4] + ' ' + lis[5] + ' ' + lis[6] + ' 0 0 0 0 ' )

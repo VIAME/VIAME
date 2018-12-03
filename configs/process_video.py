@@ -327,16 +327,17 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
       log_info( 'Failure' + lb1 )
 
     if res == -11:
-      log_info( lb1 + 'Pipeline failed with code 11. This is typically indicative of an '
-                'issue with system resources, e.g. low disk space or running out of '
-                'memory, but could be indicative of a pipeline issue.' + lb1 )
-
       s = os.statvfs( options.output_directory )
 
       if s.f_bavail == 0 or s.f_frsize == 0:
-        exit_with_error( 'Clean up more disk space and then re-run.' )
+        exit_with_error( lb1 + 'Clean up disk space and then re-run.' )
 
-      log_info( lbl1 + 'Attempting to recover from error and continue processing' + lb1 )
+      log_info( lb1 + 'Pipeline failed with code 11. This is typically indicative of an '
+                'issue with system resources, e.g. low disk space or running out of '
+                'memory, but could be indicative of a pipeline issue. It\'s also possible '
+                'the pipeline you are running just had a shutdown issue. Attempting to '
+                'continue processing.' + lb1 )
+
       any_video_complete = True
 
     if not any_video_complete:
