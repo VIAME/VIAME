@@ -193,7 +193,7 @@ def process_video_dir( args ):
   # Have user select video file
   file_list = []
   for fname, is_cached in zip( net_files, has_index ):
-    file_list.append( fname + " (cached in: " + args.cache_dir + ")" if is_cached else "" )
+    file_list.append( fname + ( " (cached in: " + args.cache_dir + ")" if is_cached else "" ) )
 
   if len( file_list ) > 0 and file_list[0].islower():
     no_file = "with_no_imagery_loaded"
@@ -241,8 +241,13 @@ def process_video_dir( args ):
   # Launch GUI with required options
   if not file_has_index:
     create_dir( args.cache_dir )
-    print( "Generating cache for video file, this may take up to a few minutes.\n" )
-    file_path = generate_index_for_video( args, file_path, file_no_ext )
+    if not os.path.isdir( file_path ):
+      print( "Generating cache for video file, this may take up to a few minutes.\n" )
+      file_path = generate_index_for_video( args, file_path, file_no_ext )
+    else:
+      from process_video import make_filelist_for_image_dir
+      file_path = make_filelist_for_image_dir( file_path, args.cache_dir,
+                                               file_no_ext + "_filelist", abspaths=True )
 
   (fd, name) = tempfile.mkstemp(prefix='vpview-project-',
                                 suffix='.prj',

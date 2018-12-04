@@ -140,7 +140,7 @@ def find_file( filename ):
   else:
     exit_with_error( "Unable to find " + filename )
 
-def make_filelist_for_image_dir( input_dir, output_dir, output_name ):
+def make_filelist_for_image_dir( input_dir, output_dir, output_name, abspaths=False ):
   # The most common extension in the folder is most likely images.
   # Sometimes people have small text files alongside the images
   # so just choose the most common filetype.
@@ -165,7 +165,10 @@ def make_filelist_for_image_dir( input_dir, output_dir, output_name ):
   output_file = os.path.join( output_dir, output_name + ".txt" )
   fout = open( output_file, "w" )
   for f in files[top_ext]:
-    fout.write( f + lb1 )
+    if abspaths:
+      fout.write( os.path.abspath( f + lb1 ) )
+    else:
+      fout.write( f + lb1 )
   fout.close()
   return output_file
 
@@ -249,7 +252,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   if gpu is None:
     gpu = 0
 
-  multi_threaded = ( options.gpu_count * args.pipes > 1 )
+  multi_threaded = ( options.gpu_count * options.pipes > 1 )
   input_basename = os.path.basename( input_name )
 
   if multi_threaded:
@@ -261,7 +264,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   if len( base_ovrd ) > 0:
     basename = base_ovrd
   else:
-    basename = os.path.splitext( os.path.basename( input_name ) )[0]
+    basename = os.path.splitext( input_basename )[0]
 
   # Formulate input setting string
   if not os.path.exists( input_name ):
