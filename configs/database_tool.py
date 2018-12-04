@@ -168,11 +168,11 @@ def init( log_file="" ):
     execute_cmd( "pg_ctl", [ "-D", sql_dir, "status" ] )
     execute_cmd( "createuser", [ "-e", "-E", "-s", "-i", "-r", "-d", "postgres" ] )
     execute_cmd( "psql", [ "-f", find_config( sql_init_file ), "postgres" ] )
-    log_info( "Success" + lb2 )
+    log_info( "Success" + lb1 )
     return [ True, True ]
 
   except:
-    log_info( "Failure" + lb2 )
+    log_info( "Failure" + lb1 )
     return [ False, False ]
 
 def status():
