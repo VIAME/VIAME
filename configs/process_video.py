@@ -12,11 +12,9 @@ import tempfile
 import threading
 
 try:
-  # Python 3
-  import queue
+  import queue # Python 3
 except ImportError:
-  # Python 2
-  import Queue as queue
+  import Queue as queue # Python 2
 
 sys.dont_write_bytecode = True
 
@@ -30,6 +28,7 @@ else:
   div = '/'
 
 lb  = '\n'
+
 lb1 = lb
 lb2 = lb * 2
 lb3 = lb * 3
@@ -457,6 +456,9 @@ if __name__ == "__main__" :
   parser.add_argument("--detection-plots", dest="detection_plots", action="store_true",
                       help="Produce per-video detection plot summaries")
 
+  parser.add_argument("--track-plots", dest="track_plots", action="store_true",
+                      help="Produce per-video track plot summaries")
+
   parser.add_argument("-objects", dest="objects", default="fish",
                       help="Objects to generate plots for")
 
@@ -545,10 +547,10 @@ if __name__ == "__main__" :
     pipeline_loc = args.pipeline
 
     if len( args.output_directory ) > 0:
-      create_dir( args.output_directory )
+      create_dir( args.output_directory, logging=False )
 
     if len( args.log_directory ) > 0:
-      create_dir( args.output_directory + div + args.log_directory )
+      create_dir( args.output_directory + div + args.log_directory, logging=False )
 
     # Process videos in parallel, one per GPU
     video_queue = queue.Queue()
@@ -583,7 +585,6 @@ if __name__ == "__main__" :
 
   # Build out detection vs time plots for both detections and tracks
   if args.detection_plots:
-
     log_info( lb1 + "Generating data plots for detections" + lb1 )
     detection_plot_dir = args.plot_dir_prefix + "_detections"
     create_dir( detection_plot_dir, logging=False )
@@ -592,6 +593,7 @@ if __name__ == "__main__" :
       float( args.frame_rate ), int( args.smooth ),
       ext = detection_ext, top_category_only = False )
 
+  if args.track_plots:
     log_info( "Generating data plots for tracks" + lb1 )
     track_plot_dir = args.plot_dir_prefix + "_tracks"
     create_dir( track_plot_dir, logging=False )
