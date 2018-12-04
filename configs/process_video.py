@@ -22,7 +22,7 @@ sys.dont_write_bytecode = True
 import generate_detection_plots
 import database_tool
 
-# Character short-cuts
+# Character short-cuts and global constants
 if os.name == 'nt':
   div = '\\'
 else:
@@ -36,6 +36,9 @@ lb3 = lb * 3
 
 detection_ext = "_detections.csv"
 track_ext = "_tracks.csv"
+
+default_pipeline = "pipelines" + div + "index_default.res.pipe"
+no_pipeline = "none"
 
 # Global flag to see if any video has successfully completed processing
 any_video_complete = False
@@ -412,7 +415,7 @@ if __name__ == "__main__" :
   parser.add_argument("-l", dest="input_list", default="",
                       help="Input list of image files to process")
 
-  parser.add_argument("-p", dest="pipeline", default="pipelines" + div + "index_default.res.pipe",
+  parser.add_argument("-p", dest="pipeline", default=default_pipeline,
                       help="Input pipeline for processing video or image data")
 
   parser.add_argument("-s", dest="extra_settings", action='append', nargs='*',
@@ -497,7 +500,7 @@ if __name__ == "__main__" :
 
   args = parser.parse_args()
 
-  # Error checking
+  # Assorted error checking up front
   process_data = True
 
   number_input_args = sum(len(inp_x) > 0 for inp_x in [args.input_video, args.input_dir, args.input_list])
@@ -509,6 +512,12 @@ if __name__ == "__main__" :
 
   elif number_input_args > 1:
     exit_with_error( "Only one of input video, directory, or list should be specified, not more" )
+
+  if ( args.detection_plots or args.track_plots ) and len( args.frame_rate ) == 0:
+    exit_with_error( "Must specify frame rate if generating detection or track plots" )
+
+  if args.pipeline == default_pipeline:
+    args.init_db = True
 
   signal.signal( signal.SIGINT, signal_handler )
 
