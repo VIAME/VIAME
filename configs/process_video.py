@@ -219,7 +219,7 @@ def object_detector_settings_list( options ):
   return []
 
 def object_tracker_settings_list( options ):
-  if len( options.detection_threshold ) > 0:
+  if len( options.tracker_threshold ) > 0:
     return list(itertools.chain(
       fset( 'track_initializer:track_initializer:threshold:'
             'filter:class_probablity_filter:threshold=' + options.tracker_threshold ),
@@ -592,7 +592,7 @@ if __name__ == "__main__" :
       float( args.frame_rate ), int( args.smooth ),
       ext = detection_ext, top_category_only = False )
 
-    log_info( lb1 + "Generating data plots for tracks" + lb1 )
+    log_info( "Generating data plots for tracks" + lb1 )
     track_plot_dir = args.plot_dir_prefix + "_tracks"
     create_dir( track_plot_dir, logging=False )
     generate_detection_plots.aggregate_plot( args.output_directory,
