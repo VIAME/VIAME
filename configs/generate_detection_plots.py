@@ -173,8 +173,10 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
     if agr_max_y < 5:
       agr_ax.set_ylim( ymax = 5 )
     agr_ax.locator_params( axis='x', nbins = 7 )
-    agr_ax.legend()
-    agr_fig.savefig( os.path.join( output_directory, filename + ".png" ) )
+    lgd = [ agr_ax.legend(loc='center left', bbox_to_anchor=(1, 0.5)) ]
+    agr_fig.set_size_inches( 10, 7 )
+    agr_fig.savefig( os.path.join( output_directory, filename + ".png" ),
+                     dpi=100, bbox_inches="tight", additional_artists=lgd )
 
   # Write out aggregate information across all videos
   
