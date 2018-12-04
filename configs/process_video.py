@@ -504,8 +504,8 @@ if __name__ == "__main__" :
   process_data = True
 
   number_input_args = sum(len(inp_x) > 0 for inp_x in [args.input_video, args.input_dir, args.input_list])
-  if number_input_args == 0:
-    if not args.build_index and not args.detection_plots:
+  if number_input_args == 0 or args.pipeline == no_pipeline:
+    if not args.build_index and not args.detection_plots and not args.track_plots:
       exit_with_error( "Either input video or input directory must be specified" )
     else:
       process_data = False
