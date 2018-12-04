@@ -2,6 +2,7 @@
 
 import sys
 import os
+import shutil
 import numpy as np
 import argparse
 import contextlib
@@ -44,18 +45,28 @@ def list_files_in_dir( folder ):
   if not os.path.isdir( folder ):
     exit_with_error( "Input folder \"" + folder + "\" does not exist" )
   return [
-    os.path.join(folder, f) for f in sorted( os.listdir( folder ) )
+    os.path.join( folder, f ) for f in sorted( os.listdir( folder ) )
     if not f.startswith('.')
   ]
 
 def list_files_in_dir_w_ext( folder, extension ):
-  return [ f for f in list_files_in_dir(folder) if f.endswith( extension ) ]
+  return [ f for f in list_files_in_dir( folder ) if f.endswith( extension ) ]
+
+# Default message logging
+def log_info( msg ):
+  sys.stdout.write( msg )
+  sys.stdout.flush()
 
 # Create a directory if it doesn't exist
-def create_dir( dirname, logging=True ):
+def create_dir( dirname, logging=True, recreate=False, prompt=True ):
+  if recreate and os.path.exists( dirname ):
+    if not prompt or database_tool.query_yes_no( "Reset folder " + dirname + "?" ):
+      if logging:
+        log_info( "Removing " + dirname + lb )
+      shutil.rmtree( dirname )
   if not os.path.exists( dirname ):
     if logging:
-      print( "Creating " + dirname )
+      log_info( "Creating " + dirname + lb )
     os.makedirs( dirname )
 
 CUDA_VISIBLE_DEVICES = "CUDA_VISIBLE_DEVICES"
@@ -100,10 +111,6 @@ def get_pipeline_cmd( debug=False ):
       return [ 'gdb', '--args', 'pipeline_runner' ]
     else:
       return [ 'pipeline_runner' ]
-
-def log_info( msg ):
-  sys.stdout.write( msg )
-  sys.stdout.flush()
 
 def exit_with_error( error_str, force=False ):
   log_info( lb1 + 'ERROR: ' + error_str + lb2 )
@@ -547,7 +554,7 @@ if __name__ == "__main__" :
     pipeline_loc = args.pipeline
 
     if len( args.output_directory ) > 0:
-      create_dir( args.output_directory, logging=False )
+      create_dir( args.output_directory, logging=False, recreate=(not args.init_db) )
 
     if len( args.log_directory ) > 0:
       create_dir( args.output_directory + div + args.log_directory, logging=False )
@@ -587,7 +594,7 @@ if __name__ == "__main__" :
   if args.detection_plots:
     log_info( lb1 + "Generating data plots for detections" + lb1 )
     detection_plot_dir = args.plot_dir_prefix + "_detections"
-    create_dir( detection_plot_dir, logging=False )
+    create_dir( detection_plot_dir, logging=False, recreate=True, prompt=False )
     generate_detection_plots.detection_plot( args.output_directory,
       detection_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
@@ -596,7 +603,7 @@ if __name__ == "__main__" :
   if args.track_plots:
     log_info( "Generating data plots for tracks" + lb1 )
     track_plot_dir = args.plot_dir_prefix + "_tracks"
-    create_dir( track_plot_dir, logging=False )
+    create_dir( track_plot_dir, logging=False, recreate=True, prompt=False )
     generate_detection_plots.detection_plot( args.output_directory,
       track_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
