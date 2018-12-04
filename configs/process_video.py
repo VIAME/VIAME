@@ -140,7 +140,7 @@ def find_file( filename ):
   else:
     exit_with_error( "Unable to find " + filename )
 
-def make_filelist_for_image_dir( input_dir, output_dir, output_name, abspaths=False ):
+def make_filelist_for_image_dir( input_dir, output_dir, output_name ):
   # The most common extension in the folder is most likely images.
   # Sometimes people have small text files alongside the images
   # so just choose the most common filetype.
@@ -165,10 +165,7 @@ def make_filelist_for_image_dir( input_dir, output_dir, output_name, abspaths=Fa
   output_file = os.path.join( output_dir, output_name + ".txt" )
   fout = open( output_file, "w" )
   for f in files[top_ext]:
-    if abspaths:
-      fout.write( os.path.abspath( f + lb1 ) )
-    else:
-      fout.write( f + lb1 )
+    fout.write( os.path.abspath( f + lb1 ) )
   fout.close()
   return output_file
 
