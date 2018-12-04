@@ -80,9 +80,13 @@ if __name__ == "__main__" :
                       default="0.0",
                       help="Optional detection threshold to apply")
 
-  parser.add_argument("-theme", dest="gui_theme",
+  parser.add_argument("-theme", dest="gui_theme_file",
                       default="gui-params" + div + "dark_gui_settings.ini",
-                      help="Predefined query directory, if present")
+                      help="GUI default theme settings")
+
+  parser.add_argument("-filter", dest="filter_file",
+                      default="gui-params" + div + "default_timeline_filter.vpefs",
+                      help="GUI default filter settings")
 
   args = parser.parse_args()
 
@@ -213,7 +217,9 @@ if __name__ == "__main__" :
 
   cmd = get_gui_cmd() + [ "-tf", track_file, "-vf", filename, "-df", class_file ]
 
-  if len( args.gui_theme ) > 0:
-    cmd = cmd + [ "--theme", find_file( args.gui_theme ) ]
+  if len( args.gui_theme_file ) > 0:
+    cmd = cmd + [ "--theme", find_file( args.gui_theme_file ) ]
+  if len( args.filter_file ) > 0:
+    cmd = cmd + [ "-ff", find_file( args.filter_file ) ]
 
   subprocess.call( cmd )
