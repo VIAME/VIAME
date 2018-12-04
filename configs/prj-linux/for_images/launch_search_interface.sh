@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
