@@ -212,7 +212,7 @@ def archive_dimension_settings_list( options ):
 
 def object_detector_settings_list( options ):
   if len( options.detection_threshold ) > 0:
-    return list(itertools.chain(
+    return list( itertools.chain(
       fset( 'detector:detector:darknet:thresh=' + options.detection_threshold ),
       fset( 'detector_filter:filter:class_probablity_filter:threshold=' + options.detection_threshold ),
     ))
@@ -220,7 +220,7 @@ def object_detector_settings_list( options ):
 
 def object_tracker_settings_list( options ):
   if len( options.tracker_threshold ) > 0:
-    return list(itertools.chain(
+    return list( itertools.chain(
       fset( 'track_initializer:track_initializer:threshold:'
             'filter:class_probablity_filter:threshold=' + options.tracker_threshold ),
       fset( 'tracker:detection_select_threshold=' + options.tracker_threshold ),
