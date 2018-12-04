@@ -114,6 +114,7 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
     agr_ax.xaxis.set_major_locator( matplotlib.ticker.MaxNLocator( integer=True ) )
     agr_ax.set( xlabel="Time", ylabel="Object Count", title=agr_plot_title )
     agr_ax.grid()
+    agr_max_y = 0
 
     for obj in objects:
       sorted_frames = list()
@@ -156,6 +157,8 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
         fig.savefig( os.path.join( video_subdir, filename + "." + obj + ".png" ) )
 
         agr_ax.plot( x, y, label=obj )
+        if np.size( y ) > 0:
+          agr_max_y = max( np.max( y ), agr_max_y )
 
         sorted_frames.sort( key=lambda line: line[2], reverse=True )
         with open( os.path.join( video_subdir, obj + ranked_ext ), "w" ) as outfile:
@@ -167,6 +170,8 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
 
     agr_ax.set_ylim( ymin = 0 )
     agr_ax.set_xlim( xmin = 0 )
+    if agr_max_y < 5:
+      agr_ax.set_ylim( ymax = 5 )
     agr_ax.locator_params( axis='x', nbins = 7 )
     agr_ax.legend()
     agr_fig.savefig( os.path.join( output_directory, filename + ".png" ) )
