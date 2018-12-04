@@ -41,7 +41,10 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
     print( "Plotting error, input and output directories must be different" )
     sys.exit(0)
 
-  videos = dict()
+  video_max_counts = dict()
+
+  for obj in objects:
+    video_max_counts[obj] = []
 
   create_dir( output_directory )
 
@@ -53,7 +56,7 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
     filebase = filename.replace( ext, "" )
 
     # Parse input computed detections file
-    video_objects = videos[filename] = dict()
+    video_objects = dict()
 
     for obj in objects:
       video_objects[obj] = dict()
@@ -118,8 +121,8 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
 
     for obj in objects:
       sorted_frames = list()
-      with open( os.path.join( video_subdir, obj + unordered_ext ), "w" ) as outfile:
-        outfile.write( "# video_id, time_id, frame_id, detection_count\n" )
+      with open( os.path.join( video_subdir, obj + unordered_ext ), "w" ) as of:
+        of.write( "# video_id, time_id, frame_id, detection_count\n" )
 
         times = list()
         object_counts = list()
@@ -129,10 +132,10 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
           times.append( frame_time )
           object_counts.append( video_objects[obj][frame_id] )
 
-          outfile.write( filename + "," )
-          outfile.write( format_x(frame_time, show_ms=True) + "," )
-          outfile.write( str(frame_id) + "," )
-          outfile.write( str(video_objects[obj][frame_id]) + "\n" )
+          of.write( filename + "," )
+          of.write( format_x(frame_time, show_ms=True) + "," )
+          of.write( str(frame_id) + "," )
+          of.write( str(video_objects[obj][frame_id]) + "\n" )
 
           sorted_frames.append( (filename, frame_id, video_objects[obj][frame_id]) )
 
@@ -161,12 +164,14 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
           agr_max_y = max( np.max( y ), agr_max_y )
 
         sorted_frames.sort( key=lambda line: line[2], reverse=True )
-        with open( os.path.join( video_subdir, obj + ranked_ext ), "w" ) as outfile:
-          outfile.write( "# video_id, time_id, frame_id, detection_count\n" )
+        if len( sorted_frames ) > 0:
+          video_max_counts[obj].append( sorted_frames[0] )
+        with open( os.path.join( video_subdir, obj + ranked_ext ), "w" ) as of:
+          of.write( "# video_id, time_id, frame_id, detection_count\n" )
           for filename, frame_id, count in sorted_frames:
             frame_time = frame_id / frame_rate
-            outfile.write( filename + "," + format_x(frame_time, show_ms=True) + ",")
-            outfile.write( str(frame_id) + "," + str(count) + "\n" )
+            of.write( filename + "," + format_x(frame_time, show_ms=True) + ",")
+            of.write( str(frame_id) + "," + str(count) + "\n" )
 
     agr_ax.set_ylim( ymin = 0 )
     agr_ax.set_xlim( xmin = 0 )
@@ -179,7 +184,13 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
                      dpi=100, bbox_inches="tight", additional_artists=lgd )
 
   # Write out aggregate information across all videos
-  
+  for obj in objects:
+    with open( os.path.join( output_directory, "max_counts-" + obj + ".csv" ), "w" ) as of:
+      of.write( "# video_id, time_id, frame_id, detection_count\n" )
+      for filename, frame_id, count in video_max_counts[obj]:
+        frame_time = frame_id / frame_rate
+        of.write( filename + "," + format_x( frame_time, show_ms=True ) + "," )
+        of.write( str( frame_id ) + "," + str( count ) + "\n" )
 
 if __name__ == "__main__":
   try:
