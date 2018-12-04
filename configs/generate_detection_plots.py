@@ -21,9 +21,13 @@ ranked_ext = ".max_ordered.csv"
 def detection_plot( input_directory, output_directory, objects, threshold, frame_rate,
                     smooth=1, ext=".csv", net_name="all_fish", top_category_only=False ):
 
-  def format_x( x, pos=0 ):
+  def format_x( x, pos=0, show_ms=False ):
     t = datetime.timedelta( seconds = x )
-    return str( t )
+    split_str = str( t ).split(".")
+    if show_ms:
+      return split_str[0] + ( "." + split_str[1][0] if len( split_str ) > 1 else ".0" )
+    else:
+      return split_str[0]
 
   warnings.filterwarnings( "ignore" )
 
@@ -125,7 +129,7 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
           object_counts.append( video_objects[obj][frame_id] )
 
           outfile.write( filename + "," )
-          outfile.write( format_x(frame_time) + "," )
+          outfile.write( format_x(frame_time, show_ms=True) + "," )
           outfile.write( str(frame_id) + "," )
           outfile.write( str(video_objects[obj][frame_id]) + "\n" )
 
@@ -158,7 +162,7 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
           outfile.write( "# video_id, time_id, frame_id, detection_count\n" )
           for filename, frame_id, count in sorted_frames:
             frame_time = frame_id / frame_rate
-            outfile.write( filename + "," + format_x(frame_time) + ",")
+            outfile.write( filename + "," + format_x(frame_time, show_ms=True) + ",")
             outfile.write( str(frame_id) + "," + str(count) + "\n" )
 
     agr_ax.set_ylim( ymin = 0 )
