@@ -28,59 +28,62 @@ def detection_plot( input_directory, output_directory, objects, threshold, frame
   video_plots = dict()
 
   for filename in os.listdir( input_directory ):
-    if filename.endswith( ext ) and not filename.endswith( ".output.csv" ):
-      fig, ax = video_plots[filename] = plt.subplots()
 
-      plot_title = "Aggregate - " + filename
+    if not filename.endswith( ext ) or filename.endswith( ".output.csv" ):
+      continue
 
-      ax.xaxis.set_major_formatter( matplotlib.ticker.FuncFormatter( format_x ) )
-      ax.xaxis.set_major_locator( matplotlib.ticker.MaxNLocator( integer=True ) )
-      ax.set( xlabel="Time", ylabel="Object Count", title=plot_title )
-      ax.grid()
+    fig, ax = video_plots[filename] = plt.subplots()
 
-      video_objects = videos[filename] = dict()
-      for obj in objects:
-        video_objects[obj] = dict()
-      with open( os.path.join( input_directory, filename ), "r" ) as f:
-        for line in f:
-          line = line.rstrip()
-          if line[0] != "#":
-            columns = line.split(",")
-            frame_id = int( columns[2] )
-            for obj in objects:
-              if frame_id not in video_objects[obj]:
-                video_objects[obj][frame_id] = 0
+    plot_title = "Aggregate - " + filename
 
-            detection_columns = columns[9:11] if top_category_only else columns[9:]
-            name = None
-            for column in detection_columns:
-              if name is not None:
-                if name in objects:
-                  value = float(column)
-                  if value >= threshold:
-                    video_objects[name][frame_id] += 1
-                name = None
-              else:
-                name = column
+    ax.xaxis.set_major_formatter( matplotlib.ticker.FuncFormatter( format_x ) )
+    ax.xaxis.set_major_locator( matplotlib.ticker.MaxNLocator( integer=True ) )
+    ax.set( xlabel="Time", ylabel="Object Count", title=plot_title )
+    ax.grid()
 
-      for obj in objects:
-        smoothed_video_frames = dict()
-        for frame_id in sorted( video_objects[obj] ):
-          lower_bound = frame_id - smooth // 2
-          upper_bound = lower_bound + smooth
+    video_objects = videos[filename] = dict()
+    for obj in objects:
+      video_objects[obj] = dict()
+    with open( os.path.join( input_directory, filename ), "r" ) as f:
+      for line in f:
+        line = line.rstrip()
+        if line[0] != "#":
+          columns = line.split(",")
+          frame_id = int( columns[2] )
+          for obj in objects:
+            if frame_id not in video_objects[obj]:
+              video_objects[obj][frame_id] = 0
 
-          max_count = video_objects[obj][frame_id]
-          for i in range( lower_bound, upper_bound ):
-            try:
-              val = video_objects[obj][i]
-              if val > max_count:
-                max_count = val
-            except KeyError:
-              pass
+          detection_columns = columns[9:11] if top_category_only else columns[9:]
+          name = None
+          for column in detection_columns:
+            if name is not None:
+              if name in objects:
+                value = float(column)
+                if value >= threshold:
+                  video_objects[name][frame_id] += 1
+              name = None
+            else:
+              name = column
 
-          smoothed_video_frames[frame_id] = max_count
+    for obj in objects:
+      smoothed_video_frames = dict()
+      for frame_id in sorted( video_objects[obj] ):
+        lower_bound = frame_id - smooth // 2
+        upper_bound = lower_bound + smooth
 
-        video_objects[obj] = smoothed_video_frames
+        max_count = video_objects[obj][frame_id]
+        for i in range( lower_bound, upper_bound ):
+          try:
+            val = video_objects[obj][i]
+            if val > max_count:
+              max_count = val
+          except KeyError:
+            pass
+
+        smoothed_video_frames[frame_id] = max_count
+
+      video_objects[obj] = smoothed_video_frames
 
   for obj in objects:
     sorted_frames = list()
