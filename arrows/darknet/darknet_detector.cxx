@@ -86,8 +86,6 @@ public:
     , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
     , m_names( 0 )
-    , m_boxes( 0 )
-    , m_probs( 0 )
   { }
 
   ~priv()
@@ -116,9 +114,6 @@ public:
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
   network m_net;
-
-  box *m_boxes;                   /* detection boxes */
-  float **m_probs;                /*  */
 
   // Helper functions
   image cvmat_to_image(
@@ -442,11 +437,11 @@ process_image( const cv::Mat& cv_image )
   layer l = m_net.layers[m_net.n - 1];     /* last network layer (output?) */
   const size_t l_size = l.w * l.h * l.n;
 
-  m_boxes = (box*) calloc( l_size, sizeof( box ) );
-  m_probs = (float**) calloc( l_size, sizeof( float* ) ); // allocate vector of pointers
+  box* boxes = (box*) calloc( l_size, sizeof( box ) );
+  float** probs = (float**) calloc( l_size, sizeof( float* ) ); // allocate vector of pointers
   for( size_t j = 0; j < l_size; ++j )
   {
-    m_probs[j] = (float*) calloc( l.classes + 1, sizeof( float*) );
+    probs[j] = (float*) calloc( l.classes + 1, sizeof( float*) );
   }
 
   /* pointer the image data */
@@ -460,8 +455,8 @@ process_image( const cv::Mat& cv_image )
                     1, 1,     /* i: w, h -  */
                     m_net.w, m_net.h,
                     m_thresh, /* i: caller supplied threshold */
-                    m_probs,  /* o: probability vector */
-                    m_boxes,  /* o: list of boxes */
+                    probs,  /* o: probability vector */
+                    boxes,  /* o: list of boxes */
                     0,        /** masks */
                     0,        /* i: only objectness (false) */
                     0,        /* i: map */
@@ -471,11 +466,11 @@ process_image( const cv::Mat& cv_image )
 
   if( l.softmax_tree && nms )
   {
-    do_nms_obj( m_boxes, m_probs, l_size, l.classes, nms );
+    do_nms_obj( boxes, probs, l_size, l.classes, nms );
   }
   else if( nms )
   {
-    do_nms_sort( m_boxes, m_probs, l_size, l.classes, nms );
+    do_nms_sort( boxes, probs, l_size, l.classes, nms );
   }
   else
   {
@@ -487,7 +482,7 @@ process_image( const cv::Mat& cv_image )
 
   for( size_t i = 0; i < l_size; ++i )
   {
-    const box b = m_boxes[i];
+    const box b = boxes[i];
 
     int left  = ( b.x - b.w / 2. ) * im.w;
     int right = ( b.x + b.w / 2. ) * im.w;
@@ -522,7 +517,7 @@ process_image( const cv::Mat& cv_image )
 
     for( int class_idx = 0; class_idx < l.classes; ++class_idx )
     {
-      const double prob = static_cast< double >( m_probs[i][class_idx] );
+      const double prob = static_cast< double >( probs[i][class_idx] );
 
       if( prob >= m_thresh )
       {
@@ -543,8 +538,8 @@ process_image( const cv::Mat& cv_image )
   // Free allocated memory
   free_image(im);
   free_image(sized);
-  free( m_boxes );
-  free_ptrs( (void**)m_probs, l_size );
+  free( boxes );
+  free_ptrs( (void**)probs, l_size );
 
   return detected_objects;
 }
