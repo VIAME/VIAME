@@ -1,4 +1,18 @@
 
+v0.9.8.11 - 12/4/2018
+=====================
+
+
+-Improved timeline plotting for multi-video inputs
+
+
+-Fixed issue in image list project files introduced in prior
+
+
+-More intelligent default track classification probabilities which make use of keyframes
+
+
+
 v0.9.8.10 - 11/26/2018
 ======================
 
