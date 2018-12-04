@@ -587,7 +587,7 @@ if __name__ == "__main__" :
     log_info( lb1 + "Generating data plots for detections" + lb1 )
     detection_plot_dir = args.plot_dir_prefix + "_detections"
     create_dir( detection_plot_dir, logging=False )
-    generate_detection_plots.aggregate_plot( args.output_directory,
+    generate_detection_plots.detection_plot( args.output_directory,
       detection_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
       ext = detection_ext, top_category_only = False )
@@ -595,7 +595,7 @@ if __name__ == "__main__" :
     log_info( "Generating data plots for tracks" + lb1 )
     track_plot_dir = args.plot_dir_prefix + "_tracks"
     create_dir( track_plot_dir, logging=False )
-    generate_detection_plots.aggregate_plot( args.output_directory,
+    generate_detection_plots.detection_plot( args.output_directory,
       track_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
       ext = track_ext, top_category_only = True )

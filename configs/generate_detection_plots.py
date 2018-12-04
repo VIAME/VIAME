@@ -15,8 +15,8 @@ def create_dir( dirname ):
   if not os.path.exists( dirname ):
     os.makedirs( dirname )
 
-def aggregate_plot( input_directory, output_directory, objects, threshold, frame_rate,
-                    smooth=1, ext=".csv", top_category_only=False ):
+def detection_plot( input_directory, output_directory, objects, threshold, frame_rate,
+                    smooth=1, ext=".csv", net_category="all_fish", top_category_only=False ):
 
   def format_x( x, pos ):
     t = datetime.timedelta( seconds = x )
@@ -139,6 +139,6 @@ if __name__ == "__main__":
     smooth = int( sys.argv[4] )
   except IndexError:
     smooth = 1
-  aggregate_plot( ".", sys.argv[1].split(","),
+  detection_plot( ".", sys.argv[1].split(","),
                   float( sys.argv[2] ), float( sys.argv[3] ),
                   smooth )
