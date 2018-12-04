@@ -247,7 +247,7 @@ def process_video_dir( args ):
     else:
       from process_video import make_filelist_for_image_dir
       file_path = make_filelist_for_image_dir( file_path, args.cache_dir,
-                                               file_no_ext + "_filelist" )
+                                               file_no_ext )
 
   (fd, name) = tempfile.mkstemp(prefix='vpview-project-',
                                 suffix='.prj',
