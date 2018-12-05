@@ -82,6 +82,9 @@ public:
     , m_resize_i( 0 )
     , m_resize_j( 0 )
     , m_chip_step( 100 )
+    , m_gs_to_rgb( true )
+    , m_chip_edge_filter( 0 )
+    , m_chip_adaptive_thresh( 2000000 )
     , m_names( 0 )
     , m_boxes( 0 )
     , m_probs( 0 )
@@ -106,6 +109,9 @@ public:
   int m_resize_i;
   int m_resize_j;
   int m_chip_step;
+  bool m_gs_to_rgb;
+  int m_chip_edge_filter;
+  int m_chip_adaptive_thresh;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
@@ -115,8 +121,14 @@ public:
   float **m_probs;                /*  */
 
   // Helper functions
-  image cvmat_to_image( const cv::Mat& src );
-  vital::detected_object_set_sptr process_image( const cv::Mat& cv_image );
+  image cvmat_to_image(
+    const cv::Mat& src );
+  vital::detected_object_set_sptr process_image(
+    const cv::Mat& cv_image );
+  vital::detected_object_set_sptr filter_detections(
+    const vital::detected_object_set_sptr& dets,
+    const cv::Rect& roi,
+    int edge_ignore_dist );
 
   kwiver::vital::logger_handle_t m_logger;
 };
@@ -162,7 +174,7 @@ get_configuration() const
     "GPU index. Only used when darknet is compiled with GPU support." );
   config->set_value( "resize_option", d->m_resize_option,
     "Pre-processing resize option, can be: disabled, maintain_ar, scale, "
-    "chip, or chip_and_original." );
+    "chip, chip_and_original, or adaptive." );
   config->set_value( "scale", d->m_scale,
     "Image scaling factor used when resize_option is scale or chip." );
   config->set_value( "resize_ni", d->m_resize_i,
@@ -171,6 +183,12 @@ get_configuration() const
     "Height resolution after resizing" );
   config->set_value( "chip_step", d->m_chip_step,
     "When in chip mode, the chip step size between chips." );
+  config->set_value( "gs_to_rgb", d->m_gs_to_rgb,
+    "Convert input greyscale images to rgb before processing." );
+  config->set_value( "chip_edge_filter", d->m_chip_edge_filter,
+    "If using chipping, filter out detections this pixel count near borders." );
+  config->set_value( "chip_adaptive_thresh", d->m_chip_adaptive_thresh,
+    "If using adaptive selection, total pixel count at which we start to chip." );
 
   return config;
 }
@@ -199,6 +217,9 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
   this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
+  this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
+  this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
+  this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
 
   /* the size of this array is a mystery - probably has to match some
    * constant in net description */
@@ -232,7 +253,6 @@ bool
 darknet_detector::
 check_configuration( vital::config_block_sptr config ) const
 {
-
   std::string net_config = config->get_value<std::string>( "net_config" );
   std::string class_file = config->get_value<std::string>( "class_names" );
 
@@ -286,7 +306,31 @@ detect( vital::image_container_sptr image_data ) const
 {
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
 
-  cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image_data->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+  if( !image_data )
+  {
+    LOG_WARN( d->m_logger, "Input image is empty." );
+    return std::make_shared< vital::detected_object_set >();
+  }
+
+  cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
+    image_data->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+  if( cv_image.rows == 0 || cv_image.cols == 0 )
+  {
+    LOG_WARN( d->m_logger, "Input image is empty." );
+    return std::make_shared< vital::detected_object_set >();
+  }
+  else if( d->m_resize_option == "adaptive" )
+  {
+    if( ( cv_image.rows * cv_image.cols ) >= d->m_chip_adaptive_thresh )
+    {
+      d->m_resize_option = "chip_and_original";
+    }
+    else
+    {
+      d->m_resize_option = "maintain_ar";
+    }
+  }
 
   cv::Mat cv_resized_image;
 
@@ -303,6 +347,13 @@ detect( vital::image_container_sptr image_data ) const
   else
   {
     cv_resized_image = cv_image;
+  }
+
+  if( d->m_gs_to_rgb && cv_resized_image.channels() == 1 )
+  {
+    cv::Mat color_image;
+    cv::cvtColor( cv_resized_image, color_image, CV_GRAY2BGR );
+    cv_resized_image = color_image;
   }
 
   // run detector
@@ -326,19 +377,25 @@ detect( vital::image_container_sptr image_data ) const
       {
         int tj = std::min( lj + d->m_resize_j, cv_resized_image.rows );
 
-        cv::Mat cropped_image = cv_resized_image( cv::Rect( li, lj, ti-li, tj-lj ) );
-        cv::Mat scaled_crop;
+        cv::Rect resized_roi( li, lj, ti-li, tj-lj );
+        cv::Rect original_roi( li / scale_factor,
+                               lj / scale_factor,
+                               (ti-li) / scale_factor,
+                               (tj-lj) / scale_factor );
+
+        cv::Mat cropped_chip = cv_resized_image( resized_roi );
+        cv::Mat scaled_crop, tmp_cropped;
 
         double scaled_crop_scale = scale_image_maintaining_ar(
-          cropped_image, scaled_crop, d->m_resize_i, d->m_resize_j );
+          cropped_chip, scaled_crop, d->m_resize_i, d->m_resize_j );
+        cv::cvtColor( scaled_crop, tmp_cropped, cv::COLOR_BGR2RGB );
 
-        vital::detected_object_set_sptr new_dets = d->process_image( scaled_crop );
-
+        vital::detected_object_set_sptr new_dets = d->process_image( tmp_cropped );
         new_dets->scale( 1.0 / scaled_crop_scale );
         new_dets->shift( li, lj );
         new_dets->scale( 1.0 / scale_factor );
 
-        detections->add( new_dets );
+        detections->add( d->filter_detections( new_dets, original_roi, d->m_chip_edge_filter ) );
       }
     }
 
@@ -350,11 +407,19 @@ detect( vital::image_container_sptr image_data ) const
       double scaled_original_scale = scale_image_maintaining_ar( cv_image,
         scaled_original, d->m_resize_i, d->m_resize_j );
 
+      if( d->m_gs_to_rgb && scaled_original.channels() == 1 )
+      {
+        cv::Mat color_image;
+        cv::cvtColor(scaled_original, color_image, CV_GRAY2BGR);
+        scaled_original = color_image;
+      }
+
       vital::detected_object_set_sptr new_dets = d->process_image( scaled_original );
 
       new_dets->scale( 1.0 / scaled_original_scale );
 
-      detections->add( new_dets );
+      cv::Rect image_dims( 0, 0, cv_image.cols, cv_image.rows );
+      detections->add( d->filter_detections( new_dets, image_dims, 0 ) );
     }
   }
 
@@ -512,6 +577,47 @@ cvmat_to_image( const cv::Mat& src )
   }
 
   return out;
+}
+
+
+vital::detected_object_set_sptr
+darknet_detector::priv::
+filter_detections( const vital::detected_object_set_sptr& dets, const cv::Rect& roi, int dist )
+{
+  if( dist <= 0 )
+  {
+    return dets;
+  }
+
+  std::vector< vital::detected_object_sptr > filtered_dets;
+
+  for( auto det : *dets )
+  {
+    if( !det )
+    {
+      continue;
+    }
+    if( roi.x > 0 && det->bounding_box().min_x() < roi.x + dist )
+    {
+      continue;
+    }
+    if( roi.y > 0 && det->bounding_box().min_y() < roi.y + dist )
+    {
+      continue;
+    }
+    if( det->bounding_box().max_x() > roi.x + roi.width - dist )
+    {
+      continue;
+    }
+    if( det->bounding_box().max_y() > roi.y + roi.height - dist )
+    {
+      continue;
+    }
+
+    filtered_dets.push_back( det );
+  }
+
+  return vital::detected_object_set_sptr( new vital::detected_object_set( filtered_dets ) );
 }
 
 } } } // end namespace

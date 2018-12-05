@@ -56,6 +56,12 @@ namespace kwiver {
 namespace arrows {
 namespace darknet {
 
+#ifdef WIN32
+  const std::string div = "\\";
+#else
+  const std::string div = "/";
+#endif
+
 // =============================================================================
 class darknet_trainer::priv
 {
@@ -76,6 +82,7 @@ public:
     , m_random_int_shift( 0.00 )
     , m_chips_w_gt_only( false )
     , m_crop_left( false )
+    , m_min_train_box_length( 5 )
   {}
 
   ~priv()
@@ -97,6 +104,7 @@ public:
   double m_random_int_shift;
   bool m_chips_w_gt_only;
   bool m_crop_left;
+  int m_min_train_box_length;
 
   // Helper functions
   std::vector< std::string > format_images( std::string folder,
@@ -129,6 +137,8 @@ darknet_trainer::
 darknet_trainer()
   : d( new priv() )
 {
+  attach_logger( "arrows.darknet.darknet_trainer" );
+  d->m_logger = logger();
 }
 
 darknet_trainer::
@@ -177,6 +187,9 @@ get_configuration() const
     "training." );
   config->set_value( "crop_left", d->m_crop_left,
     "Crop out the left portion of imagery, only using the left side." );
+  config->set_value( "min_train_box_length", d->m_min_train_box_length,
+    "If a box resizes to smaller than this during training, the input frame " 
+    "will not be used in training." );
 
   kwiver::vital::algo::image_io::get_nested_algo_configuration( "image_reader",
     config, d->m_image_io );
@@ -210,6 +223,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
   this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
+  this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
 
   kwiver::vital::algo::image_io_sptr io;
   kwiver::vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
@@ -226,7 +240,7 @@ check_configuration( vital::config_block_sptr config ) const
 
   if( net_config.empty() || !kwiversys::SystemTools::FileExists( net_config ) )
   {
-    LOG_ERROR( logger(), "net config file \"" << net_config << "\" not found." );
+    LOG_ERROR( d->m_logger, "net config file \"" << net_config << "\" not found." );
     return false;
   }
 
@@ -252,6 +266,12 @@ train_from_disk(
         boost::filesystem::is_directory( d->m_train_directory ) )
     {
       boost::filesystem::remove_all( d->m_train_directory );
+
+      if( boost::filesystem::exists( d->m_train_directory ) )
+      {
+        LOG_ERROR( d->m_logger, "Unable to delete pre-existing training dir" );
+        return;
+      }
     }
 
     boost::filesystem::path dir( d->m_train_directory );
@@ -266,11 +286,25 @@ train_from_disk(
       test_image_names, test_groundtruth, object_labels );
 
     // Generate train/test image list and header information
+    //
+    // (This code should be re-written at some point, converted to C++)
 #ifdef WIN32
-    std::string python_cmd = "python.exe -c '";
+    std::string python_cmd = "python.exe -c \"";
+    std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
+    std::string header_cmd = "dth.generate_yolo_v2_headers(";
+
+    std::string header_args = "\\\"" + d->m_train_directory + "\\\",[";
+    for( auto label : object_labels->child_class_names() )
+    {
+      header_args = header_args + "\\\"" + label + "\\\",";
+    }
+    header_args = header_args +"]," + std::to_string( d->m_resize_i );
+    header_args = header_args + "," + std::to_string( d->m_resize_j );
+    header_args = header_args + ",\\\"" + d->m_net_config + "\\\"";
+
+    std::string header_end  = ")\"";
 #else
     std::string python_cmd = "python -c '";
-#endif
     std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
     std::string header_cmd = "dth.generate_yolo_v2_headers(";
 
@@ -284,6 +318,7 @@ train_from_disk(
     header_args = header_args + ",\"" + d->m_net_config + "\"";
 
     std::string header_end  = ")'";
+#endif
 
     std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
 
@@ -300,17 +335,21 @@ train_from_disk(
   std::string darknet_cmd = "darknet";
 #endif
   std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
-    " detector train " + d->m_train_directory + "/yolo_v2.data "
-                       + d->m_train_directory + "/yolo_v2.cfg ";
+    " detector train " + d->m_train_directory + div + "yolo_v2.data "
+                       + d->m_train_directory + div + "yolo_v2.cfg ";
 
   if( !d->m_seed_weights.empty() )
   {
+#ifdef WIN32
+    darknet_args = darknet_args + " \"" + d->m_seed_weights + "\"";
+#else
     darknet_args = darknet_args + " " + d->m_seed_weights;
+#endif
   }
 
   std::string full_cmd = darknet_cmd + " " + darknet_args;
 
-  std::cout << "Running " << full_cmd << std::endl;
+  LOG_INFO( d->m_logger,  "Running " << full_cmd );
 
   if ( system( full_cmd.c_str() ) != 0 )
   {
@@ -328,14 +367,16 @@ format_images( std::string folder, std::string prefix,
 {
   std::vector< std::string > output_fns;
 
-  std::string image_folder = folder + "/" + prefix + "_images";
-  std::string label_folder = folder + "/" + prefix + "_labels";
+  std::string image_folder = folder + div + prefix + "_images";
+  std::string label_folder = folder + div + prefix + "_labels";
 
   boost::filesystem::path image_dir( image_folder );
   boost::filesystem::path label_dir( label_folder );
 
   boost::filesystem::create_directories( image_dir );
   boost::filesystem::create_directories( label_dir );
+
+  bool image_loaded_successfully = false;
 
   for( unsigned fid = 0; fid < image_names.size(); ++fid )
   {
@@ -344,17 +385,33 @@ format_images( std::string folder, std::string prefix,
     kwiver::vital::detected_object_set_sptr scaled_detections_ptr = groundtruth[fid]->clone();
 
     // Scale and break up image according to settings
+    kwiver::vital::image_container_sptr vital_image;
     cv::Mat original_image, resized_image;
 
-    auto vital_img = m_image_io->load( image_fn );
-    original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-      vital_img->get_image(), kwiver::arrows::ocv::image_container::BGR );
-
-    if( original_image.rows == 0 || original_image.cols == 0 )
+    try
     {
-      std::cout << "Could not load image " << image_fn << std::endl;
-      return std::vector< std::string >();
+      vital_image = m_image_io->load( image_fn );
+
+      original_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        vital_image->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
     }
+    catch( const kwiver::vital::vital_exception& e )
+    {
+      LOG_ERROR( m_logger, "Caught exception reading image: " << e.what() );
+
+      if( image_loaded_successfully )
+      {
+        LOG_WARN( m_logger, "Could not load image " << image_fn << ", skipping." );
+        continue;
+      }
+      else
+      {
+        LOG_ERROR( m_logger, "Could not load first image " << image_fn );
+        return std::vector< std::string >();
+      }
+    }
+
+    image_loaded_successfully = true;
 
     if( m_crop_left )
     {
@@ -480,6 +537,11 @@ print_detections(
     kwiver::vital::bounding_box_d det_box = (*detection)->bounding_box();
     kwiver::vital::bounding_box_d overlap = kwiver::vital::intersection( region, det_box );
 
+    if( det_box.width() < m_min_train_box_length || det_box.height() < m_min_train_box_length )
+    {
+      return false;
+    }
+
     if( det_box.area() > 0 &&
         overlap.max_x() > overlap.min_x() &&
         overlap.max_y() > overlap.min_y() &&
@@ -489,7 +551,7 @@ print_detections(
 
       if( !(*detection)->type() )
       {
-        std::cout << "Error: Detection missing type" << std::endl;
+        LOG_ERROR( m_logger, "Input detection is missing type category" );
         return false;
       }
 
@@ -501,7 +563,7 @@ print_detections(
       }
       else
       {
-        std::cout << "Warning: Ignoring unlisted class " << category << std::endl;
+        LOG_WARN( m_logger, "Ignoring unlisted class " << category );
         continue;
       }
 
@@ -552,8 +614,8 @@ generate_fn( std::string image_folder, std::string gt_folder,
   ss << std::setw( 9 ) << std::setfill( '0' ) << sample_counter;
   std::string s = ss.str();
 
-  image = image_folder + "/" + s + ".png";
-  gt = gt_folder + "/" + s + ".txt";
+  image = image_folder + div + s + ".png";
+  gt = gt_folder + div + s + ".txt";
 }
 
 void
