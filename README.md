@@ -82,7 +82,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Optional Patches:** <br>
 [Low GPU Memory Usage (2-4Gb) Patch, All Operating Systems](https://data.kitware.com/api/v1/item/5becf3f08d777f2179a9cbca/download) <br>
-[MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c07164c8d777f2179d50f37/download)
+[MOUSS Sample Project, Linux (All)](https://data.kitware.com/api/v1/item/5c07164c8d777f2179d50f37/download)
 
 
 Quick Run Instructions
