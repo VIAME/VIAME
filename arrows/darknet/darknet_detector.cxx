@@ -86,8 +86,6 @@ public:
     , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
     , m_names( 0 )
-    , m_boxes( 0 )
-    , m_probs( 0 )
   { }
 
   ~priv()
@@ -116,9 +114,6 @@ public:
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
   network m_net;
-
-  box *m_boxes;                   /* detection boxes */
-  float **m_probs;                /*  */
 
   // Helper functions
   image cvmat_to_image(
@@ -234,11 +229,10 @@ set_configuration( vital::config_block_sptr config_in )
   // Open file and return 'list' of labels
   d->m_names = get_labels( const_cast< char* >( d->m_class_names.c_str() ) );
 
-  d->m_net = parse_network_cfg( const_cast< char* >( d->m_net_config.c_str() ) );
-  if( ! d->m_weight_file.empty() )
-  {
-    load_weights( &d->m_net, const_cast< char* >( d->m_weight_file.c_str() ) );
-  }
+  network* net = load_network( const_cast< char* >( d->m_net_config.c_str() ),
+                               const_cast< char* >( d->m_weight_file.c_str() ), 0 );
+  d->m_net = *net;
+  free( net );
 
   set_batch_network( &d->m_net, 1 );
 
@@ -442,40 +436,36 @@ process_image( const cv::Mat& cv_image )
   layer l = m_net.layers[m_net.n - 1];     /* last network layer (output?) */
   const size_t l_size = l.w * l.h * l.n;
 
-  m_boxes = (box*) calloc( l_size, sizeof( box ) );
-  m_probs = (float**) calloc( l_size, sizeof( float* ) ); // allocate vector of pointers
+  detection* dets = (detection*) calloc( l_size, sizeof( detection ) );
   for( size_t j = 0; j < l_size; ++j )
   {
-    m_probs[j] = (float*) calloc( l.classes + 1, sizeof( float*) );
+    dets[j].prob = (float*) calloc( l.classes + 1, sizeof( float* ) );
   }
 
   /* pointer the image data */
   float* X = sized.data;
 
   /* run image through network */
-  network_predict( m_net, X );
+  network_predict( &m_net, X );
 
   /* get boxes around detected objects */
-  get_region_boxes( l,        /* i: network output layer */
-                    1, 1,     /* i: w, h -  */
-                    m_net.w, m_net.h,
-                    m_thresh, /* i: caller supplied threshold */
-                    m_probs,  /* o: probability vector */
-                    m_boxes,  /* o: list of boxes */
-                    0,        /** masks */
-                    0,        /* i: only objectness (false) */
-                    0,        /* i: map */
-                    m_hier_thresh, 1); /* i: caller supplied value */
+  get_region_detections( l,     /* i: network output layer */
+                         1, 1,  /* i: w, h -  */
+                         m_net.w, m_net.h,
+                         m_thresh, /* i: caller supplied threshold */
+                         0,        /* i: map */
+                         m_hier_thresh, 1, /* i: tree thresh, relative */
+                         dets );	   /* o: list of detections */
 
   const float nms( 0.4 );       // don't know what this is
 
   if( l.softmax_tree && nms )
   {
-    do_nms_obj( m_boxes, m_probs, l_size, l.classes, nms );
+    do_nms_obj( dets, l_size, l.classes, nms );
   }
   else if( nms )
   {
-    do_nms_sort( m_boxes, m_probs, l_size, l.classes, nms );
+    do_nms_sort( dets, l_size, l.classes, nms );
   }
   else
   {
@@ -487,7 +477,7 @@ process_image( const cv::Mat& cv_image )
 
   for( size_t i = 0; i < l_size; ++i )
   {
-    const box b = m_boxes[i];
+    const box b = dets[i].bbox;
 
     int left  = ( b.x - b.w / 2. ) * im.w;
     int right = ( b.x + b.w / 2. ) * im.w;
@@ -522,7 +512,7 @@ process_image( const cv::Mat& cv_image )
 
     for( int class_idx = 0; class_idx < l.classes; ++class_idx )
     {
-      const double prob = static_cast< double >( m_probs[i][class_idx] );
+      const double prob = static_cast< double >( dets[i].prob[class_idx] );
 
       if( prob >= m_thresh )
       {
@@ -543,8 +533,11 @@ process_image( const cv::Mat& cv_image )
   // Free allocated memory
   free_image(im);
   free_image(sized);
-  free( m_boxes );
-  free_ptrs( (void**)m_probs, l_size );
+  for( size_t j = 0; j < l_size; ++j )
+  {
+    free( dets[j].prob );
+  }
+  free( dets );
 
   return detected_objects;
 }
