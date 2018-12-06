@@ -30,46 +30,61 @@
 
 /**
  * \file
- * \brief GDAL image_io implementation
+ * \brief GDAL image_container inteface
  */
 
-#include "image_io.h"
+#ifndef KWIVER_ARROWS_GDAL_IMAGE_CONTAINER_H_
+#define KWIVER_ARROWS_GDAL_IMAGE_CONTAINER_H_
 
-#include <arrows/gdal/image_container.h>
 
-#include <vital/exceptions/algorithm.h>
+#include <vital/vital_config.h>
+#include <arrows/gdal/kwiver_algo_gdal_export.h>
+
+#include <vital/types/image_container.h>
+
+#include <gdal_priv.h>
 
 namespace kwiver {
 namespace arrows {
 namespace gdal {
 
-/// Load image image from the file
-/**
- * \param filename the path to the file the load
- * \returns an image container refering to the loaded image
- */
-vital::image_container_sptr
-image_io
-::load_(const std::string& filename) const
+/// This image container wraps a cv::Mat
+class KWIVER_ALGO_GDAL_EXPORT image_container
+  : public vital::image_container
 {
-  return vital::image_container_sptr( new gdal::image_container( filename ) );
-}
+public:
 
+  /// Constructor - from file
+  explicit image_container(const std::string& filename);
 
-/// Save image image to a file
-/**
- * \param filename the path to the file to save.
- * \param data The image container refering to the image to write.
- */
-void
-image_io
-::save_(const std::string& filename,
-       vital::image_container_sptr data) const
-{
-  VITAL_THROW( vital::algorithm_exception, this->type_name(), this->impl_name(),
-               "Saving to file not supported." );
-}
+  /// The size of the image data in bytes
+  /**
+   * This size includes all allocated image memory,
+   * which could be larger than width*height*depth.
+   */
+  virtual size_t size() const;
+
+  /// The width of the image in pixels
+  virtual size_t width() const { return gdal_dataset_->GetRasterXSize(); }
+
+  /// The height of the image in pixels
+  virtual size_t height() const { return gdal_dataset_->GetRasterYSize(); }
+
+  /// The depth (or number of channels) of the image
+  virtual size_t depth() const { return gdal_dataset_->GetRasterCount(); }
+
+  /// Get image. Unlike other image container must allocate memory
+  virtual vital::image get_image() const;
+
+protected:
+
+  std::shared_ptr<GDALDataset> gdal_dataset_;
+  vital::image_pixel_traits pixel_traits_;
+};
+
 
 } // end namespace gdal
 } // end namespace arrows
 } // end namespace kwiver
+
+#endif // KWIVER_ARROWS_GDAL_IMAGE_CONTAINER_H_
