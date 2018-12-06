@@ -38,14 +38,6 @@
 #include <arrows/gdal/image_container.h>
 
 #include <vital/exceptions/algorithm.h>
-// #include <vital/exceptions/io.h>
-// #include <vital/types/metadata.h>
-// #include <vital/types/metadata_traits.h>
-
-// #include <gdal_priv.h>
-// #include <ogr_spatialref.h>
-
-//#include <sstream>
 
 namespace kwiver {
 namespace arrows {
