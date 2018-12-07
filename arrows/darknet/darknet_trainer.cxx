@@ -291,7 +291,7 @@ train_from_disk(
 #ifdef WIN32
     std::string python_cmd = "python.exe -c \"";
     std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
-    std::string header_cmd = "dth.generate_yolo_v2_headers(";
+    std::string header_cmd = "dth.generate_yolo_v3_headers(";
 
     std::string header_args = "\\\"" + d->m_train_directory + "\\\",[";
     for( auto label : object_labels->child_class_names() )
@@ -306,7 +306,7 @@ train_from_disk(
 #else
     std::string python_cmd = "python -c '";
     std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
-    std::string header_cmd = "dth.generate_yolo_v2_headers(";
+    std::string header_cmd = "dth.generate_yolo_v3_headers(";
 
     std::string header_args = "\"" + d->m_train_directory + "\",[";
     for( auto label : object_labels->child_class_names() )
@@ -335,8 +335,8 @@ train_from_disk(
   std::string darknet_cmd = "darknet";
 #endif
   std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
-    " detector train " + d->m_train_directory + div + "yolo_v2.data "
-                       + d->m_train_directory + div + "yolo_v2.cfg ";
+    " detector train " + d->m_train_directory + div + "yolo_v3.data "
+                       + d->m_train_directory + div + "yolo_v3.cfg ";
 
   if( !d->m_seed_weights.empty() )
   {

@@ -40,8 +40,8 @@ def replace_str_in_file( input_fn, output_fn, repl_array ):
   inputf.close()
 
 # Main Utility
-def generate_yolo_v2_headers( working_dir, labels, width, height, input_model, \
-  output_str="yolo_v2", image_ext=".png", test_per=0.05 ):
+def generate_yolo_v3_headers( working_dir, labels, width, height, input_model, \
+  output_str="yolo_v3", image_ext=".png", test_per=0.05 ):
 
   # Check arguments
   if len( labels ) < 0:
@@ -56,7 +56,7 @@ def generate_yolo_v2_headers( working_dir, labels, width, height, input_model, \
   # Dump out adjusted network file
   repl_strs = [ ["[-HEIGHT_INSERT-]",str(height)], \
                 ["[-WIDTH_INSERT-]",str(width)], \
-                ["[-FILTER_COUNT_INSERT-]",str((len(labels)+5)*5)], \
+                ["[-FILTER_COUNT_INSERT-]",str((len(labels)+5)*3)], \
                 ["[-CLASS_COUNT_INSERT-]",str(len(labels))] ]
 
   replace_str_in_file( input_model, working_dir + div + conf_file, repl_strs )
