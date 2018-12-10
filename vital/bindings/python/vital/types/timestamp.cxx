@@ -50,7 +50,7 @@ PYBIND11_MODULE(timestamp, m)
     )")
 
     .def(py::init<>())
-    .def(py::init<kwiver::vital::time_us_t, kwiver::vital::frame_id_t>())
+    .def(py::init<kwiver::vital::time_usec_t, kwiver::vital::frame_id_t>())
 
     .def("is_valid", &ts::is_valid)
     .def("has_valid_time", &ts::has_valid_time)

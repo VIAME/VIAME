@@ -29,6 +29,7 @@
  */
 
 #include "bounding_box.h"
+#include "load_save.h"
 
 #include <vital/types/bounding_box.h>
 #include <vital/internal/cereal/cereal.hpp>
@@ -93,30 +94,5 @@ deserialize( const std::string& message )
   return kwiver::vital::any(bbox);
 }
 
-// ----------------------------------------------------------------------------
-void
-bounding_box::
-save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox )
-{
-  archive( cereal::make_nvp( "min_x", bbox.min_x() ),
-           cereal::make_nvp( "min_y", bbox.min_y() ),
-           cereal::make_nvp( "max_x", bbox.max_x() ),
-           cereal::make_nvp( "max_y", bbox.max_y() ) );
-}
-
-// ----------------------------------------------------------------------------
-void
-bounding_box::
-load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbox )
-{
-  double min_x, min_y, max_x, max_y;
-
-  archive( CEREAL_NVP( min_x ),
-           CEREAL_NVP( min_y ),
-           CEREAL_NVP( max_x ),
-           CEREAL_NVP( max_y ) );
-
-  bbox = kwiver::vital::bounding_box_d( min_x, min_y, max_x, max_y );
-}
 
 } } } }       // end namespace kwiver

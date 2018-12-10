@@ -383,7 +383,7 @@ get_configuration() const
   config->set_value( "alpha_blend_prob", d->m_do_alpha,
                      "If true, those who are less likely will be more transparent." );
   config->set_value( "default_line_thickness", d->m_default_params.thickness,
-                     "The default line thickness for a class, in pixels." );
+                     "The default line thickness, in pixels." );
   config->set_value( "default_color", "0 0 255",
                      "The default color for a class (RGB)." );
   config->set_value( "custom_class_color", "",

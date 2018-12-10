@@ -141,6 +141,7 @@ public:
   static const algorithm_capabilities::capability_name_t HAS_FRAME_NUMBERS;
   static const algorithm_capabilities::capability_name_t HAS_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_FRAME_DATA;
+  static const algorithm_capabilities::capability_name_t HAS_FRAME_RATE;
   static const algorithm_capabilities::capability_name_t HAS_ABSOLUTE_FRAME_TIME;
   static const algorithm_capabilities::capability_name_t HAS_METADATA;
   static const algorithm_capabilities::capability_name_t HAS_TIMEOUT;
@@ -380,6 +381,16 @@ public:
    * \throws video_stream_exception when there is an error in the video stream.
    */
   virtual kwiver::vital::metadata_map_sptr metadata_map() = 0;
+
+
+  /**
+   * \brief Get frame rate from the video.
+   *
+   * If frame rate is not supported, return -1.
+   *
+   * \return Frame rate.
+   */
+  virtual double frame_rate();
 
 
   /**

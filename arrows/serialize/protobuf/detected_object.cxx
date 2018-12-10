@@ -31,7 +31,10 @@
 #include "detected_object.h"
 #include "detected_object_type.h"
 #include "bounding_box.h"
+#include "convert_protobuf.h"
 
+#include <vital/types/detected_object.h>
+#include <vital/types/protobuf/detected_object.pb.h>
 #include <vital/exceptions.h>
 
 namespace kwiver {
@@ -107,68 +110,6 @@ deserialize( const std::string& message )
   }
 
   return kwiver::vital::any( det_object_ptr );
-}
-
-// ----------------------------------------------------------------------------
-void detected_object::
-convert_protobuf( const kwiver::protobuf::detected_object&  proto_det_object,
-                  kwiver::vital::detected_object& det_object )
-{
-  det_object.set_confidence( proto_det_object.confidence() );
-
-  kwiver::vital::bounding_box_d bbox{ 0, 0, 0, 0 };
-  kwiver::protobuf::bounding_box proto_bbox = proto_det_object.bbox();
-  kwiver::arrows::serialize::protobuf::bounding_box::convert_protobuf( proto_bbox, bbox );
-  det_object.set_bounding_box( bbox );
-
-  if ( proto_det_object.has_classifcations() )
-  {
-    auto new_dot = std::make_shared< kwiver::vital::detected_object_type >();
-    kwiver::protobuf::detected_object_type proto_dot = proto_det_object.classifcations();
-    kwiver::arrows::serialize::protobuf::detected_object_type::convert_protobuf( proto_dot, *new_dot );
-    det_object.set_type( new_dot );
-  }
-
-  if ( proto_det_object.has_index() )
-  {
-    det_object.set_index( proto_det_object.index() ) ;
-  }
-
-
-  if ( proto_det_object.has_detector_name() )
-  {
-    det_object.set_detector_name( proto_det_object.detector_name() );
-  }
-}
-
-// ----------------------------------------------------------------------------
-void detected_object::
-convert_protobuf( const kwiver::vital::detected_object& det_object,
-                  kwiver::protobuf::detected_object&  proto_det_object )
-{
-  proto_det_object.set_confidence( det_object.confidence() );
-
-  kwiver::protobuf::bounding_box *proto_bbox = new kwiver::protobuf::bounding_box();
-  kwiver::arrows::serialize::protobuf::bounding_box::convert_protobuf( det_object.bounding_box(), *proto_bbox );
-
-  proto_det_object.set_allocated_bbox(proto_bbox);  // proto_det_object takes ownership
-
-  // We're using type() in "const" (read only) way here.  There's utility
-  // in having the source object parameter be const, but type() isn't because
-  // its a pointer into the det_object.  Using const_cast here is a middle ground
-  // though somewhat ugly
-  if ( const_cast<kwiver::vital::detected_object&>(det_object).type() != NULL )
-  {
-    kwiver::protobuf::detected_object_type *proto_dot = new kwiver::protobuf::detected_object_type();
-    kwiver::arrows::serialize::protobuf::detected_object_type::
-      convert_protobuf( * const_cast<kwiver::vital::detected_object&>(det_object).type(), *proto_dot );
-
-    proto_det_object.set_allocated_classifcations(proto_dot); // proto_det_object takes ownership
-  }
-
-  proto_det_object.set_index( det_object.index() );
-
-  proto_det_object.set_detector_name( det_object.detector_name() );
 }
 
 } } } } // end namespace

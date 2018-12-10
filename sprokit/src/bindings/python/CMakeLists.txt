@@ -6,16 +6,6 @@ project(sprokit_python)
 
 ###
 #
-function (_sprokit_add_python_library name modpath)
-  _kwiver_create_safe_modpath(${modpath} safe_modpath)
-
-  sprokit_add_python_library(${name} ${modpath}
-    ${ARGN})
-
-endfunction ()
-
-###
-#
 set(copyright_header
 "#ckwg +28
 # Copyright 2015 by Kitware, Inc.

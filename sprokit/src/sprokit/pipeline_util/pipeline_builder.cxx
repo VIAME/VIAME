@@ -38,8 +38,6 @@
 #include <vital/config/config_block.h>
 #include <vital/util/tokenize.h>
 
-#include <boost/filesystem/operations.hpp>
-
 #include <algorithm>
 #include <stdexcept>
 #include <string>

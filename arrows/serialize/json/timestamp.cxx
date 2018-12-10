@@ -29,6 +29,8 @@
  */
 
 #include "timestamp.h"
+#include "load_save.h"
+
 #include <vital/types/timestamp.h>
 #include <vital/internal/cereal/cereal.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
@@ -88,31 +90,5 @@ timestamp
 
   return kwiver::vital::any( tstamp );
 }
-
-
-// ----------------------------------------------------------------------------
-void
-timestamp::save( cereal::JSONOutputArchive&       archive,
-                 const kwiver::vital::timestamp&  tstamp )
-{
-  archive( cereal::make_nvp( "time", tstamp.get_time_usec() ),
-           cereal::make_nvp( "frame", tstamp.get_frame() ) );
-}
-
-
-// ----------------------------------------------------------------------------
-void
-timestamp::load( cereal::JSONInputArchive&  archive,
-                 kwiver::vital::timestamp&  tstamp )
-{
-  int64_t time, frame;
-
-  archive( CEREAL_NVP( time ),
-           CEREAL_NVP( frame ) );
-  tstamp = kwiver::vital::timestamp( static_cast< kwiver::vital::time_us_t > ( time ),
-                                     static_cast< kwiver::vital::frame_id_t > (
-                                       frame ) );
-}
-
 
 } } } }

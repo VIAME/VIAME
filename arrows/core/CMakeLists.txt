@@ -23,9 +23,9 @@ set( plugin_core_headers
   example_detector.h
   feature_descriptor_io.h
   filter_features_magnitude.h
-  formulate_query_core.h
   filter_features_scale.h
   filter_tracks.h
+  handle_descriptor_request_core.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
   initialize_object_tracks_threshold.h
@@ -33,12 +33,16 @@ set( plugin_core_headers
   match_features_fundamental_matrix.h
   match_features_homography.h
   match_tracks.h
+  mesh_operations.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
+  render_mesh_depth_map.h
   track_features_augment_keyframes.h
   track_features_core.h
   transform.h
+  triangle_scan_iterator.h
   triangulate_landmarks.h
+  uv_unwrap_mesh.h
   video_input_filter.h
   video_input_image_list.h
   video_input_pos.h
@@ -95,9 +99,9 @@ set( plugin_core_sources
   example_detector.cxx
   feature_descriptor_io.cxx
   filter_features_magnitude.cxx
-  formulate_query_core.cxx
   filter_features_scale.cxx
   filter_tracks.cxx
+  handle_descriptor_request_core.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
   initialize_object_tracks_threshold.cxx
@@ -105,12 +109,16 @@ set( plugin_core_sources
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   match_tracks.cxx
+  mesh_operations.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
+  render_mesh_depth_map.cxx
   track_features_augment_keyframes.cxx
   track_features_core.cxx
   transform.cxx
+  triangle_scan_iterator.cxx
   triangulate_landmarks.cxx
+  uv_unwrap_mesh.cxx
   video_input_filter.cxx
   video_input_image_list.cxx
   video_input_pos.cxx

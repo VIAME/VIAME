@@ -29,7 +29,12 @@
  */
 
 #include "timestamp.h"
+#include "convert_protobuf.h"
+
+#include <vital/types/timestamp.h>
+#include <vital/types/protobuf/timestamp.pb.h>
 #include <vital/exceptions.h>
+
 #include <cstdint>
 
 namespace kwiver {
@@ -94,27 +99,6 @@ timestamp::deserialize( const std::string& message )
   }
 
   return kwiver::vital::any( tstamp );
-}
-
-
-// ----------------------------------------------------------------------------
-void
-timestamp::convert_protobuf( const kwiver::protobuf::timestamp& proto_tstamp,
-                             kwiver::vital::timestamp&          tstamp )
-{
-  tstamp = kwiver::vital::timestamp(
-    static_cast< kwiver::vital::time_us_t > ( proto_tstamp.time() ),
-    static_cast< kwiver::vital::frame_id_t > ( proto_tstamp.frame() ) );
-}
-
-
-// ----------------------------------------------------------------------------
-void
-timestamp::convert_protobuf( const kwiver::vital::timestamp&  tstamp,
-                             kwiver::protobuf::timestamp&     proto_tstamp )
-{
-  proto_tstamp.set_time( static_cast< int64_t > ( tstamp.get_time_usec() ) );
-  proto_tstamp.set_frame( static_cast< int64_t > ( tstamp.get_frame() ) );
 }
 
 } } } }

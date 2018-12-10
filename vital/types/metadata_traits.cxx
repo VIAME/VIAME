@@ -43,12 +43,13 @@ struct vital_meta_trait_object
   : public vital_meta_trait_base
 {
   virtual ~vital_meta_trait_object() {}
-  virtual std::string name() const { return vital_meta_trait<tag>::name(); }
-  virtual std::type_info const& tag_type() const { return vital_meta_trait<tag>::tag_type(); }
-  virtual bool is_integral() const { return vital_meta_trait<tag>::is_integral(); }
-  virtual bool is_floating_point() const { return vital_meta_trait<tag>::is_floating_point(); }
-  virtual vital_metadata_tag tag() const { return vital_meta_trait<tag>::tag(); }
+  virtual std::string name() const override { return vital_meta_trait<tag>::name(); }
+  virtual std::type_info const& tag_type() const override { return vital_meta_trait<tag>::tag_type(); }
+  virtual bool is_integral() const override { return vital_meta_trait<tag>::is_integral(); }
+  virtual bool is_floating_point() const override { return vital_meta_trait<tag>::is_floating_point(); }
+  virtual vital_metadata_tag tag() const override { return vital_meta_trait<tag>::tag(); }
 };
+
 #endif
 
 #if 01
@@ -62,13 +63,16 @@ struct vital_meta_trait_object
   struct vital_meta_trait_object<VITAL_META_ ## TAG>                    \
     : public vital_meta_trait_base                                      \
   {                                                                     \
-    virtual ~vital_meta_trait_object() {}                               \
-    virtual std::string name() const { return NAME; }                   \
-    virtual std::type_info const& tag_type() const { return typeid(T); } \
-    virtual bool is_integral() const { return std::is_integral<T>::value; } \
-    virtual bool is_floating_point() const { return std::is_floating_point<T>::value; } \
-    virtual vital_metadata_tag tag() const { return VITAL_META_ ## TAG; } \
+    virtual ~vital_meta_trait_object() override {}                      \
+    virtual std::string name() const override { return NAME; }          \
+    virtual std::type_info const& tag_type() const override { return typeid(T); } \
+    virtual bool is_integral() const override { return std::is_integral<T>::value; } \
+    virtual bool is_floating_point() const override { return std::is_floating_point<T>::value; } \
+    virtual vital_metadata_tag tag() const override { return VITAL_META_ ## TAG; } \
+    virtual metadata_item* create_metadata_item ( const kwiver::vital::any& data ) const override \
+    { return new kwiver::vital::typed_metadata< VITAL_META_ ## TAG, T > ( NAME, data ); } \
   };
+
 #endif
 
   KWIVER_VITAL_METADATA_TAGS( DEFINE_VITAL_META_TRAIT )

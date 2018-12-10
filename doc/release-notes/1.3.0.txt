@@ -1,0 +1,100 @@
+KWIVER v1.3.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and
+fixes over the previous v1.2.0 release.
+
+
+Updates since v1.2.0
+--------------------
+
+ * Loadable modules (algorithms and processes) have been moved under
+   the .../lib/kwiver subdirectory so that they will not conflict with
+   other packages.
+
+ * Replaces sprokit_private_header_group with kwiver equivalent.
+
+ * Remove unused Sprokit CMake support.
+
+Vital
+
+ * Added new class to format config block to a stream and deprecated
+   print method in config_block class. Config block formatter provides
+   methods to produce different format outputs. Config block
+   formatting can be extended with plugins.
+
+* Added the data_serializer base algorithm to support serialization
+  of Vital types for distributed processing and other uses.
+
+Vital Bindings
+
+ * Added python bindings for timestamp class.
+
+Arrows: Core
+
+ * Added support for RPC cameras to the triangulate_landmark implementation.
+ * Added a function to render a depth map of a mesh from a perspective camera.
+
+Arrows: FFmpeg
+
+ * Created a new FFmpeg arrow with a video_input algorithm implementation.
+   This provides an alternative to the vidl_ffmpeg_video_input in the VXL
+   arrow.  The goal is to provide direct access to FFMPEG without requiring
+   VXL and to improve efficiency, especially with video seeking.  Currently
+   this implementation is not full featured and does not yet provide a
+   complete replacement for the VXL implementation.
+
+Arrows: GDAL
+
+ * Created a new GDAL arrow with an image_io algorithm implementation.
+   This allows opening images with GDAL, which is especially useful for
+   Geospatial image formats like GeoTIFF and NITF.
+
+Arrows: OpenCV
+
+Arrows: Serialization
+
+  * Added JSON Serializers for:
+    - bounding_box
+    - detected_object (partial)
+    - detected_object_set (partial)
+    - detected_object_type
+
+  * Added Protocol Buffer Serializers for:
+    - bounding_box
+    - detected_object (partial)
+    - detected_object_set (partial)
+    - detected_object_type
+
+Arrows: VXL
+
+
+Sprokit
+
+
+Sprokit: Processes
+
+  * Added serializer_process and deserializer_process that convert from/to
+    serialized byte strings and Sprokit data ports.
+
+  * Added zmq_transport_send_process and zmq_transport_recieve process to support
+    Publish/Subscribe distributed processing with ZeroMQ.
+
+Tools
+
+
+Unit Tests
+
+Bug Fixes
+--------
+
+ * Fixed a problem where ports that were not supplied data in the
+   input_adapter_process were incorrectly reported.
+
+ * Fix and issue in the feature_detect_extract_SURF arrow. The arrow was using a dynamicCast
+   which causes a segmentation fault on the Mac. On the Mac, symbols exported from an image loaded with
+   RTLD_GLOBAL mode are not available to other images unless built with -flat_namespace.
+
+ * Fixed issue with loading logger plugins on Windows due to a semicolon
+   that gets appended to environment variables
+

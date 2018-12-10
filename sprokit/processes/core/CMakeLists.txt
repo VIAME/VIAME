@@ -21,6 +21,7 @@ set( sources
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
   frame_list_process.cxx
+  handle_descriptor_request_process.cxx
   image_file_reader_process.cxx
   image_filter_process.cxx
   image_object_detector_process.cxx
@@ -29,6 +30,7 @@ set( sources
   keyframe_selection_process.cxx
   matcher_process.cxx
   merge_detection_sets_process.cxx
+  perform_query_process.cxx
   print_config_process.cxx
   read_descriptor_process.cxx
   read_object_track_process.cxx
@@ -61,6 +63,7 @@ set( private_headers
   draw_tracks_process.h
   extract_descriptors_process.h
   frame_list_process.h
+  handle_descriptor_request_process.h
   image_file_reader_process.h
   image_filter_process.h
   image_object_detector_process.h
@@ -69,6 +72,7 @@ set( private_headers
   keyframe_selection_process.h
   matcher_process.h
   merge_detection_sets_process.h
+  perform_query_process.h
   print_config_process.h
   read_descriptor_process.h
   read_object_track_process.h

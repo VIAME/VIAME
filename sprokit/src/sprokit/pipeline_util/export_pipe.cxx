@@ -56,8 +56,7 @@ static sprokit::process::name_t denormalize_name( sprokit::process::name_t const
 static sprokit::process::name_t normalize_name( sprokit::process::name_t const& name );
 
 // ==================================================================
-class config_printer :
-  public boost::static_visitor< >
+class config_printer
 {
 public:
   config_printer( std::ostream& ostr, sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& conf );
@@ -433,7 +432,10 @@ generate( std::ostream& str )
 
   config_printer printer( str, pipe, config );
 
-  std::for_each(blocks.begin(), blocks.end(), boost::apply_visitor(printer));
+  for ( auto b : blocks )
+  {
+    kwiver::vital::visit( printer, b );
+  }
 
   printer.output_process_defaults();
 }

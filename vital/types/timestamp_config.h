@@ -62,7 +62,7 @@ config_block_get_value_cast( config_block_value_t const& value )
   std::stringstream str; // add string to stream
   str << value;
 
-  time_us_t t;
+  time_usec_t t;
   str >> t;
   obj.set_time_usec( t );
 

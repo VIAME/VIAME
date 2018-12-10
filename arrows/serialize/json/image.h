@@ -33,7 +33,6 @@
 
 #include <arrows/serialize/json/kwiver_serialize_json_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/image_container.h>
 
 namespace cereal {
   class JSONOutputArchive;
@@ -51,7 +50,6 @@ class KWIVER_SERIALIZE_JSON_EXPORT image
 public:
   // Type name this class supports
   static constexpr char const* name = "kwiver:image";
-
   static constexpr char const* description =
     "Serializes an image using JSON notation. ";
 
@@ -60,10 +58,6 @@ public:
 
   virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
   virtual vital::any deserialize( const std::string& message ) override;
-
-  // Converters that can be used in cases of nested structures
-  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::image_container_sptr obj );
-  static void load( cereal::JSONInputArchive& archive, kwiver::vital::image_container_sptr& obj );
 };
 
 } } } }       // end namespace kwiver

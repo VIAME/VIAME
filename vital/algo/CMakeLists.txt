@@ -37,8 +37,8 @@ set( public_headers
   extract_descriptors.h
   feature_descriptor_io.h
   filter_features.h
-  formulate_query.h
   filter_tracks.h
+  handle_descriptor_request.h
   image_filter.h
   image_io.h
   image_object_detector.h
@@ -58,6 +58,7 @@ set( public_headers
   train_detector.h
   triangulate_landmarks.h
   uuid_factory.h
+  uv_unwrap_mesh.h
   video_input.h
   write_object_track_set.h
   write_track_descriptor_set.h
@@ -94,8 +95,8 @@ set( sources
   extract_descriptors.cxx
   feature_descriptor_io.cxx
   filter_features.cxx
-  formulate_query.cxx
   filter_tracks.cxx
+  handle_descriptor_request.cxx
   image_filter.cxx
   image_io.cxx
   image_object_detector.cxx
@@ -115,6 +116,7 @@ set( sources
   train_detector.cxx
   triangulate_landmarks.cxx
   uuid_factory.cxx
+  uv_unwrap_mesh.cxx
   video_input.cxx
   write_object_track_set.cxx
   write_track_descriptor_set.cxx

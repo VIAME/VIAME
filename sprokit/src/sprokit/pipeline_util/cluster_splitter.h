@@ -49,7 +49,6 @@ namespace sprokit {
  * list.
  */
   class cluster_splitter
-    : public boost::static_visitor<>
   {
   public:
     cluster_splitter(cluster_bakery::cluster_component_info_t& info);
