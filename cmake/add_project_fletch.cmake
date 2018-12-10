@@ -90,6 +90,7 @@ if( VIAME_ENABLE_KWANT )
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_TinyXML:BOOL=ON
     -Dfletch_ENABLE_libjson:BOOL=ON
+    -Dfletch_ENABLE_YAMLcpp:BOOL=ON
   )
 endif()
 
