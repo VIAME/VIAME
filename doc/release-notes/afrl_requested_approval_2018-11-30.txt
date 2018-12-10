@@ -1,0 +1,144 @@
+KWIVER Release Notes for changes pending release approval by AFRL
+=================================================================
+
+This file documents release notes for changes made to KWIVER which require
+public release approval from AFRL.  After approval, the changes and
+corresponding notes below will be incorporated into a public numbered
+release version, and the content of this file will be reset.
+
+
+Updates since last public release
+---------------------------------
+
+Arrows - Core
+
+ * Improved triangulate_landmarks implementation with an option to use
+   RANSAC for robustness to outliers and additional checks to reject
+   poorly constrainted landmarks with minimal view angle variation.
+
+ * Switched track_set_impl from using a vector to store track_sptr to
+   using an unordered map.  This allows for more efficient search for tracks.
+
+ * Set inlier flag for track states during triangulation.  Stored max
+   intersection angle of rays in landmark, a quality metric.
+
+ * Extracts ORB descriptors at KLT feature locations.  No longer runs ORB
+   detector.
+
+ * When triangulating switch to using squared rerpojection error for
+   efficiency.  Optionally pass initial guess for landmark position to
+   RANSAC triangulation.  If location is already known or a good guess
+   is available this can cut down the RANSAC loops considerably.
+
+ * Optionally estimates a fundamental matrix before loop closure.  Accepts
+   a loop only if the number of inlier matches is above a threshold.
+
+ * Improved the efficiency of loop closing and descriptor comparision.
+
+ * Added triangulate_landmarks method that takes a map of tracks rather
+   than a track_set_sptr as input.  This is done for efficiency. Using
+   the track map we can directly access the track corresponding to a
+   landmark that needs to be triangulated, rather than looping over
+   all tracks.
+
+ * Added an alternative triangulation method based on "Triangulation
+   Made Easy" Lindstrom CVPR 2010.
+
+ * Added a new video_input implementation, video_input_splice, that
+   splices multiple video sources together into a single video source.
+
+ * Added depth utilities to compute depth ranges based on landmarks
+
+ * Added a convenience class for storing maps of arbitrary cameras and
+   adapted SfM utils to use it.
+
+Arrows - Ceres
+
+ * Added ability to fix either cameras or landmarks in bundle adjustment.
+
+ * Automatically fixes the gauge if there are not enough fixed cameras or
+   landmarks.
+
+ * Added option to necker reverse only the cameras but not the landmarks.
+
+ * Improved speed of klt/ORB feature tracking by choosing which features
+   to track and match with visual vocabulary node ID.  Made klt feature
+   tracker in sprokit return just the most recent tracked features, not
+   the entire history at each step.  Made keyframe selector remove non
+   keyframes temporally between keyframes to improve speed.  That way
+   matcher process needs only get keyframes.  After sprokit klt tracks
+   and keyframe orb feature tracks are merged into a single final track set.
+
+ * Added feature detection that adaptively changes thresholds to detect
+   close to a target number of features in each frame.  Also improves the
+   distribution of features across the image with a gridded approach.
+
+ * Added functions that detect issues in the structure from motion
+   solution and correct them.  Issues could be disconnected components
+   of cameras, cameras with too little coverage, landmarks without
+   enough measurements to constrain them etc.  The corrections typically
+   remove offending items.  Only the largest connected map component is
+   kept.  Underconstrained landmarks are removed etc.
+
+Arrows CUDA
+ * Added CUDA arrow
+
+ * Added depth map integration using CUDA. The algorithm takes a set of
+   depth maps and associated cameras to produce a volume that a surface
+   can be extracted from using an algorithm like marching cubes.
+
+ * Switch from std::map to std::unordered_map for internal bookkeeping for
+   efficiency.
+
+Arrows CUDA
+ * Added CUDA arrow
+
+ * Added depth map integration using CUDA. The algorithm takes a set of
+   depth maps and associated cameras to produce a volume that a surface
+   can be extracted from using an algorithm like marching cubes.
+
+Arrows super3d
+ * Added region of interest specification for depth maps
+
+General
+
+ * Changes to track_set_impl to facilitate passing track changes between
+   sprokit processes rather than full track sets for efficiency.
+
+ * Added additional range helpers indirect and valid.  The former provides
+   access to iterators while still allowing a range-based for to be used.  The
+   latter filters iteration so that only "valid" items are visited.
+
+Sprokit
+
+ * Changed KLT tracking pipeline to pass track change information between
+   processes rather than full track sets for efficiency.
+
+Vital
+
+ * Change the return type of the as_bytes() function on vital::descriptor
+   to return a raw pointer to the bytes instead of a vector of bytes.
+   This API change avoids many memory copies when comparing descriptors
+   at the byte level.
+
+ * Added a sfm_constraints class and pass this to the structure-from-motion
+   algorithms (initialize_cameras_landmark, bundle_adjust, optimize_cameras)
+   instead of passing the raw metadata.
+
+
+Fixes since last public release
+-------------------------------
+
+Arrows - VXL
+
+ * Fixed issue with ffmpeg video source where the frame metadata was not
+   getting set correctly.
+
+Arrows - OpenCV
+
+ * Fixed an issue in which feature detector masks were not working as expected
+   when values were not exactly 0 and 255 due to lossy compression.
+   A threshold at 128 is now applied to force mask values to 0 and 255.
+
+ * Fixed an issue in the FAST detector where too many features were initially
+   detected.
