@@ -60,9 +60,16 @@ class VITAL_EXPORT object_track_state : public track_state
 {
 public:
 
+  object_track_state()
+    : track_state( 0 )
+      , detection( nullptr ) 
+      , time_( 0 )
+  {}
+  
   /// Default constructor
+  //
   object_track_state( frame_id_t frame,
-                      time_us_t time,
+                      time_usec_t time,
                       detected_object_sptr d = nullptr )
     : track_state( frame )
     , detection( d )
@@ -90,23 +97,30 @@ public:
     return std::make_shared< object_track_state >( *this );
   }
 
-  time_us_t time() const
+  time_usec_t time() const
   {
     return time_;
   }
+  
+  void set_time( time_usec_t time )
+  {
+    time_ = time;
+  }
 
   detected_object_sptr detection;
-
+  
   static std::shared_ptr< object_track_state > downcast(
     track_state_sptr const& sp )
   {
     return std::dynamic_pointer_cast< object_track_state >( sp );
   }
+            
+
 
   static constexpr auto downcast_transform = range::transform( downcast );
 
 private:
-  time_us_t time_;
+  time_usec_t time_;
 };
 
 

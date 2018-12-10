@@ -33,7 +33,6 @@
 
 #include <arrows/serialize/json/kwiver_serialize_json_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/bounding_box.h>
 
 namespace cereal {
   class JSONOutputArchive;
@@ -51,21 +50,14 @@ class KWIVER_SERIALIZE_JSON_EXPORT bounding_box
 public:
   // Type name this class supports
   static constexpr char const* name = "kwiver:bounding_box";
-
   static constexpr char const* description =
-    "Serializes a bounding_box using json notation. "
-    "This implementation only handles a single data item.";
+    "Serializes a bounding_box using json notation.";
 
   bounding_box();
   virtual ~bounding_box();
 
   virtual std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
   virtual vital::any deserialize( const std::string& message ) override;
-
-  // Converters that can be used in cases of nested structures
-  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::bounding_box_d& bbox );
-  static void load( cereal::JSONInputArchive& archive, kwiver::vital::bounding_box_d& bbox );
-
 };
 
 } } } }       // end namespace kwiver

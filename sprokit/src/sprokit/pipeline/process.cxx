@@ -36,12 +36,12 @@
 
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/util/string.h>
+#include <vital/optional.h>
 
 #include <boost/assign/ptr_map_inserter.hpp>
 #include <boost/ptr_container/ptr_map.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/shared_mutex.hpp>
-#include <boost/optional.hpp>
 
 #include <map>
 #include <utility>
@@ -189,14 +189,14 @@ class process::priv
 
     typedef port_t tag_t;
 
-    typedef boost::optional<port_type_t> flow_tag_port_type_t;
+    typedef kwiver::vital::optional<port_type_t> flow_tag_port_type_t;
     typedef std::map<tag_t, flow_tag_port_type_t> flow_tag_port_type_map_t;
 
     typedef std::map<tag_t, ports_t> flow_tag_port_map_t;
 
     typedef std::map<port_t, tag_t> port_tag_map_t;
 
-    typedef boost::optional<port_frequency_t> core_frequency_t;
+    typedef kwiver::vital::optional<port_frequency_t> core_frequency_t;
 
     tag_t port_flow_tag_name(port_type_t const& port_type) const;
     void check_tag(tag_t const& tag);
@@ -496,6 +496,8 @@ process
   return _input_port_info(port);
 }
 
+
+// ------------------------------------------------------------------
 process::port_info_t
 process
 ::output_port_info(port_t const& port)
@@ -771,7 +773,17 @@ process::port_info_t
 process
 ::_input_port_info(port_t const& port)
 {
-  priv::port_map_t::const_iterator const i = d->input_ports.find(port);
+  priv::port_map_t::const_iterator i = d->input_ports.find(port);
+
+  if (i == d->input_ports.end())
+  {
+    // Port not found. Check with the process to see if it wants to
+    // define the port.
+    input_port_undefined( port );
+
+    // Update iterator
+    i = d->input_ports.find(port);
+  }
 
   if (i != d->input_ports.end())
   {
@@ -782,13 +794,29 @@ process
                d->name, port, input_ports());
 }
 
+// ------------------------------------------------------------------
+void
+process
+::input_port_undefined( port_t const& port )
+{
+}
 
 // ------------------------------------------------------------------
 process::port_info_t
 process
 ::_output_port_info(port_t const& port)
 {
-  priv::port_map_t::const_iterator const i = d->output_ports.find(port);
+  priv::port_map_t::const_iterator i = d->output_ports.find(port);
+
+  if (i == d->output_ports.end())
+  {
+    // Port not found. Check with the process to see if it wants to
+    // define the port.
+    output_port_undefined( port );
+
+    // Update iterator
+    i = d->output_ports.find(port);
+  }
 
   if (i != d->output_ports.end())
   {
@@ -799,6 +827,13 @@ process
                d->name, port, output_ports());
 }
 
+
+// ------------------------------------------------------------------
+void
+process
+::output_port_undefined( port_t const& port )
+{
+}
 
 // ------------------------------------------------------------------
 bool
@@ -2344,4 +2379,4 @@ process::priv::output_port_info_t
 {
 }
 
-} // end namespace
+} // end name space

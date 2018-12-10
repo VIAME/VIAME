@@ -77,9 +77,9 @@ _configure()
 
 
 // ------------------------------------------------------------------
-sprokit::process::port_info_t
+void
 print_config_process::
-_input_port_info(port_t const& port)
+input_port_undefined(port_t const& port)
 {
   // If we have not created the port, then make a new one.
   if ( d->m_active_ports.count( port ) == 0 )
@@ -89,7 +89,7 @@ _input_port_info(port_t const& port)
     LOG_TRACE( logger(), "Creating input port: \"" << port << "\" on process \"" << name() << "\"" );
 
     // create a new port
-    declare_input_port( port, // port name
+    declare_input_port( port,     // port name
                         type_any, // port data type expected
                         p_flags,
                         port_description_t("Input for " + port)
@@ -98,8 +98,6 @@ _input_port_info(port_t const& port)
     // Add to our list of existing ports
     d->m_active_ports.insert( port );
   }
-
-  return process::_input_port_info(port);
 }
 
 

@@ -5,14 +5,14 @@ Distributed Processing
 A key component required in  KWIVER to enable the
 construction of fully elaborated computer vision systems is a strategy for
 multi-processing by distributing Sprokit pipelines across multiple computing
-nodes.   This a critical requirement since modern computer vision algrorithms
+nodes.   This a critical requirement since modern computer vision algorithms
 tend to be resource hungry, especially in the case of deep learning based
-alrorithms which require extensive GPU support to run optimally.  KWIVER has
+algorithms which require extensive GPU support to run optimally.  KWIVER has
 been utilized in systems using the
 `The Robotics Operating System (ROS) <http://www.ros.org>>`_ and `Apache
 Kafka <https://kafka.apache.org/>`_ among others.
 
-KWIVER, howver,  can use a built-in mechanism for constructing multi-computer
+KWIVER, however,  can use a built-in mechanism for constructing multi-computer
 processing systems, with message passing becoming an integral part of the
 KWIVER framework. We have chosen to use `ZeroMQ <https://zeromq.org>`_ for the
 message passing architecture, because it readily scales from small brokerless
@@ -30,8 +30,8 @@ multi-processing systems.
 
 KWIVER's multi-processing support is composed of two components:
 
-#. Serialiation
-#. Transport
+1. Serialization
+2. Transport
 
 In keeping with KWIVER's architecture, both of these are represented as
 abstractions, under which specific implementations (JSON, Protocol Buffers,
@@ -61,7 +61,7 @@ algorithm.  All derived classes must implement the `deserialize()` and
 The `serialize()` method converts one or more data items into a
 serialized byte stream. The format of the byte stream depends on the
 serialization_type being implemented. Examples of serialization types
-are json and protobuf.
+are `json` and `protobuf`.
 
 The `serialize()` and `deserialize()` methods must be compatible so
 that the `deserialize()` method can take the output of the `serialize()`
@@ -69,28 +69,21 @@ method and reproduce the original data items.
 
 The `serialize()` method takes in a map of one or more named data
 items and the `deserialize()` method produces a similar map. It is up
-to the data_serializer implementation to define what these names are
+to the `data_serializer` implementation to define what these names are
 and the associated data types.
 
-Basic one element data_serializer implementations usually do not
+Basic one element `data_serializer` implementations usually do not
 require any configuration, but more complicated multi-input
-serializers can require an arbitrary amount of config data. These
-config parameters are supplied
-
-Serialization Example
-'''''''''''''''''''''
-
-- best practices (adding tags to output to assist in error checking)
-- Single element algorithm (e.g. json using *cereal* package)
-- Multiple element algorithm (message packing)
+serializers can require an arbitrary amount of configuration data. These
+configuration parameters are supplied
 
 
 Serialization and Deserialization Processes
 -------------------------------------------
 
 The KWIVER serialization infrastructure is designed to allow the use
-of multiple cooperating Sprokit pipelines to intereact with one another
-in a multiprocessig environment.  The purpose of serialization is to package
+of multiple cooperating Sprokit pipelines to interact with one another
+in a multiprocessing environment.  The purpose of serialization is to package
 data in a format (a byte string) that can easily be transmitted or
 received via a *transport*.  The purpose of the serialization and
 deserialization processes is to convert one or more Sprokit data
@@ -98,99 +91,43 @@ ports to and from a single byte string for transmission by a transport
 process.
 
 The serializer process dynamically creates serialization algorithms
-based on the ports being connected. There are two use cases for
-serializing; single data type and multiple data types.
+based on the ports being connected.  A fully qualified serialization
+port name takes the following form::
 
-The syntax for serializer input ports and deserializer output ports is
-as follows:
+  process.<group>/<element>
 
-    1) <group>
-    2) <group>/<algorithm>/<element>
+On the input side of serializer process, the fully qualified name is
+used to group individual data elements::
 
-Format 1 is for serializing a single data item. The *group* name will
-also be the name of the output port. Format 2 is used when multiple
-data items are to be serialized into one output. This ensures that all
-the data items arrive together at the other end. The *group* name
-specifies the output port name. The *algorithm* specifies the name of
-the serializer implementation to use. The *element* specifies the name
-of the data item that is passed to the serializer algorithm. Usually
-this name means something to the serializer so this can't be a random
-name.
+  connect from detected_object_reader.detected_object_set to serializer.detections/dos
+  connect from image_reader.image to serializer.detections/image
 
-Single data type
-''''''''''''''''
-::
-    process ser :: serializer
-      # Select serialization type
-      serialization_type = json
+On the output side, the `<group>` portion of the name is used to connect
+the entire serialized set (Sprokit's pipeline handling mechanism will insure
+synchronization of the elements) on the `detections` output port::
 
-      # specify algorithm config parameters if needed
-      serialize-json:image:foo = 16RGB
+  connect from serializer.detections to transport.serialized_message
 
-      connect from input.image to ser.image
+Similarly, for a deserializer the input side uses the group name::
 
-    process sink :: ~~~~~
-      connect from ser.image  to sink.sink
+  connect from transport.serialized_message to deserializer.detections
 
+And the output side presents the deserialized element names::
 
-In this example, the serializer process will instantiate a
-serialization algorithm based on the data type associated with input
-connection. So, if the data type from `input.image` is a
-'kwiver:image', then it will try to instantiate the serializer for
-*serialize-json* with an implementation name *kwiver:image*.
+  connect from deserializer.detections/dos to detected_object_writer.dos
+  connect from deserializer.detections/image to image_writer.image
 
+There are some things worth noting:
 
-Multiple data type
-''''''''''''''''''
-::
-    process ser :: serializer
-      # Select serialization type
-      serialization_type = protobuf
-
-      # specify algorithm config parameters
-      # these are algo specific
-      serialize-protobuf:ImageTS:foo = 3.1415
-
-      connect from input.timestamp to ser.first/ImageTS/timestamp
-      connect from input.image     to ser.first/ImageTS/image
-
-    process sink :: ~~~~~
-      connect from ser.first  to sink.sink
-
-In this example, the serializer process will instantiate a
-serialization algorithm based on the algorithm name
-(e.g. ImageTS) since it has more than one input port specified. The
-data items passed to the `serialize()` method will be "timestamp" and
-"image", as taken from the `connect` line in the pipe file.
-
-The [de]serializer process can support multiple serialization streams
-if specific data element synchronization is needed.::
-
-  process ser :: serializer
-    # Select serialization type
-    serialization_type = protobuf
-
-    # Specify algorithm config parameters. These are algo specific.
-    # The block name "serialize-protobuf" is specific to the
-    # serialization_type. This may not be that useful since it will
-    # be applied to instances of that algorithm.
-    block serialize-protobuf
-      ImageTS:foo = 3.1415
-    endblock
-
-    connect from input.timestamp to ser.first/ImageTS/timestamp
-    connect from input.image     to ser.first/ImageTS/image
-    # output port is "first"
-
-    # additional serialization using the same algorithm, but a different output.
-    connect from mask.timestamp to ser.second/ImageTS/timestamp
-    connect from mask.image     to ser.second/ImageTS/image
-    # output port is "second"
-
-    # additional serialization path based on port data type.
-    connect from image_src.image to ser.image
-    # output port is "image"
-
+* The serialized group name is embedded in the serailized "packet".  This allows
+  the serializer and deserializer to validate that the the serialized output
+  and input match up.  Connecting a serializer output port `group` to a
+  deserializer input port `different_group` will result in an error.
+* A single serializer can have individual elements connected to different
+  input groups.  This will simply create multiple group output ports. Similarly
+  a deserializer can have multiple groups on the input side -- the individual
+  elements for both groups will appear on the output side (with the appropriate
+  group name in the port name).
 
 [de]serializer process details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -225,7 +162,7 @@ process.. The port name for both types of processes is
 ZeroMQ Transport
 ''''''''''''''''
 
-The cannonical implementation of the Sprokit transport processes is based
+The canonical implementation of the Sprokit transport processes is based
 on ZeroMQ, specifically ZeroMQ’s PUB/SUB pattern with REQ/REP synchronization.
 
 The Sprokit ZeroMQ implementation is contained in two Sprokit processes,
@@ -250,7 +187,7 @@ Distributed Pipelines Examples
 ------------------------------
 
 To demonstrate the use of Sprokit's ZeroMQ distributed processing capabilities,
-we'll first need some simple Sprokit pipline files.  The first will generate
+we'll first need some simple Sprokit pipeline files.  The first will generate
 some synthetic `detected_object_set` data, serialize it into Protocol Buffers
 and transmit the result with ZeroMQ.  Here is a figure that illustrates the
 pipeline
@@ -284,8 +221,8 @@ And here is the actual `.pipe` file that implements it::
 
 	connect from ser.dos to zmq.serialized_message
 
-To recieve the data, we'll create another pipeline that recieves the ZeroMQ data,
-deserializes it from the Protocoal Buffer container and then writes the resulting
+To receive the data, we'll create another pipeline that receives the ZeroMQ data,
+deserializes it from the Protocol Buffer container and then writes the resulting
 data to a CSV file.  This pipeline looks something like this:
 
 .. _zmqmultipubblock:
@@ -320,7 +257,7 @@ In a second terminal, we'll start the reciever::
 
 	pipeline_runner --pipe test_zmq_receive.pipe
 
-When the reciever is started, the data flow will start immediately.  At the end of execution
+When the receiver is started, the data flow will start immediately.  At the end of execution
 the file `recevied_dos.csv` should contain the transmitted, synthesized `detected_object_set`
 data.
 
@@ -329,7 +266,7 @@ Multiple Publishers
 
 With the current implementation of the ZeroMQ transport and Sprokit's dynamic configuration
 capabilities, we can use these pipelines to create more complex topologies as well.  For
-example, we can set up a system with multiple publishers and a reciever that merges the results.
+example, we can set up a system with multiple publishers and a receiver that merges the results.
 Here is a diagram of such a topology:
 
 .. _zmqmultipubblock:
@@ -350,7 +287,7 @@ expected by a multi-publisher receiver::
 
 	pipeline_runner --pipe test_zmq_send.pipe --set sim:reader:simulator:detection_class=detector_two --set zmq:port=5562
 
-Finally, we'll start the reciever.  We'll simply change the `num_publishers` parameter to `2`
+Finally, we'll start the receiver.  We'll simply change the `num_publishers` parameter to `2`
 so that it connects to both publishers, starting at port `5560` for the first and automatically
 adding two to get to `5562` for the second::
 

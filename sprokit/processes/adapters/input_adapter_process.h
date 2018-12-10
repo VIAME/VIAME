@@ -70,7 +70,7 @@ public:
 private:
 
   // This is used to intercept connections and make ports JIT
-  virtual sprokit::process::port_info_t _output_port_info( sprokit::process::port_t const& port);
+  virtual void output_port_undefined( sprokit::process::port_t const& port) override;
 
 }; // end class input_adapter_process
 

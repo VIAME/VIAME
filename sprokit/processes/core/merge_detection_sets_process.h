@@ -43,17 +43,25 @@ class KWIVER_PROCESSES_NO_EXPORT merge_detection_sets_process
   : public sprokit::process
 {
 
-  public:
-    merge_detection_sets_process( vital::config_block_sptr const& config );
-    virtual ~merge_detection_sets_process();
+public:
+  merge_detection_sets_process( vital::config_block_sptr const& config );
+  virtual ~merge_detection_sets_process();
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
 
-  private:
-    void make_ports();
-    void make_config();
+protected:
+  virtual void _configure();
+  virtual void _step();
+  virtual void _init();
+
+  virtual void input_port_undefined( port_t const& port ) override;
+
+
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
 
 }; //end class merge_detection_sets_process
 

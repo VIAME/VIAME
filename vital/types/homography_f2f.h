@@ -63,8 +63,8 @@ public:
                            frame_id_t const from_id,
                            frame_id_t const to_id )
     : h_( homography_sptr( new homography_< T > ( h ) ) ),
-    from_id_( from_id ),
-    to_id_( to_id )
+      from_id_( from_id ),
+      to_id_( to_id )
   { }
 
 

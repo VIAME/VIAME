@@ -42,8 +42,7 @@
 #include <vital/util/token_expander.h>
 #include <vital/util/token_type_symtab.h>
 #include <vital/logger/logger.h>
-
-#include <boost/variant.hpp>
+#include <vital/internal/variant/variant.hpp>
 
 #include <map>
 
@@ -56,7 +55,6 @@ namespace sprokit {
  * This class has the common behaviours for all the variant bakeries.
  */
 class bakery_base
-  : public boost::static_visitor< >
 {
 public:
   bakery_base();

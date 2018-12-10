@@ -6,12 +6,21 @@ find_package( Protobuf REQUIRED )
 
 set( proto_files
   bounding_box.proto
-  detected_object_type.proto
   detected_object.proto
   detected_object_set.proto
-  timestamp.proto
+  detected_object_type.proto
+  geo_point.proto
+  geo_polygon.proto
   image.proto
+  metadata.proto
+  polygon.proto
   string.proto
+  timestamp.proto
+  track.proto
+  track_state.proto
+  track_set.proto
+  object_track_state.proto
+  object_track_set.proto
   )
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})

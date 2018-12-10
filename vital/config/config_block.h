@@ -575,7 +575,7 @@ config_block_get_value_cast( config_block_value_t const& value )
   std::stringstream str;
   str << value;
 
-  kwiver::vital::time_us_t t;
+  kwiver::vital::time_usec_t t;
   str >> t;
   obj.set_time( t );
 

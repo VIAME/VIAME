@@ -63,7 +63,7 @@ protected:
     std::stringstream str;
     str <<  "Entry for provider \"" << provider << "\" does not have an element \""
         << entry << "\"";
-    VITAL_THROW( provider_error_exception, str.str() );
+    throw provider_error_exception( str.str() );
 
     // Could do a log message instead
     return true;
@@ -74,7 +74,7 @@ protected:
   {
     std::stringstream str;
     str << "Provider \"" << provider << "\" is not available";
-    VITAL_THROW( provider_error_exception, str.str() );
+    throw provider_error_exception( str.str() );
 
     // Could do a log message instead
     return true;
@@ -210,8 +210,7 @@ bakery_base
       }
       else
       {
-        VITAL_THROW( unrecognized_config_flag_exception,
-                     full_key, flag);
+        throw unrecognized_config_flag_exception( full_key, flag);
       }
     } // end foreach over flags
   }
@@ -227,8 +226,7 @@ bakery_base
     catch ( const provider_error_exception &e )
     {
       // Rethrow exception after adding location
-      VITAL_THROW( provider_error_exception,
-                   e.what(), value.loc );
+      throw provider_error_exception( e.what(), value.loc );
     }
   }
 
@@ -318,9 +316,9 @@ extract_configuration_from_decls( bakery_base::config_decls_t& configs )
       }
       else
       {
-        VITAL_THROW( relativepath_exception,
-                     "Can not resolve relative path because original source file is not known.",
-                     info.defined_loc );
+        throw relativepath_exception(
+               "Can not resolve relative path because original source file is not known.",
+               info.defined_loc );
       }
     }
 

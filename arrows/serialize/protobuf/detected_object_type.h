@@ -33,8 +33,6 @@
 
 #include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/detected_object_type.h>
-#include <vital/types/protobuf/detected_object_type.pb.h>
 
 namespace kwiver {
 namespace arrows {
@@ -57,13 +55,6 @@ public:
 
   virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
   virtual vital::any deserialize( const std::string& message ) override;
-
-  // Convert between native and protobuf formats
-  static void convert_protobuf( const kwiver::protobuf::detected_object_type&  proto_bbox,
-                                kwiver::vital::detected_object_type& bbox );
-
-  static void convert_protobuf( const kwiver::vital::detected_object_type& bbox,
-                                kwiver::protobuf::detected_object_type&  proto_bbox );
 };
 
 } } } }       // end namespace kwiver

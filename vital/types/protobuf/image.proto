@@ -30,6 +30,8 @@
 
 package kwiver.protobuf;
 
+import "metadata.proto";
+
 message image {
   // Image size
   required int64 width = 1;
@@ -48,4 +50,6 @@ message image {
   // Actual image data
   required int64 size = 9; // uncompressed image memory size
   required bytes data = 10; // compressed actual image pixels
+
+  optional metadata image_metadata = 11;
 }
