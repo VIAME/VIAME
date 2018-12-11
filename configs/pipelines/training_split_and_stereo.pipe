@@ -1,0 +1,67 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+process split
+  :: split_image
+  :split_image:type                            ocv
+
+process depth_map
+  :: compute_stereo_depth_map
+  :computer:type                               ocv
+  :computer:ocv:num_disparities                256
+  :computer:ocv:sad_window_size                21
+
+process filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+  :filter:ocv_enhancer:apply_smoothing         false
+  :filter:ocv_enhancer:smooth_kernel           3
+  :filter:ocv_enhancer:apply_denoising         false
+  :filter:ocv_enhancer:denoise_kernel          3
+  :filter:ocv_enhancer:denoise_coeff           2
+  :filter:ocv_enhancer:auto_balance            false
+  :filter:ocv_enhancer:force_8bit              true
+  :filter:ocv_enhancer:apply_clahe             false
+  :filter:ocv_enhancer:clip_limit              20
+  :filter:ocv_enhancer:saturation              1.0
+
+process image_merger # This isn't implemented yet, maybe?
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from in_adapt.image
+        to   split.image
+
+connect from split.left_image
+        to   depth_map.left_image
+
+connect from split.right_image
+        to   depth_map.right_image
+
+connect from depth_map.depth_map
+        to   filter.image
+
+connect from split.left_image
+        to   image_merger.image1
+
+connect from filter.image
+        to   image_merger.image2
+
+# ==================================================================================
+
+connect from image_merger.image
+        to   out_adapt.image
+
+# -- end of file --

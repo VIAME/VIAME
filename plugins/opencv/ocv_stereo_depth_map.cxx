@@ -128,13 +128,25 @@ kwiver::vital::image_container_sptr ocv_stereo_depth_map
     kwiver::arrows::ocv::image_container::BGR_COLOR );
   cv::Mat ocv2 = arrows::ocv::image_container::vital_to_ocv( right_image->get_image(),
     kwiver::arrows::ocv::image_container::BGR_COLOR  );
+  
+  cv::Mat ocv1_gray, ocv2_gray;
+
+  if (ocv1.channels() > 1)
+  {
+    cvtColor(ocv1, ocv1_gray, CV_BGR2GRAY);
+    cvtColor(ocv2, ocv2_gray, CV_BGR2GRAY);
+  }
+  else {
+    ocv1_gray = ocv1;
+    ocv2_gray = ocv2;
+  }
 
   cv::Mat output;
 
 #ifdef VIAME_OPENCV_VER_2
-  d->algo( ocv1, ocv2, output );
+  d->algo( ocv1_gray, ocv2_gray, output );
 #else
-  d->algo->compute( ocv1, ocv2, output );
+  d->algo->compute( ocv1_gray, ocv2_gray, output );
 #endif
 
   return kwiver::vital::image_container_sptr( new arrows::ocv::image_container( output,

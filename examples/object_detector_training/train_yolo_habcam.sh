@@ -11,4 +11,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 viame_train_detector \
   -i training_data_habcam \
   -c ${VIAME_INSTALL}/configs/pipelines/train_yolo_704.habcam.conf \
+  -p ${VIAME_INSTALL}/configs/pipelines/training_split_and_stereo.pipe \
   --threshold 0.0
