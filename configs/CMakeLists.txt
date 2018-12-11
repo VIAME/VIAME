@@ -95,7 +95,8 @@ set( RUN_SCRIPT_FILES
      launch_search_interface.py
      launch_timeline_interface.py
      launch_annotation_interface.py
-     generate_detection_plots.py )
+     generate_detection_plots.py
+     score_results.py )
 
 install( FILES       ${RUN_SCRIPT_FILES}
          DESTINATION configs )

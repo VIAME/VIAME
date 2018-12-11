@@ -3,21 +3,20 @@
 ##
 
 set( example_files
-  plotroc.py
   detections.csv
-  detections.kw18
-  groundtruth.csv
-  groundtruth.kw18 )
+  groundtruth.csv )
 
 if( VIAME_ENABLE_KWANT )
   if( WIN32 )
     set( example_files
          ${example_files}
-         run_scoring.bat )
+         run_scoring_jointly_across_all.bat
+         run_scoring_per_category.bat )
   else()
     set( example_files
          ${example_files}
-         run_scoring.sh )
+         run_scoring_jointly_across_all.sh
+         run_scoring_per_category.sh )
   endif()
 endif()
 
