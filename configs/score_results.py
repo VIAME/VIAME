@@ -24,7 +24,7 @@ def load_roc( fn ):
   return (x_fa, y_pd)
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser( description = 'Generate ROC plots from *.roc files.' )
+  parser = argparse.ArgumentParser( description = 'Generate detection scores and ROC plots' )
 
   parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
              help='ymin:ymax (quote w/ spc for negative, i.e. " -0.1:5")' )
