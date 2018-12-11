@@ -116,6 +116,7 @@ image_container
   // counted reference too it.  If it doesn't own its memory, then the
   // vital image won't take ownership either
   image_memory_sptr memory;
+void* first_pixel = NULL;
 #ifndef KWIVER_HAS_OPENCV_VER_3
   if ( !img.refcount )
 #else
@@ -123,15 +124,16 @@ image_container
 #endif
   {
     memory = std::make_shared<mat_image_memory>(img);
+    first_pixel = img.data;
   }
   else
   {
     cv::Mat img_clone = img.clone();
     memory = std::make_shared<mat_image_memory>(img_clone);
+    first_pixel = img_clone.data;
   }
 
-  return image(memory, img.data,
-               img.cols, img.rows, img.channels(),
+  return image(memory, first_pixel, img.cols, img.rows, img.channels(),
                img.channels(), img.step1(), 1,
                ocv_to_vital(img.type()));
 }
