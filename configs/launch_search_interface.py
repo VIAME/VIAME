@@ -19,7 +19,7 @@ if os.name == 'nt':
   div = '\\'
 else:
   div = '/'
-  
+
 sys.dont_write_bytecode = True
 debug_mode = False
 
