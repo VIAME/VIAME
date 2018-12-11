@@ -71,6 +71,7 @@ public:
     , m_seed_weights( "" )
     , m_output_weights( "" )
     , m_train_directory( "darknet_training" )
+    , m_model_type( "yolov3" )
     , m_skip_format( false )
     , m_gpu_index( 0 )
     , m_resize_option( "maintain_ar" )
@@ -93,6 +94,7 @@ public:
   std::string m_seed_weights;
   std::string m_output_weights;
   std::string m_train_directory;
+  std::string m_model_type;
   bool m_skip_format;
   int m_gpu_index;
   std::string m_resize_option;
@@ -126,6 +128,9 @@ public:
   void save_chip(
     std::string filename,
     cv::Mat image );
+
+  int filter_count(
+    int nclasses );
 
   kwiver::vital::algo::image_io_sptr m_image_io;
   kwiver::vital::logger_handle_t m_logger;
@@ -161,6 +166,8 @@ get_configuration() const
     "Optional input seed weights file." );
   config->set_value( "train_directory", d->m_train_directory,
     "Temp directory for all files used in training." );
+  config->set_value( "model_type", d->m_model_type,
+    "Type of model (values understood are \"yolov2\" and \"yolov3\" (the default))" );
   config->set_value( "skip_format", d->m_skip_format,
     "Skip file formatting, assume that the train_directory is pre-populated "
     "with all files required for model training." );
@@ -212,6 +219,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_net_config  = config->get_value< std::string >( "net_config" );
   this->d->m_seed_weights = config->get_value< std::string >( "seed_weights" );
   this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
+  this->d->m_model_type = config->get_value< std::string >( "model_type" );
   this->d->m_skip_format = config->get_value< bool >( "skip_format" );
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
@@ -241,6 +249,14 @@ check_configuration( vital::config_block_sptr config ) const
   if( net_config.empty() || !kwiversys::SystemTools::FileExists( net_config ) )
   {
     LOG_ERROR( d->m_logger, "net config file \"" << net_config << "\" not found." );
+    return false;
+  }
+
+  std::string model_type = config->get_value< std::string >( "model_type" );
+
+  if( model_type != "yolov2" && model_type != "yolov3" )
+  {
+    LOG_ERROR( d->m_logger, "invalid model type " << model_type );
     return false;
   }
 
@@ -285,13 +301,14 @@ train_from_disk(
     test_list = d->format_images( d->m_train_directory, "test",
       test_image_names, test_groundtruth, object_labels );
 
+    int nfilters = d->filter_count( object_labels->child_class_names().size() );
     // Generate train/test image list and header information
     //
     // (This code should be re-written at some point, converted to C++)
 #ifdef WIN32
     std::string python_cmd = "python.exe -c \"";
     std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
-    std::string header_cmd = "dth.generate_yolo_v3_headers(";
+    std::string header_cmd = "dth.generate_yolo_headers(";
 
     std::string header_args = "\\\"" + d->m_train_directory + "\\\",[";
     for( auto label : object_labels->child_class_names() )
@@ -300,13 +317,14 @@ train_from_disk(
     }
     header_args = header_args +"]," + std::to_string( d->m_resize_i );
     header_args = header_args + "," + std::to_string( d->m_resize_j );
+    header_args = header_args + "," + std::to_string( nfilters );
     header_args = header_args + ",\\\"" + d->m_net_config + "\\\"";
 
     std::string header_end  = ")\"";
 #else
     std::string python_cmd = "python -c '";
     std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
-    std::string header_cmd = "dth.generate_yolo_v3_headers(";
+    std::string header_cmd = "dth.generate_yolo_headers(";
 
     std::string header_args = "\"" + d->m_train_directory + "\",[";
     for( auto label : object_labels->child_class_names() )
@@ -315,6 +333,7 @@ train_from_disk(
     }
     header_args = header_args +"]," + std::to_string( d->m_resize_i );
     header_args = header_args + "," + std::to_string( d->m_resize_j );
+    header_args = header_args + "," + std::to_string( nfilters );
     header_args = header_args + ",\"" + d->m_net_config + "\"";
 
     std::string header_end  = ")'";
@@ -335,8 +354,8 @@ train_from_disk(
   std::string darknet_cmd = "darknet";
 #endif
   std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
-    " detector train " + d->m_train_directory + div + "yolo_v3.data "
-                       + d->m_train_directory + div + "yolo_v3.cfg ";
+    " detector train " + d->m_train_directory + div + "yolo.data "
+                       + d->m_train_directory + div + "yolo.cfg ";
 
   if( !d->m_seed_weights.empty() )
   {
@@ -636,6 +655,22 @@ save_chip( std::string filename, cv::Mat image )
   {
     cv::imwrite( filename, image );
   }
+}
+
+int
+darknet_trainer::priv::
+filter_count( int nclasses )
+{
+  int multiplier = -1;
+  if( m_model_type == "yolov2" )
+  {
+    multiplier = 5;
+  }
+  else if( m_model_type == "yolov3" )
+  {
+    multiplier = 3;
+  }
+  return ( nclasses + 5 ) * multiplier;
 }
 
 } } } // end namespace
