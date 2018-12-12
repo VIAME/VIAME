@@ -6,7 +6,11 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+import tempfile
 import subprocess
+
+temp_dir = tempfile.mkdtemp(prefix='score-tmp')
+atexit.register(lambda: shutil.rmtree(temp_dir))
 
 def get_stat_cmd():
   if os.name == 'nt':
@@ -54,13 +58,27 @@ def list_categories( filename ):
 
   return list( unique_ids )
 
+def filter_by_category( filename, category, threshold=0.0 ):
+
+  (fd, handle) = tempfile.mkstemp( prefix='score-tracks-',
+                                        suffix='.csv',
+                                        text=True,
+                                        dir=temp_dir )
+
+  fout = os.fdopen( fd, 'w' )
+
+  return fd, class_file
+
 def generate_stats( args, categories ):
+
+  # Generate roc files
+  base, ext = os.path.splitext( args.stats )
 
   cmd = get_stat_cmd()
 
-  cmd += ['--computed-tracks', args.computed, '--computed-format', 'noaa-csv' ]
-  cmd += ['--truth-tracks', args.truth, '--computed-format', 'noaa-csv' ]
-  cmd += ['--fn2ts' ]
+  cmd += [ '--computed-tracks', args.computed, '--computed-format', 'noaa-csv' ]
+  cmd += [ '--truth-tracks', args.truth, '--computed-format', 'noaa-csv' ]
+  cmd += [ '--fn2ts' ]
 
   with open( args.stats, 'w' ) as fout:
     subprocess.call( cmd, stdout=fout, stderr=fout )
@@ -74,18 +92,18 @@ def generate_rocs( args, categories ):
 
   base_cmd = get_roc_cmd()
 
-  base_cmd += ['--computed-tracks', args.computed, '--computed-format', 'noaa-csv' ]
-  base_cmd += ['--truth-tracks', args.truth, '--computed-format', 'noaa-csv' ]
-  base_cmd += ['--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
+  base_cmd += [ '--computed-tracks', args.computed, '--computed-format', 'noaa-csv' ]
+  base_cmd += [ '--truth-tracks', args.truth, '--computed-format', 'noaa-csv' ]
+  base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
 
   for cat in categories:
     roc_file = base + "." + cat + ".roc"
-    cmd = base_cmd + ['--cat', cat, '--roc-dump', roc_file ]
+    cmd = base_cmd + [ '--cat', cat, '--roc-dump', roc_file ]
     subprocess.call( cmd )
     roc_files.append( roc_file )
 
   net_roc_file = base + ".roc"
-  cmd = base_cmd + ['--roc-dump', net_roc_file ]
+  cmd = base_cmd + [ '--roc-dump', net_roc_file ]
   subprocess.call( cmd )
   roc_files.append( net_roc_file )
 
@@ -146,6 +164,8 @@ if __name__ == "__main__":
              help='Input filename for computed file.' )
   parser.add_argument( '-truth', default=None,
              help='Input filename for groundtruth file.' )
+  parser.add_argument( '-threshold', type=float, default=0.05,
+             help='Input threshold for statistics.' )
 
   # Outputs
   parser.add_argument( '-stats', default=None,
