@@ -60,14 +60,36 @@ def list_categories( filename ):
 
 def filter_by_category( filename, category, threshold=0.0 ):
 
-  (fd, handle) = tempfile.mkstemp( prefix='score-tracks-',
-                                        suffix='.csv',
-                                        text=True,
-                                        dir=temp_dir )
+  (fd, handle) = tempfile.mkstemp( prefix='viame-score-',
+                                   suffix='.csv',
+                                   text=True,
+                                   dir=temp_dir )
 
   fout = os.fdopen( fd, 'w' )
 
-  return fd, class_file
+  with open( detection_file ) as f:
+    for line in f:
+      lis = line.strip().split(',')
+      if len( lis ) < 10:
+        continue
+      if len( lis[0] ) > 0 and lis[0][0] == '#':
+        continue
+      idx = 9
+      use_detection = False
+      confidence = 0.0
+      while idx < len( lis ):
+        if ( category == all_category or lis[idx] == category ) and \
+             float( lis[idx+1] ) >= float( args.threshold ):
+          use_detection = True
+          confidence = float( lis[idx+1] )
+          break
+        idx = idx + 2
+
+      ftrk.write( ts_vec[ int( lis[2] ) ]  + ' ' + str( confidence ) + '\n' )
+
+  fout.close()
+
+  return fd, handle
 
 def generate_stats( args, categories ):
 
@@ -98,7 +120,7 @@ def generate_rocs( args, categories ):
 
   for cat in categories:
     roc_file = base + "." + cat + ".roc"
-    cmd = base_cmd + [ '--cat', cat, '--roc-dump', roc_file ]
+    cmd = base_cmd + [ '--roc-dump', roc_file ]
     subprocess.call( cmd )
     roc_files.append( roc_file )
 
