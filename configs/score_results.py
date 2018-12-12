@@ -52,6 +52,8 @@ if __name__ == "__main__":
              help='Provide a filename of the image to write instead of displaying a window.' )
   parser.add_argument( 'rocfiles', metavar='ROC', nargs=argparse.REMAINDER,
              help='A score_events .roc file (from --roc-dump argument)' )
+  parser.add_argument("--debug", dest="debug", action="store_true",
+             help="Run with debugger attached to process")
 
   args = parser.parse_args()
 
