@@ -99,6 +99,7 @@ def generate_rocs( args, categories ):
 
   plt.xlabel( args.xlabel )
   plt.ylabel( args.ylabel )
+
   plt.xticks()
   plt.yticks()
 
@@ -116,7 +117,8 @@ def generate_rocs( args, categories ):
   else:
     tmp = args.rangey.split(':')
     if len(tmp) != 2:
-      sys.stderr.write('Error: rangey option must be two floats separated by a colon, e.g. 0.2:0.7\n');
+      sys.stderr.write('Error: rangey option must be two floats ')
+      sys.stderr.write('separated by a colon, e.g. 0.2:0.7\n')
       sys.exit(1)
     (ymin, ymax) = (float(tmp[0]), float(tmp[1]))
     rocplot.set_ylim(ymin,ymax)
@@ -124,7 +126,8 @@ def generate_rocs( args, categories ):
     if args.rangex:
       tmp = args.rangex.split(':')
       if len(tmp) != 2:
-        sys.stderr.write('Error: rangex option must be two floats separated by a colon, e.g. 0.2:0.7\n');
+        sys.stderr.write('Error: rangex option must be two floats ')
+        sys.stderr.write('separated by a colon, e.g. 0.2:0.7\n')
         sys.exit(1)
       (xmin, xmax) = (float(tmp[0]), float(tmp[1]))
       rocplot.set_xlim(xmin,xmax)
@@ -136,7 +139,7 @@ def generate_rocs( args, categories ):
 
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser( description = 'Generate detection scores and ROC plots' )
+  parser = argparse.ArgumentParser( description = 'Generate detection scores and ROCs' )
 
   # Inputs
   parser.add_argument( '-computed', default=None,
