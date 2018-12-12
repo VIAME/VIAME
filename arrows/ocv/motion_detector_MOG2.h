@@ -53,12 +53,12 @@ namespace ocv {
 
 /// OCV implementation of warp_image using cv::BackgroundSubtractorMOG2
 class KWIVER_ALGO_OCV_EXPORT motion_detector_MOG2
-  : public vital::algorithm_impl<motion_detector_MOG2, 
+  : public vital::algorithm_impl<motion_detector_MOG2,
                                  vital::algo::motion_detector>
 {
 public:
   double learning_rate = 0.01;
-  
+
   /// Constructor
   motion_detector_MOG2();
   /// Destructor

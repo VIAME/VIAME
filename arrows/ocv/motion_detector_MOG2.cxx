@@ -222,7 +222,7 @@ motion_detector_MOG2
 
   cv::Mat cv_src;
   ocv::image_container::vital_to_ocv(image->get_image()).copyTo(cv_src);
-  
+
   if( d_->m_blur_kernel_size > 0)
   {
     cv::blur(cv_src, cv_src, cv::Size(d_->m_blur_kernel_size, d_->m_blur_kernel_size) );

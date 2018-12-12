@@ -30,6 +30,7 @@
 
 #include "motion_detector_process.h"
 
+#include <vital/util/wall_timer.h>
 #include <vital/algo/motion_detector.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
@@ -47,7 +48,8 @@ public:
   priv();
   ~priv();
 
-   vital::algo::motion_detector_sptr m_algo;
+  vital::algo::motion_detector_sptr m_algo;
+  kwiver::vital::wall_timer m_timer;
 
 }; // end priv class
 
@@ -58,9 +60,6 @@ motion_detector_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new motion_detector_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( kwiver::vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -77,6 +76,8 @@ void
 motion_detector_process::
 _configure()
 {
+  scoped_configure_instrumentation();
+
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
@@ -91,8 +92,6 @@ _configure()
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create motion detector algorithm" );
   }
-
-  vital::algo::motion_detector::get_nested_algo_configuration_using_trait( algo, algo_config, d->m_algo );
 }
 
 
@@ -101,16 +100,37 @@ void
 motion_detector_process::
 _step()
 {
+  d->m_timer.start();
+
   //TODO, handle case where this is optionally provided
   //auto ts = grab_from_port_using_trait( timestamp );
-  kwiver::vital::timestamp ts;
-  
-  auto input = grab_from_port_using_trait( image );
-  auto reset = grab_from_port_using_trait( coordinate_system_updated );
 
-  auto result = d->m_algo->process_image( ts, input, reset );
+  auto input = grab_from_port_using_trait( image );
+  kwiver::vital::image_container_sptr result;
+
+  {
+    scoped_step_instrumentation();
+
+    kwiver::vital::timestamp ts;
+    if (has_input_port_edge_using_trait( timestamp ) )
+    {
+      ts = grab_from_port_using_trait( timestamp );
+    }
+
+    bool reset(false);
+    if (has_input_port_edge_using_trait( coordinate_system_updated ) )
+    {
+      reset = grab_from_port_using_trait( coordinate_system_updated );
+    }
+
+    result = d->m_algo->process_image( ts, input, reset );
+  }
 
   push_to_port_using_trait(motion_heat_map , result );
+
+  d->m_timer.stop();
+  double elapsed_time = d->m_timer.elapsed();
+  LOG_DEBUG( logger(), "Total processing time: " << elapsed_time << " seconds");
 }
 
 
@@ -122,16 +142,18 @@ make_ports()
   // Set up for required ports
   sprokit::process::port_flags_t required;
   sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t opt_static;
 
   required.insert( flag_required );
+  opt_static.insert( flag_input_static );
 
   // -- input --
   declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( image, required );
-  declare_input_port_using_trait( coordinate_system_updated, required );
+  declare_input_port_using_trait( coordinate_system_updated, optional );
 
   // -- output --
-  declare_output_port_using_trait( motion_heat_map, optional );
+  declare_output_port_using_trait( motion_heat_map, required );
 }
 
 
