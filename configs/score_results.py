@@ -6,6 +6,19 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+import subprocess
+
+def get_stat_cmd():
+  if os.name == 'nt':
+    return ['score_tracks.exe','--hadwav']
+  else:
+    return ['score_tracks','--hadwav']
+
+def get_roc_cmd():
+  if os.name == 'nt':
+    return ['score_events.exe']
+  else:
+    return ['score_events']
 
 def load_roc( fn ):
 
@@ -18,49 +31,72 @@ def load_roc( fn ):
       if not raw_line:
         break
       fields = raw_line.split()
-      x_fa = np.append( x_fa, float( fields[47] ))
-      y_pd = np.append( y_pd, float( fields[7] ))
+      x_fa = np.append( x_fa, float( fields[47] ) )
+      y_pd = np.append( y_pd, float( fields[7] ) )
 
   return (x_fa, y_pd)
 
-if __name__ == "__main__":
-  parser = argparse.ArgumentParser( description = 'Generate detection scores and ROC plots' )
+def list_categories( filename ):
 
-  parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
-             help='ymin:ymax (quote w/ spc for negative, i.e. " -0.1:5")' )
-  parser.add_argument( '-rangex', metavar='rangex', nargs='?',
-             help='xmin:xmax (quote w/ spc for negative, i.e. " -0.1:5")' )
-  parser.add_argument( '-autoscale', action='store_true',
-             help='Ignore -rangex -rangey and autoscale both axes of the plot.' )
-  parser.add_argument( '-logx', action='store_true',
-             help='Use logscale for x' )
-  parser.add_argument( '-xlabel', nargs='?', default='Detection FA count',
-             help='title for x axis' )
-  parser.add_argument( '-ylabel', nargs='?', default='Detection PD',
-             help='title for y axis' )
-  parser.add_argument( '-title', nargs='?',
-             help='title for plot' )
-  parser.add_argument( '-lw', nargs='?', type=float, default=3,
-             help='line width' )
-  parser.add_argument( '-key', nargs='?', default=None,
-             help='comma-separated set of strings labeling each line in order read' )
-  parser.add_argument( '-keyloc', nargs='?', default='best',
-             help='Key location ("upper left", "lower right", etc; help for list)' )
-  parser.add_argument( '-nokey', action='store_true',
-             help='Set to suppress plot legend' )
-  parser.add_argument( '-writeimage', default=None,
-             help='Provide a filename of the image to write instead of displaying a window.' )
-  parser.add_argument( 'rocfiles', metavar='ROC', nargs=argparse.REMAINDER,
-             help='A score_events .roc file (from --roc-dump argument)' )
-  parser.add_argument("--debug", dest="debug", action="store_true",
-             help="Run with debugger attached to process")
+  unique_ids = set()
 
-  args = parser.parse_args()
+  with open( filename ) as f:
+    for line in f:
+      lis = line.strip().split(',')
+      if len( lis ) < 10:
+        continue
+      if len( lis[0] ) > 0 and lis[0][0] == '#':
+        continue
+      idx = 9
+      while idx < len( lis ):
+        unique_ids.add( lis[idx] )
+        idx = idx + 2
 
+  return list( unique_ids )
+
+def generate_stats( args, categories ):
+
+  cmd = get_stat_cmd()
+
+  cmd += ['--computed-tracks', args.computed, '--computed-format', 'noaa-csv' ]
+  cmd += ['--truth-tracks', args.truth, '--computed-format', 'noaa-csv' ]
+  cmd += ['--fn2ts' ]
+
+  with open( args.stats, 'w' ) as fout:
+    subprocess.call( cmd, stdout=fout, stderr=fout )
+
+def generate_rocs( args, categories ):
+
+  # Generate roc files
+  base, ext = os.path.splitext( args.roc )
+
+  roc_files = []
+
+  base_cmd = get_roc_cmd()
+
+  base_cmd += ['--computed-tracks', args.computed, '--computed-format', 'noaa-csv' ]
+  base_cmd += ['--truth-tracks', args.truth, '--computed-format', 'noaa-csv' ]
+  base_cmd += ['--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
+
+  for cat in categories:
+    roc_file = base + "." + cat + ".roc"
+    cmd = base_cmd + ['--cat', cat, '--roc-dump', roc_file ]
+    subprocess.call( cmd )
+    roc_files.append( roc_file )
+
+  net_roc_file = base + ".roc"
+  cmd = base_cmd + ['--roc-dump', net_roc_file ]
+  subprocess.call( cmd )
+  roc_files.append( net_roc_file )
+
+  # Generate plot
   fig = plt.figure()
+
   xscale_arg = 'log' if args.logx else 'linear'
-  rocplot = plt.subplot(1, 1, 1, xscale=xscale_arg)
+
+  rocplot = plt.subplot( 1, 1, 1, xscale=xscale_arg )
   rocplot.set_title( args.title ) if args.title else None
+
   plt.xlabel( args.xlabel )
   plt.ylabel( args.ylabel )
   plt.xticks()
@@ -68,7 +104,7 @@ if __name__ == "__main__":
 
   user_titles = args.key.split(',') if args.key else None
   i = 0
-  for fn in args.rocfiles:
+  for fn in roc_files:
     (x,y) = load_roc( fn )
     t = user_titles[i] if user_titles and i < len(user_titles) else fn
     sys.stderr.write("Info: %d: loading %s as '%s'...\n" % (i, fn, t) )
@@ -96,8 +132,75 @@ if __name__ == "__main__":
   if not args.nokey:
     plt.legend( loc=args.keyloc )
 
-  if args.writeimage:
-    plt.savefig(args.writeimage)
-  else:
-    plt.show()
+  plt.savefig( args.roc )
 
+
+if __name__ == "__main__":
+  parser = argparse.ArgumentParser( description = 'Generate detection scores and ROC plots' )
+
+  # Inputs
+  parser.add_argument( '-computed', default=None,
+             help='Input filename for computed file.' )
+  parser.add_argument( '-truth', default=None,
+             help='Input filename for groundtruth file.' )
+
+  # Outputs
+  parser.add_argument( '-stats', default=None,
+             help='Filename for output track statistics.' )
+  parser.add_argument( '-roc', default=None,
+             help='Filename for output roc curves.' )
+  parser.add_argument("--stats-only", dest="stats_only", action="store_true",
+             help="Produce no ROC detection curves, just summary statistics")
+  parser.add_argument("--roc-only", dest="roc_only", action="store_true",
+             help="Produce no ROC detection curves, just summary statistics")
+  parser.add_argument("--per-category", dest="per_category", action="store_true",
+             help="Utilize categories in the files and generate plots per category")
+
+  # Plot settings
+  parser.add_argument( '-rangey', metavar='rangey', nargs='?', default='0:1',
+             help='ymin:ymax (quote w/ spc for negative, i.e. " -0.1:5")' )
+  parser.add_argument( '-rangex', metavar='rangex', nargs='?',
+             help='xmin:xmax (quote w/ spc for negative, i.e. " -0.1:5")' )
+  parser.add_argument( '-autoscale', action='store_true',
+             help='Ignore -rangex -rangey and autoscale both axes of the plot.' )
+  parser.add_argument( '-logx', action='store_true',
+             help='Use logscale for x' )
+  parser.add_argument( '-xlabel', nargs='?', default='Detection FA count',
+             help='title for x axis' )
+  parser.add_argument( '-ylabel', nargs='?', default='Detection PD',
+             help='title for y axis' )
+  parser.add_argument( '-title', nargs='?',
+             help='title for plot' )
+  parser.add_argument( '-lw', nargs='?', type=float, default=3,
+             help='line width' )
+  parser.add_argument( '-key', nargs='?', default=None,
+             help='comma-separated set of strings labeling each line in order read' )
+  parser.add_argument( '-keyloc', nargs='?', default='best',
+             help='Key location ("upper left", "lower right", etc; help for list)' )
+  parser.add_argument( '-nokey', action='store_true',
+             help='Set to suppress plot legend' )
+
+  args = parser.parse_args()
+
+  if not args.computed or not args.truth:
+    print( "Error: both computed and truth file must be specified" )
+    sys.exit( 0 )
+
+  if not args.stats and not args.roc_only:
+    print( "Error: output statistics filename (-stats) must be specified" )
+    sys.exit( 0 )
+
+  if not args.roc and not args.stats_only:
+    print( "Error: output ROC image filename (-roc) must be specified" )
+    sys.exit( 0 )
+
+  categories = []
+
+  if args.per_category:
+    categories = list_categories( args.truth )
+
+  if not args.roc_only:
+    generate_stats( args, categories )
+
+  if not args.stats_only:
+    generate_rocs( args, categories )
