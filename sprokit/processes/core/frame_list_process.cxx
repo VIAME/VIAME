@@ -234,7 +234,6 @@ void frame_list_process
     push_to_port_using_trait( timestamp, frame_ts );
     push_to_port_using_trait( image, img_c );
     push_to_port_using_trait( image_file_name, a_file );
-    push_to_port_using_trait( frame_rate, output_rate  );
 
     ++d->m_current_file;
   }
@@ -249,7 +248,6 @@ void frame_list_process
     push_datum_to_port_using_trait( timestamp, dat );
     push_datum_to_port_using_trait( image, dat );
     push_datum_to_port_using_trait( image_file_name, dat );
-    push_datum_to_port_using_trait( frame_rate, dat );
   }
 }
 
@@ -264,7 +262,6 @@ void frame_list_process
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( image, optional );
   declare_output_port_using_trait( image_file_name, optional );
-  declare_output_port_using_trait( frame_rate, optional );
 }
 
 
