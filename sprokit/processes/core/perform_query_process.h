@@ -63,6 +63,7 @@ public:
 protected:
   virtual void _configure();
   virtual void _step();
+  virtual void _init();
 
 private:
   void make_ports();

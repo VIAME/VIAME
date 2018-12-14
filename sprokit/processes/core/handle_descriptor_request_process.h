@@ -66,6 +66,7 @@ class KWIVER_PROCESSES_NO_EXPORT handle_descriptor_request_process
   protected:
     virtual void _configure();
     virtual void _step();
+    virtual void _init();
 
   private:
     void make_ports();
