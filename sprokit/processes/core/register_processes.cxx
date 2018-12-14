@@ -60,6 +60,7 @@
 #include "matcher_process.h"
 #include "merge_detection_sets_process.h"
 #include "perform_query_process.h"
+#include "merge_images_process.h"
 #include "print_config_process.h"
 #include "read_descriptor_process.h"
 #include "read_object_track_process.h"
@@ -274,6 +275,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+  fact = vpm.ADD_PROCESS( kwiver::merge_images_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_images" )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                      "Merge two images into one." )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+      ;
 
   fact = vpm.ADD_PROCESS( kwiver::read_track_descriptor_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_track_descriptor" )
