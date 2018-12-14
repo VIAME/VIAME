@@ -396,6 +396,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::serializer_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "serializer" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -431,6 +432,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( "no-test", "introspect" ); // do not include in introspection test
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::handle_descriptor_request_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "handle_descriptor_request" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -438,6 +440,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Handle a new descriptor request, producing desired descriptors on the input." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
+
 
   fact = vpm.ADD_PROCESS( kwiver::compute_track_descriptors_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_track_descriptors" )
@@ -447,6 +450,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::perform_query_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "perform_query" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -455,12 +459,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::downsample_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "downsample" );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-    "Downsample an input stream." );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "downsample" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Downsample an input stream." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
