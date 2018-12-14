@@ -14,7 +14,7 @@ kwiver_add_python_library(datum
 target_link_libraries(python-sprokit.pipeline-datum
   PRIVATE             sprokit_pipeline
                       sprokit_python_util
-                      vital)
+                      vital vital_util)
 
 kwiver_add_python_library(edge
   sprokit/pipeline
