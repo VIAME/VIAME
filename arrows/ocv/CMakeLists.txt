@@ -17,7 +17,7 @@ set( ocv_headers_public
   draw_tracks.h
   estimate_fundamental_matrix.h
   estimate_homography.h
-#  estimate_pnp.h
+  estimate_pnp.h
   extract_descriptors.h
   extract_descriptors_BRIEF.h
   extract_descriptors_DAISY.h
@@ -67,7 +67,7 @@ set( ocv_sources
   draw_tracks.cxx
   estimate_fundamental_matrix.cxx
   estimate_homography.cxx
-#  estimate_pnp.cxx
+  estimate_pnp.cxx
   extract_descriptors.cxx
   extract_descriptors_BRIEF.cxx
   extract_descriptors_DAISY.cxx
