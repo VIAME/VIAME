@@ -16,7 +16,7 @@ set( sources
   detect_features_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
-  detected_object_filter_process.cxx  
+  detected_object_filter_process.cxx
   downsample_process.cxx
   draw_detected_object_set_process.cxx
   draw_tracks_process.cxx
