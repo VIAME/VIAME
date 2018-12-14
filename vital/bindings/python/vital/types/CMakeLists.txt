@@ -172,19 +172,19 @@ kwiver_create_python_init(vital/types
   covariance
   descriptor
   descriptor_set
+  image
+  image_container
   detected_object_type
   detected_object
   detected_object_set
   eigen
   feature
   homography
-  image
-  image_container
   landmark
-  object_track_set
   rotation
   similarity
   timestamp
   track
   track_set
+  object_track_set
 )
