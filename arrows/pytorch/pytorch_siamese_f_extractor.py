@@ -10,6 +10,7 @@ from PIL import Image as pilImage
 
 from vital.types import BoundingBox
 from kwiver.arrows.pytorch.models import Siamese
+from kwiver.arrows.pytorch.parse_gpu_list import get_device
 
 
 class siameseDataLoader(data.Dataset):
@@ -25,7 +26,7 @@ class siameseDataLoader(data.Dataset):
             bb = self._bbox_list[index]
         else:
             bb = self._bbox_list[index].bounding_box()
-        
+
         im = self._frame_img.crop((float(bb.min_x()), float(bb.min_y()),
                       float(bb.max_x()), float(bb.max_y())))
 
@@ -39,10 +40,10 @@ class siameseDataLoader(data.Dataset):
 
     def __len__(self):
         if self._mot_flag is True:
-            return len(self._bbox_list) 
+            return len(self._bbox_list)
         else:
             return self._bbox_list.size()
-    
+
 
 class pytorch_siamese_f_extractor(object):
     """
@@ -51,21 +52,18 @@ class pytorch_siamese_f_extractor(object):
     """
 
     def __init__(self, siamese_model_path, img_size, batch_size, GPU_list=None):
-
-        if GPU_list is None:
-            GPU_list = [x for x in range(torch.cuda.device_count())]
-            target_GPU = 0
-        else:
-            target_GPU = GPU_list[0]
-
-        self._device = torch.device("cuda:{}".format(target_GPU))
-
-        # load siamese model
+        self._device, use_gpu_flag = get_device(GPU_list)
+        # load Siamese model
         self._siamese_model = Siamese().to(self._device)
-        self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
+        if use_gpu_flag:
+            self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
+            snapshot = torch.load(siamese_model_path)
+            self._siamese_model.load_state_dict(snapshot['state_dict'])
+        else:
+            snapshot = torch.load(siamese_model_path, map_location='cpu')
+            tmp = {k[len('module.'):]: v for k, v in snapshot['state_dict'].items()}
+            self._siamese_model.load_state_dict( tmp )
 
-        snapshot = torch.load(siamese_model_path)
-        self._siamese_model.load_state_dict(snapshot['state_dict'])
         print('Model loaded from {}'.format(siamese_model_path))
         self._siamese_model.train(False)
 
@@ -90,9 +88,8 @@ class pytorch_siamese_f_extractor(object):
         return self._obtain_feature(bbox_list, MOT_flag)
 
     def _obtain_feature(self, bbox_list, MOT_flag):
-        
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        bbox_loader_class = siameseDataLoader(bbox_list, self._transform, self._frame, self._img_size, MOT_flag) 
+        bbox_loader_class = siameseDataLoader(bbox_list, self._transform, self._frame, self._img_size, MOT_flag)
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
         torch.set_grad_enabled(False)
@@ -106,4 +103,3 @@ class pytorch_siamese_f_extractor(object):
                 app_features = torch.cat((app_features, output.data), dim=0)
 
         return app_features.cpu()
-    

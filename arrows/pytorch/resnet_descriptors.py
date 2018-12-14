@@ -45,6 +45,7 @@ from vital.util.VitalPIL import get_pil_image
 
 from kwiver.arrows.pytorch.grid import grid
 from kwiver.arrows.pytorch.pytorch_resnet_f_extractor import pytorch_resnet_f_extractor # the feature extractor
+from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 class Resnet_descriptors(KwiverProcess):
 
@@ -53,11 +54,11 @@ class Resnet_descriptors(KwiverProcess):
         KwiverProcess.__init__(self, conf)
 
         # GPU list
-        self.add_config_trait("GPU_list", "GPU_list", 'all',
-                              'define which GPU to use for SRNN tracking. e.g., all, 1,2')
-        self.declare_config_using_trait('GPU_list')
+        self.add_config_trait("gpu_list", "gpu_list", 'all',
+                              gpu_list_desc(use_for='Resnet descriptors'))
+        self.declare_config_using_trait('gpu_list')
 
-        # Resnet 
+        # Resnet
         #----------------------------------------------------------------------------------
         self.add_config_trait("resnet_model_path", "resnet_model_path",
                               'models/resnet50_default.pt',
@@ -97,11 +98,7 @@ class Resnet_descriptors(KwiverProcess):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
 
         # GPU_list
-        GPU_list_str = self.config_value('GPU_list')
-        if GPU_list_str == 'all':
-            self._GPU_list = None
-        else:
-            self._GPU_list = list(map(int, GPU_list_str.split(',')))
+        self._GPU_list = parse_gpu_list(self.config_value('gpu_list'))
 
         # Resnet model config
         resnet_img_size = int(self.config_value('resnet_model_input_size'))
@@ -140,7 +137,7 @@ class Resnet_descriptors(KwiverProcess):
             else:
                 # appearance features (format: pytorch tensor)
                 app_f_begin = timer()
-                pt_app_features = self._app_feature_extractor(dos, False) 
+                pt_app_features = self._app_feature_extractor(dos, False)
                 app_f_end = timer()
                 print('%%%app feature eclapsed time: {}'.format(app_f_end - app_f_begin))
 
@@ -184,4 +181,3 @@ def __sprokit_register__():
                                 Resnet_descriptors)
 
     process_factory.mark_process_module_as_loaded(module_name)
-

@@ -65,6 +65,7 @@ from kwiver.arrows.pytorch.track import track_state, track, track_set
 from kwiver.arrows.pytorch.SRNN_matching import SRNN_matching, RnnType
 from kwiver.arrows.pytorch.pytorch_siamese_f_extractor import pytorch_siamese_f_extractor
 from kwiver.arrows.pytorch.iou_tracking import IOU_tracker
+from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 from kwiver.arrows.pytorch.MOT_bbox import MOT_bbox, GTFileType
 from kwiver.arrows.pytorch.models import get_config
@@ -93,8 +94,7 @@ def ts2ot_list(track_set):
         for ti in t:
             ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time, ti.detectedObj)
             if not ot.append(ot_state):
-                print('cannot add ObjectTrackState')
-                exit(1)
+                print('Error: Cannot add ObjectTrackState')
 
     return ot_list
 
@@ -104,10 +104,11 @@ class SRNN_tracking(KwiverProcess):
     # ----------------------------------------------
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
+
         #GPU list
-        self.add_config_trait("GPU_list", "GPU_list", 'all',
-                              'define which GPU to use for SRNN tracking. e.g., all, 1,2')
-        self.declare_config_using_trait('GPU_list')
+        self.add_config_trait("gpu_list", "gpu_list", 'all',
+                              gpu_list_desc(use_for='SRNN tracking'))
+        self.declare_config_using_trait('gpu_list')
 
         # siamese
         #----------------------------------------------------------------------------------
@@ -248,11 +249,7 @@ class SRNN_tracking(KwiverProcess):
         self._track_initialization_threshold = float(self.config_value('track_initialization_threshold'))
 
         #GPU_list
-        GPU_list_str = self.config_value('GPU_list')
-        if GPU_list_str == 'all':
-            self._GPU_list = None
-        else:
-            self._GPU_list = list(map(int, GPU_list_str.split(',')))
+        self._GPU_list = parse_gpu_list(self.config_value('gpu_list'))
 
         # Siamese model config
         siamese_img_size = int(self.config_value('siamese_model_input_size'))
