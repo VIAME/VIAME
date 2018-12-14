@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,20 @@ read_track_descriptor_set_csv
 read_track_descriptor_set_csv
 ::~read_track_descriptor_set_csv()
 {
+}
+
+
+// -------------------------------------------------------------------------------
+void
+read_track_descriptor_set_csv
+::open( std::string const& filename )
+{
+  vital::algo::read_track_descriptor_set::open( filename );
+
+  d->m_first = true;
+
+  d->m_descs_by_frame_id.clear();
+  d->m_all_descs.clear();
 }
 
 

@@ -49,7 +49,9 @@ set( public_headers
   keyframe_selection.h
   match_descriptor_sets.h
   match_features.h
+  merge_images.h
   optimize_cameras.h
+  query_track_descriptor_set.h
   read_object_track_set.h
   read_track_descriptor_set.h
   refine_detections.h
@@ -58,6 +60,7 @@ set( public_headers
   train_detector.h
   triangulate_landmarks.h
   uuid_factory.h
+  uv_unwrap_mesh.h
   video_input.h
   write_object_track_set.h
   write_track_descriptor_set.h
@@ -106,7 +109,9 @@ set( sources
   keyframe_selection.cxx
   match_descriptor_sets.cxx
   match_features.cxx
+  merge_images.cxx
   optimize_cameras.cxx
+  query_track_descriptor_set.cxx
   read_object_track_set.cxx
   read_track_descriptor_set.cxx
   refine_detections.cxx
@@ -115,6 +120,7 @@ set( sources
   train_detector.cxx
   triangulate_landmarks.cxx
   uuid_factory.cxx
+  uv_unwrap_mesh.cxx
   video_input.cxx
   write_object_track_set.cxx
   write_track_descriptor_set.cxx

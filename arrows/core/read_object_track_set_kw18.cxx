@@ -123,6 +123,21 @@ read_object_track_set_kw18
 // -------------------------------------------------------------------------------
 void
 read_object_track_set_kw18
+::open( std::string const& filename )
+{
+  vital::algo::read_object_track_set::open( filename );
+
+  d->m_first = true;
+
+  d->m_tracks_by_frame_id.clear();
+  d->m_all_tracks.clear();
+  d->m_track_ids.clear();
+}
+
+
+// -------------------------------------------------------------------------------
+void
+read_object_track_set_kw18
 ::set_configuration(vital::config_block_sptr config)
 {
   d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );

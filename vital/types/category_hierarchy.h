@@ -118,7 +118,7 @@ public:
    * @param class_name Class name.
    */
   void add_class( const label_t& class_name,
-                  const label_t& parent_name = label_t(),
+                  const label_t& parent_name = label_t(""),
                   const label_id_t id = label_id_t(-1) );
 
   /**

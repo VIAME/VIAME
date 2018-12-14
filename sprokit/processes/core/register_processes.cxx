@@ -45,6 +45,7 @@
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
+#include "downsample_process.h"
 #include "draw_detected_object_set_process.h"
 #include "draw_tracks_process.h"
 #include "extract_descriptors_process.h"
@@ -59,6 +60,7 @@
 #include "matcher_process.h"
 #include "merge_detection_sets_process.h"
 #include "perform_query_process.h"
+#include "merge_images_process.h"
 #include "print_config_process.h"
 #include "read_descriptor_process.h"
 #include "read_object_track_process.h"
@@ -273,6 +275,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+  fact = vpm.ADD_PROCESS( kwiver::merge_images_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_images" )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                      "Merge two images into one." )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+      ;
 
   fact = vpm.ADD_PROCESS( kwiver::read_track_descriptor_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_track_descriptor" )
@@ -344,8 +353,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Print process configuration.\n\n"
                     "This process is a debugging aide and performs no other function in a pipeline. "
                     "The supplied configuration is printed when it is presented to the process. "
-                    "All ports connections to the process are accepted and the supplied data is taken from the port and "
-                    "discarded. This process produces no outputs and has no output ports.")
+                    "All ports connections to the process are accepted and the supplied data is "
+                    "taken from the port and discarded. This process produces no outputs and "
+                    "has no output ports.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( "no-test", "introspect" ); // do not include in introspection test
     ;
@@ -386,6 +396,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::serializer_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "serializer" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -412,9 +423,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_detection_sets" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Merge two input detection sets into one output set." )
+                    "Merge multiple input detection sets into one output set.\n\n"
+                    "This process will accept one or more input ports of detected_object_set "
+                    "type. They will all be added to the output detection set. "
+                    "The input port names do not matter since they will be connected "
+                    "upon connection.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
     ;
+
 
   fact = vpm.ADD_PROCESS( kwiver::handle_descriptor_request_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "handle_descriptor_request" )
@@ -424,6 +441,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::compute_track_descriptors_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_track_descriptors" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
@@ -432,11 +450,21 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
+
   fact = vpm.ADD_PROCESS( kwiver::perform_query_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "perform_query" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Perform a query." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::downsample_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "downsample" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Downsample an input stream." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

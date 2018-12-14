@@ -302,7 +302,7 @@ detect( vital::image_container_sptr image_data ) const
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
 
   cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    image_data->get_image(), kwiver::arrows::ocv::image_container::BGR );
+    image_data->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
   if( cv_image.rows == 0 || cv_image.cols == 0 )
   {

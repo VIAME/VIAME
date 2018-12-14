@@ -550,7 +550,7 @@ save_chip( std::string filename, cv::Mat image )
   if( m_random_int_shift > 0.0 )
   {
     double rand_uniform = rand() / ( RAND_MAX + 1.0 );
-    double start = ( 1.0 - m_random_int_shift ); 
+    double start = ( 1.0 - m_random_int_shift );
 
     double sf = start + 2 * m_random_int_shift * rand_uniform;
 

@@ -81,7 +81,7 @@ public:
    *
    * \throws kwiver::vital::file_not_found_exception
    */
-  void open( std::string const& filename );
+  virtual void open( std::string const& filename );
 
   /// Read object tracks from an existing stream
   /**
@@ -91,14 +91,14 @@ public:
    *
    * @param strm input stream to use
    */
-  void use_stream( std::istream* strm );
+  virtual void use_stream( std::istream* strm );
 
   /// Close object track set file.
   /**
    * The currently open object track set file is closed. If there is no
    * currently open file, then this method does nothing.
    */
-  void close();
+  virtual void close();
 
   /// Read next object track set
   /**

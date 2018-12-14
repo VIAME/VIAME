@@ -31,11 +31,11 @@
 #include "detected_object_set.h"
 
 #include "detected_object.h"
+#include "load_save.h"
 
 #include <vital/types/detected_object_set.h>
 
 #include <vital/internal/cereal/cereal.hpp>
-#include <vital/internal/cereal/types/vector.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
 #include <sstream>
@@ -98,45 +98,6 @@ deserialize( const std::string& message )
   }
 
   return kwiver::vital::any( kwiver::vital::detected_object_set_sptr( obj ) );
-}
-
-// ----------------------------------------------------------------------------
-void
-detected_object_set::
-save( cereal::JSONOutputArchive&                archive,
-      const kwiver::vital::detected_object_set& obj )
-{
-  archive( cereal::make_nvp( "size", obj.size() ) );
-
-  for ( const auto& element : const_cast< kwiver::vital::detected_object_set& >(obj) )
-  {
-    kasj::detected_object::save( archive, *element );
-  }
-
-  // currently not handling atributes
-  //+ TBD
-}
-
-// ----------------------------------------------------------------------------
-void
-detected_object_set::
-load( cereal::JSONInputArchive&           archive,
-      kwiver::vital::detected_object_set& obj )
-{
-  cereal::size_type size;
-  archive( CEREAL_NVP( size ) );
-
-  for ( cereal::size_type i = 0; i < size; ++i )
-  {
-    auto new_obj = std::make_shared< kwiver::vital::detected_object > (
-      kwiver::vital::bounding_box_d { 0, 0, 0, 0 } );
-    kasj::detected_object::load( archive, *new_obj );
-
-    obj.add( new_obj );
-  }
-
-  // currently not handling atributes
-  //+ TBD
 }
 
 } } } }       // end namespace kwiver

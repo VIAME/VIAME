@@ -29,14 +29,11 @@
  */
 
 #include "image.h"
+#include "convert_protobuf.h"
 
-#include <vital/exceptions.h>
 #include <vital/types/image_container.h>
-#include <vital/util/hex_dump.h>
-
-#include <zlib.h>
-#include <cstddef>
-#include <cstring>
+#include <vital/types/protobuf/image.pb.h>
+#include <vital/exceptions.h>
 
 namespace kwiver {
 namespace arrows {
@@ -113,133 +110,4 @@ deserialize( const std::string& message )
   return kwiver::vital::any( img_container_sptr );
 }
 
-
-// ----------------------------------------------------------------------------
-void
-image::
-convert_protobuf( const kwiver::protobuf::image&      proto_img,
-                  kwiver::vital::image_container_sptr& img )
-{
-  const size_t img_size( proto_img.size() );
-  auto mem_sptr = std::make_shared<vital::image_memory>( img_size );
-
-  // decompress the data
-  uLongf out_size( img_size );
-  Bytef* out_buf = reinterpret_cast< Bytef* >( mem_sptr->data() );
-  Bytef const *in_buf = reinterpret_cast< Bytef const* >( proto_img.data().data() );
-  uLongf in_size = proto_img.data().size(); // compressed size
-
-  int z_rc = uncompress(out_buf, &out_size, // outputs
-                        in_buf, in_size);   // inputs
-  if (Z_OK != z_rc )
-  {
-    switch (z_rc)
-    {
-    case Z_MEM_ERROR:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
-                 "Error decompressing image data. Not enough memory." );
-      break;
-
-    case Z_BUF_ERROR:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
-                 "Error decompressing image data. Not enough room in output buffer." );
-      break;
-
-    default:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
-                 "Error decompressing image data." );
-      break;
-    } // end switch
-    return;
-  }
-
-  if (static_cast<uLongf>( img_size ) != out_size)
-  {
-    LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
-               "Uncompressed data not expected size. Possible data corruption.");
-    return;
-  }
-
-  // create pixel trait
-  const kwiver::vital::image_pixel_traits pix_trait(
-    static_cast<kwiver::vital::image_pixel_traits::pixel_type>(proto_img.trait_type() ),
-    proto_img.trait_num_bytes() );
-
-  // create the image
-  auto vital_image = kwiver::vital::image(
-    mem_sptr, mem_sptr->data(),
-    static_cast< std::size_t > ( proto_img.width() ),
-    static_cast< std::size_t > ( proto_img.height() ),
-    static_cast< std::size_t > ( proto_img.depth() ),
-    static_cast< std::ptrdiff_t > ( proto_img.w_step() ),
-    static_cast< std::ptrdiff_t > ( proto_img.h_step() ),
-    static_cast< std::ptrdiff_t > ( proto_img.d_step() ),
-    pix_trait
-    );
-
-  // return newly constructed image container
-  img = std::make_shared< kwiver::vital::simple_image_container >( vital_image );
-}
-
-
-// ----------------------------------------------------------------------------
-void
-image::
-convert_protobuf( const kwiver::vital::image_container_sptr img,
-                  kwiver::protobuf::image&                  proto_img )
-{
-  auto vital_image = img->get_image();
-
-  // Compress raw pixel data
-  const uLongf size = compressBound( vital_image.size() );
-  uLongf out_size(size);
-  std::vector<uint8_t> image_data( size );
-  Bytef out_buf[size];
-  Bytef const* in_buf = reinterpret_cast< Bytef * >(vital_image.memory()->data());
-
-  int z_rc = compress( out_buf, &out_size, // outputs
-                       in_buf, vital_image.size() ); // inputs
-  if (Z_OK != z_rc )
-  {
-    switch (z_rc)
-    {
-    case Z_MEM_ERROR:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
-                 "Error compressing image data. Not enough memory." );
-      break;
-
-    case Z_BUF_ERROR:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
-                 "Error compressing image data. Not enough room in output buffer." );
-      break;
-
-    default:
-      LOG_ERROR( kwiver::vital::get_logger( "data_serializer" ),
-                 "Error compressing image data." );
-      break;
-    } // end switch
-    return;
-  }
-
-  proto_img.set_width( static_cast< int64_t > ( img->width() ) );
-  proto_img.set_height( static_cast< int64_t > ( img->height() ) );
-  proto_img.set_depth( static_cast< int64_t > ( img->depth() ) );
-
-  proto_img.set_w_step( static_cast< int64_t > ( vital_image.w_step() ) );
-  proto_img.set_h_step( static_cast< int64_t > ( vital_image.h_step() ) );
-  proto_img.set_d_step( static_cast< int64_t > ( vital_image.d_step() ) );
-
-  // Get pixel trait
-  auto pixel_trait = vital_image.pixel_traits();
-  proto_img.set_trait_type( pixel_trait.type );
-  proto_img.set_trait_num_bytes( pixel_trait.num_bytes );
-
-  proto_img.set_size( img->size() ); // uncompressed size
-  proto_img.set_data( out_buf, size );
-}
-
-
-}
-}
-}
-}
+} } } }

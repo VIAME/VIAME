@@ -29,7 +29,10 @@
  */
 
 #include "detected_object_type.h"
+#include "convert_protobuf.h"
 
+#include <vital/types/detected_object_type.h>
+#include <vital/types/protobuf/detected_object_type.pb.h>
 #include <vital/exceptions.h>
 
 namespace kwiver {
@@ -104,30 +107,6 @@ deserialize( const std::string& message )
   }
 
   return kwiver::vital::any(dot);
-}
-
-// ----------------------------------------------------------------------------
-void detected_object_type::
-convert_protobuf( const kwiver::protobuf::detected_object_type&  proto_dot,
-                  kwiver::vital::detected_object_type& dot )
- {
-   const size_t count( proto_dot.name_size() );
-   for (size_t i = 0; i < count; ++i )
-   {
-     dot.set_score( proto_dot.name(i), proto_dot.score(i) );
-   }
- }
-
-// ----------------------------------------------------------------------------
-void detected_object_type::
-convert_protobuf( const kwiver::vital::detected_object_type& dot,
-                  kwiver::protobuf::detected_object_type&  proto_dot )
-{
-  for ( auto it : dot )
-  {
-    proto_dot.add_name( *(it.first) );
-    proto_dot.add_score( it.second);
-  }
 }
 
 } } } } // end namespace

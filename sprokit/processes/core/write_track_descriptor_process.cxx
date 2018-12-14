@@ -76,6 +76,8 @@ write_track_descriptor_process
   : process( config ),
     d( new write_track_descriptor_process::priv )
 {
+  set_data_checking_level( check_sync );
+
   make_ports();
   make_config();
 }
@@ -134,6 +136,16 @@ void write_track_descriptor_process
 void write_track_descriptor_process
 ::_step()
 {
+  auto port_info = peek_at_port_using_trait( track_descriptor_set );
+
+  if( port_info.datum->type() == sprokit::datum::complete )
+  {
+    grab_edge_datum_using_trait( track_descriptor_set );
+    d->m_writer->close();
+    mark_process_as_complete();
+    return;
+  }
+
   std::string file_name;
 
   // image name is optional

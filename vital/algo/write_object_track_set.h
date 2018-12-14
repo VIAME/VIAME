@@ -103,7 +103,7 @@ public:
    *
    * \param set Track object set
    */
-  virtual void write_set( const kwiver::vital::object_track_set_sptr set ) = 0;
+  virtual void write_set( const kwiver::vital::timestamp& ts, const kwiver::vital::object_track_set_sptr set ) = 0;
 
 
 protected:

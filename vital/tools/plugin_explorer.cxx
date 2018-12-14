@@ -722,14 +722,13 @@ main( int argc, char* argv[] )
     return 1;
   }
 
-  //+ test for one of --factory or --type (is this desired?)
-
   // ========
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   if (!G_context.opt_skip_relative)
   {
-    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/modules");
-    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/sprokit");
+    // It is somewhat problematic to keep these in sync with the CMake values
+    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/modules");
+    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/sprokit");
   }
 
   char** newArgv = 0;

@@ -75,12 +75,12 @@ struct converter
   converter() = default;
   virtual ~converter() = default;
 
-  virtual bool can_convert( kwiver::vital::any const& data ) const
+  virtual bool can_convert( kwiver::vital::any const& data ) const override
   {
     return data.type() == typeid( SRC );
   }
 
-  virtual DEST convert( kwiver::vital::any const& data ) const
+  virtual DEST convert( kwiver::vital::any const& data ) const override
   {
     return static_cast< DEST > ( kwiver::vital::any_cast< SRC > ( data ) );
   }
@@ -91,12 +91,12 @@ template < typename SRC >
 struct converter<std::string, SRC>
   : public convert_base< std::string >
 {
-  virtual bool can_convert( kwiver::vital::any const& data ) const
+  virtual bool can_convert( kwiver::vital::any const& data ) const override
   {
     return data.type() == typeid( SRC );
   }
 
-  virtual std::string convert( kwiver::vital::any const& data ) const
+  virtual std::string convert( kwiver::vital::any const& data ) const override
   {
     std::stringstream str;
     str << kwiver::vital::any_cast< SRC > ( data );
@@ -113,12 +113,12 @@ template < typename SRC >
 struct converter<bool, SRC>
   : public convert_base< bool >
 {
-  virtual bool can_convert(kwiver::vital::any const& data) const
+  virtual bool can_convert(kwiver::vital::any const& data) const override
   {
     return data.type() == typeid(SRC);
   }
 
-  virtual bool convert(kwiver::vital::any const& data) const
+  virtual bool convert(kwiver::vital::any const& data) const override
   {
     return kwiver::vital::any_cast< SRC > (data) != SRC(0);
   }

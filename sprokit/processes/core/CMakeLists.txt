@@ -17,6 +17,7 @@ set( sources
   detected_object_output_process.cxx
   detected_object_input_process.cxx
   detected_object_filter_process.cxx
+  downsample_process.cxx
   draw_detected_object_set_process.cxx
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
@@ -31,6 +32,7 @@ set( sources
   matcher_process.cxx
   merge_detection_sets_process.cxx
   perform_query_process.cxx
+  merge_images_process.cxx
   print_config_process.cxx
   read_descriptor_process.cxx
   read_object_track_process.cxx
@@ -59,6 +61,7 @@ set( private_headers
   detected_object_output_process.h
   detected_object_input_process.h
   detected_object_filter_process.h
+  downsample_process.h
   draw_detected_object_set_process.h
   draw_tracks_process.h
   extract_descriptors_process.h
@@ -73,6 +76,7 @@ set( private_headers
   matcher_process.h
   merge_detection_sets_process.h
   perform_query_process.h
+  merge_images_process.h
   print_config_process.h
   read_descriptor_process.h
   read_object_track_process.h

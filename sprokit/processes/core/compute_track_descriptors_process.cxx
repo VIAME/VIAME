@@ -136,6 +136,8 @@ void compute_track_descriptors_process
   d->add_custom_uid = config_value_using_trait( add_custom_uid );
   d->uid_basename = config_value_using_trait( uid_basename );
   d->flush_on_last = config_value_using_trait( flush_on_last );
+
+  process::_configure();
 }
 
 
@@ -278,6 +280,7 @@ compute_track_descriptors_process
     push_to_port_using_trait( detected_object_set, detections );
   }
 
+  process::_step();
 }
 
 

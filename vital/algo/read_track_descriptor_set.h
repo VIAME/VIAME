@@ -81,7 +81,7 @@ public:
    *
    * \throws kwiver::vital::file_not_found_exception
    */
-  void open( std::string const& filename );
+  virtual void open( std::string const& filename );
 
   /// Read track descriptors from an existing stream
   /**
@@ -91,14 +91,14 @@ public:
    *
    * @param strm input stream to use
    */
-  void use_stream( std::istream* strm );
+  virtual void use_stream( std::istream* strm );
 
   /// Close track descriptor set file.
   /**
    * The currently open track descriptor set file is closed. If there is no
    * currently open file, then this method does nothing.
    */
-  void close();
+  virtual void close();
 
   /// Read next detected object set
   /**

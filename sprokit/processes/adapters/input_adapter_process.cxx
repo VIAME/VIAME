@@ -91,9 +91,9 @@ input_adapter_process
 
 
 // ------------------------------------------------------------------
-sprokit::process::port_info_t
+void
 input_adapter_process
-::_output_port_info( sprokit::process::port_t const& port )
+::output_port_undefined( sprokit::process::port_t const& port )
 {
   // If we have not created the port, then make a new one.
   if ( m_active_ports.count( port ) == 0 )
@@ -115,8 +115,6 @@ input_adapter_process
       m_active_ports.insert( port );
     }
   }
-
-  return process::_output_port_info(port);
 }
 
 

@@ -86,9 +86,10 @@ PYBIND11_MODULE(detected_object, m)
         >>> print(self)
         <DetectedObject(conf=1.0)>
     )")
-  .def(py::init<kwiver::vital::bounding_box<double>, double, kwiver::vital::detected_object_type_sptr>(),
-    py::arg("bbox"), py::arg("confidence")=1.0, py::arg("classifications")=kwiver::vital::detected_object_type_sptr(),
-    py::doc(R"(
+  .def(py::init(&new_detected_object),
+    py::arg("bbox"), py::arg("confidence")=1.0,
+    py::arg("classifications")=kwiver::vital::detected_object_type_sptr(),
+    py::arg("mask")=kwiver::vital::image_container_sptr(), py::doc(R"(
       Args:
           bbox: coarse localization of the object in image coordinates
           confidence: confidence in this detection (default=1.0)

@@ -53,7 +53,7 @@
 #include <arrows/ocv/draw_tracks.h>
 #include <arrows/ocv/estimate_fundamental_matrix.h>
 #include <arrows/ocv/estimate_homography.h>
-#include <arrows/ocv/estimate_pnp.h>
+//#include <arrows/ocv/estimate_pnp.h>
 #include <arrows/ocv/extract_descriptors_BRIEF.h>
 #include <arrows/ocv/extract_descriptors_DAISY.h>
 #include <arrows/ocv/extract_descriptors_FREAK.h>
@@ -66,6 +66,7 @@
 #include <arrows/ocv/image_io.h>
 #include <arrows/ocv/match_features_bruteforce.h>
 #include <arrows/ocv/match_features_flannbased.h>
+#include <arrows/ocv/merge_images.h>
 #include <arrows/ocv/hough_circle_detector.h>
 #include <arrows/ocv/refine_detections_write_to_disk.h>
 #include <arrows/ocv/split_image.h>
@@ -381,6 +382,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
+  fact = vpm.ADD_ALGORITHM( "ocv", kwiver::arrows::ocv::merge_images );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Merge two images into one using opencv functions" )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+      ;
+
   fact = vpm.ADD_ALGORITHM( "ocv_KLT", kwiver::arrows::ocv::track_features_klt );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "OpenCV Lucas Kanade feature tracker" )
@@ -389,13 +398,13 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
 
-  fact = vpm.ADD_ALGORITHM("ocv", kwiver::arrows::ocv::estimate_pnp);
+/*  fact = vpm.ADD_ALGORITHM("ocv", kwiver::arrows::ocv::estimate_pnp);
   fact->add_attribute(kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
     "Estimate camera pose with perspective N point method")
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
     .add_attribute(kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc.")
-    ;
+    ;*/
 
   vpm.mark_module_as_loaded( module_name );
 }

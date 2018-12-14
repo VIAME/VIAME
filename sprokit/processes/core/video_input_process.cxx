@@ -74,14 +74,14 @@ public:
 
   // Configuration values
   std::string                           m_config_video_filename;
-  kwiver::vital::time_usec_t              m_config_frame_time;
+  kwiver::vital::time_usec_t            m_config_frame_time;
   bool                                  m_has_config_frame_time;
 
   kwiver::vital::algo::video_input_sptr m_video_reader;
   kwiver::vital::algorithm_capabilities m_video_traits;
 
   kwiver::vital::frame_id_t             m_frame_number;
-  kwiver::vital::time_usec_t              m_frame_time;
+  kwiver::vital::time_usec_t            m_frame_time;
 
   kwiver::vital::metadata_vector        m_last_metadata;
 

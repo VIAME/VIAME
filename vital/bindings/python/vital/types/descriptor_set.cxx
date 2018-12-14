@@ -32,6 +32,8 @@
 
 #include <vital/types/descriptor_set.h>
 
+#include <memory>
+
 namespace py = pybind11;
 
 typedef kwiver::vital::descriptor_set desc_set;
@@ -40,7 +42,7 @@ typedef kwiver::vital::simple_descriptor_set s_desc_set;
 std::shared_ptr<s_desc_set>
 new_desc_set()
 {
-  return std::shared_ptr<s_desc_set>(new s_desc_set());
+  return std::make_shared<s_desc_set>();
 }
 
 std::shared_ptr<s_desc_set>
@@ -51,7 +53,7 @@ new_desc_set1(py::list py_list)
   {
     desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
   }
-  return std::shared_ptr<s_desc_set>(new s_desc_set(desc_list));
+  return std::make_shared<s_desc_set>(desc_list);
 }
 
 PYBIND11_MODULE(descriptor_set, m)

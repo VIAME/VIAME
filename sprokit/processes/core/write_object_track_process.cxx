@@ -159,10 +159,12 @@ void write_object_track_process
   kwiver::vital::object_track_set_sptr input
     = grab_from_port_using_trait( object_track_set );
 
+  kwiver::vital::timestamp ts = grab_from_port_using_trait( timestamp );
+
   {
     scoped_step_instrumentation();
 
-    d->m_writer->write_set( input );
+    d->m_writer->write_set( ts, input );
   }
 }
 
@@ -178,6 +180,7 @@ void write_object_track_process
 
   declare_input_port_using_trait( image_file_name, optional );
   declare_input_port_using_trait( object_track_set, required );
+  declare_input_port_using_trait( timestamp, required );
 }
 
 
