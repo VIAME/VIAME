@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2014 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,29 +28,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_SCORING_SCORING_CONFIG_H
-#define SPROKIT_SCORING_SCORING_CONFIG_H
+#ifndef ARROWS_SERIALIZATION_JSON_OBJECT_TRACK_SET_H
+#define ARROWS_SERIALIZATION_JSON_OBJECT_TRACK_SET_H
 
-#include <sprokit/config.h>
+#include <arrows/serialize/json/kwiver_serialize_json_export.h>
+#include <vital/algo/data_serializer.h>
 
-/**
- * \file scoring-config.h
- *
- * \brief Defines for symbol visibility in scoring.
- */
+namespace cereal {
+  class JSONOutputArchive;
+  class JSONInputArchive;
+}
 
-#ifdef MAKE_SPROKIT_SCORING_LIB
-/// Export the symbol if building the library.
-#define SPROKIT_SCORING_EXPORT SPROKIT_EXPORT
-#else
-/// Import the symbol if including the library.
-#define SPROKIT_SCORING_EXPORT SPROKIT_IMPORT
-#endif
+namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace json {
 
-/// Hide the symbol from the library interface.
-#define SPROKIT_SCORING_NO_EXPORT SPROKIT_NO_EXPORT
 
-/// Mark as deprecated.
-#define SPROKIT_SCORING_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_SCORING_EXPORT
+class KWIVER_SERIALIZE_JSON_EXPORT object_track_set
+  : public vital::algorithm_impl< object_track_set, vital::algo::data_serializer >
+{
+public:
+  // Type name this class supports
+  static constexpr char const* name = "kwiver:object_track_set";
 
-#endif // SPROKIT_SCORING_SCORING_CONFIG_H
+  static constexpr char const* description =
+    "Serializes a object track set  using json notation. "
+    "This implementation only handles a single data item.";
+
+  object_track_set();
+  virtual ~object_track_set();
+
+  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  virtual vital::any deserialize( const std::string& message ) override;
+};
+
+} } } }       // end namespace kwiver
+
+#endif // ARROWS_SERIALIZATION_JSON_OBJECT_TRACK_SET_H

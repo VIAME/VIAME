@@ -404,7 +404,6 @@ mesh
 ::merge(const mesh& other)
 {
   const unsigned num_v = this->num_verts();
-  const unsigned num_e = this->num_edges();
   faces_ = merge_face_arrays(*this->faces_,*other.faces_,verts_->size());
   verts_->append(*other.verts_);
 

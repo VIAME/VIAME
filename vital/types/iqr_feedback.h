@@ -59,12 +59,12 @@ public:
   iqr_feedback();
   ~iqr_feedback() VITAL_DEFAULT_DTOR
 
-  uid query_id() const;
+  vital::uid query_id() const;
 
   std::vector< unsigned > const& positive_ids() const;
   std::vector< unsigned > const& negative_ids() const;
 
-  void set_query_id( uid const& );
+  void set_query_id( vital::uid const& );
 
   void set_positive_ids( std::vector< unsigned > const& );
   void set_negative_ids( std::vector< unsigned > const& );

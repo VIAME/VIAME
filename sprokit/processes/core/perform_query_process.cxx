@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,11 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-#include <vital/algo/query_track_descriptor_set.h>
-
-#include <sprokit/processes/adapters/embedded_pipeline.h>
+#include <vital/algo/read_object_track_set.h>
+#include <vital/algo/read_track_descriptor_set.h>
 
 #include <boost/filesystem.hpp>
 
-#include <fstream>
 #include <tuple>
 
 namespace kwiver
@@ -48,10 +46,21 @@ namespace kwiver
 
 namespace algo = vital::algo;
 
+create_port_trait( external_descriptor_set, descriptor_set,
+  "Descriptor set to be processed by external query handler" );
+create_port_trait( external_exemplar_uids, string_vector,
+  "Descriptor set UIDs to be processed by external query handler" );
+create_port_trait( external_positive_uids, string_vector,
+  "Descriptor set positive IQR exemplars" );
+create_port_trait( external_negative_uids, string_vector,
+  "Descriptor set negative IQR exemplars" );
+create_port_trait( result_descriptor_uids, string_vector,
+  "Descriptor set response from external query handler" );
+create_port_trait( result_descriptor_scores, double_vector,
+  "Descriptor set scores from external query handler" );
+
 create_config_trait( external_handler, bool,
   "true", "Whether or not an external query handler is used" );
-create_config_trait( external_pipeline_file, std::string,
-  "", "External pipeline definition file location" );
 create_config_trait( database_folder, std::string,
   "", "Folder containing all track and descriptor files" );
 create_config_trait( max_result_count, unsigned,
@@ -62,12 +71,6 @@ create_config_trait( descriptor_postfix, std::string,
   "_descriptors.csv", "Postfix to add to basename for desc files" );
 create_config_trait( index_postfix, std::string,
   ".index", "Postfix to add to basename for reading index files" );
-create_config_trait( use_tracks_for_history, bool,
-  "false", "Use object track states for track descriptor history" );
-create_config_trait( merge_duplicate_results, bool,
-  "false", "If use_tracks_for_history is on, use the track with the "
-           "highest confidence, otherwise concatenate the history of "
-           "all entries with the same track" );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -80,16 +83,11 @@ public:
   perform_query_process* parent;
 
   bool external_handler;
-  std::string external_pipeline_file;
   std::string database_folder;
 
   std::string track_postfix;
   std::string descriptor_postfix;
   std::string index_postfix;
-  bool use_tracks_for_history;
-  bool merge_duplicate_results;
-
-  std::unique_ptr< embedded_pipeline > external_pipeline;
 
   unsigned max_result_count;
 
@@ -103,7 +101,17 @@ public:
   unsigned result_counter;
   bool database_populated;
 
-  algo::query_track_descriptor_set_sptr descriptor_query;
+  algo::read_track_descriptor_set_sptr descriptor_reader;
+  algo::read_object_track_set_sptr track_reader;
+
+  // Video name <=> descriptor sptr <=> track sptr tuple
+  typedef std::tuple< std::string,
+                      vital::track_descriptor_sptr,
+                      std::vector< vital::track_sptr > > desc_tuple_t;
+
+  std::map< std::string, desc_tuple_t > uid_to_desc;
+
+  void populate_database();
 
   void reset_query( const vital::database_query_sptr& query );
   unsigned get_instance_id( const std::string& uid );
@@ -120,6 +128,9 @@ perform_query_process
   // Attach our logger name to process logger
   attach_logger( vital::get_logger( name() ) );
 
+  // Required for external feedback loop
+  set_data_checking_level( check_none );
+
   make_ports();
   make_config();
 }
@@ -128,13 +139,6 @@ perform_query_process
 perform_query_process
 ::~perform_query_process()
 {
-  if( d->external_pipeline )
-  {
-    d->external_pipeline->send_end_of_input();
-    d->external_pipeline->receive();
-    d->external_pipeline->wait();
-    d->external_pipeline.reset();
-  }
 }
 
 
@@ -145,115 +149,50 @@ void perform_query_process
   vital::config_block_sptr algo_config = get_config();
 
   d->external_handler = config_value_using_trait( external_handler );
-  d->external_pipeline_file = config_value_using_trait( external_pipeline_file );
   d->database_folder = config_value_using_trait( database_folder );
   d->max_result_count = config_value_using_trait( max_result_count );
   d->track_postfix = config_value_using_trait( track_postfix );
   d->descriptor_postfix = config_value_using_trait( descriptor_postfix );
   d->index_postfix = config_value_using_trait( index_postfix );
-  d->use_tracks_for_history = config_value_using_trait( use_tracks_for_history );
-  d->merge_duplicate_results = config_value_using_trait( merge_duplicate_results );
 
   if( d->external_handler )
   {
-    algo::query_track_descriptor_set::set_nested_algo_configuration(
-      "descriptor_query", algo_config, d->descriptor_query );
+    algo::read_track_descriptor_set::set_nested_algo_configuration(
+      "descriptor_reader", algo_config, d->descriptor_reader );
 
-    if( !d->descriptor_query )
+    if( !d->descriptor_reader )
     {
       throw sprokit::invalid_configuration_exception(
-        name(), "Unable to create descriptor query" );
+        name(), "Unable to create descriptor reader" );
     }
 
-    algo::query_track_descriptor_set::get_nested_algo_configuration(
-      "descriptor_query", algo_config, d->descriptor_query );
+    algo::read_track_descriptor_set::get_nested_algo_configuration(
+      "descriptor_reader", algo_config, d->descriptor_reader );
 
-    if( !algo::query_track_descriptor_set::check_nested_algo_configuration(
-      "descriptor_query", algo_config ) )
+    if( !algo::read_track_descriptor_set::check_nested_algo_configuration(
+      "descriptor_reader", algo_config ) )
     {
       throw sprokit::invalid_configuration_exception(
         name(), "Configuration check failed." );
     }
 
-    d->descriptor_query->use_tracks_for_history( d->use_tracks_for_history );
-  }
-}
+    algo::read_object_track_set::set_nested_algo_configuration(
+      "track_reader", algo_config, d->track_reader );
 
-
-// -----------------------------------------------------------------------------
-void
-perform_query_process
-::_init()
-{
-  auto dir = boost::filesystem::path( d->external_pipeline_file ).parent_path();
-
-  if( d->external_handler && !d->external_pipeline_file.empty() )
-  {
-    std::unique_ptr< embedded_pipeline > new_pipeline =
-      std::unique_ptr< embedded_pipeline >( new embedded_pipeline() );
-
-    std::ifstream pipe_stream;
-    pipe_stream.open( d->external_pipeline_file, std::ifstream::in );
-
-    if( !pipe_stream )
+    if( !d->track_reader )
     {
       throw sprokit::invalid_configuration_exception(
-        name(), "Unable to open pipeline file: " + d->external_pipeline_file );
+        name(), "Unable to create track reader" );
     }
 
-    try
-    {
-      new_pipeline->build_pipeline( pipe_stream, dir.string() );
-      new_pipeline->start();
-    }
-    catch( const std::exception& e )
-    {
-      throw sprokit::invalid_configuration_exception( name(), e.what() );
-    }
+    algo::read_object_track_set::get_nested_algo_configuration(
+      "track_reader", algo_config, d->track_reader );
 
-    d->external_pipeline = std::move( new_pipeline );
-    pipe_stream.close();
-  }
-}
-
-
-// -----------------------------------------------------------------------------
-static void
-merge_history( vital::track_descriptor::descriptor_history_t& dest,
-               vital::track_descriptor::descriptor_history_t const& src)
-{
-  auto dest_it = dest.begin();
-  auto src_it = src.begin();
-
-  while( true )
-  {
-    if( dest_it == dest.end() )
+    if( !algo::read_object_track_set::check_nested_algo_configuration(
+      "track_reader", algo_config ) )
     {
-      if( src_it == src.end() )
-      {
-        return;
-      }
-      else
-      {
-        dest.insert( dest_it, *src_it );
-        src_it++;
-        dest_it++;
-      }
-    }
-    else if( src_it == src.end() || src_it->get_timestamp().get_frame() > dest_it->get_timestamp().get_frame() )
-    {
-      dest_it++;
-    }
-    else if( src_it->get_timestamp().get_frame() == dest_it->get_timestamp().get_frame() )
-    {
-      src_it++;
-      dest_it++;
-    }
-    else
-    {
-      dest.insert( dest_it, *src_it );
-      src_it++;
-      dest_it++;
+      throw sprokit::invalid_configuration_exception(
+        name(), "Configuration check failed." );
     }
   }
 }
@@ -276,26 +215,32 @@ perform_query_process
     const sprokit::datum_t dat = sprokit::datum::complete_datum();
 
     push_datum_to_port_using_trait( query_result, dat );
+
+    if( d->external_handler )
+    {
+      push_datum_to_port_using_trait( external_descriptor_set, dat );
+      push_datum_to_port_using_trait( external_exemplar_uids, dat );
+      push_datum_to_port_using_trait( external_positive_uids, dat );
+      push_datum_to_port_using_trait( external_negative_uids, dat );
+    }
+
     return;
   }
 
   // Retrieve inputs from ports
   vital::database_query_sptr query;
   vital::iqr_feedback_sptr feedback;
-  vital::uchar_vector_sptr model;
 
   query = grab_from_port_using_trait( database_query );
   feedback = grab_from_port_using_trait( iqr_feedback );
-  model = grab_from_port_using_trait( iqr_model );
 
   // Declare output
   vital::query_result_set_sptr output( new vital::query_result_set() );
 
   // No query received, do nothing, return no results
-  if( !query && !feedback && !model )
+  if( !query && !feedback )
   {
     push_to_port_using_trait( query_result, output );
-    push_to_port_using_trait( iqr_model, model );
     return;
   }
 
@@ -311,6 +256,8 @@ perform_query_process
   // Call external feedback loop if enabled
   if( d->external_handler )
   {
+    d->populate_database();
+
     vital::string_vector_sptr positive_uids( new vital::string_vector() );
     vital::string_vector_sptr negative_uids( new vital::string_vector() );
 
@@ -356,89 +303,32 @@ perform_query_process
       }
     }
 
-#ifndef DUMMY_OUTPUT
     // Format data to simplified format for external
     std::vector< vital::descriptor_sptr > exemplar_raw_descs;
 
     vital::string_vector_sptr exemplar_uids( new vital::string_vector() );
 
-    if( query )
+    for( auto track_desc : *query->descriptors() )
     {
-      for( auto track_desc : *query->descriptors() )
-      {
-        exemplar_uids->push_back( track_desc->get_uid().value() );
-        exemplar_raw_descs.push_back( track_desc->get_descriptor() );
-      }
+      exemplar_uids->push_back( track_desc->get_uid().value() );
+      exemplar_raw_descs.push_back( track_desc->get_descriptor() );
     }
 
     vital::descriptor_set_sptr exemplar_descs(
       new vital::simple_descriptor_set( exemplar_raw_descs ) );
 
-    // Set request on pipeline inputs
-    auto ids = adapter::adapter_data_set::create();
+    vital::string_vector_sptr result_uids;
+    vital::double_vector_sptr result_scores;
 
-    ids->add_value( "descriptor_set", exemplar_descs );
-    ids->add_value( "exemplar_uids", exemplar_uids );
-    ids->add_value( "positive_uids", positive_uids );
-    ids->add_value( "negative_uids", negative_uids );
-    ids->add_value( "query_model", model );
+    // Send data to external process
+    push_to_port_using_trait( external_descriptor_set, exemplar_descs );
+    push_to_port_using_trait( external_exemplar_uids, exemplar_uids );
+    push_to_port_using_trait( external_positive_uids, positive_uids );
+    push_to_port_using_trait( external_negative_uids, negative_uids );
 
-    // Send the request through the pipeline and wait for a result
-    d->external_pipeline->send( ids );
-
-    auto const& ods = d->external_pipeline->receive();
-
-    if( ods->is_end_of_data() )
-    {
-      throw std::runtime_error( "Pipeline terminated unexpectingly" );
-    }
-
-    // Grab result from pipeline output data set
-    auto const& iter1 = ods->find( "result_uids" );
-    auto const& iter2 = ods->find( "result_scores" );
-    auto const& iter3 = ods->find( "result_model" );
-
-    if( iter1 == ods->end() || iter2 == ods->end() || iter3 == ods->end() )
-    {
-      throw std::runtime_error( "Empty pipeline output" );
-    }
-
-    vital::string_vector_sptr result_uids =
-      iter1->second->get_datum< vital::string_vector_sptr >();
-    vital::double_vector_sptr result_scores =
-      iter2->second->get_datum< vital::double_vector_sptr >();
-
-    model = iter3->second->get_datum< vital::uchar_vector_sptr >();
-#else
-    // Format data to simplified format for external
-    vital::string_vector_sptr result_uids( new vital::string_vector() );
-    vital::double_vector_sptr result_scores( new vital::double_vector() );
-
-    model = vital::uchar_vector_sptr( new vital::uchar_vector() );
-
-    result_uids->push_back( "output_frame_final_item_14" );
-    result_uids->push_back( "output_frame_final_item_13" );
-    result_uids->push_back( "output_frame_final_item_12" );
-    result_uids->push_back( "output_frame_final_item_11" );
-    result_uids->push_back( "output_frame_final_item_10" );
-    result_uids->push_back( "output_frame_final_item_9" );
-    result_uids->push_back( "output_frame_final_item_8" );
-    result_uids->push_back( "output_frame_final_item_7" );
-    result_uids->push_back( "output_frame_final_item_21" );
-    result_uids->push_back( "output_frame_final_item_24" );
-
-    result_scores->push_back( 0.98 );
-    result_scores->push_back( 0.95 );
-    result_scores->push_back( 0.92 );
-    result_scores->push_back( 0.91 );
-    result_scores->push_back( 0.90 );
-    result_scores->push_back( 0.80 );
-    result_scores->push_back( 0.79 );
-    result_scores->push_back( 0.69 );
-    result_scores->push_back( 0.68 );
-    result_scores->push_back( 0.50 );
-    result_scores->push_back( 0.45 );
-#endif
+    // Receive data from external process (halts until finished)
+    result_uids = grab_from_port_using_trait( result_descriptor_uids );
+    result_scores = grab_from_port_using_trait( result_descriptor_scores );
 
     // Handle forced positive examples, set score to 1, make sure at front
     for( auto itr = d->forced_positives.begin();
@@ -447,9 +337,6 @@ perform_query_process
       itr->second->set_relevancy_score( 1.0 );
       output->push_back( itr->second );
     }
-
-    typedef std::pair< std::string, vital::track_id_t > unique_track_id_t;
-    std::map< unique_track_id_t, vital::query_result_sptr > top_results;
 
     // Handle all new or unadjudacted results
     for( unsigned i = 0; i < result_uids->size(); ++i )
@@ -462,8 +349,9 @@ perform_query_process
       auto result_uid = (*result_uids)[i];
       auto result_score = (*result_scores)[i];
 
-      vital::algo::query_track_descriptor_set::desc_tuple_t result;
-      if( !d->descriptor_query->get_track_descriptor( result_uid, result ))
+      auto db_res = d->uid_to_desc.find( result_uid );
+
+      if( db_res == d->uid_to_desc.end() )
       {
         continue;
       }
@@ -478,72 +366,19 @@ perform_query_process
         continue;
       }
 
-      vital::query_result_sptr entry;
-      bool insert = true;
-
-      // If there is more than one track for a descriptor, there's no point in
-      // trying to do any merging
-      if( d->merge_duplicate_results && std::get<2>( result ).size() == 1 )
-      {
-        vital::track_sptr track = std::get<2>( result )[0];
-        unique_track_id_t track_id;
-        track_id.first = std::get<0>( result );
-        track_id.second = track->id();
-
-        auto it = top_results.find( track_id );
-        if( it != top_results.end() )
-        {
-          if( d->use_tracks_for_history)
-          {
-            if( it->second->relevancy_score() >= result_score )
-            {
-              continue;
-            }
-            else
-            {
-              entry = it->second;
-              insert = false;
-            }
-          }
-          else
-          {
-            entry = it->second;
-            insert = false;
-            vital::track_descriptor_sptr entry_descriptor = (*entry->descriptors())[0];
-            auto hist = std::get<1>( result )->get_history();
-            auto entry_hist = entry_descriptor->get_history();
-
-            merge_history( entry_hist, hist );
-
-            entry_descriptor->set_history( entry_hist );
-          }
-        }
-        else
-        {
-          entry.reset( new vital::query_result() );
-          top_results[ track_id ] = entry;
-        }
-      }
-
-      if( ! entry )
-      {
-        entry.reset( new vital::query_result() );
-      }
+      vital::query_result_sptr entry( new vital::query_result() );
 
       entry->set_query_id( d->active_uid );
-      entry->set_stream_id( std::get<0>( result ) );
+      entry->set_stream_id( std::get<0>( db_res->second ) );
       entry->set_instance_id( iid );
       entry->set_relevancy_score( result_score );
 
       // Assign track descriptor set to result
-      vital::track_descriptor_set_sptr desc_set = entry->descriptors();
-      if( ! desc_set )
-      {
-        desc_set.reset( new vital::track_descriptor_set() );
+      vital::track_descriptor_set_sptr desc_set(
+        new vital::track_descriptor_set() );
 
-        desc_set->push_back( std::get<1>( result ) );
-        entry->set_descriptors( desc_set );
-      }
+      desc_set->push_back( std::get<1>( db_res->second ) );
+      entry->set_descriptors( desc_set );
 
       // Assign temporal bounds to this query result
       vital::timestamp ts1, ts2;
@@ -574,17 +409,14 @@ perform_query_process
 
       // Assign track set to result
       vital::object_track_set_sptr trk_set(
-        new vital::object_track_set( std::get<2>( result ) ) );
+        new vital::object_track_set( std::get<2>( db_res->second ) ) );
 
       entry->set_tracks( trk_set );
 
       // Remember this descriptor result for future iterations
       d->previous_results[ entry->instance_id() ] = entry;
 
-      if( insert )
-      {
-        output->push_back( entry );
-      }
+      output->push_back( entry );
     }
 
     // Handle forced negative examples, set score to 0, make sure at end of result set
@@ -602,7 +434,6 @@ perform_query_process
 
   // Push outputs downstream
   push_to_port_using_trait( query_result, output );
-  push_to_port_using_trait( iqr_model, model );
 }
 
 
@@ -612,18 +443,27 @@ void perform_query_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t optional_no_dep;
   sprokit::process::port_flags_t required;
 
   required.insert( flag_required );
+  optional_no_dep.insert( flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( database_query, required );
   declare_input_port_using_trait( iqr_feedback, optional );
-  declare_input_port_using_trait( iqr_model, optional );
 
   // -- output --
   declare_output_port_using_trait( query_result, optional );
-  declare_output_port_using_trait( iqr_model, optional );
+
+  // -- feedback loop --
+  declare_output_port_using_trait( external_descriptor_set, optional );
+  declare_output_port_using_trait( external_exemplar_uids, optional );
+  declare_output_port_using_trait( external_positive_uids, optional );
+  declare_output_port_using_trait( external_negative_uids, optional );
+
+  declare_input_port_using_trait( result_descriptor_uids, optional_no_dep );
+  declare_input_port_using_trait( result_descriptor_scores, optional_no_dep );
 }
 
 
@@ -632,14 +472,11 @@ void perform_query_process
 ::make_config()
 {
   declare_config_using_trait( external_handler );
-  declare_config_using_trait( external_pipeline_file );
   declare_config_using_trait( database_folder );
   declare_config_using_trait( max_result_count );
   declare_config_using_trait( descriptor_postfix );
   declare_config_using_trait( track_postfix );
   declare_config_using_trait( index_postfix );
-  declare_config_using_trait( use_tracks_for_history );
-  declare_config_using_trait( merge_duplicate_results );
 }
 
 
@@ -648,10 +485,7 @@ perform_query_process::priv
 ::priv( perform_query_process* p )
  : parent( p )
  , external_handler( true )
- , external_pipeline_file( "" )
  , database_folder( "" )
- , use_tracks_for_history( false )
- , merge_duplicate_results( false )
  , max_result_count( 100 )
  , is_first( true )
  , database_populated( false )
@@ -662,6 +496,81 @@ perform_query_process::priv
 perform_query_process::priv
 ::~priv()
 {
+}
+
+
+void perform_query_process::priv
+::populate_database()
+{
+  if( database_populated )
+  {
+    return;
+  }
+
+  // List all files to check
+  std::vector< std::string > basenames;
+
+  boost::filesystem::path dir( database_folder );
+
+  for( boost::filesystem::directory_iterator file_iter( dir );
+       file_iter != boost::filesystem::directory_iterator();
+       ++file_iter )
+  {
+    if( boost::filesystem::is_regular_file( *file_iter ) &&
+        file_iter->path().extension().string() == index_postfix )
+    {
+      basenames.push_back( file_iter->path().stem().string() );
+    }
+  }
+
+  // Load tracks for every base name
+  for( std::string name : basenames )
+  {
+    std::string track_file = database_folder + "/" + name + track_postfix;
+    std::string desc_file = database_folder + "/" + name + descriptor_postfix;
+
+    descriptor_reader->open( desc_file );
+    track_reader->open( track_file );
+
+    vital::track_descriptor_set_sptr descs;
+    vital::object_track_set_sptr tracks;
+
+    if( !descriptor_reader->read_set( descs ) )
+    {
+      LOG_ERROR( parent->logger(), "Unable to load desc set " << desc_file );
+      continue;
+    }
+
+    if( !track_reader->read_set( tracks ) )
+    {
+      LOG_ERROR( parent->logger(), "Unable to load track set " << track_file );
+      continue;
+    }
+
+    std::map< unsigned, vital::track_sptr > id_to_track;
+
+    for( auto trk_sptr : tracks->tracks() )
+    {
+      id_to_track[ trk_sptr->id() ] = trk_sptr;
+    }
+
+    for( auto desc_sptr : *descs )
+    {
+      // Identify associated tracks
+      std::vector< vital::track_sptr > assc_trks;
+
+      for( auto id : desc_sptr->get_track_ids() )
+      {
+        assc_trks.push_back( id_to_track[ id ] );
+      }
+
+      // Add to index
+      uid_to_desc[ desc_sptr->get_uid().value() ] =
+        desc_tuple_t( name, desc_sptr, assc_trks );
+    }
+  }
+
+  database_populated = true;
 }
 
 

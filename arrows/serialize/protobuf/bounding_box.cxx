@@ -29,6 +29,10 @@
  */
 
 #include "bounding_box.h"
+#include "convert_protobuf.h"
+
+#include <vital/types/bounding_box.h>
+#include <vital/types/protobuf/bounding_box.pb.h>
 
 namespace kwiver {
 namespace arrows {
@@ -100,28 +104,6 @@ deserialize( const std::string& message )
   }
 
   return kwiver::vital::any(bbox);
-}
-
-// ----------------------------------------------------------------------------
-void bounding_box::
-convert_protobuf( const kwiver::protobuf::bounding_box&  proto_bbox,
-                  kwiver::vital::bounding_box_d& bbox )
- {
-   bbox = kwiver::vital::bounding_box_d( proto_bbox.xmin(),
-                                         proto_bbox.ymin(),
-                                         proto_bbox.xmax(),
-                                         proto_bbox.ymax());
- }
-
-// ----------------------------------------------------------------------------
-void bounding_box::
-convert_protobuf( const kwiver::vital::bounding_box_d& bbox,
-                  kwiver::protobuf::bounding_box&  proto_bbox )
-{
-  proto_bbox.set_xmin( bbox.min_x() );
-  proto_bbox.set_ymin( bbox.min_y() );
-  proto_bbox.set_xmax( bbox.max_x() );
-  proto_bbox.set_ymax( bbox.max_y() );
 }
 
 } } } } // end namespace

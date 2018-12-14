@@ -30,9 +30,10 @@
 
 #include "detected_object_type.h"
 
+#include "load_save.h"
+
 #include <vital/types/detected_object_type.h>
 #include <vital/internal/cereal/cereal.hpp>
-#include <vital/internal/cereal/types/map.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
 #include <sstream>
@@ -91,36 +92,6 @@ deserialize( const std::string& message )
   }
 
   return kwiver::vital::any(dot);
-}
-
-// ----------------------------------------------------------------------------
-void
-detected_object_type::
-save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_type& dot )
-{
-
-  // recreate the class/score map so we don't break encapsulation.
-  std::map< std::string, double > class_map;
-  for ( auto entry : dot )
-  {
-    class_map[*(entry.first)] = entry.second;
-  }
-
-  archive( CEREAL_NVP( class_map ) );
-}
-
-// ----------------------------------------------------------------------------
-void
-detected_object_type::
-load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_type& dot )
-{
-  std::map< std::string, double > class_map;
-  archive( CEREAL_NVP( class_map ) );
-
-  for ( auto entry : class_map )
-  {
-    dot.set_score( entry.first, entry.second );
-  }
 }
 
 } } } }       // end namespace kwiver

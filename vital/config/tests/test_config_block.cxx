@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -416,17 +416,37 @@ TEST(config_block, merge_config)
   auto const configa = config_block::empty_config();
   auto const configb = config_block::empty_config();
 
+  auto configa_sp = std::make_shared<std::string>( "configa");
+  auto configb_sp = std::make_shared<std::string>( "configb");
+
   configa->set_value( keya, valuea );
+  configa->set_location( keya, configa_sp, 1 );
+
   configa->set_value( keyb, valuea );
+  configa->set_location( keyb, configa_sp, 2 );
 
   configb->set_value( keyb, valueb );
+  configb->set_location( keyb, configb_sp, 3 );
+
   configb->set_value( keyc, valuec );
+  configb->set_location( keyc, configb_sp, 4 );
 
   configa->merge_config( configb );
 
+  std::string file;
+  int line;
+
   EXPECT_EQ( valuea, configa->get_value<config_block_value_t>( keya ) );
+  configa->get_location( keya, file, line );
+  EXPECT_EQ( "configa", file );
+
   EXPECT_EQ( valueb, configa->get_value<config_block_value_t>( keyb ) );
+  configa->get_location( keyb, file, line );
+  EXPECT_EQ( "configb", file );
+
   EXPECT_EQ( valuec, configa->get_value<config_block_value_t>( keyc ) );
+  configa->get_location( keyc, file, line );
+  EXPECT_EQ( "configb", file );
 }
 
 // ----------------------------------------------------------------------------

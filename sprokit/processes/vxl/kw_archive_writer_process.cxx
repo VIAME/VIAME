@@ -47,6 +47,7 @@
 #include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
+#include <sprokit/processes/kwiver_type_traits.h>
 
 #include <fstream>
 #include <vector>
@@ -89,8 +90,6 @@ create_config_trait( stream_id, std::string,
 create_config_trait( compress_image, bool,
   "true", "Whether to compress image data stored in archive" );
 
-create_type_trait( bool,
-  "kwiver:bool", bool );
 create_port_trait( filename, file_name,
   "KWA input filename" );
 create_port_trait( stream_id, string,
@@ -99,7 +98,7 @@ create_port_trait( complete_flag, bool,
   "KWA complete flag" );
 
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 // Private implementation class
 class kw_archive_writer_process::priv
 {
@@ -167,7 +166,7 @@ kw_archive_writer_process
 }
 
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
 ::_configure()
@@ -184,7 +183,7 @@ kw_archive_writer_process
 }
 
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 // Post connection initialization
 void
 kw_archive_writer_process
@@ -284,7 +283,7 @@ kw_archive_writer_process
 } // kw_archive_writer_process::_init
 
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
 ::_step()
@@ -370,7 +369,7 @@ kw_archive_writer_process
     LOG_DEBUG( logger(), "processing frame " << frame_time );
 
     *d->m_index_stream
-      << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " " // in micro-seconds
+      << static_cast< vxl_int_64 > ( frame_time.get_time_usec() ) << " "
       << static_cast< int64_t > ( d->m_data_stream->tellp() )
       << std::endl;
 
@@ -405,7 +404,7 @@ kw_archive_writer_process
 } // kw_archive_writer_process::_step
 
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
 ::make_ports()
@@ -415,23 +414,21 @@ kw_archive_writer_process
   required.insert( flag_required );
 
   sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t opt_static;
-  opt_static.insert( flag_input_static );
 
   // declare input ports
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
   declare_input_port_using_trait( homography_src_to_ref, optional );
-  declare_input_port_using_trait( corner_points, opt_static );
-  declare_input_port_using_trait( gsd, opt_static );
-  declare_input_port_using_trait( filename, opt_static );
-  declare_input_port_using_trait( stream_id, opt_static );
+  declare_input_port_using_trait( corner_points, optional );
+  declare_input_port_using_trait( gsd, optional );
+  declare_input_port_using_trait( filename, optional );
+  declare_input_port_using_trait( stream_id, optional );
 
-  declare_output_port_using_trait( complete_flag, opt_static );
+  declare_output_port_using_trait( complete_flag, optional );
 }
 
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 void
 kw_archive_writer_process
 ::make_config()
@@ -445,7 +442,7 @@ kw_archive_writer_process
 }
 
 
-//-----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
 void
 priv_t
 ::write_frame_data( vsl_b_ostream& stream,

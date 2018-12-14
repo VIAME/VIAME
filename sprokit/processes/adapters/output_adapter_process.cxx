@@ -115,9 +115,9 @@ output_adapter_process
 
 
 // ------------------------------------------------------------------
-sprokit::process::port_info_t
+void
 output_adapter_process
-::_input_port_info(port_t const& port)
+::input_port_undefined(port_t const& port)
 {
   // If we have not created the port, then make a new one.
   if ( m_active_ports.count( port ) == 0 )
@@ -136,8 +136,6 @@ output_adapter_process
     // Add to our list of existing ports
     m_active_ports.insert( port );
   }
-
-  return process::_input_port_info(port);
 }
 
 

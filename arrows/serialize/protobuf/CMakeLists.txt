@@ -9,23 +9,37 @@ if(NOT PROTOBUF_FOUND)
 endif()
 
 set( headers_public
+  convert_protobuf.h
   bounding_box.h
   detected_object_type.h
   detected_object.h
   detected_object_set.h
+  metadata.h
   timestamp.h
   image.h
   string.h
+  track_set.h
+  track_state.h
+  track.h
+  object_track_state.h
+  object_track_set.h
   )
 
 set( sources
+  convert_protobuf.cxx
   bounding_box.cxx
   detected_object_type.cxx
   detected_object.cxx
   detected_object_set.cxx
+  metadata.cxx
   timestamp.cxx
   image.cxx
   string.cxx
+  track_set.cxx
+  track_state.cxx
+  track.cxx
+  object_track_state.cxx
+  object_track_set.cxx
   )
 
 link_directories(${PROTOBUF_LIBRARY})

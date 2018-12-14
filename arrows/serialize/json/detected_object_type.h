@@ -33,7 +33,6 @@
 
 #include <arrows/serialize/json/kwiver_serialize_json_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/detected_object_type.h>
 
 namespace cereal {
   class JSONOutputArchive;
@@ -61,11 +60,6 @@ public:
 
   virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
   virtual vital::any deserialize( const std::string& message ) override;
-
-  // Converters that can be used in cases of nested structures
-  static void save( cereal::JSONOutputArchive& archive, const kwiver::vital::detected_object_type& dot );
-  static void load( cereal::JSONInputArchive& archive, kwiver::vital::detected_object_type& dot );
-
 };
 
 } } } }       // end namespace kwiver
