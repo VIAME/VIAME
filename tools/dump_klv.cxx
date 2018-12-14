@@ -32,6 +32,8 @@
 ///
 /// This program reads a video and extracts all the KLV metadata.
 
+#include "dump_klv.h"
+
 #include <iostream>
 #include <fstream>
 
@@ -47,6 +49,11 @@
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <kwiversys/CommandLineArguments.hxx>
+
+namespace kwiver {
+namespace tools {
+
+namespace {
 
 // Global options
 bool        opt_help( false );
@@ -73,16 +80,42 @@ static kwiver::vital::config_block_sptr default_config()
   return config;
 }
 
+} // end namespace
+
+
+// ============================================================================
+dump_klv::
+dump_klv()
+{ }
+
+
+// ----------------------------------------------------------------------------
+void
+dump_klv::
+usage( std::ostream& outstream ) const
+{
+  outstream << "This program displays the KLV metadata packets that are embedded\n"
+            << "in a video stream.\n"
+            << "\n"
+            << "Usage: kwiver " << applet_name() << " [options] video-file-name\n"
+            << "\n"
+            << "Options are:\b"
+            << "  -h | --help            displays usage information\n"
+            << "  --config | -c  FILE    Configuration for tool\n"
+            << "  --output-config  FILE  Dump configuration to file\n"
+    ;
+}
+
+
 // ----------------------------------------------------------------
-/** Main entry.
- *
- *
- */
-int main( int argc, char** argv )
+/** Main entry. */
+int
+dump_klv::
+run( const std::vector<std::string>& argv )
 {
   kwiversys::CommandLineArguments arg;
 
-  arg.Initialize( argc, argv );
+  arg.Initialize( argv );
   arg.StoreUnusedArguments( true );
 
   arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
@@ -99,10 +132,7 @@ int main( int argc, char** argv )
 
   if ( opt_help )
   {
-    std::cerr
-      << "USAGE: " << argv[0] << " [OPTS]  video-file\n\n"
-      << "Options:"
-      << arg.GetHelp() << std::endl;
+    usage( std::cerr );
     return EXIT_SUCCESS;
   }
 
@@ -110,7 +140,7 @@ int main( int argc, char** argv )
   int newArgc = 0;
   arg.GetUnusedArguments(&newArgc, &newArgv);
 
-  if( newArgc == 1 )
+  if( ( newArgc == 1 ) && ( opt_out_config.empty()) )
   {
     std::cout << "Missing file name.\n"
       << "Usage: " << newArgv[0] << " video-file-name\n" << std::endl;
@@ -166,13 +196,13 @@ int main( int argc, char** argv )
   }
   catch ( kwiver::vital::video_exception const& e )
   {
-    std::cerr << "Video Exception-Couldn't open " << video_file << std::endl
+    std::cerr << "Video Exception-Couldn't open \"" << video_file << "\"" << std::endl
               << e.what() << std::endl;
     return EXIT_FAILURE;
   }
   catch ( kwiver::vital::file_not_found_exception const& e )
   {
-    std::cerr << "Couldn't open " << video_file << std::endl
+    std::cerr << "Couldn't open \"" << video_file << "\"" << std::endl
               << e.what() << std::endl;
     return EXIT_FAILURE;
   }
@@ -207,3 +237,5 @@ int main( int argc, char** argv )
 
   return EXIT_SUCCESS;
 }
+
+} } // end namespace

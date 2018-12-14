@@ -419,8 +419,8 @@ config_block
   }
 
   // Copy location if there is one.
-  auto i = m_def_store.find( key );
-  if ( i != m_def_store.end() )
+  auto i = from->m_def_store.find( key );
+  if ( i != from->m_def_store.end() )
   {
     this->m_def_store[key] = i->second;
   }

@@ -348,9 +348,9 @@ distribute_process
 
 // ------------------------------------------------------------------
 // Intercept the connect operation so we can create the needed output port
-process::port_info_t
+void
 distribute_process
-::_output_port_info(port_t const& port)
+::output_port_undefined(port_t const& port)
 {
   // Does this port name start with the status prefix "status/"
   if (kwiver::vital::starts_with(port, priv::port_status_prefix))
@@ -406,8 +406,6 @@ distribute_process
       required,
       port_description_t("An output for the " + tag + " data."));
   }
-
-  return process::_output_port_info(port);
 }
 
 

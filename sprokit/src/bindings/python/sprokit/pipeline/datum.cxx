@@ -134,9 +134,6 @@ PYBIND11_MODULE(datum, m)
   m.def("new_object_track_set", &new_datum<std::shared_ptr<kwiver::vital::object_track_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing an object track set.");
-  m.def("new_timestamp", &new_datum<kwiver::vital::timestamp> // no pointer for timestamps
-    , (arg("dat"))
-    , "Creates a new datum packet containing a timestamp.");
   m.def("new_double_vector", &new_datum<std::shared_ptr<std::vector<double>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a double vector.");
@@ -146,6 +143,9 @@ PYBIND11_MODULE(datum, m)
   m.def("new_bounding_box", &new_datum<kwiver::vital::bounding_box_d>
     , (arg("dat"))
     , "Creates a new bounding box");
+  m.def("new_timestamp", &new_datum<kwiver::vital::timestamp>
+    , (arg("dat"))
+    , "Creates a new timestamp");
   m.def("new_corner_points", &new_datum<kwiver::vital::geo_polygon>
     , (arg("dat"))
     , "Creates a new set of corner points");
@@ -181,8 +181,6 @@ PYBIND11_MODULE(datum, m)
       , "Get the data contained within the packet (if coming from a python process).")
     .def("get_datum_ptr", &datum_get_datum_ptr
       , "Get pointer to datum object as a PyCapsule.")
-    .def("get_string", &datum_get_object<std::string>
-      , "Convert the data to a string")
     .def("get_image_container", &datum_get_object<std::shared_ptr<kwiver::vital::image_container>>
       , "Convert the data to an image container")
     .def("get_descriptor_set", &datum_get_object<std::shared_ptr<kwiver::vital::descriptor_set>>
@@ -195,18 +193,20 @@ PYBIND11_MODULE(datum, m)
       , "Convert the data to a feature track set")
     .def("get_object_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::object_track_set>>
       , "Convert the data to an object track set")
-    .def("get_timestamp", &datum_get_object<kwiver::vital::timestamp> // no pointer for timestamps
-      , "Convert the data to a timestamp")
     .def("get_double_vector", &datum_get_object<std::shared_ptr<std::vector<double>>>
       , "Convert the data to a double vector")
     .def("get_string_vector", &datum_get_object<std::shared_ptr<std::vector<std::string>>>
       , "Convert the data to a string vector")
-    .def("get_bounding_box", &datum_get_object<kwiver::vital::bounding_box_d>
-         , "Convert the data to a bounding box")
-    .def("get_corner_points", &datum_get_object<kwiver::vital::geo_polygon>
-         , "Convert the data to a set of corner points")
     .def("get_uchar_vector", &datum_get_object<std::shared_ptr<std::vector<unsigned char>>>
       , "Convert the data to an unsigned char vector")
+    .def("get_bounding_box", &datum_get_object<kwiver::vital::bounding_box_d>
+         , "Convert the data to a bounding box")
+    .def("get_timestamp", &datum_get_object<kwiver::vital::timestamp>
+         , "Convert the data to a timestamp")
+    .def("get_corner_points", &datum_get_object<kwiver::vital::geo_polygon>
+         , "Convert the data to a set of corner points")
+    .def("get_string", &datum_get_object<std::string>,
+            "Convert the data to a string")
   ;
 
 } // end module

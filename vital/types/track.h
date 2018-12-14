@@ -68,8 +68,11 @@ class VITAL_EXPORT track_state
 {
 public:
   friend class track;
-
-  /// Constructor
+  
+  track_state( )
+    : frame_id_( 0 )
+  { } 
+  //  Constructor
   track_state( frame_id_t frame )
     : frame_id_( frame )
   { }
@@ -93,8 +96,13 @@ public:
 
   /// Access the track containing this state
   track_sptr track() const { return track_.lock(); }
+  
+  /// Set the frame identifier 
+  void set_frame(frame_id_t frame_id) { frame_id_ = frame_id; }
 
   virtual ~track_state() = default;
+
+  bool operator==(track_state other) const { return frame_id_ == other.frame(); }
 
 private:
   /// The frame identifier for this state

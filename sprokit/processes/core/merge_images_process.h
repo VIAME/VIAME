@@ -63,6 +63,7 @@ class KWIVER_PROCESSES_NO_EXPORT merge_images_process
   protected:
     virtual void _configure();
     virtual void _step();
+    virtual sprokit::process::port_info_t _input_port_info(port_t const& port);
 
   private:
     void make_ports();

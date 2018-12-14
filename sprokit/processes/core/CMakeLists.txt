@@ -16,7 +16,7 @@ set( sources
   detect_features_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
-  detected_object_filter_process.cxx  
+  detected_object_filter_process.cxx
   downsample_process.cxx
   draw_detected_object_set_process.cxx
   draw_tracks_process.cxx
@@ -33,6 +33,7 @@ set( sources
   merge_detection_sets_process.cxx
   merge_images_process.cxx
   perform_query_process.cxx
+  merge_images_process.cxx
   print_config_process.cxx
   read_descriptor_process.cxx
   read_object_track_process.cxx
@@ -78,6 +79,7 @@ set( private_headers
   merge_detection_sets_process.h
   merge_images_process.h
   perform_query_process.h
+  merge_images_process.h
   print_config_process.h
   read_descriptor_process.h
   read_object_track_process.h

@@ -41,10 +41,9 @@
 #include <vital/internal/cereal/types/vector.hpp>
 #include <vital/internal/cereal/types/map.hpp>
 #include <vital/internal/cereal/types/utility.hpp>
-#include <vital/internal/cereal/types/polymorphic.hpp>
 
 
-namespace cereal {
+namespace {
 
 // ---- STATIC DATA ----
 static ::kwiver::vital::metadata_traits meta_traits;
@@ -168,6 +167,10 @@ struct meta_item
 };
 
 using meta_vect_t = std::vector< meta_item >;
+
+}
+
+namespace cereal {
 
 // ============================================================================
 void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::metadata_vector& meta )

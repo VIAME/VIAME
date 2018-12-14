@@ -163,6 +163,8 @@ kw_archive_writer_process
   : process( config ),
     d( new kw_archive_writer_process::priv( this ) )
 {
+  attach_logger( kwiver::vital::get_logger( name() ) );
+
   make_ports();
   make_config();
 }
@@ -424,17 +426,15 @@ kw_archive_writer_process
   required.insert( flag_required );
 
   sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t opt_static;
-  opt_static.insert( flag_input_static );
 
   // declare input ports
   declare_input_port_using_trait( timestamp, required );
   declare_input_port_using_trait( image, required );
   declare_input_port_using_trait( homography_src_to_ref, optional );
-  declare_input_port_using_trait( corner_points, opt_static );
-  declare_input_port_using_trait( gsd, opt_static );
-  declare_input_port_using_trait( filename, opt_static );
-  declare_input_port_using_trait( stream_id, opt_static );
+  declare_input_port_using_trait( corner_points, optional );
+  declare_input_port_using_trait( gsd, optional );
+  declare_input_port_using_trait( filename, optional );
+  declare_input_port_using_trait( stream_id, optional );
 
   declare_output_port_using_trait( complete_flag, optional );
 }

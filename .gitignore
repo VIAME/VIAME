@@ -1,8 +1,8 @@
 _build
 *.pyc
-*.swp
-*.swo
-*.swn
 *~
 .ipynb_checkpoints
 .emacs*
+*.swp
+*.swo
+*.swn

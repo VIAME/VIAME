@@ -377,9 +377,9 @@ collate_process
 
 // ------------------------------------------------------------------
 // Intercept input port connection so we can create the requested port
-process::port_info_t
+void
 collate_process
-::_input_port_info(port_t const& port)
+::input_port_undefined(port_t const& port)
 {
   // Is this a status port (starts with "status/")
   if (kwiver::vital::starts_with(port, priv::port_status_prefix))
@@ -436,8 +436,6 @@ collate_process
       required,
       port_description_t("An input for the " + tag + " data."));
   }
-
-  return process::_input_port_info(port);
 }
 
 

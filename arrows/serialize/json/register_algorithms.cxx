@@ -43,6 +43,11 @@
 #include "timestamp.h"
 #include "image.h"
 #include "string.h"
+#include "track_state.h"
+#include "object_track_state.h"
+#include "track.h"
+#include "track_set.h"
+#include "object_track_set.h"
 
 namespace kwiver {
 namespace arrows {
@@ -110,6 +115,14 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< kwiver::arrows::serialize::json::image >( vpm );
   register_algorithm< kwiver::arrows::serialize::json::image >( vpm, "kwiver:mask" );
   register_algorithm< kwiver::arrows::serialize::json::string >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::track_state >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::object_track_state >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::track >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::track_set >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::object_track_set >( vpm );
+  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:file_name" );
+  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:image_name" );
+  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:video_name" );
 
   vpm.mark_module_as_loaded( module_name );
 }

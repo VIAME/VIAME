@@ -48,8 +48,8 @@ namespace vital {
   class timestamp;
 } } // end namespace
 
-namespace cereal {
 
+namespace cereal {
   class JSONOutputArchive;
   class JSONInputArchive;
 
@@ -109,5 +109,6 @@ KWIVER_SERIALIZE_JSON_EXPORT
 void load( cereal::JSONInputArchive& archive, kwiver::vital::polygon& poly );
 
 }
+
 
 #endif // ARROWS_SERIALIZATION_JSON_LOAD_SAVE_H

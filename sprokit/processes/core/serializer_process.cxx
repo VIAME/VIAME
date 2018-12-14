@@ -248,11 +248,11 @@ serializer_process
 
 
 // ----------------------------------------------------------------------------
-sprokit::process::port_info_t
+void
 serializer_process::
-_input_port_info(port_t const& port_name)
+input_port_undefined(port_t const& port_name)
 {
-  LOG_TRACE( logger(), "Processing input port info: \"" << port_name << "\"" );
+  LOG_TRACE( logger(), "Processing undefined input port: \"" << port_name << "\"" );
 
   if (! kwiver::vital::starts_with( port_name, "_" ) )
   {
@@ -272,16 +272,14 @@ _input_port_info(port_t const& port_name)
         port_description_t( "data type to be serialized" ) );
     }
   }
-
-  return process::_input_port_info( port_name );
 }
 
 // ----------------------------------------------------------------------------
-sprokit::process::port_info_t
+void
 serializer_process::
-_output_port_info(port_t const& port_name)
+output_port_undefined(port_t const& port_name)
 {
-  LOG_TRACE( logger(), "Processing output port info: \"" << port_name << "\"" );
+  LOG_TRACE( logger(), "Processing undefined output port: \"" << port_name << "\"" );
 
   // Just create an output port
   if (! kwiver::vital::starts_with( port_name, "_" ) )
@@ -301,8 +299,6 @@ _output_port_info(port_t const& port_name)
         "serialized output" );
     }
   }
-
-  return process::_output_port_info( port_name );
 }
 
 // ------------------------------------------------------------------
@@ -324,7 +320,7 @@ serializer_process
 
   // pass to base class
   return process::_set_input_port_type( port_name, port_type );
-} // serializer_process::_input_port_info
+}
 
 // ----------------------------------------------------------------
 void serializer_process

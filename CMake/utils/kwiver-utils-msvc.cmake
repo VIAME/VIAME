@@ -9,7 +9,7 @@
 #
 # SETUP_BATCH_FILES is a list of batch scripts on disk to process
 #
-# Each batch file will be read in and each 'set' of an environment variable 
+# Each batch file will be read in and each 'set' of an environment variable
 # will be extracted and reformed with the proper values for MSVC
 #
 # This logic will ignore 'config' variables as that is generally
@@ -23,11 +23,10 @@ if(POLICY CMP0057)
 endif()
 
 function(kwiver_setup_msvc_env)
-  
   foreach(setup_batch ${ARGN})
     list(APPEND SETUP_BATCH_FILES "${setup_batch}")
   endforeach()
-  
+
   foreach(setup_batch ${SETUP_BATCH_FILES})
     #message(STATUS "Extracting environment from ${setup_batch}")
     get_filename_component(batch_dir ${setup_batch} DIRECTORY)
@@ -48,7 +47,7 @@ function(kwiver_setup_msvc_env)
       if("${idx}" GREATER -1)
         continue()
       endif()
-      # Ignore the set config line (a kwiver idiom) 
+      # Ignore the set config line (a kwiver idiom)
       string(FIND "${search}" "set config" idx)
       if("${idx}" GREATER -1)
         continue()
@@ -59,7 +58,7 @@ function(kwiver_setup_msvc_env)
       if(NOT "${idx}" EQUAL 0 OR ${edx} EQUAL -1)
         continue()
       endif()
-      
+
       #message(STATUS "I cleaning ${line}")
       # The line format is
       # set SOMETHING = VALUE
@@ -73,7 +72,7 @@ function(kwiver_setup_msvc_env)
       # replace batch terms with msvc terms
       string(REPLACE "%config%" "$(Configuration)" _val "${_val}")
       string(REPLACE "%~dp0" "${batch_dir}" _val "${_val}")
-      # remove any recursive sets 
+      # remove any recursive sets
       # such as PATH=%something%;%PATH% <-- remove the %PATH%
       string(REPLACE "%${_var}%" "" _val "${_val}")
       #message(STATUS "I am setting ${_var} to ${_val}")
@@ -84,7 +83,7 @@ function(kwiver_setup_msvc_env)
       list(APPEND "_env_${_var}" "${_val}")
     endforeach()
   endforeach()
-  # Consolidate setting env variables into one line    
+  # Consolidate setting env variables into one line
   foreach(_env_var ${_env_variables})
     #message(STATUS "processing ${_env_var}")
     set(MSVC_ENV "${MSVC_ENV}${_env_var}=")
@@ -94,7 +93,7 @@ function(kwiver_setup_msvc_env)
     set(MSVC_ENV "${MSVC_ENV}\n")
   endforeach()
   #message(STATUS "Setting MSVC environment to ${MSVC_ENV}")
-    
+
   # Now loop over all the executable we made and provide a vcxproj file for them
   get_property(executables GLOBAL PROPERTY kwiver_executables)
   get_property(executables_paths GLOBAL PROPERTY kwiver_executables_paths)
@@ -107,7 +106,7 @@ function(kwiver_setup_msvc_env)
     # split the exe into name and binary dir
     list(GET executables ${i} exe)
     list(GET executables_paths ${i} exe_binary_dir)
-    
+
     #message(STATUS "Setting MSVC environment for ${exe} in ${exe_binary_dir}")
     configure_file(
       ${KWIVER_CMAKE_DIR}/vcxproj.user.in
@@ -115,5 +114,4 @@ function(kwiver_setup_msvc_env)
       @ONLY
     )
   endforeach()
-  
 endfunction()

@@ -496,6 +496,8 @@ process
   return _input_port_info(port);
 }
 
+
+// ------------------------------------------------------------------
 process::port_info_t
 process
 ::output_port_info(port_t const& port)
@@ -771,7 +773,17 @@ process::port_info_t
 process
 ::_input_port_info(port_t const& port)
 {
-  priv::port_map_t::const_iterator const i = d->input_ports.find(port);
+  priv::port_map_t::const_iterator i = d->input_ports.find(port);
+
+  if (i == d->input_ports.end())
+  {
+    // Port not found. Check with the process to see if it wants to
+    // define the port.
+    input_port_undefined( port );
+
+    // Update iterator
+    i = d->input_ports.find(port);
+  }
 
   if (i != d->input_ports.end())
   {
@@ -782,13 +794,29 @@ process
                d->name, port, input_ports());
 }
 
+// ------------------------------------------------------------------
+void
+process
+::input_port_undefined( port_t const& port )
+{
+}
 
 // ------------------------------------------------------------------
 process::port_info_t
 process
 ::_output_port_info(port_t const& port)
 {
-  priv::port_map_t::const_iterator const i = d->output_ports.find(port);
+  priv::port_map_t::const_iterator i = d->output_ports.find(port);
+
+  if (i == d->output_ports.end())
+  {
+    // Port not found. Check with the process to see if it wants to
+    // define the port.
+    output_port_undefined( port );
+
+    // Update iterator
+    i = d->output_ports.find(port);
+  }
 
   if (i != d->output_ports.end())
   {
@@ -799,6 +827,13 @@ process
                d->name, port, output_ports());
 }
 
+
+// ------------------------------------------------------------------
+void
+process
+::output_port_undefined( port_t const& port )
+{
+}
 
 // ------------------------------------------------------------------
 bool

@@ -1,0 +1,31 @@
+#
+# Pipe file to test merge_detection_sets_process
+#
+process input1 :: detected_object_input
+    reader:type = simulator
+    file_name = null
+
+process input2 :: detected_object_input
+    reader:type = simulator
+    file_name = null
+
+process input3 :: detected_object_input
+    reader:type = simulator
+    file_name = null
+
+process input4 :: detected_object_input
+    reader:type = simulator
+    file_name = null
+
+process merge :: merge_detection_sets
+
+connect from input1.detected_object_set  to merge.in-1
+connect from input2.detected_object_set  to merge.in-2
+connect from input3.detected_object_set  to merge.in-3
+connect from input4.detected_object_set  to merge.in-4
+
+process output :: detected_object_output
+    file_name = junk.xxx
+    writer:type = csv
+
+connect from merge.detected_object_set  to  output.detected_object_set

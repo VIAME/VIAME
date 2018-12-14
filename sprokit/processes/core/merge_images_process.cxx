@@ -32,6 +32,7 @@
 
 #include <vital/vital_types.h>
 #include <vital/types/image_container.h>
+#include <vital/util/string.h>
 
 #include <vital/algo/merge_images.h>
 
@@ -46,6 +47,7 @@ namespace kwiver
 
 create_port_trait( image1, image, "Single frame first image." );
 create_port_trait( image2, image, "Single frame second image." );
+
 //----------------------------------------------------------------
 // Private implementation class
 class merge_images_process::priv
@@ -55,6 +57,7 @@ public:
   ~priv();
 
   algo::merge_images_sptr         m_images_merger;
+  std::set< std::string > p_port_list;
 };
 
 // ================================================================
@@ -108,15 +111,18 @@ void
 merge_images_process
 ::_step()
 {
-  // Get image
-  kwiver::vital::image_container_sptr image1 =
-      grab_from_port_using_trait( image1 );
-  kwiver::vital::image_container_sptr image2 =
-      grab_from_port_using_trait( image2 );
+  std::vector<kwiver::vital::image_container_sptr> image_list;
+
+  for ( const auto port_name : d->p_port_list ) {
+    kwiver::vital::image_container_sptr image_sptr =
+        grab_from_port_as<kwiver::vital::image_container_sptr>( port_name );
+    image_list.push_back(image_sptr);
+  }
+
   kwiver::vital::image_container_sptr output;
 
   // Get feature tracks
-  output = d->m_images_merger->merge( image1, image2 );
+  output = d->m_images_merger->merge( image_list[0], image_list[1]);
 
   // Return by value
   push_to_port_using_trait( image, output);
@@ -133,8 +139,8 @@ void merge_images_process
   required.insert( flag_required );
 
   // -- input --
-  declare_input_port_using_trait( image1, required );
-  declare_input_port_using_trait( image2, required );
+//  declare_input_port_using_trait( image1, required );
+//  declare_input_port_using_trait( image2, required );
 
   declare_output_port_using_trait( image, required );
 }
@@ -159,5 +165,36 @@ merge_images_process::priv
 ::~priv()
 {
 }
+
+sprokit::process::port_info_t
+merge_images_process
+::_input_port_info(port_t const& port_name)
+{
+  LOG_TRACE( logger(), "Processing input port info: \"" << port_name << "\"" );
+
+  // Just create an input port to read detections from
+  if (! kwiver::vital::starts_with( port_name, "_" ) )
+  {
+    // Check for unique port name
+    if ( d->p_port_list.count( port_name ) == 0 )
+    {
+      port_flags_t required;
+      required.insert( flag_required );
+
+      // Create input port
+      declare_input_port(
+          port_name,                                // port name
+          image_port_trait::type_name, // port type
+          required,                                 // port flags
+          "image input" );
+
+      d->p_port_list.insert( port_name );
+    }
+  }
+
+  // call base class implementation
+  return process::_input_port_info( port_name );
+}
+
 
 } // end namespace
