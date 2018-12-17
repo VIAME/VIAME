@@ -1,5 +1,5 @@
-# ckwg +28
-# Copyright 2017 by Kitware, Inc.
+# ckwg +29
+# Copyright 2018 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -51,17 +51,12 @@ from vital.types import new_descriptor
 
 from timeit import default_timer as timer
 
-from vital.types import (
-    ObjectTrackState,
-    Track,
-    ObjectTrackSet
-)
+from vital.types import  ObjectTrackState, Track, ObjectTrackSet
 
 from vital.util.VitalPIL import get_pil_image
 
 from kwiver.arrows.pytorch.models import Siamese
 from kwiver.arrows.pytorch.grid import grid
-from kwiver.arrows.pytorch.track import track_state, track, track_set
 from kwiver.arrows.pytorch.SRNN_matching import SRNN_matching, RnnType
 from kwiver.arrows.pytorch.pytorch_siamese_f_extractor import pytorch_siamese_f_extractor
 from kwiver.arrows.pytorch.iou_tracking import IOU_tracker
@@ -71,20 +66,6 @@ from kwiver.arrows.pytorch.MOT_bbox import MOT_bbox, GTFileType
 from kwiver.arrows.pytorch.models import get_config
 
 g_config = get_config()
-
-#def print(msg):
-   #import threading
-   #import traceback
-   #try:
-       #msg = '[{}] {}'.format(threading.current_thread(), msg)
-   ##    with open('database/Logs/SRNN_Tracking_Log', 'a') as f:
-   ##        f.write(str(msg) + '\n')
-   #except Exception as ex:
-       #with open('database/Logs/SRNN_Tracking_Error_Log', 'a') as f:
-           #f.write('Error durring print! Attempting to report\n')
-           #f.write(repr(ex) + '\n')
-           #f.write(traceback.format_exc() + '\n')
-           #raise
 
 def ts2ot_list(track_set):
     ot_list = [Track(id=t.id) for t in track_set]
@@ -100,7 +81,6 @@ def ts2ot_list(track_set):
 
 
 class SRNN_tracking(KwiverProcess):
-
     # ----------------------------------------------
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
@@ -301,7 +281,7 @@ class SRNN_tracking(KwiverProcess):
         self._grid = grid()
 
         # generated track_set
-        self._track_set = track_set()
+        self._track_set = ObjectTrackSet()
         self._terminate_track_threshold = int(self.config_value('terminate_track_threshold'))
         self._sys_terminate_track_threshold = int(self.config_value('sys_terminate_track_threshold'))
 
