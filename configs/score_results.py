@@ -38,7 +38,7 @@ def load_roc( fn ):
       x_fa = np.append( x_fa, float( fields[47] ) )
       y_pd = np.append( y_pd, float( fields[7] ) )
 
-  return (x_fa, y_pd)
+  return ( x_fa, y_pd )
 
 def list_categories( filename ):
 
@@ -96,12 +96,19 @@ def generate_stats( args, categories ):
   # Generate roc files
   base, ext = os.path.splitext( args.stats )
 
-  cmd = get_stat_cmd()
+  base_cmd = get_stat_cmd()
+  base_cmd += [ '--computed-format', args.format, '--computed-format', args.format ]
+  base_cmd += [ '--fn2ts' ]
 
-  cmd += [ '--computed-tracks', args.computed, '--computed-format', 'noaa-csv' ]
-  cmd += [ '--truth-tracks', args.truth, '--computed-format', 'noaa-csv' ]
-  cmd += [ '--fn2ts' ]
+  for cat in categories:
+    stat_file = base + "." + cat + ext
+    _, filtered_computed = filter_by_category( args.computed, cat, args.threshold )
+    _, filtered_truth = filter_by_category( args.truth, cat, args.threshold )
+    cmd = base_cmd + [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
+    with open( stat_file, 'w' ) as fout:
+      subprocess.call( cmd, stdout=fout, stderr=fout )
 
+  cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
   with open( args.stats, 'w' ) as fout:
     subprocess.call( cmd, stdout=fout, stderr=fout )
 
@@ -114,18 +121,21 @@ def generate_rocs( args, categories ):
 
   base_cmd = get_roc_cmd()
 
-  base_cmd += [ '--computed-tracks', args.computed, '--computed-format', 'noaa-csv' ]
-  base_cmd += [ '--truth-tracks', args.truth, '--computed-format', 'noaa-csv' ]
+  base_cmd += [ '--computed-format', args.format, '--computed-format', args.format ]
   base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
 
   for cat in categories:
     roc_file = base + "." + cat + ".roc"
+    _, filtered_comp = filter_by_category( args.computed, cat )
+    _, filtered_truth = filter_by_category( args.truth, cat )
     cmd = base_cmd + [ '--roc-dump', roc_file ]
+    cmd += [ '--computed-tracks', filtered_computer, '--truth-tracks', filtered_truth ]
     subprocess.call( cmd )
     roc_files.append( roc_file )
 
   net_roc_file = base + ".roc"
   cmd = base_cmd + [ '--roc-dump', net_roc_file ]
+  cmd += [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
   subprocess.call( cmd )
   roc_files.append( net_roc_file )
 
@@ -188,16 +198,14 @@ if __name__ == "__main__":
              help='Input filename for groundtruth file.' )
   parser.add_argument( '-threshold', type=float, default=0.05,
              help='Input threshold for statistics.' )
+  parser.add_argument( '-format', default="noaa-csv",
+             help='Input file format.' )
 
   # Outputs
   parser.add_argument( '-stats', default=None,
              help='Filename for output track statistics.' )
   parser.add_argument( '-roc', default=None,
              help='Filename for output roc curves.' )
-  parser.add_argument("--stats-only", dest="stats_only", action="store_true",
-             help="Produce no ROC detection curves, just summary statistics")
-  parser.add_argument("--roc-only", dest="roc_only", action="store_true",
-             help="Produce no ROC detection curves, just summary statistics")
   parser.add_argument("--per-category", dest="per_category", action="store_true",
              help="Utilize categories in the files and generate plots per category")
 
@@ -231,21 +239,20 @@ if __name__ == "__main__":
     print( "Error: both computed and truth file must be specified" )
     sys.exit( 0 )
 
-  if not args.stats and not args.roc_only:
-    print( "Error: output statistics filename (-stats) must be specified" )
-    sys.exit( 0 )
-
-  if not args.roc and not args.stats_only:
-    print( "Error: output ROC image filename (-roc) must be specified" )
+  if len( args.roc ) == 0 and len( args.stats ) == 0:
+    print( "Error: either 'stats' or 'roc' output files must be specified" )
     sys.exit( 0 )
 
   categories = []
 
   if args.per_category:
+    if args.format not "noaa-csv":
+      print( "Error: only noaa-csv currently supported for multi-category" )
+      sys.exit( 0 )
     categories = list_categories( args.truth )
 
-  if not args.roc_only:
+  if len( args.stats ) > 0:
     generate_stats( args, categories )
 
-  if not args.stats_only:
+  if len( args.roc ) > 0:
     generate_rocs( args, categories )
