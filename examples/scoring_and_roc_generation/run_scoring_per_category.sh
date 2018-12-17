@@ -8,19 +8,15 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run score tracks on data for singular metrics
 
-score_tracks --hadwav \
-  --computed-tracks detections.csv --computed-format noaa-csv \
-  --truth-tracks groundtruth.csv --truth-format noaa-csv \
-  --fn2ts > score_tracks_output.txt
+python ${VIAME_INSTALL}/configs/score_results.py \
+ -computed detections.csv -truth groundtruth.csv \
+ -threshold 0.05 -stats score_tracks_output.txt \
+ --per-category
 
 # Generate ROC
 
-score_events \
-  --computed-tracks detections.csv --computed-format noaa-csv \
-  --truth-tracks groundtruth.csv --truth-format noaa-csv \
-  --fn2ts --kw19-hack --gt-prefiltered --ct-prefiltered \
-  --roc-dump roc.plot
+python ${VIAME_INSTALL}/configs/score_results.py \
+ -computed detections.csv -truth groundtruth.csv \
+ -threshold 0.05 -roc roc.png \
+ --per-category
 
-# Plot ROC
-
-python plotroc.py roc.plot

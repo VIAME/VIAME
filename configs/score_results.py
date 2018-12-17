@@ -9,6 +9,7 @@ import argparse
 import atexit
 import tempfile
 import subprocess
+import shutil
 
 temp_dir = tempfile.mkdtemp(prefix='score-tmp')
 atexit.register(lambda: shutil.rmtree(temp_dir))
@@ -68,7 +69,7 @@ def filter_by_category( filename, category, threshold=0.0 ):
 
   fout = os.fdopen( fd, 'w' )
 
-  with open( detection_file ) as f:
+  with open( filename ) as f:
     for line in f:
       lis = line.strip().split(',')
       if len( lis ) < 10:
@@ -88,12 +89,12 @@ def filter_by_category( filename, category, threshold=0.0 ):
         idx = idx + 2
 
       if use_detection:
-        ftrk.write( lis[0] + ',' + lis[1] + ',' + lis[2] + ',' + lis[3] + ',' )
-        ftrk.write( lis[4] + ',' + lis[5] + ',' + lis[6] + ',' + str(confidence) )
+        fout.write( lis[0] + ',' + lis[1] + ',' + lis[2] + ',' + lis[3] + ',' )
+        fout.write( lis[4] + ',' + lis[5] + ',' + lis[6] + ',' + str( confidence ) )
         if len( object_label ) > 0:
-          ftrk.write( lis[8] + ',' + object_label + ',' + str(confidence) + '\n' )
+          fout.write( lis[8] + ',' + object_label + ',' + str( confidence ) + '\n' )
         else:
-          ftrk.write( lis[8] + '\n' )
+          fout.write( lis[8] + '\n' )
 
   fout.close()
 
@@ -105,7 +106,7 @@ def generate_stats( args, categories ):
   base, ext = os.path.splitext( args.stats )
 
   base_cmd = get_stat_cmd()
-  base_cmd += [ '--computed-format', args.format, '--computed-format', args.format ]
+  base_cmd += [ '--computed-format', args.input_format, '--truth-format', args.input_format ]
   base_cmd += [ '--fn2ts' ]
 
   for cat in categories:
@@ -128,16 +129,15 @@ def generate_rocs( args, categories ):
   roc_files = []
 
   base_cmd = get_roc_cmd()
-
-  base_cmd += [ '--computed-format', args.format, '--computed-format', args.format ]
+  base_cmd += [ '--computed-format', args.input_format, '--truth-format', args.input_format ]
   base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
 
   for cat in categories:
     roc_file = base + "." + cat + ".roc"
-    _, filtered_comp = filter_by_category( args.computed, cat )
+    _, filtered_computed = filter_by_category( args.computed, cat )
     _, filtered_truth = filter_by_category( args.truth, cat )
     cmd = base_cmd + [ '--roc-dump', roc_file ]
-    cmd += [ '--computed-tracks', filtered_computer, '--truth-tracks', filtered_truth ]
+    cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
     subprocess.call( cmd )
     roc_files.append( roc_file )
 
@@ -206,7 +206,7 @@ if __name__ == "__main__":
              help='Input filename for groundtruth file.' )
   parser.add_argument( '-threshold', type=float, default=0.05,
              help='Input threshold for statistics.' )
-  parser.add_argument( '-format', default="noaa-csv",
+  parser.add_argument( '-input-format', dest="input_format", default="noaa-csv",
              help='Input file format.' )
 
   # Outputs
@@ -247,20 +247,20 @@ if __name__ == "__main__":
     print( "Error: both computed and truth file must be specified" )
     sys.exit( 0 )
 
-  if len( args.roc ) == 0 and len( args.stats ) == 0:
+  if not args.roc and not args.stats:
     print( "Error: either 'stats' or 'roc' output files must be specified" )
     sys.exit( 0 )
 
   categories = []
 
   if args.per_category:
-    if args.format != "noaa-csv":
+    if args.input_format != "noaa-csv":
       print( "Error: only noaa-csv currently supported for multi-category" )
       sys.exit( 0 )
     categories = list_categories( args.truth )
 
-  if len( args.stats ) > 0:
+  if args.stats:
     generate_stats( args, categories )
 
-  if len( args.roc ) > 0:
+  if args.roc:
     generate_rocs( args, categories )
