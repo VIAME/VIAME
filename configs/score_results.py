@@ -6,6 +6,7 @@ import re
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
+import atexit
 import tempfile
 import subprocess
 
@@ -77,15 +78,22 @@ def filter_by_category( filename, category, threshold=0.0 ):
       idx = 9
       use_detection = False
       confidence = 0.0
+      object_label = ""
       while idx < len( lis ):
-        if ( category == all_category or lis[idx] == category ) and \
-             float( lis[idx+1] ) >= float( args.threshold ):
+        if lis[idx] == category and \
+           ( args.threshold == 0.0 or float( lis[idx+1] ) >= float( args.threshold ) ):
           use_detection = True
           confidence = float( lis[idx+1] )
           break
         idx = idx + 2
 
-      ftrk.write( ts_vec[ int( lis[2] ) ]  + ' ' + str( confidence ) + '\n' )
+      if use_detection:
+        ftrk.write( lis[0] + ',' + lis[1] + ',' + lis[2] + ',' + lis[3] + ',' )
+        ftrk.write( lis[4] + ',' + lis[5] + ',' + lis[6] + ',' + str(confidence) )
+        if len( object_label ) > 0:
+          ftrk.write( lis[8] + ',' + object_label + ',' + str(confidence) + '\n' )
+        else:
+          ftrk.write( lis[8] + '\n' )
 
   fout.close()
 
@@ -246,7 +254,7 @@ if __name__ == "__main__":
   categories = []
 
   if args.per_category:
-    if args.format not "noaa-csv":
+    if args.format != "noaa-csv":
       print( "Error: only noaa-csv currently supported for multi-category" )
       sys.exit( 0 )
     categories = list_categories( args.truth )
