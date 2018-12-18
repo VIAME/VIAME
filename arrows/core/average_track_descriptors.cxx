@@ -76,6 +76,27 @@ average_track_descriptors
 
 
 // ----------------------------------------------------------------------------------
+vital::config_block_sptr
+average_track_descriptors
+::get_configuration() const
+{
+  // Get base config from base class
+  vital::config_block_sptr config = vital::algorithm::get_configuration();
+
+  config->set_value( "rolling", d->m_rolling,
+    "When set, produce an output for each input as the rolling average"
+    " of the last N descriptors, where N is the interval.  When reset,"
+    " produce an output only for the first input and then every Nth input"
+    " thereafter for any given track." );
+  config->set_value( "interval", d->m_interval,
+    "When the interval is N, every descriptor output (after the first N inputs)"
+    " is based on the last N descriptors seen as input for the given track." );
+
+  return config;
+}
+
+
+// ----------------------------------------------------------------------------------
 void
 average_track_descriptors
 ::set_configuration( vital::config_block_sptr config )
