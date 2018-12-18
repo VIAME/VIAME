@@ -54,9 +54,9 @@ def generate_yolo_headers( working_dir, labels, width, height, filter_count, inp
   train_file = output_str + ".data"
 
   # Dump out adjusted network file
-  repl_strs = [ ["[-HEIGHT_INSERT-]",str(height)], \
-                ["[-WIDTH_INSERT-]",str(width)], \
-                ["[-FILTER_COUNT_INSERT-]",str(filter_count)], \
+  repl_strs = [ ["[-HEIGHT_INSERT-]",str(height)],
+                ["[-WIDTH_INSERT-]",str(width)],
+                ["[-FILTER_COUNT_INSERT-]",str(filter_count)],
                 ["[-CLASS_COUNT_INSERT-]",str(len(labels))] ]
 
   replace_str_in_file( input_model, working_dir + div + conf_file, repl_strs )
