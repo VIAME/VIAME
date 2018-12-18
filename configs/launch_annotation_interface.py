@@ -32,6 +32,13 @@ def list_files_in_dir_w_ext( folder, extension ):
 def glob_files_in_folder( folder, prefix, extension ):
   return glob.glob( os.path.join( folder, prefix ) + "*" + extension )
 
+def multi_glob_files_in_folder( folder, prefixes, extensions ):
+  output = []
+  for prefix in prefixes:
+    for extension in extensions:
+      output.extend( glob.glob( os.path.join( folder, prefix ) + "*" + extension ) )
+  return output
+
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
 
@@ -217,7 +224,9 @@ def process_video_dir( args ):
   detection_list = []
   detection_file = ""
 
-  detection_search = glob_files_in_folder( '.', file_no_ext, "csv" )
+  search_prefix = [ file_no_ext + ".", file_no_ext + "_detections", file_no_ext + "_tracks" ]
+
+  detection_search = multi_glob_files_in_folder( '.', file_no_ext, ["csv"] )
   if len( detection_search ) > 0:
     detection_list.extend( detection_search )
   if len( args.video_dir ) > 0 and args.video_dir != '.':
