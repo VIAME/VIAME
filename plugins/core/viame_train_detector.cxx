@@ -431,16 +431,16 @@ get_ids_for_split_image_pipe_line( std::string image_name )
   return ids;
 }
 
-std::string get_modified_image_name(std::string name) {
-
+std::string get_modified_image_name( std::string name )
+{
   std::string parent_directory =
-      kwiversys::SystemTools::GetParentDirectory(name);
+      kwiversys::SystemTools::GetParentDirectory( name );
 
   std::string file_name =
-      kwiversys::SystemTools::GetFilenameWithoutExtension(name);
+      kwiversys::SystemTools::GetFilenameWithoutExtension( name );
 
   std::string last_extension =
-      kwiversys::SystemTools::GetFilenameLastExtension(name);
+      kwiversys::SystemTools::GetFilenameLastExtension( name );
 
   std::vector<std::string> full_path;
   boost::filesystem::path p = boost::filesystem::temp_directory_path();
@@ -450,13 +450,12 @@ std::string get_modified_image_name(std::string name) {
   full_path.push_back(file_name + last_extension);
 
   std::string mod_path = kwiversys::SystemTools::JoinPath(full_path);
-  std::cout << "mod_path = " << mod_path << std::endl;
   return mod_path;
 }
 
 kwiver::vital::image_container_sptr
-run_pipeline_on_image(std::string image_name, std::string opt_pipeline) {
-
+run_pipeline_on_image(std::string image_name, std::string opt_pipeline)
+{
   std::unique_ptr <kwiver::embedded_pipeline> external_pipeline =
       get_embedded_pipeline(opt_pipeline);
 
