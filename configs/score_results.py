@@ -172,7 +172,7 @@ def generate_rocs( args, categories ):
     if user_titles and i < len( user_titles ):
       display_label = user_titles[i]
     else:
-      display_label = fn.replace( base,"" ).replace( ".txt", "" )
+      display_label = fn.replace( ".txt", "" ).replace( base + ".","" ).replace( base, "" )
       if len( display_label ) == 0:
         display_label = "aggregate"
     sys.stderr.write("Info: %d: loading %s as '%s'...\n" % (i, fn, display_label) )
