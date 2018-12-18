@@ -30,6 +30,9 @@
 
 #include "average_track_descriptors.h"
 
+#include <deque>
+#include <utility>
+
 namespace kwiver {
 namespace arrows {
 namespace core {
@@ -39,18 +42,28 @@ namespace core {
 class average_track_descriptors::priv
 {
 public:
-  priv()
-  {}
+  priv( average_track_descriptors* parent )
+    : m_parent( parent )
+    , m_logger( kwiver::vital::get_logger( "average_track_descriptors" ) )
+    , m_rolling( false )
+    , m_interval( 5 )
+  { }
 
-  ~priv()
-  {}
+  ~priv() { }
+
+  average_track_descriptors* m_parent;
+  kwiver::vital::logger_handle_t m_logger;
+  bool m_rolling;
+  unsigned int m_interval;
+
+  std::map< vital::track_id_t, std::deque< std::vector< double > > > m_history;
 };
 
 
 // ==================================================================================
 average_track_descriptors
 ::average_track_descriptors()
-  : d( new priv() )
+  : d( new priv( this ) )
 {
 }
 
@@ -67,6 +80,8 @@ void
 average_track_descriptors
 ::set_configuration( vital::config_block_sptr config )
 {
+  d->m_rolling = config->get_value< bool >( "rolling", d->m_rolling );
+  d->m_interval = config->get_value< unsigned int >( "interval", d->m_interval );
 }
 
 
@@ -94,7 +109,7 @@ average_track_descriptors
     {
       if( !track )
       {
-        std::cout << "Warning: Invalid Track" << std::endl;
+        LOG_WARN( d->m_logger, "Warning: Invalid Track" );
         continue;
       }
 
@@ -106,17 +121,83 @@ average_track_descriptors
 
         if( ots && ots->detection && ots->detection->descriptor() )
         {
-          vital::track_descriptor_sptr td = vital::track_descriptor::create( "cnn_descriptor" );
-  
-          td->add_track_id( track->id() );
-          td->set_descriptor( ots->detection->descriptor() );
-  
-          // Make history entry
-          if( ots->detection )
+          std::vector< double > descriptor = ots->detection->descriptor()->as_double();
+          std::vector< double > average;
+          if( !d->m_rolling && !d->m_history.count( track->id() ) )
           {
-            vital::track_descriptor::history_entry he( ts, ots->detection->bounding_box() );
-            td->add_history_entry( he );
+            // This is the first detection in the track, so output it
+            // as-is.  This ensures that every input track has a
+            // corresponding output track.
+            average = std::move( descriptor );
+            // Create an empty deque in the map
+            d->m_history[ track->id() ];
           }
+          else
+          {
+            std::deque< std::vector< double > >& average_history = d->m_history[ track->id() ];
+
+            average_history.push_back( std::move( descriptor ) );
+            if( !d->m_rolling && average_history.size() != d->m_interval )
+            {
+              continue;
+            }
+            else
+            {
+              std::size_t i = 0;
+
+              bool done = false;
+              while( true )
+              {
+                double total = 0.0;
+
+                for( std::vector< double >& entry : average_history )
+                {
+                  if( i >= entry.size() )
+                  {
+                    done = true;
+                    break;
+                  }
+
+                  total += entry[ i ];
+                }
+
+                if( done )
+                {
+                  break;
+                }
+                else
+                {
+                  average.push_back( total / average_history.size() );
+                  i++;
+                }
+              }
+
+              if( d->m_rolling )
+              {
+                if( average_history.size() == d->m_interval )
+                {
+                  average_history.pop_front();
+                }
+              }
+              else
+              {
+                average_history.clear();
+              }
+            }
+          }
+
+          vital::track_descriptor_sptr td = vital::track_descriptor::create( "cnn_descriptor" );
+
+          td->add_track_id( track->id() );
+
+          vital::track_descriptor::descriptor_data_sptr data(
+            new vital::track_descriptor::descriptor_data_t( average.size() ) );
+          std::copy( average.begin(), average.end(), data->raw_data() );
+          td->set_descriptor( data );
+
+          // Make history entry
+          vital::track_descriptor::history_entry he( ts, ots->detection->bounding_box() );
+          td->add_history_entry( he );
 
           tds->push_back( td );
         }
@@ -133,7 +214,7 @@ vital::track_descriptor_set_sptr
 average_track_descriptors
 ::flush()
 {
-  return vital::track_descriptor_set_sptr();
+  return vital::track_descriptor_set_sptr( new vital::track_descriptor_set() );
 }
 
 
