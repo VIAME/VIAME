@@ -33,7 +33,7 @@ class GTFileType(Enum):
     MOT = 1
     AFRL = 2
 
-class MOT_bbox(object):
+class GTBBox(object):
     def __init__(self, gt_file_path, file_format):
         if file_format is GTFileType.MOT:
             print("*********MOT GT*******************")
@@ -52,10 +52,9 @@ class MOT_bbox(object):
         with open(gt_file_path, 'r') as f:
             for line in f:
                 cur_line_list = line.rstrip('\n').split(',')
-                if bool(frame_track_dict.get(int(cur_line_list[0]))):
-                    frame_track_dict[int(cur_line_list[0])].extend([tuple(cur_line_list[1:6])])
-                else:
-                    frame_track_dict[int(cur_line_list[0])] = [tuple(cur_line_list[1:6])]
+                frame_num, id_num = map(int, cur_line_list[:2])
+                bb = tuple(map(float, cur_line_list[2:6]))
+                frame_track_dict.setdefault(frame_num, []).append((id_num,) + bb)
     
         return frame_track_dict
 
@@ -78,10 +77,8 @@ class MOT_bbox(object):
                 bbox_w = int(float(cur_line_list[11])) - bbox_x
                 bbox_h = int(float(cur_line_list[12])) - bbox_y
     
-                if bool(frame_track_dict.get(frame_id)):
-                    frame_track_dict[frame_id].extend([tuple((track_id, bbox_x, bbox_y, bbox_w, bbox_h))])
-                else:
-                    frame_track_dict[frame_id] = [tuple((track_id, bbox_x, bbox_y, bbox_w, bbox_h))]
+                bb = bbox_x, bbox_y, bbox_w, bbox_h 
+                frame_track_dict.setdefault(frame_id, []).append((track_id,) + bb)
         
         return frame_track_dict
 
@@ -95,11 +92,7 @@ class MOT_bbox(object):
         bb_list = []
         
         for item in bb_info:
-            x = float(item[1])
-            y = float(item[2])
-            w = float(item[3])
-            h = float(item[4])
-
+            x, y, w, h = map(float, item[1:])
             bb_list.append(BoundingBox(x, y, x + w, y + h))
 
         return bb_list

@@ -28,9 +28,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import torch.nn as nn
 
-#from .fcn32s import get_upsampling_weight
-
-
 class FCN16s(nn.Module):
 
     def __init__(self, n_class=21):
@@ -94,19 +91,6 @@ class FCN16s(nn.Module):
         self.upscore16 = nn.ConvTranspose2d(
             n_class, n_class, 32, stride=16, bias=False)
 
-        #self._initialize_weights()
-
-    #def _initialize_weights(self):
-        #for m in self.modules():
-            #if isinstance(m, nn.Conv2d):
-                #m.weight.data.zero_()
-                #if m.bias is not None:
-                    #m.bias.data.zero_()
-            #if isinstance(m, nn.ConvTranspose2d):
-                #assert m.kernel_size[0] == m.kernel_size[1]
-                #initial_weight = get_upsampling_weight(
-                    #m.in_channels, m.out_channels, m.kernel_size[0])
-                #m.weight.data.copy_(initial_weight)
 
     def forward(self, x):
         h = x
@@ -154,16 +138,4 @@ class FCN16s(nn.Module):
         h = h[:, :, 27:27 + x.size()[2], 27:27 + x.size()[3]].contiguous()
 
         return h
-
-    #def copy_params_from_fcn32s(self, fcn32s):
-        #for name, l1 in fcn32s.named_children():
-            #try:
-                #l2 = getattr(self, name)
-                #l2.weight  # skip ReLU / Dropout
-            #except Exception:
-                #continue
-            #assert l1.weight.size() == l2.weight.size()
-            #assert l1.bias.size() == l2.bias.size()
-            #l2.weight.data.copy_(l1.weight.data)
-            #l2.bias.data.copy_(l1.bias.data)
 

@@ -227,7 +227,7 @@ class TargetLSTM(nn.Module):
                 self.appearance = AppearanceLSTM().cuda()
             else:
                 self.appearance = AppearanceLSTM()
-            if app_model is not '':
+            if app_model:
                 snapshot = torch.load(app_model)
                 self.appearance.load_state_dict(snapshot['state_dict'])
 
@@ -236,7 +236,7 @@ class TargetLSTM(nn.Module):
                 self.motion = MotionLSTM().cuda()
             else:
                 self.motion = MotionLSTM()
-            if motion_model is not '':
+            if motion_model:
                 snapshot = torch.load(motion_model)
                 self.motion.load_state_dict(snapshot['state_dict'])
 
@@ -245,7 +245,7 @@ class TargetLSTM(nn.Module):
                 self.interaction = InteractionLSTM().cuda()
             else:
                 self.interaction = InteractionLSTM()
-            if interaction_model is not '':
+            if interaction_model:
                 snapshot = torch.load(interaction_model)
                 self.interaction.load_state_dict(snapshot['state_dict'])
 
@@ -254,7 +254,7 @@ class TargetLSTM(nn.Module):
                 self.bbar = BBoxLSTM().cuda()
             else:
                 self.bbar = BBoxLSTM()
-            if bbox_model is not '':
+            if bbox_model:
                 snapshot = torch.load(bbox_model)
                 self.bbar.load_state_dict(snapshot['state_dict'])
 

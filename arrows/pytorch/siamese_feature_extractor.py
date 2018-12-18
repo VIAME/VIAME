@@ -41,55 +41,47 @@ from kwiver.arrows.pytorch.models import Siamese
 from kwiver.arrows.pytorch.parse_gpu_list import get_device
 
 
-class siameseDataLoader(data.Dataset):
-    def __init__(self, bbox_list, transform, frame_img, in_size, MOT_flag):
+class SiameseDataLoader(data.Dataset):
+    def __init__(self, bbox_list, transform, frame_img, in_size, mot_flag):
         self._frame_img = frame_img
         self._transform = transform
         self._bbox_list = bbox_list
-        self._mot_flag = MOT_flag
+        self._mot_flag = mot_flag
         self._in_size = in_size
 
     def __getitem__(self, index):
-        if self._mot_flag is True:
-            bb = self._bbox_list[index]
-        else:
-            bb = self._bbox_list[index].bounding_box()
-
+        bb = self._bbox_list[index] if self.mot_flag else self._bbox_list[index].bounding_box()
         im = self._frame_img.crop((float(bb.min_x()), float(bb.min_y()),
                       float(bb.max_x()), float(bb.max_y())))
-
         im = im.resize((self._in_size, self._in_size), pilImage.BILINEAR)
         im.convert('RGB')
-
         if self._transform is not None:
             im = self._transform(im)
 
         return im
 
     def __len__(self):
-        if self._mot_flag is True:
-            return len(self._bbox_list)
-        else:
-            return self._bbox_list.size()
+        return len(self._bbox_list) if self._mot_flag else return self._bbox_list.size()
 
 
-class pytorch_siamese_f_extractor(object):
+class SiamesefeatureExtractor(object):
     """
     Obtain the appearance features from a trained pytorch siamese
     model
     """
 
-    def __init__(self, siamese_model_path, img_size, batch_size, GPU_list=None):
-        self._device, use_gpu_flag = get_device(GPU_list)
+    def __init__(self, siamese_model_path, img_size, batch_size, gpu_list=None):
+        self._device, use_gpu_flag = get_device(gpu_list)
         # load Siamese model
         self._siamese_model = Siamese().to(self._device)
         if use_gpu_flag:
-            self._siamese_model = torch.nn.DataParallel(self._siamese_model, device_ids=GPU_list)
+            self._siamese_model = torch.nn.DataParallel(self._siamese_model, 
+                                                        device_ids=gpu_list)
             snapshot = torch.load(siamese_model_path)
             self._siamese_model.load_state_dict(snapshot['state_dict'])
         else:
             snapshot = torch.load(siamese_model_path, map_location='cpu')
-            tmp = {k[len('module.'):]: v for k, v in snapshot['state_dict'].items()}
+            tmp = {_strip_prefix(k, 'module.'): v for k, v in snapshot['state_dict'].items()}
             self._siamese_model.load_state_dict( tmp )
 
         print('Model loaded from {}'.format(siamese_model_path))
@@ -103,22 +95,28 @@ class pytorch_siamese_f_extractor(object):
         self._img_size = img_size
         self._frame = pilImage.new('RGB', (img_size, img_size))
         self._b_size = batch_size
+        self.frame = None
 
-    @property
-    def frame(self):
-        return self._frame
-
-    @frame.setter
-    def frame(self, val):
-        self._frame = val
-
-    def __call__(self, bbox_list, MOT_flag):
-        return self._obtain_feature(bbox_list, MOT_flag)
+    def _strip_prefix(string, prefix):
+        if not string.startswith(prefix):
+            raise ValueError("{!r} was supposed to start with {!r} but does not".\
+                    format(string, prefix))
+        return string[len(prefix):]
+    
+    def __call__(self, bbox_list, mot_flag):
+        return self._obtain_feature(bbox_list, mot_flag)
 
     def _obtain_feature(self, bbox_list, MOT_flag):
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        bbox_loader_class = siameseDataLoader(bbox_list, self._transform, self._frame, self._img_size, MOT_flag)
-        bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
+        if self.frame is not None:
+            bbox_loader_class = SiameseDataLoader(bbox_list, self._transform, 
+                                    self._frame, self._img_size, mot_flag)
+        else:
+            raise ValueError("Trying to create SiameseDataLoader without
+                    providing frame")
+
+        bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, 
+                            batch_size=self._b_size, shuffle=False, **kwargs)
 
         torch.set_grad_enabled(False)
         for idx, imgs in enumerate(bbox_loader):

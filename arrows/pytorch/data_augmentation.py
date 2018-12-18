@@ -57,8 +57,8 @@ from timeit import default_timer as timer
 
 from vital.util.VitalPIL import get_pil_image
 
-from kwiver.arrows.pytorch.grid import grid
-from kwiver.arrows.pytorch.pytorch_aug_resnet_extractor import pytorch_aug_resnet_extractor
+from kwiver.arrows.pytorch.grid import Grid
+from kwiver.arrows.pytorch.augmented_resnet_feature_extractor import AugmentedResnetFeatureExtractor
 
 def to_vital(raw_data):
     if len(raw_data) == 0:
@@ -70,7 +70,7 @@ def to_vital(raw_data):
         vital_descriptors.append(new_desc)
     return DescriptorSet(vital_descriptors)
 
-class pytorch_augmentation(KwiverProcess):
+class DataAugmentation(KwiverProcess):
 
     # -------------------------------------------------------------------------------------
     def __init__(self, conf):
@@ -183,11 +183,11 @@ class pytorch_augmentation(KwiverProcess):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
 
         # GPU list
-        GPU_list_str = self.config_value('gpu_list')
-        if GPU_list_str == 'all':
-            self._GPU_list = None
+        gpu_list_str = self.config_value('gpu_list')
+        if gpu_list_str == 'all':
+            self._gpu_list = None
         else:
-            self._GPU_list = list(map(int, GPU_list_str.split(',')))
+            self._gpu_list = list(map(int, GPU_list_str.split(',')))
 
         # Augmentation variables
         self._rotational_shifts = float(self.config_value('rotational_shifts'))
@@ -210,12 +210,12 @@ class pytorch_augmentation(KwiverProcess):
         resnet_batch_size = int(self.config_value('resnet_batch_size'))
         resnet_model_path = self.config_value('resnet_model_path')
 
-        self._app_feature_extractor = pytorch_aug_resnet_extractor(resnet_model_path,
-          resnet_img_size, resnet_batch_size, self._GPU_list, self._rotational_shifts,
+        self._app_feature_extractor = AugmentedResnetFeatureExtractor(resnet_model_path,
+          resnet_img_size, resnet_batch_size, self._gpu_list, self._rotational_shifts,
           self._resize_factor,self._int_shift_factor)
 
         # Init variables
-        self._grid = grid()
+        self._grid = Grid()
         self._desc_counter = 0;
 
         # Finalize function
@@ -229,8 +229,6 @@ class pytorch_augmentation(KwiverProcess):
     # ------------------------------------------------------------------------------------
     def _step(self):
         try:
-            print( 'Augmentation in the house!!' )
-
             # Grab image container from port using traits
             in_img_c = self.grab_input_using_trait('image')
             dos_ptr = self.grab_input_using_trait('detected_object_set')
@@ -268,7 +266,8 @@ class pytorch_augmentation(KwiverProcess):
             if self._use_hist:
                 for nd in new_positive_descriptors:
                     # Do distance func in database
-                    output, indxs = self._hist_tree.query( np.reshape( nd, np.size( nd ) ), k=neg_per_pos )
+                    output, indxs = self._hist_tree.query( np.reshape( nd, np.size( nd ) ),
+                                                            k=neg_per_pos )
                     # Make new negative entries
                     for ind in indxs:
                         new_negative_descriptors.append( self._hist_data[ ind ] )
@@ -297,14 +296,14 @@ class pytorch_augmentation(KwiverProcess):
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
-    module_name = 'python:kwiver.pytorch_augmentation'
+    module_name = 'python:kwiver.pytorch.data_augmentation'
 
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.add_process('pytorch_augmentation',
+    process_factory.add_process('data_augmentation',
                                 'Pytorch-Based Augmentation',
-                                pytorch_augmentation)
+                                DataAugmentation)
 
     process_factory.mark_process_module_as_loaded(module_name)
 

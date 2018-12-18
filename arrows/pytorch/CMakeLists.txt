@@ -4,33 +4,35 @@
 if( KWIVER_ENABLE_PYTORCH )
 
   kwiver_create_python_plugin_init(kwiver/arrows/pytorch)
+  kwiver_create_python_plugin_init(kwiver/processes/pytorch)
+
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
-    kwiver/processes
+    kwiver/processes/pytorch
     resnet_descriptors)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/SRNN_tracking.py
-    kwiver/processes
-    SRNN_tracking)
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/SRNN_tracker.py
+    kwiver/processes/pytorch
+    SRNN_tracker)
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
-    kwiver/processes
+    kwiver/processes/pytorch
     seg_detection)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_augmentation.py
-    kwiver/processes
-    pytorch_augmentation)
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/data_augmentation.py
+    kwiver/processes/pytorch
+    data_augmentation)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_siamese_f_extractor.py
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/siamese_feature_extractor.py
     kwiver/arrows/pytorch
-    pytorch_siamese_f_extractor)
+    siamese_feature_extractor)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_resnet_f_extractor.py
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/resnet_feature_extractor.py
     kwiver/arrows/pytorch
-    pytorch_resnet_f_extractor)
+    resnet_feature_extractor)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_aug_resnet_extractor.py
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/augmented_resnet_feature_extractor.py
     kwiver/arrows/pytorch
-    pytorch_aug_resnet_extractor)
+    augmented_resnet_feature_extractor)
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/grid.py
     kwiver/arrows/pytorch
@@ -64,9 +66,9 @@ if( KWIVER_ENABLE_PYTORCH )
     kwiver/arrows/pytorch
     fcn_models)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/iou_tracking.py
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/iou_tracker.py
     kwiver/arrows/pytorch
-    iou_tracking)
+    iou_tracker)
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/parse_gpu_list.py
     kwiver/arrows/pytorch

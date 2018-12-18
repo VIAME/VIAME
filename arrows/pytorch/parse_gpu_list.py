@@ -26,16 +26,17 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""A small module to provide a consistent method for turning GPU list
+"""
+A small module to provide a consistent method for turning GPU list
 argument strings to processes into a list of GPU indices and for
 turning that into a Pytorch device.
-
 """
 
 import torch
 
 def gpu_list_desc(use_for=None):
-    """Generate a description for a GPU list config trait.  The optional
+    """
+    Generate a description for a GPU list config trait.  The optional
     use_for argument, if passed, causes text to be included that says
     what task the GPU list will be used for.
 
@@ -44,14 +45,14 @@ def gpu_list_desc(use_for=None):
             .format('' if use_for is None else ' for ' + use_for))
 
 def parse_gpu_list(gpu_list_str):
-    """Parse a string representing a list of GPU indices to a list of
+    """
+    Parse a string representing a list of GPU indices to a list of
     numeric GPU indices.  The indices should be separated by commas.
     Two special values are understood: the string "None" will produce
     an empty list, and the string "all" will produce the value None
     (which has a special meaning when picking a device).  Note that
     "None" is the only way to produce an empty list; an empty string
     won't work.
-
     """
     return ([] if gpu_list_str == 'None' else
             None if gpu_list_str == 'all' else
