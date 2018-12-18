@@ -137,6 +137,7 @@ def generate_rocs( args, categories ):
     _, filtered_computed = filter_by_category( args.computed, cat )
     _, filtered_truth = filter_by_category( args.truth, cat )
     cmd = base_cmd + [ '--roc-dump', roc_file ]
+    print( filtered_computed + ' ' + filtered_truth )
     cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
     subprocess.call( cmd )
     roc_files.append( roc_file )
