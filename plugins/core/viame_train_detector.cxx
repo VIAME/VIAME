@@ -43,11 +43,18 @@
 #include <vital/algo/algorithm_factory.h>
 #include <vital/algo/train_detector.h>
 #include <vital/algo/detected_object_set_input.h>
+#include <vital/config/config_block_io.h>
+#include <vital/types/image_container.h>
+#include <vital/algo/image_io.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+
+#include <sprokit/pipeline/process_exception.h>
+#include <sprokit/processes/adapters/embedded_pipeline.h>
+#include <sprokit/processes/adapters/adapter_types.h>
 
 #include <iostream>
 #include <fstream>
@@ -75,6 +82,7 @@ public:
   std::string opt_detector;
   std::string opt_out_config;
   std::string opt_threshold;
+  std::string opt_pipeline_file;
 
   trainer_vars()
   {
@@ -363,6 +371,116 @@ static bool check_config( kwiver::vital::config_block_sptr config )
   return true;
 }
 
+std::unique_ptr<kwiver::embedded_pipeline>
+  get_embedded_pipeline(std::string &pipeline_filename) {
+  std::unique_ptr< kwiver::embedded_pipeline > external_pipeline;
+  auto dir = boost::filesystem::path(pipeline_filename).parent_path();
+
+  if(!pipeline_filename.empty())
+  {
+    std::unique_ptr<kwiver::embedded_pipeline> new_pipeline =
+        std::unique_ptr<kwiver::embedded_pipeline>(new kwiver::embedded_pipeline());
+
+    std::ifstream pipe_stream;
+    pipe_stream.open(pipeline_filename, std::ifstream::in );
+
+    if(!pipe_stream)
+    {
+      throw sprokit::invalid_configuration_exception("viame_train_detector",
+          "Unable to open pipeline file: " + pipeline_filename);
+    }
+
+    try
+    {
+      new_pipeline->build_pipeline(pipe_stream, dir.string());
+      new_pipeline->start();
+    }
+    catch(const std::exception& e)
+    {
+      throw sprokit::invalid_configuration_exception("viame_train_detector",
+                                                     e.what());
+    }
+
+    external_pipeline = std::move(new_pipeline);
+    pipe_stream.close();
+  }
+  return external_pipeline;
+}
+
+kwiver::vital::image_container_sptr load_image(std::string image_name) {
+
+  kwiver::vital::algo::image_io_sptr image_reader =
+      kwiver::vital::algo::image_io::create("ocv");
+
+  kwiver::vital::image_container_sptr
+      the_image = image_reader->load(image_name);
+
+  return the_image;
+}
+
+kwiver::adapter::adapter_data_set_t
+get_ids_for_split_image_pipe_line(std::string image_name) {
+  kwiver::adapter::adapter_data_set_t ids =
+      kwiver::adapter::adapter_data_set::create();
+  kwiver::vital::image_container_sptr the_image = load_image(image_name);
+  ids->add_value("image", the_image);
+  return ids;
+}
+
+std::string get_modified_image_name(std::string name) {
+
+  std::string parent_directory =
+      kwiversys::SystemTools::GetParentDirectory(name);
+
+  std::string file_name =
+      kwiversys::SystemTools::GetFilenameWithoutExtension(name);
+
+  std::string last_extension =
+      kwiversys::SystemTools::GetFilenameLastExtension(name);
+
+  std::vector<std::string> full_path;
+  boost::filesystem::path p = boost::filesystem::temp_directory_path();
+
+  full_path.push_back("");
+  full_path.push_back(p.string());
+  full_path.push_back(file_name + last_extension);
+
+  std::string mod_path = kwiversys::SystemTools::JoinPath(full_path);
+  std::cout << "mod_path = " << mod_path << std::endl;
+  return mod_path;
+}
+
+kwiver::vital::image_container_sptr
+run_pipeline_on_image(std::string image_name, std::string opt_pipeline) {
+
+  std::unique_ptr <kwiver::embedded_pipeline> external_pipeline =
+      get_embedded_pipeline(opt_pipeline);
+
+  kwiver::adapter::adapter_data_set_t ids =
+      kwiver::adapter::adapter_data_set::create();
+
+  kwiver::vital::image_container_sptr image_sent = load_image(image_name);
+
+  ids->add_value("image", image_sent);
+
+  external_pipeline->send(ids);
+  external_pipeline->send_end_of_input();
+
+  auto const &ods = external_pipeline->receive();
+  external_pipeline->wait();
+  external_pipeline.reset();
+
+  if (ods->is_end_of_data()) {
+    throw std::runtime_error("Pipeline terminated unexpectingly");
+  }
+  auto const &image_received = ods->find("image");
+
+  kwiver::vital::image_container_sptr image_sptr =
+      image_received->second->get_datum<kwiver::vital::image_container_sptr>();
+
+  return image_sptr;
+}
+
 // =================================================================================================
 /*                   _
  *   _ __ ___   __ _(_)_ __
@@ -410,6 +528,10 @@ main( int argc, char* argv[] )
     &g_params.opt_threshold, "Threshold override to apply over inputs" );
   g_params.m_args.AddArgument( "-t",        argT::SPACE_ARGUMENT,
     &g_params.opt_threshold, "Threshold override to apply over inputs" );
+  g_params.m_args.AddArgument( "--pipeline", argT::SPACE_ARGUMENT,
+                               &g_params.opt_pipeline_file, "Pipeline file" );
+  g_params.m_args.AddArgument( "-p", argT::SPACE_ARGUMENT,
+                               &g_params.opt_pipeline_file, "Pipeline file" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -700,6 +822,7 @@ main( int argc, char* argv[] )
     std::string fullpath = folder;
 
     std::vector< std::string > image_files, gt_files;
+    std::vector< std::string > image_files_after_pipeline;
     list_files_in_folder( fullpath, image_files, true, image_extensions );
     list_files_in_folder( fullpath, gt_files, false, groundtruth_extensions );
 
@@ -748,7 +871,22 @@ main( int argc, char* argv[] )
     {
       const std::string image_file = image_files[i];
 
-      const std::string file_wrt_input = append_path( folder, image_file );
+      std::string opt_pipeline = g_params.opt_pipeline_file;
+      kwiver::vital::image_container_sptr image_sptr =
+          run_pipeline_on_image(image_file, opt_pipeline);
+
+
+      const std::string image_file_after_pipeline =
+          get_modified_image_name(image_file);
+      image_files_after_pipeline.push_back(image_file_after_pipeline);
+
+      kwiver::vital::algo::image_io_sptr
+          image_writer = kwiver::vital::algo::image_io::create("ocv");
+
+      image_writer->save(image_file_after_pipeline, image_sptr);
+
+      const std::string file_wrt_input = append_path( folder,
+                                                      image_file_after_pipeline );
       const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
 
       // Read groundtruth for image
@@ -766,7 +904,7 @@ main( int argc, char* argv[] )
 
         gt_reader->open( gt_files[i] );
 
-        std::string read_fn = get_filename_no_path( image_file );
+        std::string read_fn = get_filename_no_path( image_file_after_pipeline );
         gt_reader->read_set( frame_dets, read_fn );
         gt_reader->close();
 
@@ -774,7 +912,7 @@ main( int argc, char* argv[] )
       }
       else
       {
-        std::string read_fn = get_filename_no_path( image_file );
+        std::string read_fn = get_filename_no_path( image_file_after_pipeline );
         try
         {
           gt_reader->read_set( frame_dets, read_fn );
@@ -789,7 +927,7 @@ main( int argc, char* argv[] )
         }
       }
 
-      std::cout << "Read " << frame_dets->size() << " detections for " << image_file << std::endl;
+      std::cout << "Read " << frame_dets->size() << " detections for " << image_file_after_pipeline << std::endl;
 
       // Apply threshold to frame detections
       kwiver::vital::detected_object_set_sptr filtered_dets =
@@ -831,7 +969,7 @@ main( int argc, char* argv[] )
       }
 
       // TODO: Is this a train or test image?
-      train_image_fn.push_back( image_files[i] );
+      train_image_fn.push_back( image_files_after_pipeline[i] );
       train_gt.push_back( filtered_dets );
     }
 

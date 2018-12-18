@@ -73,7 +73,10 @@ target_link_libraries( viame_train_detector
                vital_exceptions
                vital_logger
                vital_algo
+               vital_util
                kwiversys
+               kwiver::sprokit_pipeline
+               kwiver::kwiver_adapter
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
   )
