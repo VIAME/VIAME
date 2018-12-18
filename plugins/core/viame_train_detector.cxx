@@ -39,13 +39,14 @@
 #include <vital/config/config_block_io.h>
 #include <vital/util/demangle.h>
 #include <vital/util/wrap_text_block.h>
-#include <vital/logger/logger.h>
+
 #include <vital/algo/algorithm_factory.h>
 #include <vital/algo/train_detector.h>
 #include <vital/algo/detected_object_set_input.h>
+#include <vital/algo/image_io.h>
 #include <vital/config/config_block_io.h>
 #include <vital/types/image_container.h>
-#include <vital/algo/image_io.h>
+#include <vital/logger/logger.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/shared_ptr.hpp>
@@ -372,22 +373,23 @@ static bool check_config( kwiver::vital::config_block_sptr config )
 }
 
 std::unique_ptr<kwiver::embedded_pipeline>
-  get_embedded_pipeline(std::string &pipeline_filename) {
+get_embedded_pipeline( std::string &pipeline_filename )
+{
   std::unique_ptr< kwiver::embedded_pipeline > external_pipeline;
-  auto dir = boost::filesystem::path(pipeline_filename).parent_path();
+  auto dir = boost::filesystem::path( pipeline_filename ).parent_path();
 
-  if(!pipeline_filename.empty())
+  if( !pipeline_filename.empty() )
   {
     std::unique_ptr<kwiver::embedded_pipeline> new_pipeline =
-        std::unique_ptr<kwiver::embedded_pipeline>(new kwiver::embedded_pipeline());
+      std::unique_ptr<kwiver::embedded_pipeline>( new kwiver::embedded_pipeline() );
 
     std::ifstream pipe_stream;
-    pipe_stream.open(pipeline_filename, std::ifstream::in );
+    pipe_stream.open( pipeline_filename, std::ifstream::in );
 
-    if(!pipe_stream)
+    if( !pipe_stream )
     {
-      throw sprokit::invalid_configuration_exception("viame_train_detector",
-          "Unable to open pipeline file: " + pipeline_filename);
+      throw sprokit::invalid_configuration_exception( "viame_train_detector",
+        "Unable to open pipeline file: " + pipeline_filename );
     }
 
     try
@@ -395,20 +397,21 @@ std::unique_ptr<kwiver::embedded_pipeline>
       new_pipeline->build_pipeline(pipe_stream, dir.string());
       new_pipeline->start();
     }
-    catch(const std::exception& e)
+    catch( const std::exception& e )
     {
-      throw sprokit::invalid_configuration_exception("viame_train_detector",
-                                                     e.what());
+      throw sprokit::invalid_configuration_exception( "viame_train_detector",
+                                                      e.what() );
     }
 
     external_pipeline = std::move(new_pipeline);
     pipe_stream.close();
   }
+
   return external_pipeline;
 }
 
-kwiver::vital::image_container_sptr load_image(std::string image_name) {
-
+kwiver::vital::image_container_sptr load_image(std::string image_name)
+{
   kwiver::vital::algo::image_io_sptr image_reader =
       kwiver::vital::algo::image_io::create("ocv");
 
@@ -419,11 +422,12 @@ kwiver::vital::image_container_sptr load_image(std::string image_name) {
 }
 
 kwiver::adapter::adapter_data_set_t
-get_ids_for_split_image_pipe_line(std::string image_name) {
+get_ids_for_split_image_pipe_line( std::string image_name )
+{
   kwiver::adapter::adapter_data_set_t ids =
-      kwiver::adapter::adapter_data_set::create();
+    kwiver::adapter::adapter_data_set::create();
   kwiver::vital::image_container_sptr the_image = load_image(image_name);
-  ids->add_value("image", the_image);
+  ids->add_value( "image", the_image );
   return ids;
 }
 
