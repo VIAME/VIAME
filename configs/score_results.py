@@ -85,12 +85,13 @@ def filter_by_category( filename, category, threshold=0.0 ):
            ( args.threshold == 0.0 or float( lis[idx+1] ) >= float( args.threshold ) ):
           use_detection = True
           confidence = float( lis[idx+1] )
+          object_label = lis[idx]
           break
         idx = idx + 2
 
       if use_detection:
         fout.write( lis[0] + ',' + lis[1] + ',' + lis[2] + ',' + lis[3] + ',' )
-        fout.write( lis[4] + ',' + lis[5] + ',' + lis[6] + ',' + str( confidence ) )
+        fout.write( lis[4] + ',' + lis[5] + ',' + lis[6] + ',' + str( confidence ) + ',' )
         if len( object_label ) > 0:
           fout.write( lis[8] + ',' + object_label + ',' + str( confidence ) + '\n' )
         else:
@@ -117,9 +118,10 @@ def generate_stats( args, categories ):
     with open( stat_file, 'w' ) as fout:
       subprocess.call( cmd, stdout=fout, stderr=fout )
 
-  cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
-  with open( args.stats, 'w' ) as fout:
-    subprocess.call( cmd, stdout=fout, stderr=fout )
+  if len( categories ) != 1:
+    cmd = base_cmd + [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
+    with open( args.stats, 'w' ) as fout:
+      subprocess.call( cmd, stdout=fout, stderr=fout )
 
 def generate_rocs( args, categories ):
 
@@ -133,20 +135,20 @@ def generate_rocs( args, categories ):
   base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
 
   for cat in categories:
-    roc_file = base + "." + cat + ".roc"
+    roc_file = base + "." + cat + ".txt"
     _, filtered_computed = filter_by_category( args.computed, cat )
     _, filtered_truth = filter_by_category( args.truth, cat )
     cmd = base_cmd + [ '--roc-dump', roc_file ]
-    print( filtered_computed + ' ' + filtered_truth )
     cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
     subprocess.call( cmd )
     roc_files.append( roc_file )
 
-  net_roc_file = base + ".roc"
-  cmd = base_cmd + [ '--roc-dump', net_roc_file ]
-  cmd += [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
-  subprocess.call( cmd )
-  roc_files.append( net_roc_file )
+  if len( categories ) != 1:
+    net_roc_file = base + ".txt"
+    cmd = base_cmd + [ '--roc-dump', net_roc_file ]
+    cmd += [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
+    subprocess.call( cmd )
+    roc_files.append( net_roc_file )
 
   # Generate plot
   fig = plt.figure()
@@ -166,9 +168,18 @@ def generate_rocs( args, categories ):
   i = 0
   for fn in roc_files:
     (x,y) = load_roc( fn )
-    t = user_titles[i] if user_titles and i < len(user_titles) else fn
-    sys.stderr.write("Info: %d: loading %s as '%s'...\n" % (i, fn, t) )
-    rocplot.plot( x, y, linewidth=args.lw, label=t )
+    display_label = ""
+    if user_titles and i < len( user_titles ):
+      display_label = user_titles[i]
+    else:
+      display_label = fn.replace( base,"" ).replace( ".txt", "" )
+      if len( display_label ) == 0:
+        display_label = "aggregate"
+    sys.stderr.write("Info: %d: loading %s as '%s'...\n" % (i, fn, display_label) )
+    if len( display_label ) > 0:
+      rocplot.plot( x, y, linewidth=args.lw, label=display_label )
+    else:
+      rocplot.plot( x, y, linewidth=args.lw )
     i += 1
 
   if args.autoscale:

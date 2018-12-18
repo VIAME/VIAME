@@ -8,22 +8,14 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run score tracks on data for singular metrics
 
-score_tracks.exe                          ^
-  --hadwav                                ^
-  --computed-tracks detections.kw18       ^
-  --truth-tracks groundtruth.kw18 --fn2ts
+python %VIAME_INSTALL%\configs\score_results.py ^
+ -computed detections.csv -truth groundtruth.csv ^
+ -threshold 0.05 -stats output_score_tracks.txt
 
 REM Generate ROC
 
-score_events.exe                          ^
- --computed-tracks detections.kw18        ^
- --truth-tracks groundtruth.kw18          ^
- --fn2ts --kw19-hack --gt-prefiltered     ^
- --ct-prefiltered                         ^
- --roc-dump roc.plot
-
-REM Plot ROC
-
-python.exe plotroc.py roc.plot
+python %VIAME_INSTALL%\configs\score_results.py ^
+ -computed detections.csv -truth groundtruth.csv ^
+ -roc output_roc.png
 
 pause
