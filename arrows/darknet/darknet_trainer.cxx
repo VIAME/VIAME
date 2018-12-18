@@ -306,36 +306,28 @@ train_from_disk(
     //
     // (This code should be re-written at some point, converted to C++)
 #ifdef WIN32
+    const std::string eq = "\\\"";  // Escaped Quotation mark
     std::string python_cmd = "python.exe -c \"";
+#else
+    const std::string eq = "\"";  // Escaped Quotation mark
+    std::string python_cmd = "python -c '";
+#endif
     std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
     std::string header_cmd = "dth.generate_yolo_headers(";
 
-    std::string header_args = "\\\"" + d->m_train_directory + "\\\",[";
+    std::string header_args = eq + d->m_train_directory + eq + ",[";
     for( auto label : object_labels->child_class_names() )
     {
-      header_args = header_args + "\\\"" + label + "\\\",";
+      header_args = header_args + eq + label + eq + ",";
     }
     header_args = header_args +"]," + std::to_string( d->m_resize_i );
     header_args = header_args + "," + std::to_string( d->m_resize_j );
     header_args = header_args + "," + std::to_string( nfilters );
-    header_args = header_args + ",\\\"" + d->m_net_config + "\\\"";
+    header_args = header_args + "," + eq + d->m_net_config + eq;
 
+#ifdef WIN32
     std::string header_end  = ")\"";
 #else
-    std::string python_cmd = "python -c '";
-    std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
-    std::string header_cmd = "dth.generate_yolo_headers(";
-
-    std::string header_args = "\"" + d->m_train_directory + "\",[";
-    for( auto label : object_labels->child_class_names() )
-    {
-      header_args = header_args + "\"" + label + "\",";
-    }
-    header_args = header_args +"]," + std::to_string( d->m_resize_i );
-    header_args = header_args + "," + std::to_string( d->m_resize_j );
-    header_args = header_args + "," + std::to_string( nfilters );
-    header_args = header_args + ",\"" + d->m_net_config + "\"";
-
     std::string header_end  = ")'";
 #endif
 
