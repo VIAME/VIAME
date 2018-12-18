@@ -454,7 +454,7 @@ std::string get_modified_image_name( std::string name )
 }
 
 kwiver::vital::image_container_sptr
-run_pipeline_on_image(std::string image_name, std::string opt_pipeline)
+run_pipeline_on_image( std::string image_name, std::string opt_pipeline )
 {
   std::unique_ptr <kwiver::embedded_pipeline> external_pipeline =
       get_embedded_pipeline(opt_pipeline);
@@ -473,7 +473,8 @@ run_pipeline_on_image(std::string image_name, std::string opt_pipeline)
   external_pipeline->wait();
   external_pipeline.reset();
 
-  if (ods->is_end_of_data()) {
+  if( ods->is_end_of_data() )
+  {
     throw std::runtime_error("Pipeline terminated unexpectingly");
   }
   auto const &image_received = ods->find("image");
