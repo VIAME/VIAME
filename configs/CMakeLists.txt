@@ -44,15 +44,15 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5afe74e68d777f15ebe1d703/download
-      989ee1e694b736edf08eb7ed2c0337ab
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v2_seed_model-v1.0.0.tar.gz
+      https://data.kitware.com/api/v1/item/5c1a59468d777f072bdbaca2/download
+      bdd1779058e8a36238444be82ca4cf0b
+      ${VIAME_DOWNLOAD_DIR}/models-yolo_v2_seed_model-v1.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5c115d918d777f2179e5ae9a/download
-      b8783e8d95ba7346a09137906f32406c
-      ${VIAME_DOWNLOAD_DIR}/models-yolo_v3_seed_model-v1.0.0.tar.gz
+      https://data.kitware.com/api/v1/item/5c1a59488d777f072bdbacac/download
+      f68bbf975943e0e45a30eaf8cbab2de9
+      ${VIAME_DOWNLOAD_DIR}/models-yolo_v3_seed_model-v1.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     if( VIAME_DOWNLOAD_MODELS-HABCAM )
