@@ -84,6 +84,8 @@ public:
     , m_chips_w_gt_only( false )
     , m_crop_left( false )
     , m_min_train_box_length( 5 )
+    , m_batch_size( 64 )
+    , m_batch_subdivisions( 16 )
   {}
 
   ~priv()
@@ -107,6 +109,8 @@ public:
   bool m_chips_w_gt_only;
   bool m_crop_left;
   int m_min_train_box_length;
+  int m_batch_size;
+  int m_batch_subdivisions;
 
   // Helper functions
   std::vector< std::string > format_images( std::string folder,
@@ -197,6 +201,10 @@ get_configuration() const
   config->set_value( "min_train_box_length", d->m_min_train_box_length,
     "If a box resizes to smaller than this during training, the input frame " 
     "will not be used in training." );
+  config->set_value( "batch_size", d->m_batch_size,
+    "Number of images per batch (and thus how many images constitute an iteration)" );
+  config->set_value( "batch_subdivisions", d->m_batch_subdivisions,
+    "Number of subdivisions to split a batch into (thereby saving memory)" );
 
   kwiver::vital::algo::image_io::get_nested_algo_configuration( "image_reader",
     config, d->m_image_io );
@@ -232,6 +240,8 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
   this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
   this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
+  this->d->m_batch_size  = config->get_value< int >( "batch_size" );
+  this->d->m_batch_subdivisions = config->get_value< int >( "batch_subdivisions" );
 
   kwiver::vital::algo::image_io_sptr io;
   kwiver::vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
@@ -306,36 +316,30 @@ train_from_disk(
     //
     // (This code should be re-written at some point, converted to C++)
 #ifdef WIN32
+    const std::string eq = "\\\"";  // Escaped Quotation mark
     std::string python_cmd = "python.exe -c \"";
+#else
+    const std::string eq = "\"";  // Escaped Quotation mark
+    std::string python_cmd = "python -c '";
+#endif
     std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
     std::string header_cmd = "dth.generate_yolo_headers(";
 
-    std::string header_args = "\\\"" + d->m_train_directory + "\\\",[";
+    std::string header_args = eq + d->m_train_directory + eq + ",[";
     for( auto label : object_labels->child_class_names() )
     {
-      header_args = header_args + "\\\"" + label + "\\\",";
+      header_args = header_args + eq + label + eq + ",";
     }
     header_args = header_args +"]," + std::to_string( d->m_resize_i );
     header_args = header_args + "," + std::to_string( d->m_resize_j );
     header_args = header_args + "," + std::to_string( nfilters );
-    header_args = header_args + ",\\\"" + d->m_net_config + "\\\"";
+    header_args = header_args + "," + std::to_string( d->m_batch_size );
+    header_args = header_args + "," + std::to_string( d->m_batch_subdivisions );
+    header_args = header_args + "," + eq + d->m_net_config + eq;
 
+#ifdef WIN32
     std::string header_end  = ")\"";
 #else
-    std::string python_cmd = "python -c '";
-    std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
-    std::string header_cmd = "dth.generate_yolo_headers(";
-
-    std::string header_args = "\"" + d->m_train_directory + "\",[";
-    for( auto label : object_labels->child_class_names() )
-    {
-      header_args = header_args + "\"" + label + "\",";
-    }
-    header_args = header_args +"]," + std::to_string( d->m_resize_i );
-    header_args = header_args + "," + std::to_string( d->m_resize_j );
-    header_args = header_args + "," + std::to_string( nfilters );
-    header_args = header_args + ",\"" + d->m_net_config + "\"";
-
     std::string header_end  = ")'";
 #endif
 
