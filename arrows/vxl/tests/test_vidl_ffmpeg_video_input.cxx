@@ -59,8 +59,6 @@ main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest( &argc, argv );
 
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   GET_ARG(1, g_data_dir);
 
   return RUN_ALL_TESTS();
@@ -75,6 +73,7 @@ class vidl_ffmpeg_video_input : public ::testing::Test
 // ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, create)
 {
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
   EXPECT_NE( nullptr, algo::video_input::create("vidl_ffmpeg") );
 }
 
