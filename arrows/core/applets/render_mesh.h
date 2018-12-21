@@ -28,72 +28,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_TOOLS_KWIVER_APPLET_H
-#define KWIVER_TOOLS_KWIVER_APPLET_H
+#ifndef KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H
+#define KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H
 
-#include <tools/kwiver_tools_applet_export.h>
+#include <tools/kwiver_applet.h>
 
-#include <ostream>
-#include <memory>
-#include <vector>
+#include <arrows/core/applets/kwiver_algo_core_applets_export.h>
+
 #include <string>
+#include <vector>
 
 namespace kwiver {
-namespace tools {
+namespace arrows {
+namespace core {
 
-// forward type definition
-class applet_context;
-
-/**
- * @brief Abstract base class for all kwiver tools.
- */
-class KWIVER_TOOLS_APPLET_EXPORT kwiver_applet
+class KWIVER_ALGO_CORE_APPLETS_EXPORT render_mesh
+  : public kwiver::tools::kwiver_applet
 {
 public:
-  kwiver_applet();
-  virtual ~kwiver_applet();
+  render_mesh(){}
+  virtual ~render_mesh() = default;
 
-  void initialize( kwiver::tools::applet_context* ctxt);
+  static constexpr char const* name = "render-mesh";
+  static constexpr char const* description =
+    "Render a depth or height map from a mesh.\n\n"
+    "This tool reads in a mesh file and a camera and renders "
+    "various images such as depth map or height map.";
 
-  virtual int run( const std::vector<std::string>& argv ) = 0;
-  virtual void usage( std::ostream& outstream ) const = 0;
+
+  virtual int run( const std::vector<std::string>& argv );
+  virtual void usage( std::ostream& outstream ) const;
 
 protected:
 
-  /**
-   * @brief Get applet name
-   *
-   * This method returns the name of the applit as it was specified on
-   * the command line.
-   *
-   * @return Applet name
-   */
-  const std::string& applet_name() const;
-
-  /**
-   * @brief Wrap text block.
-   *
-   * This method wraps the supplied text into a fixed width text
-   * block.
-   *
-   * @param text Input text string to be wrapped.
-   *
-   * @return Text string wrapped into a block.
-   */
-  std::string wrap_text( const std::string& text );
-
 private:
-  kwiver::tools::applet_context* m_context;
-};
 
-typedef std::shared_ptr<kwiver_applet> kwiver_applet_sptr;
+}; // end of class
 
-} } // end namespace
+} } } // end namespace
 
-// ==================================================================
-// Support for adding factories
-
-#define ADD_APPLET( applet_T)                               \
-  add_factory( new kwiver::vital::plugin_factory_0< applet_T >( typeid( kwiver::tools::kwiver_applet ).name() ) )
-
-#endif /* KWIVER_TOOLS_KWIVER_APPLET_H */
+#endif /* KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H */
