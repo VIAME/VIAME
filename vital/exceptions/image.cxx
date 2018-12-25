@@ -40,38 +40,38 @@
 namespace kwiver {
 namespace vital {
 
-
+// ----------------------------------------------------------------------------
 image_exception
 ::image_exception() noexcept
 {
   m_what = "An image exception";
 }
 
+// ----------------------------------------------------------------------------
 image_exception
 ::~image_exception() noexcept
 {
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 image_type_mismatch_exception
-::image_type_mismatch_exception(const std::string& message) noexcept
+::image_type_mismatch_exception( std::string const& message ) noexcept
   : m_message(message)
 {
   m_what = message;
 }
 
+// ----------------------------------------------------------------------------
 image_type_mismatch_exception
 ::~image_type_mismatch_exception() noexcept
 {
 }
 
-
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 image_size_mismatch_exception
-::image_size_mismatch_exception( const std::string& message,
+::image_size_mismatch_exception( std::string const& message,
                                  size_t correct_w, size_t correct_h,
-                                 size_t given_w, size_t given_h) noexcept
+                                 size_t given_w, size_t given_h ) noexcept
   : m_message(message),
     m_correct_w(correct_w),
     m_correct_h(correct_h),
@@ -85,9 +85,11 @@ image_size_mismatch_exception
   m_what = ss.str();
 }
 
+// ----------------------------------------------------------------------------
 image_size_mismatch_exception
 ::~image_size_mismatch_exception() noexcept
 {
 }
 
-} } // end vital namespace
+} // end namespace vital
+} // end namespace kwiver
