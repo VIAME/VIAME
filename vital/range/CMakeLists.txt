@@ -14,6 +14,7 @@ set( public_headers
   filter.h
   indirect.h
   integer_sequence.h
+  iota.h
   sliding.h
   transform.h
   valid.h
