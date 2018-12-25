@@ -50,9 +50,18 @@ class VITAL_EXCEPTIONS_EXPORT image_exception
 {
 public:
   /// Constructor
-  image_exception() noexcept;
+  /**
+   * \param message     Description of circumstances surrounding error.
+   */
+  image_exception(
+    std::string const& message = "unspecified image exception" ) noexcept;
+
   /// Destructor
   virtual ~image_exception() noexcept;
+
+protected:
+  /// Constructor
+  image_exception( std::nullptr_t ) noexcept;
 };
 
 
@@ -69,13 +78,10 @@ public:
   /**
    * \param message     Description of circumstances surrounding error.
    */
-
   image_type_mismatch_exception( std::string const& message ) noexcept;
+
   /// Destructor
   virtual ~image_type_mismatch_exception() noexcept;
-
-  /// Given error message string
-  std::string m_message;
 };
 
 
@@ -103,13 +109,13 @@ public:
   virtual ~image_size_mismatch_exception() noexcept;
 
   /// Given error message string
-  std::string m_message;
+  std::string const m_message;
   /// The correct pixel width and height
-  size_t m_correct_w,
-         m_correct_h;
+  size_t const m_correct_w;
+  size_t const m_correct_h;
   /// The incorrect, given pixel width and height
-  size_t m_given_w,
-         m_given_h;
+  size_t const m_given_w;
+  size_t const m_given_h;
 };
 
 } } // end namespace
