@@ -59,7 +59,7 @@ constexpr track_id_t invalid_track_id = -1;
 /// Shared pointers for general track type
 typedef std::shared_ptr< track > track_sptr;
 typedef std::weak_ptr< track > track_wptr;
-typedef std::shared_ptr<track_state> track_state_sptr;
+typedef std::shared_ptr< track_state > track_state_sptr;
 
 
 // ----------------------------------------------------------------------------
@@ -121,7 +121,7 @@ protected:
   virtual ~track_data() = default;
 };
 
-typedef std::shared_ptr<track_data> track_data_sptr;
+typedef std::shared_ptr< track_data > track_data_sptr;
 
 
 // ----------------------------------------------------------------------------
@@ -145,9 +145,9 @@ class VITAL_EXPORT track_data_redirect : public track_data
 {
 public:
   // Constructor
-  track_data_redirect(track_sptr t, track_data_sptr d)
-    : redirect_track(t)
-    , old_track_data(d)
+  track_data_redirect( track_sptr t, track_data_sptr d )
+    : redirect_track( t )
+    , old_track_data( d )
   {
   }
 
