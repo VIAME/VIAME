@@ -67,7 +67,6 @@ public:
   {}
   
   /// Default constructor
-  //
   object_track_state( frame_id_t frame,
                       time_usec_t time,
                       detected_object_sptr d = nullptr )
