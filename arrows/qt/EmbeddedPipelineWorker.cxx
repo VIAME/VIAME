@@ -45,6 +45,8 @@ namespace kaq = kwiver::arrows::qt;
 using kaq::EmbeddedPipelineWorker;
 using kaq::EmbeddedPipelineWorkerPrivate;
 
+using RequiredEndcaps = kaq::EmbeddedPipelineWorker::RequiredEndcaps;
+
 namespace {
 
 // ----------------------------------------------------------------------------
@@ -53,6 +55,50 @@ stdString( QString const& in )
 {
   auto const& data = in.toLocal8Bit();
   return std::string{ data.constData(), static_cast< size_t >( data.size() ) };
+}
+
+// ----------------------------------------------------------------------------
+class EmbeddedPipeline : public kwiver::embedded_pipeline
+{
+public:
+  EmbeddedPipeline( RequiredEndcaps endcaps ) : endcaps_{ endcaps } {}
+
+  bool hasInput() const { return this->inputConnected_; }
+  bool hasOutput() const { return this->outputConnected_; }
+
+protected:
+  virtual bool connect_input_adapter() override;
+  virtual bool connect_output_adapter() override;
+
+  RequiredEndcaps const endcaps_;
+  bool inputConnected_ = false;
+  bool outputConnected_ = false;
+};
+
+// ----------------------------------------------------------------------------
+bool
+EmbeddedPipeline
+::connect_input_adapter()
+{
+  this->inputConnected_ = embedded_pipeline::connect_input_adapter();
+  if ( this->endcaps_.testFlag( EmbeddedPipelineWorker::RequiresInput ) )
+  {
+    return this->inputConnected_;
+  }
+  return true;
+}
+
+// ----------------------------------------------------------------------------
+bool
+EmbeddedPipeline
+::connect_output_adapter()
+{
+  this->outputConnected_ = embedded_pipeline::connect_output_adapter();
+  if ( this->endcaps_.testFlag( EmbeddedPipelineWorker::RequiresOutput ) )
+  {
+    return this->outputConnected_;
+  }
+  return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -77,13 +123,13 @@ private:
 class kaq::EmbeddedPipelineWorkerPrivate : public QThread
 {
 public:
-  EmbeddedPipelineWorkerPrivate( EmbeddedPipelineWorker* q )
-    : endcap{ this }, q_ptr{ q } {}
+  EmbeddedPipelineWorkerPrivate( RequiredEndcaps endcaps,
+                                 EmbeddedPipelineWorker* q )
+    : pipeline{ endcaps }, endcap{ this }, q_ptr{ q } {}
 
   void processOutput( kwiver::adapter::adapter_data_set_t const& output );
 
-  kwiver::embedded_pipeline pipeline;
-
+  EmbeddedPipeline pipeline;
   Endcap endcap;
 
 protected:
@@ -104,14 +150,27 @@ EmbeddedPipelineWorkerPrivate
 {
   KQ_Q();
 
-  q->initializeInput( this->pipeline );
+  if ( this->pipeline.hasInput() )
+  {
+    q->initializeInput( this->pipeline );
+  }
 
-  this->endcap.start();
+  if ( this->pipeline.hasOutput() )
+  {
+    this->endcap.start();
+  }
 
-  q->sendInput( this->pipeline );
+  if ( this->pipeline.hasInput() )
+  {
+    q->sendInput( this->pipeline );
+  }
 
   this->pipeline.wait();
-  this->endcap.wait();
+
+  if ( this->pipeline.hasOutput() )
+  {
+    this->endcap.wait();
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -146,9 +205,9 @@ Endcap
 
 // ----------------------------------------------------------------------------
 EmbeddedPipelineWorker
-::EmbeddedPipelineWorker( QObject* parent )
+::EmbeddedPipelineWorker( RequiredEndcaps endcaps, QObject* parent )
   : QObject{ parent },
-    d_ptr{ new EmbeddedPipelineWorkerPrivate{ this } }
+    d_ptr{ new EmbeddedPipelineWorkerPrivate{ endcaps, this } }
 {
 }
 

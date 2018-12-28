@@ -76,7 +76,16 @@ class KWIVER_ALGO_QT_EXPORT EmbeddedPipelineWorker : public QObject
   Q_OBJECT
 
 public:
-  EmbeddedPipelineWorker( QObject* parent = nullptr );
+  enum RequiredEndcap
+  {
+    RequiresInput = 1 << 0,
+    RequiresOutput = 1 << 1,
+    RequiresInputAndOutput = RequiresInput | RequiresOutput,
+  };
+  Q_DECLARE_FLAGS( RequiredEndcaps, RequiredEndcap )
+
+  EmbeddedPipelineWorker( RequiredEndcaps = RequiresInputAndOutput,
+                          QObject* parent = nullptr );
   ~EmbeddedPipelineWorker();
 
   /// Initialize pipeline from file.
@@ -173,6 +182,8 @@ protected:
 private:
   KQ_DECLARE_PRIVATE( EmbeddedPipelineWorker )
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS( EmbeddedPipelineWorker::RequiredEndcaps )
 
 } // namespace qt
 

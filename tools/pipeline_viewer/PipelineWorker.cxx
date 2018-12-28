@@ -48,7 +48,7 @@ class PipelineWorkerPrivate {};
 
 // ----------------------------------------------------------------------------
 PipelineWorker
-::PipelineWorker( QWidget* parent ) : super{ parent }
+::PipelineWorker( QWidget* parent ) : super{ RequiresOutput, parent }
 {
 }
 
