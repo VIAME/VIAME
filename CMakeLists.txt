@@ -141,10 +141,6 @@ if( VIAME_ENABLE_FASTER_RCNN )
   set( VIAME_ENABLE_CAFFE   ON CACHE BOOL "Caffe required for other projects"    FORCE )
 endif()
 
-if( VIAME_ENABLE_VIVIA )
-  set( VIAME_ENABLE_BURNOUT ON CACHE BOOL "Burn-Out required for other projects" FORCE )
-endif()
-
 if( VIAME_ENABLE_MATLAB )
   find_package( Matlab REQUIRED COMPONENTS ENG_LIBRARY MX_LIBRARY )
 endif()

@@ -22,7 +22,7 @@ else()
 endif()
 
 ExternalProject_Add(vivia
-  DEPENDS fletch burnout kwiver
+  DEPENDS fletch kwiver
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/vivia
   CMAKE_GENERATOR ${gen}
