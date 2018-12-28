@@ -46,15 +46,17 @@
 #include <memory>
 
 namespace kwiver {
+
 namespace vital {
 
 class object_track_set;
 
-}
+} // namespace vital
 
 class embedded_pipeline;
 
 namespace arrows {
+
 namespace qt {
 
 class EmbeddedPipelineWorkerPrivate;
@@ -172,8 +174,10 @@ private:
   KQ_DECLARE_PRIVATE( EmbeddedPipelineWorker )
 };
 
-}
-}
-}
+} // namespace qt
+
+} // namespace arrows
+
+} // namespace kwiver
 
 #endif

@@ -41,7 +41,9 @@
 #include <vital/algo/image_io.h>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace qt {
 
 /// A class for using Qt to read and write images.
@@ -51,7 +53,7 @@ namespace qt {
 /// are supported, and offers no configuration. It is intended more as a proof
 /// of concept.
 class KWIVER_ALGO_QT_EXPORT image_io
-  : public vital::algorithm_impl<image_io, vital::algo::image_io>
+  : public vital::algorithm_impl< image_io, vital::algo::image_io >
 {
 public:
   static constexpr char const* name = "qt";
@@ -83,7 +85,9 @@ private:
 };
 
 } // end namespace qt
+
 } // end namespace arrows
+
 } // end namespace kwiver
 
 #endif

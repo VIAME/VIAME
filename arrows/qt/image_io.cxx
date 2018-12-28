@@ -40,7 +40,8 @@
 namespace {
 
 // ----------------------------------------------------------------------------
-QString qt_string( std::string const& in )
+QString
+qt_string( std::string const& in )
 {
   return QString::fromLocal8Bit( in.data(), static_cast< int >( in.size() ) );
 }
@@ -48,7 +49,9 @@ QString qt_string( std::string const& in )
 } // end namespace (anonymous)
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace qt {
 
 // ----------------------------------------------------------------------------
@@ -72,7 +75,6 @@ image_io
   static_cast< void >( in_config );
 }
 
-
 // ----------------------------------------------------------------------------
 // Check that the algorithm's currently configuration is valid
 bool
@@ -82,7 +84,6 @@ image_io
   static_cast< void >( config );
   return true;
 }
-
 
 // ----------------------------------------------------------------------------
 // Load image image from the file
@@ -101,7 +102,6 @@ image_io
   return std::make_shared< image_container >( img );
 }
 
-
 // ----------------------------------------------------------------------------
 void
 image_io
@@ -118,5 +118,7 @@ image_io
 }
 
 } // end namespace qt
+
 } // end namespace arrows
+
 } // end namespace kwiver

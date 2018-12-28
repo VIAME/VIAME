@@ -38,9 +38,10 @@
 
 #include <arrows/qt/image_io.h>
 
-
 namespace kwiver {
+
 namespace arrows {
+
 namespace qt {
 
 namespace {
@@ -51,7 +52,8 @@ static auto const module_organization = std::string{ "Kitware Inc." };
 
 // ----------------------------------------------------------------------------
 template < typename algorithm_t >
-void register_algorithm( kwiver::vital::plugin_loader& vpm )
+void
+register_algorithm( kwiver::vital::plugin_loader& vpm )
 {
   using kvpf = kwiver::vital::plugin_factory;
 
@@ -63,7 +65,7 @@ void register_algorithm( kwiver::vital::plugin_loader& vpm )
        ;
 }
 
-}
+} // namespace (anonymous)
 
 // ----------------------------------------------------------------------------
 extern "C"
@@ -71,7 +73,7 @@ KWIVER_ALGO_QT_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  if (vpm.is_module_loaded( module_name ) )
+  if ( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
@@ -82,5 +84,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 }
 
 } // end namespace qt
+
 } // end namespace arrows
+
 } // end namespace kwiver

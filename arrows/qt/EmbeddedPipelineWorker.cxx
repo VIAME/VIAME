@@ -48,7 +48,8 @@ using kaq::EmbeddedPipelineWorkerPrivate;
 namespace {
 
 // ----------------------------------------------------------------------------
-std::string stdString( QString const& in )
+std::string
+stdString( QString const& in )
 {
   auto const& data = in.toLocal8Bit();
   return std::string{ data.constData(), static_cast< size_t >( data.size() ) };
@@ -97,7 +98,9 @@ private:
 KQ_IMPLEMENT_D_FUNC( EmbeddedPipelineWorker )
 
 // ----------------------------------------------------------------------------
-void EmbeddedPipelineWorkerPrivate::run()
+void
+EmbeddedPipelineWorkerPrivate
+::run()
 {
   KQ_Q();
 
@@ -112,7 +115,9 @@ void EmbeddedPipelineWorkerPrivate::run()
 }
 
 // ----------------------------------------------------------------------------
-void EmbeddedPipelineWorkerPrivate::processOutput(
+void
+EmbeddedPipelineWorkerPrivate
+::processOutput(
   kwiver::adapter::adapter_data_set_t const& output )
 {
   KQ_Q();
@@ -120,7 +125,9 @@ void EmbeddedPipelineWorkerPrivate::processOutput(
 }
 
 // ----------------------------------------------------------------------------
-void Endcap::run()
+void
+Endcap
+::run()
 {
   KQ_Q();
 
@@ -128,7 +135,7 @@ void Endcap::run()
   {
     const auto& ods = q->pipeline.receive();
 
-    if (ods->is_end_of_data())
+    if ( ods->is_end_of_data() )
     {
       return;
     }
@@ -138,7 +145,8 @@ void Endcap::run()
 }
 
 // ----------------------------------------------------------------------------
-EmbeddedPipelineWorker::EmbeddedPipelineWorker( QObject* parent )
+EmbeddedPipelineWorker
+::EmbeddedPipelineWorker( QObject* parent )
   : QObject{ parent },
     d_ptr{ new EmbeddedPipelineWorkerPrivate{ this } }
 {
@@ -150,7 +158,9 @@ EmbeddedPipelineWorker::~EmbeddedPipelineWorker()
 }
 
 // ----------------------------------------------------------------------------
-bool EmbeddedPipelineWorker::initialize( QString const& pipelineFile )
+bool
+EmbeddedPipelineWorker
+::initialize( QString const& pipelineFile )
 {
   KQ_D();
 
@@ -188,7 +198,9 @@ bool EmbeddedPipelineWorker::initialize( QString const& pipelineFile )
 }
 
 // ----------------------------------------------------------------------------
-bool EmbeddedPipelineWorker::initializePipeline(
+bool
+EmbeddedPipelineWorker
+::initializePipeline(
   kwiver::embedded_pipeline& pipeline )
 {
   pipeline.start();
@@ -196,7 +208,9 @@ bool EmbeddedPipelineWorker::initializePipeline(
 }
 
 // ----------------------------------------------------------------------------
-void EmbeddedPipelineWorker::execute()
+void
+EmbeddedPipelineWorker
+::execute()
 {
   KQ_D();
 
@@ -210,27 +224,35 @@ void EmbeddedPipelineWorker::execute()
 }
 
 // ----------------------------------------------------------------------------
-void EmbeddedPipelineWorker::initializeInput(
+void
+EmbeddedPipelineWorker
+::initializeInput(
   kwiver::embedded_pipeline& pipeline )
 {
   Q_UNUSED( pipeline );
 }
 
 // ----------------------------------------------------------------------------
-void EmbeddedPipelineWorker::sendInput( kwiver::embedded_pipeline& pipeline )
+void
+EmbeddedPipelineWorker
+::sendInput( kwiver::embedded_pipeline& pipeline )
 {
   Q_UNUSED( pipeline );
 }
 
 // ----------------------------------------------------------------------------
-void EmbeddedPipelineWorker::processOutput(
+void
+EmbeddedPipelineWorker
+::processOutput(
   kwiver::adapter::adapter_data_set_t const& output )
 {
   Q_UNUSED( output );
 }
 
 // ----------------------------------------------------------------------------
-void EmbeddedPipelineWorker::reportError(
+void
+EmbeddedPipelineWorker
+::reportError(
   QString const& message, QString const& subject )
 {
   Q_UNUSED( subject );

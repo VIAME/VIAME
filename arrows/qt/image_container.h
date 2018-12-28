@@ -36,7 +36,6 @@
 #ifndef KWIVER_ARROWS_QT_IMAGE_CONTAINER_H_
 #define KWIVER_ARROWS_QT_IMAGE_CONTAINER_H_
 
-#include <vital/vital_config.h>
 #include <arrows/qt/kwiver_algo_qt_export.h>
 
 #include <vital/types/image_container.h>
@@ -44,7 +43,9 @@
 #include <QImage>
 
 namespace kwiver {
+
 namespace arrows {
+
 namespace qt {
 
 /// This image container wraps a QImage
@@ -115,9 +116,10 @@ protected:
   QImage data_;
 };
 
-
 } // end namespace qt
+
 } // end namespace arrows
+
 } // end namespace kwiver
 
 #endif

@@ -94,7 +94,7 @@
 /// beyond the convenience of ensuring clean-up for you. Therefore, this is
 /// preferred over #KQ_DECLARE_PRIVATE_PTR in most cases.
 #define KQ_DECLARE_PRIVATE_RPTR( class_name ) \
-  QScopedPointer< class_name##Private> const d_ptr;
+  QScopedPointer< class_name##Private > const d_ptr;
 
 /// Declare pointer to public class.
 ///
