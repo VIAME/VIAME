@@ -9,6 +9,10 @@ if( VIAME_ENABLE_OPENCV )
   add_subdirectory( opencv )
 endif()
 
+if( VIAME_ENABLE_ITK )
+  add_subdirectory( itk )
+endif()
+
 if( VIAME_ENABLE_SCALLOP_TK )
   add_subdirectory( scallop_tk )
 endif()

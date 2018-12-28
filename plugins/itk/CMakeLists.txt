@@ -11,17 +11,17 @@ find_package( ITK 5.0 REQUIRED
     ITKLevelSets)
 include( ${ITK_USE_FILE} )
 
-add_executable( 0_PhaseSymmetry PhaseSymmetry.cxx )
-target_link_libraries( 0_PhaseSymmetry ${ITK_LIBRARIES} )
+kwiver_add_executable( itk_0_phase_symmetry PhaseSymmetry.cxx )
+target_link_libraries( itk_0_phase_symmetry ${ITK_LIBRARIES} )
 
-add_executable( 1_NarrowBandPointSet NarrowBandPointSet.cxx )
-target_link_libraries( 1_NarrowBandPointSet ${ITK_LIBRARIES} )
+kwiver_add_executable( itk_1_narrow_band_point_set NarrowBandPointSet.cxx )
+target_link_libraries( itk_1_narrow_band_point_set ${ITK_LIBRARIES} )
 
-add_executable( 2_PointSetRegistration PointSetRegistration.cxx )
-target_link_libraries( 2_PointSetRegistration ${ITK_LIBRARIES} )
+kwiver_add_executable( itk_2_point_set_registration PointSetRegistration.cxx )
+target_link_libraries( itk_2_point_set_registration ${ITK_LIBRARIES} )
 
-add_executable( 3_TransformPointSetAndImage TransformPointSetAndImage.cxx )
-target_link_libraries( 3_TransformPointSetAndImage ${ITK_LIBRARIES} )
+kwiver_add_executable( itk_3_transform_point_set_and_image TransformPointSetAndImage.cxx )
+target_link_libraries( itk_3_transform_point_set_and_image ${ITK_LIBRARIES} )
 
-add_executable( SealRegistration SealRegistration.cxx )
-target_link_libraries( SealRegistration ${ITK_LIBRARIES} )
+kwiver_add_executable( itk_seal_registration SealRegistration.cxx )
+target_link_libraries( itk_seal_registration ${ITK_LIBRARIES} )
