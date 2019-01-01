@@ -49,8 +49,8 @@ template< class Data >
 class ring_buffer : public buffer< Data >
 {
 public:
-  ring_buffer();
-  virtual ~ring_buffer();
+  ring_buffer() : head_( 0 ), item_count_( 0 ) {}
+  virtual ~ring_buffer() {}
 
   /// \brief Set the maximum capacity of the buffer.
   virtual void set_capacity( unsigned capacity )
