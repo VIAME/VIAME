@@ -61,7 +61,8 @@ public:
    * \param[in] image_data Image to filter.
    * \returns a filtered version of the input image
    */
-  virtual kwiver::vital::image_container_sptr filter( kwiver::vital::image_container_sptr image_data ) = 0;
+  virtual kwiver::vital::image_container_sptr filter(
+    kwiver::vital::image_container_sptr image_data ) = 0;
 
 protected:
   image_filter();
