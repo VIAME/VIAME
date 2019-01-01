@@ -43,10 +43,14 @@
 #include <arrows/vxl/image_container.h>
 
 #include <vil/vil_convert.h>
+#include <vil/vil_plane.h>
 #include <vil/vil_load.h>
 #include <vil/vil_save.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 #include <sstream>
+#include <string>
 
 using namespace kwiver::vital;
 
@@ -165,6 +169,37 @@ convert_image_helper(const vil_image_view<bool>& src,
 }
 
 
+template <typename inP>
+void
+save_image(const vil_image_view<inP>& src,
+           std::string filename,
+           bool split_planes=false)
+{
+  if(!split_planes || src.nplanes() == 1)
+  {
+    vil_save(src,filename.c_str());
+  }
+  else
+  {
+    for(unsigned i = 0; i < src.nplanes(); ++i)
+    {
+      std::string parent_directory =
+        kwiversys::SystemTools::GetParentDirectory(filename);
+      std::string file_name_no_ext =
+        kwiversys::SystemTools::GetFilenameWithoutExtension(filename);
+      std::string file_extension =
+        kwiversys::SystemTools::GetFilenameLastExtension(filename);
+
+      std::vector<std::string> full_path;
+      full_path.push_back(parent_directory);
+      full_path.push_back(file_name_no_ext + "_" + std::to_string(i) + file_extension);
+      std::string plane_filename = kwiversys::SystemTools::JoinPath(full_path);
+
+      vil_save(vil_plane(src,i), plane_filename.c_str());
+    }
+  }
+}
+
 }
 
 
@@ -178,6 +213,7 @@ public:
   : force_byte(false),
     auto_stretch(false),
     manual_stretch(false),
+    split_planes(false),
     intensity_range(0, 255)
   {
   }
@@ -196,6 +232,7 @@ public:
   bool force_byte;
   bool auto_stretch;
   bool manual_stretch;
+  bool split_planes;
   vector_2d intensity_range;
 };
 
@@ -246,6 +283,7 @@ image_io
                     "Manually stretch the range of the input data by "
                     "specifying the minimum and maximum values of the data "
                     "to map to the full byte range");
+
   if( d_->manual_stretch )
   {
     config->set_value("intensity_range", d_->intensity_range.transpose(),
@@ -253,6 +291,11 @@ image_io
                       "the byte range.  This is most useful when e.g. 12-bit "
                       "data is encoded in 16-bit pixels");
   }
+
+  config->set_value("split_planes", d_->split_planes,
+                    "When writing out images, if it contains more than 1 image "
+                    "plane, write each plane out as a seperate image file");
+
   return config;
 }
 
@@ -273,7 +316,9 @@ image_io
   d_->auto_stretch = config->get_value<bool>("auto_stretch",
                                               d_->auto_stretch);
   d_->manual_stretch = config->get_value<bool>("manual_stretch",
-                                              d_->manual_stretch);
+                                               d_->manual_stretch);
+  d_->split_planes = config->get_value<bool>("split_planes",
+                                             d_->split_planes);
   d_->intensity_range = config->get_value<vector_2d>("intensity_range",
                                         d_->intensity_range.transpose());
 }
@@ -399,7 +444,7 @@ image_io
 void
 image_io
 ::save_(const std::string& filename,
-       image_container_sptr data) const
+        image_container_sptr data) const
 {
   vil_image_view_base_sptr view =
     vxl::image_container::vital_to_vxl(data->get_image());
@@ -413,14 +458,14 @@ image_io
       {                                                                \
         vil_image_view<vxl_byte> img;                                  \
         d_->convert_image(img_pix_t, img);                             \
-        vil_save(img, filename.c_str());                               \
+        save_image(img, filename, d_->split_planes);                   \
         return;                                                        \
       }                                                                \
       else                                                             \
       {                                                                \
         vil_image_view<pix_t> img;                                     \
         d_->convert_image(img_pix_t, img);                             \
-        vil_save(img, filename.c_str());                               \
+        save_image(img, filename, d_->split_planes);                   \
         return;                                                        \
       }                                                                \
     }                                                                  \
@@ -448,7 +493,7 @@ image_io
       // minimum and maximum pixel values
       vil_image_view<vxl_byte> img;
       img = vil_convert_stretch_range(vxl_byte(), view);
-      vil_save(img, filename.c_str());
+      save_image(img, filename, d_->split_planes);
       return;
     }
     else if( d_->manual_stretch )
@@ -462,7 +507,7 @@ image_io
     {
       vil_image_view<vxl_byte> img;
       img = vil_convert_cast(vxl_byte(), view);
-      vil_save(img, filename.c_str());
+      save_image(img, filename, d_->split_planes);
       return;
     }
   }
