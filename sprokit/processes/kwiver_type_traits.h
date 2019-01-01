@@ -126,6 +126,7 @@ create_port_trait( bounding_box, bounding_box, "Bounding box" );
 create_port_trait( timestamp, timestamp, "Timestamp for input image." );
 create_port_trait( corner_points, corner_points, "Four corner points for image in lat/lon units, ordering ul ur lr ll." );
 create_port_trait( gsd, gsd, "GSD for image in meters per pixel." );
+create_port_trait( success_flag, bool, "A flag inticating an operation is successful." );
 create_port_trait( image, image, "Single frame image." );
 create_port_trait( image_set, image_set, "A group of images." );
 create_port_trait( left_image, image, "Single frame left image." );
