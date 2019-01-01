@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,27 +70,27 @@ namespace kwiver {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( error_mode, std::string, "fail",
-                     "How to handle file not found errors. Options are 'abort' and 'skip'. "
-                     "Specifying 'fail' will cause an exception to be thrown. "
-                     "The 'pass' option will only log a warning and wait for the next file name." );
+  "How to handle file not found errors. Options are 'abort' and 'skip'. "
+  "Specifying 'fail' will cause an exception to be thrown. "
+  "The 'pass' option will only log a warning and wait for the next file name." );
 
 create_config_trait( path, std::string, "",
-                     "Path to search for image file. The format is the same as the standard "
-                     "path specification, a set of directories separated by a colon (':')" );
+  "Path to search for image file. The format is the same as the standard "
+  "path specification, a set of directories separated by a colon (':')" );
 
 create_config_trait( frame_time, double, "0.3333333", "Inter frame time in seconds. "
-                     "The generated timestamps will have the specified number of seconds in the generated "
-                     "timestamps for sequential frames. This can be used to simulate a frame rate in a "
-                     "video stream application." );
+  "The generated timestamps will have the specified number of seconds in the generated "
+  "timestamps for sequential frames. This can be used to simulate a frame rate in a "
+  "video stream application." );
 
 create_config_trait( no_path_in_name, bool, "true",
-                     "Set to true if the output image file path should not contain a full path to"
-                     "the image file and just contain the file name for the image." );
+  "Set to true if the output image file path should not contain a full path to"
+  "the image file and just contain the file name for the image." );
 
 create_config_trait( image_reader, std::string, "", "Algorithm configuration subblock." )
 
 
-//----------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 // Private implementation class
 class image_file_reader_process::priv
 {
@@ -125,7 +125,7 @@ public:
 }; // end priv class
 
 
-// ================================================================
+// =======================================================================================
 
 image_file_reader_process
 ::image_file_reader_process( kwiver::vital::config_block_sptr const& config )
@@ -143,7 +143,7 @@ image_file_reader_process
 }
 
 
-// ----------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 void image_file_reader_process
 ::_configure()
 {
@@ -162,14 +162,14 @@ void image_file_reader_process
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
-  algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
+  algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader );
   if ( ! d->m_image_reader )
   {
     throw sprokit::invalid_configuration_exception( name(),
              "Unable to create image_reader." );
   }
 
-  algo::image_io::get_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
+  algo::image_io::get_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader );
 
   // instantiate image reader and converter based on config type
   if ( ! algo::image_io::check_nested_algo_configuration( "image_reader", algo_config ) )
@@ -179,7 +179,7 @@ void image_file_reader_process
 }
 
 
-// ----------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 void image_file_reader_process
 ::_step()
 {
@@ -252,7 +252,7 @@ void image_file_reader_process
 }
 
 
-// ----------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 void image_file_reader_process
 ::make_ports()
 {
@@ -262,9 +262,9 @@ void image_file_reader_process
   required.insert( flag_required );
 
   // -- inputs --
-  declare_input_port_using_trait( image_file_name, required, "Name of the image file to read. "
-                                  "The file is searched for using the specified path in addition to the "
-                                  "local directory.");
+  declare_input_port_using_trait( image_file_name, required,
+    "Name of the image file to read. The file is searched for using the specified path "
+    "in addition to the local directory.");
 
   // -- outputs --
   declare_output_port_using_trait( timestamp, optional );
@@ -273,7 +273,7 @@ void image_file_reader_process
 }
 
 
-// ----------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 void image_file_reader_process
 ::make_config()
 {
@@ -285,7 +285,7 @@ void image_file_reader_process
 }
 
 
-// ================================================================
+// =======================================================================================
 image_file_reader_process::priv
 ::priv()
   : m_frame_number( 1 )
