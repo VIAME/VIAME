@@ -17,6 +17,8 @@ set( public_headers
   demangle.h
   any_converter.h
   enumerate_matrix.h
+  buffer.h
+  ring_buffer.h
   bounded_buffer.h
   source_location.h
 
