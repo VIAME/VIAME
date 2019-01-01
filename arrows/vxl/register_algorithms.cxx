@@ -36,6 +36,7 @@
 #include <arrows/vxl/kwiver_algo_vxl_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
+#include <arrows/vxl/average_frames.h>
 #include <arrows/vxl/bundle_adjust.h>
 #include <arrows/vxl/close_loops_homography_guided.h>
 #include <arrows/vxl/estimate_canonical_transform.h>
@@ -70,6 +71,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   auto fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::bundle_adjust );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Use VXL (vpgl) to bundle adjust cameras and landmarks." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl_average", kwiver::arrows::vxl::average_frames );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Use VXL to average frames together." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
