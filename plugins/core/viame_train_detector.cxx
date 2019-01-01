@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,10 @@
 #include <vital/config/config_block_io.h>
 #include <vital/util/demangle.h>
 #include <vital/util/wrap_text_block.h>
-
 #include <vital/algo/algorithm_factory.h>
 #include <vital/algo/train_detector.h>
 #include <vital/algo/detected_object_set_input.h>
 #include <vital/algo/image_io.h>
-#include <vital/config/config_block_io.h>
 #include <vital/types/image_container.h>
 #include <vital/logger/logger.h>
 
@@ -66,7 +64,7 @@
 #include <memory>
 #include <map>
 
-//==================================================================================================
+// =======================================================================================
 // Class storing all input parameters and private variables for tool
 class trainer_vars
 {
@@ -78,6 +76,7 @@ public:
   // Config options
   bool opt_help;
   bool opt_list;
+
   std::string opt_config;
   std::string opt_input;
   std::string opt_detector;
@@ -96,12 +95,14 @@ public:
   }
 };
 
-//==================================================================================================
+// =======================================================================================
 // Define global variables used across this tool
 static trainer_vars g_params;
 static kwiver::vital::logger_handle_t g_logger;
 
-//==================================================================================================
+typedef std::unique_ptr< kwiver::embedded_pipeline > pipeline_t;
+
+// =======================================================================================
 // Assorted filesystem related helper functions
 bool does_file_exist( const std::string& location )
 {
@@ -143,7 +144,8 @@ bool list_all_subfolders( const std::string& location,
 bool list_files_in_folder( const std::string& location,
                            std::vector< std::string >& filepaths,
                            bool search_subfolders = false,
-                           std::vector< std::string > extensions = std::vector< std::string >() )
+                           std::vector< std::string > extensions =
+                             std::vector< std::string >() )
 {
   filepaths.clear();
 
@@ -323,7 +325,7 @@ void correct_manual_annotations( kwiver::vital::detected_object_set_sptr dos )
   }
 }
 
-//==================================================================================================
+// =======================================================================================
 // Assorted configuration related helper functions
 static kwiver::vital::config_block_sptr default_config()
 {
@@ -331,19 +333,25 @@ static kwiver::vital::config_block_sptr default_config()
     = kwiver::vital::config_block::empty_config( "detector_trainer_tool" );
 
   config->set_value( "groundtruth_extensions", ".txt",
-                     "Groundtruth file extensions (txt, kw18, etc...). Note: this is indepedent "
-                     "of the format that's stored in the file" );
+                     "Groundtruth file extensions (txt, kw18, etc...). Note: this is "
+                     "indepedent of the format that's stored in the file" );
   config->set_value( "groundtruth_style", "one_per_folder",
                      "Can be either: \"one_per_file\" or \"one_per_folder\"" );
-
+  config->set_value( "augmentation_pipeline", "",
+                     "Optional embedded pipeline for performing assorted augmentations" );
+  config->set_value( "augmented_input_cache", "",
+                     "Directory to store augmented samples, a temp directiry is used "
+                     "if not specified." );
   config->set_value( "default_percent_test", "0.05",
-                     "Percent [0.0, 1.0] of test samples to use if no manual files specified." );
-  config->set_value( "image_extensions", ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG",
-                     "Semicolon list of seperated image extensions to use in training, images "
-                     "without this extension will not be included." );
+                     "Percent [0.0, 1.0] of test samples to use if no manual files "
+                     "specified." );
+  config->set_value( "image_extensions",
+                     ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG;.bmp;.BMP",
+                     "Semicolon list of seperated image extensions to use in training, "
+                     "images without this extension will not be included." );
   config->set_value( "threshold", "0.00",
-                     "Optional threshold to provide on top of input groundtruth. This is useful "
-                     "if the groundtruth is derived from some automated detector." );
+                     "Optional threshold to provide on top of input groundtruth. This is "
+                     "useful if the groundtruth is derived from some automated detector." );
   config->set_value( "check_override", "false",
                      "Over-ride and ignore data safety checks." );
 
@@ -372,14 +380,14 @@ static bool check_config( kwiver::vital::config_block_sptr config )
   return true;
 }
 
-std::unique_ptr<kwiver::embedded_pipeline>
-get_embedded_pipeline( std::string &pipeline_filename )
+pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
 {
   std::unique_ptr< kwiver::embedded_pipeline > external_pipeline;
-  auto dir = boost::filesystem::path( pipeline_filename ).parent_path();
 
   if( !pipeline_filename.empty() )
   {
+    auto dir = boost::filesystem::path( pipeline_filename ).parent_path();
+
     std::unique_ptr<kwiver::embedded_pipeline> new_pipeline =
       std::unique_ptr<kwiver::embedded_pipeline>( new kwiver::embedded_pipeline() );
 
@@ -394,7 +402,7 @@ get_embedded_pipeline( std::string &pipeline_filename )
 
     try
     {
-      new_pipeline->build_pipeline(pipe_stream, dir.string());
+      new_pipeline->build_pipeline( pipe_stream, dir.string() );
       new_pipeline->start();
     }
     catch( const std::exception& e )
@@ -403,89 +411,66 @@ get_embedded_pipeline( std::string &pipeline_filename )
                                                       e.what() );
     }
 
-    external_pipeline = std::move(new_pipeline);
+    external_pipeline = std::move( new_pipeline );
     pipe_stream.close();
   }
 
   return external_pipeline;
 }
 
-kwiver::vital::image_container_sptr load_image(std::string image_name)
-{
-  kwiver::vital::algo::image_io_sptr image_reader =
-      kwiver::vital::algo::image_io::create("ocv");
-
-  kwiver::vital::image_container_sptr
-      the_image = image_reader->load(image_name);
-
-  return the_image;
-}
-
-kwiver::adapter::adapter_data_set_t
-get_ids_for_split_image_pipe_line( std::string image_name )
+bool run_pipeline_on_image( pipeline_t& pipe,
+                            std::string input_name,
+                            std::string output_name )
 {
   kwiver::adapter::adapter_data_set_t ids =
     kwiver::adapter::adapter_data_set::create();
-  kwiver::vital::image_container_sptr the_image = load_image(image_name);
-  ids->add_value( "image", the_image );
-  return ids;
-}
 
-std::string get_modified_image_name( std::string name )
-{
-  std::string parent_directory =
-      kwiversys::SystemTools::GetParentDirectory( name );
+  ids->add_value( "input_filename", input_name );
+  ids->add_value( "output_filename", input_name );
 
-  std::string file_name =
-      kwiversys::SystemTools::GetFilenameWithoutExtension( name );
+  pipe->send( ids );
 
-  std::string last_extension =
-      kwiversys::SystemTools::GetFilenameLastExtension( name );
-
-  std::vector<std::string> full_path;
-  boost::filesystem::path p = boost::filesystem::temp_directory_path();
-
-  full_path.push_back("");
-  full_path.push_back(p.string());
-  full_path.push_back(file_name + last_extension);
-
-  std::string mod_path = kwiversys::SystemTools::JoinPath(full_path);
-  return mod_path;
-}
-
-kwiver::vital::image_container_sptr
-run_pipeline_on_image( std::string image_name, std::string opt_pipeline )
-{
-  std::unique_ptr <kwiver::embedded_pipeline> external_pipeline =
-      get_embedded_pipeline(opt_pipeline);
-
-  kwiver::adapter::adapter_data_set_t ids =
-      kwiver::adapter::adapter_data_set::create();
-
-  kwiver::vital::image_container_sptr image_sent = load_image(image_name);
-
-  ids->add_value("image", image_sent);
-
-  external_pipeline->send(ids);
-  external_pipeline->send_end_of_input();
-
-  auto const &ods = external_pipeline->receive();
-  external_pipeline->wait();
-  external_pipeline.reset();
+  auto const& ods = pipe->receive();
 
   if( ods->is_end_of_data() )
   {
-    throw std::runtime_error("Pipeline terminated unexpectingly");
+    throw std::runtime_error( "Pipeline terminated unexpectingly" );
   }
-  auto const &image_received = ods->find("image");
 
-  kwiver::vital::image_container_sptr image_sptr =
-      image_received->second->get_datum<kwiver::vital::image_container_sptr>();
+  auto const& success_flag = ods->find( "success_flag" );
 
-  return image_sptr;
+  return success_flag->second->get_datum< bool >();;
 }
 
-// =================================================================================================
+std::string get_augmented_filename( std::string name, std::string output_dir = "" )
+{
+  std::string parent_directory =
+    kwiversys::SystemTools::GetParentDirectory( name );
+
+  std::string file_name =
+    kwiversys::SystemTools::GetFilenameWithoutExtension( name );
+
+  std::string last_extension =
+    kwiversys::SystemTools::GetFilenameLastExtension( name );
+
+  std::vector<std::string> full_path;
+
+  if( output_dir.empty() )
+  {
+    full_path.push_back( boost::filesystem::temp_directory_path().string() );
+  }
+  else
+  {
+    full_path.push_back( output_dir );
+  }
+
+  full_path.push_back( file_name + last_extension );
+
+  std::string mod_path = kwiversys::SystemTools::JoinPath( full_path );
+  return mod_path;
+}
+
+// =======================================================================================
 /*                   _
  *   _ __ ___   __ _(_)_ __
  *  | '_ ` _ \ / _` | | '_ \
@@ -504,38 +489,38 @@ main( int argc, char* argv[] )
   g_params.m_args.StoreUnusedArguments( true );
   typedef kwiversys::CommandLineArguments argT;
 
-  g_params.m_args.AddArgument( "--help",    argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "--help",      argT::NO_ARGUMENT,
     &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "-h",        argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "-h",          argT::NO_ARGUMENT,
     &g_params.opt_help, "Display usage information" );
-  g_params.m_args.AddArgument( "--list",    argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "--list",      argT::NO_ARGUMENT,
     &g_params.opt_list, "Display list of all trainable algorithms" );
-  g_params.m_args.AddArgument( "-l",        argT::NO_ARGUMENT,
+  g_params.m_args.AddArgument( "-l",          argT::NO_ARGUMENT,
     &g_params.opt_list, "Display list of all trainable algorithms" );
-  g_params.m_args.AddArgument( "--config",  argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "--config",    argT::SPACE_ARGUMENT,
     &g_params.opt_config, "Input configuration file with parameters" );
-  g_params.m_args.AddArgument( "-c",        argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-c",          argT::SPACE_ARGUMENT,
     &g_params.opt_config, "Input configuration file with parameters" );
-  g_params.m_args.AddArgument( "--input",   argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "--input",     argT::SPACE_ARGUMENT,
     &g_params.opt_input, "Input directory containing groundtruth" );
-  g_params.m_args.AddArgument( "-i",        argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-i",          argT::SPACE_ARGUMENT,
     &g_params.opt_input, "Input directory containing groundtruth" );
-  g_params.m_args.AddArgument( "--detector",argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "--detector",  argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector to train if no config" );
-  g_params.m_args.AddArgument( "-d",        argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-d",          argT::SPACE_ARGUMENT,
     &g_params.opt_detector, "Type of detector to train if no config" );
   g_params.m_args.AddArgument( "--output-config", argT::SPACE_ARGUMENT,
     &g_params.opt_out_config, "Output a sample configuration to file" );
-  g_params.m_args.AddArgument( "-o",        argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-o",          argT::SPACE_ARGUMENT,
     &g_params.opt_out_config, "Output a sample configuration to file" );
   g_params.m_args.AddArgument( "--threshold", argT::SPACE_ARGUMENT,
     &g_params.opt_threshold, "Threshold override to apply over inputs" );
-  g_params.m_args.AddArgument( "-t",        argT::SPACE_ARGUMENT,
+  g_params.m_args.AddArgument( "-t",          argT::SPACE_ARGUMENT,
     &g_params.opt_threshold, "Threshold override to apply over inputs" );
-  g_params.m_args.AddArgument( "--pipeline", argT::SPACE_ARGUMENT,
-                               &g_params.opt_pipeline_file, "Pipeline file" );
-  g_params.m_args.AddArgument( "-p", argT::SPACE_ARGUMENT,
-                               &g_params.opt_pipeline_file, "Pipeline file" );
+  g_params.m_args.AddArgument( "--pipeline",  argT::SPACE_ARGUMENT,
+    &g_params.opt_pipeline_file, "Pipeline file" );
+  g_params.m_args.AddArgument( "-p",          argT::SPACE_ARGUMENT,
+    &g_params.opt_pipeline_file, "Pipeline file" );
 
   // Parse args
   if( !g_params.m_args.Parse() )
@@ -639,7 +624,33 @@ main( int argc, char* argv[] )
   std::vector< std::string > train_files;
   if( does_file_exist( train_fn ) && !file_to_vector( train_fn, train_files ) )
   {
-    std::cerr << "Unable to open " << label_fn << std::endl;
+    std::cerr << "Unable to open " << train_fn << std::endl;
+    exit( 0 );
+  }
+
+  // Special use case for multiple overlapping streams
+  const std::string train1_fn = append_path( input_dir, "train1.txt" );
+  const std::string train2_fn = append_path( input_dir, "train2.txt" );
+
+  if( does_file_exist( train1_fn ) )
+  {
+    if( does_file_exist( train_fn ) )
+    {
+      std::cerr << "Folder cannot contain both train.txt and train1.txt" << std::endl;
+      exit( 0 );
+    }
+
+    if( !file_to_vector( train1_fn, train_files ) )
+    {
+      std::cerr << "Unable to open " << label_fn << std::endl;
+      exit( 0 );
+    }
+  }
+
+  std::vector< std::string > train2_files;
+  if( does_file_exist( train2_fn ) && !file_to_vector( train2_fn, train2_files ) )
+  {
+    std::cerr << "Unable to open " << train2_fn << std::endl;
     exit( 0 );
   }
 
@@ -761,17 +772,37 @@ main( int argc, char* argv[] )
   }
 
   // Read setup configs
-  double percent_test = config->get_value< double >( "default_percent_test" );
-  std::string groundtruth_extensions_str = config->get_value< std::string >( "groundtruth_extensions" );
-  std::string image_extensions_str = config->get_value< std::string >( "image_extensions" );
-  std::string groundtruth_style = config->get_value< std::string >( "groundtruth_style" );
-  bool check_override = config->get_value< bool >( "check_override" );
-  double threshold = config->get_value< double >( "threshold" );
+  double percent_test =
+    config->get_value< double >( "default_percent_test" );
+  std::string groundtruth_extensions_str =
+    config->get_value< std::string >( "groundtruth_extensions" );
+  std::string image_extensions_str =
+    config->get_value< std::string >( "image_extensions" );
+  std::string groundtruth_style =
+    config->get_value< std::string >( "groundtruth_style" );
+  std::string pipeline_file =
+    config->get_value< std::string >( "augmentation_pipeline" );
+  std::string augmented_input_cache =
+    config->get_value< std::string >( "augmentation_input_cache" );
+  bool check_override =
+    config->get_value< bool >( "check_override" );
+  double threshold =
+    config->get_value< double >( "threshold" );
 
   if( !g_params.opt_threshold.empty() )
   {
     threshold = atof( g_params.opt_threshold.c_str() );
     std::cout << "Using command line provided threshold: " << threshold << std::endl;
+  }
+
+  if( !g_params.opt_pipeline_file.empty() )
+  {
+    pipeline_file = g_params.opt_pipeline_file;
+  }
+
+  if( !augmented_input_cache.empty() )
+  {
+    create_folder( augmented_input_cache );
   }
 
   std::vector< std::string > image_extensions, groundtruth_extensions;
@@ -821,12 +852,15 @@ main( int argc, char* argv[] )
 
   for( std::string folder : subdirs )
   {
-    std::cout << "Processing " << folder << std::endl;
+    // Test for .txt train file over-rides
+    bool using_list = !train_files.empty();
+
+    std::cout << "Processing " << ( using_list ? "train.txt" : folder ) << std::endl;
 
     std::string fullpath = folder;
 
     std::vector< std::string > image_files, gt_files;
-    std::vector< std::string > image_files_after_pipeline;
+
     list_files_in_folder( fullpath, image_files, true, image_extensions );
     list_files_in_folder( fullpath, gt_files, false, groundtruth_extensions );
 
@@ -835,8 +869,9 @@ main( int argc, char* argv[] )
 
     if( one_file_per_image && ( image_files.size() != gt_files.size() ) )
     {
-      std::cout << "Error: folder " << folder << " contains unequal truth and image file counts" << std::endl;
-      std::cout << " - Consider turning on the one_per_folder groundtruth style" << std::endl;
+      std::cout << "Error: folder " << folder << " contains unequal truth and "
+                << "image file counts" << std::endl << " - Consider turning on "
+                << "the one_per_folder groundtruth style" << std::endl;
       exit( 0 );
     }
     else if( gt_files.size() < 1 )
@@ -865,6 +900,8 @@ main( int argc, char* argv[] )
       gt_reader->open( gt_files[0] );
     }
 
+    pipeline_t augmentation_pipe = load_embedded_pipeline( pipeline_file );
+
     // Read all images and detections in sequence
     if( image_files.size() == 0 )
     {
@@ -873,25 +910,24 @@ main( int argc, char* argv[] )
 
     for( unsigned i = 0; i < image_files.size(); ++i )
     {
-      const std::string image_file = image_files[i];
+      const std::string& image_file = image_files[i];
 
-      std::string opt_pipeline = g_params.opt_pipeline_file;
-      kwiver::vital::image_container_sptr image_sptr =
-          run_pipeline_on_image(image_file, opt_pipeline);
+      bool use_image = true;
+      std::string filtered_image_file;
 
+      if( augmentation_pipe )
+      {
+        filtered_image_file = get_augmented_filename( image_file, augmented_input_cache );
 
-      const std::string image_file_after_pipeline =
-          get_modified_image_name(image_file);
-      image_files_after_pipeline.push_back(image_file_after_pipeline);
-
-      kwiver::vital::algo::image_io_sptr
-          image_writer = kwiver::vital::algo::image_io::create("ocv");
-
-      image_writer->save(image_file_after_pipeline, image_sptr);
-
-      const std::string file_wrt_input = append_path( folder,
-                                                      image_file_after_pipeline );
-      const std::string file_full_path = append_path( g_params.opt_input, file_wrt_input );
+        if( !run_pipeline_on_image( augmentation_pipe, image_file, filtered_image_file ) )
+        {
+          use_image = false;
+        }
+      }
+      else
+      {
+        filtered_image_file = image_file;
+      }
 
       // Read groundtruth for image
       kwiver::vital::detected_object_set_sptr frame_dets =
@@ -908,7 +944,8 @@ main( int argc, char* argv[] )
 
         gt_reader->open( gt_files[i] );
 
-        std::string read_fn = get_filename_no_path( image_file_after_pipeline );
+        std::string read_fn = get_filename_no_path( image_file );
+
         gt_reader->read_set( frame_dets, read_fn );
         gt_reader->close();
 
@@ -916,7 +953,8 @@ main( int argc, char* argv[] )
       }
       else
       {
-        std::string read_fn = get_filename_no_path( image_file_after_pipeline );
+        std::string read_fn = get_filename_no_path( image_file );
+
         try
         {
           gt_reader->read_set( frame_dets, read_fn );
@@ -931,50 +969,58 @@ main( int argc, char* argv[] )
         }
       }
 
-      std::cout << "Read " << frame_dets->size() << " detections for " << image_file_after_pipeline << std::endl;
-
       // Apply threshold to frame detections
-      kwiver::vital::detected_object_set_sptr filtered_dets =
-        std::make_shared< kwiver::vital::detected_object_set>();
-
-      for( auto det : *frame_dets )
+      if( use_image )
       {
-        bool add_detection = false;
+        std::cout << "Read " << frame_dets->size() << " detections for " << image_file << std::endl;
 
-        if( det->type() )
+        kwiver::vital::detected_object_set_sptr filtered_dets =
+          std::make_shared< kwiver::vital::detected_object_set>();
+
+        for( auto det : *frame_dets )
         {
-          for( auto t : *det->type() )
-          {
-            std::string gt_class = *(t.first);
+          bool add_detection = false;
 
-            if( classes->has_class_name( gt_class ) )
+          if( det->type() )
+          {
+            for( auto t : *det->type() )
             {
-              if( t.second > threshold )
+              std::string gt_class = *(t.first);
+
+              if( classes->has_class_name( gt_class ) )
               {
-                class_count[classes->get_class_name( gt_class )]++;
-                add_detection = true;
+                if( t.second > threshold )
+                {
+                  class_count[classes->get_class_name( gt_class )]++;
+                  add_detection = true;
+                }
+              }
+              else
+              {
+                det->type()->delete_score( gt_class );
               }
             }
-            else
-            {
-              det->type()->delete_score( gt_class );
-            }
+          }
+          else if( classes->size() == 1 )
+          {
+            add_detection = true; // single class problem, doesn't need dot
+          }
+
+          if( add_detection )
+          {
+            filtered_dets->add( det );
           }
         }
-        else if( classes->size() == 1 )
-        {
-          add_detection = true; // single class problem, doesn't need dot
-        }
 
-        if( add_detection )
-        {
-          filtered_dets->add( det );
-        }
+        // TODO: Is this a train or test image?
+        train_image_fn.push_back( filtered_image_file );
+        train_gt.push_back( filtered_dets );
       }
+    }
 
-      // TODO: Is this a train or test image?
-      train_image_fn.push_back( image_files_after_pipeline[i] );
-      train_gt.push_back( filtered_dets );
+    if( augmentation_pipe )
+    {
+      augmentation_pipe->send_end_of_input();
     }
 
     if( !one_file_per_image )
