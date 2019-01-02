@@ -194,7 +194,10 @@ public:
     auto &mdv = d_it->second;
     for (auto md : mdv)
     {
-      return true;
+      if (md->has(tag))
+      {
+        return true;
+      }
     }
 
     return false;
