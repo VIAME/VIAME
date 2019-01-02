@@ -276,10 +276,11 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_PROCESS( kwiver::merge_images_process );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_images" )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                      "Merge two images into one." )
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                      "Merge multiple images into one." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
       ;
 
   fact = vpm.ADD_PROCESS( kwiver::read_track_descriptor_process );
