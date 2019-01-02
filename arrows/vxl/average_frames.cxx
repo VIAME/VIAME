@@ -714,6 +714,9 @@ average_frames
       return std::make_shared< vxl::image_container >( output );
     }
   }
+
+  // Code not reached, prevent warning
+  return kwiver::vital::image_container_sptr();
 }
 
 } // end namespace vxl
