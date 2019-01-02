@@ -51,7 +51,8 @@ using namespace kwiver::vital;
 std::unique_ptr<mesh_regular_face_array<3> >
 mesh_triangulate(mesh_face_array_base const& faces)
 {
-  std::unique_ptr<mesh_regular_face_array<3> > tris(new mesh_regular_face_array<3>);
+  std::unique_ptr<mesh_regular_face_array<3> >
+    tris(new mesh_regular_face_array<3>);
   int group = -1;
   if (faces.has_groups())
   {
@@ -76,7 +77,8 @@ mesh_triangulate(mesh_face_array_base const& faces)
 std::unique_ptr<mesh_regular_face_array<3> >
 mesh_triangulate(mesh_regular_face_array<4> const& faces)
 {
-  std::unique_ptr<mesh_regular_face_array<3> > tris(new mesh_regular_face_array<3>);
+  std::unique_ptr<mesh_regular_face_array<3> >
+    tris(new mesh_regular_face_array<3>);
   int group = -1;
   if (faces.has_groups())
   {
@@ -173,7 +175,7 @@ bool
 clip_mesh(mesh& mesh,
           vector_4d const& plane)
 {
-  vital::mesh_vertex_array<3>& vertices = dynamic_cast< vital::mesh_vertex_array<3>& >(mesh.vertices());
+  auto& vertices = dynamic_cast< vital::mesh_vertex_array<3>& >(mesh.vertices());
 
   // check for a triangular mesh
   if (mesh.faces().regularity() != 3)
@@ -194,8 +196,9 @@ clip_mesh(mesh& mesh,
   // keep track of which edge intersection vertices have been added
   std::map<std::pair<unsigned, unsigned>, unsigned> new_vert_map;
 
-  auto const& triangles = static_cast< const vital::mesh_regular_face_array<3>& >(mesh.faces());
-  std::unique_ptr<vital::mesh_regular_face_array<3> > clipped_tris(new vital::mesh_regular_face_array<3>());
+  using tri_array = vital::mesh_regular_face_array<3>;
+  auto const& triangles = static_cast< const tri_array& >(mesh.faces());
+  std::unique_ptr<tri_array> clipped_tris(new tri_array);
   for (auto const& tri : triangles)
   {
     unsigned ind[3] = { tri[0], tri[1], tri[2] };
@@ -242,8 +245,10 @@ clip_mesh(mesh& mesh,
     }
 
     // compute (or lookup) new edge-plane intersection vertices
-    unsigned new_vert_ind1 = edge_plane_intersection(ind[0], ind[1], vertices, dist, new_vert_map);
-    unsigned new_vert_ind2 = edge_plane_intersection(ind[0], ind[2], vertices, dist, new_vert_map);
+    unsigned new_vert_ind1 = edge_plane_intersection(ind[0], ind[1], vertices,
+                                                     dist, new_vert_map);
+    unsigned new_vert_ind2 = edge_plane_intersection(ind[0], ind[2], vertices,
+                                                     dist, new_vert_map);
 
     // add new triangles covering the subset on the positive side of the plane
     if (dist[ind[0]] > 0.0)
