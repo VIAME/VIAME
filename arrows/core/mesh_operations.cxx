@@ -170,7 +170,6 @@ edge_plane_intersection(unsigned i1, unsigned i2,
 
 
 /// Clip a triangular mesh with a plane
-KWIVER_ALGO_CORE_EXPORT
 bool
 clip_mesh(mesh& mesh,
           vector_4d const& plane)
