@@ -196,6 +196,7 @@ function(kwiver_add_library     name)
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}${library_subdir_suffix}"
     INSTALL_RPATH            "\$ORIGIN/../lib:\$ORIGIN/"
+    INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>$<INSTALL_INTERFACE:include>"
     ${props}
     )
 
