@@ -295,6 +295,67 @@ clip_mesh(mesh& mesh,
   return clipped;
 }
 
+
+/// Clip a triangular mesh with a camera frustum
+/**
+* Intersect a mesh with a camera frustum and keep only the parts of the mesh
+* that lie inside the frustum.  Faces crossing the frustum planes are
+* intersected with the planes and new vertices are added along the planes.
+* This implementation does not remove or renumber existing vertices, but may
+* add new vertices.  It may leave vertices which are no longer used by the
+* faces.
+*
+* \param [in,out]  mesh   A mesh to triangulate clip in place
+* \param [in]      camera The camera frustum to use in clipping
+* \param [in]      near   The offset from the camera center to the near
+*                         clipping plane (parallel to the image plane)
+* \param [in]      far    The offset from the camera center to the far
+*                         clipping plane (parallel to the image plane)
+*
+* By default this function keeps all geometry in front of the camera that
+* would project into the image.  The far clipping plane is set to infinity
+* to disable far plane clipping.
+*
+* \note This implementation assumes that the mesh is triangular
+*/
+bool
+clip_mesh(kwiver::vital::mesh& mesh,
+          kwiver::vital::camera_perspective const& camera,
+          double near, double far)
+{
+  bool clipped = false;
+  vital::matrix_3x4d P = camera.as_matrix();
+
+  // clip side planes
+  vital::vector_4d left_plane = P.row(0);
+  vital::vector_4d right_plane = camera.image_width() * P.row(2) - P.row(0);
+  vital::vector_4d top_plane = P.row(1);
+  vital::vector_4d bottom_plane = camera.image_height() * P.row(2) - P.row(1);
+
+  clipped = clip_mesh(mesh, left_plane) || clipped;
+  clipped = clip_mesh(mesh, right_plane) || clipped;
+  clipped = clip_mesh(mesh, top_plane) || clipped;
+  clipped = clip_mesh(mesh, bottom_plane) || clipped;
+
+  // clip near and far planes
+  vital::vector_4d principal_plane = P.row(2);
+  principal_plane /= principal_plane.head<3>().norm();
+  if (std::isfinite(near))
+  {
+    vital::vector_4d near_plane = principal_plane;
+    near_plane[3] -= near;
+    clipped = clip_mesh(mesh, near_plane) || clipped;
+  }
+  if (std::isfinite(far))
+  {
+    vital::vector_4d far_plane = -principal_plane;
+    far_plane[3] += far;
+    clipped = clip_mesh(mesh, far_plane) || clipped;
+  }
+
+  return clipped;
+}
+
 }
 }
 }
