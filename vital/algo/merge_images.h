@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <pybind11/stl.h>
+#pragma once
 
-#include <vital/types/descriptor_set.h>
+#include <vital/vital_config.h>
 
-#include <memory>
+#include <string>
 
-namespace py = pybind11;
+#include <vital/algo/algorithm.h>
+#include <vital/types/image_container.h>
 
-typedef kwiver::vital::descriptor_set desc_set;
-typedef kwiver::vital::simple_descriptor_set s_desc_set;
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-std::shared_ptr<s_desc_set>
-new_desc_set()
+/// An abstract base class for converting base image type
+class VITAL_ALGO_EXPORT merge_images
+  : public kwiver::vital::algorithm_def<merge_images>
 {
-  return std::make_shared<s_desc_set>();
-}
+public:
+  /// Return the name of this algorithm
+  static std::string static_type_name() { return "merge_images"; }
 
-std::shared_ptr<s_desc_set>
-new_desc_set1(py::list py_list)
-{
-  std::vector<std::shared_ptr<kwiver::vital::descriptor>> desc_list;
-  for(auto py_desc : py_list)
-  {
-    desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
-  }
-  return std::make_shared<s_desc_set>(desc_list);
-}
+  /// Merge images
+  virtual kwiver::vital::image_container_sptr
+    merge(kwiver::vital::image_container_sptr image1,
+          kwiver::vital::image_container_sptr image2) const = 0;
 
-PYBIND11_MODULE(descriptor_set, m)
-{
-  py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");
+protected:
+  merge_images();
 
-  py::class_<s_desc_set, desc_set, std::shared_ptr<s_desc_set>>(m, "DescriptorSet")
-  .def(py::init(&new_desc_set))
-  .def(py::init(&new_desc_set1),
-    py::arg("list"))
-  .def("descriptors", &s_desc_set::descriptors)
-  .def("size", &s_desc_set::size)
-  .def("__len__", &s_desc_set::size)
-  ;
+};
 
-}
+typedef std::shared_ptr<merge_images> merge_images_sptr;
+
+} } } // end namespace
+

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <pybind11/stl.h>
+/**
+ * \file
+ * \brief register core applets into a plugin
+ */
 
-#include <vital/types/descriptor_set.h>
+#include <arrows/core/applets/kwiver_algo_core_applets_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <memory>
+#include <arrows/core/applets/render_mesh.h>
 
-namespace py = pybind11;
 
-typedef kwiver::vital::descriptor_set desc_set;
-typedef kwiver::vital::simple_descriptor_set s_desc_set;
+namespace kwiver {
+namespace arrows {
+namespace core {
 
-std::shared_ptr<s_desc_set>
-new_desc_set()
+namespace {
+
+static auto const module_name         = std::string{ "arrows.core.applets" };
+static auto const module_version      = std::string{ "1.0" };
+static auto const module_organization = std::string{ "Kitware Inc." };
+
+
+// ----------------------------------------------------------------------------
+template <typename applet_t>
+void register_applet( kwiver::vital::plugin_loader& vpm )
 {
-  return std::make_shared<s_desc_set>();
+  using kvpf = kwiver::vital::plugin_factory;
+
+  auto fact = vpm.ADD_APPLET( applet_t );
+  fact->add_attribute( kvpf::PLUGIN_NAME,         applet_t::name )
+       .add_attribute( kvpf::PLUGIN_DESCRIPTION,  applet_t::description )
+       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
+       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
+       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
+       ;
 }
 
-std::shared_ptr<s_desc_set>
-new_desc_set1(py::list py_list)
+}
+
+// ----------------------------------------------------------------------------
+extern "C"
+KWIVER_ALGO_CORE_APPLETS_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  std::vector<std::shared_ptr<kwiver::vital::descriptor>> desc_list;
-  for(auto py_desc : py_list)
+  if (vpm.is_module_loaded( module_name ) )
   {
-    desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
+    return;
   }
-  return std::make_shared<s_desc_set>(desc_list);
+
+  register_applet< render_mesh > (vpm);
+
+  vpm.mark_module_as_loaded( module_name );
 }
 
-PYBIND11_MODULE(descriptor_set, m)
-{
-  py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");
-
-  py::class_<s_desc_set, desc_set, std::shared_ptr<s_desc_set>>(m, "DescriptorSet")
-  .def(py::init(&new_desc_set))
-  .def(py::init(&new_desc_set1),
-    py::arg("list"))
-  .def("descriptors", &s_desc_set::descriptors)
-  .def("size", &s_desc_set::size)
-  .def("__len__", &s_desc_set::size)
-  ;
-
-}
+} // end namespace core
+} // end namespace arrows
+} // end namespace kwiver

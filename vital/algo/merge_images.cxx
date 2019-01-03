@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <pybind11/stl.h>
+#include <vital/algo/algorithm.txx>
 
-#include <vital/types/descriptor_set.h>
+#include "merge_images.h"
 
-#include <memory>
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::merge_images);
 
-namespace py = pybind11;
+namespace kwiver {
+namespace vital {
+namespace algo {
 
-typedef kwiver::vital::descriptor_set desc_set;
-typedef kwiver::vital::simple_descriptor_set s_desc_set;
-
-std::shared_ptr<s_desc_set>
-new_desc_set()
+merge_images
+::merge_images()
 {
-  return std::make_shared<s_desc_set>();
+  attach_logger( "merge_images" );
 }
 
-std::shared_ptr<s_desc_set>
-new_desc_set1(py::list py_list)
-{
-  std::vector<std::shared_ptr<kwiver::vital::descriptor>> desc_list;
-  for(auto py_desc : py_list)
-  {
-    desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
-  }
-  return std::make_shared<s_desc_set>(desc_list);
-}
-
-PYBIND11_MODULE(descriptor_set, m)
-{
-  py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");
-
-  py::class_<s_desc_set, desc_set, std::shared_ptr<s_desc_set>>(m, "DescriptorSet")
-  .def(py::init(&new_desc_set))
-  .def(py::init(&new_desc_set1),
-    py::arg("list"))
-  .def("descriptors", &s_desc_set::descriptors)
-  .def("size", &s_desc_set::size)
-  .def("__len__", &s_desc_set::size)
-  ;
-
-}
+} } } // end namespace

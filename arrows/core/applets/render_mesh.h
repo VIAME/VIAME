@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,45 +28,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <pybind11/stl.h>
+#ifndef KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H
+#define KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H
 
-#include <vital/types/descriptor_set.h>
+#include <tools/kwiver_applet.h>
 
-#include <memory>
+#include <arrows/core/applets/kwiver_algo_core_applets_export.h>
 
-namespace py = pybind11;
+#include <string>
+#include <vector>
 
-typedef kwiver::vital::descriptor_set desc_set;
-typedef kwiver::vital::simple_descriptor_set s_desc_set;
+namespace kwiver {
+namespace arrows {
+namespace core {
 
-std::shared_ptr<s_desc_set>
-new_desc_set()
+class KWIVER_ALGO_CORE_APPLETS_EXPORT render_mesh
+  : public kwiver::tools::kwiver_applet
 {
-  return std::make_shared<s_desc_set>();
-}
+public:
+  render_mesh(){}
+  virtual ~render_mesh() = default;
 
-std::shared_ptr<s_desc_set>
-new_desc_set1(py::list py_list)
-{
-  std::vector<std::shared_ptr<kwiver::vital::descriptor>> desc_list;
-  for(auto py_desc : py_list)
-  {
-    desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
-  }
-  return std::make_shared<s_desc_set>(desc_list);
-}
+  static constexpr char const* name = "render-mesh";
+  static constexpr char const* description =
+    "Render a depth or height map from a mesh.\n\n"
+    "This tool reads in a mesh file and a camera and renders "
+    "various images such as depth map or height map.";
 
-PYBIND11_MODULE(descriptor_set, m)
-{
-  py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");
 
-  py::class_<s_desc_set, desc_set, std::shared_ptr<s_desc_set>>(m, "DescriptorSet")
-  .def(py::init(&new_desc_set))
-  .def(py::init(&new_desc_set1),
-    py::arg("list"))
-  .def("descriptors", &s_desc_set::descriptors)
-  .def("size", &s_desc_set::size)
-  .def("__len__", &s_desc_set::size)
-  ;
+  virtual int run( const std::vector<std::string>& argv );
+  virtual void usage( std::ostream& outstream ) const;
 
-}
+protected:
+
+private:
+
+}; // end of class
+
+} } } // end namespace
+
+#endif /* KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H */

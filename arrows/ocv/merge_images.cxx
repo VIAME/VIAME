@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,62 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <pybind11/stl.h>
+/**
+ * \file
+ * \brief Implementation of OCV merge images algorithm
+ */
 
-#include <vital/types/descriptor_set.h>
+#include "merge_images.h"
 
-#include <memory>
+#include <arrows/ocv/image_container.h>
 
-namespace py = pybind11;
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
-typedef kwiver::vital::descriptor_set desc_set;
-typedef kwiver::vital::simple_descriptor_set s_desc_set;
+using namespace kwiver::vital;
 
-std::shared_ptr<s_desc_set>
-new_desc_set()
+namespace kwiver {
+namespace arrows {
+namespace ocv {
+
+/// Constructor
+merge_images
+::merge_images()
 {
-  return std::make_shared<s_desc_set>();
 }
 
-std::shared_ptr<s_desc_set>
-new_desc_set1(py::list py_list)
+/// Destructor
+merge_images
+::~merge_images()
 {
-  std::vector<std::shared_ptr<kwiver::vital::descriptor>> desc_list;
-  for(auto py_desc : py_list)
-  {
-    desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
-  }
-  return std::make_shared<s_desc_set>(desc_list);
 }
 
-PYBIND11_MODULE(descriptor_set, m)
+/// Merge images
+kwiver::vital::image_container_sptr
+merge_images::merge(kwiver::vital::image_container_sptr image1,
+        kwiver::vital::image_container_sptr image2) const
 {
-  py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");
+  cv::Mat cv_image1 = ocv::image_container::vital_to_ocv(image1->get_image(),
+    ocv::image_container::RGB_COLOR);
+  cv::Mat cv_image2 = ocv::image_container::vital_to_ocv(image2->get_image(),
+    ocv::image_container::RGB_COLOR);
+  cv::Mat fin_image;
 
-  py::class_<s_desc_set, desc_set, std::shared_ptr<s_desc_set>>(m, "DescriptorSet")
-  .def(py::init(&new_desc_set))
-  .def(py::init(&new_desc_set1),
-    py::arg("list"))
-  .def("descriptors", &s_desc_set::descriptors)
-  .def("size", &s_desc_set::size)
-  .def("__len__", &s_desc_set::size)
-  ;
+  std::vector<cv::Mat> channels1, channels2, all_channels;
+  cv::split(cv_image1, channels1);
+  cv::split(cv_image2, channels2);
+  all_channels.insert(all_channels.begin(), channels1.begin(), channels1.end());
+  all_channels.insert(all_channels.end(), channels2.begin(), channels2.end());
 
+  cv::merge(all_channels, fin_image);
+
+  kwiver::vital::image_container_sptr concatenated_image_container =
+      image_container_sptr(new ocv::image_container(fin_image.clone(),
+                           ocv::image_container::RGB_COLOR));
+
+  return concatenated_image_container;
 }
+
+} // end namespace ocv
+} // end namespace arrows
+} // end namespace kwiver

@@ -31,6 +31,7 @@ set( sources
   matcher_process.cxx
   merge_detection_sets_process.cxx
   perform_query_process.cxx
+  merge_images_process.cxx
   print_config_process.cxx
   read_descriptor_process.cxx
   read_object_track_process.cxx
@@ -73,6 +74,7 @@ set( private_headers
   matcher_process.h
   merge_detection_sets_process.h
   perform_query_process.h
+  merge_images_process.h
   print_config_process.h
   read_descriptor_process.h
   read_object_track_process.h
@@ -99,6 +101,7 @@ kwiver_add_plugin( kwiver_processes
                    ${private_headers}
   PRIVATE          sprokit_pipeline
                    kwiver_algo_core
+                   kwiver_adapter
                    kwiversys
                    vital vital_vpm vital_logger vital_config
                    ${Boost_SYSTEM_LIBRARY}

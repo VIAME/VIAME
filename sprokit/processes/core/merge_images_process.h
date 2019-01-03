@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,45 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <pybind11/stl.h>
+#pragma once
 
-#include <vital/types/descriptor_set.h>
+#include <sprokit/pipeline/process.h>
+
+#include "kwiver_processes_export.h"
 
 #include <memory>
 
-namespace py = pybind11;
-
-typedef kwiver::vital::descriptor_set desc_set;
-typedef kwiver::vital::simple_descriptor_set s_desc_set;
-
-std::shared_ptr<s_desc_set>
-new_desc_set()
+namespace kwiver
 {
-  return std::make_shared<s_desc_set>();
-}
 
-std::shared_ptr<s_desc_set>
-new_desc_set1(py::list py_list)
+// ----------------------------------------------------------------
+/**
+ * \class merge_images_process
+ *
+ * \brief Merges two images
+ *
+ * \iports
+ * \iport{image}
+ *
+ * \oports
+ * \oport{image1}
+ * \oport{image2}
+ *
+ */
+class KWIVER_PROCESSES_NO_EXPORT merge_images_process
+  : public sprokit::process
 {
-  std::vector<std::shared_ptr<kwiver::vital::descriptor>> desc_list;
-  for(auto py_desc : py_list)
-  {
-    desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
-  }
-  return std::make_shared<s_desc_set>(desc_list);
-}
+  public:
+    merge_images_process( kwiver::vital::config_block_sptr const& config );
+    virtual ~merge_images_process();
 
-PYBIND11_MODULE(descriptor_set, m)
-{
-  py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");
+  protected:
+    virtual void _configure() override;
+    virtual void _step() override;
+    virtual void input_port_undefined(port_t const& port) override;
 
-  py::class_<s_desc_set, desc_set, std::shared_ptr<s_desc_set>>(m, "DescriptorSet")
-  .def(py::init(&new_desc_set))
-  .def(py::init(&new_desc_set1),
-    py::arg("list"))
-  .def("descriptors", &s_desc_set::descriptors)
-  .def("size", &s_desc_set::size)
-  .def("__len__", &s_desc_set::size)
-  ;
+  private:
+    void make_ports();
+    void make_config();
 
-}
+    class priv;
+    const std::unique_ptr<priv> d;
+ }; // end class merge_images_process
+
+
+} // end namespace

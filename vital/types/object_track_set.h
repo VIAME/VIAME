@@ -67,7 +67,6 @@ public:
   {}
   
   /// Default constructor
-  //
   object_track_state( frame_id_t frame,
                       time_usec_t time,
                       detected_object_sptr d = nullptr )
@@ -97,25 +96,24 @@ public:
     return std::make_shared< object_track_state >( *this );
   }
 
-  time_usec_t time() const
-  {
-    return time_;
-  }
-  
   void set_time( time_usec_t time )
   {
     time_ = time;
   }
 
+  time_usec_t time() const
+  {
+    return time_;
+  }
+
   detected_object_sptr detection;
-  
+
+
   static std::shared_ptr< object_track_state > downcast(
     track_state_sptr const& sp )
   {
     return std::dynamic_pointer_cast< object_track_state >( sp );
   }
-            
-
 
   static constexpr auto downcast_transform = range::transform( downcast );
 
@@ -136,13 +134,13 @@ public:
   object_track_set();
 
   /// Constructor specifying the implementation
-  object_track_set(std::unique_ptr<track_set_implementation> impl);
+  object_track_set( std::unique_ptr< track_set_implementation > impl );
 
   /// Constructor from a vector of tracks
   /**
    * \note implementation defaults to simple_track_set_implementation
    */
-  object_track_set(std::vector< track_sptr > const& tracks);
+  object_track_set( std::vector< track_sptr > const& tracks );
 
   /// Destructor
   virtual ~object_track_set() = default;
