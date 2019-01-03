@@ -52,3 +52,7 @@ endif()
 algorithms_create_plugin( kwiver_algo_qt
   register_algorithms.cxx
   )
+
+if( KWIVER_ENABLE_TESTS )
+  add_subdirectory( tests )
+endif()
