@@ -147,13 +147,15 @@ edge_plane_intersection(unsigned i1, unsigned i2,
     return iter->second;
   }
 
+  // epsilon to avoid creating duplicate vertices
+  constexpr double eps = 1e-3;
   double lambda = -d1 / (d2 - d1);
-  if (lambda <= 0.0)
+  if (lambda <= eps)
   {
     new_vert_map[key] = i1;
     return i1;
   }
-  if (lambda >= 1.0)
+  if (lambda >= 1.0 - eps)
   {
     new_vert_map[key] = i2;
     return i2;
