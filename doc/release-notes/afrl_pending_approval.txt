@@ -12,7 +12,7 @@ Updates since last public release
 
 Arrows - Core
 
- * Added a function to clip meshes with a plane.
+ * Added functions to clip meshes with a plane or a camera frustum.
 
 
 Fixes since last public release
