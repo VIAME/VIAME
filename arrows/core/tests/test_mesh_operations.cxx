@@ -232,8 +232,8 @@ TEST(mesh_operations, clip_mesh_camera)
     bool clipped = kwiver::arrows::core::clip_mesh(*mesh, camera, 1.5, 4.0);
 
     EXPECT_TRUE(clipped);
-    EXPECT_EQ(mesh->num_faces(), 60);
-    EXPECT_EQ(mesh->num_verts(), 71);
+    EXPECT_EQ(mesh->num_faces(), 51);
+    EXPECT_EQ(mesh->num_verts(), 58);
     kwiver::vital::write_obj("test_clip_cam.obj", *mesh);
   }
 
@@ -246,8 +246,8 @@ TEST(mesh_operations, clip_mesh_camera)
     bool clipped = kwiver::arrows::core::clip_mesh(*mesh_plane, camera);
 
     EXPECT_TRUE(clipped);
-    EXPECT_EQ(mesh_plane->num_faces(), 2);
-    EXPECT_EQ(mesh_plane->num_verts(), 4);
+    EXPECT_EQ(mesh_plane->num_faces(), 6);
+    EXPECT_EQ(mesh_plane->num_verts(), 16);
     kwiver::vital::write_obj("test_clip_cam_plane.obj", *mesh_plane);
   }
 }
