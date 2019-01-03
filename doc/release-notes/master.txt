@@ -13,9 +13,16 @@ Vital
    initialization.
  * Added a new abstract algorithm, uv_unwrap_mesh, which unwraps a mesh and generates normalized texture coordinates.
 
+ * Added a foreach_pixel helper function to apply an operation at every
+   pixel of a const image.
+
 Vital Bindings
 
 Arrows: Core
+
+ * Created a new plugin for core applets
+
+ * Added an applet to render meshes into depth or height maps
 
  * Added mesh_operations.h, initially with a function to triangulate a mesh.
    That is, subdivide mesh faces into triangles.

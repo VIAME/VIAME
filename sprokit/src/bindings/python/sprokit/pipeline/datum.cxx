@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2015 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 #pragma warning (disable : 4244)
 #endif
 #include <pybind11/pybind11.h>
+#include <pybind11/stl_bind.h>
 #include <vital/any.h>
 #if WIN32
 #pragma warning (pop)
@@ -41,11 +42,13 @@
 #include <sprokit/pipeline/datum.h>
 
 // Type conversions
-#include <vital/bindings/python/vital/types/descriptor_class.cxx>
 #include <vital/types/image_container.h>
 #include <vital/types/detected_object_set.h>
+#include <vital/types/descriptor_set.h>
 #include <vital/types/track_set.h>
 #include <vital/types/object_track_set.h>
+#include <vital/types/feature_track_set.h>
+#include <vital/types/timestamp.h>
 #include <vital/types/geo_polygon.h>
 
 #include <limits>
@@ -59,6 +62,10 @@
  */
 
 using namespace pybind11;
+
+PYBIND11_MAKE_OPAQUE(std::vector<unsigned char>);
+PYBIND11_MAKE_OPAQUE(std::vector<double>);
+PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
 
 static sprokit::datum new_datum_no_cast(object const& obj);
 template<class T> sprokit::datum new_datum(object const& obj);
@@ -92,6 +99,10 @@ PYBIND11_MODULE(datum, m)
     .value("error", sprokit::datum::error)
   ;
 
+  bind_vector<std::vector<unsigned char>, std::shared_ptr<std::vector<unsigned char>>>(m, "VectorUChar");
+  bind_vector<std::vector<double>, std::shared_ptr<std::vector<double>>>(m, "VectorDouble");
+  bind_vector<std::vector<std::string>, std::shared_ptr<std::vector<std::string>>>(m, "VectorString");
+
   // constructors
   m.def("new", &new_datum_no_cast
     , (arg("dat"))
@@ -108,7 +119,7 @@ PYBIND11_MODULE(datum, m)
   m.def("new_image_container", &new_datum<std::shared_ptr<kwiver::vital::image_container>>
     , (arg("dat"))
     , "Creates a new datum packet containing an image container.");
-  m.def("new_descriptor_set", &new_datum<std::shared_ptr<PyDescriptorSet>>
+  m.def("new_descriptor_set", &new_datum<std::shared_ptr<kwiver::vital::descriptor_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing a descriptor set.");
   m.def("new_detected_object_set", &new_datum<std::shared_ptr<kwiver::vital::detected_object_set>>
@@ -117,13 +128,16 @@ PYBIND11_MODULE(datum, m)
   m.def("new_track_set", &new_datum<std::shared_ptr<kwiver::vital::track_set>>
     , (arg("dat"))
     , "Creates a new datum packet containing a track set.");
+  m.def("new_feature_track_set", &new_datum<std::shared_ptr<kwiver::vital::feature_track_set>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing a feature track set.");
   m.def("new_object_track_set", &new_datum<std::shared_ptr<kwiver::vital::object_track_set>>
     , (arg("dat"))
-    , "Creates a new datum packet containing a object track set.");
-  m.def("new_double_vector", &new_datum<std::vector<double>>
+    , "Creates a new datum packet containing an object track set.");
+  m.def("new_double_vector", &new_datum<std::shared_ptr<std::vector<double>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a double vector.");
-  m.def("new_string_vector", &new_datum<std::vector<std::string>>
+  m.def("new_string_vector", &new_datum<std::shared_ptr<std::vector<std::string>>>
     , (arg("dat"))
     , "Creates a new datum packet containing a string vector.");
   m.def("new_bounding_box", &new_datum<kwiver::vital::bounding_box_d>
@@ -135,6 +149,9 @@ PYBIND11_MODULE(datum, m)
   m.def("new_corner_points", &new_datum<kwiver::vital::geo_polygon>
     , (arg("dat"))
     , "Creates a new set of corner points");
+  m.def("new_uchar_vector", &new_datum<std::shared_ptr<std::vector<unsigned char>>>
+    , (arg("dat"))
+    , "Creates a new datum packet containing an unsigned char vector.");
 
   m.def("datum_from_capsule", &datum_from_capsule
     , (arg("dptr"))
@@ -166,18 +183,22 @@ PYBIND11_MODULE(datum, m)
       , "Get pointer to datum object as a PyCapsule.")
     .def("get_image_container", &datum_get_object<std::shared_ptr<kwiver::vital::image_container>>
       , "Convert the data to an image container")
-    .def("get_descriptor_set", &datum_get_object<std::shared_ptr<PyDescriptorSet>>
+    .def("get_descriptor_set", &datum_get_object<std::shared_ptr<kwiver::vital::descriptor_set>>
       , "Convert the data to a descriptor set")
     .def("get_detected_object_set", &datum_get_object<std::shared_ptr<kwiver::vital::detected_object_set>>
       , "Convert the data to a detected object set")
     .def("get_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::track_set>>
       , "Convert the data to a track set")
+    .def("get_feature_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::feature_track_set>>
+      , "Convert the data to a feature track set")
     .def("get_object_track_set", &datum_get_object<std::shared_ptr<kwiver::vital::object_track_set>>
-      , "Convert the data to a object track set")
-    .def("get_double_vector", &datum_get_object<std::vector<double>>
+      , "Convert the data to an object track set")
+    .def("get_double_vector", &datum_get_object<std::shared_ptr<std::vector<double>>>
       , "Convert the data to a double vector")
-    .def("get_string_vector", &datum_get_object<std::vector<std::string>>
+    .def("get_string_vector", &datum_get_object<std::shared_ptr<std::vector<std::string>>>
       , "Convert the data to a string vector")
+    .def("get_uchar_vector", &datum_get_object<std::shared_ptr<std::vector<unsigned char>>>
+      , "Convert the data to an unsigned char vector")
     .def("get_bounding_box", &datum_get_object<kwiver::vital::bounding_box_d>
          , "Convert the data to a bounding box")
     .def("get_timestamp", &datum_get_object<kwiver::vital::timestamp>
@@ -186,7 +207,6 @@ PYBIND11_MODULE(datum, m)
          , "Convert the data to a set of corner points")
     .def("get_string", &datum_get_object<std::string>,
             "Convert the data to a string")
-
   ;
 
 } // end module

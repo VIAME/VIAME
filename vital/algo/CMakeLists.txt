@@ -49,6 +49,7 @@ set( public_headers
   keyframe_selection.h
   match_descriptor_sets.h
   match_features.h
+  merge_images.h
   optimize_cameras.h
   read_object_track_set.h
   read_track_descriptor_set.h
@@ -107,6 +108,7 @@ set( sources
   keyframe_selection.cxx
   match_descriptor_sets.cxx
   match_features.cxx
+  merge_images.cxx
   optimize_cameras.cxx
   read_object_track_set.cxx
   read_track_descriptor_set.cxx

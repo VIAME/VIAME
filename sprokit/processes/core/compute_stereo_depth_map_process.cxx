@@ -126,8 +126,10 @@ void
 compute_stereo_depth_map_process::
 _step()
 {
-  vital::image_container_sptr left_image = grab_from_port_using_trait( left_image );
-  vital::image_container_sptr right_image = grab_from_port_using_trait( right_image );
+  vital::image_container_sptr left_image =
+      grab_from_port_using_trait( left_image );
+  vital::image_container_sptr right_image =
+      grab_from_port_using_trait( right_image );
 
   vital::image_container_sptr depth_map;
 

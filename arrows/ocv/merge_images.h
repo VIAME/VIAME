@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <pybind11/stl.h>
+/**
+ * \file
+ * \brief Header for OCV merge_images algorithm
+ */
 
-#include <vital/types/descriptor_set.h>
+#pragma once
 
-#include <memory>
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
 
-namespace py = pybind11;
+#include <vital/algo/merge_images.h>
 
-typedef kwiver::vital::descriptor_set desc_set;
-typedef kwiver::vital::simple_descriptor_set s_desc_set;
+namespace kwiver {
+namespace arrows {
+namespace ocv {
 
-std::shared_ptr<s_desc_set>
-new_desc_set()
+/// A class for writing out image chips around detections, useful as a debugging process
+/// for ensuring that the refine detections process is running on desired ROIs.
+class KWIVER_ALGO_OCV_EXPORT merge_images
+  : public vital::algorithm_impl<merge_images, vital::algo::merge_images>
 {
-  return std::make_shared<s_desc_set>();
-}
+public:
 
-std::shared_ptr<s_desc_set>
-new_desc_set1(py::list py_list)
-{
-  std::vector<std::shared_ptr<kwiver::vital::descriptor>> desc_list;
-  for(auto py_desc : py_list)
-  {
-    desc_list.push_back(py::cast<std::shared_ptr<kwiver::vital::descriptor>>(py_desc));
-  }
-  return std::make_shared<s_desc_set>(desc_list);
-}
+  /// Constructor
+  merge_images();
 
-PYBIND11_MODULE(descriptor_set, m)
-{
-  py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");
+  /// Destructor
+  virtual ~merge_images();
 
-  py::class_<s_desc_set, desc_set, std::shared_ptr<s_desc_set>>(m, "DescriptorSet")
-  .def(py::init(&new_desc_set))
-  .def(py::init(&new_desc_set1),
-    py::arg("list"))
-  .def("descriptors", &s_desc_set::descriptors)
-  .def("size", &s_desc_set::size)
-  .def("__len__", &s_desc_set::size)
-  ;
+  virtual void set_configuration( kwiver::vital::config_block_sptr ) { }
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config )
+    const { return true; }
 
-}
+  /// Merge images
+  virtual kwiver::vital::image_container_sptr
+  merge(kwiver::vital::image_container_sptr image1,
+        kwiver::vital::image_container_sptr image2) const;
+};
+
+} // end namespace ocv
+} // end namespace arrows
+} // end namespace kwiver
+
