@@ -166,6 +166,30 @@ edge_plane_intersection(unsigned i1, unsigned i2,
   return new_vert_ind;
 }
 
+// choose which diagonal to use when splitting a quad into tris
+// pick the combination with the most even area distribution
+// if returns true:  use {i1, i2, i4} and {i2, i3, i4}
+// if returns false: use {i1, i2, i3} and {i3, i4, i1}
+bool
+choose_cut(unsigned i1, unsigned i2, unsigned i3, unsigned i4,
+           vital::mesh_vertex_array<3>& vertices)
+{
+  vital::vector_3d const& v1 = vertices[i1];
+  vital::vector_3d const& v2 = vertices[i2];
+  vital::vector_3d const& v3 = vertices[i3];
+  vital::vector_3d const& v4 = vertices[i4];
+
+  double t1 = (v1 - v2).cross(v3 - v2).squaredNorm();
+  double t2 = (v2 - v3).cross(v4 - v3).squaredNorm();
+  double t3 = (v3 - v4).cross(v1 - v4).squaredNorm();
+  double t4 = (v4 - v1).cross(v2 - v1).squaredNorm();
+
+  double r1 = (t1 > t3) ? t1 / t3 : t3 / t1;
+  double r2 = (t2 > t4) ? t2 / t4 : t4 / t2;
+
+  return r2 > r1;
+}
+
 }
 
 
@@ -254,10 +278,17 @@ clip_mesh(mesh& mesh,
     {
       clipped_tris->push_back({ind[0], new_vert_ind1, new_vert_ind2});
     }
-    else
+    else if (choose_cut(new_vert_ind1, ind[1], ind[2], new_vert_ind2, vertices))
     {
+      // add the new edge between ind[1] and new_vert_ind2
       clipped_tris->push_back({ new_vert_ind1, ind[1], new_vert_ind2 });
       clipped_tris->push_back({ ind[1], ind[2], new_vert_ind2 });
+    }
+    else
+    {
+      // add the new edge between ind[2] and new_vert_ind1
+      clipped_tris->push_back({ new_vert_ind1, ind[1], ind[2]});
+      clipped_tris->push_back({ ind[2], new_vert_ind2, new_vert_ind1 });
     }
   }
   mesh.set_faces(std::move(clipped_tris));
