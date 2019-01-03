@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,6 +162,27 @@ qt_to_vital( QImage const& img, QImage::Format format )
     img.convertToFormat( format ) );
 }
 
+// ----------------------------------------------------------------------------
+kwiver::vital::image
+qt_to_vital_mono( QImage const& in )
+{
+  auto const w = static_cast< size_t >( in.width() );
+  auto const h = static_cast< size_t >( in.height() );
+  kwiver::vital::image_of< bool > out{ w, h };
+
+  auto* const outp = out.first_pixel();
+  for ( auto const j : iota( in.height() ) )
+  {
+    auto* const outs = outp + ( j * static_cast< ptrdiff_t >( w ) );
+    for ( auto const i : iota( in.width() ) )
+    {
+      outs[ i ] = !!( in.pixel( i, j ) & 0xffffff );
+    }
+  }
+
+  return out;
+}
+
 } // end namespace (anonymous)
 
 namespace kwiver {
@@ -237,6 +258,9 @@ image_container
         static_cast< size_t >( img.height() ),
         1, 1, img.bytesPerLine(), 0 );
     }
+    case QImage::Format_Mono:
+    case QImage::Format_MonoLSB:
+      return ::qt_to_vital_mono( img );
     default:
       switch ( ::depth( f ) )
       {
