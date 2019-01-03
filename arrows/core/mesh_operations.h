@@ -84,6 +84,25 @@ void
 mesh_triangulate(kwiver::vital::mesh& mesh);
 
 
+/// Clip a triangular mesh with a plane
+/**
+ * Intersect a mesh with a plane and keep only the parts of the mesh that
+ * lie on the positive side of the plane (direction that the normal points).
+ * Faces crossing the plane are intersected with the plane and new
+ * vertices are added along the plane.  This implementation does not remove
+ * or renumber existing vertices, but may add new vertices.  It may leave
+ * vertices which are no longer used by the faces.
+ *
+ * \param [in,out]  mesh  A mesh to triangulate clip in place
+ * \param [in]      plane The clipping plane
+ *
+ * \note This implementation assumes that the mesh is triangular
+ */
+KWIVER_ALGO_CORE_EXPORT
+bool
+clip_mesh(kwiver::vital::mesh& mesh,
+          kwiver::vital::vector_4d const& plane);
+
 }
 }
 }

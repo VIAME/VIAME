@@ -10,6 +10,10 @@ release version, and the content of this file will be reset.
 Updates since last public release
 ---------------------------------
 
+Arrows - Core
+
+ * Added a function to clip meshes with a plane.
+
 
 Fixes since last public release
 -------------------------------

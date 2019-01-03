@@ -35,6 +35,7 @@
 #include <arrows/core/mesh_operations.h>
 
 #include <vital/types/mesh.h>
+#include <vital/io/mesh_io.h>
 
 
 using namespace kwiver::vital;
@@ -91,4 +92,102 @@ TEST(mesh_operations, triangulate_mesh)
 
   EXPECT_EQ( mesh->faces().regularity(), 3 );
   EXPECT_EQ( mesh->num_faces(), 12 );
+}
+
+// ----------------------------------------------------------------------------
+TEST(mesh_operations, clip_mesh)
+{
+  // No clipping case
+  {
+    mesh_sptr mesh = generate_mesh();
+    kwiver::arrows::core::mesh_triangulate(*mesh);
+
+    std::cout << "Clipping case: full mesh preserved" << std::endl;
+    kwiver::vital::vector_4d plane(1, 0, 0, 2);
+    bool clipped = kwiver::arrows::core::clip_mesh(*mesh, plane);
+
+    EXPECT_FALSE(clipped);
+    EXPECT_EQ(mesh->num_faces(), 12);
+    EXPECT_EQ(mesh->num_verts(), 8);
+    kwiver::vital::write_obj("test_noclip.obj", *mesh);
+  }
+
+  // Clip everything case
+  {
+    mesh_sptr mesh = generate_mesh();
+    kwiver::arrows::core::mesh_triangulate(*mesh);
+
+    std::cout << "Clipping case: full mesh clipped" << std::endl;
+    kwiver::vital::vector_4d plane(1, 0, 0, -2);
+    bool clipped = kwiver::arrows::core::clip_mesh(*mesh, plane);
+
+    EXPECT_TRUE(clipped);
+    EXPECT_EQ(mesh->num_faces(), 0);
+    EXPECT_EQ(mesh->num_verts(), 8);
+    kwiver::vital::write_obj("test_allclip.obj", *mesh);
+  }
+
+  // Partial clipping
+  {
+    mesh_sptr mesh = generate_mesh();
+    kwiver::arrows::core::mesh_triangulate(*mesh);
+
+    std::cout << "Clipping case: half mesh clipped" << std::endl;
+    kwiver::vital::vector_4d plane(1, 0, 0, 0);
+    bool clipped = kwiver::arrows::core::clip_mesh(*mesh, plane);
+
+    EXPECT_TRUE(clipped);
+    EXPECT_EQ(mesh->num_faces(), 14);
+    EXPECT_EQ(mesh->num_verts(), 16);
+
+    kwiver::vital::write_obj("test_clip.obj", *mesh);
+  }
+
+  // Partial clipping - vertex on the plane
+  {
+    mesh_sptr mesh = generate_mesh();
+    kwiver::arrows::core::mesh_triangulate(*mesh);
+
+    std::cout << "Clipping case: half mesh clipped, vert on plane" << std::endl;
+    kwiver::vital::vector_4d plane(1, 1, 0, 0);
+    bool clipped = kwiver::arrows::core::clip_mesh(*mesh, plane);
+
+    EXPECT_TRUE(clipped);
+    EXPECT_EQ(mesh->num_faces(), 8);
+    EXPECT_EQ(mesh->num_verts(), 10);
+
+    kwiver::vital::write_obj("test_clip_vert.obj", *mesh);
+  }
+
+  // Partial clipping - edge on the plane
+  {
+    mesh_sptr mesh = generate_mesh();
+    kwiver::arrows::core::mesh_triangulate(*mesh);
+
+    std::cout << "Clipping case: half mesh clipped, edge on plane" << std::endl;
+    kwiver::vital::vector_4d plane(1, 1, 0, 2);
+    bool clipped = kwiver::arrows::core::clip_mesh(*mesh, plane);
+
+    EXPECT_TRUE(clipped);
+    EXPECT_EQ(mesh->num_faces(), 12);
+    EXPECT_EQ(mesh->num_verts(), 8);
+
+    kwiver::vital::write_obj("test_clip_edge.obj", *mesh);
+  }
+
+  // Partial clipping - face on the plane
+  {
+    mesh_sptr mesh = generate_mesh();
+    kwiver::arrows::core::mesh_triangulate(*mesh);
+
+    std::cout << "Clipping case: half mesh clipped, face on plane" << std::endl;
+    kwiver::vital::vector_4d plane(1, 0, 0, 1);
+    bool clipped = kwiver::arrows::core::clip_mesh(*mesh, plane);
+
+    EXPECT_TRUE(clipped);
+    EXPECT_EQ(mesh->num_faces(), 10);
+    EXPECT_EQ(mesh->num_verts(), 8);
+
+    kwiver::vital::write_obj("test_clip_face.obj", *mesh);
+  }
 }
