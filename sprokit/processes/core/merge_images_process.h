@@ -61,9 +61,9 @@ class KWIVER_PROCESSES_NO_EXPORT merge_images_process
     virtual ~merge_images_process();
 
   protected:
-    virtual void _configure();
-    virtual void _step();
-    virtual sprokit::process::port_info_t _input_port_info(port_t const& port);
+    virtual void _configure() override;
+    virtual void _step() override;
+    virtual void input_port_undefined(port_t const& port) override;
 
   private:
     void make_ports();
@@ -75,4 +75,3 @@ class KWIVER_PROCESSES_NO_EXPORT merge_images_process
 
 
 } // end namespace
-
