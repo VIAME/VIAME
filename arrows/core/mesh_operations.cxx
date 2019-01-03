@@ -273,6 +273,11 @@ clip_mesh(mesh& mesh,
     unsigned new_vert_ind2 = edge_plane_intersection(ind[0], ind[2], vertices,
                                                      dist, new_vert_map);
 
+    if (new_vert_ind1 == new_vert_ind2)
+    {
+      continue;
+    }
+
     // add new triangles covering the subset on the positive side of the plane
     if (dist[ind[0]] > 0.0)
     {
