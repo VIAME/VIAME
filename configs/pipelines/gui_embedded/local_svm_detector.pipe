@@ -21,17 +21,17 @@ include ../common_default_descriptor.pipe
 
 process svm_refiner
   :: refine_detections
-  :refiner:type                      svm_refine
-  :refiner:svm_refine:model_dir      category_models
+  :refiner:type                                svm_refine
+  :refiner:svm_refine:model_dir                category_models
 
 process nms_refiner
   :: refine_detections
-  :refiner:type                      nms
+  :refiner:type                                nms
   
   block refiner:nms
-    :max_overlap                     0.50
-    :nms_scale_factor                1.5
-    :output_scale_factor             1.1
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.5
+    :output_scale_factor                       1.1
   endblock
 
 connect from in_adapt.image
