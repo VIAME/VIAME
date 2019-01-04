@@ -62,3 +62,14 @@ kwiver_add_plugin( kwiver_tools
                kwiversys
                kwiver_tools_applet
 )
+
+kwiver_install_headers(
+  kwiver_applet.h
+  SUBDIR      tools
+  )
+
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_tools_applet_export.h
+  NOPATH
+  SUBDIR      tools
+  )

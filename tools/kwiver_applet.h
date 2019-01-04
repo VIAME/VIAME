@@ -31,7 +31,7 @@
 #ifndef KWIVER_TOOLS_KWIVER_APPLET_H
 #define KWIVER_TOOLS_KWIVER_APPLET_H
 
-#include "kwiver_tools_applet_export.h"
+#include <tools/kwiver_tools_applet_export.h>
 
 #include <ostream>
 #include <memory>

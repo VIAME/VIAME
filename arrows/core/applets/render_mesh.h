@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,45 +28,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Implementation of \link kwiver::vital::track_set track_set \endlink
- *        member functions
- */
+#ifndef KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H
+#define KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H
 
-#include "object_track_set.h"
+#include <tools/kwiver_applet.h>
 
-#include <limits>
+#include <arrows/core/applets/kwiver_algo_core_applets_export.h>
 
+#include <string>
+#include <vector>
 
 namespace kwiver {
-namespace vital {
+namespace arrows {
+namespace core {
 
-typedef std::unique_ptr< track_set_implementation > tsi_uptr;
-
-
-/// Default Constructor
-object_track_set
-::object_track_set()
-  : track_set( tsi_uptr( new simple_track_set_implementation ) )
+class KWIVER_ALGO_CORE_APPLETS_EXPORT render_mesh
+  : public kwiver::tools::kwiver_applet
 {
-}
+public:
+  render_mesh(){}
+  virtual ~render_mesh() = default;
+
+  static constexpr char const* name = "render-mesh";
+  static constexpr char const* description =
+    "Render a depth or height map from a mesh.\n\n"
+    "This tool reads in a mesh file and a camera and renders "
+    "various images such as depth map or height map.";
 
 
-/// Constructor specifying the implementation
-object_track_set
-::object_track_set( std::unique_ptr<track_set_implementation> impl )
-  : track_set( std::move( impl ) )
-{
-}
+  virtual int run( const std::vector<std::string>& argv );
+  virtual void usage( std::ostream& outstream ) const;
 
+protected:
 
-/// Constructor from a vector of tracks
-object_track_set
-::object_track_set( std::vector< track_sptr > const& tracks )
-  : track_set( tsi_uptr( new simple_track_set_implementation( tracks ) ) )
-{
-}
+private:
 
+}; // end of class
 
-} } // end namespace vital
+} } } // end namespace
+
+#endif /* KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H */
