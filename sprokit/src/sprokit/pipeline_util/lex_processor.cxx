@@ -353,6 +353,7 @@ get_next_token()
 
   if ( m_priv->m_cur_char == m_priv->m_input_line.end() )
   {
+  get_new_line:
     // get new line
     while ( ! m_priv->get_line() )
     {
@@ -403,7 +404,7 @@ get_next_token()
       m_priv->m_include_stack.push_back( std::make_shared< include_context >( resolv_filename ) );
 
       // Get first line from included file.
-      m_priv->get_line();
+      goto get_new_line;
     }
 
     if ( ! m_priv->m_absorb_eol )
