@@ -50,13 +50,9 @@ class KWIVER_ALGO_CORE_EXPORT initialize_cameras_landmarks
                               vital::algo::initialize_cameras_landmarks>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Run SfM to iteratively estimate new cameras and landmarks"
-    " using feature tracks.";
+  PLUGIN_INFO( "core",
+               "Run SfM to iteratively estimate new cameras and landmarks"
+               " using feature tracks." )
 
   /// Constructor
   initialize_cameras_landmarks();
