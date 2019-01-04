@@ -5,15 +5,7 @@
 # By default, this is an image list reader, but this can be over-riden by changing
 # :video_reader:type to be vidl_ffmpeg for videos
 
-process input
-  :: video_input
-  :video_filename                                       input_list.txt
-  :frame_time                                           1
-  :exit_on_invalid                                      false
-  :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type            vxl
-  :video_reader:image_list:image_reader:vxl:force_byte  true
-  :video_reader:vidl_ffmpeg:time_source                 current
+include common_default_input.pipe
 
 process downsampler
   :: downsample
