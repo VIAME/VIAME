@@ -8,6 +8,7 @@ set(vxl_headers_public
   camera.h
   camera_map.h
   close_loops_homography_guided.h
+  color_commonality_filter.h
   compute_homography_overlap.h
   estimate_canonical_transform.h
   estimate_essential_matrix.h
@@ -41,6 +42,7 @@ set(vxl_sources
   camera.cxx
   camera_map.cxx
   close_loops_homography_guided.cxx
+  color_commonality_filter.cxx
   compute_homography_overlap.cxx
   estimate_canonical_transform.cxx
   estimate_essential_matrix.cxx
@@ -69,6 +71,7 @@ target_link_libraries( kwiver_algo_vxl
                        rrel rsdl
                        vnl
                        vidl
+                       vil_algo
                        vgl_algo
                        vpgl_algo
                        kwiversys
