@@ -115,7 +115,7 @@ motion_detector_MOG2
 
 /// Destructor
 motion_detector_MOG2
-::~motion_detector_MOG2() VITAL_NOTHROW
+::~motion_detector_MOG2() noexcept
 {
 }
 
@@ -221,7 +221,7 @@ motion_detector_MOG2
   }
 
   cv::Mat cv_src;
-  ocv::image_container::vital_to_ocv(image->get_image()).copyTo(cv_src);
+  ocv::image_container::vital_to_ocv(image->get_image(),image_container::BGR_COLOR).copyTo(cv_src);
 
   if( d_->m_blur_kernel_size > 0)
   {
@@ -269,7 +269,7 @@ motion_detector_MOG2
 
   //cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
   //cv::imshow("Display window", fgmask);
-  d_->motion_heat_map = std::make_shared<ocv::image_container>(fgmask);
+  d_->motion_heat_map = std::make_shared<ocv::image_container>(fgmask, image_container::BGR_COLOR);
   //d->motion_heat_map = image;
 
   return d_->motion_heat_map;

@@ -60,7 +60,7 @@ public:
   /// Constructor
   three_frame_differencing();
   /// Destructor
-  virtual ~three_frame_differencing() VITAL_NOTHROW;
+  virtual ~three_frame_differencing() noexcept;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

@@ -294,7 +294,7 @@ three_frame_differencing
 
 /// Destructor
 three_frame_differencing
-::~three_frame_differencing() VITAL_NOTHROW
+::~three_frame_differencing() noexcept
 {
 }
 
@@ -422,11 +422,11 @@ three_frame_differencing
   }
 
   cv::Mat cv_src, fgmask;
-  cv_src = ocv::image_container::vital_to_ocv(image->get_image());
+  cv_src = image_container::vital_to_ocv(image->get_image(),image_container::BGR_COLOR );
 
   d_->process_image(cv_src, fgmask);
 
-  return std::make_shared<ocv::image_container>(fgmask);;
+  return std::make_shared<ocv::image_container>(fgmask,image_container::BGR_COLOR);
 }
 
 

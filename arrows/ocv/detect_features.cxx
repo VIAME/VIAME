@@ -54,7 +54,7 @@ vital::feature_set_sptr
 detect_features
 ::detect(vital::image_container_sptr image_data, vital::image_container_sptr mask) const
 {
-  cv::Mat cv_img = ocv::image_container::vital_to_ocv(image_data->get_image(), ocv::image_container::BGR_COLOR );
+  cv::Mat cv_img = image_container::vital_to_ocv(image_data->get_image(), ocv::image_container::BGR_COLOR );
   cv::Mat cv_mask;
   std::vector<cv::KeyPoint> keypoints;
 

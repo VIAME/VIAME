@@ -62,7 +62,7 @@ public:
   /// Constructor
   motion_detector_MOG2();
   /// Destructor
-  virtual ~motion_detector_MOG2() VITAL_NOTHROW;
+  virtual ~motion_detector_MOG2() noexcept;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
