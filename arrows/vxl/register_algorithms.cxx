@@ -40,6 +40,7 @@
 #include <arrows/vxl/bundle_adjust.h>
 #include <arrows/vxl/close_loops_homography_guided.h>
 #include <arrows/vxl/color_commonality_filter.h>
+#include <arrows/vxl/convert_image.h>
 #include <arrows/vxl/estimate_canonical_transform.h>
 #include <arrows/vxl/estimate_essential_matrix.h>
 #include <arrows/vxl/estimate_fundamental_matrix.h>
@@ -100,6 +101,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   fact = vpm.ADD_ALGORITHM( "vxl_color_commonality", kwiver::arrows::vxl::color_commonality_filter );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                        "Filter image based on color frequency or commonality." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+
+  fact = vpm.ADD_ALGORITHM( "vxl_convert_image", kwiver::arrows::vxl::convert_image );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                       "Convert image between different formats or scales." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

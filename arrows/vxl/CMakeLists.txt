@@ -9,6 +9,7 @@ set(vxl_headers_public
   camera_map.h
   close_loops_homography_guided.h
   color_commonality_filter.h
+  convert_image.h
   compute_homography_overlap.h
   estimate_canonical_transform.h
   estimate_essential_matrix.h
@@ -43,6 +44,7 @@ set(vxl_sources
   camera_map.cxx
   close_loops_homography_guided.cxx
   color_commonality_filter.cxx
+  convert_image.cxx
   compute_homography_overlap.cxx
   estimate_canonical_transform.cxx
   estimate_essential_matrix.cxx
