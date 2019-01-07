@@ -339,7 +339,7 @@ static kwiver::vital::config_block_sptr default_config()
                      "Can be either: \"one_per_file\" or \"one_per_folder\"" );
   config->set_value( "augmentation_pipeline", "",
                      "Optional embedded pipeline for performing assorted augmentations" );
-  config->set_value( "augmented_input_cache", "",
+  config->set_value( "augmentation_cache", "",
                      "Directory to store augmented samples, a temp directiry is used "
                      "if not specified." );
   config->set_value( "default_percent_test", "0.05",
@@ -782,8 +782,8 @@ main( int argc, char* argv[] )
     config->get_value< std::string >( "groundtruth_style" );
   std::string pipeline_file =
     config->get_value< std::string >( "augmentation_pipeline" );
-  std::string augmented_input_cache =
-    config->get_value< std::string >( "augmentation_input_cache" );
+  std::string augmented_cache =
+    config->get_value< std::string >( "augmentation_cache" );
   bool check_override =
     config->get_value< bool >( "check_override" );
   double threshold =
@@ -800,9 +800,9 @@ main( int argc, char* argv[] )
     pipeline_file = g_params.opt_pipeline_file;
   }
 
-  if( !augmented_input_cache.empty() )
+  if( !augmented_cache.empty() )
   {
-    create_folder( augmented_input_cache );
+    create_folder( augmented_cache );
   }
 
   std::vector< std::string > image_extensions, groundtruth_extensions;
@@ -917,7 +917,7 @@ main( int argc, char* argv[] )
 
       if( augmentation_pipe )
       {
-        filtered_image_file = get_augmented_filename( image_file, augmented_input_cache );
+        filtered_image_file = get_augmented_filename( image_file, augmented_cache );
 
         if( !run_pipeline_on_image( augmentation_pipe, image_file, filtered_image_file ) )
         {
