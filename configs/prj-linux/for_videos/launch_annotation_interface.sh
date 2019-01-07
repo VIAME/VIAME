@@ -3,7 +3,7 @@
 # Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
 
-# Processing options
+# Core processing options
 export INPUT_DIRECTORY=videos
 export CACHE_DIRECTORY=database
 export FRAME_RATE=5

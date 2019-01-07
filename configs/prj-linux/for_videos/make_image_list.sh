@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Processing options
+# Core processing options
 export INPUT_DIRECTORY=frames/*
 export IMAGE_EXTENSION=*
 

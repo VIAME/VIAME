@@ -3,7 +3,7 @@
 # Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
 
-# Processing options
+# Core processing options
 export INPUT_LIST=input_list.txt
 export INPUT_FRAME_RATE=1
 export PROCESS_FRAME_RATE=1
@@ -16,8 +16,11 @@ export PROCESS_FRAME_RATE=1
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/full_frame_classifier_svm.pipe \
-                -s input:video_filename=${INPUT_LIST} \
-                -s input:frame_time=${INPUT_FRAME_RATE} \
-                -s downsampler:target_frame_rate=${PROCESS_FRAME_RATE}
+# Extra resource utilization options
+export TOTAL_GPU_COUNT=1
+export PIPES_PER_GPU=1
 
+python ${VIAME_INSTALL}/configs/process_video.py \
+  -l ${INPUT_LIST} -ifrate ${INPUT_FRAME_RATE} -frate ${PROCESS_FRAME_RATE} \
+  -p pipelines/full_frame_classifier_svm.pipe \
+  -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}

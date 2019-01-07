@@ -3,9 +3,13 @@
 # Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
 
-# Processing options
+# Core processing options
 export INPUT_DIRECTORY=videos
 export FRAME_RATE=5
+
+# Extra resource utilization options
+export TOTAL_GPU_COUNT=1
+export PIPES_PER_GPU=1
 
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
@@ -13,6 +17,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 python ${VIAME_INSTALL}/configs/process_video.py \
   -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
   -p pipelines/tracker_default.tut.pipe \
+  -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU} \
   -s detector:detector:darknet:net_config=deep_training/yolo_v2.cfg \
   -s detector:detector:darknet:weight_file=deep_training/models/yolo_v2.backup \
   -s detector:detector:darknet:class_names=deep_training/yolo_v2.lbl \

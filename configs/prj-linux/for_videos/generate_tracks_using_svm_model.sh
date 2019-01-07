@@ -3,13 +3,18 @@
 # Path to VIAME installation
 export VIAME_INSTALL=/opt/noaa/viame
 
-# Processing options
+# Core processing options
 export INPUT_DIRECTORY=videos
 export FRAME_RATE=5
+
+# Extra resource utilization options
+export TOTAL_GPU_COUNT=1
+export PIPES_PER_GPU=1
 
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/process_video.py \
   -d ${INPUT_DIRECTORY} -frate ${FRAME_RATE} \
-  -p pipelines/tracker_use_svm_models.tut.pipe
+  -p pipelines/tracker_use_svm_models.tut.pipe \
+  -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}
