@@ -110,7 +110,7 @@ project_3d_bounds(kwiver::vital::vector_3d const& minpt,
   }
 
   vital::bounding_box<int> roi(i0, j0, i1, j1);
-  vital::bounding_box<int> img_bounds(0, imgwidth, 0, imgheight);
+  vital::bounding_box<int> img_bounds(0, 0, imgwidth, imgheight);
 
   return intersection<int>(roi, img_bounds);
 }
