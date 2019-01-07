@@ -110,6 +110,7 @@ create_type_trait( file_name, "kwiver:file_name", kwiver::vital::path_t );
 create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 create_type_trait( frame_rate, "kwiver:frame_rate", double );
+create_type_trait( kwiver_logical, "kwiver:logical", bool );
 
 create_type_trait( serialized_message, "kwiver:serialized_message", kwiver::vital::string_sptr );
 
@@ -149,5 +150,8 @@ create_port_trait( video_uid, video_uid, "Video UID value." );
 create_port_trait( frame_rate, frame_rate, "Video frame rate." );
 
 create_port_trait( serialized_message, serialized_message, "serialized data type" );
+
+create_port_trait( coordinate_system_updated, kwiver_logical, "Set to true if new reference frame is established." );
+create_port_trait( motion_heat_map, image, "Motion heat map." );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H
