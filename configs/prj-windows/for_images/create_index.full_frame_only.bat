@@ -17,9 +17,13 @@ REM is 2, then every other image will be processed.
 SET INPUT_FRAME_RATE=1
 SET PROCESS_FRAME_RATE=1
 
+REM Extra resource utilization options
+SET TOTAL_GPU_COUNT=1
+SET PIPES_PER_GPU=1
+
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -l "%INPUT_LIST%" -ifrate %INPUT_FRAME_RATE% -frate %PROCESS_FRAME_RATE% -p pipelines\index_full_frame.res.pipe --build-index --ball-tree -archive-width %MAX_IMAGE_WIDTH% -archive-height %MAX_IMAGE_HEIGHT% -install "%VIAME_INSTALL%"
+python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -l "%INPUT_LIST%" -ifrate %INPUT_FRAME_RATE% -frate %PROCESS_FRAME_RATE% -p pipelines\index_full_frame.res.pipe -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU% --build-index --ball-tree -archive-width %MAX_IMAGE_WIDTH% -archive-height %MAX_IMAGE_HEIGHT% -install "%VIAME_INSTALL%"
 
 pause

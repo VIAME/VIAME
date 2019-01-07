@@ -13,9 +13,13 @@ REM input frame rate is 1 and the process frame rate is also 1, then every
 REM input image in the list will be processed. If the process frame rate
 REM is 2, then every other image will be processed.
 
+REM Extra resource utilization options
+SET TOTAL_GPU_COUNT=1
+SET PIPES_PER_GPU=1
+
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -l "%INPUT_LIST%" -ifrate %INPUT_FRAME_RATE% -frate %PROCESS_FRAME_RATE% -p pipelines\index_default.res.pipe --build-index --ball-tree -install "%VIAME_INSTALL%"
+python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -l "%INPUT_LIST%" -ifrate %INPUT_FRAME_RATE% -frate %PROCESS_FRAME_RATE% -p pipelines\index_default.res.pipe -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU% --build-index --ball-tree -install "%VIAME_INSTALL%"
 
 pause

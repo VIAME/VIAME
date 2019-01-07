@@ -7,11 +7,16 @@ REM Processing options
 SET INPUT_DIRECTORY=videos
 SET FRAME_RATE=5
 
+REM Extra resource utilization options
+SET TOTAL_GPU_COUNT=1
+SET PIPES_PER_GPU=1
+
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
   -d "%INPUT_DIRECTORY%" -frate %FRAME_RATE% ^
-  -p pipelines\full_frame_classifier_svm.pipe
+  -p pipelines\full_frame_classifier_svm.pipe ^
+  -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU% 
 
 pause
