@@ -39,11 +39,15 @@
 #include <vital/types/timestamp.h>
 #include <vital/exceptions/io.h>
 #include <vital/exceptions/video.h>
+#include <vital/klv/convert_metadata.h>
+#include <vital/klv/misp_time.h>
+#include <vital/klv/klv_data.h>
 #include <vital/util/tokenize.h>
 #include <vital/types/image_container.h>
 
 #include <kwiversys/SystemTools.hxx>
 
+#include <deque>
 #include <mutex>
 #include <memory>
 #include <vector>
@@ -76,6 +80,7 @@ public:
     f_start_time(-1),
     f_frame_number_offset(0),
     video_path(""),
+    metadata(0),
     frame_advanced(0),
     end_of_video(true),
     number_of_frames(0),
@@ -109,6 +114,12 @@ public:
 
   // Name of video we opened
   std::string video_path;
+
+  // the buffer of metadata from the data stream
+  std::deque<uint8_t> metadata;
+
+  // metadata converter object
+  kwiver::vital::convert_metadata converter;
 
   static std::mutex open_mutex;
 
@@ -275,9 +286,8 @@ public:
     }
     this->frame_advanced = 0;
 
-    // \todo - metada not implemented yet
     // clear the metadata from the previous frame
-    //this->metadata.clear();
+    this->metadata.clear();
 
     while (this->frame_advanced == 0 && av_read_frame(this->f_format_context, &this->f_packet) >= 0)
     {
@@ -305,13 +315,13 @@ public:
           this->f_pts = 0;
         }
       }
-      // \todo - No metadata support yet
-      //// grab the metadata from this packet if from the metadata stream
-      //else if (this->packet.stream_index == this->data_index)
-      //{
-      //  is_->metadata_.insert(is_->metadata_.end(), is_->packet_.data,
-      //    is_->packet_.data + is_->packet_.size);
-      //}
+
+      // grab the metadata from this packet if from the metadata stream
+      else if (this->f_packet.stream_index == this->f_data_index)
+      {
+        this->metadata.insert(this->metadata.end(), this->f_packet.data,
+          this->f_packet.data + this->f_packet.size);
+      }
 
       if (!this->frame_advanced)
       {
@@ -399,6 +409,66 @@ public:
     return static_cast<unsigned int>(
       (this->f_pts - this->f_start_time) / this->stream_time_base_to_frame()
       - static_cast<int>(this->f_frame_number_offset));
+  }
+
+  kwiver::vital::metadata_vector current_metadata()
+  {
+    kwiver::vital::metadata_vector retval;
+
+    // Copy the current raw metadata
+    std::deque<uint8_t> md_buffer = this->metadata;
+
+    kwiver::vital::klv_data klv_packet;
+
+    // If we have collected enough of the stream to make a KLV packet
+    while ( klv_pop_next_packet( md_buffer, klv_packet ) )
+    {
+      auto meta = std::make_shared<kwiver::vital::metadata>();
+
+      try
+      {
+        converter.convert( klv_packet, *(meta) );
+      }
+      catch ( kwiver::vital::metadata_exception const& e )
+      {
+        LOG_WARN( this->logger, "Metadata exception: " << e.what() );
+        continue;
+      }
+
+      // If the metadata was even partially decided, then add to the list.
+      if ( ! meta->empty() )
+      {
+        kwiver::vital::timestamp ts;
+        ts.set_frame( this->frame_number() );
+        // ts.set_time_usec( this->d_frame_time );
+
+        // meta->set_timestamp( ts );
+
+        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI,
+                                      video_path ) );
+        retval.push_back( meta );
+      } // end valid metadata packet.
+    } // end while
+
+    // if no metadata from the stream, add a basic metadata item
+    // containing video name and timestamp
+    if ( retval.empty() )
+    {
+      auto meta = std::make_shared<kwiver::vital::metadata>();
+      kwiver::vital::timestamp ts;
+      ts.set_frame(this->frame_number() );
+
+      // ts.set_time_usec(this->d_frame_time);
+
+      // meta->set_timestamp(ts);
+
+      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_URI,
+        video_path));
+
+      retval.push_back(meta);
+    }
+
+    return retval;
   }
 
 }; // end of internal class.
@@ -531,7 +601,7 @@ ffmpeg_video_input
   d->end_of_video = true;
   d->number_of_frames = 0;
   d->number_of_frames_valid = false;
-  //is_->metadata_.clear();
+  d->metadata.clear();
   if (d->f_video_stream)
   {
     avcodec_close(d->f_video_stream ->codec);
@@ -744,8 +814,7 @@ kwiver::vital::metadata_vector
 ffmpeg_video_input
 ::frame_metadata()
 {
-  LOG_INFO(this->logger(), "Metadata access isn't supported yet");
-  return kwiver::vital::metadata_vector();
+  return d->current_metadata();
 }
 
 

@@ -254,6 +254,13 @@ TEST_F(ffmpeg_video_input, read_video)
   while (input.next_frame(ts))
   {
     auto img = input.frame_image();
+    auto md = input.frame_metadata();
+
+    if (md.size() > 0)
+    {
+      std::cout << "-----------------------------------\n" << std::endl;
+      kwiver::vital::print_metadata( std::cout, *md[0] );
+    }
 
     ++num_frames;
     EXPECT_EQ(num_frames, ts.get_frame())
