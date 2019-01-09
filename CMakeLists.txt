@@ -180,6 +180,8 @@ else()
   set(BOOST_ROOT_ARG ${Boost_LIBRARY_DIR}/..)
 endif()
 
+add_definitions(-DKWIVER_DEFAULT_PLUGIN_ORGANIZATION="Kitware Inc.")
+
 # ===========================================================================================
 link_directories( ${KWIVER_BINARY_DIR}/lib )
 
