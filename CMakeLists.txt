@@ -243,10 +243,9 @@ endif()
 #############################################################################################
 # Marking source root for documentation generation
 #
-if (KWIVER_ENABLE_DOCS)
-  kwiver_create_doxygen( kwiver "${CMAKE_CURRENT_LIST_DIR}" )
-  kwiver_create_sphinx()
-endif()
+kwiver_create_doxygen( kwiver "${CMAKE_CURRENT_LIST_DIR}" )
+kwiver_create_sphinx()
+
 
 #############################################################################################
 # Top level installation
