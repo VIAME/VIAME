@@ -275,3 +275,37 @@ TEST_F(ffmpeg_video_input, read_video)
     << "Number of frames after extracting frames should be "
     << TOTAL_NUMBER_OF_FRAMES;
 }
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, metadata_map)
+{
+  // make config block
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  input.open(correct_file);
+
+  // Get metadata map
+  auto md_map = input.metadata_map()->metadata();
+
+  // Each frame of video should have some metadata
+  // at a minimum this is just the video name and timestamp
+  EXPECT_EQ( md_map.size(), input.num_frames() );
+
+  for ( auto md : md_map )
+  {
+    std::cout << "-----------------------------------\n" << std::endl;
+    kwiver::vital::print_metadata( std::cout, *md.second[0] );
+  }
+
+  if ( md_map.size() != input.num_frames() )
+  {
+    std::cout << "Found metadata on these frames: ";
+    for (auto md : md_map)
+    {
+      std::cout << md.first << ", ";
+    }
+    std::cout << std::endl;
+  }
+}
