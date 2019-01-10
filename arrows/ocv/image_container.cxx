@@ -112,28 +112,9 @@ image
 image_container
 ::ocv_to_vital(const cv::Mat& img, ColorMode cm)
 {
-  // if the cv::Mat has reference counted memory then wrap it to keep a
-  // counted reference too it.  If it doesn't own its memory, then the
-  // vital image won't take ownership either
-  image_memory_sptr memory;
-void* first_pixel = NULL;
-#ifndef KWIVER_HAS_OPENCV_VER_3
-  if ( !img.refcount )
-#else
-  if ( !img.u )
-#endif
-  {
-    memory = std::make_shared<mat_image_memory>(img);
-    first_pixel = img.data;
-  }
-  else
-  {
-    cv::Mat img_clone = img.clone();
-    memory = std::make_shared<mat_image_memory>(img_clone);
-    first_pixel = img_clone.data;
-  }
+  image_memory_sptr memory = std::make_shared<mat_image_memory>(img);
 
-  return image(memory, first_pixel, img.cols, img.rows, img.channels(),
+  return image(memory, img.data, img.cols, img.rows, img.channels(),
                img.channels(), img.step1(), 1,
                ocv_to_vital(img.type()));
 }
