@@ -137,7 +137,15 @@ read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name 
 
     // set up iterators for returning sets.
     d->m_current_idx = 0;
-    d->m_last_idx = d->m_detection_by_id.rbegin()->first;
+
+    if( d->m_detection_by_id.empty() )
+    {
+      d->m_last_idx = 0;
+    }
+    else
+    {
+      d->m_last_idx = d->m_detection_by_id.rbegin()->first;
+    }
   } // end first
 
   // External image name provided, use that
