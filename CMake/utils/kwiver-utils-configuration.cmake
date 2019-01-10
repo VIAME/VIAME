@@ -52,6 +52,10 @@ function(kwiver_configure_file name source dest)
   set(KWIVER_CONFIG_HELPER "kwiver-configure-helper.cmake")
   if(kwiver_configure_with_git)
     set(KWIVER_CONFIG_HELPER "kwiver-configure-git-helper.cmake")
+    # touch the source file to force this configuration to always run
+    # this is needed so that Git will run and detect repository state
+    # changes
+    file(TOUCH ${source})
   endif()
 
   add_custom_command(
