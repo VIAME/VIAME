@@ -4,6 +4,25 @@
 project( vital )
 
 ###
+# Generate verion.h
+#---------------------------------------------------------------------
+#
+
+# Use Git (if available) to add Git hash info to the version header
+set(kwiver_configure_with_git on)
+kwiver_configure_file(version.h
+  "${CMAKE_CURRENT_SOURCE_DIR}/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+  KWIVER_VERSION_MAJOR
+  KWIVER_VERSION_MINOR
+  KWIVER_VERSION_PATCH
+  KWIVER_VERSION
+  KWIVER_SOURCE_DIR
+  )
+set(kwiver_configure_with_git)
+
+
+###
 # KWSys
 #---------------------------------------------------------------------
 # Create the kwsys library for vital.
@@ -199,6 +218,7 @@ kwiver_install_headers(
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
+  ${CMAKE_CURRENT_BINARY_DIR}/version.h
   SUBDIR   vital
   NOPATH
   )

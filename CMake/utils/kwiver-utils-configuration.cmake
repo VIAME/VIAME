@@ -48,6 +48,12 @@ function(kwiver_configure_file name source dest)
       )
   endforeach()
   set(temp_file "${CMAKE_CURRENT_BINARY_DIR}/configure.${name}.output")
+
+  set(KWIVER_CONFIG_HELPER "kwiver-configure-helper.cmake")
+  if(kwiver_configure_with_git)
+    set(KWIVER_CONFIG_HELPER "kwiver-configure-git-helper.cmake")
+  endif()
+
   add_custom_command(
     OUTPUT  "${dest}"
     COMMAND "${CMAKE_COMMAND}"
@@ -55,7 +61,7 @@ function(kwiver_configure_file name source dest)
             "-D__SOURCE_PATH__:PATH=${source}"
             "-D__TEMP_PATH__:PATH=${temp_file}"
             "-D__OUTPUT_PATH__:PATH=${dest}"
-            -P "${KWIVER_CMAKE_ROOT}/tools/kwiver-configure-helper.cmake"
+            -P "${KWIVER_CMAKE_ROOT}/tools/${KWIVER_CONFIG_HELPER}"
     DEPENDS
             "${source}" ${mcf_DEPENDS}
     WORKING_DIRECTORY
