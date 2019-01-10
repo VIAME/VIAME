@@ -161,8 +161,7 @@ class AugmentedResnetFeatureExtractor(object):
             bbox_loader_class = AugmentedResnetDataLoader(bbox_list, self._transform, 
                     self.frame, self._img_size, self._rotational_shifts) 
         else:
-            raise ValueError("Trying to create AugmentedResnetDataLoader without
-                                a frame")
+            raise ValueError("Trying to create AugmentedResnetDataLoader without a frame")
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, 
                                 batch_size=self._b_size, shuffle=False, **kwargs)
         

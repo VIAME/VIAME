@@ -39,10 +39,7 @@ from torch import nn
 import numpy as np
 import scipy as sp
 import scipy.optimize
-import threading
-
 from PIL import Image as pilImage
-
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 from vital.types import Image
@@ -55,7 +52,7 @@ from kwiver.arrows.pytorch.models import Siamese
 from kwiver.arrows.pytorch.grid import Grid
 from kwiver.arrows.pytorch.SRNN_matching import SRNNMatching, RnnType
 from kwiver.arrows.pytorch.siamese_feature_extractor import SiameseFeatureExtractor
-from kwiver.arrows.pytorch.iou_tracker import IOUtracker
+from kwiver.arrows.pytorch.iou_tracker import IOUTracker
 from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 from kwiver.arrows.pytorch.gt_bbox import GTBBox, GTFileType
 from kwiver.arrows.pytorch.models import get_config
@@ -73,7 +70,6 @@ def ts2ot_list(track_set):
             if not ot.append(ot_state):
                 print('Error: Cannot add ObjectTrackState')
     return ot_list
-
 
 class SRNNTracker(KwiverProcess):
     # ----------------------------------------------
@@ -450,12 +446,12 @@ class SRNNTracker(KwiverProcess):
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
-    module_name = 'python:kwiver.pytorch.SRNNTracking'
+    module_name = 'python:kwiver.pytorch.SRNNTracker'
 
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.add_process('SRNNTracking', 'Structural RNN based tracking',
-                                SRNNTracking)
+    process_factory.add_process('SRNNTracker', 'Structural RNN based tracking',
+                                SRNNTracker)
 
     process_factory.mark_process_module_as_loaded(module_name)

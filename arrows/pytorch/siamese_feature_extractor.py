@@ -61,10 +61,10 @@ class SiameseDataLoader(data.Dataset):
         return im
 
     def __len__(self):
-        return len(self._bbox_list) if self._mot_flag else return self._bbox_list.size()
+        return len(self._bbox_list) if self._mot_flag else  self._bbox_list.size()
 
 
-class SiamesefeatureExtractor(object):
+class SiameseFeatureExtractor(object):
     """
     Obtain the appearance features from a trained pytorch siamese
     model
@@ -112,8 +112,7 @@ class SiamesefeatureExtractor(object):
             bbox_loader_class = SiameseDataLoader(bbox_list, self._transform, 
                                     self._frame, self._img_size, mot_flag)
         else:
-            raise ValueError("Trying to create SiameseDataLoader without
-                    providing frame")
+            raise ValueError("Trying to create SiameseDataLoader without providing frame")
 
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, 
                             batch_size=self._b_size, shuffle=False, **kwargs)

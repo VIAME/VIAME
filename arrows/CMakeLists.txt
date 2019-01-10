@@ -84,8 +84,6 @@ CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTORCH   "Enable pytorch arrow" OFF
 if( KWIVER_ENABLE_PYTHON )
   set(kwiver_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
   set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}")
-
-
   kwiver_create_python_plugin_init( kwiver/arrows )
   if( KWIVER_ENABLE_PYTORCH )
       #TODO Find Pytorch

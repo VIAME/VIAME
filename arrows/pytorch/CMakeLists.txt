@@ -2,25 +2,27 @@
 # Loadable algorithms
 
 if( KWIVER_ENABLE_PYTORCH )
-
   kwiver_create_python_plugin_init(kwiver/arrows/pytorch)
-  kwiver_create_python_plugin_init(kwiver/processes/pytorch)
+  
+  if ( KWIVER_ENABLE_PROCESSES )
+    kwiver_create_python_plugin_init(kwiver/processes/pytorch)
+    
+    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/SRNN_tracker.py
+      kwiver/processes/pytorch
+      SRNN_tracker)
+    
+    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/data_augmentation.py
+      kwiver/processes/pytorch
+      data_augmentation)
+    
+    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
+      kwiver/processes/pytorch
+      resnet_descriptors)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
-    kwiver/processes/pytorch
-    resnet_descriptors)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/SRNN_tracker.py
-    kwiver/processes/pytorch
-    SRNN_tracker)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
-    kwiver/processes/pytorch
-    seg_detection)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/data_augmentation.py
-    kwiver/processes/pytorch
-    data_augmentation)
+    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
+      kwiver/processes/pytorch
+      seg_detection)
+  endif()
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/siamese_feature_extractor.py
     kwiver/arrows/pytorch
@@ -50,9 +52,9 @@ if( KWIVER_ENABLE_PYTORCH )
     kwiver/arrows/pytorch
     SRNN_matching)
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/MOT_bbox.py
+  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/gt_bbox.py
     kwiver/arrows/pytorch
-    MOT_bbox)
+    gt_bbox)
 
   kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/seg_utils.py
     kwiver/arrows/pytorch
