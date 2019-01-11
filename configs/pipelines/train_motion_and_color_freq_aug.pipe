@@ -56,7 +56,7 @@ process float_to_byte
   endblock
 
 connect from motion_filter.image
-        to   float_type_byte.image
+        to   float_to_byte.image
 
 # ==================================================================================
 
