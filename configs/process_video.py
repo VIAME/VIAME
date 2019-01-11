@@ -252,8 +252,8 @@ def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
 # Process a single video
-def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='', gpu=None,
-                          write_track_time=True ):
+def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='',
+                          cpu=0, gpu=None, write_track_time=True ):
 
   if gpu is None:
     gpu = 0
@@ -576,18 +576,20 @@ if __name__ == "__main__" :
       if os.path.isfile( video_name ) or os.path.isdir( video_name ):
         video_queue.put( video_name )
 
-    def process_video_thread( gpu ):
+    def process_video_thread( gpu, cpu ):
       while True:
         try:
           video_name = video_queue.get_nowait()
         except queue.Empty:
           break
         process_video_kwiver( video_name, args, is_image_list,
-                              gpu=gpu, write_track_time=not is_image_list )
+                              cpu=cpu, gpu=gpu, write_track_time=not is_image_list )
 
-    gpu_thread_list = np.array( range( args.gpu_count * args.pipes ) ) / args.pipes
-    threads = [ threading.Thread( target = process_video_thread, args = (gpu,) )
-                for gpu in gpu_thread_list ]
+    gpu_thread_list = [ i for i in range( args.gpu_count) for _ in range( args.pipes ) ]
+    cpu_thread_list = range( args.gpu_count ) * args.pipes
+
+    threads = [ threading.Thread( target = process_video_thread, args = (gpu,cpu,) )
+                for gpu, cpu in zip( gpu_thread_list, cpu_thread_list ) ]
 
     for thread in threads:
       thread.start()
