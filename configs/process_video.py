@@ -586,7 +586,7 @@ if __name__ == "__main__" :
                               cpu=cpu, gpu=gpu, write_track_time=not is_image_list )
 
     gpu_thread_list = [ i for i in range( args.gpu_count) for _ in range( args.pipes ) ]
-    cpu_thread_list = range( args.gpu_count ) * args.pipes
+    cpu_thread_list = range( args.pipes ) * args.gpu_count
 
     threads = [ threading.Thread( target = process_video_thread, args = (gpu,cpu,) )
                 for gpu, cpu in zip( gpu_thread_list, cpu_thread_list ) ]
