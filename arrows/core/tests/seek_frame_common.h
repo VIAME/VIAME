@@ -68,6 +68,15 @@ void test_seek_frame( kwiver::vital::algo::video_input& vi )
     EXPECT_NE( requested_frame, ts.get_frame() );
   }
 
+  // Test valid seeks after invalid seeks
+  valid_seeks = {11, 32, 21, 43};
+
+  for (auto requested_frame : in_valid_seeks)
+  {
+    EXPECT_FALSE( vi.seek_frame( ts, requested_frame) );
+    EXPECT_NE( requested_frame, ts.get_frame() );
+  }
+
   EXPECT_EQ( 50, vi.num_frames() );
 }
 

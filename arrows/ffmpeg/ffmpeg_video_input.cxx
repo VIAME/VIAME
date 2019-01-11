@@ -447,7 +447,7 @@ public:
     // Quick return if the stream isn't open.
     if (!this->is_valid())
     {
-      return 0;
+      return static_cast<unsigned int>(-1);
     }
 
     return static_cast<unsigned int>(
@@ -520,7 +520,7 @@ public:
   */
   void process_loop_dependencies()
   {
-  // is stream open?
+    // is stream open?
     if ( ! this->is_opened() )
     {
       throw vital::file_not_read_exception( video_path, "Video not open" );
@@ -530,10 +530,17 @@ public:
     {
       std::lock_guard< std::mutex > lock( open_mutex );
 
-      number_of_frames = this->frame_number();
+      auto initial_frame_number = this->frame_number();
+
+      if ( !frame_advanced && !end_of_video )
+      {
+        initial_frame_number = 0;
+      }
 
       // Add metadata for current frame
-      if ( frame_advanced ){
+      if ( frame_advanced )
+      {
+        number_of_frames++;
         this->metadata_map.insert(
           std::make_pair( this->frame_number(), this->current_metadata() ) );
       }
@@ -552,9 +559,9 @@ public:
 
       // Advance back to original frame number
       unsigned int frame_num = 0;
-      while ( frame_num < this->frame_number() &&
-              this->advance() )
+      while ( frame_num < initial_frame_number && this->advance() )
       {
+        number_of_frames++;
         ++frame_num;
         this->metadata_map.insert(
           std::make_pair( this->frame_number(), this->current_metadata() ) );
@@ -728,7 +735,8 @@ bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
   // file to reset to start
   if (current_frame_number > frame_number)
   {
-    this->open(d->video_path); // Calls close on current video
+    d->close();
+    d->open( d->video_path );
     current_frame_number = this->frame_timestamp().get_frame();
   }
 

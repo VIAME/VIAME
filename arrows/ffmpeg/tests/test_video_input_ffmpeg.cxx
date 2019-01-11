@@ -35,8 +35,9 @@
 
 #include <test_gtest.h>
 
-#include <arrows/ffmpeg/ffmpeg_video_input.h>
 #include <arrows/core/tests/barcode_decode.h>
+#include <arrows/core/tests/seek_frame_common.h>
+#include <arrows/ffmpeg/ffmpeg_video_input.h>
 #include <vital/exceptions/io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -168,45 +169,63 @@ TEST_F(ffmpeg_video_input, frame_image)
 }
 
 // ----------------------------------------------------------------------------
-TEST_F(ffmpeg_video_input, seek)
+TEST_F(ffmpeg_video_input, seek_frame)
 {
   kwiver::arrows::ffmpeg::ffmpeg_video_input input;
-  EXPECT_TRUE(input.seekable()) << "Seekable";
 
   kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
 
-  EXPECT_FALSE(input.good())
-    << "Video state before open";
+  // open the video
+  input.open(correct_file);
+
+  test_seek_frame( input );
+
+  input.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, seek_then_next_frame)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
 
   // open the video
   input.open(correct_file);
-  EXPECT_FALSE(input.good())
-    << "Video state after open but before first frame";
-  EXPECT_EQ(input.frame_image(), nullptr) << "Video should not have an image yet";
 
-  kwiver::vital::timestamp ts;
+  test_seek_then_next( input );
 
-  // Test various valid seeks
-  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
-  { 3, 23, 46, 34, 50, 1 };
-  for (auto requested_frame : valid_seeks)
-  {
-    EXPECT_TRUE(input.seek_frame(ts, requested_frame));
-    EXPECT_EQ(requested_frame, ts.get_frame())
-      << "Frame number should match seek request";
+  input.close();
+}
 
-    auto img = input.frame_image();
-    EXPECT_EQ(ts.get_frame(), decode_barcode(*img))
-      << "Frame number should match barcode in frame image";
-  }
-  // Test various invalid seeks past end of video
-  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
-  { -3, -1, 0, 51, 55 };
-  for (auto requested_frame : in_valid_seeks)
-  {
-    EXPECT_FALSE(input.seek_frame(ts, requested_frame));
-    EXPECT_NE(requested_frame, ts.get_frame());
-  }
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, next_then_seek_frame)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  // open the video
+  input.open(correct_file);
+
+  test_next_then_seek( input );
+
+  input.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, next_then_seek_then_next)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input input;
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  // open the video
+  input.open(correct_file);
+
+  test_next_then_seek_then_next( input );
+
+  input.close();
 }
 
 // ----------------------------------------------------------------------------
