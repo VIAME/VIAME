@@ -25,7 +25,7 @@ process color_freq_filter
   :filter:type                                 vxl_color_commonality
 
   block filter:vxl_color_commonality
-    :color_hist_resolution_per_channel         16
+    :color_resolution_per_channel              16
     :internsity_hist_resolution                32
   endblock
 
