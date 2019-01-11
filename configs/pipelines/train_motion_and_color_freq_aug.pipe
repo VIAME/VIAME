@@ -11,57 +11,81 @@ process in_adapt
 process out_adapt
  :: output_adapter
 
+process image_reader
+ :: image_file_reader
+ :image_reader:type                            vxl
+
+connect from in_adapt.input_file_name
+        to   image_reader.image_file_name
+
 # ==================================================================================
 
-process split
-  :: split_image
-  :split_image:type                            ocv
-
-process depth_map
-  :: compute_stereo_depth_map
-  :computer:type                               ocv
-  :computer:ocv:num_disparities                256
-  :computer:ocv:sad_window_size                21
-
-process filter
+process color_freq_filter
   :: image_filter
-  :filter:type                                 ocv_enhancer
-  :filter:ocv_enhancer:apply_smoothing         false
-  :filter:ocv_enhancer:smooth_kernel           3
-  :filter:ocv_enhancer:apply_denoising         false
-  :filter:ocv_enhancer:denoise_kernel          3
-  :filter:ocv_enhancer:denoise_coeff           2
-  :filter:ocv_enhancer:auto_balance            false
-  :filter:ocv_enhancer:force_8bit              true
-  :filter:ocv_enhancer:apply_clahe             false
-  :filter:ocv_enhancer:clip_limit              20
-  :filter:ocv_enhancer:saturation              1.0
+  :filter:type                                 vxl_color_commonality
 
-process image_merger # This isn't implemented yet, maybe?
+  block filter:vxl_color_commonality
+    :color_hist_resolution_per_channel         16
+    :internsity_hist_resolution                32
+  endblock
+
+connect from image_reader.image
+        to   color_freq_filter.image
+
+process motion_filter
+  :: image_filter
+  :filter:type                                 vxl_average
+
+  block filter:vxl_average
+    :type                                      window
+    :window_size                               10
+    :round                                     false
+    :output_variance                           true
+  endblock
+
+connect from image_reader.image
+        to   motion_filter.image
+
+process float_to_byte
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :output_format                             byte
+    :scale_factor                              100.0
+  endblock
+
+connect from motion_filter.image
+        to   float_type_byte.image
+
+# ==================================================================================
+
+process image_merger
   :: merge_images
   :merge_images:type                           ocv
 
-connect from in_adapt.image
-        to   split.image
-
-connect from split.left_image
-        to   depth_map.left_image
-
-connect from split.right_image
-        to   depth_map.right_image
-
-connect from depth_map.depth_map
-        to   filter.image
-
-connect from split.left_image
+connect from image_reader.image
         to   image_merger.image1
-
-connect from filter.image
+connect from color_freq_filter.image
         to   image_merger.image2
+connect from float_to_byte.image
+        to   image_merger.image3
 
 # ==================================================================================
 
+process image_writer
+ :: image_writer
+ # :file_name_template                            image%04d.jpg
+ :image_writer:type                             vxl
+ :image_writer:vxl:split_planes                 true
+ 
+connect from in_adapt.output_file_name
+        to   image_writer.image_file_name
 connect from image_merger.image
-        to   out_adapt.image
+        to   image_writer.image
+
+connect from image_writer.success_flag
+        to   out_adapt.success_flag
+
 
 # -- end of file --

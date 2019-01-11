@@ -425,8 +425,8 @@ bool run_pipeline_on_image( pipeline_t& pipe,
   kwiver::adapter::adapter_data_set_t ids =
     kwiver::adapter::adapter_data_set::create();
 
-  ids->add_value( "input_filename", input_name );
-  ids->add_value( "output_filename", input_name );
+  ids->add_value( "input_file_name", input_name );
+  ids->add_value( "output_file_name", output_name );
 
   pipe->send( ids );
 
