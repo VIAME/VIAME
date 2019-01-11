@@ -2387,7 +2387,7 @@ initialize_cameras_landmarks_keyframe::priv
     double reproj_thresh = iterations < num_permissive_triangulation_iterations ? 50.0*interim_reproj_thresh : 5.0*interim_reproj_thresh;
     clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, reproj_thresh,3);
 
-    auto cc = connected_camera_components(cams->cameras(), lms, tracks);
+    auto cc = connected_camera_components(cams->T_cameras(), lms, tracks);
 
     if (cc.size() > 1)
     {
