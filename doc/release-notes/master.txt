@@ -24,6 +24,8 @@ Vital
    header. Added new plugin registrar class framework to simplify the
    registration process.
 
+ * Promoted version.h from sprokit to vital for use across all of KWIVER.
+
 Vital Tools
 
  * Converted tools to use applet plugin approach.
