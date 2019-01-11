@@ -6,7 +6,7 @@
 message(STATUS "Source Path       : '${__SOURCE_PATH__}'")
 message(STATUS "Intermediate Path : '${__TEMP_PATH__}'")
 message(STATUS "Output Path       : '${__OUTPUT_PATH__}'")
-message(STATUS "Project: '${KWIVER_SOURCE_DIR}'")
+message(STATUS "Project Root      : '${KWIVER_SOURCE_DIR}'")
 
 if(NOT EXISTS "${__SOURCE_PATH__}")
   message(FATAL_ERROR "Source file for configuration did not exist! -> ${__SOURCE_PATH__}")
