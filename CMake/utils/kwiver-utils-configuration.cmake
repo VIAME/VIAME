@@ -52,10 +52,12 @@ function(kwiver_configure_file name source dest)
   set(KWIVER_CONFIG_HELPER "kwiver-configure-helper.cmake")
   if(kwiver_configure_with_git)
     set(KWIVER_CONFIG_HELPER "kwiver-configure-git-helper.cmake")
-    # touch the source file to force this configuration to always run
+    # touch this status file to force the configuration to always run
     # this is needed so that Git will run and detect repository state
     # changes
-    file(TOUCH ${source})
+    set(stat_file "${CMAKE_CURRENT_BINARY_DIR}/configure.${name}.stat")
+    file(WRITE "${stat_file}"
+         "This file is touched to force ${name} to configure.")
   endif()
 
   add_custom_command(
@@ -67,7 +69,7 @@ function(kwiver_configure_file name source dest)
             "-D__OUTPUT_PATH__:PATH=${dest}"
             -P "${KWIVER_CMAKE_ROOT}/tools/${KWIVER_CONFIG_HELPER}"
     DEPENDS
-            "${source}" ${mcf_DEPENDS}
+            "${source}" ${mcf_DEPENDS} ${stat_file}
     WORKING_DIRECTORY
             "${CMAKE_CURRENT_BINARY_DIR}"
     COMMENT "Configuring ${name} file \"${source}\" -> \"${dest}\""
