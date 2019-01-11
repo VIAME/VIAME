@@ -458,7 +458,7 @@ color_commonality_filter
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
-  config->set_value( "color_resolution_per_chan", d->color_resolution_per_chan,
+  config->set_value( "color_resolution_per_channel", d->color_resolution_per_chan,
     "Resolution of the utilized histogram (per channel) if the input "
     "contains 3 channels." );
   config->set_value( "intensity_resolution", d->intensity_resolution,
@@ -493,9 +493,9 @@ color_commonality_filter
 
   // Settings for ccf
   d->color_resolution_per_chan =
-    config->get_value<unsigned>( "color_hist_resolution_per_chan" );
+    config->get_value<unsigned>( "color_resolution_per_channel" );
   d->intensity_resolution =
-    config->get_value<unsigned>( "intensity_hist_resolution" );
+    config->get_value<unsigned>( "intensity_resolution" );
   d->smooth_image =
     config->get_value<bool>("smooth_image");
   d->settings.output_scale_factor =
