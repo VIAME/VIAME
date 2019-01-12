@@ -40,7 +40,7 @@ process float_to_byte
 
   block filter:vxl_convert_image
     :output_format                             byte
-    :scale_factor                              100.0
+    :scale_factor                              1.0
   endblock
 
 connect from motion_filter.image

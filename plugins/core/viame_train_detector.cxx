@@ -464,6 +464,7 @@ std::string get_augmented_filename( std::string name, std::string output_dir = "
     full_path.push_back( output_dir );
   }
 
+  full_path.push_back( "/" );
   full_path.push_back( file_name + last_extension );
 
   std::string mod_path = kwiversys::SystemTools::JoinPath( full_path );
