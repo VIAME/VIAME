@@ -1,0 +1,62 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+process image_reader
+ :: image_file_reader
+ :image_reader:type                            vxl
+
+connect from in_adapt.input_file_name
+        to   image_reader.image_file_name
+
+# ==================================================================================
+
+process color_freq_filter
+  :: image_filter
+  :filter:type                                 vxl_color_commonality
+
+  block filter:vxl_color_commonality
+    :color_resolution_per_channel              16
+    :internsity_hist_resolution                32
+  endblock
+
+connect from image_reader.image
+        to   color_freq_filter.image
+
+# ==================================================================================
+
+process image_merger
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from image_reader.image
+        to   image_merger.image1
+connect from color_freq_filter.image
+        to   image_merger.image2
+
+# ==================================================================================
+
+process image_writer
+ :: image_writer
+ :image_writer:type                             vxl
+ :image_writer:vxl:split_planes                 false
+ 
+connect from in_adapt.output_file_name
+        to   image_writer.image_file_name
+connect from image_merger.image
+        to   image_writer.image
+
+connect from image_writer.success_flag
+        to   out_adapt.success_flag
+
+
+# -- end of file --
