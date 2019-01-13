@@ -181,7 +181,8 @@ bool list_files_in_folder( const std::string& location,
     else if( boost::filesystem::is_directory( *file_iter ) && search_subfolders )
     {
       std::vector< std::string > subfiles;
-      list_files_in_folder( file_iter->path().string(), subfiles, search_subfolders, extensions );
+      list_files_in_folder( file_iter->path().string(),
+        subfiles, search_subfolders, extensions );
 
       filepaths.insert( filepaths.end(), subfiles.begin(), subfiles.end() );
     }
