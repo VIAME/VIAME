@@ -456,6 +456,8 @@ std::string get_augmented_filename( std::string name, std::string output_dir = "
 
   std::vector<std::string> full_path;
 
+  full_path.push_back( "" );
+
   if( output_dir.empty() )
   {
     full_path.push_back( boost::filesystem::temp_directory_path().string() );
@@ -465,7 +467,6 @@ std::string get_augmented_filename( std::string name, std::string output_dir = "
     full_path.push_back( output_dir );
   }
 
-  full_path.push_back( "/" );
   full_path.push_back( file_name + last_extension );
 
   std::string mod_path = kwiversys::SystemTools::JoinPath( full_path );
