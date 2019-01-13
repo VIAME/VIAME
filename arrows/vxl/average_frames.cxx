@@ -172,13 +172,13 @@ void online_frame_averager<PixType>
   }
 
   // Calculate difference from last average
-  vil_math_image_difference( input, this->last_average_, dev1_tmp_space_ );
+  vil_math_image_abs_difference( input, this->last_average_, dev1_tmp_space_ );
 
   // Update internal average
   this->process_frame( input, average );
 
   // Update the variance
-  vil_math_image_difference( input, average, dev2_tmp_space_ );
+  vil_math_image_abs_difference( input, average, dev2_tmp_space_ );
   vil_math_image_product( dev1_tmp_space_, dev2_tmp_space_, dev1_tmp_space_ );
   variance.deep_copy( dev1_tmp_space_ );
 }
