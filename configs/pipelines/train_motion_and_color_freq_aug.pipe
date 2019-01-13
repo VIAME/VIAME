@@ -51,7 +51,7 @@ process float_to_byte
   :filter:type                                 vxl_convert_image
 
   block filter:vxl_convert_image
-    :output_format                             byte
+    :format                                    byte
     :scale_factor                              100.0
   endblock
 
