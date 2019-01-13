@@ -185,7 +185,7 @@ convert_image
     typedef vil_pixel_format_type_of<T >::component_type opix_t;       \
     vil_image_view< opix_t > output;                                   \
                                                                        \
-    if( d->scale_factor == 0.0 || d->scale_factor == 1.0 )             \
+    if( d->scale_factor == 0.0 )                                       \
     {                                                                  \
       vil_convert_cast( input, output );                               \
     }                                                                  \
