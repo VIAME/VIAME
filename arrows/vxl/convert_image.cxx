@@ -10,6 +10,7 @@
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
+#include <vil/vil_math.h>
 
 #include <limits>
 #include <type_traits>
@@ -69,6 +70,20 @@ void scale_image( const vil_image_view<InType>& src,
   }
 }
 
+template< typename Type >
+void combine_channels( const vil_image_view<Type>& src,
+                       vil_image_view<Type>& dst )
+{
+  if( src.nplanes() == 3 )
+  {
+    vil_convert_planes_to_grey( src, dst );
+  }
+  else
+  {
+    vil_math_mean_over_planes( src, dst );
+  }
+}
+
 } // end anonoymous namespace
 
 // --------------------------------------------------------------------------------------
@@ -78,7 +93,8 @@ class convert_image::priv
 public:
 
   priv()
-   : output_format( "byte" )
+   : format( "byte" )
+   , single_channel( false )
    , scale_factor( 0.0 )
   {
   }
@@ -87,7 +103,8 @@ public:
   {
   }
 
-  std::string output_format;
+  std::string format;
+  bool single_channel;
   double scale_factor;  
 };
 
@@ -111,10 +128,13 @@ convert_image
   // get base config from base class
   vital::config_block_sptr config = algorithm::get_configuration();
 
-  config->set_value( "output_format", d->output_format,
+  config->set_value( "format", d->format,
     "Output type format: byte, sbyte, float, double, uint16, uint32, etc." );
+  config->set_value( "single_channel", d->single_channel,
+    "Convert input (presumably multi-channel) to contain a single channel, using "
+    "either standard RGB to grayscale conversion weights, or averaging." );
   config->set_value( "scale_factor", d->scale_factor,
-    "Optional value scaling factor" );
+    "Optional input value scaling factor" );
 
   return config;
 }
@@ -131,7 +151,8 @@ convert_image
   config->merge_config( in_config );
 
   // Settings for conversion
-  d->output_format = config->get_value< std::string >( "output_format" );
+  d->format = config->get_value< std::string >( "format" );
+  d->single_channel = config->get_value< bool >( "single_channel" );
   d->scale_factor = config->get_value< double >( "scale_factor" );
 }
 
@@ -159,10 +180,11 @@ convert_image
 
   // Perform different actions based on input type
 #define HANDLE_OUTPUT_CASE(S,T)                                        \
-  if( d->output_format == S )                                     \
+  if( d->format == S )                                                 \
   {                                                                    \
     typedef vil_pixel_format_type_of<T >::component_type opix_t;       \
     vil_image_view< opix_t > output;                                   \
+                                                                       \
     if( d->scale_factor == 0.0 || d->scale_factor == 1.0 )             \
     {                                                                  \
       vil_convert_cast( input, output );                               \
@@ -171,6 +193,7 @@ convert_image
     {                                                                  \
       scale_image<ipix_t,opix_t>( input, output, d->scale_factor );    \
     }                                                                  \
+                                                                       \
     return std::make_shared< vxl::image_container >( output );         \
   }                                                                    \
 
@@ -178,10 +201,22 @@ convert_image
   case T:                                                              \
     {                                                                  \
       typedef vil_pixel_format_type_of<T >::component_type ipix_t;     \
-      vil_image_view< ipix_t > input = view;                           \
-      if( d->output_format == "disable" )                              \
+                                                                       \
+      if( d->format == "disable" )                                     \
       {                                                                \
         return image_data;                                             \
+      }                                                                \
+                                                                       \
+      vil_image_view< ipix_t > input;                                  \
+                                                                       \
+      if( d->single_channel )                                          \
+      {                                                                \
+        vil_image_view< ipix_t > tmp = view;                           \
+        combine_channels( tmp, input );                                \
+      }                                                                \
+      else                                                             \
+      {                                                                \
+        input = view;                                                  \
       }                                                                \
       HANDLE_OUTPUT_CASE("bool", VIL_PIXEL_FORMAT_BOOL);               \
       HANDLE_OUTPUT_CASE("byte", VIL_PIXEL_FORMAT_BYTE);               \
