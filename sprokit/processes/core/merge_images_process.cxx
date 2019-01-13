@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ namespace kwiver
 create_port_trait( image1, image, "Single frame first image." );
 create_port_trait( image2, image, "Single frame second image." );
 
-//----------------------------------------------------------------
+//-----------------------------------------------------------------------------
 // Private implementation class
 class merge_images_process::priv
 {
@@ -60,7 +60,7 @@ public:
   std::set< std::string > p_port_list;
 };
 
-// ================================================================
+// ============================================================================
 
 merge_images_process
 ::merge_images_process( kwiver::vital::config_block_sptr const& config )
@@ -78,7 +78,7 @@ merge_images_process
 }
 
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void merge_images_process
 ::_configure()
 {
@@ -106,30 +106,44 @@ void merge_images_process
 }
 
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 merge_images_process
 ::_step()
 {
   std::vector<kwiver::vital::image_container_sptr> image_list;
 
-  for ( const auto port_name : d->p_port_list ) {
+  for( const auto port_name : d->p_port_list )
+  {
     kwiver::vital::image_container_sptr image_sptr =
-        grab_from_port_as<kwiver::vital::image_container_sptr>( port_name );
-    image_list.push_back(image_sptr);
+      grab_from_port_as< kwiver::vital::image_container_sptr >( port_name );
+
+    image_list.push_back( image_sptr );
   }
 
   kwiver::vital::image_container_sptr output;
 
-  // Get feature tracks
-  output = d->m_images_merger->merge( image_list[0], image_list[1]);
+  // Merge images sequentially
+  if( image_list.empty() )
+  {
+    LOG_WARN( logger(), "No input images provided" );
+  }
+  else
+  {
+    output = image_list[0];
+  }
+
+  for( unsigned i = 1; i < image_list.size(); ++i )
+  {
+    output = d->m_images_merger->merge( output, image_list[i] );
+  }
 
   // Return by value
   push_to_port_using_trait( image, output);
 }
 
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void merge_images_process
 ::make_ports()
 {
@@ -138,15 +152,12 @@ void merge_images_process
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
-  // -- input --
-//  declare_input_port_using_trait( image1, required );
-//  declare_input_port_using_trait( image2, required );
-
+  // -- output --
   declare_output_port_using_trait( image, required );
 }
 
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void merge_images_process
 ::make_config()
 {
@@ -154,7 +165,7 @@ void merge_images_process
 }
 
 
-// ================================================================
+// ============================================================================
 merge_images_process::priv
 ::priv()
 {
@@ -183,9 +194,9 @@ merge_images_process
 
       // Create input port
       declare_input_port(
-          port_name,                                // port name
+          port_name,                   // port name
           image_port_trait::type_name, // port type
-          required,                                 // port flags
+          required,                    // port flags
           "image input" );
 
       d->p_port_list.insert( port_name );
