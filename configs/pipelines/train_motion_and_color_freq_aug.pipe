@@ -1,10 +1,10 @@
-# ============================== GLOBAL PROPERTIES =================================
+# ============================ GLOBAL PROPERTIES ===============================
 # global pipeline config
 #
 config _pipeline:_edge
    :capacity                                   10
 
-# ==================================================================================
+# ==============================================================================
 process in_adapt
  :: input_adapter
 
@@ -18,7 +18,7 @@ process image_reader
 connect from in_adapt.input_file_name
         to   image_reader.image_file_name
 
-# ==================================================================================
+# ==============================================================================
 
 process color_freq_filter
   :: image_filter
@@ -70,7 +70,7 @@ process float_to_byte
 connect from motion_filter.image
         to   float_to_byte.image
 
-# ==================================================================================
+# ==============================================================================
 
 process image_merger
   :: merge_images
@@ -83,12 +83,12 @@ connect from color_freq_filter.image
 connect from float_to_byte.image
         to   image_merger.image3
 
-# ==================================================================================
+# ==============================================================================
 
 process image_writer
  :: image_writer
  :image_writer:type                             vxl
- :image_writer:vxl:split_planes                 true
+ :image_writer:vxl:split_channels               true
  
 connect from in_adapt.output_file_name
         to   image_writer.image_file_name

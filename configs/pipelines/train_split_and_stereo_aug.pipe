@@ -1,65 +1,90 @@
-# ============================== GLOBAL PROPERTIES =================================
+# ============================ GLOBAL PROPERTIES ===============================
 # global pipeline config
 #
 config _pipeline:_edge
    :capacity                                   10
 
-# ==================================================================================
+# ==============================================================================
 process in_adapt
  :: input_adapter
 
 process out_adapt
  :: output_adapter
 
-# ==================================================================================
+process image_reader
+ :: image_file_reader
+ :image_reader:type                            vxl
+
+connect from in_adapt.input_file_name
+        to   image_reader.image_file_name
+
+# ==============================================================================
 
 process split
   :: split_image
   :split_image:type                            ocv
 
+connect from image_reader.image
+        to   split.image
+
 process depth_map
   :: compute_stereo_depth_map
   :computer:type                               ocv
-  :computer:ocv:num_disparities                256
-  :computer:ocv:sad_window_size                21
 
-process filter
-  :: image_filter
-  :filter:type                                 ocv_enhancer
-  :filter:ocv_enhancer:apply_smoothing         false
-  :filter:ocv_enhancer:smooth_kernel           3
-  :filter:ocv_enhancer:apply_denoising         false
-  :filter:ocv_enhancer:denoise_kernel          3
-  :filter:ocv_enhancer:denoise_coeff           2
-  :filter:ocv_enhancer:auto_balance            false
-  :filter:ocv_enhancer:force_8bit              true
-  :filter:ocv_enhancer:apply_clahe             false
-  :filter:ocv_enhancer:clip_limit              20
-  :filter:ocv_enhancer:saturation              1.0
-
-process image_merger
-  :: merge_images
-  :merge_images:type                           ocv
-
-connect from in_adapt.image
-        to   split.image
+  block computer:ocv
+    :num_disparities                           256
+    :sad_window_size                           21
+  endblock
 
 connect from split.left_image
         to   depth_map.left_image
 connect from split.right_image
         to   depth_map.right_image
 
+process filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+
+  block filter:ocv_enhancer
+    :apply_smoothing                           false
+    :smooth_kernel                             3
+    :apply_denoising                           false
+    :denoise_kernel                            3
+    :denoise_coeff                             2
+    :auto_balance                              false
+    :force_8bit                                true
+    :apply_clahe                               false
+    :clip_limit                                20
+    :saturation                                1.0
+  endblock
+
 connect from depth_map.depth_map
         to   filter.image
+
+# ==============================================================================
+
+process image_merger
+  :: merge_images
+  :merge_images:type                           ocv
 
 connect from split.left_image
         to   image_merger.image1
 connect from filter.image
         to   image_merger.image2
 
-# ==================================================================================
+# ==============================================================================
 
+process image_writer
+ :: image_writer
+ :image_writer:type                             vxl
+ :image_writer:vxl:split_channels               false
+
+connect from in_adapt.output_file_name
+        to   image_writer.image_file_name
 connect from image_merger.image
-        to   out_adapt.image
+        to   image_writer.image
+
+connect from image_writer.success_flag
+        to   out_adapt.success_flag
 
 # -- end of file --
