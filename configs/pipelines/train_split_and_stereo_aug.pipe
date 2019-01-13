@@ -46,7 +46,6 @@ connect from in_adapt.image
 
 connect from split.left_image
         to   depth_map.left_image
-
 connect from split.right_image
         to   depth_map.right_image
 
@@ -55,7 +54,6 @@ connect from depth_map.depth_map
 
 connect from split.left_image
         to   image_merger.image1
-
 connect from filter.image
         to   image_merger.image2
 

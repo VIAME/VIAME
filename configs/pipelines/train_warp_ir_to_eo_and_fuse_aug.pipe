@@ -37,7 +37,7 @@ process filter
   :filter:ocv_enhancer:clip_limit              20
   :filter:ocv_enhancer:saturation              1.0
 
-process image_merger # This isn't implemented yet, maybe?
+process image_merger
   :: merge_images
   :merge_images:type                           ocv
 
