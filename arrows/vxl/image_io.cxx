@@ -215,7 +215,7 @@ public:
   : force_byte(false),
     auto_stretch(false),
     manual_stretch(false),
-    split_planes(false),
+    split_channels(false),
     intensity_range(0, 255)
   {
   }
@@ -234,7 +234,7 @@ public:
   bool force_byte;
   bool auto_stretch;
   bool manual_stretch;
-  bool split_planes;
+  bool split_channels;
   vector_2d intensity_range;
 };
 
@@ -294,7 +294,7 @@ image_io
                       "data is encoded in 16-bit pixels");
   }
 
-  config->set_value("split_planes", d_->split_planes,
+  config->set_value("split_channels", d_->split_channels,
                     "When writing out images, if it contains more than 1 image "
                     "plane, write each plane out as a seperate image file");
 
@@ -319,8 +319,8 @@ image_io
                                               d_->auto_stretch);
   d_->manual_stretch = config->get_value<bool>("manual_stretch",
                                                d_->manual_stretch);
-  d_->split_planes = config->get_value<bool>("split_planes",
-                                             d_->split_planes);
+  d_->split_channels = config->get_value<bool>("split_channels",
+                                               d_->split_channels);
   d_->intensity_range = config->get_value<vector_2d>("intensity_range",
                                         d_->intensity_range.transpose());
 }
@@ -460,14 +460,14 @@ image_io
       {                                                                \
         vil_image_view<vxl_byte> img;                                  \
         d_->convert_image(img_pix_t, img);                             \
-        save_image(img, filename, d_->split_planes);                   \
+        save_image(img, filename, d_->split_channels);                 \
         return;                                                        \
       }                                                                \
       else                                                             \
       {                                                                \
         vil_image_view<pix_t> img;                                     \
         d_->convert_image(img_pix_t, img);                             \
-        save_image(img, filename, d_->split_planes);                   \
+        save_image(img, filename, d_->split_channels);                 \
         return;                                                        \
       }                                                                \
     }                                                                  \
@@ -495,7 +495,7 @@ image_io
       // minimum and maximum pixel values
       vil_image_view<vxl_byte> img;
       img = vil_convert_stretch_range(vxl_byte(), view);
-      save_image(img, filename, d_->split_planes);
+      save_image(img, filename, d_->split_channels);
       return;
     }
     else if( d_->manual_stretch )
@@ -509,7 +509,7 @@ image_io
     {
       vil_image_view<vxl_byte> img;
       img = vil_convert_cast(vxl_byte(), view);
-      save_image(img, filename, d_->split_planes);
+      save_image(img, filename, d_->split_channels);
       return;
     }
   }
