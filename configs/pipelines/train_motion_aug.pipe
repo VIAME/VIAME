@@ -20,6 +20,18 @@ connect from in_adapt.input_file_name
 
 # ==================================================================================
 
+process rgb_to_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            true
+  endblock
+
+connect from image_reader.image
+        to   rgb_to_grey.image
+
 process motion_filter
   :: image_filter
   :filter:type                                 vxl_average
@@ -31,7 +43,7 @@ process motion_filter
     :output_variance                           true
   endblock
 
-connect from image_reader.image
+connect from rgb_to_grey.image
         to   motion_filter.image
 
 process float_to_byte
