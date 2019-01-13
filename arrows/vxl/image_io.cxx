@@ -200,6 +200,7 @@ save_image(const vil_image_view<inP>& src,
 
       std::vector<std::string> full_path;
       std::string plane_id = ( i > 0 ? "_" + std::to_string(i) : "" );
+      full_path.push_back("");
       full_path.push_back(parent_directory);
       full_path.push_back(file_name_no_ext + plane_id + file_extension);
       std::string plane_filename = kwiversys::SystemTools::JoinPath(full_path);
