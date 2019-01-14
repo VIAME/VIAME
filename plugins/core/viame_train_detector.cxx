@@ -1024,6 +1024,7 @@ main( int argc, char* argv[] )
     if( augmentation_pipe )
     {
       augmentation_pipe->send_end_of_input();
+      augmentation_pipe->wait();
     }
 
     if( !one_file_per_image )
