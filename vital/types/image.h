@@ -380,6 +380,20 @@ public:
   /// Return true if the pixels accessible in this image form a contiguous memory block
   bool is_contiguous() const;
 
+  /// Equality operator
+  /**
+   * Compares this image to another image to test equality.
+   *
+   * \param other image to compare with
+   *
+   * \note This function computes only "shallow" equality.  That is, the images
+   *       are considered equal if they point to the same memory and have the
+   *       dimensions and pixel step sizes.  Deep equality testing requires
+   *       stepping through and testing that the values of each pixel are the
+   *       same even if the memory and possibly memory layout differ.
+   */
+  bool operator==( image const& other ) const;
+
   /// Access pixels in the first channel of the image
   /**
    * \param i width position (x)

@@ -287,6 +287,20 @@ image
   return *this;
 }
 
+/// Equality operator
+bool image::
+operator==( image const& other ) const
+{
+  return  data_         == other.data_ &&
+          first_pixel_  == other.first_pixel_ &&
+          pixel_traits_ == other.pixel_traits_ &&
+          width_        == other.width_ &&
+          height_       == other.height_ &&
+          depth_        == other.depth_ &&
+          w_step_       == other.w_step_ &&
+          h_step_       == other.h_step_ &&
+          d_step_       == other.d_step_;
+}
 
 /// The size of the image data in bytes
 size_t
