@@ -93,12 +93,35 @@ public:
   cv::Mat get_Mat() const { return data_; }
 
   /// Convert an OpenCV cv::Mat to a VITAL image
+  /**
+   * This function constructs a vital::image from a cv::Mat and wraps the same
+   * memory.  If the memory is owned by the cv::Mat this function will use a
+   * mat_image_memory class to retain the original memory and reference
+   * counting.  If the cv::Mat does not own the memory, the vital::image will
+   * point to the same memory but also not take ownership.  That is
+   * vital::image::memory() will return nullptr.
+   */
   static vital::image ocv_to_vital(const cv::Mat& img, ColorMode cm);
 
   /// Convert an OpenCV cv::Mat type value to a vital::image_pixel_traits
   static vital::image_pixel_traits ocv_to_vital(int type);
 
   /// Convert a VITAL image to an OpenCV cv::Mat
+  /**
+  * This function constructs a cv::Mat from a vital::image and wraps the same
+  * memory whenever possible.  If the vital::image contains a mat_image_memory
+  * then the image data was originally created as a cv::Mat and this
+  * function will reconstruct the cv::Mat using the original memory and
+  * reference counting, if possible.  If the vital::image does not own its
+  * memory, then the wrapped cv::Mat will also not own the memory.
+  *
+  * The supported memory layouts are far more restricted in cv::Mat than in
+  * vital::image.  If the image is not of a compatible type and cannot be
+  * directly wrapped then the a new cv::Mat is allocated and the image is
+  * deep copied.  The same is true if the user requests a color mode other
+  * than the default BGR used by OpenCV.  The data will be copied into new
+  * memory and the color is converted.
+  */
   static cv::Mat vital_to_ocv(const vital::image& img, ColorMode cm);
 
   /// Convert a vital::image_pixel_traits to an OpenCV cv::Mat type integer
