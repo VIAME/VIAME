@@ -394,6 +394,20 @@ public:
    */
   bool operator==( image const& other ) const;
 
+  /// Inequality operator
+  /**
+  * Compares this image to another image to test inequality.
+  *
+  * \param other image to compare with
+  *
+  * \note This function computes only "shallow" inequality.  Refer to the
+  *       equality operator (==) for details.
+  */
+  bool operator!=(image const& other) const
+  {
+    return !(*this == other);
+  }
+
   /// Access pixels in the first channel of the image
   /**
    * \param i width position (x)
