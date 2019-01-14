@@ -189,6 +189,28 @@ TEST(image, assignment_operator)
 }
 
 // ----------------------------------------------------------------------------
+TEST(image, equality_operator)
+{
+  image_of<float> img{ 100, 75, 2 };
+  image img_assigned;
+  img_assigned = img;
+  EXPECT_EQ(img, img_assigned);
+  // test inequality operator matches equality operator
+  EXPECT_EQ(img != img_assigned, !(img == img_assigned));
+
+  // copy an image_of from a base image
+  image_of<float> img_assigned_again;
+  img_assigned_again = img_assigned;
+  EXPECT_EQ(img, img_assigned_again);
+
+  // make a deep copy of the image
+  // not considered equal by shallow comparison
+  image_of<float> img_deep_copy;
+  img_deep_copy.copy_from(img);
+  EXPECT_NE(img, img_deep_copy);
+}
+
+// ----------------------------------------------------------------------------
 TEST(image, set_size)
 {
   image img{ 10, 20, 4 };
