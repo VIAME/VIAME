@@ -487,8 +487,7 @@ public:
         // ts.set_time_usec( this->d_frame_time );
         meta->set_timestamp( ts );
 
-        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI,
-                                      video_path ) );
+        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
         retval.push_back( meta );
       } // end valid metadata packet.
     } // end while
@@ -503,8 +502,7 @@ public:
       // ts.set_time_usec(this->d_frame_time);
       meta->set_timestamp(ts);
 
-      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_URI,
-        video_path));
+      meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
 
       retval.push_back(meta);
     }
@@ -922,7 +920,6 @@ size_t
 ffmpeg_video_input
 ::num_frames() const
 {
-  // auto privateData = const_cast<ffmpeg_video_input::priv*>((d.get()));
   d->process_loop_dependencies();
 
   return d->number_of_frames;
