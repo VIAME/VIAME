@@ -391,6 +391,8 @@ public:
    *       dimensions and pixel step sizes.  Deep equality testing requires
    *       stepping through and testing that the values of each pixel are the
    *       same even if the memory and possibly memory layout differ.
+   *
+   * \sa   For deep equality comparison see equal_content
    */
   bool operator==( image const& other ) const;
 
