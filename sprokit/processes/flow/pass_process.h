@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2017 by Kitware, Inc.
+ * Copyright 2012-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,25 +68,32 @@ namespace sprokit
 class PROCESSES_FLOW_NO_EXPORT pass_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    pass_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~pass_process();
-  protected:
-    /**
-     * \brief Step the process.
-     */
-    void _step();
-  private:
-    class priv;
-    std::unique_ptr<priv> d;
+public:
+  PLUGIN_INFO( "pass",
+               "Pass a data stream through." )
+
+/**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+  pass_process( kwiver::vital::config_block_sptr const& config );
+  /**
+   * \brief Destructor.
+   */
+  ~pass_process();
+
+
+protected:
+  /**
+   * \brief Step the process.
+   */
+  void _step();
+
+
+private:
+  class priv;
+  std::unique_ptr< priv > d;
 };
 
 }
