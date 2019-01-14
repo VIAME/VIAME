@@ -249,11 +249,30 @@ protected:
 typedef std::shared_ptr< image_memory > image_memory_sptr;
 
 
-// ==================================================================
+// ===========================================================================
 /// The representation of an in-memory image.
 /**
- * Images share memory using the image_memory class.  This is
- * effectively a view on an image.
+ * This image class supports two modes of memory management.  Either the image
+ * owns its memory or it does not.  If the image owns its memory the
+ * image::memory() function will return a shared pointer to that image_memory
+ * object.  Otherwise, image::memory() will return nullptr.  In both cases,
+ * image::first_pixel() returns a pointer to the first pixel of the memory
+ * that appears in the image.  The address of the first pixel does not need
+ * to match the starting address of the image_memory.  There can be multiple
+ * different views into the same memory (e.g. a cropped image view) and these
+ * views may use the same memory object with a different offsets to the first
+ * pixel, size, and step parameters.
+ *
+ * Typically the image manages its own memory in a reference counted
+ * image_memory object.  Creating a new image will allocate this memory, which
+ * can be accessed from image::memory().  Copying an image will make a shallow
+ * copy refering to the same memory object, and the memory will be deleted
+ * when all images are done with it.
+ *
+ * There is a special constructor that allows construction of an image as a
+ * veiw into some existing memory.  In this case the image does not own the
+ * memory and image::memory() will return nullptr.  The user must ensure that
+ * the memory exists for the lifetime of the image.
  */
 class VITAL_EXPORT image
 {
