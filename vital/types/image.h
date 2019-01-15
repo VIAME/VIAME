@@ -252,6 +252,17 @@ typedef std::shared_ptr< image_memory > image_memory_sptr;
 // ===========================================================================
 /// The representation of an in-memory image.
 /**
+ * This base image class represents an image with a dynamic data type.  The
+ * underlying data type can be queried using pixel_traits().  To properly
+ * access individual pixels the data type must be known.  The templated at<T>()
+ * member function provides direct access to pixels.  Alternatively, cast the
+ * image itself into an image_of object.  The typed image_of class is a bit
+ * easier to work with once the type is known, but this base class is useful
+ * in APIs that may operate on images of various types.
+ *
+ * Memory Management
+ * -----------------
+ *
  * This image class supports two modes of memory management.  Either the image
  * owns its memory or it does not.  If the image owns its memory the
  * image::memory() function will return a shared pointer to that image_memory
