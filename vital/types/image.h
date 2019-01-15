@@ -219,7 +219,7 @@ public:
    * \param other image_memory to copy from.
    */
   image_memory& operator=( const image_memory& other );
-  
+
   /// Equality operator
   /**
    * Compares the data in other image memory with this image data.
@@ -352,9 +352,29 @@ public:
   const image& operator=( const image& other );
 
   /// Const access to the image memory
+  /**
+   * \copydoc image::memory()
+   */
   const image_memory_sptr& memory() const { return data_; }
 
   /// Access to the image memory
+  /**
+   * In most cases, when interacting with image data, you should use the
+   * first_pixel() function instead of memory().  The memory() function
+   * provides access to the underlying reference counted memory for advanced
+   * memory management applications.  It returns a block of data that contains
+   * the image somewhere within.  The block of data may contain only the
+   * pixels in this image, but it could also contain much more hidden data
+   * if the image is a crop or subsampling of an original image that was
+   * larger.  The blocks of memory are typically shared between copies of
+   * this image, and each copy may have a different view into the memory.
+   *
+   * This function may also return \c nullptr for a valid image that is a
+   * view into some external memory (first_pixel() is still valid in this
+   * case).  Use caution when accessing the memory directly and always check
+   * that the memory is not \c nullptr.  Never assume that the image data
+   * must be contained in the memory block returned by this function.
+   */
   image_memory_sptr memory() { return data_; }
 
   /// The size of the image managed data in bytes
@@ -370,15 +390,27 @@ public:
 
   /// Const access to the pointer to first image pixel
   /**
-   * This may differ from \a data() if the image is a
-   * window into a large image memory chunk.
+   * \copydoc image::first_pixel()
    */
   const void* first_pixel() const { return first_pixel_; }
 
   /// Access to the pointer to first image pixel
   /**
-   * This may differ from \a data() if the image is a
-   * window into a larger image memory chunk.
+   * Returns a raw void pointer to the first pixel in the image.
+   * This is the starting point for iterating through the image using
+   * offsets of w_step(), h_step(), and d_step().  See also
+   * image_of::first_pixel() for a variant of this function that
+   * returns a pointer to the underlying pixel type.
+   *
+   * \note the address returned may differ from the starting address
+   * returned by image::memory() if the image is a window into a larger
+   * block of image memory.
+   *
+   * \note If the address returned is not \c nullptr but image::memory()
+   * returns \c nullptr, then this image is a view into external memory
+   * not owned by this image object.
+   *
+   * \sa image_of::first_pixel()
    */
   void* first_pixel() { return first_pixel_; }
 
@@ -408,7 +440,7 @@ public:
 
   /// Equality operator
   /**
-   * Compares this image to another image. Uses image data, pixel trait and image 
+   * Compares this image to another image. Uses image data, pixel trait and image
    * dimension for comparision
    * \param other image to compare with
    */
