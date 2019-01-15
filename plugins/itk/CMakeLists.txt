@@ -25,3 +25,52 @@ target_link_libraries( itk_3_transform_point_set_and_image ${ITK_LIBRARIES} )
 
 kwiver_add_executable( itk_seal_registration SealRegistration.cxx )
 target_link_libraries( itk_seal_registration ${ITK_LIBRARIES} )
+
+if( VIAME_ENABLE_VXL )
+
+  set( plugin_headers
+    SealRegistrationProcess.h
+    )
+
+  set( plugin_sources
+    SealRegistrationProcess.cxx
+    )
+
+  kwiver_install_headers(
+    SUBDIR     viame
+    ${plugin_headers}
+    )
+
+  kwiver_install_headers(
+    ${CMAKE_CURRENT_BINARY_DIR}/viame_itk_export.h
+    NOPATH   SUBDIR     viame
+    )
+
+  kwiver_add_library( viame_itk
+    ${plugin_headers}
+    ${plugin_sources}
+    )
+
+  target_link_libraries( viame_itk
+    PUBLIC               vital
+                         vital_algo
+                         vital_config
+                         vital_exceptions
+                         vital_logger
+                         vital_util
+                         kwiversys
+    )
+
+  set_target_properties( viame_itk PROPERTIES
+    SOVERSION            ${VIAME_VERSION_MAJOR}
+    )
+
+  algorithms_create_plugin( viame_itk
+    RegisterAlgorithms.cxx
+    )
+
+  target_link_libraries( viame_itk_plugin
+    PUBLIC               vital_vpm
+    )
+
+endif()
