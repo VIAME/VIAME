@@ -43,6 +43,7 @@
 #include <fstream>
 #include <ctime>
 
+#include <vital/math_constants.h>
 #include <vital/exceptions.h>
 #include <vital/io/eigen_io.h>
 
@@ -60,8 +61,6 @@
 #include <arrows/core/transform.h>
 #include <vital/algo/estimate_pnp.h>
 #include <arrows/core/sfm_utils.h>
-
-#define M_PI 3.141592653589793238462643383279
 
 using namespace kwiver::vital;
 
@@ -133,7 +132,7 @@ public:
   friend std::istream& operator>>(std::istream& s, rel_pose & rp);
 };
 
-const double rel_pose::target_angle = 20.0 * M_PI / 180.0;
+const double rel_pose::target_angle = 20.0 * deg_to_rad;
 
 /// output stream operator for a landmark base class
 std::ostream&
@@ -427,7 +426,7 @@ initialize_cameras_landmarks_keyframe::priv
   lm_triangulator(new core::triangulate_landmarks()),
   bundle_adjuster(),
   m_logger(vital::get_logger("arrows.core.initialize_cameras_landmarks_keyframe")),
-  m_thresh_triang_cos_ang(cos((M_PI / 180.0) * 2.0)),
+  m_thresh_triang_cos_ang(cos(deg_to_rad * 2.0)),
   m_rng(m_rd()),
   m_reverse_ba_error_ratio(2.0),
   m_enable_BA_callback(false),
@@ -3142,7 +3141,7 @@ initialize_cameras_landmarks_keyframe
                     "threshold to apply to triangulation in the first permissive rounds of "
                     "metadata based reconstruction initialization");
 
-  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
+  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang) * rad_to_deg;
   config->set_value("feature_angle_threshold", ang_thresh_cur,"feature must have this triangulation angle to keep");
 
   config->set_value("do_final_sfm_cleaning",
@@ -3289,10 +3288,10 @@ initialize_cameras_landmarks_keyframe
 
   m_priv->m_base_camera.set_intrinsics(K2.clone());
 
-  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
+  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang) * rad_to_deg;
   double ang_thresh_config = config->get_value("feature_angle_threshold", ang_thresh_cur);
 
-  m_priv->m_thresh_triang_cos_ang = cos((M_PI / 180.0) * ang_thresh_config);
+  m_priv->m_thresh_triang_cos_ang = cos(deg_to_rad * ang_thresh_config);
 
 
 
