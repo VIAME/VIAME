@@ -72,13 +72,14 @@ enum{
   COL_CONFIDENCE// 18
 };
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 class detected_object_set_input_kw18::priv
 {
 public:
   priv( detected_object_set_input_kw18* parent )
     : m_parent( parent )
     , m_first( true )
+    , m_default_type( "-" )
   { }
 
   ~priv() { }
@@ -87,6 +88,7 @@ public:
 
   detected_object_set_input_kw18* m_parent;
   bool m_first;
+  std::string m_default_type;
 
   int m_current_idx;
   int m_last_idx;
@@ -100,7 +102,7 @@ public:
 };
 
 
-// ==================================================================
+// ============================================================================
 detected_object_set_input_kw18::
 detected_object_set_input_kw18()
   : d( new detected_object_set_input_kw18::priv( this ) )
@@ -115,15 +117,16 @@ detected_object_set_input_kw18::
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 detected_object_set_input_kw18::
 set_configuration(vital::config_block_sptr config)
 {
+  d->m_default_type = config->get_value<std::string>("default_type", d->m_default_type );
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool
 detected_object_set_input_kw18::
 check_configuration(vital::config_block_sptr config) const
@@ -132,7 +135,7 @@ check_configuration(vital::config_block_sptr config) const
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool
 detected_object_set_input_kw18::
 read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name )
@@ -180,7 +183,7 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 detected_object_set_input_kw18::
 new_stream()
@@ -189,7 +192,7 @@ new_stream()
 }
 
 
-// ==================================================================
+// ============================================================================
 void
 detected_object_set_input_kw18::priv::
 read_all()
@@ -280,7 +283,7 @@ read_all()
       }
       else
       {
-        dot->set_score( "-", conf );
+        dot->set_score( m_default_type, conf );
       }
 
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
