@@ -45,7 +45,8 @@ namespace arrows {
 namespace core {
 
 // field numbers for KW18 file format
-enum{
+enum
+{
   COL_ID = 0,   // 0: Object ID
   COL_LEN,      // 1: Track length (always 1 for detections)
   COL_FRAME,    // 2: in this case, set index
@@ -76,6 +77,7 @@ public:
     , m_logger( vital::get_logger( "read_object_track_set_kw18" ) )
     , m_first( true )
     , m_batch_load( true )
+    , m_default_type( "-" )
     , m_delim( " " )
     , m_current_idx( 0 )
     , m_last_idx( 1 )
@@ -87,6 +89,7 @@ public:
   vital::logger_handle_t m_logger;
   bool m_first;
   bool m_batch_load;
+  std::string m_default_type;
   std::string m_delim;
 
   vital::frame_id_t m_current_idx;
@@ -142,6 +145,7 @@ read_object_track_set_kw18
 {
   d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
   d->m_batch_load = config->get_value<bool>( "batch_load", d->m_batch_load );
+  d->m_default_type = config->get_value<std::string>( "default_type", d->m_default_type );
 }
 
 
@@ -281,6 +285,27 @@ read_object_track_set_kw18::priv
     // Create new detection
     vital::detected_object_sptr det =
       std::make_shared< vital::detected_object >( bbox, conf );
+
+    if( m_track_ids.empty() )
+    {
+      det = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
+    }
+    else
+    {
+      kwiver::vital::detected_object_type_sptr dot =
+        std::make_shared<kwiver::vital::detected_object_type>();
+
+      if( m_track_ids.find( track_index ) != m_track_ids.end() )
+      {
+        dot->set_score( m_track_ids[track_index], ( conf == -1.0 ? 1.0 : conf ) );
+      }
+      else
+      {
+        dot->set_score( m_default_type, conf );
+      }
+
+      det = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+    }
 
     // Create new object track state
     vital::track_state_sptr ots =
