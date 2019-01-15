@@ -71,7 +71,8 @@ class KWIVER_PROCESSES_NO_EXPORT merge_images_process
 
     class priv;
     const std::unique_ptr<priv> d;
- }; // end class merge_images_process
+
+}; // end class merge_images_process
 
 
 } // end namespace

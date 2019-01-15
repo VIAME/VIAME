@@ -45,11 +45,8 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver
 {
 
-create_port_trait( image1, image, "Single frame first image." );
-create_port_trait( image2, image, "Single frame second image." );
 
 // ----------------------------------------------------------------------------
-
 // Private implementation class
 class merge_images_process::priv
 {
@@ -62,7 +59,6 @@ public:
 };
 
 // ============================================================================
-
 merge_images_process
 ::merge_images_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
