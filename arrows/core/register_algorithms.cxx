@@ -59,7 +59,7 @@
 #include <arrows/core/filter_features_magnitude.h>
 #include <arrows/core/filter_features_scale.h>
 #include <arrows/core/filter_tracks.h>
-#include <arrows/core/formulate_query_core.h>
+#include <arrows/core/handle_descriptor_request_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
 #include <arrows/core/initialize_cameras_landmarks_keyframe.h>
@@ -68,6 +68,7 @@
 #include <arrows/core/keyframe_selector_basic.h>
 #include <arrows/core/match_features_fundamental_matrix.h>
 #include <arrows/core/match_features_homography.h>
+#include <arrows/core/uv_unwrap_mesh.h>
 #include <arrows/core/read_object_track_set_kw18.h>
 #include <arrows/core/read_track_descriptor_set_csv.h>
 #include <arrows/core/track_features_augment_keyframes.h>
@@ -142,7 +143,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< filter_features_magnitude >( vpm );
   register_algorithm< filter_features_scale >( vpm );
   register_algorithm< filter_tracks >( vpm );
-  register_algorithm< formulate_query_core >( vpm );
+  register_algorithm< handle_descriptor_request_core >( vpm );
   register_algorithm< hierarchical_bundle_adjust >( vpm );
   register_algorithm< initialize_cameras_landmarks >( vpm );
   register_algorithm< initialize_cameras_landmarks_keyframe >(vpm);
@@ -156,6 +157,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   register_algorithm< track_features_augment_keyframes >( vpm );
   register_algorithm< track_features_core >( vpm );
   register_algorithm< triangulate_landmarks >( vpm );
+  register_algorithm< uv_unwrap_mesh >( vpm );
   register_algorithm< video_input_filter >( vpm );
   register_algorithm< video_input_image_list >( vpm );
   register_algorithm< video_input_pos >( vpm );

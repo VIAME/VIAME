@@ -31,6 +31,7 @@
 #include <vital/types/object_track_set.h>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 
 typedef kwiver::vital::object_track_state obj_track_state;
 typedef kwiver::vital::object_track_set obj_track_set;

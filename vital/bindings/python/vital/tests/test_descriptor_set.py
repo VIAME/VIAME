@@ -37,7 +37,7 @@ import unittest
 
 import numpy
 
-from vital.types import Descriptor, DescriptorSet
+from vital.types import new_descriptor, DescriptorSet
 
 
 class TestDescriptorSet (unittest.TestCase):
@@ -49,9 +49,9 @@ class TestDescriptorSet (unittest.TestCase):
     def test_new_with_descriptors(self):
         # Try creating a descriptor set with multiple descriptors as input.
         descriptor_list = [
-            Descriptor(1),
-            Descriptor(1),
-            Descriptor(1),
+            new_descriptor(1),
+            new_descriptor(1),
+            new_descriptor(1),
         ]
         ds = DescriptorSet(descriptor_list)
 
@@ -67,7 +67,7 @@ class TestDescriptorSet (unittest.TestCase):
         # Check that size accurately report number of descriptors constructed
         # with.
         d_list = [
-            Descriptor(),
+            new_descriptor(),
         ]
         ds = DescriptorSet(d_list)
         self.assertEqual(ds.size(), 1)
@@ -83,9 +83,9 @@ class TestDescriptorSet (unittest.TestCase):
     def test_get_descriptors_multiple(self):
         # Test getting descriptors given to the set in its constructor.
         d_list = [
-            Descriptor(1),
-            Descriptor(2),
-            Descriptor(3),
+            new_descriptor(1),
+            new_descriptor(2),
+            new_descriptor(3),
         ]
         d_list[0][:] = [0]
         d_list[1][:] = [1, 2]

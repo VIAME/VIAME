@@ -173,16 +173,17 @@ class KwiverProcess(process.PythonProcess):
                             datum.Datum.get_track_set,
                             datum.new_track_set)
         self.add_type_trait("feature_track_set", "kwiver:feature_track_set",
-                            datum.Datum.get_track_set,
-                            datum.new_track_set)
+                            datum.Datum.get_feature_track_set,
+                            datum.new_feature_track_set)
         self.add_type_trait("object_track_set", "kwiver:object_track_set",
-                            datum.Datum.get_track_set,
-                            datum.new_track_set)
+                            datum.Datum.get_object_track_set,
+                            datum.new_object_track_set)
 
         self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
         self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
-        self.add_type_trait("image_file_name", "kwiver:image_file_name")
-        self.add_type_trait("video_file_name", "kwiver:video_file_name")
+        self.add_type_trait("file_name", "kwiver:file_name",
+                            datum.Datum.get_string,
+                            datum.new_string)
         self.add_type_trait("matrix_d", "kwiver:matrix_d")
 
         self.add_type_trait("double_vector", "kwiver:d_vector",
@@ -191,6 +192,9 @@ class KwiverProcess(process.PythonProcess):
         self.add_type_trait("string_vector", "kwiver:string_vector",
                             datum.Datum.get_string_vector,
                             datum.new_string_vector)
+        self.add_type_trait("uchar_vector", "kwiver:uchar_vector",
+                            datum.Datum.get_uchar_vector,
+                            datum.new_uchar_vector)
 
         #                   port-name    type-trait-name    description
         self.add_port_trait("timestamp", "timestamp",
@@ -211,10 +215,12 @@ class KwiverProcess(process.PythonProcess):
                             "Set of object tracks")
         self.add_port_trait("homography_src_to_ref", "homography_src_to_ref",
                             "Source image to ref image homography.")
-        self.add_port_trait("image_file_name", "image_file_name",
+        self.add_port_trait("file_name", "file_name",
+                            "Name of some generic file.")
+        self.add_port_trait("image_file_name", "file_name",
                             "Name of an image file. Usually a single frame of "
-                            "a video.")
-        self.add_port_trait("video_file_name", "video_file_name",
+                            "a video or image sequence.")
+        self.add_port_trait("video_file_name", "file_name",
                             "Name of video file.")
         self.add_port_trait("matrix_d", "matrix_d",
                             "2-dimensional double matrix.")

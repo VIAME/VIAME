@@ -33,8 +33,6 @@
 
 #include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 #include <vital/algo/data_serializer.h>
-#include <vital/types/protobuf/string.pb.h>
-
 
 namespace kwiver {
 namespace arrows {
@@ -50,8 +48,7 @@ public:
   static constexpr char const* name = "kwiver:string";
 
   static constexpr char const* description =
-    "Serializes a string  using protobuf notation. "
-    "This implementation only handles a single data item.";
+    "Serializes a string  using protobuf notation. ";
 
   string();
   virtual ~string();
@@ -59,12 +56,6 @@ public:
   virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
   virtual vital::any deserialize( const std::string& message ) override;
 
-  // Convert between native and protobuf formats
-  static void convert_protobuf( const kwiver::protobuf::string&  proto_string,
-                                std::string&  str );
-
-  static void convert_protobuf( const std::string& str,
-                                kwiver::protobuf::string&  proto_string );
 };
 
 } } } }       // end namespace kwiver

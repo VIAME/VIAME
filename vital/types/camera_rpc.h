@@ -193,10 +193,10 @@ public:
     rpc_coeffs_ = coeffs;
     update_partial_deriv();
   }
-  void set_world_scale(vector_3d& scale) { world_scale_ = scale; }
-  void set_world_offset(vector_3d& offset) { world_offset_ = offset; }
-  void set_image_scale(vector_2d& scale) { image_scale_ = scale; }
-  void set_image_offset(vector_2d& offset) { image_offset_ = offset; }
+  void set_world_scale(vector_3d const& scale) { world_scale_ = scale; }
+  void set_world_offset(vector_3d const& offset) { world_offset_ = offset; }
+  void set_image_scale(vector_2d const& scale) { image_scale_ = scale; }
+  void set_image_offset(vector_2d const& offset) { image_offset_ = offset; }
   void set_image_width(unsigned int width) { image_width_ = width; }
   void set_image_height(unsigned int height) { image_height_ = height; }
 

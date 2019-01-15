@@ -57,7 +57,7 @@ protected:
   virtual void _step();
 
   // This is used to intercept connections and make ports JIT
-  virtual sprokit::process::port_info_t _input_port_info(port_t const& port);
+  virtual void input_port_undefined(port_t const& port) override;
 
 private:
   class priv;

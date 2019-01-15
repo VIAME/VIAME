@@ -36,13 +36,12 @@
 
 #include "distribute_process.h"
 
+#include <vital/util/string.h>
 
 #include <sprokit/pipeline/datum.h>
 #include <sprokit/pipeline/edge.h>
 #include <sprokit/pipeline/process_exception.h>
 #include <sprokit/pipeline/stamp.h>
-
-#include <boost/algorithm/string/predicate.hpp>
 
 #include <map>
 #include <string>
@@ -349,12 +348,12 @@ distribute_process
 
 // ------------------------------------------------------------------
 // Intercept the connect operation so we can create the needed output port
-process::port_info_t
+void
 distribute_process
-::_output_port_info(port_t const& port)
+::output_port_undefined(port_t const& port)
 {
   // Does this port name start with the status prefix "status/"
-  if (boost::starts_with(port, priv::port_status_prefix))
+  if (kwiver::vital::starts_with(port, priv::port_status_prefix))
   {
     // Extract the tag sub-string from the status port name.
     priv::tag_t const tag = port.substr(priv::port_status_prefix.size());
@@ -407,8 +406,6 @@ distribute_process
       required,
       port_description_t("An output for the " + tag + " data."));
   }
-
-  return process::_output_port_info(port);
 }
 
 
@@ -430,7 +427,7 @@ distribute_process::priv::tag_t
 distribute_process::priv
 ::tag_for_dist_port(port_t const& port) const
 {
-  if (boost::starts_with(port, priv::port_dist_prefix))
+  if (kwiver::vital::starts_with(port, priv::port_dist_prefix))
   {
     port_t const no_prefix = port.substr(priv::port_dist_prefix.size());
 
@@ -439,7 +436,7 @@ distribute_process::priv
       tag_t const& tag = data.first;
       port_t const tag_prefix = tag + priv::src_sep;
 
-      if (boost::starts_with(no_prefix, tag_prefix))
+      if (kwiver::vital::starts_with(no_prefix, tag_prefix))
       {
         return tag;
       }

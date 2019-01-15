@@ -40,10 +40,23 @@
 #include <sprokit/pipeline/scheduler_exception.h>
 #include <sprokit/pipeline/scheduler_factory.h>
 
-#include <boost/lexical_cast.hpp>
-
 #include <memory>
 #include <fstream>
+#include <sstream>
+#include <string>
+
+namespace {
+
+template <typename T>
+T lexical_cast(int var)
+{
+  std::ostringstream iss;
+  iss << var;
+  return iss.str();
+}
+
+} // end namespace
+
 
 #define TEST_ARGS (sprokit::scheduler::type_t const& scheduler_type)
 
@@ -98,9 +111,9 @@ IMPLEMENT_TEST(simple_pipeline)
     kwiver::vital::config_block_sptr const configu = kwiver::vital::config_block::empty_config();
 
     kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
-    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    kwiver::vital::config_block_value_t const start_num = lexical_cast<kwiver::vital::config_block_value_t>(start_value);
     kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
-    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
+    kwiver::vital::config_block_value_t const end_num = lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
@@ -150,7 +163,7 @@ IMPLEMENT_TEST(simple_pipeline)
       TEST_ERROR("Failed to read a line from the file");
     }
 
-    if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i))
+    if (kwiver::vital::config_block_value_t(line) != lexical_cast<kwiver::vital::config_block_value_t>(i))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i << " "
@@ -187,9 +200,9 @@ IMPLEMENT_TEST(pysimple_pipeline)
     kwiver::vital::config_block_sptr const configu = kwiver::vital::config_block::empty_config();
 
     kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
-    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    kwiver::vital::config_block_value_t const start_num = lexical_cast<kwiver::vital::config_block_value_t>(start_value);
     kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
-    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
+    kwiver::vital::config_block_value_t const end_num = lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
@@ -250,7 +263,7 @@ IMPLEMENT_TEST(pysimple_pipeline)
         TEST_ERROR("Failed to read a line from the file");
       }
 
-      if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i))
+      if (kwiver::vital::config_block_value_t(line) != lexical_cast<kwiver::vital::config_block_value_t>(i))
       {
         TEST_ERROR("Did not get expected value: "
                    "Expected: " << i << " "
@@ -296,16 +309,16 @@ IMPLEMENT_TEST(multiplier_pipeline)
     kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
     kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
 
-    kwiver::vital::config_block_value_t const start_num1 = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value1);
-    kwiver::vital::config_block_value_t const end_num1 = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value1);
+    kwiver::vital::config_block_value_t const start_num1 = lexical_cast<kwiver::vital::config_block_value_t>(start_value1);
+    kwiver::vital::config_block_value_t const end_num1 = lexical_cast<kwiver::vital::config_block_value_t>(end_value1);
 
     configu1->set_value(start_key, start_num1);
     configu1->set_value(end_key, end_num1);
 
     kwiver::vital::config_block_sptr const configu2 = kwiver::vital::config_block::empty_config();
 
-    kwiver::vital::config_block_value_t const start_num2 = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value2);
-    kwiver::vital::config_block_value_t const end_num2 = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value2);
+    kwiver::vital::config_block_value_t const start_num2 = lexical_cast<kwiver::vital::config_block_value_t>(start_value2);
+    kwiver::vital::config_block_value_t const end_num2 = lexical_cast<kwiver::vital::config_block_value_t>(end_value2);
 
     configu2->set_value(start_key, start_num2);
     configu2->set_value(end_key, end_num2);
@@ -367,7 +380,7 @@ IMPLEMENT_TEST(multiplier_pipeline)
       TEST_ERROR("Failed to read a line from the file");
     }
 
-    if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i * j))
+    if (kwiver::vital::config_block_value_t(line) != lexical_cast<kwiver::vital::config_block_value_t>(i * j))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i * j << " "
@@ -410,8 +423,8 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
     kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
     kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
 
-    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
-    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
+    kwiver::vital::config_block_value_t const start_num = lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    kwiver::vital::config_block_value_t const end_num = lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
@@ -420,7 +433,7 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
 
     kwiver::vital::config_block_key_t const factor_key = kwiver::vital::config_block_key_t("factor");
 
-    kwiver::vital::config_block_value_t const factor = boost::lexical_cast<kwiver::vital::config_block_value_t>(factor_value);
+    kwiver::vital::config_block_value_t const factor = lexical_cast<kwiver::vital::config_block_value_t>(factor_value);
 
     configd->set_value(factor_key, factor);
 
@@ -475,7 +488,7 @@ IMPLEMENT_TEST(multiplier_cluster_pipeline)
       TEST_ERROR("Failed to read a line from the file");
     }
 
-    if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i * factor_value))
+    if (kwiver::vital::config_block_value_t(line) != lexical_cast<kwiver::vital::config_block_value_t>(i * factor_value))
     {
       TEST_ERROR("Did not get expected value: "
                  "Expected: " << i * factor_value << " "
@@ -524,8 +537,8 @@ IMPLEMENT_TEST(frequency_pipeline)
     kwiver::vital::config_block_key_t const start_key = kwiver::vital::config_block_key_t("start");
     kwiver::vital::config_block_key_t const end_key = kwiver::vital::config_block_key_t("end");
 
-    kwiver::vital::config_block_value_t const start_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(start_value);
-    kwiver::vital::config_block_value_t const end_num = boost::lexical_cast<kwiver::vital::config_block_value_t>(end_value);
+    kwiver::vital::config_block_value_t const start_num = lexical_cast<kwiver::vital::config_block_value_t>(start_value);
+    kwiver::vital::config_block_value_t const end_num = lexical_cast<kwiver::vital::config_block_value_t>(end_value);
 
     configu->set_value(start_key, start_num);
     configu->set_value(end_key, end_num);
@@ -534,8 +547,8 @@ IMPLEMENT_TEST(frequency_pipeline)
     kwiver::vital::config_block_sptr const configfb = kwiver::vital::config_block::empty_config();
 
     kwiver::vital::config_block_key_t const copies_key = kwiver::vital::config_block_key_t("copies");
-    kwiver::vital::config_block_value_t const copiesa = boost::lexical_cast<kwiver::vital::config_block_value_t>(copies_a - 1);
-    kwiver::vital::config_block_value_t const copiesb = boost::lexical_cast<kwiver::vital::config_block_value_t>(copies_b - 1);
+    kwiver::vital::config_block_value_t const copiesa = lexical_cast<kwiver::vital::config_block_value_t>(copies_a - 1);
+    kwiver::vital::config_block_value_t const copiesb = lexical_cast<kwiver::vital::config_block_value_t>(copies_b - 1);
 
     configfa->set_value(copies_key, copiesa);
     configfb->set_value(copies_key, copiesb);
@@ -606,7 +619,7 @@ IMPLEMENT_TEST(frequency_pipeline)
     {
       std::getline(fin, line);
 
-      if (kwiver::vital::config_block_value_t(line) != boost::lexical_cast<kwiver::vital::config_block_value_t>(i * i))
+      if (kwiver::vital::config_block_value_t(line) != lexical_cast<kwiver::vital::config_block_value_t>(i * i))
       {
         TEST_ERROR("Did not get expected value: "
                    "Expected: " << i * i << " "

@@ -2,7 +2,7 @@ project(sprokit_python_sprokit_pipeline_util)
 
 if( NOT WIN32 )
 
-_sprokit_add_python_library(bake
+kwiver_add_python_library(bake
   sprokit/pipeline_util
   bake.cxx)
 target_link_libraries(python-sprokit.pipeline_util-bake
@@ -15,7 +15,7 @@ target_link_libraries(python-sprokit.pipeline_util-bake
     vital_vpm
   )
 
-_sprokit_add_python_library(export_
+kwiver_add_python_library(export_
   sprokit/pipeline_util
   export.cxx)
 target_link_libraries(python-sprokit.pipeline_util-export_
@@ -24,7 +24,7 @@ target_link_libraries(python-sprokit.pipeline_util-export_
     sprokit_pipeline_util
     sprokit_python_util)
 
-_sprokit_add_python_library(load
+kwiver_add_python_library(load
   sprokit/pipeline_util
   load.cxx)
 target_link_libraries(python-sprokit.pipeline_util-load

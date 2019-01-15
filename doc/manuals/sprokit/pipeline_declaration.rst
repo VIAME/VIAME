@@ -201,6 +201,10 @@ configurations into smaller reusable pieces.
 
 ``include filename``
 
+The ``filename`` specified may contain references to an ENV or SYSENV
+macro. The macro reference is expanded before the file is located. No
+other macro providers are supported.
+
 If the file name is not an absolute path, it is located by scanning
 the current config search path.  The manner in which the config
 include path is created is described in a following section.  If the

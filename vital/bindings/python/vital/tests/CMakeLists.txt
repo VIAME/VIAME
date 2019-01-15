@@ -19,8 +19,11 @@ set(__testable_modnames
   test_image
   test_image_container
   test_landmark
+  test_object_track_state
+  test_object_track_set
   test_rotation
   test_similarity
+  test_timestamp
   test_track
   test_track_set
   test_track_state

@@ -112,6 +112,10 @@ kwiver_logger_manager
   else
   {
     factory_name = factory;
+    if (*factory_name.rbegin() == ';')
+    {
+      factory_name = factory_name.substr(0, factory_name.size() - 1);
+    }
   }
   factory_name += DL::LibExtension();
 
@@ -126,7 +130,8 @@ kwiver_logger_manager
     // Only give error if the environment specified logger could not be found
     if ( ! try_default )
     {
-      std::cerr << "ERROR: Could not load logger factory as specified in environment variable \""
+      std::cerr << "ERROR: Could not load logger factory \"" << factory_name
+                << "\" as specified in environment variable \""
                 << PLUGIN_ENV_VAR "\"\n"
                 << "Defaulting to built-in logger.\n"
                 << e.what() << std::endl;

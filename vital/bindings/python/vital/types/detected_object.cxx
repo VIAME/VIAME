@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,15 +37,31 @@ namespace py = pybind11;
 
 typedef kwiver::vital::detected_object det_obj;
 
+// We want to be able to add a mask in the python constructor
+// so we need a pass-through cstor
+std::shared_ptr<det_obj>
+new_detected_object(kwiver::vital::bounding_box<double> bbox,
+                    double conf,
+                    kwiver::vital::detected_object_type_sptr type,
+                    kwiver::vital::image_container_sptr mask)
+{
+  std::shared_ptr<det_obj> new_obj(new det_obj(bbox, conf, type));
+
+  if(mask)
+  {
+    new_obj->set_mask(mask);
+  }
+
+  return new_obj;
+}
+
 PYBIND11_MODULE(detected_object, m)
 {
   /*
    *
-
     Developer:
         python -c "import vital.types; help(vital.types.DetectedObject)"
         python -m xdoctest vital.types DetectedObject --xdoc-dynamic
-
    *
    */
 
@@ -70,24 +86,15 @@ PYBIND11_MODULE(detected_object, m)
         >>> print(self)
         <DetectedObject(conf=1.0)>
     )")
-  .def(py::init<kwiver::vital::bounding_box<double>, double, kwiver::vital::detected_object_type_sptr>(),
-    py::arg("bbox"), py::arg("confidence")=1.0, py::arg("classifications")=kwiver::vital::detected_object_type_sptr(),
-    py::doc(R"(
+  .def(py::init(&new_detected_object),
+    py::arg("bbox"), py::arg("confidence")=1.0,
+    py::arg("classifications")=kwiver::vital::detected_object_type_sptr(),
+    py::arg("mask")=kwiver::vital::image_container_sptr(), py::doc(R"(
       Args:
           bbox: coarse localization of the object in image coordinates
           confidence: confidence in this detection (default=1.0)
           classifications: optional object classification (default=None)
     ")"))
-  .def("bounding_box", &det_obj::bounding_box)
-  .def("set_bounding_box", &det_obj::set_bounding_box,
-    py::arg("bbox"))
-  .def("confidence", &det_obj::confidence)
-  .def("set_confidence", &det_obj::set_confidence,
-    py::arg("d"))
-  .def("type", &det_obj::type)
-  .def("set_type", &det_obj::set_type,
-    py::arg("c"))
-  .def_property("mask", &det_obj::mask, &det_obj::set_mask)
   .def("__nice__", [](det_obj& self) -> std::string {
     auto locals = py::dict(py::arg("self")=self);
     py::exec(R"(
@@ -113,5 +120,18 @@ PYBIND11_MODULE(detected_object, m)
     )", py::globals(), locals);
     return locals["retval"].cast<std::string>();
     })
+  .def("bounding_box", &det_obj::bounding_box)
+  .def("set_bounding_box", &det_obj::set_bounding_box,
+    py::arg("bbox"))
+  .def("confidence", &det_obj::confidence)
+  .def("set_confidence", &det_obj::set_confidence,
+    py::arg("d"))
+  .def("descriptor", &det_obj::descriptor)
+  .def("set_descriptor", &det_obj::set_descriptor,
+		py::arg("descriptor"))
+  .def("type", &det_obj::type)
+  .def("set_type", &det_obj::set_type,
+    py::arg("c"))
+  .def_property("mask", &det_obj::mask, &det_obj::set_mask)
   ;
 }

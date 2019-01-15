@@ -41,12 +41,12 @@ struct CommandLineArgumentsCallbackStructure;
  * the argument is specified, the variable is set to the specified value casted
  * to the appropriate type. For boolean (NO_ARGUMENT), the value is "1".
  *
- * Both interfaces can be used at the same time. 
+ * Both interfaces can be used at the same time.
  *
  * Possible argument types are:
  *   NO_ARGUMENT     - The argument takes no value             : --A
  *   CONCAT_ARGUMENT - The argument takes value after no space : --Aval
- *   SPACE_ARGUMENT  - The argument takes value after space    : --A val 
+ *   SPACE_ARGUMENT  - The argument takes value after space    : --A val
  *   EQUAL_ARGUMENT  - The argument takes value after equal    : --A=val
  *   MULTI_ARGUMENT  - The argument takes values after space   : --A val1 val2 val3 ...
  *
@@ -55,14 +55,14 @@ struct CommandLineArgumentsCallbackStructure;
  * kwsys::CommandLineArguments arg;
  * arg.Initialize(argc, argv);
  * typedef kwsys::CommandLineArguments argT;
- * arg.AddArgument("--something", argT::EQUAL_ARGUMENT, &some_variable, 
+ * arg.AddArgument("--something", argT::EQUAL_ARGUMENT, &some_variable,
  *                 "This is help string for --something");
  * if ( !arg.Parse() )
  *   {
  *   std::cerr << "Problem parsing arguments" << std::endl;
  *   res = 1;
  *   }
- * 
+ *
  */
 
 class @KWSYS_NAMESPACE@_EXPORT CommandLineArguments
@@ -74,7 +74,7 @@ public:
   /**
    * Various argument types.
    */
-  enum ArgumentTypeEnum { 
+  enum ArgumentTypeEnum {
     NO_ARGUMENT,
     CONCAT_ARGUMENT,
     SPACE_ARGUMENT,
@@ -104,7 +104,7 @@ public:
   /**
    * Prototypes for callbacks for callback interface.
    */
-  typedef int(*CallbackType)(const char* argument, const char* value, 
+  typedef int(*CallbackType)(const char* argument, const char* value,
     void* call_data);
   typedef int(*ErrorCallbackType)(const char* argument, void* client_data);
 
@@ -113,6 +113,7 @@ public:
    */
   void Initialize(int argc, const char* const argv[]);
   void Initialize(int argc, char* argv[]);
+  void Initialize(const std::vector<std::string>& argv);
 
   /**
    * Initialize internal data structure and pass arguments one by one. This is
@@ -133,7 +134,7 @@ public:
    * argument help specifies the help string used with this option. The
    * callback and call_data can be skipped.
    */
-  void AddCallback(const char* argument, ArgumentTypeEnum type, 
+  void AddCallback(const char* argument, ArgumentTypeEnum type,
     CallbackType callback, void* call_data, const char* help);
 
   /**
@@ -145,9 +146,9 @@ public:
     bool* variable, const char* help);
   void AddArgument(const char* argument, ArgumentTypeEnum type,
     int* variable, const char* help);
-  void AddArgument(const char* argument, ArgumentTypeEnum type, 
+  void AddArgument(const char* argument, ArgumentTypeEnum type,
     double* variable, const char* help);
-  void AddArgument(const char* argument, ArgumentTypeEnum type, 
+  void AddArgument(const char* argument, ArgumentTypeEnum type,
     char** variable, const char* help);
   void AddArgument(const char* argument, ArgumentTypeEnum type,
     std::string* variable, const char* help);
@@ -161,9 +162,9 @@ public:
     std::vector<bool>* variable, const char* help);
   void AddArgument(const char* argument, ArgumentTypeEnum type,
     std::vector<int>* variable, const char* help);
-  void AddArgument(const char* argument, ArgumentTypeEnum type, 
+  void AddArgument(const char* argument, ArgumentTypeEnum type,
     std::vector<double>* variable, const char* help);
-  void AddArgument(const char* argument, ArgumentTypeEnum type, 
+  void AddArgument(const char* argument, ArgumentTypeEnum type,
     std::vector<char*>* variable, const char* help);
   void AddArgument(const char* argument, ArgumentTypeEnum type,
     std::vector<std::string>* variable, const char* help);
@@ -269,8 +270,3 @@ protected:
 } // namespace @KWSYS_NAMESPACE@
 
 #endif
-
-
-
-
-
