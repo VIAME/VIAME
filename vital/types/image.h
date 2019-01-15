@@ -545,11 +545,41 @@ protected:
 };
 
 
-// ==================================================================
-/// The representation of an in-memory image.
+// ===========================================================================
+/// The representation of a type-specific in-memory image.
 /**
- * Images share memory using the image_memory class.  This is
- * effectively a view on an image.
+ * This class is derived from the image() class to provide convenience
+ * functions that require the pixel type to be known at compile time.
+ * This derived class does not add any data or change any behavior of the
+ * base image() class.  It simply provides a strongly-typed view of the data.
+ * The constructors in this class make it easier to construct an image.
+ * For example,
+\code
+image I;
+// direct construction of a double image
+I = image(100, 100, 1, false, pixel_traits_of<double>());
+// equivalent construction using image_of
+I = image_of<double>(100, 100);
+\endcode
+ *
+ * Once cast as an image_of() the operator()() is available to directly access
+ * pixels with a simpler syntax. For example
+\code
+image_of<float> my_img(100, 100);     // make a float image of size 100 x 100
+float val = my_img(10, 10);           // get pixel at 10, 10
+      val = my_img.at<float>(10, 10); // image::at method does the same thing
+\endcode
+ *
+ * An image() can be directly assigned to an image_of() object and this will
+ * throw a image_type_mismatch_exception if the underlying type does not match.
+ * For example
+\code
+// make a 16-bit unsigned image with the base class
+image my_img(100, 100, 1, false, pixel_traits_of<uint16_t>());
+
+image_of<uint16_t> my_img16 = my_img; // this works
+image_of<float> my_imgf = my_img;     // this throws an exception
+\endcode
  */
 template <typename T>
 class image_of : public image
