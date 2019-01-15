@@ -60,6 +60,7 @@
 #include "matcher_process.h"
 #include "merge_detection_sets_process.h"
 #include "merge_images_process.h"
+#include "merge_track_sets_process.h"
 #include "perform_query_process.h"
 #include "print_config_process.h"
 #include "read_descriptor_process.h"
@@ -431,6 +432,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "upon connection.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( "no-test", "introspect" ); // do not include in introspection test
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::merge_track_sets_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_track_sets" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Merge multiple input track sets into one output set")
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
 
