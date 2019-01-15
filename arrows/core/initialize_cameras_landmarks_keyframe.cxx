@@ -1663,7 +1663,7 @@ public:
 
   bool remove_set(const std::set<T> &rem_set)
   {
-    size_t hash = hash_set(test_set);
+    size_t hash = hash_set(rem_set);
     auto it_pair = m_map.equal_range(hash);
     for (auto it = it_pair.first; it != it_pair.second; ++it)
     {
