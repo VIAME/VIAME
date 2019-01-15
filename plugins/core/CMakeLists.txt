@@ -80,3 +80,17 @@ target_link_libraries( viame_train_detector
                ${Boost_SYSTEM_LIBRARY}
                ${Boost_FILESYSTEM_LIBRARY}
   )
+
+if( VIAME_ENABLE_PYTHON )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    viame/processes/smqtk
+    __init__ )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/utility_processes.py
+    viame/processes/core
+    utility_processes )
+
+endif()
