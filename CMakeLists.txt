@@ -206,7 +206,7 @@ endif ()
 # =============================================================================================
 
 ###
-# Generate vital/verion.h. This file is needed by sprokit so much be generated here, before sprokit is included
+# Generate vital/version.h. This file is needed by sprokit so must be generated here, before sprokit is included
 #---------------------------------------------------------------------
 #
 
