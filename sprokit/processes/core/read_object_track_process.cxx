@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,11 +58,12 @@ create_config_trait( reader, std::string , "",
 class read_object_track_process::priv
 {
 public:
-  priv();
-  ~priv();
+  priv() : m_reader_finished( false ) {}
+  ~priv() {}
 
   // Configuration values
   std::string m_file_name;
+  bool m_reader_finished;
 
   algo::read_object_track_set_sptr m_reader;
 }; // end priv class
@@ -75,6 +76,8 @@ read_object_track_process
   : process( config ),
     d( new read_object_track_process::priv )
 {
+  set_data_checking_level( check_sync );
+
   make_ports();
   make_config();
 }
@@ -137,21 +140,50 @@ void read_object_track_process
 void read_object_track_process
 ::_step()
 {
-  std::string image_name;
+  bool end_process = false;
+
+  std::string file_name;
   kwiver::vital::object_track_set_sptr set;
 
-  if( d->m_reader->read_set( set ) )
+  if( has_input_port_edge_using_trait( image_file_name ) )
+  {
+    auto port_info = peek_at_port_using_trait( image_file_name );
+
+    if( port_info.datum->type() == sprokit::datum::complete )
+    {
+      end_process = true;
+    }
+    else
+    {
+      file_name = grab_from_port_using_trait( image_file_name );
+    }
+  }
+
+  if( !end_process && ( d->m_reader_finished || d->m_reader->read_set( set ) ) )
   {
     push_to_port_using_trait( object_track_set, set );
   }
   else
   {
+    // Indicates the reader is done producing and tracks and won't produce more.
+    d->m_reader_finished = true;
+
+    // If false, we are driven by an external frame source which might continue
+    // to send frames after ones which don't contain tracks so we don't want to
+    // send a complete message yet and instead rely on that source telling us
+    // when we're done.
+    if( file_name.empty() )
+    {
+      end_process = true;
+    }
+  }
+
+  if( end_process )
+  {
     LOG_DEBUG( logger(), "End of input reached, process terminating" );
-
-    // indicate done
     mark_process_as_complete();
-    const sprokit::datum_t dat= sprokit::datum::complete_datum();
 
+    const sprokit::datum_t dat = sprokit::datum::complete_datum();
     push_datum_to_port_using_trait( object_track_set, dat );
   }
 }
@@ -164,6 +196,7 @@ void read_object_track_process
   // Set up for required ports
   sprokit::process::port_flags_t optional;
 
+  declare_input_port_using_trait( image_file_name, optional );
   declare_output_port_using_trait( object_track_set, optional );
 }
 
@@ -176,17 +209,5 @@ void read_object_track_process
   declare_config_using_trait( reader );
 }
 
-
-// ===============================================================================
-read_object_track_process::priv
-::priv()
-{
-}
-
-
-read_object_track_process::priv
-::~priv()
-{
-}
 
 } // end namespace
