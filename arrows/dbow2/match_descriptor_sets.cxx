@@ -430,7 +430,7 @@ match_descriptor_sets::priv
   auto const num_bytes = desc->num_bytes();
   cv::Mat desc_mat = cv::Mat(1, static_cast<int>(num_bytes), CV_8UC1);
 
-  for(int bn = 0; bn < num_bytes; ++bn, ++db)
+  for(unsigned int bn = 0; bn < num_bytes; ++bn, ++db)
   {
     desc_mat.at<unsigned char>(0, bn) = *db;
   }

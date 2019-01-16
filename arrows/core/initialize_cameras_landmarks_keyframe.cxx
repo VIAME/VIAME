@@ -873,7 +873,6 @@ initialize_cameras_landmarks_keyframe::priv
 ::calc_rel_pose(frame_id_t frame_0, frame_id_t frame_1,
   const std::vector<track_sptr>& trks) const
 {
-  typedef landmark_map::map_landmark_t lm_map_t;
   // extract coresponding image points and landmarks
   std::vector<vector_2d> pts_right, pts_left;
 
@@ -963,12 +962,7 @@ initialize_cameras_landmarks_keyframe::priv
   rp.well_conditioned_landmark_count = inlier_lm_ids.size();
   rp.angle_sum = 0;
 
-  int im_w = 2.0*cams[frame_0]->intrinsics()->principal_point().x();
-  int im_h = 2.0*cams[frame_0]->intrinsics()->principal_point().y();
   rp.coverage_0 = image_coverage(cam_map, trks, lms, frame_0);
-
-  im_w = 2.0*cams[frame_1]->intrinsics()->principal_point().x();
-  im_h = 2.0*cams[frame_1]->intrinsics()->principal_point().y();
   rp.coverage_1 = image_coverage(cam_map, trks, lms, frame_1);
 
   for (auto lm : lms)
@@ -1057,7 +1051,6 @@ initialize_cameras_landmarks_keyframe::priv
 
     m_kf_match_matrix = match_matrix(tracks, m_kf_mm_frames);
 
-    typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, 1> vectorXu;
     const int cols = m_kf_match_matrix.cols();
 
     const int min_matches = 100;
@@ -1099,7 +1092,7 @@ initialize_cameras_landmarks_keyframe::priv
       std::sort(tks0.begin(), tks0.end());
       std::sort(tks1.begin(), tks1.end());
       std::vector<kwiver::vital::track_sptr> tks_01;
-      auto tk_it = std::set_intersection(tks0.begin(), tks0.end(), tks1.begin(), tks1.end(), std::back_inserter(tks_01));
+      std::set_intersection(tks0.begin(), tks0.end(), tks1.begin(), tks1.end(), std::back_inserter(tks_01));
 
       //ok now we have the common tracks between the two frames.
       //make the essential matrix, decompose it and store it in a relative pose
@@ -1460,7 +1453,6 @@ initialize_cameras_landmarks_keyframe::priv
   for (auto &cam : persp_cams)
   {
     auto cam_fid = cam.first;
-    frame_id_t closest_prior_fid = -1;
     int best_fid_difference = std::numeric_limits<int>::max();
     vector_3d closest_prior;
     for (auto &prior : pos_priors)
@@ -1470,7 +1462,6 @@ initialize_cameras_landmarks_keyframe::priv
       if (cur_diff < best_fid_difference)
       {
         best_fid_difference = cur_diff;
-        closest_prior_fid = prior_fid;
         closest_prior = prior.second;
       }
     }
@@ -1736,7 +1727,7 @@ void initialize_cameras_landmarks_keyframe::priv
 
   auto c = cams->find(target_frame);
 
-  if (!c || c->center().x() == 0 && c->center().y() == 0 && c->center().z() == 0)
+  if (!c || (c->center().x() == 0 && c->center().y() == 0 && c->center().z() == 0))
   {
     return;
   }
@@ -2721,7 +2712,6 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_sptr resectioned_cam, bundled_cam;
   int bundled_inlier_count = 0;
   int resection_inlier_count = 0;
-  bool good_pose = false;
 
   int min_inliers = 50;
 
@@ -3159,8 +3149,8 @@ initialize_cameras_landmarks_keyframe
     r3 = dc[4];
   }
   config->set_value("base_camera:r1", r1, "r^2 radial distortion term");
-  config->set_value("base_camera:r2", r1, "r^4 radial distortion term");
-  config->set_value("base_camera:r3", r1, "r^6 radial distortion term");
+  config->set_value("base_camera:r2", r2, "r^4 radial distortion term");
+  config->set_value("base_camera:r3", r3, "r^6 radial distortion term");
 
   config->set_value("init_intrinsics_from_metadata", m_priv->m_init_intrinsics_from_metadata,
                     "initialize camera's focal length from metadata");

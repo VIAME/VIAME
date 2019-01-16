@@ -300,7 +300,7 @@ triangulate_landmarks::priv
 
     lm.set_loc(pt3d);
     //count inliers
-    for (int idx = 0; idx < lm_cams.size(); ++idx)
+    for (unsigned int idx = 0; idx < lm_cams.size(); ++idx)
     {
       auto depth = lm_cams[idx].depth(lm.loc());
       if (depth <= 0)
@@ -467,9 +467,9 @@ triangulate_landmarks
         }
         //test if the point is behind any of the cameras
         bool behind = false;
-        for (int idx = 0; idx < lm_cams.size(); ++idx)
+        for (auto const& lm_cam : lm_cams)
         {
-          auto depth = lm_cams[idx].depth(pt3d);
+          auto depth = lm_cam.depth(pt3d);
           if (depth <= 0)
           {
             behind = true;
@@ -478,9 +478,9 @@ triangulate_landmarks
         }
         if (behind)
         {
-          for (int idx = 0; idx < lm_cams.size(); ++idx)
+          for (auto lm_feat : lm_features)
           {
-            lm_features[idx]->inlier = false;
+            lm_feat->inlier = false;
           }
           failed_landmarks.insert(p.first);
           continue;
@@ -488,7 +488,7 @@ triangulate_landmarks
       }
 
       //set inlier/outlier states for the measurements
-      for (int idx = 0; idx < lm_cams.size(); ++idx)
+      for (unsigned int idx = 0; idx < lm_cams.size(); ++idx)
       {
         vital::landmark_d lm;
         lm.set_loc(pt3d);
@@ -504,9 +504,9 @@ triangulate_landmarks
       }
       if (!pt3d.allFinite())
       {
-        for (int idx = 0; idx < lm_cams.size(); ++idx)
+        for (auto lm_feat : lm_features)
         {
-          lm_features[idx]->inlier = false;
+          lm_feat->inlier = false;
         }
         failed_landmarks.insert(p.first);
         continue;
@@ -518,9 +518,9 @@ triangulate_landmarks
       {
         failed_landmarks.insert(p.first);
         failed_angle.insert(p.first);
-        for (int idx = 0; idx < lm_cams.size(); ++idx)
+        for (auto lm_feat : lm_features)
         {
-          lm_features[idx]->inlier = false;
+          lm_feat->inlier = false;
         }
         continue;
       }
