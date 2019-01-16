@@ -286,7 +286,7 @@ read_object_track_set_kw18::priv
     vital::detected_object_sptr det =
       std::make_shared< vital::detected_object >( bbox, conf );
 
-    if( m_track_ids.empty() )
+    if( m_track_ids.empty() && m_default_type.empty() )
     {
       det = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
     }
