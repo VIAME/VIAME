@@ -142,8 +142,12 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
     }
   }
 
-  return kwiver::vital::detected_object_type_sptr(
-    new kwiver::vital::detected_object_type( class_names, scores ) );
+  if( class_names.empty() )
+  {
+    return kwiver::vital::detected_object_type_sptr();
+  }
+
+  return std::make_shared< kwiver::vital::detected_object_type >( class_names, scores );
 }
 
 
