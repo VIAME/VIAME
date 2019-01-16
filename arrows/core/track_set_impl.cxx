@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,10 @@ frame_index_track_set_impl
 {
   for (auto const &t : tracks)
   {
-    all_tracks_.insert(std::make_pair(t->id(), t));
+    if (t)
+    {
+      all_tracks_.insert(std::make_pair(t->id(), t));
+    }
   }
 }
 
@@ -112,6 +115,10 @@ bool
 frame_index_track_set_impl
 ::contains( vital::track_sptr t ) const
 {
+  if (!t)
+  {
+    return false;
+  }
   return all_tracks_.find(t->id()) != all_tracks_.end();
 }
 
@@ -125,7 +132,10 @@ frame_index_track_set_impl
 
   for (auto const &t : tracks)
   {
-    all_tracks_.insert(std::make_pair( t->id(), t));
+    if (t)
+    {
+      all_tracks_.insert(std::make_pair( t->id(), t));
+    }
   }
 
   frame_map_.clear();
@@ -137,6 +147,10 @@ void
 frame_index_track_set_impl
 ::insert( vital::track_sptr t )
 {
+  if (!t)
+  {
+    return;
+  }
   all_tracks_.insert(std::make_pair(t->id(), t));
 
   if (!frame_map_.empty())
@@ -199,6 +213,10 @@ bool
 frame_index_track_set_impl
 ::remove( vital::track_sptr t )
 {
+  if (!t)
+  {
+    return false;
+  }
   auto itr = all_tracks_.find(t->id());
   if ( itr == all_tracks_.end() )
   {
