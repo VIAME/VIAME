@@ -52,7 +52,6 @@ set(pipeline_headers
   types.h
   utils.h
   version.h
-  ${VITAL_VERSION_H}
   )
 
 set(pipeline_private_headers)
@@ -111,6 +110,7 @@ kwiver_add_library(sprokit_pipeline
   ${pipeline_srcs}
   ${pipeline_headers}
   ${pipeline_private_headers}
+  ${VITAL_VERSION_H}
   )
 
 add_dependencies(sprokit_pipeline configure-version.h)
