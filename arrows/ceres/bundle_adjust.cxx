@@ -575,7 +575,7 @@ bundle_adjust
   // Update the landmarks with the optimized values
   for(const lm_param_map_t::value_type& lmp : d_->landmark_params)
   {
-    auto& lmi = std::static_pointer_cast<landmark_d>(d_->lms[lmp.first]);
+    auto lmi = std::static_pointer_cast<landmark_d>(d_->lms[lmp.first]);
     lmi->set_loc(Eigen::Map<const vector_3d>(&lmp.second[0]));
   }
 
