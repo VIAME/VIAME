@@ -70,11 +70,6 @@ merge_track_sets_process::priv
     return;
   }
 
-  if( !output )
-  {
-    output = std::make_shared< vital::object_track_set >();
-  }
-
   std::map< vital::track_id_t, vital::track_id_t >& mappings = id_remapping[index];
 
   for( auto track_ptr : input->tracks() )
@@ -161,7 +156,7 @@ merge_track_sets_process
   }
 
   // Merge tracks sequentially
-  vital::track_set_sptr output;
+  vital::track_set_sptr output = std::make_shared< vital::object_track_set >();
 
   if( track_list.empty() )
   {
