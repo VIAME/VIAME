@@ -294,6 +294,11 @@ write_object_track_set_viame_csv
     d->m_first = false;
   }
 
+  if( !set )
+  {
+    return;
+  }
+
   if( !d->m_active_writing )
   {
     for( auto trk : set->tracks() )
