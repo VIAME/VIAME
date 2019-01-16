@@ -119,7 +119,8 @@ frame_index_track_set_impl
   {
     return false;
   }
-  return all_tracks_.find(t->id()) != all_tracks_.end();
+  auto itr = all_tracks_.find(t->id());
+  return itr != all_tracks_.end() && itr->second == t;
 }
 
 
@@ -218,7 +219,7 @@ frame_index_track_set_impl
     return false;
   }
   auto itr = all_tracks_.find(t->id());
-  if ( itr == all_tracks_.end() )
+  if ( itr == all_tracks_.end() || itr->second != t )
   {
     return false;
   }
