@@ -31,7 +31,7 @@
 #include "merge_track_sets_process.h"
 
 #include <vital/vital_types.h>
-#include <vital/types/track_set.h>
+#include <vital/types/object_track_set.h>
 #include <vital/util/string.h>
 
 #include <kwiver_type_traits.h>
@@ -72,7 +72,7 @@ merge_track_sets_process::priv
 
   if( !output )
   {
-    output = std::make_shared< vital::track_set >();
+    output = std::make_shared< vital::object_track_set >();
   }
 
   std::map< vital::track_id_t, vital::track_id_t >& mappings = id_remapping[index];
@@ -150,7 +150,7 @@ merge_track_sets_process
   for( const auto port_name : d->p_port_list )
   {
     vital::track_set_sptr track_sptr =
-      grab_from_port_as< vital::track_set_sptr >( port_name );
+      grab_from_port_as< vital::object_track_set_sptr >( port_name );
 
     track_list.push_back( track_sptr );
   }
@@ -174,7 +174,8 @@ merge_track_sets_process
   }
 
   // Return by value
-  push_to_port_using_trait( track_set, output );
+  push_to_port_using_trait( object_track_set,
+    std::dynamic_pointer_cast< vital::object_track_set >( output ) );
 }
 
 
@@ -188,7 +189,7 @@ void merge_track_sets_process
   required.insert( flag_required );
 
   // -- output --
-  declare_output_port_using_trait( track_set, required );
+  declare_output_port_using_trait( object_track_set, required );
 }
 
 
@@ -218,9 +219,9 @@ merge_track_sets_process
 
       // Create input port
       declare_input_port(
-          port_name,                       // port name
-          track_set_port_trait::type_name, // port type
-          required,                        // port flags
+          port_name,                              // port name
+          object_track_set_port_trait::type_name, // port type
+          required,                               // port flags
           "track input" );
 
       d->p_port_list.insert( port_name );
