@@ -27,6 +27,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from PIL import Image as pil_image
+from random import randint
+
 from kwiver.kwiver_process import KwiverProcess
 from sprokit.pipeline import process
 
@@ -35,7 +38,7 @@ from vital.types import ImageContainer
 from vital.types import DetectedObject, DetectedObjectSet
 from vital.types import ObjectTrackState, Track, ObjectTrackSet
 
-from vital.util.VitalPIL import get_pil_image
+from vital.util.VitalPIL import get_pil_image, from_pil
 
 class blank_out_frames( KwiverProcess ):
     """
@@ -53,7 +56,6 @@ class blank_out_frames( KwiverProcess ):
         #  declare our ports (port-name, flags)
         self.declare_input_port_using_trait( 'image', required )
         self.declare_input_port_using_trait( 'object_track_set', required )
-        self.declare_input_port_using_trait( 'timestamp', required )
 
         self.declare_output_port_using_trait( 'image', optional )
 
@@ -66,15 +68,16 @@ class blank_out_frames( KwiverProcess ):
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait( 'image' )
         tracks = self.grab_input_using_trait( 'object_track_set' )
-        timestamp = self.grab_input_using_trait( 'timestamp' )
 
         # Get python image from conatiner (just for show)
         in_img = get_pil_image( in_img_c.image() ).convert( 'RGB' )
 
-        for track in tracks:
-          print( track )
+        if len( tracks.tracks() ) == 0:
+          # Fill image
+          in_img = pil_image.new( mode='RGB', size=in_img.size,
+            color = ( randint( 0, 255 ), randint( 0, 255 ), randint( 0, 255 ) ) )
 
         # push dummy image object (same as input) to output port
-        self.push_to_port_using_trait( 'image', ImageContainer( in_img ) )
+        self.push_to_port_using_trait( 'image', ImageContainer( from_pil( in_img ) ) )
 
         self._base_step()

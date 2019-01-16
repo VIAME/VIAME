@@ -40,7 +40,7 @@ def __sprokit_register__():
     process_factory.add_process(
         'blank_out_frames',
         'Blank out frames with no object detections on them',
-        utility_processes.BlankOutFrames
+        utility_processes.blank_out_frames
     )
 
     process_factory.mark_process_module_as_loaded( module_name )
