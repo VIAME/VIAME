@@ -76,7 +76,7 @@ public:
     : m_parent( parent )
     , m_logger( vital::get_logger( "read_object_track_set_kw18" ) )
     , m_first( true )
-    , m_batch_load( true )
+    , m_batch_load( false )
     , m_default_type( "-" )
     , m_delim( " " )
     , m_current_idx( 0 )
@@ -202,7 +202,7 @@ read_object_track_set_kw18
   ++d->m_current_idx;
 
   // Return if we are done parsing
-  return this->at_eof();
+  return ( d->m_current_idx <= d->m_last_idx );
 }
 
 
