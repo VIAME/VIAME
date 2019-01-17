@@ -227,7 +227,7 @@ image_container
 
   // Loop over bands and copy data
   CPLErr err;
-  for (int i = 1; i <= depth(); ++i)
+  for (size_t i = 1; i <= depth(); ++i)
   {
     GDALRasterBand* band = gdal_dataset_->GetRasterBand(i);
     auto bandType = band->GetRasterDataType();
