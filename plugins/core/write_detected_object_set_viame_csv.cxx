@@ -196,6 +196,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
     if( dot )
     {
       const auto name_list( dot->class_names() );
+
       for( auto name : name_list )
       {
         // Write out the <name> <score> pair

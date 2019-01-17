@@ -335,9 +335,12 @@ write_object_track_set_viame_csv
       }
 
       kwiver::vital::detected_object_sptr det = state->detection;
+
       const kwiver::vital::bounding_box_d empty_box =
         kwiver::vital::bounding_box_d( -1, -1, -1, -1 );
+
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
+
       auto confidence = ( det ? det->confidence() : 0 );
   
       stream() << trk_ptr->id() << d->m_delim               // 1: track id
