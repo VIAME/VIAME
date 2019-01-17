@@ -443,7 +443,9 @@ bool run_pipeline_on_image( pipeline_t& pipe,
   return success_flag->second->get_datum< bool >();;
 }
 
-std::string get_augmented_filename( std::string name, std::string output_dir = "" )
+std::string get_augmented_filename( std::string name,
+                                    std::string subdir,
+                                    std::string output_dir = "" )
 {
   std::string parent_directory =
     kwiversys::SystemTools::GetParentDirectory( name );
@@ -451,10 +453,9 @@ std::string get_augmented_filename( std::string name, std::string output_dir = "
   std::string file_name =
     kwiversys::SystemTools::GetFilenameWithoutExtension( name );
 
-  std::string last_extension =
-    kwiversys::SystemTools::GetFilenameLastExtension( name );
+  std::string adj_extension = ".png";
 
-  std::vector<std::string> full_path;
+  std::vector< std::string > full_path;
 
   full_path.push_back( "" );
 
@@ -467,7 +468,8 @@ std::string get_augmented_filename( std::string name, std::string output_dir = "
     full_path.push_back( output_dir );
   }
 
-  full_path.push_back( file_name + last_extension );
+  full_path.push_back( subdir );
+  full_path.push_back( file_name + adj_extension );
 
   std::string mod_path = kwiversys::SystemTools::JoinPath( full_path );
   return mod_path;
@@ -905,6 +907,17 @@ main( int argc, char* argv[] )
 
     pipeline_t augmentation_pipe = load_embedded_pipeline( pipeline_file );
 
+    if( !augmented_cache.empty() )
+    {
+      std::vector< std::string > cache_path;
+
+      cache_path.push_back( "" );
+      cache_path.push_back( augmented_cache );
+      cache_path.push_back( folder );
+
+      create_folder( kwiversys::SystemTools::JoinPath( cache_path ) );
+    }
+
     // Read all images and detections in sequence
     if( image_files.size() == 0 )
     {
@@ -920,7 +933,7 @@ main( int argc, char* argv[] )
 
       if( augmentation_pipe )
       {
-        filtered_image_file = get_augmented_filename( image_file, augmented_cache );
+        filtered_image_file = get_augmented_filename( image_file, folder, augmented_cache );
 
         if( !run_pipeline_on_image( augmentation_pipe, image_file, filtered_image_file ) )
         {
@@ -1076,8 +1089,8 @@ main( int argc, char* argv[] )
     }
     else // Not okay
     {
-      std::cout << "Error: labels.txt contains multiple classes, but GT is does "
-                   "not contain classes of interest." << std::endl;
+      std::cout << "Error: labels.txt contains multiple classes, but GT does not "
+                   "contain classes of interest." << std::endl;
       return 0;
     }
   }
