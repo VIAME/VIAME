@@ -213,7 +213,7 @@ read_all()
   while( stream_reader.getline( line ) )
   {
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, ",", kwiver::vital::TokenizeTrimEmpty );
+    kwiver::vital::tokenize( line, col, ",", false );
 
     if( col.empty() || ( !col[0].empty() && col[0][0] == '#' ) )
     {

@@ -216,7 +216,7 @@ read_object_track_set_viame_csv::priv
     }
 
     std::vector< std::string > col;
-    kwiver::vital::tokenize( line, col, m_delim, true );
+    kwiver::vital::tokenize( line, col, m_delim, false );
 
     if( col.size() < 10 )
     {
