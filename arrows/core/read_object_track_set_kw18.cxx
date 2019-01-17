@@ -230,7 +230,11 @@ read_object_track_set_kw18::priv
       std::string lbl;
 
       fin >> id >> lbl;
-      m_track_ids[id] = lbl;
+
+      if( !lbl.empty() )
+      {
+        m_track_ids[id] = lbl;
+      }
     }
     fin.close();
   }
@@ -280,6 +284,7 @@ read_object_track_set_kw18::priv
     if( col.size() == 19 )
     {
       conf = atof( col[COL_CONFIDENCE].c_str() );
+      conf = ( conf == -1.0 ? 1.0 : conf );
     }
 
     // Create new detection
@@ -297,7 +302,7 @@ read_object_track_set_kw18::priv
 
       if( m_track_ids.find( track_index ) != m_track_ids.end() )
       {
-        dot->set_score( m_track_ids[track_index], ( conf == -1.0 ? 1.0 : conf ) );
+        dot->set_score( m_track_ids[track_index], conf );
       }
       else
       {
