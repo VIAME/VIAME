@@ -45,7 +45,7 @@ class dump_klv
 public:
   dump_klv();
 
-  static constexpr char const* name = "dump_klv";
+  static constexpr char const* name = "dump-klv";
   static constexpr char const* description =
     "Dump KLV stream from video.\n\n"
     "This program displays the KLV metadata packets that are embedded in "

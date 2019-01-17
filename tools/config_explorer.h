@@ -45,7 +45,7 @@ class config_explorer
 public:
   config_explorer();
 
-  static constexpr char const* name = "config_explorer";
+  static constexpr char const* name = "explore-config";
   static constexpr char const* description =
     "Explore configuration loading process.\n\n"
     "This program assists in debugging config loading problems. It loads a "
