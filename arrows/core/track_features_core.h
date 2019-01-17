@@ -52,13 +52,9 @@ class KWIVER_ALGO_CORE_EXPORT track_features_core
   : public vital::algorithm_impl<track_features_core, vital::algo::track_features>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Track features from frame to frame"
-    " using feature detection, matching, and loop closure.";
+  PLUGIN_INFO( "core",
+               "Track features from frame to frame"
+               " using feature detection, matching, and loop closure." )
 
   /// Default Constructor
   track_features_core();

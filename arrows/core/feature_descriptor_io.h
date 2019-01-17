@@ -50,13 +50,9 @@ class KWIVER_ALGO_CORE_EXPORT feature_descriptor_io
                                  vital::algo::feature_descriptor_io>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Read and write features and descriptor"
-    " to binary files using Cereal serialization.";
+  PLUGIN_INFO( "core",
+               "Read and write features and descriptor"
+               " to binary files using Cereal serialization." )
 
   /// Constructor
   feature_descriptor_io();
