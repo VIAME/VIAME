@@ -149,7 +149,7 @@ read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name 
   } // end first
 
   // External image name provided, use that
-  if( !image_name.empty() )
+  if( !image_name.empty() && !d->m_detection_by_str.empty() )
   {
     // return detection set at current index if there is one
     if( d->m_detection_by_str.find( image_name ) == d->m_detection_by_str.end() )
