@@ -49,12 +49,8 @@ class KWIVER_ALGO_CORE_EXPORT filter_features_scale
   : public vital::algorithm_impl<filter_features_scale, vital::algo::filter_features>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "scale";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Filter features using a threshold on the scale of the detected features.";
+  PLUGIN_INFO( "scale",
+               "Filter features using a threshold on the scale of the detected features." )
 
   /// Constructor
   filter_features_scale();

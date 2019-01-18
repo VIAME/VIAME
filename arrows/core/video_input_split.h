@@ -49,14 +49,10 @@ class KWIVER_ALGO_CORE_EXPORT video_input_split
   : public vital::algorithm_impl < video_input_split, vital::algo::video_input >
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "split";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Coordinate two video readers."
-    " One reader supplies the image/data stream."
-    " The other reader supplies the metadata stream.";
+  PLUGIN_INFO( "split",
+               "Coordinate two video readers."
+               " One reader supplies the image/data stream."
+               " The other reader supplies the metadata stream." )
 
   /// Constructor
   video_input_split();

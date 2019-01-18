@@ -49,12 +49,8 @@ class KWIVER_ALGO_CORE_EXPORT filter_tracks
   : public vital::algorithm_impl<filter_tracks, vital::algo::filter_tracks>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Filter tracks by track length or matrix matrix importance.";
+  PLUGIN_INFO( "core",
+               "Filter tracks by track length or matrix matrix importance." )
 
   /// Constructor
   filter_tracks();
