@@ -16,7 +16,19 @@ else:
   div = '/'
 
 def list_files_in_dir( folder, extension ):
-  return glob.glob( folder + '/*' + extension )
+  output = glob.glob( folder + '/*' + extension )
+
+  index = 1
+  item_removed_in_last = True
+
+  while item_removed_in_last:
+    item_removed = False
+    for elem in output:
+      if elem.endswith( "_" + str( index ) + "." + extension ):
+        output.remove( elem )
+        item_removed = True
+    item_removed_in_last = item_removed
+    index = index + 1
 
 def create_dir( dirname ):
   if not os.path.exists( dirname ):
