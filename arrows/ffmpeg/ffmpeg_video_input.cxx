@@ -841,7 +841,7 @@ ffmpeg_video_input
       d->current_image_memory,
       d->current_image_memory->data(),
       width, height, depth,
-      depth, depth * width, depth * width * height
+      depth, depth * width, 1
     );
     d->current_image = std::make_shared<vital::simple_image_container>(vital::simple_image_container(image));
   }
