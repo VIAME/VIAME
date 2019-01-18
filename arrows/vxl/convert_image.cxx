@@ -14,7 +14,7 @@
 #include <vil/vil_math.h>
 
 #include <limits>
-#include <random>
+#include <cstdlib>
 #include <type_traits>
 
 
@@ -92,11 +92,7 @@ void random_grey_conversion( const vil_image_view<Type>& src,
                              vil_image_view<Type>& dst,
                              const double random_factor )
 {
-  std::random_device rd;
-  std::mt19937 mt( rd() );
-  std::uniform_real_distribution< double > range( 0.0, 1.0 );
-
-  if( range( rd ) < random_factor )
+  if( static_cast<double>( rand() ) / RAND_MAX < random_factor )
   {
     vil_image_view<Type> compressed;
     combine_channels( src, compressed );
