@@ -117,7 +117,8 @@ public:
     std::string prefix,
     std::vector< std::string > image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
-    vital::category_hierarchy_sptr object_labels );
+    vital::category_hierarchy_sptr object_labels,
+    unsigned& channel_count );
 
   bool print_detections(
     std::string filename,
@@ -305,11 +306,12 @@ train_from_disk(
 
     // Format train images
     std::vector< std::string > train_list, test_list;
+    unsigned channel_count;
 
     train_list = d->format_images( d->m_train_directory, "train",
-      train_image_names, train_groundtruth, object_labels );
+      train_image_names, train_groundtruth, object_labels, channel_count );
     test_list = d->format_images( d->m_train_directory, "test",
-      test_image_names, test_groundtruth, object_labels );
+      test_image_names, test_groundtruth, object_labels, channel_count );
 
     int nfilters = d->filter_count( object_labels->child_class_names().size() );
     // Generate train/test image list and header information
@@ -332,6 +334,7 @@ train_from_disk(
     }
     header_args = header_args +"]," + std::to_string( d->m_resize_i );
     header_args = header_args + "," + std::to_string( d->m_resize_j );
+    header_args = header_args + "," + std::to_string( channel_count );
     header_args = header_args + "," + std::to_string( nfilters );
     header_args = header_args + "," + std::to_string( d->m_batch_size );
     header_args = header_args + "," + std::to_string( d->m_batch_subdivisions );
@@ -386,7 +389,8 @@ darknet_trainer::priv::
 format_images( std::string folder, std::string prefix,
   std::vector< std::string > image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
-  vital::category_hierarchy_sptr object_labels )
+  vital::category_hierarchy_sptr object_labels,
+  unsigned& channel_count )
 {
   std::vector< std::string > output_fns;
 
@@ -434,7 +438,16 @@ format_images( std::string folder, std::string prefix,
       }
     }
 
-    image_loaded_successfully = true;
+    if( !image_loaded_successfully )
+    {
+      image_loaded_successfully = true;
+      channel_count = original_image.channels();
+    }
+    else if( channel_count != static_cast< unsigned >( original_image.channels() ) )
+    {
+      LOG_ERROR( m_logger, "All input images do not have the same number of channels" );
+      return std::vector< std::string >();
+    }
 
     if( m_crop_left )
     {
