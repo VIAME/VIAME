@@ -27,6 +27,7 @@ process color_freq_filter
   block filter:vxl_color_commonality
     :color_resolution_per_channel              16
     :internsity_hist_resolution                32
+    :output_scale                              512
   endblock
 
 connect from image_reader.image
@@ -70,13 +71,26 @@ process float_to_byte
 connect from motion_filter.image
         to   float_to_byte.image
 
+process random_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            false
+    :random_greyscale                          0.25
+  endblock
+
+connect from image_reader.image
+        to   random_grey.image
+
 # ==============================================================================
 
 process image_merger
   :: merge_images
   :merge_images:type                           ocv
 
-connect from image_reader.image
+connect from random_grey.image
         to   image_merger.image1
 connect from color_freq_filter.image
         to   image_merger.image2
