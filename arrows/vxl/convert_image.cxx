@@ -10,9 +10,11 @@
 
 #include <vil/vil_image_view.h>
 #include <vil/vil_convert.h>
+#include <vil/vil_plane.h>
 #include <vil/vil_math.h>
 
 #include <limits>
+#include <random>
 #include <type_traits>
 
 
@@ -84,6 +86,35 @@ void combine_channels( const vil_image_view<Type>& src,
   }
 }
 
+
+template< typename Type >
+void random_grey_conversion( const vil_image_view<Type>& src,
+                             vil_image_view<Type>& dst,
+                             const double random_factor )
+{
+  std::random_device rd;
+  std::mt19937 mt( rd() );
+  std::uniform_real_distribution< double > range( 0.0, 1.0 );
+
+  if( range( rd ) < random_factor )
+  {
+    vil_image_view<Type> compressed;
+    combine_channels( src, compressed );
+
+    dst.set_size( src.ni(), src.nj(), src.nplanes() );
+
+    for( unsigned p = 0; p < src.nplanes(); ++p )
+    {
+      vil_image_view<Type> output_plane = vil_plane( dst, p );
+      vil_copy_reformat( compressed, output_plane );
+    }
+  }
+  else
+  {
+    dst = src;
+  }
+}
+
 } // end anonoymous namespace
 
 // --------------------------------------------------------------------------------------
@@ -96,6 +127,7 @@ public:
    : format( "byte" )
    , single_channel( false )
    , scale_factor( 0.0 )
+   , random_greyscale( 0.0 )
   {
   }
 
@@ -105,7 +137,8 @@ public:
 
   std::string format;
   bool single_channel;
-  double scale_factor;  
+  double scale_factor;
+  double random_greyscale;
 };
 
 // --------------------------------------------------------------------------------------
@@ -135,6 +168,9 @@ convert_image
     "either standard RGB to grayscale conversion weights, or averaging." );
   config->set_value( "scale_factor", d->scale_factor,
     "Optional input value scaling factor" );
+  config->set_value( "random_greyscale", d->random_greyscale,
+    "Convert input image to a 3-channel greyscale image randomly with this percentage "
+    "between 0.0 and 1.0. This is used for machine learning augmentation." );
 
   return config;
 }
@@ -146,8 +182,7 @@ convert_image
   // Starting with our generated vital::config_block to ensure that assumed values
   // are present. An alternative is to check for key presence before performing a
   // get_value() call.
-  vital::config_block_sptr config =
-    this->get_configuration();
+  vital::config_block_sptr config = this->get_configuration();
   config->merge_config( in_config );
 
   // Settings for conversion
@@ -191,7 +226,7 @@ convert_image
     }                                                                  \
     else                                                               \
     {                                                                  \
-      scale_image<ipix_t,opix_t>( input, output, d->scale_factor );    \
+      scale_image< ipix_t, opix_t >( input, output, d->scale_factor ); \
     }                                                                  \
                                                                        \
     return std::make_shared< vxl::image_container >( output );         \
@@ -209,7 +244,12 @@ convert_image
                                                                        \
       vil_image_view< ipix_t > input;                                  \
                                                                        \
-      if( d->single_channel )                                          \
+      if( d->random_greyscale > 0.0 )                                  \
+      {                                                                \
+        vil_image_view< ipix_t > tmp = view;                           \
+        random_grey_conversion( tmp, input, d->random_greyscale );     \
+      }                                                                \
+      else if( d->single_channel )                                     \
       {                                                                \
         vil_image_view< ipix_t > tmp = view;                           \
         combine_channels( tmp, input );                                \
