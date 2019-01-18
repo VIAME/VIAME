@@ -327,7 +327,6 @@ bundle_adjust
   }
 
   typedef std::unordered_map<track_id_t, std::vector<double> > lm_param_map_t;
-  typedef std::unordered_map<frame_id_t, std::vector<double> > cam_param_map_t;
 
   d_->camera_params.clear();
   d_->camera_intr_params.clear();

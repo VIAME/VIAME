@@ -239,7 +239,7 @@ public:
     simple_camera_perspective_map_sptr cams,
     const std::vector<track_sptr>& trks,
     std::set<landmark_id_t>& inlier_lm_ids,
-    int min_inlier_observations = 2) const;
+    unsigned int min_inlier_observations = 2) const;
 
   void triangulate_landmarks_visible_in_frames(
     landmark_map::map_landmark_t& lmks,
@@ -603,7 +603,7 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   const std::vector<track_sptr>& trks,
   std::set<landmark_id_t>& inlier_lm_ids,
-  int min_inlier_observations) const
+  unsigned int min_inlier_observations) const
 {
   typedef landmark_map::map_landmark_t lm_map_t;
   lm_map_t init_lms;
@@ -938,7 +938,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   std::set<frame_id_t> inlier_lm_ids;
   retriangulate(lms, cam_map, trks, inlier_lm_ids);
-  int inlier_count_prev = 0;
+  size_t inlier_count_prev = 0;
 
   //optimizing loop
   while (inlier_lm_ids.size() > inlier_count_prev)
@@ -1082,7 +1082,7 @@ initialize_cameras_landmarks_keyframe::priv
     }
 
 #pragma omp parallel for schedule(dynamic, 10)
-    for (int64_t i = 0; i < pairs_to_process.size(); ++i)
+    for (uint64_t i = 0; i < pairs_to_process.size(); ++i)
     {
       const auto &tp = pairs_to_process[i];
       auto fid_0 = tp.first;
@@ -1481,7 +1481,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   Eigen::Matrix<double, 3, Eigen::Dynamic> cam_mat;
   cam_mat.resize(3, cam_positions.size());
-  for (int v = 0; v < cam_positions.size(); ++v)
+  for (size_t v = 0; v < cam_positions.size(); ++v)
   {
     cam_mat(0, v) = cam_positions[v].x();
     cam_mat(1, v) = cam_positions[v].y();
@@ -1812,7 +1812,7 @@ void initialize_cameras_landmarks_keyframe::priv
       std::uniform_int_distribution<size_t> uni(0, cameras.size() - 1); // guaranteed unbiased
       auto ri = uni(m_rng);
       auto cams_it = cameras.begin();
-      for (int i = 0; i < ri; ++i)
+      for (unsigned int i = 0; i < ri; ++i)
       {
         ++cams_it;
       }
@@ -1839,7 +1839,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (m_frac_frames_for_init > 0)
   {
-    int num_init_keyframes = keyframes.size() * m_frac_frames_for_init;
+    size_t num_init_keyframes = keyframes.size() * m_frac_frames_for_init;
     for (auto kfid : keyframes)
     {
       beginning_keyframes.insert(kfid);
@@ -1996,7 +1996,8 @@ initialize_cameras_landmarks_keyframe::priv
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
   while (!frames_to_resection.empty() &&
-    (m_max_cams_in_keyframe_init < 0 || cams->size() < m_max_cams_in_keyframe_init))
+    (m_max_cams_in_keyframe_init < 0 ||
+     cams->size() < static_cast<size_t>(m_max_cams_in_keyframe_init)))
   {
     frame_id_t next_frame_id = select_next_camera(frames_to_resection, cams, lms, tracks);
     if (next_frame_id == -1)

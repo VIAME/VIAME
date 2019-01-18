@@ -196,9 +196,12 @@ public:
     redetect_threshold =
       config->get_value<double>("redetect_frac_lost_threshold", redetect_threshold);
 
-    int grid_rows = config->get_value<int>("grid_rows", grid_rows);
+    int grid_rows, grid_cols;
+    dist_image.get_grid_size(grid_rows, grid_cols);
 
-    int grid_cols = config->get_value<int>("grid_cols", grid_cols);
+    grid_rows = config->get_value<int>("grid_rows", grid_rows);
+
+    grid_cols = config->get_value<int>("grid_cols", grid_cols);
 
     dist_image.set_grid_size(grid_rows, grid_cols);
 
