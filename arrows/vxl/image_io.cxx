@@ -177,6 +177,26 @@ convert_to_gray(const vil_image_view<inP>& src,
   vil_convert_planes_to_grey(src,dest);
 }
 
+std::string
+plane_filename(std::string filename, unsigned p)
+{
+  std::string parent_directory =
+    kwiversys::SystemTools::GetParentDirectory(filename);
+  std::string file_name_with_ext =
+    kwiversys::SystemTools::GetFilenameName(filename);
+
+  std::size_t last_index = file_name_with_ext.find_last_of( "." );
+  std::string file_name_no_ext = file_name_with_ext.substr( 0, last_index );
+  std::string file_extension = file_name_with_ext.substr( last_index );
+
+  std::vector<std::string> full_path;
+  std::string plane_id = ( p > 0 ? "_" + std::to_string(p) : "" );
+  full_path.push_back("");
+  full_path.push_back(parent_directory);
+  full_path.push_back(file_name_no_ext + plane_id + file_extension);
+  return kwiversys::SystemTools::JoinPath(full_path);
+}
+
 template <typename inP>
 void
 save_image(const vil_image_view<inP>& src,
@@ -191,25 +211,60 @@ save_image(const vil_image_view<inP>& src,
   {
     for(unsigned i = 0; i < src.nplanes(); ++i)
     {
-      std::string parent_directory =
-        kwiversys::SystemTools::GetParentDirectory(filename);
-      std::string file_name_with_ext =
-        kwiversys::SystemTools::GetFilenameName(filename);
-
-      std::size_t last_index = file_name_with_ext.find_last_of( "." );
-      std::string file_name_no_ext = file_name_with_ext.substr( 0, last_index );
-      std::string file_extension = file_name_with_ext.substr( last_index );
-
-      std::vector<std::string> full_path;
-      std::string plane_id = ( i > 0 ? "_" + std::to_string(i) : "" );
-      full_path.push_back("");
-      full_path.push_back(parent_directory);
-      full_path.push_back(file_name_no_ext + plane_id + file_extension);
-      std::string plane_filename = kwiversys::SystemTools::JoinPath(full_path);
-
-      vil_save(vil_plane(src,i), plane_filename.c_str());
+      vil_save(vil_plane(src,i), plane_filename(filename,i).c_str());
     }
   }
+}
+
+// Helper function to load images when they are saved out in above format
+template< typename Type >
+vil_image_view< Type >
+load_external_planes(const std::string& filename,
+                     vil_image_view< Type >& first_plane)
+{
+  std::vector< vil_image_view< Type > > images( 1, first_plane );
+
+  unsigned p = 1;
+  unsigned total_p = first_plane.nplanes();
+
+  while( true )
+  {
+    std::string plane_file = plane_filename( filename, p );
+
+    if( kwiversys::SystemTools::FileExists( plane_file ) )
+    {
+      vil_image_view< Type > plane = vil_load( plane_file.c_str() );
+
+      if( plane.ni() != first_plane.ni() || plane.nj() != first_plane.nj() )
+      {
+        throw vital::image_load_exception( "Input channel size difference" );
+      }
+
+      images.push_back( plane );
+      total_p += plane.nplanes();
+    }
+    else
+    {
+      break;
+    }
+
+    p++;
+  }
+
+  vil_image_view< Type > output( first_plane.ni(), first_plane.nj(), total_p );
+
+  for( p = 0; p < total_p; )
+  {
+    for( unsigned i = 0; i < images.size(); i++, p++ )
+    {
+      vil_image_view< Type > src = vil_plane( images[i], i );
+      vil_image_view< Type > dst = vil_plane( output, i );
+
+      vil_copy_reformat( src, dst );
+    }
+  }
+
+  return output;
 }
 
 }
@@ -324,7 +379,9 @@ image_io
 
   config->set_value("split_channels", d_->split_channels,
                     "When writing out images, if it contains more than 1 image "
-                    "plane, write each plane out as a seperate image file");
+                    "plane, write each plane out as a seperate image file. Also, "
+                    "when enabled at read time support images written out in via "
+                    "this method.");
 
   return config;
 }
@@ -404,6 +461,10 @@ image_io
     {                                                                  \
       typedef vil_pixel_format_type_of<T >::component_type pix_t;      \
       vil_image_view<pix_t> img_pix_t = img_rsc->get_view();           \
+      if( d_->split_channels )                                         \
+      {                                                                \
+        img_pix_t = load_external_planes( filename, img_pix_t );       \
+      }                                                                \
       if( d_->force_byte )                                             \
       {                                                                \
         vil_image_view<vxl_byte> img;                                  \
