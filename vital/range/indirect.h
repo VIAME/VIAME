@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_RANGE_TRANSFORM_H
-#define VITAL_RANGE_TRANSFORM_H
+#ifndef VITAL_RANGE_INDIRECT_H
+#define VITAL_RANGE_INDIRECT_H
 
 #include <vital/range/defs.h>
 
@@ -37,41 +37,24 @@ namespace kwiver {
 namespace vital {
 namespace range {
 
-// ----------------------------------------------------------------------------
-/// Transforming range adapter.
+//-----------------------------------------------------------------------------
+/// Indirection range adapter.
 /**
- * This range adapter applies a transformation to the elements of a range.
- *
- * \par Example:
- * \code
- * namespace r = kwiver::vital::range;
- *
- * std::vector<int> values = { 1, 2, 3, 4, 5 };
- * auto times_3 = []( int x ){ return x * 3; };
- *
- * for ( auto x : values | r::transform( times_3 ) )
- *   std::cout << x << std::endl;
- *
- * // Output:
- * //  3
- * //  6
- * //  9
- * //  12
- * //  15
- * \endcode
+ * This range adapter applies a level of indirection. This is typically used
+ * to suppress the dereferencing of a container iterator in a range-based
+ * \c for loop in order to allow iteration over the container's iterators,
+ * rather than the values.
  */
-template < typename Functor, typename Range >
-class transform_view : public generic_view
+template < typename Range >
+class indirect_view : public generic_view
 {
 protected:
-  using range_iterator_t = typename range_ref< Range const >::iterator_t;
-  using range_value_ref_t = typename range_ref< Range const >::value_ref_t;
+  using range_iterator_t = typename range_ref< Range >::iterator_t;
 
 public:
-  using value_t = typename function_detail< Functor >::return_type_t;
-  using transform_function_t = Functor;
+  using value_t = range_iterator_t;
 
-  transform_view( transform_view const& ) = default;
+  indirect_view( indirect_view const& ) = default;
 
   class iterator
   {
@@ -83,37 +66,30 @@ public:
     bool operator!=( iterator const& other ) const
     { return m_iter != other.m_iter; }
 
-    value_t operator*() const {  return m_func( *m_iter ); }
+    value_t operator*() const { return m_iter; }
 
     iterator& operator++() { ++m_iter; return *this; }
 
   protected:
-    friend class transform_view;
-    iterator( range_iterator_t const& iter,
-              transform_function_t const& func )
-      : m_iter{ iter }, m_func( func ) {}
+    friend class indirect_view;
+    iterator( range_iterator_t const& iter ) : m_iter{ iter } {}
 
     range_iterator_t m_iter;
-    transform_function_t m_func;
   };
 
-  transform_view( Range const& range, transform_function_t func )
-    : m_range{ range }, m_func{ func } {}
+  indirect_view( Range& range ) : m_range{ range } {}
 
-  iterator begin() const { return { m_range.begin(), m_func }; }
-  iterator end() const { return { m_range.end(), m_func }; }
+  iterator begin() const { return { m_range.begin() }; }
+  iterator end() const { return { m_range.end() }; }
 
 protected:
-  range_ref< Range const > m_range;
-  transform_function_t m_func;
+  range_ref< Range > m_range;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
-KWIVER_RANGE_ADAPTER_FUNCTION( transform )
+KWIVER_MUTABLE_RANGE_ADAPTER( indirect )
 
-} // namespace range
-} // namespace vital
-} // namespace kwiver
+} } } // end namespace
 
 #endif

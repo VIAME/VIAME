@@ -26,6 +26,10 @@ Vital
 
  * Promoted version.h from sprokit to vital for use across all of KWIVER.
 
+ * Added additional range helpers indirect and valid.  The former provides
+   access to iterators while still allowing a range-based for to be used.  The
+   latter filters iteration so that only "valid" items are visited.
+
 Vital Tools
 
  * Converted tools to use applet plugin approach.

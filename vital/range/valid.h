@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VITAL_RANGE_FILTER_H
-#define VITAL_RANGE_FILTER_H
+#ifndef VITAL_RANGE_VALID_H
+#define VITAL_RANGE_VALID_H
 
 #include <vital/range/defs.h>
 
@@ -38,40 +38,33 @@ namespace vital {
 namespace range {
 
 // ----------------------------------------------------------------------------
-/// Filtering range adapter.
+/// Validity-checking range adapter.
 /**
- * This range adapter applies a filter to the elements of a range. When
- * iterating over the range, only elements which pass the filter (that is, the
- * filter functor returns \c true) will be seen.
+ * This range adapter applies a validity filter to the elements of a range.
+ * When iterating over the range, only elements for which \c !!item is \c true
+ * will be seen.
  *
  * \par Example:
- * \code
- * namespace r = kwiver::vital::range;
- *
- * std::vector<int> values = { 1, 2, 3, 4, 5, 6, 7, 8 };
- * auto is_even = []( int x ){ return ( x % 2 ) == 0; };
- *
- * for ( auto x : values | r::filter( is_even ) )
- *   std::cout << x << std::endl;
- *
- * // Output:
- * //  2
- * //  4
- * //  6
- * //  8
- * \endcode
+ \code
+ namespace r = kwiver::vital::range;
+
+ std::vector<std::shared_ptr<int>> values = get_values();
+
+ // Won't crash, even if some items are null pointers
+ for ( auto const& p : values | r::valid )
+   std::cout << *p << std::endl;
+ \endcode
  */
-template < typename Functor, typename Range >
-class filter_view : public generic_view
+template < typename Range >
+class valid_view : public generic_view
 {
 protected:
-  using range_iterator_t = typename range_ref< Range const >::iterator_t;
+  using range_iterator_t = typename range_ref< Range >::iterator_t;
 
 public:
-  using value_t = typename range_ref< Range const >::value_t;
-  using filter_function_t = Functor;
+  using value_ref_t = typename range_ref< Range >::value_ref_t;
 
-  filter_view( filter_view const& ) = default;
+  valid_view( valid_view const& ) = default;
 
   class iterator
   {
@@ -83,66 +76,61 @@ public:
     bool operator!=( iterator const& other ) const
     { return m_iter != other.m_iter; }
 
-    value_t operator*() const { return *m_iter; }
+    value_ref_t operator*() const { return *m_iter; }
 
     iterator& operator++();
 
     operator bool() const { return m_iter != m_end; }
 
   protected:
-    friend class filter_view;
+    friend class valid_view;
     iterator( range_iterator_t const& iter,
-              range_iterator_t const& end,
-              filter_function_t const& func )
-      : m_iter{ iter }, m_end{ end }, m_func( func ) {}
+              range_iterator_t const& end )
+      : m_iter{ iter }, m_end{ end } {}
 
     range_iterator_t m_iter, m_end;
-    filter_function_t m_func;
   };
 
-  filter_view( Range const& range, filter_function_t func )
-    : m_range{ range }, m_func{ func } {}
+  valid_view( Range& range )
+    : m_range{ range } {}
 
   iterator begin() const;
 
   iterator end() const
-  { return { m_range.end(), m_range.end(), m_func }; }
+  { return { m_range.end(), m_range.end() }; }
 
 protected:
-  range_ref< Range const > m_range;
-  filter_function_t m_func;
+  range_ref< Range > m_range;
 };
 
 // ----------------------------------------------------------------------------
-template < typename FilterFunction, typename Range >
-typename filter_view< FilterFunction, Range >::iterator
-filter_view< FilterFunction, Range >
+template < typename Range >
+typename valid_view< Range >::iterator
+valid_view< Range >
 ::begin() const
 {
-  auto iter = iterator{ m_range.begin(), m_range.end(), m_func };
-  return ( iter && m_func( *iter ) ? iter : ++iter );
+  auto iter = iterator{ m_range.begin(), m_range.end() };
+  return ( iter && !!( *iter ) ? iter : ++iter );
 }
 
 // ----------------------------------------------------------------------------
-template < typename FilterFunction, typename Range >
-typename filter_view< FilterFunction, Range >::iterator&
-filter_view< FilterFunction, Range >::iterator
+template < typename Range >
+typename valid_view< Range >::iterator&
+valid_view< Range >::iterator
 ::operator++()
 {
   while ( m_iter != m_end )
   {
     ++m_iter;
-    if ( m_iter != m_end && m_func( *m_iter ) ) break;
+    if ( m_iter != m_end && !!( *m_iter ) ) break;
   }
   return *this;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-KWIVER_RANGE_ADAPTER_FUNCTION( filter )
+KWIVER_MUTABLE_RANGE_ADAPTER( valid )
 
-} // namespace range
-} // namespace vital
-} // namespace kwiver
+} } } // end namespace
 
 #endif
