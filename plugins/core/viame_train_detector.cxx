@@ -195,7 +195,12 @@ bool create_folder( const std::string& location )
 {
   boost::filesystem::path dir( location );
 
-  return boost::filesystem::create_directories( dir );
+  if( !boost::filesystem::exists( dir ) )
+  {
+    return boost::filesystem::create_directories( dir );
+  }
+
+  return false;
 }
 
 std::string append_path( std::string p1, std::string p2 )
@@ -343,6 +348,9 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "augmentation_cache", "",
                      "Directory to store augmented samples, a temp directiry is used "
                      "if not specified." );
+  config->set_value( "regenerate_cache", "true",
+                     "If an augmentation cache already exists, should we regenerate it "
+                     "or use it as-is?" );
   config->set_value( "default_percent_test", "0.05",
                      "Percent [0.0, 1.0] of test samples to use if no manual files "
                      "specified." );
@@ -792,6 +800,8 @@ main( int argc, char* argv[] )
     config->get_value< std::string >( "augmentation_pipeline" );
   std::string augmented_cache =
     config->get_value< std::string >( "augmentation_cache" );
+  bool regenerate_cache =
+    config->get_value< bool >( "regenerate_cache" );
   bool check_override =
     config->get_value< bool >( "check_override" );
   double threshold =
@@ -808,9 +818,9 @@ main( int argc, char* argv[] )
     pipeline_file = g_params.opt_pipeline_file;
   }
 
-  if( !augmented_cache.empty() )
+  if( !augmented_cache.empty() && create_folder( augmented_cache ) )
   {
-    create_folder( augmented_cache );
+    regenerate_cache = true;
   }
 
   std::vector< std::string > image_extensions, groundtruth_extensions;
@@ -939,9 +949,16 @@ main( int argc, char* argv[] )
       {
         filtered_image_file = get_augmented_filename( image_file, last_subdir, augmented_cache );
 
-        if( !run_pipeline_on_image( augmentation_pipe, image_file, filtered_image_file ) )
+        if( regenerate_cache )
         {
-          use_image = false;
+          if( !run_pipeline_on_image( augmentation_pipe, image_file, filtered_image_file ) )
+          {
+            use_image = false;
+          }
+        }
+        else
+        {
+          use_image = boost::filesystem::exists( filtered_image_file );
         }
       }
       else
