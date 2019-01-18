@@ -862,12 +862,10 @@ main( int argc, char* argv[] )
 
     std::cout << "Processing " << ( using_list ? "train.txt" : folder ) << std::endl;
 
-    std::string fullpath = folder;
-
     std::vector< std::string > image_files, gt_files;
 
-    list_files_in_folder( fullpath, image_files, true, image_extensions );
-    list_files_in_folder( fullpath, gt_files, false, groundtruth_extensions );
+    list_files_in_folder( folder, image_files, true, image_extensions );
+    list_files_in_folder( folder, gt_files, false, groundtruth_extensions );
 
     std::sort( image_files.begin(), image_files.end() );
     std::sort( gt_files.begin(), gt_files.end() );
@@ -906,14 +904,17 @@ main( int argc, char* argv[] )
     }
 
     pipeline_t augmentation_pipe = load_embedded_pipeline( pipeline_file );
+    std::string last_subdir;
 
     if( !augmented_cache.empty() )
     {
-      std::vector< std::string > cache_path;
+      std::vector< std::string > cache_path, split_folder;
+      kwiversys::SystemTools::SplitPath( folder, split_folder );
+      last_subdir = ( split_folder.empty() ? folder : split_folder.back() );
 
       cache_path.push_back( "" );
       cache_path.push_back( augmented_cache );
-      cache_path.push_back( folder );
+      cache_path.push_back( last_subdir );
 
       create_folder( kwiversys::SystemTools::JoinPath( cache_path ) );
     }
@@ -933,7 +934,7 @@ main( int argc, char* argv[] )
 
       if( augmentation_pipe )
       {
-        filtered_image_file = get_augmented_filename( image_file, folder, augmented_cache );
+        filtered_image_file = get_augmented_filename( image_file, last_subdir, augmented_cache );
 
         if( !run_pipeline_on_image( augmentation_pipe, image_file, filtered_image_file ) )
         {
