@@ -451,7 +451,10 @@ std::string get_augmented_filename( std::string name,
     kwiversys::SystemTools::GetParentDirectory( name );
 
   std::string file_name =
-    kwiversys::SystemTools::GetFilenameWithoutExtension( name );
+    kwiversys::SystemTools::GetFilenameName( name );
+
+  std::size_t last_index = file_name.find_last_of( "." );
+  std::string file_name_no_ext = file_name.substr( 0, last_index );
 
   std::string adj_extension = ".png";
 
@@ -469,7 +472,7 @@ std::string get_augmented_filename( std::string name,
   }
 
   full_path.push_back( subdir );
-  full_path.push_back( file_name + adj_extension );
+  full_path.push_back( file_name_no_ext + adj_extension );
 
   std::string mod_path = kwiversys::SystemTools::JoinPath( full_path );
   return mod_path;
