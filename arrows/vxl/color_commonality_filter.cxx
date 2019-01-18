@@ -144,14 +144,14 @@ void populate_image_histogram( const vil_image_view<InputType>& input,
 
   // Filter image
   const InputType* row = input.top_left_ptr();
-  for (unsigned j=0;j<nj;++j,row+=jstep)
+  for( unsigned j=0; j<nj; ++j, row+=jstep )
   {
     const InputType* pixel = row;
-    for (unsigned i=0;i<ni;++i,pixel+=istep)
+    for( unsigned i=0; i<ni; ++i, pixel+=istep )
     {
       unsigned step = 0;
       const InputType* plane = pixel;
-      for (unsigned p=0;p<np;++p,plane+=pstep)
+      for( unsigned p=0; p<np; ++p, plane+=pstep )
       {
         step += hist_steps[p] * ( *plane >> bitshift );
       }
@@ -179,7 +179,7 @@ filter_color_image( const vil_image_view<InputType>& input,
   // Configure output scaling settings based on the output type and user settings
   const InputType input_type_max = std::numeric_limits<InputType>::max();
   const OutputType output_type_max = std::numeric_limits<OutputType>::max();
-  const unsigned histogram_threshold = static_cast<unsigned>(output_type_max);
+  const unsigned histogram_threshold = static_cast<unsigned>( output_type_max );
   unsigned histogram_scale_factor = options.output_scale_factor;
 
   // Use type default options if no scale factor specified
@@ -206,15 +206,15 @@ filter_color_image( const vil_image_view<InputType>& input,
 
   // Normalize histogram to the output types range
   unsigned sum = 0;
-  for (unsigned i=0;i<histogram.size();i++)
+  for( unsigned i = 0; i < histogram.size(); i++ )
   {
     sum += histogram[i];
   }
 
   // Fill in color commonality image from the compiled histogram
-  for (unsigned i=0;i<histogram.size();i++)
+  for( unsigned i = 0; i < histogram.size(); i++ )
   {
-    unsigned value = ( histogram_scale_factor * histogram[i] )/sum;
+    unsigned value = ( histogram_scale_factor * histogram[i] ) / sum;
     histogram[i] = ( value > histogram_threshold ? histogram_threshold : value );
   }
 
@@ -226,14 +226,14 @@ filter_color_image( const vil_image_view<InputType>& input,
   const std::ptrdiff_t pstep = input.planestep();
 
   const InputType* row = input.top_left_ptr();
-  for (unsigned j=0;j<nj;++j,row+=jstep)
+  for( unsigned j=0; j<nj; ++j,row+=jstep )
   {
     const InputType* pixel = row;
-    for (unsigned i=0;i<ni;++i,pixel+=istep)
+    for( unsigned i=0; i<ni; ++i, pixel+=istep )
     {
       const InputType* plane = pixel;
       unsigned step = 0;
-      for (unsigned p=0;p<np;++p,plane+=pstep)
+      for( unsigned p=0; p<np; ++p,plane+=pstep )
       {
         step += histsteps[p] * ( *plane >> bitshift );
       }
@@ -279,7 +279,7 @@ filter_color_image( const vil_image_view<InputType>& input,
 
   // Normalize histogram to the output types range
   unsigned sum = 0;
-  for (unsigned i=0;i<histogram.size();i++)
+  for( unsigned i=0; i<histogram.size(); i++ )
   {
     sum += histogram[i];
   }
@@ -288,7 +288,7 @@ filter_color_image( const vil_image_view<InputType>& input,
   OutputType scale_factor = 1.0;
   if( options.output_scale_factor != 0 )
   {
-    scale_factor = static_cast<OutputType>(options.output_scale_factor);
+    scale_factor = static_cast<OutputType>( options.output_scale_factor );
   }
   scale_factor = scale_factor / sum;
 
