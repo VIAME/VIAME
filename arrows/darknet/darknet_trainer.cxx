@@ -496,6 +496,12 @@ format_images( std::string folder, std::string prefix,
             ch = m_resize_j;
           }
 
+          // Only necessary in a few circumstances when chip_step exceeds image size.
+          if( ch < 0 || cw < 0 )
+          {
+            continue;
+          }
+
           cv::Mat cropped_image = resized_image( cv::Rect( i, j, cw, ch ) );
           cv::Mat resized_crop;
 
