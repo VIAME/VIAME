@@ -189,6 +189,7 @@ convert_image
   d->format = config->get_value< std::string >( "format" );
   d->single_channel = config->get_value< bool >( "single_channel" );
   d->scale_factor = config->get_value< double >( "scale_factor" );
+  d->random_greyscale = config->get_value< double >( "random_greyscale" );
 }
 
 bool
