@@ -672,11 +672,18 @@ darknet_trainer::priv
     double sf = start + 2 * m_random_int_shift * rand_uniform;
 
     cv::Mat scaled_image = image * sf;
-    cv::imwrite( filename, scaled_image );
+
+    m_image_io->save( filename,
+      kwiver::vital::image_container_sptr(
+        new kwiver::arrows::ocv::image_container( scaled_image,
+          kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
   }
   else
   {
-    cv::imwrite( filename, image );
+    m_image_io->save( filename,
+      kwiver::vital::image_container_sptr(
+        new kwiver::arrows::ocv::image_container( image,
+          kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
   }
 }
 
