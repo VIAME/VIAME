@@ -143,24 +143,24 @@ public:
 
 
 // =============================================================================
-darknet_trainer::
-darknet_trainer()
+darknet_trainer
+::darknet_trainer()
   : d( new priv() )
 {
   attach_logger( "arrows.darknet.darknet_trainer" );
   d->m_logger = logger();
 }
 
-darknet_trainer::
-~darknet_trainer()
+darknet_trainer
+::~darknet_trainer()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 vital::config_block_sptr
-darknet_trainer::
-get_configuration() const
+darknet_trainer
+::get_configuration() const
 {
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
@@ -216,8 +216,8 @@ get_configuration() const
 
 // -----------------------------------------------------------------------------
 void
-darknet_trainer::
-set_configuration( vital::config_block_sptr config_in )
+darknet_trainer
+::set_configuration( vital::config_block_sptr config_in )
 {
   // Starting with our generated config_block to ensure that assumed values are present
   // An alternative is to check for key presence before performing a get_value() call.
@@ -252,8 +252,8 @@ set_configuration( vital::config_block_sptr config_in )
 
 // -----------------------------------------------------------------------------
 bool
-darknet_trainer::
-check_configuration( vital::config_block_sptr config ) const
+darknet_trainer
+::check_configuration( vital::config_block_sptr config ) const
 {
   std::string net_config = config->get_value< std::string >( "net_config" );
 
@@ -277,8 +277,8 @@ check_configuration( vital::config_block_sptr config ) const
 
 // -----------------------------------------------------------------------------
 void
-darknet_trainer::
-train_from_disk(
+darknet_trainer
+::train_from_disk(
   vital::category_hierarchy_sptr object_labels,
   std::vector< std::string > train_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
@@ -385,8 +385,8 @@ train_from_disk(
 
 // -----------------------------------------------------------------------------
 std::vector< std::string >
-darknet_trainer::priv::
-format_images( std::string folder, std::string prefix,
+darknet_trainer::priv
+::format_images( std::string folder, std::string prefix,
   std::vector< std::string > image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
   vital::category_hierarchy_sptr object_labels,
@@ -561,8 +561,8 @@ format_images( std::string folder, std::string prefix,
 }
 
 bool
-darknet_trainer::priv::
-print_detections(
+darknet_trainer::priv
+::print_detections(
   std::string filename,
   kwiver::vital::detected_object_set_sptr all_detections,
   kwiver::vital::bounding_box_d region,
@@ -644,8 +644,8 @@ print_detections(
 }
 
 void
-darknet_trainer::priv::
-generate_fn( std::string image_folder, std::string gt_folder,
+darknet_trainer::priv
+::generate_fn( std::string image_folder, std::string gt_folder,
   std::string& image, std::string& gt, const int len )
 {
   static int sample_counter = 0;
@@ -661,8 +661,8 @@ generate_fn( std::string image_folder, std::string gt_folder,
 }
 
 void
-darknet_trainer::priv::
-save_chip( std::string filename, cv::Mat image )
+darknet_trainer::priv
+::save_chip( std::string filename, cv::Mat image )
 {
   if( m_random_int_shift > 0.0 )
   {
@@ -681,8 +681,8 @@ save_chip( std::string filename, cv::Mat image )
 }
 
 int
-darknet_trainer::priv::
-filter_count( int nclasses )
+darknet_trainer::priv
+::filter_count( int nclasses )
 {
   int multiplier = -1;
   if( m_model_type == "yolov2" )
