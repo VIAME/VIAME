@@ -234,23 +234,23 @@ load_external_planes(const std::string& filename,
 
       images.push_back( plane );
       total_p += plane.nplanes();
+
+      p++;
     }
     else
     {
       break;
     }
-
-    p++;
   }
 
   vil_image_view< Type > output( first_plane.ni(), first_plane.nj(), total_p );
 
-  for( p = 0; p < total_p; )
+  for( unsigned img_id = 0, out_pln = 0; out_pln < total_p; img_id++ )
   {
-    for( unsigned i = 0; i < images[i].nplanes(); i++, p++ )
+    for( unsigned img_pln = 0; img_pln < images[img_id].nplanes(); img_pln++, out_pln++ )
     {
-      vil_image_view< Type > src = vil_plane( images[i], i );
-      vil_image_view< Type > dst = vil_plane( output, p );
+      vil_image_view< Type > src = vil_plane( images[img_id], img_pln );
+      vil_image_view< Type > dst = vil_plane( output, out_pln );
 
       vil_copy_reformat( src, dst );
     }
