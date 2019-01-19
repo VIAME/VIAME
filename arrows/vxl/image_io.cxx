@@ -255,10 +255,10 @@ load_external_planes(const std::string& filename,
 
   for( p = 0; p < total_p; )
   {
-    for( unsigned i = 0; i < images.size(); i++, p++ )
+    for( unsigned i = 0; i < images[i].nplanes(); i++, p++ )
     {
       vil_image_view< Type > src = vil_plane( images[i], i );
-      vil_image_view< Type > dst = vil_plane( output, i );
+      vil_image_view< Type > dst = vil_plane( output, p );
 
       vil_copy_reformat( src, dst );
     }
