@@ -17,8 +17,6 @@
 #include <exception>
 #include <memory>
 
-#include <logger/logger.h>
-
 namespace kwiver {
 namespace arrows {
 namespace vxl {
