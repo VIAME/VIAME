@@ -286,6 +286,10 @@ TEST_F(ffmpeg_video_input, read_video)
       << "Frame numbers should be sequential";
     EXPECT_EQ(ts.get_frame(), decode_barcode(*img))
       << "Frame number should match barcode in frame image";
+
+    EXPECT_EQ(red, test_color_pixel(1, *img));
+    EXPECT_EQ(green, test_color_pixel(2, *img));
+    EXPECT_EQ(blue, test_color_pixel(3, *img));
   }
   EXPECT_EQ(TOTAL_NUMBER_OF_FRAMES, num_frames)
     << "Number of frames found should be "

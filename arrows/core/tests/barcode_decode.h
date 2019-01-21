@@ -35,11 +35,20 @@
 
 // Ignore 8 pixels on either side of the barcode
 static int bc_buffer = 8;
+
 // Barcode lines two pixels wide and 4 pixels high
 static int bc_width = 2;
 static int bc_height = 4;
 static int bit_depth = 256;
 static int bc_area = bc_width*bc_height;
+
+// Color test pixel location
+static int color_test_pos = 17;
+
+// Test colors
+static kwiver::vital::rgb_color red(255, 0, 0);
+static kwiver::vital::rgb_color green(0, 255, 0);
+static kwiver::vital::rgb_color blue(0, 0, 255);
 
 // Decode barcodes from test frame images
 uint32_t decode_barcode(kwiver::vital::image_container& img_ct)
@@ -70,6 +79,15 @@ uint32_t decode_barcode(kwiver::vital::image_container& img_ct)
   }
 
   return retVal;
+}
+
+kwiver::vital::rgb_color test_color_pixel(
+  int color, kwiver::vital::image_container& img_ct)
+{
+  auto img = img_ct.get_image();
+  kwiver::vital::image_of<uint8_t> frame_img(img);
+
+  return frame_img.at(2*color + 1, color_test_pos);
 }
 
 #endif /* ARROWS_CORE_TEST_BARCODE_DECODE_H */
