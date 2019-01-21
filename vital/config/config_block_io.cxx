@@ -352,7 +352,6 @@ write_config_file( config_block_sptr const& config,
     kwiversys::SystemTools::CollapseFullPath( file_path ) );
   if ( ! kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
   {
-    //std::cerr << "at least one containing directory not found, creating them..." << std::endl;
     if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
       VITAL_THROW( config_file_write_exception, parent_dir,
@@ -362,6 +361,12 @@ write_config_file( config_block_sptr const& config,
 
   // open output file and write each key/value to a line.
   std::ofstream ofile( file_path.c_str() );
+
+  if ( ! ofile )
+  {
+    VITAL_THROW( config_file_write_exception, file_path,
+                 "Could not open config file for writing" );
+  }
 
   write_config( config, ofile );
   ofile.close();
@@ -398,7 +403,6 @@ void write_config( config_block_sptr const& config,
 
     if ( descr != config_block_description_t() )
     {
-      //std::cerr << "[write_config_file] Writing comment for '" << key << "'." << std::endl;
       write_cb_comment( ofile, descr );
       prev_had_descr = true;
     }
@@ -417,7 +421,8 @@ void write_config( config_block_sptr const& config,
     {
       ofile << "# defined - " << file << ":" << line << "\n";
     }
-  }
+  } // end for
+
   ofile.flush();
 } // write_config_file
 
