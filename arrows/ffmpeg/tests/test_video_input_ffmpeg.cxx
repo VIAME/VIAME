@@ -35,8 +35,8 @@
 
 #include <test_gtest.h>
 
-#include <arrows/core/tests/seek_frame_common.h>
 #include <arrows/ffmpeg/ffmpeg_video_input.h>
+#include <arrows/tests/test_video_input.h>
 #include <vital/exceptions/io.h>
 #include <vital/plugin_loader/plugin_manager.h>
 

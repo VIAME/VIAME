@@ -36,6 +36,7 @@
 #include <test_gtest.h>
 
 #include <arrows/core/video_input_image_list.h>
+#include <arrows/tests/test_video_input.h>
 #include <vital/algo/algorithm_factory.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -43,8 +44,6 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-
-#include "seek_frame_common.h"
 
 kwiver::vital::path_t g_data_dir;
 

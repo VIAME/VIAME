@@ -30,8 +30,8 @@
 
 // Common test cases for seek_frame in the video_input interface
 
-#ifndef ARROWS_CORE_TEST_SEEK_FRAME_COMMON_H
-#define ARROWS_CORE_TEST_SEEK_FRAME_COMMON_H
+#ifndef ARROWS_TESTS_TEST_VIDEO_INPUT_H
+#define ARROWS_TESTS_TEST_VIDEO_INPUT_H
 
 #include <vital/algo/video_input.h>
 #include <vital/types/image_container.h>
@@ -291,4 +291,4 @@ void test_next_then_seek_then_next( kwiver::vital::algo::video_input& vi )
     << "Frame number should match barcode in frame image";
 }
 
-#endif // ARROWS_CORE_TEST_SEEK_FRAME_COMMON_H
+#endif // ARROWS_TESTS_TEST_VIDEO_INPUT_H
