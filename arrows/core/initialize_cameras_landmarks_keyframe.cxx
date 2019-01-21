@@ -1082,7 +1082,7 @@ initialize_cameras_landmarks_keyframe::priv
     }
 
 #pragma omp parallel for schedule(dynamic, 10)
-    for (uint64_t i = 0; i < pairs_to_process.size(); ++i)
+    for (int64_t i = 0; i < static_cast<int64_t>(pairs_to_process.size()); ++i)
     {
       const auto &tp = pairs_to_process[i];
       auto fid_0 = tp.first;
