@@ -413,14 +413,14 @@ void write_config( config_block_sptr const& config,
       prev_had_descr = false;
     }
 
-    ofile << key << " = " << config->get_value< config_block_value_t > ( key ) << "\n";
-
-    std::string file;
-    int line;
-    if ( config->get_location( key, file, line ) )
+    std::string ro;
+    if ( config->is_read_only( key ) )
     {
-      ofile << "# defined - " << file << ":" << line << "\n";
+      ro = "[RO]";
     }
+
+    ofile << key << ro << " = " << config->get_value< config_block_value_t > ( key ) << "\n";
+
   } // end for
 
   ofile.flush();
