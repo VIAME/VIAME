@@ -260,7 +260,7 @@ static Eigen::VectorXd distortion_coefficients( int k )
 
     case 8:
       dc.resize( 8 );
-      dc << -0.01, 0.002, -0.0005, 0.001, -0.005, 0.02, 0.0007, -0.003;
+      dc << -0.01, 0.02, -0.0005, 0.001, 0.01, 0.02, 0.0007, -0.003;
       return dc;
 
     default:
