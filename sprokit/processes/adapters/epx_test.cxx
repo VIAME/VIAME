@@ -32,6 +32,7 @@
 
 #include <vital/plugin_loader/plugin_loader.h>
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/config/config_block_formatter.h>
 
 #include <sstream>
 #include <iostream>
@@ -53,7 +54,8 @@ pre_setup( context& ctxt )
   // print config
   std::stringstream str;
 
-  ctxt.pipe_config()->print( str );
+  vital::config_block_formatter fmt( ctxt.pipe_config() );
+  fmt.print( str );
 
   std::cout <<  "exp_test: pipe config:\n" << str.str() <<std::endl;
 }
@@ -71,7 +73,9 @@ void epx_test::configure( kwiver::vital::config_block_sptr const conf )
 {
   // print config
   std::stringstream str;
-  conf->print( str );
+  vital::config_block_formatter fmt( conf);
+  fmt.print( str );
+
    std::cout <<  "exp_test: configure called with config:\n" << str.str() <<std::endl;
 }
 
