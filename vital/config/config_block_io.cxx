@@ -268,7 +268,7 @@ read_config_file( std::string const& file_name,
 
   auto result = config_block_sptr{};
 
-  auto const& search_paths =
+  auto const search_paths =
     application_config_file_paths( application_name, application_version,
                                    install_prefix );
 
