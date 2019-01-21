@@ -43,28 +43,24 @@
 //   Macro form of pipeline                           resulting pipeline text
 // -------------------------------------------------------------------------------
 << SPROKIT_CONFIG_BLOCK( "multiplier )             // config multiplier
-<< SPROKIT_CONFIG( "start1", "10" )                //  :start1 10
-<< SPROKIT_CONFIG( "end1", "20" )                  //  :end1   20
-<< SPROKIT_CONFIG( "start2", "10" )                //  :start2 10
-<< SPROKIT_CONFIG( "end2", "30" )                  //  :end2   30
-<< SPROKIT_CONFIG( "output", "products.txt" )      //  :output products.txt
+<< SPROKIT_CONFIG( "start1", "10" )                //  start1 = 10
+<< SPROKIT_CONFIG( "end1", "20" )                  //  end1   = 20
+<< SPROKIT_CONFIG( "start2", "10" )                //  start2 = 10
+<< SPROKIT_CONFIG( "end2", "30" )                  //  end2   = 30
+<< SPROKIT_CONFIG( "output", "products.txt" )      //  output = products.txt
 
-<< SPROKIT_PROCESS( "gen_numbers1", "numbers" ) // process gen_numbers1
-                                                //  :: numbers
-<< SPROKIT_CONFIG_FULL( "start", "ro", "CONF", "multiplier:start1" ) //  :start[ro]{CONF} multiplier:start1
-<< SPROKIT_CONFIG_FULL( "end", "ro", "CONF", "multiplier:end1" )      //  :end[ro]{CONF} multiplier:end1
+<< SPROKIT_PROCESS( "gen_numbers1", "numbers" ) // process gen_numbers1 :: numbers
+<< SPROKIT_CONFIG_FULL( "start", "ro", "$CONFIG{multiplier:start1"} ) //  start[ro] =  $CONFIG{multiplier:start1}
+<< SPROKIT_CONFIG_FULL( "end", "ro", "$CONFIG{multiplier:end1}" )      //  end[ro]  = $CONFIG{multiplier:end1}
 
-<< SPROKIT_PROCESS( "gen_numbers2", "numbers" )  // process gen_numbers2
-                                                 //  :: numbers
-<< SPROKIT_CONFIG_FULL( "start", "ro", "CONF", "multiplier:start2" ) //  :start[ro]{CONF} multiplier:start2
-<< SPROKIT_CONFIG_FULL( "end", "ro", "CONF", "end2" )                //  :end[ro]{CONF} multiplier:end2
+<< SPROKIT_PROCESS( "gen_numbers2", "numbers" )  // process gen_numbers2 :: numbers
+<< SPROKIT_CONFIG_FULL( "start", "ro", "$CONFIG{multiplier:start2}" ) //  start[ro]  = $CONFIG{multiplier:start2}
+<< SPROKIT_CONFIG_FULL( "end", "ro",  "$CONFIGP{multiplier:end2}" )   //  end[ro]    = $CONFIG{multiplier:end2)
 
-<< SPROKIT_PROCESS( "multiply", "multiplication")   //  process multiply
-                                                    //  :: multiplication
+<< SPROKIT_PROCESS( "multiply", "multiplication")   //  process multiply :: multiplication
 
-<< SPROKIT_PROCESS( "print", "print_number" )       //process print
-                                                    //  :: print_number
-<< SPROKIT_CONFIG_FULL( "output", "ro", "CONF", "multiplier:output" ) //  :output[ro]{CONF} multiplier:output
+<< SPROKIT_PROCESS( "print", "print_number" )       //process print :: print_number
+<< SPROKIT_CONFIG_FULL( "output", "ro", $CONFIG{multiplier:output}" ) //  output[ro]   = $CONFIG{multiplier:output}
 
 << SPROKIT_CONNECT( "gen_numbers1", "number",    "multiply", "factor1" ) //connect from gen_numbers1.number
                                                                          //        to   multiply.factor1
@@ -90,8 +86,7 @@
  * @param name Process instance name in this pipeline.
  */
 #define SPROKIT_PROCESS(type, name) \
-  "process " << name << "\n"         \
-  << "  :: " << type << "\n"
+  "process " << name << "  :: " << type << "\n"
 
 #define SPROKIT_FLAGS_WRAP(flags) \
   "[" << flags << "]"
@@ -153,7 +148,7 @@
  * @param down_port Downstream port name.
  */
 #define SPROKIT_CONNECT(up_name, up_port, down_name, down_port) \
-  "connect from " << up_name << "." << up_port << "\n"           \
-  << "        to   " << down_name << "." << down_port << "\n"
+  "connect from " << up_name << "." << up_port                  \
+  << "  to  " << down_name << "." << down_port << "\n"
 
 #endif // SPROKIT_TOOLS_LITERAL_PIPELINE_H

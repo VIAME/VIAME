@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,95 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "epx_test.h"
+
 #include <vital/plugin_loader/plugin_loader.h>
 #include <vital/plugin_loader/plugin_manager.h>
-#include <instrumentation_plugin_export.h>
 
-#include "logger_process_instrumentation.h"
-#include "timing_process_instrumentation.h"
+#include <sstream>
+#include <iostream>
 
+namespace kwiver {
+
+epx_test::
+epx_test()
+{
+}
+
+
+void
+epx_test::
+pre_setup( context& ctxt )
+{
+  std::cout << "exp_test: Pre_Setup called\n";
+
+  // print config
+  std::stringstream str;
+
+  ctxt.pipe_config()->print( str );
+
+  std::cout <<  "exp_test: pipe config:\n" << str.str() <<std::endl;
+}
+
+
+void
+epx_test::
+end_of_output( context& ctxt )
+{
+  std::cout << "exp_test End_Of_Output called\n";
+}
+
+
+void epx_test::configure( kwiver::vital::config_block_sptr const conf )
+{
+  // print config
+  std::stringstream str;
+  conf->print( str );
+   std::cout <<  "exp_test: configure called with config:\n" << str.str() <<std::endl;
+}
+
+
+kwiver::vital::config_block_sptr epx_test::get_configuration() const
+{
+  auto conf = kwiver::vital::config_block::empty_config();
+  conf->set_value( "def-key1", "def_val" );
+  conf->set_value( "one", "def_one" );
+
+  return conf;
+}
+
+
+} // end namespace
+
+// ----------------------------------------------------------------
+/*! \brief Regsiter Extension
+ *
+ *
+ */
 extern "C"
-INSTRUMENTATION_PLUGIN_EXPORT
+KWIVER_EPX_TEST_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
+
 {
-  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kpi-logger" );
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_epx_test" );
 
   if ( vpm.is_module_loaded( module_name ) )
   {
     return;
   }
 
-  kwiver::vital::plugin_factory_handle_t
-    fact = vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::logger_process_instrumentation );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "logger")
+  // ----------------------------------------------------------------------------
+  // Add test embedded pipeline extension
+  auto fact = vpm.ADD_FACTORY( kwiver::embedded_pipeline_extension, kwiver::epx_test );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "test")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Sprokit process instrumentation implementation using logger.")
+                       "Extension for testing.")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "process-instrumentation" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "embedded-pipeline-extension" )
     ;
-
-
-  fact = vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::timing_process_instrumentation );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "timing")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Sprokit process instrumentation implementation using timer.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "process-instrumentation" )
-    ;
-
   // - - - - - - - - - - - - - - - - - - - - - - -
   vpm.mark_module_as_loaded( module_name );
 }

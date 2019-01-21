@@ -26,7 +26,7 @@ immutable through their respective ``typedef`` and can only be created with
 static methods of the respective class which enforce that they can only be
 constructed in specific ways.
 
-  doxygenclass:: sprokit::datum
+.. doxygenclass:: sprokit::datum
                   :project: kwiver
                   :members:
 
@@ -59,29 +59,30 @@ their return value is ignored.
 Control Flow
 ------------
 
-The design of the \ref sprokit::process class is such that the heavy lifting is
+The design of the ``sprokit::process`` class is such that the heavy lifting is
 done by the base class and specialized computations are handled as needed by
 a subclass. This allows a new process to be written with a minimum amount of
-boilerplate. Where special logic is required, a subclass can implement a \c
-virtual method which can add supplemental logic to support a feature.
+boilerplate. Where special logic is required, a subclass can implement a
+``virtual`` method which can add supplemental logic to support a feature.
 
-For example, when information about a port is requested, the \ref
-sprokit::process::input_port_info method is called which delegates logic to the
-\ref sprokit::process::_input_port_info method which can be overwritten. By
+For example, when information about a port is requested, the
+``sprokit::process::input_port_info`` method is called which delegates logic to the
+``sprokit::process::_input_port_info`` method which can be overwritten. By
 default, it returns information about the port if it has been declared,
 otherwise it throws an exception that the port does not exist. To create
-ports on the fly, a process can reimplement \ref
-sprokit::process::_input_port_info to create the port so that it exists and an
+ports on the fly, a process can reimplement
+``sprokit::process::_input_port_info`` to create the port so that it exists and an
 exception is not thrown.
 
-The rationale for not making \ref sprokit::process::input_port_info \c virtual
+The rationale for not making ``sprokit::process::input_port_info`` ``virtual``
 is to enforce that API specifications are met. For example, when connecting
-edges, the main method makes sure that the edge is not \c NULL and that the
+edges, the main method makes sure that the edge is not ``NULL`` and that the
 process has not been initialized yet.
 
 Data Flow
 ---------
-Data flows within the pipeline via the \ref sprokit::edge class which ensures
+
+Data flows within the pipeline via the ``sprokit::edge`` class which ensures
 thread-safe communication between processes. A process communicates with
 edges via its input and output ports. Ports are named communication sockets
 where edges may be connected to so that a process can send and receive data.
@@ -91,18 +92,19 @@ may feed into any number of edges.
 Ports
 -----
 
-Ports are declared within a process and managed by the base \ref
-sprokit::process class to minimize the amount of code that needs to be written
-to handle communication within the pipeline.
+Ports are declared within a process and managed by the base
+``sprokit::process`` class to minimize the amount of code that needs
+to be written to handle communication within the pipeline.
 
-A port has a "type" associated with it which is used to detect errors when
-connecting incompatible ports with each other. These types are \em logical
-types, not a type within a programming language. A \c double can represent a
-distance or a time interval (or even a distance is a different unit!), but a
-port which uses a \c double to a distance would have a type of \c
-distance_in_meters, \em not \c double. There are two special types, one of
-which indicates that any type is accepted on the port and another which
-indicates that no data is ever expected on the port.
+A port has a "type" associated with it which is used to detect errors
+when connecting incompatible ports with each other. These types are
+*logical* types, not a type within a programming language. A
+*double* can represent a distance or a time interval (or even a
+distance is a different unit!), but a port which uses a *double* to
+a distance would have a type of *distance_in_meters*, *not*
+*double*. There are two special types, one of which indicates that
+any type is accepted on the port and another which indicates that no
+data is ever expected on the port.
 
 Ports can also have flags associated with them. Flags give extra information
 about the data that is expected on a port. A flag can indicate that the data
@@ -135,12 +137,12 @@ objects nor indicate failure to other, unrelated, ports.
 A stamp consists of a step count and an increment. If two stamps have the
 same step count. A stamp's step count is incremented at the source for each
 new data element. Step counts are unitless and should only be used for
-ordering information. In fact, the \ref sprokit::stamp interface enforces this
+ordering information. In fact, the ``sprokit::stamp`` interface enforces this
 and only provides a comparison operator between stamps. Since step counts
 are unitless and discrete, inserting elements into the stream requires that
 the step counts change.
 
-The base \ref sprokit::process class handles the common case for incoming and
+The base ``sprokit::process`` class handles the common case for incoming and
 outgoing data. The default behavior is that if an input port is marked as
 being "required", its status message is aggregated with other required
 inputs:
