@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,13 +50,9 @@ class KWIVER_ALGO_CORE_EXPORT initialize_cameras_landmarks_keyframe
                               vital::algo::initialize_cameras_landmarks>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "keyframe";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Run SfM to estimate new cameras and landmarks"
-    " using feature tracks.  Gives keyframes priority.";
+  PLUGIN_INFO( "keyframe",
+               "Run SfM to estimate new cameras and landmarks "
+               "using feature tracks.  Gives keyframes priority." )
 
   /// Constructor
   initialize_cameras_landmarks_keyframe();
