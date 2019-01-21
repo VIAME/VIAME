@@ -35,7 +35,6 @@
 
 #include <test_gtest.h>
 
-#include <arrows/core/tests/barcode_decode.h>
 #include <arrows/core/tests/seek_frame_common.h>
 #include <arrows/ffmpeg/ffmpeg_video_input.h>
 #include <vital/exceptions/io.h>

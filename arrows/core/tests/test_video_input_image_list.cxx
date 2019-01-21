@@ -44,7 +44,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "barcode_decode.h"
 #include "seek_frame_common.h"
 
 kwiver::vital::path_t g_data_dir;
