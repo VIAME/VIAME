@@ -50,11 +50,14 @@ def create_dir( dirname ):
     print( "Unable to create " + dirname )
     sys.exit( 0 )
 
-def get_gui_cmd():
+def get_gui_cmd( debug=False ):
   if os.name == 'nt':
     return ['vpView.exe']
   else:
-    return ['vpView']
+    if debug:
+      return [ 'gdb', '--args', 'vpView' ]
+    else:
+      return ['vpView']
 
 def execute_command( cmd, stdout=None, stderr=None ):
   return subprocess.call(cmd, stdout=stdout, stderr=stderr)
@@ -211,7 +214,7 @@ def process_video_dir( args ):
   file_id = select_option( file_list )
 
   if file_id == 0:
-    execute_command( get_gui_cmd() + default_annotator_args( args ) )
+    execute_command( get_gui_cmd( args.debug ) + default_annotator_args( args ) )
     sys.exit(0)
   else:
     file_id = file_id - 1
@@ -268,7 +271,7 @@ def process_video_dir( args ):
     ftmp.write( "TracksFile=" + os.path.abspath( detection_file ).replace("\\","\\\\") + "\n" )
   ftmp.close()
 
-  execute_command( get_gui_cmd() + [ "-p", name ] + default_annotator_args( args ) )
+  execute_command( get_gui_cmd( args.debug ) + [ "-p", name ] + default_annotator_args( args ) )
 
 # Main Function
 if __name__ == "__main__" :
@@ -320,4 +323,4 @@ if __name__ == "__main__" :
   elif len( args.input_list ) > 0:
     process_list( args )
   else:
-    execute_command( get_gui_cmd() + default_annotator_args( args ) )
+    execute_command( get_gui_cmd( args.debug ) + default_annotator_args( args ) )
