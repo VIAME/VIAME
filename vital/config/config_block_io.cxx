@@ -95,27 +95,6 @@ application_paths( config_path_list_t const& paths,
 
 
 // ------------------------------------------------------------------
-// Helper method to write out a comment to a configuration file ostream
-/**
- * Makes sure there is no trailing white-space printed to file.
- */
-void
-write_cb_comment( std::ostream& ofile, config_block_description_t const& comment )
-{
-  kwiver::vital::wrap_text_block wtb;
-  wtb.set_indent_string( "# " );
-  wtb.set_line_length( 80 );
-
-  // Add a leading new-line to separate comment block from previous config
-  // entry.
-  ofile << "\n";
-
-  const auto formatted = wtb.wrap_text( comment );
-  ofile << formatted;
-}
-
-
-// ------------------------------------------------------------------
 /// Add paths in the KWIVER_CONFIG_PATH env variable to the given path vector
 /**
  * Appends the current working directory (".") and then the contents of the
@@ -389,6 +368,9 @@ void write_config( config_block_sptr const& config,
   config_block_keys_t avail_keys = config->available_values();
   std::sort( avail_keys.begin(), avail_keys.end() );
 
+  kwiver::vital::wrap_text_block wtb;
+  wtb.set_indent_string( "# " );
+  wtb.set_line_length( 80 );
 
   bool prev_had_descr = false;  // for additional spacing
   for( config_block_key_t key : avail_keys )
@@ -403,7 +385,10 @@ void write_config( config_block_sptr const& config,
 
     if ( descr != config_block_description_t() )
     {
-      write_cb_comment( ofile, descr );
+      // Add a leading new-line to separate comment block from previous config
+      // entry.
+      ofile << "\n" << wtb.wrap_text( descr );
+
       prev_had_descr = true;
     }
     else if ( prev_had_descr )
