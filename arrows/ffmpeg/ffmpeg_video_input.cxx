@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,11 +39,15 @@
 #include <vital/types/timestamp.h>
 #include <vital/exceptions/io.h>
 #include <vital/exceptions/video.h>
+#include <vital/klv/convert_metadata.h>
+#include <vital/klv/misp_time.h>
+#include <vital/klv/klv_data.h>
 #include <vital/util/tokenize.h>
 #include <vital/types/image_container.h>
 
 #include <kwiversys/SystemTools.hxx>
 
+#include <deque>
 #include <mutex>
 #include <memory>
 #include <vector>
@@ -76,10 +80,11 @@ public:
     f_start_time(-1),
     f_frame_number_offset(0),
     video_path(""),
+    metadata(0),
     frame_advanced(0),
     end_of_video(true),
     number_of_frames(0),
-    number_of_frames_valid(false)
+    have_loop_vars(false)
   {
     f_packet.data = nullptr;
   }
@@ -110,6 +115,17 @@ public:
   // Name of video we opened
   std::string video_path;
 
+  // the buffer of metadata from the data stream
+  std::deque<uint8_t> metadata;
+
+  // metadata converter object
+  kwiver::vital::convert_metadata converter;
+
+  /**
+   * Storage for the metadata map.
+   */
+  vital::metadata_map::map_metadata_t metadata_map;
+
   static std::mutex open_mutex;
 
   // For logging in priv methods
@@ -123,7 +139,7 @@ public:
   int frame_advanced; // This is a boolean check value really
   bool end_of_video;
   size_t number_of_frames;
-  bool number_of_frames_valid;
+  bool have_loop_vars;
 
   // ==================================================================
   /*
@@ -256,6 +272,45 @@ public:
 
   // ==================================================================
   /*
+  * @brief Close the current video.
+  */
+  void close()
+  {
+    if (this->f_packet.data) {
+      av_free_packet(&this->f_packet);  // free last packet
+    }
+
+    if (this->f_frame)
+    {
+      av_freep(&this->f_frame);
+    }
+    this->f_frame = nullptr;
+
+    if (this->f_video_encoding && this->f_video_encoding->opaque)
+    {
+      av_freep(&this->f_video_encoding->opaque);
+    }
+
+    this->f_video_index = -1;
+    this->f_data_index = -1;
+    this->f_start_time = -1;
+
+    if (this->f_video_stream)
+    {
+      avcodec_close(this->f_video_stream ->codec);
+      this->f_video_stream = nullptr;
+    }
+    if (this->f_format_context)
+    {
+      avformat_close_input(&this->f_format_context);
+      this->f_format_context = nullptr;
+    }
+
+    this->f_video_encoding = nullptr;
+  }
+
+  // ==================================================================
+  /*
   * @brief Advance to the next frame (but don't acquire an image).
   *
   * @return \b true if video was valid and we found a frame.
@@ -275,9 +330,8 @@ public:
     }
     this->frame_advanced = 0;
 
-    // \todo - metada not implemented yet
     // clear the metadata from the previous frame
-    //this->metadata.clear();
+    this->metadata.clear();
 
     while (this->frame_advanced == 0 && av_read_frame(this->f_format_context, &this->f_packet) >= 0)
     {
@@ -305,13 +359,13 @@ public:
           this->f_pts = 0;
         }
       }
-      // \todo - No metadata support yet
-      //// grab the metadata from this packet if from the metadata stream
-      //else if (this->packet.stream_index == this->data_index)
-      //{
-      //  is_->metadata_.insert(is_->metadata_.end(), is_->packet_.data,
-      //    is_->packet_.data + is_->packet_.size);
-      //}
+
+      // grab the metadata from this packet if from the metadata stream
+      else if (this->f_packet.stream_index == this->f_data_index)
+      {
+        this->metadata.insert(this->metadata.end(), this->f_packet.data,
+          this->f_packet.data + this->f_packet.size);
+      }
 
       if (!this->frame_advanced)
       {
@@ -399,6 +453,120 @@ public:
     return static_cast<unsigned int>(
       (this->f_pts - this->f_start_time) / this->stream_time_base_to_frame()
       - static_cast<int>(this->f_frame_number_offset));
+  }
+
+  kwiver::vital::metadata_vector current_metadata()
+  {
+    kwiver::vital::metadata_vector retval;
+
+    // Copy the current raw metadata
+    std::deque<uint8_t> md_buffer = this->metadata;
+
+    kwiver::vital::klv_data klv_packet;
+
+    // If we have collected enough of the stream to make a KLV packet
+    while ( klv_pop_next_packet( md_buffer, klv_packet ) )
+    {
+      auto meta = std::make_shared<kwiver::vital::metadata>();
+
+      try
+      {
+        converter.convert( klv_packet, *(meta) );
+      }
+      catch ( kwiver::vital::metadata_exception const& e )
+      {
+        LOG_WARN( this->logger, "Metadata exception: " << e.what() );
+        continue;
+      }
+
+      // If the metadata was even partially decided, then add to the list.
+      if ( ! meta->empty() )
+      {
+        kwiver::vital::timestamp ts;
+        ts.set_frame( this->frame_number() );
+        // ts.set_time_usec( this->d_frame_time );
+        meta->set_timestamp( ts );
+
+        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
+        retval.push_back( meta );
+      } // end valid metadata packet.
+    } // end while
+
+    // if no metadata from the stream, add a basic metadata item
+    // containing video name and timestamp
+    if ( retval.empty() )
+    {
+      auto meta = std::make_shared<kwiver::vital::metadata>();
+      kwiver::vital::timestamp ts;
+      ts.set_frame(this->frame_number() );
+      // ts.set_time_usec(this->d_frame_time);
+      meta->set_timestamp(ts);
+
+      meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
+
+      retval.push_back(meta);
+    }
+
+    return retval;
+  }
+
+  // ==================================================================
+  /*
+  * @brief Loop over all frames to collect metadata and exact frame count
+  *
+  * @return \b Current frame number.
+  */
+  void process_loop_dependencies()
+  {
+    // is stream open?
+    if ( ! this->is_opened() )
+    {
+      throw vital::file_not_read_exception( video_path, "Video not open" );
+    }
+
+    if ( !have_loop_vars )
+    {
+      std::lock_guard< std::mutex > lock( open_mutex );
+
+      auto initial_frame_number = this->frame_number();
+
+      if ( !frame_advanced && !end_of_video )
+      {
+        initial_frame_number = 0;
+      }
+
+      // Add metadata for current frame
+      if ( frame_advanced )
+      {
+        number_of_frames++;
+        this->metadata_map.insert(
+          std::make_pair( this->frame_number(), this->current_metadata() ) );
+      }
+
+      // Advance video stream to end
+      while ( this->advance() )
+      {
+        number_of_frames++;
+        this->metadata_map.insert(
+          std::make_pair( this->frame_number(), this->current_metadata() ) );
+      }
+
+      // Close and reopen to reset
+      this->close();
+      this->open( video_path );
+
+      // Advance back to original frame number
+      unsigned int frame_num = 0;
+      while ( frame_num < initial_frame_number && this->advance() )
+      {
+        number_of_frames++;
+        ++frame_num;
+        this->metadata_map.insert(
+          std::make_pair( this->frame_number(), this->current_metadata() ) );
+      }
+
+      have_loop_vars = true;
+    }
   }
 
 }; // end of internal class.
@@ -507,43 +675,14 @@ void
 ffmpeg_video_input
 ::close()
 {
-  if (d->f_packet.data) {
-    av_free_packet(&d->f_packet);  // free last packet
-  }
+  d->close();
 
-  if (d->f_frame)
-  {
-    av_freep(&d->f_frame);
-  }
-  d->f_frame = nullptr;
-
-  if (d->f_video_encoding && d->f_video_encoding->opaque)
-  {
-    av_freep(&d->f_video_encoding->opaque);
-  }
-
-  //is_->contig_memory_ = 0;
-  d->f_video_index = -1;
-  d->f_data_index = -1;
-  d->f_start_time = -1;
   d->video_path = "";
   d->frame_advanced = 0;
   d->end_of_video = true;
   d->number_of_frames = 0;
-  d->number_of_frames_valid = false;
-  //is_->metadata_.clear();
-  if (d->f_video_stream)
-  {
-    avcodec_close(d->f_video_stream ->codec);
-    d->f_video_stream = nullptr;
-  }
-  if (d->f_format_context)
-  {
-    avformat_close_input(&d->f_format_context);
-    d->f_format_context = nullptr;
-  }
-
-  d->f_video_encoding = nullptr;
+  d->have_loop_vars = false;
+  d->metadata.clear();
 }
 
 // ------------------------------------------------------------------
@@ -558,21 +697,11 @@ ffmpeg_video_input
   }
 
   bool ret = d->advance();
-  if (!ret && !d->end_of_video)
-  {
-    // If it's the first frame that fails
-    // -> first frame as the end of the video
-    d->number_of_frames_valid = true;
-  }
 
   d->end_of_video = !ret;
   if (ret)
   {
     ts = this->frame_timestamp();
-    if (!d->number_of_frames_valid)
-    {
-      d->number_of_frames = ts.get_frame();
-    }
   };
   return ret;
 }
@@ -604,7 +733,8 @@ bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
   // file to reset to start
   if (current_frame_number > frame_number)
   {
-    this->open(d->video_path); // Calls close on current video
+    d->close();
+    d->open( d->video_path );
     current_frame_number = this->frame_timestamp().get_frame();
   }
 
@@ -711,7 +841,7 @@ ffmpeg_video_input
       d->current_image_memory,
       d->current_image_memory->data(),
       width, height, depth,
-      depth, depth * width, depth * width * height
+      depth, depth * width, 1
     );
     d->current_image = std::make_shared<vital::simple_image_container>(vital::simple_image_container(image));
   }
@@ -744,8 +874,7 @@ kwiver::vital::metadata_vector
 ffmpeg_video_input
 ::frame_metadata()
 {
-  LOG_INFO(this->logger(), "Metadata access isn't supported yet");
-  return kwiver::vital::metadata_vector();
+  return d->current_metadata();
 }
 
 
@@ -754,9 +883,9 @@ kwiver::vital::metadata_map_sptr
 ffmpeg_video_input
 ::metadata_map()
 {
-  LOG_INFO(this->logger(), "Metadata access isn't supported yet");
-  return std::make_shared<kwiver::vital::simple_metadata_map>(
-    kwiver::vital::simple_metadata_map());
+  d->process_loop_dependencies();
+
+  return std::make_shared<kwiver::vital::simple_metadata_map>(d->metadata_map);
 }
 
 
@@ -789,36 +918,10 @@ ffmpeg_video_input
 // ------------------------------------------------------------------
 size_t
 ffmpeg_video_input
-::private_num_frames()
+::num_frames() const
 {
-  if (!this->seekable())
-  {
-    return 0;
-  }
-  else if (d->number_of_frames_valid)
-  {
-    return d->number_of_frames;
-  }
+  d->process_loop_dependencies();
 
-  bool was_opened = d->is_opened();
-  vital::timestamp old_ts = this->frame_timestamp();
-  if (!was_opened)
-  {
-    this->open(d->video_path);
-  }
-  vital::timestamp unused_ts;
-  while (this->next_frame(unused_ts));
-
-  if (was_opened)
-  {
-    size_t number_of_frames = d->number_of_frames;
-    this->open(d->video_path);
-    d->number_of_frames_valid = true;
-    d->number_of_frames = number_of_frames;
-
-    vital::timestamp unused_ts;
-    this->seek_frame(unused_ts, old_ts.get_frame());
-  }
   return d->number_of_frames;
 }
 

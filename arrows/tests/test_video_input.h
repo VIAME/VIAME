@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,68 @@
 
 // Common test cases for seek_frame in the video_input interface
 
-#ifndef ARROWS_CORE_TEST_SEEK_FRAME_COMMON_H
-#define ARROWS_CORE_TEST_SEEK_FRAME_COMMON_H
+#ifndef ARROWS_TESTS_TEST_VIDEO_INPUT_H
+#define ARROWS_TESTS_TEST_VIDEO_INPUT_H
 
 #include <vital/algo/video_input.h>
+#include <vital/types/image_container.h>
+
+// Ignore 8 pixels on either side of the barcode
+static int bc_buffer = 8;
+
+// Barcode lines two pixels wide and 4 pixels high
+static int bc_width = 2;
+static int bc_height = 4;
+static int bit_depth = 256;
+static int bc_area = bc_width*bc_height;
+
+// Color test pixel location
+static int color_test_pos = 17;
+
+// Test colors
+static kwiver::vital::rgb_color red(255, 0, 0);
+static kwiver::vital::rgb_color green(0, 255, 0);
+static kwiver::vital::rgb_color blue(0, 0, 255);
+
+// Decode barcodes from test frame images
+uint32_t decode_barcode(kwiver::vital::image_container& img_ct)
+{
+  auto img = img_ct.get_image();
+  kwiver::vital::image_of<uint8_t> frame_img(img);
+
+  uint32_t retVal = 0;
+  uint32_t bit_shift = 0;
+  int width = static_cast<int>(img.width());
+  // Start at the back
+  for (int i=width-bc_buffer-1; i > bc_buffer; i-=bc_width)
+  {
+    uint16_t bc_sum = 0;
+    for (int j=0; j < bc_width; ++j)
+    {
+      for (int k=0; k < bc_height; ++k)
+      {
+        bc_sum += frame_img(i-j, k);
+      }
+    }
+
+    if (bc_sum/bc_area < bit_depth/2)
+    {
+      retVal += (1 << bit_shift);
+    }
+    bit_shift++;
+  }
+
+  return retVal;
+}
+
+kwiver::vital::rgb_color test_color_pixel(
+  int color, kwiver::vital::image_container& img_ct)
+{
+  auto img = img_ct.get_image();
+  kwiver::vital::image_of<uint8_t> frame_img(img);
+
+  return frame_img.at(2*color + 1, color_test_pos);
+}
 
 // ----------------------------------------------------------------------------
 void test_seek_frame( kwiver::vital::algo::video_input& vi )
@@ -62,6 +120,15 @@ void test_seek_frame( kwiver::vital::algo::video_input& vi )
   // Test various invalid seeks past end of video
   std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
     {-3, -1, 0, 51, 55};
+  for (auto requested_frame : in_valid_seeks)
+  {
+    EXPECT_FALSE( vi.seek_frame( ts, requested_frame) );
+    EXPECT_NE( requested_frame, ts.get_frame() );
+  }
+
+  // Test valid seeks after invalid seeks
+  valid_seeks = {11, 32, 21, 43};
+
   for (auto requested_frame : in_valid_seeks)
   {
     EXPECT_FALSE( vi.seek_frame( ts, requested_frame) );
@@ -224,4 +291,4 @@ void test_next_then_seek_then_next( kwiver::vital::algo::video_input& vi )
     << "Frame number should match barcode in frame image";
 }
 
-#endif // ARROWS_CORE_TEST_SEEK_FRAME_COMMON_H
+#endif // ARROWS_TESTS_TEST_VIDEO_INPUT_H

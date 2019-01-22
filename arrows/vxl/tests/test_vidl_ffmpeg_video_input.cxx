@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@
 
 #include <test_gtest.h>
 
-#include <arrows/core/tests/barcode_decode.h>
-#include <arrows/core/tests/seek_frame_common.h>
+#include <arrows/tests/test_video_input.h>
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
