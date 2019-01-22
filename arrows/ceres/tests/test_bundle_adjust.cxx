@@ -210,7 +210,7 @@ test_ba_using_distortion( kwiver::vital::config_block_sptr cfg,
   double end_rmse = reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  EXPECT_NEAR( 0.0, end_rmse, 1e-7 );
+  EXPECT_NEAR( 0.0, end_rmse, 1e-5);
 
   // compare actual to estimated distortion parameters
   if ( estimate_tolerance != 0.0 )
@@ -292,9 +292,9 @@ static double distortion_estimation_tolerance( int k )
   switch (k)
   {
     case 1:
-      return 1e-9;
-    case 2:
       return 1e-7;
+    case 2:
+      return 1e-6;
     case 3:
     case 5:
       return 1e-5;
