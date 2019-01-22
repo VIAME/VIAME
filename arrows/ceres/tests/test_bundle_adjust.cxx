@@ -220,7 +220,7 @@ test_ba_using_distortion( kwiver::vital::config_block_sptr cfg,
     auto vdc2 = cam0_ptr->intrinsics()->dist_coeffs();
     // The estimated parameter vector can be longer and zero padded; lop off
     // any additional trailing values
-    ASSERT_GE( vdc2.size(), dc.size() );
+    ASSERT_GE( vdc2.size(), static_cast<size_t>(dc.size()) );
     Eigen::VectorXd dc2{ Eigen::Map<Eigen::VectorXd>{ &vdc2[0], dc.size() } };
 
     Eigen::VectorXd diff = ( dc2 - dc ).cwiseAbs();
