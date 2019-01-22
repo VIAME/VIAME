@@ -20,9 +20,9 @@ process detector
   block detector:darknet
 
     # Network config, weights, and names
-    :net_config                                deep_training/yolo_v2.cfg
-    :weight_file                               deep_training/models/yolo_v2.backup 
-    :class_names                               deep_training/yolo_v2.lbl
+    :net_config                                deep_training/yolo.cfg
+    :weight_file                               deep_training/models/yolo.backup 
+    :class_names                               deep_training/yolo.lbl
 
     # Detector parameters
     :thresh                                    0.001
