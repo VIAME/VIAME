@@ -82,6 +82,7 @@ public:
     , m_resize_i( 0 )
     , m_resize_j( 0 )
     , m_chip_step( 100 )
+    , m_nms_threshold( 0.4 )
     , m_gs_to_rgb( true )
     , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
@@ -107,6 +108,7 @@ public:
   int m_resize_i;
   int m_resize_j;
   int m_chip_step;
+  double m_nms_threshold;
   bool m_gs_to_rgb;
   int m_chip_edge_filter;
   int m_chip_adaptive_thresh;
@@ -178,6 +180,8 @@ get_configuration() const
     "Height resolution after resizing" );
   config->set_value( "chip_step", d->m_chip_step,
     "When in chip mode, the chip step size between chips." );
+  config->set_value( "nms_threshold", d->m_nms_threshold,
+    "Non-maximum suppression threshold." );
   config->set_value( "gs_to_rgb", d->m_gs_to_rgb,
     "Convert input greyscale images to rgb before processing." );
   config->set_value( "chip_edge_filter", d->m_chip_edge_filter,
@@ -212,6 +216,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
   this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
+  this->d->m_nms_threshold = config->get_value< bool >( "nms_threshold" );
   this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
   this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
   this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
@@ -363,11 +368,15 @@ detect( vital::image_container_sptr image_data ) const
     detections = std::make_shared< vital::detected_object_set >();
 
     // Chip up and process scaled image
-    for( int li = 0; li < cv_resized_image.cols - d->m_resize_i + d->m_chip_step; li += d->m_chip_step )
+    for( int li = 0;
+         li < cv_resized_image.cols - d->m_resize_i + d->m_chip_step;
+         li += d->m_chip_step )
     {
       int ti = std::min( li + d->m_resize_i, cv_resized_image.cols );
 
-      for( int lj = 0; lj < cv_resized_image.rows - d->m_resize_j + d->m_chip_step; lj += d->m_chip_step )
+      for( int lj = 0;
+           lj < cv_resized_image.rows - d->m_resize_j + d->m_chip_step;
+           lj += d->m_chip_step )
       {
         int tj = std::min( lj + d->m_resize_j, cv_resized_image.rows );
 
@@ -382,7 +391,15 @@ detect( vital::image_container_sptr image_data ) const
 
         double scaled_crop_scale = scale_image_maintaining_ar(
           cropped_chip, scaled_crop, d->m_resize_i, d->m_resize_j );
-        cv::cvtColor( scaled_crop, tmp_cropped, cv::COLOR_BGR2RGB );
+
+        if( scaled_crop.channels() == 3 )
+        {
+          cv::cvtColor( scaled_crop, tmp_cropped, cv::COLOR_BGR2RGB );
+        }
+        else
+        {
+          tmp_cropped = scaled_crop;
+        }
 
         vital::detected_object_set_sptr new_dets = d->process_image( tmp_cropped );
         new_dets->scale( 1.0 / scaled_crop_scale );
@@ -404,7 +421,7 @@ detect( vital::image_container_sptr image_data ) const
       if( d->m_gs_to_rgb && scaled_original.channels() == 1 )
       {
         cv::Mat color_image;
-        cv::cvtColor(scaled_original, color_image, CV_GRAY2BGR);
+        cv::cvtColor( scaled_original, color_image, CV_GRAY2BGR );
         scaled_original = color_image;
       }
 
@@ -434,38 +451,30 @@ process_image( const cv::Mat& cv_image )
   // show_image( sized, "sized version" );
 
   layer l = m_net.layers[m_net.n - 1];     /* last network layer (output?) */
-  const size_t l_size = l.w * l.h * l.n;
-
-  detection* dets = (detection*) calloc( l_size, sizeof( detection ) );
-  for( size_t j = 0; j < l_size; ++j )
-  {
-    dets[j].prob = (float*) calloc( l.classes + 1, sizeof( float* ) );
-  }
-
-  /* pointer the image data */
-  float* X = sized.data;
 
   /* run image through network */
+  float* X = sized.data;
   network_predict( &m_net, X );
 
   /* get boxes around detected objects */
-  get_region_detections( l,     /* i: network output layer */
-                         1, 1,  /* i: w, h -  */
-                         m_net.w, m_net.h,
-                         m_thresh, /* i: caller supplied threshold */
-                         0,        /* i: map */
-                         m_hier_thresh, 1, /* i: tree thresh, relative */
-                         dets );	   /* o: list of detections */
+  int l_size;
 
-  const float nms( 0.4 );       // don't know what this is
+  detection* dets = get_network_boxes(
+    &m_net,
+    1, 1,             /* i: w, h */
+    m_thresh,         /* i: caller supplied threshold */
+    m_hier_thresh,    /* i: tree thresh, relative */
+    0,                /* i: map */
+    1,                /* i: tree thresh, relative */
+    &l_size );	      /* i: number of detections */
 
-  if( l.softmax_tree && nms )
+  if( l.softmax_tree && m_nms_threshold )
   {
-    do_nms_obj( dets, l_size, l.classes, nms );
+    do_nms_obj( dets, l_size, l.classes, m_nms_threshold );
   }
-  else if( nms )
+  else if( m_nms_threshold )
   {
-    do_nms_sort( dets, l_size, l.classes, nms );
+    do_nms_sort( dets, l_size, l.classes, m_nms_threshold );
   }
   else
   {
@@ -475,7 +484,7 @@ process_image( const cv::Mat& cv_image )
   // -- extract detections and convert to our format --
   auto detected_objects = std::make_shared< vital::detected_object_set >();
 
-  for( size_t i = 0; i < l_size; ++i )
+  for( int i = 0; i < l_size; ++i )
   {
     const box b = dets[i].bbox;
 
@@ -531,13 +540,9 @@ process_image( const cv::Mat& cv_image )
   }
 
   // Free allocated memory
-  free_image(im);
-  free_image(sized);
-  for( size_t j = 0; j < l_size; ++j )
-  {
-    free( dets[j].prob );
-  }
-  free( dets );
+  free_image( im );
+  free_image( sized );
+  free_detections( dets, l_size );
 
   return detected_objects;
 }
