@@ -312,7 +312,7 @@ detect( vital::image_container_sptr image_data ) const
   }
 
   cv::Mat cv_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
-    image_data->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
+    image_data->get_image(), kwiver::arrows::ocv::image_container::RGB_COLOR );
 
   if( cv_image.rows == 0 || cv_image.cols == 0 )
   {
@@ -351,7 +351,7 @@ detect( vital::image_container_sptr image_data ) const
   if( d->m_gs_to_rgb && cv_resized_image.channels() == 1 )
   {
     cv::Mat color_image;
-    cv::cvtColor( cv_resized_image, color_image, CV_GRAY2BGR );
+    cv::cvtColor( cv_resized_image, color_image, CV_GRAY2RGB );
     cv_resized_image = color_image;
   }
 
@@ -392,16 +392,7 @@ detect( vital::image_container_sptr image_data ) const
         double scaled_crop_scale = scale_image_maintaining_ar(
           cropped_chip, scaled_crop, d->m_resize_i, d->m_resize_j );
 
-        if( scaled_crop.channels() == 3 )
-        {
-          cv::cvtColor( scaled_crop, tmp_cropped, cv::COLOR_BGR2RGB );
-        }
-        else
-        {
-          tmp_cropped = scaled_crop;
-        }
-
-        vital::detected_object_set_sptr new_dets = d->process_image( tmp_cropped );
+        vital::detected_object_set_sptr new_dets = d->process_image( scaled_crop );
         new_dets->scale( 1.0 / scaled_crop_scale );
         new_dets->shift( li, lj );
         new_dets->scale( 1.0 / scale_factor );
@@ -421,7 +412,7 @@ detect( vital::image_container_sptr image_data ) const
       if( d->m_gs_to_rgb && scaled_original.channels() == 1 )
       {
         cv::Mat color_image;
-        cv::cvtColor( scaled_original, color_image, CV_GRAY2BGR );
+        cv::cvtColor( scaled_original, color_image, CV_GRAY2RGB );
         scaled_original = color_image;
       }
 
@@ -560,14 +551,15 @@ cvmat_to_image( const cv::Mat& src )
   int w = src.cols; // src.width;
   int c = src.channels(); // src.nChannels;
   int step = w * c; // src.widthStep;
-  image out = make_image(w, h, c);
-  int i, j, k, count=0;;
 
-  for( k = c-1; k >= 0 ; --k )
+  image out = make_image( w, h, c );
+  int i, j, k, count = 0;
+
+  for( k = 0; k < c; k++ )
   {
-    for( i = 0; i < h; ++i )
+    for( i = 0; i < h; i++ )
     {
-      for( j = 0; j < w; ++j )
+      for( j = 0; j < w; j++ )
       {
         out.data[count++] = data[i*step + j*c + k]/255.;
       }
