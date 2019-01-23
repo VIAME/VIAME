@@ -1,8 +1,17 @@
 # Optionally enable OpenMP
 
+# OpenMP is somewhat broken on macOS and not easily supported until
+# CMake 3.12+ is a minimum requirement of KWIVER
+# https://cliutils.gitlab.io/modern-cmake/chapters/packages/OpenMP.html
+if( APPLE )
+  set( OPENMP_DEFAULT OFF )
+elseif()
+  set( OPENMP_DEFAULT ON )
+endif()
+
 option( KWIVER_ENABLE_OPENMP
   "Enable OpenMP for parallel processing"
-  ON
+  ${OPENMP_DEFAULT}
   )
 
 if( KWIVER_ENABLE_OPENMP )
