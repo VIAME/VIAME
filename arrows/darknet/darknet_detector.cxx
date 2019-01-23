@@ -216,7 +216,7 @@ set_configuration( vital::config_block_sptr config_in )
   this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
   this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
-  this->d->m_nms_threshold = config->get_value< bool >( "nms_threshold" );
+  this->d->m_nms_threshold = config->get_value< double >( "nms_threshold" );
   this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
   this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
   this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
