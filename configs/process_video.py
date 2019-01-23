@@ -63,10 +63,12 @@ def log_info( msg ):
 # Create a directory if it doesn't exist
 def create_dir( dirname, logging=True, recreate=False, prompt=True ):
   if recreate and os.path.exists( dirname ):
-    if not prompt or database_tool.query_yes_no( "Reset folder " + dirname + "?" ):
+    if not prompt or database_tool.query_yes_no( lb1 + "Reset folder: " + dirname + "?" ):
       if logging:
         log_info( "Removing " + dirname + lb )
       shutil.rmtree( dirname )
+    elif prompt:
+      sys.exit(0)
   if not os.path.exists( dirname ):
     if logging:
       log_info( "Creating " + dirname + lb )
@@ -542,6 +544,13 @@ if __name__ == "__main__" :
   # Call processing pipelines on all input data
   if process_data:
 
+    # Handle output directory creation if necessary
+    if len( args.output_directory ) > 0:
+      create_dir( args.output_directory, logging=False, recreate=(not args.init_db) )
+
+    if len( args.log_directory ) > 0:
+      create_dir( args.output_directory + div + args.log_directory, logging=False )
+
     # Identify all videos to process
     if len( args.input_list ) > 0:
       video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
@@ -558,17 +567,11 @@ if __name__ == "__main__" :
     elif not is_image_list:
       video_str = " video" if len( video_list ) == 1 else " videos"
       log_info( lb1 + "Processing " + str( len( video_list ) ) + video_str + lb2 )
-    else:
+    elif args.init_db:
       log_info( lb1 )
 
     # Get required paths
     pipeline_loc = args.pipeline
-
-    if len( args.output_directory ) > 0:
-      create_dir( args.output_directory, logging=False, recreate=(not args.init_db) )
-
-    if len( args.log_directory ) > 0:
-      create_dir( args.output_directory + div + args.log_directory, logging=False )
 
     # Process videos in parallel, one per GPU
     video_queue = queue.Queue()
