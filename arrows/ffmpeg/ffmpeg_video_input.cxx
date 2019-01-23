@@ -405,6 +405,38 @@ public:
 
   // ==================================================================
   /*
+  * @brief Seek to a specific frame
+  *
+  * @return \b true if video was valid and we found a frame.
+  */
+  bool seek( uint64_t frame )
+  {
+    // Time for frame before requested frame. The frame before is requested so
+    // advance will called at least once in case the request lands on a keyframe.
+    int64_t frame_ts = (static_cast<int>(f_frame_number_offset) + frame - 1) *
+      this->stream_time_base_to_frame() + this->f_start_time;
+
+    if ( av_seek_frame( this->f_format_context, this->f_video_index, frame_ts,
+                        AVSEEK_FLAG_BACKWARD ) >= 0 )
+    {
+      while ( this->advance() )
+      {
+        // FFMPEG frames start at 0
+        if ( frame - 1 == this->frame_number() )
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  // ==================================================================
+  /*
   * @brief Get the current timestamp
   *
   * @return \b Current timestamp.
@@ -722,32 +754,18 @@ bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
     return false;
   }
 
-  // Quick return if the stream isn't open.
   if (timeout != 0)
   {
     LOG_WARN(this->logger(), "Timeout argument is not supported.");
   }
 
-  int current_frame_number = this->frame_timestamp().get_frame();
-  // If current frame number is greater than requested frame reopen
-  // file to reset to start
-  if (current_frame_number > frame_number)
+  bool ret = d->seek( frame_number );
+  d->end_of_video = !ret;
+  if (ret)
   {
-    d->close();
-    d->open( d->video_path );
-    current_frame_number = this->frame_timestamp().get_frame();
-  }
-
-  // Just advance video until the requested frame is reached
-  for (int i = current_frame_number; i < frame_number; ++i)
-  {
-    if (!this->next_frame(ts))
-    {
-      return false;
-    }
-  }
-
-  return true;
+    ts = this->frame_timestamp();
+  };
+  return ret;
 }
 
 
