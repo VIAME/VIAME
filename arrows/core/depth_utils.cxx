@@ -34,6 +34,9 @@
 */
 
 #include <arrows/core/depth_utils.h>
+#include <random>
+#include <iostream>
+#include <cmath>
 
 using namespace kwiver::vital;
 
@@ -242,6 +245,63 @@ compute_depth_range(std::vector<vector_3d> const& landmarks,
   const double safety_margin = safety_margin_factor * (depth_max - depth_min);
   depth_max += safety_margin;
   depth_min -= safety_margin;
+}
+
+//*****************************************************************************
+
+double
+compute_pixel_to_world_scale(std::vector<vector_3d> const& landmarks,
+                             std::vector<camera_perspective_sptr> const& cameras)
+{
+  assert(landmarks.size() > 1);
+
+  std::random_device rd;
+  std::mt19937 mt(rd());
+  std::uniform_int_distribution<unsigned int> landmarkdist(0, landmarks.size());
+
+  double scale = 0.0;
+  unsigned int count = 0;
+  unsigned int camindex = 0;
+  for (unsigned int i = 0; i < landmarks.size(); i++)
+  {
+    //iterate thru different cameras
+    camera_perspective const& cam = *cameras[camindex];
+    matrix_3x4d P = cam.as_matrix();
+    vector_3d cam_axis(P(2, 0), P(2, 1), P(2, 2));
+
+    unsigned int landmarkindex = landmarkdist(mt);
+
+    while (landmarkindex == i)
+    {   
+      landmarkindex = landmarkdist(mt);
+    }
+
+    vector_3d const& pt1 = landmarks[i];
+    vector_3d const& pt2 = landmarks[landmarkindex];
+    
+    vector_3d vec = pt2 - pt1;
+    vector_3d proj = vec.dot(cam_axis) * cam_axis;
+    vector_3d pt2p = pt2 - proj;
+
+    double world_dist = (pt2p - pt1).norm();
+
+    vector_2d ppt1 = cam.project(pt1);
+    vector_2d ppt2p = cam.project(pt2p);
+    
+    double pixel_dist = (ppt2p - ppt1).norm();
+
+    double val = world_dist / pixel_dist;
+
+    if (std::isfinite(val))
+    {
+      scale += val;
+      count++;
+    }
+
+    camindex = (camindex + 1) % cameras.size();
+  }
+
+  return scale / count;
 }
 
 } //end namespace core
