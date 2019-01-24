@@ -416,23 +416,27 @@ public:
     int64_t frame_ts = (static_cast<int>(f_frame_number_offset) + frame - 1) *
       this->stream_time_base_to_frame() + this->f_start_time;
 
-    if ( av_seek_frame( this->f_format_context, this->f_video_index, frame_ts,
-                        AVSEEK_FLAG_BACKWARD ) >= 0 )
+    do
     {
-      while ( this->advance() )
+      if ( av_seek_frame( this->f_format_context, this->f_video_index, frame_ts,
+                          AVSEEK_FLAG_BACKWARD ) < 0 || !this->advance() )
       {
-        // FFMPEG frames start at 0
-        if ( frame - 1 == this->frame_number() )
-        {
-          return true;
-        }
+        return false;
       }
-      return false;
+
+      frame_ts -= 20 * this->stream_time_base_to_frame();
     }
-    else
+    while( this->frame_number() > frame - 1 );
+
+    while( this->frame_number() < frame - 1 )
     {
-      return false;
+      if ( !this->advance() )
+      {
+        return false;
+      }
     }
+
+    return true;
   }
 
   // ==================================================================
