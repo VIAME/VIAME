@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,9 +37,15 @@
 
 namespace kwiver {
 
-create_config_trait( detector, std::string, "", "Algorithm configuration subblock" );
+create_config_trait( detector, std::string, "",
+  "Algorithm configuration subblock" );
 
-//----------------------------------------------------------------
+create_config_trait( frame_downsample, unsigned, 0,
+  "If non-zero, only process every 1 in these frames" );
+create_config_trait( frame_offset, unsigned, 0,
+  "Frame downsampling offset factor, if enabled" );
+
+// -----------------------------------------------------------------------------
 // Private implementation class
 class image_object_detector_process::priv
 {
@@ -47,14 +53,18 @@ public:
   priv();
   ~priv();
 
-   vital::algo::image_object_detector_sptr m_detector;
+  unsigned frame_downsample;
+  unsigned frame_offset;
+  unsigned frame_counter;
+
+  vital::algo::image_object_detector_sptr m_detector;
 
 }; // end priv class
 
 
-// ==================================================================
-image_object_detector_process::
-image_object_detector_process( kwiver::vital::config_block_sptr const& config )
+// =============================================================================
+image_object_detector_process
+::image_object_detector_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new image_object_detector_process::priv )
 {
@@ -63,43 +73,60 @@ image_object_detector_process( kwiver::vital::config_block_sptr const& config )
 }
 
 
-image_object_detector_process::
-~image_object_detector_process()
+image_object_detector_process
+::~image_object_detector_process()
 {
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
-image_object_detector_process::
-_configure()
+image_object_detector_process
+::_configure()
 {
   scoped_configure_instrumentation();
 
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::image_object_detector::check_nested_algo_configuration( "detector", algo_config ) )
+  if( !vital::algo::image_object_detector::check_nested_algo_configuration(
+        "detector", algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    throw sprokit::invalid_configuration_exception(
+      name(), "Configuration check failed." );
   }
 
-  vital::algo::image_object_detector::set_nested_algo_configuration( "detector", algo_config, d->m_detector );
-  if ( ! d->m_detector )
+  vital::algo::image_object_detector::set_nested_algo_configuration(
+    "detector", algo_config, d->m_detector );
+
+  if( !d->m_detector )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create detector" );
+    throw sprokit::invalid_configuration_exception(
+      name(), "Unable to create detector" );
   }
+
+  d->frame_downsample = config_value_using_trait( frame_downsample );
+  d->frame_offset = config_value_using_trait( frame_offset );
+
+  d->frame_counter = 0;
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
-image_object_detector_process::
-_step()
+image_object_detector_process
+::_step()
 {
   vital::image_container_sptr input = grab_from_port_using_trait( image );
 
   vital::detected_object_set_sptr result;
+
+  if( d->frame_downsample > 0 &&
+     ( d->frame_counter++ + d->frame_offset ) % d->frame_downsample != 0 )
+  {
+    result = std::make_shared< vital::detected_object_set >();
+  }
+  else
   {
     scoped_step_instrumentation();
 
@@ -111,10 +138,10 @@ _step()
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
-image_object_detector_process::
-make_ports()
+image_object_detector_process
+::make_ports()
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
@@ -130,18 +157,23 @@ make_ports()
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
-image_object_detector_process::
-make_config()
+image_object_detector_process
+::make_config()
 {
   declare_config_using_trait( detector );
+  declare_config_using_trait( frame_downsample );
+  declare_config_using_trait( frame_offset );
 }
 
 
-// ================================================================
+// =============================================================================
 image_object_detector_process::priv
 ::priv()
+ : frame_downsample( 0 )
+ , frame_offset( 0 )
+ , frame_counter( 0 )
 {
 }
 
