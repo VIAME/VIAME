@@ -260,8 +260,6 @@ darknet_detector
   d->m_net = *net;
   free( net );
 
-  set_batch_network( &d->m_net, 1 );
-
   // This assumes that there are no other users of random number
   // generator in this application.
   srand( 2222222 );
@@ -529,17 +527,7 @@ darknet_detector::priv
   {
     if( cv_images.size() == 1 && m_net.batch != 1 )
     {
-      m_net.batch = 1;
-
-      for( int i = 0; i < m_net.n; i++ )
-      {
-        m_net.layers[i].batch = 1;
-
-        if( m_net.layers[i].type == CONVOLUTIONAL )
-        {
-          fix_batch_convolutional_layer( m_net.layers + i );
-        }
-      }
+      set_batch_network( &m_net, 1 );
     }
     m_is_first = false;
   }
@@ -662,13 +650,16 @@ darknet_detector::priv
 
     output.push_back( detected_objects );
 
-    for( int j = 0; j < m_net.n; j++ )
+    if( cv_images.size() > 1 )
     {
-      layer *l = &( m_net.layers[j] );
-
-      if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
+      for( int j = 0; j < m_net.n; j++ )
       {
-        l->output += l->outputs;
+        layer *l = &( m_net.layers[j] );
+  
+        if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
+        {
+          l->output += l->outputs;
+        }
       }
     }
   }
