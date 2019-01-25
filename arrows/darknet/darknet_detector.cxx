@@ -145,7 +145,7 @@ public:
   std::vector< vital::detected_object_set_sptr > process_images(
     const std::vector< cv::Mat >& cv_image );
   vital::detected_object_set_sptr scale_detections(
-    vital::detected_object_set_sptr& detections,
+    const vital::detected_object_set_sptr detections,
     const region_info& roi );
 
   kwiver::vital::logger_handle_t m_logger;
@@ -499,22 +499,22 @@ void fix_batch_convolutional_layer( layer *l )
   cudnnSetFilter4dDescriptor( l->weightDesc,
     CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, l->n, l->c/l->groups, l->size, l->size );
 
-#if CUDNN_MAJOR >= 6
-  cudnnSetConvolution2dDescriptor( l->convDesc, l->pad, l->pad, l->stride,
-    l->stride, 1, 1, CUDNN_CROSS_CORRELATION, CUDNN_DATA_FLOAT );
-#else
-  cudnnSetConvolution2dDescriptor( l->convDesc, l->pad, l->pad, l->stride,
-    l->stride, 1, 1, CUDNN_CROSS_CORRELATION );
-#endif
+  #if CUDNN_MAJOR >= 6
+    cudnnSetConvolution2dDescriptor( l->convDesc, l->pad, l->pad, l->stride,
+      l->stride, 1, 1, CUDNN_CROSS_CORRELATION, CUDNN_DATA_FLOAT );
+  #else
+    cudnnSetConvolution2dDescriptor( l->convDesc, l->pad, l->pad, l->stride,
+      l->stride, 1, 1, CUDNN_CROSS_CORRELATION );
+  #endif
 
-#if CUDNN_MAJOR >= 7
-  cudnnSetConvolutionGroupCount( l->convDesc, l->groups );
-#else
-  if( l->groups > 1 )
-  {
-    error( "CUDNN < 7 doesn't support groups, please upgrade!" );
-  }
-#endif
+  #if CUDNN_MAJOR >= 7
+    cudnnSetConvolutionGroupCount( l->convDesc, l->groups );
+  #else
+    if( l->groups > 1 )
+    {
+      error( "CUDNN < 7 doesn't support groups, please upgrade!" );
+    }
+  #endif
 #endif
 }
 
@@ -713,7 +713,7 @@ darknet_detector::priv
 vital::detected_object_set_sptr
 darknet_detector::priv
 ::scale_detections(
-  vital::detected_object_set_sptr& dets,
+  const vital::detected_object_set_sptr dets,
   const region_info& info )
 {
   if( info.scale1 != 1.0 )
