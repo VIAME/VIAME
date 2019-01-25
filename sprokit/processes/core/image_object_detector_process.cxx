@@ -40,9 +40,9 @@ namespace kwiver {
 create_config_trait( detector, std::string, "",
   "Algorithm configuration subblock" );
 
-create_config_trait( frame_downsample, unsigned, 0,
+create_config_trait( frame_downsample, unsigned, "0",
   "If non-zero, only process every 1 in these frames" );
-create_config_trait( frame_offset, unsigned, 0,
+create_config_trait( frame_offset, unsigned, "0",
   "Frame downsampling offset factor, if enabled" );
 
 // -----------------------------------------------------------------------------
