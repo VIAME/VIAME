@@ -666,7 +666,7 @@ darknet_detector::priv
     {
       layer *l = &( m_net.layers[j] );
 
-      if( l->type == YOLO )
+      if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
       {
         l->output += l->outputs;
       }
