@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,6 +86,7 @@ public:
     , m_gs_to_rgb( true )
     , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
+    , m_is_first( true )
     , m_names( 0 )
   { }
 
@@ -112,28 +113,48 @@ public:
   bool m_gs_to_rgb;
   int m_chip_edge_filter;
   int m_chip_adaptive_thresh;
+  bool m_is_first;
 
   // Needed to operate the model
   char **m_names;                 /* list of classes/labels */
   network m_net;
 
   // Helper functions
+  struct region_info
+  {
+    explicit region_info( cv::Rect r, double s1 )
+     : original_roi( r ), edge_filter( 0 ),
+       scale1( s1 ), shiftx( 0 ), shifty( 0 ), scale2( 1.0 )
+    {}
+
+    explicit region_info( cv::Rect r, int ef,
+      double s1, int sx, int sy, double s2 )
+     : original_roi( r ), edge_filter( ef ),
+       scale1( s1 ), shiftx( sx ), shifty( sy ), scale2( s2 )
+    {}
+
+    cv::Rect original_roi;
+    int edge_filter;
+    double scale1;
+    int shiftx, shifty;
+    double scale2;
+  };
+
   image cvmat_to_image(
     const cv::Mat& src );
-  vital::detected_object_set_sptr process_image(
-    const cv::Mat& cv_image );
-  vital::detected_object_set_sptr filter_detections(
-    const vital::detected_object_set_sptr& dets,
-    const cv::Rect& roi,
-    int edge_ignore_dist );
+  std::vector< vital::detected_object_set_sptr > process_images(
+    const std::vector< cv::Mat >& cv_image );
+  vital::detected_object_set_sptr scale_detections(
+    vital::detected_object_set_sptr& detections,
+    const region_info& roi );
 
   kwiver::vital::logger_handle_t m_logger;
 };
 
 
 // =============================================================================
-darknet_detector::
-darknet_detector()
+darknet_detector
+::darknet_detector()
   : d( new priv() )
 {
   attach_logger( "arrows.darknet.darknet_detector" );
@@ -144,15 +165,15 @@ darknet_detector()
 }
 
 
-darknet_detector::
-~darknet_detector()
+darknet_detector
+::~darknet_detector()
 {}
 
 
 // -----------------------------------------------------------------------------
 vital::config_block_sptr
-darknet_detector::
-get_configuration() const
+darknet_detector
+::get_configuration() const
 {
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
@@ -195,8 +216,8 @@ get_configuration() const
 
 // -----------------------------------------------------------------------------
 void
-darknet_detector::
-set_configuration( vital::config_block_sptr config_in )
+darknet_detector
+::set_configuration( vital::config_block_sptr config_in )
 {
   // Starting with our generated config_block to ensure that assumed values
   // are present. An alternative is to check for key presence before performing
@@ -249,13 +270,13 @@ set_configuration( vital::config_block_sptr config_in )
 
 // -----------------------------------------------------------------------------
 bool
-darknet_detector::
-check_configuration( vital::config_block_sptr config ) const
+darknet_detector
+::check_configuration( vital::config_block_sptr config ) const
 {
   std::string net_config = config->get_value<std::string>( "net_config" );
   std::string class_file = config->get_value<std::string>( "class_names" );
 
-  bool success( true );
+  bool success = true;
 
   if( net_config.empty() )
   {
@@ -266,7 +287,7 @@ check_configuration( vital::config_block_sptr config ) const
       "Configuration is as follows:\n" << str.str() );
     success = false;
   }
-  else if( ! kwiversys::SystemTools::FileExists( net_config ) )
+  else if( !kwiversys::SystemTools::FileExists( net_config ) )
   {
     LOG_ERROR( logger(), "net config file \"" << net_config << "\" not found." );
     success = false;
@@ -300,8 +321,8 @@ check_configuration( vital::config_block_sptr config ) const
 
 // -----------------------------------------------------------------------------
 vital::detected_object_set_sptr
-darknet_detector::
-detect( vital::image_container_sptr image_data ) const
+darknet_detector
+::detect( vital::image_container_sptr image_data ) const
 {
   kwiver::vital::scoped_cpu_timer t( "Time to Detect Objects" );
 
@@ -355,19 +376,24 @@ detect( vital::image_container_sptr image_data ) const
     cv_resized_image = color_image;
   }
 
-  // run detector
+  // Run detector
+  detections = std::make_shared< vital::detected_object_set >();
+
+  cv::Rect original_dims( 0, 0, cv_image.cols, cv_image.rows );
+
+  std::vector< cv::Mat > regions_to_process;
+  std::vector< priv::region_info > region_properties;
+
   if( d->m_resize_option != "chip" && d->m_resize_option != "chip_and_original" )
   {
-    detections = d->process_image( cv_resized_image );
+    regions_to_process.push_back( cv_resized_image );
 
-    // rescales output detections if required
-    detections->scale( 1.0 / scale_factor );
+    region_properties.push_back(
+      priv::region_info( original_dims, 1.0 / scale_factor ) );
   }
   else
   {
-    detections = std::make_shared< vital::detected_object_set >();
-
-    // Chip up and process scaled image
+    // Chip up scaled image
     for( int li = 0;
          li < cv_resized_image.cols - d->m_resize_i + d->m_chip_step;
          li += d->m_chip_step )
@@ -392,16 +418,18 @@ detect( vital::image_container_sptr image_data ) const
         double scaled_crop_scale = scale_image_maintaining_ar(
           cropped_chip, scaled_crop, d->m_resize_i, d->m_resize_j );
 
-        vital::detected_object_set_sptr new_dets = d->process_image( scaled_crop );
-        new_dets->scale( 1.0 / scaled_crop_scale );
-        new_dets->shift( li, lj );
-        new_dets->scale( 1.0 / scale_factor );
+        regions_to_process.push_back( scaled_crop );
 
-        detections->add( d->filter_detections( new_dets, original_roi, d->m_chip_edge_filter ) );
+        region_properties.push_back(
+          priv::region_info( original_roi,
+            d->m_chip_edge_filter,
+            1.0 / scaled_crop_scale,
+            li, lj,
+            1.0 / scale_factor ) );
       }
     }
 
-    // Process full sized image if enabled
+    // Extract full sized image chip if enabled
     if( d->m_resize_option == "chip_and_original" )
     {
       cv::Mat scaled_original;
@@ -416,12 +444,33 @@ detect( vital::image_container_sptr image_data ) const
         scaled_original = color_image;
       }
 
-      vital::detected_object_set_sptr new_dets = d->process_image( scaled_original );
+      regions_to_process.push_back( scaled_original );
 
-      new_dets->scale( 1.0 / scaled_original_scale );
+      region_properties.push_back(
+        priv::region_info( original_dims, 1.0 / scaled_original_scale ) );
+    }
+  }
 
-      cv::Rect image_dims( 0, 0, cv_image.cols, cv_image.rows );
-      detections->add( d->filter_detections( new_dets, image_dims, 0 ) );
+  // Process all regions
+  unsigned max_count = d->m_net.batch;
+
+  for( unsigned i = 0; i < regions_to_process.size(); i+= max_count )
+  {
+    unsigned batch_size = std::min( max_count,
+      static_cast< unsigned >( regions_to_process.size() ) - i );
+
+    std::vector< cv::Mat > imgs;
+
+    for( unsigned j = 0; j < batch_size; j++ )
+    {
+      imgs.push_back( regions_to_process[ i + j ] );
+    }
+
+    std::vector< vital::detected_object_set_sptr > out = d->process_images( imgs );
+
+    for( unsigned j = 0; j < batch_size; j++ )
+    {
+      detections->add( d->scale_detections( out[ j ], region_properties[ i + j ] ) );
     }
   }
 
@@ -430,118 +479,209 @@ detect( vital::image_container_sptr image_data ) const
 
 
 // =============================================================================
-vital::detected_object_set_sptr
-darknet_detector::priv::
-process_image( const cv::Mat& cv_image )
+void fix_batch_convolutional_layer( layer *l )
 {
+#if DARKNET_USE_CUDNN
+  cudnnSetTensor4dDescriptor( l->dsrcTensorDesc,
+    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, l->batch, l->c, l->h, l->w );
+  cudnnSetTensor4dDescriptor( l->ddstTensorDesc,
+    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, l->batch, l->out_c, l->out_h, l->out_w );
+
+  cudnnSetTensor4dDescriptor( l->srcTensorDesc,
+    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, l->batch, l->c, l->h, l->w );
+  cudnnSetTensor4dDescriptor( l->dstTensorDesc,
+    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, l->batch, l->out_c, l->out_h, l->out_w );
+  cudnnSetTensor4dDescriptor( l->normTensorDesc,
+    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, l->out_c, 1, 1 );
+
+  cudnnSetFilter4dDescriptor( l->dweightDesc,
+    CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, l->n, l->c/l->groups, l->size, l->size );
+  cudnnSetFilter4dDescriptor( l->weightDesc,
+    CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, l->n, l->c/l->groups, l->size, l->size );
+
+#if CUDNN_MAJOR >= 6
+  cudnnSetConvolution2dDescriptor( l->convDesc, l->pad, l->pad, l->stride,
+    l->stride, 1, 1, CUDNN_CROSS_CORRELATION, CUDNN_DATA_FLOAT );
+#else
+  cudnnSetConvolution2dDescriptor( l->convDesc, l->pad, l->pad, l->stride,
+    l->stride, 1, 1, CUDNN_CROSS_CORRELATION );
+#endif
+
+#if CUDNN_MAJOR >= 7
+  cudnnSetConvolutionGroupCount( l->convDesc, l->groups );
+#else
+  if( l->groups > 1 )
+  {
+    error( "CUDNN < 7 doesn't support groups, please upgrade!" );
+  }
+#endif
+#endif
+}
+
+std::vector< vital::detected_object_set_sptr >
+darknet_detector::priv
+::process_images( const std::vector< cv::Mat >& cv_images )
+{
+  // set batch size to 1 if on the first frame we're just given 1 frame, it's
+  // almost guaranteed on all other frames we'll also just be given one. Why
+  // use batching then?
+  if( m_is_first )
+  {
+    if( cv_images.size() == 1 && m_net.batch != 1 )
+    {
+      m_net.batch = 1;
+
+      for( int i = 0; i < m_net.n; i++ )
+      {
+        m_net.layers[i].batch = 1;
+
+        if( m_net.layers[i].type == CONVOLUTIONAL )
+        {
+          fix_batch_convolutional_layer( m_net.layers + i );
+        }
+      }
+    }
+    m_is_first = false;
+  }
+
   // copies and converts to floating pixel value.
-  image im = cvmat_to_image( cv_image );
-  // show_image( im, "first version" );
+  unsigned image_size = m_net.w * m_net.h * m_net.c;
+  float* X = static_cast< float* >( calloc( m_net.batch * image_size, sizeof( float ) ) );
+  layer l = m_net.layers[ m_net.n - 1 ]; /* last network layer */
 
-  image sized = resize_image( im, m_net.w, m_net.h );
-  // show_image( sized, "sized version" );
+  for( unsigned i = 0; i < cv_images.size(); i++ )
+  {
+    image img = cvmat_to_image( cv_images[i] );
 
-  layer l = m_net.layers[m_net.n - 1];     /* last network layer (output?) */
+    if( img.w == m_net.w && img.h == m_net.h )
+    {
+      memcpy( X + i * image_size, img.data, image_size * sizeof( float ) );
+    }
+    else
+    {
+      image sized = resize_image( img, m_net.w, m_net.h );
+      memcpy( X + i * image_size, sized.data, image_size * sizeof( float ) );
+      free_image( sized );
+    }
+
+    free_image( img );
+  }
 
   /* run image through network */
-  float* X = sized.data;
   network_predict( &m_net, X );
 
   /* get boxes around detected objects */
-  int l_size;
+  std::vector< vital::detected_object_set_sptr > output;
 
-  detection* dets = get_network_boxes(
-    &m_net,
-    1, 1,             /* i: w, h */
-    m_thresh,         /* i: caller supplied threshold */
-    m_hier_thresh,    /* i: tree thresh, relative */
-    0,                /* i: map */
-    1,                /* i: tree thresh, relative */
-    &l_size );	      /* i: number of detections */
-
-  if( l.softmax_tree && m_nms_threshold )
+  for( unsigned i = 0; i < cv_images.size(); i++ )
   {
-    do_nms_obj( dets, l_size, l.classes, m_nms_threshold );
-  }
-  else if( m_nms_threshold )
-  {
-    do_nms_sort( dets, l_size, l.classes, m_nms_threshold );
-  }
-  else
-  {
-    LOG_ERROR( m_logger, "Internal error - nms == 0" );
-  }
+    auto detected_objects = std::make_shared< vital::detected_object_set >();
 
-  // -- extract detections and convert to our format --
-  auto detected_objects = std::make_shared< vital::detected_object_set >();
+    int det_count;
 
-  for( int i = 0; i < l_size; ++i )
-  {
-    const box b = dets[i].bbox;
+    detection* dets = get_network_boxes(
+      &m_net,
+      1, 1,             /* i: w, h */
+      m_thresh,         /* i: caller supplied threshold */
+      m_hier_thresh,    /* i: tree thresh, relative */
+      0,                /* i: map */
+      1,                /* i: tree thresh, relative */
+      &det_count );     /* i: number of detections */
 
-    int left  = ( b.x - b.w / 2. ) * im.w;
-    int right = ( b.x + b.w / 2. ) * im.w;
-    int top   = ( b.y - b.h / 2. ) * im.h;
-    int bot   = ( b.y + b.h / 2. ) * im.h;
-
-    /* clip box to image bounds */
-    if( left < 0 )
+    if( l.softmax_tree && m_nms_threshold )
     {
-      left = 0;
+      do_nms_obj( dets, det_count, l.classes, m_nms_threshold );
     }
-    if( right > im.w - 1 )
+    else if( m_nms_threshold )
     {
-      right = im.w - 1;
+      do_nms_sort( dets, det_count, l.classes, m_nms_threshold );
     }
-    if( top < 0 )
+    else
     {
-      top = 0;
-    }
-    if( bot > im.h - 1 )
-    {
-      bot = im.h - 1;
+      LOG_ERROR( m_logger, "Internal error - nms == 0" );
     }
 
-    kwiver::vital::bounding_box_d bbox( left, top, right, bot );
-
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-    bool has_name = false;
-
-    // Iterate over all classes and collect all names over the threshold, and max score
-    double conf = 0.0;
-
-    for( int class_idx = 0; class_idx < l.classes; ++class_idx )
+    // -- extract detections and convert to our format --
+    for( int d = 0; d < det_count; ++d )
     {
-      const double prob = static_cast< double >( dets[i].prob[class_idx] );
+      const box b = dets[d].bbox;
 
-      if( prob >= m_thresh )
+      int left  = ( b.x - b.w / 2. ) * m_net.w;
+      int right = ( b.x + b.w / 2. ) * m_net.w;
+      int top   = ( b.y - b.h / 2. ) * m_net.h;
+      int bot   = ( b.y + b.h / 2. ) * m_net.h;
+
+      /* clip box to image bounds */
+      if( left < 0 )
       {
-        const std::string class_name( m_names[class_idx] );
-        dot->set_score( class_name, prob );
-        conf = std::max( conf, prob );
-        has_name = true;
+        left = 0;
+      }
+      if( right > m_net.w - 1 )
+      {
+        right = m_net.w - 1;
+      }
+      if( top < 0 )
+      {
+        top = 0;
+      }
+      if( bot > m_net.h - 1 )
+      {
+        bot = m_net.h - 1;
+      }
+
+      kwiver::vital::bounding_box_d bbox( left, top, right, bot );
+
+      auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+      bool has_name = false;
+
+      // Iterate over all classes and collect all names over the threshold
+      double conf = 0.0;
+
+      for( int class_idx = 0; class_idx < l.classes; ++class_idx )
+      {
+        const double prob = static_cast< double >( dets[d].prob[class_idx] );
+
+        if( prob >= m_thresh )
+        {
+          const std::string class_name( m_names[ class_idx ] );
+          dot->set_score( class_name, prob );
+          conf = std::max( conf, prob );
+          has_name = true;
+        }
+      }
+
+      if( has_name )
+      {
+        detected_objects->add(
+          std::make_shared< kwiver::vital::detected_object >(
+            bbox, conf, dot ) );
       }
     }
 
-    if( has_name )
+    free_detections( dets, det_count );
+
+    output.push_back( detected_objects );
+
+    for( int j = 0; j < m_net.n; j++ )
     {
-      detected_objects->add(
-        std::make_shared< kwiver::vital::detected_object >( bbox, conf, dot ) );
+      layer *l = &( m_net.layers[j] );
+
+      if( l->type == YOLO )
+      {
+        l->output += l->outputs;
+      }
     }
   }
 
-  // Free allocated memory
-  free_image( im );
-  free_image( sized );
-  free_detections( dets, l_size );
+  free( X );
 
-  return detected_objects;
+  return output;
 }
 
 
 image
-darknet_detector::priv::
-cvmat_to_image( const cv::Mat& src )
+darknet_detector::priv
+::cvmat_to_image( const cv::Mat& src )
 {
   // accept only char type matrices
   CV_Assert( src.depth() == CV_8U );
@@ -571,13 +711,34 @@ cvmat_to_image( const cv::Mat& src )
 
 
 vital::detected_object_set_sptr
-darknet_detector::priv::
-filter_detections( const vital::detected_object_set_sptr& dets, const cv::Rect& roi, int dist )
+darknet_detector::priv
+::scale_detections(
+  vital::detected_object_set_sptr& dets,
+  const region_info& info )
 {
+  if( info.scale1 != 1.0 )
+  {
+    dets->scale( info.scale1 );
+  }
+
+  if( info.shiftx != 0 || info.shifty != 0 )
+  {
+    dets->shift( info.shiftx, info.shifty );
+  }
+
+  if( info.scale2 != 1.0 )
+  {
+    dets->scale( info.scale2 );
+  }
+
+  const int dist = info.edge_filter;
+
   if( dist <= 0 )
   {
     return dets;
   }
+
+  const cv::Rect& roi = info.original_roi;
 
   std::vector< vital::detected_object_sptr > filtered_dets;
 
@@ -607,7 +768,8 @@ filter_detections( const vital::detected_object_set_sptr& dets, const cv::Rect& 
     filtered_dets.push_back( det );
   }
 
-  return vital::detected_object_set_sptr( new vital::detected_object_set( filtered_dets ) );
+  return vital::detected_object_set_sptr(
+    new vital::detected_object_set( filtered_dets ) );
 }
 
 } } } // end namespace
