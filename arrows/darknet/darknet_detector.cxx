@@ -561,6 +561,21 @@ darknet_detector::priv
   /* get boxes around detected objects */
   std::vector< vital::detected_object_set_sptr > output;
 
+  std::vector< float* > original_outputs( m_net.n );
+
+  if( cv_images.size() > 1 )
+  {
+    for( int j = 0; j < m_net.n; j++ )
+    {
+      layer *l = &( m_net.layers[j] );
+
+      if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
+      {
+        original_outputs[j] = l->output;
+      }
+    }
+  }
+
   for( unsigned i = 0; i < cv_images.size(); i++ )
   {
     auto detected_objects = std::make_shared< vital::detected_object_set >();
@@ -655,11 +670,24 @@ darknet_detector::priv
       for( int j = 0; j < m_net.n; j++ )
       {
         layer *l = &( m_net.layers[j] );
-  
+
         if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
         {
           l->output += l->outputs;
         }
+      }
+    }
+  }
+
+  if( cv_images.size() > 1 )
+  {
+    for( int j = 0; j < m_net.n; j++ )
+    {
+      layer *l = &( m_net.layers[j] );
+
+      if( l->type == YOLO || l->type == REGION || l->type == DETECTION )
+      {
+        l->output = original_outputs[j];
       }
     }
   }
