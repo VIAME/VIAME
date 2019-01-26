@@ -24,8 +24,6 @@ process detector
 
     # Image scaling parameters
     :resize_option                             adaptive
-    :resize_ni                                 704
-    :resize_nj                                 704
     :scale                                     1.25
     :chip_step                                 600
     :chip_edge_filter                          10

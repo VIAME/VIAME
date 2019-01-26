@@ -59,8 +59,6 @@ process scallop_yolo_v2_detector
 
     # Image scaling parameters
     :resize_option                             maintain_ar
-    :resize_ni                                 960
-    :resize_nj                                 960
     :scale                                     1.0
 
   endblock
@@ -114,8 +112,6 @@ process fish_yolo_v2_detector
 
     # Image scaling parameters
     :resize_option                             maintain_ar
-    :resize_ni                                 704
-    :resize_nj                                 704
     :scale                                     1.0
 
   endblock
