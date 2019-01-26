@@ -79,8 +79,6 @@ public:
     , m_gpu_index( -1 )
     , m_resize_option( "disabled" )
     , m_scale( 1.0 )
-    , m_resize_i( 0 )
-    , m_resize_j( 0 )
     , m_chip_step( 100 )
     , m_nms_threshold( 0.4 )
     , m_gs_to_rgb( true )
@@ -106,8 +104,6 @@ public:
 
   std::string m_resize_option;
   double m_scale;
-  int m_resize_i;
-  int m_resize_j;
   int m_chip_step;
   double m_nms_threshold;
   bool m_gs_to_rgb;
@@ -195,10 +191,6 @@ darknet_detector
     "chip, chip_and_original, or adaptive." );
   config->set_value( "scale", d->m_scale,
     "Image scaling factor used when resize_option is scale or chip." );
-  config->set_value( "resize_ni", d->m_resize_i,
-    "Width resolution after resizing" );
-  config->set_value( "resize_nj", d->m_resize_j,
-    "Height resolution after resizing" );
   config->set_value( "chip_step", d->m_chip_step,
     "When in chip mode, the chip step size between chips." );
   config->set_value( "nms_threshold", d->m_nms_threshold,
@@ -234,8 +226,6 @@ darknet_detector
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
   this->d->m_resize_option = config->get_value< std::string >( "resize_option" );
   this->d->m_scale       = config->get_value< double >( "scale" );
-  this->d->m_resize_i    = config->get_value< int >( "resize_ni" );
-  this->d->m_resize_j    = config->get_value< int >( "resize_nj" );
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
   this->d->m_nms_threshold = config->get_value< double >( "nms_threshold" );
   this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
@@ -306,13 +296,6 @@ darknet_detector
     success = false;
   }
 
-  if( d->m_resize_option != "disabled" &&
-      ( d->m_resize_i != 0 || d->m_resize_j != 0 || d->m_resize_option == "scale" ) )
-  {
-    LOG_ERROR( logger(), "resize dimentions must be set if resizing enabled" );
-    success = false;
-  }
-
   return success;
 } // darknet_detector::check_configuration
 
@@ -360,7 +343,7 @@ darknet_detector
   if( d->m_resize_option != "disabled" )
   {
     scale_factor = format_image( cv_image, cv_resized_image,
-      d->m_resize_option, d->m_scale, d->m_resize_i, d->m_resize_j );
+      d->m_resize_option, d->m_scale, d->m_net.w, d->m_net.h );
   }
   else
   {
@@ -393,16 +376,16 @@ darknet_detector
   {
     // Chip up scaled image
     for( int li = 0;
-         li < cv_resized_image.cols - d->m_resize_i + d->m_chip_step;
+         li < cv_resized_image.cols - d->m_net.w + d->m_chip_step;
          li += d->m_chip_step )
     {
-      int ti = std::min( li + d->m_resize_i, cv_resized_image.cols );
+      int ti = std::min( li + d->m_net.w, cv_resized_image.cols );
 
       for( int lj = 0;
-           lj < cv_resized_image.rows - d->m_resize_j + d->m_chip_step;
+           lj < cv_resized_image.rows - d->m_net.h + d->m_chip_step;
            lj += d->m_chip_step )
       {
-        int tj = std::min( lj + d->m_resize_j, cv_resized_image.rows );
+        int tj = std::min( lj + d->m_net.h, cv_resized_image.rows );
 
         cv::Rect resized_roi( li, lj, ti-li, tj-lj );
         cv::Rect original_roi( li / scale_factor,
@@ -414,7 +397,7 @@ darknet_detector
         cv::Mat scaled_crop, tmp_cropped;
 
         double scaled_crop_scale = scale_image_maintaining_ar(
-          cropped_chip, scaled_crop, d->m_resize_i, d->m_resize_j );
+          cropped_chip, scaled_crop, d->m_net.w, d->m_net.h );
 
         regions_to_process.push_back( scaled_crop );
 
@@ -433,7 +416,7 @@ darknet_detector
       cv::Mat scaled_original;
 
       double scaled_original_scale = scale_image_maintaining_ar( cv_image,
-        scaled_original, d->m_resize_i, d->m_resize_j );
+        scaled_original, d->m_net.w, d->m_net.h );
 
       if( d->m_gs_to_rgb && scaled_original.channels() == 1 )
       {
