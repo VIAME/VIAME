@@ -477,45 +477,6 @@ darknet_detector
 
 
 // =============================================================================
-void fix_batch_convolutional_layer( layer *l )
-{
-#if DARKNET_USE_CUDNN
-  cudnnSetTensor4dDescriptor( l->dsrcTensorDesc,
-    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, l->batch, l->c, l->h, l->w );
-  cudnnSetTensor4dDescriptor( l->ddstTensorDesc,
-    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, l->batch, l->out_c, l->out_h, l->out_w );
-
-  cudnnSetTensor4dDescriptor( l->srcTensorDesc,
-    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, l->batch, l->c, l->h, l->w );
-  cudnnSetTensor4dDescriptor( l->dstTensorDesc,
-    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, l->batch, l->out_c, l->out_h, l->out_w );
-  cudnnSetTensor4dDescriptor( l->normTensorDesc,
-    CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, 1, l->out_c, 1, 1 );
-
-  cudnnSetFilter4dDescriptor( l->dweightDesc,
-    CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, l->n, l->c/l->groups, l->size, l->size );
-  cudnnSetFilter4dDescriptor( l->weightDesc,
-    CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, l->n, l->c/l->groups, l->size, l->size );
-
-  #if CUDNN_MAJOR >= 6
-    cudnnSetConvolution2dDescriptor( l->convDesc, l->pad, l->pad, l->stride,
-      l->stride, 1, 1, CUDNN_CROSS_CORRELATION, CUDNN_DATA_FLOAT );
-  #else
-    cudnnSetConvolution2dDescriptor( l->convDesc, l->pad, l->pad, l->stride,
-      l->stride, 1, 1, CUDNN_CROSS_CORRELATION );
-  #endif
-
-  #if CUDNN_MAJOR >= 7
-    cudnnSetConvolutionGroupCount( l->convDesc, l->groups );
-  #else
-    if( l->groups > 1 )
-    {
-      error( "CUDNN < 7 doesn't support groups, please upgrade!" );
-    }
-  #endif
-#endif
-}
-
 std::vector< vital::detected_object_set_sptr >
 darknet_detector::priv
 ::process_images( const std::vector< cv::Mat >& cv_images )
