@@ -646,27 +646,49 @@ image
 darknet_detector::priv
 ::cvmat_to_image( const cv::Mat& src )
 {
-  // accept only char type matrices
-  CV_Assert( src.depth() == CV_8U );
-
-  unsigned char *data = (unsigned char *)src.data;
   int h = src.rows; // src.height;
   int w = src.cols; // src.width;
   int c = src.channels(); // src.nChannels;
+
   int step = w * c; // src.widthStep;
 
   image out = make_image( w, h, c );
+
   int i, j, k, count = 0;
 
-  for( k = 0; k < c; k++ )
+  if( src.depth() == CV_8U )
   {
-    for( i = 0; i < h; i++ )
+    unsigned char *data = (unsigned char*)src.data;
+
+    for( k = 0; k < c; k++ )
     {
-      for( j = 0; j < w; j++ )
+      for( i = 0; i < h; i++ )
       {
-        out.data[count++] = data[i*step + j*c + k]/255.;
+        for( j = 0; j < w; j++ )
+        {
+          out.data[count++] = data[i*step + j*c + k] / 255.;
+        }
       }
     }
+  }
+  else if( src.depth() == CV_16U )
+  {
+    unsigned short *data = (unsigned short*)src.data;
+
+    for( k = 0; k < c; k++ )
+    {
+      for( i = 0; i < h; i++ )
+      {
+        for( j = 0; j < w; j++ )
+        {
+          out.data[count++] = data[i*step + j*c + k] / 65535.;
+        }
+      }
+    }
+  }
+  else
+  {
+    throw std::runtime_error( "Invalid image type received" );
   }
 
   return out;
