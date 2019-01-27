@@ -28,9 +28,6 @@
 [submodule "packages/pytorch"]
 	path = packages/pytorch
 	url = https://github.com/pytorch/pytorch.git
-[submodule "packages/torchvision"]
-	path = packages/torchvision
-	url = https://github.com/pytorch/vision.git
 [submodule "packages/pytorch-libs/torchvision"]
 	path = packages/pytorch-libs/torchvision
 	url = https://github.com/pytorch/vision.git
