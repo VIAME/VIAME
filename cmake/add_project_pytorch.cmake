@@ -42,7 +42,7 @@ else()
   set( PYTORCH_PIP_CMD
     pip install ${PYTORCH_PIP_SETTINGS} --user file://${VIAME_PACKAGES_DIR}/pytorch )
   set( TORCHVISION_PIP_CMD
-    pip install ${PYTORCH_PIP_SETTINGS} --user file://${VIAME_PACKAGES_DIR}/torchvision )
+    pip install ${PYTORCH_PIP_SETTINGS} --user file://${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision )
 
   set( PYTORCH_PIP_BUILD_CMD
     ${PYTHON_EXECUTABLE} setup.py bdist_wheel -d ${VIAME_BUILD_PREFIX}/src/pytorch-build )
@@ -134,7 +134,7 @@ ExternalProject_Add( pytorch
 ExternalProject_Add( torchvision
   DEPENDS fletch pytorch
   PREFIX ${VIAME_BUILD_PREFIX}
-  SOURCE_DIR ${VIAME_PACKAGES_DIR}/torchvision
+  SOURCE_DIR ${VIAME_PACKAGES_DIR}/pytorch-libs/torchvision
   BUILD_IN_SOURCE 1
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ${TORCHVISION_PYTHON_BUILD}
