@@ -19,7 +19,7 @@ process out_adapt
 include ../common_generic_detector_with_filter.pipe
 
 connect from in_adapt.image
-        to   detector.image
+        to   detector_input.image
 
 # ==================================================================================
 
