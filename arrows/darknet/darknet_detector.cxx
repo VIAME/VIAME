@@ -646,42 +646,47 @@ image
 darknet_detector::priv
 ::cvmat_to_image( const cv::Mat& src )
 {
-  int h = src.rows; // src.height;
-  int w = src.cols; // src.width;
-  int c = src.channels(); // src.nChannels;
+  unsigned h = src.rows; // src.height;
+  unsigned w = src.cols; // src.width;
+  unsigned c = src.channels(); // src.nChannels;
+
+  unsigned istep = src.step[ 1 ];
+  unsigned jstep = src.step[ 0 ];
 
   int step = w * c; // src.widthStep;
 
   image out = make_image( w, h, c );
 
-  int i, j, k, count = 0;
+  unsigned int i, j, k;
 
   if( src.depth() == CV_8U )
   {
-    unsigned char *data = (unsigned char*)src.data;
+    unsigned char* input = (unsigned char*)src.data;
+    float* output = out.data;
 
     for( k = 0; k < c; k++ )
     {
-      for( i = 0; i < h; i++ )
+      for( j = 0; j < h; j++ )
       {
-        for( j = 0; j < w; j++ )
+        for( i = 0; i < w; i++, output++ )
         {
-          out.data[count++] = data[i*step + j*c + k] / 255.;
+          *output = input[j*jstep + i*istep + k] / 255.;
         }
       }
     }
   }
   else if( src.depth() == CV_16U )
   {
-    unsigned short *data = (unsigned short*)src.data;
+    unsigned short *input = (unsigned short*)src.data;
+    float* output = out.data;
 
     for( k = 0; k < c; k++ )
     {
-      for( i = 0; i < h; i++ )
+      for( j = 0; j < h; j++ )
       {
-        for( j = 0; j < w; j++ )
+        for( i = 0; i < w; i++, output++ )
         {
-          out.data[count++] = data[i*step + j*c + k] / 65535.;
+          *output = input[j*jstep + i*istep + k] / 65535.;
         }
       }
     }
