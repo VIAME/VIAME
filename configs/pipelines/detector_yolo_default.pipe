@@ -24,7 +24,7 @@ process detector_writer
   :writer:type                                 viame_csv
 
 connect from input.image
-        to   detector.image
+        to   detector_input.image
 connect from input.file_name
         to   detector_writer.image_file_name
 

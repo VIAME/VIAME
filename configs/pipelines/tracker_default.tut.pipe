@@ -20,7 +20,7 @@ include common_default_input.pipe
 include common_default_detector_with_filter.pipe
 
 connect from input.image
-        to   detector.image
+        to   detector_input.image
   
 process detector_writer
   :: detected_object_output

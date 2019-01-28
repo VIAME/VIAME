@@ -50,7 +50,7 @@ connect from kwa_writer.complete_flag
 include common_default_detector.pipe
 
 connect from reader.image
-        to   detector.image
+        to   detector_input.image
 
 process add_fixed_detection
   :: refine_detections
@@ -63,7 +63,7 @@ process add_fixed_detection
 
 connect from reader.image
         to   add_fixed_detection.image
-connect from detector.detected_object_set
+connect from detector_output.detected_object_set
         to   add_fixed_detection.detected_object_set
 
 include common_default_descriptor.pipe
