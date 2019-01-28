@@ -137,7 +137,7 @@ def generate_index_for_video( args, file_path, basename ):
 
   return args.cache_dir + div + basename + ".index"
 
-def select_option( option_list, display_str="Select File:" ):
+def select_option( option_list, display_str="Select Option:" ):
   sys.stdout.write( "\n" )
 
   counter = 1
