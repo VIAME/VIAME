@@ -197,8 +197,8 @@ def process_video_dir( args ):
       net_full_paths.append( fpath )
 
   if len( net_files ) == 0:
-    print( "Error: No videos found in input directory: " + args.video_dir + "\n" )
-    print( "If you want to load videos, not just images, make sure it is non-empty\n" )
+    print( "\nError: No videos found in input directory: " + args.video_dir + "\n" )
+    print( "If you want to load videos, not just images, make sure it is non-empty" )
 
   # Have user select video file
   file_list = []
