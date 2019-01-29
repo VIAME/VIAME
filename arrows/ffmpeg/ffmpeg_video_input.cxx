@@ -418,13 +418,22 @@ public:
 
     do
     {
-      if ( av_seek_frame( this->f_format_context, this->f_video_index, frame_ts,
-                          AVSEEK_FLAG_BACKWARD ) < 0 || !this->advance() )
+      auto seek_rslt = av_seek_frame( this->f_format_context,
+                                      this->f_video_index, frame_ts,
+                                      AVSEEK_FLAG_BACKWARD );
+      avcodec_flush_buffers( this->f_video_encoding );
+
+      if ( seek_rslt < 0 )
       {
         return false;
       }
 
-      frame_ts -= 20 * this->stream_time_base_to_frame();
+      if ( !this->advance() )
+      {
+        return false;
+      }
+
+      frame_ts -= 16 * this->stream_time_base_to_frame();
     }
     while( this->frame_number() > frame - 1 );
 
@@ -433,6 +442,11 @@ public:
       if ( !this->advance() )
       {
         return false;
+      }
+
+      if ( this->frame_number() > frame -1 )
+      {
+        LOG_WARN( this->logger, "seek went past requested frame." );
       }
     }
 
