@@ -78,6 +78,7 @@ public:
     f_frame(nullptr),
     f_software_context(nullptr),
     f_start_time(-1),
+    f_gop_size(-1),
     f_frame_number_offset(0),
     video_path(""),
     metadata(0),
@@ -107,6 +108,9 @@ public:
 
   // Presentation timestamp (in stream time base)
   int64_t f_pts;
+
+  // group of picture (GOP) size according to codec.
+  int64_t f_gop_size;
 
   // Some codec/file format combinations need a frame number offset.
   // These codecs have a delay between reading packets and generating frames.
@@ -167,7 +171,6 @@ public:
       LOG_ERROR(this->logger, "Error " << err << " trying to open " << video_name);
       return false;
     }
-
 
     // Get the stream information by reading a bit of the file
     if (avformat_find_stream_info(this->f_format_context, NULL) < 0)
@@ -239,6 +242,17 @@ public:
     {
       LOG_ERROR(this->logger, "Error: Could not open codec " << this->f_video_encoding->codec_id);
       return false;
+    }
+
+    // Get GOP size if available
+    if ( this->f_video_encoding->gop_size > 0 )
+    {
+      this->f_gop_size = this->f_video_encoding->gop_size;
+    }
+    else
+    {
+      // 12 seems to be a fairly standard size
+      this->f_gop_size = 12;
     }
 
     this->f_video_stream = this->f_format_context->streams[this->f_video_index];
@@ -433,7 +447,7 @@ public:
         return false;
       }
 
-      frame_ts -= 16 * this->stream_time_base_to_frame();
+      frame_ts -= this->f_gop_size * this->stream_time_base_to_frame();
     }
     while( this->frame_number() > frame - 1 );
 
@@ -446,7 +460,8 @@ public:
 
       if ( this->frame_number() > frame -1 )
       {
-        LOG_WARN( this->logger, "seek went past requested frame." );
+        LOG_ERROR( this->logger, "seek went past requested frame." );
+        return false;
       }
     }
 
