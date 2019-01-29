@@ -41,6 +41,7 @@
 #include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
+#include <arrows/core/track_set_impl.h>
 
 namespace algo = kwiver::vital::algo;
 
@@ -183,6 +184,31 @@ track_features_process
 
     // detect features on the current frame
     cur_tracks = d->m_tracker->track(cur_tracks, frame_time.get_frame(), img);
+
+    std::vector<vital::track_sptr> last_frame_tracks;
+    //strip off just the last feature tracks to pass on
+    auto active = cur_tracks->active_tracks();
+    for (auto &t : active)
+    {
+      auto te = t->end();
+      --te;
+      auto lts = *te;
+      if (lts->frame() != frame_time.get_frame())
+      {
+        continue;
+      }
+
+      auto ntk = vital::track::create();
+
+      ntk->set_id(t->id());
+      ntk->append(lts->clone());
+      last_frame_tracks.push_back(ntk);
+    }
+
+    typedef std::unique_ptr<vital::track_set_implementation> tsi_uptr;
+    cur_tracks = std::make_shared<vital::feature_track_set>(
+      tsi_uptr(new kwiver::arrows::core::frame_index_track_set_impl()));
+    cur_tracks->set_tracks(last_frame_tracks);
   }
 
   // return by value

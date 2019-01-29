@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,6 +146,7 @@ TEST(initialize_cameras_landmarks, ideal_points)
 
   // create tracks from the projections
   feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  kwiver::testing::reset_inlier_flag( tracks );
 
   auto first_cam =
     std::dynamic_pointer_cast<vital::camera_perspective>(cameras->cameras()[0]);
@@ -177,6 +178,7 @@ TEST(initialize_cameras_landmarks, ideal_points_from_last)
 
   // create tracks from the projections
   vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  kwiver::testing::reset_inlier_flag( tracks );
 
   vital::config_block_sptr cfg = init.get_configuration();
   cfg->set_value("init_from_last", "true");
@@ -214,6 +216,7 @@ TEST(initialize_cameras_landmarks, noisy_points)
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
+  kwiver::testing::reset_inlier_flag( tracks );
 
   auto first_cam =
     std::dynamic_pointer_cast<vital::camera_perspective>(cameras->cameras()[0]);
@@ -248,6 +251,7 @@ TEST(initialize_cameras_landmarks, noisy_points_from_last)
 
   // add random noise to track image locations
   tracks = kwiver::testing::noisy_tracks(tracks, 0.3);
+  kwiver::testing::reset_inlier_flag( tracks );
 
   vital::config_block_sptr cfg = init.get_configuration();
   cfg->set_value("init_from_last", "true");
@@ -282,6 +286,7 @@ TEST(initialize_cameras_landmarks, subset_init)
 
   // create tracks from the projections
   vital::feature_track_set_sptr tracks = arrows::projected_tracks(landmarks, cameras);
+  kwiver::testing::reset_inlier_flag( tracks );
 
   auto first_cam =
     std::dynamic_pointer_cast<vital::camera_perspective>(cameras->cameras()[0]);

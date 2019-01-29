@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,10 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/camera.h>
+#include <vital/types/camera_map.h>
+#include <vital/types/camera_perspective.h>
 #include <vital/types/landmark.h>
+#include <vital/types/landmark_map.h>
 #include <vital/types/feature.h>
 #include <vital/types/track.h>
 #include <vector>
@@ -59,8 +62,8 @@ namespace arrows {
  */
 KWIVER_ALGO_CORE_EXPORT
 vital::vector_2d reprojection_error_vec(const vital::camera& cam,
-                                 const vital::landmark& lm,
-                                 const vital::feature& f);
+                                        const vital::landmark& lm,
+                                        const vital::feature& f);
 
 
 /// Compute the square reprojection error of lm projected by cam compared to f
@@ -78,6 +81,33 @@ reprojection_error_sqr(const vital::camera& cam,
 {
   return reprojection_error_vec(cam, lm, f).squaredNorm();
 }
+
+
+/// Compute the maximum angle between the rays from X to each camera center
+/**
+ * \param [in] cameras is the set of cameras that view X
+ * \param [in] X is the landmark projected into the cameras
+ * \returns cos of the maximum angle pair of rays intersecting at lm from the
+ *          cameras observing lm
+ */
+KWIVER_ALGO_CORE_EXPORT
+double
+bundle_angle_max(const std::vector<vital::simple_camera_perspective> &cameras,
+                 const vital::vector_3d &X);
+
+
+/// Check that at least one pair of rays has cos(angle) less than or equal to cos_ang_thresh
+/**
+ * \param[in] cameras is the set of cameras that view X
+ * \param[in] X is the landmark projected into the cameras
+ * \param[in] cos_ang_thresh cosine of the angle threshold
+ * \returns true if at least one pair of rays has cos(angle) <= cos_ang_thresh
+ */
+KWIVER_ALGO_CORE_EXPORT
+bool
+bundle_angle_is_at_least(const std::vector<vital::simple_camera_perspective> &cameras,
+                         const vital::vector_3d &X,
+                         double cos_ang_thresh);
 
 
 /// Compute the reprojection error of lm projected by cam compared to f
@@ -110,6 +140,40 @@ std::vector<double>
 reprojection_errors(const std::map<vital::frame_id_t, vital::camera_sptr>& cameras,
                     const std::map<vital::landmark_id_t, vital::landmark_sptr>& landmarks,
                     const std::vector< vital::track_sptr>& tracks);
+
+
+/// Compute a vector of all reprojection errors in the data
+/**
+ * \param [in] cameras is the map of frames/cameras used for projection
+ * \param [in] landmarks is the map ids/landmarks projected into the cameras
+ * \param [in] tracks is the set of tracks providing measurements
+ * \returns a map containing one reprojection error rms value per camera mapped by the
+ *          the cameras' frame ids
+ */
+KWIVER_ALGO_CORE_EXPORT
+std::map<vital::frame_id_t, double>
+reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
+                         const vital::landmark_map::map_landmark_t& landmarks,
+                         const std::vector<vital::track_sptr>& tracks);
+
+
+/// Subsamples cameras favoring more recent cameras
+/**
+ * This subsampling strategy keeps all cameras within ten frames of the latest frame,
+ * then progressively fewer cameras as the cameras are in the more distant past.
+ * It keeps cameras that are between 10 and 100 frames behind the latest frame and
+ * have frame ids modulo 10 of 1, e.g. 11, 21, 31 etc.  Frames that are more than
+ * 100 behind the latest frame if their frame ids modulo 100 are 1, e.g. 101, 201 etc.
+ * This approach is designed to pick a similar set of cameras on successive calls so
+ * that the reprojection errors on those cameras can be compared between successive
+ * calls.
+ *
+ * \param[in] cameras the map of cameras to be subsampled
+ * \returns a camera map containing the subsampled cameras
+ */
+KWIVER_ALGO_CORE_EXPORT
+vital::camera_map::map_camera_t
+subsample_cameras_favor_recent(const vital::camera_map::map_camera_t& cameras);
 
 
 /// Compute the Root-Mean-Square-Error (RMSE) of the reprojections

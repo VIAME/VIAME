@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,9 @@
  */
 
 #include "rotation.h"
+
+#include <vital/math_constants.h>
 #include <vital/io/eigen_io.h>
-
-#define _USE_MATH_DEFINES
-#include <math.h>
-
-#if defined M_PIl
-#define LOCAL_PI M_PIl
-#else
-#define LOCAL_PI M_PI
-#endif
 
 #include <cmath>
 #include <limits>
@@ -150,8 +143,8 @@ T
 rotation_< T >
 ::angle() const
 {
-  static const T pi = static_cast< T > ( LOCAL_PI );
-  static const T two_pi = static_cast< T > ( 2.0 * LOCAL_PI );
+  static const T _pi = static_cast< T > ( pi );
+  static const T two_pi = static_cast< T > ( 2.0 * pi );
 
   const double i = Eigen::Matrix< T, 3, 1 > ( q_.x(), q_.y(), q_.z() ).norm();
   const double r = q_.w();
@@ -159,11 +152,11 @@ rotation_< T >
 
   // make sure computed angle lies within a sensible range,
   // i.e. -pi/2 < a < pi/2
-  if ( a >= pi )
+  if ( a >= _pi )
   {
     a -= two_pi;
   }
-  if ( a <= -pi )
+  if ( a <= -_pi )
   {
     a += two_pi;
   }
@@ -275,6 +268,75 @@ interpolated_rotations( rotation_< T > const& A, rotation_< T > const& B, size_t
 }
 
 
+template < typename T >
+Eigen::Matrix< T, 3, 3> rotation_zyx(T yaw, T pitch, T roll)
+{
+  typedef Eigen::Matrix< T, 3, 3> matrix_3x3;
+
+  matrix_3x3 Rr;
+  matrix_3x3 Rp;
+  matrix_3x3 Ry;
+
+  auto cos_roll = static_cast<T>( cos( static_cast<double>(roll) ) );
+  auto sin_roll = static_cast<T>( sin( static_cast<double>(roll) ) );
+  auto cos_pitch = static_cast<T>( cos( static_cast<double>(pitch) ) );
+  auto sin_pitch = static_cast<T>( sin( static_cast<double>(pitch) ) );
+  auto cos_yaw = static_cast<T>( cos( static_cast<double>(yaw) ) );
+  auto sin_yaw = static_cast<T>( sin( static_cast<double>(yaw) ) );
+
+  // about x
+  Rr << 1, 0, 0,
+    0, cos_roll, -sin_roll,
+    0, sin_roll, cos_roll;
+
+  // about y
+  Rp << cos_pitch, 0, sin_pitch,
+    0, 1, 0,
+    -sin_pitch, 0, cos_pitch;
+
+  // about z
+  Ry << cos_yaw, -sin_yaw, 0,
+    sin_yaw, cos_yaw, 0,
+    0, 0, 1;
+  return Ry*Rp*Rr;
+}
+
+template < typename T >
+rotation_< T >
+compose_rotations(
+  T platform_yaw, T platform_pitch, T platform_roll,
+  T sensor_yaw,   T sensor_pitch,   T sensor_roll)
+{
+  typedef Eigen::Matrix< T, 3, 3> matrix_3x3;
+
+  auto deg_to_rad_ = static_cast<T>(deg_to_rad);
+
+  matrix_3x3 R;
+  // rotation from east north up to platform
+  // platform has x out nose, y out left wing, z up
+  matrix_3x3 Rp = rotation_zyx<T>(deg_to_rad_*(-platform_yaw + 90.0),
+                                  deg_to_rad_*(-platform_pitch),
+                                  deg_to_rad_*platform_roll);
+
+  // rotation from platform to gimbal
+  // gimbal x is camera viewing direction
+  // gimbal y is left in image (-x in standard computer vision image coordinates)
+  matrix_3x3 Rs = rotation_zyx<T>(deg_to_rad_*(-sensor_yaw),
+                                  deg_to_rad_*(-sensor_pitch),
+                                  deg_to_rad_*sensor_roll);
+
+  // rotation from gimbal frame to camera frame
+  // camera frame has x right in image, y down, z along optical axis
+  matrix_3x3 R_c;
+  R_c << 0, -1, 0,
+         0, 0, -1,
+         1, 0, 0;
+
+  R = R_c*Rs.transpose()*Rp.transpose();
+  return kwiver::vital::rotation_< T >(R);
+}
+
+
 /// \cond DoxygenSuppress
 #define INSTANTIATE_ROTATION( T )                                       \
   template class VITAL_EXPORT rotation_< T >;                           \
@@ -284,7 +346,8 @@ interpolated_rotations( rotation_< T > const& A, rotation_< T > const& B, size_t
   operator>>( std::istream& s, rotation_< T >& r );                     \
   template VITAL_EXPORT rotation_< T > interpolate_rotation( rotation_< T > const & A, rotation_< T > const & B, T f ); \
   template VITAL_EXPORT void                                            \
-  interpolated_rotations( rotation_< T > const & A, rotation_< T > const & B, size_t n, std::vector< rotation_< T > > &interp_rots )
+  interpolated_rotations( rotation_< T > const & A, rotation_< T > const & B, size_t n, std::vector< rotation_< T > > &interp_rots ); \
+  template VITAL_EXPORT rotation_< T > compose_rotations( T p_y, T p_p, T p_r, T s_y, T s_p, T s_r )
 
 INSTANTIATE_ROTATION( double );
 INSTANTIATE_ROTATION( float );

@@ -110,4 +110,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_POS_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_POS_H

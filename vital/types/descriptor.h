@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,17 +38,18 @@
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/vital_types.h>
+#include <vital/exceptions.h>
 
 #include <iostream>
-#include <vector>
+#include <limits>
 #include <memory>
+#include <vector>
+
 #include <cstring>
 
 namespace kwiver {
 namespace vital {
-
-/// Convenience typedef for a byte
-typedef unsigned char byte;
 
 /// Shared pointer for base descriptor type
 class descriptor;
@@ -73,12 +74,17 @@ public:
   /// The number of bytes used to represent the data
   virtual std::size_t num_bytes() const = 0;
 
-  /// Return the descriptor as a vector of bytes
+  /// Return the descriptor as pointer to bytes
   /**
-   * This should always work,
-   * even if the underlying type is not bytes
+   * Subclasses should ensure this always works by storing the data
+   * as a continuous byte array.
+   * Note that as_bytes returns a pointer to the underlying data while
+   * as_double returns a vector of doubles which will be copied from
+   * the underlying data if possible.  As_bytes is written this way
+   * for speed (no copying) at the cost of being restrictive on sub-classes
+   * in terms of the way they lay out their descriptors in memory.
    */
-  virtual std::vector< byte > as_bytes() const = 0;
+  virtual const byte* as_bytes() const = 0;
 
   /// Return the descriptor as a vector of doubles
   /**
@@ -95,9 +101,10 @@ public:
     {
       return false;
     }
-    std::vector<uint8_t> b1 = this->as_bytes();
-    std::vector<uint8_t> b2 = other.as_bytes();
-    return std::equal(b1.begin(), b1.end(), b2.begin());
+    auto b1 = this->as_bytes();
+    auto b2 = other.as_bytes();
+
+    return std::equal(b1, b1 + this->num_bytes(), b2);
   }
 
   /// Inequality operator
@@ -105,6 +112,23 @@ public:
   {
     return ! operator==(other);
   }
+
+  /// Returns the node_id for the descriptor.
+  /**
+   * The node_id is generally the vocabulary tree leaf index computed when
+   * the descriptor is quantized in the tree.  Two features with the same
+   * node_id are expected to have similar visual appearance.
+  */
+  virtual unsigned int node_id() const { return 0; }
+
+  /// Sets the node_id for the descriptor.
+  /**
+   * By default this returns false because this base class has nowhere
+   * to store the node_id.  Derived classes that do store the node_id
+   * should return true if it successfully stored.
+  */
+  virtual bool set_node_id(unsigned int node_id) { return false; }
+
 };
 
 
@@ -121,14 +145,6 @@ public:
   /// The number of bytes used to represent the data
   std::size_t num_bytes() const { return this->size() * sizeof( T ); }
 
-  /// Return the descriptor as a vector of bytes
-  std::vector< byte > as_bytes() const
-  {
-    const byte* byte_data = reinterpret_cast< const byte* > ( this->raw_data() );
-
-    return std::vector< byte > ( byte_data, byte_data + this->num_bytes() );
-  }
-
 
   /// Return the descriptor as a vector of doubles
   std::vector< double > as_double() const
@@ -143,13 +159,16 @@ public:
     return double_data;
   }
 
+  virtual const byte* as_bytes() const
+  {
+    return reinterpret_cast<const byte *>(raw_data());
+  }
 
   /// Return an pointer to the raw data array
   virtual T* raw_data() = 0;
 
   /// Return an pointer to the raw data array
   virtual const T* raw_data() const = 0;
-
 
   // Iterator interface
   T const* begin() const { return this->raw_data(); }
@@ -184,7 +203,8 @@ class descriptor_fixed :
 {
 public:
   /// Default Constructor
-  descriptor_fixed< T, N > ( ) { }
+  descriptor_fixed< T, N > ( ):
+    node_id_(std::numeric_limits<unsigned int>::max()) { }
 
   /// The number of elements of the underlying type
   std::size_t size() const { return N; }
@@ -202,9 +222,19 @@ public:
     return new_desc;
   }
 
+  virtual unsigned int node_id() const { return node_id_; }
+
+  virtual bool set_node_id(unsigned int node_id)
+  {
+    node_id_ = node_id;
+    return true;
+  }
+
 protected:
   /// data array
   T data_[N];
+  /// node id
+  unsigned int node_id_;
 };
 
 
@@ -218,7 +248,8 @@ public:
   /// Constructor
   descriptor_dynamic< T > (size_t len)
   : data_( new T[len] ),
-  length_( len ) { }
+  length_( len ),
+  node_id_(std::numeric_limits<unsigned int>::max()) { }
 
   descriptor_dynamic< T > (size_t len, T* dat)
   : length_( len )
@@ -246,13 +277,26 @@ public:
     return ptr;
   }
 
+  virtual unsigned int node_id() const { return node_id_; }
+
+  virtual bool set_node_id(unsigned int node_id)
+  {
+    node_id_ = node_id;
+    return true;
+  }
+
 protected:
   /// data array
   T* data_;
   /// length of data array
   size_t length_;
+  /// node id
+  unsigned int node_id_;
 };
 
+/// return the hamming_distance between two descriptors
+VITAL_EXPORT
+int hamming_distance(vital::descriptor_sptr d1, vital::descriptor_sptr d2);
 
 // ------------------------------------------------------------------
 /// output stream operator for a feature

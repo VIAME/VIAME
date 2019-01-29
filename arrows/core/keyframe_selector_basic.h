@@ -110,7 +110,8 @@ namespace core {
     *             to null if no key-frame data is available or you want to
     *             perform key-frame selection from scratch.
     * \param [in] tracks The tracks over which to select key-frames
-    * \returns selected key-frame data structure
+    * \returns selected key-frame data structure.  Tracks is modified in place
+    *             so the returned pointer points to the same object as tracks.
     */
     virtual kwiver::vital::track_set_sptr
       select(kwiver::vital::track_set_sptr tracks) const;

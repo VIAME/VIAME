@@ -195,16 +195,16 @@ bundle_adjust
 ::optimize(camera_map_sptr& cameras,
            landmark_map_sptr& landmarks,
            feature_track_set_sptr tracks,
-           metadata_map_sptr metadata) const
+           sfm_constraints_sptr constraints) const
 {
   if( !cameras || !landmarks || !tracks )
   {
     // TODO throw an exception for missing input data
     return;
   }
-  if( metadata && metadata->size() > 0 )
+  if(constraints && constraints->get_metadata()->size() > 0)
   {
-    LOG_WARN( logger(), "metadata is provided but will be ignored "
+    LOG_WARN( logger(), "constraints provided but will be ignored "
                             "by this algorithm");
   }
   typedef vxl::camera_map::map_vcam_t map_vcam_t;

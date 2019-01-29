@@ -95,4 +95,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_FILTER_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_FILTER_H

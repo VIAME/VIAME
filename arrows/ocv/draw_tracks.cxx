@@ -85,7 +85,7 @@ public:
     swap_comparison_set( false ),
     write_images_to_disk( true ),
     pattern( "feature_tracks_%05d.png" ),
-    cur_frame_id( 0 )
+    cur_frame_id( 1 )
   {
   }
 

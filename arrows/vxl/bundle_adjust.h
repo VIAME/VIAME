@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,9 @@ public:
   optimize(vital::camera_map_sptr& cameras,
            vital::landmark_map_sptr& landmarks,
            vital::feature_track_set_sptr tracks,
-           vital::metadata_map_sptr metadata = nullptr) const;
+           vital::sfm_constraints_sptr constraints = nullptr) const;
+
+  using vital::algo::bundle_adjust::optimize;
 
 private:
   /// private implementation class

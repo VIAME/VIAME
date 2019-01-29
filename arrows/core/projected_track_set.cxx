@@ -62,6 +62,7 @@ projected_tracks(landmark_map_sptr landmarks, camera_map_sptr cameras)
       const camera_sptr cam = p.second;
       auto fts = std::make_shared<feature_track_state>(p.first);
       fts->feature = std::make_shared<feature_d>( cam->project( l->second->loc() ) );
+      fts->inlier = true;
       t->append( fts );
     }
   }

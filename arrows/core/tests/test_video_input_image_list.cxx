@@ -240,6 +240,7 @@ TEST_F(video_input_image_list, is_good)
   EXPECT_EQ( num_expected_frames, num_frames );
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_image_list, seek_frame)
 {
   // make config block
@@ -265,6 +266,85 @@ TEST_F(video_input_image_list, seek_frame)
   viil.close();
 }
 
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, seek_then_next_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  viil.open( list_file );
+
+  test_seek_then_next( viil );
+
+  viil.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, next_then_seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  viil.open( list_file );
+
+  test_next_then_seek( viil );
+
+  viil.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, next_then_seek_then_next)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  viil.open( list_file );
+
+  test_next_then_seek_then_next( viil );
+
+  viil.close();
+}
+
+// ----------------------------------------------------------------------------
 TEST_F(video_input_image_list, metadata_map)
 {
   // make config block

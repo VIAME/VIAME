@@ -51,9 +51,6 @@ class track_features_augment_keyframes::priv
 {
 public:
 
-  /// The feature detector algorithm to use
-  vital::algo::detect_features_sptr detector;
-
   /// The descriptor extractor algorithm to use
   vital::algo::extract_descriptors_sptr extractor;
 
@@ -78,40 +75,46 @@ track_features_augment_keyframes
         kwiver::vital::image_container_sptr mask) const
 {
 
-  auto fmap = tracks->all_feature_frame_data();
-  auto ftsfd = fmap.find(frame_number);
-  if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
-  {
-    // this is not a keyframe, so return the orignial tracks
-    // no changes made so no deep copy necessary
-    return tracks;
-  }
+  // FORCE DETECTION ON EVERY FRAME
 
-  //detect the features
-  vital::feature_set_sptr new_feat = d_->detector->detect(image_data, mask);
+  //auto fmap = tracks->all_feature_frame_data();
+  //auto ftsfd = fmap.find(frame_number);
+  //if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
+  //{
+  //  // this is not a keyframe, so return the orignial tracks
+  //  // no changes made so no deep copy necessary
+  //  return tracks;
+  //}
 
-  //describe the features
+  auto track_states = tracks->frame_states(frame_number);
+  auto new_feat = tracks->frame_features(frame_number);
+
+  //describe the features.  Note this will recalculate the feature angles.
   vital::descriptor_set_sptr new_desc =
     d_->extractor->extract(image_data, new_feat, mask);
 
   std::vector<feature_sptr> vf = new_feat->features();
   std::vector<descriptor_sptr> df = new_desc->descriptors();
-  // get the last track id in the existing set of tracks and increment it
-  track_id_t next_track_id = (*tracks->all_track_ids().crbegin()) + 1;
-
   for (size_t i = 0; i < vf.size(); ++i)
   {
-    auto fts = std::make_shared<feature_track_state>(frame_number);
-    fts->feature = vf[i];
-    fts->descriptor = df[i];
-    auto t = vital::track::create();
-    t->append(fts);
-    t->set_id(next_track_id++);
-    tracks->insert(t);
-  }
+    auto feat = vf[i];
+    auto desc = df[i];
 
-  // Note that right now are haven't done any matching.  Each newly detected
-  // feature is in its own track.
+    // Go through existing features and find the one that equals feat.
+    // The feature pointers may have changed in detect so we can't use them
+    // directly with a map.
+    for (auto ts : track_states)
+    {
+      auto fts = std::static_pointer_cast<feature_track_state>(ts);
+      if (fts && fts->feature && fts->feature->equal_except_for_angle(*feat))
+      {
+        //feature must be set because extract will have calculated a new feature angle
+        fts->feature = feat;
+        fts->descriptor = desc;
+        break;
+      }
+    }
+  }
 
   return tracks;
 }
@@ -138,10 +141,6 @@ track_features_augment_keyframes
   vital::config_block_sptr config = algorithm::get_configuration();
 
   // Sub-algorithm implementation name + sub_config block
-  // - Feature Detector algorithm
-  algo::detect_features::
-    get_nested_algo_configuration(d_->detector_name, config, d_->detector);
-
   // - Descriptor Extractor algorithm
   algo::extract_descriptors::
     get_nested_algo_configuration(d_->extractor_name, config, d_->extractor);
@@ -162,10 +161,6 @@ track_features_augment_keyframes
 
   // Setting nested algorithm instances via setter methods instead of directly
   // assigning to instance property.
-  algo::detect_features_sptr df;
-  algo::detect_features::set_nested_algo_configuration(d_->detector_name, config, df);
-  d_->detector = df;
-
   algo::extract_descriptors_sptr ed;
   algo::extract_descriptors::set_nested_algo_configuration(d_->extractor_name, config, ed);
   d_->extractor = ed;

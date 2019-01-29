@@ -73,13 +73,14 @@ public:
     std::vector<std::vector<cv::Mat > > &features);
 
   void descriptor_set_to_vec(
-    descriptor_set_sptr im_descriptors,
-    std::vector<cv::Mat> &features) const;
+    const std::vector< descriptor_sptr > &desc_vec,
+    std::vector<cv::Mat> &features,
+    std::vector<size_t> &desc_indices) const;
 
   cv::Mat descriptor_to_mat(descriptor_sptr) const;
 
   std::vector<frame_id_t>
-  query(kwiver::vital::descriptor_set_sptr desc,
+  query(const vital::descriptor_set_sptr desc,
         frame_id_t frame_number,
         bool append_to_index_on_query);
 
@@ -112,6 +113,9 @@ public:
   std::map<DBoW2::EntryId, kwiver::vital::frame_id_t> m_entry_to_frame;
 
   int m_max_num_candidate_matches_from_vocabulary_tree;
+
+  // returns node ids this many levels up from the base of the voc tree
+  int m_levels_up;
 };
 
 //-----------------------------------------------------------------------------
@@ -121,6 +125,7 @@ match_descriptor_sets::priv
   :training_image_list_path("")
   ,vocabulary_path("kwiver_voc.yml.gz")
   ,m_max_num_candidate_matches_from_vocabulary_tree(10)
+  ,m_levels_up(2)
 {
 
 }
@@ -161,20 +166,21 @@ match_descriptor_sets::priv
 
 void
 match_descriptor_sets::priv
-::append_to_index(const vital::descriptor_set_sptr desc,
+::append_to_index(
+  const vital::descriptor_set_sptr desc,
   vital::frame_id_t frame_number)
 {
   setup_voc();
 
-  if (!desc)
+  if (desc->size() == 0)
   {
     return;
   }
 
   std::vector<cv::Mat> desc_mats;
-  descriptor_set_to_vec(desc, desc_mats);  // note that desc_mats can be shorter
-                                           // than desc because of null
-                                           // descriptors (KLT features)
+  std::vector<size_t> desc_mat_indices;
+  auto desc_vec = desc->descriptors();
+  descriptor_set_to_vec(desc_vec, desc_mats, desc_mat_indices);
 
   if (desc_mats.size() == 0)
   {  //only features without descriptors in this frame
@@ -184,7 +190,17 @@ match_descriptor_sets::priv
   //run them through the vocabulary to get the BOW vector
   DBoW2::BowVector bow_vec;
   DBoW2::FeatureVector feat_vec;
-  m_voc->transform(desc_mats, bow_vec, feat_vec, 3);
+  m_voc->transform(desc_mats, bow_vec, feat_vec, m_levels_up);
+
+  //store node ids in feature_track_states
+  for (auto node_data : feat_vec)
+  {
+    auto node_id = node_data.first;
+    for (auto f_idx : node_data.second)
+    {
+      desc_vec[desc_mat_indices[f_idx]]->set_node_id(node_id);
+    }
+  }
 
   const DBoW2::EntryId ent = m_db->add(bow_vec, feat_vec);
   std::pair<const DBoW2::EntryId, kwiver::vital::frame_id_t>
@@ -197,7 +213,7 @@ match_descriptor_sets::priv
 
 std::vector<frame_id_t>
 match_descriptor_sets::priv
-::query( kwiver::vital::descriptor_set_sptr desc,
+::query(const vital::descriptor_set_sptr desc,
          frame_id_t frame_number,
          bool append_to_index_on_query)
 {
@@ -205,15 +221,15 @@ match_descriptor_sets::priv
 
   std::vector<frame_id_t> putative_matches;
 
-  if (!desc)
+  if (desc->size() == 0)
   {
     return putative_matches;
   }
 
   std::vector<cv::Mat> desc_mats;
-  descriptor_set_to_vec(desc, desc_mats);  // note that desc_mats can be shorter
-                                           // than desc because of null
-                                           // descriptors (KLT features)
+  std::vector<size_t> desc_mat_indices;
+  auto desc_vec = desc->descriptors();
+  descriptor_set_to_vec(desc_vec, desc_mats, desc_mat_indices);
 
   if (desc_mats.size() == 0)
   {  //only features without descriptors in this frame
@@ -222,8 +238,19 @@ match_descriptor_sets::priv
 
   //run them through the vocabulary to get the BOW vector
   DBoW2::BowVector bow_vec;
-  DBoW2::FeatureVector feat_vec;
-  m_voc->transform(desc_mats, bow_vec, feat_vec, 3);
+  DBoW2::FeatureVector feat_vec;  //vector of [node id][descriptor index]
+  m_voc->transform(desc_mats, bow_vec, feat_vec, m_levels_up);
+
+
+  //store node ids in feature_track_states
+  for (auto node_data : feat_vec)
+  {
+    auto node_id = node_data.first;
+    for (auto f_idx : node_data.second)
+    {
+      desc_vec[desc_mat_indices[f_idx]]->set_node_id(node_id);
+    }
+  }
 
   int max_res = m_max_num_candidate_matches_from_vocabulary_tree;
   DBoW2::QueryResults ret;
@@ -286,7 +313,7 @@ match_descriptor_sets::priv
   std::string voc_file_path)
 {
   const int k = 10;  //branching factor
-  const int L = 6;   //number of levels
+  const int L = 4;   //number of levels
   const DBoW2::WeightingType weight = DBoW2::TF_IDF;
   const DBoW2::ScoringType score = DBoW2::L1_NORM;
 
@@ -344,22 +371,17 @@ match_descriptor_sets::priv
       "unable to open training image file");
   }
 
-  int ln_num = 0;
   while (std::getline(im_list, line))
   {
-    if (ln_num++ != 10)
-    {
-      continue;
-    }
-    ln_num = 0;
     image_container_sptr im = m_image_io->load(line);
     LOG_INFO(m_logger, "Extracting features for image " + line);
 
     feature_set_sptr im_features = m_detector->detect(im);
     descriptor_set_sptr im_descriptors = m_extractor->extract(im, im_features);
 
+    std::vector<size_t> desc_mat_indices;
     features.push_back(std::vector<cv::Mat >());
-    descriptor_set_to_vec(im_descriptors, features.back());
+    descriptor_set_to_vec(im_descriptors->descriptors(), features.back(), desc_mat_indices);
   }
 
   if (im_list.bad())
@@ -374,23 +396,28 @@ match_descriptor_sets::priv
 void
 match_descriptor_sets::priv
 ::descriptor_set_to_vec(
-  descriptor_set_sptr im_descriptors,
-  std::vector<cv::Mat> &features) const
+  const std::vector< descriptor_sptr > &desc,
+  std::vector<cv::Mat> &features,
+  std::vector<size_t> &desc_indices) const
 {
-  std::vector< descriptor_sptr > desc = im_descriptors->descriptors();
+  desc_indices.resize(desc.size());
   features.resize(desc.size());
   unsigned int dn = 0;
+  size_t desc_idx = 0;
   for (auto d : desc)
   {
     if (!d)
     {
+      ++desc_idx;
       //skip null descriptors
       continue;
     }
+    desc_indices[dn] = desc_idx++;
     features[dn++] = descriptor_to_mat(d);
   }
 
   features.resize(dn);  //resize to only return features for non-null descriptors
+  desc_indices.resize(dn);
 }
 
 //-----------------------------------------------------------------------------
@@ -399,12 +426,13 @@ cv::Mat
 match_descriptor_sets::priv
 ::descriptor_to_mat(descriptor_sptr desc) const
 {
-  std::vector<kwiver::vital::byte> desc_bytes = desc->as_bytes();
-  cv::Mat desc_mat = cv::Mat(1, static_cast<int>(desc_bytes.size()), CV_8UC1);
-  unsigned int bn = 0;
-  for (auto b : desc_bytes)
+  const byte *db = desc->as_bytes();
+  auto const num_bytes = desc->num_bytes();
+  cv::Mat desc_mat = cv::Mat(1, static_cast<int>(num_bytes), CV_8UC1);
+
+  for(unsigned int bn = 0; bn < num_bytes; ++bn, ++db)
   {
-    desc_mat.at<unsigned char>(0, bn++) = b;
+    desc_mat.at<unsigned char>(0, bn) = *db;
   }
   return desc_mat;
 }
@@ -427,21 +455,21 @@ match_descriptor_sets
 
 void
 match_descriptor_sets
-::append_to_index(const descriptor_set_sptr desc, frame_id_t frame_number)
+::append_to_index(const vital::descriptor_set_sptr desc, frame_id_t frame_number)
 {
   d_->append_to_index(desc, frame_number);
 }
 
 std::vector<frame_id_t>
 match_descriptor_sets
-::query( const descriptor_set_sptr desc )
+::query(const vital::descriptor_set_sptr desc)
 {
   return d_->query(desc,-1,false);
 }
 
 std::vector<frame_id_t>
 match_descriptor_sets
-::query_and_append( const vital::descriptor_set_sptr desc,
+::query_and_append(const vital::descriptor_set_sptr desc,
                     frame_id_t frame)
 {
   return d_->query(desc, frame, true);
@@ -550,6 +578,22 @@ check_configuration(vital::config_block_sptr config) const
     LOG_ERROR(d_->m_logger,
       "max_num_candidate_matches_from_vocabulary_tree must be a positive "
       "(nonzero) integer");
+    config_valid = false;
+  }
+
+  auto voc_path = config->get_value<std::string>("vocabulary_path",
+                                                 d_->vocabulary_path);
+  auto train_path = config->get_value<std::string>("training_image_list_path",
+                                                   d_->training_image_list_path);
+  if ((!kwiversys::SystemTools::FileExists(voc_path) ||
+       kwiversys::SystemTools::FileIsDirectory(voc_path)) &&
+      (!kwiversys::SystemTools::FileExists(train_path) ||
+       kwiversys::SystemTools::FileIsDirectory(train_path)))
+  {
+    LOG_ERROR(d_->m_logger,
+      "Could not find a valid vocabulary file or training image list\n"
+      "  voc file: " << voc_path << "\n"
+      "  train list: " << train_path);
     config_valid = false;
   }
 

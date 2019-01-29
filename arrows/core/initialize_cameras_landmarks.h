@@ -95,7 +95,7 @@ public:
   initialize(vital::camera_map_sptr& cameras,
              vital::landmark_map_sptr& landmarks,
              vital::feature_track_set_sptr tracks,
-             vital::metadata_map_sptr metadata = nullptr) const;
+             vital::sfm_constraints_sptr constraints = nullptr) const;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

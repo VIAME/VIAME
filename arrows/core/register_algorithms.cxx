@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,7 @@
 #include <arrows/core/handle_descriptor_request_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
+#include <arrows/core/initialize_cameras_landmarks_keyframe.h>
 #include <arrows/core/initialize_object_tracks_threshold.h>
 #include <arrows/core/interpolate_track_spline.h>
 #include <arrows/core/keyframe_selector_basic.h>
@@ -77,6 +78,7 @@
 #include <arrows/core/video_input_filter.h>
 #include <arrows/core/video_input_image_list.h>
 #include <arrows/core/video_input_pos.h>
+#include <arrows/core/video_input_splice.h>
 #include <arrows/core/video_input_split.h>
 #include <arrows/core/write_object_track_set_kw18.h>
 #include <arrows/core/write_track_descriptor_set_csv.h>
@@ -102,6 +104,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   reg.register_algorithm< associate_detections_to_tracks_threshold >();
   reg.register_algorithm< class_probablity_filter >();
+  reg.register_algorithm< close_loops_appearance_indexed >();
   reg.register_algorithm< close_loops_bad_frames_only >();
   reg.register_algorithm< close_loops_exhaustive >();
   reg.register_algorithm< close_loops_keyframe >();
@@ -125,6 +128,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< handle_descriptor_request_core >();
   reg.register_algorithm< hierarchical_bundle_adjust >();
   reg.register_algorithm< initialize_cameras_landmarks >();
+  reg.register_algorithm< initialize_cameras_landmarks_keyframe >();
   reg.register_algorithm< initialize_object_tracks_threshold >();
   reg.register_algorithm< interpolate_track_spline >();
   reg.register_algorithm< keyframe_selector_basic >();
@@ -138,6 +142,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< video_input_filter >();
   reg.register_algorithm< video_input_image_list >();
   reg.register_algorithm< video_input_pos >();
+  reg.register_algorithm< video_input_splice >();
   reg.register_algorithm< video_input_split >();
   reg.register_algorithm< write_object_track_set_kw18 >();
   reg.register_algorithm< write_track_descriptor_set_csv >();
