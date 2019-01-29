@@ -659,11 +659,11 @@ darknet_detector::priv
 
   unsigned int i, j, k;
 
+  unsigned char* input = (unsigned char*)src.data;
+  float* output = out.data;
+
   if( src.depth() == CV_8U )
   {
-    unsigned char* input = (unsigned char*)src.data;
-    float* output = out.data;
-
     for( k = 0; k < c; k++ )
     {
       for( j = 0; j < h; j++ )
@@ -677,16 +677,13 @@ darknet_detector::priv
   }
   else if( src.depth() == CV_16U )
   {
-    unsigned short *input = (unsigned short*)src.data;
-    float* output = out.data;
-
     for( k = 0; k < c; k++ )
     {
       for( j = 0; j < h; j++ )
       {
         for( i = 0; i < w; i++, output++ )
         {
-          *output = input[j*jstep + i*istep + k] / 65535.;
+          *output = *(unsigned short*)(input + j*jstep + i*istep + k) / 65535.;
         }
       }
     }
