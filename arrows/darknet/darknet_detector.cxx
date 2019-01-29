@@ -653,8 +653,6 @@ darknet_detector::priv
   unsigned istep = src.step[ 1 ];
   unsigned jstep = src.step[ 0 ];
 
-  int step = w * c; // src.widthStep;
-
   image out = make_image( w, h, c );
 
   unsigned int i, j, k;
