@@ -107,15 +107,15 @@ bool compare_tracks( std::vector<track_sptr> a, std::vector<track_sptr> b )
 // ----------------------------------------------------------------------------
 // Make a very small example track set
 track_set_sptr
-make_simple_track_set()
+make_simple_track_set(frame_id_t starting_frame_id)
 {
   unsigned track_id = 0;
 
   std::vector<track_sptr> test_tracks;
 
-  auto test_state1 = std::make_shared<track_state>( 1 );
-  auto test_state2 = std::make_shared<track_state>( 4 );
-  auto test_state3 = std::make_shared<track_state>( 9 );
+  auto test_state1 = std::make_shared<track_state>(starting_frame_id);
+  auto test_state2 = std::make_shared<track_state>(starting_frame_id+3);
+  auto test_state3 = std::make_shared<track_state>(starting_frame_id + 8);
 
   test_tracks.push_back( track::create() ) ;
   test_tracks.back()->append( test_state1 );
@@ -142,6 +142,41 @@ make_simple_track_set()
   test_tracks[2]->append( test_state3->clone() );
 
   return std::make_shared<track_set>( test_tracks );
+}
+
+//-----------------------------------------------------------------------------
+// Run the uint test for track merging
+
+// This test assumes the tracks in the two sets correspond to those
+// generated with the above make_simple_track_set() function with
+// starting_frame_id arguments 1 and 2.
+
+void
+test_track_set_merge(track_set_sptr test_set_1, track_set_sptr test_set_2)
+{
+  EXPECT_FALSE(test_set_1->empty());
+  ASSERT_EQ(4, test_set_1->size());
+
+  EXPECT_FALSE(test_set_2->empty());
+  ASSERT_EQ(4, test_set_2->size());
+
+  test_set_1->merge_in_other_track_set(test_set_2);
+
+  EXPECT_FALSE(test_set_1->empty());
+  ASSERT_EQ(4, test_set_1->size());
+
+  auto tracks = test_set_1->tracks();
+  // tracks are not guaranteed to be in the original order, so sort by id
+  auto cmp = [](track_sptr t1, track_sptr t2) { return t1->id() < t2->id(); };
+  std::sort(tracks.begin(), tracks.end(), cmp);
+
+  EXPECT_EQ(6, tracks[0]->size());
+  EXPECT_EQ(4, tracks[1]->size());
+  EXPECT_EQ(4, tracks[2]->size());
+  EXPECT_EQ(2, tracks[3]->size());
+  EXPECT_EQ(1, test_set_1->first_frame());
+  EXPECT_EQ(10, test_set_1->last_frame());
+
 }
 
 // ----------------------------------------------------------------------------
@@ -194,6 +229,9 @@ void
 test_track_set_modifiers( track_set_sptr test_set )
 {
   auto tracks = test_set->tracks();
+  // tracks are not guaranteed to be in the original order, so sort by id
+  auto cmp = [](track_sptr t1, track_sptr t2) { return t1->id() < t2->id(); };
+  std::sort(tracks.begin(), tracks.end(), cmp);
 
   auto new_track = track::create();
   new_track->set_id( 10 );

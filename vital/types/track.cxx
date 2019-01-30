@@ -91,10 +91,12 @@ track
 ::clone() const
 {
   track_sptr t( new track( *this ) );
+  t->history_.resize(this->history_.size());
+  size_t i = 0;
   for( auto const& ts : this->history_ )
   {
-    t->history_.push_back( ts->clone() );
-    t->history_.back()->track_ = t->shared_from_this();
+    t->history_[i] =  ts->clone();
+    t->history_[i++]->track_ = t->shared_from_this();
   }
   return t;
 }
@@ -184,6 +186,23 @@ track
   }
   this->history_.insert(pos, state);
   state->track_ = this->shared_from_this();
+  return true;
+}
+
+/// Remove a track state
+bool
+track
+::remove(track_state_sptr state)
+{
+  auto pos = std::lower_bound(this->history_.begin(), this->history_.end(),
+    state->frame(), compare_state_frame());
+
+  if (pos == this->history_.end() || (*pos)->frame() != state->frame())
+  {
+    return false;
+  }
+
+  this->history_.erase(pos);
   return true;
 }
 

@@ -43,6 +43,54 @@
 namespace kwiver {
 namespace vital {
 
+void
+track_set
+::merge_in_other_track_set(track_set_sptr other, bool do_not_append_tracks)
+{
+  auto ot = other->tracks();
+
+  track_id_t next_track_id = (*this->all_track_ids().crbegin()) + 1;
+
+  for (auto &t : ot)
+  {
+    auto ct = this->get_track(t->id());
+    if (!ct)
+    {
+      this->insert(t->clone());
+    }
+    else
+    {
+      if (do_not_append_tracks)
+      {
+        auto tc = t->clone();
+        tc->set_id(next_track_id++);
+        this->insert(tc);
+      }
+      else
+      {
+        for (auto ts : *t)
+        {
+          auto ts_clone = ts->clone();
+          if (ct->back()->frame() < ts_clone->frame())
+          {
+            if (ct->append(ts_clone))
+            {
+              this->notify_new_state(ts_clone);
+            }
+          }
+          else
+          {
+            if (ct->insert(ts_clone))
+            {
+              this->notify_new_state(ts_clone);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 /// Return the number of tracks in the set
 size_t
 track_set_implementation
@@ -69,6 +117,13 @@ track_set_implementation
   // by default, notification does nothing
 }
 
+/// Notify the container that a state has been removed from an existing track
+void
+track_set_implementation
+::notify_removed_state(track_state_sptr ts)
+{
+  //by default, notification does nothing
+}
 
 /// merge the pair of tracks \p t1 and \p t2, if possible
 bool
@@ -224,6 +279,20 @@ track_set_implementation
   }
 
   return active_tracks;
+}
+
+/// Returns all the active track ids on a frame
+std::set<track_id_t>
+track_set_implementation
+::active_track_ids(frame_id_t offset) const
+{
+  std::set<track_id_t> track_ids;
+  std::vector<track_state_sptr> ts = this->frame_states(offset);
+  for (auto const data : ts)
+  {
+    track_ids.insert(data->track()->id());
+  }
+  return track_ids;
 }
 
 /// Return all tracks active on a frame.
@@ -464,6 +533,21 @@ simple_track_set_implementation
     return itr->second;
   }
   return nullptr;
+}
+
+/// Removes the frame data for the frame offset
+bool
+simple_track_set_implementation
+::remove_frame_data(frame_id_t offset)
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if (itr != frame_data_.end())
+  {
+    frame_data_.erase(itr);
+    return true;
+  }
+  return false;
 }
 
 

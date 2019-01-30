@@ -36,6 +36,7 @@
 #include "options.h"
 
 #include <arrows/ceres/camera_smoothness.h>
+#include <arrows/ceres/camera_position.h>
 
 using namespace kwiver::vital;
 
@@ -489,6 +490,50 @@ camera_options
   }
 }
 
+int
+camera_options
+::add_position_prior_cost(
+  ::ceres::Problem& problem,
+  cam_param_map_t& ext_params,
+  vital::sfm_constraints_sptr constraints)
+{
+  int num_priors_applied = 0;
+  if (!constraints)
+  {
+    return num_priors_applied;
+  }
+
+  ::ceres::LossFunction *loss = LossFunctionFactory(SOFT_L_ONE_LOSS, 10.0);
+
+  for (auto& ext_par : ext_params)
+  {
+    auto fid = ext_par.first;
+    vector_3d position_prior_local;
+    if(!constraints->get_camera_position_prior_local(fid,position_prior_local))
+    {
+      continue;
+    }
+
+    double *cam_state = &ext_par.second[0];
+    if (!problem.HasParameterBlock(cam_state))
+    {
+      continue;
+    }
+    if (problem.IsParameterBlockConstant(cam_state))
+    {
+        continue;
+    }
+
+    auto position_prior_cost =
+      camera_position::create(position_prior_local);
+
+    problem.AddResidualBlock(position_prior_cost,
+      loss,
+      cam_state);
+    ++num_priors_applied;
+  }
+  return num_priors_applied;
+}
 
 /// Add the camera path smoothness costs to the Ceres problem
 void

@@ -55,7 +55,7 @@ optimize_cameras
 ::optimize(camera_map_sptr & cameras,
            feature_track_set_sptr tracks,
            landmark_map_sptr landmarks,
-           metadata_map_sptr metadata) const
+           sfm_constraints_sptr constraints) const
 {
   if (!cameras || !tracks || !landmarks)
   {
@@ -101,22 +101,11 @@ optimize_cameras
   map_camera_t optimized_cameras;
   std::vector< feature_sptr > v_feat;
   std::vector< landmark_sptr > v_lms;
-  metadata_map::map_metadata_t metadata_map;
-  if(metadata)
-  {
-    metadata_map = metadata->metadata();
-  }
+
   for(map_camera_t::value_type const& p : cams)
   {
     v_feat.clear();
     v_lms.clear();
-    metadata_vector v_metadata;
-
-    auto mdv = metadata_map.find(p.first);
-    if(mdv != metadata_map.end())
-    {
-      v_metadata = mdv->second;
-    }
 
     // Construct 2d<->3d correspondences
     for(inner_map_t::value_type const& q : states_map[p.first])
@@ -127,7 +116,7 @@ optimize_cameras
     }
 
     auto cam = std::dynamic_pointer_cast<camera_perspective>(p.second);
-    this->optimize(cam, v_feat, v_lms, v_metadata);
+    this->optimize(cam, v_feat, v_lms, constraints);
     optimized_cameras[p.first] = cam;
   }
 

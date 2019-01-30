@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,25 +64,32 @@ namespace sprokit
 class PROCESSES_FLOW_NO_EXPORT sink_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    sink_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~sink_process();
-  protected:
-    /**
-     * \brief Step the process.
-     */
-    void _step();
-  private:
-    class priv;
-    std::unique_ptr<priv> d;
+public:
+  PLUGIN_INFO( "sink",
+               "Ignores incoming data." )
+
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+  sink_process( kwiver::vital::config_block_sptr const& config );
+  /**
+   * \brief Destructor.
+   */
+  ~sink_process();
+
+
+protected:
+  /**
+   * \brief Step the process.
+   */
+  void _step();
+
+
+private:
+  class priv;
+  std::unique_ptr< priv > d;
 };
 
 }

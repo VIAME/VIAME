@@ -50,7 +50,8 @@ operator<<( std::ostream& s, landmark const& m )
     << m.scale() << " "
     << m.normal() << " "
     << m.color() << " "
-    << m.observations();
+    << m.observations() << ""
+    << m.cos_obs_angle();
   return s;
 }
 
@@ -62,7 +63,8 @@ landmark_< T >
   : loc_( 0, 0, 0 ),
     scale_( 1 ),
     normal_( 0, 0, 0 ),
-    observations_( 0 )
+    observations_( 0 ),
+    cos_obs_angle_(1.0)
 {
 }
 
@@ -74,7 +76,8 @@ landmark_< T >
   : loc_( loc ),
     scale_( scale ),
     normal_( 0, 0, 0 ),
-    observations_( 0 )
+    observations_( 0 ),
+    cos_obs_angle_(1.0)
 {
 }
 
@@ -87,7 +90,8 @@ landmark_< T >
     scale_( static_cast< T > ( lm.scale() ) ),
     normal_( lm.normal().cast< T > () ),
     color_( lm.color() ),
-    observations_( lm.observations() )
+    observations_( lm.observations() ),
+    cos_obs_angle_(static_cast< T >( lm.cos_obs_angle()))
 {
 }
 
@@ -102,7 +106,8 @@ operator<<( std::ostream& s, landmark_< T > const& m )
     << m.get_scale() << " "
     << m.get_normal() << " "
     << m.get_color() << " "
-    << m.get_observations();
+    << m.get_observations() << " "
+    << m.get_cos_obs_angle();
   return s;
 }
 
@@ -118,17 +123,20 @@ operator>>( std::istream& s, landmark_< T >& m )
   T scale;
   rgb_color color;
   unsigned int observations;
+  T cos_observation_angle;
 
   s >> loc
     >> scale
     >> normal
     >> color
-    >> observations;
+    >> observations
+    >> cos_observation_angle;
   m.set_loc( loc );
   m.set_scale( scale );
   m.set_normal( normal );
   m.set_color( color );
   m.set_observations( observations );
+  m.set_cos_observation_angle(cos_observation_angle);
   return s;
 }
 

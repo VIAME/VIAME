@@ -50,13 +50,9 @@ class KWIVER_ALGO_CORE_EXPORT initialize_cameras_landmarks
                               vital::algo::initialize_cameras_landmarks>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Run SfM to iteratively estimate new cameras and landmarks"
-    " using feature tracks.";
+  PLUGIN_INFO( "core",
+               "Run SfM to iteratively estimate new cameras and landmarks"
+               " using feature tracks." )
 
   /// Constructor
   initialize_cameras_landmarks();
@@ -99,7 +95,7 @@ public:
   initialize(vital::camera_map_sptr& cameras,
              vital::landmark_map_sptr& landmarks,
              vital::feature_track_set_sptr tracks,
-             vital::metadata_map_sptr metadata = nullptr) const;
+             vital::sfm_constraints_sptr constraints = nullptr) const;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

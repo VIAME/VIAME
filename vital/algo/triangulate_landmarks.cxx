@@ -48,6 +48,22 @@ triangulate_landmarks
   attach_logger( "algo.triangulate_landmarks" );
 }
 
+void
+triangulate_landmarks
+::triangulate(vital::camera_map_sptr cameras,
+              vital::track_map_t tracks,
+              vital::landmark_map_sptr& landmarks) const
+{
+  std::vector<track_sptr> track_vec(tracks.size());
+  size_t i = 0;
+  for (auto const& t : tracks)
+  {
+    track_vec[i++] = t.second;
+  }
+  auto track_ptr = std::make_shared<vital::feature_track_set>(track_vec);
+  triangulate(cameras, track_ptr, landmarks);
+}
+
 } } }
 
 /// \cond DoxygenSuppress

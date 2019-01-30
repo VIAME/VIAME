@@ -59,7 +59,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
-      fact = vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::timing_process_instrumentation );
+  fact = vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::timing_process_instrumentation );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "timing")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

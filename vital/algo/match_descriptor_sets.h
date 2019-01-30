@@ -45,7 +45,6 @@
 #include <vital/types/descriptor_set.h>
 #include <vital/vital_types.h>
 
-
 namespace kwiver {
 namespace vital {
 namespace algo {

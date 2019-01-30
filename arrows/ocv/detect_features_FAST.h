@@ -63,6 +63,27 @@ public:
   /// Check that the algorithm's configuration vital::config_block is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
+  /// Extract a set of image features from the provided image
+  /**
+  * A given mask image should be one-channel (mask->depth() == 1). If the
+  * given mask image has more than one channel, only the first will be
+  * considered.
+  * This method overrides the base detect method and adds dynamic threshold
+  * adaptation.  It adjusts the detector's feature strength threshold to try
+  * and extract a target number of features in each frame. Because scene
+  * content varies between images, different feature strength thresholds may
+  * be necessary to get the same number of feautres in different images.
+  *
+  * \param image_data contains the image data to process
+  * \param mask Mask image where regions of positive values (boolean true)
+  *             indicate regions to consider. Only the first channel will be
+  *             considered.
+  * \returns a set of image features
+  */
+  virtual vital::feature_set_sptr
+    detect(vital::image_container_sptr image_data,
+      vital::image_container_sptr mask = vital::image_container_sptr()) const;
+
 private:
   class priv;
   std::unique_ptr<priv> const p_;

@@ -245,6 +245,17 @@ typedef std::shared_ptr< image_memory > image_memory_sptr;
 // ===========================================================================
 /// The representation of an in-memory image.
 /**
+ * This base image class represents an image with a dynamic data type.  The
+ * underlying data type can be queried using pixel_traits().  To properly
+ * access individual pixels the data type must be known.  The templated at<T>()
+ * member function provides direct access to pixels.  Alternatively, cast the
+ * image itself into an image_of object.  The typed image_of class is a bit
+ * easier to work with once the type is known, but this base class is useful
+ * in APIs that may operate on images of various types.
+ *
+ * Memory Management
+ * -----------------
+ *
  * This image class supports two modes of memory management.  Either the image
  * owns its memory or it does not.  If the image owns its memory the
  * image::memory() function will return a shared pointer to that image_memory
@@ -345,9 +356,29 @@ public:
   const image& operator=( const image& other );
 
   /// Const access to the image memory
+  /**
+   * \copydoc image::memory()
+   */
   const image_memory_sptr& memory() const { return data_; }
 
   /// Access to the image memory
+  /**
+   * In most cases, when interacting with image data, you should use the
+   * first_pixel() function instead of memory().  The memory() function
+   * provides access to the underlying reference counted memory for advanced
+   * memory management applications.  It returns a block of data that contains
+   * the image somewhere within.  The block of data may contain only the
+   * pixels in this image, but it could also contain much more hidden data
+   * if the image is a crop or subsampling of an original image that was
+   * larger.  The blocks of memory are typically shared between copies of
+   * this image, and each copy may have a different view into the memory.
+   *
+   * This function may also return \c nullptr for a valid image that is a
+   * view into some external memory (first_pixel() is still valid in this
+   * case).  Use caution when accessing the memory directly and always check
+   * that the memory is not \c nullptr.  Never assume that the image data
+   * must be contained in the memory block returned by this function.
+   */
   image_memory_sptr memory() { return data_; }
 
   /// The size of the image managed data in bytes
@@ -363,15 +394,27 @@ public:
 
   /// Const access to the pointer to first image pixel
   /**
-   * This may differ from \a data() if the image is a
-   * window into a large image memory chunk.
+   * \copydoc image::first_pixel()
    */
   const void* first_pixel() const { return first_pixel_; }
 
   /// Access to the pointer to first image pixel
   /**
-   * This may differ from \a data() if the image is a
-   * window into a larger image memory chunk.
+   * Returns a raw void pointer to the first pixel in the image.
+   * This is the starting point for iterating through the image using
+   * offsets of w_step(), h_step(), and d_step().  See also
+   * image_of::first_pixel() for a variant of this function that
+   * returns a pointer to the underlying pixel type.
+   *
+   * \note the address returned may differ from the starting address
+   * returned by image::memory() if the image is a window into a larger
+   * block of image memory.
+   *
+   * \note If the address returned is not \c nullptr but image::memory()
+   * returns \c nullptr, then this image is a view into external memory
+   * not owned by this image object.
+   *
+   * \sa image_of::first_pixel()
    */
   void* first_pixel() { return first_pixel_; }
 
@@ -517,11 +560,41 @@ protected:
 };
 
 
-// ==================================================================
-/// The representation of an in-memory image.
+// ===========================================================================
+/// The representation of a type-specific in-memory image.
 /**
- * Images share memory using the image_memory class.  This is
- * effectively a view on an image.
+ * This class is derived from the image() class to provide convenience
+ * functions that require the pixel type to be known at compile time.
+ * This derived class does not add any data or change any behavior of the
+ * base image() class.  It simply provides a strongly-typed view of the data.
+ * The constructors in this class make it easier to construct an image.
+ * For example,
+\code
+image I;
+// direct construction of a double image
+I = image(100, 100, 1, false, pixel_traits_of<double>());
+// equivalent construction using image_of
+I = image_of<double>(100, 100);
+\endcode
+ *
+ * Once cast as an image_of() the operator()() is available to directly access
+ * pixels with a simpler syntax. For example
+\code
+image_of<float> my_img(100, 100);     // make a float image of size 100 x 100
+float val = my_img(10, 10);           // get pixel at 10, 10
+      val = my_img.at<float>(10, 10); // image::at method does the same thing
+\endcode
+ *
+ * An image() can be directly assigned to an image_of() object and this will
+ * throw a image_type_mismatch_exception if the underlying type does not match.
+ * For example
+\code
+// make a 16-bit unsigned image with the base class
+image my_img(100, 100, 1, false, pixel_traits_of<uint16_t>());
+
+image_of<uint16_t> my_img16 = my_img; // this works
+image_of<float> my_imgf = my_img;     // this throws an exception
+\endcode
  */
 template <typename T>
 class image_of : public image

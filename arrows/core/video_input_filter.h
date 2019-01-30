@@ -50,13 +50,9 @@ class KWIVER_ALGO_CORE_EXPORT video_input_filter
   : public vital::algorithm_impl < video_input_filter, vital::algo::video_input >
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "filter";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "A video input that calls another video input"
-    " and filters the output on frame range and other parameters.";
+  PLUGIN_INFO( "filter",
+               "A video input that calls another video input"
+               " and filters the output on frame range and other parameters." )
 
   /// Constructor
   video_input_filter();
@@ -99,4 +95,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_FILTER_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_FILTER_H

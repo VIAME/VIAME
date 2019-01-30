@@ -233,6 +233,13 @@ public:
    */
   bool insert( track_state_sptr state );
 
+  /// Remove track state
+  /**
+   * Removes the track state
+   * Returns true if the state was found and removed
+  */
+  bool remove(track_state_sptr state);
+
   /// Access a const iterator to the start of the history
   history_const_itr begin() const { return history_.begin(); }
 
