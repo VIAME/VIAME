@@ -1,0 +1,14 @@
+KWIVER v1.4.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and
+fixes over the previous v1.3.0 release.
+
+Updates since v1.3.0
+--------------------
+
+Bug Fixes since v1.3.0
+----------------------
+
+ * Fixed issue where ffmpeg_video_input does not set the depth step for
+   frame images correctly.

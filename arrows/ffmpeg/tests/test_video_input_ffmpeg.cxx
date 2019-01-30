@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -159,10 +159,10 @@ TEST_F(ffmpeg_video_input, frame_image)
   EXPECT_EQ(frame->depth(), 3);
   EXPECT_EQ(frame->get_image().width(), 80);
   EXPECT_EQ(frame->get_image().height(), 54);
-  EXPECT_EQ(frame->get_image().d_step(), 4320*3);
+  EXPECT_EQ(frame->get_image().d_step(), 1);
   EXPECT_EQ(frame->get_image().h_step(), 80*3);
   EXPECT_EQ(frame->get_image().w_step(), 3);
-  EXPECT_EQ(frame->get_image().is_contiguous(), false);
+  EXPECT_EQ(frame->get_image().is_contiguous(), true);
 
   EXPECT_EQ(decode_barcode(*frame), 1);
 }
