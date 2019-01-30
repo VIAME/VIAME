@@ -44,7 +44,7 @@ namespace vital {
 /**
  * @brief Generates formatted versions of a config block.
  *
- * This class encapsulates weveral different formatting options for
+ * This class encapsulates several different formatting options for
  * a config block.
  */
 class VITAL_CONFIG_EXPORT config_block_formatter

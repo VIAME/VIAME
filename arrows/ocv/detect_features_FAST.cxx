@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -246,7 +246,7 @@ detect_features_FAST
         same_num_feat_count = 0;
       }
 
-      if (higher_thresh_feat_set->size() <= p_->targetNumDetections ||
+      if (higher_thresh_feat_set->size() <= static_cast<size_t>(p_->targetNumDetections) ||
           same_num_feat_count > duplicate_feat_count_thresh)
       {
         //ok, we've crossed from too many to too few features
@@ -303,7 +303,7 @@ detect_features_FAST
           same_num_feat_count = 0;
         }
 
-        if (lower_thresh_feat_set->size() >= p_->targetNumDetections ||
+        if (lower_thresh_feat_set->size() >= static_cast<size_t>(p_->targetNumDetections) ||
           same_num_feat_count > duplicate_feat_count_thresh)
         {
           int lower_diff = abs(int(lower_thresh_feat_set->size()) - p_->targetNumDetections);

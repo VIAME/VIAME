@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,12 +49,8 @@ class KWIVER_ALGO_CORE_EXPORT video_input_splice
   : public vital::algorithm_impl < video_input_splice, vital::algo::video_input >
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "splice";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Splices multiple video sources together.";
+  PLUGIN_INFO( "splice",
+               "Splices multiple video sources together." );
 
   /// Constructor
   video_input_splice();

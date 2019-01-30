@@ -40,6 +40,7 @@ set_target_properties( ${KWSYS_NAMESPACE}
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/vital/kwiversys>$<INSTALL_INTERFACE:include>"
   )
 
   if (APPLE)
@@ -205,6 +206,7 @@ kwiver_install_headers(
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/vital_export.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_config.h
+  ${CMAKE_CURRENT_BINARY_DIR}/version.h
   SUBDIR   vital
   NOPATH
   )

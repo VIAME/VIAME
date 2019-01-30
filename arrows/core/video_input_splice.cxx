@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -391,6 +391,7 @@ video_input_splice
               kwiver::vital::timestamp::frame_t frame_number,
               uint32_t                  timeout )
 {
+  using frame_t = kwiver::vital::timestamp::frame_t;
   bool status = false;
 
   // Check if requested frame would have been skipped
@@ -405,7 +406,8 @@ video_input_splice
         vs_iter != d->d_video_sources.end();
         vs_iter++ )
   {
-    if ( frame_number <= (*vs_iter)->num_frames() + frames_prior )
+    if ( frame_number <= static_cast<frame_t>(
+                           (*vs_iter)->num_frames() + frames_prior) )
     {
       d->d_active_source = vs_iter;
       d->d_frame_offset = frames_prior;

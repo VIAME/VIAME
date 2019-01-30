@@ -63,13 +63,9 @@ class KWIVER_ALGO_CORE_EXPORT match_features_fundamental_matrix
   : public vital::algorithm_impl<match_features_fundamental_matrix, vital::algo::match_features>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "fundamental_matrix_guided";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Use an estimated fundamental matrix as a geometric filter"
-    " to remove outlier matches.";
+  PLUGIN_INFO( "fundamental_matrix_guided",
+               "Use an estimated fundamental matrix as a geometric filter"
+               " to remove outlier matches." )
 
   /// Default Constructor
   match_features_fundamental_matrix();

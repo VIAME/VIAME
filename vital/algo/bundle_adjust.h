@@ -85,18 +85,18 @@ public:
    * \param [in] fixed_landmarks landmark ids for landmarks to be fixed in the optimization
    * \param [in] metadata the frame metadata to use as constraints
    */
-
   virtual void
-    optimize(kwiver::vital::camera_map_sptr& cameras,
-             kwiver::vital::landmark_map_sptr& landmarks,
-             kwiver::vital::feature_track_set_sptr tracks,
-             const std::set<vital::frame_id_t>& fixed_cameras,
-             const std::set<vital::landmark_id_t>& fixed_landmarks,
-             kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
+  optimize(kwiver::vital::camera_map_of_<kwiver::vital::simple_camera_perspective> &cameras,
+           kwiver::vital::landmark_map::map_landmark_t &landmarks,
+           vital::feature_track_set_sptr tracks,
+           const std::set<vital::frame_id_t>& fixed_cameras,
+           const std::set<vital::landmark_id_t>& fixed_landmarks,
+           kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,
-                             kwiver::vital::landmark_map_sptr)> callback_t;
+                             kwiver::vital::landmark_map_sptr,
+                             kwiver::vital::feature_track_set_changes_sptr)> callback_t;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

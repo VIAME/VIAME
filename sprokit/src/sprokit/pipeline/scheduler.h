@@ -141,8 +141,11 @@ class SPROKIT_PIPELINE_EXPORT scheduler
     /**
      * \brief Stop execution of the pipeline.
      *
-     * \warning Implementations should *not* return if they fail to stop the
-     * pipeline. Exceptions should be thrown instead.
+     * This method may return before all processes are stopped. Call
+     * wait() to synchronize with the termination event.
+     *
+     * \warning Implementations should *not* return if they fail to
+     * stop the pipeline. Exceptions should be thrown instead.
      */
     virtual void _stop() = 0;
 

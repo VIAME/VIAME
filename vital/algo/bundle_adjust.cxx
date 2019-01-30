@@ -58,19 +58,25 @@ bundle_adjust
 
 void
 bundle_adjust
-::optimize(vital::camera_map_sptr& cameras,
-           vital::landmark_map_sptr& landmarks,
-           vital::feature_track_set_sptr tracks,
-           const std::set<vital::frame_id_t>& fixed_cameras,
-           const std::set<vital::landmark_id_t>& fixed_landmarks,
-           vital::sfm_constraints_sptr constraints) const
+::optimize(
+  kwiver::vital::camera_map_of_<kwiver::vital::simple_camera_perspective> &cameras,
+  kwiver::vital::landmark_map::map_landmark_t &landmarks,
+  vital::feature_track_set_sptr tracks,
+  const std::set<vital::frame_id_t>& fixed_cameras,
+  const std::set<vital::landmark_id_t>& fixed_landmarks,
+  kwiver::vital::sfm_constraints_sptr constraints) const
 {
-  if (!fixed_cameras.empty() || !fixed_landmarks.empty())
-  {
-    LOG_WARN(logger(), "This implementation does not support fixing cameras or landmarks");
-  }
-  optimize(cameras, landmarks, tracks, constraints);
+  auto cam_map = std::static_pointer_cast<vital::camera_map>(
+                   std::make_shared<vital::simple_camera_map>(cameras.cameras()));
+
+  auto lm_map = std::static_pointer_cast<vital::landmark_map>(
+                  std::make_shared<vital::simple_landmark_map>(landmarks));
+  this->optimize(cam_map, lm_map, tracks, constraints);
+
+  cameras.set_from_base_camera_map(cam_map->cameras());
+  landmarks = lm_map->landmarks();
 }
+
 
 } } }
 

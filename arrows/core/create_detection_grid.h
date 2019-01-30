@@ -49,11 +49,8 @@ class KWIVER_ALGO_CORE_EXPORT create_detection_grid
       vital::algo::image_object_detector>
 {
 public:
-
-  static constexpr char const* name = "create_detection_grid";
-
-  static constexpr char const* description =
-    "Create a grid of detections across the input image.";
+  PLUGIN_INFO( "create_detection_grid",
+               "Create a grid of detections across the input image." )
 
   /// Default Constructor
   create_detection_grid();
