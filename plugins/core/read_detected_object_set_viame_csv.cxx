@@ -263,6 +263,11 @@ read_all()
 
     double conf = atof( col[COL_CONFIDENCE].c_str() );
 
+    if( conf == -1.0 )
+    {
+      conf = 1.0;
+    }
+
     // Create detection
     kwiver::vital::detected_object_sptr dob;
 
@@ -286,7 +291,14 @@ read_all()
       dot->set_score( spec_id, spec_conf );
     }
 
-    dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+    if( COL_TOT < col.size() )
+    {
+      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+    }
+    else
+    {
+      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
+    }
 
     // Add detection to set for the frame
     m_detection_by_id[frame_id]->add( dob );

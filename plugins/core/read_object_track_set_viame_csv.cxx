@@ -269,7 +269,14 @@ read_object_track_set_viame_csv::priv
       dot->set_score( spec_id, spec_conf );
     }
 
-    dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+    if( COL_TOT < col.size() )
+    {
+      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf, dot );
+    }
+    else
+    {
+      dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
+    }
 
     // Create new object track state
     kwiver::vital::track_state_sptr ots =
