@@ -182,6 +182,10 @@ Tools
 
 Unit Tests
 
+General Documentation
+
+  * Refactored and improved documentation for video_input algo in vital.
+
 
 Bug Fixes
 --------
