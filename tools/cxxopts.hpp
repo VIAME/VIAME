@@ -25,13 +25,26 @@ THE SOFTWARE.
 #ifndef CXXOPTS_HPP_INCLUDED
 #define CXXOPTS_HPP_INCLUDED
 
+// Short term patch for CentOS 7 support.
+#if defined KWIVER_USE_BOOST_REGEX
+
+#define REGEX_NS boost
+#include <boost/regex.hpp>
+
+#else
+
+#define REGEX_NS std
+#include <regex>
+
+#endif
+// end centos workaround
+
 #include <cstring>
 #include <cctype>
 #include <exception>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <regex>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -57,6 +70,7 @@ namespace cxxopts
     CXXOPTS__VERSION_PATCH
   };
 }
+
 
 //when we ask cxxopts to use Unicode, help strings are processed using ICU,
 //which results in the correct lengths being computed for strings when they
@@ -463,11 +477,11 @@ namespace cxxopts
   {
     namespace
     {
-      std::basic_regex<char> integer_pattern
+      REGEX_NS::basic_regex<char> integer_pattern
         ("(-)?(0x)?([0-9a-zA-Z]+)|((0x)?0)");
-      std::basic_regex<char> truthy_pattern
+      REGEX_NS::basic_regex<char> truthy_pattern
         ("(t|T)(rue)?");
-      std::basic_regex<char> falsy_pattern
+      REGEX_NS::basic_regex<char> falsy_pattern
         ("((f|F)(alse)?)?");
     }
 
@@ -537,8 +551,8 @@ namespace cxxopts
     void
     integer_parser(const std::string& text, T& value)
     {
-      std::smatch match;
-      std::regex_match(text, match, integer_pattern);
+      REGEX_NS::smatch match;
+      REGEX_NS::regex_match(text, match, integer_pattern);
 
       if (match.length() == 0)
       {
@@ -675,8 +689,8 @@ namespace cxxopts
     void
     parse_value(const std::string& text, bool& value)
     {
-      std::smatch result;
-      std::regex_match(text, result, truthy_pattern);
+      REGEX_NS::smatch result;
+      REGEX_NS::regex_match(text, result, truthy_pattern);
 
       if (!result.empty())
       {
@@ -684,7 +698,7 @@ namespace cxxopts
         return;
       }
 
-      std::regex_match(text, result, falsy_pattern);
+      REGEX_NS::regex_match(text, result, falsy_pattern);
       if (!result.empty())
       {
         value = false;
@@ -1356,10 +1370,10 @@ namespace cxxopts
     constexpr int OPTION_LONGEST = 30;
     constexpr int OPTION_DESC_GAP = 2;
 
-    std::basic_regex<char> option_matcher
+    REGEX_NS::basic_regex<char> option_matcher
       ("--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)");
 
-    std::basic_regex<char> option_specifier
+    REGEX_NS::basic_regex<char> option_specifier
       ("(([[:alnum:]]),)?[ ]*([[:alnum:]][-_[:alnum:]]*)?");
 
     String
@@ -1508,8 +1522,8 @@ OptionAdder::operator()
   std::string arg_help
 )
 {
-  std::match_results<const char*> result;
-  std::regex_match(opts.c_str(), result, option_specifier);
+  REGEX_NS::match_results<const char*> result;
+  REGEX_NS::regex_match(opts.c_str(), result, option_specifier);
 
   if (result.empty())
   {
@@ -1529,8 +1543,8 @@ OptionAdder::operator()
 
   auto option_names = []
   (
-    const std::sub_match<const char*>& short_,
-    const std::sub_match<const char*>& long_
+    const REGEX_NS::sub_match<const char*>& short_,
+    const REGEX_NS::sub_match<const char*>& long_
   )
   {
     if (long_.length() == 1)
@@ -1715,8 +1729,8 @@ ParseResult::parse(int& argc, char**& argv)
       break;
     }
 
-    std::match_results<const char*> result;
-    std::regex_match(argv[current], result, option_matcher);
+    REGEX_NS::match_results<const char*> result;
+    REGEX_NS::regex_match(argv[current], result, option_matcher);
 
     if (result.empty())
     {

@@ -34,6 +34,7 @@ vital_check_required_feature(CPP_NOEXCEPT     throw-noexcept.cxx  "noexcept spec
 vital_check_required_feature(CPP_RANGE_FOR    range-for.cxx       "range-based for")
 vital_check_required_feature(STD_CHRONO       std_chrono.cxx      "std::chrono")
 vital_check_required_feature(STD_NULLPTR      null_ptr.cxx        "nullptr")
+vital_check_required_feature(STD_REGEX        std_regex.cxx       "std::regex")
 
 ###
 # See if demangle API is supported

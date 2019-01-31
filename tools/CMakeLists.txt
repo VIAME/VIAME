@@ -15,6 +15,11 @@ set( headers
   cxxopts.hpp
   )
 
+if ( NOT STD_REGEX )
+  set( BOOST_REGEX boost_regex)
+  add_definitions( -DKWIVER_USE_BOOST_REGEX )
+endif()
+
 ###
 # Add our plugin path to the default list
 include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
@@ -33,6 +38,7 @@ kwiver_add_library( kwiver_tools_applet
 
 target_link_libraries( kwiver_tools_applet
               vital_util
+              ${BOOST_REGEX}
   )
 
 
