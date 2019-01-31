@@ -186,6 +186,8 @@ General Documentation
 
   * Refactored and improved documentation for video_input algo in vital.
 
+  * Greatly improved documentation of 'image' and 'image_of' classes in vital.
+
 
 Bug Fixes
 --------
