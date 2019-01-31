@@ -153,6 +153,10 @@ Arrows: FFmpeg
 
 Arrows: GDAL
 
+Arrows: KPF
+
+  * Updated the KPF YAML parser to allow for embedded YAML in metadata.
+
 Arrows: OpenCV
 
 Arrows: Serialization
