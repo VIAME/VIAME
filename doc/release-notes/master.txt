@@ -57,6 +57,9 @@ Arrows: Core
 
  * Created a new plugin for core applets
 
+ * Added video_input_image_list function which enables all images contained 
+   inside a directory to be read in. 
+
  * Converted Arrows core to use new PLUGIN_INFO and registrar approach.
 
  * Added an applet to render meshes into depth or height maps
