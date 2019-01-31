@@ -57,6 +57,8 @@ Arrows: Core
 
  * Created a new plugin for core applets
 
+ * Converted Arrows core to use new PLUGIN_INFO and registrar approach.
+
  * Added an applet to render meshes into depth or height maps
 
  * Added mesh_operations.h, initially with a function to triangulate a mesh.
