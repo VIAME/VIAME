@@ -30,7 +30,7 @@ process database_query_handler
   :: perform_query
   :external_handler                             true
   relativepath external_pipeline_file =         smqtk_query.pipe
-  #relativepath augmentation_pipeline_file =     query_augment_image.res.pipe
+  #relativepath augmentation_pipeline_file =     query_augment_image.pipe
   :database_folder                              $CONFIG{global:database_folder}
   :max_result_count                             10000
   :use_tracks_for_history                       true
