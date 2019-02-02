@@ -213,7 +213,7 @@ if __name__ == "__main__" :
                       help="Turn on the engineer UI (add developer options).")
 
   parser.add_argument("-qp", dest="query_pipe",
-                      default="pipelines" + div + "query_retrieval_and_iqr.tut.pipe",
+                      default="pipelines" + div + "query_retrieval_and_iqr.pipe",
                       help="Pipeline for performing new system queries")
 
   parser.add_argument("-qd", dest="query_dir",
