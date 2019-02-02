@@ -37,7 +37,7 @@ lb3 = lb * 3
 detection_ext = "_detections.csv"
 track_ext = "_tracks.csv"
 
-default_pipeline = "pipelines" + div + "index_default.res.pipe"
+default_pipeline = "pipelines" + div + "index_default.pipe"
 no_pipeline = "none"
 
 # Global flag to see if any video has successfully completed processing
