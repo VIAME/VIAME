@@ -83,26 +83,167 @@ if( VIAME_DOWNLOAD_MODELS )
 endif()
 
 ###
-# All subdirectories for this folder
+# All subdirectories for this folder installed as-is
 ##
 install( DIRECTORY gui-params
-         DESTINATION configs )
-install( DIRECTORY pipelines
          DESTINATION configs )
 install( DIRECTORY prj-linux
          DESTINATION configs )
 install( DIRECTORY prj-windows
          DESTINATION configs )
 
+###
+# All files manually-included based on options
+##
 set( RUN_SCRIPT_FILES
-     database_tool.py
-     extract_video_frames.py
-     process_video.py
-     launch_search_interface.py
-     launch_timeline_interface.py
-     launch_annotation_interface.py
-     generate_detection_plots.py
-     score_results.py )
+  database_tool.py
+  extract_video_frames.py
+  process_video.py
+  launch_search_interface.py
+  launch_timeline_interface.py
+  launch_annotation_interface.py
+  generate_detection_plots.py
+  score_results.py )
+
+set( CORE_PIPELINE_FILES
+  pipelines/common_default_descriptor.pipe
+  pipelines/common_default_detector.pipe
+  pipelines/common_default_detector_with_filter.pipe
+  pipelines/common_default_initializer.pipe
+  pipelines/common_default_input.pipe
+  pipelines/common_default_input_with_downsampler.pipe
+  pipelines/common_default_tracker.pipe
+  pipelines/common_generic_detector.pipe
+  pipelines/common_generic_detector_with_filter.pipe
+  pipelines/database_apply_svm_models.pipe
+  pipelines/detector_default.pipe
+  pipelines/detector_extract_chips.pipe
+  pipelines/detector_generic.pipe
+  pipelines/detector_simple_hough.pipe
+  pipelines/detector_svm_models.pipe
+  pipelines/display_annotations.pipe
+  pipelines/draw_detections_on_images.pipe
+  pipelines/extract_chips_from_detections.pipe
+  pipelines/filter_debayer_and_enhance.pipe
+  pipelines/filter_enhance.pipe
+  pipelines/filter_to_kwa.pipe
+  pipelines/full_frame_classifier_svm.pipe
+  pipelines/index_default.pipe
+  pipelines/index_default.trk.pipe
+  pipelines/index_existing.pipe
+  pipelines/index_full_frame.pipe
+  pipelines/index_generic.pipe
+  pipelines/index_generic.trk.pipe
+  pipelines/measurement_default.trk.pipe
+  pipelines/measurement_depth_map.pipe
+  pipelines/measurement.gmm_only.pipe
+  pipelines/query_augment_image.pipe
+  pipelines/query_image_exemplar.cfe.pipe
+  pipelines/query_image_exemplar.pipe
+  pipelines/query_retrieval_and_iqr.cfe.pipe
+  pipelines/query_retrieval_and_iqr.pipe
+  pipelines/query_video_exemplar.pipe
+  pipelines/sql_init_table.sql
+  pipelines/tracker_default.pipe
+  pipelines/tracker_default.sfd.pipe
+  pipelines/tracker_generic.pipe
+  pipelines/tracker_svm_models.pipe
+  pipelines/train_color_freq_aug.pipe
+  pipelines/train_motion_and_color_freq_aug.pipe
+  pipelines/train_motion_aug.pipe
+  pipelines/train_split_and_stereo_aug.pipe
+  pipelines/train_split_aug.pipe
+  pipelines/train_warp_ir_to_eo_aug.pipe
+  pipelines/train_yolo_544.viame_csv.conf
+  pipelines/train_yolo_704.habcam.conf
+  pipelines/train_yolo_704.kw18.conf
+  pipelines/train_yolo_704.viame_csv.conf
+  pipelines/train_yolo_960.habcam.conf
+  pipelines/train_yolo_960.viame_csv.conf
+  pipelines/train_yolo_wtf_704.viame_csv.conf )
+
+if( VIAME_ENABLE_BURNOUT )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/burnout_det_descriptor.cfe.conf
+    pipelines/burnout_det_descriptors.conf
+    pipelines/burnout_enhancement.conf
+    pipelines/burnout_trk_descriptor.cfe.conf
+    pipelines/burnout_trk_descriptors.conf )
+endif()
+
+if( VIAME_ENABLE_SMQTK )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/smqtk_compute_hashes.json
+    pipelines/smqtk_desc_index.json
+    pipelines/smqtk_make_balltree.json
+    pipelines/smqtk_nn_index.json
+    pipelines/smqtk_postgres_ingest.json
+    pipelines/smqtk_query.pipe
+    pipelines/smqtk_train_itq.json )
+endif()
+
+if( VIAME_DOWNLOAD_MODELS-MOUSS )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/common_mouss_detector.pipe
+    pipelines/common_mouss_detector_with_filter.pipe
+    pipelines/index_mouss.pipe
+    pipelines/index_mouss.trk.no_desc.pipe
+    pipelines/index_mouss.trk.pipe
+    pipelines/tracker_mouss.pipe )
+endif()
+
+if( VIAME_DOWNLOAD_MODELS-HABCAM )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/detector_habcam_system.pipe )
+endif()
+
+if( VIAME_ENABLE_MATLAB )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/detector_lanl_scallop_finder.pipe
+    pipelines/detector_matlab_camtrawl.pipe )
+endif()
+
+if( VIAME_ENABLE_SCALLOP_TK AND VIAME_DOWNLOAD_MODELS-HABCAM )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/detector_scallop_tk.pipe )
+endif()
+
+if( VIAME_ENABLE_CAFFE )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/tracker_default.sfd.cfe.pipe
+    pipelines/index_default.sfd.cfe.pipe )
+endif()
 
 install( FILES       ${RUN_SCRIPT_FILES}
          DESTINATION configs )
+install( FILES       ${CORE_PIPELINE_FILES}
+         DESTINATION configs/pipelines )
+install( DIRECTORY   pipelines/models
+         DESTINATION configs/pipelines )
+
+
+if( VIAME_ENABLE_VIVIA )
+  set( GUI_PIPELINE_FILES
+    pipelines/gui_embedded/default_detector.pipe
+    pipelines/gui_embedded/default_tracker.pipe
+    pipelines/gui_embedded/generic_detector.pipe
+    pipelines/gui_embedded/generic_tracker.pipe
+    pipelines/gui_embedded/local_deep_detector.pipe
+    pipelines/gui_embedded/local_deep_tracker.pipe
+    pipelines/gui_embedded/local_svm_detector.pipe
+    pipelines/gui_embedded/local_svm_tracker.pipe )
+
+  if( VIAME_DOWNLOAD_MODELS-MOUSS )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/gui_embedded/mouss_detector.pipe
+      pipelines/gui_embedded/mouss_tracker.pipe )
+  endif()
+
+  if( VIAME_DOWNLOAD_MODELS-HABCAM )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/gui_embedded/habcam_detector.pipe )
+  endif()
+
+  install( FILES       ${GUI_PIPELINE_FILES}
+           DESTINATION configs/pipelines/gui_embedded )
+endif()

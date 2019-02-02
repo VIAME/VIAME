@@ -40,8 +40,8 @@ option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
 option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
 
 if( VIAME_DOWNLOAD_MODELS )
-  option( VIAME_DOWNLOAD_MODELS-HABCAM   "Download habcam detection models"   ON )
-  option( VIAME_DOWNLOAD_MODELS-MOUSS    "Download mouss detection models"    ON )
+  option( VIAME_DOWNLOAD_MODELS-HABCAM   "Download habcam detection models"   OFF )
+  option( VIAME_DOWNLOAD_MODELS-MOUSS    "Download mouss detection models"    OFF )
   option( VIAME_DOWNLOAD_MODELS-PYTORCH  "Download pytorch models"            ON )
 
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
