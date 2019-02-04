@@ -1,4 +1,22 @@
 
+
+v0.9.9.0 - 2/4/2019
+===================
+
+
+-Add YOLOv3, YOLOv3 with Temporal Features detectors
+
+
+-GUI bug fixes: issues with running embedded pipes and detections not always showing up
+
+
+-Configuration file cleanup
+
+
+-Remove multiple models from default installers, move to seperate .zips
+
+
+
 v0.9.8.11 - 12/4/2018
 =====================
 
