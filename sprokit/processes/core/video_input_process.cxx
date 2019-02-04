@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,31 +54,33 @@ namespace algo = kwiver::vital::algo;
 
 namespace kwiver {
 
-//                 (config-key, value-type, default-value, description )
-create_config_trait( video_filename, std::string, "", "Name of video file." );
+// (config-key, value-type, default-value, description )
+create_config_trait( video_filename, std::string, "",
+  "Name of video file." );
 
-create_config_trait( video_reader, std::string, "", "Name of video input algorithm. "
-                     "Name of the video reader algorithm plugin is specified as "
-                     "video_reader:type = <algo-name>" );
+create_config_trait( video_reader, std::string, "",
+  "Name of video input algorithm. "
+  "Name of the video reader algorithm plugin is specified as "
+  "video_reader:type = <algo-name>" );
 
 create_config_trait( frame_time, double, "0.03333333",
-                     "Inter frame time in seconds. "
-                     "If the input video stream does not supply frame times, "
-                     "this value is used to create a default timestamp. "
-                     "If the video stream has frame times, then those are used." );
+  "Inter frame time in seconds. "
+  "If the input video stream does not supply frame times, "
+  "this value is used to create a default timestamp. "
+  "If the video stream has frame times, then those are used." );
 
 create_config_trait( no_path_in_name, bool, "true",
-                     "Set to true if the output file path should not contain a "
-                     "full path to the image or video file and just contain the "
-                     "file name for the image." );
+  "Set to true if the output file path should not contain a "
+  "full path to the image or video file and just contain the "
+  "file name for the image." );
 
 create_config_trait( exit_on_invalid, bool, "true",
-                     "If a frame in the middle of a sequence is invalid, do not "
-                     "exit and throw an error, continue processing data. If the "
-                     "first frame cannot be read, always exit regardless of this "
-                     "setting." );
+  "If a frame in the middle of a sequence is invalid, do not "
+  "exit and throw an error, continue processing data. If the "
+  "first frame cannot be read, always exit regardless of this "
+  "setting." );
 
-//----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Private implementation class
 class video_input_process::priv
 {
@@ -105,7 +107,7 @@ public:
 }; // end priv class
 
 
-// ================================================================
+// =============================================================================
 
 video_input_process
 ::video_input_process( kwiver::vital::config_block_sptr const& config )
@@ -123,7 +125,7 @@ video_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void video_input_process
 ::_configure()
 {
@@ -132,7 +134,7 @@ void video_input_process
   // Examine the configuration
   d->m_config_video_filename = config_value_using_trait( video_filename );
   d->m_config_frame_time = static_cast<vital::time_usec_t>(
-                               config_value_using_trait( frame_time ) * 1e6); // in usec
+    config_value_using_trait( frame_time ) * 1e6 ); // in usec
   d->m_no_path_in_name = config_value_using_trait( no_path_in_name );
   d->m_exit_on_invalid = config_value_using_trait( exit_on_invalid );
 
@@ -142,21 +144,21 @@ void video_input_process
     d->m_has_config_frame_time = true;
   }
 
-  if ( ! algo::video_input::check_nested_algo_configuration( "video_reader", algo_config ) )
+  if( !algo::video_input::check_nested_algo_configuration( "video_reader", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
   // instantiate requested/configured algo type
   algo::video_input::set_nested_algo_configuration( "video_reader", algo_config, d->m_video_reader );
-  if ( ! d->m_video_reader )
+  if( !d->m_video_reader )
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create video_reader." );
   }
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Post connection initialization
 void video_input_process
 ::_init()
@@ -170,7 +172,7 @@ void video_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void video_input_process
 ::_step()
 {
@@ -199,6 +201,7 @@ void video_input_process
   }
 
   d->m_first_frame = false;
+  double video_frame_rate = d->m_video_reader->frame_rate();;
 
   if ( frame_read )
   {
@@ -229,9 +232,8 @@ void video_input_process
       if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
       {
         throw sprokit::invalid_configuration_exception( name(),
-                                                        "Video reader selected does not supply image data." );
+          "Video reader selected does not supply image data." );
       }
-
 
       if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
       {
@@ -246,15 +248,15 @@ void video_input_process
       if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_TIME ) )
       {
         // create an internal time standard
-        double frame_rate = d->m_video_reader->frame_rate();
         if( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_RATE ) ||
-            frame_rate <= 0.0 || d->m_has_config_frame_time )
+            video_frame_rate <= 0.0 || d->m_has_config_frame_time )
         {
+          video_frame_rate = 1e6 / d->m_config_frame_time;
           d->m_frame_time = d->m_frame_number * d->m_config_frame_time;
         }
         else
         {
-          time_t frame_time_usec = ( 1.0 / frame_rate ) * 1e6;
+          time_t frame_time_usec = ( 1.0 / video_frame_rate ) * 1e6;
           d->m_frame_time = d->m_frame_number * frame_time_usec;
         }
         ts.set_time_usec( d->m_frame_time );
@@ -299,7 +301,7 @@ void video_input_process
       push_to_port_using_trait( timestamp, ts );
       push_to_port_using_trait( image, frame );
       push_to_port_using_trait( metadata, metadata );
-      push_to_port_using_trait( frame_rate, d->m_video_reader->frame_rate() );
+      push_to_port_using_trait( frame_rate, video_frame_rate );
       push_to_port_using_trait( file_name, filename );
     }
   }
@@ -320,7 +322,7 @@ void video_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void video_input_process
 ::make_ports()
 {
@@ -335,7 +337,7 @@ void video_input_process
 }
 
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void video_input_process
 ::make_config()
 {
@@ -347,7 +349,7 @@ void video_input_process
 }
 
 
-// ================================================================
+// =============================================================================
 video_input_process::priv
 ::priv()
   : m_has_config_frame_time( false ),
