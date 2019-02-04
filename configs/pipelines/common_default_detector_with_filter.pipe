@@ -29,7 +29,7 @@ process detector_filter
     :keep_classes                              vertebrate;invertebrate
   endblock
 
-connect from detector.detected_object_set
+connect from detector_output.detected_object_set
         to   nms_refiner.detected_object_set
 connect from nms_refiner.detected_object_set
         to   detector_filter.detected_object_set

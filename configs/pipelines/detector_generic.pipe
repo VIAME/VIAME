@@ -1,6 +1,6 @@
-# Default YOLO v2 Detector Pipeline
+# Default Generic Detector Pipeline
 #
-# Runs pre-trained YOLO v2 object detector
+# Runs pre-trained object detector aimed at generating generic object proposals
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -14,7 +14,7 @@ include common_default_input.pipe
 
 # ====================================== YOLO ======================================
 
-include common_default_detector_with_filter.pipe
+include common_generic_detector_with_filter.pipe
 
 process detector_writer
   :: detected_object_output
@@ -24,7 +24,7 @@ process detector_writer
   :writer:type                                 viame_csv
 
 connect from input.image
-        to   detector.image
+        to   detector_input.image
 connect from input.file_name
         to   detector_writer.image_file_name
 
