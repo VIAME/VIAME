@@ -12,7 +12,7 @@ SET PROCESS_FRAME_RATE=1
 REM Note: Frame rates are specified in hertz, aka frames per second. If the
 REM input frame rate is 1 and the process frame rate is also 1, then every
 REM input image in the list will be processed. If the process frame rate
-REM is 2, then every other image will be processed.
+REM is changed to 0.5, then every other image will be processed.
 
 REM Extra resource utilization options
 SET TOTAL_GPU_COUNT=1
