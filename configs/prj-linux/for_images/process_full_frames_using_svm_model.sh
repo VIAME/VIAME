@@ -11,7 +11,7 @@ export PROCESS_FRAME_RATE=1
 # Note: Frame rates are specified in hertz, aka frames per second. If the
 # input frame rate is 1 and the process frame rate is also 1, then every
 # input image in the list will be processed. If the process frame rate
-# is 2, then every other image will be processed.
+# is changed to 0.5, then every other image will be processed.
 
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
