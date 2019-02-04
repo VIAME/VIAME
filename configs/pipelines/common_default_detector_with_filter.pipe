@@ -1,11 +1,7 @@
-
 # ==================================================================================
 # Commonly used default detector when the user hasn't specified one.
 #
 # Classifies vertebrate vs invertebrate vs inorganic.
-#
-# Current incumbent is a hacked-up multi-scale windowing using yolo_v2, followed
-# by a non-maximum suppression and filtering process.
 
 include common_default_detector.pipe
 

@@ -35,7 +35,7 @@ process nms_refiner
   endblock
 
 connect from in_adapt.image
-        to   detector.image
+        to   detector_input.image
 connect from in_adapt.image
         to   descriptor.image
 connect from in_adapt.image
@@ -46,7 +46,7 @@ connect from in_adapt.image
 connect from in_adapt.timestamp
         to   descriptor.timestamp
 
-connect from detector.detected_object_set
+connect from detector_output.detected_object_set
         to   descriptor.detected_object_set
 connect from descriptor.detected_object_set
         to   svm_refiner.detected_object_set
