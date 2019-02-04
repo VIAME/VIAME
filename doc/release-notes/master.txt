@@ -10,14 +10,14 @@ Updates since v1.3.0
 
 Vital
 
- * Added constructors taking initalizer lists to mesh types for easier
+ * Added constructors taking initializer lists to mesh types for easier
    initialization.
  * Added a new abstract algorithm, uv_unwrap_mesh, which unwraps a mesh and generates normalized texture coordinates.
 
  * Added a foreach_pixel helper function to apply an operation at every
    pixel of a const image.
 
- * Added the data_serializer base algorithm to support serilization
+ * Added the data_serializer base algorithm to support serialization
    of Vital types for distributed processing and other uses.
 
  * Applied a new approach to adding metadata to plugins. The plugin
@@ -25,7 +25,7 @@ Vital
    header. Added new plugin registrar class framework to simplify the
    registration process.
 
- * Promoted version.h from sprokit to vital for use across all of KWIVER.
+ * Promoted version.h from Sprokit to vital for use across all of KWIVER.
 
  * Change the return type of the as_bytes() function on vital::descriptor
    to return a raw pointer to the bytes instead of a vector of bytes.
@@ -41,7 +41,7 @@ Vital
    latter filters iteration so that only "valid" items are visited.
 
  * Changes to track_set_impl to facilitate passing track changes between
-   sprokit processes rather than full track sets for efficiency.
+   Sprokit processes rather than full track sets for efficiency.
 
 Vital Tools
 
@@ -73,7 +73,7 @@ Arrows: Core
 
  * Improved triangulate_landmarks implementation with an option to use
    RANSAC for robustness to outliers and additional checks to reject
-   poorly constrainted landmarks with minimal view angle variation.
+   poorly constrained landmarks with minimal view angle variation.
 
  * Switched track_set_impl from using a vector to store track_sptr to
    using an unordered map.  This allows for more efficient search for tracks.
@@ -84,7 +84,7 @@ Arrows: Core
  * Extracts ORB descriptors at KLT feature locations.  No longer runs ORB
    detector.
 
- * When triangulating switch to using squared rerpojection error for
+ * When triangulating switch to using squared re-projection error for
    efficiency.  Optionally pass initial guess for landmark position to
    RANSAC triangulation.  If location is already known or a good guess
    is available this can cut down the RANSAC loops considerably.
@@ -92,7 +92,7 @@ Arrows: Core
  * Optionally estimates a fundamental matrix before loop closure.  Accepts
    a loop only if the number of inlier matches is above a threshold.
 
- * Improved the efficiency of loop closing and descriptor comparision.
+ * Improved the efficiency of loop closing and descriptor comparison.
 
  * Added triangulate_landmarks method that takes a map of tracks rather
    than a track_set_sptr as input.  This is done for efficiency. Using
@@ -125,10 +125,10 @@ Arrows: Ceres
 
  * Improved speed of klt/ORB feature tracking by choosing which features
    to track and match with visual vocabulary node ID.  Made klt feature
-   tracker in sprokit return just the most recent tracked features, not
+   tracker in Sprokit return just the most recent tracked features, not
    the entire history at each step.  Made keyframe selector remove non
    keyframes temporally between keyframes to improve speed.  That way
-   matcher process needs only get keyframes.  After sprokit klt tracks
+   matcher process needs only get keyframes.  After Sprokit klt tracks
    and keyframe orb feature tracks are merged into a single final track set.
 
  * Added feature detection that adaptively changes thresholds to detect
@@ -140,7 +140,7 @@ Arrows: Ceres
    of cameras, cameras with too little coverage, landmarks without
    enough measurements to constrain them etc.  The corrections typically
    remove offending items.  Only the largest connected map component is
-   kept.  Underconstrained landmarks are removed etc.
+   kept.  Under-constrained landmarks are removed etc.
 
 Arrows: CUDA
 
@@ -152,7 +152,6 @@ Arrows: CUDA
 
  * Switch from std::map to std::unordered_map for internal bookkeeping for
    efficiency.
-
 
 Arrows: FFmpeg
 
@@ -189,17 +188,16 @@ Unit Tests
 
 General Documentation
 
-  * Refactored and improved documentation for video_input algo in vital.
+  * Re-factored and improved documentation for video_input algo in vital.
 
   * Greatly improved documentation of 'image' and 'image_of' classes in vital.
-
 
 Bug Fixes
 --------
 
 Arrows: VXL
 
- * Fixed issue with ffmpeg video source where the frame metadata was not
+ * Fixed issue with FFMPEG video source where the frame metadata was not
    getting set correctly.
 
 Arrows: OpenCV
