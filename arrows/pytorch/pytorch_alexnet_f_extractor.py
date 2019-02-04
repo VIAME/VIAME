@@ -9,25 +9,22 @@ from torchvision import models, transforms, datasets
 
 from PIL import Image as pilImage
 
+from kwiver.arrows.pytorch.parse_gpu_list import get_device
 from vital.types import BoundingBox
 
-class resnetDataLoader(data.Dataset):
-    def __init__(self, bbox_list, transform, frame_img, in_size, MOT_flag):
-        self._frame_img = pilImage.new("RGB", frame_img.size)
+class alexnetDataLoader(data.Dataset):# This is the same as the siamese one it was based on
+    def __init__(self, bbox_list, transform, frame_img, in_size):
+        self._frame_img = pilImage.new( "RGB", frame_img.size )
         self._frame_img.paste( frame_img )
         self._transform = transform
         self._bbox_list = bbox_list
-        self._mot_flag = MOT_flag
         self._in_size = in_size
 
     def __getitem__(self, index):
-        if self._mot_flag is True:
-            bb = self._bbox_list[index]
-        else:
-            bb = self._bbox_list[index].bounding_box()
+        bb = self._bbox_list[index].bounding_box()
 
         # unwrap
-        min_x = float( bb.min_x() ) 
+        min_x = float( bb.min_x() )
         min_y = float( bb.min_y() )
         max_x = float( bb.max_x() )
         max_y = float( bb.max_y() )
@@ -35,7 +32,7 @@ class resnetDataLoader(data.Dataset):
         c_x = ( min_x + max_x ) / 2
         c_y = ( min_y + max_y ) / 2
 
-        padding = 1.1 * max( max_x - min_x, max_y - min_y ) / 2
+        padding = 1.12 * max( max_x - min_x, max_y - min_y ) / 2
 
         # crop a square image
         im = self._frame_img.crop(
@@ -47,8 +44,8 @@ class resnetDataLoader(data.Dataset):
             )
         )
 
-        im = im.resize((self._in_size, self._in_size), pilImage.BILINEAR) # this should be >197
-        im.convert('RGB') # probably unneeded
+        im = im.resize((self._in_size, self._in_size), pilImage.BILINEAR)
+        im.convert('RGB')
 
         if self._transform is not None:
             im = self._transform(im)
@@ -56,51 +53,31 @@ class resnetDataLoader(data.Dataset):
         return im
 
     def __len__(self):
-        if self._mot_flag is True:
-            return len(self._bbox_list) 
-        else:
-            return self._bbox_list.size()
-    
+        return self._bbox_list.size()
 
-class pytorch_resnet_f_extractor(object):
+
+class pytorch_alexnet_f_extractor(object):
     """
-    Obtain the appearance features from a trained pytorch resnet50
+    Obtain the appearance features from a trained pytorch alexnet
     model
     """
 
-    def __init__(self, resnet_model_path, img_size, batch_size, GPU_list=None):
+    def __init__(self, alexnet_model_path, img_size, batch_size, GPU_list=None):
+        self._device, use_gpu_flag = get_device(GPU_list)
 
-        if GPU_list is None:
-            GPU_list = [x for x in range(torch.cuda.device_count())]
-            target_GPU = 0 # I assume this is just hardcoding in using the first GPU
-        else:
-            target_GPU = GPU_list[0]
+        # load the alexnet model. Maybe this shouldn't be hardcoded?
+        self._alexnet_model = models.alexnet()
+        print( alexnet_model_path )
+        weights = torch.load( alexnet_model_path )
 
-        self._device = torch.device("cuda:{}".format(self._target_GPU))
+        self._alexnet_model.load_state_dict( weights )
+        self._alexnet_model = nn.Sequential(*list(self._alexnet_model.children())[:-1])
 
-        # load the resnet50 model. Maybe this shouldn't be hardcoded?
-        self._resnet_model = models.resnet50().to(self._device)
-        # changing the number of output layers, to allow for loading the model
-        # might not be necessary 
-        num_ftrs = self._resnet_model.fc.in_features
-        self._resnet_model.fc = nn.Linear(num_ftrs, 46)
-        
+        self._alexnet_model.train( False ) # is this the same as eval() ?
+        self._alexnet_model.to(self._device) # move the model to the GPU
 
-        #snapshot = torch.load(resnet_model_path)
-        #self._resnet_model.load_state_dict(snapshot['state_dict']) # the snapshot is saved as a dict. state_dict is the key for model weights
-        #print('Model loaded from {}'.format(resnet_model_path))
-        #self._resnet_model = torch.nn.DataParallel(self._resnet_model, device_ids=GPU_list)
-
-        print( resnet_model_path )
-        weights = torch.load( resnet_model_path )['state_dict']
-        self._resnet_model.load_state_dict( weights )
-        self._resnet_model = nn.Sequential(*list(self._resnet_model.children())[:-1])
-
-        self._resnet_model.train( False ) # is this the same as eval() ?
-        self._resnet_model.cuda() # move the model to the GPU
- 
         self._transform = transforms.Compose([
-            transforms.Scale(img_size),# I'm not sure I like having this in here but I guess it makes it more general. Maybe we just pass in square images and let this resize.
+            transforms.Scale(img_size),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
@@ -119,14 +96,14 @@ class pytorch_resnet_f_extractor(object):
         return self._obtain_feature(bbox_list, MOT_flag)
 
     def _obtain_feature(self, bbox_list, MOT_flag):
-        
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        bbox_loader_class = resnetDataLoader(bbox_list, self._transform, self._frame, self._img_size, MOT_flag) 
+        bbox_loader_class = alexnetDataLoader(bbox_list, self._transform, self._frame, self._img_size)
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
+        torch.set_grad_enabled(False)
         for idx, imgs in enumerate(bbox_loader):
             v_imgs = imgs.to(self._device)
-            output = self._resnet_model(v_imgs)
+            output = self._alexnet_model(v_imgs)
 
             if idx == 0:
                 app_features = output.data
