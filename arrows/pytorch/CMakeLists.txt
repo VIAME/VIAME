@@ -10,13 +10,17 @@ if( KWIVER_ENABLE_PROCESSES )
     kwiver/processes/pytorch
     srnn_tracker )
 
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
+    kwiver/processes/pytorch
+    resnet_descriptors )
+
   kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_augmentation.py
     kwiver/processes/pytorch
     resnet_augmentation )
 
-  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/alexnet_descriptors.py
     kwiver/processes/pytorch
-    resnet_descriptors )
+    alexnet_descriptors )
 
   kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
     kwiver/processes/pytorch
@@ -34,6 +38,10 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_feature_extractor.p
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/augmented_resnet_feature_extractor.py
   kwiver/arrows/pytorch
   augmented_resnet_feature_extractor )
+  
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/alexnet_feature_extractor.py
+  kwiver/arrows/pytorch
+  alexnet_feature_extractor.py )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/grid.py
   kwiver/arrows/pytorch
