@@ -11,68 +11,6 @@ process detector_input
     :format                                    byte
   endblock
 
-process color_freq_filter
-  :: image_filter
-  :filter:type                                 vxl_color_commonality
-
-  block filter:vxl_color_commonality
-    :color_resolution_per_channel              16
-    :internsity_hist_resolution                32
-    :output_scale                              512
-  endblock
-
-connect from detector_input.image
-        to   color_freq_filter.image
-
-process rgb_to_grey
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :single_channel                            true
-  endblock
-
-connect from detector_input.image
-        to   rgb_to_grey.image
-
-process motion_filter
-  :: image_filter
-  :filter:type                                 vxl_average
-
-  block filter:vxl_average
-    :type                                      window
-    :window_size                               10
-    :round                                     false
-    :output_variance                           true
-  endblock
-
-connect from rgb_to_grey.image
-        to   motion_filter.image
-
-process float_to_byte
-  :: image_filter
-  :filter:type                                 vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                    byte
-    :scale_factor                              0.01
-  endblock
-
-connect from motion_filter.image
-        to   float_to_byte.image
-
-process image_merger
-  :: merge_images
-  :merge_images:type                           ocv
-
-connect from detector_input.image
-        to   image_merger.image1
-connect from color_freq_filter.image
-        to   image_merger.image2
-connect from float_to_byte.image
-        to   image_merger.image3
-
 process detector1
   :: image_object_detector
   :detector:type                               darknet
@@ -82,9 +20,9 @@ process detector1
 
   block detector:darknet
     # Network config, weights, and names
-    relativepath net_config  =                 models/generic_yolo_wtf.cfg
-    relativepath weight_file =                 models/generic_yolo_wtf.weights
-    relativepath class_names =                 models/generic_yolo_wtf.lbl
+    relativepath net_config  =                 models/generic_yolo_v2.cfg
+    relativepath weight_file =                 models/generic_yolo_v2.weights
+    relativepath class_names =                 models/generic_yolo_v2.lbl
 
     # Detector parameters
     :thresh                                    0.010
@@ -93,13 +31,13 @@ process detector1
 
     # Image scaling parameters
     :resize_option                             adaptive
-    :scale                                     1.0
+    :scale                                     1.25
     :chip_step                                 650
     :chip_edge_filter                          10
 
   endblock
 
-connect from image_merger.image
+connect from detector_input.image
         to   detector1.image
 
 process detector2
@@ -111,9 +49,9 @@ process detector2
 
   block detector:darknet
     # Network config, weights, and names
-    relativepath net_config  =                 models/generic_yolo_wtf.cfg
-    relativepath weight_file =                 models/generic_yolo_wtf.weights
-    relativepath class_names =                 models/generic_yolo_wtf.lbl
+    relativepath net_config  =                 models/generic_yolo_v2.cfg
+    relativepath weight_file =                 models/generic_yolo_v2.weights
+    relativepath class_names =                 models/generic_yolo_v2.lbl
 
     # Detector parameters
     :thresh                                    0.010
@@ -122,13 +60,13 @@ process detector2
 
     # Image scaling parameters
     :resize_option                             adaptive
-    :scale                                     1.0
+    :scale                                     1.25
     :chip_step                                 650
     :chip_edge_filter                          10
 
   endblock
 
-connect from image_merger.image
+connect from detector_input.image
         to   detector2.image
 
 process detector_output
