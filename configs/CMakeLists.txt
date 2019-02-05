@@ -204,7 +204,7 @@ if( VIAME_ENABLE_MATLAB )
     pipelines/detector_matlab_camtrawl.pipe )
 endif()
 
-if( VIAME_ENABLE_SCALLOP_TK AND VIAME_DOWNLOAD_MODELS-HABCAM )
+if( VIAME_ENABLE_SCALLOP_TK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/detector_scallop_tk.pipe )
 endif()
