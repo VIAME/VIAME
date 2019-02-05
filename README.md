@@ -119,80 +119,6 @@ just want to get started on training object detection and/or tracking models. If
 [Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
 [Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html).
 
-Another good initial test to make sure your installation is working is to run the
-[install-directory]/plugin_explorer.bat program. It will generate a prodigious number of log messages
-and then list all the loadable algorithms and any potential issues. The output should contain the following
-snippets for all algorithms which can be loaded:
-
-```
----- Algorithm search path
-
-Factories that create type "image_object_detector"
----------------------------------------------------------------
-Info on algorithm type "image_object_detector" implementation "darknet"
-  Plugin name: darknet      Version: 1.0
-    Description:        Image object detector using darknet
-    Creates concrete type: kwiver::arrows::darknet::darknet_detector
-    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_darknet_plugin.so
-    Plugin module name: arrows.darknet
-
-Factories that create type "track_features"
----------------------------------------------------------------
-Info on algorithm type "track_features" implementation "core"
-  Plugin name: core      Version: 1.0
-    Description:        Track features from frame to frame using feature detection, matching, and
-    loop closure.
-    Creates concrete type: kwiver::arrows::core::track_features_core
-    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_core_plugin.so
-    Plugin module name: arrows.core
-
-Factories that create type "video_input"
----------------------------------------------------------------
-Info on algorithm type "video_input" implementation "vxl"
-  Plugin name: vxl      Version: 1.0
-    Description:        Use VXL (vidl with FFMPEG) to read video files as a sequence of images.
-    Creates concrete type: kwiver::arrows::vxl::vidl_ffmpeg_video_input
-    Plugin loaded from file: /user/viame/build/install/lib/modules/kwiver_algo_vxl_plugin.so
-    Plugin module name: arrows.vxl
-
-etc...
-```
-
-The plugin loaded line represents the shared objects that have been detected
-and loaded. Each shared object can contain multiple algorithms. The algorithm
-list shows each concrete algorithm that could be loaded and declared in pipeline files.
-Check the log messages to see if there are any libraries that could not be located.
-
-Each algorithm listed consists of two names. The first name is the type of
-algorithm and the second is the actual implementation type. For example the
-entry image_object_detector:hough_circle_detector indicates that it implements
-the image_object_detector interface and it is a hough_circle_detector.
-
-Algorithms can be instantiated in any program and use a configuration based
-approach to select which concrete implementation to instantiate.
-
-For a simple pipeline test, go to -
-
-	cd [install-directory]/examples/hello_world_pipeline/
-
-or
-
-	cd [install-directory]/examples/detector_pipelines/
-
-In those directories, run one of the detector pipelines. Which build-level ENABLE_FLAGS
-you enabled will control which detector pipelines you can run, and only run scripts
-with all required dependencies enabled will show up in the install tree. Each script is
-just performing a call to pipeline runner under the hood, e.g.:
-
-	pipeline_runner -p [pipeline-file].pipe
-
-Output detections can then be viewed in the GUI, e.g., see:
-
-[install-directory]/examples/annotation_and_visualization/
-
-For a simpler run experience, this GUI can now also run all detection and tracking pipelines
-within it.
-
 
 Quick Build Instructions
 ------------------------
@@ -293,7 +219,3 @@ License and Citation
 --------------------
 
 VIAME is released under a BSD-3 license.
-
-Though a bit dated, a system paper summarizing VIAME's image processing pipelining
-architecture and baseline algorithms was published in IEEE WACV 2017 which is
-[available online here](https://data.kitware.com/api/v1/item/597817fa8d777f16d01e9e7f/download).
