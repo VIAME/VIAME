@@ -187,6 +187,7 @@ if( VIAME_DOWNLOAD_MODELS-MOUSS )
     pipelines/common_mouss_detector.pipe
     pipelines/common_mouss_detector_with_filter.pipe
     pipelines/index_mouss.pipe
+    pipelines/index_mouss.no_desc.pipe
     pipelines/index_mouss.trk.no_desc.pipe
     pipelines/index_mouss.trk.pipe
     pipelines/tracker_mouss.pipe )

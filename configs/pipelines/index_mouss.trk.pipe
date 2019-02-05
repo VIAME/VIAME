@@ -1,4 +1,4 @@
-# Ingest video pipeline using pytorch descriptors
+# Ingest video pipeline using pytorch descriptors and mouss tracks
 #
 # Runs a multi-node object tracking, descriptor generation, and indexing pipeline
 
