@@ -100,7 +100,7 @@ in the above pre-built binaries. This will hereby be refered to as the [install-
 One way to test the system is to see if you can run the examples in the
 [[install-directory]/examples](https://github.com/Kitware/VIAME/tree/master/examples)
 folder, for example, the pipelined object detectors or annotation GUI. If pursuing this route, we
-recommend reading the following:
+recommend reading the: 
 [Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
 [Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#video-and-image-search-using-viame), 
 [Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
