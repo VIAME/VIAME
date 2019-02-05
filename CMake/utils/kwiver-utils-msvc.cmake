@@ -99,6 +99,8 @@ function(kwiver_setup_msvc_env)
     endforeach()
     set(MSVC_ENV "${MSVC_ENV}\n")
   endforeach()
+  # Remove semi-colons at the end of lines
+  string(REPLACE ";\n" "\n" MSVC_ENV "${MSVC_ENV}")
   #message(STATUS "Setting MSVC environment to ${MSVC_ENV}")
 
   # Now loop over all the executable we made and provide a vcxproj file for them
