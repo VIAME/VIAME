@@ -78,7 +78,7 @@ public:
     f_frame(nullptr),
     f_software_context(nullptr),
     f_start_time(-1),
-    f_gop_size(-1),
+    f_backstep_size(-1),
     f_frame_number_offset(0),
     video_path(""),
     metadata(0),
@@ -109,8 +109,8 @@ public:
   // Presentation timestamp (in stream time base)
   int64_t f_pts;
 
-  // group of picture (GOP) size according to codec.
-  int64_t f_gop_size;
+  // Number of frames to back step when seek fails to land on frame before request
+  int64_t f_backstep_size;
 
   // Some codec/file format combinations need a frame number offset.
   // These codecs have a delay between reading packets and generating frames.
@@ -244,15 +244,15 @@ public:
       return false;
     }
 
-    // Get GOP size if available
+    // Use group of picture (GOP) size for seek back step if avaiable
     if ( this->f_video_encoding->gop_size > 0 )
     {
-      this->f_gop_size = this->f_video_encoding->gop_size;
+      this->f_backstep_size = this->f_video_encoding->gop_size;
     }
     else
     {
-      // 12 seems to be a fairly standard size
-      this->f_gop_size = 12;
+      // If GOP size not available use 12 which is a common GOP size.
+      this->f_backstep_size = 12;
     }
 
     this->f_video_stream = this->f_format_context->streams[this->f_video_index];
@@ -447,10 +447,13 @@ public:
         return false;
       }
 
-      frame_ts -= this->f_gop_size * this->stream_time_base_to_frame();
+      // Continue to make seek request further back until we land at a frame
+      // that is before the requested frame.
+      frame_ts -= this->f_backstep_size * this->stream_time_base_to_frame();
     }
     while( this->frame_number() > frame - 1 );
 
+    // Now advance forward until we reach the requested frame.
     while( this->frame_number() < frame - 1 )
     {
       if ( !this->advance() )

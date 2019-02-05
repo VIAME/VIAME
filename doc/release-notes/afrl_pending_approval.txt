@@ -18,5 +18,9 @@ Arrows - FFMPEG
 
  * Added metadata handling to FFMPEG implementation of video_input
 
+ * Improved the seek_frame call to seek to a nearby keyframe first before
+   advancing to the precise frame requested. This is much faster than running
+   through the entire video until hitting the requested frame.
+
 Fixes since last public release
 -------------------------------
