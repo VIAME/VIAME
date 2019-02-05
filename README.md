@@ -81,10 +81,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.9.8.10 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1htsqvuB8tK4e1SHU-8BS09m0ix7OU6vy)
 
 **Optional Patches:** <br>
-[MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download)
-[MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download)
-[HabCam Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8ea8d777f072b2b97fa/download)
-[Low GPU Memory Usage (2-4Gb) Patch, All Operating Systems](https://data.kitware.com/api/v1/item/5becf3f08d777f2179a9cbca/download) <br>
+[MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download) <br>
+[MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
+[HabCam Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8ea8d777f072b2b97fa/download) <br>
+[Low GPU Memory Usage (2-4Gb) Patch, All Operating Systems](https://data.kitware.com/api/v1/item/5becf3f08d777f2179a9cbca/download)
 
 
 Quick Run Instructions
