@@ -340,7 +340,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
 
-  if options.find_local_model:
+  if options.find_local_models:
     command += local_model_settings_list( options )
 
   if write_track_time:
