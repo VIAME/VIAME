@@ -17,14 +17,15 @@ There are a number of GUIs in the system. As part of the VIVIA package, the vpVi
 GUIs are useful for displaying detections, their respective probabilities, for running detections,
 and for making new annotations in video. There are additionally simpler GUIs which can be
 enabled in .pipe files that are a part of KWIVER. For examples on how to run both of these GUIs
-see the "annotation_and_visualization" example folder. vpView doesn't load imagery by default,
-but instead loads project files (details below) which are simple text files pointing to imagery,
-groundtruth, computed detections, and/or homographies for the input data. If you just want to
+see the "annotation_and_visualization" example folder. vpView can either be pointed directly to
+imagery, pointed to a compressed video file (see [install-dir]/configs/prj-*/for_videos) or given
+an input prj file that points to the location of input imagery and any optional settings (e.g.
+groundtruth, computed detections, and/or homographies for the input data). If you just want to
 use the tool to make annotations you don't need to specify the later three, and just need to
-set a DataSetSpecifier.
+set a DataSetSpecifier or use the File->New Project option to load imagery directly.
 
-There are 2 default run scripts in this folder. "launch_annotation_interface" launches the main vpview
-annotation and results display GUI while "run_display_pipe" runs the simpler in-pipeline
+There are 2 default run scripts in this folder. "launch_annotation_interface" launches the main
+vpview annotation and results display GUI while "run_display_pipe" runs the simpler in-pipeline
 display GUI. Lastly, "run_chip_pipe" creates image chips and "run_draw_pipe" does the same
 as display, only writing out images with boxes drawn on top of them to file.
 
@@ -38,14 +39,19 @@ vpView Annotation Process Overview
 .. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5b20cb448d777f2e62256215/download
 .. _Example Video Overview (MP4): https://data.kitware.com/api/v1/item/5b20c8aa8d777f2e62256212/download
 
+************************************
+Notable Annotation GUI Shortcut Keys
+************************************
+
+* *r* = Zoom back to the full image
+* *hold ctrl + drag* = create a box in annotation mode (create detection/track)
+
 ********************************
 vpView GUI Project File Overview
 ********************************
 
-vpView does not open videos directly, but instead opens prj files containing a pointer
-to any imagery and detections we want to load. Listed below are the parameters available in
-the vpView prj file as a quick reference. For those not familiary with the tool, downloading the
-above manual is best.
+Examples of the optional contents of loadable prj files are listed below for quick reference.
+For those not familiary with the tool, downloading the above manual is best.
 
 Note: The list is not complete, but currently focusing on the most used (and new) parameters
 
