@@ -250,6 +250,39 @@ def video_frame_rate_settings_list( options ):
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
   return output
 
+def local_model_settings_list( options ):
+  output = []
+
+  model_list = [ 'deep_training/models/yolo_final.weights', \
+                 'deep_training/models/yolo.backup', \
+                 'deep_training/models/yolo_v2.backup' ]
+  config_list = [ 'deep_training/yolo.cfg', \
+                  'deep_training/yolo.cfg', \
+                  'deep_training/yolo_v2.cfg' ]
+  label_list = [ 'deep_training/yolo.lbl', \
+                 'deep_training/yolo.lbl', \
+                 'deep_training/yolo_v2.lbl' ]
+
+  for i, model_fn in enumerate( model_list ):
+    if os.path.exists( model_fn ):
+      output += fset( 'detector:detector:darknet:net_config=' + config_list[i] )
+      output += fset( 'detector:detector:darknet:weight_file=' + model_list[i] )
+      output += fset( 'detector:detector:darknet:class_names=' + label_list[i] )
+
+      output += fset( 'detector1:detector:darknet:net_config=' + config_list[i] )
+      output += fset( 'detector1:detector:darknet:weight_file=' + model_list[i] )
+      output += fset( 'detector1:detector:darknet:class_names=' + label_list[i] )
+
+      output += fset( 'detector2:detector:darknet:net_config=' + config_list[i] )
+      output += fset( 'detector2:detector:darknet:weight_file=' + model_list[i] )
+      output += fset( 'detector2:detector:darknet:class_names=' + label_list[i] )
+
+  if len( output ) == 0:
+    exit_with_error( "Could not find local detection model" )
+
+  return output
+
+
 def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
@@ -306,6 +339,9 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
+
+  if options.find_local_model:
+    command += local_model_settings_list( options )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
@@ -491,6 +527,9 @@ if __name__ == "__main__" :
 
   parser.add_argument("--ball-tree", dest="ball_tree", action="store_true",
                       help="Use a ball tree for the searchable index")
+
+  parser.add_argument("--find-local-models", dest="find_local_models", action="store_true",
+                      help="Automatically detect the location of local detection models.")
 
   parser.add_argument("--debug", dest="debug", action="store_true",
                       help="Run with debugger attached to process")

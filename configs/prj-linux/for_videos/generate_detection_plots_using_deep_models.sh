@@ -5,7 +5,17 @@ export VIAME_INSTALL=/opt/noaa/viame
 
 # Core processing options
 export INPUT_DIRECTORY=videos
-export OBJECT_LIST=pristipomoides_auricilla,pristipomoides_zonatus,pristipomoides_sieboldii,etelis_carbunculus,etelis_coruscans,naso,aphareus_rutilans,seriola,hyporthodus_quernus,caranx_melampygus
+export OBJECT_LIST=\
+pristipomoides_auricilla,\
+pristipomoides_zonatus,\
+pristipomoides_sieboldii,\
+etelis_carbunculus,\
+etelis_coruscans,\
+naso,\
+aphareus_rutilans,\
+seriola,\
+hyporthodus_quernus,\
+caranx_melampygus
 export FRAME_RATE=5
 export DETECTION_THRESHOLD=0.25
 

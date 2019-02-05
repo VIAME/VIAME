@@ -24,8 +24,5 @@ python ${VIAME_INSTALL}/configs/process_video.py \
   -l ${INPUT_LIST} -ifrate ${INPUT_FRAME_RATE} -frate ${PROCESS_FRAME_RATE} \
   -p pipelines/detector_default.pipe \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU} \
-  -s detector:detector:darknet:net_config=deep_training/yolo.cfg \
-  -s detector:detector:darknet:weight_file=deep_training/models/yolo.backup \
-  -s detector:detector:darknet:class_names=deep_training/yolo.lbl \
-  -s detector:detector:darknet:scale=1.4 \
+  --find-local-models \
   -s detector_writer:file_name=deep_detections.csv
