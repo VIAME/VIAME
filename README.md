@@ -86,6 +86,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [HabCam Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8ea8d777f072b2b97fa/download) <br>
 [Low GPU Memory Usage (2-4Gb) Patch, All Operating Systems](https://data.kitware.com/api/v1/item/5becf3f08d777f2179a9cbca/download)
 
+Note: To install Add-Ons, copy them into your install tree. To use project files extract them into your working directory of choice.
+
 
 Quick Run Instructions
 ----------------------
