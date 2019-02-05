@@ -111,6 +111,172 @@ void random_grey_conversion( const vil_image_view<Type>& src,
   }
 }
 
+// Calculate the values of our image percentiles from x sampling points
+template <typename PixType>
+void sample_and_sort_image( const vil_image_view< PixType >& src,
+                            std::vector< PixType >& dst,
+                            unsigned int sampling_points,
+                            bool remove_extremes )
+{
+  if( src.ni() * src.nj() < sampling_points )
+  {
+    sampling_points = src.ni() * src.nj();
+  }
+
+  if( sampling_points == 0 )
+  {
+    return;
+  }
+
+  const unsigned scanning_area = src.size();
+  const unsigned ni = src.ni();
+  const unsigned nj = src.nj();
+  const unsigned np = src.nplanes();
+  const unsigned pixel_step = scanning_area / sampling_points;
+
+  dst.resize( sampling_points * np );
+
+  unsigned position = 0;
+
+  for( unsigned p = 0; p < np; p++ )
+  {
+    for( unsigned s = 0; s < sampling_points; s++, position += pixel_step )
+    {
+      unsigned i = position % ni;
+      unsigned j = ( position / ni ) % nj;
+      dst[ np*s + p ] = src( i, j, p );
+    }
+  }
+
+  std::sort( dst.begin(), dst.end() );
+
+  if( remove_extremes &&
+      dst[ dst.size()-1 ] == std::numeric_limits< PixType >::max() )
+  {
+    for( unsigned i = 1; i < dst.size(); ++i )
+    {
+      if( dst[dst.size() - i] != std::numeric_limits< PixType >::max() )
+      {
+        dst.erase( dst.end() - i, dst.end() );
+        break;
+      }
+    }
+  }
+
+  if( remove_extremes &&
+      dst[0] == static_cast< PixType >( 0 ) )
+  {
+    for( unsigned i = 1; i < dst.size(); ++i )
+    {
+      if( dst[i] != 0 )
+      {
+        dst.erase( dst.begin(), dst.begin() + i );
+        break;
+      }
+    }
+  }
+}
+
+template <typename PixType>
+void get_image_percentiles( const vil_image_view< PixType >& src,
+                            const std::vector< double >& percentiles,
+                            std::vector< PixType >& dst,
+                            unsigned sampling_points,
+                            bool remove_extremes )
+{
+  std::vector< PixType > sorted_samples;
+  sample_and_sort_image( src, sorted_samples, sampling_points, remove_extremes );
+  dst.resize( percentiles.size() );
+
+  double sampling_points_m1 = static_cast<double>(sorted_samples.size()-1);
+
+  for( unsigned i = 0; i < percentiles.size(); i++ )
+  {
+    unsigned ind = static_cast<unsigned>( sampling_points_m1 * percentiles[i] + 0.5 );
+    dst[i] = sorted_samples[ind];
+  }
+}
+
+template<typename PixType>
+void percentile_threshold_above( const vil_image_view< PixType >& src,
+                                 const std::vector< double >& percentiles,
+                                 vil_image_view< bool >& dst,
+                                 unsigned sampling_points )
+{
+  // Calculate thresholds
+  std::vector< PixType > thresholds;
+  get_image_percentiles( src, percentiles, thresholds, sampling_points );
+  dst.set_size( src.ni(), src.nj(), percentiles.size() );
+
+  // Perform thresholding
+  for( unsigned i = 0; i < thresholds.size(); i++ )
+  {
+    vil_image_view< bool > output_plane = vil_plane( dst, i );
+    vil_threshold_above( src, output_plane, thresholds[i] );
+  }
+}
+
+template <typename InputType, typename OutputType>
+void percentile_scale_image( const vil_image_view< InputType >& src,
+                             vil_image_view< OutputType >& dst,
+                             double lower, double upper,
+                             unsigned sampling_points,
+                             bool ignore_extremes = true )
+{
+  std::vector< double > percentiles( 2, 0.0 );
+  percentiles[0] = lower;
+  percentiles[1] = upper;
+
+  std::vector< InputType > per_values;
+
+  get_image_percentiles( src, percentiles, per_values, sampling_points, ignore_extremes );
+
+  OutputType max_val = std::numeric_limits< OutputType >::max();
+
+  InputType lower_bound = per_values[0];
+  InputType upper_bound = per_values[1];
+
+  double scale;
+
+  if( per_values[1] - per_values[0] > 0 )
+  {
+    scale = ( static_cast< double >( max_val ) + 0.5 ) / ( per_values[1] - per_values[0] );
+  }
+  else
+  {
+    scale = static_cast< double >( max_val ) / std::numeric_limits< InputType >::max();
+  }
+
+  unsigned ni = src.ni(), nj = src.nj(), np = src.nplanes();
+  dst.set_size( ni, nj, np );
+  std::ptrdiff_t istep = src.istep(), jstep = src.jstep(), pstep = src.planestep();
+
+  const InputType* plane = src.top_left_ptr();
+  for( unsigned p=0; p<np; ++p, plane += pstep )
+  {
+    const InputType* row = plane;
+    for( unsigned j=0; j<nj; ++j, row += jstep )
+    {
+      const InputType* pixel = row;
+      for( unsigned i=0; i<ni; ++i, pixel+=istep )
+      {
+        if( *pixel < lower_bound )
+        {
+          dst( i, j, p ) = 0;
+        }
+        else if( *pixel > upper_bound )
+        {
+          dst( i, j, p ) = std::numeric_limits< OutputType >::max();
+        }
+        else
+        {
+          dst( i, j, p ) = static_cast< OutputType >( ( *pixel - lower_bound ) * scale );
+        }
+      }
+    }
+  }
+}
+
 } // end anonoymous namespace
 
 // --------------------------------------------------------------------------------------
@@ -124,6 +290,7 @@ public:
    , single_channel( false )
    , scale_factor( 0.0 )
    , random_greyscale( 0.0 )
+   , percentile_norm( -1.0 )
   {
   }
 
@@ -135,6 +302,7 @@ public:
   bool single_channel;
   double scale_factor;
   double random_greyscale;
+  double percentile_norm;
 };
 
 // --------------------------------------------------------------------------------------
@@ -167,6 +335,9 @@ convert_image
   config->set_value( "random_greyscale", d->random_greyscale,
     "Convert input image to a 3-channel greyscale image randomly with this percentage "
     "between 0.0 and 1.0. This is used for machine learning augmentation." );
+  config->set_value( "percentile_norm", d->percentile_norm,
+    "If set, perform percentile normalization such that the output image's min and max "
+    "value correspond to this value to 1.0 minus this value percntile in the input image." );
 
   return config;
 }
@@ -186,6 +357,13 @@ convert_image
   d->single_channel = config->get_value< bool >( "single_channel" );
   d->scale_factor = config->get_value< double >( "scale_factor" );
   d->random_greyscale = config->get_value< double >( "random_greyscale" );
+  d->percentile_norm = config->get_value< double >( "percentile_norm" );
+
+  // Adjustment in case user specified 1% instead of 0.01
+  if( d->percentile_norm >= 0.5 )
+  {
+    d->percentile_norm /= 100.;
+  }
 }
 
 bool
@@ -217,7 +395,12 @@ convert_image
     typedef vil_pixel_format_type_of<T >::component_type opix_t;       \
     vil_image_view< opix_t > output;                                   \
                                                                        \
-    if( d->scale_factor == 0.0 )                                       \
+    if( d->percentile_norm >= 0.0 )                                    \
+    {                                                                  \
+      percentile_scale_image( input, output,                           \
+        d->percentile_norm, 1.0 - d->percentile_norm, 1e8 );           \
+    }                                                                  \
+    else if( d->scale_factor == 0.0 )                                  \
     {                                                                  \
       vil_convert_cast( input, output );                               \
     }                                                                  \
