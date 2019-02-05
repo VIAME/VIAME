@@ -250,6 +250,28 @@ def video_frame_rate_settings_list( options ):
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
   return output
 
+def local_model_settings_list( options ):
+  output = []
+
+  model_list = [ 'deep_training/models/yolo.backup', \
+                 'deep_training/models/yolo.final_weights', \
+                 '3' ]
+  config_list = [ 'deep_training/yolo.cfg', \
+                  'deep_training/yolo.cfg', \
+                  '3' ]
+  label_list = [ 'deep_training/yolo.lbl', \
+                 'deep_training/yolo.lbl', \
+                 'deep_training/yolo.lbl' ]
+
+  for model_fn, i in enumerate( model_list ):
+    []
+
+  if len( output ):
+    
+
+  return output
+
+
 def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
@@ -306,6 +328,9 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
+
+  if options.find_local_model:
+    command += local_model_settings_list( options )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
@@ -491,6 +516,9 @@ if __name__ == "__main__" :
 
   parser.add_argument("--ball-tree", dest="ball_tree", action="store_true",
                       help="Use a ball tree for the searchable index")
+
+  parser.add_argument("--find-local-models", dest="find_local_models", action="store_true",
+                      help="Automatically detect the location of local detection models.")
 
   parser.add_argument("--debug", dest="debug", action="store_true",
                       help="Run with debugger attached to process")
