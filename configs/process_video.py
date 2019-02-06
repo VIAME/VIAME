@@ -582,6 +582,7 @@ if __name__ == "__main__" :
                          "a failed operation in the past and need to re-log or restart." )
       else:
         exit_with_error( "Unable to initialize database" )
+    log_info( lb1 )
 
   # Call processing pipelines on all input data
   if process_data:
@@ -607,12 +608,10 @@ if __name__ == "__main__" :
     if len( video_list ) == 0:
       exit_with_error( "No videos found for ingest in given folder, exiting." )
     elif not is_image_list:
-      video_str = " video" if len( video_list ) == 1 else " videos"
       if not args.init_db:
         log_info( lb1 )
+      video_str = " video" if len( video_list ) == 1 else " videos"
       log_info( "Processing " + str( len( video_list ) ) + video_str + lb2 )
-    elif args.init_db:
-      log_info( lb1 )
 
     # Get required paths
     pipeline_loc = args.pipeline
