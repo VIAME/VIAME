@@ -1,4 +1,4 @@
-KWIVER v1.4.0 Release Notes
+KWIVER v1.3.1 Release Notes
 ===========================
 
 This is a minor release of KWIVER that provides both new functionality and
@@ -12,3 +12,9 @@ Bug Fixes since v1.3.0
 
  * Fixed issue where ffmpeg_video_input does not set the depth step for
    frame images correctly.
+
+ * Fixed an issue in the MSVC environment in which and extra ";" was
+   appended to each variable
+
+ * Fixed an issue in the MSVC environment in which redefining variables
+   from setup_KWIVER.bat would append to the old value instead of replacing.
