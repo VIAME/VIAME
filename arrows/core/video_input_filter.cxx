@@ -324,7 +324,7 @@ video_input_filter
       return false;
     }
   }
-  while ( ( ts.get_frame() + 1 ) % d->c_frame_skip != 0 ||
+  while ( ( ts.get_frame() - 1 ) % d->c_frame_skip != 0 ||
           ts.get_frame() < d->c_start_at_frame );
 
   // set the frame time base on rate if missing
@@ -346,7 +346,7 @@ video_input_filter
   // Check if requested frame is valid
   if ( (d->c_stop_after_frame != 0 && d->c_stop_after_frame < frame_number )
         || frame_number < d->c_start_at_frame
-        || frame_number % d->c_frame_skip != 0 )
+        || ( frame_number - 1 ) % d->c_frame_skip != 0 )
   {
     return false;
   }

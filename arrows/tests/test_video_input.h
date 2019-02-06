@@ -236,7 +236,7 @@ void test_read_video_nth_frame( kwiver::vital::algo::video_input& vi )
     ++num_frames;
     EXPECT_EQ( expected_frame_num, ts.get_frame() )
       << "Frame numbers should be sequential";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+    EXPECT_EQ( expected_frame_num, decode_barcode(*img) )
       << "Frame number should match barcode in frame image";
     expected_frame_num += 3;
   }

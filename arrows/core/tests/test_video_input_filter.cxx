@@ -443,6 +443,61 @@ TEST_F(video_input_filter, metadata_map_sublist)
 }
 
 // ----------------------------------------------------------------------------
+TEST_F(video_input_filter, read_video_nth_frame_output)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vif.open( list_file );
+
+  test_read_video_nth_frame( vif );
+
+  vif.close();
+}
+
+TEST_F(video_input_filter, seek_nth_frame_output)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vif.open( list_file );
+
+  test_seek_nth_frame( vif );
+
+  vif.close();
+}
+
+// ----------------------------------------------------------------------------
 TEST_F(video_input_filter, test_capabilities)
 {
   // Make config block
