@@ -1,4 +1,10 @@
 
+v0.9.9.1 - 2/6/2019
+===================
+
+
+-Fix issues in prior release dealing with default indexing option and finding local models
+
 
 v0.9.9.0 - 2/4/2019
 ===================
