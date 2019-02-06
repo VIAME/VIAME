@@ -72,15 +72,22 @@ function(kwiver_setup_msvc_env)
       # replace batch terms with msvc terms
       string(REPLACE "%config%" "$(Configuration)" _val "${_val}")
       string(REPLACE "%~dp0" "${batch_dir}" _val "${_val}")
-      # remove any recursive sets
+      # check for any recursive sets
       # such as PATH=%something%;%PATH% <-- remove the %PATH%
+      string(FIND "${_val}" "%${_var}%" idx)
+      # remove recursive sets
       string(REPLACE "%${_var}%" "" _val "${_val}")
       #message(STATUS "I am setting ${_var} to ${_val}")
       # Keep track of setting the same variable over and over
       if(NOT ${_var} IN_LIST _env_variables)
         list(APPEND _env_variables "${_var}")
       endif()
-      list(APPEND "_env_${_var}" "${_val}")
+      # if a recursive variable was found append values, else replace
+      if("${idx}" GREATER -1)
+        list(APPEND "_env_${_var}" "${_val}")
+      else()
+        set("_env_${_var}" "${_val}")
+      endif()
     endforeach()
   endforeach()
   # Consolidate setting env variables into one line
@@ -92,6 +99,8 @@ function(kwiver_setup_msvc_env)
     endforeach()
     set(MSVC_ENV "${MSVC_ENV}\n")
   endforeach()
+  # Remove semi-colons at the end of lines
+  string(REPLACE ";\n" "\n" MSVC_ENV "${MSVC_ENV}")
   #message(STATUS "Setting MSVC environment to ${MSVC_ENV}")
 
   # Now loop over all the executable we made and provide a vcxproj file for them
