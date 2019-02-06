@@ -62,13 +62,16 @@ def log_info( msg ):
 
 # Create a directory if it doesn't exist
 def create_dir( dirname, logging=True, recreate=False, prompt=True ):
-  if recreate and os.path.exists( dirname ):
-    if not prompt or database_tool.query_yes_no( lb1 + "Reset folder: " + dirname + "?" ):
-      if logging:
-        log_info( "Removing " + dirname + lb )
-      shutil.rmtree( dirname )
-    elif prompt:
-      sys.exit(0)
+  if recreate:
+    if os.path.exists( dirname ):
+      if not prompt or database_tool.query_yes_no( lb1 + "Reset folder: " + dirname + "?" ):
+        if logging:
+          log_info( "Removing " + dirname + lb )
+        shutil.rmtree( dirname )
+      elif prompt:
+        sys.exit(0)
+    else:
+      log_info( lb )
   if not os.path.exists( dirname ):
     if logging:
       log_info( "Creating " + dirname + lb )
