@@ -605,7 +605,9 @@ if __name__ == "__main__" :
       exit_with_error( "No videos found for ingest in given folder, exiting." )
     elif not is_image_list:
       video_str = " video" if len( video_list ) == 1 else " videos"
-      log_info( lb1 + "Processing " + str( len( video_list ) ) + video_str + lb2 )
+      if not args.init_db:
+        log_info( lb1 )
+      log_info( "Processing " + str( len( video_list ) ) + video_str + lb2 )
     elif args.init_db:
       log_info( lb1 )
 
