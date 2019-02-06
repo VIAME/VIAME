@@ -101,7 +101,8 @@ class AlexNetFeatureExtractor(object):
         weights = torch.load( alexnet_model_path )
 
         self._alexnet_model.load_state_dict( weights )
-        self._alexnet_model = nn.Sequential(*list(self._alexnet_model.children())[:-1])
+        new_classifier = nn.Sequential(*list(self._alexnet_model.classifier.children())[:-1])
+        self._alexnet_model.classifier = new_classifier
 
         self._alexnet_model.train( False ) # is this the same as eval() ?
         self._alexnet_model.to(self._device) # move the model to the GPU
