@@ -18,5 +18,10 @@ Arrows - FFMPEG
 
  * Added metadata handling to FFMPEG implementation of video_input
 
+Arrows - OpenCV
+
+ * Added an option to the FLANN-based matcher to use binary descriptors
+
+
 Fixes since last public release
 -------------------------------
