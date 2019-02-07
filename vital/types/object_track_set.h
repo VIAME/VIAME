@@ -101,7 +101,12 @@ public:
   {
     return time_;
   }
-  
+
+  vital::timestamp timestamp() const
+  {
+    return vital::timestamp( time_, this->frame() );
+  }
+
   void set_time( time_usec_t time )
   {
     time_ = time;
