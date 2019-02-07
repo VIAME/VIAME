@@ -4,16 +4,13 @@
 
 # Paths to required dependencies, set these
 export PYTHON_INSTALL_DIR=/opt/noaa/python3
-export CUDA_INSTALL_DIR=/usr/local/cuda
+
+# Does this actually need to be set? Answer: Only on some OS.
+# export CUDA_INSTALL_DIR=/usr/local/cuda
 
 # Check variable paths
 if [ ! -d "$PYTHON_INSTALL_DIR" ]; then
   echo "Python directory specified in setup_viame.sh does not exist"
-  return
-fi
-
-if [ ! -d "$CUDA_INSTALL_DIR" ]; then
-  echo "CUDA directory specified in setup_viame.sh does not exist"
   return
 fi
 
@@ -56,7 +53,9 @@ export KWIVER_DEFAULT_LOG_LEVEL=debug
 # Paths for matlab (empty if not built with matlab)
 
 # Paths for CUDA libraries
-export LD_LIBRARY_PATH=$CUDA_INSTALL_DIR/lib64:$LD_LIBRARY_PATH
+if [ -d "$CUDA_INSTALL_DIR" ]; then
+  export LD_LIBRARY_PATH=$CUDA_INSTALL_DIR/lib64:$LD_LIBRARY_PATH
+fi
 
 # Paths for adding exes to path (must occur after python and matlab)
 export PATH=$this_dir/bin:$PATH
