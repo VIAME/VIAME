@@ -47,7 +47,7 @@ export PYTHONPATH=$this_dir/lib/python3.6m/dist-packages:$PYTHONPATH
 export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
 export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
 
-# Set default log levelecho "CUDA directory specified in setup_viame.sh does not exist"
+# Set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=debug
 
 # Paths for matlab (empty if not built with matlab)
