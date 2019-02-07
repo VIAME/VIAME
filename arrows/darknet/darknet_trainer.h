@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ namespace kwiver {
 namespace arrows {
 namespace darknet {
 
-// ----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 /**
  * @brief Darknet Training Utility Class
  */
@@ -58,11 +58,20 @@ public:
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
   virtual void
-  train_from_disk(vital::category_hierarchy_sptr object_labels,
+  add_data_from_disk(vital::category_hierarchy_sptr object_labels,
     std::vector< std::string > train_image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
     std::vector< std::string > test_image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
+
+  virtual void
+  add_data_from_memory(vital::category_hierarchy_sptr object_labels,
+    std::vector< kwiver::vital::image_container_sptr > train_images,
+    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+    std::vector< kwiver::vital::image_container_sptr > test_images,
+    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
+
+  virtual void update_model();
 
 private:
 

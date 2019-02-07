@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,10 +82,13 @@ public:
     , m_overlap_required( 0.05 )
     , m_random_int_shift( 0.00 )
     , m_chips_w_gt_only( false )
+    , m_ignore_category( "false_alarm" )
     , m_crop_left( false )
     , m_min_train_box_length( 5 )
     , m_batch_size( 64 )
     , m_batch_subdivisions( 16 )
+    , m_image_loaded_successfully( false )
+    , m_channel_count( 0 )
   {}
 
   ~priv()
@@ -107,18 +110,26 @@ public:
   double m_overlap_required;
   double m_random_int_shift;
   bool m_chips_w_gt_only;
+  std::string m_ignore_category;
   bool m_crop_left;
   int m_min_train_box_length;
   int m_batch_size;
   int m_batch_subdivisions;
 
   // Helper functions
-  std::vector< std::string > format_images( std::string folder,
+  void format_images(
+    std::string folder,
     std::string prefix,
     std::vector< std::string > image_names,
     std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
-    vital::category_hierarchy_sptr object_labels,
-    unsigned& channel_count );
+    vital::category_hierarchy_sptr object_labels );
+
+  void format_mat_image(
+    std::string folder,
+    std::string prefix,
+    const cv::Mat& image,
+    kwiver::vital::detected_object_set_sptr groundtruth,
+    vital::category_hierarchy_sptr object_labels );
 
   bool print_detections(
     std::string filename,
@@ -136,6 +147,10 @@ public:
 
   int filter_count(
     int nclasses );
+
+  vital::category_hierarchy_sptr m_object_labels;
+  bool m_image_loaded_successfully;
+  unsigned m_channel_count;
 
   kwiver::vital::algo::image_io_sptr m_image_io;
   kwiver::vital::logger_handle_t m_logger;
@@ -172,7 +187,8 @@ darknet_trainer
   config->set_value( "train_directory", d->m_train_directory,
     "Temp directory for all files used in training." );
   config->set_value( "model_type", d->m_model_type,
-    "Type of model (values understood are \"yolov2\" and \"yolov3\" (the default))" );
+    "Type of model (values understood are \"yolov2\" and \"yolov3\" [the "
+    "default])." );
   config->set_value( "skip_format", d->m_skip_format,
     "Skip file formatting, assume that the train_directory is pre-populated "
     "with all files required for model training." );
@@ -197,6 +213,8 @@ darknet_trainer
   config->set_value( "chips_w_gt_only", d->m_chips_w_gt_only,
     "Only chips with valid groundtruth objects on them will be included in "
     "training." );
+  config->set_value( "ignore_category", d->m_ignore_category,
+    "Ignore this category in training, but still include chips around it." );
   config->set_value( "crop_left", d->m_crop_left,
     "Crop out the left portion of imagery, only using the left side." );
   config->set_value( "min_train_box_length", d->m_min_train_box_length,
@@ -239,6 +257,7 @@ darknet_trainer
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
+  this->d->m_ignore_category = config->get_value< bool >( "ignore_category" );
   this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
   this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
   this->d->m_batch_size  = config->get_value< int >( "batch_size" );
@@ -247,6 +266,36 @@ darknet_trainer
   kwiver::vital::algo::image_io_sptr io;
   kwiver::vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
   d->m_image_io = io;
+
+  if( !d->m_skip_format )
+  {
+    // Delete and reset folder contents
+    if( boost::filesystem::exists( d->m_train_directory ) &&
+        boost::filesystem::is_directory( d->m_train_directory ) )
+    {
+      boost::filesystem::remove_all( d->m_train_directory );
+
+      if( boost::filesystem::exists( d->m_train_directory ) )
+      {
+        LOG_ERROR( d->m_logger, "Unable to delete pre-existing training dir" );
+        return;
+      }
+    }
+
+    std::vector< std::string > dirs_to_make( 5 );
+
+    dirs_to_make[0] = d->m_train_directory;
+    dirs_to_make[1] = d->m_train_directory + div + "train_images";
+    dirs_to_make[2] = d->m_train_directory + div + "train_labels";
+    dirs_to_make[3] = d->m_train_directory + div + "test_images";
+    dirs_to_make[4] = d->m_train_directory + div + "test_labels";
+
+    for( unsigned i = 0; i < dirs_to_make.size(); ++i )
+    {
+      boost::filesystem::path dir( dirs_to_make[i] );
+      boost::filesystem::create_directories( dir );
+    }
+  }
 }
 
 
@@ -278,42 +327,71 @@ darknet_trainer
 // -----------------------------------------------------------------------------
 void
 darknet_trainer
-::train_from_disk(
+::add_data_from_disk(
   vital::category_hierarchy_sptr object_labels,
   std::vector< std::string > train_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
   std::vector< std::string > test_image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
 {
+  if( object_labels )
+  {
+    d->m_object_labels = object_labels;
+  }
+
   // Format images correctly in tmp folder
   if( !d->m_skip_format )
   {
-    // Delete and reset folder contents
-    if( boost::filesystem::exists( d->m_train_directory ) &&
-        boost::filesystem::is_directory( d->m_train_directory ) )
+    d->format_images( d->m_train_directory, "train",
+      train_image_names, train_groundtruth, object_labels );
+    d->format_images( d->m_train_directory, "test",
+      test_image_names, test_groundtruth, object_labels );
+  }
+}
+
+void
+darknet_trainer
+::add_data_from_memory(
+  vital::category_hierarchy_sptr object_labels,
+  std::vector< kwiver::vital::image_container_sptr > train_images,
+  std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+  std::vector< kwiver::vital::image_container_sptr > test_images,
+  std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth)
+{
+  if( object_labels )
+  {
+    d->m_object_labels = object_labels; 
+  }
+
+  if( !d->m_skip_format )
+  {
+    for( unsigned i = 0; i < train_images.size(); ++i )
     {
-      boost::filesystem::remove_all( d->m_train_directory );
+      cv::Mat image = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        train_images[i]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-      if( boost::filesystem::exists( d->m_train_directory ) )
-      {
-        LOG_ERROR( d->m_logger, "Unable to delete pre-existing training dir" );
-        return;
-      }
+      d->format_mat_image( d->m_train_directory, "train",
+        image, train_groundtruth[i], object_labels );
     }
+    for( unsigned i = 0; i < test_images.size(); ++i )
+    {
+      cv::Mat image = kwiver::arrows::ocv::image_container::vital_to_ocv(
+        test_images[i]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
-    boost::filesystem::path dir( d->m_train_directory );
-    boost::filesystem::create_directories( dir );
+      d->format_mat_image( d->m_train_directory, "test",
+        image, test_groundtruth[i], object_labels );
+    }
+  }
+}
 
-    // Format train images
-    std::vector< std::string > train_list, test_list;
-    unsigned channel_count;
+void
+darknet_trainer
+::update_model()
+{
+  if( !d->m_skip_format )
+  {
+    int nfilters = d->filter_count( d->m_object_labels->child_class_names().size() );
 
-    train_list = d->format_images( d->m_train_directory, "train",
-      train_image_names, train_groundtruth, object_labels, channel_count );
-    test_list = d->format_images( d->m_train_directory, "test",
-      test_image_names, test_groundtruth, object_labels, channel_count );
-
-    int nfilters = d->filter_count( object_labels->child_class_names().size() );
     // Generate train/test image list and header information
     //
     // (This code should be re-written at some point, converted to C++)
@@ -328,13 +406,13 @@ darknet_trainer
     std::string header_cmd = "dth.generate_yolo_headers(";
 
     std::string header_args = eq + d->m_train_directory + eq + ",[";
-    for( auto label : object_labels->child_class_names() )
+    for( auto label : d->m_object_labels->child_class_names() )
     {
       header_args = header_args + eq + label + eq + ",";
     }
     header_args = header_args +"]," + std::to_string( d->m_resize_i );
     header_args = header_args + "," + std::to_string( d->m_resize_j );
-    header_args = header_args + "," + std::to_string( channel_count );
+    header_args = header_args + "," + std::to_string( d->m_channel_count );
     header_args = header_args + "," + std::to_string( nfilters );
     header_args = header_args + "," + std::to_string( d->m_batch_size );
     header_args = header_args + "," + std::to_string( d->m_batch_subdivisions );
@@ -384,36 +462,20 @@ darknet_trainer
 }
 
 // -----------------------------------------------------------------------------
-std::vector< std::string >
+void
 darknet_trainer::priv
 ::format_images( std::string folder, std::string prefix,
   std::vector< std::string > image_names,
   std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
-  vital::category_hierarchy_sptr object_labels,
-  unsigned& channel_count )
+  vital::category_hierarchy_sptr object_labels )
 {
-  std::vector< std::string > output_fns;
-
-  std::string image_folder = folder + div + prefix + "_images";
-  std::string label_folder = folder + div + prefix + "_labels";
-
-  boost::filesystem::path image_dir( image_folder );
-  boost::filesystem::path label_dir( label_folder );
-
-  boost::filesystem::create_directories( image_dir );
-  boost::filesystem::create_directories( label_dir );
-
-  bool image_loaded_successfully = false;
-
   for( unsigned fid = 0; fid < image_names.size(); ++fid )
   {
     const std::string image_fn = image_names[fid];
-    kwiver::vital::detected_object_set_sptr detections_ptr = groundtruth[fid];
-    kwiver::vital::detected_object_set_sptr scaled_detections_ptr = groundtruth[fid]->clone();
 
     // Scale and break up image according to settings
     kwiver::vital::image_container_sptr vital_image;
-    cv::Mat original_image, resized_image;
+    cv::Mat original_image;
 
     try
     {
@@ -426,7 +488,7 @@ darknet_trainer::priv
     {
       LOG_ERROR( m_logger, "Caught exception reading image: " << e.what() );
 
-      if( image_loaded_successfully )
+      if( m_image_loaded_successfully )
       {
         LOG_WARN( m_logger, "Could not load image " << image_fn << ", skipping." );
         continue;
@@ -434,130 +496,147 @@ darknet_trainer::priv
       else
       {
         LOG_ERROR( m_logger, "Could not load first image " << image_fn );
-        return std::vector< std::string >();
+        return;
       }
     }
 
-    if( !image_loaded_successfully )
+    if( !m_image_loaded_successfully )
     {
-      image_loaded_successfully = true;
-      channel_count = original_image.channels();
+      m_image_loaded_successfully = true;
+      m_channel_count = original_image.channels();
     }
-    else if( channel_count != static_cast< unsigned >( original_image.channels() ) )
+    else if( m_channel_count != static_cast< unsigned >( original_image.channels() ) )
     {
       LOG_ERROR( m_logger, "All input images do not have the same number of channels" );
-      return std::vector< std::string >();
+      return;
     }
 
-    if( m_crop_left )
+    format_mat_image( folder, prefix, original_image, groundtruth[fid], object_labels );
+  }
+}
+
+void
+darknet_trainer::priv
+::format_mat_image( std::string folder, std::string prefix,
+  const cv::Mat& image,
+  kwiver::vital::detected_object_set_sptr groundtruth,
+  vital::category_hierarchy_sptr object_labels )
+{
+  cv::Mat original_image = image;
+  cv::Mat resized_image;
+
+  std::string image_folder = folder + div + prefix + "_images";
+  std::string label_folder = folder + div + prefix + "_labels";
+
+  kwiver::vital::detected_object_set_sptr scaled_groundtruth = groundtruth->clone();
+
+  if( m_crop_left )
+  {
+    original_image = cv::Mat( original_image,
+      cv::Rect( 0, 0, original_image.cols/2, original_image.rows ) );
+  }
+
+  double resized_scale = 1.0;
+
+  if( m_resize_option != "disabled" )
+  {
+    resized_scale = format_image( original_image, resized_image,
+      m_resize_option, m_scale, m_resize_i, m_resize_j );
+
+    scaled_groundtruth->scale( resized_scale );
+  }
+  else
+  {
+    resized_image = original_image;
+    scaled_groundtruth = groundtruth;
+  }
+
+  if( m_resize_option != "chip" && m_resize_option != "chip_and_original" )
+  {
+    std::string img_file, gt_file;
+    generate_fn( image_folder, label_folder, img_file, gt_file );
+
+    kwiver::vital::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
+    if( print_detections( gt_file, scaled_groundtruth, roi_box, object_labels ) )
     {
-      original_image = cv::Mat( original_image,
-        cv::Rect( 0, 0, original_image.cols/2, original_image.rows ) );
+      save_chip( img_file, resized_image );
     }
-
-    double resized_scale = 1.0;
-
-    if( m_resize_option != "disabled" )
+  }
+  else
+  {
+    // Chip up and process scaled image
+    for( int i = 0; i < resized_image.cols - m_resize_i + m_chip_step; i += m_chip_step )
     {
-      resized_scale = format_image( original_image, resized_image,
-        m_resize_option, m_scale, m_resize_i, m_resize_j );
-      scaled_detections_ptr->scale( resized_scale );
-    }
-    else
-    {
-      resized_image = original_image;
-      scaled_detections_ptr = detections_ptr;
-    }
+      int cw = i + m_resize_i;
 
-    if( m_resize_option != "chip" && m_resize_option != "chip_and_original" )
-    {
-      std::string img_file, gt_file;
-      generate_fn( image_folder, label_folder, img_file, gt_file );
-
-      kwiver::vital::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
-      if( print_detections( gt_file, scaled_detections_ptr, roi_box, object_labels ) )
+      if( cw > resized_image.cols )
       {
-        save_chip( img_file, resized_image );
+        cw = resized_image.cols - i;
       }
-    }
-    else
-    {
-      // Chip up and process scaled image
-      for( int i = 0; i < resized_image.cols - m_resize_i + m_chip_step; i += m_chip_step )
+      else
       {
-        int cw = i + m_resize_i;
+        cw = m_resize_i;
+      }
 
-        if( cw > resized_image.cols )
+      for( int j = 0; j < resized_image.rows - m_resize_j + m_chip_step; j += m_chip_step )
+      {
+        int ch = j + m_resize_j;
+
+        if( ch > resized_image.rows )
         {
-          cw = resized_image.cols - i;
+          ch = resized_image.rows - j;
         }
         else
         {
-          cw = m_resize_i;
+          ch = m_resize_j;
         }
 
-        for( int j = 0; j < resized_image.rows - m_resize_j + m_chip_step; j += m_chip_step )
+        // Only necessary in a few circumstances when chip_step exceeds image size.
+        if( ch < 0 || cw < 0 )
         {
-          int ch = j + m_resize_j;
-
-          if( ch > resized_image.rows )
-          {
-            ch = resized_image.rows - j;
-          }
-          else
-          {
-            ch = m_resize_j;
-          }
-
-          // Only necessary in a few circumstances when chip_step exceeds image size.
-          if( ch < 0 || cw < 0 )
-          {
-            continue;
-          }
-
-          cv::Mat cropped_image = resized_image( cv::Rect( i, j, cw, ch ) );
-          cv::Mat resized_crop;
-
-          scale_image_maintaining_ar( cropped_image,
-            resized_crop, m_resize_i, m_resize_j );
-
-          std::string img_file, gt_file;
-          generate_fn( image_folder, label_folder, img_file, gt_file );
-
-          kwiver::vital::bounding_box_d roi_box( i, j, i + m_resize_i, j + m_resize_j );
-          if( print_detections( gt_file, scaled_detections_ptr, roi_box, object_labels ) )
-          {
-            save_chip( img_file, resized_crop );
-          }
+          continue;
         }
-      }
 
-      // Process full sized image if enabled
-      if( m_resize_option == "chip_and_original" )
-      {
-        cv::Mat scaled_original;
+        cv::Mat cropped_image = resized_image( cv::Rect( i, j, cw, ch ) );
+        cv::Mat resized_crop;
 
-        double scaled_original_scale = scale_image_maintaining_ar( original_image,
-          scaled_original, m_resize_i, m_resize_j );
-
-        kwiver::vital::detected_object_set_sptr scaled_original_dets_ptr = groundtruth[fid]->clone();
-        scaled_original_dets_ptr->scale( scaled_original_scale );
+        scale_image_maintaining_ar( cropped_image,
+          resized_crop, m_resize_i, m_resize_j );
 
         std::string img_file, gt_file;
         generate_fn( image_folder, label_folder, img_file, gt_file );
 
-        kwiver::vital::bounding_box_d roi_box( 0, 0,
-          scaled_original.cols, scaled_original.rows );
-
-        if( print_detections( gt_file, scaled_original_dets_ptr, roi_box, object_labels ) )
+        kwiver::vital::bounding_box_d roi_box( i, j, i + m_resize_i, j + m_resize_j );
+        if( print_detections( gt_file, scaled_groundtruth, roi_box, object_labels ) )
         {
-          save_chip( img_file, scaled_original );
+          save_chip( img_file, resized_crop );
         }
       }
     }
-  }
 
-  return output_fns;
+    // Process full sized image if enabled
+    if( m_resize_option == "chip_and_original" )
+    {
+      cv::Mat scaled_original;
+
+      double scaled_original_scale = scale_image_maintaining_ar( original_image,
+        scaled_original, m_resize_i, m_resize_j );
+
+      kwiver::vital::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
+      scaled_original_dets_ptr->scale( scaled_original_scale );
+
+      std::string img_file, gt_file;
+      generate_fn( image_folder, label_folder, img_file, gt_file );
+
+      kwiver::vital::bounding_box_d roi_box( 0, 0,
+        scaled_original.cols, scaled_original.rows );
+
+      if( print_detections( gt_file, scaled_original_dets_ptr, roi_box, object_labels ) )
+      {
+        save_chip( img_file, scaled_original );
+      }
+    }
+  }
 }
 
 bool
@@ -692,6 +771,7 @@ darknet_trainer::priv
 ::filter_count( int nclasses )
 {
   int multiplier = -1;
+
   if( m_model_type == "yolov2" )
   {
     multiplier = 5;
@@ -700,6 +780,7 @@ darknet_trainer::priv
   {
     multiplier = 3;
   }
+
   return ( nclasses + 5 ) * multiplier;
 }
 
