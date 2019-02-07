@@ -73,6 +73,7 @@
 #include "split_image_process.h"
 #include "stabilize_image_process.h"
 #include "track_features_process.h"
+#include "train_detector_process.h"
 #include "unwrap_detections_process.h"
 #include "video_input_process.h"
 #include "write_object_track_process.h"
@@ -203,6 +204,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     "Apply selected image object detector algorithm to incoming images." )
   .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
      ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::train_detector_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "train_detector_process" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Train an object detector given groundtruth annotations." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
 
   fact = vpm.ADD_PROCESS( kwiver::image_filter_process );
