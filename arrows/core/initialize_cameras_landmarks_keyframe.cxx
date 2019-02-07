@@ -2323,6 +2323,7 @@ initialize_cameras_landmarks_keyframe::priv
   do {
     prev_inlier_lm_count = cur_inlier_lm_count;
 
+    bool triang_threshold_changed = false;
     double triang_thresh_orig = 10;
     if (iterations < num_permissive_triangulation_iterations)
     {
@@ -2330,8 +2331,16 @@ initialize_cameras_landmarks_keyframe::priv
       triang_thresh_orig = triang_config->get_value<double>("inlier_threshold_pixels", triang_thresh_orig);
       triang_config->set_value<double>("inlier_threshold_pixels", m_metadata_init_permissive_triang_thresh);
       lm_triangulator->set_configuration(triang_config);
+      triang_threshold_changed = true;
     }
     retriangulate(lms, cams, trks, inlier_lm_ids,3);
+
+    if (triang_threshold_changed)
+    {
+      auto triang_config = lm_triangulator->get_configuration();
+      triang_config->set_value<double>("inlier_threshold_pixels", triang_thresh_orig);
+      lm_triangulator->set_configuration(triang_config);
+    }
 
     if (iterations < num_permissive_triangulation_iterations)
     {
@@ -2358,10 +2367,6 @@ initialize_cameras_landmarks_keyframe::priv
           fts->inlier = true;
         }
       }
-
-      auto triang_config = lm_triangulator->get_configuration();
-      triang_config->set_value<double>("inlier_threshold_pixels", triang_thresh_orig);
-      lm_triangulator->set_configuration(triang_config);
     }
 
     double init_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
@@ -2385,7 +2390,11 @@ initialize_cameras_landmarks_keyframe::priv
     std::set<frame_id_t> empty_cam_set;
     std::set<landmark_id_t> empty_lm_set;
     double coverage_thresh = iterations == 0 ? 0 : image_coverage_threshold;
-    double reproj_thresh = iterations < num_permissive_triangulation_iterations ? 50.0*interim_reproj_thresh : 5.0*interim_reproj_thresh;
+
+    // gradually tighten the reprojection error threshold after the initial permissive iterations
+    double non_permissive_threshold = ((40.0 / pow(1.25, iterations - num_permissive_triangulation_iterations + 1)) + 10.0)*interim_reproj_thresh;
+
+    double reproj_thresh = iterations < num_permissive_triangulation_iterations ? 50.0*interim_reproj_thresh : non_permissive_threshold;
     clean_cameras_and_landmarks(*cams, lms, tracks, m_thresh_triang_cos_ang, removed_cams, empty_cam_set, empty_lm_set, coverage_thresh, reproj_thresh,3);
 
     auto cc = connected_camera_components(cams->T_cameras(), lms, tracks);
