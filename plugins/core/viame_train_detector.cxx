@@ -1131,6 +1131,7 @@ main( int argc, char* argv[] )
   // Run training algorithm
   std::cout << "Beginning Training Process" << std::endl;
 
-  detector_trainer->train_from_disk( classes, train_image_fn, train_gt, test_image_fn, test_gt );
+  detector_trainer->add_data_from_disk( classes, train_image_fn, train_gt, test_image_fn, test_gt );
+  detector_trainer->update_model();
   return 0;
 }
