@@ -39,6 +39,7 @@
 #include "compute_homography_process.h"
 #include "compute_stereo_depth_map_process.h"
 #include "compute_track_descriptors_process.h"
+#include "convert_tracks_to_detections_process.h"
 #include "detect_features_if_keyframe_process.h"
 #include "detect_features_process.h"
 #include "close_loops_process.h"
@@ -155,6 +156,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Compute a stereo depth map given two frames." )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+
+  fact = vpm.ADD_PROCESS( kwiver::convert_tracks_to_detections_process );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "convert_tracks_to_detections" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Convert input object track sets into detection sets for each frame." )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 
