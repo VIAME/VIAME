@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,6 +162,10 @@ int main(int argc, char *argv[])
   applet_context_t tool_context = std::make_shared< kwiver::tools::applet_context >();
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  const std::string exec_path = kwiver::vital::get_executable_path();
+  vpm.add_search_path(exec_path + "/../lib/kwiver/modules");
+  vpm.add_search_path(exec_path + "/../lib/kwiver/modules/applets");
+  vpm.add_search_path(exec_path + "/../lib/kwiver/modules/processes");
   vpm.load_all_plugins();
 
 
