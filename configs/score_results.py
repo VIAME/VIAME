@@ -14,6 +14,9 @@ import shutil
 temp_dir = tempfile.mkdtemp(prefix='score-tmp')
 atexit.register(lambda: shutil.rmtree(temp_dir))
 
+linestyles = ['-', '--', '-.', ':']
+linecolors = ['#25233d', '#161891', '#316f6a', '#662e43']
+
 def get_stat_cmd():
   if os.name == 'nt':
     return ['score_tracks.exe','--hadwav']
@@ -166,7 +169,7 @@ def generate_rocs( args, categories ):
 
   user_titles = args.key.split(',') if args.key else None
   i = 0
-  for fn in roc_files:
+  for i, fn in enumerate( roc_files ):
     (x,y) = load_roc( fn )
     display_label = ""
     if user_titles and i < len( user_titles ):
@@ -176,10 +179,16 @@ def generate_rocs( args, categories ):
       if len( display_label ) == 0:
         display_label = "aggregate"
     sys.stderr.write("Info: %d: loading %s as '%s'...\n" % (i, fn, display_label) )
-    if len( display_label ) > 0:
-      rocplot.plot( x, y, linewidth=args.lw, label=display_label )
+    stl = linestyles[ i % len(linestyles) ]
+    if i < len(linecolors) * len(linestyles):
+      cl = linecolors[ int( i / len(linestyles) ) % len(linecolors) ]
     else:
-      rocplot.plot( x, y, linewidth=args.lw )
+      cl = np.random.rand(3,1)
+    if len( display_label ) > 0:
+      rocplot.plot( x, y, linestyle=stl, color=cl, linewidth=args.lw, label=display_label )
+    else:
+      rocplot.plot( x, y, linestyle=stl, color=cl, linewidth=args.lw )
+    rocplot.set_xlim(xmin=0)
     i += 1
 
   if args.autoscale:
@@ -244,7 +253,7 @@ if __name__ == "__main__":
              help='title for y axis' )
   parser.add_argument( '-title', nargs='?',
              help='title for plot' )
-  parser.add_argument( '-lw', nargs='?', type=float, default=3,
+  parser.add_argument( '-lw', nargs='?', type=float, default=2,
              help='line width' )
   parser.add_argument( '-key', nargs='?', default=None,
              help='comma-separated set of strings labeling each line in order read' )
