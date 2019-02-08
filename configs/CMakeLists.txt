@@ -232,7 +232,8 @@ if( VIAME_ENABLE_VIVIA )
     pipelines/gui_embedded/local_deep_detector.pipe
     pipelines/gui_embedded/local_deep_tracker.pipe
     pipelines/gui_embedded/local_svm_detector.pipe
-    pipelines/gui_embedded/local_svm_tracker.pipe )
+    pipelines/gui_embedded/local_svm_tracker.pipe
+    pipelines/gui_embedded/train_deep_detector.pipe )
 
   if( VIAME_DOWNLOAD_MODELS-MOUSS )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
