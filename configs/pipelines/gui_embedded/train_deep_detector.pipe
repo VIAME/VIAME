@@ -43,11 +43,13 @@ process detector_trainer
     :skip_format                              false
   endblock
 
-connect from in_adapt.image
-        to   detector_trainer.image
-
 connect from in_adapt.object_track_set
         to   tracks_to_detections.object_track_set
+connect from in_adapt.timestamp
+        to   tracks_to_detections.timestamp
+
+connect from in_adapt.image
+        to   detector_trainer.image
 connect from tracks_to_detections.detected_object_set
         to   detector_trainer.detected_object_set
 
