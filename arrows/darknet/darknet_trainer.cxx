@@ -257,7 +257,7 @@ darknet_trainer
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
-  this->d->m_ignore_category = config->get_value< bool >( "ignore_category" );
+  this->d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
   this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
   this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
   this->d->m_batch_size  = config->get_value< int >( "batch_size" );
