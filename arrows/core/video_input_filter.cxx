@@ -155,7 +155,7 @@ video_input_filter
     //  zero indicates not set, otherwise must be 1 or greater
     if ( config->get_value<vital::frame_id_t>("start_at_frame") < 0 )
     {
-      LOG_ERROR(logger(), "start_at_frame must be greater than 0");
+      LOG_ERROR(logger(), "start_at_frame must be non-negative");
       retcode = false;
     }
   }
@@ -166,7 +166,21 @@ video_input_filter
     //  zero indicates not set, otherwise must be 1 or greater
     if ( config->get_value<vital::frame_id_t>("stop_after_frame") < 0 )
     {
-      LOG_ERROR(logger(), "stop_after_frame must be greater than 0");
+      LOG_ERROR(logger(), "stop_after_frame must be non-negative");
+      retcode = false;
+    }
+  }
+
+  // Make sure start frame is not after stop frame
+  if ( config->has_value("start_at_frame") &&
+       config->has_value("stop_after_frame") )
+  {
+    if ( config->get_value<vital::frame_id_t>("stop_after_frame") > 0 &&
+         config->get_value<vital::frame_id_t>("stop_after_frame") > 0 &&
+         config->get_value<vital::frame_id_t>("stop_after_frame") <
+         config->get_value<vital::frame_id_t>("start_at_frame") )
+    {
+      LOG_ERROR(logger(), "stop_after_frame must not be before start_at_frame");
       retcode = false;
     }
   }

@@ -36,24 +36,24 @@
 #include <vital/algo/video_input.h>
 #include <vital/types/image_container.h>
 
-static int num_expected_frames = 50;
-static int start_at_frame = 11;
-static int stop_after_frame = 30;
-static int num_expected_frames_subset = 20;
-static int nth_frame_output = 3;
-static int num_expected_frames_nth_output = 17;
+constexpr int num_expected_frames = 50;
+constexpr int start_at_frame = 11;
+constexpr int stop_after_frame = 30;
+constexpr int num_expected_frames_subset = 20;
+constexpr int nth_frame_output = 3;
+constexpr int num_expected_frames_nth_output = 17;
 
 // Ignore 8 pixels on either side of the barcode
-static int bc_buffer = 8;
+constexpr int bc_buffer = 8;
 
 // Barcode lines two pixels wide and 4 pixels high
-static int bc_width = 2;
-static int bc_height = 4;
-static int bit_depth = 256;
-static int bc_area = bc_width*bc_height;
+constexpr int bc_width = 2;
+constexpr int bc_height = 4;
+constexpr int bit_depth = 256;
+constexpr int bc_area = bc_width*bc_height;
 
 // Color test pixel location
-static int color_test_pos = 17;
+constexpr int color_test_pos = 17;
 
 // Test colors
 static kwiver::vital::rgb_color red(255, 0, 0);
