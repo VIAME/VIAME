@@ -37,6 +37,7 @@
 
 #include <kwiver_type_traits.h>
 
+#include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
 
 namespace kwiver
@@ -64,6 +65,8 @@ convert_tracks_to_detections_process
   : process( config ),
     d( new convert_tracks_to_detections_process::priv )
 {
+  set_data_checking_level( check_none );
+
   make_ports();
   make_config();
 }
@@ -94,6 +97,20 @@ void
 convert_tracks_to_detections_process
 ::_step()
 {
+  // Check for complete messages
+  auto port_info = peek_at_port_using_trait( timestamp );
+
+  if( port_info.datum->type() == sprokit::datum::complete )
+  {
+    grab_edge_datum_using_trait( timestamp );
+    grab_edge_datum_using_trait( object_track_set );
+    mark_process_as_complete();
+
+    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    push_datum_to_port_using_trait( detected_object_set, dat );
+    return;
+  }
+
   // Retrieve inputs from ports
   vital::timestamp ts = grab_from_port_using_trait( timestamp );
   vital::object_track_set_sptr tracks = grab_from_port_using_trait( object_track_set );
