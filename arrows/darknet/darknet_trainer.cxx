@@ -706,7 +706,7 @@ darknet_trainer::priv
 
       (*detection)->type()->get_most_likely( category );
 
-      if( !m_ignore_category.empty() || category == m_ignore_category )
+      if( !m_ignore_category.empty() && category == m_ignore_category )
       {
         continue;
       }
