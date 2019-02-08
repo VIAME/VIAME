@@ -151,6 +151,7 @@ public:
   vital::category_hierarchy_sptr m_object_labels;
   bool m_image_loaded_successfully;
   unsigned m_channel_count;
+  std::map< std::string, int > m_category_map;
 
   kwiver::vital::algo::image_io_sptr m_image_io;
   kwiver::vital::logger_handle_t m_logger;
@@ -343,9 +344,9 @@ darknet_trainer
   if( !d->m_skip_format )
   {
     d->format_images( d->m_train_directory, "train",
-      train_image_names, train_groundtruth, object_labels );
+      train_image_names, train_groundtruth, d->m_object_labels );
     d->format_images( d->m_train_directory, "test",
-      test_image_names, test_groundtruth, object_labels );
+      test_image_names, test_groundtruth, d->m_object_labels );
   }
 }
 
@@ -371,7 +372,7 @@ darknet_trainer
         train_images[i]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
       d->format_mat_image( d->m_train_directory, "train",
-        image, train_groundtruth[i], object_labels );
+        image, train_groundtruth[i], d->m_object_labels );
     }
     for( unsigned i = 0; i < test_images.size(); ++i )
     {
@@ -379,7 +380,7 @@ darknet_trainer
         test_images[i]->get_image(), kwiver::arrows::ocv::image_container::BGR_COLOR );
 
       d->format_mat_image( d->m_train_directory, "test",
-        image, test_groundtruth[i], object_labels );
+        image, test_groundtruth[i], d->m_object_labels );
     }
   }
 }
@@ -390,7 +391,22 @@ darknet_trainer
 {
   if( !d->m_skip_format )
   {
-    int nfilters = d->filter_count( d->m_object_labels->child_class_names().size() );
+    int nfilters;
+
+    if( d->m_object_labels )
+    {
+      nfilters = d->filter_count( d->m_object_labels->child_class_names().size() );
+    }
+    else
+    {
+      nfilters = d->m_category_map.size();
+    }
+
+    if( nfilters == 0 )
+    {
+      LOG_ERROR( logger(), "You have specified no object categories. What are you doing?" );
+      return;
+    }
 
     // Generate train/test image list and header information
     //
@@ -406,10 +422,22 @@ darknet_trainer
     std::string header_cmd = "dth.generate_yolo_headers(";
 
     std::string header_args = eq + d->m_train_directory + eq + ",[";
-    for( auto label : d->m_object_labels->child_class_names() )
+
+    if( d->m_object_labels )
     {
-      header_args = header_args + eq + label + eq + ",";
+      for( auto label : d->m_object_labels->child_class_names() )
+      {
+        header_args = header_args + eq + label + eq + ",";
+      }
     }
+    else
+    {
+      for( auto itr : d->m_category_map )
+      {
+        header_args = header_args + eq + itr.first + eq + ",";
+      }
+    }
+
     header_args = header_args +"]," + std::to_string( d->m_resize_i );
     header_args = header_args + "," + std::to_string( d->m_resize_j );
     header_args = header_args + "," + std::to_string( d->m_channel_count );
@@ -500,17 +528,6 @@ darknet_trainer::priv
       }
     }
 
-    if( !m_image_loaded_successfully )
-    {
-      m_image_loaded_successfully = true;
-      m_channel_count = original_image.channels();
-    }
-    else if( m_channel_count != static_cast< unsigned >( original_image.channels() ) )
-    {
-      LOG_ERROR( m_logger, "All input images do not have the same number of channels" );
-      return;
-    }
-
     format_mat_image( folder, prefix, original_image, groundtruth[fid], object_labels );
   }
 }
@@ -524,6 +541,17 @@ darknet_trainer::priv
 {
   cv::Mat original_image = image;
   cv::Mat resized_image;
+
+  if( !m_image_loaded_successfully )
+  {
+    m_image_loaded_successfully = true;
+    m_channel_count = original_image.channels();
+  }
+  else if( m_channel_count != static_cast< unsigned >( original_image.channels() ) )
+  {
+    LOG_ERROR( m_logger, "All input images do not have the same number of channels" );
+    return;
+  }
 
   std::string image_folder = folder + div + prefix + "_images";
   std::string label_folder = folder + div + prefix + "_labels";
@@ -678,7 +706,19 @@ darknet_trainer::priv
 
       (*detection)->type()->get_most_likely( category );
 
-      if( object_labels->has_class_name( category ) )
+      if( !m_ignore_category.empty() || category == m_ignore_category )
+      {
+        continue;
+      }
+      else if( !object_labels )
+      {
+        if( m_category_map.find( category ) == m_category_map.end() )
+        {
+          m_category_map[ category ] = m_category_map.size();
+        }
+        category = m_category_map[ category ];
+      }
+      else if( object_labels->has_class_name( category ) )
       {
         category = std::to_string( object_labels->get_class_id( category ) );
       }
