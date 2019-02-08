@@ -207,7 +207,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
 
   fact = vpm.ADD_PROCESS( kwiver::train_detector_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "train_detector_process" )
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "train_detector" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Train an object detector given groundtruth annotations." )
