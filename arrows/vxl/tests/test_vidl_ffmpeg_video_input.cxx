@@ -119,13 +119,13 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
 }
 
 // ----------------------------------------------------------------------------
-TEST_F(vidl_ffmpeg_video_input, read_video_subset)
+TEST_F(vidl_ffmpeg_video_input, read_video_sublist)
 {
   // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
-  config->set_value( "start_at_frame", "11" );
-  config->set_value( "stop_after_frame", "30" );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
@@ -135,30 +135,55 @@ TEST_F(vidl_ffmpeg_video_input, read_video_subset)
   kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
   vfvi.open( video_file );
 
-  kwiver::vital::timestamp ts;
+  test_read_video_sublist( vfvi );
 
-  int num_frames = 0;
-  int frame_idx = 10;
-  while ( vfvi.next_frame( ts ) )
-  {
-    auto img = vfvi.frame_image();
-    auto md = vfvi.frame_metadata();
+  vfvi.close();
+}
 
-    if (md.size() > 0)
-    {
-      std::cout << "-----------------------------------\n" << std::endl;
-      kwiver::vital::print_metadata( std::cout, *md[0] );
-    }
+// ----------------------------------------------------------------------------
+TEST_F(vidl_ffmpeg_video_input, read_video_sublist_nth_frame)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
 
-    ++num_frames;
-    ++frame_idx;
-    EXPECT_EQ( frame_idx, ts.get_frame() )
-      << "Frame numbers should be sequential";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
-      << "Frame number should match barcode in frame image";
-  }
-  EXPECT_EQ( num_expected_frames_subset, num_frames );
-  EXPECT_EQ( num_expected_frames_subset, vfvi.num_frames() );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+  vfvi.open( video_file );
+
+  test_read_video_sublist_nth_frame( vfvi );
+
+  vfvi.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist_nth_frame)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+  vfvi.open( video_file );
+
+  test_seek_sublist_nth_frame( vfvi );
+
+  vfvi.close();
 }
 
 // ----------------------------------------------------------------------------
@@ -236,8 +261,8 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist)
   // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
-  config->set_value( "start_at_frame", "11" );
-  config->set_value( "stop_after_frame", "30" );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
@@ -359,8 +384,8 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map_subset)
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
-  config->set_value("start_at_frame", "11");
-  config->set_value("stop_after_frame", "30");
+  config->set_value("start_at_frame", start_at_frame);
+  config->set_value("stop_after_frame", stop_after_frame);
 
   vfvi.check_configuration(config);
   vfvi.set_configuration(config);
@@ -402,8 +427,8 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map_nth_frame)
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
-  config->set_value("start_at_frame", "11");
-  config->set_value("stop_after_frame", "30");
+  config->set_value("start_at_frame", start_at_frame);
+  config->set_value("stop_after_frame", stop_after_frame);
   config->set_value("output_nth_frame", nth_frame_output);
 
   vfvi.check_configuration(config);

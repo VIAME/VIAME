@@ -323,6 +323,7 @@ TEST_F(ffmpeg_video_input, read_video_nth_frame_output)
   vif.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(ffmpeg_video_input, seek_nth_frame_output)
 {
   // Make config block
@@ -342,6 +343,83 @@ TEST_F(ffmpeg_video_input, seek_nth_frame_output)
   vif.open( correct_file );
 
   test_seek_nth_frame( vif );
+
+  vif.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, read_video_sublist)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "video_input:type", "ffmpeg" );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  // Open the video
+  vif.open( correct_file );
+
+  test_seek_frame_sublist( vif );
+
+  vif.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, read_video_sublist_nth_frame)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "video_input:type", "ffmpeg" );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  // Open the video
+  vif.open( correct_file );
+
+  test_read_video_sublist_nth_frame( vif );
+
+  vif.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, seek_frame_sublist_nth_frame)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "video_input:type", "ffmpeg" );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  kwiver::arrows::core::video_input_filter vif;
+
+  EXPECT_TRUE( vif.check_configuration( config ) );
+  vif.set_configuration( config );
+
+  kwiver::vital::path_t correct_file = data_dir + "/video.mp4";
+
+  // Open the video
+  vif.open( correct_file );
+
+  test_seek_sublist_nth_frame( vif );
 
   vif.close();
 }
