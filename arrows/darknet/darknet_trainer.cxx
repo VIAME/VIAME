@@ -714,7 +714,7 @@ darknet_trainer::priv
       {
         if( m_category_map.find( category ) == m_category_map.end() )
         {
-          m_category_map[ category ] = m_category_map.size();
+          m_category_map[ category ] = m_category_map.size() - 1;
         }
         category = std::to_string( m_category_map[ category ] );
       }
