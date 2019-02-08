@@ -46,7 +46,7 @@ connect from in_adapt.image
         to   detector_trainer.image
 
 connect from in_adapt.object_track_set
-        to   tracks_to_detections.detected_object_set
+        to   tracks_to_detections.object_track_set
 connect from tracks_to_detections.detected_object_set
         to   detector_trainer.detected_object_set
 
