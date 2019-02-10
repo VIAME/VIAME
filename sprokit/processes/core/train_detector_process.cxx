@@ -114,7 +114,6 @@ train_detector_process
     d->m_trainer->update_model();
 
     // Complete process
-    grab_edge_datum_using_trait( image );
     grab_edge_datum_using_trait( detected_object_set );
     mark_process_as_complete();
 
