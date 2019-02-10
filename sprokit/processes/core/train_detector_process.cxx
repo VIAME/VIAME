@@ -136,7 +136,8 @@ train_detector_process
       std::vector< kwiver::vital::detected_object_set_sptr >( 1, gt ) );
   }
 
-  push_to_port_using_trait( image, image );
+  push_to_port_using_trait( object_track_set,
+    std::make_shared< kwiver::vital::object_track_set >() );
 }
 
 
@@ -156,7 +157,7 @@ train_detector_process
   declare_input_port_using_trait( detected_object_set, required );
 
   // -- output --
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( object_track_set, optional );
 }
 
 
