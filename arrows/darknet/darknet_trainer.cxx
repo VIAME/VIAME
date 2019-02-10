@@ -399,7 +399,7 @@ darknet_trainer
     }
     else
     {
-      nfilters = d->m_category_map.size();
+      nfilters = d->filter_count( d->m_category_map.size() );
     }
 
     if( nfilters == 0 )
