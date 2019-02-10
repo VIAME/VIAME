@@ -391,22 +391,24 @@ darknet_trainer
 {
   if( !d->m_skip_format )
   {
-    int nfilters;
+    int nclasses, nfilters;
 
     if( d->m_object_labels )
     {
-      nfilters = d->filter_count( d->m_object_labels->child_class_names().size() );
+      nclasses = d->m_object_labels->child_class_names().size();
     }
     else
     {
-      nfilters = d->filter_count( d->m_category_map.size() );
+      nclasses = d->m_category_map.size();
     }
 
-    if( nfilters == 0 )
+    if( nclasses == 0 )
     {
       LOG_ERROR( logger(), "You have specified no object categories. What are you doing?" );
       return;
     }
+
+    nfilters = d->filter_count( d->m_category_map.size() );
 
     // Generate train/test image list and header information
     //
