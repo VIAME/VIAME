@@ -53,7 +53,7 @@ connect from in_adapt.image
 connect from tracks_to_detections.detected_object_set
         to   detector_trainer.detected_object_set
 
-connect from in_adapt.object_track_set
+connect from detector_trainer.object_track_set
         to   out_adapt.object_track_set
 
 # -- end of file --
