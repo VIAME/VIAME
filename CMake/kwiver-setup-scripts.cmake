@@ -48,8 +48,12 @@ endif()
 if ( fletch_FOUND )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${fletch_ROOT}/bin;%PATH%;\n" )
   file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PATH=${fletch_ROOT}/x64/${_vcVersion}/bin;%PATH%;\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set GDAL_DATA=${GDAL_ROOT}/share/gdal\n" )
+  file( APPEND "${KWIVER_SETUP_BATCH_FILE}" "set PROJ_LIB=${PROJ4_ROOT}/share/proj\n" )
 
   file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export ${LIBRARY_PATH_VAR}=${fletch_ROOT}/lib:$${LIBRARY_PATH_VAR}\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export GDAL_DATA=${GDAL_ROOT}/share/gdal\n" )
+  file( APPEND "${KWIVER_SETUP_SCRIPT_FILE}" "export PROJ_LIB=${PROJ4_ROOT}/share/proj\n" )
 endif()
 
 ###
