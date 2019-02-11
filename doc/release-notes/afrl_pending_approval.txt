@@ -14,6 +14,9 @@ Arrows - Core
 
  * Added a function to clip meshes with a plane.
 
+ * Added a temporal downsampling option to video_input_filter where
+   only every nth frame of the video source will be provided.
+
 Arrows - FFMPEG
 
  * Added metadata handling to FFMPEG implementation of video_input
@@ -24,3 +27,10 @@ Arrows - FFMPEG
 
 Fixes since last public release
 -------------------------------
+
+Arrows - VXL
+
+ * Fixed bug in vidl_ffmpeg_video_input that occurs when both the
+   start_after_frame and output_nth_frame are used. In this situation the
+   first frame would always be the one right after start_after_frame even
+   if it didn't satisfiy the output_nth_frame condition.

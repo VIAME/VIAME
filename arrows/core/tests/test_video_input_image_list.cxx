@@ -49,7 +49,6 @@ kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
-static int num_expected_frames = 50;
 static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
