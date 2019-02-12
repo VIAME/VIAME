@@ -75,9 +75,9 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.9.9.2 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1ZqERSOs10awJVMklln8Skx7RCsgqS2Wg)
 
 **Windows Binaries:** <br>
-[VIAME v0.9.9.2 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c62834a8d777f072b415abe/download) <br>
+[VIAME v0.9.9.2 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c62f9348d777f072b42cae3/download) <br>
 [VIAME v0.9.9.2 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1kkZ8HKzVWvYDQMx-5dAgR5NwGVJMGQcG) <br>
-[VIAME v0.9.9.2 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c628baa8d777f072b41685b/download) <br>
+[VIAME v0.9.9.2 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c62f9018d777f072b42caaa/download) <br>
 [VIAME v0.9.9.2 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1mEUROScLvXWqXmqYmdJ_kLYg12c6ymZC)
 
 **Optional Patches:** <br>
