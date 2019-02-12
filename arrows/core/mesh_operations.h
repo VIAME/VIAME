@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -120,6 +120,8 @@ clip_mesh(kwiver::vital::mesh& mesh,
  *                         clipping plane (parallel to the image plane)
  * \param [in]      far    The offset from the camera center to the far
  *                         clipping plane (parallel to the image plane)
+ * \param [in]      margin Expand the frustum by this many pixels on all sides
+ *                         to avoid boundary effects from clipping too tightly.
  *
  * By default this function keeps all geometry in front of the camera that
  * would project into the image.  The far clipping plane is set to infinity
@@ -132,7 +134,8 @@ bool
 clip_mesh(kwiver::vital::mesh& mesh,
           kwiver::vital::camera_perspective const& camera,
           double near = 0.0,
-          double far = std::numeric_limits<double>::infinity());
+          double far = std::numeric_limits<double>::infinity(),
+          double margin = 1.0);
 
 }
 }

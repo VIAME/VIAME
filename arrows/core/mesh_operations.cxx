@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -307,16 +307,16 @@ clip_mesh(mesh& mesh,
 bool
 clip_mesh(kwiver::vital::mesh& mesh,
           kwiver::vital::camera_perspective const& camera,
-          double near, double far)
+          double near, double far, double margin)
 {
   bool clipped = false;
   vital::matrix_3x4d P = camera.as_matrix();
 
   // clip side planes
-  vital::vector_4d left_plane = P.row(0);
-  vital::vector_4d right_plane = camera.image_width() * P.row(2) - P.row(0);
-  vital::vector_4d top_plane = P.row(1);
-  vital::vector_4d bottom_plane = camera.image_height() * P.row(2) - P.row(1);
+  vital::vector_4d left_plane = P.row(0) + margin * P.row(2);
+  vital::vector_4d right_plane = (camera.image_width() + margin) * P.row(2) - P.row(0);
+  vital::vector_4d top_plane = P.row(1) + margin * P.row(2);
+  vital::vector_4d bottom_plane = (camera.image_height() + margin) * P.row(2) - P.row(1);
 
   clipped = clip_mesh(mesh, left_plane) || clipped;
   clipped = clip_mesh(mesh, right_plane) || clipped;
