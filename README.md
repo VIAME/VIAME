@@ -64,6 +64,7 @@ Lastly, run through some of the examples to validate the installation.
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 [Anaconda3 5.2.0 x86_64](https://repo.continuum.io/archive/) (Note: Anaconda**3 x86_64**, not Anaconda2 or x86) <br>
 [NVIDIA Drivers](https://developer.nvidia.com/cuda-toolkit-archive) (For example, those in CUDA 8.0 GA2 x86_64, if you use GPU support) <br>
+4 Gb of Disk Space for the Full Install <br>
 
 **Installation Recommendations:** <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
@@ -101,9 +102,9 @@ One way to test the system is to see if you can run the examples in the
 folder, for example, the pipelined object detectors or annotation GUI. If pursuing this route, we
 recommend reading the: 
 [Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
-[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#video-and-image-search-using-viame), 
+[Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html), 
 [Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
-[Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html).
+[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#video-and-image-search-using-viame).
 
 The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
 to copy project files for your operating system,
