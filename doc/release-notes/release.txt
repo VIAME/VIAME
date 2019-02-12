@@ -18,3 +18,7 @@ Bug Fixes since v1.3.0
 
  * Fixed an issue in the MSVC environment in which redefining variables
    from setup_KWIVER.bat would append to the old value instead of replacing.
+
+ * Added missing GDAL_DATA and PROJ_LIB environment variables in setup_KWIVER
+   scripts.  These must be set to do any coordinate conversions with GDAL or
+   PROJ.
