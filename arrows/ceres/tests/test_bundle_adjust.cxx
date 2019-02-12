@@ -210,7 +210,7 @@ test_ba_using_distortion( kwiver::vital::config_block_sptr cfg,
   double end_rmse = reprojection_rmse(cameras0->cameras(),
                                       landmarks0->landmarks(),
                                       tracks->tracks());
-  EXPECT_NEAR( 0.0, end_rmse, 1e-7 );
+  EXPECT_NEAR( 0.0, end_rmse, 1e-5);
 
   // compare actual to estimated distortion parameters
   if ( estimate_tolerance != 0.0 )
@@ -220,7 +220,7 @@ test_ba_using_distortion( kwiver::vital::config_block_sptr cfg,
     auto vdc2 = cam0_ptr->intrinsics()->dist_coeffs();
     // The estimated parameter vector can be longer and zero padded; lop off
     // any additional trailing values
-    ASSERT_GE( vdc2.size(), dc.size() );
+    ASSERT_GE( vdc2.size(), static_cast<size_t>(dc.size()) );
     Eigen::VectorXd dc2{ Eigen::Map<Eigen::VectorXd>{ &vdc2[0], dc.size() } };
 
     Eigen::VectorXd diff = ( dc2 - dc ).cwiseAbs();
@@ -260,7 +260,7 @@ static Eigen::VectorXd distortion_coefficients( int k )
 
     case 8:
       dc.resize( 8 );
-      dc << -0.01, 0.002, -0.0005, 0.001, -0.005, 0.02, 0.0007, -0.003;
+      dc << -0.01, 0.02, -0.0005, 0.001, 0.01, 0.02, 0.0007, -0.003;
       return dc;
 
     default:
@@ -292,9 +292,9 @@ static double distortion_estimation_tolerance( int k )
   switch (k)
   {
     case 1:
-      return 1e-9;
-    case 2:
       return 1e-7;
+    case 2:
+      return 1e-6;
     case 3:
     case 5:
       return 1e-5;

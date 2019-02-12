@@ -57,13 +57,9 @@ class KWIVER_ALGO_CORE_EXPORT close_loops_exhaustive
   : public vital::algorithm_impl<close_loops_exhaustive, vital::algo::close_loops>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "exhaustive";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Exhaustive matching of all frame pairs,"
-    " or all frames within a moving window.";
+  PLUGIN_INFO( "exhaustive",
+               "Exhaustive matching of all frame pairs, "
+               "or all frames within a moving window." )
 
   /// Default Constructor
   close_loops_exhaustive();

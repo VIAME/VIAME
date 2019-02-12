@@ -38,7 +38,7 @@
 
 
 // ----------------------------------------------------------------
-/*! \brief Regsiter processes
+/** \brief Register processes
  *
  *
  */
@@ -46,34 +46,19 @@ extern "C"
 KWIVER_PROCESSES_ADAPTER_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
-
 {
-  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_adapters" );
+  using namespace sprokit;
 
-  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
+  process_registrar reg( vpm, "kwiver_processes_adapters" );
+
+  if ( is_process_module_loaded( vpm, reg.module_name() ) )
   {
     return;
   }
 
-  // ----------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( kwiver::input_adapter_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME, "input_adapter" )
-    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                     "Source process for pipeline.\n\n"
-                     "Pushes data items into pipeline ports. "
-                     "Ports are dynamically created as needed based on connections specified in the pipeline file." )
-    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
-
-  fact = vpm.ADD_PROCESS( kwiver::output_adapter_process );
-  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,  "output_adapter" )
-    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute(  kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                     "Sink process for pipeline.\n\n"
-                     "Accepts data items from pipeline ports. "
-                     "Ports are dynamically created as needed based on connections specified in the pipeline file." )
-    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
+  reg.register_process< kwiver::input_adapter_process >( process_registrar::no_test );
+  reg.register_process< kwiver::output_adapter_process >( process_registrar::no_test );
 
   // - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  mark_process_module_as_loaded( vpm, reg.module_name() );
 }

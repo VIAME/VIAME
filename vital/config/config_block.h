@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
+ * Copyright 2011-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -375,17 +375,6 @@ public:
 
   /// The magic group for global parameters.
   static config_block_key_t const global_value;
-
-
-  /// Format config in printable form
-  /**
-   * This method formats the config entries onto the supplied stream.
-   *
-   * \param str Stream to accept formated text.
-   */
-  VITAL_CONFIG_DEPRECATED
-  void print( std::ostream & str );
-
 
   /// Set source file location where entry is defined.
   /**

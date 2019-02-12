@@ -166,10 +166,14 @@ test_track_set_merge(track_set_sptr test_set_1, track_set_sptr test_set_2)
   ASSERT_EQ(4, test_set_1->size());
 
   auto tracks = test_set_1->tracks();
-  ASSERT_EQ(6, tracks[0]->size());
-  ASSERT_EQ(4, tracks[1]->size());
-  ASSERT_EQ(4, tracks[2]->size());
-  ASSERT_EQ(2, tracks[3]->size());
+  // tracks are not guaranteed to be in the original order, so sort by id
+  auto cmp = [](track_sptr t1, track_sptr t2) { return t1->id() < t2->id(); };
+  std::sort(tracks.begin(), tracks.end(), cmp);
+
+  EXPECT_EQ(6, tracks[0]->size());
+  EXPECT_EQ(4, tracks[1]->size());
+  EXPECT_EQ(4, tracks[2]->size());
+  EXPECT_EQ(2, tracks[3]->size());
   EXPECT_EQ(1, test_set_1->first_frame());
   EXPECT_EQ(10, test_set_1->last_frame());
 
@@ -225,6 +229,9 @@ void
 test_track_set_modifiers( track_set_sptr test_set )
 {
   auto tracks = test_set->tracks();
+  // tracks are not guaranteed to be in the original order, so sort by id
+  auto cmp = [](track_sptr t1, track_sptr t2) { return t1->id() < t2->id(); };
+  std::sort(tracks.begin(), tracks.end(), cmp);
 
   auto new_track = track::create();
   new_track->set_id( 10 );

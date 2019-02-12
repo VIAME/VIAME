@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/process_factory.h>
+#include <sprokit/processes/flow/processes_flow_export.h>
 
+#include <sprokit/pipeline/process_factory.h>
+#include <vital/plugin_loader/plugin_loader.h>
+
+// -- list processes to register --
 #include "collate_process.h"
 #include "distribute_process.h"
 #include "pass_process.h"
@@ -46,40 +50,19 @@ PROCESSES_FLOW_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = kwiver::vital::plugin_manager::module_t("flow_processes");
+  sprokit::process_registrar reg( vpm, "flow_processes" );
 
-  if (sprokit::is_process_module_loaded( vpm, module_name ) )
+  if (sprokit::is_process_module_loaded( vpm, reg.module_name() ) )
   {
     return;
   }
 
-  auto fact = vpm.ADD_PROCESS( sprokit::collate_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "collate" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Collates data from multiple worker processes," )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  reg.register_process< sprokit::collate_process>();
+  reg.register_process< sprokit::distribute_process>();
+  reg.register_process< sprokit::pass_process>();
+  reg.register_process< sprokit::sink_process>();
 
-  fact = vpm.ADD_PROCESS( sprokit::distribute_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "distribute" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Distributes data to multiple worker processes." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  // - - - - - - - - - - - - - - - - - - - - - - -
+  sprokit::mark_process_module_as_loaded( vpm, reg.module_name() );
 
-  fact = vpm.ADD_PROCESS( sprokit::pass_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "pass" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Pass a data stream through." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::sink_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "sink" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Ignores incoming data." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
 }

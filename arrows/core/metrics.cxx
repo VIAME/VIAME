@@ -217,8 +217,6 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
       num_obs(num_obs_), sum_error_sq(sum_error_sq_) {}
   };
 
-  frame_id_t last_frame = cameras.rend()->first;
-
   std::map<frame_id_t, err_vals> cam_errors;
 
   for (const track_sptr& t : tracks)

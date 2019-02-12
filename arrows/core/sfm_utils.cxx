@@ -183,9 +183,6 @@ connected_camera_components(
       continue;
     }
 
-    //ok this track has an associated landmark
-    const landmark& lm = *lmi->second;
-
     std::unordered_set<frame_id_t> cam_clique;
     for (auto ts : *t)
     {
@@ -195,7 +192,6 @@ connected_camera_components(
         // no feature for this track state.
         continue;
       }
-      const feature& feat = *fts->feature;
       if (!fts->inlier)
       {
         //outliers don't connect cameras
@@ -216,7 +212,7 @@ connected_camera_components(
 
     //which of the existing cliques does cam_clique overlap with?
     std::vector<int> overlapping_comps;
-    for (int comp_id = 0; comp_id < comps.size(); ++comp_id)
+    for (unsigned int comp_id = 0; comp_id < comps.size(); ++comp_id)
     {
       auto &cur_comp = comps[comp_id];
       for (auto cn : cam_clique)
@@ -242,7 +238,7 @@ connected_camera_components(
         final_comp.insert(cn);
       }
       //merge all other overlapping components into final_comp
-      for (int oc = 1; oc < overlapping_comps.size(); ++oc)
+      for (unsigned int oc = 1; oc < overlapping_comps.size(); ++oc)
       {
        auto &merged_comp = comps[overlapping_comps[oc]];
         final_comp.insert(merged_comp.begin(), merged_comp.end());
@@ -275,9 +271,6 @@ detect_bad_landmarks(
   int min_landmark_inliers,
   double median_distance_multiple)
 {
-
-  double stdev_bound = 3;
-
   //returns a set of un-constrained landmarks to be removed from the solution
   kwiver::vital::logger_handle_t logger(kwiver::vital::get_logger("arrows.core.sfm_utils"));
   std::set<landmark_id_t> landmarks_to_remove;
@@ -290,7 +283,7 @@ detect_bad_landmarks(
   size_t num_lm_found_from_tracks = 0;
   size_t num_unconstrained_landmarks_found = 0;
 
-  int observing_cams_thresh = std::max(2, min_landmark_inliers);
+  size_t observing_cams_thresh = std::max(2, min_landmark_inliers);
 
   std::vector<double> depths;
   for (auto const &lm_it: lms)
@@ -350,7 +343,6 @@ detect_bad_landmarks(
       }
     }
 
-    bool bad_ang = false;
     if (observing_cams.size() < observing_cams_thresh)
     {
       ++num_unconstrained_landmarks_found;
@@ -407,7 +399,6 @@ detect_bad_landmarks(
             continue;
           }
 
-          const feature& feat = *fts->feature;
           auto ci = cams.find(ts->frame());
           if (ci == cams.end() || !ci->second)
           {

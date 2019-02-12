@@ -84,7 +84,6 @@ local_geo_cs
   bool has_platform_roll = false;
   bool has_sensor_yaw = false;
   bool has_sensor_pitch = false;
-  bool has_sensor_roll = false;
 
   double platform_yaw = 0.0, platform_pitch = 0.0, platform_roll = 0.0;
   if (md.has(vital::VITAL_META_PLATFORM_HEADING_ANGLE))
@@ -116,11 +115,10 @@ local_geo_cs
   if (md.has(vital::VITAL_META_SENSOR_REL_ROLL_ANGLE))
   {
     md.find(vital::VITAL_META_SENSOR_REL_ROLL_ANGLE).data(sensor_roll);
-    has_sensor_roll = true;
   }
 
 
-  if ( has_platform_roll && has_platform_pitch && has_platform_roll &&
+  if ( has_platform_yaw && has_platform_pitch && has_platform_roll &&
        has_sensor_yaw && has_sensor_pitch &&  // Sensor roll is ignored here on purpose.
                                               // It is fixed on some platforms to zero.
       !(std::isnan(platform_yaw) || std::isnan(platform_pitch) || std::isnan(platform_roll) ||
@@ -229,7 +227,7 @@ bool set_intrinsics_from_metadata(simple_camera_perspective &cam, std::map<vital
   {
     if (md.second->has(vital::VITAL_META_SLANT_RANGE) && md.second->has(vital::VITAL_META_TARGET_WIDTH))
     {
-      double slant_range, target_width;
+      double slant_range=0.0, target_width=0.0;
       md.second->find(vital::VITAL_META_SLANT_RANGE).data(slant_range);
       md.second->find(vital::VITAL_META_TARGET_WIDTH).data(target_width);
       double f = im_w*(slant_range / target_width);
@@ -237,7 +235,7 @@ bool set_intrinsics_from_metadata(simple_camera_perspective &cam, std::map<vital
     }
     else if (md.second->has(vital::VITAL_META_SENSOR_HORIZONTAL_FOV))
     {
-      double hfov;
+      double hfov=0.0;
       md.second->find(vital::VITAL_META_SENSOR_HORIZONTAL_FOV).data(hfov);
       double f = (im_w / 2) / tan(0.5*hfov*deg_to_rad);
 

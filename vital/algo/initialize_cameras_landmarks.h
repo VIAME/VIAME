@@ -88,7 +88,8 @@ public:
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,
-                             kwiver::vital::landmark_map_sptr)> callback_t;
+                             kwiver::vital::landmark_map_sptr,
+                             kwiver::vital::feature_track_set_changes_sptr)> callback_t;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

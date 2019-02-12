@@ -32,7 +32,7 @@
 
 #include <sprokit/pipeline/version.h>
 
-#include <sprokit/version.h>
+#include <vital/version.h>
 
 
 /**
@@ -60,19 +60,19 @@ class compile
     static bool check(version_t major_, version_t minor_, version_t patch_);
 };
 
-sprokit::version::version_t const compile::major = SPROKIT_VERSION_MAJOR;
-sprokit::version::version_t const compile::minor = SPROKIT_VERSION_MINOR;
-sprokit::version::version_t const compile::patch = SPROKIT_VERSION_PATCH;
-std::string const compile::version_string = SPROKIT_VERSION;
+sprokit::version::version_t const compile::major = KWIVER_VERSION_MAJOR;
+sprokit::version::version_t const compile::minor = KWIVER_VERSION_MINOR;
+sprokit::version::version_t const compile::patch = KWIVER_VERSION_PATCH;
+std::string const compile::version_string = KWIVER_VERSION;
 bool const compile::git_build =
-#ifdef SPROKIT_BUILT_FROM_GIT
+#ifdef KWIVER_BUILT_FROM_GIT
       true;
 #else
       false;
 #endif
-std::string const compile::git_hash = SPROKIT_GIT_HASH;
-std::string const compile::git_hash_short = SPROKIT_GIT_HASH_SHORT;
-std::string const compile::git_dirty = SPROKIT_GIT_DIRTY;
+std::string const compile::git_hash = KWIVER_GIT_HASH;
+std::string const compile::git_hash_short = KWIVER_GIT_HASH_SHORT;
+std::string const compile::git_dirty = KWIVER_GIT_DIRTY;
 
 class runtime
 {
@@ -122,7 +122,7 @@ bool
 compile
 ::check(version_t major_, version_t minor_, version_t patch_)
 {
-  return SPROKIT_VERSION_CHECK(major_, minor_, patch_);
+  return KWIVER_VERSION_CHECK(major_, minor_, patch_);
 }
 
 #ifdef __GNUC__

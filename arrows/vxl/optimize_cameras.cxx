@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@ optimize_cameras
            const std::vector<vital::landmark_sptr>& landmarks,
            kwiver::vital::sfm_constraints_sptr constraints) const
 {
-  if( constraints && !constraints->get_metadata()->size() == 0 )
+  if( constraints && constraints->get_metadata()->size() != 0 )
   {
     LOG_WARN( vital::get_logger( "arrows.vxl.optimize_cameras" ),
               "constraints are provided but will be ignored by this algorithm");
