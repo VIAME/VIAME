@@ -53,7 +53,7 @@ export KWIVER_DEFAULT_LOG_LEVEL=debug
 # Paths for matlab (empty if not built with matlab)
 
 # Paths for CUDA libraries
-if [ -z "$CUDA_INSTALL_DIR" ]; then
+if [ ! -z "$CUDA_INSTALL_DIR" ]; then
   if [ -d "$CUDA_INSTALL_DIR" ]; then
     export LD_LIBRARY_PATH=$CUDA_INSTALL_DIR/lib64:$LD_LIBRARY_PATH
   else
