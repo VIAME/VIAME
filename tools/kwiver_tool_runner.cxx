@@ -35,6 +35,7 @@
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/exceptions/base.h>
+#include <vital/util/get_paths.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
   const std::string exec_path = kwiver::vital::get_executable_path();
   vpm.add_search_path(exec_path + "/../lib/kwiver/modules");
   vpm.add_search_path(exec_path + "/../lib/kwiver/modules/applets");
-  vpm.add_search_path(exec_path + "/../lib/kwiver/modules/processes");
+  vpm.add_search_path(exec_path + "/../lib/kwiver/processes");
   vpm.load_all_plugins();
 
 
