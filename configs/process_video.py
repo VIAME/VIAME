@@ -19,7 +19,6 @@ except ImportError:
 
 sys.dont_write_bytecode = True
 
-import generate_detection_plots
 import database_tool
 
 # Character short-cuts and global constants
@@ -651,6 +650,7 @@ if __name__ == "__main__" :
 
   # Build out detection vs time plots for both detections and tracks
   if args.detection_plots:
+    import generate_detection_plots
     log_info( lb1 + "Generating data plots for detections" + lb1 )
     detection_plot_dir = args.plot_dir_prefix + "_detections"
     create_dir( detection_plot_dir, logging=False, recreate=True, prompt=False )
@@ -660,6 +660,7 @@ if __name__ == "__main__" :
       ext = detection_ext, top_category_only = False )
 
   if args.track_plots:
+    import generate_detection_plots
     log_info( "Generating data plots for tracks" + lb1 )
     track_plot_dir = args.plot_dir_prefix + "_tracks"
     create_dir( track_plot_dir, logging=False, recreate=True, prompt=False )
