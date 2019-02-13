@@ -1,4 +1,11 @@
 
+v0.9.9.3 - 2/13/2019
+====================
+
+
+-Minor python change to drop dependency in standard use case
+
+
 v0.9.9.2 - 2/12/2019
 ====================
 
