@@ -72,7 +72,7 @@ KWIVER_ALGO_CORE_EXPORT
 frame_coverage_vec
 image_coverages(
   std::vector<vital::track_sptr> const& trks,
-  vital::landmark_map::map_landmark_t const& lms,  
+  vital::landmark_map::map_landmark_t const& lms,
   vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams);
 
 typedef std::vector<std::unordered_set<vital::frame_id_t>> camera_components;
@@ -105,10 +105,10 @@ connected_camera_components(
 * \param [in] triang_cos_ang_thresh features must have one pair of rays that
 *             meet this minimum intersection angle to keep
 * \param [in] error_tol reprojection error threshold
-* \param [in] min_landmark_inliers minimum number of inlier measurements to keep a landmark.  
+* \param [in] min_landmark_inliers minimum number of inlier measurements to keep a landmark.
               Set to -1 to ignore.
-* \param [in] median_distance_multiple remove landmarks more than the median 
-*             landmark to camera distance * median_distance_multiple.  Set to 0 
+* \param [in] median_distance_multiple remove landmarks more than the median
+*             landmark to camera distance * median_distance_multiple.  Set to 0
               to disable
 * \return set of landmark ids (track_ids) that were bad and should be removed
 */
