@@ -42,3 +42,8 @@ Arrows - VXL
    start_after_frame and output_nth_frame are used. In this situation the
    first frame would always be the one right after start_after_frame even
    if it didn't satisfiy the output_nth_frame condition.
+
+Arrows - DBOW2
+
+ * In match_descriptor_sets, set the number of levels in the vocabulary tree
+   based on the total number of features rather than a fixed value.
