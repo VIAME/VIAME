@@ -523,6 +523,27 @@ public:
       - static_cast<int>(this->f_frame_number_offset));
   }
 
+  void set_default_metadata(kwiver::vital::metadata_sptr md)
+  {
+    // Add frame number to timestamp
+    kwiver::vital::timestamp ts;
+    ts.set_frame( this->frame_number() );
+    md->set_timestamp( ts );
+
+    // Add file name/uri
+    md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
+
+    // Mark whether the frame is a key frame
+    if ( this->f_frame->key_frame > 0 )
+    {
+      md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_KEY_FRAME, true ) );
+    }
+    else
+    {
+      md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_KEY_FRAME, false ) );
+    }
+  }
+
   kwiver::vital::metadata_vector current_metadata()
   {
     kwiver::vital::metadata_vector retval;
@@ -550,27 +571,17 @@ public:
       // If the metadata was even partially decided, then add to the list.
       if ( ! meta->empty() )
       {
-        kwiver::vital::timestamp ts;
-        ts.set_frame( this->frame_number() );
-        // ts.set_time_usec( this->d_frame_time );
-        meta->set_timestamp( ts );
+        set_default_metadata( meta );
 
-        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
         retval.push_back( meta );
       } // end valid metadata packet.
     } // end while
 
     // if no metadata from the stream, add a basic metadata item
-    // containing video name and timestamp
     if ( retval.empty() )
     {
       auto meta = std::make_shared<kwiver::vital::metadata>();
-      kwiver::vital::timestamp ts;
-      ts.set_frame(this->frame_number() );
-      // ts.set_time_usec(this->d_frame_time);
-      meta->set_timestamp(ts);
-
-      meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
+      set_default_metadata( meta );
 
       retval.push_back(meta);
     }
