@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,12 +53,8 @@ class KWIVER_ALGO_CORE_EXPORT close_loops_appearance_indexed
 {
 public:
 
-  /// Name of the algorithm
-  static constexpr char const* name = "appearance_indexed";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Uses bag of words index to close loops.";
+  PLUGIN_INFO( "appearance_indexed",
+               "Uses bag of words index to close loops." )
 
   /// Default constructor
   close_loops_appearance_indexed();

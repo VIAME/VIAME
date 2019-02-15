@@ -156,6 +156,7 @@ triangulate_landmarks
     // extract the cameras and image points for this landmarks
     std::vector<vpgl_perspective_camera<double> > lm_cams;
     std::vector<vgl_point_2d<double> > lm_image_pts;
+    std::vector<feature_track_state_sptr> feats;
 
     for (track::history_const_itr tsi = t.begin(); tsi != t.end(); ++tsi)
     {
@@ -174,6 +175,7 @@ triangulate_landmarks
       lm_cams.push_back(c_itr->second);
       vital::vector_2d pt = fts->feature->loc();
       lm_image_pts.push_back(vgl_point_2d<double>(pt.x(), pt.y()));
+      feats.push_back(fts);
     }
 
     // if we found at least two views of this landmark, triangulate
@@ -201,6 +203,10 @@ triangulate_landmarks
         lm->set_covar(covariance_3d(error));
         lm->set_observations(static_cast<unsigned int>(lm_cams.size()));
         triangulated_lms[p.first] = lm;
+        for (auto fts : feats)
+        {
+          fts->inlier = true;
+        }
       }
     }
   }

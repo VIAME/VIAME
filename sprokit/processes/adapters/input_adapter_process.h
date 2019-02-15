@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,11 @@ class KWIVER_ADAPTER_EXPORT input_adapter_process
     public adapter::adapter_base
 {
 public:
+  PLUGIN_INFO( "input_adapter",
+               "Source process for pipeline.\n\n"
+               "Pushes data items into pipeline ports. "
+               "Ports are dynamically created as needed based on connections specified in the pipeline file." )
+
   // -- CONSTRUCTORS --
   input_adapter_process( kwiver::vital::config_block_sptr const& config );
   virtual ~input_adapter_process();

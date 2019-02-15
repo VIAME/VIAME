@@ -124,6 +124,12 @@ public:
 
   // If this or more tracks ids are shared between two frames then don't attempt to close the loop
   int m_tracks_in_common_to_skip_loop_closing;
+
+  //if intersect over union of track ids between two frames are greather than this then don't try to close the loop.
+  float m_skip_loop_detection_track_i_over_u_threshold;
+
+  // Must have this inlier fraction to accept a loop completion
+  float m_min_loop_inlier_fraction;
 };
 
 //-----------------------------------------------------------------------------
@@ -131,10 +137,12 @@ public:
 close_loops_appearance_indexed::priv
 ::priv()
   : m_f_estimator(),
-  m_min_loop_inlier_matches(50),
+  m_min_loop_inlier_matches(128),
   m_geometric_verification_inlier_threshold(2.0),
-  m_max_loop_attempts_per_frame(5),
-  m_tracks_in_common_to_skip_loop_closing(50)
+  m_max_loop_attempts_per_frame(200),
+  m_tracks_in_common_to_skip_loop_closing(0),
+  m_skip_loop_detection_track_i_over_u_threshold(0.5),
+  m_min_loop_inlier_fraction(0.5)
 {
 }
 
@@ -173,8 +181,9 @@ close_loops_appearance_indexed::priv
               matches_vec & matches)
 {
   const int max_int = std::numeric_limits<int>::max();
-  const int match_thresh = 25;
-  const float next_neigh_match_diff = 2;
+  const int match_thresh = 128;
+  const float next_neigh_match_diff = 1.2;
+
 
   std::map<track_id_t, feature_track_state_sptr> track_to_vb_state;
 
@@ -199,7 +208,7 @@ close_loops_appearance_indexed::priv
         // a match.  Add them to matches.
         matches.push_back(fs_match(cur_feat, it->second));
         // There is no need to search vb for additional matches.
-        break;
+        continue;
     }
 
     for (auto match_feat : vb)
@@ -240,7 +249,7 @@ close_loops_appearance_indexed::priv
   int num_successfully_matched_pairs = 0;
 
   auto cur_node_map = make_node_map(cur_frame_fts);
-  int num_loops_attempted = 0;
+  int num_failed_loop_attempts_in_a_row = 0;
   //loop over putatively matching frames
   for (auto fn_match : putative_matches)
   {
@@ -252,20 +261,27 @@ close_loops_appearance_indexed::priv
 
     //get active tracks on fn match
     auto match_frame_track_ids = feat_tracks->active_track_ids(fn_match);
-    std::set<track_id_t> tracks_in_common;
+    std::set<track_id_t> tracks_in_common, union_of_tracks;
     std::set_intersection(cur_frame_track_ids.begin(), cur_frame_track_ids.end(),
                           match_frame_track_ids.begin(), match_frame_track_ids.end(),
                           std::inserter(tracks_in_common, tracks_in_common.begin()));
 
-    if (tracks_in_common.size() > m_tracks_in_common_to_skip_loop_closing)
+    std::set_union(cur_frame_track_ids.begin(), cur_frame_track_ids.end(),
+                   match_frame_track_ids.begin(), match_frame_track_ids.end(),
+                   std::inserter(union_of_tracks, union_of_tracks.begin()));
+
+    double i_over_u = static_cast<double>(tracks_in_common.size()) /
+                      static_cast<double>(union_of_tracks.size());
+
+    if (i_over_u > m_skip_loop_detection_track_i_over_u_threshold)
     {
       continue;
     }
 
     // how many tracks to fn_match and frame_number have in common?  Too many?  Don't match.
 
-    ++num_loops_attempted;
-    if (num_loops_attempted >= m_max_loop_attempts_per_frame)
+    ++num_failed_loop_attempts_in_a_row;
+    if (num_failed_loop_attempts_in_a_row > m_max_loop_attempts_per_frame)
     {
       break;
     }
@@ -321,6 +337,21 @@ close_loops_appearance_indexed::priv
       continue;
     }
 
+    size_t already_joined_matches = 0;
+    for (auto &vm : validated_matches)
+    {
+      if (vm.first->track()->id() == vm.second->track()->id())
+      {
+        ++already_joined_matches;
+      }
+    }
+
+    if (already_joined_matches == validated_matches.size())
+    {
+      num_failed_loop_attempts_in_a_row = 0;
+      continue;
+    }
+
     std::vector<bool> inliers;
     //do geometric verification here
     if (m_f_estimator)
@@ -332,16 +363,26 @@ close_loops_appearance_indexed::priv
         pts_left.push_back(m.second->feature->loc());
       }
 
-      m_f_estimator->estimate(pts_right, pts_left, inliers,
+      auto F = m_f_estimator->estimate(pts_right, pts_left, inliers,
                               m_geometric_verification_inlier_threshold);
+
+      if (!F)
+      {
+        continue;
+      }
 
       unsigned num_inliers =
         static_cast<unsigned>(std::count(inliers.begin(), inliers.end(), true));
-      if (num_inliers < m_min_loop_inlier_matches)
+
+      float inlier_fraction = static_cast<double>(num_inliers) / static_cast<double>(validated_matches.size());
+
+      if (num_inliers < m_min_loop_inlier_matches || inlier_fraction < m_min_loop_inlier_fraction)
       {
         continue;
       }
     }
+
+    num_failed_loop_attempts_in_a_row = 0;
 
     int num_stitched_tracks = 0;
     for(size_t i = 0; i < validated_matches.size(); ++i)
@@ -553,18 +594,32 @@ close_loops_appearance_indexed::priv
     return feat_tracks;
   }
 
+  std::vector<frame_id_t> putative_matching_images;
+
   auto fd = std::dynamic_pointer_cast<feature_track_set_frame_data>(feat_tracks->frame_data(frame_number));
   if (!fd || !fd->is_keyframe)
   {
-    return feat_tracks;
+    //not a keyframe so just try to match to the last few frames
+    auto all_fids = feat_tracks->all_frame_ids();
+    for (auto it = all_fids.rbegin(); it != all_fids.rend(); ++it)
+    {
+      if (*it != frame_number)
+      {
+        putative_matching_images.push_back(*it);
+      }
+      if (putative_matching_images.size() >= 5)
+      {
+        break;
+      }
+    }
   }
+  else
+  {
+    auto desc = feat_tracks->frame_descriptors(frame_number);
 
-
-  auto desc = feat_tracks->frame_descriptors(frame_number);
-
-  std::vector<frame_id_t> putative_matching_images =
-    m_bow->query_and_append(desc, frame_number);
-
+    putative_matching_images =
+      m_bow->query_and_append(desc, frame_number);
+  }
   return verify_and_add_image_matches_node_id_guided(feat_tracks, frame_number,
                                       putative_matching_images);
 }
@@ -631,6 +686,14 @@ close_loops_appearance_indexed
     d_->m_tracks_in_common_to_skip_loop_closing,
     "if this or more tracks are in common between two frames then don't try to complete a loop with them");
 
+  config->set_value("m_skip_loop_detection_track_i_over_u_threshold",
+    d_->m_skip_loop_detection_track_i_over_u_threshold,
+    "skip loop detection if intersection over union of track ids in two frames is greater than this");
+
+  config->set_value("min_loop_inlier_fraction",
+    d_->m_min_loop_inlier_fraction,
+    "inlier fraction must be this high to accept a loop completion");
+
   return config;
 }
 
@@ -679,6 +742,14 @@ close_loops_appearance_indexed
   d_->m_tracks_in_common_to_skip_loop_closing =
     config->get_value<int>("tracks_in_common_to_skip_loop_closing",
       d_->m_tracks_in_common_to_skip_loop_closing);
+
+  d_->m_skip_loop_detection_track_i_over_u_threshold =
+    config->get_value<float>("skip_loop_detection_track_i_over_u_threshold",
+      d_->m_skip_loop_detection_track_i_over_u_threshold);
+
+  d_->m_min_loop_inlier_fraction =
+    config->get_value<float>("m_min_loop_inlier_fraction",
+      d_->m_min_loop_inlier_fraction);
 }
 
 //-----------------------------------------------------------------------------

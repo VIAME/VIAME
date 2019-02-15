@@ -182,15 +182,14 @@ merge_images_process
 
       // Create input port
       declare_input_port(
-          port_name,                                // port name
+          port_name,                   // port name
           image_port_trait::type_name, // port type
-          required,                                 // port flags
+          required,                    // port flags
           "image input" );
 
       d->p_port_list.insert( port_name );
     }
   }
 }
-
 
 } // end namespace

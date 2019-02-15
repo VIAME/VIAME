@@ -39,6 +39,7 @@
 
 #include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
+#include <vital/plugin_loader/plugin_info.h>
 
 #ifdef WIN32
 #pragma warning (push)

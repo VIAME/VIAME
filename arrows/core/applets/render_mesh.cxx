@@ -240,6 +240,9 @@ run( const std::vector<std::string>& argv )
     std::cout << "Triangulating Mesh" << std::endl;
     kwiver::arrows::core::mesh_triangulate(*mesh);
   }
+  std::cout << "Clipping Mesh to Camera Frustum" << std::endl;
+  kwiver::arrows::core::clip_mesh(*mesh, *camera);
+
   std::cout << "Rendering" << std::endl;
   vital::image_container_sptr image;
   if ( opt_height_map )

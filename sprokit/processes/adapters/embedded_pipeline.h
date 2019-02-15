@@ -120,7 +120,7 @@ namespace kwiver {
     auto rds = ep.receive();
 
     // get value from the output adapter
-    int val = get_port_data<int>( "out_num" );
+    int val = rds->get_port_data<int>( "out_num" );
 
     // val should be the same as i
 
@@ -152,6 +152,7 @@ public:
    * supplied stream.
    *
    * @param istr Input stream containing the pipeline description.
+   *
    * @param def_dir The directory name used to report errors in the
    * input stream and is used as the current directory to locate
    * includes and to resolve relpath. Since the input stream being
@@ -159,6 +160,10 @@ public:
    * the directory supplied so that errors in the stream can be
    * differentiated from errors from other files. If this parameter is
    * not supplied, the current directory is used.
+   *
+   * @throws std::runtime_error when there is a problem
+   * constructing the pipeline or if there is a problem connecting
+   * inputs or outputs.
    */
   void build_pipeline( std::istream& istr, std::string const& def_dir = "" );
 
@@ -276,6 +281,14 @@ public:
   void wait();
 
   /**
+   * @brief Stop an executing pipeline.
+   *
+   * This method signals the pipeline to stop and waits until it has
+   * terminated.
+   */
+  void stop();
+
+  /**
    * @brief Get list of input ports.
    *
    * This method returns the list of all active data ports on the
@@ -323,6 +336,8 @@ public:
    */
   bool output_adapter_connected() const;
 
+  class priv;
+
 protected:
   /**
    * @brief Connect to input adapter.
@@ -358,14 +373,8 @@ protected:
    */
   virtual void update_config( kwiver::vital::config_block_sptr config );
 
-  /**
-   * Reference to logger.
-   */
-  kwiver::vital::logger_handle_t m_logger;
-
 private:
-  class priv;
-  std::unique_ptr< priv > m_priv;
+  std::shared_ptr< priv > m_priv;
 
 }; // end class embedded_pipeline
 

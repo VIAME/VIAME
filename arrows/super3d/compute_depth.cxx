@@ -243,7 +243,6 @@ compute_depth
     vxl::vital_to_vpgl_camera<double>(*cameras_in[i], cameras[i]);
   }  
   
-  int ni = frames[ref_frame].ni(), nj = frames[ref_frame].nj();
   std::unique_ptr<world_space> ws = d_->compute_world_space_roi(cameras[ref_frame], frames[ref_frame], depth_min, depth_max, roi);
 
   d_->ref_cam = cameras[ref_frame];

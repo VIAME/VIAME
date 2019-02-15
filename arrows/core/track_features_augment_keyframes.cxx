@@ -75,19 +75,21 @@ track_features_augment_keyframes
         kwiver::vital::image_container_sptr mask) const
 {
 
-  auto fmap = tracks->all_feature_frame_data();
-  auto ftsfd = fmap.find(frame_number);
-  if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
-  {
-    // this is not a keyframe, so return the orignial tracks
-    // no changes made so no deep copy necessary
-    return tracks;
-  }
+  // FORCE DETECTION ON EVERY FRAME
+
+  //auto fmap = tracks->all_feature_frame_data();
+  //auto ftsfd = fmap.find(frame_number);
+  //if (ftsfd == fmap.end() || !ftsfd->second || !ftsfd->second->is_keyframe)
+  //{
+  //  // this is not a keyframe, so return the orignial tracks
+  //  // no changes made so no deep copy necessary
+  //  return tracks;
+  //}
 
   auto track_states = tracks->frame_states(frame_number);
   auto new_feat = tracks->frame_features(frame_number);
 
-  //describe the features
+  //describe the features.  Note this will recalculate the feature angles.
   vital::descriptor_set_sptr new_desc =
     d_->extractor->extract(image_data, new_feat, mask);
 
@@ -104,8 +106,10 @@ track_features_augment_keyframes
     for (auto ts : track_states)
     {
       auto fts = std::static_pointer_cast<feature_track_state>(ts);
-      if (*fts->feature == *feat)
+      if (fts && fts->feature && fts->feature->equal_except_for_angle(*feat))
       {
+        //feature must be set because extract will have calculated a new feature angle
+        fts->feature = feat;
         fts->descriptor = desc;
         break;
       }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -193,6 +193,7 @@ public:
 
 private:
   token_sptr get_next_token();
+  bool get_next_line();
 
   kwiver::vital::logger_handle_t m_logger;
   kwiver::vital::config_path_t m_config_file;

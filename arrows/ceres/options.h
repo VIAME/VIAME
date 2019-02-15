@@ -40,6 +40,7 @@
 #include <vital/config/config_block.h>
 #include <vital/types/camera_perspective.h>
 #include <vital/types/camera_map.h>
+#include <vital/types/sfm_constraints.h>
 #include <arrows/ceres/types.h>
 
 #include <unordered_map>
@@ -179,6 +180,12 @@ public:
                            cam_param_map_t const& ext_params,
                            std::vector<std::vector<double> > const& int_params,
                            cam_intrinsic_id_map_t const& int_map) const;
+
+
+  int
+  add_position_prior_cost(::ceres::Problem& problem,
+                          cam_param_map_t& ext_params,
+                          vital::sfm_constraints_sptr constraints);
 
   /// Add the camera path smoothness costs to the Ceres problem
   void add_camera_path_smoothness_cost(::ceres::Problem& problem,

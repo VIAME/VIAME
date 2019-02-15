@@ -48,13 +48,10 @@ class KWIVER_ALGO_CORE_EXPORT detected_object_set_input_simulator
   : public vital::algorithm_impl<detected_object_set_input_simulator, vital::algo::detected_object_set_input>
 {
 public:
-  static constexpr char const* name = "simulator";
-
   // NOTE: Keep description in sync with detected_object_set_output_simulator
-  static constexpr char const* description =
-    "Detected object set reader using SIMULATOR format.\n\n"
-    "Detection are generated algorithmicly.";
-
+  PLUGIN_INFO( "simulator",
+               "Detected object set reader using SIMULATOR format.\n\n"
+               "Detection are generated algorithmicly." )
 
   detected_object_set_input_simulator();
   virtual ~detected_object_set_input_simulator();

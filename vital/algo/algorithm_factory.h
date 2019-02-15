@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,27 +38,28 @@
 #include <vital/vital_config.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/plugin_loader/plugin_registrar.h>
 
 namespace kwiver {
 namespace vital{
 
 /**
- * @brief Factory class for algorithms.
+ * \brief Factory class for algorithms.
  *
- * @tparam T Type of the object to be created.
+ * \tparam T Type of the object to be created.
  */
 class VITAL_ALGO_EXPORT algorithm_factory
 : public kwiver::vital::plugin_factory
 {
 public:
   /**
-   * @brief CTOR for factory object
+   * \brief CTOR for factory object
    *
    * This CTOR also takes a factory function so it can support
    * creating processes and clusters.
    *
-   * @param algo Name of the algorithm
-   * @param impl Name of the implementation
+   * \param algo Name of the algorithm
+   * \param impl Name of the implementation
    */
   algorithm_factory( const std::string& algo,
                      const std::string& impl)
@@ -110,19 +111,19 @@ protected:
 
 // ------------------------------------------------------------------
 /**
- * @brief Create algorithm from interface name and implementation name.
+ * \brief Create algorithm from interface name and implementation name.
  *
- * @param algo_name Name of the interface
- * @param impl_name Name if the implementation
+ * \param algo_name Name of the interface
+ * \param impl_name Name if the implementation
  *
- * @return New algorithm object or
+ * \return New algorithm object or
  */
 VITAL_ALGO_EXPORT
 algorithm_sptr  create_algorithm( std::string const& algo_name,
                                   std::string const& impl_name );
 
 /**
- * @brief Check the given type and implementation names against registered algorithms.
+ * \brief Check the given type and implementation names against registered algorithms.
  *
  * \param type_name Type name of algorithm to validate
  * \param impl_name Implementation name of algorithm to validate
@@ -134,16 +135,62 @@ bool has_algorithm_impl_name(std::string const& type_name,
                              std::string const& impl_name);
 
 /**
- * @brief Add an algorithm factory
+ * \brief Add an algorithm factory
  *
- * @param algo_name Algorithm name or interface type name
- * @param impl_name Implementation name or just name of plugin
- * @param conc_T Type of object to create
+ * \param algo_name Algorithm name or interface type name
+ * \param impl_name Implementation name or just name of plugin
+ * \param conc_T Type of object to create
  *
- * @return
+ * \return
  */
 #define ADD_ALGORITHM( impl_name, conc_T)                    \
   add_factory( new kwiver::vital::algorithm_factory_0<conc_T>( conc_T::static_type_name(), impl_name ))
+
+// ============================================================================
+/// Derived class to register algorithms.
+/**
+ * This class contains the specific procedure for registering
+ * algorithms with the plugin loader.
+ */
+class algorithm_registrar
+  : public kwiver::plugin_registrar
+{
+public:
+  algorithm_registrar( kwiver::vital::plugin_loader& vpl,
+                       const std::string& mod_name )
+    : plugin_registrar( vpl, mod_name )
+  {
+  }
+
+
+  // ----------------------------------------------------------------------------
+  /// Register an algorithm plugin.
+  /**
+   * An algorithm of the specified type is registered with the plugin
+   * manager.
+   *
+   * \tparam tool_t Type of the algorithm being registered.
+   *
+   * \return The plugin loader reference is returned.
+   */
+  template <typename algorithm_t>
+  kwiver::vital::plugin_factory_handle_t register_algorithm()
+  {
+    using kvpf = kwiver::vital::plugin_factory;
+
+    auto fact = plugin_loader().
+      add_factory( new kwiver::vital::algorithm_factory_0<algorithm_t>(
+                     algorithm_t::static_type_name(),
+                     algorithm_t::_plugin_name ));
+
+    fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::_plugin_description)
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME,  this->module_name() )
+      .add_attribute( kvpf::PLUGIN_ORGANIZATION, this->organization() )
+      ;
+
+    return fact;
+  }
+};
 
 } } // end namespace
 

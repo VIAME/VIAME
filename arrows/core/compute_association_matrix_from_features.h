@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,8 @@ class KWIVER_ALGO_CORE_EXPORT compute_association_matrix_from_features
       vital::algo::compute_association_matrix>
 {
 public:
-
-  static constexpr char const* name = "from_features";
-
-  static constexpr char const* description =
-    "Populate association matrix in tracking from detector features.";
+  PLUGIN_INFO( "from_features",
+               "Populate association matrix in tracking from detector features." )
 
   /// Default Constructor
   compute_association_matrix_from_features();
