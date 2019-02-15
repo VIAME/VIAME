@@ -43,6 +43,7 @@
 #include <fstream>
 #include <ctime>
 
+#include <vital/math_constants.h>
 #include <vital/exceptions.h>
 #include <vital/io/eigen_io.h>
 
@@ -60,8 +61,6 @@
 #include <arrows/core/transform.h>
 #include <vital/algo/estimate_pnp.h>
 #include <arrows/core/sfm_utils.h>
-
-#define M_PI 3.141592653589793238462643383279
 
 using namespace kwiver::vital;
 
@@ -133,7 +132,7 @@ public:
   friend std::istream& operator>>(std::istream& s, rel_pose & rp);
 };
 
-const double rel_pose::target_angle = 20.0 * M_PI / 180.0;
+const double rel_pose::target_angle = 20.0 * deg_to_rad;
 
 /// output stream operator for a landmark base class
 std::ostream&
@@ -240,7 +239,7 @@ public:
     simple_camera_perspective_map_sptr cams,
     const std::vector<track_sptr>& trks,
     std::set<landmark_id_t>& inlier_lm_ids,
-    int min_inlier_observations = 2) const;
+    unsigned int min_inlier_observations = 2) const;
 
   void triangulate_landmarks_visible_in_frames(
     landmark_map::map_landmark_t& lmks,
@@ -433,7 +432,7 @@ initialize_cameras_landmarks_keyframe::priv
   lm_triangulator(new core::triangulate_landmarks()),
   bundle_adjuster(),
   m_logger(vital::get_logger("arrows.core.initialize_cameras_landmarks_keyframe")),
-  m_thresh_triang_cos_ang(cos((M_PI / 180.0) * 2.0)),
+  m_thresh_triang_cos_ang(cos(deg_to_rad * 2.0)),
   m_rng(m_rd()),
   m_reverse_ba_error_ratio(2.0),
   m_enable_BA_callback(false),
@@ -611,7 +610,7 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   const std::vector<track_sptr>& trks,
   std::set<landmark_id_t>& inlier_lm_ids,
-  int min_inlier_observations) const
+  unsigned int min_inlier_observations) const
 {
   typedef landmark_map::map_landmark_t lm_map_t;
   lm_map_t init_lms;
@@ -881,7 +880,6 @@ initialize_cameras_landmarks_keyframe::priv
 ::calc_rel_pose(frame_id_t frame_0, frame_id_t frame_1,
   const std::vector<track_sptr>& trks) const
 {
-  typedef landmark_map::map_landmark_t lm_map_t;
   // extract coresponding image points and landmarks
   std::vector<vector_2d> pts_right, pts_left;
 
@@ -947,7 +945,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   std::set<frame_id_t> inlier_lm_ids;
   retriangulate(lms, cam_map, trks, inlier_lm_ids);
-  int inlier_count_prev = 0;
+  size_t inlier_count_prev = 0;
 
   //optimizing loop
   while (inlier_lm_ids.size() > inlier_count_prev)
@@ -971,12 +969,7 @@ initialize_cameras_landmarks_keyframe::priv
   rp.well_conditioned_landmark_count = inlier_lm_ids.size();
   rp.angle_sum = 0;
 
-  int im_w = 2.0*cams[frame_0]->intrinsics()->principal_point().x();
-  int im_h = 2.0*cams[frame_0]->intrinsics()->principal_point().y();
   rp.coverage_0 = image_coverage(cam_map, trks, lms, frame_0);
-
-  im_w = 2.0*cams[frame_1]->intrinsics()->principal_point().x();
-  im_h = 2.0*cams[frame_1]->intrinsics()->principal_point().y();
   rp.coverage_1 = image_coverage(cam_map, trks, lms, frame_1);
 
   for (auto lm : lms)
@@ -1065,7 +1058,6 @@ initialize_cameras_landmarks_keyframe::priv
 
     m_kf_match_matrix = match_matrix(tracks, m_kf_mm_frames);
 
-    typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, 1> vectorXu;
     const int cols = m_kf_match_matrix.cols();
 
     const int min_matches = 100;
@@ -1097,7 +1089,7 @@ initialize_cameras_landmarks_keyframe::priv
     }
 
 #pragma omp parallel for schedule(dynamic, 10)
-    for (int64_t i = 0; i < pairs_to_process.size(); ++i)
+    for (int64_t i = 0; i < static_cast<int64_t>(pairs_to_process.size()); ++i)
     {
       const auto &tp = pairs_to_process[i];
       auto fid_0 = tp.first;
@@ -1107,7 +1099,7 @@ initialize_cameras_landmarks_keyframe::priv
       std::sort(tks0.begin(), tks0.end());
       std::sort(tks1.begin(), tks1.end());
       std::vector<kwiver::vital::track_sptr> tks_01;
-      auto tk_it = std::set_intersection(tks0.begin(), tks0.end(), tks1.begin(), tks1.end(), std::back_inserter(tks_01));
+      std::set_intersection(tks0.begin(), tks0.end(), tks1.begin(), tks1.end(), std::back_inserter(tks_01));
 
       //ok now we have the common tracks between the two frames.
       //make the essential matrix, decompose it and store it in a relative pose
@@ -1476,7 +1468,6 @@ initialize_cameras_landmarks_keyframe::priv
   for (auto &cam : persp_cams)
   {
     auto cam_fid = cam.first;
-    frame_id_t closest_prior_fid = -1;
     int best_fid_difference = std::numeric_limits<int>::max();
     vector_3d closest_prior;
     for (auto &prior : pos_priors)
@@ -1486,7 +1477,6 @@ initialize_cameras_landmarks_keyframe::priv
       if (cur_diff < best_fid_difference)
       {
         best_fid_difference = cur_diff;
-        closest_prior_fid = prior_fid;
         closest_prior = prior.second;
       }
     }
@@ -1506,7 +1496,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   Eigen::Matrix<double, 3, Eigen::Dynamic> cam_mat;
   cam_mat.resize(3, cam_positions.size());
-  for (int v = 0; v < cam_positions.size(); ++v)
+  for (size_t v = 0; v < cam_positions.size(); ++v)
   {
     cam_mat(0, v) = cam_positions[v].x();
     cam_mat(1, v) = cam_positions[v].y();
@@ -1687,7 +1677,7 @@ public:
 
   bool remove_set(const std::set<T> &rem_set)
   {
-    size_t hash = hash_set(test_set);
+    size_t hash = hash_set(rem_set);
     auto it_pair = m_map.equal_range(hash);
     for (auto it = it_pair.first; it != it_pair.second; ++it)
     {
@@ -1760,7 +1750,7 @@ void initialize_cameras_landmarks_keyframe::priv
 
   auto c = cams->find(target_frame);
 
-  if (!c || c->center().x() == 0 && c->center().y() == 0 && c->center().z() == 0)
+  if (!c || (c->center().x() == 0 && c->center().y() == 0 && c->center().z() == 0))
   {
     return;
   }
@@ -1845,7 +1835,7 @@ void initialize_cameras_landmarks_keyframe::priv
       std::uniform_int_distribution<size_t> uni(0, cameras.size() - 1); // guaranteed unbiased
       auto ri = uni(m_rng);
       auto cams_it = cameras.begin();
-      for (int i = 0; i < ri; ++i)
+      for (unsigned int i = 0; i < ri; ++i)
       {
         ++cams_it;
       }
@@ -1872,7 +1862,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (m_frac_frames_for_init > 0)
   {
-    int num_init_keyframes = keyframes.size() * m_frac_frames_for_init;
+    size_t num_init_keyframes = keyframes.size() * m_frac_frames_for_init;
     for (auto kfid : keyframes)
     {
       beginning_keyframes.insert(kfid);
@@ -2030,7 +2020,8 @@ initialize_cameras_landmarks_keyframe::priv
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
   while (!frames_to_resection.empty() &&
-    (m_max_cams_in_keyframe_init < 0 || cams->size() < m_max_cams_in_keyframe_init))
+    (m_max_cams_in_keyframe_init < 0 ||
+     cams->size() < static_cast<size_t>(m_max_cams_in_keyframe_init)))
   {
     frame_id_t next_frame_id = select_next_camera(frames_to_resection, cams, lms, tracks);
     if (next_frame_id == -1)
@@ -2797,7 +2788,6 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_sptr resectioned_cam, bundled_cam;
   int bundled_inlier_count = 0;
   int resection_inlier_count = 0;
-  bool good_pose = false;
 
   int min_inliers = 50;
 
@@ -3610,7 +3600,7 @@ initialize_cameras_landmarks_keyframe
                     "threshold to apply to triangulation in the first permissive rounds of "
                     "metadata based reconstruction initialization");
 
-  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
+  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang) * rad_to_deg;
   config->set_value("feature_angle_threshold", ang_thresh_cur,"feature must have this triangulation angle to keep");
 
   config->set_value("do_final_sfm_cleaning",
@@ -3628,8 +3618,8 @@ initialize_cameras_landmarks_keyframe
     r3 = dc[4];
   }
   config->set_value("base_camera:r1", r1, "r^2 radial distortion term");
-  config->set_value("base_camera:r2", r1, "r^4 radial distortion term");
-  config->set_value("base_camera:r3", r1, "r^6 radial distortion term");
+  config->set_value("base_camera:r2", r2, "r^4 radial distortion term");
+  config->set_value("base_camera:r3", r3, "r^6 radial distortion term");
 
   config->set_value("init_intrinsics_from_metadata", m_priv->m_init_intrinsics_from_metadata,
                     "initialize camera's focal length from metadata");
@@ -3757,10 +3747,10 @@ initialize_cameras_landmarks_keyframe
 
   m_priv->m_base_camera.set_intrinsics(K2.clone());
 
-  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang)*180.0 / M_PI;
+  double ang_thresh_cur = acos(m_priv->m_thresh_triang_cos_ang) * rad_to_deg;
   double ang_thresh_config = config->get_value("feature_angle_threshold", ang_thresh_cur);
 
-  m_priv->m_thresh_triang_cos_ang = cos((M_PI / 180.0) * ang_thresh_config);
+  m_priv->m_thresh_triang_cos_ang = cos(deg_to_rad * ang_thresh_config);
 
 
 
