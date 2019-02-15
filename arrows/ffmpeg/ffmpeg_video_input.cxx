@@ -78,6 +78,7 @@ public:
     f_frame(nullptr),
     f_software_context(nullptr),
     f_start_time(-1),
+    f_backstep_size(-1),
     f_frame_number_offset(0),
     video_path(""),
     metadata(0),
@@ -107,6 +108,9 @@ public:
 
   // Presentation timestamp (in stream time base)
   int64_t f_pts;
+
+  // Number of frames to back step when seek fails to land on frame before request
+  int64_t f_backstep_size;
 
   // Some codec/file format combinations need a frame number offset.
   // These codecs have a delay between reading packets and generating frames.
@@ -167,7 +171,6 @@ public:
       LOG_ERROR(this->logger, "Error " << err << " trying to open " << video_name);
       return false;
     }
-
 
     // Get the stream information by reading a bit of the file
     if (avformat_find_stream_info(this->f_format_context, NULL) < 0)
@@ -239,6 +242,17 @@ public:
     {
       LOG_ERROR(this->logger, "Error: Could not open codec " << this->f_video_encoding->codec_id);
       return false;
+    }
+
+    // Use group of picture (GOP) size for seek back step if avaiable
+    if ( this->f_video_encoding->gop_size > 0 )
+    {
+      this->f_backstep_size = this->f_video_encoding->gop_size;
+    }
+    else
+    {
+      // If GOP size not available use 12 which is a common GOP size.
+      this->f_backstep_size = 12;
     }
 
     this->f_video_stream = this->f_format_context->streams[this->f_video_index];
@@ -405,6 +419,60 @@ public:
 
   // ==================================================================
   /*
+  * @brief Seek to a specific frame
+  *
+  * @return \b true if video was valid and we found a frame.
+  */
+  bool seek( uint64_t frame )
+  {
+    // Time for frame before requested frame. The frame before is requested so
+    // advance will called at least once in case the request lands on a keyframe.
+    int64_t frame_ts = (static_cast<int>(f_frame_number_offset) + frame - 1) *
+      this->stream_time_base_to_frame() + this->f_start_time;
+
+    do
+    {
+      auto seek_rslt = av_seek_frame( this->f_format_context,
+                                      this->f_video_index, frame_ts,
+                                      AVSEEK_FLAG_BACKWARD );
+      avcodec_flush_buffers( this->f_video_encoding );
+
+      if ( seek_rslt < 0 )
+      {
+        return false;
+      }
+
+      if ( !this->advance() )
+      {
+        return false;
+      }
+
+      // Continue to make seek request further back until we land at a frame
+      // that is before the requested frame.
+      frame_ts -= this->f_backstep_size * this->stream_time_base_to_frame();
+    }
+    while( this->frame_number() > frame - 1 );
+
+    // Now advance forward until we reach the requested frame.
+    while( this->frame_number() < frame - 1 )
+    {
+      if ( !this->advance() )
+      {
+        return false;
+      }
+
+      if ( this->frame_number() > frame -1 )
+      {
+        LOG_ERROR( this->logger, "seek went past requested frame." );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // ==================================================================
+  /*
   * @brief Get the current timestamp
   *
   * @return \b Current timestamp.
@@ -455,6 +523,27 @@ public:
       - static_cast<int>(this->f_frame_number_offset));
   }
 
+  void set_default_metadata(kwiver::vital::metadata_sptr md)
+  {
+    // Add frame number to timestamp
+    kwiver::vital::timestamp ts;
+    ts.set_frame( this->frame_number() );
+    md->set_timestamp( ts );
+
+    // Add file name/uri
+    md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
+
+    // Mark whether the frame is a key frame
+    if ( this->f_frame->key_frame > 0 )
+    {
+      md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_KEY_FRAME, true ) );
+    }
+    else
+    {
+      md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_KEY_FRAME, false ) );
+    }
+  }
+
   kwiver::vital::metadata_vector current_metadata()
   {
     kwiver::vital::metadata_vector retval;
@@ -482,27 +571,17 @@ public:
       // If the metadata was even partially decided, then add to the list.
       if ( ! meta->empty() )
       {
-        kwiver::vital::timestamp ts;
-        ts.set_frame( this->frame_number() );
-        // ts.set_time_usec( this->d_frame_time );
-        meta->set_timestamp( ts );
+        set_default_metadata( meta );
 
-        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
         retval.push_back( meta );
       } // end valid metadata packet.
     } // end while
 
     // if no metadata from the stream, add a basic metadata item
-    // containing video name and timestamp
     if ( retval.empty() )
     {
       auto meta = std::make_shared<kwiver::vital::metadata>();
-      kwiver::vital::timestamp ts;
-      ts.set_frame(this->frame_number() );
-      // ts.set_time_usec(this->d_frame_time);
-      meta->set_timestamp(ts);
-
-      meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
+      set_default_metadata( meta );
 
       retval.push_back(meta);
     }
@@ -722,32 +801,18 @@ bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
     return false;
   }
 
-  // Quick return if the stream isn't open.
   if (timeout != 0)
   {
     LOG_WARN(this->logger(), "Timeout argument is not supported.");
   }
 
-  int current_frame_number = this->frame_timestamp().get_frame();
-  // If current frame number is greater than requested frame reopen
-  // file to reset to start
-  if (current_frame_number > frame_number)
+  bool ret = d->seek( frame_number );
+  d->end_of_video = !ret;
+  if (ret)
   {
-    d->close();
-    d->open( d->video_path );
-    current_frame_number = this->frame_timestamp().get_frame();
-  }
-
-  // Just advance video until the requested frame is reached
-  for (int i = current_frame_number; i < frame_number; ++i)
-  {
-    if (!this->next_frame(ts))
-    {
-      return false;
-    }
-  }
-
-  return true;
+    ts = this->frame_timestamp();
+  };
+  return ret;
 }
 
 
