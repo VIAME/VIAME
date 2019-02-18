@@ -82,6 +82,7 @@ public:
     , m_chip_step( 100 )
     , m_overlap_required( 0.05 )
     , m_random_int_shift( 0.00 )
+    , m_gs_to_rgb( true )
     , m_chips_w_gt_only( false )
     , m_max_neg_ratio( 0.0 )
     , m_ignore_category( "false_alarm" )
@@ -110,6 +111,7 @@ public:
   int m_chip_step;
   double m_overlap_required;
   double m_random_int_shift;
+  bool m_gs_to_rgb;
   bool m_chips_w_gt_only;
   double m_max_neg_ratio;
   std::string m_ignore_category;
@@ -212,6 +214,8 @@ darknet_trainer
     "as a training sample for said chip." );
   config->set_value( "random_int_shift", d->m_random_int_shift,
     "Random intensity shift to add to each extracted chip [0.0,1.0]." );
+  config->set_value( "gs_to_rgb", d->m_gs_to_rgb,
+    "Convert input greyscale images to rgb before processing." );
   config->set_value( "chips_w_gt_only", d->m_chips_w_gt_only,
     "Only chips with valid groundtruth objects on them will be included in "
     "training." );
@@ -259,6 +263,7 @@ darknet_trainer
   this->d->m_chip_step   = config->get_value< int >( "chip_step" );
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
+  this->d->m_gs_to_rgb   = config->get_value< bool >( "gs_to_rgb" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
   this->d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
   this->d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
@@ -577,8 +582,18 @@ darknet_trainer::priv
   kwiver::vital::detected_object_set_sptr groundtruth,
   vital::category_hierarchy_sptr object_labels )
 {
-  cv::Mat original_image = image;
-  cv::Mat resized_image;
+  cv::Mat original_image, resized_image;
+
+  if( m_gs_to_rgb && original_image.channels() == 1 )
+  {
+    cv::Mat color_image;
+    cv::cvtColor( image, color_image, CV_GRAY2RGB );
+    original_image = color_image;
+  }
+  else
+  {
+    original_image = image;
+  }
 
   if( !m_image_loaded_successfully )
   {
