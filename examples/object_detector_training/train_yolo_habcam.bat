@@ -11,6 +11,7 @@ REM Run pipeline
 viame_train_detector.exe ^
   -i training_data_habcam ^
   -c "%VIAME_INSTALL%/configs/pipelines/train_yolo_704.habcam.conf" ^
+  -p "%VIAME_INSTALL%/configs/pipelines/train_split_and_stereo_aug.pipe" ^
   --threshold 0.0
 
 pause
