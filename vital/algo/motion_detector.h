@@ -49,7 +49,7 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// \brief Abstract base class for image warping algorithms.
+/// \brief Abstract base class for motion detection algorithms.
 class VITAL_ALGO_EXPORT motion_detector
   : public kwiver::vital::algorithm_def<motion_detector>
 {
@@ -73,12 +73,13 @@ public:
    * camera pose
    *
    * \returns A heat map image is returned indicating the confidence
-   * that motion occurred at each pixel.
+   * that motion occurred at each pixel. Heat map image is single channel
+   * and has the same width and height dimensions as the input image.
    */
   virtual image_container_sptr
     process_image( const timestamp& ts,
                    const image_container_sptr image,
-                   bool reset_model) = 0;
+                   bool reset_model ) = 0;
 
 protected:
   motion_detector();

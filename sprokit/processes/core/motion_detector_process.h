@@ -40,7 +40,7 @@ namespace kwiver {
 
 // ----------------------------------------------------------------
 /**
- * @brief Image warping process.
+ * @brief Motion detection process.
  *
  */
 class KWIVER_PROCESSES_NO_EXPORT motion_detector_process

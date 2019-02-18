@@ -404,7 +404,7 @@ three_frame_differencing
 }
 
 
-/// Return homography to stabilize the image_src relative to the key frame
+/// Detect motion from a sequence of images
 image_container_sptr
 three_frame_differencing
 ::process_image( const timestamp& ts,

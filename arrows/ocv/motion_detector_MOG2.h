@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief OCV warp_image algorithm impl interface
+ * \brief OCV motion detection MOG2 algorithm impl interface
  */
 
 #ifndef KWIVER_ARROWS_OCV_MOTION_DETECTOR_MOG2_H_
@@ -51,7 +51,7 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// OCV implementation of warp_image using cv::BackgroundSubtractorMOG2
+/// OCV implementation of motion_detector using cv::BackgroundSubtractorMOG2
 class KWIVER_ALGO_OCV_EXPORT motion_detector_MOG2
   : public vital::algorithm_impl<motion_detector_MOG2,
                                  vital::algo::motion_detector>
@@ -86,12 +86,13 @@ public:
    * camera pose
    *
    * \returns A heat map image is returned indicating the confidence
-   * that motion occurred at each pixel.
+   * that motion occurred at each pixel. Heat map image is single channel
+   * and has the same width and height dimensions as the input image.
    */
   virtual kwiver::vital::image_container_sptr
     process_image( const kwiver::vital::timestamp& ts,
                    const kwiver::vital::image_container_sptr image,
-                   bool reset_model);
+                   bool reset_model );
 
 private:
   // private implementation class

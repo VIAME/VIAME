@@ -202,7 +202,7 @@ motion_detector_MOG2
 }
 
 
-/// Return homography to stabilize the image_src relative to the key frame
+/// Detect motion from a sequence of images
 image_container_sptr
 motion_detector_MOG2
 ::process_image( const timestamp& ts,
