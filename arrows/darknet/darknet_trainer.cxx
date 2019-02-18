@@ -51,6 +51,7 @@
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+#include <stdlib.h>
 
 namespace kwiver {
 namespace arrows {
@@ -82,6 +83,7 @@ public:
     , m_overlap_required( 0.05 )
     , m_random_int_shift( 0.00 )
     , m_chips_w_gt_only( false )
+    , m_max_neg_ratio( 0.0 )
     , m_ignore_category( "false_alarm" )
     , m_crop_left( false )
     , m_min_train_box_length( 5 )
@@ -110,6 +112,7 @@ public:
   double m_overlap_required;
   double m_random_int_shift;
   bool m_chips_w_gt_only;
+  double m_max_neg_ratio;
   std::string m_ignore_category;
   bool m_crop_left;
   int m_min_train_box_length;
@@ -214,6 +217,9 @@ darknet_trainer
   config->set_value( "chips_w_gt_only", d->m_chips_w_gt_only,
     "Only chips with valid groundtruth objects on them will be included in "
     "training." );
+  config->set_value( "max_neg_ratio", d->m_max_neg_ratio,
+    "Do not use more than this many more frames without groundtruth in "
+    "training than there are frames with truth." );
   config->set_value( "ignore_category", d->m_ignore_category,
     "Ignore this category in training, but still include chips around it." );
   config->set_value( "crop_left", d->m_crop_left,
@@ -258,6 +264,7 @@ darknet_trainer
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_random_int_shift = config->get_value< double >( "random_int_shift" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
+  this->d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
   this->d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
   this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
   this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
@@ -499,8 +506,42 @@ darknet_trainer::priv
   std::vector< kwiver::vital::detected_object_set_sptr > groundtruth,
   vital::category_hierarchy_sptr object_labels )
 {
+  double negative_ds_factor = -1.0;
+
+  if( m_max_neg_ratio > 0.0 && groundtruth.size() > 10 )
+  {
+    unsigned gt = 0, no_gt = 0;
+
+    for( unsigned i = 0; i < groundtruth.size(); ++i )
+    {
+      if( groundtruth[i] && !groundtruth[i]->empty() )
+      {
+        gt++;
+      }
+      else
+      {
+        no_gt++;
+      }
+    }
+
+    if( no_gt > 0 && gt > 0 )
+    {
+      double current_ratio = static_cast< double >( no_gt ) / gt;
+
+      if( current_ratio > m_max_neg_ratio )
+      {
+        negative_ds_factor = m_max_neg_ratio / current_ratio;
+      }
+    }
+  }
+
   for( unsigned fid = 0; fid < image_names.size(); ++fid )
   {
+    if( negative_ds_factor > 0.0 && rand() / RAND_MAX > negative_ds_factor )
+    {
+      continue;
+    }
+
     const std::string image_fn = image_names[fid];
 
     // Scale and break up image according to settings
