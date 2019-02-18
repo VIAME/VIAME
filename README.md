@@ -218,3 +218,5 @@ License and Citation
 --------------------
 
 VIAME is released under a BSD-3 license.
+
+A list of relevant papers used within VIAME can be found [here](doc/citations).
