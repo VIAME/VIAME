@@ -37,7 +37,6 @@ process detector_trainer
     :chip_step                                500
     :batch_size                               64
     :batch_subdivisions                       32
-    :crop_left                                false
     :overlap_required                         0.05
     :random_int_shift                         0.60
     :skip_format                              false
