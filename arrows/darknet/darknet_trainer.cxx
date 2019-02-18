@@ -85,7 +85,6 @@ public:
     , m_chips_w_gt_only( false )
     , m_max_neg_ratio( 0.0 )
     , m_ignore_category( "false_alarm" )
-    , m_crop_left( false )
     , m_min_train_box_length( 5 )
     , m_batch_size( 64 )
     , m_batch_subdivisions( 16 )
@@ -114,7 +113,6 @@ public:
   bool m_chips_w_gt_only;
   double m_max_neg_ratio;
   std::string m_ignore_category;
-  bool m_crop_left;
   int m_min_train_box_length;
   int m_batch_size;
   int m_batch_subdivisions;
@@ -222,8 +220,6 @@ darknet_trainer
     "training than there are frames with truth." );
   config->set_value( "ignore_category", d->m_ignore_category,
     "Ignore this category in training, but still include chips around it." );
-  config->set_value( "crop_left", d->m_crop_left,
-    "Crop out the left portion of imagery, only using the left side." );
   config->set_value( "min_train_box_length", d->m_min_train_box_length,
     "If a box resizes to smaller than this during training, the input frame " 
     "will not be used in training." );
@@ -266,7 +262,6 @@ darknet_trainer
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
   this->d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
   this->d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
-  this->d->m_crop_left   = config->get_value< bool >( "crop_left" );
   this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
   this->d->m_batch_size  = config->get_value< int >( "batch_size" );
   this->d->m_batch_subdivisions = config->get_value< int >( "batch_subdivisions" );
@@ -600,12 +595,6 @@ darknet_trainer::priv
   std::string label_folder = folder + div + prefix + "_labels";
 
   kwiver::vital::detected_object_set_sptr scaled_groundtruth = groundtruth->clone();
-
-  if( m_crop_left )
-  {
-    original_image = cv::Mat( original_image,
-      cv::Rect( 0, 0, original_image.cols/2, original_image.rows ) );
-  }
 
   double resized_scale = 1.0;
 
