@@ -1,4 +1,14 @@
 
+v0.9.9.4 - 2/18/2019
+====================
+
+
+-Fix model saveout in windows binaries broken in last
+
+
+-Updated default model training parameters
+
+
 v0.9.9.3 - 2/13/2019
 ====================
 
