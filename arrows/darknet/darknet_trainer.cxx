@@ -537,7 +537,9 @@ darknet_trainer::priv
 
   for( unsigned fid = 0; fid < image_names.size(); ++fid )
   {
-    if( negative_ds_factor > 0.0 && rand() / RAND_MAX > negative_ds_factor )
+    if( negative_ds_factor > 0.0 &&
+        ( !groundtruth[fid] || groundtruth[fid]->empty ) &&
+        rand() / RAND_MAX > negative_ds_factor )
     {
       continue;
     }
