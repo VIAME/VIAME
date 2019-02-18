@@ -14,7 +14,7 @@ annotation_and_visualization example folder in a VIAME installation.
 .. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/annotation_and_visualization
 
 There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
-GUIs are useful for displaying detections, their respective probabilities, for running detections,
+GUIs are useful for displaying detections, their respective probabilities, for running detectors,
 and for making new annotations in video. There are additionally simpler GUIs which can be
 enabled in .pipe files that are a part of KWIVER. For examples on how to run both of these GUIs
 see the "annotation_and_visualization" example folder. vpView can either be pointed directly to
