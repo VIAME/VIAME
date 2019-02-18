@@ -77,7 +77,7 @@ connect from filter.image
 process image_writer
  :: image_writer
  :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
+ :image_writer:vxl:split_channels               true
 
 connect from in_adapt.output_file_name
         to   image_writer.image_file_name
