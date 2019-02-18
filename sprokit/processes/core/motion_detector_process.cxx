@@ -142,10 +142,8 @@ make_ports()
   // Set up for required ports
   sprokit::process::port_flags_t required;
   sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t opt_static;
 
   required.insert( flag_required );
-  opt_static.insert( flag_input_static );
 
   // -- input --
   declare_input_port_using_trait( timestamp, optional );

@@ -267,10 +267,7 @@ motion_detector_MOG2
     }
   }
 
-  //cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
-  //cv::imshow("Display window", fgmask);
   d_->motion_heat_map = std::make_shared<ocv::image_container>(fgmask, image_container::BGR_COLOR);
-  //d->motion_heat_map = image;
 
   return d_->motion_heat_map;
 }

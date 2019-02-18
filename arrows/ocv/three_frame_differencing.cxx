@@ -63,11 +63,10 @@ using namespace kwiver::vital;
   *
   * @param src first image
   * @param dst second image
-  * @param dst_type OpenCV data type
   */
 static
 void
-rms_over_channels( const cv::Mat &src, cv::Mat &dst, int dst_type)
+rms_over_channels( const cv::Mat &src, cv::Mat &dst)
 {
   cv::Mat src_split[src.channels()];
   cv::split(src, src_split);
@@ -229,16 +228,13 @@ public:
       ++m_debug_counter;
     }
 
-    //cv::cvtColor(fgmask, fgmask, CV_RGB2GRAY, 1);
-
     if( fgmask.channels() > 1 )
     {
       LOG_TRACE( m_logger, "Converting multichannel foreground mask to single "
                  "channel");
-      rms_over_channels( fgmask, fgmask, CV_8UC1);
+      rms_over_channels( fgmask, fgmask);
     }
 
-    if( true )
     {
       double min_val, max_val;
       cv::minMaxLoc(fgmask, &min_val, &max_val);
