@@ -79,7 +79,7 @@ rms_over_channels( const cv::Mat &src, cv::Mat &dst, int dst_type)
 
     // Divide the result by 3^2 so that the difference has the same scale as
     // a mono image
-    cv::multiply( temp, temp, temp, 1/9.0 );
+    cv::multiply( temp, temp, temp, 1/3.0 );
     accum += temp;
   }
   cv::sqrt(accum, accum);
