@@ -138,7 +138,8 @@ void huber(vil_image_view<double> &q,
 {
   unsigned int ni = d.ni() - 1, nj = d.nj() - 1;
   double stepsilon1 = 1.0 + step*epsilon;
-  for (unsigned int j = 0; j < nj; j++)
+#pragma omp parallel for
+  for (int64_t j = 0; j < nj; j++)
   {
     for (unsigned int i = 0; i < ni; i++)
     {
@@ -162,7 +163,8 @@ void huber(vil_image_view<double> &q,
   q(ni,nj,1) = q(ni,nj-1,1);
 
   double theta_inv = 1.0 / theta, denom = (1.0 + (step / theta));
-  for (unsigned int j = 0; j < d.nj(); j++)
+#pragma omp parallel for
+  for (int64_t j = 0; j < d.nj(); j++)
   {
     for (unsigned int i = 0; i < d.ni(); i++)
     {
@@ -216,9 +218,12 @@ min_search_bound(vil_image_view<double> &a,
   const std::ptrdiff_t jstep_c = cost_volume.jstep();
   const std::ptrdiff_t pstep_c = cost_volume.planestep();
 
-  const double* row_c = cost_volume.top_left_ptr();
-  for (unsigned int j = 0; j < d.nj(); j++, row_c += jstep_c)
+#pragma omp parallel for
+  for (int64_t j = 0; j < d.nj(); j++)
   {
+    const double* row_c = cost_volume.top_left_ptr();
+    row_c += (j * jstep_c);
+
     const double* col_c = row_c;
     for (unsigned int i = 0; i < d.ni(); i++, col_c += istep_c)
     {

@@ -169,6 +169,8 @@ Arrows: Super3d
 
  * Added region of interest specification for depth maps
 
+ * Used OpenMP to accelerate various operations with parallel loops.
+
 Arrows: VXL
 
 Sprokit

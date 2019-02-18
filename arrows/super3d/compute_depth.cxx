@@ -215,7 +215,8 @@ compute_depth
 {
   //convert frames
   std::vector<vil_image_view<double> > frames(frames_in.size());
-  for (unsigned int i = 0; i < frames.size(); i++) {
+#pragma omp parallel for schedule(static, 1)
+  for (int i = 0; i < frames.size(); i++) {
     vil_image_view<vxl_byte> img =
       vxl::image_container::vital_to_vxl(frames_in[i]->get_image());
     vil_convert_planes_to_grey(img, frames[i]);
@@ -231,7 +232,8 @@ compute_depth
   if (!masks_in.empty())
   {
     masks.resize(masks_in.size());
-    for (unsigned int i = 0; i < masks.size(); i++) {
+#pragma omp parallel for schedule(static, 1)
+    for (int i = 0; i < masks.size(); i++) {
       masks[i] = vxl::image_container::vital_to_vxl(masks_in[i]->get_image());
     }
     ref_mask = &masks[ref_frame];

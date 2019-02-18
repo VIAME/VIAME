@@ -110,7 +110,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
         ws->warp_image_to_depth(masks[f], warp_mask, warp_cams[f], s, f, false);
       }
 
-      for (unsigned int j = 0; j < warp_ref.nj(); j++)
+#pragma omp parallel for
+      for (int64_t j = 0; j < warp_ref.nj(); j++)
       {
         for (unsigned int i = 0; i < warp_ref.ni(); i++)
         {
@@ -125,7 +126,8 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
     }
 
   //Normalize by counts
-    for (unsigned int j = 0; j < warp_ref.nj(); j++)
+    #pragma omp parallel for
+    for (int64_t j = 0; j < warp_ref.nj(); j++)
     {
       for (unsigned int i = 0; i < warp_ref.ni(); i++)
       {
