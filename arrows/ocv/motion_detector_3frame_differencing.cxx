@@ -30,12 +30,12 @@
 
 /**
  * \file
- * \brief Implementation of ocv::three_frame_differencing
+ * \brief Implementation of ocv::motion_detector_3frame_differencing
  */
 
 #include <deque>
 
-#include "three_frame_differencing.h"
+#include "motion_detector_3frame_differencing.h"
 
 #include <kwiversys/SystemTools.hxx>
 #include <vital/exceptions.h>
@@ -88,7 +88,7 @@ rms_over_channels( const cv::Mat &src, cv::Mat &dst)
 
 // ----------------------------------------------------------------------------
 /// Private implementation class
-class three_frame_differencing::priv
+class motion_detector_3frame_differencing::priv
 {
   cv::Mat m_jitter_struct_el;
   std::deque<cv::Mat> m_frames;
@@ -278,26 +278,26 @@ public:
 
 
 /// Constructor
-three_frame_differencing
-::three_frame_differencing()
+motion_detector_3frame_differencing
+::motion_detector_3frame_differencing()
 : d_(new priv)
 {
-  attach_logger( "arrows.ocv.three_frame_differencing" );
+  attach_logger( "arrows.ocv.motion_detector_3frame_differencing" );
   d_->m_logger = logger();
   d_->reset();
 }
 
 
 /// Destructor
-three_frame_differencing
-::~three_frame_differencing() noexcept
+motion_detector_3frame_differencing
+::~motion_detector_3frame_differencing() noexcept
 {
 }
 
 
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
-three_frame_differencing
+motion_detector_3frame_differencing
 ::get_configuration() const
 {
   // get base config from base class
@@ -337,7 +337,7 @@ three_frame_differencing
 
 /// Set this algo's properties via a config block
 void
-three_frame_differencing
+motion_detector_3frame_differencing
 ::set_configuration(vital::config_block_sptr in_config)
 {
   // Starting with our generated config_block to ensure that assumed values are present
@@ -393,7 +393,7 @@ three_frame_differencing
 
 
 bool
-three_frame_differencing
+motion_detector_3frame_differencing
 ::check_configuration(vital::config_block_sptr config) const
 {
   return true;
@@ -402,14 +402,14 @@ three_frame_differencing
 
 /// Detect motion from a sequence of images
 image_container_sptr
-three_frame_differencing
+motion_detector_3frame_differencing
 ::process_image( const timestamp& ts,
                  const image_container_sptr image,
                  bool reset_model)
 {
   if ( !image)
   {
-    throw vital::invalid_data("Inputs to ocv::three_frame_differencing are null");
+    throw vital::invalid_data("Inputs to ocv::motion_detector_3frame_differencing are null");
   }
 
   if( reset_model )

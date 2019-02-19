@@ -52,15 +52,15 @@ namespace arrows {
 namespace ocv {
 
 /// OCV implementation of motion_detector using three-frame differencing
-class KWIVER_ALGO_OCV_EXPORT three_frame_differencing
-  : public vital::algorithm_impl<three_frame_differencing,
+class KWIVER_ALGO_OCV_EXPORT motion_detector_3frame_differencing
+  : public vital::algorithm_impl<motion_detector_3frame_differencing,
                                  vital::algo::motion_detector>
 {
 public:
   /// Constructor
-  three_frame_differencing();
+  motion_detector_3frame_differencing();
   /// Destructor
-  virtual ~three_frame_differencing() noexcept;
+  virtual ~motion_detector_3frame_differencing() noexcept;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;

@@ -41,7 +41,7 @@ set( ocv_headers_public
   refine_detections_write_to_disk.h
   split_image.h
   track_features_klt.h
-  three_frame_differencing.h
+  motion_detector_3frame_differencing.h
   motion_detector_MOG2.h
   )
 kwiver_install_headers(
@@ -93,7 +93,7 @@ set( ocv_sources
   refine_detections_write_to_disk.cxx
   split_image.cxx
   track_features_klt.cxx
-  three_frame_differencing.cxx
+  motion_detector_3frame_differencing.cxx
   motion_detector_MOG2.cxx
   )
 
