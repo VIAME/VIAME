@@ -43,6 +43,9 @@ class KWIVER_PROCESSES_NO_EXPORT detect_features_if_keyframe_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "detect_features_if_keyframe",
+               "Detects feautres in an image if it is a keyframe.")
+
   typedef sprokit::process base_t;
 
   detect_features_if_keyframe_process(

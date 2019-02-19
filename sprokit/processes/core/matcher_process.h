@@ -59,6 +59,9 @@ class KWIVER_PROCESSES_NO_EXPORT matcher_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "feature_matcher",
+               "Match extracted descriptors and detected features." )
+
   typedef sprokit::process base_t;
 
   matcher_process( kwiver::vital::config_block_sptr const& config );

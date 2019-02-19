@@ -61,21 +61,24 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT associate_detections_to_tracks_process
   : public sprokit::process
 {
-  public:
+public:
+  PLUGIN_INFO( "associate_detections_to_tracks",
+               "Associates new detections to existing tracks given a cost matrix." )
+
   associate_detections_to_tracks_process( vital::config_block_sptr const& config );
   virtual ~associate_detections_to_tracks_process();
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-  private:
-    void make_ports();
-    void make_config();
+private:
+  void make_ports();
+  void make_config();
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class associate_detections_to_tracks_process
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class associate_detections_to_tracks_process
 
 
 } // end namespace

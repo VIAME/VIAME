@@ -56,22 +56,25 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT stabilize_image_process
   : public sprokit::process
 {
-  public:
+public:
+  PLUGIN_INFO( "stabilize_image",
+               "Generate current-to-reference image homographies." )
+
   stabilize_image_process( kwiver::vital::config_block_sptr const& config );
   virtual ~stabilize_image_process();
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-  private:
-    void make_ports();
-    void make_config();
+private:
+  void make_ports();
+  void make_config();
 
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class stabilize_image_process
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class stabilize_image_process
 
 
 } // end namespace

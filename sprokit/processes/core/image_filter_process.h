@@ -48,6 +48,9 @@ class KWIVER_PROCESSES_NO_EXPORT image_filter_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "image_filter",
+               "Apply selected image filter algorithm to incoming images." )
+
   image_filter_process( kwiver::vital::config_block_sptr const& config );
   virtual ~image_filter_process();
 
