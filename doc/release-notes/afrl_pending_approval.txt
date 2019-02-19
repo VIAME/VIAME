@@ -33,6 +33,11 @@ Arrows - FFMPEG
  * Using the new metadata tag, VITAL_META_VIDEO_KEY_FRAME, mark each frame
    of the video whether is is or isn't a key frame.
 
+Arrows - OpenCV
+
+ * Added an option to the FLANN-based matcher to use binary descriptors
+
+
 Fixes since last public release
 -------------------------------
 
