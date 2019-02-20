@@ -41,6 +41,11 @@ Arrows - OpenCV
 Fixes since last public release
 -------------------------------
 
+Arrows - Core
+
+ * Added gradual reprojection error threshold reduction in metadata based SfM
+   to keep solutions from falling apart.
+
 Arrows - VXL
 
  * Fixed bug in vidl_ffmpeg_video_input that occurs when both the
