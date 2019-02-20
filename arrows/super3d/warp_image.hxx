@@ -335,7 +335,7 @@ warp_image( vil_image_view<T> const& src,
   {
 
     // dest_col_ptr now points to the start of the BB region for this row
-    T* dest_col_ptr = row_start + j * dest_j_step;
+    T* dest_col_ptr = row_start + (j - start_j_adj) * dest_j_step;
 
     // Precompute row homography partials for this row
     const vnl_double_3 row_factor = homog_col_2 * static_cast<double>(j);
