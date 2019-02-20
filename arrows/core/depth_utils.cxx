@@ -250,55 +250,49 @@ compute_depth_range(std::vector<vector_3d> const& landmarks,
 //*****************************************************************************
 
 double
-compute_pixel_to_world_scale(std::vector<vector_3d> const& landmarks,
+compute_pixel_to_world_scale(kwiver::vital::vector_3d const& minpt,
+                             kwiver::vital::vector_3d const& maxpt,
                              std::vector<camera_perspective_sptr> const& cameras)
 {
-  assert(landmarks.size() > 1);
-
-  std::random_device rd;
-  std::mt19937 mt(rd());
-  std::uniform_int_distribution<unsigned int> landmarkdist(0, landmarks.size());
+  std::vector<vector_3d> pts = points_of_box(minpt, maxpt);
 
   double scale = 0.0;
   unsigned int count = 0;
-  unsigned int camindex = 0;
-  for (unsigned int i = 0; i < landmarks.size(); i++)
+  for (unsigned int c = 0; c < cameras.size(); c++)
   {
     //iterate thru different cameras
-    camera_perspective const& cam = *cameras[camindex];
+    camera_perspective const& cam = *cameras[c];
     matrix_3x4d P = cam.as_matrix();
     vector_3d cam_axis(P(2, 0), P(2, 1), P(2, 2));
+    cam_axis.normalize();
 
-    unsigned int landmarkindex = landmarkdist(mt);
-
-    while (landmarkindex == i)
-    {   
-      landmarkindex = landmarkdist(mt);
-    }
-
-    vector_3d const& pt1 = landmarks[i];
-    vector_3d const& pt2 = landmarks[landmarkindex];
-    
-    vector_3d vec = pt2 - pt1;
-    vector_3d proj = vec.dot(cam_axis) * cam_axis;
-    vector_3d pt2p = pt2 - proj;
-
-    double world_dist = (pt2p - pt1).norm();
-
-    vector_2d ppt1 = cam.project(pt1);
-    vector_2d ppt2p = cam.project(pt2p);
-    
-    double pixel_dist = (ppt2p - ppt1).norm();
-
-    double val = world_dist / pixel_dist;
-
-    if (std::isfinite(val))
+    for (unsigned int i = 0; i < pts.size(); i++)
     {
-      scale += val;
-      count++;
-    }
+      for (unsigned int j = i + 1; j < pts.size(); j++)
+      {
+        vector_3d const& pt1 = pts[i];
+        vector_3d const& pt2 = pts[j];
 
-    camindex = (camindex + 1) % cameras.size();
+        vector_3d vec = pt2 - pt1;
+        vector_3d proj = vec.dot(cam_axis) * cam_axis;
+        vector_3d pt2p = pt2 - proj;
+
+        double world_dist = (pt2p - pt1).norm();
+
+        vector_2d ppt1 = cam.project(pt1);
+        vector_2d ppt2p = cam.project(pt2p);
+
+        double pixel_dist = (ppt2p - ppt1).norm();
+
+        double val = world_dist / pixel_dist;
+
+        if (std::isfinite(val))
+        {
+          scale += val;
+          count++;
+        }
+      }
+    }
   }
 
   return scale / count;
