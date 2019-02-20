@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -191,18 +191,22 @@ close_loops_keyframe
   // initialize frame matches for this frame
   d_->frame_matches[frame_number] = 0;
 
+  // get a vector of all frame numbers contained in the tracks
+  auto frame_set = input->all_frame_ids();
+  std::vector<frame_id_t> frames(frame_set.begin(), frame_set.end());
+
   // do nothing for the first two frames, there is nothing to match
-  if( frame_number < 2 )
+  if( frames.size() <= 2 )
   {
     return input;
   }
 
   // compute the last frame we need to match to within the search bandwidth
   // the conditional accounts for the boundary case at startup
-  frame_id_t last_frame = 0;
-  if(frame_number > d_->search_bandwidth)
+  auto last_frame_itr = frames.rend();
+  if(frames.size() > d_->search_bandwidth)
   {
-    last_frame = frame_number - d_->search_bandwidth;
+    last_frame_itr = frames.rbegin() + d_->search_bandwidth;
   }
 
   // the first frame is always a key frame (for now)
@@ -233,7 +237,7 @@ close_loops_keyframe
   // between the current and previous frames.  This matching was done outside
   // of loop closure as part of the standard frame-to-frame tracking
   d_->frame_matches[frame_number] =
-      static_cast<unsigned int>(current_set->active_tracks( frame_number-1 ).size());
+      static_cast<unsigned int>(current_set->active_tracks( frames[frames.size() - 2] ).size());
 
   // used to compute the maximum number of matches between the current frame
   // and any of the key frames
@@ -245,7 +249,7 @@ close_loops_keyframe
   auto kitr = d_->keyframes.rbegin();
   // since loop closure starts at frame n-2, if the latest
   // keyframe happens to be n-1 we need to skip that one
-  if (*kitr == frame_number-1)
+  if (*kitr == frames[frames.size() - 2])
   {
     ++kitr;
   }
@@ -255,15 +259,15 @@ close_loops_keyframe
 
   std::map<vital::frame_id_t, std::future<track_pairs_t> > all_matches;
   // stitch with all frames within a neighborhood of the current frame
-  for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
+  for(auto f = frames.rbegin() + 2; f != last_frame_itr; ++f )
   {
-    all_matches[f] = pool.enqueue(match_func, f);
+    all_matches[*f] = pool.enqueue(match_func, *f);
   }
   // stitch with all previous keyframes
   for(auto kitr = d_->keyframes.rbegin(); kitr != d_->keyframes.rend(); ++kitr)
   {
     // if this frame was already matched above then skip it
-    if(*kitr >= last_frame)
+    if(*kitr >= *last_frame_itr)
     {
       continue;
     }
@@ -272,9 +276,9 @@ close_loops_keyframe
 
 
   // stitch with all frames within a neighborhood of the current frame
-  for(vital::frame_id_t f = frame_number - 2; f >= last_frame; f-- )
+  for(auto f = frames.rbegin() + 2; f != last_frame_itr; ++f )
   {
-    auto const& matches = all_matches[f].get();
+    auto const& matches = all_matches[*f].get();
     int num_matched = static_cast<int>(matches.size());
     int num_linked = 0;
     if( num_matched >= d_->match_req )
@@ -294,7 +298,7 @@ close_loops_keyframe
     // if this frame is a keyframe then account for it in the
     // computation of the maximum number of matches to all keyframes
     std::string frame_name = "";
-    if(kitr != d_->keyframes.rend() && f == *kitr)
+    if(kitr != d_->keyframes.rend() && *f == *kitr)
     {
       if( num_matched > max_keyframe_matched )
       {
@@ -304,19 +308,19 @@ close_loops_keyframe
       frame_name = "keyframe ";
     }
     LOG_INFO(logger(), "Matching frame " << frame_number << " to "
-                        << frame_name << f
+                        << frame_name << *f
                         << " has "<< num_matched << " matches and "
                         << num_linked << " joined tracks");
   }
   // divide by number of matched frames to get the average
   d_->frame_matches[frame_number] /=
-    static_cast<unsigned int>(frame_number - last_frame);
+    static_cast<unsigned int>(last_frame_itr - frames.rbegin() - 2);
 
   // stitch with all previous keyframes
   for(auto kitr = d_->keyframes.rbegin(); kitr != d_->keyframes.rend(); ++kitr)
   {
     // if this frame was already matched above then skip it
-    if(*kitr >= last_frame)
+    if(*kitr >= *last_frame_itr)
     {
       continue;
     }
@@ -364,7 +368,7 @@ close_loops_keyframe
   // of the search bandwidth, then add a new key frame by selecting the frame
   // since the first miss that has been most successful at matching.
   if (d_->keyframe_misses.size() > d_->min_keyframe_misses &&
-      d_->keyframe_misses.front() < last_frame)
+      d_->keyframe_misses.front() < *last_frame_itr)
   {
     auto hitr = d_->frame_matches.find(d_->keyframe_misses.front());
     unsigned int max_matches = 0;
