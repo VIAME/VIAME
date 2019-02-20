@@ -43,6 +43,11 @@ Vital
  * Changes to track_set_impl to facilitate passing track changes between
    Sprokit processes rather than full track sets for efficiency.
 
+vital util
+
+ * Added simple statistic class for accumulating values. Computes
+   average and std-deviation
+
 Vital Tools
 
  * Converted tools to use applet plugin approach.
@@ -190,6 +195,9 @@ Sprokit: Processes
    pipeline has reached end of data.
 
  * Converted processes to use the new process registrar approach.
+
+ * Improved process timing instrumentation to provide simple stats for
+   step entry.
 
 Tools
 
