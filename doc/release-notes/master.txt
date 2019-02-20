@@ -53,12 +53,17 @@ Vital Tools
 
 Vital Bindings
 
+
+Arrows
+
+ * Converted arrows to use new plugin registrar implementation.
+
 Arrows: Core
 
  * Created a new plugin for core applets
 
- * Added video_input_image_list function which enables all images contained 
-   inside a directory to be read in. 
+ * Added video_input_image_list function which enables all images contained
+   inside a directory to be read in.
 
  * Converted Arrows core to use new PLUGIN_INFO and registrar approach.
 
@@ -183,6 +188,8 @@ Sprokit: Processes
  * Added an extension plugin capability to embedded_pipeline that
    provides a hook just before the pipeline is set up and a hook after
    pipeline has reached end of data.
+
+ * Converted processes to use the new process registrar approach.
 
 Tools
 
