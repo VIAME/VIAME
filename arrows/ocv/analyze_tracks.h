@@ -49,6 +49,8 @@ class KWIVER_ALGO_OCV_EXPORT analyze_tracks
 : public vital::algorithm_impl<analyze_tracks, vital::algo::analyze_tracks>
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "Use OpenCV to analyze statistics of feature tracks." )
 
   /// Constructor
   analyze_tracks();

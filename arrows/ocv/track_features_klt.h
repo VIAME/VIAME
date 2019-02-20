@@ -53,6 +53,8 @@ class KWIVER_ALGO_OCV_EXPORT track_features_klt
   : public vital::algorithm_impl<track_features_klt, vital::algo::track_features>
 {
 public:
+  PLUGIN_INFO( "ocv_KLT",
+               "OpenCV Lucas Kanade feature tracker" )
 
   /// Default Constructor
   track_features_klt();
