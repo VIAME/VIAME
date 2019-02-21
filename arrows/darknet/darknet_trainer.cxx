@@ -415,7 +415,7 @@ darknet_trainer
       return;
     }
 
-    nfilters = d->filter_count( d->m_category_map.size() );
+    nfilters = d->filter_count( nclasses );
 
     // Generate train/test image list and header information
     //
