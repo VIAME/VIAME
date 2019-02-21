@@ -34,6 +34,7 @@
 */
 
 #include <arrows/cuda/integrate_depth_maps.h>
+#include <arrows/core/depth_utils.h>
 #include <sstream>
 #include <cuda_runtime.h>
 #include <cuda.h>
@@ -214,34 +215,26 @@ void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera, double* d
 
 void
 integrate_depth_maps::integrate(
-  vector_3d const& minpt_bound, vector_3d const& maxpt_bound,
-  double pixel_to_world_scale,
+  vector_3d const& minpt_bound,
+  vector_3d const& maxpt_bound,
   std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
   std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
   kwiver::vital::image_container_sptr& volume,
   kwiver::vital::vector_3d &spacing) const
 {
+  double pixel_to_world_scale;
+  pixel_to_world_scale = kwiver::arrows::core::compute_pixel_to_world_scale(minpt_bound, maxpt_bound, cameras);
+
   vector_3d diff = maxpt_bound - minpt_bound;
   vector_3d orig = minpt_bound;
 
   spacing = vector_3d(d_->grid_spacing);
   spacing *= pixel_to_world_scale * d_->voxel_spacing_factor;
 
-  std::cout << "scale factor: " << d_->voxel_spacing_factor;
-  std::cout << "grid sp: " << d_->grid_spacing[0]
-    << " " << d_->grid_spacing[1]
-    << " " << d_->grid_spacing[2] << "\n";
-
-  std::cout << "spacing: " << spacing << "\n";
-
   for (int i = 0; i < 3; i++)
   {
     d_->grid_dims[i] = static_cast<int>((diff[i] / spacing[i]));
   }
-
-  std::cout << "grid: " << d_->grid_dims[0]
-    << " " << d_->grid_dims[1]
-    << " " << d_->grid_dims[2] << "\n";
 
   LOG_DEBUG( logger(), "grid: " << d_->grid_dims[0]
                        << " "   << d_->grid_dims[1]

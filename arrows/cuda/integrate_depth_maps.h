@@ -68,7 +68,6 @@ public:
   *
   * \param [in]     minpt_bound the min point of the bounding region
   * \param [in]     maxpt_bound the max point of the bounding region
-  * \param [in]     scaling factor between the pixel space and world space
   * \param [in]     depth_maps  the set of floating point depth map images
   * \param [in]     cameras     the set of cameras, one for each depth map
   * \param [in,out] volume      the fused volumetric data
@@ -80,7 +79,6 @@ public:
   virtual void
     integrate(kwiver::vital::vector_3d const& minpt_bound,
               kwiver::vital::vector_3d const& maxpt_bound,
-              double pixel_to_world_scale,
               std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
               std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
               kwiver::vital::image_container_sptr& volume,
