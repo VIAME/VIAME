@@ -115,7 +115,7 @@ category_hierarchy
 {
   if( m_hierarchy.find( class_name ) != m_hierarchy.end() )
   {
-    throw std::runtime_error( "Category already exists." );
+    throw std::runtime_error( "Category already exists: " + class_name );
   }
 
   category_sptr new_entry( new category() );
