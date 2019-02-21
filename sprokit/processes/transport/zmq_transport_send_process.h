@@ -48,6 +48,9 @@ class KWIVER_PROCESSES_TRANSPORT_NO_EXPORT zmq_transport_send_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "zmq_transport_send",
+               "Send serialized buffer to ZMQ transport." )
+
   zmq_transport_send_process( kwiver::vital::config_block_sptr const& config );
   virtual ~zmq_transport_send_process();
 
