@@ -57,6 +57,9 @@ class KWIVER_PROCESSES_NO_EXPORT perform_query_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "perform_query",
+               "Perform a query." )
+
   perform_query_process( vital::config_block_sptr const& config );
   virtual ~perform_query_process();
 

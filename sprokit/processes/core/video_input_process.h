@@ -54,6 +54,9 @@ class KWIVER_PROCESSES_NO_EXPORT video_input_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "video_input",
+               "Reads video files and produces sequential images with metadata per frame." )
+
   video_input_process( kwiver::vital::config_block_sptr const& config );
   virtual ~video_input_process();
 

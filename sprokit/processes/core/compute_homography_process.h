@@ -43,22 +43,25 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT compute_homography_process
   : public sprokit::process
 {
-  public:
+public:
+  PLUGIN_INFO( "compute_homography",
+               "Compute a frame to frame homography based on tracks." )
+
   compute_homography_process( kwiver::vital::config_block_sptr const& config );
   virtual ~compute_homography_process();
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-  private:
-    void make_ports();
-    void make_config();
+private:
+  void make_ports();
+  void make_config();
 
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class compute_homography_process
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class compute_homography_process
 
 
 } // end namespace
