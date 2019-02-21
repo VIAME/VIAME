@@ -50,6 +50,9 @@ class KWIVER_ALGO_CUDA_EXPORT integrate_depth_maps
   : public vital::algorithm_impl<integrate_depth_maps, vital::algo::integrate_depth_maps>
 {
 public:
+  PLUGIN_INFO( "cuda",
+               "depth map fusion" )
+
   /// Constructor
   integrate_depth_maps();
 
@@ -81,8 +84,6 @@ public:
               std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
               std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
               kwiver::vital::image_container_sptr& volume) const;
-
-
 
 private:
   /// private implementation class
