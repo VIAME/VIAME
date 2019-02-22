@@ -631,7 +631,15 @@ main( int argc, char* argv[] )
   }
   else if( g_params.opt_out_config.empty() )
   {
-    classes.reset( new kwiver::vital::category_hierarchy( label_fn ) );
+    try
+    {
+      classes.reset( new kwiver::vital::category_hierarchy( label_fn ) );
+    }
+    catch( const std::exception& e )
+    {
+      std::cerr << "ERROR: " << e.what() << std::endl;
+      exit( 0 );
+    }
   }
 
   // Load train.txt, if available
