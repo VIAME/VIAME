@@ -1,51 +1,64 @@
-#
-# Python supporot
-#
+project(vital_python_algo)
 
-# Add python modules
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/algorithm.py
+include_directories(${PYBIND11_INCLUDE_DIR})
+
+# Add trampoline
+kwiver_add_python_library(py_algorithm_trampoline
   vital/algo
-  algorithm )
+  trampoline/algorithm_trampoline.cxx  
+)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/bundle_adjust.py
+target_link_libraries(python-vital.algo-py_algorithm_trampoline
+  PUBLIC ${PYTHON_LIBRARIES}
+          vital_algo
+          vital_config
+          vital  
+)
+
+kwiver_add_python_library(py_image_object_detector_trampoline
   vital/algo
-  bundle_adjust )
+  trampoline/image_object_detector_trampoline.cxx  
+)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/convert_image.py
+target_link_libraries(python-vital.algo-py_image_object_detector_trampoline
+  PUBLIC ${PYTHON_LIBRARIES}
+          vital_algo
+          vital_config
+          vital  
+)
+
+
+kwiver_add_python_library(image_object_detector
   vital/algo
-  convert_image )
+  image_object_detector.cxx 
+  )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/estimate_canonical_transform.py
+target_link_libraries(python-vital.algo-image_object_detector
+  PUBLIC ${PYTHON_LIBRARIES}
+          vital
+          vital_config
+          vital_algo
+)
+
+kwiver_add_python_library(algorithm_factory
   vital/algo
-  estimate_canonical_transform )
+  algorithm_factory.cxx  
+)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/estimate_similarity_transform.py
+target_link_libraries(python-vital.algo-algorithm_factory
+  PUBLIC ${PYTHON_LIBRARIES}
+          vital
+          vital_algo
+)
+
+kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/simple_image_detector.py
   vital/algo
-  estimate_similarity_transform )
+  simple_image_detector
+)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/image_io.py
-  vital/algo
-  image_io )
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/initialize_cameras_landmarks.py
-  vital/algo
-  initialize_cameras_landmarks )
+kwiver_create_python_init(vital/algo
+  image_object_detector
+  algorithm_factory  
+)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track_features.py
-  vital/algo
-  track_features )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/triangulate_landmarks.py
-  vital/algo
-  triangulate_landmarks )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-  vital/algo
-  __init__ )
-
-#kwiver_create_python_init( vital/algo
-#  algorithm
-#  convert_image
-#  image
-#  track_features
-#  )
