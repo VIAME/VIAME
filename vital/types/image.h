@@ -220,13 +220,6 @@ public:
    */
   image_memory& operator=( const image_memory& other );
 
-  /// Equality operator
-  /**
-   * Compares the data in other image memory with this image data.
-   * \param other image_memory to compare with
-   */
-  bool operator==( const image_memory& other ) const;
-
   /// Destructor
   virtual ~image_memory();
 
@@ -451,11 +444,33 @@ public:
 
   /// Equality operator
   /**
-   * Compares this image to another image. Uses image data, pixel trait and image
-   * dimension for comparision
+   * Compares this image to another image to test equality.
+   *
    * \param other image to compare with
+   *
+   * \note This function computes only "shallow" equality.  That is, the images
+   *       are considered equal if they point to the same memory and have the
+   *       dimensions and pixel step sizes.  Deep equality testing requires
+   *       stepping through and testing that the values of each pixel are the
+   *       same even if the memory and possibly memory layout differ.
+   *
+   * \sa   For deep equality comparison see equal_content
    */
-  bool operator==( const image& other_image ) const;
+  bool operator==( image const& other ) const;
+
+  /// Inequality operator
+  /**
+  * Compares this image to another image to test inequality.
+  *
+  * \param other image to compare with
+  *
+  * \note This function computes only "shallow" inequality.  Refer to the
+  *       equality operator (==) for details.
+  */
+  bool operator!=(image const& other) const
+  {
+    return !(*this == other);
+  }
 
   /// Access pixels in the first channel of the image
   /**
