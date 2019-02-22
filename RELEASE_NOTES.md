@@ -1,4 +1,14 @@
 
+v0.9.9.5 - 2/21/2019
+====================
+
+
+-Fix bug added to deep training tool in last version
+
+
+-Fix training tool windows error reporting
+
+
 v0.9.9.4 - 2/18/2019
 ====================
 
