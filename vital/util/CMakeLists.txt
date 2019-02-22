@@ -19,11 +19,11 @@ set( public_headers
   enumerate_matrix.h
   bounded_buffer.h
   source_location.h
-
   data_stream_reader.h
   hex_dump.h
   string.h
   string_editor.h
+  simple_stats.h
   thread_pool.h
   token_expander.h
   token_expand_editor.h
