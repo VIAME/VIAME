@@ -55,7 +55,10 @@ public:
       {
       itkGenericExceptionMacro( "Error dynamic_cast failed" );
       }
-    std::cout << "It: " << optimizer->GetCurrentIteration() << " metric value: " << optimizer->GetCurrentMetricValue() << " position: " << optimizer->GetCurrentPosition();
+    std::cout << "It: " << optimizer->GetCurrentIteration()
+              << " metric value: " << optimizer->GetCurrentMetricValue()
+              << " position: " << optimizer->GetCurrentPosition();
+
     std::cout << std::endl;
     }
 };
@@ -83,8 +86,11 @@ int JHCTPointSetMetricRegistration(
   metric->Initialize();
 
   // scales estimator
-  using RegistrationParameterScalesFromShiftType = itk::RegistrationParameterScalesFromPhysicalShift< TMetric >;
-  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator = RegistrationParameterScalesFromShiftType::New();
+  using RegistrationParameterScalesFromShiftType =
+    itk::RegistrationParameterScalesFromPhysicalShift< TMetric >;
+  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
+    RegistrationParameterScalesFromShiftType::New();
+
   shiftScaleEstimator->SetMetric( metric );
   // needed with pointset metrics
   shiftScaleEstimator->SetVirtualDomainPointSet( metric->GetVirtualTransformedPointSet() );
@@ -110,13 +116,17 @@ int JHCTPointSetMetricRegistration(
   std::cout << "Optimizer scales: " << optimizer->GetScales() << std::endl;
   std::cout << "Optimizer learning rate: " << optimizer->GetLearningRate() << std::endl;
   std::cout << "Moving-source final value: " << optimizer->GetCurrentMetricValue() << std::endl;
+
   if( transform->GetTransformCategory() == TTransform::DisplacementField )
     {
     std::cout << "local-support transform non-zero parameters: " << std::endl;
     typename TTransform::ParametersType params = transform->GetParameters();
-    for( itk::SizeValueType n = 0; n < transform->GetNumberOfParameters(); n += transform->GetNumberOfLocalParameters() )
+    for( itk::SizeValueType n = 0; n < transform->GetNumberOfParameters();
+         n += transform->GetNumberOfLocalParameters() )
       {
-      typename TTransform::ParametersValueType zero = itk::NumericTraits<typename TTransform::ParametersValueType>::ZeroValue();
+      typename TTransform::ParametersValueType zero =
+        itk::NumericTraits<typename TTransform::ParametersValueType>::ZeroValue();
+
       if( itk::Math::NotExactlyEquals(params[n], zero) && itk::Math::NotExactlyEquals(params[n+1], zero) )
         {
         std::cout << n << ", " << n+1 << " : " << params[n] << ", " << params[n+1] << std::endl;
@@ -131,21 +141,18 @@ int JHCTPointSetMetricRegistration(
 
   return EXIT_SUCCESS;
 }
+
 template< typename TPointSet >
 typename TPointSet::Pointer
-PhaseSymmetryPointSet(const char * inputImageFile, bool isThermal )
+PhaseSymmetryPointSet( const itk::Image< float, 2 >& input, bool isThermal )
 {
   constexpr unsigned int Dimension = 2;
   using PixelType = float;
   using ImageType = itk::Image< PixelType, Dimension >;
 
-  using ReaderType = itk::ImageFileReader< ImageType >;
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( inputImageFile );
-
   using ShrinkerType = itk::BinShrinkImageFilter< ImageType, ImageType >;
   ShrinkerType::Pointer shrinker = ShrinkerType::New();
-  shrinker->SetInput( reader->GetOutput() );
+  shrinker->SetInput( input );
   using ShrinkFactorsType = ShrinkerType::ShrinkFactorsType;
   ShrinkFactorsType shrinkFactors;
   shrinkFactors.Fill( 10 );
@@ -275,26 +282,23 @@ PhaseSymmetryPointSet(const char * inputImageFile, bool isThermal )
   return maskToPointSetFilter->GetOutput();
 }
 
-int main(int argc, char * argv[])
+template< typename InputImageType >
+void PerformRegistration(
+  const InputImageType& inputOpticalImage,
+  const InputImageType& inputThermalImage,
+  const outputTransformation,
+  const bool ProduceWarped = false,
+  const outputWarpedImage = () )
 {
-  if( argc < 5 )
-    {
-    std::cerr << "Usage: " << argv[0] << " <InputThermalImage> <InputOpticalImage> <OutputTransformFile> <OutputTransformedThermalImage>" << std::endl;
-    std::cerr << "Example: ./0/CHESS_FL12_C_160421_215351.941_THERM-16BIT.PNG ./0/CHESS_FL12_C_160421_215351.941_COLOR-8-BIT.JPG ./0/thermal_to_optical.h5 ./0/thermal_registered.png" << std::endl;
-    return EXIT_FAILURE;
-    }
   constexpr unsigned int Dimension = 2;
   using PixelType = unsigned char;
   using ImageType = itk::Image< PixelType, Dimension >;
   using PointSetType = itk::PointSet< float, Dimension >;
 
-  const char * inputThermalImageFile = argv[1];
-  const char * inputOpticalImageFile = argv[2];
-  const char * outputTransformFile = argv[3];
-  const char * outputTransformedThermalImageFile = argv[4];
-
-  PointSetType::Pointer thermalPhaseSymmetryPointSet = PhaseSymmetryPointSet< PointSetType >( inputThermalImageFile, true );
-  PointSetType::Pointer opticalPhaseSymmetryPointSet = PhaseSymmetryPointSet< PointSetType >( inputOpticalImageFile, false );
+  PointSetType::Pointer thermalPhaseSymmetryPointSet =
+    PhaseSymmetryPointSet< PointSetType >( inputThermalImage, true );
+  PointSetType::Pointer opticalPhaseSymmetryPointSet =
+    PhaseSymmetryPointSet< PointSetType >( inputOpticalImage, false );
 
   using JHCTPointSetMetricType = itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4< PointSetType >;
   JHCTPointSetMetricType::Pointer jhctMetric = JHCTPointSetMetricType::New();
@@ -308,7 +312,10 @@ int main(int argc, char * argv[])
   JHCTPointSetMetricRegistration<AffineTransformType, JHCTPointSetMetricType, PointSetType >
     ( numberOfIterations, maximumPhysicalStepSize,
       affineTransform, jhctMetric,
-      thermalPhaseSymmetryPointSet, opticalPhaseSymmetryPointSet, pointSetSigma );
+      thermalPhaseSymmetryPointSet,
+      opticalPhaseSymmetryPointSet,
+      pointSetSigma );
+  
   using TransformWriterType = itk::TransformFileWriterTemplate< double >;
   TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( affineTransform );
@@ -400,6 +407,50 @@ int main(int argc, char * argv[])
 
   RescalerType::Pointer transformedRescaler = RescalerType::New();
   transformedRescaler->SetInput( resampledTransformedFixedImage );
+
+
+}
+
+int main(int argc, char * argv[])
+{
+  if( argc < 4 )
+    {
+    std::cerr << "Usage: " << argv[0] << " <InputThermalImage> <InputOpticalImage> "
+              << "<OutputTransformFile> <OutputTransformedThermalImage>" << std::endl;
+    std::cerr << "Example: ./0/CHESS_FL12_C_160421_215351.941_THERM-16BIT.PNG "
+              << "./0/CHESS_FL12_C_160421_215351.941_COLOR-8-BIT.JPG "
+              << "./0/thermal_to_optical.h5 ./0/thermal_registered.png" << std::endl;
+
+    return EXIT_FAILURE;
+    }
+  
+  constexpr unsigned int Dimension = 2;
+  using PixelType = unsigned char;
+  using ImageType = itk::Image< PixelType, Dimension >;
+  using PointSetType = itk::PointSet< float, Dimension >;
+
+  const char * inputThermalImageFile = argv[1];
+  const char * inputOpticalImageFile = argv[2];
+  const char * outputTransformFile = argv[3];
+  const char * outputTransformedThermalImageFile;
+
+  if (argc > 4 )
+    {
+    outputTransformedThermalImageFile = argv[4];
+    }
+
+  using ReaderType = itk::ImageFileReader< PointSetType >;
+  ReaderType::Pointer opticalReader = ReaderType::New();
+  ReaderType::Pointer thermalReader = ReaderType::New();
+
+  opticalReader->SetFileName( inputOpticalImageFile );
+  thermalReader->SetFileName( inputThermalImageFile );
+
+  PerformRegistration( opticalReader->GetOutput(),
+                       thermalReader->GetOutput(),
+                       ( argc > 4 ),
+                       outputTransform,
+                       outputWarpedImage );
 
   ImageWriterType::Pointer transformedRescaledWriter = ImageWriterType::New();
   transformedRescaledWriter->SetInput( transformedRescaler->GetOutput() );
