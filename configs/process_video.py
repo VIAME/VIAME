@@ -44,6 +44,9 @@ any_video_complete = False
 
 # Helper class to list files with a given extension in a directory
 def list_files_in_dir( folder ):
+  if not os.path.exists( folder ) and os.path.exists( folder + ".lnk" ):
+    folder = folder + ".lnk"
+  folder = folder if not os.path.islink( folder ) else os.readlink( folder )
   if not os.path.isdir( folder ):
     exit_with_error( "Input folder \"" + folder + "\" does not exist" )
   return [
@@ -547,6 +550,7 @@ if __name__ == "__main__" :
   process_data = True
 
   number_input_args = sum(len(inp_x) > 0 for inp_x in [args.input_video, args.input_dir, args.input_list])
+
   if number_input_args == 0 or args.pipeline == no_pipeline:
     if not args.build_index and not args.detection_plots and not args.track_plots:
       exit_with_error( "Either input video or input directory must be specified" )
