@@ -55,10 +55,6 @@ int EuclideanDistancePointSetMetricRegistration(
   typename TTransform::Pointer & transform, typename TMetric::Pointer & metric,
   typename TPointSet::Pointer & fixedPoints, typename TPointSet::Pointer & movingPoints )
 {
-  using PointSetType = TPointSet;
-  using PointType = typename PointSetType::PointType;
-  using CoordRepType = typename PointType::CoordRepType;
-
   // Finish setting up the metric
   metric->SetFixedPointSet( fixedPoints );
   metric->SetMovingPointSet( movingPoints );
@@ -126,10 +122,6 @@ int ExpectationBasedPointSetMetricRegistration(
   typename TPointSet::Pointer & fixedPoints, typename TPointSet::Pointer & movingPoints,
   double pointSetSigma )
 {
-  using PointSetType = TPointSet;
-  using PointType = typename PointSetType::PointType;
-  using CoordRepType = typename PointType::CoordRepType;
-
   // Finish setting up the metric
   metric->SetFixedPointSet( fixedPoints );
   metric->SetMovingPointSet( movingPoints );
@@ -199,10 +191,6 @@ int JHCTPointSetMetricRegistration(
   typename TPointSet::Pointer & fixedPoints, typename TPointSet::Pointer & movingPoints,
   double pointSetSigma )
 {
-  using PointSetType = TPointSet;
-  using PointType = typename PointSetType::PointType;
-  using CoordRepType = typename PointType::CoordRepType;
-
   // Finish setting up the metric
   metric->SetFixedPointSet( fixedPoints );
   metric->SetMovingPointSet( movingPoints );

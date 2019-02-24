@@ -299,13 +299,11 @@ bool PerformRegistration(
 {
   constexpr unsigned int Dimension = 2;
   using PointSetType = ::itk::PointSet< float, Dimension >;
-  using InputImageType = ::itk::Image< unsigned short, Dimension >;
-  using AffineTransformType = ::itk::AffineTransform< double, Dimension >;
 
-  PointSetType::Pointer thermalPhaseSymmetryPointSet =
-    PhaseSymmetryPointSet< InputImageType, PointSetType >( inputThermalImage, true );
   PointSetType::Pointer opticalPhaseSymmetryPointSet =
-    PhaseSymmetryPointSet< InputImageType, PointSetType >( inputOpticalImage, false );
+    PhaseSymmetryPointSet< OpticalImageType, PointSetType >( inputOpticalImage, false );
+  PointSetType::Pointer thermalPhaseSymmetryPointSet =
+    PhaseSymmetryPointSet< ThermalImageType, PointSetType >( inputThermalImage, true );
 
   using JHCTPointSetMetricType =
     ::itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4< PointSetType >;
@@ -334,15 +332,11 @@ bool WarpImage(
   const AffineTransformType& inputTransformation,
   WarpedImageType::Pointer& outputWarpedImage )
 {
-  constexpr unsigned int Dimension = 2;
-  using ThermalPixelType = unsigned short;
-  using ReadImageType = ::itk::Image< ThermalPixelType, Dimension >;
-
-  using ResamplerType = ::itk::ResampleImageFilter< ReadImageType, ReadImageType >;
+  using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, ThermalImageType >;
   ResamplerType::Pointer resampler = ResamplerType::New();
   resampler->SetInput( &inputThermalImage );
   // Todo: fix handcoded value
-  ReadImageType::SpacingType outputSpacing;
+  ThermalImageType::SpacingType outputSpacing;
   outputSpacing.Fill( 0.1 );
   resampler->SetOutputSpacing( outputSpacing );
   resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
@@ -359,7 +353,7 @@ bool WarpImage(
     return false;
     }
 
-  ReadImageType::Pointer resampledFixedImage = resampler->GetOutput();
+  ThermalImageType::Pointer resampledFixedImage = resampler->GetOutput();
   resampledFixedImage->DisconnectPipeline();
   // For comparison with the inputs, which do not have spacing encoded in
   // their files
@@ -381,16 +375,16 @@ bool WarpImage(
     return false;
     }
 
-  ReadImageType::Pointer resampledTransformedFixedImage = resampler->GetOutput();
+  ThermalImageType::Pointer resampledTransformedFixedImage = resampler->GetOutput();
   resampledTransformedFixedImage->DisconnectPipeline();
   // For comparison with the inputs, which do not have spacing encoded in
   // their files
   outputSpacing.Fill( 1.0 );
   resampledTransformedFixedImage->SetSpacing( outputSpacing );
 
-  using OutputPixelType = unsigned char;
-  using OutputImageType = ::itk::Image< OutputPixelType, Dimension >;
-  using RescalerType = ::itk::RescaleIntensityImageFilter< ReadImageType, OutputImageType >;
+  using RescalerType =
+    ::itk::RescaleIntensityImageFilter< ThermalImageType, WarpedImageType >;
+
   RescalerType::Pointer transformedRescaler = RescalerType::New();
   transformedRescaler->SetInput( resampledTransformedFixedImage );
 
