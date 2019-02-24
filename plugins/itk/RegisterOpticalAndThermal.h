@@ -59,7 +59,7 @@ VIAME_ITK_EXPORT bool PerformRegistration(
   const ThermalImageType& inputThermalImage,
   AffineTransformType::Pointer& outputTransformation );
 
-VIAME_ITK_EXPORT bool WarpImage(
+VIAME_ITK_EXPORT bool WarpThermalToOpticalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
   const AffineTransformType& inputTransformation,

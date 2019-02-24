@@ -326,7 +326,7 @@ bool PerformRegistration(
   return true;
 }
 
-bool WarpImage(
+bool WarpThermalToOpticalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
   const AffineTransformType& inputTransformation,
