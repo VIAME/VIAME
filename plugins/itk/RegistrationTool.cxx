@@ -58,9 +58,9 @@ int main( int argc, char * argv[] )
     WarpedImageType::Pointer warpedImage;
 
     if( !WarpThermalToOpticalImage( *opticalReader->GetOutput(),
-                    *thermalReader->GetOutput(),
-                    *transformation,
-                    warpedImage ) )
+                                    *thermalReader->GetOutput(),
+                                    *transformation,
+                                    warpedImage ) )
       {
       std::cerr << "Error warping image" << std::endl;
       return EXIT_FAILURE;
