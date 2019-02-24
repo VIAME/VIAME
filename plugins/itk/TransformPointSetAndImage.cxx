@@ -17,7 +17,9 @@ ReadTransform( const char * fileName )
   transformReader->SetFileName( fileName );
 
   transformReader->Update();
-  typename TTransform::Pointer transform = dynamic_cast< TTransform * >( transformReader->GetTransformList()->front().GetPointer() );
+  typename TTransform::Pointer transform =
+    dynamic_cast< TTransform * >( transformReader->GetTransformList()->front().GetPointer() );
+
   return transform;
 }
 
@@ -25,9 +27,13 @@ int main(int argc, char * argv[])
 {
   if( argc < 8 )
     {
-    std::cerr << "Usage: " << argv[0] << " <FixedToMovingTransform> <FixedPointSet> <TransformedFixedPointSet> <FixedImage> <RescaledFixedImage> <TransformedRescaledFixedImage> <MovingImage>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <FixedToMovingTransform> <FixedPointSet> "
+              << "<TransformedFixedPointSet> <FixedImage> <RescaledFixedImage> "
+              << "<TransformedRescaledFixedImage> <MovingImage>" << std::endl;
+
     return EXIT_FAILURE;
     }
+
   const char * fixedToMovingTransformFile = argv[1];
   const char * fixedPointSetFile = argv[2];
   const char * transformedFixedPointSetFile = argv[3];
