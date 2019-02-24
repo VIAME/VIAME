@@ -57,7 +57,7 @@ int main( int argc, char * argv[] )
 
     WarpedImageType::Pointer warpedImage;
 
-    if( !WarpImage( *opticalReader->GetOutput(),
+    if( !WarpThermalToOpticalImage( *opticalReader->GetOutput(),
                     *thermalReader->GetOutput(),
                     *transformation,
                     warpedImage ) )
