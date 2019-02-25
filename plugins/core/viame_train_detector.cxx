@@ -397,8 +397,8 @@ pipeline_t load_embedded_pipeline( const std::string& pipeline_filename )
   {
     auto dir = boost::filesystem::path( pipeline_filename ).parent_path();
 
-    std::unique_ptr<kwiver::embedded_pipeline> new_pipeline =
-      std::unique_ptr<kwiver::embedded_pipeline>( new kwiver::embedded_pipeline() );
+    std::unique_ptr< kwiver::embedded_pipeline > new_pipeline =
+      std::unique_ptr< kwiver::embedded_pipeline >( new kwiver::embedded_pipeline() );
 
     std::ifstream pipe_stream;
     pipe_stream.open( pipeline_filename, std::ifstream::in );
@@ -612,6 +612,11 @@ main( int argc, char* argv[] )
   //   (b) Select detector to train
 
   std::string input_dir = g_params.opt_input;
+
+  if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
+  {
+    input_dir = boost::filesystem::canonical( input_dir + ".lnk" );
+  }
 
   if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
   {
