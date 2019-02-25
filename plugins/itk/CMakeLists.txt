@@ -74,13 +74,26 @@ set_target_properties( viame_itk PROPERTIES
 
 # Add KWIVER plugin registration
 if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
-  algorithms_create_plugin( viame_itk
-    RegisterAlgorithms.cxx
-    )
+  set( process_sources
+    RegisterProcesses.cxx
+    RegistrationProcess.cxx
+  )
+  
+  set( process_headers
+    RegistreationProcess.h
+  )
 
-  target_link_libraries( viame_itk_plugin
-    PUBLIC               vital_vpm
-    )
+  kwiver_add_plugin( viame_processes_itk
+    SUBDIR           ${viame_plugin_process_subdir}
+    SOURCES          ${process_sources}
+                     ${private_headers}
+    PRIVATE          sprokit_pipeline
+                     viame_itk kwiver_algo_core kwiver_algo_ocv
+                     vital vital_vpm vital_logger vital_config
+                     kwiversys ${OpenCV_LIBS}
+                     ${Boost_SYSTEM_LIBRARY}
+                     ${Boost_FILESYSTEM_LIBRARY}
+   )
 endif()
 
 # Add auxiliary standalone tools

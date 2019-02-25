@@ -28,52 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Defaults plugin algorithm registration interface impl
+#include <viame/itk/viame_processes_itk_export.h>
+#include <sprokit/pipeline/process_factory.h>
+#include <vital/plugin_loader/plugin_loader.h>
+
+#include "RegistrationProcess.h"
+
+// -----------------------------------------------------------------------------
+/*! \brief Regsiter processes
+ *
  */
-
-#include <plugins/itk/viame_itk_plugin_export.h>
-
-#include <vital/algo/algorithm_factory.h>
-
-namespace viame
-{
-
-namespace
-{
-
-static auto const module_name         = std::string{ "viame.itk" };
-static auto const module_version      = std::string{ "1.0" };
-static auto const module_organization = std::string{ "Kitware Inc." };
-
-// ----------------------------------------------------------------------------
-template <typename algorithm_t>
-void register_algorithm( kwiver::vital::plugin_loader& vpm )
-{
-  using kvpf = kwiver::vital::plugin_factory;
-
-  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
-  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
-       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
-       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
-       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
-       ;
-}
-
-}
-
 extern "C"
-VIAME_ITK_PLUGIN_EXPORT
+VIAME_ITK_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  if( vpm.is_module_loaded( module_name ) )
+  static auto const module_name =
+    kwiver::vital::plugin_manager::module_t( "viame_processes_itk" );
+
+  if( sprokit::is_process_module_loaded( vpm, module_name ) )
   {
     return;
   }
 
-  vpm.mark_module_as_loaded( module_name );
-}
+  // ---------------------------------------------------------------------------
+  auto fact = vpm.ADD_PROCESS( viame::itk::itk_eo_ir_registration_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "itk_eo_ir_registration" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Display input image and delay" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
 
-} // end namespace viame
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  sprokit::mark_process_module_as_loaded( vpm, module_name );
+}
