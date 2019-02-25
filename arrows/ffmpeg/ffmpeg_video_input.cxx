@@ -258,15 +258,6 @@ public:
     this->f_video_stream = this->f_format_context->streams[this->f_video_index];
     this->f_frame = av_frame_alloc();
 
-    if (this->f_video_stream->start_time == int64_t(1) << 63)
-    {
-      this->f_start_time = 0;
-    }
-    else
-    {
-      this->f_start_time = this->f_video_stream->start_time;
-    }
-
     // The MPEG 2 codec has a latency of 1 frame when encoded in an AVI
     // stream, so the pts of the last packet (stored in pts) is
     // actually the next frame's pts.
@@ -280,6 +271,34 @@ public:
     av_init_packet(&this->f_packet);
     this->f_packet.data = nullptr;
     this->f_packet.size = 0;
+
+    // Advance to first valid frame to get start time
+    this->f_start_time = 0;
+    if ( this->advance() )
+    {
+        this->f_start_time = this->f_pts;
+    }
+    else
+    {
+        LOG_ERROR(this->logger, "Error: failed to find valid frame to set start time");
+        this->f_start_time = -1;
+        return false;
+    }
+
+    // Now seek back to the start of the video
+    auto seek_rslt = av_seek_frame( this->f_format_context,
+                                    this->f_video_index,
+                                    INT64_MIN,
+                                    AVSEEK_FLAG_BACKWARD );
+    avcodec_flush_buffers( this->f_video_encoding );
+    if (seek_rslt < 0 )
+    {
+        LOG_ERROR(this->logger,
+                  "Error: failed to return to start after setting start time");
+        return false;
+    }
+    this->frame_advanced = 0;
+    this->f_frame->data[0] = NULL;
 
     return true;
   }
@@ -362,7 +381,7 @@ public:
         }
         if (err < 0)
         {
-          LOG_ERROR(this->logger, "vidl_ffmpeg_istream: Error decoding packet");
+          LOG_ERROR(this->logger, "Error decoding packet");
           av_free_packet(&this->f_packet);
           return false;
         }
