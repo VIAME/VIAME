@@ -211,17 +211,28 @@ def process_video_dir( args ):
     no_file = "With No Imagery Loaded"
 
   file_list = [no_file] + sorted( file_list )
+
+  special_list_option = "input_list.txt"
+  has_special_list_option = False
+
+  if os.path.exists( special_list_option ):
+    file_list = file_list + [ special_list_option ]
+    has_special_list_option = True
+
   file_id = select_option( file_list )
 
   if file_id == 0:
     execute_command( get_gui_cmd( args.debug ) + default_annotator_args( args ) )
     sys.exit(0)
+  elif has_special_list_option and file_id == len( file_list ):
+    file_no_ext = special_list_option
+    file_has_index = False
+    file_path = special_list_option
   else:
     file_id = file_id - 1
-
-  file_no_ext = net_files[ file_id ]
-  file_has_index = has_index[ file_id ]
-  file_path = net_full_paths[ file_id ]
+    file_no_ext = net_files[ file_id ]
+    file_has_index = has_index[ file_id ]
+    file_path = net_full_paths[ file_id ]
 
   # Scan for possible detection file
   detection_list = []
