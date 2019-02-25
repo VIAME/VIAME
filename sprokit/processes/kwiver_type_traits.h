@@ -45,6 +45,7 @@
 #include <vital/types/feature_set.h>
 #include <vital/types/feature_track_set.h>
 #include <vital/types/geo_polygon.h>
+#include <vital/types/homography.h>
 #include <vital/types/image_container.h>
 #include <vital/types/iqr_feedback.h>
 #include <vital/types/matrix.h>
@@ -108,6 +109,7 @@ create_type_trait( detected_object_set, "kwiver:detected_object_set", kwiver::vi
 create_type_trait( track_descriptor_set, "kwiver:track_descriptor_set", kwiver::vital::track_descriptor_set_sptr );
 create_type_trait( matrix_d, "kwiver:matrix_d", kwiver::vital::matrix_d );
 
+create_type_trait( homography, "kwiver:homography", kwiver::vital::homography );
 create_type_trait( homography_src_to_ref, "kwiver:s2r_homography", kwiver::vital::f2f_homography );
 create_type_trait( homography_ref_to_src, "kwiver:r2s_homography", kwiver::vital::f2f_homography );
 create_type_trait( file_name, "kwiver:file_name", kwiver::vital::path_t );
