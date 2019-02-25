@@ -615,7 +615,8 @@ main( int argc, char* argv[] )
 
   if( !does_folder_exist( input_dir ) && does_folder_exist( input_dir + ".lnk" ) )
   {
-    input_dir = boost::filesystem::canonical( input_dir + ".lnk" );
+    input_dir = boost::filesystem::canonical(
+      boost::filesystem::path( input_dir + ".lnk" ) ).string();
   }
 
   if( !does_folder_exist( input_dir ) && g_params.opt_out_config.empty() )
