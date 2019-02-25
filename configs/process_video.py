@@ -57,6 +57,24 @@ def list_files_in_dir( folder ):
 def list_files_in_dir_w_ext( folder, extension ):
   return [ f for f in list_files_in_dir( folder ) if f.endswith( extension ) ]
 
+def has_valid_ext( f, ext_list ):
+  for ext in ext_list:
+    if f.endswith( ext ):
+      return True
+  return False
+
+def list_files_in_dir_w_exts( folder, extensions ):
+  ext_list = extensions.split(";")
+  return [ f for f in list_files_in_dir( folder ) if has_valid_ext( f, ext_list ) ]
+
+def list_videos_in_dir( folder, extensions ):
+  files = list_files_in_dir_w_exts( folder, extensions )
+  if len( files ) == 0:
+    files = [ f for f in list_files_in_dir( folder ) if os.path.isdir( f ) ]
+  if len( files ) == 0:
+    files = list_files_in_dir( folder )
+  return files
+
 # Default message logging
 def log_info( msg ):
   sys.stdout.write( msg )
@@ -473,6 +491,15 @@ if __name__ == "__main__" :
   parser.add_argument("-logs", dest="log_directory", default="Logs",
                       help="Output sub-directory for log files, if empty will not use files")
 
+  parser.add_argument("-video-exts", dest="video_exts", default="3qp;3g2;amv;asf;avi;drc;gif;gifv;"
+                      "f4v;f4p;f4a;f4bflv;m4v;mkv;mp4;m4p;m4v;mpg;mpg2;mp2;mpeg;mpe;mpv;mng;mts;"
+                      "m2ts;mov;mxf;nsv;ogg;ogv;qt;roq;rm;rmvb;svi;webm;wmv;vob;yuv",
+                      help="Allowable video extensions")
+
+  parser.add_argument("-image-exts", dest="image_exts", default="bmp;dds;gif;heic;jpg;jpeg;png;psd;"
+                      "psp;pspimage;tga;thm;tif;tiff;yuv",
+                      help="Allowable image extensions")
+
   parser.add_argument("-frate", dest="frame_rate", default="",
                       help="Processing frame rate over-ride to process videos at, specified "
                       "in hertz (frames per second)" )
@@ -592,7 +619,7 @@ if __name__ == "__main__" :
 
     # Handle output directory creation if necessary
     if len( args.output_directory ) > 0:
-      create_dir( args.output_directory, logging=False, recreate=(not args.init_db) )
+      create_dir( args.output_directory, logging=False, recreate=( not args.init_db ) )
 
     if len( args.log_directory ) > 0:
       create_dir( args.output_directory + div + args.log_directory, logging=False )
@@ -602,7 +629,7 @@ if __name__ == "__main__" :
       video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
       is_image_list = True
     elif len( args.input_dir ) > 0:
-      video_list = list_files_in_dir( args.input_dir )
+      video_list = list_videos_in_dir( args.input_dir, args.video_exts )
       is_image_list = False
     else:
       video_list = [ args.input_video ]
