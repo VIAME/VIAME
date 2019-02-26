@@ -1,4 +1,17 @@
 
+v0.9.9.6 - 2/25/2019
+====================
+
+
+-Windows 7 runtime training tool fixes
+
+
+-Better automatic video detection, don't process hidden files, dirs recursively or non-videos
+
+
+-Show correct time offsets in query GUI from video start
+
+
 v0.9.9.5 - 2/21/2019
 ====================
 
