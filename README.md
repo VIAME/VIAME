@@ -85,7 +85,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
 [Arctic Seals Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c59cfe48d777f072b2ceef8/download) <br>
-[HabCam Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8ea8d777f072b2b97fa/download)
+[HabCam Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8ea8d777f072b2b97fa/download) <br>
+[Low Memory GPU (2Gb-4Gb)](https://data.kitware.com/api/v1/item/5c74a0328d777f072b6615f3/download)
 
 Note: To install Add-Ons, copy them into your install tree. To use project files extract them into your working directory of choice.
 
