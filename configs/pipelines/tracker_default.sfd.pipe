@@ -38,7 +38,7 @@ connect from input.file_name
 process detection_descriptor
   :: resnet_descriptors
   :resnet_model_input_size                     224
-  :resnet_batch_size                           16
+  :resnet_batch_size                           4
   :gpu_list                                    0
   relativepath resnet_model_path =             models/pytorch-resnet50.pt
 

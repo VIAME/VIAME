@@ -19,8 +19,8 @@ process tracker
   :gpu_list                                    0
 
   relativepath siamese_model_path =            models/siamese_model.pt
-  :siamese_batch_size                          128
+  :siamese_batch_size                          16
 
   relativepath targetRNN_AIM_model_path =      models/rnn_f_aim.pt
   relativepath targetRNN_AIM_V_model_path =    models/rnn_ml_aim.pt
-  :targetRNN_batch_size                        256 
+  :targetRNN_batch_size                        16

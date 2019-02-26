@@ -18,7 +18,7 @@ process out_adapt
 process augmenter
   :: pytorch_augmentation
   :resnet_model_input_size                     224
-  :resnet_batch_size                           32
+  :resnet_batch_size                           8
   :gpu_list                                    0
   :negative_sample_count                       500
   :use_historical_database                     false
