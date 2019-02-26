@@ -82,7 +82,9 @@ endif()
 
 # if python is enabled
 if( KWIVER_ENABLE_PYTHON )
+  kwiver_create_python_plugin_init( kwiver )
   kwiver_create_python_plugin_init( kwiver/arrows )
+  add_subdirectory( python )
 endif()
 
 # if FFMPEG is enabled
