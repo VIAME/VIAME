@@ -692,16 +692,16 @@ if __name__ == "__main__" :
 
   if args.track_plots:
     import generate_detection_plots
-    if args.detection_plots:
-      log_info( "Generating data plots for tracks" )
-    else:
-      log_info( lb1 + "Generating data plots for tracks" )
+    log_info( lb1 + "Generating data plots for tracks" )
     track_plot_dir = args.plot_dir_prefix + "_tracks"
     create_dir( track_plot_dir, logging=False, recreate=True, prompt=False )
     generate_detection_plots.detection_plot( args.output_directory,
       track_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
       float( args.frame_rate ), int( args.smooth ),
       ext = track_ext, top_category_only = True )
+
+  if args.detection_plots or args.track_plots:
+    log_info( lb1 )
 
   # Build searchable index
   if args.build_index:
