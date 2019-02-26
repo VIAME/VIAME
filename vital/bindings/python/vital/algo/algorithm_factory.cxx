@@ -1,7 +1,7 @@
 #include <vital/algo/algorithm.h>
 #include <vital/algo/algorithm_factory.h>
 #include <pybind11/pybind11.h>
-#include <iostream>
+
 namespace py = pybind11;
 
 static void add_algorithm( const std::string& impl_name, std::string const& description, 
@@ -37,7 +37,7 @@ class python_algorithm_factory : public kwiver::vital::algorithm_factory
 kwiver::vital::algorithm_sptr python_algorithm_factory::create_object_a()
 {
   py::object obj = m_conc_f();
-  // Necessary or pybind11 creates an object of ImageObjectDetector
+  // Necessary or pybind11 creates an object of the binding that the object inherits
   obj.inc_ref();
   kwiver::vital::algorithm_sptr algo_sptr = obj.cast<kwiver::vital::algorithm_sptr>();
   return algo_sptr;
