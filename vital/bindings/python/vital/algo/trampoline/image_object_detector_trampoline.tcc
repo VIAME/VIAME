@@ -13,8 +13,7 @@ using namespace kwiver::vital;
 
 
 template <class algorithm_def_iod_base=algorithm_def<image_object_detector>>
-class py_iod_algorithm_def 
-                          : public py_algorithm<algorithm_def_iod_base>
+class py_iod_algorithm_def : public py_algorithm<algorithm_def_iod_base>
 {
   public:
     using py_algorithm<algorithm_def_iod_base>::py_algorithm;
@@ -31,8 +30,7 @@ class py_iod_algorithm_def
 
 
 template <class image_object_detector_base=image_object_detector>
-class py_image_object_detector 
-                : public py_iod_algorithm_def<image_object_detector_base>
+class py_image_object_detector : public py_iod_algorithm_def<image_object_detector_base>
 {
   public:
     using py_iod_algorithm_def<image_object_detector_base>::py_iod_algorithm_def;

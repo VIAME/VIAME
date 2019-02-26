@@ -23,7 +23,7 @@ class py_algorithm : public algorithm_base
 
     kwiver::vital::config_block_sptr get_configuration() const override 
     {
-      PYBIND11_OVERLOAD_PURE(
+      PYBIND11_OVERLOAD(
         kwiver::vital::config_block_sptr,
         algorithm_base,
         get_configuration,      
