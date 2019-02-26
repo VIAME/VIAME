@@ -22,18 +22,6 @@ set( plugin_sources
   RegisterOpticalAndThermal.cxx
   )
 
-if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
-  set( plugin_headers
-    ${plugin_headers}
-    RegistrationProcess.h
-    )
-
-  set( plugin_sources
-    ${plugin_sources}
-    RegistrationProcess.cxx
-    )
-endif()
-
 kwiver_install_headers(
   SUBDIR     viame
   ${plugin_headers}

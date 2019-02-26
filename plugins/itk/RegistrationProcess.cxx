@@ -213,16 +213,16 @@ itk_eo_ir_registration_process
   declare_input_port_using_trait( thermal_file_name, optional );
 
   // -- output --
-  declare_input_port_using_trait( optical_image, optional );
-  declare_input_port_using_trait( optical_file_name, optional );
-  declare_input_port_using_trait( thermal_image, optional );
-  declare_input_port_using_trait( thermal_file_name, optional );
-  declare_input_port_using_trait( timestamp, optional );
-  declare_input_port_using_trait( warped_optical_image, optional );
-  declare_input_port_using_trait( warped_thermal_image, optional );
-  declare_input_port_using_trait( optical_to_thermal_homog, optional );
-  declare_input_port_using_trait( thermal_to_optical_homog, optional );
-  declare_input_port_using_trait( success_flag, optional );
+  declare_output_port_using_trait( optical_image, optional );
+  declare_output_port_using_trait( optical_file_name, optional );
+  declare_output_port_using_trait( thermal_image, optional );
+  declare_output_port_using_trait( thermal_file_name, optional );
+  declare_output_port_using_trait( timestamp, optional );
+  declare_output_port_using_trait( warped_optical_image, optional );
+  declare_output_port_using_trait( warped_thermal_image, optional );
+  declare_output_port_using_trait( optical_to_thermal_homog, optional );
+  declare_output_port_using_trait( thermal_to_optical_homog, optional );
+  declare_output_port_using_trait( success_flag, optional );
 }
 
 

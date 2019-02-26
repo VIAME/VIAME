@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <viame/itk/viame_processes_itk_export.h>
+#include <plugins/itk/viame_itk_export.h>
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
 
