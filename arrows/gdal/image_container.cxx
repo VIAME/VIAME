@@ -186,10 +186,12 @@ image_container
   if ( osrs.GetAuthorityCode("GEOGCS") )
   {
     vital::polygon points;
+    const double h = static_cast<double>(this->height());
+    const double w = static_cast<double>(this->width());
     points.push_back( apply_geo_transform(geo_transform, 0, 0) );
-    points.push_back( apply_geo_transform(geo_transform, 0, height() ) );
-    points.push_back( apply_geo_transform(geo_transform, width(), 0) );
-    points.push_back( apply_geo_transform(geo_transform, width(), height() ) );
+    points.push_back( apply_geo_transform(geo_transform, 0, h ) );
+    points.push_back( apply_geo_transform(geo_transform, w, 0) );
+    points.push_back( apply_geo_transform(geo_transform, w, h ) );
 
     md->add( NEW_METADATA_ITEM( vital::VITAL_META_CORNER_POINTS,
       vital::geo_polygon( points, atoi( osrs.GetAuthorityCode("GEOGCS") ) ) ) );
@@ -229,12 +231,14 @@ image_container
   CPLErr err;
   for (size_t i = 1; i <= depth(); ++i)
   {
-    GDALRasterBand* band = gdal_dataset_->GetRasterBand(i);
+    GDALRasterBand* band = gdal_dataset_->GetRasterBand(static_cast<int>(i));
     auto bandType = band->GetRasterDataType();
-    err = band->RasterIO(GF_Read, 0, 0, width(), height(),
+    const int h = static_cast<int>(this->height());
+    const int w = static_cast<int>(this->width());
+    err = band->RasterIO(GF_Read, 0, 0, w, h,
       static_cast<void*>(reinterpret_cast<GByte*>(
         img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
-      width(), height(), bandType, 0, 0);
+      w, h, bandType, 0, 0);
   }
 
   return img;

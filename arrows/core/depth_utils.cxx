@@ -203,9 +203,9 @@ compute_offset_range(std::vector<vector_3d> const& landmarks,
   }
   std::sort(offsets.begin(), offsets.end());
 
-  const unsigned int min_index =
-    static_cast<unsigned int>((offsets.size() - 1) * outlier_thresh);
-  const unsigned int max_index = offsets.size() - 1 - min_index;
+  const size_t min_index =
+    static_cast<size_t>((offsets.size() - 1) * outlier_thresh);
+  const size_t max_index = offsets.size() - 1 - min_index;
   min_offset = offsets[min_index];
   max_offset = offsets[max_index];
 
@@ -235,9 +235,9 @@ compute_depth_range(std::vector<vector_3d> const& landmarks,
   }
   std::sort(depths.begin(), depths.end());
 
-  const unsigned int min_index =
-    static_cast<unsigned int>((depths.size() - 1) * outlier_thresh);
-  const unsigned int max_index = depths.size() - 1 - min_index;
+  const size_t min_index =
+    static_cast<size_t>((depths.size() - 1) * outlier_thresh);
+  const size_t max_index = depths.size() - 1 - min_index;
   depth_min = depths[min_index];
   depth_max = depths[max_index];
 

@@ -388,7 +388,7 @@ void test_next_then_seek_then_next( kwiver::vital::algo::video_input& vi )
   kwiver::vital::timestamp::frame_t requested_frame = 12;
   kwiver::vital::timestamp::frame_t end_frame = 20;
 
-  int num_frames = 0;
+  kwiver::vital::frame_id_t num_frames = 0;
   while ( vi.next_frame( ts ) && ++num_frames < stop_frame )
   {
     auto img = vi.frame_image();
