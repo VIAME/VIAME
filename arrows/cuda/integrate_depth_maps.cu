@@ -175,7 +175,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   // Compute the ID on depthmap values according to pixel position and depth map dimensions
   int depthMapId = computeVoxelIDDepth(pixel);
   double depth = depths[depthMapId];
-  if (depth == -1)
+  if (depth <= 0)
     return;
 
   int gridId = computeVoxelIDGrid(voxelIndex);  // Get the distance between voxel and camera
