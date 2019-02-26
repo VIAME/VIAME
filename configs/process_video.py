@@ -59,7 +59,7 @@ def list_files_in_dir_w_ext( folder, extension ):
 
 def has_valid_ext( f, ext_list ):
   for ext in ext_list:
-    if f.endswith( ext ):
+    if f.lower().endswith( ext ):
       return True
   return False
 
