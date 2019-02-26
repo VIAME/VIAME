@@ -157,7 +157,7 @@ def select_option( option_list, display_str="Select Option:" ):
     print( "Invalid selection, must be a valid number" )
     sys.exit(0)
 
-  return int(choice)-1
+  return int( choice ) - 1
 
 def process_video( args ):
   print( "Function not yet implemented" )
@@ -224,7 +224,7 @@ def process_video_dir( args ):
   if file_id == 0:
     execute_command( get_gui_cmd( args.debug ) + default_annotator_args( args ) )
     sys.exit(0)
-  elif has_special_list_option and file_id == len( file_list ):
+  elif has_special_list_option and file_id == len( file_list ) - 1:
     file_no_ext = special_list_option
     file_has_index = False
     file_path = special_list_option
