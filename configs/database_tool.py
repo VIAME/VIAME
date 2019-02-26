@@ -160,6 +160,8 @@ def init( log_file="" ):
         shutil.rmtree( database_dir )
       else:
         return [ False, True ]
+    else:
+      log_info( lb1 )
 
     # Generate new database
     log_info( "Initializing database... " )
