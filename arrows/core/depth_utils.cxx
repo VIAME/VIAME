@@ -34,7 +34,6 @@
 */
 
 #include <arrows/core/depth_utils.h>
-#include <random>
 #include <iostream>
 #include <cmath>
 
@@ -249,6 +248,7 @@ compute_depth_range(std::vector<vector_3d> const& landmarks,
 
 //*****************************************************************************
 
+/// Estimate the pixel to world scale over a set of cameras
 double
 compute_pixel_to_world_scale(kwiver::vital::vector_3d const& minpt,
                              kwiver::vital::vector_3d const& maxpt,

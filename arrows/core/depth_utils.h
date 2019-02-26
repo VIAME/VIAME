@@ -180,11 +180,11 @@ compute_depth_range(std::vector<vector_3d> const& landmarks,
                     const double outlier_thresh = 0.1,
                     const double safety_margin_factor = 0.5);
 
-/// Estimate the pixel to world scale for a given camera
+/// Estimate the pixel to world scale over a set of cameras
 /**
-* \param  minpt point of 3d box
-  \param  maxpt point of 3d box
-* \param  cam is the perspective camera to compute the scale from
+* \param  minpt Minimum point of 3d box
+  \param  maxpt Maximum point of 3d box
+* \param  cameras Vector of perspective cameras to compute the average scale from
 */
 KWIVER_ALGO_CORE_EXPORT
 double

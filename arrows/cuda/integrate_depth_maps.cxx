@@ -71,12 +71,14 @@ public:
   double ray_potential_eta;
   double ray_potential_delta;
 
-
   int grid_dims[3];
 
-  //actual spacing is computed as voxel_scale_factor * pixel_to_world_scale * grid_spacing
-  double grid_spacing[3];    //relative spacings per dimension
-  double voxel_spacing_factor; //multiplier on all dimensions of grid spacing
+  //Actual spacing is computed as voxel_scale_factor * pixel_to_world_scale * grid_spacing
+  //relative spacings per dimension
+  double grid_spacing[3];   
+
+  //multiplier on all dimensions of grid spacing
+  double voxel_spacing_factor; 
 
   /// Logger handle
   vital::logger_handle_t m_logger;
