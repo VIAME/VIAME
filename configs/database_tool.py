@@ -152,7 +152,7 @@ def init( log_file="" ):
 
   try:
     # Kill and remove existing database, call may fail (if no existing db) and that's okay
-    stop()
+    stop( quiet=True )
 
     # Remove directory, will be remade in next step, query user in case this was a mistake
     if os.path.exists( database_dir ):
@@ -190,7 +190,10 @@ def start( quiet=False ):
     status_log_file = original_log_file
     return False
 
-def stop():
+def stop( quiet=False ):
+  global status_log_file
+  original_log_file = status_log_file
+  status_log_file= "NULL" if quiet else status_log_file
   try:
     execute_cmd( "pg_ctl", [ "-D", sql_dir, "stop" ] )
   except subprocess.CalledProcessError:
@@ -204,6 +207,7 @@ def stop():
       execute_cmd( "pkill", [ "postgres" ] )
   except subprocess.CalledProcessError:
     pass
+  status_log_file = original_log_file
 
 def build_balltree_index( install_dir="", log_file="" ):
   if not build_standard_index( install_dir, log_file ):
