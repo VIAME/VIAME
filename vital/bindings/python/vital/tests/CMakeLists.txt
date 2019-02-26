@@ -5,6 +5,7 @@
 # Define modules with tests in them
 set(__testable_modnames
   test_algo_convert_image
+  test_image_object_detector
   test_camera
   test_camera_intrinsics
   test_camera_map
