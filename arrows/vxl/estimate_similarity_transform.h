@@ -51,6 +51,10 @@ class KWIVER_ALGO_VXL_EXPORT estimate_similarity_transform
                                          vital::algo::estimate_similarity_transform>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to estimate a 3D similarity transformation "
+               "between corresponding landmarks." )
+
   // No custom configuration at this time
   /// \cond Doxygen Suppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) { };

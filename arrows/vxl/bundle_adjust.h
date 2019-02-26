@@ -49,6 +49,9 @@ class KWIVER_ALGO_VXL_EXPORT bundle_adjust
 : public vital::algorithm_impl<bundle_adjust, vital::algo::bundle_adjust>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to bundle adjust cameras and landmarks." )
+
   /// Constructor
   bundle_adjust();
 
