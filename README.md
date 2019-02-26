@@ -69,13 +69,13 @@ RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 **Installation Recommendations:** <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
-**Linux Binaries:** <br>
+**Linux Desktop Binaries:** <br>
 [VIAME v0.9.8.8 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd79fd68d777f06b93e7ad5/download) <br>
 [VIAME v0.9.8.8 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Yjs5oSlRkS-8ypIjBuna42qFSxqSGgb7) <br>
 [VIAME v0.9.9.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c6b0bf78d777f072b51ead3/download) <br>
 [VIAME v0.9.9.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1ZqERSOs10awJVMklln8Skx7RCsgqS2Wg)
 
-**Windows Binaries:** <br>
+**Windows Desktop Binaries:** <br>
 [VIAME v0.9.9.5 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c6f658e8d777f072b5af71d/download) <br>
 [VIAME v0.9.9.5 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=14zsp_n6l2Q2iVwZdEtqo6Ioxf14mADB0) <br>
 [VIAME v0.9.9.4 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c6ae7f88d777f072b51b7bc/download) <br>
