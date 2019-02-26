@@ -226,7 +226,7 @@ def process_video_dir( args ):
     sys.exit(0)
   elif has_special_list_option and file_id == len( file_list ) - 1:
     file_no_ext = special_list_option
-    file_has_index = False
+    file_has_index = True
     file_path = special_list_option
   else:
     file_id = file_id - 1
