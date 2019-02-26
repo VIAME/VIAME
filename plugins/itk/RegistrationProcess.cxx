@@ -56,7 +56,7 @@ namespace viame
 namespace itk
 {
 
-create_config_trait( output_frames_without_match, bool, "false",
+create_config_trait( output_frames_without_match, bool, "true",
   "Output frames without any valid matches" );
 create_config_trait( max_time_offset, double, "0.5",
   "The maximum time difference under whitch two frames can be tested" );
@@ -90,17 +90,23 @@ public:
   struct entry
   {
     entry( kwiver::vital::image_container_sptr i,
-           kwiver::vital::timestamp t )
+           kwiver::vital::timestamp t,
+           std::string name )
      : image( i ),
-       time( t )
+       time( t ),
+       name( n )
     {}
 
     kwiver::vital::image_container_sptr image;
     kwiver::vital::timestamp time;
+    std::string name;
   };
 
-  std::list< entry > optical_frames;
-  std::list< entry > infrared_frames;
+  std::list< entry > m_optical_frames;
+  std::list< entry > m_thermal_frames;
+
+  bool m_optical_finished;
+  bool m_thermal_finished;
 
   // Helper functions
   bool attempt_registration(
@@ -154,7 +160,7 @@ itk_eo_ir_registration_process
   kwiver::vital::image_container_sptr thermal_image;
   std::string thermal_file_name;
 
-  /*if( has_input_port_edge_using_trait( optical_timestamp ) )
+  if( has_input_port_edge_using_trait( optical_timestamp ) )
   {
     optical_time = grab_input_using_trait( optical_timestamp );
 
@@ -163,7 +169,7 @@ itk_eo_ir_registration_process
 
   if( has_input_port_edge_using_trait( optical_image ) )
   {
-    optical_image = grab_input_using_trait( optical_image );
+    //optical_image = grab_input_using_trait( optical_image ); FIXME
   }
 
   if( has_input_port_edge_using_trait( optical_file_name ) )
@@ -180,16 +186,40 @@ itk_eo_ir_registration_process
 
   if( has_input_port_edge_using_trait( thermal_image ) )
   {
-    thermal_image = grab_input_using_trait( thermal_image );
+    //thermal_image = grab_input_using_trait( thermal_image ); FIXME
   }
 
   if( has_input_port_edge_using_trait( thermal_file_name ) )
   {
     thermal_file_name = grab_input_using_trait( thermal_file_name );
-  }*/
+  }
 
-  //cv::Mat image = arrows::ocv::image_container::vital_to_ocv(
-  //  img->get_image(), arrows::ocv::image_container::BGR_COLOR );
+  // Add images to buffer
+  if( optical_image )
+  {
+    optical_frames.push_back(
+      priv::entry( optical_image, optical_time, optical_file_name ) );
+  }
+
+  if( thermal_image )
+  {
+    thermal_frames.push_back(
+      priv::entry( thermal_image, thermal_time, thermal_file_name ) );
+  }
+
+  // Determine if any images need to be tested
+  bool optical_dominant = true;
+
+  if( has_output_port_edge_using_trait( warped_optical_image ) )
+  {
+    optical_dominant = false;
+
+    if( has_output_port_edge_using_trait( warped_optical_image ) )
+    {
+      throw std::runtime_error( "Cannot connect both warp image ports" );
+    }
+  }
+
 }
 
 
@@ -206,10 +236,10 @@ itk_eo_ir_registration_process
 
   // -- input --
   declare_input_port_using_trait( optical_image, required );
-  declare_input_port_using_trait( optical_timestamp, optional );
+  declare_input_port_using_trait( optical_timestamp, required );
   declare_input_port_using_trait( optical_file_name, optional );
   declare_input_port_using_trait( thermal_image, required );
-  declare_input_port_using_trait( thermal_timestamp, optional );
+  declare_input_port_using_trait( thermal_timestamp, required );
   declare_input_port_using_trait( thermal_file_name, optional );
 
   // -- output --
