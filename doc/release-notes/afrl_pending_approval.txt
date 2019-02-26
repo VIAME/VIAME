@@ -22,6 +22,15 @@ Arrows - Core
  * Added a temporal downsampling option to video_input_filter where
    only every nth frame of the video source will be provided.
 
+ * Added a utility function to compute the average world distance per pixel
+   in a provided world region of interest.
+
+Arrows - CUDA
+
+ * Updated depth map integration to adjust the voxel size relative to the
+   average world distance per pixel.  This allows fusion to work on scenes
+   of various scales without manually tuning the configuration parameters.
+
 Arrows - FFMPEG
 
  * Added metadata handling to FFMPEG implementation of video_input
