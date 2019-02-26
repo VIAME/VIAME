@@ -34,6 +34,7 @@
 */
 
 #include <arrows/cuda/integrate_depth_maps.h>
+#include <arrows/core/depth_utils.h>
 #include <sstream>
 #include <cuda_runtime.h>
 #include <cuda.h>
@@ -59,6 +60,7 @@ public:
       ray_potential_rho(1.0),
       ray_potential_eta(0.03),
       ray_potential_delta(16.5),
+      voxel_spacing_factor(1.0),
       grid_spacing {1.0, 1.0, 1.0},
       m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
   {
@@ -70,7 +72,13 @@ public:
   double ray_potential_delta;
 
   int grid_dims[3];
-  double grid_spacing[3];
+
+  //Actual spacing is computed as voxel_scale_factor * pixel_to_world_scale * grid_spacing
+  //relative spacings per dimension
+  double grid_spacing[3];   
+
+  //multiplier on all dimensions of grid spacing
+  double voxel_spacing_factor; 
 
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -106,10 +114,11 @@ integrate_depth_maps::get_configuration() const
                      "0 < Eta < 1 : will be applied as a percentage of rho ");
   config->set_value("ray_potential_delta", d_->ray_potential_delta,
                     "delta has to be superior to Thick ");
+  config->set_value("voxel_spacing_factor", d_->voxel_spacing_factor, "multiplier on spacing");
 
   std::ostringstream stream;
   stream << d_->grid_spacing[0] << " " << d_->grid_spacing[1] << " " << d_->grid_spacing[2];
-  config->set_value("grid_spacing", stream.str(), "spacing for each dimension of the grid");
+  config->set_value("grid_spacing", stream.str(), "relative spacing for each dimension of the grid");
 
   return config;
 }
@@ -130,6 +139,7 @@ integrate_depth_maps::set_configuration(vital::config_block_sptr in_config)
   d_->ray_potential_thickness = config->get_value<double>("ray_potential_thickness", d_->ray_potential_thickness);
   d_->ray_potential_eta = config->get_value<double>("ray_potential_eta", d_->ray_potential_eta);
   d_->ray_potential_delta = config->get_value<double>("ray_potential_delta", d_->ray_potential_delta);
+  d_->voxel_spacing_factor = config->get_value<double>("voxel_spacing_factor", d_->voxel_spacing_factor);
 
   std::ostringstream ostream;
   ostream << d_->grid_spacing[0] << " " << d_->grid_spacing[1] << " " << d_->grid_spacing[2];
@@ -207,17 +217,25 @@ void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera, double* d
 
 void
 integrate_depth_maps::integrate(
-  vector_3d const& minpt_bound, vector_3d const& maxpt_bound,
+  vector_3d const& minpt_bound,
+  vector_3d const& maxpt_bound,
   std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
   std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
-  kwiver::vital::image_container_sptr& volume) const
+  kwiver::vital::image_container_sptr& volume,
+  kwiver::vital::vector_3d &spacing) const
 {
+  double pixel_to_world_scale;
+  pixel_to_world_scale = kwiver::arrows::core::compute_pixel_to_world_scale(minpt_bound, maxpt_bound, cameras);
+
   vector_3d diff = maxpt_bound - minpt_bound;
   vector_3d orig = minpt_bound;
 
+  spacing = vector_3d(d_->grid_spacing);
+  spacing *= pixel_to_world_scale * d_->voxel_spacing_factor;
+
   for (int i = 0; i < 3; i++)
   {
-    d_->grid_dims[i] = static_cast<int>((diff[i] / d_->grid_spacing[i]));
+    d_->grid_dims[i] = static_cast<int>((diff[i] / spacing[i]));
   }
 
   LOG_DEBUG( logger(), "grid: " << d_->grid_dims[0]
@@ -225,7 +243,7 @@ integrate_depth_maps::integrate(
                        << " "   << d_->grid_dims[2] );
 
   LOG_INFO( logger(), "initialize" );
-  cuda_initalize(d_->grid_dims, orig.data(), d_->grid_spacing,
+  cuda_initalize(d_->grid_dims, orig.data(), spacing.data(),
     d_->ray_potential_thickness, d_->ray_potential_rho, d_->ray_potential_eta, d_->ray_potential_delta);
   const int vsize = d_->grid_dims[0] * d_->grid_dims[1] * d_->grid_dims[2];
 
