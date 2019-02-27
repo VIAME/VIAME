@@ -28,52 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Defaults plugin algorithm registration interface impl
- */
+#ifndef VIAME_ITK_REGISTER_OPTICAL_AND_THERMAL_H
+#define VIAME_ITK_REGISTER_OPTICAL_AND_THERMAL_H
 
-#include <plugins/itk/viame_itk_plugin_export.h>
+#include <plugins/itk/viame_itk_export.h>
 
-#include <vital/algo/algorithm_factory.h>
+#include "itkImage.h"
+#include "itkAffineTransform.h"
 
 namespace viame
 {
 
-namespace
+namespace itk
 {
 
-static auto const module_name         = std::string{ "viame.itk" };
-static auto const module_version      = std::string{ "1.0" };
-static auto const module_organization = std::string{ "Kitware Inc." };
+constexpr unsigned int Dimension = 2;
 
-// ----------------------------------------------------------------------------
-template <typename algorithm_t>
-void register_algorithm( kwiver::vital::plugin_loader& vpm )
-{
-  using kvpf = kwiver::vital::plugin_factory;
+using OpticalPixelType = unsigned short;
+using ThermalPixelType = unsigned short;
+using WarpedPixelType = unsigned char;
 
-  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
-  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
-       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
-       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
-       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
-       ;
-}
+using OpticalImageType = ::itk::Image< OpticalPixelType, Dimension >;
+using ThermalImageType = ::itk::Image< ThermalPixelType, Dimension >;
+using WarpedImageType = ::itk::Image< WarpedPixelType, Dimension >;
 
-}
+using AffineTransformType = ::itk::AffineTransform< double, Dimension >;
 
-extern "C"
-VIAME_ITK_PLUGIN_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
-{
-  if( vpm.is_module_loaded( module_name ) )
-  {
-    return;
-  }
+VIAME_ITK_EXPORT bool PerformRegistration(
+  const OpticalImageType& inputOpticalImage,
+  const ThermalImageType& inputThermalImage,
+  AffineTransformType::Pointer& outputTransformation );
 
-  vpm.mark_module_as_loaded( module_name );
-}
+VIAME_ITK_EXPORT bool WarpThermalToOpticalImage(
+  const OpticalImageType& inputOpticalImage,
+  const ThermalImageType& inputThermalImage,
+  const AffineTransformType& inputTransformation,
+  WarpedImageType::Pointer& outputWarpedImage );
+
+} // end namespace itk
 
 } // end namespace viame
+
+#endif // VIAME_ITK_REGISTER_OPTICAL_AND_THERMAL_H

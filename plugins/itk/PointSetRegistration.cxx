@@ -41,7 +41,10 @@ public:
       {
       itkGenericExceptionMacro( "Error dynamic_cast failed" );
       }
-    std::cout << "It: " << optimizer->GetCurrentIteration() << " metric value: " << optimizer->GetCurrentMetricValue() << " position: " << optimizer->GetCurrentPosition();
+    std::cout << "It: " << optimizer->GetCurrentIteration()
+              << " metric value: " << optimizer->GetCurrentMetricValue()
+              << " position: " << optimizer->GetCurrentPosition();
+
     std::cout << std::endl;
     }
 };
@@ -52,10 +55,6 @@ int EuclideanDistancePointSetMetricRegistration(
   typename TTransform::Pointer & transform, typename TMetric::Pointer & metric,
   typename TPointSet::Pointer & fixedPoints, typename TPointSet::Pointer & movingPoints )
 {
-  using PointSetType = TPointSet;
-  using PointType = typename PointSetType::PointType;
-  using CoordRepType = typename PointType::CoordRepType;
-
   // Finish setting up the metric
   metric->SetFixedPointSet( fixedPoints );
   metric->SetMovingPointSet( movingPoints );
@@ -63,8 +62,10 @@ int EuclideanDistancePointSetMetricRegistration(
   metric->Initialize();
 
   // scales estimator
-  using RegistrationParameterScalesFromShiftType = itk::RegistrationParameterScalesFromPhysicalShift< TMetric >;
-  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator = RegistrationParameterScalesFromShiftType::New();
+  using RegistrationParameterScalesFromShiftType =
+    itk::RegistrationParameterScalesFromPhysicalShift< TMetric >;
+  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
+    RegistrationParameterScalesFromShiftType::New();
   shiftScaleEstimator->SetMetric( metric );
   // needed with pointset metrics
   shiftScaleEstimator->SetVirtualDomainPointSet( metric->GetVirtualTransformedPointSet() );
@@ -94,9 +95,11 @@ int EuclideanDistancePointSetMetricRegistration(
     {
     std::cout << "local-support transform non-zero parameters: " << std::endl;
     typename TTransform::ParametersType params = transform->GetParameters();
-    for( itk::SizeValueType n = 0; n < transform->GetNumberOfParameters(); n += transform->GetNumberOfLocalParameters() )
+    for( itk::SizeValueType n = 0; n < transform->GetNumberOfParameters();
+         n += transform->GetNumberOfLocalParameters() )
       {
-      typename TTransform::ParametersValueType zero = itk::NumericTraits<typename TTransform::ParametersValueType>::ZeroValue();
+      typename TTransform::ParametersValueType zero =
+        itk::NumericTraits<typename TTransform::ParametersValueType>::ZeroValue();
       if( itk::Math::NotExactlyEquals(params[n], zero) && itk::Math::NotExactlyEquals(params[n+1], zero) )
         {
         std::cout << n << ", " << n+1 << " : " << params[n] << ", " << params[n+1] << std::endl;
@@ -119,10 +122,6 @@ int ExpectationBasedPointSetMetricRegistration(
   typename TPointSet::Pointer & fixedPoints, typename TPointSet::Pointer & movingPoints,
   double pointSetSigma )
 {
-  using PointSetType = TPointSet;
-  using PointType = typename PointSetType::PointType;
-  using CoordRepType = typename PointType::CoordRepType;
-
   // Finish setting up the metric
   metric->SetFixedPointSet( fixedPoints );
   metric->SetMovingPointSet( movingPoints );
@@ -132,8 +131,10 @@ int ExpectationBasedPointSetMetricRegistration(
   metric->Initialize();
 
   // scales estimator
-  using RegistrationParameterScalesFromShiftType = itk::RegistrationParameterScalesFromPhysicalShift< TMetric >;
-  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator = RegistrationParameterScalesFromShiftType::New();
+  using RegistrationParameterScalesFromShiftType =
+    itk::RegistrationParameterScalesFromPhysicalShift< TMetric >;
+  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
+    RegistrationParameterScalesFromShiftType::New();
   shiftScaleEstimator->SetMetric( metric );
   // needed with pointset metrics
   shiftScaleEstimator->SetVirtualDomainPointSet( metric->GetVirtualTransformedPointSet() );
@@ -163,9 +164,11 @@ int ExpectationBasedPointSetMetricRegistration(
     {
     std::cout << "local-support transform non-zero parameters: " << std::endl;
     typename TTransform::ParametersType params = transform->GetParameters();
-    for( itk::SizeValueType n = 0; n < transform->GetNumberOfParameters(); n += transform->GetNumberOfLocalParameters() )
+    for( itk::SizeValueType n = 0; n < transform->GetNumberOfParameters();
+         n += transform->GetNumberOfLocalParameters() )
       {
-      typename TTransform::ParametersValueType zero = itk::NumericTraits<typename TTransform::ParametersValueType>::ZeroValue();
+      typename TTransform::ParametersValueType zero =
+        itk::NumericTraits<typename TTransform::ParametersValueType>::ZeroValue();
       if( itk::Math::NotExactlyEquals(params[n], zero) && itk::Math::NotExactlyEquals(params[n+1], zero) )
         {
         std::cout << n << ", " << n+1 << " : " << params[n] << ", " << params[n+1] << std::endl;
@@ -188,10 +191,6 @@ int JHCTPointSetMetricRegistration(
   typename TPointSet::Pointer & fixedPoints, typename TPointSet::Pointer & movingPoints,
   double pointSetSigma )
 {
-  using PointSetType = TPointSet;
-  using PointType = typename PointSetType::PointType;
-  using CoordRepType = typename PointType::CoordRepType;
-
   // Finish setting up the metric
   metric->SetFixedPointSet( fixedPoints );
   metric->SetMovingPointSet( movingPoints );
@@ -203,8 +202,10 @@ int JHCTPointSetMetricRegistration(
   metric->Initialize();
 
   // scales estimator
-  using RegistrationParameterScalesFromShiftType = itk::RegistrationParameterScalesFromPhysicalShift< TMetric >;
-  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator = RegistrationParameterScalesFromShiftType::New();
+  using RegistrationParameterScalesFromShiftType =
+    itk::RegistrationParameterScalesFromPhysicalShift< TMetric >;
+  typename RegistrationParameterScalesFromShiftType::Pointer shiftScaleEstimator =
+    RegistrationParameterScalesFromShiftType::New();
   shiftScaleEstimator->SetMetric( metric );
   // needed with pointset metrics
   shiftScaleEstimator->SetVirtualDomainPointSet( metric->GetVirtualTransformedPointSet() );
@@ -255,9 +256,13 @@ int main(int argc, char * argv[])
 {
   if( argc < 4 )
     {
-    std::cerr << "Usage: " << argv[0] << " <InputFixedMesh> <InputMovingMesh> <OutputTransform> <OutputTransformedFixedMesh> [MetricId] [NumberOfIterations] [MaximumPhysicalStepSize] [PointSetSigma]" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <InputFixedMesh> <InputMovingMesh> <OutputTransform> "
+              << "<OutputTransformedFixedMesh> [MetricId] [NumberOfIterations] "
+              << "[MaximumPhysicalStepSize] [PointSetSigma]" << std::endl;
+
     return EXIT_FAILURE;
     }
+
   const char * inputFixedMeshFile = argv[1];
   const char * inputMovingMeshFile = argv[2];
   const char * outputTransformFile = argv[3];
@@ -266,6 +271,7 @@ int main(int argc, char * argv[])
   unsigned int numberOfIterations = 100;
   auto maximumPhysicalStepSize = static_cast<double>( 2.0 );
   double pointSetSigma = 3.0;
+
   if( argc > 4 )
     {
     metricId = std::stoi( argv[4] );
@@ -372,6 +378,7 @@ int main(int argc, char * argv[])
   TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( affineTransform );
   transformWriter->SetFileName( outputTransformFile );
+
   try
     {
     transformWriter->Update();
