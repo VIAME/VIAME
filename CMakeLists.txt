@@ -133,6 +133,10 @@ if (KWIVER_ENABLE_PYTHON)
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS "
       "is also enabled." )
   endif()
+  
+  # Included to provide python based utiliy for vital and sprokit
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/vital/bindings/python)
+
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
@@ -237,6 +241,8 @@ if (KWIVER_ENABLE_ARROWS)
 endif()
 
 if (KWIVER_ENABLE_SPROKIT)
+  if (KWIVER_ENABLE_PYTHON)
+  endif()
   add_subdirectory(sprokit)
 endif()
 
