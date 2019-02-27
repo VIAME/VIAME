@@ -28,18 +28,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
-#define SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
+#ifndef VITAL_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
+#define VITAL_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
 
-#include <sprokit/python/util/pybind11.h>
-#include <sprokit/python/util/sprokit_python_util_export.h>
+#include <vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/vital_python_util_export.h>
 
-namespace sprokit {
+namespace kwiver {
+namespace vital  {
 namespace python {
 
 /// \todo More useful output?
 
-#define SPROKIT_PYTHON_HANDLE_EXCEPTION(call)                     \
+void VITAL_PYTHON_UTIL_EXPORT python_print_exception();
+
+#define VITAL_PYTHON_HANDLE_EXCEPTION(call)                     \
   try                                                             \
   {                                                               \
     call;                                                         \
@@ -48,12 +51,12 @@ namespace python {
   {                                                               \
     auto logger = kwiver::vital::get_logger("python_exceptions"); \
     LOG_WARN(logger, "Ignore Python Exception:\n" << e.what());   \
-    sprokit::python::python_print_exception();                    \
+    kwiver::vital::python::python_print_exception();              \
                                                                   \
     throw;                                                        \
   }
 
-#define SPROKIT_PYTHON_IGNORE_EXCEPTION(call)                     \
+#define VITAL_PYTHON_IGNORE_EXCEPTION(call)                     \
   try                                                             \
   {                                                               \
     call;                                                         \
@@ -62,26 +65,24 @@ namespace python {
   {                                                               \
     auto logger = kwiver::vital::get_logger("python_exceptions"); \
     LOG_WARN(logger, "Ignore Python Exception:\n" << e.what());   \
-    sprokit::python::python_print_exception();                    \
+    kwiver::vital::python::python_print_exception();               \
   }
 
-#define SPROKIT_PYTHON_TRANSLATE_EXCEPTION(call)                  \
+#define VITAL_PYTHON_TRANSLATE_EXCEPTION(call)                  \
   try                                                             \
   {                                                               \
     call;                                                         \
   }                                                               \
   catch (std::exception const& e)                                 \
   {                                                               \
-    sprokit::python::gil_scoped_acquire acquire;                  \
+    kwiver::vital::python::gil_scoped_acquire acquire;            \
     (void)acquire;                                                \
     PyErr_SetString(PyExc_RuntimeError, e.what());                \
                                                                   \
     throw;                                                        \
   }
 
-SPROKIT_PYTHON_UTIL_EXPORT void python_print_exception();
 
-}
-}
+} } }
 
-#endif // SPROKIT_PYTHON_UTIL_PYTHON_EXCEPTIONS_H
+#endif // VITAL_PYTHON_UTIL_PYTHON_EXCEPTIONS_H

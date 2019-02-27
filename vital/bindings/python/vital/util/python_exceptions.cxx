@@ -28,15 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "python_exceptions.h"
+#include <vital/util/python.h>
+#include <vital/util/python_exceptions.h>
 
-#include <sprokit/python/util/python.h>
-
-namespace sprokit
-{
-
-namespace python
-{
+namespace kwiver {
+namespace vital {
+namespace python {
 
 void
 python_print_exception()
@@ -63,6 +60,4 @@ python_print_exception()
   PyErr_Restore(type, value, traceback);
 }
 
-}
-
-}
+} } } // end of namespaces

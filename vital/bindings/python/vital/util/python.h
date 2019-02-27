@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PYTHON_UTIL_PYTHON_H
-#define SPROKIT_PYTHON_UTIL_PYTHON_H
+#ifndef VITAL_PYTHON_UTIL_PYTHON_H
+#define VITAL_PYTHON_UTIL_PYTHON_H
 
 #if defined(_MSC_VER) && defined(_DEBUG)
   // Include these low level headers before undefing _DEBUG. Otherwise when doing
@@ -58,4 +58,4 @@
   #include <Python.h>
 #endif
 
-#endif // SPROKIT_PYTHON_UTIL_PYSTREAM_H
+#endif // VITAL_PYTHON_UTIL_PYTHON_H
