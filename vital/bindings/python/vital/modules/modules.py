@@ -33,35 +33,36 @@ try:
     from . import loaders
 except:
     from straight.plugin import loaders
-from sprokit import sprokit_logging
+from vital import vital_logging
 
-logger = sprokit_logging.getLogger(__name__)
+logger = vital_logging.getLogger(__name__)
 
+MAGIC_REGISTRARS = ["__sprokit_register__", "__vital_algorithm_register__"]
 
-@sprokit_logging.exc_report
+@vital_logging.exc_report
 def _load_python_module(mod):
     logger.debug('Loading python module: "{}"'.format(mod))
-    if hasattr(mod, '__sprokit_register__'):
-        import collections
+    for registrar in MAGIC_REGISTRARS:
+        if hasattr(mod, registrar):
+            import collections
+            if isinstance(getattr(mod, registrar), collections.Callable):
+                getattr(mod, registrar)()
+                return
+            else:
+                logger.warn(('Python module "{}" defined {} but '
+                             'it is not callable').format(mod, registrar))
 
-        if isinstance(mod.__sprokit_register__, collections.Callable):
-            mod.__sprokit_register__()
-        else:
-            logger.warn(('Python module "{}" defined __sprokit_register__ but '
-                         'it is not callable').format(mod))
-    else:
-        logger.warn(('Python module "{}" does not have '
-                     '__sprokit_register__ method').format(mod))
+    logger.warn(('Python module "{}" does not have registrar method').format(mod))
 
 
-@sprokit_logging.exc_report
+@vital_logging.exc_report
 def load_python_modules():
     """
-    Loads Sprokit python plugins
+    Loads python plugins
 
     Searches for modules specified in the `SPROKIT_PYTHON_MODULES` environment
     variable that are importable from `PYTHONPATH`. Then these modules are
-    imported and their `__sprokit_register__` function is called to register
+    imported and their magic registrar function is called to register
     them with the C++ backend.
     """
     import os
