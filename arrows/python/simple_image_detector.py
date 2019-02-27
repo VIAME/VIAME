@@ -12,7 +12,7 @@ class SimpleImageObjectDetector(ImageObjectDetector):
         print("Simple Image Detector")
         return DetectedObjectSet([DetectedObject(BoundingBox(0, 4, 3, 1))])
 
-def __sprokit_register__():
+def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
     # Register Algorithm
     implementation_name  = "SimpleImageObjectDetector"
