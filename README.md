@@ -63,10 +63,10 @@ Lastly, run through some of the examples to validate the installation.
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 [Anaconda3 5.2.0 x86_64](https://repo.continuum.io/archive/) (Note: Anaconda**3 x86_64**, not Anaconda2 or x86) <br>
-[NVIDIA Drivers](https://developer.nvidia.com/cuda-toolkit-archive) (For example, those in CUDA 8.0 GA2 x86_64, if you use GPU support) <br>
 4 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
+[NVIDIA Drivers](https://developer.nvidia.com/cuda-toolkit-archive) (For example, those in CUDA 8.0 GA2 x86_64, if you use GPU support) <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
