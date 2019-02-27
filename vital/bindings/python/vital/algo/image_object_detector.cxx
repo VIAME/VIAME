@@ -2,8 +2,8 @@
 #include <pybind11/stl.h>
 
 #include <vital/algo/image_object_detector.h>
-#include "trampoline/algorithm_trampoline.tcc"
-#include "trampoline/image_object_detector_trampoline.tcc"
+#include <vital/algo/trampoline/algorithm_trampoline.tcc>
+#include <vital/algo/trampoline/image_object_detector_trampoline.tcc>
 
 using namespace kwiver::vital::algo;
 using namespace kwiver::vital;
