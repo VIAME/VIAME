@@ -33,8 +33,8 @@
  *        exhaustive searching.
  */
 
-#ifndef KWIVER_ALGO_SUPER3D_TV_REFINE_SEARCH_H_
-#define KWIVER_ALGO_SUPER3D_TV_REFINE_SEARCH_H_
+#ifndef KWIVER_ARROWS_SUPER3D_TV_REFINE_SEARCH_H_
+#define KWIVER_ARROWS_SUPER3D_TV_REFINE_SEARCH_H_
 
 #include <vector>
 #include <functional>
@@ -113,4 +113,4 @@ min_search_bound(vil_image_view<double> &a,
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ALGO_SUPER3D_TV_REFINE_SEARCH_H_
+#endif // KWIVER_ARROWS_SUPER3D_TV_REFINE_SEARCH_H_

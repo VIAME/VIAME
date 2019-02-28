@@ -33,8 +33,8 @@
 * \brief Header file for compute depth
 */
 
-#ifndef KWIVER_ALGO_SUPER3D_COMPUTE_DEPTH_H_
-#define KWIVER_ALGO_SUPER3D_COMPUTE_DEPTH_H_
+#ifndef KWIVER_ARROWS_SUPER3D_COMPUTE_DEPTH_H_
+#define KWIVER_ARROWS_SUPER3D_COMPUTE_DEPTH_H_
 
 #include <arrows/super3d/kwiver_algo_super3d_export.h>
 
@@ -100,4 +100,4 @@ private:
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ALGO_SUPER3D_COMPUTE_SUPER3D_H_
+#endif // KWIVER_ARROWS_SUPER3D_COMPUTE_SUPER3D_H_
