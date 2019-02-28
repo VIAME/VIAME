@@ -182,6 +182,11 @@ if( VIAME_ENABLE_SMQTK )
     pipelines/smqtk_train_itq.json )
 endif()
 
+if( VIAME_ENABLE_SMQTK )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/register_optical_and_thermal.json )
+endif()
+
 if( VIAME_DOWNLOAD_MODELS-MOUSS )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_mouss_detector.pipe
