@@ -81,6 +81,27 @@ target_link_libraries( viame_train_detector
                ${Boost_FILESYSTEM_LIBRARY}
   )
 
+# Add process library
+set( process_sources
+  register_processes.cxx
+  write_homography_list_process.cxx
+)
+
+set( process_headers
+  write_homography_list_process.h
+)
+
+kwiver_add_plugin( viame_processes_core
+  SUBDIR           ${viame_plugin_process_subdir}
+  SOURCES          ${process_sources}
+                   ${private_headers}
+  PRIVATE          sprokit_pipeline
+                   kwiver_algo_core kwiversys
+                   vital vital_vpm vital_logger vital_config
+                   ${Boost_SYSTEM_LIBRARY}
+                   ${Boost_FILESYSTEM_LIBRARY}
+ )
+
 if( VIAME_ENABLE_PYTHON )
 
   kwiver_add_python_module(
