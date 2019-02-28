@@ -47,7 +47,7 @@ constexpr unsigned int Dimension = 2;
 using OpticalPixelType = unsigned short;
 using ThermalPixelType = unsigned short;
 using WarpedOpticalPixelType = unsigned short;
-using WarpedThermalPixelType = unsigned char;
+using WarpedThermalPixelType = unsigned short;
 
 using OpticalImageType = ::itk::Image< OpticalPixelType, Dimension >;
 using ThermalImageType = ::itk::Image< ThermalPixelType, Dimension >;

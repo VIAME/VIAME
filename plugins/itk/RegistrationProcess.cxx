@@ -482,12 +482,21 @@ itk_eo_ir_registration_process::priv
 
     auto in_values = output_matrix->GetMatrix();
 
-    for( int r = 0; r < 3; ++r )
+    for( int r = 0; r < viame::itk::Dimension; ++r )
     {
-      for( int c = 0; c < 3; ++c )
+      for( int c = 0; c < viame::itk::Dimension; ++c )
       {
         out_values( r, c ) = in_values( r, c );
       }
+    }
+
+    if( viame::itk::Dimension == 2 )
+    {
+      out_values( 2, 0 ) = 0;
+      out_values( 2, 1 ) = 0;
+      out_values( 2, 2 ) = 1;
+      out_values( 1, 2 ) = 0;
+      out_values( 0, 2 ) = 0;
     }
 
     // Output required elements depending on connections
