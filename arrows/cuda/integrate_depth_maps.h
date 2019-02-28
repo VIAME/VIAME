@@ -95,4 +95,4 @@ private:
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ALGO_ARROWS_INTEGRATE_DEPTH_MAPS_H_
+#endif // KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_
