@@ -136,7 +136,8 @@ kwiver::vital::image_container_sptr ocv_stereo_depth_map
     cvtColor(ocv1, ocv1_gray, CV_BGR2GRAY);
     cvtColor(ocv2, ocv2_gray, CV_BGR2GRAY);
   }
-  else {
+  else
+  {
     ocv1_gray = ocv1;
     ocv2_gray = ocv2;
   }
