@@ -120,7 +120,7 @@ public:
   bool m_thermal_finished;
 
   // Helper functions
-  void attempt_registration( const entry& optical, const entry& thermal );
+  void attempt_registration( const entry& optical, const entry& thermal, bool optical_dom );
 
   void output_no_match_optical( const entry& optical );
   void output_no_match_thermal( const entry& thermal );
@@ -196,13 +196,13 @@ itk_eo_ir_registration_process
   if( !d->m_optical_finished &&
       has_input_port_edge_using_trait( optical_image ) )
   {
-    //optical_image = grab_input_using_trait( optical_image );
+    optical_image = grab_from_port_using_trait( optical_image );
   }
 
   if( !d->m_optical_finished &&
       has_input_port_edge_using_trait( optical_timestamp ) )
   {
-    optical_time = grab_input_using_trait( optical_timestamp );
+    optical_time = grab_from_port_using_trait( optical_timestamp );
 
     LOG_DEBUG( logger(), "Received optical frame " << optical_time );
   }
@@ -210,7 +210,7 @@ itk_eo_ir_registration_process
   if( !d->m_optical_finished &&
       has_input_port_edge_using_trait( optical_file_name ) )
   {
-    optical_file_name = grab_input_using_trait( optical_file_name );
+    optical_file_name = grab_from_port_using_trait( optical_file_name );
   }
 
   // Check for completion of thermal frame stream
@@ -238,13 +238,13 @@ itk_eo_ir_registration_process
   if( !d->m_thermal_finished &&
       has_input_port_edge_using_trait( thermal_image ) )
   {
-    //thermal_image = grab_input_using_trait( thermal_image );
+    thermal_image = grab_from_port_using_trait( thermal_image );
   }
 
   if( !d->m_thermal_finished &&
       has_input_port_edge_using_trait( thermal_timestamp ) )
   {
-    thermal_time = grab_input_using_trait( thermal_timestamp );
+    thermal_time = grab_from_port_using_trait( thermal_timestamp );
 
     LOG_DEBUG( logger(), "Received thermal frame " << thermal_time );
   }
@@ -252,7 +252,7 @@ itk_eo_ir_registration_process
   if( !d->m_thermal_finished &&
       has_input_port_edge_using_trait( thermal_file_name ) )
   {
-    thermal_file_name = grab_input_using_trait( thermal_file_name );
+    thermal_file_name = grab_from_port_using_trait( thermal_file_name );
   }
 
   // Add images to buffer
@@ -343,11 +343,11 @@ itk_eo_ir_registration_process
       {
         if( optical_dominant )
         {
-          d->attempt_registration( *dom_entry, *closest_frame );
+          d->attempt_registration( *dom_entry, *closest_frame, true );
         }
         else
         {
-          d->attempt_registration( *closest_frame, *dom_entry );
+          d->attempt_registration( *closest_frame, *dom_entry, false );
         }
         dom_entry = dom->erase( dom_entry );
       }
@@ -454,26 +454,110 @@ itk_eo_ir_registration_process::priv
 
 void
 itk_eo_ir_registration_process::priv
-::attempt_registration( const entry& optical, const entry& thermal )
+::attempt_registration( const entry& optical, const entry& thermal, bool optical_dom )
 {
   viame::itk::AffineTransformType::Pointer output_matrix;
 
-  if( PerformRegistration(
-    *::itk::OpenCVImageBridge::CVMatToITKImage< viame::itk::OpticalImageType >(
+  auto itk_optical_image = 
+    ::itk::OpenCVImageBridge::CVMatToITKImage< viame::itk::OpticalImageType >(
       kwiver::arrows::ocv::image_container::vital_to_ocv(
         optical.image->get_image(),
-        kwiver::arrows::ocv::image_container::BGR_COLOR ) ),
-    *::itk::OpenCVImageBridge::CVMatToITKImage< viame::itk::ThermalImageType >(
+        kwiver::arrows::ocv::image_container::BGR_COLOR ) );
+
+  auto itk_thermal_image = 
+    ::itk::OpenCVImageBridge::CVMatToITKImage< viame::itk::ThermalImageType >(
       kwiver::arrows::ocv::image_container::vital_to_ocv(
         thermal.image->get_image(),
-        kwiver::arrows::ocv::image_container::BGR_COLOR ) ),
-    output_matrix ) )
+        kwiver::arrows::ocv::image_container::BGR_COLOR ) );
+
+  if( PerformRegistration( *itk_optical_image, *itk_thermal_image, output_matrix ) )
   {
-    
+    // Convert matrix to kwiver
+    kwiver::vital::homography_sptr thermal_to_optical(
+      new kwiver::vital::homography_< double >() );
+  
+    kwiver::vital::matrix_3x3d& out_values =
+      dynamic_cast< kwiver::vital::homography_< double >* >(
+        thermal_to_optical.get() )->get_matrix();;
+
+    auto in_values = output_matrix->GetMatrix();
+
+    for( int r = 0; r < 3; ++r )
+    {
+      for( int c = 0; c < 3; ++c )
+      {
+        out_values( r, c ) = in_values( r, c );
+      }
+    }
+
+    // Output required elements depending on connections
+    m_parent->push_to_port_using_trait( optical_image, optical.image );
+    m_parent->push_to_port_using_trait( optical_file_name, optical.name );
+    m_parent->push_to_port_using_trait( thermal_image, thermal.image );
+    m_parent->push_to_port_using_trait( thermal_file_name, thermal.name );
+    m_parent->push_to_port_using_trait( timestamp, ( optical_dom ? optical.ts : thermal.ts ) );
+    m_parent->push_to_port_using_trait( success_flag, true );
+    m_parent->push_to_port_using_trait( thermal_to_optical_homog, thermal_to_optical );
+
+    if( m_parent->count_output_port_edges_using_trait( optical_to_thermal_homog ) > 0 )
+    {
+      m_parent->push_to_port_using_trait( optical_to_thermal_homog,
+        thermal_to_optical->inverse() );
+    }
+
+    // Warp image if required
+    if( m_parent->count_output_port_edges_using_trait( warped_thermal_image ) > 0 )
+    {
+      WarpedThermalImageType::Pointer warped_image;
+
+      if( WarpThermalToOpticalImage(
+        *itk_optical_image, *itk_thermal_image, *output_matrix, warped_image ) )
+      {
+        m_parent->push_to_port_using_trait( warped_thermal_image,
+          kwiver::vital::image_container_sptr(
+            new kwiver::arrows::ocv::image_container(
+            ::itk::OpenCVImageBridge::ITKImageToCVMat<
+              viame::itk::WarpedThermalImageType >( warped_image ),
+            kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
+      }
+      else
+      {
+        m_parent->push_to_port_using_trait( warped_thermal_image,
+          kwiver::vital::image_container_sptr() );
+      }
+    }
+
+    if( m_parent->count_output_port_edges_using_trait( warped_optical_image ) > 0 )
+    {
+      WarpedOpticalImageType::Pointer warped_image;
+
+      if( WarpOpticalToThermalImage(
+        *itk_optical_image, *itk_thermal_image, *output_matrix, warped_image ) )
+      {
+        m_parent->push_to_port_using_trait( warped_optical_image,
+          kwiver::vital::image_container_sptr(
+            new kwiver::arrows::ocv::image_container(
+            ::itk::OpenCVImageBridge::ITKImageToCVMat<
+              viame::itk::WarpedOpticalImageType >( warped_image ),
+            kwiver::arrows::ocv::image_container::BGR_COLOR ) ) );
+      }
+      else
+      {
+        m_parent->push_to_port_using_trait( warped_optical_image,
+          kwiver::vital::image_container_sptr() );
+      }
+    }
   }
   else
   {
-    
+    if( optical_dom )
+    {
+      output_no_match_optical( optical );
+    }
+    else
+    {
+      output_no_match_thermal( thermal );
+    }
   }
 }
 
@@ -486,6 +570,27 @@ itk_eo_ir_registration_process::priv
   {
     return;
   }
+
+  m_parent->push_to_port_using_trait( optical_image,
+    optical.image );
+  m_parent->push_to_port_using_trait( optical_file_name,
+    optical.name );
+  m_parent->push_to_port_using_trait( thermal_image,
+    kwiver::vital::image_container_sptr() );
+  m_parent->push_to_port_using_trait( thermal_file_name,
+    std::string() );
+  m_parent->push_to_port_using_trait( timestamp,
+    optical.ts );
+  m_parent->push_to_port_using_trait( warped_optical_image,
+    kwiver::vital::image_container_sptr() );
+  m_parent->push_to_port_using_trait( warped_thermal_image,
+    kwiver::vital::image_container_sptr() );
+  m_parent->push_to_port_using_trait( optical_to_thermal_homog,
+    kwiver::vital::homography_sptr() );
+  m_parent->push_to_port_using_trait( thermal_to_optical_homog,
+    kwiver::vital::homography_sptr() );
+  m_parent->push_to_port_using_trait( success_flag,
+    false );
 }
 
 
@@ -497,6 +602,27 @@ itk_eo_ir_registration_process::priv
   {
     return;
   }
+
+  m_parent->push_to_port_using_trait( optical_image,
+    kwiver::vital::image_container_sptr() );
+  m_parent->push_to_port_using_trait( optical_file_name,
+    std::string() );
+  m_parent->push_to_port_using_trait( thermal_image,
+    thermal.image );
+  m_parent->push_to_port_using_trait( thermal_file_name,
+    thermal.name );
+  m_parent->push_to_port_using_trait( timestamp,
+    thermal.ts );
+  m_parent->push_to_port_using_trait( warped_optical_image,
+    kwiver::vital::image_container_sptr() );
+  m_parent->push_to_port_using_trait( warped_thermal_image,
+    kwiver::vital::image_container_sptr() );
+  m_parent->push_to_port_using_trait( optical_to_thermal_homog,
+    kwiver::vital::homography_sptr() );
+  m_parent->push_to_port_using_trait( thermal_to_optical_homog,
+    kwiver::vital::homography_sptr() );
+  m_parent->push_to_port_using_trait( success_flag,
+    false );
 }
 
 

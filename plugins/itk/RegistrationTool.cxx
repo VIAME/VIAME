@@ -53,9 +53,9 @@ int main( int argc, char * argv[] )
     {
     outputTransformedThermalImageFile = argv[4];
 
-    using WarpedWriterType = itk::ImageFileWriter< WarpedImageType >;
+    using WarpedWriterType = itk::ImageFileWriter< WarpedThermalImageType >;
 
-    WarpedImageType::Pointer warpedImage;
+    WarpedThermalImageType::Pointer warpedImage;
 
     if( !WarpThermalToOpticalImage( *opticalReader->GetOutput(),
                                     *thermalReader->GetOutput(),

@@ -46,11 +46,13 @@ constexpr unsigned int Dimension = 2;
 
 using OpticalPixelType = unsigned short;
 using ThermalPixelType = unsigned short;
-using WarpedPixelType = unsigned char;
+using WarpedOpticalPixelType = unsigned short;
+using WarpedThermalPixelType = unsigned char;
 
 using OpticalImageType = ::itk::Image< OpticalPixelType, Dimension >;
 using ThermalImageType = ::itk::Image< ThermalPixelType, Dimension >;
-using WarpedImageType = ::itk::Image< WarpedPixelType, Dimension >;
+using WarpedOpticalImageType = ::itk::Image< WarpedOpticalPixelType, Dimension >;
+using WarpedThermalImageType = ::itk::Image< WarpedThermalPixelType, Dimension >;
 
 using AffineTransformType = ::itk::AffineTransform< double, Dimension >;
 
@@ -63,7 +65,13 @@ VIAME_ITK_EXPORT bool WarpThermalToOpticalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
   const AffineTransformType& inputTransformation,
-  WarpedImageType::Pointer& outputWarpedImage );
+  WarpedThermalImageType::Pointer& outputWarpedImage );
+
+VIAME_ITK_EXPORT bool WarpOpticalToThermalImage(
+  const OpticalImageType& inputOpticalImage,
+  const ThermalImageType& inputThermalImage,
+  const AffineTransformType& inputTransformation,
+  WarpedOpticalImageType::Pointer& outputWarpedImage );
 
 } // end namespace itk
 
