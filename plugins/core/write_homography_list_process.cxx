@@ -40,11 +40,9 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <sstream>
+#include <fstream>
 #include <iostream>
-#include <list>
-#include <limits>
-#include <cmath>
+#include <exception>
 
 
 namespace viame
@@ -55,6 +53,8 @@ namespace core
 
 create_config_trait( file_name, std::string, "homographies.txt",
   "Filename for writing homographies into" );
+create_config_trait( no_homography_string, std::string, "[no-match]",
+  "String to print out to the output file if there is no match" );
 
 create_port_trait( source_file_name, file_name, "Source file name" );
 create_port_trait( dest_file_name, file_name, "Destination file name" );
@@ -70,6 +70,10 @@ public:
 
   // Configuration values
   std::string m_file_name;
+  std::string m_no_homography_string;
+
+  // Internal variables
+  std::ofstream m_writer;
 };
 
 // =============================================================================
@@ -87,6 +91,10 @@ write_homography_list_process
 write_homography_list_process
 ::~write_homography_list_process()
 {
+  if( d->m_writer.is_open() )
+  {
+    d->m_writer.close();
+  }
 }
 
 
@@ -96,6 +104,19 @@ write_homography_list_process
 ::_configure()
 {
   d->m_file_name = config_value_using_trait( file_name );
+  d->m_no_homography_string = config_value_using_trait( no_homography_string );
+
+  if( d->m_writer.is_open() )
+  {
+    d->m_writer.close();
+  }
+
+  d->m_writer.open( d->m_file_name, std::ofstream::out );
+
+  if( !d->m_writer.is_open() )
+  {
+    throw std::runtime_error( "Unable to open " + d->m_file_name );
+  }
 }
 
 
@@ -112,6 +133,20 @@ write_homography_list_process
   source_file_name = grab_from_port_using_trait( source_file_name );
   dest_file_name = grab_from_port_using_trait( dest_file_name );
   homog = grab_from_port_using_trait( homography );
+
+  d->m_writer << source_file_name << std::endl;
+
+  if( homog )
+  {
+    d->m_writer << dest_file_name << std::endl;
+    d->m_writer << *homog << std::endl;
+  }
+  else
+  {
+    d->m_writer << d->m_no_homography_string;
+  }
+
+  d->m_writer << std::endl;
 }
 
 
@@ -138,6 +173,7 @@ write_homography_list_process
 ::make_config()
 {
   declare_config_using_trait( file_name );
+  declare_config_using_trait( no_homography_string );
 }
 
 
