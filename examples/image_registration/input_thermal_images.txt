@@ -1,1 +1,5 @@
- 
+../example_imagery/mouss_example_image_set1/20151023.200145.662.017459.png
+../example_imagery/mouss_example_image_set1/20151023.200145.704.017460.png
+../example_imagery/mouss_example_image_set1/20151023.200145.746.017461.png
+../example_imagery/mouss_example_image_set1/20151023.200145.788.017462.png
+../example_imagery/mouss_example_image_set1/20151023.200145.830.017463.png
