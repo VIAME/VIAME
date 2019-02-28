@@ -352,7 +352,7 @@ itk_eo_ir_registration_process
         dom_entry = dom->erase( dom_entry );
       }
       // No match for this frame ever
-      if( ( bound_exceeded && !found_in_range ) || this_is_the_end )
+      else if( ( bound_exceeded && !found_in_range ) || this_is_the_end )
       {
         if( optical_dominant )
         {
