@@ -111,6 +111,7 @@ write_homography_list_process
 
   source_file_name = grab_from_port_using_trait( source_file_name );
   dest_file_name = grab_from_port_using_trait( dest_file_name );
+  homog = grab_from_port_using_trait( homography );
 }
 
 

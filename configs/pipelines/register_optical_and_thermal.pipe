@@ -68,7 +68,7 @@ process homography_writer
 connect from register.thermal_file_name
         to   homography_writer.source_file_name
 connect from register.optical_file_name
-        to   homography_writer.optical_file_name
+        to   homography_writer.dest_file_name
 connect from register.thermal_to_optical_homog
         to   homography_writer.homography
 
