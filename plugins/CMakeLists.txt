@@ -2,6 +2,9 @@
 ###
 # add all plugin subdirectories below
 
+set( viame_plugin_subdir           viame )
+set( viame_plugin_process_subdir   ${viame_plugin_subdir}/processes )
+
 add_subdirectory( core )
 add_subdirectory( hello_world )
 
