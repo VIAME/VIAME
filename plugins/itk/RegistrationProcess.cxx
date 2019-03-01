@@ -294,7 +294,7 @@ itk_eo_ir_registration_process
     for( auto dom_entry = dom->begin(); dom_entry != dom->end(); )
     {
       bool found_in_range = false; // Crit1: A sub-frame in search interval found
-      bool minimum_found = false; // Crit2: Found guaranteed local minimum diff between times
+      bool minimum_found = false;  // Crit2: Found guaranteed local minimum diff between times
       bool bound_exceeded = false; // Crit3: Upper search bound exceeded
 
       const double lower_time = dom_entry->time() - d->m_max_time_offset;
