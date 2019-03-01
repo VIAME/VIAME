@@ -46,7 +46,7 @@ if( KWIVER_ENABLE_VXL )
 endif()
 
 if ( KWIVER_ENABLE_CUDA )
-  add_subdirectory( cuda )
+  #add_subdirectory( cuda )
 endif()
 
 # Add VisCL plugin if enabled

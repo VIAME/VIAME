@@ -61,7 +61,7 @@ extract_descriptors
 
   cv::Mat desc;
   cv::Mat mask;
-  extractor->detectAndCompute( img, mask, kpts, desc, true);
+  //extractor->detectAndCompute( img, mask, kpts, desc, true);
 
   //keypoint order may have changed.  We must output keypoints.
   features = std::make_shared<feature_set>(kpts);
