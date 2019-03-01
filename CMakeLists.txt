@@ -241,8 +241,6 @@ if (KWIVER_ENABLE_ARROWS)
 endif()
 
 if (KWIVER_ENABLE_SPROKIT)
-  if (KWIVER_ENABLE_PYTHON)
-  endif()
   add_subdirectory(sprokit)
 endif()
 
