@@ -33,8 +33,8 @@
 * \brief Header file for compute depth
 */
 
-#ifndef KWIVER_ALGO_CUDA_INTEGRATE_DEPTH_MAPS_H_
-#define KWIVER_ALGO_CUDA_INTEGRATE_DEPTH_MAPS_H_
+#ifndef KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_
+#define KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_
 
 #include <arrows/cuda/kwiver_algo_cuda_export.h>
 
@@ -95,4 +95,4 @@ private:
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ALGO_CUDA_INTEGRATE_DEPTH_MAPS_H_
+#endif // KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_
