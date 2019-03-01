@@ -63,6 +63,9 @@ class KWIVER_ALGO_VXL_EXPORT estimate_canonical_transform
                                  vital::algo::estimate_canonical_transform>
 {
 public:
+  PLUGIN_INFO( "vxl_plane",
+               "Use VXL (rrel) to robustly estimate a ground plane for a canonical transform." )
+
   /// Constructor
   estimate_canonical_transform();
 
