@@ -96,6 +96,13 @@ public:
   /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return vxl_to_vital(*data_); }
 
+  /// Get an in-memory image class to access the data
+  virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
+                                 unsigned width, unsigned height) const
+  {
+    return vxl_to_vital(*data_);
+  }
+
   /// Get image data in this container.
   vil_image_view_base_sptr get_vil_image_view() const { return data_; }
 

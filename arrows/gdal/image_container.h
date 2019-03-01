@@ -76,6 +76,10 @@ public:
   /// Get image. Unlike other image container must allocate memory
   virtual vital::image get_image() const;
 
+  /// Get sub-image. Unlike other image container must allocate memory
+  virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
+                                 unsigned width, unsigned height) const;
+
 protected:
 
   std::shared_ptr<GDALDataset> gdal_dataset_;

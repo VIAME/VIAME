@@ -77,8 +77,12 @@ public:
   /// The depth (or number of channels) of the image
   virtual size_t depth() const = 0;
 
-  /// Get and in-memory image class to access the data
+  /// Get an in-memory image class to access the data
   virtual image get_image() const = 0;
+
+  /// Get an in-memory image class to access a sub-image of the data
+  virtual image get_image(unsigned x_offset, unsigned y_offset,
+                          unsigned width, unsigned height) const = 0;
 
   /// Get metadata associated with this image
   virtual metadata_sptr get_metadata() const { return md_; }
@@ -130,8 +134,12 @@ public:
   /// The depth (or number of channels) of the image
   virtual size_t depth() const { return data.depth(); }
 
-  /// Get and in-memory image class to access the data
+  /// Get an in-memory image class to access the data
   virtual image get_image() const { return data; };
+
+  /// Get an in-memory image class to access the data
+  virtual image get_image(unsigned x_offset, unsigned y_offset,
+                          unsigned width, unsigned height) const { return data; };
 
 protected:
   /// data for this image container

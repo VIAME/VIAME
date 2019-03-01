@@ -86,8 +86,15 @@ public:
   /// The depth (or number of channels) of the image
   virtual size_t depth() const { return data_.channels(); }
 
-  /// Get and in-memory image class to access the data
+  /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return ocv_to_vital(data_, RGB_COLOR); }
+
+  /// Get an in-memory image class to access the data
+  virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
+                                 unsigned width, unsigned height) const
+  {
+    return ocv_to_vital(data_, RGB_COLOR);
+  }
 
   /// Access the underlying cv::Mat data structure
   cv::Mat get_Mat() const { return data_; }

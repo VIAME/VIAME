@@ -240,6 +240,18 @@ image_container
   return img;
 }
 
+// ----------------------------------------------------------------------------
+/// Return a vital image. Unlike other image container must allocate memory.
+vital::image
+image_container
+::get_image(unsigned x_offset, unsigned y_offset,
+            unsigned width, unsigned height) const
+{
+  vital::image img( width, height, depth(), false, pixel_traits_ );
+
+  return img;
+}
+
 } // end namespace gdal
 } // end namespace arrows
 } // end namespace kwiver

@@ -84,8 +84,15 @@ public:
     */
   virtual size_t depth() const { return data_.depth(); }
 
-  /// Get and in-memory image class to access the data
+  /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return viscl_to_vital(data_); }
+
+  /// Get an in-memory image class to access the data
+  virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
+                                 unsigned width, unsigned height) const
+  {
+     return viscl_to_vital(data_);
+  }
 
   /// Access the underlying VisCL data structure
   viscl::image get_viscl_image() const { return data_; }
