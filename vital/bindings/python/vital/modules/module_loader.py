@@ -29,10 +29,7 @@
 
 
 from __future__ import print_function, absolute_import
-try:
-    from . import loaders
-except:
-    from straight.plugin import loaders
+from vital.modules import loaders
 from vital import vital_logging
 
 logger = vital_logging.getLogger(__name__)
