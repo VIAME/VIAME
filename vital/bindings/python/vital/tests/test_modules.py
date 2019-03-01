@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #ckwg +28
-# Copyright 2011-2013 by Kitware, Inc.
+# Copyright 2011-2013, 2019 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import nose.tools
 
-def test_import():
-    try:
-        import sprokit.pipeline.modules
-    except:
-        test_error("Failed to import the modules module")
-
-
-def test_load():
-    from sprokit.pipeline import modules
-
-    modules.load_known_modules()
+class TestVitalModules(object):
+    @nose.tools.raises(ImportError)
+    def test_import():
+        import vital.modules.modules
 
 
-if __name__ == '__main__':
-    import os
-    import sys
+    def test_load():
+        from vital.modules import modules
+        modules.load_known_modules()
 
-    if not len(sys.argv) == 4:
-        test_error("Expected three arguments")
-        sys.exit(1)
-
-    testname = sys.argv[1]
-
-    os.chdir(sys.argv[2])
-
-    sys.path.append(sys.argv[3])
-
-    from sprokit.test.test import *
-
-    run_test(testname, find_tests(locals()))
