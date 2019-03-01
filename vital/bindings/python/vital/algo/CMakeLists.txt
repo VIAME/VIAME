@@ -20,8 +20,10 @@ target_link_libraries(vital_algo_trampoline
   PUBLIC ${PYTHON_LIBRARIES}
           vital_algo
           vital_config
-          vital  
+          vital
+          vital_python_util  
 )
+
 
 kwiver_add_python_library(image_object_detector
   vital/algo
@@ -52,4 +54,4 @@ kwiver_create_python_init(vital/algo
   algorithm_factory  
 )
 
-#add_subdirectory(py)
+add_subdirectory(py)
