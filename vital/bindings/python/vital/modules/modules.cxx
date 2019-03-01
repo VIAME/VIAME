@@ -33,14 +33,16 @@
 #include <pybind11/pybind11.h>
 
 /**
- * \file modules.cxx
+ * \file module_loader.cxx
  *
  * \brief Python bindings for module loading.
  */
 
 using namespace pybind11;
 
-namespace sprokit {
+namespace kwiver {
+namespace vital {
+namespace python {
 
 //@todo Alternative is to provide C bindings for the plugin manager.
 
@@ -49,10 +51,17 @@ void load_known_modules()
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 }
 
-PYBIND11_MODULE(modules, m)
+bool is_module_loaded(std::string module_name)
 {
-  m.def("load_known_modules", &sprokit::load_known_modules
-    , "Loads sprokit modules to populate the process and scheduler registries.");
+  return kwiver::vital::plugin_manager::instance().is_module_loaded(module_name);
 }
 
-} // end namespace sprokit
+PYBIND11_MODULE(modules, m)
+{
+  m.def("load_known_modules", &kwiver::vital::python::load_known_modules
+    , "Loads modules to populate the process and scheduler registries.");
+  m.def("is_module_loaded", &kwiver::vital::python::is_module_loaded, 
+      "Check if a module has been loaded");
+}
+
+} } }  // end namespace 

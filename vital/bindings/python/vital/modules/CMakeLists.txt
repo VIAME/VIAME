@@ -1,11 +1,8 @@
 project(vital_python_modules)
 
+include_directories(${PYBIND11_INCLUDE_DIR})
 set(modules_python_srcs
   registration.cxx)
-
-#set(modules_python_private_headers
-#  modules-config.h
-#  )
 
 set(python_noarch FALSE)
 kwiver_create_python_init(vital/modules)
@@ -13,7 +10,6 @@ set(python_noarch TRUE)
 kwiver_create_python_init(vital/modules)
 set(python_noarch FALSE)
 
-#kwiver_private_header_group(${modules_python_private_headers})
 
 if(UNIX)
   add_definitions( -DVITAL_LOAD_PYLIB_SYM )
@@ -31,10 +27,18 @@ kwiver_add_plugin( modules_python
                   )
  endif()
 
-kwiver_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/modules.py"
+kwiver_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/module_loader.py"
   vital/modules
-  modules)
+  module_loader)
 
 kwiver_add_python_module("${CMAKE_CURRENT_SOURCE_DIR}/loaders.py"
   vital/modules
   loaders)
+
+kwiver_add_python_library(modules
+                          vital/modules
+                          modules.cxx)
+
+target_link_libraries(python-vital.modules-modules
+    PRIVATE   vital_python_util
+              vital_vpm)

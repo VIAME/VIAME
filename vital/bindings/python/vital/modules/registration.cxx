@@ -77,7 +77,7 @@ static void _load_python_library_symbols();
  * This function is called by the plugin loader when it is scanning
  * all plugins. It looks like a standard registration entry point for
  * a set or processes, but it activates the python interpreter and
- * causes it to call vital.module.modules.load_python_modules()
+ * causes it to call vital.modules.module_loader.load_python_modules()
  *
  * Also note that setting the environment variable
  * VITAL_NO_PYTHON_MODULES will suppress loading all python modules.
@@ -178,9 +178,8 @@ void _load_python_library_symbols()
 void
 load()
 {
-  py::object const modules = py::module::import("vital.modules.modules");
+  py::object const modules = py::module::import("vital.modules.module_loader");
   py::object const loader = modules.attr("load_python_modules");
-
   loader();
 }
 
