@@ -482,9 +482,9 @@ itk_eo_ir_registration_process::priv
 
     auto in_values = output_matrix->GetMatrix();
 
-    for( int r = 0; r < viame::itk::Dimension; ++r )
+    for( unsigned r = 0; r < viame::itk::Dimension; ++r )
     {
-      for( int c = 0; c < viame::itk::Dimension; ++c )
+      for( unsigned c = 0; c < viame::itk::Dimension; ++c )
       {
         out_values( r, c ) = in_values( r, c );
       }
@@ -495,8 +495,9 @@ itk_eo_ir_registration_process::priv
       out_values( 2, 0 ) = 0;
       out_values( 2, 1 ) = 0;
       out_values( 2, 2 ) = 1;
-      out_values( 1, 2 ) = 0;
-      out_values( 0, 2 ) = 0;
+
+      out_values( 1, 2 ) = output_matrix->GetOffset()[ 1 ];
+      out_values( 0, 2 ) = output_matrix->GetOffset()[ 0 ];
     }
 
     // Output required elements depending on connections
