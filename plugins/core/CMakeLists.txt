@@ -1,6 +1,7 @@
 # Build / Install Plugin containing core algorithm implementations
 
 set( plugin_headers
+  timestamp_passthrough.h
   read_detected_object_set_habcam.h
   read_detected_object_set_viame_csv.h
   read_object_track_set_viame_csv.h
@@ -9,6 +10,7 @@ set( plugin_headers
   )
 
 set( plugin_sources
+  timestamp_passthrough.cxx
   read_detected_object_set_habcam.cxx
   read_detected_object_set_viame_csv.cxx
   read_object_track_set_viame_csv.cxx
