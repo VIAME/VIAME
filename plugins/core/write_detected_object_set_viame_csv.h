@@ -42,7 +42,8 @@
 
 #include <memory>
 
-namespace viame {
+namespace viame
+{
 
 class VIAME_CORE_EXPORT write_detected_object_set_viame_csv
   : public kwiver::vital::algorithm_impl<write_detected_object_set_viame_csv,
