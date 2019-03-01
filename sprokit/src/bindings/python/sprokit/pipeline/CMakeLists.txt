@@ -23,16 +23,6 @@ target_link_libraries(python-sprokit.pipeline-edge
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
-kwiver_add_python_library(modules
-  sprokit/pipeline
-  modules.cxx)
-target_link_libraries(python-sprokit.pipeline-modules
-  PRIVATE             sprokit_pipeline
-                      vital_python_util
-                      ${Boost_SYSTEM_LIBRARY}
-                      vital_vpm
-  )
-
 kwiver_add_python_library(pipeline
   sprokit/pipeline
   pipeline.cxx)
@@ -105,7 +95,6 @@ kwiver_create_python_init(sprokit/pipeline
   config
   datum
   edge
-  modules
   pipeline
   process
   process_factory
