@@ -46,10 +46,8 @@ class KWIVER_ALGO_CORE_EXPORT average_track_descriptors
       vital::algo::compute_track_descriptors >
 {
 public:
-  static constexpr char const* name = "average";
-
-  static constexpr char const* description =
-    "Track descriptors using simple average";
+  PLUGIN_INFO( "average",
+               "Track descriptor consolidation using simple averaging" )
 
   average_track_descriptors();
   virtual ~average_track_descriptors();

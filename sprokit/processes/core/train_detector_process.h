@@ -51,9 +51,11 @@ class KWIVER_PROCESSES_NO_EXPORT train_detector_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "train_detector",
+               "Train an object detector given groundtruth annotations." )
+
   train_detector_process( kwiver::vital::config_block_sptr const& config );
   virtual ~train_detector_process();
-
 
 protected:
   virtual void _configure();

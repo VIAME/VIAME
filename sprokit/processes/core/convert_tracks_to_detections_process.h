@@ -56,20 +56,23 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT convert_tracks_to_detections_process
   : public sprokit::process
 {
-  public:
+public:
+  PLUGIN_INFO( "convert_tracks_to_detections",
+               "Convert input object track sets into detection sets for each frame." )
+
   convert_tracks_to_detections_process( vital::config_block_sptr const& config );
   virtual ~convert_tracks_to_detections_process();
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-  private:
-    void make_ports();
-    void make_config();
+private:
+  void make_ports();
+  void make_config();
 
-    class priv;
-    const std::unique_ptr<priv> d;
+  class priv;
+  const std::unique_ptr<priv> d;
 
 }; // end class convert_tracks_to_detections_process
 

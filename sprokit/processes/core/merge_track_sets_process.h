@@ -56,21 +56,24 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT merge_track_sets_process
   : public sprokit::process
 {
-  public:
-    merge_track_sets_process( kwiver::vital::config_block_sptr const& config );
-    virtual ~merge_track_sets_process();
+public:
+  PLUGIN_INFO( "merge_track_sets",
+               "Merge multiple input track sets into one output set." )
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
-    virtual sprokit::process::port_info_t _input_port_info(port_t const& port);
+  merge_track_sets_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~merge_track_sets_process();
 
-  private:
-    void make_ports();
-    void make_config();
+protected:
+  virtual void _configure();
+  virtual void _step();
+  virtual sprokit::process::port_info_t _input_port_info(port_t const& port);
 
-    class priv;
-    const std::unique_ptr<priv> d;
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
 }; // end class merge_track_sets_process
 
 } // end namespace

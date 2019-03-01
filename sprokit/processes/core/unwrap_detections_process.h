@@ -49,6 +49,9 @@ class KWIVER_PROCESSES_NO_EXPORT unwrap_detections_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "unwrap_detections",
+               "Unwrap object detections from object tracks." )
+
   // -- CONSTRUCTORS --
   unwrap_detections_process( kwiver::vital::config_block_sptr const& config );
   virtual ~unwrap_detections_process();
@@ -60,7 +63,6 @@ protected:
 private:
   void make_ports();
   void make_config();
-
 
   class priv;
   const std::unique_ptr<priv> d;

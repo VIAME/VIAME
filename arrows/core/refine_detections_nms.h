@@ -57,12 +57,10 @@ class KWIVER_ALGO_CORE_EXPORT refine_detections_nms
 {
 
 public:
-  static constexpr char const* name = "nms";
-
-  static constexpr char const* description =
+  PLUGIN_INFO( "nms",
     "Refines detections based on overlap.\n\n"
     "This algorithm sorts through detections, pruning detections "
-    "that heavily overlap with higher confidence detections.";
+    "that heavily overlap with higher confidence detections." )
 
   refine_detections_nms();
   virtual ~refine_detections_nms();

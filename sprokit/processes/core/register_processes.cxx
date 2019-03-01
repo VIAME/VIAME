@@ -106,7 +106,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< matcher_process >();
   reg.register_process< compute_homography_process >();
   reg.register_process< compute_stereo_depth_map_process >();
-  reg.register_process< convert_tracks_to_detections >();
+  reg.register_process< convert_tracks_to_detections_process >();
   reg.register_process< draw_tracks_process >();
   reg.register_process< read_descriptor_process >();
   reg.register_process< refine_detections_process >();
