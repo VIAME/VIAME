@@ -142,6 +142,13 @@ public:
    */
   double area() const { return m_bbox.volume(); }
 
+  /**
+  * @brief Check if point inside box.
+  *
+  * @return true if point is inside box
+  */
+  bool contains(vector_type const& pt) const { return m_bbox.contains(pt); }
+
 protected:
   /*
    * @brief Obscure accessors for underlying data.

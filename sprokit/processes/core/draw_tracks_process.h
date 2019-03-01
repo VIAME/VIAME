@@ -53,6 +53,9 @@ class KWIVER_PROCESSES_NO_EXPORT draw_tracks_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "draw_tracks",
+               "Draw feature tracks on image." )
+
   // -- CONSTRUCTORS --
   draw_tracks_process( kwiver::vital::config_block_sptr const& config );
   virtual ~draw_tracks_process();

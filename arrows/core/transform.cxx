@@ -163,7 +163,8 @@ vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
 /// Compute an approximate Necker reversal of cameras and landmarks
 void
 necker_reverse(vital::camera_map_sptr& cameras,
-               vital::landmark_map_sptr& landmarks)
+               vital::landmark_map_sptr& landmarks,
+               bool reverse_landmarks)
 {
   typedef vital::landmark_map::map_landmark_t lm_map_t;
   typedef vital::camera_map::map_camera_t cam_map_t;
@@ -174,7 +175,7 @@ necker_reverse(vital::camera_map_sptr& cameras,
   // compute the landmark location mean and covariance
   vital::vector_3d lc(0.0, 0.0, 0.0);
   vital::matrix_3x3d covar = vital::matrix_3x3d::Zero();
-  for(const lm_map_t::value_type& p : lms)
+  for (const lm_map_t::value_type& p : lms)
   {
     vital::vector_3d pt = p.second->loc();
     lc += pt;
@@ -193,7 +194,7 @@ necker_reverse(vital::camera_map_sptr& cameras,
   // flip cameras around
   vital::rotation_d Ra180(vital::vector_4d(axis.x(), axis.y(), axis.z(), 0.0));
   vital::rotation_d Rz180(vital::vector_4d(0.0, 0.0, 1.0, 0.0));
-  for(cam_map_t::value_type& p : cams)
+  for (cam_map_t::value_type& p : cams)
   {
     auto flipped = std::make_shared<vital::simple_camera_perspective>(
       dynamic_cast<vital::simple_camera_perspective&>(*p.second));
@@ -214,14 +215,17 @@ necker_reverse(vital::camera_map_sptr& cameras,
     p.second = vital::camera_perspective_sptr(flipped);
   }
 
-  // mirror landmark locations about the mirroring plane
-  for(lm_map_t::value_type& p : lms)
+  if (reverse_landmarks)
   {
-    vital::vector_3d v = p.second->loc();
-    v -= 2.0 * (v - lc).dot(axis) * axis;
-    auto new_lm = std::make_shared<vital::landmark_d>(*p.second);
-    new_lm->set_loc(v);
-    p.second = new_lm;
+    // mirror landmark locations about the mirroring plane
+    for (lm_map_t::value_type& p : lms)
+    {
+      vital::vector_3d v = p.second->loc();
+      v -= 2.0 * (v - lc).dot(axis) * axis;
+      auto new_lm = std::make_shared<vital::landmark_d>(*p.second);
+      new_lm->set_loc(v);
+      p.second = new_lm;
+    }
   }
 
   cameras = vital::camera_map_sptr(new vital::simple_camera_map(cams));

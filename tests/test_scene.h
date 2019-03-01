@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -311,6 +311,28 @@ add_outliers_to_tracks(kwiver::vital::feature_track_set_sptr in_tracks,
   }
   return std::make_shared<feature_track_set>( new_tracks );
 }
+
+
+// set inlier state on all track states
+void
+reset_inlier_flag( kwiver::vital::feature_track_set_sptr tracks,
+                   bool target_state=false )
+{
+  using namespace kwiver::vital;
+
+  for( track_sptr t : tracks->tracks() )
+  {
+    for( auto fts : *t | as_feature_track )
+    {
+      if( !fts )
+      {
+        continue;
+      }
+      fts->inlier = target_state;
+    }
+  }
+}
+
 
 
 } // end namespace testing

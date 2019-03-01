@@ -61,9 +61,11 @@ typedef kwiver::vital::implementation_factory_by_name< sprokit::process_instrume
 
 } // anonymous
 
-static kwiver::vital::config_block_key_t const instrumentation_block_key = kwiver::vital::config_block_key_t("_instrumentation");
-static kwiver::vital::config_block_key_t const instrumentation_type_key = kwiver::vital::config_block_key_t(instrumentation_block_key
-                       + kwiver::vital::config_block::block_sep + "type" );
+static kwiver::vital::config_block_key_t const instrumentation_block_key =
+  kwiver::vital::config_block_key_t("_instrumentation");
+static kwiver::vital::config_block_key_t const instrumentation_type_key =
+  kwiver::vital::config_block_key_t(instrumentation_block_key
+                                    + kwiver::vital::config_block::block_sep + "type" );
 
 process::property_t const process::property_no_threads = property_t("_no_thread");
 process::property_t const process::property_no_reentrancy = property_t("_no_reentrant");
@@ -662,7 +664,7 @@ process
     if (instr_prov != "none" )
     {
       // Get instrumentation interface
-      kwiver::vital::config_block_sptr instr_block = config->subblock_view( instrumentation_block_key
+      kwiver::vital::config_block_sptr instr_block = d->conf->subblock_view( instrumentation_block_key
                                     + kwiver::vital::config_block::block_sep + instr_prov );
 
       instrumentation_factory ifact;

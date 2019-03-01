@@ -118,12 +118,16 @@ vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
  * about this axis and also 180 degrees about each cameras own principal axis.
  * The landmarks are mirrored about the plane passing through the
  * mean landmark location and with a normal aligning with axis A.
+ * Setting reverse_landmarks to false, prevents this mirroring of the landmarks,
+ * leaving them where they originally were.  Only the cameras are modified
+ * in this case.
  *
  */
 KWIVER_ALGO_CORE_EXPORT
 void
 necker_reverse(vital::camera_map_sptr& cameras,
-               vital::landmark_map_sptr& landmarks);
+               vital::landmark_map_sptr& landmarks,
+               bool reverse_landmarks = true);
 
 } // end namespace arrows
 } // end namespace kwiver

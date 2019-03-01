@@ -11,9 +11,10 @@ set( lib_sources
   output_adapter.cxx
 
   embedded_pipeline.cxx
+  embedded_pipeline_extension.cxx
 
-  adapter_base.h             adapter_base.cxx
-  input_adapter_process.h input_adapter_process.cxx
+  adapter_base.h           adapter_base.cxx
+  input_adapter_process.h  input_adapter_process.cxx
   output_adapter_process.h output_adapter_process.cxx
   )
 
@@ -23,6 +24,7 @@ set( public_headers
   input_adapter.h
   output_adapter.h
   embedded_pipeline.h
+  embedded_pipeline_extension.h
   )
 
 
@@ -70,6 +72,16 @@ kwiver_add_plugin( kwiver_processes_adapter
                   vital_config
 )
 
+###
+# add epx_test plugin
+kwiver_add_plugin( kwiver_epx_test
+  SUBDIR          ${kwiver_plugin_process_subdir}
+  SOURCES         epx_test.h epx_test.cxx
+                  ${CMAKE_CURRENT_BINARY_DIR}/kwiver_epx_test_export.h
+  PUBLIC          sprokit_pipeline
+  PRIVATE         kwiver_adapter
+                  vital_config
+)
 
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )

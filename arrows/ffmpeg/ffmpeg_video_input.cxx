@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -711,7 +711,7 @@ ffmpeg_video_input
       d->current_image_memory,
       d->current_image_memory->data(),
       width, height, depth,
-      depth, depth * width, depth * width * height
+      depth, depth * width, 1
     );
     d->current_image = std::make_shared<vital::simple_image_container>(vital::simple_image_container(image));
   }

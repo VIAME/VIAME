@@ -65,7 +65,7 @@ namespace kwiver
  *
  * \iport{gsd}
  * Scaling of the image in meters per pixel.
- * 
+ *
  * \iport{stream_id}
  * Optional input stream ID to put in the KWA file.
  *
@@ -77,6 +77,8 @@ class KWIVER_PROCESSES_VXL_NO_EXPORT kw_archive_writer_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "kw_archive_writer",
+               "Writes kw archives." )
 
   /**
    * \brief Constructor

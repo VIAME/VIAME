@@ -53,6 +53,9 @@ class KWIVER_PROCESSES_OCV_NO_EXPORT image_viewer_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "image_viewer",
+               "Display input image and delay" )
+
   // -- CONSTRUCTORS --
   image_viewer_process( kwiver::vital::config_block_sptr const& config );
   virtual ~image_viewer_process();

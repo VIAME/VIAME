@@ -174,6 +174,8 @@ detect_features_if_keyframe_process
   kwiver::vital::feature_track_set_sptr next_tracks =
     grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
 
+  //clone next track set so it can be changed
+  next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
 
   //track set from the last call of detect_features_if_keyframe_process::step
 
@@ -183,15 +185,14 @@ detect_features_if_keyframe_process
   {
     kwiver::vital::feature_track_set_sptr loop_back_tracks =
       grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
+
     //merge next_tracks into cur_tracks.  Note, this clones the tracks.
     curr_tracks = d->merge_next_tracks_into_loop_back_track(
       next_tracks, frame_time.get_frame(), loop_back_tracks);
   }
   else
   {
-    //clone next track set so it can be changed
-    curr_tracks =
-      std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+    curr_tracks = next_tracks;
   }
   d->first = false;  //it's not the first call any more
 
@@ -272,10 +273,7 @@ detect_features_if_keyframe_process::priv
     f.second = f.second->clone();
   }
 
-  // clone loop back tracks so we can change it.
-  vital::feature_track_set_sptr curr_tracks =
-    std::dynamic_pointer_cast<vital::feature_track_set>(
-      loop_back_tracks->clone() );
+  vital::feature_track_set_sptr curr_tracks = loop_back_tracks;
 
   // copy the next frame data into the current tracks.
   curr_tracks->set_frame_data(next_fd);
@@ -286,8 +284,10 @@ detect_features_if_keyframe_process::priv
     next_tracks->active_tracks(next_tracks_frame_num);
 
   // get the active tracks for the last frame in loop_back tracks.
+  vital::frame_id_t last_loop_back_frame_num = loop_back_tracks->last_frame();
+
   std::vector< vital::track_sptr> curr_active_tracks =
-    curr_tracks->active_tracks(next_tracks_frame_num-1);
+    curr_tracks->active_tracks(last_loop_back_frame_num);
 
   // Note, track ids from next_tracks and loop_back_tracks do not correspond.
   // KLT tracker never sees detected feature tracks and so it won't increment

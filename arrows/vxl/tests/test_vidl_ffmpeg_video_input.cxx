@@ -59,8 +59,6 @@ main(int argc, char* argv[])
 {
   ::testing::InitGoogleTest( &argc, argv );
 
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-
   GET_ARG(1, g_data_dir);
 
   return RUN_ALL_TESTS();
@@ -75,13 +73,14 @@ class vidl_ffmpeg_video_input : public ::testing::Test
 // ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, create)
 {
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
   EXPECT_NE( nullptr, algo::video_input::create("vidl_ffmpeg") );
 }
 
 // ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, read_video)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
@@ -127,7 +126,7 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
 // ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, read_video_subset)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   config->set_value( "start_at_frame", "11" );
@@ -170,7 +169,7 @@ TEST_F(vidl_ffmpeg_video_input, read_video_subset)
 // ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, is_good)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
@@ -215,9 +214,10 @@ TEST_F(vidl_ffmpeg_video_input, is_good)
     << num_expected_frames;
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, seek_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
@@ -235,9 +235,10 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame)
   vfvi.close();
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   config->set_value( "start_at_frame", "11" );
@@ -258,9 +259,73 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist)
   vfvi.close();
 }
 
+// ----------------------------------------------------------------------------
+TEST_F(vidl_ffmpeg_video_input, seek_then_next_frame)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + video_file_name;
+
+  // Open the video
+  vfvi.open( list_file );
+
+  test_seek_then_next( vfvi );
+
+  vfvi.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(vidl_ffmpeg_video_input, next_then_seek_frame)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + video_file_name;
+
+  // Open the video
+  vfvi.open( list_file );
+
+  test_next_then_seek( vfvi );
+
+  vfvi.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(vidl_ffmpeg_video_input, next_then_seek_then_next)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+
+  // Open the video
+  vfvi.open( video_file );
+
+  test_next_then_seek_then_next( vfvi );
+
+  vfvi.close();
+}
+
+// ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, metadata_map)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
@@ -291,9 +356,10 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map)
   }
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, metadata_map_subset)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
@@ -333,9 +399,10 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map_subset)
   }
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, metadata_map_nth_frame)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
@@ -379,7 +446,7 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map_nth_frame)
 // ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, read_video_nth_frame_output)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   config->set_value( "output_nth_frame", nth_frame_output );
@@ -426,9 +493,10 @@ TEST_F(vidl_ffmpeg_video_input, read_video_nth_frame_output)
     << num_expected_frames;
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(vidl_ffmpeg_video_input, seek_nth_frame_output)
 {
-  // make config block
+  // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
   config->set_value( "output_nth_frame", nth_frame_output );
@@ -446,7 +514,7 @@ TEST_F(vidl_ffmpeg_video_input, seek_nth_frame_output)
   kwiver::vital::timestamp ts;
 
   // Video should be seekable
-  EXPECT_TRUE( vfvi.seekable() );
+  ASSERT_TRUE( vfvi.seekable() );
 
   // Test various valid seeks
   std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =

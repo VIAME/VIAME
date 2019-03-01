@@ -61,21 +61,24 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT compute_association_matrix_process
   : public sprokit::process
 {
-  public:
+public:
+  PLUGIN_INFO( "compute_association_matrix",
+               "Computes cost matrix for adding new detections to existing tracks." )
+
   compute_association_matrix_process( vital::config_block_sptr const& config );
   virtual ~compute_association_matrix_process();
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-  private:
-    void make_ports();
-    void make_config();
+private:
+  void make_ports();
+  void make_config();
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class compute_association_matrix_process
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class compute_association_matrix_process
 
 
 } // end namespace

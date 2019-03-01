@@ -56,6 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_LATCH
                                   vital::algo::extract_descriptors >
 {
 public:
+  PLUGIN_INFO( "ocv_LATCH",
+               "OpenCV feature-point descriptor extraction via the LATCH algorithm" )
+
   /// Constructor
   extract_descriptors_LATCH();
 

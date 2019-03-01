@@ -55,6 +55,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_BRIEF
                                          vital::algo::extract_descriptors>
 {
 public:
+  PLUGIN_INFO( "ocv_BRIEF",
+               "OpenCV feature-point descriptor extraction via the BRIEF algorithm" )
+
   /// Constructor
   extract_descriptors_BRIEF();
 

@@ -219,13 +219,6 @@ public:
    * \param other image_memory to copy from.
    */
   image_memory& operator=( const image_memory& other );
-  
-  /// Equality operator
-  /**
-   * Compares the data in other image memory with this image data.
-   * \param other image_memory to compare with
-   */
-  bool operator==( const image_memory& other ) const;
 
   /// Destructor
   virtual ~image_memory();
@@ -249,11 +242,41 @@ protected:
 typedef std::shared_ptr< image_memory > image_memory_sptr;
 
 
-// ==================================================================
+// ===========================================================================
 /// The representation of an in-memory image.
 /**
- * Images share memory using the image_memory class.  This is
- * effectively a view on an image.
+ * This base image class represents an image with a dynamic data type.  The
+ * underlying data type can be queried using pixel_traits().  To properly
+ * access individual pixels the data type must be known.  The templated at<T>()
+ * member function provides direct access to pixels.  Alternatively, cast the
+ * image itself into an image_of object.  The typed image_of class is a bit
+ * easier to work with once the type is known, but this base class is useful
+ * in APIs that may operate on images of various types.
+ *
+ * Memory Management
+ * -----------------
+ *
+ * This image class supports two modes of memory management.  Either the image
+ * owns its memory or it does not.  If the image owns its memory the
+ * image::memory() function will return a shared pointer to that image_memory
+ * object.  Otherwise, image::memory() will return nullptr.  In both cases,
+ * image::first_pixel() returns a pointer to the first pixel of the memory
+ * that appears in the image.  The address of the first pixel does not need
+ * to match the starting address of the image_memory.  There can be multiple
+ * different views into the same memory (e.g. a cropped image view) and these
+ * views may use the same memory object with a different offsets to the first
+ * pixel, size, and step parameters.
+ *
+ * Typically the image manages its own memory in a reference counted
+ * image_memory object.  Creating a new image will allocate this memory, which
+ * can be accessed from image::memory().  Copying an image will make a shallow
+ * copy refering to the same memory object, and the memory will be deleted
+ * when all images are done with it.
+ *
+ * There is a special constructor that allows construction of an image as a
+ * veiw into some existing memory.  In this case the image does not own the
+ * memory and image::memory() will return nullptr.  The user must ensure that
+ * the memory exists for the lifetime of the image.
  */
 class VITAL_EXPORT image
 {
@@ -333,9 +356,29 @@ public:
   const image& operator=( const image& other );
 
   /// Const access to the image memory
+  /**
+   * \copydoc image::memory()
+   */
   const image_memory_sptr& memory() const { return data_; }
 
   /// Access to the image memory
+  /**
+   * In most cases, when interacting with image data, you should use the
+   * first_pixel() function instead of memory().  The memory() function
+   * provides access to the underlying reference counted memory for advanced
+   * memory management applications.  It returns a block of data that contains
+   * the image somewhere within.  The block of data may contain only the
+   * pixels in this image, but it could also contain much more hidden data
+   * if the image is a crop or subsampling of an original image that was
+   * larger.  The blocks of memory are typically shared between copies of
+   * this image, and each copy may have a different view into the memory.
+   *
+   * This function may also return \c nullptr for a valid image that is a
+   * view into some external memory (first_pixel() is still valid in this
+   * case).  Use caution when accessing the memory directly and always check
+   * that the memory is not \c nullptr.  Never assume that the image data
+   * must be contained in the memory block returned by this function.
+   */
   image_memory_sptr memory() { return data_; }
 
   /// The size of the image managed data in bytes
@@ -351,15 +394,27 @@ public:
 
   /// Const access to the pointer to first image pixel
   /**
-   * This may differ from \a data() if the image is a
-   * window into a large image memory chunk.
+   * \copydoc image::first_pixel()
    */
   const void* first_pixel() const { return first_pixel_; }
 
   /// Access to the pointer to first image pixel
   /**
-   * This may differ from \a data() if the image is a
-   * window into a larger image memory chunk.
+   * Returns a raw void pointer to the first pixel in the image.
+   * This is the starting point for iterating through the image using
+   * offsets of w_step(), h_step(), and d_step().  See also
+   * image_of::first_pixel() for a variant of this function that
+   * returns a pointer to the underlying pixel type.
+   *
+   * \note the address returned may differ from the starting address
+   * returned by image::memory() if the image is a window into a larger
+   * block of image memory.
+   *
+   * \note If the address returned is not \c nullptr but image::memory()
+   * returns \c nullptr, then this image is a view into external memory
+   * not owned by this image object.
+   *
+   * \sa image_of::first_pixel()
    */
   void* first_pixel() { return first_pixel_; }
 
@@ -389,11 +444,33 @@ public:
 
   /// Equality operator
   /**
-   * Compares this image to another image. Uses image data, pixel trait and image 
-   * dimension for comparision
+   * Compares this image to another image to test equality.
+   *
    * \param other image to compare with
+   *
+   * \note This function computes only "shallow" equality.  That is, the images
+   *       are considered equal if they point to the same memory and have the
+   *       dimensions and pixel step sizes.  Deep equality testing requires
+   *       stepping through and testing that the values of each pixel are the
+   *       same even if the memory and possibly memory layout differ.
+   *
+   * \sa   For deep equality comparison see equal_content
    */
-  bool operator==( const image& other_image ) const;
+  bool operator==( image const& other ) const;
+
+  /// Inequality operator
+  /**
+  * Compares this image to another image to test inequality.
+  *
+  * \param other image to compare with
+  *
+  * \note This function computes only "shallow" inequality.  Refer to the
+  *       equality operator (==) for details.
+  */
+  bool operator!=(image const& other) const
+  {
+    return !(*this == other);
+  }
 
   /// Access pixels in the first channel of the image
   /**
@@ -483,11 +560,41 @@ protected:
 };
 
 
-// ==================================================================
-/// The representation of an in-memory image.
+// ===========================================================================
+/// The representation of a type-specific in-memory image.
 /**
- * Images share memory using the image_memory class.  This is
- * effectively a view on an image.
+ * This class is derived from the image() class to provide convenience
+ * functions that require the pixel type to be known at compile time.
+ * This derived class does not add any data or change any behavior of the
+ * base image() class.  It simply provides a strongly-typed view of the data.
+ * The constructors in this class make it easier to construct an image.
+ * For example,
+\code
+image I;
+// direct construction of a double image
+I = image(100, 100, 1, false, pixel_traits_of<double>());
+// equivalent construction using image_of
+I = image_of<double>(100, 100);
+\endcode
+ *
+ * Once cast as an image_of() the operator()() is available to directly access
+ * pixels with a simpler syntax. For example
+\code
+image_of<float> my_img(100, 100);     // make a float image of size 100 x 100
+float val = my_img(10, 10);           // get pixel at 10, 10
+      val = my_img.at<float>(10, 10); // image::at method does the same thing
+\endcode
+ *
+ * An image() can be directly assigned to an image_of() object and this will
+ * throw a image_type_mismatch_exception if the underlying type does not match.
+ * For example
+\code
+// make a 16-bit unsigned image with the base class
+image my_img(100, 100, 1, false, pixel_traits_of<uint16_t>());
+
+image_of<uint16_t> my_img16 = my_img; // this works
+image_of<float> my_imgf = my_img;     // this throws an exception
+\endcode
  */
 template <typename T>
 class image_of : public image

@@ -59,6 +59,9 @@ class KWIVER_PROCESSES_NO_EXPORT read_object_track_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "read_object_track",
+               "Reads object track sets from an input file." )
+
   read_object_track_process( kwiver::vital::config_block_sptr const& config );
   virtual ~read_object_track_process();
 

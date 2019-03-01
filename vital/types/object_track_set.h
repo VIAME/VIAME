@@ -67,7 +67,6 @@ public:
   {}
   
   /// Default constructor
-  //
   object_track_state( frame_id_t frame,
                       time_usec_t time,
                       detected_object_sptr d = nullptr )
@@ -97,6 +96,11 @@ public:
     return std::make_shared< object_track_state >( *this );
   }
 
+  void set_time( time_usec_t time )
+  {
+    time_ = time;
+  }
+
   time_usec_t time() const
   {
     return time_;
@@ -107,20 +111,14 @@ public:
     return vital::timestamp( time_, this->frame() );
   }
 
-  void set_time( time_usec_t time )
-  {
-    time_ = time;
-  }
-
   detected_object_sptr detection;
-  
+
+
   static std::shared_ptr< object_track_state > downcast(
     track_state_sptr const& sp )
   {
     return std::dynamic_pointer_cast< object_track_state >( sp );
   }
-            
-
 
   static constexpr auto downcast_transform = range::transform( downcast );
 
@@ -141,13 +139,13 @@ public:
   object_track_set();
 
   /// Constructor specifying the implementation
-  object_track_set(std::unique_ptr<track_set_implementation> impl);
+  object_track_set( std::unique_ptr< track_set_implementation > impl );
 
   /// Constructor from a vector of tracks
   /**
    * \note implementation defaults to simple_track_set_implementation
    */
-  object_track_set(std::vector< track_sptr > const& tracks);
+  object_track_set( std::vector< track_sptr > const& tracks );
 
   /// Destructor
   virtual ~object_track_set() = default;
@@ -157,6 +155,23 @@ public:
 typedef std::shared_ptr< object_track_set > object_track_set_sptr;
 
 /// Helper to iterate over the states of a track as object track states
+/**
+ * This object is an instance of a range transform adapter that can be applied
+ * to a track_sptr in order to directly iterate over the underlying
+ * object_track_state instances.
+ *
+ * \par Example:
+ * \code
+ * namespace kv = kwiver::vital;
+ * namespace r = kwiver::vital::range;
+ *
+ * kv::track_sptr ot = get_the_object_track();
+ * for ( auto s : ot | kv::as_object_track )
+ *   std::cout << s->time() << std::endl;
+ * \endcode
+ *
+ * \sa kwiver::vital::range::transform_view
+ */
 static constexpr auto as_object_track = object_track_state::downcast_transform;
 
 } } // end namespace vital

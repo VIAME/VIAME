@@ -59,10 +59,10 @@ constexpr track_id_t invalid_track_id = -1;
 /// Shared pointers for general track type
 typedef std::shared_ptr< track > track_sptr;
 typedef std::weak_ptr< track > track_wptr;
-typedef std::shared_ptr<track_state> track_state_sptr;
+typedef std::shared_ptr< track_state > track_state_sptr;
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// Empty base class for data associated with a track state
 class VITAL_EXPORT track_state
 {
@@ -98,11 +98,11 @@ public:
   track_sptr track() const { return track_.lock(); }
   
   /// Set the frame identifier 
-  void set_frame(frame_id_t frame_id) { frame_id_ = frame_id; }
+  void set_frame( frame_id_t frame_id ) { frame_id_ = frame_id; }
 
   virtual ~track_state() = default;
 
-  bool operator==(track_state other) const { return frame_id_ == other.frame(); }
+  bool operator==( track_state other ) const { return frame_id_ == other.frame(); }
 
 private:
   /// The frame identifier for this state
@@ -113,7 +113,7 @@ private:
 };
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// Empty base class for data associated with a whole track.
 class VITAL_EXPORT track_data
 {
@@ -121,10 +121,10 @@ protected:
   virtual ~track_data() = default;
 };
 
-typedef std::shared_ptr<track_data> track_data_sptr;
+typedef std::shared_ptr< track_data > track_data_sptr;
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// A special type of track data that redirects to another track
 /**
  * The primary use case for this class is to aid bookkeeping for track merging.
@@ -145,9 +145,9 @@ class VITAL_EXPORT track_data_redirect : public track_data
 {
 public:
   // Constructor
-  track_data_redirect(track_sptr t, track_data_sptr d)
-    : redirect_track(t)
-    , old_track_data(d)
+  track_data_redirect( track_sptr t, track_data_sptr d )
+    : redirect_track( t )
+    , old_track_data( d )
   {
   }
 
@@ -158,7 +158,7 @@ public:
 };
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// A representation of a track.
 /**
  * A track is a sequence of corresponding identifiers associated with each
@@ -232,6 +232,13 @@ public:
    * \param state track state to add to this track.
    */
   bool insert( track_state_sptr state );
+
+  /// Remove track state
+  /**
+   * Removes the track state
+   * Returns true if the state was found and removed
+  */
+  bool remove(track_state_sptr state);
 
   /// Access a const iterator to the start of the history
   history_const_itr begin() const { return history_.begin(); }

@@ -50,10 +50,8 @@ class KWIVER_ALGO_CORE_EXPORT detected_object_set_output_kw18
   : public vital::algorithm_impl<detected_object_set_output_kw18, vital::algo::detected_object_set_output>
 {
 public:
-  static constexpr char const* name = "kw18";
-
   // NOTE: Keep description in sync with detected_object_set_input_kw18
-  static constexpr char const* description =
+  PLUGIN_INFO( "kw18",
     "Detected object set writer using kw18 format.\n\n"
     "  - Column(s) 1: Track-id\n"
     "  - Column(s) 2: Track-length (number of detections)\n"
@@ -67,7 +65,7 @@ public:
     "  - Column(s) 15-17: World-loc(x,y,z)"
     " (longitude, latitude, 0 - when available)\n"
     "  - Column(s) 18: Timesetamp (-1 if not available)\n"
-    "  - Column(s) 19: Track-confidence (-1 if not available)\n";
+    "  - Column(s) 19: Track-confidence (-1 if not available)" )
 
   detected_object_set_output_kw18();
   virtual ~detected_object_set_output_kw18();

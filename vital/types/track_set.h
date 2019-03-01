@@ -109,6 +109,14 @@ public:
    */
   virtual void notify_new_state( track_state_sptr ts ) = 0;
 
+  /// Notify the container that a track state has been removed
+  /**
+   * Some containers need to know if a track was removed from them so that
+   * they can maintain an internal registry of states in them.  This function
+   * should be called after t->remove(history_const_itr)
+  */
+  virtual void notify_removed_state(track_state_sptr ts) = 0;
+
   /// Remove a track from the set and return true if successful
   virtual bool remove( track_sptr t ) = 0;
 
@@ -178,6 +186,18 @@ public:
    * \returns a vector of tracks that is the subset of tracks that are active.
    */
   virtual std::vector< track_sptr> active_tracks( frame_id_t offset = -1 ) const = 0;
+
+  /// Return a set of track ids corresponding to the tracks on the given frame.
+  /**
+  * \param [in] offset the frame offset for selecting the target frame.
+  *                    Positive number are absolute frame numbers while
+  *                    negative numbers are relative to the last frame.  For
+  *                    example, offset of -1 refers to the last frame and is
+  *                    the default.
+  *
+  * \returns a set for all tracks ids on the given frame.
+  */
+  virtual std::set<track_id_t> active_track_ids(frame_id_t offset = -1) const = 0;
 
   /// return the number of active tracks on a frame
   /**
@@ -285,6 +305,18 @@ public:
    */
   virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const = 0;
 
+  /// Removes the frame data for the frame offset
+  /**
+  * \param [in] offset the frame offset for selecting the target frame.
+  *                    Positive number are absolute frame numbers while
+  *                    negative numbers are relative to the last frame.  For
+  *                    example, offset of -1 refers to the last frame and is
+  *                    the default.
+  *
+  * \returns true if the frame data was removed.  False otherwise.
+  */
+  virtual bool remove_frame_data(frame_id_t offset = -1) = 0;
+
   /// Set additional frame data associated with all tracks for all frames
   /**
    * This method sets the frame data on all frames at once using a map.
@@ -349,6 +381,9 @@ public:
   /// Notify the container that a new state has been added to an existing track
   virtual void notify_new_state( track_state_sptr ts );
 
+  /// Notify the container that a state has been removed from an existing track
+  virtual void notify_removed_state(track_state_sptr ts);
+
   /// Merge the pair of tracks \p t1 and \p t2, if possible
   virtual bool merge_tracks( track_sptr t1, track_sptr t2 );
 
@@ -369,6 +404,9 @@ public:
 
   /// Return all tracks active on a frame.
   virtual std::vector< track_sptr> active_tracks( frame_id_t offset = -1 ) const;
+
+  /// Returns all the active track ids on a frame
+  virtual std::set<track_id_t> active_track_ids( frame_id_t offset = -1) const;
 
   /// Return the number of active tracks for a frame
   virtual size_t num_active_tracks(frame_id_t offset = -1) const;
@@ -470,6 +508,12 @@ public:
     return impl_->notify_new_state( ts );
   }
 
+  /// Notify the container that a state has been removed from an existing track
+  virtual void notify_removed_state(track_state_sptr ts)
+  {
+    return impl_->notify_removed_state(ts);
+  }
+
   /// Remove a track from the set and return true if successful
   virtual bool remove( track_sptr t )
   {
@@ -524,6 +568,11 @@ public:
     return impl_->active_tracks(offset);
   };
 
+  virtual std::set< track_id_t > active_track_ids(frame_id_t offset = -1) const
+  {
+    return impl_->active_track_ids(offset);
+  }
+
   /// Return number of active tracks for a frame.
   virtual size_t num_active_tracks(frame_id_t offset = -1) const
   {
@@ -572,6 +621,12 @@ public:
     return impl_->frame_data(offset);
   }
 
+  /// Removes the frame data for the frame offset
+  virtual bool remove_frame_data(frame_id_t offset = -1)
+  {
+    return impl_->remove_frame_data(offset);
+  }
+
   /// Set additional frame data associated with all tracks for all frames
   virtual bool set_frame_data( track_set_frame_data_map_t const& fmap )
   {
@@ -592,6 +647,17 @@ public:
   }
 
   virtual track_set_sptr clone() const;
+
+  /// Merges the other feature track set into this feature track set.
+  /**
+  * \param [in] other  the other feature track set to merge into this one
+  * \param [in] do_not_append_tracks if true, the other tracks are cloned and assigned a new track id.
+  *  if false, if the same track id is found in other and in the current feature track set, then
+  *  track states from other are cloned and appended to this object's track.
+  */
+  virtual void merge_in_other_track_set(
+    track_set_sptr other,
+    bool do_not_append_tracks = false);
 
 protected:
 
@@ -642,6 +708,9 @@ public:
 
   /// Return the additional data associated with all tracks on the given frame
   virtual track_set_frame_data_sptr frame_data( frame_id_t offset = -1 ) const;
+
+  /// Removes the frame data for the frame offset
+  virtual bool remove_frame_data(frame_id_t offset = -1);
 
   /// Set additional frame data associated with all tracks for all frames
   virtual bool set_frame_data( track_set_frame_data_map_t const& fmap )

@@ -84,7 +84,8 @@ public:
 
     float test_fraction_tracks_lost_to_necessitate_new_keyframe =
       config->get_value<float>(
-      "fraction_tracks_lost_to_necessitate_new_keyframe");
+      "fraction_tracks_lost_to_necessitate_new_keyframe",
+        fraction_tracks_lost_to_necessitate_new_keyframe);
 
     if (!(0 < test_fraction_tracks_lost_to_necessitate_new_keyframe &&
           test_fraction_tracks_lost_to_necessitate_new_keyframe <= 1.0))
@@ -96,7 +97,7 @@ public:
     }
 
     int test_keyframe_min_feature_count = config->get_value<int>(
-      "keyframe_min_feature_count");
+      "keyframe_min_feature_count", keyframe_min_feature_count);
 
     if (test_keyframe_min_feature_count < 0)
     {
@@ -145,7 +146,7 @@ keyframe_selector_basic::priv
     }
 
     bool is_keyframe = false;
-    if (tracks->num_active_tracks() >= keyframe_min_feature_count)
+    if (tracks->num_active_tracks(frame) >= keyframe_min_feature_count)
     {
       is_keyframe = true;
     }
@@ -187,6 +188,13 @@ keyframe_selector_basic::priv
   for ( ; next_candidate_keyframe_id <= last_frame_id ;
         ++next_candidate_keyframe_id)
   {
+    auto active_tracks = tracks->active_tracks(next_candidate_keyframe_id);
+    if (active_tracks.empty())
+    {
+      //absolutely no tracks for this frame so it was skipped when reading.
+      continue;
+    }
+
     bool is_keyframe = true;
     double percentage_tracked =
       tracks->percentage_tracked(last_keyframe_id, next_candidate_keyframe_id);
@@ -197,7 +205,7 @@ keyframe_selector_basic::priv
     }
 
     //ok we could make this a keyframe.  Does it have enough features?
-    if (tracks->num_active_tracks() < keyframe_min_feature_count)
+    if (active_tracks.size() < keyframe_min_feature_count)
     {
       is_keyframe = false;
     }
@@ -278,8 +286,7 @@ keyframe_selector_basic
   // 2) number of features in frame is greater than some minimum.  This prevents
   //    keyframes from being added in areas with little texture (few features).
 
-  // deep copy here
-  track_set_sptr cur_tracks = tracks->clone();
+  track_set_sptr cur_tracks = tracks;
 
   if (!d_->a_keyframe_was_selected(cur_tracks))
   {

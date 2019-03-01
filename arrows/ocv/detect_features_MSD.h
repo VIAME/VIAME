@@ -56,6 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_MSD
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_MSD",
+               "OpenCV feature detection via the MSD algorithm" )
+
   /// Constructor
   detect_features_MSD();
 
