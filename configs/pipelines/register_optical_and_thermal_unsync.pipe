@@ -1,0 +1,75 @@
+# ==================================================================================
+#
+# Register co-collected optical and thermal imagery
+#
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                                        5
+
+# ================================= INPUT VIDEO ====================================
+
+process optical_input
+  :: video_input
+  :video_filename                                       input_optical_images.txt
+  :frame_time                                           1
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type            vxl
+  :video_reader:image_list:image_reader:vxl:force_byte  false
+  :video_reader:vidl_ffmpeg:time_source                 start_at_0
+
+process thermal_input
+  :: video_input
+  :video_filename                                       input_thermal_images.txt
+  :frame_time                                           1
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type            vxl
+  :video_reader:image_list:image_reader:vxl:force_byte  false
+  :video_reader:vidl_ffmpeg:time_source                 start_at_0
+
+
+# ================================ REGISTRATION ===================================
+
+process register
+  :: itk_eo_ir_registration
+  :output_frames_without_match                          true
+  :max_time_offset                                      1.0
+
+connect from optical_input.image
+        to   register.optical_image
+connect from optical_input.timestamp
+        to   register.optical_timestamp
+connect from optical_input.file_name
+        to   register.optical_file_name
+
+connect from thermal_input.image
+        to   register.thermal_image
+connect from thermal_input.timestamp
+        to   register.thermal_timestamp
+connect from thermal_input.file_name
+        to   register.thermal_file_name
+
+# ==================================== OUTPUT ======================================
+
+process warped_writer
+  :: image_writer
+  :file_name_template                                   frame%06d.png
+  :image_writer:type                                    vxl
+
+connect from register.warped_thermal_image
+        to   warped_writer.image
+
+process homography_writer
+  :: write_homography_list
+  :file_name                                            homographies.txt
+
+connect from register.thermal_file_name
+        to   homography_writer.source_file_name
+connect from register.optical_file_name
+        to   homography_writer.dest_file_name
+connect from register.thermal_to_optical_homog
+        to   homography_writer.homography
+
+# -- end of file --
