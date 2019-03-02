@@ -18,7 +18,7 @@ process optical_input
   :video_reader:image_list:image_reader:type            timestamp_passthrough
 
   block video_reader:image_list:image_reader:timestamp_passthrough
-    :image_reader                                       vxl
+    :image_reader:type                                  vxl
     :image_reader:vxl:vxl:force_byte                    false
   endblock
 
@@ -29,7 +29,7 @@ process thermal_input
   :video_reader:image_list:image_reader:type            timestamp_passthrough
 
   block video_reader:image_list:image_reader:timestamp_passthrough
-    :image_reader                                       vxl
+    :image_reader:type                                  vxl
     :image_reader:vxl:vxl:force_byte                    false
   endblock
 

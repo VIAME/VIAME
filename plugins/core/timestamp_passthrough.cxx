@@ -168,10 +168,12 @@ kwiver::vital::metadata_sptr timestamp_passthrough::fixup_metadata(
 
   if( !utc_time_usec )
   {
-    kwiver::vital::timestamp ts;
-    ts.set_time_usec( utc_time_usec );
-    md->set_timestamp( ts );
+    throw std::runtime_error( "Unable to decode timestamp for file: " + filename );
   }
+
+  kwiver::vital::timestamp ts;
+  ts.set_time_usec( utc_time_usec );
+  md->set_timestamp( ts );
 
   return md;
 }
