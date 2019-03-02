@@ -14,20 +14,24 @@ config _pipeline:_edge
 process optical_input
   :: video_input
   :video_filename                                       input_optical_images.txt
-  :frame_time                                           1
   :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type            vxl
-  :video_reader:image_list:image_reader:vxl:force_byte  false
-  :video_reader:vidl_ffmpeg:time_source                 start_at_0
+  :video_reader:image_list:image_reader:type            timestamp_passthrough
+
+  block video_reader:image_list:image_reader:timestamp_passthrough
+    :image_reader                                       vxl
+    :image_reader:vxl:vxl:force_byte                    false
+  endblock
 
 process thermal_input
   :: video_input
   :video_filename                                       input_thermal_images.txt
-  :frame_time                                           1
   :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type            vxl
-  :video_reader:image_list:image_reader:vxl:force_byte  false
-  :video_reader:vidl_ffmpeg:time_source                 start_at_0
+  :video_reader:image_list:image_reader:type            timestamp_passthrough
+
+  block video_reader:image_list:image_reader:timestamp_passthrough
+    :image_reader                                       vxl
+    :image_reader:vxl:vxl:force_byte                    false
+  endblock
 
 
 # ================================ REGISTRATION ===================================

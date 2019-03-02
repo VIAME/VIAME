@@ -184,7 +184,8 @@ endif()
 
 if( VIAME_ENABLE_SMQTK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/register_optical_and_thermal.pipe )
+    pipelines/register_optical_and_thermal.pipe
+    pipelines/register_optical_and_thermal_unsync.pipe )
 endif()
 
 if( VIAME_DOWNLOAD_MODELS-MOUSS )
