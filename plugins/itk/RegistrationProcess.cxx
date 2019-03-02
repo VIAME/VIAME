@@ -296,6 +296,7 @@ itk_eo_ir_registration_process
       bool found_in_range = false; // Crit1: A sub-frame in search interval found
       bool minimum_found = false;  // Crit2: Found guaranteed local minimum diff between times
       bool bound_exceeded = false; // Crit3: Upper search bound exceeded
+      bool is_exact = false;       // Crit4: Times match exactly
 
       const double lower_time = dom_entry->time() - d->m_max_time_offset;
       const double upper_time = dom_entry->time() + d->m_max_time_offset;
@@ -327,6 +328,12 @@ itk_eo_ir_registration_process
           {
             min_dist = abs_diff;
             closest_frame = &(*sub_entry);
+
+            if( abs_diff == 0 )
+            {
+              is_exact = true;
+              break;
+            }
           }
           else
           {
@@ -339,7 +346,7 @@ itk_eo_ir_registration_process
       }
 
       // Definite match 
-      if( found_in_range && ( minimum_found || this_is_the_end ) )
+      if( found_in_range && ( minimum_found || this_is_the_end || is_exact ) )
       {
         if( optical_dominant )
         {
