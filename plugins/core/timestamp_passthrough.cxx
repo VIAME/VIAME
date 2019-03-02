@@ -33,7 +33,13 @@
 #include <vital/algo/algorithm_factory.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
+#include <kwiversys/SystemTools.hxx>
+
 #include <sstream>
+#include <string>
+#include <ctime>
+#include <regex>
+
 
 namespace viame
 {
@@ -114,6 +120,20 @@ kwiver::vital::metadata_sptr timestamp_passthrough::load_metadata_(
 }
 
 // ----------------------------------------------------------------------------
+std::vector< std::string > split( const std::string &s, char delim )
+{
+  std::stringstream ss( s );
+  std::string item;
+  std::vector<std::string> elems;
+
+  while( std::getline( ss, item, delim ) )
+  {
+    elems.push_back(item);
+  }
+  return elems;
+}
+
+// ----------------------------------------------------------------------------
 kwiver::vital::metadata_sptr timestamp_passthrough::fixup_metadata(
   std::string const& filename, kwiver::vital::metadata_sptr md ) const
 {
@@ -123,6 +143,28 @@ kwiver::vital::metadata_sptr timestamp_passthrough::fixup_metadata(
   }
 
   unsigned utc_time_usec = 0;
+
+  if( filename.size() > 10 )
+  {
+    std::string name_only = kwiversys::SystemTools::GetFilenameName( filename );
+    std::vector< std::string > parts = split( name_only, '_' );
+
+    if( parts[0] == "CHESS" && parts.size() > 4 && parts[3].size() > 5 && parts[4].size() > 9 )
+    {
+      tm t;
+
+      t.tm_year = 100 + std::stoi( parts[3].substr( 0, 2 ) );
+      t.tm_mon = std::stoi( parts[3].substr( 2, 2 ) ) - 1;
+      t.tm_mday = std::stoi( parts[3].substr( 4, 2 ) );
+
+      t.tm_hour = std::stoi( parts[4].substr( 0, 2 ) );
+      t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
+      t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
+
+      kwiver::vital::time_usec_t msec = std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
+      utc_time_usec = static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+    }
+  }
 
   if( !utc_time_usec )
   {
