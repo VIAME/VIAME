@@ -35,6 +35,7 @@
 
 #include "itkImage.h"
 #include "itkAffineTransform.h"
+#include "itkCompositeTransform.h"
 
 namespace viame
 {
@@ -55,22 +56,25 @@ using WarpedOpticalImageType = ::itk::Image< WarpedOpticalPixelType, Dimension >
 using WarpedThermalImageType = ::itk::Image< WarpedThermalPixelType, Dimension >;
 
 using AffineTransformType = ::itk::AffineTransform< double, Dimension >;
+using NetTransformType = ::itk::CompositeTransform< double, Dimension >;
 
 VIAME_ITK_EXPORT bool PerformRegistration(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
-  AffineTransformType::Pointer& outputTransformation );
+  NetTransformType::Pointer& outputTransformation,
+  double opticalImageShrinkFactor = 10.0,
+  double thermalImageShrinkFactor = 1.0 );
 
 VIAME_ITK_EXPORT bool WarpThermalToOpticalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
-  const AffineTransformType& inputTransformation,
+  const NetTransformType& inputTransformation,
   WarpedThermalImageType::Pointer& outputWarpedImage );
 
 VIAME_ITK_EXPORT bool WarpOpticalToThermalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
-  const AffineTransformType& inputTransformation,
+  const NetTransformType& inputTransformation,
   WarpedOpticalImageType::Pointer& outputWarpedImage );
 
 } // end namespace itk
