@@ -142,7 +142,7 @@ kwiver::vital::metadata_sptr timestamp_passthrough::fixup_metadata(
     md = std::make_shared<kwiver::vital::metadata>();
   }
 
-  unsigned utc_time_usec = 0;
+  kwiver::vital::time_usec_t utc_time_usec = 0;
 
   if( filename.size() > 10 )
   {
