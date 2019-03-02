@@ -23,7 +23,10 @@
 #include "itkResampleImageFilter.h"
 #include "itkImageFileWriter.h"
 
-namespace {
+namespace
+{
+
+using namespace viame::itk;
 
 template< typename TFilter >
 class RegistrationIterationUpdateCommand: public itk::Command
@@ -142,7 +145,8 @@ int JHCTPointSetMetricRegistration(
 
 template< typename InputImageType, typename TPointSet >
 typename TPointSet::Pointer
-PhaseSymmetryPointSet( const InputImageType& input, bool isThermal )
+PhaseSymmetryPointSet( const InputImageType& input, bool isThermal,
+  double shrinkFactor, AffineTransformType::Pointer& inputToSet )
 {
   constexpr unsigned int Dimension = 2;
   using PixelType = float;
@@ -157,13 +161,14 @@ PhaseSymmetryPointSet( const InputImageType& input, bool isThermal )
   shrinker->SetInput( filter->GetOutput() );
   using ShrinkFactorsType = ShrinkerType::ShrinkFactorsType;
   ShrinkFactorsType shrinkFactors;
-  shrinkFactors.Fill( 10 );
+  shrinkFactors.Fill( shrinkFactor );
   shrinker->SetShrinkFactors( shrinkFactors );
 
   // Smoothing / noise reduction
   using SmootherType = itk::CoherenceEnhancingDiffusionImageFilter< ImageType >;
   SmootherType::Pointer smoother = SmootherType::New();
-  if( isThermal )
+
+  if( shrinkFactor == 0 || shrinkFactor == 1 )
     {
     smoother->SetInput( filter->GetOutput() );
     }
@@ -181,14 +186,18 @@ PhaseSymmetryPointSet( const InputImageType& input, bool isThermal )
     smoother->SetDiffusionTime( 3.0 );
     }
 
+  ImageType::Pointer smoothedImage = smoother->GetOutput();
+  auto rescaledSize = smoothedImage->GetBufferedRegion().GetSize();
+
   using FFTPadFilterType = itk::FFTPadImageFilter< ImageType >;
   FFTPadFilterType::Pointer fftPadFilter = FFTPadFilterType::New();
-  fftPadFilter->SetInput( smoother->GetOutput() );
+  fftPadFilter->SetInput( smoothedImage );
   fftPadFilter->Update();
 
   ImageType::Pointer padded = fftPadFilter->GetOutput();
   padded->DisconnectPipeline();
   ImageType::RegionType paddedRegion( padded->GetBufferedRegion() );
+  auto paddedSize = paddedRegion.GetSize();
   paddedRegion.SetIndex( 0, 0 );
   paddedRegion.SetIndex( 1, 0 );
   padded->SetRegions( paddedRegion );
@@ -210,12 +219,12 @@ PhaseSymmetryPointSet( const InputImageType& input, bool isThermal )
   MatrixType wavelengths( 6, Dimension );
   for( unsigned int dim = 0; dim < Dimension; ++dim )
     {
-    wavelengths(0, dim) = 2.0;
-    wavelengths(1, dim) = 4.0;
-    wavelengths(2, dim) = 6.0;
-    wavelengths(3, dim) = 8.0;
-    wavelengths(4, dim) = 12.0;
-    wavelengths(5, dim) = 16.0;
+    wavelengths( 0, dim ) = 2.0;
+    wavelengths( 1, dim ) = 4.0;
+    wavelengths( 2, dim ) = 6.0;
+    wavelengths( 3, dim ) = 8.0;
+    wavelengths( 4, dim ) = 12.0;
+    wavelengths( 5, dim ) = 16.0;
     }
   phaseSymmetryFilter->SetWavelengths( wavelengths );
   smoother->Update();
@@ -281,6 +290,19 @@ PhaseSymmetryPointSet( const InputImageType& input, bool isThermal )
   maskToPointSetFilter->SetBandWidth( bandwidth );
   maskToPointSetFilter->Update();
 
+  // Formulate output homography
+  inputToSet = AffineTransformType::New();
+  inputToSet->SetIdentity();
+
+  if( shrinkFactor > 1 )
+    {
+    inputToSet->Scale( shrinkFactor );
+    }
+
+  inputToSet->Translate(
+    ( paddedSize[0] - rescaledSize[0] ) / 2.0,
+    ( paddedSize[1] - rescaledSize[1] ) / 2.0 );
+
   return maskToPointSetFilter->GetOutput();
 }
 
@@ -295,22 +317,29 @@ namespace itk
 bool PerformRegistration(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
-  AffineTransformType::Pointer& outputTransformation )
+  NetTransformType::Pointer& outputTransformation,
+  double opticalImageShrinkFactor,
+  double thermalImageShrinkFactor )
 {
   constexpr unsigned int Dimension = 2;
   using PointSetType = ::itk::PointSet< float, Dimension >;
 
+  AffineTransformType::Pointer opticalToPointSet;
+  AffineTransformType::Pointer thermalToPointSet;
+
   PointSetType::Pointer opticalPhaseSymmetryPointSet =
-    PhaseSymmetryPointSet< OpticalImageType, PointSetType >( inputOpticalImage, false );
+    PhaseSymmetryPointSet< OpticalImageType, PointSetType >(
+      inputOpticalImage, false, opticalImageShrinkFactor, opticalToPointSet );
   PointSetType::Pointer thermalPhaseSymmetryPointSet =
-    PhaseSymmetryPointSet< ThermalImageType, PointSetType >( inputThermalImage, true );
+    PhaseSymmetryPointSet< ThermalImageType, PointSetType >(
+      inputThermalImage, true, thermalImageShrinkFactor, thermalToPointSet );
 
   using JHCTPointSetMetricType =
     ::itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4< PointSetType >;
 
   JHCTPointSetMetricType::Pointer jhctMetric = JHCTPointSetMetricType::New();
-  outputTransformation = AffineTransformType::New();
-  outputTransformation->SetIdentity();
+  AffineTransformType::Pointer pointSetTransform = AffineTransformType::New();
+  pointSetTransform->SetIdentity();
 
   constexpr unsigned int numberOfIterations = 100;
   constexpr double maximumPhysicalStepSize = 2.0;
@@ -318,10 +347,15 @@ bool PerformRegistration(
 
   JHCTPointSetMetricRegistration< AffineTransformType, JHCTPointSetMetricType, PointSetType >
     ( numberOfIterations, maximumPhysicalStepSize,
-      outputTransformation, jhctMetric,
+      pointSetTransform, jhctMetric,
       thermalPhaseSymmetryPointSet,
       opticalPhaseSymmetryPointSet,
       pointSetSigma );
+
+  outputTransformation = NetTransformType::New();
+  outputTransformation->AddTransform( opticalToPointSet );
+  outputTransformation->AddTransform( pointSetTransform );
+  outputTransformation->AddTransform( thermalToPointSet->GetInverseTransform() );
 
   return true;
 }
@@ -329,7 +363,7 @@ bool PerformRegistration(
 bool WarpThermalToOpticalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
-  const AffineTransformType& inputTransformation,
+  const NetTransformType& inputTransformation,
   WarpedThermalImageType::Pointer& outputWarpedImage )
 {
   using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, WarpedThermalImageType >;
@@ -338,7 +372,7 @@ bool WarpThermalToOpticalImage(
   resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
   resampler->SetDefaultPixelValue( 0 );
 
-  AffineTransformType::InverseTransformBasePointer inverseTransform =
+  NetTransformType::InverseTransformBasePointer inverseTransform =
     inputTransformation.GetInverseTransform();
 
   resampler->SetTransform( inverseTransform );
@@ -360,7 +394,7 @@ bool WarpThermalToOpticalImage(
 bool WarpOpticalToThermalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
-  const AffineTransformType& inputTransformation,
+  const NetTransformType& inputTransformation,
   WarpedOpticalImageType::Pointer& outputWarpedImage )
 {
   using ResamplerType = ::itk::ResampleImageFilter< OpticalImageType, WarpedOpticalImageType >;

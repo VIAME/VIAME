@@ -33,7 +33,7 @@ int main( int argc, char * argv[] )
   opticalReader->SetFileName( inputOpticalImageFile );
   thermalReader->SetFileName( inputThermalImageFile );
 
-  AffineTransformType::Pointer transformation;
+  NetTransformType::Pointer transformation;
 
   if( !PerformRegistration( *opticalReader->GetOutput(),
                             *thermalReader->GetOutput(),

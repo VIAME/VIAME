@@ -463,7 +463,7 @@ void
 itk_eo_ir_registration_process::priv
 ::attempt_registration( const entry& optical, const entry& thermal, bool optical_dom )
 {
-  viame::itk::AffineTransformType::Pointer output_matrix;
+  viame::itk::NetTransformType::Pointer output_transform;
 
   auto itk_optical_image = 
     ::itk::OpenCVImageBridge::CVMatToITKImage< viame::itk::OpticalImageType >(
@@ -477,34 +477,51 @@ itk_eo_ir_registration_process::priv
         thermal.image->get_image(),
         kwiver::arrows::ocv::image_container::BGR_COLOR ) );
 
-  if( PerformRegistration( *itk_optical_image, *itk_thermal_image, output_matrix ) )
+  if( PerformRegistration( *itk_optical_image, *itk_thermal_image, output_transform ) )
   {
     // Convert matrix to kwiver
-    kwiver::vital::homography_sptr thermal_to_optical(
+    kwiver::vital::homography_sptr optical_to_thermal(
       new kwiver::vital::homography_< double >() );
-  
-    kwiver::vital::matrix_3x3d& out_values =
+
+    kwiver::vital::matrix_3x3d& net_output =
       dynamic_cast< kwiver::vital::homography_< double >* >(
-        thermal_to_optical.get() )->get_matrix();;
+        optical_to_thermal.get() )->get_matrix();
 
-    auto in_values = output_matrix->GetMatrix();
+    net_output = kwiver::vital::matrix_3x3d::Identity();
 
-    for( unsigned r = 0; r < viame::itk::Dimension; ++r )
+    for( unsigned n = 0; n < output_transform->GetNumberOfTransforms(); n++ )
     {
-      for( unsigned c = 0; c < viame::itk::Dimension; ++c )
+      viame::itk::AffineTransformType* itk_affine_transform = 
+        dynamic_cast< viame::itk::AffineTransformType* >(
+          output_transform->GetNthTransform( n ).GetPointer() );
+
+      if( !itk_affine_transform )
       {
-        out_values( r, c ) = in_values( r, c );
+        throw std::runtime_error( "Unknown transformation type received" );
       }
-    }
 
-    if( viame::itk::Dimension == 2 )
-    {
-      out_values( 2, 0 ) = 0;
-      out_values( 2, 1 ) = 0;
-      out_values( 2, 2 ) = 1;
+      const auto& in_values = itk_affine_transform->GetMatrix();
+      kwiver::vital::matrix_3x3d next_homog;
 
-      out_values( 1, 2 ) = output_matrix->GetOffset()[ 1 ];
-      out_values( 0, 2 ) = output_matrix->GetOffset()[ 0 ];
+      for( unsigned r = 0; r < viame::itk::Dimension; ++r )
+      {
+        for( unsigned c = 0; c < viame::itk::Dimension; ++c )
+        {
+          next_homog( r, c ) = in_values( r, c );
+        }
+      }
+
+      if( viame::itk::Dimension == 2 )
+      {
+        next_homog( 2, 0 ) = 0;
+        next_homog( 2, 1 ) = 0;
+        next_homog( 2, 2 ) = 1;
+
+        next_homog( 1, 2 ) = itk_affine_transform->GetOffset()[ 1 ];
+        next_homog( 0, 2 ) = itk_affine_transform->GetOffset()[ 0 ];
+      }
+
+      net_output = net_output * next_homog;
     }
 
     // Output required elements depending on connections
@@ -514,12 +531,12 @@ itk_eo_ir_registration_process::priv
     m_parent->push_to_port_using_trait( thermal_file_name, thermal.name );
     m_parent->push_to_port_using_trait( timestamp, ( optical_dom ? optical.ts : thermal.ts ) );
     m_parent->push_to_port_using_trait( success_flag, true );
-    m_parent->push_to_port_using_trait( thermal_to_optical_homog, thermal_to_optical );
+    m_parent->push_to_port_using_trait( optical_to_thermal_homog, optical_to_thermal );
 
-    if( m_parent->count_output_port_edges_using_trait( optical_to_thermal_homog ) > 0 )
+    if( m_parent->count_output_port_edges_using_trait( thermal_to_optical_homog ) > 0 )
     {
-      m_parent->push_to_port_using_trait( optical_to_thermal_homog,
-        thermal_to_optical->inverse() );
+      m_parent->push_to_port_using_trait( thermal_to_optical_homog,
+        optical_to_thermal->inverse() );
     }
 
     // Warp image if required
@@ -528,7 +545,7 @@ itk_eo_ir_registration_process::priv
       WarpedThermalImageType::Pointer warped_image;
 
       if( WarpThermalToOpticalImage(
-        *itk_optical_image, *itk_thermal_image, *output_matrix, warped_image ) )
+        *itk_optical_image, *itk_thermal_image, *output_transform, warped_image ) )
       {
         m_parent->push_to_port_using_trait( warped_thermal_image,
           kwiver::vital::image_container_sptr(
@@ -549,7 +566,7 @@ itk_eo_ir_registration_process::priv
       WarpedOpticalImageType::Pointer warped_image;
 
       if( WarpOpticalToThermalImage(
-        *itk_optical_image, *itk_thermal_image, *output_matrix, warped_image ) )
+        *itk_optical_image, *itk_thermal_image, *output_transform, warped_image ) )
       {
         m_parent->push_to_port_using_trait( warped_optical_image,
           kwiver::vital::image_container_sptr(
