@@ -332,33 +332,11 @@ bool WarpThermalToOpticalImage(
   const AffineTransformType& inputTransformation,
   WarpedThermalImageType::Pointer& outputWarpedImage )
 {
-  using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, ThermalImageType >;
+  using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, WarpedThermalImageType >;
   ResamplerType::Pointer resampler = ResamplerType::New();
   resampler->SetInput( &inputThermalImage );
-  // Todo: fix handcoded value
-  ThermalImageType::SpacingType outputSpacing;
-  outputSpacing.Fill( 0.1 );
-  resampler->SetOutputSpacing( outputSpacing );
   resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
-  // mid-intensity for the thermal image
-  resampler->SetDefaultPixelValue( 27500 );
-
-  try
-    {
-    resampler->Update();
-    }
-  catch( ::itk::ExceptionObject& error )
-    {
-    std::cerr << "Error when resampling: " << error << std::endl;
-    return false;
-    }
-
-  ThermalImageType::Pointer resampledFixedImage = resampler->GetOutput();
-  resampledFixedImage->DisconnectPipeline();
-  // For comparison with the inputs, which do not have spacing encoded in
-  // their files
-  outputSpacing.Fill( 1.0 );
-  resampledFixedImage->SetSpacing( outputSpacing );
+  resampler->SetDefaultPixelValue( 0 );
 
   AffineTransformType::InverseTransformBasePointer inverseTransform =
     inputTransformation.GetInverseTransform();
@@ -375,30 +353,7 @@ bool WarpThermalToOpticalImage(
     return false;
     }
 
-  ThermalImageType::Pointer resampledTransformedFixedImage = resampler->GetOutput();
-  resampledTransformedFixedImage->DisconnectPipeline();
-  // For comparison with the inputs, which do not have spacing encoded in
-  // their files
-  outputSpacing.Fill( 1.0 );
-  resampledTransformedFixedImage->SetSpacing( outputSpacing );
-
-  using RescalerType =
-    ::itk::RescaleIntensityImageFilter< ThermalImageType, WarpedThermalImageType >;
-
-  RescalerType::Pointer transformedRescaler = RescalerType::New();
-  transformedRescaler->SetInput( resampledTransformedFixedImage );
-
-  try
-    {
-    transformedRescaler->Update();
-    }
-  catch( ::itk::ExceptionObject& error )
-    {
-    std::cerr << "Error when resampling: " << error << std::endl;
-    return false;
-    }
-
-  outputWarpedImage = transformedRescaler->GetOutput();
+  outputWarpedImage = resampler->GetOutput();
   return true;
 }
 
@@ -408,33 +363,11 @@ bool WarpOpticalToThermalImage(
   const AffineTransformType& inputTransformation,
   WarpedOpticalImageType::Pointer& outputWarpedImage )
 {
-  using ResamplerType = ::itk::ResampleImageFilter< OpticalImageType, OpticalImageType >;
+  using ResamplerType = ::itk::ResampleImageFilter< OpticalImageType, WarpedOpticalImageType >;
   ResamplerType::Pointer resampler = ResamplerType::New();
-  resampler->SetInput( &inputOpticalImage );
-  // Todo: fix handcoded value
-  OpticalImageType::SpacingType outputSpacing;
-  outputSpacing.Fill( 0.1 );
-  resampler->SetOutputSpacing( outputSpacing );
-  resampler->SetSize( inputThermalImage.GetLargestPossibleRegion().GetSize() );
-  // mid-intensity for the optical image
-  resampler->SetDefaultPixelValue( 127 );
-
-  try
-    {
-    resampler->Update();
-    }
-  catch( ::itk::ExceptionObject& error )
-    {
-    std::cerr << "Error when resampling: " << error << std::endl;
-    return false;
-    }
-
-  OpticalImageType::Pointer resampledFixedImage = resampler->GetOutput();
-  resampledFixedImage->DisconnectPipeline();
-  // For comparison with the inputs, which do not have spacing encoded in
-  // their files
-  outputSpacing.Fill( 1.0 );
-  resampledFixedImage->SetSpacing( outputSpacing );
+  resampler->SetInput( &inputThermalImage );
+  resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
+  resampler->SetDefaultPixelValue( 0 );
 
   resampler->SetTransform( &inputTransformation );
 
@@ -448,30 +381,7 @@ bool WarpOpticalToThermalImage(
     return false;
     }
 
-  OpticalImageType::Pointer resampledTransformedFixedImage = resampler->GetOutput();
-  resampledTransformedFixedImage->DisconnectPipeline();
-  // For comparison with the inputs, which do not have spacing encoded in
-  // their files
-  outputSpacing.Fill( 1.0 );
-  resampledTransformedFixedImage->SetSpacing( outputSpacing );
-
-  using RescalerType =
-    ::itk::RescaleIntensityImageFilter< OpticalImageType, WarpedOpticalImageType >;
-
-  RescalerType::Pointer transformedRescaler = RescalerType::New();
-  transformedRescaler->SetInput( resampledTransformedFixedImage );
-
-  try
-    {
-    transformedRescaler->Update();
-    }
-  catch( ::itk::ExceptionObject& error )
-    {
-    std::cerr << "Error when resampling: " << error << std::endl;
-    return false;
-    }
-
-  outputWarpedImage = transformedRescaler->GetOutput();
+  outputWarpedImage = resampler->GetOutput();
   return true;
 }
 
