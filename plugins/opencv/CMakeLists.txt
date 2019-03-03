@@ -65,3 +65,17 @@ algorithms_create_plugin( viame_opencv
 target_link_libraries( viame_opencv_plugin
   PUBLIC               vital_vpm
   )
+
+if( VIAME_ENABLE_PYTHON )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+    viame/processes/ocv
+    __init__ )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_multimodal_registration.py
+    viame/processes/ocv
+    utility_processes )
+
+endif()
