@@ -63,11 +63,15 @@ set_target_properties( viame_itk PROPERTIES
 # Add KWIVER plugin registration
 if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
   set( process_sources
+    ../core/align_multimodal_imagery_process.cxx
+
     RegisterProcesses.cxx
     RegistrationProcess.cxx
   )
   
   set( process_headers
+    ../core/align_multimodal_imagery_process.h
+
     RegistreationProcess.h
   )
 
@@ -76,8 +80,9 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
     SOURCES          ${process_sources}
                      ${private_headers}
     PRIVATE          sprokit_pipeline
-                     viame_itk kwiver_algo_core kwiver_algo_ocv
+                     viame_itk
                      vital vital_vpm vital_logger vital_config
+                     kwiver_algo_core kwiver_algo_ocv
                      kwiversys ${OpenCV_LIBS}
                      ${Boost_SYSTEM_LIBRARY}
                      ${Boost_FILESYSTEM_LIBRARY}

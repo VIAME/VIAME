@@ -41,8 +41,6 @@
 #include <vital/types/image_container.h>
 #include <vital/types/homography.h>
 
-#include <sprokit/processes/kwiver_type_traits.h>
-
 #include <arrows/ocv/image_container.h>
 
 #include <sstream>
@@ -63,19 +61,6 @@ create_config_trait( output_frames_without_match, bool, "true",
 create_config_trait( max_time_offset, double, "0.5",
   "The maximum time difference (s) under whitch two frames can be tested" );
 
-create_port_trait( optical_image, image, "Optical image" );
-create_port_trait( optical_timestamp, timestamp, "Optical timestamp" );
-create_port_trait( optical_file_name, file_name, "Optical file name" );
-
-create_port_trait( thermal_image, image, "Thermal image" );
-create_port_trait( thermal_timestamp, timestamp, "Thermal timestamp" );
-create_port_trait( thermal_file_name, file_name, "Thermal file name" );
-
-create_port_trait( warped_optical_image, image, "Warped optical image" );
-create_port_trait( warped_thermal_image, image, "Warped thermal image" );
-create_port_trait( optical_to_thermal_homog, homography, "Homography" );
-create_port_trait( thermal_to_optical_homog, homography, "Homography" );
-
 //------------------------------------------------------------------------------
 // Private implementation class
 class align_multimodal_imagery_process::priv
@@ -85,7 +70,6 @@ public:
   ~priv();
 
   // Configuration values
-  align_multimodal_imagery_process* m_parent;
   bool m_output_frames_without_match;
   double m_max_time_offset;
 

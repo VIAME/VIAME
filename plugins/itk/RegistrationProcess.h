@@ -39,6 +39,7 @@
 #include <sprokit/pipeline/process.h>
 
 #include <plugins/itk/viame_itk_export.h>
+#include <plugins/core/align_multimodal_imagery_process.h>
 
 #include <memory>
 
@@ -53,7 +54,7 @@ namespace itk
  * @brief Register optical and thermal imagery using ITK
  */
 class VIAME_ITK_NO_EXPORT itk_eo_ir_registration_process
-  : public sprokit::process
+  : public viame::core::align_multimodal_imagery_process
 {
 public:
   // -- CONSTRUCTORS --
@@ -61,15 +62,9 @@ public:
   virtual ~itk_eo_ir_registration_process();
 
 protected:
-  virtual void _configure();
-  virtual void _step();
-
-private:
-  void make_ports();
-  void make_config();
-
-  class priv;
-  const std::unique_ptr<priv> d;
+  virtual void attempt_registration( const buffered_frame& frame1,
+                                     const buffered_frame& frame2,
+                                     const bool output_frame1_time );
 
 }; // end class itk_eo_ir_registration_process
 

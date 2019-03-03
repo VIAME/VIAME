@@ -40,6 +40,8 @@
 
 #include <plugins/core/viame_core_export.h>
 
+#include <sprokit/processes/kwiver_type_traits.h>
+
 #include <vital/types/image_container.h>
 #include <vital/types/timestamp.h>
 
@@ -50,6 +52,25 @@ namespace viame
 
 namespace core
 {
+
+// -----------------------------------------------------------------------------
+/**
+ * Port names used by this process. Note: in the future these will be replaced
+ * with generic names to increase the general usage of this process.
+ */
+create_port_trait( optical_image, image, "Optical image" );
+create_port_trait( optical_timestamp, timestamp, "Optical timestamp" );
+create_port_trait( optical_file_name, file_name, "Optical file name" );
+
+create_port_trait( thermal_image, image, "Thermal image" );
+create_port_trait( thermal_timestamp, timestamp, "Thermal timestamp" );
+create_port_trait( thermal_file_name, file_name, "Thermal file name" );
+
+create_port_trait( warped_optical_image, image, "Warped optical image" );
+create_port_trait( warped_thermal_image, image, "Warped thermal image" );
+create_port_trait( optical_to_thermal_homog, homography, "Homography" );
+create_port_trait( thermal_to_optical_homog, homography, "Homography" );
+
 
 // -----------------------------------------------------------------------------
 /**
