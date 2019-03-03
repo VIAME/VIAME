@@ -84,13 +84,15 @@ target_link_libraries( viame_train_detector
   )
 
 # Add process library
-set( process_sources
-  register_processes.cxx
-  write_homography_list_process.cxx
+set( process_headers
+  align_multimodal_imagery_process.h
+  write_homography_list_process.h
 )
 
-set( process_headers
-  write_homography_list_process.h
+set( process_sources
+  register_processes.cxx
+  align_multimodal_imagery_process.cxx
+  write_homography_list_process.cxx
 )
 
 kwiver_add_plugin( viame_processes_core
