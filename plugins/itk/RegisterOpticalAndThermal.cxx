@@ -187,7 +187,6 @@ PhaseSymmetryPointSet( const InputImageType& input, bool isThermal,
     }
 
   ImageType::Pointer smoothedImage = smoother->GetOutput();
-  auto rescaledSize = smoothedImage->GetBufferedRegion().GetSize();
 
   using FFTPadFilterType = itk::FFTPadImageFilter< ImageType >;
   FFTPadFilterType::Pointer fftPadFilter = FFTPadFilterType::New();
@@ -228,6 +227,7 @@ PhaseSymmetryPointSet( const InputImageType& input, bool isThermal,
     }
   phaseSymmetryFilter->SetWavelengths( wavelengths );
   smoother->Update();
+  auto rescaledSize = smoothedImage->GetLargestPossibleRegion().GetSize();
   phaseSymmetryFilter->Initialize();
 
   using MaskImageType = itk::Image< unsigned char, Dimension >;
@@ -294,14 +294,17 @@ PhaseSymmetryPointSet( const InputImageType& input, bool isThermal,
   inputToSet = AffineTransformType::New();
   inputToSet->SetIdentity();
 
-  if( shrinkFactor > 1 )
+  if( shrinkFactor != 1 && shrinkFactor != 0 )
     {
-    inputToSet->Scale( shrinkFactor );
+    inputToSet->Scale( 1.0 / shrinkFactor );
     }
 
-  inputToSet->Translate(
-    ( paddedSize[0] - rescaledSize[0] ) / 2.0,
-    ( paddedSize[1] - rescaledSize[1] ) / 2.0 );
+  AffineTransformType::OutputVectorType translation;
+
+  translation[0] = ( paddedSize[0] - rescaledSize[0] ) / 2.0;
+  translation[1] = ( paddedSize[1] - rescaledSize[1] ) / 2.0;
+
+  inputToSet->Translate( translation, false );
 
   return maskToPointSetFilter->GetOutput();
 }
@@ -353,8 +356,9 @@ bool PerformRegistration(
       pointSetSigma );
 
   outputTransformation = NetTransformType::New();
+
   outputTransformation->AddTransform( opticalToPointSet );
-  outputTransformation->AddTransform( pointSetTransform );
+  outputTransformation->AddTransform( pointSetTransform->GetInverseTransform() );
   outputTransformation->AddTransform( thermalToPointSet->GetInverseTransform() );
 
   return true;
@@ -372,10 +376,7 @@ bool WarpThermalToOpticalImage(
   resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
   resampler->SetDefaultPixelValue( 0 );
 
-  NetTransformType::InverseTransformBasePointer inverseTransform =
-    inputTransformation.GetInverseTransform();
-
-  resampler->SetTransform( inverseTransform );
+  resampler->SetTransform( &inputTransformation );
 
   try
     {
@@ -403,7 +404,7 @@ bool WarpOpticalToThermalImage(
   resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
   resampler->SetDefaultPixelValue( 0 );
 
-  resampler->SetTransform( &inputTransformation );
+  resampler->SetTransform( inputTransformation.GetInverseTransform() );
 
   try
     {
