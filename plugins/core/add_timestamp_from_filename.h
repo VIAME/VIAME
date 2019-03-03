@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_CORE_add_timestamp_from_filename_H
-#define VIAME_CORE_add_timestamp_from_filename_H
+#ifndef VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
+#define VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
 
 #include <plugins/core/viame_core_export.h>
 
@@ -72,6 +72,6 @@ private:
     std::string const& filename, kwiver::vital::metadata_sptr md ) const;
 };
 
-}
+} // end namespace viame
 
-#endif
+#endif // VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
