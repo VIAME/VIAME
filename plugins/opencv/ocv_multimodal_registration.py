@@ -18,16 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE
 
-from PIL import Image as pil_image
-
 from kwiver.kwiver_process import KwiverProcess
 from sprokit.pipeline import process
 
 from vital.types import Image
 from vital.types import ImageContainer
-from vital.types import EigenArray
 from vital.types import Homography
 
+from PIL import Image as pil_image
 from vital.util.VitalPIL import get_pil_image, from_pil
 
 import cv2
@@ -179,15 +177,23 @@ class register_frames_process( KwiverProcess ):
     def __init__( self, conf ):
         KwiverProcess.__init__( self, conf )
 
-good_match_percent = 0.15, ratio_test = .85,
-  match_height = 512, min_matches = 4, min_inliers = 4
-
         # set up configs
         self.add_config_trait( "good_match_percent", "good_match_percent",
                                '0.15', 'Good match percent [0.0,1.0].' )
         self.add_config_trait( "ratio_test", "ratio_test",
-                               '0..85', 'Trained PyTorch model.' )
-        self.declare_config_using_trait( 'resnet_model_path' )
+                               '0.85', 'Feature point test ratio' )
+        self.add_config_trait( "match_height", "match_height",
+                               '512', 'Match height.' )
+        self.add_config_trait( "min_matches", "min_matches",
+                               '4', 'Minimum number of feature matches' )
+        self.add_config_trait( "min_inliers", "min_inliers",
+                               '4', 'Minimum number of inliers' )
+
+        self.declare_config_using_trait( 'good_match_percent' )
+        self.declare_config_using_trait( 'ratio_test' )
+        self.declare_config_using_trait( 'match_height' )
+        self.declare_config_using_trait( 'min_matches' )
+        self.declare_config_using_trait( 'min_inliers' )
 
         # set up required flags
         optional = process.PortFlags()
@@ -214,7 +220,12 @@ good_match_percent = 0.15, ratio_test = .85,
     # -------------------------------------------------------------------------
     def _configure( self ):
         self._base_configure()
-        self._resnet_img_size = int( self.config_value( 'resnet_model_input_size' ) )
+
+        self._good_match_percent = float( self.config_value( 'good_match_percent' ) )
+        self._ratio_test = float( self.config_value( 'ratio_test' ) )
+        self._match_height = int( self.config_value( 'match_height' ) )
+        self._min_matches = int( self.config_value( 'min_matches' ) )
+        self._min_inliers = int( self.config_value( 'min_inliers' ) )
 
     # -------------------------------------------------------------------------
     def _step( self ):
@@ -236,18 +247,39 @@ good_match_percent = 0.15, ratio_test = .85,
             continue
 
         # compute transform
-        ret, transform = compute_transform( optical, thermal_norm )
+        ret, transform = compute_transform(
+            optical,
+            thermal_norm,
+            warp_mode = cv2.MOTION_HOMOGRAPHY,
+            match_low_res = True,
+            good_match_percent = self._good_match_percent,
+            ratio_test = self._ratio_test,
+            match_height = self._match_height,
+            min_matches = self._min_matches,
+            min_inliers = self._min_inliers )
     
         if ret:
-            if has_connected_port:
-                thermal_warped = cv2.warpPerspective( thermal_npy, transform, \
-                  ( optical.shape[1], optical.shape[0] ) )
+            # TODO: Make all of these computations conditional on port connection
+            inv_transform = numpy.linalg.inv( transform )
 
+            thermal_warped = cv2.warpPerspective( thermal_npy, transform, \
+              ( optical.shape[1], optical.shape[0] ) )
+            optical_warped = cv2.warpPerspective( optical_npy, transform, \
+              ( thermal.shape[1], thermal.shape[0] ) )
+
+            self.push_to_port_using_trait( "thermal_to_optical_homog",
+              Homography( transform ) )
+            self.push_to_port_using_trait( "optical_to_thermal_homog",
+              Homography( inv_transform ) )
+
+            self.push_to_port_using_trait( 'warped_thermal_image',
+              ImageContainer( from_pil( Image.fromarray( thermal_warped ) ) ) )
+            self.push_to_port_using_trait( 'warped_optical_image',
+              ImageContainer( from_pil( Image.fromarray( optical_warped ) ) ) )
         else:
-
             print( 'alignment failed!' )
 
-        # push dummy image object (same as input) to output port
-        self.push_to_port_using_trait( 'image', ImageContainer( from_pil( in_img ) ) )
+            self.push_to_port_using_trait( 'warped_optical_image', ImageContainer() )
+            self.push_to_port_using_trait( 'warped_thermal_image', ImageContainer() )
 
         self._base_step()
