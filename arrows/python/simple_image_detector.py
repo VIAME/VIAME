@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from vital.algo.image_object_detector import ImageObjectDetector
+from vital.algo import ImageObjectDetector
 from vital.types import DetectedObjectSet, DetectedObject, BoundingBox
 from sprokit.pipeline import config
 
