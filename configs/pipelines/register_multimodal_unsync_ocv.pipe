@@ -90,15 +90,15 @@ process warped_writer
 connect from register_images.warped_thermal_image
         to   warped_writer.image
 
-process homography_writer
-  :: write_homography_list
-  :file_name                                            homographies.txt
-
-connect from align_images.thermal_file_name
-        to   homography_writer.source_file_name
-connect from align_images.optical_file_name
-        to   homography_writer.dest_file_name
-connect from register_images.thermal_to_optical_homog
-        to   homography_writer.homography
+#process homography_writer
+#  :: write_homography_list
+#  :file_name                                            homographies.txt
+#
+#connect from align_images.thermal_file_name
+#        to   homography_writer.source_file_name
+#connect from align_images.optical_file_name
+#        to   homography_writer.dest_file_name
+#connect from register_images.thermal_to_optical_homog
+#        to   homography_writer.homography
 
 # -- end of file --
