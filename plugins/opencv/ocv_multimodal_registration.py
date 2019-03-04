@@ -39,12 +39,12 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
  
     # Convert images to grayscale    
     if len( thermal.shape ) == 3 and thermal.shape[2] == 3:
-        thermal_gray = cv2.cvtColor( thermal, cv2.COLOR_BGR2GRAY )
+        thermal_gray = cv2.cvtColor( thermal, cv2.COLOR_RGB2GRAY )
     else:
         thermal_gray = thermal
  
     if len( optical.shape ) == 3 and optical.shape[2] == 3: 
-        optical_gray = cv2.cvtColor( optical, cv2.COLOR_BGR2GRAY )
+        optical_gray = cv2.cvtColor( optical, cv2.COLOR_RGB2GRAY )
     else:
         optical_gray = optical
 
@@ -237,7 +237,7 @@ class register_frames_process( KwiverProcess ):
 
         # Get python image from conatiner (just for show)
         # TODO: Remove unecessary copy here, this in kwiver yet?
-        optical_npy = np.asarray( get_pil_image( optical_c.image() ) )[...,::-1]
+        optical_npy = np.asarray( get_pil_image( optical_c.image() ) )
         thermal_npy = np.asarray( get_pil_image( thermal_c.image() ) )
 
         thermal_norm = normalize_thermal( thermal_npy )
