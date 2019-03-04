@@ -421,6 +421,20 @@ image
   d_step_ = ( w_step_ == 1 ) ? width * height : 1;
 }
 
+image
+image
+::crop(unsigned x_offset, unsigned y_offset, unsigned width, unsigned height) const
+{
+  auto crop_first_pixel = reinterpret_cast< const char* >( this->first_pixel() );
+  crop_first_pixel += this->pixel_traits().num_bytes *
+                     ( this->w_step() * x_offset + this->h_step() * y_offset );
+  return image( this->memory(),
+                crop_first_pixel,
+                width, height, this->depth(),
+                this->w_step(), this->h_step(), this->d_step(),
+                this->pixel_traits() );
+}
+
 
 /// Compare to images to see if the pixels have the same values.
 bool

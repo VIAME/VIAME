@@ -537,6 +537,15 @@ public:
    */
   void set_size( size_t width, size_t height, size_t depth );
 
+  /// Get a cropped view of the image
+  /**
+   * Get a cropped view of the image.
+   * \param x_offset start of the crop region in x (width)
+   * \param y_offset start of the crop region in y (height)
+   * \param width width of the crop region
+   * \param height height of the crop region
+   */
+  image crop(unsigned x_offset, unsigned y_offset, unsigned width, unsigned height) const;
 
 protected:
   /// Smart pointer to memory viewed by this class
