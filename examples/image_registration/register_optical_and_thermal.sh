@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/register_optical_and_thermal.pipe
+pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/register_multimodal_unsync_itk.pipe

@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "timestamp_passthrough.h"
+#include "add_timestamp_from_filename.h"
 
 #include <vital/algo/algorithm_factory.h>
 #include <vital/plugin_loader/plugin_manager.h>
@@ -45,14 +45,14 @@ namespace viame
 {
 
 // ----------------------------------------------------------------------------
-timestamp_passthrough::timestamp_passthrough()
+add_timestamp_from_filename::add_timestamp_from_filename()
 {
   this->set_capability( kwiver::vital::algo::image_io::HAS_TIME, true );
 }
 
 // ----------------------------------------------------------------------------
 kwiver::vital::config_block_sptr
-  timestamp_passthrough::get_configuration() const
+  add_timestamp_from_filename::get_configuration() const
 {
   auto config = kwiver::vital::algo::image_io::get_configuration();
 
@@ -63,7 +63,7 @@ kwiver::vital::config_block_sptr
 }
 
 // ----------------------------------------------------------------------------
-void timestamp_passthrough::set_configuration(
+void add_timestamp_from_filename::set_configuration(
   kwiver::vital::config_block_sptr config )
 {
   auto new_config = this->get_configuration();
@@ -74,7 +74,7 @@ void timestamp_passthrough::set_configuration(
 }
 
 // ----------------------------------------------------------------------------
-bool timestamp_passthrough::check_configuration(
+bool add_timestamp_from_filename::check_configuration(
   kwiver::vital::config_block_sptr config ) const
 {
   return kwiver::vital::algo::image_io::check_nested_algo_configuration(
@@ -82,7 +82,7 @@ bool timestamp_passthrough::check_configuration(
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::image_container_sptr timestamp_passthrough::load_(
+kwiver::vital::image_container_sptr add_timestamp_from_filename::load_(
   std::string const& filename ) const
 {
   if( this->image_reader )
@@ -96,7 +96,7 @@ kwiver::vital::image_container_sptr timestamp_passthrough::load_(
 }
 
 // ----------------------------------------------------------------------------
-void timestamp_passthrough::save_(
+void add_timestamp_from_filename::save_(
   std::string const& filename,
   kwiver::vital::image_container_sptr data ) const
 {
@@ -107,7 +107,7 @@ void timestamp_passthrough::save_(
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::metadata_sptr timestamp_passthrough::load_metadata_(
+kwiver::vital::metadata_sptr add_timestamp_from_filename::load_metadata_(
   std::string const& filename) const
 {
   if( this->image_reader )
@@ -134,7 +134,7 @@ std::vector< std::string > split( const std::string &s, char delim )
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::metadata_sptr timestamp_passthrough::fixup_metadata(
+kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
   std::string const& filename, kwiver::vital::metadata_sptr md ) const
 {
   if( !md )

@@ -182,10 +182,15 @@ if( VIAME_ENABLE_SMQTK )
     pipelines/smqtk_train_itq.json )
 endif()
 
-if( VIAME_ENABLE_SMQTK )
+if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/register_optical_and_thermal.pipe
-    pipelines/register_optical_and_thermal_unsync.pipe )
+    pipelines/register_multimodal_unsync_ocv.pipe )
+endif()
+
+if( VIAME_ENABLE_ITK )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/register_multimodal_sync_itk.pipe
+    pipelines/register_multimodal_unsync_itk.pipe )
 endif()
 
 if( VIAME_DOWNLOAD_MODELS-MOUSS )

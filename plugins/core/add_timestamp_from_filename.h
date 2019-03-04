@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VIAME_CORE_TIMESTAMP_PASSTHROUGH_H
-#define VIAME_CORE_TIMESTAMP_PASSTHROUGH_H
+#ifndef VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
+#define VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H
 
 #include <plugins/core/viame_core_export.h>
 
@@ -38,17 +38,17 @@
 namespace viame
 {
 
-class VIAME_CORE_EXPORT timestamp_passthrough
+class VIAME_CORE_EXPORT add_timestamp_from_filename
   : public kwiver::vital::algorithm_impl<
-      timestamp_passthrough, kwiver::vital::algo::image_io >
+      add_timestamp_from_filename, kwiver::vital::algo::image_io >
 {
 public:
-  static constexpr char const* name = "timestamp_passthrough";
+  static constexpr char const* name = "add_timestamp_from_filename";
   static constexpr char const* description =
     "Parse timestamps from an image filename when reading an image";
 
-  timestamp_passthrough();
-  ~timestamp_passthrough() override = default;
+  add_timestamp_from_filename();
+  ~add_timestamp_from_filename() override = default;
 
   kwiver::vital::config_block_sptr get_configuration() const override;
 
@@ -72,6 +72,6 @@ private:
     std::string const& filename, kwiver::vital::metadata_sptr md ) const;
 };
 
-}
+} // end namespace viame
 
-#endif
+#endif // VIAME_CORE_ADD_TIMESTAMP_FROM_FILENAME_H

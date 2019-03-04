@@ -1,0 +1,104 @@
+# ==================================================================================
+#
+# Register co-collected optical and thermal imagery
+#
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                                        5
+
+config _scheduler
+   :type                                                pythread_per_process
+
+# ================================= INPUT VIDEO ====================================
+
+process optical_input
+  :: video_input
+  :video_filename                                       input_optical_images.txt
+  :video_reader:type                                    image_list
+  block video_reader:image_list:image_reader
+    :type                                               add_timestamp_from_filename
+    block add_timestamp_from_filename
+      :image_reader:type                                vxl
+      :image_reader:vxl:vxl:force_byte                  false
+    endblock
+  endblock
+
+process thermal_input
+  :: video_input
+  :video_filename                                       input_thermal_images.txt
+  :video_reader:type                                    image_list
+  block video_reader:image_list:image_reader
+    :type                                               add_timestamp_from_filename
+    block add_timestamp_from_filename
+      :image_reader:type                                vxl
+      :image_reader:vxl:vxl:force_byte                  false
+    endblock
+  endblock
+
+# ================================ REGISTRATION ===================================
+
+process align_images
+  :: align_multimodal_imagery
+  :output_frames_without_match                          true
+  :max_time_offset                                      1.0
+
+connect from optical_input.image
+        to   align_images.optical_image
+connect from optical_input.timestamp
+        to   align_images.optical_timestamp
+connect from optical_input.file_name
+        to   align_images.optical_file_name
+
+connect from thermal_input.image
+        to   align_images.thermal_image
+connect from thermal_input.timestamp
+        to   align_images.thermal_timestamp
+connect from thermal_input.file_name
+        to   align_images.thermal_file_name
+
+process scale_thermal
+  :: image_filter
+  :filter:type                                          vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                             byte
+    :single_channel                                     false
+    :percentile_norm                                    0.001
+  endblock
+
+connect from align_images.thermal_image
+        to   scale_thermal.image
+
+process register_images
+  :: ocv_multimodal_registration
+
+connect from align_images.optical_image
+        to   register_images.optical_image
+connect from scale_thermal.image
+        to   register_images.thermal_image
+
+# ==================================== OUTPUT ======================================
+
+process warped_writer
+  :: image_writer
+  :file_name_template                                   frame%06d.png
+  :image_writer:type                                    vxl
+
+connect from register_images.warped_thermal_image
+        to   warped_writer.image
+
+#process homography_writer
+#  :: write_homography_list
+#  :file_name                                            homographies.txt
+#
+#connect from align_images.thermal_file_name
+#        to   homography_writer.source_file_name
+#connect from align_images.optical_file_name
+#        to   homography_writer.dest_file_name
+#connect from register_images.thermal_to_optical_homog
+#        to   homography_writer.homography
+
+# -- end of file --
