@@ -59,25 +59,12 @@ connect from thermal_input.timestamp
 connect from thermal_input.file_name
         to   align_images.thermal_file_name
 
-process scale_thermal
-  :: image_filter
-  :filter:type                                          vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                             byte
-    :single_channel                                     false
-    :percentile_norm                                    0.001
-  endblock
-
-connect from align_images.thermal_image
-        to   scale_thermal.image
-
 process register_images
   :: ocv_multimodal_registration
 
 connect from align_images.optical_image
         to   register_images.optical_image
-connect from scale_thermal.image
+connect from align_images.thermal_image
         to   register_images.thermal_image
 
 # ==================================== OUTPUT ======================================
