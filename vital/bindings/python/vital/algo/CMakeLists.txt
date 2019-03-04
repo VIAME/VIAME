@@ -25,12 +25,14 @@ target_link_libraries(vital_algo_trampoline
 )
 
 
-kwiver_add_python_library(image_object_detector
+kwiver_add_python_library(algorithm
   vital/algo
+  _algorithm.cxx
+  algorithm.cxx
   image_object_detector.cxx 
 )
 
-target_link_libraries(python-vital.algo-image_object_detector
+target_link_libraries(python-vital.algo-algorithm
   PUBLIC ${PYTHON_LIBRARIES}
           vital
           vital_config
@@ -50,7 +52,7 @@ target_link_libraries(python-vital.algo-algorithm_factory
 
 
 kwiver_create_python_init(vital/algo
-  image_object_detector
+  algorithm
   algorithm_factory  
 )
 

@@ -29,23 +29,54 @@
  */
 
 /**
- * \file image_object_detector.cxx
+ * \file algorithm_implementation.cxx
  *
- * \brief Python bindings for \link vital::algo::image_object_detector\endlink
+ * \brief python bindings for algorithm
  */
 
+
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <vital/algo/algorithm.h>
+#include <vital/algo/image_object_detector.h>
 #include <vital/algo/trampoline/image_object_detector_trampoline.tcc>
+#include <sstream>
 
 namespace py = pybind11;
 
-void image_object_detector_implementation(py::module &m)
+void algorithm_implementation(py::module &m);
+
+template<class implementation, class trampoline>
+void register_algorithm_implementation(py::module &m, 
+                                      const std::string implementation_name)
 {
-  py::class_< kwiver::vital::algo::image_object_detector,
-              std::shared_ptr<kwiver::vital::algo::image_object_detector>, 
-              kwiver::vital::algorithm_def<kwiver::vital::algo::image_object_detector>,
-              py_image_object_detector<> >(m, "ImageObjectDetector")
+  std::stringstream impl_name;
+  impl_name << "_algorithm<" << implementation_name << ">";
+
+  py::class_< kwiver::vital::algorithm_def<implementation>, 
+              std::shared_ptr<kwiver::vital::algorithm_def<implementation>>, 
+              kwiver::vital::algorithm,
+              trampoline >(m, impl_name.str().c_str())
     .def(py::init())
-    .def_static("static_type_name", &image_object_detector::static_type_name)
-    .def("detect", &image_object_detector::detect);
+    .def_static("create", &kwiver::vital::algorithm_def<implementation>::create)
+    .def_static("registered_names", 
+                &kwiver::vital::algorithm_def<implementation>::registered_names)
+    .def_static("get_nested_algo_configuration", 
+                &kwiver::vital::algorithm_def<implementation>::get_nested_algo_configuration)
+    .def_static("set_nested_algo_configuration", 
+                &kwiver::vital::algorithm_def<implementation>::set_nested_algo_configuration)
+    .def_static("check_nested_algo_configuration", 
+                &kwiver::vital::algorithm_def<implementation>::check_nested_algo_configuration);
+}
+
+void image_object_detector_implementation(py::module &m);
+
+
+PYBIND11_MODULE(algorithm, m)
+{
+  algorithm_implementation(m);
+  register_algorithm_implementation<kwiver::vital::algo::image_object_detector, 
+                                    py_iod_algorithm_def<>>(m, "image_object_detector");
+  image_object_detector_implementation(m);
 }
