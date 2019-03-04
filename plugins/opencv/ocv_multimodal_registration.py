@@ -161,11 +161,13 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
 # normlize thermal image
 def normalize_thermal( thermal_image, percent=0.01 ):
 
-    if not thermal_image is None:
+    if not thermal_image is None and thermal_image.dtype is not np.dtype('uint8'):
         thermal_norm = np.floor( ( thermal_image -            \
           np.percentile( thermal_image, percent) ) /          \
             ( np.percentile( thermal_image, 100 - percent ) - \
               np.percentile( thermal_image, percent ) ) * 256 )
+    else:
+        thermal_norm = thermal_image
 
     return thermal_norm.astype( np.uint8 )
 
@@ -235,8 +237,8 @@ class register_frames_process( KwiverProcess ):
 
         # Get python image from conatiner (just for show)
         # TODO: Remove unecessary copy here, this in kwiver yet?
-        optical_npy = numpy.asarray( get_pil_image( optical_pil ) )
-        thermal_npy = numpy.asarray( get_pil_image( thermal_pil ) )
+        optical_npy = np.asarray( get_pil_image( optical_c.image() ) )
+        thermal_npy = np.asarray( get_pil_image( thermal_c.image() ) )
 
         thermal_norm = normalize_thermal( thermal_npy )
 
@@ -257,7 +259,7 @@ class register_frames_process( KwiverProcess ):
 
         if ret:
             # TODO: Make all of these computations conditional on port connection
-            inv_transform = numpy.linalg.inv( transform )
+            inv_transform = np.linalg.inv( transform )
 
             thermal_warped = cv2.warpPerspective( thermal_npy, transform, \
               ( optical.shape[1], optical.shape[0] ) )
