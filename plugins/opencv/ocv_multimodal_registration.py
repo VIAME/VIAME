@@ -244,8 +244,8 @@ class register_frames_process( KwiverProcess ):
 
         if thermal_norm is not None and optical_npy is not None:
             # compute transform
-            ret, transform = compute_transform(
-                optical,
+            ret, transform, _ = compute_transform(
+                optical_npy,
                 thermal_norm,
                 warp_mode = cv2.MOTION_HOMOGRAPHY,
                 match_low_res = True,
@@ -262,24 +262,24 @@ class register_frames_process( KwiverProcess ):
             inv_transform = np.linalg.inv( transform )
 
             thermal_warped = cv2.warpPerspective( thermal_npy, transform, \
-              ( optical.shape[1], optical.shape[0] ) )
+              ( optical_npy.shape[1], optical_npy.shape[0] ) )
             optical_warped = cv2.warpPerspective( optical_npy, inv_transform, \
-              ( thermal.shape[1], thermal.shape[0] ) )
+              ( thermal_npy.shape[1], thermal_npy.shape[0] ) )
 
-            self.push_to_port_using_trait( "thermal_to_optical_homog",
-              Homography( transform ) )
-            self.push_to_port_using_trait( "optical_to_thermal_homog",
-              Homography( inv_transform ) )
+            #self.push_to_port_using_trait( 'thermal_to_optical_homog',
+            #   Homography.from_matrix( transform, 'd' )
+            #self.push_to_port_using_trait( 'optical_to_thermal_homog',
+            #   Homography.from_matrix( inv_transform, 'd' )
 
             self.push_to_port_using_trait( 'warped_thermal_image',
-              ImageContainer( from_pil( Image.fromarray( thermal_warped ) ) ) )
+              ImageContainer( from_pil( pil_image.fromarray( thermal_warped ) ) ) )
             self.push_to_port_using_trait( 'warped_optical_image',
-              ImageContainer( from_pil( Image.fromarray( optical_warped ) ) ) )
+              ImageContainer( from_pil( pil_image.fromarray( optical_warped ) ) ) )
         else:
             print( 'alignment failed!' )
 
-            self.push_to_port_using_trait( "thermal_to_optical_homog", Homography() )
-            self.push_to_port_using_trait( "optical_to_thermal_homog", Homography() )
+            #self.push_to_port_using_trait( "thermal_to_optical_homog", Homography() )
+            #self.push_to_port_using_trait( "optical_to_thermal_homog", Homography() )
 
             self.push_to_port_using_trait( 'warped_optical_image', ImageContainer() )
             self.push_to_port_using_trait( 'warped_thermal_image', ImageContainer() )
