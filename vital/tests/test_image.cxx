@@ -34,6 +34,7 @@
  */
 
 #include <vital/types/image.h>
+#include <vital/types/image_container.h>
 #include <vital/util/transform_image.h>
 
 #include <gtest/gtest.h>
@@ -480,4 +481,46 @@ TEST(image, cast_image)
   EXPECT_EQ( img1.w_step(), img2.w_step() );
   EXPECT_EQ( img1.h_step(), img2.h_step() );
   EXPECT_EQ( img1.d_step(), img2.d_step() );
+}
+
+TEST(image, get_image)
+{
+  constexpr int img_w = 60;
+  constexpr int img_h = 40;
+  image_of<byte> img{ img_w, img_h, 3 };
+  // Red channel is linear in width
+  // Green channel in linear in height
+  for ( int i = 0; i < img_w; ++i )
+  {
+    for ( int j = 0; j < img_h; ++j )
+    {
+        img( i, j, 0) = i;
+        img( i, j, 1) = j;
+    }
+  }
+
+  image_container_sptr img_ptr = std::make_shared<simple_image_container>(img);
+
+  int width = 30;
+  int height = 20;
+  int x_offset = 5;
+  int y_offset = 3;
+  auto cropped_img = img_ptr->get_image(x_offset, y_offset, width, height);
+
+  EXPECT_TRUE( img.is_contiguous() );
+  EXPECT_FALSE( cropped_img.is_contiguous() );
+  EXPECT_EQ( cropped_img.width(), width );
+  EXPECT_EQ( cropped_img.height(), height );
+
+  // Check values at corners and center
+  EXPECT_EQ( cropped_img.at<byte>(0, 0, 0), x_offset );
+  EXPECT_EQ( cropped_img.at<byte>(0, 0, 1), y_offset );
+  EXPECT_EQ( cropped_img.at<byte>(width - 1, 0, 0), x_offset + width - 1 );
+  EXPECT_EQ( cropped_img.at<byte>(width - 1, 0, 1), y_offset );
+  EXPECT_EQ( cropped_img.at<byte>(0, height - 1, 0), x_offset );
+  EXPECT_EQ( cropped_img.at<byte>(0, height - 1, 1), y_offset + height - 1 );
+  EXPECT_EQ( cropped_img.at<byte>(width - 1, height - 1, 0), x_offset + width - 1 );
+  EXPECT_EQ( cropped_img.at<byte>(width - 1, height - 1, 1), y_offset + height - 1 );
+  EXPECT_EQ( cropped_img.at<byte>(width/2, height/2, 0), x_offset + width/2 );
+  EXPECT_EQ( cropped_img.at<byte>(width/2, height/2, 1), y_offset + height/2 );
 }

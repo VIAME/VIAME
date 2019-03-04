@@ -137,9 +137,19 @@ public:
   /// Get an in-memory image class to access the data
   virtual image get_image() const { return data; };
 
-  /// Get an in-memory image class to access the data
+  /// Get an in-memory image class to access the data cropped
   virtual image get_image(unsigned x_offset, unsigned y_offset,
-                          unsigned width, unsigned height) const { return data; };
+                          unsigned width, unsigned height) const
+  {
+    auto crop_first_pixel = reinterpret_cast< const char* >( data.first_pixel() );
+    crop_first_pixel += data.pixel_traits().num_bytes *
+                       ( data.w_step() * x_offset + data.h_step() * y_offset );
+    return image( data.memory(),
+                  crop_first_pixel,
+                  width, height, data.depth(),
+                  data.w_step(), data.h_step(), data.d_step(),
+                  data.pixel_traits() );
+  };
 
 protected:
   /// data for this image container
