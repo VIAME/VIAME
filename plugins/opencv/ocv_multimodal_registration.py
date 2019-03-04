@@ -25,6 +25,8 @@ from sprokit.pipeline import process
 
 from vital.types import Image
 from vital.types import ImageContainer
+from vital.types import EigenArray
+from vital.types import Homography
 
 from vital.util.VitalPIL import get_pil_image, from_pil
 
@@ -55,6 +57,7 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
     
     # Detect SIFT features and compute descriptors.
     sift = cv2.xfeatures2d.SIFT_create()
+
     keypoints1, descriptors1 = sift.detectAndCompute( thermal_gray, None )
     keypoints2, descriptors2 = sift.detectAndCompute( optical_gray, None )
 
@@ -81,7 +84,7 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
         # Apply ratio test
         good_matches = []
         for m, n in matches:
-            if m.distance < ratio_test*n.distance:
+            if m.distance < ratio_test * n.distance:
                 good_matches.append( m )
 
         matches = good_matches
@@ -157,13 +160,6 @@ def compute_transform( optical, thermal, warp_mode = cv2.MOTION_HOMOGRAPHY,
 
     return True, h, sum( mask )
 
-# projective transform of a point
-def warp_point( pt_in, h ):
-    pt_in = [ pt_in[0], pt_in[1], 1 ]
-    pt_out = np.dot( h, pt_in )
-    pt_out = [ pt_out[0] / pt_out[2], pt_out[1] / pt_out[2] ]
-    return pt_out
-
 # normlize thermal image
 def normalize_thermal( thermal_image, percent=0.01 ):
 
@@ -173,7 +169,7 @@ def normalize_thermal( thermal_image, percent=0.01 ):
             ( np.percentile( thermal_image, 100 - percent ) - \
               np.percentile( thermal_image, percent ) ) * 256 )
 
-    return thermal_norm.astype( np.uint8 ), thermal_image
+    return thermal_norm.astype( np.uint8 )
 
 class register_frames_process( KwiverProcess ):
     """
@@ -183,19 +179,42 @@ class register_frames_process( KwiverProcess ):
     def __init__( self, conf ):
         KwiverProcess.__init__( self, conf )
 
+good_match_percent = 0.15, ratio_test = .85,
+  match_height = 512, min_matches = 4, min_inliers = 4
+
+        # set up configs
+        self.add_config_trait( "good_match_percent", "good_match_percent",
+                               '0.15', 'Good match percent [0.0,1.0].' )
+        self.add_config_trait( "ratio_test", "ratio_test",
+                               '0..85', 'Trained PyTorch model.' )
+        self.declare_config_using_trait( 'resnet_model_path' )
+
         # set up required flags
         optional = process.PortFlags()
         required = process.PortFlags()
         required.add( self.flag_required )
 
-        #  declare our ports (port-name, flags)
-        self.declare_input_port_using_trait( 'image', required )
+        # declare our ports (port-name, flags)
+        self.add_port_trait( "optical_image", "image", "Input image" )
+        self.add_port_trait( "thermal_image", "image", "Input image" )
 
-        self.declare_output_port_using_trait( 'image', optional )
+        self.add_port_trait( "warped_optical_image", "image", "Output image" )
+        self.add_port_trait( "warped_thermal_image", "image", "Output image" )
+        self.add_port_trait( "optical_to_thermal_homog", "homography", "Output homog" )
+        self.add_port_trait( "thermal_to_optical_homog", "homography", "Output homog" )
+
+        self.declare_input_port_using_trait( 'optical_image', required )
+        self.declare_input_port_using_trait( 'thermal_image', required )
+
+        self.declare_output_port_using_trait( 'warped_optical_image', optional )
+        self.declare_output_port_using_trait( 'warped_thermal_image', optional )
+        self.declare_output_port_using_trait( 'optical_to_thermal_homog', optional )
+        self.declare_output_port_using_trait( 'thermal_to_optical_homog', optional )
 
     # -------------------------------------------------------------------------
     def _configure( self ):
         self._base_configure()
+        self._resnet_img_size = int( self.config_value( 'resnet_model_input_size' ) )
 
     # -------------------------------------------------------------------------
     def _step( self ):
@@ -205,13 +224,10 @@ class register_frames_process( KwiverProcess ):
 
         # Get python image from conatiner (just for show)
         # TODO: Remove unecessary copy here, this in kwiver yet?
-        optical_pil = get_pil_image( optical_c.image() ).convert( 'RGB' )
-        thermal_pil = get_pil_image( thermal_c.image() ).convert( 'RGB' )
+        optical_npy = numpy.asarray( get_pil_image( optical_pil ) )
+        thermal_npy = numpy.asarray( get_pil_image( thermal_pil ) )
 
-        optical_npy = numpy.asarray( optical_pil )
-        thermal_npy = numpy.asarray( thermal_pil )
-
-        thermal_norm, thermal_norm_16_bit = normalize_thermal( thermal_npy )
+        thermal_norm = normalize_thermal( thermal_npy )
 
         if thermal_norm is None:
             continue
@@ -223,56 +239,13 @@ class register_frames_process( KwiverProcess ):
         ret, transform = compute_transform( optical, thermal_norm )
     
         if ret:
-            pt = [x, y]
-            ptWarped = np.round(warp_point(pt, transform))
+            if has_connected_port:
+                thermal_warped = cv2.warpPerspective( thermal_npy, transform, \
+                  ( optical.shape[1], optical.shape[0] ) )
 
-            thumb = [int(ptWarped[0]-256), int(ptWarped[1]-256), int(ptWarped[0]+256), int(ptWarped[1]+256)]
-
-            if (displayResults):
-                # warp IR image
-                thermal_normWarped = cv2.warpPerspective(thermal_norm, transform, (optical.shape[1], optical.shape[0]))
-                #thermal_norm_16_bitWarped = cv2.warpPerspective(thermal_norm_16_bit, transform, (optical.shape[1], optical.shape[0]))
-
-                # display everything
-                plt.figure()
-                plt.subplot(2, 2, 1)
-                plt.imshow(thermal_norm, cmap='gray')
-                plt.plot(pt[0],pt[1],color='red', marker='o')
-                plt.title("Orig IR")
-
-                plt.subplot(2, 2, 2)
-                plt.imshow(thermal_normWarped, cmap='gray')
-                plt.plot(ptWarped[0],ptWarped[1],color='red', marker='o')
-                plt.title("Aligned IR")
-
-                plt.subplot(2, 2, 3)
-                plt.imshow(cv2.cvtColor(optical, cv2.COLOR_BGR2RGB))
-                plt.plot(ptWarped[0],ptWarped[1],color='red', marker='o')
-                plt.title("Orig RGB")
-
-                plt.subplot(2, 2, 4)  
-                thumb = optical[thumb[1]:thumb[3], thumb[0]:thumb[2],:]
-                plt.imshow(cv2.cvtColor(thumb, cv2.COLOR_BGR2RGB))
-                plt.title("Thumb RGB")
-
-                plt.show()
         else:
 
-            if (displayResults):
-                plt.figure()
-                plt.subplot(1, 2, 1)
-                plt.imshow(thermal_norm, cmap='gray')
-                plt.title("Orig IR")
-
-                plt.subplot(1, 2, 2)
-                plt.imshow(cv2.cvtColor(optical, cv2.COLOR_BGR2RGB))
-                plt.title("Orig RGB")
-
-                plt.show()
-
-            print('alignment failed!')
-
-        hotspots[i][7:11] = thumb
+            print( 'alignment failed!' )
 
         # push dummy image object (same as input) to output port
         self.push_to_port_using_trait( 'image', ImageContainer( from_pil( in_img ) ) )
