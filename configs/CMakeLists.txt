@@ -182,7 +182,7 @@ if( VIAME_ENABLE_SMQTK )
     pipelines/smqtk_train_itq.json )
 endif()
 
-if( VIAME_ENABLE_ITK )
+if( VIAME_ENABLE_OPENCV )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/register_multimodal_unsync_ocv.pipe )
 endif()
