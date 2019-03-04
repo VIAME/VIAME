@@ -58,12 +58,25 @@ connect from thermal_input.file_name
 
 # ==================================== OUTPUT ======================================
 
+process scale_warped
+  :: image_filter
+  :filter:type                                          vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                             byte
+    :single_channel                                     false
+    :percentile_norm                                    0.001
+  endblock
+
+connect from register_images.warped_thermal_image
+        to   scale_warped.image
+
 process warped_writer
   :: image_writer
   :file_name_template                                   frame%06d.png
   :image_writer:type                                    vxl
 
-connect from register_images.warped_thermal_image
+connect from scale_warped.image
         to   warped_writer.image
 
 process homography_writer
