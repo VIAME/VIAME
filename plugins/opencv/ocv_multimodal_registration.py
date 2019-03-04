@@ -237,7 +237,7 @@ class register_frames_process( KwiverProcess ):
 
         # Get python image from conatiner (just for show)
         # TODO: Remove unecessary copy here, this in kwiver yet?
-        optical_npy = np.asarray( get_pil_image( optical_c.image() ) )
+        optical_npy = np.asarray( get_pil_image( optical_c.image() ) )[...,::-1]
         thermal_npy = np.asarray( get_pil_image( thermal_c.image() ) )
 
         thermal_norm = normalize_thermal( thermal_npy )
