@@ -27,12 +27,12 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from viame.processes.ocv import ocv_multimodal_registration
+from viame.processes.opencv import ocv_multimodal_registration
 
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
-    module_name = 'python:ocv.ocv_processes'
+    module_name = 'python:opencv.opencv_processes'
 
     if process_factory.is_process_module_loaded( module_name ):
         return
