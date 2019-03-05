@@ -33,8 +33,8 @@
  * \brief Header file for cost_volume
  */
 
-#ifndef KWIVER_ALGO_SUPER3D_COST_VOLUME_H_
-#define KWIVER_ALGO_SUPER3D_COST_VOLUME_H_
+#ifndef KWIVER_ARROWS_SUPER3D_COST_VOLUME_H_
+#define KWIVER_ARROWS_SUPER3D_COST_VOLUME_H_
 
 #include <vector>
 #include <vil/vil_image_view.h>
@@ -76,4 +76,4 @@ void load_cost_volume(vil_image_view<double> &cost_volume,
 } // end namespace kwiver
 
 
-#endif // KWIVER_ALGO_SUPER3D_COST_VOLUME_H_
+#endif // KWIVER_ARROWS_SUPER3D_COST_VOLUME_H_

@@ -49,6 +49,9 @@ class KWIVER_ALGO_VXL_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vil) to load and save image files." )
+
   /// Constructor
   image_io();
 

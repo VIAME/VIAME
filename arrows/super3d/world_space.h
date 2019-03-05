@@ -33,8 +33,8 @@
 * \brief Header file for world space defines how the volumes slices the world
 */
 
-#ifndef KWIVER_ALGO_SUPER3D_WORLD_SPACE_H_
-#define KWIVER_ALGO_SUPER3D_WORLD_SPACE_H_
+#ifndef KWIVER_ARROWS_SUPER3D_WORLD_SPACE_H_
+#define KWIVER_ARROWS_SUPER3D_WORLD_SPACE_H_
 
 #include <vital/vital_config.h>
 
@@ -121,4 +121,4 @@ compute_offset_range(const std::vector<vnl_double_3> &landmarks,
 } // end namespace kwiver
 
 
-#endif // KWIVER_ALG_SUPER3D_WORLD_SPACE_H_
+#endif // KWIVER_ARROWS_SUPER3D_WORLD_SPACE_H_

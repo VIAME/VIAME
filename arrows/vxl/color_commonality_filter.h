@@ -51,6 +51,9 @@ class KWIVER_ALGO_VXL_EXPORT color_commonality_filter
 {
 public:
 
+  PLUGIN_INFO( "vxl_color_commonality",
+               "Filter image based on color frequency or commonality." )
+
   color_commonality_filter();
   virtual ~color_commonality_filter();
 

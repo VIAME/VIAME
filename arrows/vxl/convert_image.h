@@ -51,6 +51,9 @@ class KWIVER_ALGO_VXL_EXPORT convert_image
 {
 public:
 
+  PLUGIN_INFO( "vxl_convert_image",
+               "Convert image between different formats or scales." )
+
   convert_image();
   virtual ~convert_image();
 

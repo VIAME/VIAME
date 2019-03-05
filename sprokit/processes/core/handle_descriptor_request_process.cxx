@@ -52,6 +52,7 @@ namespace algo = vital::algo;
 create_config_trait( image_pipeline_file, std::string, "",
   "Filename for the image processing pipeline. This pipeline should take, "
   "as input, a filename and produce descriptors as output." );
+
 create_config_trait( assign_uids, bool, "true",
   "Whether or not this process should assign unique UIDs to each output "
   "descriptor produced by this process" );
