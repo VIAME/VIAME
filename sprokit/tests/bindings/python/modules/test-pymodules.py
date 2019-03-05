@@ -80,7 +80,7 @@ def test_extra_modules():
 # TEST_PROPERTY(ENVIRONMENT, PYTHONPATH=@CMAKE_CURRENT_SOURCE_DIR@)
 def test_pythonpath():
     from sprokit.pipeline import config
-    from modules.module import modules
+    from vital.modules import modules
     from sprokit.pipeline import process_factory
     from sprokit.pipeline import scheduler_factory
 
