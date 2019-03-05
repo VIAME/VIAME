@@ -51,6 +51,9 @@ class KWIVER_ALGO_VXL_EXPORT average_frames
 {
 public:
 
+  PLUGIN_INFO( "vxl_average",
+               "Use VXL to average frames together." )
+
   average_frames();
   virtual ~average_frames();
 
