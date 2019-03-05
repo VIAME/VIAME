@@ -217,8 +217,23 @@ parse_packet( const YAML::const_iterator& it, KPF::packet_t& p )
       break;
 
     case KPF::packet_style::META:
-      new (&p.meta) KPFC::meta_t( it->second.as<string>() );
-      p.header.domain = KPF::packet_header_t::NO_DOMAIN;
+      {
+        string metadata_line = "";
+        // first try it as a simple string
+        try
+        {
+          metadata_line = it->second.as<string>();
+        }
+        catch (const YAML::Exception& e )
+        {
+          // hmm, it may have embedded yaml, try that
+          YAML::Emitter meta_rewrite;
+          meta_rewrite << it->second;
+          metadata_line = string( meta_rewrite.c_str() );
+        }
+        new (&p.meta) KPFC::meta_t( metadata_line );
+        p.header.domain = KPF::packet_header_t::NO_DOMAIN;
+      }
       break;
 
     case KPF::packet_style::POLY:

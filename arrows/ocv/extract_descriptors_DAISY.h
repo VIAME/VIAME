@@ -56,6 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_DAISY
                                   vital::algo::extract_descriptors >
 {
 public:
+  PLUGIN_INFO( "ocv_DAISY",
+               "OpenCV feature-point descriptor extraction via the DAISY algorithm" )
+
   /// Constructor
   extract_descriptors_DAISY();
 

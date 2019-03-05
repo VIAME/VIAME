@@ -51,6 +51,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_simple_blob
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_simple_blob",
+               "OpenCV feature detection via the simple_blob algorithm." )
+
   /// Constructor
   detect_features_simple_blob();
 

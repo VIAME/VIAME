@@ -166,7 +166,8 @@ public:
   // Pass through this callback to another callback but cache the return value
   bool pass_through_callback(callback_t cb,
                              camera_map_sptr cams,
-                             landmark_map_sptr lms);
+                             landmark_map_sptr lms,
+                             feature_track_set_changes_sptr track_changes);
 
   bool verbose;
   bool continue_processing;
@@ -383,9 +384,10 @@ bool
 initialize_cameras_landmarks::priv
 ::pass_through_callback(callback_t cb,
                         camera_map_sptr cams,
-                        landmark_map_sptr lms)
+                        landmark_map_sptr lms,
+                        feature_track_set_changes_sptr track_changes)
 {
-  this->continue_processing = cb(cams, lms);
+  this->continue_processing = cb(cams, lms, track_changes);
   return this->continue_processing;
 }
 
@@ -520,9 +522,10 @@ initialize_cameras_landmarks
   {
     using std::placeholders::_1;
     using std::placeholders::_2;
+    using std::placeholders::_3;
     callback_t pcb =
       std::bind(&initialize_cameras_landmarks::priv::pass_through_callback,
-                d_.get(), this->m_callback, _1, _2);
+                d_.get(), this->m_callback, _1, _2, _3);
     d_->bundle_adjuster->set_callback(pcb);
   }
 
@@ -898,7 +901,7 @@ initialize_cameras_landmarks
 ::initialize(camera_map_sptr& cameras,
              landmark_map_sptr& landmarks,
              feature_track_set_sptr tracks,
-             metadata_map_sptr metadata) const
+             sfm_constraints_sptr constraints) const
 {
   if( !tracks )
   {
@@ -1085,7 +1088,7 @@ initialize_cameras_landmarks
       camera_map_sptr opt_cams = std::make_shared<simple_camera_map>(opt_cam_map);
       landmark_map_sptr landmarks = std::make_shared<simple_landmark_map>(flms);
       auto tracks = std::make_shared<feature_track_set>(trks);
-      d_->camera_optimizer->optimize(opt_cams, tracks, landmarks, metadata);
+      d_->camera_optimizer->optimize(opt_cams, tracks, landmarks, constraints);
       cams[f] = opt_cams->cameras()[f];
     }
 
@@ -1121,7 +1124,7 @@ initialize_cameras_landmarks
       double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
       LOG_INFO(logger(), "initial reprojection RMSE: " << init_rmse);
 
-      d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, metadata);
+      d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, constraints);
       cams = ba_cams->cameras();
       lms = ba_lms->landmarks();
       if (!d_->continue_processing)
@@ -1162,7 +1165,7 @@ initialize_cameras_landmarks
           // Either way we should not have to try this again.
           tried_necker_reverse = true;
           LOG_INFO(logger(), "Running Necker reversed bundle adjustment for comparison");
-          d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks, metadata);
+          d_->bundle_adjuster->optimize(ba_cams2, ba_lms2, tracks, constraints);
           map_cam_t cams2 = ba_cams2->cameras();
           map_landmark_t lms2 = ba_lms2->landmarks();
           double final_rmse2 = kwiver::arrows::reprojection_rmse(cams2, lms2, trks);
@@ -1190,7 +1193,8 @@ initialize_cameras_landmarks
     if( this->m_callback )
     {
       d_->continue_processing = this->m_callback(std::make_shared<simple_camera_map>(cams),
-                                                 std::make_shared<simple_landmark_map>(lms));
+                                                 std::make_shared<simple_landmark_map>(lms),
+                                                 nullptr);
     }
   }
 
@@ -1203,7 +1207,7 @@ initialize_cameras_landmarks
     double init_rmse = kwiver::arrows::reprojection_rmse(cams, lms, trks);
     LOG_DEBUG(logger(), "initial reprojection RMSE: " << init_rmse);
 
-    d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, metadata);
+    d_->bundle_adjuster->optimize(ba_cams, ba_lms, tracks, constraints);
     map_cam_t cams1 = ba_cams->cameras();
     map_landmark_t lms1 = ba_lms->landmarks();
     double final_rmse1 = kwiver::arrows::reprojection_rmse(cams1, lms1, trks);
@@ -1241,9 +1245,10 @@ initialize_cameras_landmarks
   {
     using std::placeholders::_1;
     using std::placeholders::_2;
+    using std::placeholders::_3;
     callback_t pcb =
       std::bind(&initialize_cameras_landmarks::priv::pass_through_callback,
-                d_.get(), cb, _1, _2);
+                d_.get(), cb, _1, _2, _3);
     d_->bundle_adjuster->set_callback(pcb);
   }
 }

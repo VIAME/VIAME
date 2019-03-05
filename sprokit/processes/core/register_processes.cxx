@@ -84,378 +84,55 @@ KWIVER_PROCESSES_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_core" );
+  using namespace sprokit;
+  using namespace kwiver;
 
-  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
+  process_registrar reg( vpm, "kwiver_processes_core" );
+
+  if ( is_process_module_loaded( vpm, reg.module_name() ) )
   {
     return;
   }
 
-  // -------------------------------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( kwiver::frame_list_process );
-
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "frame_list_input" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Reads a list of image file names and generates stream of images and associated time stamps." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::stabilize_image_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "stabilize_image" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Generate current-to-reference image homographies." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::detect_features_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_features" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Detect features in an image that will be used for stabilization." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::extract_descriptors_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "extract_descriptors" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Extract descriptors from detected features." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::matcher_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "feature_matcher" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Match extracted descriptors and detected features." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::compute_homography_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_homography" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Compute a frame to frame homography based on tracks." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::compute_stereo_depth_map_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_stereo_depth_map" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Compute a stereo depth map given two frames." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::draw_tracks_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "draw_tracks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Draw feature tracks on image." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::read_descriptor_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_d_vector" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Read vector of doubles," )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::refine_detections_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "refine_detections" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Refines detections for a given frame," )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::image_object_detector_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "image_object_detector" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Apply selected image object detector algorithm to incoming images." )
-  .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-     ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::image_filter_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "image_filter" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Apply selected image filter algorithm to incoming images." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::image_writer_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "image_writer" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Write image to disk." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::image_file_reader_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "image_file_reader" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Reads an image file given the file name." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::detected_object_input_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_input" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Reads detected object sets from an input file.\n\n"
-                    "Detections read from the input file are grouped into sets for each "
-                    "image and individually returned." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::detected_object_output_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_output" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Writes detected object sets to an output file.\n\n"
-                    "All detections are written to the same file." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::detected_object_filter_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detected_object_filter" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Filters sets of detected objects using the detected_object_filter algorithm." )
-  .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-     ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::video_input_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "video_input" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Reads video files and produces sequential images with metadata per frame." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::draw_detected_object_set_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "draw_detected_object_set" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Draws border around detected objects in the set using the selected algorithm.\n\n"
-                    "This process is a wrapper around a draw_detected_object_set algorithm.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::split_image_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "split_image" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Split a image into multiple smaller images." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-  fact = vpm.ADD_PROCESS( kwiver::merge_images_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_images" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                      "Merge multiple images into one." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
-      ;
-
-  fact = vpm.ADD_PROCESS( kwiver::read_track_descriptor_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_track_descriptor" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Reads track descriptor sets from an input file." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::write_track_descriptor_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "write_track_descriptor" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Writes track descriptor sets to an output file. All descriptors are written to the same file." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::track_features_process);
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "feature_tracker")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Tracks features from frame to frame.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::keyframe_selection_process);
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "keyframe_selection")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Selects keyframes from a track set.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::detect_features_if_keyframe_process);
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "detect_features_if_keyframe")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Detects feautres in an image if it is a keyframe.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::close_loops_process);
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "close_loops")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name)
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Detects loops in a track set using features with descriptors.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0")
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::read_object_track_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "read_object_track" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Reads object track sets from an input file." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::print_config_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "print_config" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Print process configuration.\n\n"
-                    "This process is a debugging aide and performs no other function in a pipeline. "
-                    "The supplied configuration is printed when it is presented to the process. "
-                    "All ports connections to the process are accepted and the supplied data is "
-                    "taken from the port and discarded. This process produces no outputs and "
-                    "has no output ports.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::write_object_track_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "write_object_track" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Writes object track sets to an output file. All descriptors are written to the same file." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::associate_detections_to_tracks_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "associate_detections_to_tracks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Associates new detections to existing tracks given a cost matrix." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::compute_association_matrix_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_association_matrix" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Computes cost matrix for adding new detections to existing tracks." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::initialize_object_tracks_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "initialize_object_tracks" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Initialize new object tracks given detections for the current frame." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-  fact = vpm.ADD_PROCESS( kwiver::serializer_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "serializer" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Serializes data types to byte streams. "
-                    "Input and output ports are dynamically created based on connection." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::deserializer_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "deserializer" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Deserializes data types from byte streams. "
-                    "Input and output ports are dynamically created based on connection." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
-    ;
-
-
-  fact = vpm.ADD_PROCESS( kwiver::merge_detection_sets_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "merge_detection_sets" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Merge multiple input detection sets into one output set.\n\n"
-                    "This process will accept one or more input ports of detected_object_set "
-                    "type. They will all be added to the output detection set. "
-                    "The input port names do not matter since they will be connected "
-                    "upon connection.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( "no-test", "introspect" ); // do not include in introspection test
-    ;
-
-  fact = vpm.ADD_PROCESS( kwiver::handle_descriptor_request_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "handle_descriptor_request" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Handle a new descriptor request, producing desired descriptors on the input." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-  fact = vpm.ADD_PROCESS( kwiver::compute_track_descriptors_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "compute_track_descriptors" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Compute track descriptors on the input tracks or detections." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-  fact = vpm.ADD_PROCESS( kwiver::perform_query_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "perform_query" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Perform a query." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    ;
-
-
-  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
-} // register_processes
+  reg.register_process< frame_list_process >();
+  reg.register_process< stabilize_image_process >();
+  reg.register_process< detect_features_process >();
+  reg.register_process< extract_descriptors_process >();
+  reg.register_process< matcher_process >();
+  reg.register_process< compute_homography_process >();
+  reg.register_process< compute_stereo_depth_map_process >();
+  reg.register_process< draw_tracks_process >();
+  reg.register_process< read_descriptor_process >();
+  reg.register_process< refine_detections_process >();
+  reg.register_process< image_object_detector_process >();
+  reg.register_process< image_filter_process >();
+  reg.register_process< image_writer_process >();
+  reg.register_process< image_file_reader_process >();
+  reg.register_process< detected_object_input_process >();
+  reg.register_process< detected_object_output_process >();
+  reg.register_process< detected_object_filter_process >();
+  reg.register_process< video_input_process >();
+  reg.register_process< draw_detected_object_set_process >();
+  reg.register_process< split_image_process >();
+  reg.register_process< merge_images_process >( process_registrar::no_test );
+  reg.register_process< read_track_descriptor_process >();
+  reg.register_process< write_track_descriptor_process >();
+  reg.register_process< track_features_process >();
+  reg.register_process< keyframe_selection_process >();
+  reg.register_process< detect_features_if_keyframe_process >();
+  reg.register_process< close_loops_process >();
+  reg.register_process< read_object_track_process >();
+  reg.register_process< print_config_process >( process_registrar::no_test );
+  reg.register_process< write_object_track_process >();
+  reg.register_process< associate_detections_to_tracks_process >();
+  reg.register_process< compute_association_matrix_process >();
+  reg.register_process< initialize_object_tracks_process >();
+  reg.register_process< serializer_process >( process_registrar::no_test );
+  reg.register_process< deserializer_process >( process_registrar::no_test );
+  reg.register_process< merge_detection_sets_process >( process_registrar::no_test );
+  reg.register_process< handle_descriptor_request_process >();
+  reg.register_process< compute_track_descriptors_process >();
+  reg.register_process< perform_query_process >();
+
+  mark_process_module_as_loaded( vpm, reg.module_name() );
+} // register_process

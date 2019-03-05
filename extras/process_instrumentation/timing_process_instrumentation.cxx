@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,10 @@ timing_process_instrumentation::
 {
   if (m_output_file)
   {
+    // write out summary stats
+    *m_output_file << m_step_stats;
+
+    // Close file and clean up
     m_output_file->close();
     delete m_output_file;
     m_output_file = 0;
@@ -148,6 +152,8 @@ stop_step_processing()
 {
   m_timer->stop();
   write_interval( "step", m_timer->elapsed() );
+
+  m_step_stats.add_datum( m_timer->elapsed() );
 }
 
 

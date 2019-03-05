@@ -54,6 +54,9 @@ class KWIVER_ALGO_OCV_EXPORT match_features_bruteforce
                                     vital::algo::match_features >
 {
 public:
+  PLUGIN_INFO( "ocv_brute_force",
+               "OpenCV feature matcher using brute force matching (exhaustive search)." )
+
   /// Constructor
   match_features_bruteforce();
 

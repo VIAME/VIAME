@@ -94,7 +94,7 @@ namespace algo {
  * HAS_FRAME_TIME - This capability is set to true if the video source
  *     supplies a frame time. If a frame time is supplied, it is made
  *     available in the time stamp for that frame. If the frame time
- *     is not supplied, then the timestamp will hot have the time set.
+ *     is not supplied, then the timestamp will not have the time set.
  *
  * HAS_FRAME_DATA - This capability is set to true if the video source
  *     supplies frame images. It may seem strange for a video input
@@ -352,6 +352,17 @@ public:
    *
    * Calling this method at end of video will return an empty metadata
    * vector.
+   *
+   * Metadata is returned as a vector, instead of a single object, to
+   * handle cases where there is multiple metadata packets between
+   * frames. This can happen in video streams with a fast metadata
+   * rate and slow frame rate. Multiple metadata objects can be also
+   * returned from video streams that contain metadata in multiple
+   * standards, such as MISB-601 and MISB-104.
+   *
+   * In cases where there are multiple metadata packets between
+   * frames, it is inappropriate for the reader to try to select the
+   * best metadata packet. That is why they are all returned.
    *
    * This method is idempotent. Calling it multiple times without
    * calling next_frame() will return the same metadata.

@@ -60,12 +60,8 @@ class KWIVER_ALGO_CORE_EXPORT close_loops_multi_method
   : public vital::algorithm_impl<close_loops_multi_method, vital::algo::close_loops>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "multi_method";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Iteratively run multiple loop closure algorithms.";
+  PLUGIN_INFO( "multi_method",
+               "Iteratively run multiple loop closure algorithms." )
 
   /// Default Constructor
   close_loops_multi_method();

@@ -65,33 +65,35 @@ template < typename Functor, typename Range >
 class filter_view : public generic_view
 {
 protected:
-  using range_iterator_t = typename range_ref< Range >::iterator_t;
+  using range_iterator_t = typename range_ref< Range const >::iterator_t;
 
 public:
-  using value_t = typename range_ref< Range >::value_t;
+  using value_t = typename range_ref< Range const >::value_t;
   using filter_function_t = Functor;
 
   filter_view( filter_view const& ) = default;
 
-  class const_iterator
+  class iterator
   {
   public:
-    const_iterator() = default;
-    const_iterator( const_iterator const& ) = default;
-    const_iterator& operator=( const_iterator const& ) = default;
+    iterator() = default;
+    iterator( iterator const& ) = default;
+    iterator& operator=( iterator const& ) = default;
 
-    bool operator!=( const_iterator const& other ) const
+    bool operator!=( iterator const& other ) const
     { return m_iter != other.m_iter; }
 
     value_t operator*() const { return *m_iter; }
 
-    const_iterator& operator++();
+    iterator& operator++();
+
+    operator bool() const { return m_iter != m_end; }
 
   protected:
     friend class filter_view;
-    const_iterator( range_iterator_t const& iter,
-                    range_iterator_t const& end,
-                    filter_function_t const& func )
+    iterator( range_iterator_t const& iter,
+              range_iterator_t const& end,
+              filter_function_t const& func )
       : m_iter{ iter }, m_end{ end }, m_func( func ) {}
 
     range_iterator_t m_iter, m_end;
@@ -101,30 +103,30 @@ public:
   filter_view( Range const& range, filter_function_t func )
     : m_range{ range }, m_func{ func } {}
 
-  const_iterator begin() const;
+  iterator begin() const;
 
-  const_iterator end() const
+  iterator end() const
   { return { m_range.end(), m_range.end(), m_func }; }
 
 protected:
-  range_ref< Range > m_range;
+  range_ref< Range const > m_range;
   filter_function_t m_func;
 };
 
 // ----------------------------------------------------------------------------
 template < typename FilterFunction, typename Range >
-typename filter_view< FilterFunction, Range >::const_iterator
+typename filter_view< FilterFunction, Range >::iterator
 filter_view< FilterFunction, Range >
 ::begin() const
 {
-  auto iter = const_iterator{ m_range.begin(), m_range.end(), m_func };
-  return ( m_func( *iter ) ? iter : ++iter );
+  auto iter = iterator{ m_range.begin(), m_range.end(), m_func };
+  return ( iter && m_func( *iter ) ? iter : ++iter );
 }
 
 // ----------------------------------------------------------------------------
 template < typename FilterFunction, typename Range >
-typename filter_view< FilterFunction, Range >::const_iterator&
-filter_view< FilterFunction, Range >::const_iterator
+typename filter_view< FilterFunction, Range >::iterator&
+filter_view< FilterFunction, Range >::iterator
 ::operator++()
 {
   while ( m_iter != m_end )

@@ -77,13 +77,9 @@ class KWIVER_ALGO_CORE_EXPORT match_features_homography
   : public vital::algorithm_impl<match_features_homography, vital::algo::match_features>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "homography_guided";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Use an estimated homography as a geometric filter"
-    " to remove outlier matches.";
+  PLUGIN_INFO( "homography_guided",
+               "Use an estimated homography as a geometric filter"
+               " to remove outlier matches." )
 
   /// Default Constructor
   match_features_homography();

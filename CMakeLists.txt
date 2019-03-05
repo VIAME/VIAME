@@ -180,6 +180,8 @@ else()
   set(BOOST_ROOT_ARG ${Boost_LIBRARY_DIR}/..)
 endif()
 
+add_definitions(-DKWIVER_DEFAULT_PLUGIN_ORGANIZATION="Kitware Inc.")
+
 # ===========================================================================================
 link_directories( ${KWIVER_BINARY_DIR}/lib )
 
@@ -202,6 +204,25 @@ if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
 endif ()
 
 # =============================================================================================
+
+###
+# Generate vital/version.h. This file is needed by sprokit so must be generated here, before sprokit is included
+#---------------------------------------------------------------------
+#
+
+# Use Git (if available) to add Git hash info to the version header
+set(kwiver_configure_with_git on)
+kwiver_configure_file(version.h
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/version.h"
+  KWIVER_VERSION_MAJOR
+  KWIVER_VERSION_MINOR
+  KWIVER_VERSION_PATCH
+  KWIVER_VERSION
+  KWIVER_SOURCE_DIR
+  )
+set(kwiver_configure_with_git)
+
 
 set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")

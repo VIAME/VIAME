@@ -44,6 +44,9 @@ class KWIVER_PROCESSES_NO_EXPORT compute_stereo_depth_map_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "compute_stereo_depth_map",
+               "Compute a stereo depth map given two frames." )
+
   compute_stereo_depth_map_process( kwiver::vital::config_block_sptr const& config );
   virtual ~compute_stereo_depth_map_process();
 

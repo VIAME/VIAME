@@ -53,6 +53,9 @@ class KWIVER_PROCESSES_NO_EXPORT read_descriptor_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "read_d_vector",
+               "Read vector of doubles," )
+
   // -- CONSTRUCTORS --
   read_descriptor_process( kwiver::vital::config_block_sptr const& config );
   virtual ~read_descriptor_process();

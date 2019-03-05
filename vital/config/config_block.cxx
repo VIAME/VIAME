@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
+ * Copyright 2011-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -595,40 +595,5 @@ strip_block_name( config_block_key_t const& subblock, config_block_key_t const& 
 
   return key.substr( subblock.size() + config_block::block_sep.size() );
 }
-
-
-// ------------------------------------------------------------------
-/// Format config block in a printable stream
-void
-config_block::
-print( std::ostream& str )
-{
-  kwiver::vital::config_block_keys_t all_keys = this->available_values();
-
-  for( kwiver::vital::config_block_key_t key : all_keys )
-  {
-    std::string ro;
-
-    auto const val = this->get_value< kwiver::vital::config_block_value_t > ( key );
-
-    if ( this->is_read_only( key ) )
-    {
-      ro = "[RO]";
-    }
-
-    str << key << ro << " = " << val;
-
-    // Add location information if available
-    std::string file;
-    int line(0);
-    if ( get_location( key, file, line ) )
-    {
-      str << "  (" << file << ":" << line << ")";
-    }
-
-    str << std::endl;
-  }
-}
-
 
 } }   // end namespace

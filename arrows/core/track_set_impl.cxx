@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,14 @@ frame_index_track_set_impl
 /// Constructor from a vector of tracks
 frame_index_track_set_impl
 ::frame_index_track_set_impl( const std::vector< track_sptr >& tracks )
-  : all_tracks_( tracks )
 {
+  for (auto const &t : tracks)
+  {
+    if (t)
+    {
+      all_tracks_.insert(std::make_pair(t->id(), t));
+    }
+  }
 }
 
 /// Populate frame_map_ with data from all_tracks_
@@ -66,7 +72,7 @@ frame_index_track_set_impl
   frame_map_.clear();
   for(auto const& track : all_tracks_)
   {
-    for(auto const& ts : *track)
+    for(auto const& ts : *track.second)
     {
       frame_map_[ts->frame()].insert(ts);
     }
@@ -109,7 +115,12 @@ bool
 frame_index_track_set_impl
 ::contains( vital::track_sptr t ) const
 {
-  return std::find(all_tracks_.begin(), all_tracks_.end(), t) != all_tracks_.end();
+  if (!t)
+  {
+    return false;
+  }
+  auto itr = all_tracks_.find(t->id());
+  return itr != all_tracks_.end() && itr->second == t;
 }
 
 
@@ -118,7 +129,16 @@ void
 frame_index_track_set_impl
 ::set_tracks( std::vector< vital::track_sptr > const& tracks )
 {
-  all_tracks_ = tracks;
+  all_tracks_.clear();
+
+  for (auto const &t : tracks)
+  {
+    if (t)
+    {
+      all_tracks_.insert(std::make_pair( t->id(), t));
+    }
+  }
+
   frame_map_.clear();
 }
 
@@ -128,12 +148,19 @@ void
 frame_index_track_set_impl
 ::insert( vital::track_sptr t )
 {
-  all_tracks_.push_back( t );
-
-  // update the frame map with the new track
-  for(auto const& ts : *t)
+  if (!t)
   {
-    frame_map_[ts->frame()].insert(ts);
+    return;
+  }
+  all_tracks_.insert(std::make_pair(t->id(), t));
+
+  if (!frame_map_.empty())
+  {
+    // update the frame map with the new track
+    for (auto const& ts : *t)
+    {
+      frame_map_[ts->frame()].insert(ts);
+    }
   }
 }
 
@@ -143,8 +170,42 @@ void
 frame_index_track_set_impl
 ::notify_new_state( vital::track_state_sptr ts )
 {
-  // update the frame map with the new state
-  frame_map_[ts->frame()].insert(ts);
+  if (!frame_map_.empty())
+  {
+    // update the frame map with the new state
+    frame_map_[ts->frame()].insert(ts);
+  }
+}
+
+/// Notify the container that a state has been removed from an existing track
+void
+frame_index_track_set_impl
+::notify_removed_state(vital::track_state_sptr ts)
+{
+  if (frame_map_.empty())
+  {
+    return;
+  }
+
+  auto fn = ts->frame();
+  auto fm_it = frame_map_.find(fn);
+  if (fm_it == frame_map_.end())
+  {
+    return;
+  }
+
+  auto &ts_set = fm_it->second;
+  auto ts_it = ts_set.find(ts);
+  if (ts_it != ts_set.end())
+  {
+    ts_set.erase(ts_it);
+  }
+
+  if (fm_it->second.empty())
+  {
+    //no track states for this frame so remove the frame from the map
+    frame_map_.erase(fm_it);
+  }
 }
 
 
@@ -153,17 +214,29 @@ bool
 frame_index_track_set_impl
 ::remove( vital::track_sptr t )
 {
-  auto itr = std::find(all_tracks_.begin(), all_tracks_.end(), t);
-  if ( itr == all_tracks_.end() )
+  if (!t)
+  {
+    return false;
+  }
+  auto itr = all_tracks_.find(t->id());
+  if ( itr == all_tracks_.end() || itr->second != t )
   {
     return false;
   }
   all_tracks_.erase(itr);
 
-  // remove from the frame map
-  for(auto const& ts : *t)
+  if (!frame_map_.empty())
   {
-    frame_map_[ts->frame()].erase(ts);
+    // remove from the frame map
+    for (auto const& ts : *t)
+    {
+      frame_map_[ts->frame()].erase(ts);
+      if (frame_map_[ts->frame()].empty())
+      { // There are not track states in the frame map.  So remove the frame's
+        // entry from the frame map.
+        frame_map_.erase(ts->frame());
+      }
+    }
   }
 
   return true;
@@ -175,7 +248,13 @@ std::vector< track_sptr >
 frame_index_track_set_impl
 ::tracks() const
 {
-  return all_tracks_;
+  std::vector<track_sptr> tks(all_tracks_.size());
+  size_t i = 0;
+  for (auto const &t : all_tracks_)
+  {
+    tks[i++] = t.second;
+  }
+  return tks;
 }
 
 
@@ -205,7 +284,7 @@ frame_index_track_set_impl
   std::set<track_id_t> ids;
   for( auto const& t : all_tracks_)
   {
-    ids.insert(t->id());
+    ids.insert(t.first);
   }
   return ids;
 }
@@ -242,15 +321,12 @@ track_sptr const
 frame_index_track_set_impl
 ::get_track(track_id_t tid) const
 {
-  const std::vector<track_sptr> all_tracks = this->tracks();
-
-  for( auto const& t : all_tracks_)
+  auto t_it = all_tracks_.find(tid);
+  if (t_it != all_tracks_.end())
   {
-    if( t->id() == tid )
-    {
-      return t;
-    }
+    return t_it->second;
   }
+
 
   return track_sptr();
 }
@@ -268,7 +344,9 @@ frame_index_track_set_impl
   auto const& map_itr = frame_map_.find(frame_number);
   if( map_itr != frame_map_.end() )
   {
-    for( auto const& ts : map_itr->second )
+    auto &track_set = map_itr->second;
+    active_tracks.reserve(track_set.size());
+    for( auto const& ts : track_set)
     {
       active_tracks.push_back(ts->track());
     }
@@ -288,9 +366,9 @@ frame_index_track_set_impl
   // and active_tracks()
   for( auto const& t : all_tracks_)
   {
-    if( t->find(frame_number) == t->end() )
+    if( t.second->find(frame_number) == t.second->end() )
     {
-      inactive_tracks.push_back(t);
+      inactive_tracks.push_back(t.second);
     }
   }
   return inactive_tracks;
@@ -348,6 +426,10 @@ frame_index_track_set_impl
   return terminated_tracks;
 }
 
+bool track_less(const track_sptr &t1, const track_sptr &t2)
+{
+  return t1->id() < t2->id();
+}
 
 /// Return the percentage of tracks successfully tracked to the next frame.
 double
@@ -358,19 +440,19 @@ frame_index_track_set_impl
   populate_frame_map_on_demand();
 
   std::vector<track_sptr> tracks1 = this->active_tracks(offset1);
-  std::sort(tracks1.begin(), tracks1.end());
+  std::sort(tracks1.begin(), tracks1.end(), track_less);
   std::vector<track_sptr> tracks2 = this->active_tracks(offset2);
-  std::sort(tracks2.begin(), tracks2.end());
+  std::sort(tracks2.begin(), tracks2.end(), track_less);
 
   std::vector<track_sptr> isect_tracks;
   std::set_intersection(tracks1.begin(), tracks1.end(),
                         tracks2.begin(), tracks2.end(),
-                        std::back_inserter(isect_tracks));
+                        std::back_inserter(isect_tracks), track_less);
 
   std::vector<track_sptr> union_tracks;
   std::set_union(tracks1.begin(), tracks1.end(),
                  tracks2.begin(), tracks2.end(),
-                 std::back_inserter(union_tracks));
+                 std::back_inserter(union_tracks), track_less);
 
   if( union_tracks.empty() )
   {
@@ -415,6 +497,21 @@ frame_index_track_set_impl
   return nullptr;
 }
 
+/// Removes the frame data for the frame offset
+bool
+frame_index_track_set_impl
+::remove_frame_data(frame_id_t offset)
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if (itr != frame_data_.end())
+  {
+    frame_data_.erase(itr);
+    return true;
+  }
+  return false;
+}
+
 
 /// Set additional data associated with all tracks on the given frame
 bool
@@ -451,7 +548,7 @@ frame_index_track_set_impl
   // clone the track data
   for (auto trk : all_tracks_)
   {
-    the_clone->all_tracks_.push_back(trk->clone());
+    the_clone->all_tracks_.insert(std::make_pair(trk.first,trk.second->clone()));
   }
 
   // clone the frame data

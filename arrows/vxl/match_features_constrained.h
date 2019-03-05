@@ -61,6 +61,10 @@ class KWIVER_ALGO_VXL_EXPORT match_features_constrained
   : public vital::algorithm_impl<match_features_constrained, vital::algo::match_features>
 {
 public:
+  PLUGIN_INFO( "vxl_constrained",
+               "Use VXL to match descriptors under the constraints of similar geometry "
+               "(rotation, scale, position)." )
+
   /// Constructor
   match_features_constrained();
 

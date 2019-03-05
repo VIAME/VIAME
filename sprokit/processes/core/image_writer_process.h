@@ -54,6 +54,9 @@ class KWIVER_PROCESSES_NO_EXPORT image_writer_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "image_writer",
+               "Write image to disk." )
+
   image_writer_process( kwiver::vital::config_block_sptr const& config );
   virtual ~image_writer_process();
 

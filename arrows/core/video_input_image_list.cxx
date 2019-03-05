@@ -40,8 +40,10 @@
 #include <vital/util/data_stream_reader.h>
 #include <vital/util/tokenize.h>
 
+#include <kwiversys/Directory.hxx>
 #include <kwiversys/SystemTools.hxx>
 
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -54,15 +56,19 @@ namespace core {
 class video_input_image_list::priv
 {
 public:
-  priv()
-  : m_current_file( m_files.end() )
+  priv( video_input_image_list* parent )
+  : m_parent( parent )
+  , m_current_file( m_files.end() )
   , m_frame_number( 0 )
   , m_image( nullptr )
   , m_have_metadata_map( false )
   {}
 
+  video_input_image_list* m_parent;
+
   // Configuration values
   std::vector< std::string > c_search_path;
+  std::vector< std::string > c_allowed_extensions;
 
   // local state
   std::vector < kwiver::vital::path_t > m_files;
@@ -73,16 +79,23 @@ public:
   // metadata map
   bool m_have_metadata_map;
   vital::metadata_map::map_metadata_t m_metadata_map;
+  std::map< kwiver::vital::path_t, kwiver::vital::metadata_sptr > m_metadata_by_path;
 
   // processing classes
   vital::algo::image_io_sptr m_image_reader;
+
+  void read_from_file( std::string const& filename );
+  void read_from_directory( std::string const& dirname );
+  vital::metadata_sptr frame_metadata(
+    const kwiver::vital::path_t& file,
+    kwiver::vital::image_container_sptr image = nullptr );
 };
 
 
 // ------------------------------------------------------------------
 video_input_image_list
 ::video_input_image_list()
-  : d( new video_input_image_list::priv )
+  : d( new video_input_image_list::priv( this ) )
 {
   attach_logger( "arrows.core.video_input_image_list" );
 
@@ -119,6 +132,9 @@ video_input_image_list
                      "The current directory '.' is automatically appended to the end of the path. "
                      "The format of this path is the same as the standard "
                      "path specification, a set of directories separated by a colon (':')" );
+  config->set_value( "allowed_extensions", "",
+                     "Semicolon-separated list of allowed file extensions. "
+                     "Leave empty to allow all file extensions." );
 
   vital::algo::image_io::
     get_nested_algo_configuration( "image_reader", config, d->m_image_reader );
@@ -140,9 +156,18 @@ video_input_image_list
   kwiver::vital::tokenize( path, d->c_search_path, ":", kwiver::vital::TokenizeTrimEmpty );
   d->c_search_path.push_back( "." ); // add current directory
 
+  // Create vector of allowed file extensions
+  std::string extensions = config->get_value<std::string>( "allowed_extensions", "" );
+  kwiver::vital::tokenize( extensions, d->c_allowed_extensions, ";", kwiver::vital::TokenizeTrimEmpty );
+
   // Setup actual reader algorithm
   vital::algo::image_io::
     set_nested_algo_configuration( "image_reader", config, d->m_image_reader );
+
+  // Check capabilities of image reader
+  set_capability( vital::algo::video_input::HAS_FRAME_TIME,
+    d->m_image_reader->get_implementation_capabilities().capability(
+      vital::algo::image_io::HAS_TIME ) );
 }
 
 
@@ -167,69 +192,20 @@ video_input_image_list
   // close the video in case already open
   this->close();
 
-  // open file and read lines
-  std::ifstream ifs( list_name.c_str() );
-  if ( ! ifs )
-  {
-    throw kwiver::vital::invalid_file( list_name, "Could not open file" );
-  }
   if ( ! d->m_image_reader )
   {
-    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( kwiver::vital::algorithm_configuration_exception, type_name(), impl_name(),
           "invalid image_reader." );
   }
 
-  // Add directory that contains the list file to the path
-  std::string list_path = ST::GetFilenamePath( list_name );
-  if ( ! list_path.empty() )
+  if( ST::FileIsDirectory( list_name ) )
   {
-    d->c_search_path.push_back( list_path );
+    d->read_from_directory( list_name );
   }
-
-  kwiver::vital::data_stream_reader stream_reader( ifs );
-
-  // verify and get file names in a list
-  std::string data_dir = "";
-  std::string line;
-  // Read the first line and determine to file location
-  if ( stream_reader.getline( line ) )
+  else
   {
-    std::string resolved_file = line;
-    if ( ! ST::FileExists( resolved_file ) )
-    {
-      // Resolve against specified path
-      resolved_file = ST::FindFile( line, d->c_search_path, true );
-      if ( resolved_file.empty() )
-      {
-        throw kwiver::vital::
-          file_not_found_exception( line, "could not locate file in path" );
-      }
-      if( ST::StringEndsWith( resolved_file.c_str(), line.c_str() ) )
-      {
-        // extract the prefix added to get the full path
-        data_dir = resolved_file.substr(0, resolved_file.size() - line.size() );
-      }
-    }
-    d->m_files.push_back( resolved_file );
+    d->read_from_file( list_name );
   }
-  // Read the rest of the file and validate paths
-  // Only check the same data_dir used to resolve the first frame
-  while ( stream_reader.getline( line ) )
-  {
-    std::string resolved_file = line;
-    if ( ! ST::FileExists( resolved_file ) )
-    {
-      resolved_file = data_dir + line;
-      if ( ! ST::FileExists( resolved_file ) )
-      {
-        throw kwiver::vital::
-          file_not_found_exception( line,
-              "could not locate file relative to \"" + data_dir + "\"" );
-      }
-    }
-
-    d->m_files.push_back( resolved_file );
-  } // end while
 
   d->m_current_file = d->m_files.begin();
   d->m_frame_number = 0;
@@ -342,9 +318,7 @@ video_input_image_list
   d->m_image = nullptr;
 
   // Return timestamp
-  ts = kwiver::vital::timestamp();
-
-  ts.set_frame( d->m_frame_number );
+  ts = this->frame_timestamp();
 
   return ! this->end_of_video();
 }
@@ -362,6 +336,20 @@ video_input_image_list
   kwiver::vital::timestamp ts;
 
   ts.set_frame( d->m_frame_number );
+
+  if ( d->m_image_reader->get_implementation_capabilities().capability(
+      kwiver::vital::algo::image_io::HAS_TIME ) )
+  {
+    auto md = d->frame_metadata( *d->m_current_file, d->m_image );
+    if ( md )
+    {
+      auto mdts = md->timestamp();
+      if ( mdts.has_valid_time() )
+      {
+        ts.set_time_usec( mdts.get_time_usec() );
+      }
+    }
+  }
 
   return ts;
 }
@@ -395,14 +383,13 @@ video_input_image_list
   {
     return vital::metadata_vector();
   }
-  // For now, the only metadata is the filename of the image
-  auto md = std::make_shared<vital::metadata>();
-  md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
-                              *d->m_current_file ) );
+  auto md = d->frame_metadata( *d->m_current_file, d->m_image );
   vital::metadata_vector mdv(1, md);
   return mdv;
 }
 
+
+// ------------------------------------------------------------------
 kwiver::vital::metadata_map_sptr
 video_input_image_list
 ::metadata_map()
@@ -413,9 +400,7 @@ video_input_image_list
     for (const auto& f: d->m_files)
     {
       ++fn;
-      // For now, the only metadata is the filename
-      auto md = std::make_shared<vital::metadata>();
-      md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI, f ) );
+      auto md = d->frame_metadata( f );
       vital::metadata_vector mdv(1, md);
       d->m_metadata_map[fn] = mdv;
     }
@@ -424,6 +409,158 @@ video_input_image_list
   }
 
   return std::make_shared<kwiver::vital::simple_metadata_map>(d->m_metadata_map);
+}
+
+
+// ------------------------------------------------------------------
+void
+video_input_image_list::priv
+::read_from_file( std::string const& filename )
+{
+  typedef kwiversys::SystemTools ST;
+
+  // open file and read lines
+  std::ifstream ifs( filename.c_str() );
+  if ( ! ifs )
+  {
+    VITAL_THROW( kwiver::vital::invalid_file, filename, "Could not open file" );
+  }
+
+  // Add directory that contains the list file to the path
+  std::string list_path = ST::GetFilenamePath( filename );
+  if ( ! list_path.empty() )
+  {
+    this->c_search_path.push_back( list_path );
+  }
+
+  kwiver::vital::data_stream_reader stream_reader( ifs );
+
+  // verify and get file names in a list
+  std::string data_dir = "";
+  std::string line;
+  // Read the first line and determine to file location
+  if ( stream_reader.getline( line ) )
+  {
+    std::string resolved_file = line;
+    if ( ! ST::FileExists( resolved_file ) )
+    {
+      // Resolve against specified path
+      resolved_file = ST::FindFile( line, this->c_search_path, true );
+      if ( resolved_file.empty() )
+      {
+        VITAL_THROW( kwiver::vital::
+          file_not_found_exception, line, "could not locate file in path" );
+      }
+      if( ST::StringEndsWith( resolved_file.c_str(), line.c_str() ) )
+      {
+        // extract the prefix added to get the full path
+        data_dir = resolved_file.substr(0, resolved_file.size() - line.size() );
+      }
+    }
+    this->m_files.push_back( resolved_file );
+  }
+  // Read the rest of the file and validate paths
+  // Only check the same data_dir used to resolve the first frame
+  while ( stream_reader.getline( line ) )
+  {
+    std::string resolved_file = line;
+    if ( ! ST::FileExists( resolved_file ) )
+    {
+      resolved_file = data_dir + line;
+      if ( ! ST::FileExists( resolved_file ) )
+      {
+        VITAL_THROW( kwiver::vital::
+          file_not_found_exception, line,
+              "could not locate file relative to \"" + data_dir + "\"" );
+      }
+    }
+
+    this->m_files.push_back( resolved_file );
+  } // end while
+}
+
+
+// ------------------------------------------------------------------
+void
+video_input_image_list::priv
+::read_from_directory( std::string const& dirname )
+{
+  typedef kwiversys::SystemTools ST;
+
+  // Open the directory and read the entries
+  kwiversys::Directory directory;
+  if( ! directory.Load( dirname ) )
+  {
+    VITAL_THROW( kwiver::vital::invalid_file, dirname, "Could not open directory" );
+  }
+
+  // Read each entry
+  for( unsigned long i = 0; i < directory.GetNumberOfFiles(); i++ )
+  {
+    std::string filename = directory.GetFile( i );
+    std::string resolved_file = dirname + "/" + filename;
+    if( ! ST::FileExists( resolved_file ) )
+    {
+      VITAL_THROW( kwiver::vital::
+        file_not_found_exception, filename, "could not locate file in path" );
+    }
+    if( ! ST::FileIsDirectory( resolved_file ) )
+    {
+      if( this->c_allowed_extensions.empty() )
+      {
+        this->m_files.push_back( resolved_file );
+      }
+      else
+      {
+        for( auto const& extension: this->c_allowed_extensions )
+        {
+          std::string resolved_lower = ST::LowerCase( resolved_file );
+          std::string extension_lower = ST::LowerCase( extension );
+          if( ST::StringEndsWith( resolved_lower, extension_lower.c_str() ) )
+          {
+            this->m_files.push_back( resolved_file );
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // Sort the list
+  std::sort( this->m_files.begin(), this->m_files.end() );
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::metadata_sptr
+video_input_image_list::priv
+::frame_metadata( const kwiver::vital::path_t& file,
+                  kwiver::vital::image_container_sptr image )
+{
+  auto it = m_metadata_by_path.find( file );
+  if ( it != m_metadata_by_path.end() )
+  {
+    return it->second;
+  }
+
+  kwiver::vital::metadata_sptr md;
+  if ( image )
+  {
+    md = image->get_metadata();
+  }
+  if ( ! md )
+  {
+    md = m_image_reader->load_metadata( file );
+  }
+  if ( ! md )
+  {
+    md = std::make_shared<kwiver::vital::metadata>();
+  }
+
+  md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI, file ) );
+
+  m_metadata_by_path[file] = md;
+  return md;
 }
 
 } } }     // end namespace

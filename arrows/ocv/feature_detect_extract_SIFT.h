@@ -55,6 +55,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_SIFT
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_SIFT",
+               "OpenCV feature detection via the SIFT algorithm" )
+
   /// Constructor
   detect_features_SIFT();
 
@@ -80,7 +83,10 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_SIFT
                                   vital::algo::extract_descriptors >
 {
 public:
-  /// Constructor
+  PLUGIN_INFO( "ocv_SIFT",
+               "OpenCV feature-point descriptor extraction via the SIFT algorithm" )
+
+    /// Constructor
   extract_descriptors_SIFT();
 
   /// Destructor

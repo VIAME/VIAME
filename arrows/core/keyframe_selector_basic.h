@@ -53,17 +53,13 @@ namespace core {
 
   /// A basic query formulator
   class KWIVER_ALGO_CORE_EXPORT keyframe_selector_basic
-    : public vital::algorithm_impl<keyframe_selector_basic, 
+    : public vital::algorithm_impl<keyframe_selector_basic,
     vital::algo::keyframe_selection>
   {
   public:
-    /// Name of the algorithm
-    static constexpr char const* name = "basic";
-
-    /// Description of the algorithm
-    static constexpr char const* description =
-      "A simple implementation of keyframe selection based on statistics"
-      " of KLT tracks";
+    PLUGIN_INFO( "basic",
+                 "A simple implementation of keyframe selection based on statistics"
+                 " of KLT tracks" )
 
     /// Default Constructor
     keyframe_selector_basic();
@@ -105,16 +101,17 @@ namespace core {
     */
     virtual bool check_configuration(vital::config_block_sptr config) const;
 
-    /// Select keyframes from a set of tracks.  Different implementations can 
-    /// select key-frames in different ways. For example, one method could only 
-    /// add key-frames for frames that are new.  Another could increase the 
-    /// density of key-frames near existing frames so dense processing can be done.  
+    /// Select keyframes from a set of tracks.  Different implementations can
+    /// select key-frames in different ways. For example, one method could only
+    /// add key-frames for frames that are new.  Another could increase the
+    /// density of key-frames near existing frames so dense processing can be done.
     /**
-    * \param [in] current_keyframes The current key-frame selection data.  Set 
-    *             to null if no key-frame data is available or you want to 
+    * \param [in] current_keyframes The current key-frame selection data.  Set
+    *             to null if no key-frame data is available or you want to
     *             perform key-frame selection from scratch.
     * \param [in] tracks The tracks over which to select key-frames
-    * \returns selected key-frame data structure
+    * \returns selected key-frame data structure.  Tracks is modified in place
+    *             so the returned pointer points to the same object as tracks.
     */
     virtual kwiver::vital::track_set_sptr
       select(kwiver::vital::track_set_sptr tracks) const;

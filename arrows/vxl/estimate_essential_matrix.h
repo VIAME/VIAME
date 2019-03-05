@@ -51,6 +51,9 @@ class KWIVER_ALGO_VXL_EXPORT estimate_essential_matrix
   : public vital::algorithm_impl<estimate_essential_matrix, vital::algo::estimate_essential_matrix>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to estimate an essential matrix." )
+
   /// Constructor
   estimate_essential_matrix();
 

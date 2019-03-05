@@ -1,5 +1,13 @@
 project(sprokit_pipeline)
 
+set(VITAL_VERSION_H "${vital_BINARY_DIR}/version.h")
+
+set_source_files_properties(
+  ${VITAL_VERSION_H}
+  PROPERTIES
+  GENERATED TRUE
+  )
+
 set(pipeline_srcs
   datum.cxx
   edge.cxx
@@ -102,7 +110,10 @@ kwiver_add_library(sprokit_pipeline
   ${pipeline_srcs}
   ${pipeline_headers}
   ${pipeline_private_headers}
+  ${VITAL_VERSION_H}
   )
+
+add_dependencies(sprokit_pipeline configure-version.h)
 
 target_link_libraries(sprokit_pipeline
   PUBLIC              vital_config

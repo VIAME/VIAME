@@ -64,8 +64,8 @@ template < typename Functor, typename Range >
 class transform_view : public generic_view
 {
 protected:
-  using range_iterator_t = typename range_ref< Range >::iterator_t;
-  using range_value_ref_t = typename range_ref< Range >::value_ref_t;
+  using range_iterator_t = typename range_ref< Range const >::iterator_t;
+  using range_value_ref_t = typename range_ref< Range const >::value_ref_t;
 
 public:
   using value_t = typename function_detail< Functor >::return_type_t;
@@ -73,24 +73,24 @@ public:
 
   transform_view( transform_view const& ) = default;
 
-  class const_iterator
+  class iterator
   {
   public:
-    const_iterator() = default;
-    const_iterator( const_iterator const& ) = default;
-    const_iterator& operator=( const_iterator const& ) = default;
+    iterator() = default;
+    iterator( iterator const& ) = default;
+    iterator& operator=( iterator const& ) = default;
 
-    bool operator!=( const_iterator const& other ) const
+    bool operator!=( iterator const& other ) const
     { return m_iter != other.m_iter; }
 
     value_t operator*() const {  return m_func( *m_iter ); }
 
-    const_iterator& operator++() { ++m_iter; return *this; }
+    iterator& operator++() { ++m_iter; return *this; }
 
   protected:
     friend class transform_view;
-    const_iterator( range_iterator_t const& iter,
-                    transform_function_t const& func )
+    iterator( range_iterator_t const& iter,
+              transform_function_t const& func )
       : m_iter{ iter }, m_func( func ) {}
 
     range_iterator_t m_iter;
@@ -100,11 +100,11 @@ public:
   transform_view( Range const& range, transform_function_t func )
     : m_range{ range }, m_func{ func } {}
 
-  const_iterator begin() const { return { m_range.begin(), m_func }; }
-  const_iterator end() const { return { m_range.end(), m_func }; }
+  iterator begin() const { return { m_range.begin(), m_func }; }
+  iterator end() const { return { m_range.end(), m_func }; }
 
 protected:
-  range_ref< Range > m_range;
+  range_ref< Range const > m_range;
   transform_function_t m_func;
 };
 

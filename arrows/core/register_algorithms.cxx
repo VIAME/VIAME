@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
  */
 
 #include <arrows/core/kwiver_algo_core_plugin_export.h>
+
 #include <vital/algo/algorithm_factory.h>
 
 #include <arrows/core/associate_detections_to_tracks_threshold.h>
@@ -62,6 +63,7 @@
 #include <arrows/core/handle_descriptor_request_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
+#include <arrows/core/initialize_cameras_landmarks_keyframe.h>
 #include <arrows/core/initialize_object_tracks_threshold.h>
 #include <arrows/core/interpolate_track_spline.h>
 #include <arrows/core/keyframe_selector_basic.h>
@@ -76,6 +78,7 @@
 #include <arrows/core/video_input_filter.h>
 #include <arrows/core/video_input_image_list.h>
 #include <arrows/core/video_input_pos.h>
+#include <arrows/core/video_input_splice.h>
 #include <arrows/core/video_input_split.h>
 #include <arrows/core/write_object_track_set_kw18.h>
 #include <arrows/core/write_track_descriptor_set_csv.h>
@@ -85,27 +88,6 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-namespace {
-
-static auto const module_name         = std::string{ "arrows.core" };
-static auto const module_version      = std::string{ "1.0" };
-static auto const module_organization = std::string{ "Kitware Inc." };
-
-// ----------------------------------------------------------------------------
-template <typename algorithm_t>
-void register_algorithm( kwiver::vital::plugin_loader& vpm )
-{
-  using kvpf = kwiver::vital::plugin_factory;
-
-  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
-  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
-       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
-       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
-       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
-       ;
-}
-
-}
 
 // ----------------------------------------------------------------------------
 extern "C"
@@ -113,55 +95,59 @@ KWIVER_ALGO_CORE_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  if (vpm.is_module_loaded( module_name ) )
+  kwiver::vital::algorithm_registrar reg( vpm, "arrows.core" );
+
+  if (reg.is_module_loaded())
   {
     return;
   }
 
-  register_algorithm< associate_detections_to_tracks_threshold >( vpm );
-  register_algorithm< class_probablity_filter >( vpm );
-  register_algorithm< close_loops_bad_frames_only >( vpm );
-  register_algorithm< close_loops_exhaustive >( vpm );
-  register_algorithm< close_loops_keyframe >( vpm );
-  register_algorithm< close_loops_multi_method >( vpm );
-  register_algorithm< compute_association_matrix_from_features >( vpm );
-  register_algorithm< compute_ref_homography_core >( vpm );
-  register_algorithm< convert_image_bypass >( vpm );
-  register_algorithm< create_detection_grid >( vpm );
-  register_algorithm< detected_object_set_input_csv >( vpm );
-  register_algorithm< detected_object_set_input_kw18 >( vpm );
-  register_algorithm< detected_object_set_input_simulator >( vpm );
-  register_algorithm< detected_object_set_output_csv >( vpm );
-  register_algorithm< detected_object_set_output_kw18 >( vpm );
-  register_algorithm< dynamic_config_none >( vpm );
-  register_algorithm< estimate_canonical_transform >( vpm );
-  register_algorithm< example_detector >( vpm );
-  register_algorithm< feature_descriptor_io >( vpm );
-  register_algorithm< filter_features_magnitude >( vpm );
-  register_algorithm< filter_features_scale >( vpm );
-  register_algorithm< filter_tracks >( vpm );
-  register_algorithm< handle_descriptor_request_core >( vpm );
-  register_algorithm< hierarchical_bundle_adjust >( vpm );
-  register_algorithm< initialize_cameras_landmarks >( vpm );
-  register_algorithm< initialize_object_tracks_threshold >( vpm );
-  register_algorithm< interpolate_track_spline >( vpm );
-  register_algorithm< keyframe_selector_basic >( vpm );
-  register_algorithm< match_features_fundamental_matrix >( vpm );
-  register_algorithm< match_features_homography >( vpm );
-  register_algorithm< read_object_track_set_kw18 >( vpm );
-  register_algorithm< read_track_descriptor_set_csv >( vpm );
-  register_algorithm< track_features_augment_keyframes >( vpm );
-  register_algorithm< track_features_core >( vpm );
-  register_algorithm< triangulate_landmarks >( vpm );
-  register_algorithm< uv_unwrap_mesh >( vpm );
-  register_algorithm< video_input_filter >( vpm );
-  register_algorithm< video_input_image_list >( vpm );
-  register_algorithm< video_input_pos >( vpm );
-  register_algorithm< video_input_split >( vpm );
-  register_algorithm< write_object_track_set_kw18 >( vpm );
-  register_algorithm< write_track_descriptor_set_csv >( vpm );
+  reg.register_algorithm< associate_detections_to_tracks_threshold >();
+  reg.register_algorithm< class_probablity_filter >();
+  reg.register_algorithm< close_loops_appearance_indexed >();
+  reg.register_algorithm< close_loops_bad_frames_only >();
+  reg.register_algorithm< close_loops_exhaustive >();
+  reg.register_algorithm< close_loops_keyframe >();
+  reg.register_algorithm< close_loops_multi_method >();
+  reg.register_algorithm< compute_association_matrix_from_features >();
+  reg.register_algorithm< compute_ref_homography_core >();
+  reg.register_algorithm< convert_image_bypass >();
+  reg.register_algorithm< create_detection_grid >();
+  reg.register_algorithm< detected_object_set_input_csv >();
+  reg.register_algorithm< detected_object_set_input_kw18 >();
+  reg.register_algorithm< detected_object_set_input_simulator >();
+  reg.register_algorithm< detected_object_set_output_csv >();
+  reg.register_algorithm< detected_object_set_output_kw18 >();
+  reg.register_algorithm< dynamic_config_none >();
+  reg.register_algorithm< estimate_canonical_transform >();
+  reg.register_algorithm< example_detector >();
+  reg.register_algorithm< feature_descriptor_io >();
+  reg.register_algorithm< filter_features_magnitude >();
+  reg.register_algorithm< filter_features_scale >();
+  reg.register_algorithm< filter_tracks >();
+  reg.register_algorithm< handle_descriptor_request_core >();
+  reg.register_algorithm< hierarchical_bundle_adjust >();
+  reg.register_algorithm< initialize_cameras_landmarks >();
+  reg.register_algorithm< initialize_cameras_landmarks_keyframe >();
+  reg.register_algorithm< initialize_object_tracks_threshold >();
+  reg.register_algorithm< interpolate_track_spline >();
+  reg.register_algorithm< keyframe_selector_basic >();
+  reg.register_algorithm< match_features_fundamental_matrix >();
+  reg.register_algorithm< match_features_homography >();
+  reg.register_algorithm< read_object_track_set_kw18 >();
+  reg.register_algorithm< read_track_descriptor_set_csv >();
+  reg.register_algorithm< track_features_augment_keyframes >();
+  reg.register_algorithm< track_features_core >();
+  reg.register_algorithm< triangulate_landmarks >();
+  reg.register_algorithm< video_input_filter >();
+  reg.register_algorithm< video_input_image_list >();
+  reg.register_algorithm< video_input_pos >();
+  reg.register_algorithm< video_input_splice >();
+  reg.register_algorithm< video_input_split >();
+  reg.register_algorithm< write_object_track_set_kw18 >();
+  reg.register_algorithm< write_track_descriptor_set_csv >();
 
-  vpm.mark_module_as_loaded( module_name );
+  reg.mark_module_as_loaded();
 }
 
 } // end namespace core

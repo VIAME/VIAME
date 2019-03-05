@@ -181,19 +181,22 @@ close_loops_process
   vital::feature_track_set_sptr next_tracks =
     grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
 
+  next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first)
   {
-    vital::feature_track_set_sptr loob_back_tracks =
+    vital::feature_track_set_sptr loop_back_tracks =
       grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
 
+    loop_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
+
     curr_tracks = d->merge_next_tracks_into_loop_back_track(
-                   next_tracks, frame_time.get_frame(), loob_back_tracks);
+                   next_tracks, frame_time.get_frame(), loop_back_tracks);
   }
   else
   {
-    curr_tracks =
-      std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+    curr_tracks = next_tracks;
   }
   d->first = false;
 
@@ -266,9 +269,7 @@ close_loops_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  //clone loop back tracks so we can change it.
-  vital::feature_track_set_sptr curr_tracks =
-    std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
+  vital::feature_track_set_sptr curr_tracks = loop_back_tracks;
 
   //need to pull the key-frame data from next_tracks
   curr_tracks->set_frame_data(next_tracks->all_frame_data());
@@ -277,9 +278,13 @@ close_loops_process::priv
   // loop_back_tracks.
   std::vector< vital::track_sptr> next_active_tracks =
     next_tracks->active_tracks(next_tracks_frame_num);
+
+
   //get the active tracks for the last frame in loop_back tracks.
+
+  vital::frame_id_t loop_back_last_frame_num = loop_back_tracks->last_frame();
   std::vector< vital::track_sptr> curr_active_tracks =
-    curr_tracks->active_tracks(next_tracks_frame_num - 1);
+    curr_tracks->active_tracks(loop_back_last_frame_num);
 
   // Note, track ids from next_tracks and loop_back_tracks do not correspond.
   // KLT tracker never sees detected feature tracks and so it won't increment

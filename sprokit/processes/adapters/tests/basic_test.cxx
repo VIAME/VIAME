@@ -63,6 +63,8 @@ main(int argc, char* argv[])
 
   testname_t const testname = argv[1];
 
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
+
   RUN_TEST(testname);
 }
 
@@ -72,9 +74,6 @@ IMPLEMENT_TEST( basic_pipeline )
   sprokit::scheduler::type_t scheduler_type = sprokit::scheduler_factory::default_type;
   kwiver::input_adapter input_ad;
   kwiver::output_adapter output_ad;
-
-  // load processes
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   // Use SPROKIT macros to create pipeline description
   std::stringstream pipeline_desc;
@@ -287,7 +286,7 @@ public:
   virtual ~src_ep() { }
 
 protected:
-  virtual bool connect_input_adapter() { return true; }
+  virtual bool connect_input_adapter() override { return true; }
 };
 
 
@@ -347,7 +346,7 @@ public:
   virtual ~config_ep() { }
 
 protected:
-  virtual void update_config( kwiver::vital::config_block_sptr config )
+  virtual void update_config( kwiver::vital::config_block_sptr config ) override
   {
     // Test to see if the config has test = value
     TEST_EQUAL( "Has expected entry", config->has_value( "ia:test" ), true );
@@ -364,9 +363,6 @@ IMPLEMENT_TEST( update_config )
   sprokit::scheduler::type_t scheduler_type = sprokit::scheduler_factory::default_type;
   kwiver::input_adapter input_ad;
   kwiver::output_adapter output_ad;
-
-  // load processes
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
 
   // Use SPROKIT macros to create pipeline description
   std::stringstream pipeline_desc;
@@ -387,4 +383,57 @@ IMPLEMENT_TEST( update_config )
   config_ep ep;
   ep.build_pipeline( pipeline_desc );
 
+}
+
+
+// ----------------------------------------------------------------------------
+IMPLEMENT_TEST( epx_test )
+{
+  // Use SPROKIT macros to create pipeline description
+  std::stringstream pipeline_desc;
+  pipeline_desc << SPROKIT_PROCESS( "numbers",  "num" )
+                << SPROKIT_PROCESS( "output_adapter", "oa" )
+
+                << SPROKIT_CONNECT( "num", "number", "oa", "int" )
+
+                << SPROKIT_CONFIG_BLOCK( "_pipeline" )
+                << SPROKIT_CONFIG( "embedded_pipeline_extension:type", "test" )
+                << SPROKIT_CONFIG( "embedded_pipeline_extension:test:one", "one-test" )
+                << SPROKIT_CONFIG( "embedded_pipeline_extension:test:two", "two-test" )
+
+    ;
+
+  // create embedded pipeline
+  src_ep ep;
+  ep.build_pipeline( pipeline_desc );
+
+  // Start pipeline
+  ep.start();
+
+  int expected(0);
+
+  while( true )
+  {
+    auto ods = ep.receive(); // blocks
+
+    // check for end of data marker
+    if ( ods->is_end_of_data() )
+    {
+      TEST_EQUAL( "at_end() set correctly", ep.at_end(), true );
+      break;
+    }
+
+    int val = ods->get_port_data<int>( "int" );
+
+    if ( val != expected++ )
+    {
+      std::stringstream str;
+      str << "Unexpected value from pipeline. Expected " << expected
+          << " got " << val;
+      TEST_ERROR( str.str() );
+    }
+
+  } // end while
+
+  ep.wait();
 }

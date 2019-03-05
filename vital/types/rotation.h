@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,13 +71,13 @@ public:
   /// Constructor - from a 4D quaternion vector (x,y,z,w)
   /**
    * Note that the constructor for an Eigen:Quaternion from four scalars assumes
-   * the order (w,x,y,z). However, internally it is stored in the following 
+   * the order (w,x,y,z). However, internally it is stored in the following
    * order (x,y,z,w). Likewise, the constructor for an Eigen:Quaternion from an
    * array assumes the order (x,y,z,w).
    */
   //TODO: normalize quaternion. If the user provides a non-normalized quaterion,
   //It will remain so. This can cause problems when converting to other types.
-  //Might want to consider using the actual Eigen::Quaternion constructor. This 
+  //Might want to consider using the actual Eigen::Quaternion constructor. This
   //will also resolve the strange order of the coefficients.
   explicit rotation_< T > ( const Eigen::Matrix< T, 4, 1 > &quaternion )
   : q_( quaternion ) { }
@@ -99,11 +99,11 @@ public:
   /// Constructor - from yaw, pitch, and roll (radians)
   /**
    * This constructor is intended for use with yaw, pitch, and roll (in radians)
-   * output from an inertial navigation system, specifying the orientation of a 
-   * moving coordinate system relative to an east/north/up (ENU) coordinate 
-   * system. When all three angles are zero, the coordinate system's x, y, and 
-   * z axes align with north, east, and down respectively.  Non-zero yaw, pitch, 
-   * and roll define a sequence of intrinsic rotations around the z, y, and then 
+   * output from an inertial navigation system, specifying the orientation of a
+   * moving coordinate system relative to an east/north/up (ENU) coordinate
+   * system. When all three angles are zero, the coordinate system's x, y, and
+   * z axes align with north, east, and down respectively.  Non-zero yaw, pitch,
+   * and roll define a sequence of intrinsic rotations around the z, y, and then
    * x axes respectively.  The resulting rotation object takes a vector in ENU
    * and rotates it into the moving coordinate system.
    */
@@ -164,10 +164,10 @@ public:
 
   /// Equality operator
   /**
-   * TODO: two quaternions can represent the same rotation but have different 
+   * TODO: two quaternions can represent the same rotation but have different
    * components. The test is to calculate the product of the first rotation with
    * the inverse of the second to calculate the difference rotation. Convert the
-   * difference rotation to axis and angle form, and if the angle is greater 
+   * difference rotation to axis and angle form, and if the angle is greater
    * than some threshold, they should not be considered equal.
    */
   inline bool operator==( const rotation_< T >& rhs ) const
@@ -237,6 +237,22 @@ template < typename T >
 VITAL_EXPORT
 void interpolated_rotations( rotation_< T > const& A, rotation_< T > const& B,
                              size_t n, std::vector< rotation_< T > >& interp_rots );
+
+// TODO: Consider moving this method to a utilities header/directory
+/// Compose an aerial platform's orientation with sensor orientation
+/**
+ * \param platform_yaw yaw angle for aerial platform
+ * \param platform_pitch pitch angle for aerial platform
+ * \param platform_roll roll angle for aerial platform
+ * \param sensor_yaw yaw angle for aerial sensor
+ * \param sensor_pitch pitch angle for aerial sensor
+ * \param sensor_roll roll angle for aerial sensor
+ */
+template < typename T >
+VITAL_EXPORT
+rotation_< T > compose_rotations(
+  T platform_yaw, T platform_pitch, T platform_roll,
+  T sensor_yaw, T sensor_pitch, T sensor_roll );
 
 } } // end namespace vital
 

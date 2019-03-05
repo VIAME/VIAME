@@ -201,5 +201,4 @@ merge_images_process
   }
 }
 
-
 } // end namespace
