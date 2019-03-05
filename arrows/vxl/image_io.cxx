@@ -229,7 +229,7 @@ load_external_planes(const std::string& filename,
 
       if( plane.ni() != first_plane.ni() || plane.nj() != first_plane.nj() )
       {
-        throw vital::image_load_exception( "Input channel size difference" );
+        VITAL_THROW( vital::image_type_mismatch_exception, "Input channel size difference" );
       }
 
       images.push_back( plane );
