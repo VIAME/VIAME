@@ -32,7 +32,7 @@ process thermal_input
 
 # ================================ REGISTRATION ===================================
 
-process register
+process register_images
   :: itk_eo_ir_registration
   :output_frames_without_match                          true
   :max_time_offset                                      1.0
