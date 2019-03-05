@@ -55,8 +55,8 @@ class integrate_depth_maps::priv
 public:
   /// Constructor
   priv()
-    : ray_potential_thickness(1.65),
-      ray_potential_rho(1.0),
+    : ray_potential_rho(1.0),
+      ray_potential_thickness(1.65),
       ray_potential_eta(0.03),
       ray_potential_delta(16.5),
       grid_spacing {1.0, 1.0, 1.0},
