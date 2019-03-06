@@ -477,7 +477,7 @@ darknet_trainer
 #endif
   std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
     " detector train " + d->m_train_directory + div + "yolo.data "
-                       + d->m_train_directory + div + "yolo.cfg ";
+                       + d->m_train_directory + div + "yolo_train.cfg ";
 
   if( !d->m_seed_weights.empty() )
   {

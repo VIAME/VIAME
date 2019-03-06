@@ -4,7 +4,6 @@ import sys
 import os
 import glob
 import numpy as np
-import cv2
 import argparse
 import math
 import random
@@ -63,19 +62,29 @@ def generate_yolo_headers(
 
   # Hard coded configs
   label_file = output_str + ".lbl"
-  conf_file = output_str + ".cfg"
+  train_conf_file = output_str + "_train.cfg"
+  test_conf_file = output_str + ".cfg"
   train_file = output_str + ".data"
 
   # Dump out adjusted network file
-  repl_strs = [ ["[-HEIGHT_INSERT-]",str(height)],
-                ["[-WIDTH_INSERT-]",str(width)],
-                ["[-CHANNEL_INSERT-]",str(channels)],
-                ["[-FILTER_COUNT_INSERT-]",str(filter_count)],
-                ["[-BATCH_SIZE_INSERT-]",str(batch_size)],
-                ["[-BATCH_SUBDIVISIONS_INSERT-]",str(batch_subdivisions)],
-                ["[-CLASS_COUNT_INSERT-]",str(len(labels))] ]
+  train_repl_strs = [ ["[-HEIGHT_INSERT-]",str(height)],
+                      ["[-WIDTH_INSERT-]",str(width)],
+                      ["[-CHANNEL_INSERT-]",str(channels)],
+                      ["[-FILTER_COUNT_INSERT-]",str(filter_count)],
+                      ["[-BATCH_SIZE_INSERT-]",str(batch_size)],
+                      ["[-BATCH_SUBDIVISIONS_INSERT-]",str(batch_subdivisions)],
+                      ["[-CLASS_COUNT_INSERT-]",str(len(labels))] ]
 
-  replace_str_in_file( input_model, working_dir + div + conf_file, repl_strs )
+  test_repl_strs = [ ["[-HEIGHT_INSERT-]",str(height)],
+                     ["[-WIDTH_INSERT-]",str(width)],
+                     ["[-CHANNEL_INSERT-]",str(channels)],
+                     ["[-FILTER_COUNT_INSERT-]",str(filter_count)],
+                     ["[-BATCH_SIZE_INSERT-]","1"],
+                     ["[-BATCH_SUBDIVISIONS_INSERT-]","1"],
+                     ["[-CLASS_COUNT_INSERT-]",str(len(labels))] ]
+
+  replace_str_in_file( input_model, working_dir + div + train_conf_file, train_repl_strs )
+  replace_str_in_file( input_model, working_dir + div + test_conf_file, test_repl_strs )
 
   # Dump out labels file
   with open( working_dir + div + label_file, "w" ) as f:
