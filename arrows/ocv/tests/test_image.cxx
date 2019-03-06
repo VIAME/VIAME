@@ -422,36 +422,13 @@ TYPED_TEST_CASE(get_image, get_image_types);
 TYPED_TEST(get_image, crop)
 {
   using pix_t = typename TypeParam::pixel_type;
-
-  constexpr int img_w = 60;
-  constexpr int img_h = 40;
-  cv::Mat_<cv::Vec<pix_t, TypeParam::depth>> img{ cv::Size{ img_w, img_h } };
+  cv::Mat_<cv::Vec<pix_t, TypeParam::depth>> img{ cv::Size{ full_width, full_height } };
   populate_ocv_image<pix_t>( img );
 
-  int width = 30;
-  int height = 20;
-  int x_offset = 5;
-  int y_offset = 3;
-  image_container_sptr cropped_container =
+  image_container_sptr img_cont =
     std::make_shared<ocv::image_container>( img, ocv::image_container::RGB_COLOR );
-  kwiver::vital::image cropped_img =
-    cropped_container->get_image( x_offset, y_offset, width, height );
 
-  EXPECT_FALSE( cropped_img.is_contiguous() );
-  EXPECT_EQ( cropped_img.width(), width );
-  EXPECT_EQ( cropped_img.height(), height );
-
-  for ( int c = 0; c < cropped_img.depth(); c++ )
-  {
-    for ( int i = 0; i < width; ++i )
-    {
-      for ( int j = 0; j< height; ++j )
-      {
-        ASSERT_EQ( cropped_img.at<pix_t>( i, j, c ),
-                   img( i + x_offset, j + y_offset )( c ) );
-      }
-    }
-  }
+  test_get_image_crop<pix_t>( img_cont );
 }
 
 // ----------------------------------------------------------------------------

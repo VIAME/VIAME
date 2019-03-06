@@ -515,33 +515,10 @@ TYPED_TEST_CASE(get_image, get_image_types);
 TYPED_TEST(get_image, crop)
 {
   using pix_t = typename TypeParam::pixel_type;
-  constexpr int img_w = 60;
-  constexpr int img_h = 40;
-  image_of<pix_t> img{ img_w, img_h, 3 };
+  image_of<pix_t> img{ full_width, full_height, 3 };
   populate_vital_image<pix_t>( img );
 
-  image_container_sptr img_ptr = std::make_shared<simple_image_container>(img);
+  image_container_sptr img_cont = std::make_shared<simple_image_container>(img);
 
-  int width = 30;
-  int height = 20;
-  int x_offset = 5;
-  int y_offset = 3;
-  auto cropped_img = img_ptr->get_image(x_offset, y_offset, width, height);
-
-  EXPECT_TRUE( img.is_contiguous() );
-  EXPECT_FALSE( cropped_img.is_contiguous() );
-  EXPECT_EQ( cropped_img.width(), width );
-  EXPECT_EQ( cropped_img.height(), height );
-
-  for ( int c = 0; c < cropped_img.depth(); c++ )
-  {
-    for ( int i = 0; i < width; ++i )
-    {
-      for ( int j = 0; j< height; ++j )
-      {
-        ASSERT_EQ( cropped_img.at<pix_t>( i, j, c ),
-                   img( i + x_offset, j + y_offset , c ) );
-      }
-    }
-  }
+  test_get_image_crop<pix_t>( img_cont );
 }
