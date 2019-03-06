@@ -75,7 +75,7 @@ class darknet_detector::priv
 {
 public:
   priv()
-    : m_local_search( false )
+    : m_local_search( "" )
     , m_thresh( 0.24 )
     , m_hier_thresh( 0.5 )
     , m_gpu_index( -1 )
@@ -99,7 +99,7 @@ public:
   std::string m_net_config;
   std::string m_weight_file;
   std::string m_class_names;
-  bool m_local_search;
+  std::string m_local_search;
 
   float m_thresh;
   float m_hier_thresh;
@@ -230,7 +230,7 @@ darknet_detector
   this->d->m_net_config  = config->get_value< std::string >( "net_config" );
   this->d->m_weight_file = config->get_value< std::string >( "weight_file" );
   this->d->m_class_names = config->get_value< std::string >( "class_names" );
-  this->d->m_local_search = config->get_value< bool >( "local_search" );
+  this->d->m_local_search = config->get_value< std::string >( "local_search" );
   this->d->m_thresh      = config->get_value< float >( "thresh" );
   this->d->m_hier_thresh = config->get_value< float >( "hier_thresh" );
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
@@ -252,9 +252,9 @@ darknet_detector
   }
 #endif
 
-  if( d->m_local_search && !d->find_local_models() )
+  if( !d->m_local_search.empty() && !d->find_local_models() )
   {
-    throw kwiver::vital::file_not_found_exception( "yolo.weights", "Local find failed"  );
+    throw kwiver::vital::file_not_found_exception( d->m_local_search, "Local find failed"  );
   }
 
   // Open file and return 'list' of labels
@@ -790,21 +790,21 @@ darknet_detector::priv
   const std::string div = "/";
 #endif
 
-  std::string input_model1 = "category_models" + div + "yolo.weights";
-  std::string input_model2 = "deep_training" + div + "models" + div + "yolo.backup";
+  std::string input_model1 = "category_models" + div + m_local_search + ".weights";
+  std::string input_model2 = "deep_training" + div + "models" + div + m_local_search + ".backup";
 
   if( kwiversys::SystemTools::FileExists( input_model1 ) )
   {
-    m_net_config = "category_models" + div + "yolo.cfg";
+    m_net_config = "category_models" + div + m_local_search + ".cfg";
     m_weight_file = input_model1;
-    m_class_names = "category_models" + div + "yolo.lbl";
+    m_class_names = "category_models" + div + m_local_search + ".lbl";
     return true;
   }
   else if( kwiversys::SystemTools::FileExists( input_model2 ) )
   {
-    m_net_config = "deep_training" + div + "yolo.cfg";
+    m_net_config = "deep_training" + div + m_local_search + ".cfg";
     m_weight_file = input_model2;
-    m_class_names = "deep_training" + div + "yolo.lbl";
+    m_class_names = "deep_training" + div + m_local_search + ".lbl";
     return true;
   }
 
