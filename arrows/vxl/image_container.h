@@ -100,7 +100,7 @@ public:
   virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
                                  unsigned width, unsigned height) const
   {
-    return vxl_to_vital(*data_);
+    return vxl_to_vital(*data_).crop(x_offset, y_offset, width, height);
   }
 
   /// Get image data in this container.

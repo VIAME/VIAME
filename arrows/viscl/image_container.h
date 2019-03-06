@@ -91,7 +91,7 @@ public:
   virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
                                  unsigned width, unsigned height) const
   {
-     return viscl_to_vital(data_);
+     return viscl_to_vital(data_).crop(x_offset, y_offset, width, height);
   }
 
   /// Access the underlying VisCL data structure

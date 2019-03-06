@@ -526,3 +526,57 @@ TYPED_TEST(image_conversion, vital_to_vxl_interleaved)
   populate_vital_image<TypeParam>( img );
   run_vital_conversion_tests( img );
 }
+
+// ----------------------------------------------------------------------------
+template <typename T>
+class get_image : public ::testing::Test
+{
+};
+
+using get_image_types = ::testing::Types<
+  image_type<byte, 1>,
+  image_type<byte, 3>,
+  image_type<uint16_t, 1>,
+  image_type<uint16_t, 3>,
+  image_type<float, 1>,
+  image_type<float, 3>,
+  image_type<double, 1>,
+  image_type<double, 3>
+  >;
+  TYPED_TEST_CASE(get_image, get_image_types);
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(get_image, crop)
+{
+  using pix_t = typename TypeParam::pixel_type;
+
+  constexpr int img_w = 60;
+  constexpr int img_h = 40;
+  vil_image_view<pix_t> img{ img_w, img_h, TypeParam::depth };
+  populate_vil_image( img );
+
+  int width = 30;
+  int height = 20;
+  int x_offset = 5;
+  int y_offset = 3;
+  image_container_sptr cropped_container = std::make_shared<vxl::image_container>(img);
+  kwiver::vital::image cropped_img =
+    cropped_container->get_image(x_offset, y_offset, width, height);
+
+  EXPECT_TRUE( img.is_contiguous() );
+  EXPECT_FALSE( cropped_img.is_contiguous() );
+  EXPECT_EQ( cropped_img.width(), width );
+  EXPECT_EQ( cropped_img.height(), height );
+
+  for ( int c = 0; c < cropped_img.depth(); c++ )
+  {
+    for ( int i = 0; i < width; ++i )
+    {
+      for ( int j = 0; j< height; ++j )
+      {
+        ASSERT_EQ( cropped_img.at<pix_t>( i, j, c ),
+                   img( i + x_offset, j + y_offset , c ) );
+      }
+    }
+  }
+}

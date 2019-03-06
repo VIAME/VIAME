@@ -33,6 +33,8 @@
  * \brief core image class tests
  */
 
+#include <arrows/tests/test_image.h>
+
 #include <vital/types/image.h>
 #include <vital/types/image_container.h>
 #include <vital/util/transform_image.h>
@@ -483,21 +485,40 @@ TEST(image, cast_image)
   EXPECT_EQ( img1.d_step(), img2.d_step() );
 }
 
-TEST(image, get_image)
+// ----------------------------------------------------------------------------
+template <typename T, int Depth>
+struct image_type
 {
+  using pixel_type = T;
+  static constexpr int depth = Depth;
+};
+
+template <typename T>
+class get_image : public ::testing::Test
+{
+};
+
+using get_image_types = ::testing::Types<
+  image_type<byte, 1>,
+  image_type<byte, 3>,
+  image_type<uint16_t, 1>,
+  image_type<uint16_t, 3>,
+  image_type<float, 1>,
+  image_type<float, 3>,
+  image_type<double, 1>,
+  image_type<double, 3>
+  >;
+
+TYPED_TEST_CASE(get_image, get_image_types);
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(get_image, crop)
+{
+  using pix_t = typename TypeParam::pixel_type;
   constexpr int img_w = 60;
   constexpr int img_h = 40;
-  image_of<byte> img{ img_w, img_h, 3 };
-  // Red channel is linear in width
-  // Green channel in linear in height
-  for ( int i = 0; i < img_w; ++i )
-  {
-    for ( int j = 0; j < img_h; ++j )
-    {
-        img( i, j, 0) = i;
-        img( i, j, 1) = j;
-    }
-  }
+  image_of<pix_t> img{ img_w, img_h, 3 };
+  populate_vital_image<pix_t>( img );
 
   image_container_sptr img_ptr = std::make_shared<simple_image_container>(img);
 
@@ -512,15 +533,15 @@ TEST(image, get_image)
   EXPECT_EQ( cropped_img.width(), width );
   EXPECT_EQ( cropped_img.height(), height );
 
-  // Check values at corners and center
-  EXPECT_EQ( cropped_img.at<byte>(0, 0, 0), x_offset );
-  EXPECT_EQ( cropped_img.at<byte>(0, 0, 1), y_offset );
-  EXPECT_EQ( cropped_img.at<byte>(width - 1, 0, 0), x_offset + width - 1 );
-  EXPECT_EQ( cropped_img.at<byte>(width - 1, 0, 1), y_offset );
-  EXPECT_EQ( cropped_img.at<byte>(0, height - 1, 0), x_offset );
-  EXPECT_EQ( cropped_img.at<byte>(0, height - 1, 1), y_offset + height - 1 );
-  EXPECT_EQ( cropped_img.at<byte>(width - 1, height - 1, 0), x_offset + width - 1 );
-  EXPECT_EQ( cropped_img.at<byte>(width - 1, height - 1, 1), y_offset + height - 1 );
-  EXPECT_EQ( cropped_img.at<byte>(width/2, height/2, 0), x_offset + width/2 );
-  EXPECT_EQ( cropped_img.at<byte>(width/2, height/2, 1), y_offset + height/2 );
+  for ( int c = 0; c < cropped_img.depth(); c++ )
+  {
+    for ( int i = 0; i < width; ++i )
+    {
+      for ( int j = 0; j< height; ++j )
+      {
+        ASSERT_EQ( cropped_img.at<pix_t>( i, j, c ),
+                   img( i + x_offset, j + y_offset , c ) );
+      }
+    }
+  }
 }

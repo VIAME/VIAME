@@ -93,7 +93,7 @@ public:
   virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
                                  unsigned width, unsigned height) const
   {
-    return ocv_to_vital(data_, RGB_COLOR);
+    return ocv_to_vital(data_, RGB_COLOR).crop(x_offset, y_offset, width, height);
   }
 
   /// Access the underlying cv::Mat data structure
