@@ -65,7 +65,7 @@ public:
   priv()
     : m_net_config( "" )
     , m_seed_weights( "" )
-    , m_train_directory( "darknet_training" )
+    , m_train_directory( "deep_training" )
     , m_output_directory( "category_models" )
     , m_output_model_name( "yolo" )
     , m_model_type( "yolov3" )
