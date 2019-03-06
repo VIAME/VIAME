@@ -363,7 +363,7 @@ convert_image
   config->set_value( "percentile_norm", d->percentile_norm,
     "If set, perform percentile normalization such that the output image's min and max "
     "value correspond to this value to 1.0 minus this value percntile in the input image." );
-  config->set_value( "force_three_channel", d->percentile_norm,
+  config->set_value( "force_three_channel", d->force_three_channel,
     "If set, will force the output image to be a 3-channel instead of grayscale. If it "
     "is any other channel count, it will be truncated to 3." );
 
