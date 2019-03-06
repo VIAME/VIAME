@@ -228,6 +228,27 @@ operator<<( record_yaml_writer& w, const writer< canonical::activity_t >& io )
   return w;
 }
 
+record_yaml_writer&
+operator<<( record_yaml_writer& w, const packet_t& p )
+{
+  auto d = p.header.domain;
+  switch (p.header.style)
+  {
+  case packet_style::META:   w << writer< canonical::meta_t>( p.meta.txt ); break;
+  case packet_style::ID:     w << writer< canonical::id_t>( p.id, d ); break;
+  case packet_style::TS:     w << writer< canonical::timestamp_t>( p.timestamp, d );  break;
+  case packet_style::TSR:    w << writer< canonical::timestamp_range_t>( p.timestamp_range, d); break;
+  case packet_style::GEOM:   w << writer< canonical::bbox_t>( p.bbox, d ); break;
+  case packet_style::POLY:   w << writer< canonical::poly_t>( p.poly, d ); break;
+  case packet_style::CONF:   w << writer< canonical::conf_t>( p.conf, d ); break;
+  case packet_style::CSET:   w << writer< canonical::cset_t>( *p.cset, d ); break;
+  case packet_style::ACT:    w << writer< canonical::activity_t>( p.activity, d ); break;
+  case packet_style::EVAL:   w << writer< canonical::eval_t>( p.eval, d ); break;
+  case packet_style::KV:     w << writer< canonical::kv_t>( p.kv ); break;
+  default:
+    LOG_ERROR( main_logger, "No KPF packet writer for " << p );
+    break;
+  }
   return w;
 }
 
