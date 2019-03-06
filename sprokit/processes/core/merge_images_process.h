@@ -57,7 +57,7 @@ class KWIVER_PROCESSES_NO_EXPORT merge_images_process
   : public sprokit::process
 {
 public:
-  PLUGIN_INFO( "merge_image",
+  PLUGIN_INFO( "merge_images",
                "Merge multiple images into one." )
 
   merge_images_process( kwiver::vital::config_block_sptr const& config );
