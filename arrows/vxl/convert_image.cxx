@@ -277,6 +277,28 @@ void percentile_scale_image( const vil_image_view< InputType >& src,
   }
 }
 
+template<typename PixType>
+void force_three_channels( const vil_image_view< PixType >& input,
+                           vil_image_view< Pixtype >& output )
+{
+  if( input.nplanes() == 3 )
+  {
+    output = input;
+  }
+  else
+  {
+    output = vil_image_view< PixType >( output.ni(), output.nj(), 3 );
+
+    vil_image_view< PixType > plane1 = vil_plane( output, 0 );
+    vil_image_view< PixType > plane2 = vil_plane( output, 1 );
+    vil_image_view< PixType > plane3 = vil_plane( output, 2 );
+
+    vil_copy_reformat( vil_plane( input, 0 ), plane1 );
+    vil_copy_reformat( vil_plane( input, ( input.nplanes() > 1 ? 1 : 0 ), plane2 ) );
+    vil_copy_reformat( vil_plane( input, ( input.nplanes() > 2 ? 2 : 0 ), plane3 ) );
+  }
+}
+
 } // end anonoymous namespace
 
 // --------------------------------------------------------------------------------------
@@ -291,6 +313,7 @@ public:
    , scale_factor( 0.0 )
    , random_greyscale( 0.0 )
    , percentile_norm( -1.0 )
+   , force_three_channel( false )
   {
   }
 
@@ -303,6 +326,7 @@ public:
   double scale_factor;
   double random_greyscale;
   double percentile_norm;
+  bool force_three_channel;
 };
 
 // --------------------------------------------------------------------------------------
@@ -338,6 +362,9 @@ convert_image
   config->set_value( "percentile_norm", d->percentile_norm,
     "If set, perform percentile normalization such that the output image's min and max "
     "value correspond to this value to 1.0 minus this value percntile in the input image." );
+  config->set_value( "force_three_channel", d->percentile_norm,
+    "If set, will force the output image to be a 3-channel instead of grayscale. If it "
+    "is any other channel count, it will be truncated to 3." );
 
   return config;
 }
@@ -358,6 +385,7 @@ convert_image
   d->scale_factor = config->get_value< double >( "scale_factor" );
   d->random_greyscale = config->get_value< double >( "random_greyscale" );
   d->percentile_norm = config->get_value< double >( "percentile_norm" );
+  d->force_three_channel = config->get_value< bool >( "force_three_channel" );
 
   // Adjustment in case user specified 1% instead of 0.01
   if( d->percentile_norm >= 0.5 )
@@ -407,6 +435,11 @@ convert_image
     else                                                               \
     {                                                                  \
       scale_image< ipix_t, opix_t >( input, output, d->scale_factor ); \
+    }                                                                  \
+                                                                       \
+    if( d->force_three_channel )                                       \
+    {                                                                  \
+      force_three_channels( output, output );                          \
     }                                                                  \
                                                                        \
     return std::make_shared< vxl::image_container >( output );         \
