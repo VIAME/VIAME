@@ -42,11 +42,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string.hpp>
-
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -70,8 +65,9 @@ public:
   priv()
     : m_net_config( "" )
     , m_seed_weights( "" )
-    , m_output_weights( "" )
     , m_train_directory( "darknet_training" )
+    , m_output_directory( "category_models" )
+    , m_output_model_name( "yolo" )
     , m_model_type( "yolov3" )
     , m_skip_format( false )
     , m_gpu_index( 0 )
@@ -99,8 +95,9 @@ public:
   // Items from the config
   std::string m_net_config;
   std::string m_seed_weights;
-  std::string m_output_weights;
   std::string m_train_directory;
+  std::string m_output_directory;
+  std::string m_output_model_name;
   std::string m_model_type;
   bool m_skip_format;
   int m_gpu_index;
@@ -190,6 +187,10 @@ darknet_trainer
     "Optional input seed weights file." );
   config->set_value( "train_directory", d->m_train_directory,
     "Temp directory for all files used in training." );
+  config->set_value( "output_directory", d->m_output_directory,
+    "Final directory to output all models to." );
+  config->set_value( "output_model_name", d->m_output_model_name,
+    "Optional model name over-ride, if unspecified default used." );
   config->set_value( "model_type", d->m_model_type,
     "Type of model (values understood are \"yolov2\" and \"yolov3\" [the "
     "default])." );
@@ -253,6 +254,8 @@ darknet_trainer
   this->d->m_net_config  = config->get_value< std::string >( "net_config" );
   this->d->m_seed_weights = config->get_value< std::string >( "seed_weights" );
   this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
+  this->d->m_output_directory = config->get_value< std::string >( "output_directory" );
+  this->d->m_output_model_name = config->get_value< std::string >( "output_model_name" );
   this->d->m_model_type = config->get_value< std::string >( "model_type" );
   this->d->m_skip_format = config->get_value< bool >( "skip_format" );
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
@@ -278,12 +281,12 @@ darknet_trainer
   if( !d->m_skip_format )
   {
     // Delete and reset folder contents
-    if( boost::filesystem::exists( d->m_train_directory ) &&
-        boost::filesystem::is_directory( d->m_train_directory ) )
+    if( kwiversys::SystemTools::FileExists( d->m_train_directory ) &&
+        kwiversys::SystemTools::FileIsDirectory( d->m_train_directory ) )
     {
-      boost::filesystem::remove_all( d->m_train_directory );
+      kwiversys::SystemTools::RemoveADirectory( d->m_train_directory );
 
-      if( boost::filesystem::exists( d->m_train_directory ) )
+      if( kwiversys::SystemTools::FileExists( d->m_train_directory ) )
       {
         LOG_ERROR( d->m_logger, "Unable to delete pre-existing training dir" );
         return;
@@ -300,8 +303,7 @@ darknet_trainer
 
     for( unsigned i = 0; i < dirs_to_make.size(); ++i )
     {
-      boost::filesystem::path dir( dirs_to_make[i] );
-      boost::filesystem::create_directories( dir );
+      kwiversys::SystemTools::MakeDirectory( dirs_to_make[i] );
     }
   }
 }
@@ -454,6 +456,7 @@ darknet_trainer
     header_args = header_args + "," + std::to_string( d->m_batch_size );
     header_args = header_args + "," + std::to_string( d->m_batch_subdivisions );
     header_args = header_args + "," + eq + d->m_net_config + eq;
+    header_args = header_args + "," + d->m_output_model_name;
 
 #ifdef WIN32
     std::string header_end  = ")\"";
@@ -475,7 +478,7 @@ darknet_trainer
 #else
   std::string darknet_cmd = "darknet";
 #endif
-  std::string darknet_args = "-i " + boost::lexical_cast< std::string >( d->m_gpu_index ) +
+  std::string darknet_args = "-i " + std::to_string( d->m_gpu_index ) +
     " detector train " + d->m_train_directory + div + "yolo.data "
                        + d->m_train_directory + div + "yolo_train.cfg ";
 
@@ -495,6 +498,49 @@ darknet_trainer
   if ( system( full_cmd.c_str() ) != 0 )
   {
     LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
+  }
+
+  // Copy final model into output directory
+  if( !kwiversys::SystemTools::FileExists( d->m_output_directory ) )
+  {
+    kwiversys::SystemTools::MakeDirectory( d->m_output_directory );
+  }
+
+  if( d->m_output_directory == d->m_train_directory )
+  {
+    return;
+  }
+
+  std::string input_model1 = d->m_train_directory + div + "models" + div +
+                             d->m_output_model_name + "_final.weights";
+  std::string input_model2 = d->m_train_directory + div + "models" + div +
+                             d->m_output_model_name + ".backup";
+
+  std::string output_labels = d->m_output_directory + div + d->m_output_model_name + ".lbl";
+  std::string output_model = d->m_output_directory + div + d->m_output_model_name + ".weights";
+  std::string output_cfg =  d->m_output_directory + div + d->m_output_model_name + ".cfg";
+
+  if( kwiversys::SystemTools::FileExists( input_model1 ) )
+  {
+    std::string input_labels = d->m_train_directory + div + d->m_output_model_name + ".lbl";
+    std::string input_cfg = d->m_train_directory + div + d->m_output_model_name + ".cfg";
+
+    kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels );
+    kwiversys::SystemTools::CopyFileAlways( input_model1, output_model );
+    kwiversys::SystemTools::CopyFileAlways( input_cfg, output_cfg );
+  }
+  else if( kwiversys::SystemTools::FileExists( input_model2 ) )
+  {
+    std::string input_labels = d->m_train_directory + div + d->m_output_model_name + ".lbl";
+    std::string input_cfg = d->m_train_directory + div + d->m_output_model_name + ".cfg";
+
+    kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels );
+    kwiversys::SystemTools::CopyFileAlways( input_model2, output_model );
+    kwiversys::SystemTools::CopyFileAlways( input_cfg, output_cfg );
+  }
+  else
+  {
+    LOG_ERROR( logger(), "Couldn't move final models to output directory" );
   }
 }
 
@@ -785,11 +831,11 @@ darknet_trainer::priv
 
       std::string line = category + " ";
 
-      line += boost::lexical_cast< std::string >( 0.5 * ( min_x + max_x ) / width ) + " ";
-      line += boost::lexical_cast< std::string >( 0.5 * ( min_y + max_y ) / height ) + " ";
+      line += std::to_string( 0.5 * ( min_x + max_x ) / width ) + " ";
+      line += std::to_string( 0.5 * ( min_y + max_y ) / height ) + " ";
 
-      line += boost::lexical_cast< std::string >( overlap.width() / width ) + " ";
-      line += boost::lexical_cast< std::string >( overlap.height() / height );
+      line += std::to_string( overlap.width() / width ) + " ";
+      line += std::to_string( overlap.height() / height );
 
       to_write.push_back( line );
     }
