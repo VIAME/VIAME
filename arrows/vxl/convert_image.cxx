@@ -278,24 +278,25 @@ void percentile_scale_image( const vil_image_view< InputType >& src,
 }
 
 template<typename PixType>
-void force_three_channels( const vil_image_view< PixType >& input,
-                           vil_image_view< Pixtype >& output )
+void force_three_channels( vil_image_view< PixType >& image )
 {
-  if( input.nplanes() == 3 )
+  if( image.nplanes() == 3 )
   {
-    output = input;
+    return;
   }
   else
   {
-    output = vil_image_view< PixType >( output.ni(), output.nj(), 3 );
+    const vil_image_view< PixType > input = image;
 
-    vil_image_view< PixType > plane1 = vil_plane( output, 0 );
-    vil_image_view< PixType > plane2 = vil_plane( output, 1 );
-    vil_image_view< PixType > plane3 = vil_plane( output, 2 );
+    image = vil_image_view< PixType >( input.ni(), input.nj(), 3 );
+
+    vil_image_view< PixType > plane1 = vil_plane( image, 0 );
+    vil_image_view< PixType > plane2 = vil_plane( image, 1 );
+    vil_image_view< PixType > plane3 = vil_plane( image, 2 );
 
     vil_copy_reformat( vil_plane( input, 0 ), plane1 );
-    vil_copy_reformat( vil_plane( input, ( input.nplanes() > 1 ? 1 : 0 ), plane2 ) );
-    vil_copy_reformat( vil_plane( input, ( input.nplanes() > 2 ? 2 : 0 ), plane3 ) );
+    vil_copy_reformat( vil_plane( input, ( input.nplanes() > 1 ? 1 : 0 ) ), plane2 );
+    vil_copy_reformat( vil_plane( input, ( input.nplanes() > 2 ? 2 : 0 ) ), plane3 );
   }
 }
 
@@ -439,7 +440,7 @@ convert_image
                                                                        \
     if( d->force_three_channel )                                       \
     {                                                                  \
-      force_three_channels( output, output );                          \
+      force_three_channels( output );                                  \
     }                                                                  \
                                                                        \
     return std::make_shared< vxl::image_container >( output );         \
