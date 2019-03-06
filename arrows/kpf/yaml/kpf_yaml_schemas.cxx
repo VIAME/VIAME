@@ -104,6 +104,7 @@ validation_data
   switch (s)
   {
   case schema_style::INVALID:     return "invalid";
+  case schema_style::META:        return "meta";
   case schema_style::GEOM:        return "geom";
   case schema_style::ACT:         return "act";
   case schema_style::TYPES:       return "types";
@@ -117,7 +118,7 @@ schema_style
 validation_data
 ::str_to_schema_style( const string& s )
 {
-  for (auto style: { schema_style::INVALID, schema_style::GEOM, schema_style::ACT,
+  for (auto style: { schema_style::INVALID, schema_style::META, schema_style::GEOM, schema_style::ACT,
         schema_style::TYPES, schema_style::REGIONS, schema_style::UNSPECIFIED } )
   {
     if (s == schema_style_to_str( style ))
