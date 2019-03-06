@@ -210,9 +210,10 @@ operator<<( record_yaml_writer& w, const writer< canonical::activity_t >& io )
     w << writer< canonical::eval_t>( e );
   }
 
-  w.oss << "actors: [{ ";
+  w.oss << "actors: [ ";
   for (auto a: act.actors)
   {
+    w.oss << "{ ";
     w.oss << "id" << a.actor_id.domain << ": " << a.actor_id.t.d << ", ";
     w.oss << "timespan: [{ ";
     for (auto t: a.actor_timespan )
@@ -220,8 +221,12 @@ operator<<( record_yaml_writer& w, const writer< canonical::activity_t >& io )
       w.oss << "tsr" << t.domain << ": [" << t.t.start << " , " << t.t.stop << "], ";
     }
     w.oss << " }], ";
+    w.oss << " }, ";
   }
-  w.oss << "}], ";
+  w.oss << "], ";
+
+  return w;
+}
 
   return w;
 }
