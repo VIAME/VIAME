@@ -483,6 +483,14 @@ darknet_detector::priv
 
   for( unsigned i = 0; i < cv_images.size(); i++ )
   {
+    // Error checking
+    if( cv_images[i].channels() != m_net.c )
+    {
+      throw std::runtime_error( "Model channel count (" + std::to_string( m_net.c ) + ") "
+        + "does not match input image count (" + std::to_string( cv_images[i].channels() ) + ")" );
+    }
+
+    // Copy in image
     image img = cvmat_to_image( cv_images[i] );
 
     if( img.w == m_net.w && img.h == m_net.h )
