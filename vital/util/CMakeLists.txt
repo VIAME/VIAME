@@ -34,6 +34,7 @@ set( public_headers
   tokenize.h
   transform_image.h
   wrap_text_block.h
+  file_md5.h
   )
 
 # ----------------------
@@ -61,6 +62,7 @@ set( sources
   token_type_symtab.cxx
   token_type_sysenv.cxx
   wrap_text_block.cxx
+  file_md5.cxx
   )
 
 kwiver_install_headers(
