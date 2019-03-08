@@ -10,7 +10,7 @@ process input
   :: video_input
   video_filename      = /Data/Kaggle/smeschke/pedestrian-dataset/crosswalk.avi
   frame_time         = .3333
-  video_reader:type  = ffmpeg
+  video_reader:type  = vidl_ffmpeg
 
 # ================================================================
 #
@@ -21,8 +21,8 @@ process motion
   :: motion_detector
 
   block algo
-    #type =  ocv_MOG2
-    type =  ocv_3frame_diff
+    type =  motion_detector_MOG2
+    #type =  motion_detector_3frame_differencing
 
     block ocv_MOG2
       var_threshold = 16

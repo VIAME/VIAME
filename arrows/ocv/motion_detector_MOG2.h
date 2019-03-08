@@ -57,6 +57,9 @@ class KWIVER_ALGO_OCV_EXPORT motion_detector_MOG2
                                  vital::algo::motion_detector>
 {
 public:
+  PLUGIN_INFO( "motion_detector_MOG2",
+               "OCV implementation of motion_detector using cv::BackgroundSubtractorMOG2" )
+
   double learning_rate = 0.01;
 
   /// Constructor

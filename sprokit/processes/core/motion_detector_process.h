@@ -47,6 +47,9 @@ class KWIVER_PROCESSES_NO_EXPORT motion_detector_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "motion_detector",
+               "Detect motion in a sequence of images" )
+
   motion_detector_process( kwiver::vital::config_block_sptr const& config );
   virtual ~motion_detector_process();
 

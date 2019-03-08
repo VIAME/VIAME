@@ -115,7 +115,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< match_features_flannbased >();
 
   reg.register_algorithm< hough_circle_detector >();
-  reg.register_algorithm< motion_detector_three_frame_differencing >();
+  reg.register_algorithm< motion_detector_3frame_differencing >();
   reg.register_algorithm< motion_detector_MOG2 >();
 
   // Conditional algorithms
