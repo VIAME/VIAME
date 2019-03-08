@@ -305,7 +305,7 @@ motion_detector_3frame_differencing
 
   config->set_value( "frame_separation", d_->m_frame_separation,
                      "Number of frames of separation for difference "
-                     "calculation. Queue of collected images must be twice this"
+                     "calculation. Queue of collected images must be twice this "
                      "value before a three-frame difference can be "
                      "calculated." );
   config->set_value( "jitter_radius", d_->m_jitter_radius,
@@ -324,7 +324,7 @@ motion_detector_3frame_differencing
                      "is done." );
   config->set_value( "max_foreground_fract_thresh",
                      d_->m_max_foreground_fract_thresh,
-                     "To be used in conjunction with max_foreground_fract, this"
+                     "To be used in conjunction with max_foreground_fract, this "
                      "parameter defines the threshold for foreground in order "
                      "to determine if the maximum fraction of foreground has "
                      "been exceeded." );
