@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -421,6 +421,8 @@ image
   d_step_ = ( w_step_ == 1 ) ? width * height : 1;
 }
 
+
+/// Get a cropped view of the image.
 image
 image
 ::crop(unsigned x_offset, unsigned y_offset, unsigned width, unsigned height) const

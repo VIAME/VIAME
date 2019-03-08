@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -218,7 +218,7 @@ image_container
 }
 
 // ----------------------------------------------------------------------------
-/// Return a vital image. Unlike other image container must allocate memory.
+/// Get image. Unlike other image containers must allocate memory
 vital::image
 image_container
 ::get_image() const
@@ -241,7 +241,7 @@ image_container
 }
 
 // ----------------------------------------------------------------------------
-/// Return a cropped vital image. Unlike other image container must allocate memory.
+/// Get cropped view of image. Unlike other image containers must allocate memory
 vital::image
 image_container
 ::get_image(unsigned x_offset, unsigned y_offset,

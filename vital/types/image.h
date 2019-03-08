@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -537,9 +537,10 @@ public:
    */
   void set_size( size_t width, size_t height, size_t depth );
 
-  /// Get a cropped view of the image
+  /// Get a cropped view of the image.
   /**
-   * Get a cropped view of the image.
+   * Get a cropped view of the image. The cropped view shares memory with the
+   * original image so no deep copy is done.
    * \param x_offset start of the crop region in x (width)
    * \param y_offset start of the crop region in y (height)
    * \param width width of the crop region

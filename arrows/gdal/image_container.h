@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,10 +73,10 @@ public:
   /// The depth (or number of channels) of the image
   virtual size_t depth() const { return gdal_dataset_->GetRasterCount(); }
 
-  /// Get image. Unlike other image container must allocate memory
+  /// Get image. Unlike other image containers must allocate memory
   virtual vital::image get_image() const;
 
-  /// Get sub-image. Unlike other image container must allocate memory
+  /// Get cropped view of image. Unlike other image containers must allocate memory
   virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
                                  unsigned width, unsigned height) const;
 
