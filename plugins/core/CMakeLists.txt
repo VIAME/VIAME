@@ -100,8 +100,9 @@ kwiver_add_plugin( viame_processes_core
   SOURCES          ${process_sources}
                    ${private_headers}
   PRIVATE          sprokit_pipeline
-                   kwiver_algo_core kwiversys
+                   kwiver_algo_core kwiversys kwiver_adapter
                    vital vital_vpm vital_logger vital_config
+				   vital_util vital_exceptions
                    ${Boost_SYSTEM_LIBRARY}
                    ${Boost_FILESYSTEM_LIBRARY}
  )

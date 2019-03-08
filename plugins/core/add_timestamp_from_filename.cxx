@@ -40,6 +40,9 @@
 #include <ctime>
 #include <regex>
 
+#ifdef WIN32
+#define timegm _mkgmtime
+#endif
 
 namespace viame
 {

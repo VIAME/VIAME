@@ -38,7 +38,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/core/viame_core_export.h>
+#include <plugins/core/viame_processes_core_export.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
@@ -79,7 +79,7 @@ create_port_trait( thermal_to_optical_homog, homography, "Homography" );
  * It's also possible for derived versions of this class to attempt to
  * register the images together.
  */
-class VIAME_CORE_NO_EXPORT align_multimodal_imagery_process
+class VIAME_PROCESSES_CORE_NO_EXPORT align_multimodal_imagery_process
   : public sprokit::process
 {
 public:
@@ -107,7 +107,7 @@ protected:
 
     double time()
     {
-      return ts.get_time_usec();
+      return static_cast< double >( ts.get_time_usec() );
     }
   };
 

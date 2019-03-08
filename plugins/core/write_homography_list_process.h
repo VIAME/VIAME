@@ -38,7 +38,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/core/viame_core_export.h>
+#include <plugins/core/viame_processes_core_export.h>
 
 #include <memory>
 
@@ -52,7 +52,7 @@ namespace core
 /**
  * @brief Register optical and thermal imagery using core
  */
-class VIAME_CORE_NO_EXPORT write_homography_list_process
+class VIAME_PROCESSES_CORE_NO_EXPORT write_homography_list_process
   : public sprokit::process
 {
 public:
