@@ -108,21 +108,21 @@ _step()
   auto input = grab_from_port_using_trait( image );
   kwiver::vital::image_container_sptr result;
 
+
+  kwiver::vital::timestamp ts;
+  if (has_input_port_edge_using_trait( timestamp ) )
+  {
+    ts = grab_from_port_using_trait( timestamp );
+  }
+
+  bool reset(false);
+  if (has_input_port_edge_using_trait( coordinate_system_updated ) )
+  {
+    reset = grab_from_port_using_trait( coordinate_system_updated );
+  }
+
   {
     scoped_step_instrumentation();
-
-    kwiver::vital::timestamp ts;
-    if (has_input_port_edge_using_trait( timestamp ) )
-    {
-      ts = grab_from_port_using_trait( timestamp );
-    }
-
-    bool reset(false);
-    if (has_input_port_edge_using_trait( coordinate_system_updated ) )
-    {
-      reset = grab_from_port_using_trait( coordinate_system_updated );
-    }
-
     result = d->m_algo->process_image( ts, input, reset );
   }
 
