@@ -746,7 +746,7 @@ perform_white_balancing
   config->set_value( "exp_history_factor",
     d->m_settings.exp_averaging_factor,
     "The exponential averaging factor for correction matrices" );
-  config->set_value( "correction_matrix_resolution",
+  config->set_value( "matrix_resolution",
     d->m_settings.correction_matrix_res,
     "The resolution of the correction matrix" );
 
@@ -771,7 +771,7 @@ perform_white_balancing
   d->m_settings.exp_averaging_factor  =
     config->get_value< double >( "exp_history_factor" );
   d->m_settings.correction_matrix_res =
-    config->get_value< unsigned> ( "correction_matrix_resolution"  );
+    config->get_value< unsigned> ( "matrix_resolution"  );
 
   // Validate parameters
   if( d->m_settings.exp_averaging_factor > 1.0 )
