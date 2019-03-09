@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PROCESSES_MOTION_DETECTOR_PROCESS_H
-#define SPROKIT_PROCESSES_MOTION_DETECTOR_PROCESS_H
+#ifndef SPROKIT_PROCESSES_DETECT_MOTION_PROCESS_H
+#define SPROKIT_PROCESSES_DETECT_MOTION_PROCESS_H
 
 #include "kwiver_processes_export.h"
 #include <sprokit/pipeline/process.h>
@@ -43,15 +43,15 @@ namespace kwiver {
  * @brief Motion detection process.
  *
  */
-class KWIVER_PROCESSES_NO_EXPORT motion_detector_process
+class KWIVER_PROCESSES_NO_EXPORT detect_motion_process
   : public sprokit::process
 {
 public:
-  PLUGIN_INFO( "motion_detector",
+  PLUGIN_INFO( "detect_motion",
                "Detect motion in a sequence of images" )
 
-  motion_detector_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~motion_detector_process();
+  detect_motion_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~detect_motion_process();
 
 protected:
   virtual void _configure();
@@ -67,4 +67,4 @@ private:
 
 } // end namespace
 
-#endif /* SPROKIT_PROCESSES_MOTION_DETECTOR_PROCESS_H */
+#endif /* SPROKIT_PROCESSES_DETECT_MOTION_PROCESS_H */

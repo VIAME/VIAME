@@ -13,6 +13,8 @@ set( ocv_headers_public
   detect_features_MSER.h
   detect_features_simple_blob.h
   detect_features_STAR.h
+  detect_motion_3frame_differencing.h
+  detect_motion_MOG2.h
   draw_detected_object_set.h
   draw_tracks.h
   estimate_fundamental_matrix.h
@@ -41,8 +43,6 @@ set( ocv_headers_public
   refine_detections_write_to_disk.h
   split_image.h
   track_features_klt.h
-  motion_detector_3frame_differencing.h
-  motion_detector_MOG2.h
   )
 kwiver_install_headers(
   SUBDIR     arrows/ocv
@@ -65,6 +65,8 @@ set( ocv_sources
   detect_features_MSER.cxx
   detect_features_simple_blob.cxx
   detect_features_STAR.cxx
+  detect_motion_3frame_differencing.cxx
+  detect_motion_MOG2.cxx
   draw_detected_object_set.cxx
   draw_tracks.cxx
   estimate_fundamental_matrix.cxx
@@ -93,8 +95,6 @@ set( ocv_sources
   refine_detections_write_to_disk.cxx
   split_image.cxx
   track_features_klt.cxx
-  motion_detector_3frame_differencing.cxx
-  motion_detector_MOG2.cxx
   )
 
 if( KWIVER_HAS_OPENCV_VER_3 )

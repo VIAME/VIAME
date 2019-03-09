@@ -28,10 +28,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "motion_detector_process.h"
+#include "detect_motion_process.h"
 
 #include <vital/util/wall_timer.h>
-#include <vital/algo/motion_detector.h>
+#include <vital/algo/detect_motion.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 #include <sprokit/pipeline/process_exception.h>
@@ -42,38 +42,38 @@ create_config_trait( algo, std::string, "", "Algorithm configuration subblock" )
 
 //----------------------------------------------------------------
 // Private implementation class
-class motion_detector_process::priv
+class detect_motion_process::priv
 {
 public:
   priv();
   ~priv();
 
-  vital::algo::motion_detector_sptr m_algo;
+  vital::algo::detect_motion_sptr m_algo;
   kwiver::vital::wall_timer m_timer;
 
 }; // end priv class
 
 
 // ==================================================================
-motion_detector_process::
-motion_detector_process( kwiver::vital::config_block_sptr const& config )
+detect_motion_process::
+detect_motion_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
-    d( new motion_detector_process::priv )
+    d( new detect_motion_process::priv )
 {
   make_ports();
   make_config();
 }
 
 
-motion_detector_process::
-~motion_detector_process()
+detect_motion_process::
+~detect_motion_process()
 {
 }
 
 
 // ------------------------------------------------------------------
 void
-motion_detector_process::
+detect_motion_process::
 _configure()
 {
   scoped_configure_instrumentation();
@@ -81,12 +81,12 @@ _configure()
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::motion_detector::check_nested_algo_configuration_using_trait( algo, algo_config ) )
+  if ( ! vital::algo::detect_motion::check_nested_algo_configuration_using_trait( algo, algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
-  vital::algo::motion_detector::set_nested_algo_configuration_using_trait( algo, algo_config, d->m_algo );
+  vital::algo::detect_motion::set_nested_algo_configuration_using_trait( algo, algo_config, d->m_algo );
 
   if ( ! d->m_algo )
   {
@@ -97,7 +97,7 @@ _configure()
 
 // ------------------------------------------------------------------
 void
-motion_detector_process::
+detect_motion_process::
 _step()
 {
   d->m_timer.start();
@@ -136,7 +136,7 @@ _step()
 
 // ------------------------------------------------------------------
 void
-motion_detector_process::
+detect_motion_process::
 make_ports()
 {
   // Set up for required ports
@@ -157,7 +157,7 @@ make_ports()
 
 // ------------------------------------------------------------------
 void
-motion_detector_process::
+detect_motion_process::
 make_config()
 {
   declare_config_using_trait( algo );
@@ -165,13 +165,13 @@ make_config()
 
 
 // ================================================================
-motion_detector_process::priv
+detect_motion_process::priv
 ::priv()
 {
 }
 
 
-motion_detector_process::priv
+detect_motion_process::priv
 ::~priv()
 {
 }

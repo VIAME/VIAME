@@ -30,11 +30,11 @@
 
 /**
  * \file
- * \brief OCV motion detection MOG2 algorithm impl interface
+ * \brief OCV motion detection 3-frame difference algorithm impl interface
  */
 
-#ifndef KWIVER_ARROWS_OCV_MOTION_DETECTOR_MOG2_H_
-#define KWIVER_ARROWS_OCV_MOTION_DETECTOR_MOG2_H_
+#ifndef KWIVER_ARROWS_OCV_THREE_FRAME_DIFFERENCING_H_
+#define KWIVER_ARROWS_OCV_THREE_FRAME_DIFFERENCING_H_
 
 #include <memory>
 
@@ -42,7 +42,7 @@
 
 #include <vital/types/timestamp.h>
 #include <vital/vital_config.h>
-#include <vital/algo/motion_detector.h>
+#include <vital/algo/detect_motion.h>
 #include <vital/config/config_block.h>
 
 #include <arrows/ocv/kwiver_algo_ocv_export.h>
@@ -51,21 +51,18 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// OCV implementation of motion_detector using cv::BackgroundSubtractorMOG2
-class KWIVER_ALGO_OCV_EXPORT motion_detector_MOG2
-  : public vital::algorithm_impl<motion_detector_MOG2,
-                                 vital::algo::motion_detector>
+/// OCV implementation of detect_motion using three-frame differencing
+class KWIVER_ALGO_OCV_EXPORT detect_motion_3frame_differencing
+  : public vital::algorithm_impl<detect_motion_3frame_differencing,
+                                 vital::algo::detect_motion>
 {
 public:
-  PLUGIN_INFO( "motion_detector_MOG2",
-               "OCV implementation of motion_detector using cv::BackgroundSubtractorMOG2" )
-
-  double learning_rate = 0.01;
-
+  PLUGIN_INFO( "detect_motion_3frame_differencing",
+               "OCV implementation of detect_motion using three-frame differencing" )
   /// Constructor
-  motion_detector_MOG2();
+  detect_motion_3frame_differencing();
   /// Destructor
-  virtual ~motion_detector_MOG2() noexcept;
+  virtual ~detect_motion_3frame_differencing() noexcept;
 
   /// Get this algorithm's \link kwiver::vital::config_block configuration block \endlink
   virtual vital::config_block_sptr get_configuration() const;
@@ -84,8 +81,8 @@ public:
    *
    * \param ts Timestamp for the input image
    * \param image Image from a sequence
-   * \param reset_model Indicates that the background model should
-   * be reset, for example, due to changes in lighting condition or
+   * \param reset_model Indicates that the model should be reset, for example,
+   * due to changes in lighting condition or
    * camera pose
    *
    * \returns A heat map image is returned indicating the confidence
@@ -107,4 +104,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif /* KWIVER_ARROWS_OCV_MOTION_DETECTOR_MOG2_H_ */
+#endif /* KWIVER_ARROWS_OCV_THREE_FRAME_DIFFERENCING_H_ */

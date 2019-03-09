@@ -30,10 +30,10 @@
 
 /**
  * \file
- * \brief Implementation of ocv::motion_detector_MOG2
+ * \brief Implementation of ocv::detect_motion_MOG2
  */
 
-#include "motion_detector_MOG2.h"
+#include "detect_motion_mog2.h"
 
 #include <vital/exceptions.h>
 
@@ -57,7 +57,7 @@ using namespace kwiver::vital;
 
 
 /// Private implementation class
-class motion_detector_MOG2::priv
+class detect_motion_mog2::priv
 {
 public:
   /// Parameters
@@ -103,26 +103,26 @@ public:
 
 
 /// Constructor
-motion_detector_MOG2
-::motion_detector_MOG2()
+detect_motion_mog2
+::detect_motion_mog2()
 : d_(new priv)
 {
-  attach_logger( "arrows.ocv.motion_detector_MOG2" );
+  attach_logger( "arrows.ocv.detect_motion_mog2" );
   d_->m_logger = logger();
   d_->reset();
 }
 
 
 /// Destructor
-motion_detector_MOG2
-::~motion_detector_MOG2() noexcept
+detect_motion_mog2
+::~detect_motion_mog2() noexcept
 {
 }
 
 
 /// Get this alg's \link vital::config_block configuration block \endlink
 vital::config_block_sptr
-motion_detector_MOG2
+detect_motion_mog2
 ::get_configuration() const
 {
   // get base config from base class
@@ -159,7 +159,7 @@ motion_detector_MOG2
 
 /// Set this algo's properties via a config block
 void
-motion_detector_MOG2
+detect_motion_mog2
 ::set_configuration(vital::config_block_sptr in_config)
 {
   // Starting with our generated config_block to ensure that assumed values are present
@@ -195,7 +195,7 @@ motion_detector_MOG2
 
 
 bool
-motion_detector_MOG2
+detect_motion_mog2
 ::check_configuration(vital::config_block_sptr config) const
 {
   return true;
@@ -204,14 +204,14 @@ motion_detector_MOG2
 
 /// Detect motion from a sequence of images
 image_container_sptr
-motion_detector_MOG2
+detect_motion_mog2
 ::process_image( const timestamp& ts,
                  const image_container_sptr image,
                  bool reset_model)
 {
   if ( !image)
   {
-    throw vital::invalid_data("Inputs to ocv::motion_detector_MOG2 are null");
+    throw vital::invalid_data("Inputs to ocv::detect_motion_mog2 are null");
   }
 
   if( reset_model )

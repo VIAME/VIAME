@@ -14,6 +14,7 @@ set( sources
   compute_track_descriptors_process.cxx
   detect_features_if_keyframe_process.cxx
   detect_features_process.cxx
+  detect_motion_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
   detected_object_filter_process.cxx
@@ -30,7 +31,6 @@ set( sources
   keyframe_selection_process.cxx
   matcher_process.cxx
   merge_detection_sets_process.cxx
-  motion_detector_process.cxx
   perform_query_process.cxx
   merge_images_process.cxx
   print_config_process.cxx
@@ -61,6 +61,7 @@ set( private_headers
   detected_object_output_process.h
   detected_object_input_process.h
   detected_object_filter_process.h
+  detect_motion_process.h
   draw_detected_object_set_process.h
   draw_tracks_process.h
   extract_descriptors_process.h
@@ -74,7 +75,6 @@ set( private_headers
   keyframe_selection_process.h
   matcher_process.h
   merge_detection_sets_process.h
-  motion_detector_process.h
   perform_query_process.h
   merge_images_process.h
   print_config_process.h

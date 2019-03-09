@@ -30,24 +30,24 @@
 
 /**
  * \file
- * \brief motion_detector algorithm instantiation
+ * \brief detect_motion algorithm instantiation
  */
 
 #include <vital/algo/algorithm.txx>
-#include <vital/algo/motion_detector.h>
+#include <vital/algo/detect_motion.h>
 
 namespace kwiver {
 namespace vital {
 namespace algo {
 
-motion_detector
-::motion_detector()
+detect_motion
+::detect_motion()
 {
-  attach_logger( "motion_detector" ); // specify a logger
+  attach_logger( "detect_motion" ); // specify a logger
 }
 
 } } }
 
 /// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::motion_detector);
+INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::detect_motion);
 /// \endcond

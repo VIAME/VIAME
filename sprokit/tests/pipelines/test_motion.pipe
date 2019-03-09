@@ -18,11 +18,11 @@ process input
 # Only the one we select gets used
 #
 process motion
-  :: motion_detector
+  :: detect_motion
 
   block algo
-    type =  motion_detector_MOG2
-    #type =  motion_detector_3frame_differencing
+    #type =  detect_motion_mog2
+    type =  detect_motion_3frame_differencing
 
     block ocv_MOG2
       var_threshold = 16

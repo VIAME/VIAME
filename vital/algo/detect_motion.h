@@ -33,8 +33,8 @@
  * \brief Interface to algorithms for motion detection
  */
 
-#ifndef VITAL_ALGO_MOTION_DETECTOR_H
-#define VITAL_ALGO_MOTION_DETECTOR_H
+#ifndef VITAL_ALGO_DETECT_MOTION_H
+#define VITAL_ALGO_DETECT_MOTION_H
 
 
 #include <vital/vital_config.h>
@@ -50,13 +50,13 @@ namespace vital {
 namespace algo {
 
 /// \brief Abstract base class for motion detection algorithms.
-class VITAL_ALGO_EXPORT motion_detector
-  : public kwiver::vital::algorithm_def<motion_detector>
+class VITAL_ALGO_EXPORT detect_motion
+  : public kwiver::vital::algorithm_def<detect_motion>
 {
 public:
 
   /// Return the name of this algorithm.
-  static std::string static_type_name() { return "motion_detector"; }
+  static std::string static_type_name() { return "detect_motion"; }
 
   /// Detect motion from a sequence of images
   /**
@@ -82,13 +82,13 @@ public:
                    bool reset_model ) = 0;
 
 protected:
-  motion_detector();
+  detect_motion();
 
 };
 
-/// type definition for shared pointer to a motion_detector algorithm
-typedef std::shared_ptr<motion_detector> motion_detector_sptr;
+/// type definition for shared pointer to a detect_motion algorithm
+typedef std::shared_ptr<detect_motion> detect_motion_sptr;
 
 } } } // end namespace
 
-#endif // VITAL_ALGO_MOTION_DETECTOR_H
+#endif // VITAL_ALGO_DETECT_MOTION_H
