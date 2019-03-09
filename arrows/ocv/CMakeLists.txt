@@ -14,7 +14,7 @@ set( ocv_headers_public
   detect_features_simple_blob.h
   detect_features_STAR.h
   detect_motion_3frame_differencing.h
-  detect_motion_MOG2.h
+  detect_motion_mog2.h
   draw_detected_object_set.h
   draw_tracks.h
   estimate_fundamental_matrix.h
@@ -66,7 +66,7 @@ set( ocv_sources
   detect_features_simple_blob.cxx
   detect_features_STAR.cxx
   detect_motion_3frame_differencing.cxx
-  detect_motion_MOG2.cxx
+  detect_motion_mog2.cxx
   draw_detected_object_set.cxx
   draw_tracks.cxx
   estimate_fundamental_matrix.cxx
