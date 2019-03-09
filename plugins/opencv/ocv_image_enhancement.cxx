@@ -57,9 +57,10 @@ public:
     , m_denoise_coeff( 3 )
     , m_force_8bit( false )
     , m_auto_balance( false )
-    , m_apply_clahe( true )
+    , m_apply_clahe( false )
     , m_clip_limit( 4 )
     , m_saturation( 1.0 )
+    , m_apply_sharpening( false )
   {}
 
   ~priv() {}
@@ -74,6 +75,7 @@ public:
   bool m_apply_clahe;
   unsigned m_clip_limit;
   float m_saturation;
+  bool m_apply_sharpening;
 };
 
 // =================================================================================================
@@ -110,6 +112,7 @@ ocv_image_enhancement
   config->set_value( "apply_clahe", d->m_apply_clahe, "Apply CLAHE illumination normalization" );
   config->set_value( "clip_limit", d->m_clip_limit, "Clip limit used during hist normalization" );
   config->set_value( "saturation", d->m_saturation, "Saturation scale factor" );
+  config->set_value( "apply_sharpening", d->m_apply_sharpening, "Apply sharpening to the input" );
 
   return config;
 }
@@ -118,8 +121,11 @@ ocv_image_enhancement
 // -------------------------------------------------------------------------------------------------
 void
 ocv_image_enhancement
-::set_configuration( kwiver::vital::config_block_sptr config )
+::set_configuration( kwiver::vital::config_block_sptr config_in )
 {
+  vital::config_block_sptr config = this->get_configuration();
+  config->merge_config( config_in );
+
   d->m_apply_smoothing = config->get_value< bool >( "apply_smoothing" );
   d->m_smooth_kernel = config->get_value< unsigned >( "smooth_kernel" );
   d->m_apply_denoising = config->get_value< bool >( "apply_denoising" );
@@ -130,6 +136,7 @@ ocv_image_enhancement
   d->m_apply_clahe = config->get_value< bool >( "apply_clahe" );
   d->m_clip_limit = config->get_value< unsigned >( "clip_limit" );
   d->m_saturation = config->get_value< float >( "saturation" );
+  d->m_apply_sharpening = config->get_value< bool >( "apply_sharpening" );
 }
 
 
@@ -189,7 +196,7 @@ ocv_image_enhancement
     rgb_channels[2] = red;
     rgb_channels[1] = green;
     rgb_channels[0] = blue;
-    
+
     cv::merge( rgb_channels, output_ocv );
   }
 
@@ -287,6 +294,13 @@ ocv_image_enhancement
 
     cv::merge( hsv_channels, output_ocv );
     cv::cvtColor( output_ocv, output_ocv, CV_HSV2BGR );
+  }
+
+  if( d->m_apply_sharpening )
+  {
+    cv::Mat tmp;
+    cv::GaussianBlur( output_ocv, tmp, cv::Size( 0, 0 ), 3 );
+    cv::addWeighted( output_ocv, 1.5, tmp, -0.5, 0, output_ocv );
   }
 
   kwiver::vital::image_container_sptr output(
