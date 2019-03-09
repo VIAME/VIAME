@@ -20,6 +20,7 @@ set(vxl_headers_public
   image_io.h
   match_features_constrained.h
   optimize_cameras.h
+  perform_white_balancing.h
   polygon.h
   split_image.h
   triangulate_landmarks.h
@@ -55,6 +56,7 @@ set(vxl_sources
   image_io.cxx
   match_features_constrained.cxx
   optimize_cameras.cxx
+  perform_white_balancing.cxx
   polygon.cxx
   split_image.cxx
   triangulate_landmarks.cxx

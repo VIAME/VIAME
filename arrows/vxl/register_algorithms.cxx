@@ -48,6 +48,7 @@
 #include <arrows/vxl/estimate_similarity_transform.h>
 #include <arrows/vxl/image_io.h>
 #include <arrows/vxl/optimize_cameras.h>
+#include <arrows/vxl/perform_white_balancing.h>
 #include <arrows/vxl/split_image.h>
 #include <arrows/vxl/triangulate_landmarks.h>
 #include <arrows/vxl/match_features_constrained.h>
@@ -84,6 +85,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< estimate_similarity_transform >();
   reg.register_algorithm< image_io >();
   reg.register_algorithm< optimize_cameras >();
+  reg.register_algorithm< perform_white_balancing >();
   reg.register_algorithm< split_image >();
   reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< match_features_constrained >();
