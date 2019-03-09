@@ -643,7 +643,7 @@ average_frames
 ::filter( kwiver::vital::image_container_sptr image_data )
 {
   // Perform Basic Validation
-  if( !image_data )
+  if( !image_data || d->type == "disabled" )
   {
     return image_data;
   }
