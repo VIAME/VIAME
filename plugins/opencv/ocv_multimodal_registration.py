@@ -236,7 +236,6 @@ class register_frames_process( KwiverProcess ):
         thermal_c = self.grab_input_using_trait( 'thermal_image' )
 
         # Get python image from conatiner (just for show)
-        # TODO: Remove unecessary copy here, this in kwiver yet?
         optical_npy = optical_c.image().asarray().astype('uint8')
         thermal_npy = thermal_c.image().asarray().astype('uint16')
 

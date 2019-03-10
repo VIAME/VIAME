@@ -78,4 +78,9 @@ if( VIAME_ENABLE_PYTHON )
     viame/processes/opencv
     ocv_multimodal_registration )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/ocv_fft_filter_based_on_ref.py
+    viame/processes/opencv
+    ocv_fft_filter_based_on_ref )
+
 endif()

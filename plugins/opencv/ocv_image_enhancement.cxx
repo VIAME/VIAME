@@ -51,7 +51,7 @@ public:
 
   priv()
     : m_apply_smoothing( false )
-    , m_smooth_kernel( 3 )
+    , m_smoothing_kernel( 3 )
     , m_apply_denoising( false )
     , m_denoise_kernel( 3 )
     , m_denoise_coeff( 3 )
@@ -61,12 +61,14 @@ public:
     , m_clip_limit( 4 )
     , m_saturation( 1.0 )
     , m_apply_sharpening( false )
+    , m_sharpening_kernel( 3 )
+    , m_sharpening_weight( 0.5 )
   {}
 
   ~priv() {}
 
   bool m_apply_smoothing;
-  unsigned m_smooth_kernel;
+  unsigned m_smoothing_kernel;
   bool m_apply_denoising;
   unsigned m_denoise_kernel;
   unsigned m_denoise_coeff;
@@ -76,6 +78,8 @@ public:
   unsigned m_clip_limit;
   float m_saturation;
   bool m_apply_sharpening;
+  unsigned m_sharpening_kernel;
+  double m_sharpening_weight;
 };
 
 // =================================================================================================
@@ -103,7 +107,7 @@ ocv_image_enhancement
   kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
 
   config->set_value( "apply_smoothing", d->m_apply_smoothing, "Apply smoothing to the input" );
-  config->set_value( "smooth_kernel", d->m_smooth_kernel, "Smoothing kernel size" );
+  config->set_value( "smoothing_kernel", d->m_smoothing_kernel, "Smoothing kernel size" );
   config->set_value( "apply_denoising", d->m_apply_denoising, "Apply denoising to the input" );
   config->set_value( "denoise_kernel", d->m_denoise_kernel, "Denoising kernel size" );
   config->set_value( "denoise_coeff", d->m_denoise_coeff, "Denoising coefficient" );
@@ -113,6 +117,8 @@ ocv_image_enhancement
   config->set_value( "clip_limit", d->m_clip_limit, "Clip limit used during hist normalization" );
   config->set_value( "saturation", d->m_saturation, "Saturation scale factor" );
   config->set_value( "apply_sharpening", d->m_apply_sharpening, "Apply sharpening to the input" );
+  config->set_value( "sharpening_kernel", d->m_sharpening_kernel, "Sharpening kernel size" );
+  config->set_value( "sharpening_weight", d->m_sharpening_weight, "Sharpening weight [0.0,1.0]" );
 
   return config;
 }
@@ -127,7 +133,7 @@ ocv_image_enhancement
   config->merge_config( config_in );
 
   d->m_apply_smoothing = config->get_value< bool >( "apply_smoothing" );
-  d->m_smooth_kernel = config->get_value< unsigned >( "smooth_kernel" );
+  d->m_smoothing_kernel = config->get_value< unsigned >( "smoothing_kernel" );
   d->m_apply_denoising = config->get_value< bool >( "apply_denoising" );
   d->m_denoise_kernel = config->get_value< unsigned >( "denoise_kernel" );
   d->m_denoise_coeff = config->get_value< unsigned >( "denoise_coeff" );
@@ -137,6 +143,8 @@ ocv_image_enhancement
   d->m_clip_limit = config->get_value< unsigned >( "clip_limit" );
   d->m_saturation = config->get_value< float >( "saturation" );
   d->m_apply_sharpening = config->get_value< bool >( "apply_sharpening" );
+  d->m_sharpening_kernel = config->get_value< unsigned >( "sharpening_kernel" );
+  d->m_sharpening_weight = config->get_value< double >( "sharpening_weight" );
 }
 
 
@@ -164,7 +172,7 @@ ocv_image_enhancement
 
   if( d->m_apply_smoothing )
   {
-    cv::medianBlur( output_ocv, output_ocv, d->m_smooth_kernel );
+    cv::medianBlur( output_ocv, output_ocv, d->m_smoothing_kernel );
   }
 
   if( d->m_apply_denoising && input_ocv.depth() == CV_8U )
@@ -299,8 +307,9 @@ ocv_image_enhancement
   if( d->m_apply_sharpening )
   {
     cv::Mat tmp;
-    cv::GaussianBlur( output_ocv, tmp, cv::Size( 0, 0 ), 3 );
-    cv::addWeighted( output_ocv, 1.5, tmp, -0.5, 0, output_ocv );
+    cv::GaussianBlur( output_ocv, tmp, cv::Size( 0, 0 ), d->m_sharpening_kernel );
+    cv::addWeighted( output_ocv, 1.0 + d->m_sharpening_weight, tmp,
+                     0.0 - d->m_sharpening_weight, 0, output_ocv );
   }
 
   kwiver::vital::image_container_sptr output(

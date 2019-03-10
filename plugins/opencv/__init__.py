@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from viame.processes.opencv import ocv_multimodal_registration
+from viame.processes.opencv import ocv_fft_filter_based_on_ref
 
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
@@ -41,6 +42,12 @@ def __sprokit_register__():
         'ocv_multimodal_registration',
         'Register optical and thermal frames',
         ocv_multimodal_registration.register_frames_process
+    )
+
+    process_factory.add_process(
+        'ocv_fft_filter_based_on_ref',
+        'Filter image in the frequency based on some template',
+        ocv_fft_filter_based_on_ref.filter_based_on_ref_process
     )
 
     process_factory.mark_process_module_as_loaded( module_name )
