@@ -86,7 +86,7 @@ public:
             vital::detected_object_set_sptr &dets_out_sptr )
   {
     kwiver::vital::wall_timer timer;
-    cv::Mat cv_src = arrows::ocv::image_container::vital_to_ocv( src_image->get_image() );
+    cv::Mat cv_src = arrows::ocv::image_container::vital_to_ocv( src_image->get_image(), arrows::ocv::image_container::BGR_COLOR );
 
     vital::detected_object::vector_t dets_out;
 
@@ -133,7 +133,7 @@ public:
       cv::Rect roi( x, y, w, h );
 
       // Detect within the region of interest.
-      windowed_image = vital::image_container_sptr( new arrows::ocv::image_container( cv_src(roi) ) );
+      windowed_image = vital::image_container_sptr( new arrows::ocv::image_container( cv_src(roi), arrows::ocv::image_container::BGR_COLOR ) );
 
       auto dets = m_detector->detect( windowed_image );
 
