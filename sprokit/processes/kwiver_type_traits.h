@@ -83,6 +83,7 @@ namespace vital {
 //
 create_type_trait( bounding_box, "kwiver:bounding_box", kwiver::vital::bounding_box_d );
 create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
+create_type_trait( time_interval_sec, "kwiver:time_interval_sec", double );
 create_type_trait( gsd, "kwiver:gsd", double );
 create_type_trait( corner_points, "kwiver:corner_points", kwiver::vital::geo_polygon );
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
@@ -148,6 +149,9 @@ create_port_trait( video_file_name, file_name, "Name of a video file." );
 create_port_trait( metadata, metadata, "Video metadata vector for a frame." );
 create_port_trait( video_uid, video_uid, "Video UID value." );
 create_port_trait( frame_rate, frame_rate, "Video frame rate." );
+create_port_trait( detection_time, time_interval_sec, "Elapsed time for this detection.\n\n"
+    "This port produces the number of seconds that it took to perform the detection operation on the current frame." );
+
 
 create_port_trait( serialized_message, serialized_message, "serialized data type" );
 
