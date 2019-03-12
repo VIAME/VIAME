@@ -50,13 +50,13 @@ a starting point.
 .. code-block:: bash
 
    sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev
-   sudo apt-get build-dep libboost-all-dev qt5-default
-
-If using VIAME_ENABLE VIVIA for building GUIs, you also may need to run:
+   
+If Qt or Boost don't build properly, you may need additional dependencies.
+On Ubuntu 14.04, for example, you need to run the following:
 
 .. code-block:: bash
 
-  sudo apt-get build-dep qt5-default
+   sudo apt-get build-dep libboost-all-dev qt5-default
 
 If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy (or
 alternatively whatever python distribution you want to use), e.g.:
@@ -175,7 +175,7 @@ optimizations are built in, e.g.:
 | VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models              |
 +------------------------------+---------------------------------------------------------------------------------------------+
 
-VIAME can be built either in the source directory tree or in a seperate build
+VIAME can be built either in the source directory tree or in a separate build
 directory (recommended). Replace "[build-directory]" with your location of choice,
 and run the following commands:
 
@@ -214,8 +214,8 @@ Building on Windows
 
 Building on windows can be very similar to Linux if using a shell like cygwin
 (``https://www.cygwin.com/``), though if not you may want to go grab the GUI
-ersions of CMake (``https://cmake.org/``) and TortoiseGit (``https://tortoisegit.org/``).
-Currently Visual Studio 2015 and some versions of 2017 are supported.
+versions of CMake (``https://cmake.org/``) and TortoiseGit (``https://tortoisegit.org/``).
+Currently Visual Studio 2015 and 2017 are supported.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this
 involves right clicking in your folder of choice, selecting Git Clone, and then
@@ -230,7 +230,7 @@ Next, install any required dependencies for items you want to build. If using CU
 version 8.0 is desired, along with Python 3.6. Other versions have yet to be tested 
 extensively. On Windows it can also be beneficial to use Anaconda to get multiple
 python packages. Boost Python (turned on by default when Python is enabled) requires
-Numpy and a few other dependencies.
+Numpy and a few other dependencies. If using databases, Postgresql may be installed from ``https://www.postgresql.org/``.
 
 Finally, create a build folder and run the CMake GUI (``https://cmake.org/runningcmake/``).
 Point it to your source and build directories, select your compiler of choice, and
@@ -364,7 +364,7 @@ OpenCV, Caffe, etc...), or alternatively not having your CUDA headers set to be 
 
 You have enabled CUDNN but the system is unable to locate CUDNN, as the message says.
 
-Note CUDNN is installed seperately from CUDA, they are different things.
+Note CUDNN is installed separately from CUDA, they are different things.
 
 You need to set the VIAME flag CUDNN_LIBRARY to something like /usr/local/cuda/lib64/libcudnn.so.
 Alternatively you can set CUDNN_ROOT to /usr/local/cuda/lib64 manually if that's where you installed it.
