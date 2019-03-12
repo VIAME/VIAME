@@ -1,0 +1,27 @@
+# =============================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 5
+
+config _scheduler
+   :type pythread_per_process
+
+# =============================================================================
+process input
+  :: frame_list_input
+  :image_list_file     ir_input_list.txt
+  :frame_time          .3333
+  :image_reader:type   ocv
+
+# =============================================================================
+process detector
+  :: tf_detector
+  :modelFile           seal_ir_model.pb
+
+# =============================================================================
+# connections
+connect from input.image
+        to   detector.image
+
+# -- end of file --
