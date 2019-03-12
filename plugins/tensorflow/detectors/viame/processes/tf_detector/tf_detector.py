@@ -10,13 +10,6 @@ import tensorflow as tf
 import numpy as np
 import humanfriendly
 import time
-import matplotlib
-matplotlib.use('TkAgg')
-
-import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import matplotlib.ticker as ticker
 import os
 
 from PIL import Image
