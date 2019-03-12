@@ -1,0 +1,72 @@
+#
+# Example pipeline configuration for matlab based image object detectors
+#
+# ================================================================
+process input
+  :: frame_list_process
+# Use the Kaggle tenis ball data set
+#  https://www.kaggle.com/domhenjes/ballsemtpytt
+  :image_list_file /Data/Kaggle/domhenjes/ballsemtpytt/test/balls/images.txt
+  :frame_time .03
+  :image_reader:type vxl
+
+# ================================================================
+process region_detector
+ :: image_object_detector
+  :detector:type   example_detector
+  :detector:example_detector:center_x   320
+  :detector:example_detector:center_y   240
+  :detector:example_detector:dx           0
+  :detector:example_detector:dy           0
+  :detector:example_detector:width      200
+  :detector:example_detector:height     200
+
+connect from input.image to region_detector.image
+
+process circle_in_region_detector
+:: image_object_classifier
+  :detector:type hough_circle
+  :detector:hough_circle:dp 1
+  :detector:hough_circle:min_dist 25
+  :detector:hough_circle:param1 200
+  :detector:hough_circle:param2  10
+  :detector:hough_circle:min_radius 5
+  :detector:hough_circle:max_radius 50
+
+connect from input.image to circle_in_region_detector.image
+connect from region_detector.detected_object_set to circle_in_region_detector.detected_object_set
+
+process annotate_region
+  :: draw_detected_object_set
+  :draw_algo:type ocv
+  :draw_algo:ocv:default_color 0 250 0
+  :draw_algo:ocv:default_line_thickness 2
+  :draw_algo:ocv:draw_text false
+
+connect from input.image to annotate_region.image
+connect from region_detector.detected_object_set to annotate_region.detected_object_set
+
+# ================================================================
+process annotate_circles
+  :: draw_detected_object_set
+  :draw_algo:type ocv
+  :draw_algo:ocv:default_color 250 0 0
+  :draw_algo:ocv:default_line_thickness 2
+  :draw_algo:ocv:draw_text false
+
+connect from circle_in_region_detector.detected_object_set to annotate_circles.detected_object_set
+connect from annotate_region.image to annotate_circles.image
+
+# ================================================================
+process writer
+  :: image_writer
+  :file_name_template OUTPUT/image%04d.jpg
+  :image_writer:type ocv
+
+connect from annotate_circles.image to writer.image
+
+# ================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity 2
