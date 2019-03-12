@@ -56,6 +56,9 @@ class KWIVER_PROCESSES_OCV_NO_EXPORT image_object_classifier_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "image_object_classifier",
+               "Run a detection algorithm on all of the chips repersented by an incoming detected_object_set" )
+
   image_object_classifier_process( kwiver::vital::config_block_sptr const& config );
   virtual ~image_object_classifier_process();
 

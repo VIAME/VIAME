@@ -34,6 +34,7 @@
 
 // -- list processes to register --
 #include "image_viewer_process.h"
+#include "image_object_classifier_process.h"
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -54,6 +55,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   reg.register_process< kwiver::image_viewer_process >();
+  reg.register_process< kwiver::image_object_classifier_process >();
 
 // - - - - - - - - - - - - - - - - - - - - - - -
   mark_process_module_as_loaded( vpm, reg.module_name() );
