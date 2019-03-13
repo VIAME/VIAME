@@ -265,6 +265,8 @@ darknet_detector
   d->m_net = *net;
   free( net );
 
+  set_batch_network( &d->m_net, 1 );
+
   // This assumes that there are no other users of random number
   // generator in this application.
   srand( 2222222 );
