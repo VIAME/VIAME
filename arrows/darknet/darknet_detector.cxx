@@ -45,6 +45,7 @@
 #include <string>
 #include <sstream>
 #include <exception>
+#include <limits>
 
 // Since we need to wrap darknet.h in an extern C
 // We need to include CUDA/CUDNN before darknet does
@@ -140,7 +141,8 @@ public:
   };
 
   image cvmat_to_image(
-    const cv::Mat& src );
+    const cv::Mat& src ,
+    unsigned max_channels = std::numeric_limits< unsigned >::max() );
 
   std::vector< vital::detected_object_set_sptr > process_images(
     const std::vector< cv::Mat >& cv_image );
@@ -508,7 +510,7 @@ darknet_detector::priv
     }
 
     // Copy in image
-    image img = cvmat_to_image( cv_images[i] );
+    image img = cvmat_to_image( cv_images[i], m_net.c );
 
     if( img.w == m_net.w && img.h == m_net.h )
     {
@@ -669,11 +671,11 @@ darknet_detector::priv
 
 image
 darknet_detector::priv
-::cvmat_to_image( const cv::Mat& src )
+::cvmat_to_image( const cv::Mat& src, unsigned max_channels )
 {
-  unsigned h = src.rows; // src.height;
-  unsigned w = src.cols; // src.width;
-  unsigned c = src.channels(); // src.nChannels;
+  unsigned h = src.rows;
+  unsigned w = src.cols;
+  unsigned c = std::min( static_cast< unsigned >( src.channels() ), max_channels );
 
   unsigned istep = src.step[ 1 ];
   unsigned jstep = src.step[ 0 ];
