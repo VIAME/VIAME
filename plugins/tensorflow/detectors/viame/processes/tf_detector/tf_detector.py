@@ -70,6 +70,8 @@ class tf_detector(KwiverProcess):
         # Get python image from conatiner (just for show)
         in_img = np.array(get_pil_image(in_img_c.image()).convert('RGB'))
 
+        s = in_img.shape; imageHeight = s[0]; imageWidth = s[1]
+
         startTime = time.time()
         boxes, scores, classes = self.generate_detection(self.detection_graph, in_img)
         elapsed = time.time() - startTime
@@ -81,8 +83,19 @@ class tf_detector(KwiverProcess):
         for i in range(0, len(scores)):
            if(scores[i] >= self.confidenceThresh):
                bbox = boxes[i]
-               goodBoxes.append(bbox) 
-               obj = DetectedObject(BoundingBox(bbox[1],bbox[0],bbox[3],bbox[2]), scores[i])
+               goodBoxes.append(bbox)
+
+               topRel = bbox[0]
+               leftRel = bbox[1]
+               bottomRel = bbox[2]
+               rightRel = bbox[3]
+            
+               xmin = leftRel * imageWidth
+               ymin = topRel * imageHeight
+               xmax = rightRel * imageWidth
+               ymax = bottomRel * imageHeight
+
+               obj = DetectedObject(BoundingBox(xmin, ymin, xmax, ymax), scores[i])
                detections.add(obj)
 
         print("Detected {}".format(len(goodBoxes)))
