@@ -41,47 +41,47 @@
 #include <vital/config/config_block.h>
 #include <vital/util/pybind11.h>
 
-template <class algorithm_base=kwiver::vital::algorithm> 
-class py_algorithm : public algorithm_base 
+template <class algorithm_base=kwiver::vital::algorithm>
+class py_algorithm : public algorithm_base
 {
   public:
     using algorithm_base::algorithm_base;
 
-    std::string type_name() const override 
+    std::string type_name() const override
     {
       VITAL_PYBIND11_OVERLOAD_PURE(
         std::string,
         algorithm_base,
-        type_name,      
+        type_name,
       );
     }
 
-    kwiver::vital::config_block_sptr get_configuration() const override 
+    kwiver::vital::config_block_sptr get_configuration() const override
     {
       VITAL_PYBIND11_OVERLOAD(
         kwiver::vital::config_block_sptr,
         algorithm_base,
-        get_configuration,      
+        get_configuration,
       );
     }
 
-    void set_configuration(kwiver::vital::config_block_sptr config) override 
+    void set_configuration(kwiver::vital::config_block_sptr config) override
     {
       VITAL_PYBIND11_OVERLOAD_PURE(
         void,
         algorithm_base,
         set_configuration,
-        config      
+        config
       );
     }
-    
+
     bool check_configuration(kwiver::vital::config_block_sptr config) const override 
     {
       VITAL_PYBIND11_OVERLOAD_PURE(
         bool,
         algorithm_base,
         check_configuration,
-        config      
+        config
       );
     }
 };

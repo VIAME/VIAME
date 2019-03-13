@@ -59,7 +59,6 @@ class python_algorithm_factory : public kwiver::vital::algorithm_factory
                               py::object conc_f );
 
     virtual ~python_algorithm_factory()=default;
-    
   protected:
     kwiver::vital::algorithm_sptr create_object_a();
 
@@ -71,7 +70,7 @@ class python_algorithm_factory : public kwiver::vital::algorithm_factory
 
 PYBIND11_MODULE(algorithm_factory, m)
 {
-  m.def("has_algorithm_impl_name", &kwiver::vital::has_algorithm_impl_name, 
+  m.def("has_algorithm_impl_name", &kwiver::vital::has_algorithm_impl_name,
         py::call_guard<kwiver::vital::python::gil_scoped_release>(),
         py::arg("type_name"), py::arg("impl_name"),
         "Returns True if the algorithm implementation has been registered");
@@ -80,10 +79,10 @@ PYBIND11_MODULE(algorithm_factory, m)
       py::call_guard<kwiver::vital::python::gil_scoped_release>(),
       "Registers an algorithm");
 
-  m.def("mark_algorithm_as_loaded", &mark_algorithm_as_loaded, 
+  m.def("mark_algorithm_as_loaded", &mark_algorithm_as_loaded,
       py::call_guard<kwiver::vital::python::gil_scoped_release>(),
       "Marks the algorithm as loaded");
-  
+
   m.def("implementations", &implementation_names,
       py::call_guard<kwiver::vital::python::gil_scoped_release>(),
       "Returns all the implementations of an algorithm");
@@ -109,19 +108,19 @@ kwiver::vital::algorithm_sptr python_algorithm_factory::create_object_a()
   return algo_sptr;
 }
 
-static void add_algorithm( std::string const& impl_name, std::string const& description, 
+static void add_algorithm( std::string const& impl_name, std::string const& description,
                             py::object conc_f)
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   std::string type_name = py::str( conc_f.attr("static_type_name")() );
-  auto fact  = vpm.add_factory( new python_algorithm_factory( type_name, 
+  auto fact  = vpm.add_factory( new python_algorithm_factory( type_name,
                                                               impl_name,
                                                               conc_f ));
-  
+
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl_name)
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description );  
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description );
 }
 
 void mark_algorithm_as_loaded( const std::string& name )
@@ -129,7 +128,7 @@ void mark_algorithm_as_loaded( const std::string& name )
     kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
     vpm.mark_module_as_loaded( name );
 }
- 
+
 // ------------------------------------------------------------------
 bool is_algorithm_loaded( const std::string& name )
 {
@@ -152,7 +151,7 @@ static std::vector< std::string > implementation_names(const std::string& algori
       all_implementations.push_back( buf );
     }
   }
-  
+
   return all_implementations;
 }
 

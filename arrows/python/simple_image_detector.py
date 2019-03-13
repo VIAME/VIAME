@@ -38,7 +38,7 @@ class SimpleImageObjectDetector(ImageObjectDetector):
 
     def check_configuration( self, cfg):
         return True
-    
+
     def detect(self, image_data):
         dot = DetectedObjectSet([DetectedObject(
             BoundingBox(self.m_center_x + self.frame_ct*self.m_dx - self.m_width/2.0,
@@ -53,12 +53,10 @@ def __vital_algorithm_register__():
     # Register Algorithm
     implementation_name  = "SimpleImageObjectDetector"
     if algorithm_factory.has_algorithm_impl_name(
-                                SimpleImageObjectDetector.static_type_name(), 
+                                SimpleImageObjectDetector.static_type_name(),
                                 implementation_name):
         return
-    algorithm_factory.add_algorithm( implementation_name, 
+    algorithm_factory.add_algorithm( implementation_name,
                                 "test image object detector arrow",
                                  SimpleImageObjectDetector )
     algorithm_factory.mark_algorithm_as_loaded( implementation_name )
-    
-

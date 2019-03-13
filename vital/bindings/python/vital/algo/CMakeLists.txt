@@ -9,7 +9,7 @@ set( vital_algo_trampoline
     trampoline/image_object_detector_trampoline.tcc
 )
 
-kwiver_add_library( 
+kwiver_add_library(
   vital_algo_trampoline
   ${vital_algo_trampoline}
 )
@@ -21,7 +21,7 @@ target_link_libraries(vital_algo_trampoline
           vital_algo
           vital_config
           vital
-          vital_python_util  
+          vital_python_util
 )
 
 
@@ -29,7 +29,7 @@ kwiver_add_python_library(algorithm
   vital/algo
   _algorithm.cxx
   algorithm.cxx
-  image_object_detector.cxx 
+  image_object_detector.cxx
 )
 
 target_link_libraries(python-vital.algo-algorithm
@@ -41,7 +41,7 @@ target_link_libraries(python-vital.algo-algorithm
 
 kwiver_add_python_library(algorithm_factory
   vital/algo
-  algorithm_factory.cxx  
+  algorithm_factory.cxx
 )
 
 target_link_libraries(python-vital.algo-algorithm_factory
@@ -53,7 +53,7 @@ target_link_libraries(python-vital.algo-algorithm_factory
 
 kwiver_create_python_init(vital/algo
   algorithm
-  algorithm_factory  
+  algorithm_factory
 )
 
 add_subdirectory(py)

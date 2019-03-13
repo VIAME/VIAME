@@ -44,7 +44,7 @@ def test_algorithm_factory():
             ImageObjectDetector.__init__(self)
 
     # Add algorithm
-    algorithm_factory.add_algorithm("test_detector", "test detector", 
+    algorithm_factory.add_algorithm("test_detector", "test detector",
                                     TestImageObjectDetector)
 
     nose.tools.ok_(algorithm_factory.has_algorithm_impl_name("image_object_detector",
@@ -54,20 +54,18 @@ def test_algorithm_factory():
     # Check with an empty implementation
     nose.tools.assert_equal(algorithm_factory.has_algorithm_impl_name("image_object_detector",
                                                             ""), False)
-    # Check with dummy implementation 
+    # Check with dummy implementation
     nose.tools.assert_equal(algorithm_factory.has_algorithm_impl_name("image_object_detector",
                                                             "NotAnObjectDetector"), False)
 
     # Check that a registered implementation is returned by implementations
-    nose.tools.ok_("test_detector" in 
+    nose.tools.ok_("test_detector" in
                     algorithm_factory.implementations("image_object_detector"),
                     "Dummy example_detector not registered")
     # Check with an empty algorithm return empty list
     nose.tools.assert_equal(len(algorithm_factory.implementations("")), 0)
     # Check with dummy algorithm returns empty list
     nose.tools.assert_equal(len(algorithm_factory.implementations("NotAnAlgorithm")), 0)
-        
-    
 
 
 

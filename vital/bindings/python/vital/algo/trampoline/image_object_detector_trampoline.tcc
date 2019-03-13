@@ -70,16 +70,15 @@ class py_image_object_detector : public py_iod_algorithm_def<image_object_detect
 {
   public:
     using py_iod_algorithm_def<image_object_detector_base>::py_iod_algorithm_def;
-        
-    detected_object_set_sptr detect(image_container_sptr image_data) const override 
-    {                  
-      VITAL_PYBIND11_OVERLOAD_PURE(                                                   
-        detected_object_set_sptr,                                                            
-        image_object_detector,                                                        
-        detect,                                                                 
-        image_data 
-      );                                                             
-    }           
+    detected_object_set_sptr detect(image_container_sptr image_data) const override
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
+        detected_object_set_sptr,
+        image_object_detector,
+        detect,
+        image_data
+      );
+    }
 };
 
 #endif

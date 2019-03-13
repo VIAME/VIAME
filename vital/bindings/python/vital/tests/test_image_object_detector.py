@@ -67,15 +67,14 @@ class TestVitalImageObjectDetector(object):
     def test_bad_create(self):
         # Should fail to create an algorithm without a factory
         ImageObjectDetector.create("")
-    
-     
+
     # For a registered object detector it returns an instance of the implementation
     def test_create(self):
         modules.load_known_modules()
         registered_detector = ImageObjectDetector.registered_names()[0]
-        nose.tools.ok_(registered_detector is not None, 
+        nose.tools.ok_(registered_detector is not None,
                         "No instance returned from the factory method")
-    
+
     # Test detect function with an instance of example_detector
     # When an image container is not passed it raises TypeError
     @nose.tools.raises(TypeError)
@@ -84,14 +83,13 @@ class TestVitalImageObjectDetector(object):
         detector = ImageObjectDetector.create("example_detector")
         detector.detect()
 
-    
     # When a data type that is not an image container is passed it raises TypeError
     @nose.tools.raises(TypeError)
     def test_bad_detect(self):
         modules.load_known_modules()
         detector = ImageObjectDetector.create("example_detector")
         detector.detect("Image")
-    
+
     # For an image container it returns a detected object set of size 1
     def test_detect(self):
         modules.load_known_modules()
@@ -99,7 +97,7 @@ class TestVitalImageObjectDetector(object):
         image = Image()
         image_container = ImageContainer(image)
         detections = detector.detect(image_container)
-        nose.tools.ok_(detections is not None, 
+        nose.tools.ok_(detections is not None,
                        "Unexpected empty detections" )
         nose.tools.assert_equal(len(detections), 1)
 
@@ -109,14 +107,10 @@ class TestVitalImageObjectDetector(object):
         detector = ImageObjectDetector.create("example_detector")
         # Verify that 6 config values are present in example_detector
         nose.tools.assert_equal(len(detector.get_configuration()), 6)
-
         test_cfg = _dummy_detector_cfg()
-        
         # Verify that the detector has different configuration before setting to test
         nose.tools.assert_not_equal(detector.check_configuration(test_cfg), False)
-
         detector.set_configuration(test_cfg)
-
         # Verify that the config value is being set properly
         nose.tools.assert_equal(detector.check_configuration(test_cfg), True)
 
@@ -126,11 +120,9 @@ class TestVitalImageObjectDetector(object):
         modules.load_known_modules()
         detector = ImageObjectDetector.create("SimpleImageObjectDetector")
         nested_cfg = config.empty_config()
-        
         ImageObjectDetector.get_nested_algo_configuration( "detector",
                                                             nested_cfg,
                                                             detector )
-
         # Verify that test cfg is set to configuration inside detector
         # nested configuration uses the name of a detector as an additional configuration
         # key thus it is checked against 7 rather than 6
@@ -138,16 +130,10 @@ class TestVitalImageObjectDetector(object):
 
         #test_cfg = _dummy_detector_cfg()
         #test_cfg.set_value("example_detector:type", "example_detector")
-    
         #ImageObjectDetector.set_nested_algo_configuration( "example_detector",
         #                                    test_cfg,
         #                                    detector )
-
-        
-        nose.tools.assert_equal(ImageObjectDetector.check_nested_algo_configuration( 
+        nose.tools.assert_equal(ImageObjectDetector.check_nested_algo_configuration(
                                                             "detector",
                                                             nested_cfg), True)
 
-
-   
-   

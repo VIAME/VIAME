@@ -42,7 +42,7 @@ namespace py = pybind11;
 void image_object_detector_implementation(py::module &m)
 {
   py::class_< kwiver::vital::algo::image_object_detector,
-              std::shared_ptr<kwiver::vital::algo::image_object_detector>, 
+              std::shared_ptr<kwiver::vital::algo::image_object_detector>,
               kwiver::vital::algorithm_def<kwiver::vital::algo::image_object_detector>,
               py_image_object_detector<> >(m, "ImageObjectDetector")
     .def(py::init())
