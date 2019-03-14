@@ -456,7 +456,7 @@ darknet_trainer
     header_args = header_args + "," + std::to_string( d->m_batch_size );
     header_args = header_args + "," + std::to_string( d->m_batch_subdivisions );
     header_args = header_args + "," + eq + d->m_net_config + eq;
-    header_args = header_args + "," + d->m_output_model_name;
+    header_args = header_args + "," + eq + d->m_output_model_name + eq;
 
 #ifdef WIN32
     std::string header_end  = ")\"";
