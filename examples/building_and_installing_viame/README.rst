@@ -65,8 +65,8 @@ alternatively whatever python distribution you want to use), e.g.:
 
    sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy
 
-If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 8.0 is recommended,
-other versions may work depending on your build settings but are untested):
+If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 8.0 or above
+is recommended, other versions may work depending on your build settings but are untested):
 
 .. code-block:: bash
 
@@ -227,10 +227,10 @@ right click on the folder you checked out the source into, move to the TortoiseG
 menu section, and select ``Submodule Update``.
 
 Next, install any required dependencies for items you want to build. If using CUDA,
-version 8.0 is desired, along with Python 3.6. Other versions have yet to be tested 
-extensively. On Windows it can also be beneficial to use Anaconda to get multiple
-python packages. Boost Python (turned on by default when Python is enabled) requires
-Numpy and a few other dependencies.
+version 8.0 or above is desired, along with Python 3.6. Other versions have yet to
+be tested extensively, though may work. On Windows it can also be beneficial to use
+Anaconda to get multiple python packages. Boost Python (turned on by default when
+Python is enabled) requires Numpy and a few other dependencies.
 
 Finally, create a build folder and run the CMake GUI (``https://cmake.org/runningcmake/``).
 Point it to your source and build directories, select your compiler of choice, and

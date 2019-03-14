@@ -13,7 +13,7 @@ config _scheduler
 
 # ============================== INPUT FRAME LIST ==================================
 
-include common_default_input.pipe
+include common_default_input_with_downsampler.pipe
 
 # =========================== DETECTOR AND DESCRIPTORS =============================
 
@@ -42,19 +42,19 @@ process detector_writer
   :file_name                                   svm_detections.csv
   :writer:type                                 viame_csv
 
-connect from input.image
+connect from downsampler.output_1
         to   detector_input.image
-connect from input.image
+connect from downsampler.output_1
         to   descriptor.image
-connect from input.image
+connect from downsampler.output_1
         to   svm_refiner.image
-connect from input.image
+connect from downsampler.output_1
         to   nms_refiner.image
 
-connect from input.timestamp
+connect from downsampler.timestamp
         to   descriptor.timestamp
 
-connect from input.file_name
+connect from downsampler.output_2
         to   detector_writer.image_file_name
 
 connect from detector_output.detected_object_set
@@ -77,9 +77,9 @@ process track_writer
   :writer:viame_csv:stream_identifier          input_list.txt
 
 # Connect inputs to tracker
-connect from input.image
+connect from downsampler.output_1
         to   tracker.image
-connect from input.timestamp
+connect from downsampler.timestamp
         to   tracker.timestamp
 connect from nms_refiner.detected_object_set
         to   tracker.detected_object_set
@@ -87,7 +87,7 @@ connect from nms_refiner.detected_object_set
 # Connect inputs to track writer
 connect from tracker.object_track_set
         to   track_writer.object_track_set
-connect from input.timestamp
+connect from downsampler.timestamp
         to   track_writer.timestamp
 
 # -- end of file --

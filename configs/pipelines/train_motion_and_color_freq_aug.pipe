@@ -26,8 +26,8 @@ process random_grey
 
   block filter:vxl_convert_image
     :format                                    byte
-    :single_channel                            false
     :random_greyscale                          0.25
+    :force_three_channel                       true
   endblock
 
 connect from image_reader.image

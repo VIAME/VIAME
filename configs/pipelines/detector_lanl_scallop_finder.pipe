@@ -6,7 +6,7 @@ config _pipeline:_edge
 
 # ==================================================================================
 
-include common_default_input.pipe
+include common_default_input_with_downsampler.pipe
 
 # ==================================================================================
 process detector
@@ -23,13 +23,13 @@ process draw
 # connections
 
 # Connect detector
-connect from input.image
+connect from downsampler.output_1
         to   detector.image
 
 # Connect drawer
 connect from detector.detected_object_set
         to   draw.detected_object_set
-connect from input.image
+connect from downsampler.output_1
         to   draw.image
 
 # -- end of file --

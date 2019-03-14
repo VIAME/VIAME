@@ -10,7 +10,7 @@ config _pipeline:_edge
 
 # ============================== INPUT FRAME LIST ==================================
 
-include common_default_input.pipe
+include common_default_input_with_downsampler.pipe
 
 # ================================== DETECTOR ======================================
 
@@ -23,12 +23,12 @@ process detector_writer
   :file_name                                   computed_detections.csv
   :writer:type                                 viame_csv
 
-connect from input.image
+connect from downsampler.output_1
         to   detector_input.image
 
 connect from detector_filter.detected_object_set
         to   detector_writer.detected_object_set
-connect from input.file_name
+connect from downsampler.output_2
         to   detector_writer.image_file_name
 
 # ================================ CORE TRACKER ====================================
@@ -69,17 +69,17 @@ process track_initializer
   endblock
 
 # Connect inputs to detection descriptor
-connect from input.image
+connect from downsampler.output_1
         to   detection_descriptor.image
-connect from input.timestamp
+connect from downsampler.timestamp
         to   detection_descriptor.timestamp
 connect from detector_filter.detected_object_set
         to   detection_descriptor.detected_object_set
 
 # Connect inputs to tracker
-connect from input.image
+connect from downsampler.output_1
         to   tracker.image
-connect from input.timestamp
+connect from downsampler.timestamp
         to   tracker.timestamp
 connect from detection_descriptor.detected_object_set
         to   tracker.detected_object_set
@@ -87,9 +87,9 @@ connect from track_initializer.object_track_set
         to   tracker.object_track_set
 
 # Connect inputs to track_associator
-connect from input.image
+connect from downsampler.output_1
         to   track_associator.image
-connect from input.timestamp
+connect from downsampler.timestamp
         to   track_associator.timestamp
 connect from tracker.matrix_d
         to   track_associator.matrix_d
@@ -99,9 +99,9 @@ connect from tracker.detected_object_set
         to   track_associator.detected_object_set
 
 # Connect inputs to track_initializer
-connect from input.image
+connect from downsampler.output_1
         to   track_initializer.image
-connect from input.timestamp
+connect from downsampler.timestamp
         to   track_initializer.timestamp
 connect from track_associator.object_track_set
         to   track_initializer.object_track_set
@@ -119,7 +119,7 @@ process track_writer
 # Connect inputs to track writer
 connect from track_initializer.object_track_set
         to   track_writer.object_track_set
-connect from input.timestamp
+connect from downsampler.timestamp
         to   track_writer.timestamp
 
 # -- end of file --

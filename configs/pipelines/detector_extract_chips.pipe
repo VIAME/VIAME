@@ -9,7 +9,7 @@ config _pipeline:_edge
 
 # ================================= INPUT VIDEO ====================================
 
-include common_default_input.pipe
+include common_default_input_with_downsampler.pipe
 
 # ================================== DETECTOR ======================================
 
@@ -27,9 +27,9 @@ connect from detector_filter.detected_object_set
 
 # ============================ NO DOWNSAMPLER OPTION ===============================
 
-connect from input.image
+connect from downsampler.output_1
         to   detector_input.image
-connect from input.image
+connect from downsampler.output_1
         to   chipper.image
 
 # ============================== DOWNSAMPLER OPTION ================================
@@ -39,7 +39,7 @@ connect from input.image
 #  :downsampler:type                            core
 #  :downsampler:frame_rate                      10
 #
-#connect from input.image
+#connect from downsampler.output_1
 #        to   downsampler.image
 #
 #connect from downsampler.image
