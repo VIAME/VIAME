@@ -57,7 +57,7 @@ process track_writer
 # Connect inputs to track writer
 connect from tracker.object_track_set
         to   track_writer.object_track_set
-connect from input.timestamp
+connect from downsampler.timestamp
         to   track_writer.timestamp
 
 # -- end of file --

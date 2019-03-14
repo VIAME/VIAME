@@ -35,15 +35,15 @@ process disp
 
 # ==================================================================================
 # connections
-connect from input.image
+connect from downsampler.output_1
         to   detector.image
 
 connect from detector.detected_object_set
         to   draw.detected_object_set
-connect from input.image
+connect from downsampler.output_1
         to   draw.image
 
-connect from input.timestamp
+connect from downsampler.timestamp
         to   disp.timestamp
 connect from draw.image
         to   disp.image
