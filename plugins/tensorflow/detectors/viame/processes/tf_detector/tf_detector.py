@@ -12,7 +12,6 @@ import humanfriendly
 import time
 import os
 
-from PIL import Image
 from vital.util.VitalPIL import get_pil_image
 
 
@@ -32,7 +31,7 @@ class tf_detector(KwiverProcess):
 
         self.declare_config_using_trait('modelFile')
 
-        self.add_port_trait('out_image', 'image', 'Processed image')
+        self.add_port_trait('image_norm', 'image', 'Normalized image')
 
         # set up required flags
         optional = process.PortFlags()
@@ -42,8 +41,10 @@ class tf_detector(KwiverProcess):
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
         self.declare_output_port_using_trait('detected_object_set', optional)
+        self.declare_output_port_using_trait('image_norm', optional)
 
         self.confidenceThresh = .5
+        self.camera_pos = "C"
 
     def __del__(self):
         print( "[DEBUG] ----- close" )
@@ -66,12 +67,23 @@ class tf_detector(KwiverProcess):
         print( "[DEBUG] ----- start step" )
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
+        
+        imageHeight = in_img_c.height(); imageWidth = in_img_c.width()
 
-        # Get python image from conatiner (just for show)
-        in_img = np.array(get_pil_image(in_img_c.image()).convert('RGB'))
-
-        s = in_img.shape; imageHeight = s[0]; imageWidth = s[1]
-
+        if (self.camera_pos):
+            print("Normalize image")
+            
+            in_img = in_img_c.image().asarray().astype('uint16')
+            
+            bottom, top = self.get_scaling_values(self.camera_pos, imageHeight)
+            in_img = self.lin_normalize_image(in_img, bottom, top)
+        
+            in_img = np.tile(in_img, (1,1,3))
+        else:
+            in_img = np.array(get_pil_image(in_img_c.image()).convert('RGB'))
+                        
+        self.push_to_port_using_trait('image_norm', ImageContainer(Image(in_img)))
+        
         startTime = time.time()
         boxes, scores, classes = self.generate_detection(self.detection_graph, in_img)
         elapsed = time.time() - startTime
@@ -147,3 +159,55 @@ class tf_detector(KwiverProcess):
         classes = np.squeeze(np.array(clss)).astype(int)
 
         return boxes, scores, classes
+
+    def lin_normalize_image(self, image_array, bottom=None, top=None):
+        """Linear normalization for an image array
+        Inputs:
+            image_array: np.ndarray, image data to be normalized
+            bit_8: boolean, if true outputs 8 bit, otherwise outputs 16 bit
+            bottom: float, value to map to 0 in the new array
+            top: float, value to map to 2^(bit_depth)-1 in the new array
+        Output:
+            scaled_image: nd.ndarray, scaled image between 0 and 2^(bit_depth) - 1
+        """
+        if bottom is None:
+            bottom = np.min(image_array)
+        if top is None:
+            top = np.max(image_array)
+
+        scaled_image = (image_array - bottom) / (top - bottom)
+        scaled_image[scaled_image < 0] = 0
+        scaled_image[scaled_image > 1] = 1
+       
+        scaled_image = np.floor(scaled_image * 255).astype(np.uint8)  # Map to [0, 2^8 - 1]
+
+        return scaled_image
+        
+    def get_scaling_values(self, camera_pos, num_rows):
+        """Returns the bottom and top scaling parameters based on camera_pos
+        Inputs:
+            camera_pos: string, name of camera pos
+            num_rows: int, number of rows in the image
+        Outputs:
+            bottom: int, number that maps to 0 in scaled image
+            top: int, number that maps to 255 in scaled image
+        """
+        
+        # camera_pos S and default
+        bottom = 51000
+        top = 57500
+
+        if camera_pos == "P":
+            if num_rows == 512:
+                bottom = 53500
+                top = 56500
+            elif num_rows == 480:
+                bottom = 50500
+                top = 58500
+            else:
+                print('Unknown camera size for file %s' % filename)
+        elif camera_pos == "C":
+            bottom = 50500
+            top = 58500            
+                                    
+        return bottom, top
