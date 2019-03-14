@@ -248,6 +248,8 @@ def object_detector_settings_list( options ):
   if len( options.detection_threshold ) > 0:
     return list( itertools.chain(
       fset( 'detector:detector:darknet:thresh=' + options.detection_threshold ),
+      fset( 'detector1:detector:darknet:thresh=' + options.detection_threshold ),
+      fset( 'detector2:detector:darknet:thresh=' + options.detection_threshold ),
       fset( 'detector_filter:filter:class_probablity_filter:threshold=' + options.detection_threshold ),
     ))
   return []
