@@ -278,18 +278,24 @@ def video_frame_rate_settings_list( options ):
 def local_model_settings_list( options ):
   output = []
 
-  model_list = [ 'deep_training/models/yolo_final.weights', \
+  model_list = [ 'category_models/yolo.weights', \
+                 'deep_training/models/yolo_final.weights', \
+                 'deep_training/models/yolo.backup', \
                  'deep_training/models/yolo.backup', \
                  'deep_training/models/yolo_v2.backup' ]
-  config_list = [ 'deep_training/yolo.cfg', \
+  config_list = [ 'category_models/yolo.lbl', \
+                  'deep_training/yolo_test.cfg', \
+                  'deep_training/yolo_test.cfg', \
                   'deep_training/yolo.cfg', \
                   'deep_training/yolo_v2.cfg' ]
-  label_list = [ 'deep_training/yolo.lbl', \
+  label_list = [ 'category_models/yolo.lbl', \
+                 'deep_training/yolo.lbl', \
+                 'deep_training/yolo.lbl', \
                  'deep_training/yolo.lbl', \
                  'deep_training/yolo_v2.lbl' ]
 
   for i, model_fn in enumerate( model_list ):
-    if os.path.exists( model_fn ):
+    if os.path.exists( model_fn ) and os.path.exists( config_list[i] ):
       output += fset( 'detector:detector:darknet:net_config=' + config_list[i] )
       output += fset( 'detector:detector:darknet:weight_file=' + model_list[i] )
       output += fset( 'detector:detector:darknet:class_names=' + label_list[i] )
