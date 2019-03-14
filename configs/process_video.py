@@ -560,6 +560,9 @@ if __name__ == "__main__" :
   parser.add_argument("--ball-tree", dest="ball_tree", action="store_true",
                       help="Use a ball tree for the searchable index")
 
+  parser.add_argument("--no-reset-prompt", dest="no_reset_prompt", action="store_true",
+                      help="Don't prompt if the output folder should be reset")
+
   parser.add_argument("--find-local-models", dest="find_local_models", action="store_true",
                       help="Automatically detect the location of local detection models.")
 
@@ -619,7 +622,7 @@ if __name__ == "__main__" :
 
     # Handle output directory creation if necessary
     if len( args.output_directory ) > 0:
-      create_dir( args.output_directory, logging=False, recreate=( not args.init_db ) )
+      create_dir( args.output_directory, logging=False, recreate=( not args.init_db ), prompt=( not args.no_reset_prompt ) )
 
     if len( args.log_directory ) > 0:
       create_dir( args.output_directory + div + args.log_directory, logging=False )
