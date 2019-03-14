@@ -479,8 +479,8 @@ darknet_trainer
   std::string darknet_cmd = "darknet";
 #endif
   std::string darknet_args = "-i " + std::to_string( d->m_gpu_index ) +
-    " detector train " + d->m_train_directory + div + "yolo.data "
-                       + d->m_train_directory + div + "yolo_train.cfg ";
+    " detector train " + d->m_train_directory + div + d->m_output_model_name + ".data "
+                       + d->m_train_directory + div + d->m_output_model_name + ".cfg ";
 
   if( !d->m_seed_weights.empty() )
   {
@@ -518,7 +518,7 @@ darknet_trainer
 
   std::string output_labels = d->m_output_directory + div + d->m_output_model_name + ".lbl";
   std::string output_model = d->m_output_directory + div + d->m_output_model_name + ".weights";
-  std::string output_cfg =  d->m_output_directory + div + d->m_output_model_name + ".cfg";
+  std::string output_cfg =  d->m_output_directory + div + d->m_output_model_name + "_test.cfg";
 
   if( kwiversys::SystemTools::FileExists( input_model1 ) )
   {

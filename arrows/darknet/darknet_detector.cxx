@@ -799,7 +799,13 @@ darknet_detector::priv
 
   if( kwiversys::SystemTools::FileExists( input_model1 ) )
   {
-    m_net_config = "category_models" + div + m_local_search + ".cfg";
+    m_net_config = "category_models" + div + m_local_search + "_test.cfg";
+
+    if( !kwiversys::SystemTools::FileExists( m_net_config ) )
+    {
+      m_net_config = "category_models" + div + m_local_search + ".cfg";
+    }
+
     m_weight_file = input_model1;
     m_class_names = "category_models" + div + m_local_search + ".lbl";
     return true;

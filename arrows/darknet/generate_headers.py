@@ -62,8 +62,8 @@ def generate_yolo_headers(
 
   # Hard coded configs
   label_file = output_str + ".lbl"
-  train_conf_file = output_str + "_train.cfg"
-  test_conf_file = output_str + ".cfg"
+  train_conf_file = output_str + ".cfg"
+  test_conf_file = output_str + "_test.cfg"
   train_file = output_str + ".data"
 
   # Dump out adjusted network file
