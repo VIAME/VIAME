@@ -41,13 +41,13 @@ no_pipeline = "none"
 
 detector_list = [ \
   'detector:detector:darknet', \
-  'detector1:detector:darknet' \
-  'detector2:detector:darknet' \
-  'detector:detector:scallop_tk' \
-  'detector1:detector:scallop_tk' \
-  'detector1:detector:scallop_tk' \
-  'detector:detector:tensorflow' \
-  'detector1:detector:tensorflow' \
+  'detector1:detector:darknet', \
+  'detector2:detector:darknet', \
+  'detector:detector:scallop_tk', \
+  'detector1:detector:scallop_tk', \
+  'detector1:detector:scallop_tk', \
+  'detector:detector:tensorflow', \
+  'detector1:detector:tensorflow', \
   'detector2:detector:tensorflow' ];
 
 # Global flag to see if any video has successfully completed processing
@@ -290,7 +290,7 @@ def local_model_settings_list( options ):
   output = []
 
   for detector_block in detector_list:
-    output += fset( detector_block + 'local_search=yolo' )
+    output += fset( detector_block + ':local_search=yolo' )
 
   return output
 
