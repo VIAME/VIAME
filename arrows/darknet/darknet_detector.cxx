@@ -800,7 +800,8 @@ darknet_detector::priv
 #endif
 
   std::string input_model1 = "category_models" + div + m_local_search + ".weights";
-  std::string input_model2 = "deep_training" + div + "models" + div + m_local_search + ".backup";
+  std::string input_model2 = "deep_training" + div + "models" + div + m_local_search + "_final.weights";
+  std::string input_model3 = "deep_training" + div + "models" + div + m_local_search + ".backup";
 
   if( kwiversys::SystemTools::FileExists( input_model1 ) )
   {
@@ -817,6 +818,17 @@ darknet_detector::priv
       m_net_config = "deep_training" + div + m_local_search + ".cfg";
     }
     m_weight_file = input_model2;
+    m_class_names = "deep_training" + div + m_local_search + ".lbl";
+    return true;
+  }
+  else if( kwiversys::SystemTools::FileExists( input_model3 ) )
+  {
+    m_net_config = "deep_training" + div + m_local_search + "_test.cfg";
+    if( !kwiversys::SystemTools::FileExists( m_net_config ) )
+    {
+      m_net_config = "deep_training" + div + m_local_search + ".cfg";
+    }
+    m_weight_file = input_model3;
     m_class_names = "deep_training" + div + m_local_search + ".lbl";
     return true;
   }
