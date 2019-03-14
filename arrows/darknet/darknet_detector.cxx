@@ -77,6 +77,7 @@ class darknet_detector::priv
 public:
   priv()
     : m_local_search( "" )
+    , m_default_if_no_local( false )
     , m_thresh( 0.24 )
     , m_hier_thresh( 0.5 )
     , m_gpu_index( -1 )
@@ -101,6 +102,7 @@ public:
   std::string m_weight_file;
   std::string m_class_names;
   std::string m_local_search;
+  bool m_default_if_no_local;
 
   float m_thresh;
   float m_hier_thresh;
@@ -191,6 +193,8 @@ darknet_detector
     "Name of file that contains the class names." );
   config->set_value( "local_search", d->m_local_search,
     "Perform a search for local models in default locations." );
+  config->set_value( "default_if_no_local", d->m_default_if_no_local,
+    "Use the default model and don't error out if there is no local model" );
   config->set_value( "thresh", d->m_thresh,
     "Threshold value." );
   config->set_value( "hier_thresh", d->m_hier_thresh,
@@ -233,6 +237,7 @@ darknet_detector
   this->d->m_weight_file = config->get_value< std::string >( "weight_file" );
   this->d->m_class_names = config->get_value< std::string >( "class_names" );
   this->d->m_local_search = config->get_value< std::string >( "local_search" );
+  this->d->m_default_if_no_local = config->get_value< bool >( "default_if_no_local" );
   this->d->m_thresh      = config->get_value< float >( "thresh" );
   this->d->m_hier_thresh = config->get_value< float >( "hier_thresh" );
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
@@ -254,7 +259,7 @@ darknet_detector
   }
 #endif
 
-  if( !d->m_local_search.empty() && !d->find_local_models() )
+  if( !d->m_local_search.empty() && ( !d->find_local_models() && !d->m_default_if_no_local ) )
   {
     throw kwiver::vital::file_not_found_exception( d->m_local_search, "Local find failed"  );
   }
