@@ -16,7 +16,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
   -d "%INPUT_DIRECTORY%" -frate %FRAME_RATE% ^
-  -p pipelines\detector_svm_models.pipe ^
+  -p pipelines\detector_svm_models.pipe --no-reset-prompt ^
   -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU% 
 
 pause

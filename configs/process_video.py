@@ -622,7 +622,9 @@ if __name__ == "__main__" :
 
     # Handle output directory creation if necessary
     if len( args.output_directory ) > 0:
-      create_dir( args.output_directory, logging=False, recreate=( not args.init_db ), prompt=( not args.no_reset_prompt ) )
+      recreate_dir = ( not args.init_db and not args.no_reset_prompt )
+      prompt_user = ( not args.no_reset_prompt )
+      create_dir( args.output_directory, logging=False, recreate=recreate_dir, prompt=prompt_user )
 
     if len( args.log_directory ) > 0:
       create_dir( args.output_directory + div + args.log_directory, logging=False )
