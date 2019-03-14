@@ -9,7 +9,7 @@ config _pipeline:_edge
 
 # ================================= INPUT VIDEO ====================================
 
-include common_default_input.pipe
+include common_default_input_with_downsampler.pipe
 
 # ================================== DETECTOR ======================================
 

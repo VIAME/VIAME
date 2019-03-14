@@ -6,7 +6,7 @@ config _pipeline:_edge
 
 # ==================================================================================
 
-include common_default_input.pipe
+include common_default_input_with_downsampler.pipe
 
 # ==================================================================================
 process detector

@@ -13,7 +13,7 @@ config _scheduler
 
 # ============================== INPUT FRAME LIST ==================================
 
-include common_default_input.pipe
+include common_default_input_with_downsampler.pipe
 
 # =========================== DETECTOR AND DESCRIPTORS =============================
 

@@ -29,7 +29,7 @@ config _pipeline:_edge
 
 # =============================== INPUT FRAME LIST =================================
 
-include common_default_input.pipe
+include common_default_input_with_downsampler.pipe
 
 # ================================== CROP INPUTS ===================================
 process split
