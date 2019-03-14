@@ -301,7 +301,8 @@ def local_model_settings_list( options ):
       output += fset( 'detector2:detector:darknet:class_names=' + label_list[i] )
 
   if len( output ) == 0:
-    exit_with_error( lb1 + "Could not find local detection model" )
+    log_info( lb1 )
+    exit_with_error( "Could not find local detection model" )
 
   return output
 
