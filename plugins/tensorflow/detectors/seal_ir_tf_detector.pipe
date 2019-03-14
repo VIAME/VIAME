@@ -18,6 +18,8 @@ process input
 process detector
   :: tf_detector
   :modelFile           seal_ir_model.pb
+  :normImageType       C
+  :confidenceThresh    .5
 
 # =============================================================================
 process draw_box

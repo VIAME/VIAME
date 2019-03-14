@@ -26,12 +26,22 @@ class tf_detector(KwiverProcess):
         print( "[DEBUG] ----- init" )
         KwiverProcess.__init__(self, conf)
 
-        self.add_config_trait("modelFile", "modelFile", 'Model File',
-          'Path to TF Inference Graph.')
+        self.add_config_trait("modelFile", "modelFile", "Model File",
+          "Path to TF Inference Graph.")
 
-        self.declare_config_using_trait('modelFile')
+        self.declare_config_using_trait("modelFile")
 
-        self.add_port_trait('image_norm', 'image', 'Normalized image')
+        self.add_config_trait("normImageType", "normImageType", "",
+          "Type of normalization for input image.")
+
+        self.declare_config_using_trait("normImageType")
+        
+        self.add_config_trait("confidenceThresh", "confidenceThresh", ".5",
+          "Confidence threshold for detection.")
+
+        self.declare_config_using_trait("confidenceThresh")        
+
+        self.add_port_trait("image_norm", "image", "Normalized image")
 
         # set up required flags
         optional = process.PortFlags()
@@ -39,12 +49,9 @@ class tf_detector(KwiverProcess):
         required.add(self.flag_required)
 
         #  declare our input port ( port-name,flags)
-        self.declare_input_port_using_trait('image', required)
-        self.declare_output_port_using_trait('detected_object_set', optional)
-        self.declare_output_port_using_trait('image_norm', optional)
-
-        self.confidenceThresh = .5
-        self.camera_pos = "C"
+        self.declare_input_port_using_trait("image", required)
+        self.declare_output_port_using_trait("detected_object_set", optional)
+        self.declare_output_port_using_trait("image_norm", optional)
 
     def __del__(self):
         print( "[DEBUG] ----- close" )
@@ -53,7 +60,9 @@ class tf_detector(KwiverProcess):
     # ----------------------------------------------
     def _configure(self):
         print( "[DEBUG] ----- configure" )
-        self.modelFile = self.config_value('modelFile')
+        self.modelFile = self.config_value("modelFile")
+        self.normImageType = self.config_value("normImageType")
+        self.confidenceThresh = float(self.config_value("confidenceThresh"))
 
         # Load and detector
         self.detection_graph = self.load_model(self.modelFile)
@@ -66,23 +75,23 @@ class tf_detector(KwiverProcess):
     def _step(self):
         print( "[DEBUG] ----- start step" )
         # grab image container from port using traits
-        in_img_c = self.grab_input_using_trait('image')
+        in_img_c = self.grab_input_using_trait("image")
         
         imageHeight = in_img_c.height(); imageWidth = in_img_c.width()
 
-        if (self.camera_pos):
+        if (self.normImageType):
             print("Normalize image")
             
-            in_img = in_img_c.image().asarray().astype('uint16')
+            in_img = in_img_c.image().asarray().astype("uint16")
             
-            bottom, top = self.get_scaling_values(self.camera_pos, imageHeight)
+            bottom, top = self.get_scaling_values(self.normImageType, imageHeight)
             in_img = self.lin_normalize_image(in_img, bottom, top)
         
             in_img = np.tile(in_img, (1,1,3))
         else:
-            in_img = np.array(get_pil_image(in_img_c.image()).convert('RGB'))
+            in_img = np.array(get_pil_image(in_img_c.image()).convert("RGB"))
                         
-        self.push_to_port_using_trait('image_norm', ImageContainer(Image(in_img)))
+        self.push_to_port_using_trait("image_norm", ImageContainer(Image(in_img)))
         
         startTime = time.time()
         boxes, scores, classes = self.generate_detection(self.detection_graph, in_img)
@@ -112,7 +121,7 @@ class tf_detector(KwiverProcess):
 
         print("Detected {}".format(len(goodBoxes)))
 
-        self.push_to_port_using_trait('detected_object_set', detections)
+        self.push_to_port_using_trait("detected_object_set", detections)
 
         self._base_step()
 
@@ -121,15 +130,15 @@ class tf_detector(KwiverProcess):
         Load a detection model (i.e., create a graph) from a .pb file
         """
 
-        print('Creating Graph...')
+        print("Creating Graph...")
         detection_graph = tf.Graph()
         with detection_graph.as_default():
             od_graph_def = tf.GraphDef()
-            with tf.gfile.GFile(checkpoint, 'rb') as fid:
+            with tf.gfile.GFile(checkpoint, "rb") as fid:
                 serialized_graph = fid.read()
                 od_graph_def.ParseFromString(serialized_graph)
-                tf.import_graph_def(od_graph_def, name='')
-        print('...done')
+                tf.import_graph_def(od_graph_def, name="")
+        print("...done")
 
         return detection_graph
 
@@ -143,11 +152,11 @@ class tf_detector(KwiverProcess):
         """
 
         imageNP_expanded = np.expand_dims(imageNP, axis=0)
-        image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-        box = detection_graph.get_tensor_by_name('detection_boxes:0')
-        score = detection_graph.get_tensor_by_name('detection_scores:0')
-        clss = detection_graph.get_tensor_by_name('detection_classes:0')
-        num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+        image_tensor = detection_graph.get_tensor_by_name("image_tensor:0")
+        box = detection_graph.get_tensor_by_name("detection_boxes:0")
+        score = detection_graph.get_tensor_by_name("detection_scores:0")
+        clss = detection_graph.get_tensor_by_name("detection_classes:0")
+        num_detections = detection_graph.get_tensor_by_name("num_detections:0")
 
         # Actual detection
         (box, score, clss, num_detections) = self.sess.run(
@@ -205,7 +214,7 @@ class tf_detector(KwiverProcess):
                 bottom = 50500
                 top = 58500
             else:
-                print('Unknown camera size for file %s' % filename)
+                print("Unknown camera size for file %s" % filename)
         elif camera_pos == "C":
             bottom = 50500
             top = 58500            
