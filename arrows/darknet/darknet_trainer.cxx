@@ -518,12 +518,12 @@ darknet_trainer
 
   std::string output_labels = d->m_output_directory + div + d->m_output_model_name + ".lbl";
   std::string output_model = d->m_output_directory + div + d->m_output_model_name + ".weights";
-  std::string output_cfg =  d->m_output_directory + div + d->m_output_model_name + "_test.cfg";
+  std::string output_cfg =  d->m_output_directory + div + d->m_output_model_name + ".cfg";
 
   if( kwiversys::SystemTools::FileExists( input_model1 ) )
   {
     std::string input_labels = d->m_train_directory + div + d->m_output_model_name + ".lbl";
-    std::string input_cfg = d->m_train_directory + div + d->m_output_model_name + ".cfg";
+    std::string input_cfg = d->m_train_directory + div + d->m_output_model_name + "_test.cfg";
 
     kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels );
     kwiversys::SystemTools::CopyFileAlways( input_model1, output_model );
@@ -532,7 +532,7 @@ darknet_trainer
   else if( kwiversys::SystemTools::FileExists( input_model2 ) )
   {
     std::string input_labels = d->m_train_directory + div + d->m_output_model_name + ".lbl";
-    std::string input_cfg = d->m_train_directory + div + d->m_output_model_name + ".cfg";
+    std::string input_cfg = d->m_train_directory + div + d->m_output_model_name + "_test.cfg";
 
     kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels );
     kwiversys::SystemTools::CopyFileAlways( input_model2, output_model );
