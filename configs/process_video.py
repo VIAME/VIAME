@@ -39,6 +39,17 @@ track_ext = "_tracks.csv"
 default_pipeline = "pipelines" + div + "index_default.pipe"
 no_pipeline = "none"
 
+detector_list = [ \
+  'detector:detector:darknet', \
+  'detector1:detector:darknet' \
+  'detector2:detector:darknet' \
+  'detector:detector:scallop_tk' \
+  'detector1:detector:scallop_tk' \
+  'detector1:detector:scallop_tk' \
+  'detector:detector:tensorflow' \
+  'detector1:detector:tensorflow' \
+  'detector2:detector:tensorflow' ];
+
 # Global flag to see if any video has successfully completed processing
 any_video_complete = False
 
@@ -278,39 +289,8 @@ def video_frame_rate_settings_list( options ):
 def local_model_settings_list( options ):
   output = []
 
-  model_list = [ 'category_models/yolo.weights', \
-                 'deep_training/models/yolo_final.weights', \
-                 'deep_training/models/yolo.backup', \
-                 'deep_training/models/yolo.backup', \
-                 'deep_training/models/yolo_v2.backup' ]
-  config_list = [ 'category_models/yolo.lbl', \
-                  'deep_training/yolo_test.cfg', \
-                  'deep_training/yolo_test.cfg', \
-                  'deep_training/yolo.cfg', \
-                  'deep_training/yolo_v2.cfg' ]
-  label_list = [ 'category_models/yolo.lbl', \
-                 'deep_training/yolo.lbl', \
-                 'deep_training/yolo.lbl', \
-                 'deep_training/yolo.lbl', \
-                 'deep_training/yolo_v2.lbl' ]
-
-  for i, model_fn in enumerate( model_list ):
-    if os.path.exists( model_fn ) and os.path.exists( config_list[i] ):
-      output += fset( 'detector:detector:darknet:net_config=' + config_list[i] )
-      output += fset( 'detector:detector:darknet:weight_file=' + model_list[i] )
-      output += fset( 'detector:detector:darknet:class_names=' + label_list[i] )
-
-      output += fset( 'detector1:detector:darknet:net_config=' + config_list[i] )
-      output += fset( 'detector1:detector:darknet:weight_file=' + model_list[i] )
-      output += fset( 'detector1:detector:darknet:class_names=' + label_list[i] )
-
-      output += fset( 'detector2:detector:darknet:net_config=' + config_list[i] )
-      output += fset( 'detector2:detector:darknet:weight_file=' + model_list[i] )
-      output += fset( 'detector2:detector:darknet:class_names=' + label_list[i] )
-
-  if len( output ) == 0:
-    log_info( lb1 )
-    exit_with_error( "Could not find local detection model" )
+  for detector_block in detector_list:
+    output += fset( detector_block + 'local_search=yolo' )
 
   return output
 
