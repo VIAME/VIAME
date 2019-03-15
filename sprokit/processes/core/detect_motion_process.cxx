@@ -102,12 +102,8 @@ _step()
 {
   d->m_timer.start();
 
-  //TODO, handle case where this is optionally provided
-  //auto ts = grab_from_port_using_trait( timestamp );
-
   auto input = grab_from_port_using_trait( image );
   kwiver::vital::image_container_sptr result;
-
 
   kwiver::vital::timestamp ts;
   if (has_input_port_edge_using_trait( timestamp ) )

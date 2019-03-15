@@ -21,10 +21,10 @@ process motion
   :: detect_motion
 
   block algo
-    #type =  detect_motion_mog2
-    type =  detect_motion_3frame_differencing
+    type =  ocv_mog2
+    #type =  ocv_3frame_differencing
 
-    block ocv_MOG2
+    block ocv_mog2
       var_threshold = 16
       history = 1000
       learning_rate = 0.005
@@ -32,7 +32,7 @@ process motion
       min_frames = 7
       max_foreground_fract = 0.3
     endblock
-    block ocv_3frame_diff
+    block ocv_3frame_differencing
       frame_separation = 5
       jitter_radius = 0
       max_foreground_fract = .1

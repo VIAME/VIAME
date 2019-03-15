@@ -40,9 +40,7 @@
 #include <vital/vital_config.h>
 #include <vital/algo/algorithm.h>
 #include <vital/types/image_container.h>
-#include <vital/types/homography.h>
 #include <vital/types/timestamp.h>
-#include <vital/types/detected_object_set.h>
 
 
 namespace kwiver {

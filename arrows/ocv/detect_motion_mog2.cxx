@@ -36,6 +36,7 @@
 #include "detect_motion_mog2.h"
 
 #include <vital/exceptions.h>
+#include <vital/types/matrix.h>
 
 #include <arrows/ocv/image_container.h>
 
@@ -51,10 +52,6 @@ using namespace kwiver::vital;
 
 
 //-----------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// ------------------------------ Sprokit ------------------------------------
-
 
 /// Private implementation class
 class detect_motion_mog2::priv

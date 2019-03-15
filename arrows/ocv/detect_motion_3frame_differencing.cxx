@@ -39,6 +39,7 @@
 
 #include <kwiversys/SystemTools.hxx>
 #include <vital/exceptions.h>
+#include <vital/types/matrix.h>
 
 #include <arrows/ocv/image_container.h>
 
@@ -235,6 +236,7 @@ public:
       rms_over_channels( fgmask, fgmask);
     }
 
+    if ( IS_TRACE_ENABLED( m_logger ) )
     {
       double min_val, max_val;
       cv::minMaxLoc(fgmask, &min_val, &max_val);

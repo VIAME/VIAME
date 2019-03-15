@@ -57,7 +57,7 @@ class KWIVER_ALGO_OCV_EXPORT detect_motion_3frame_differencing
                                  vital::algo::detect_motion>
 {
 public:
-  PLUGIN_INFO( "detect_motion_3frame_differencing",
+  PLUGIN_INFO( "ocv_3frame_differencing",
                "OCV implementation of detect_motion using three-frame differencing" )
   /// Constructor
   detect_motion_3frame_differencing();
