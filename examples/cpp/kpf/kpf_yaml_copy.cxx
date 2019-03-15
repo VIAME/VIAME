@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -29,46 +29,56 @@
  */
 
 /**
- * @file
- * @brief KPF YAML parser class.
+ * \file
+ * \brief A simple demonstration that reads a yaml KPF file and writes it back out.
  *
- * Header for the KPF YAML parser; holds the YAML root document and provides
- * the interface for reading each KPF line (which shows up as a YAML map)
- * into the KPF generic parser's packet buffer.
  */
 
-#ifndef KWIVER_VITAL_KPF_YAML_PARSER_H_
-#define KWIVER_VITAL_KPF_YAML_PARSER_H_
+#include <arrows/kpf/yaml/kpf_reader.h>
+#include <arrows/kpf/yaml/kpf_yaml_parser.h>
+#include <arrows/kpf/yaml/kpf_yaml_writer.h>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 
-#include <arrows/kpf/yaml/kpf_parse_utils.h>
-#include <arrows/kpf/yaml/kpf_parser_base.h>
+namespace KPF=kwiver::vital::kpf;
 
-#include <yaml-cpp/yaml.h>
 
-namespace kwiver {
-namespace vital {
-namespace kpf {
-
-class KPF_YAML_EXPORT kpf_yaml_parser_t: public kpf_parser_base_t
+int main( int argc, char* argv[] )
 {
-public:
-  explicit kpf_yaml_parser_t( std::istream& is );
-  ~kpf_yaml_parser_t() {}
+  if (argc != 2)
+  {
+    std::cerr << "Usage: " << argv[0] << " file.kpf\n";
+    return EXIT_FAILURE;
+  }
 
-  virtual bool get_status() const;
-  virtual bool parse_next_record( packet_buffer_t& pb );
-  virtual schema_style get_current_record_schema() const;
-  virtual bool eof() const;
+  std::ifstream is( argv[1] );
+  if (!is)
+  {
+    std::cerr << "Couldn't open '" << argv[1] << "' for reading\n";
+    return EXIT_FAILURE;
+  }
 
-private:
-  YAML::Node root;
-  YAML::const_iterator current_record;
-  schema_style current_record_schema;
-};
+  KPF::kpf_yaml_parser_t parser( is );
+  KPF::kpf_reader_t reader( parser );
+  KPF::record_yaml_writer writer( std::cout );
+  while (reader.next())
+  {
+    const KPF::packet_buffer_t& packets = reader.get_packet_buffer();
 
-} // ...kpf
-} // ...vital
-} // ...kwiver
-
-
-#endif
+    std::vector< std::string > meta = reader.get_meta_packets();
+    writer.set_schema( KPF::schema_style::META );
+    for (auto m: meta)
+    {
+      writer << m << KPF::record_yaml_writer::endl;
+    }
+    writer.set_schema( parser.get_current_record_schema() );
+    for (auto p: packets )
+    {
+      writer << p.second;
+    }
+    writer << KPF::record_yaml_writer::endl;
+    reader.flush();
+  }
+}
