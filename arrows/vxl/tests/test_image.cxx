@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -525,4 +525,34 @@ TYPED_TEST(image_conversion, vital_to_vxl_interleaved)
   kwiver::vital::image_of<TypeParam> img{ 200, 300, 3, true };
   populate_vital_image<TypeParam>( img );
   run_vital_conversion_tests( img );
+}
+
+// ----------------------------------------------------------------------------
+template <typename T>
+class get_image : public ::testing::Test
+{
+};
+
+using get_image_types = ::testing::Types<
+  image_type<byte, 1>,
+  image_type<byte, 3>,
+  image_type<uint16_t, 1>,
+  image_type<uint16_t, 3>,
+  image_type<float, 1>,
+  image_type<float, 3>,
+  image_type<double, 1>,
+  image_type<double, 3>
+  >;
+  TYPED_TEST_CASE(get_image, get_image_types);
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(get_image, crop)
+{
+  using pix_t = typename TypeParam::pixel_type;
+  vil_image_view<pix_t> img{ full_width, full_height, TypeParam::depth };
+  populate_vil_image( img );
+
+  image_container_sptr img_cont = std::make_shared<vxl::image_container>(img);
+
+  test_get_image_crop<pix_t>( img_cont );
 }

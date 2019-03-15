@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,6 +95,13 @@ public:
 
   /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return vxl_to_vital(*data_); }
+
+  /// Get an in-memory image class to access the data
+  virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
+                                 unsigned width, unsigned height) const
+  {
+    return vxl_to_vital(*data_).crop(x_offset, y_offset, width, height);
+  }
 
   /// Get image data in this container.
   vil_image_view_base_sptr get_vil_image_view() const { return data_; }

@@ -56,6 +56,13 @@ Vital Tools
    level tool. Individual tools are specified as a parameter to the
    "kwiver" tool runner.
 
+Vital Types
+
+ * Added crop method to vital::image to get a cropped view of the image.
+
+ * Added version of the get_image method to vital::image_container to get
+   a cropped view of the underlying image.
+
 Vital Bindings
 
 

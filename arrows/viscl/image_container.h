@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,8 +84,15 @@ public:
     */
   virtual size_t depth() const { return data_.depth(); }
 
-  /// Get and in-memory image class to access the data
+  /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return viscl_to_vital(data_); }
+
+  /// Get an in-memory image class to access the data
+  virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
+                                 unsigned width, unsigned height) const
+  {
+     return viscl_to_vital(data_).crop(x_offset, y_offset, width, height);
+  }
 
   /// Access the underlying VisCL data structure
   viscl::image get_viscl_image() const { return data_; }

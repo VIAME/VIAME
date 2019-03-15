@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,10 @@
  * \brief core image class tests
  */
 
+#include <arrows/tests/test_image.h>
+
 #include <vital/types/image.h>
+#include <vital/types/image_container.h>
 #include <vital/util/transform_image.h>
 
 #include <gtest/gtest.h>
@@ -480,4 +483,42 @@ TEST(image, cast_image)
   EXPECT_EQ( img1.w_step(), img2.w_step() );
   EXPECT_EQ( img1.h_step(), img2.h_step() );
   EXPECT_EQ( img1.d_step(), img2.d_step() );
+}
+
+// ----------------------------------------------------------------------------
+template <typename T, int Depth>
+struct image_type
+{
+  using pixel_type = T;
+  static constexpr int depth = Depth;
+};
+
+template <typename T>
+class get_image : public ::testing::Test
+{
+};
+
+using get_image_types = ::testing::Types<
+  image_type<byte, 1>,
+  image_type<byte, 3>,
+  image_type<uint16_t, 1>,
+  image_type<uint16_t, 3>,
+  image_type<float, 1>,
+  image_type<float, 3>,
+  image_type<double, 1>,
+  image_type<double, 3>
+  >;
+
+TYPED_TEST_CASE(get_image, get_image_types);
+
+// ----------------------------------------------------------------------------
+TYPED_TEST(get_image, crop)
+{
+  using pix_t = typename TypeParam::pixel_type;
+  image_of<pix_t> img{ full_width, full_height, 3 };
+  populate_vital_image<pix_t>( img );
+
+  image_container_sptr img_cont = std::make_shared<simple_image_container>(img);
+
+  test_get_image_crop<pix_t>( img_cont );
 }
