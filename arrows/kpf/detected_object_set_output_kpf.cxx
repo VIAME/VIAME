@@ -140,6 +140,8 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     static std::atomic<unsigned> id_counter( 0 );
     const unsigned id = id_counter++;
 
+    auto det_index = (*det)->index();
+
     std::ostringstream oss;
     oss << "Record " << line_count++;
     w
@@ -148,6 +150,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
     w.set_schema( KPF::schema_style::GEOM )
       << KPF::writer< KPFC::kv_t >("detector_name", (*det)->detector_name())
       << KPF::writer< KPFC::id_t >(id, KPFC::id_t::DETECTION_ID)
+      << KPF::writer< KPFC::id_t >(id, KPFC::id_t::TRACK_ID)
       << KPF::writer< KPFC::timestamp_t >(d->m_frame_number - 1, KPFC::timestamp_t::FRAME_NUMBER)
       << KPF::writer< KPFC::conf_t>((*det)->confidence(), DETECTOR_DOMAIN)
       << KPF::writer< KPFC::bbox_t >(box_adapter((*det)->bounding_box()), KPFC::bbox_t::IMAGE_COORDS);
