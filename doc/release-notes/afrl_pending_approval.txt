@@ -25,6 +25,10 @@ Arrows - Core
  * Added a utility function to compute the average world distance per pixel
    in a provided world region of interest.
 
+ * Updated the keyframe loop closure algorithm to store keyframes in the track
+   set data structure rather than internally.  This changes exposes the list
+   of selected keyframes outside of this algorithm.
+
 Arrows - CUDA
 
  * Updated depth map integration to adjust the voxel size relative to the
