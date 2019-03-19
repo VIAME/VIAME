@@ -1,4 +1,14 @@
 
+v0.9.9.7 - 3/19/2019
+====================
+
+
+-Fixed a few issues in last relating to detector optimizations which broke things in last
+
+
+-More intuitive final model saveouts
+
+
 v0.9.9.6 - 2/25/2019
 ====================
 
