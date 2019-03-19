@@ -590,19 +590,10 @@ std::set<vital::frame_id_t>
 initialize_cameras_landmarks_keyframe::priv
 ::get_keyframe_ids(feature_track_set_sptr tracks) const
 {
-  auto all_frame_ids = tracks->all_frame_ids();
-  std::set<vital::frame_id_t> keyframe_ids;
-  for (auto fid : all_frame_ids)
-  {
-    auto fd = std::dynamic_pointer_cast<vital::feature_track_set_frame_data>(
-      tracks->frame_data(fid));
-    if (!fd || !fd->is_keyframe)
-    {
-      continue;
-    }
-    keyframe_ids.insert(fid);
-  }
-  return keyframe_ids;
+  // Currently, the choice of keyframes can make this algorithm unstable.
+  // It is more reliable to ignore the incoming keyframes and let this
+  // algorithm pick which frames to use from the set of all frames.
+  return tracks->all_frame_ids();
 }
 
 /// Re-triangulate all landmarks for provided tracks
