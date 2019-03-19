@@ -202,7 +202,7 @@ double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
 
 //*****************************************************************************
 
-double *init_volume_on_gpu(unsigned int vsize)
+double *init_volume_on_gpu(size_t vsize)
 {
   double *output;
   CudaErrorCheck(cudaMalloc((void**)&output, vsize * sizeof(double)));
@@ -263,7 +263,9 @@ integrate_depth_maps::integrate(
   LOG_INFO( logger(), "initialize" );
   cuda_initalize(d_->grid_dims, orig.data(), spacing.data(),
     d_->ray_potential_thickness, d_->ray_potential_rho, d_->ray_potential_eta, d_->ray_potential_delta);
-  const int vsize = d_->grid_dims[0] * d_->grid_dims[1] * d_->grid_dims[2];
+  const size_t vsize = static_cast<size_t>(d_->grid_dims[0]) *
+                       static_cast<size_t>(d_->grid_dims[1]) *
+                       static_cast<size_t>(d_->grid_dims[2]);
 
   double *d_volume = init_volume_on_gpu(vsize);
   double *d_K, *d_RT;
