@@ -31,7 +31,7 @@ Documentation
 -------------
 
 The [VIAME manual](http://viame.readthedocs.io/en/latest/) is more comprehensive,
-but select entries are also listed below, which include some run examples:
+but select entries are also listed below:
 
 
 [Build and Install Guide](examples/building_and_installing_viame) <> 
@@ -40,7 +40,6 @@ but select entries are also listed below, which include some run examples:
 [Object Detector Examples](examples/object_detection) <br />
 [GUIs for Visualization and Annotation](examples/annotation_and_visualization) <> 
 [Detector Training API](examples/object_detector_training) <>
-[Example Integrations](plugins) <>
 [Example Plugin Templates](plugins/templates) <br />
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <> 
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <>
