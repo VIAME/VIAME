@@ -449,6 +449,7 @@ public:
     int64_t frame_ts = (static_cast<int>(f_frame_number_offset) + frame - 1) *
       this->stream_time_base_to_frame() + this->f_start_time;
 
+    bool advance_successful = false;
     do
     {
       auto seek_rslt = av_seek_frame( this->f_format_context,
@@ -461,16 +462,13 @@ public:
         return false;
       }
 
-      if ( !this->advance() )
-      {
-        return false;
-      }
+      advance_successful = this->advance();
 
       // Continue to make seek request further back until we land at a frame
       // that is before the requested frame.
       frame_ts -= this->f_backstep_size * this->stream_time_base_to_frame();
     }
-    while( this->frame_number() > frame - 1 );
+    while( this->frame_number() > frame - 1 || !advance_successful );
 
     // Now advance forward until we reach the requested frame.
     while( this->frame_number() < frame - 1 )
