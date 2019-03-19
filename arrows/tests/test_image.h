@@ -86,12 +86,12 @@ populate_vital_image(kwiver::vital::image& img)
 }
 
 // Parameters for common test of get_image function
-constexpr int full_width = 60;
-constexpr int full_height = 40;
-constexpr int cropped_width = 30;
-constexpr int cropped_height = 20;
-constexpr int x_offset = 10;
-constexpr int y_offset = 5;
+constexpr size_t full_width = 60;
+constexpr size_t full_height = 40;
+constexpr size_t cropped_width = 30;
+constexpr size_t cropped_height = 20;
+constexpr size_t x_offset = 10;
+constexpr size_t y_offset = 5;
 
 // ----------------------------------------------------------------------------
 // helper function to generate common test of get_image funcion
