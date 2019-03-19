@@ -58,10 +58,10 @@
 #include <arrows/core/estimate_canonical_transform.h>
 #include <arrows/core/example_detector.h>
 #include <arrows/core/feature_descriptor_io.h>
-#include <arrows/core/full_frame_detector.h>
 #include <arrows/core/filter_features_magnitude.h>
 #include <arrows/core/filter_features_scale.h>
 #include <arrows/core/filter_tracks.h>
+#include <arrows/core/full_frame_detector.h>
 #include <arrows/core/handle_descriptor_request_core.h>
 #include <arrows/core/hierarchical_bundle_adjust.h>
 #include <arrows/core/initialize_cameras_landmarks.h>
@@ -130,6 +130,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< filter_features_magnitude >();
   reg.register_algorithm< filter_features_scale >();
   reg.register_algorithm< filter_tracks >();
+  reg.register_algorithm< full_frame_detector >();
   reg.register_algorithm< handle_descriptor_request_core >();
   reg.register_algorithm< hierarchical_bundle_adjust >();
   reg.register_algorithm< initialize_cameras_landmarks >();

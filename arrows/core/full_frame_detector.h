@@ -44,11 +44,9 @@ class KWIVER_ALGO_CORE_EXPORT full_frame_detector
       vital::algo::image_object_detector >
 {
 public:
-  static constexpr char const* name = "full_frame";
-
-  static constexpr char const* description =
+  PLUGIN_INFO( "full_frame",
     "Outputs a single fixed full-frame detection the same size as "
-    "the input image size.";
+    "the input image size." );
 
   full_frame_detector();
   virtual ~full_frame_detector();
