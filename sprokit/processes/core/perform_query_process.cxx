@@ -279,7 +279,7 @@ perform_query_process
 // -----------------------------------------------------------------------------
 static void
 merge_history( vital::track_descriptor::descriptor_history_t& dest,
-               vital::track_descriptor::descriptor_history_t const& src)
+               vital::track_descriptor::descriptor_history_t const& src )
 {
   auto dest_it = dest.begin();
   auto src_it = src.begin();
