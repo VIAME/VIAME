@@ -36,6 +36,7 @@
 #include <iomanip>
 #include <string>
 #include <cmath>
+#include <algorithm>
 
 namespace kwiver {
 namespace vital {
