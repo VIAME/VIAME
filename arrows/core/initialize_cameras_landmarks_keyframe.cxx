@@ -1052,7 +1052,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   m_rel_poses.clear();
 
-  int frames_skip = frames.size() *0.5;
+  unsigned frames_skip = std::max(1u, static_cast<unsigned>(frames.size() / 2));
 
   do {
 
