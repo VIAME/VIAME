@@ -35,6 +35,8 @@
 
 #include <arrows/cuda/integrate_depth_maps.h>
 #include <arrows/core/depth_utils.h>
+#include <vital/exceptions/gpu.h>
+#include <kwiversys/SystemTools.hxx>
 #include <sstream>
 #include <cuda_runtime.h>
 #include <cuda.h>
@@ -49,6 +51,22 @@ void launch_depth_kernel(double * d_depth, int depthmap_dims[2], double d_K[16],
 namespace kwiver {
 namespace arrows {
 namespace cuda {
+
+// Macro called to catch cuda error when cuda functions are called
+#define CudaErrorCheck(ans) { cuda_throw((ans), __FILE__, __LINE__); }
+inline void cuda_throw(cudaError_t code, const char *file, int line)
+{
+  if (code != cudaSuccess)
+  {
+    auto filename = kwiversys::SystemTools::GetFilenameName(file);
+    auto logger = vital::get_logger("arrows.cuda.integrate_depth_maps");
+    LOG_ERROR(logger, "GPU Error: " << cudaGetErrorString(code)
+                      << "\n  in " << filename << ":" << line);
+    auto e = vital::gpu_memory_exception(cudaGetErrorString(code));
+    e.set_location(filename.c_str(), line);
+    throw e;
+  }
+}
 
 /// Private implementation class
 class integrate_depth_maps::priv
@@ -175,8 +193,8 @@ double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
   }
 
   double *d_depth;
-  cudaMalloc((void**)&d_depth, size * sizeof(double));
-  cudaMemcpy(d_depth, temp, size * sizeof(double), cudaMemcpyHostToDevice);
+  CudaErrorCheck(cudaMalloc((void**)&d_depth, size * sizeof(double)));
+  CudaErrorCheck(cudaMemcpy(d_depth, temp, size * sizeof(double), cudaMemcpyHostToDevice));
   delete [] temp;
 
   return d_depth;
@@ -187,8 +205,8 @@ double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
 double *init_volume_on_gpu(unsigned int vsize)
 {
   double *output;
-  cudaMalloc((void**)&output, vsize * sizeof(double));
-  cudaMemset(output, 0, vsize * sizeof(double));
+  CudaErrorCheck(cudaMalloc((void**)&output, vsize * sizeof(double)));
+  CudaErrorCheck(cudaMemset(output, 0, vsize * sizeof(double)));
   return output;
 }
 
@@ -208,8 +226,8 @@ void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera, double* d
   RT.block< 3, 3 >(0, 0) = R;
   RT.block< 3, 1 >(0, 3) = t;
 
-  cudaMemcpy(d_K, K4x4.data(), 16 * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_RT, RT.data(), 16 * sizeof(double), cudaMemcpyHostToDevice);
+  CudaErrorCheck(cudaMemcpy(d_K, K4x4.data(), 16 * sizeof(double), cudaMemcpyHostToDevice));
+  CudaErrorCheck(cudaMemcpy(d_RT, RT.data(), 16 * sizeof(double), cudaMemcpyHostToDevice));
 }
 
 
@@ -250,8 +268,8 @@ integrate_depth_maps::integrate(
   double *d_volume = init_volume_on_gpu(vsize);
   double *d_K, *d_RT;
 
-  cudaMalloc((void**)&d_K, 16 * sizeof(double));
-  cudaMalloc((void**)&d_RT, 16 * sizeof(double));
+  CudaErrorCheck(cudaMalloc((void**)&d_K, 16 * sizeof(double)));
+  CudaErrorCheck(cudaMalloc((void**)&d_RT, 16 * sizeof(double)));
 
   for (int i = 0; i < depth_maps.size(); i++)
   {
@@ -264,21 +282,22 @@ integrate_depth_maps::integrate(
     // run code on device
     LOG_INFO( logger(), "depth map " << i );
     launch_depth_kernel(d_depth, depthmap_dims, d_K, d_RT, d_volume);
-    cudaFree(d_depth);
+    CudaErrorCheck(cudaFree(d_depth));
   }
 
   // Transfer data from device to host
   double *h_volume = new double[vsize];
-  cudaMemcpy(h_volume, d_volume, vsize * sizeof(double), cudaMemcpyDeviceToHost);
+  CudaErrorCheck(cudaMemcpy(h_volume, d_volume, vsize * sizeof(double),
+                 cudaMemcpyDeviceToHost));
 
   volume = std::shared_ptr<image_container>(new simple_image_container(
     image(h_volume, d_->grid_dims[0], d_->grid_dims[1], d_->grid_dims[2],
       1, d_->grid_dims[0], d_->grid_dims[0] * d_->grid_dims[1],
       image_pixel_traits(kwiver::vital::image_pixel_traits::FLOAT, 8))));
 
-  cudaFree(d_volume);
-  cudaFree(d_K);
-  cudaFree(d_RT);
+  CudaErrorCheck(cudaFree(d_volume));
+  CudaErrorCheck(cudaFree(d_K));
+  CudaErrorCheck(cudaFree(d_RT));
 }
 
 } // end namespace cuda
