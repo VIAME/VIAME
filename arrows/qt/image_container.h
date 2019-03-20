@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,6 +93,7 @@ public:
   /// \copydoc vital::image_container::get_image
   virtual vital::image get_image() const override
   { return qt_to_vital( data_ ); }
+  using vital::image_container::get_image;
 
   /// Get QImage in this container.
   operator QImage const&() const { return data_; }
