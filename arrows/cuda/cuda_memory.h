@@ -30,28 +30,50 @@
 
 /**
 * \file
-* \brief Header file for CUDA error checking helpers
+* \brief Header file for CUDA memory management function
 */
 
-#ifndef KWIVER_ARROWS_CUDA_CUDA_ERROR_CHECK_H_
-#define KWIVER_ARROWS_CUDA_CUDA_ERROR_CHECK_H_
+#ifndef KWIVER_ARROWS_CUDA_CUDA_MEMORY_H_
+#define KWIVER_ARROWS_CUDA_CUDA_MEMORY_H_
 
 
+#include "cuda_error_check.h"
 #include <cuda_runtime.h>
+#include <memory>
 
 
 namespace kwiver {
 namespace arrows {
 namespace cuda {
 
+/// A CUDA delete functor to use with a unique_ptr
+template <typename T>
+struct cuda_deleter
+{
+  constexpr cuda_deleter() noexcept = default;
 
-/// Macro called to catch cuda error when cuda functions are called
-#define CudaErrorCheck(ans) { kwiver::arrows::cuda::cuda_throw((ans), __FILE__, __LINE__); }
+  void operator() (T* ptr) const
+  {
+    cudaFree(ptr);
+  }
+};
 
-void cuda_throw(cudaError_t code, const char *file, int line);
+/// Provide a short name for the CUDA unique_ptr
+template <typename T>
+using cuda_ptr = std::unique_ptr<T[], cuda_deleter<T> >;
+
+/// Construct a unique_ptr to CUDA memory
+template <typename T>
+cuda_ptr<T>
+make_cuda_mem(size_t size)
+{
+  T* ptr;
+  CudaErrorCheck(cudaMalloc((void**)&ptr, size * sizeof(T)));
+  return cuda_ptr<T>(ptr);
+}
 
 }  // end namespace cuda
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CUDA_CUDA_ERROR_CHECK_H_
+#endif // KWIVER_ARROWS_CUDA_CUDA_MEMORY_H_

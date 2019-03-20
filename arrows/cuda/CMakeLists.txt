@@ -4,6 +4,7 @@ set(header_files
 
 set(private_header_files
   cuda_error_check.h
+  cuda_memory.h
   )
 
 set(cxx_files

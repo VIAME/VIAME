@@ -35,6 +35,7 @@
 
 #include <arrows/cuda/integrate_depth_maps.h>
 #include <arrows/cuda/cuda_error_check.h>
+#include <arrows/cuda/cuda_memory.h>
 #include <arrows/core/depth_utils.h>
 #include <sstream>
 #include <cuda_runtime.h>
@@ -178,10 +179,11 @@ integrate_depth_maps::check_configuration(vital::config_block_sptr config) const
 
 //*****************************************************************************
 
-double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
+cuda_ptr<double>
+copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
 {
   size_t size = h_depth->height() * h_depth->width();
-  double* temp = new double[size];
+  std::unique_ptr<double[]> temp(new double[size]);
 
   //copy to cuda format
   kwiver::vital::image img = h_depth->get_image();
@@ -193,22 +195,19 @@ double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
     }
   }
 
-  double *d_depth;
-  CudaErrorCheck(cudaMalloc((void**)&d_depth, size * sizeof(double)));
-  CudaErrorCheck(cudaMemcpy(d_depth, temp, size * sizeof(double),
+  auto d_depth = make_cuda_mem<double>(size);
+  CudaErrorCheck(cudaMemcpy(d_depth.get(), temp.get(), size * sizeof(double),
                             cudaMemcpyHostToDevice));
-  delete [] temp;
 
   return d_depth;
 }
 
 //*****************************************************************************
 
-double *init_volume_on_gpu(size_t vsize)
+cuda_ptr<double> init_volume_on_gpu(size_t vsize)
 {
-  double *output;
-  CudaErrorCheck(cudaMalloc((void**)&output, vsize * sizeof(double)));
-  CudaErrorCheck(cudaMemset(output, 0, vsize * sizeof(double)));
+  auto output = make_cuda_mem<double>(vsize);
+  CudaErrorCheck(cudaMemset(output.get(), 0, vsize * sizeof(double)));
   return output;
 }
 
@@ -275,39 +274,33 @@ integrate_depth_maps::integrate(
                        static_cast<size_t>(d_->grid_dims[1]) *
                        static_cast<size_t>(d_->grid_dims[2]);
 
-  double *d_volume = init_volume_on_gpu(vsize);
-  double *d_K, *d_RT;
-
-  CudaErrorCheck(cudaMalloc((void**)&d_K, 16 * sizeof(double)));
-  CudaErrorCheck(cudaMalloc((void**)&d_RT, 16 * sizeof(double)));
+  cuda_ptr<double> d_volume = init_volume_on_gpu(vsize);
+  cuda_ptr<double> d_K = make_cuda_mem<double>(16);
+  cuda_ptr<double> d_RT = make_cuda_mem<double>(16);
 
   for (int i = 0; i < depth_maps.size(); i++)
   {
     int depthmap_dims[2];
     depthmap_dims[0] = static_cast<int>(depth_maps[i]->width());
     depthmap_dims[1] = static_cast<int>(depth_maps[i]->height());
-    double *d_depth = copy_depth_map_to_gpu(depth_maps[i]);
-    copy_camera_to_gpu(cameras[i], d_K, d_RT);
+    cuda_ptr<double> d_depth = copy_depth_map_to_gpu(depth_maps[i]);
+    copy_camera_to_gpu(cameras[i], d_K.get(), d_RT.get());
 
     // run code on device
     LOG_INFO( logger(), "depth map " << i );
-    launch_depth_kernel(d_depth, depthmap_dims, d_K, d_RT, d_volume);
-    CudaErrorCheck(cudaFree(d_depth));
+    launch_depth_kernel(d_depth.get(), depthmap_dims,
+                        d_K.get(), d_RT.get(), d_volume.get());
   }
 
   // Transfer data from device to host
   double *h_volume = new double[vsize];
-  CudaErrorCheck(cudaMemcpy(h_volume, d_volume, vsize * sizeof(double),
+  CudaErrorCheck(cudaMemcpy(h_volume, d_volume.get(), vsize * sizeof(double),
                  cudaMemcpyDeviceToHost));
 
   volume = std::shared_ptr<image_container>(new simple_image_container(
     image(h_volume, d_->grid_dims[0], d_->grid_dims[1], d_->grid_dims[2],
           1, d_->grid_dims[0], d_->grid_dims[0] * d_->grid_dims[1],
           image_pixel_traits(kwiver::vital::image_pixel_traits::FLOAT, 8))));
-
-  CudaErrorCheck(cudaFree(d_volume));
-  CudaErrorCheck(cudaFree(d_K));
-  CudaErrorCheck(cudaFree(d_RT));
 }
 
 } // end namespace cuda
