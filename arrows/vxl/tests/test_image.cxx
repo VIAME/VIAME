@@ -147,7 +147,7 @@ template <typename T, int Depth>
 struct image_type
 {
   using pixel_type = T;
-  static constexpr int depth = Depth;
+  static constexpr unsigned int depth = Depth;
 };
 
 // ----------------------------------------------------------------------------
