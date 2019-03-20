@@ -34,9 +34,8 @@
 */
 
 #include <arrows/cuda/integrate_depth_maps.h>
+#include <arrows/cuda/cuda_error_check.h>
 #include <arrows/core/depth_utils.h>
-#include <vital/exceptions/gpu.h>
-#include <kwiversys/SystemTools.hxx>
 #include <sstream>
 #include <cuda_runtime.h>
 #include <cuda.h>
@@ -53,22 +52,6 @@ void launch_depth_kernel(double * d_depth, int depthmap_dims[2],
 namespace kwiver {
 namespace arrows {
 namespace cuda {
-
-// Macro called to catch cuda error when cuda functions are called
-#define CudaErrorCheck(ans) { cuda_throw((ans), __FILE__, __LINE__); }
-inline void cuda_throw(cudaError_t code, const char *file, int line)
-{
-  if (code != cudaSuccess)
-  {
-    auto filename = kwiversys::SystemTools::GetFilenameName(file);
-    auto logger = vital::get_logger("arrows.cuda.integrate_depth_maps");
-    LOG_ERROR(logger, "GPU Error: " << cudaGetErrorString(code)
-                      << "\n  in " << filename << ":" << line);
-    auto e = vital::gpu_memory_exception(cudaGetErrorString(code));
-    e.set_location(filename.c_str(), line);
-    throw e;
-  }
-}
 
 /// Private implementation class
 class integrate_depth_maps::priv
