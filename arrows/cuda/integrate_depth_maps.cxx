@@ -293,14 +293,14 @@ integrate_depth_maps::integrate(
   }
 
   // Transfer data from device to host
-  double *h_volume = new double[vsize];
-  CudaErrorCheck(cudaMemcpy(h_volume, d_volume.get(), vsize * sizeof(double),
+  auto h_volume = std::make_shared<image_memory>(vsize * sizeof(double));
+  CudaErrorCheck(cudaMemcpy(h_volume->data(), d_volume.get(), vsize * sizeof(double),
                  cudaMemcpyDeviceToHost));
 
-  volume = std::shared_ptr<image_container>(new simple_image_container(
-    image(h_volume, d_->grid_dims[0], d_->grid_dims[1], d_->grid_dims[2],
-          1, d_->grid_dims[0], d_->grid_dims[0] * d_->grid_dims[1],
-          image_pixel_traits(kwiver::vital::image_pixel_traits::FLOAT, 8))));
+  volume = std::make_shared<simple_image_container>(
+    image_of<double>(h_volume, reinterpret_cast<const double*>(h_volume->data()),
+                    d_->grid_dims[0], d_->grid_dims[1], d_->grid_dims[2],
+                    1, d_->grid_dims[0], d_->grid_dims[0] * d_->grid_dims[1]));
 }
 
 } // end namespace cuda
