@@ -88,13 +88,7 @@ public:
 
   /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return ocv_to_vital(data_, RGB_COLOR); }
-
-  /// Get an in-memory image class to access the data
-  virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
-                                 unsigned width, unsigned height) const
-  {
-    return ocv_to_vital(data_, RGB_COLOR).crop(x_offset, y_offset, width, height);
-  }
+  using vital::image_container::get_image;
 
   /// Access the underlying cv::Mat data structure
   cv::Mat get_Mat() const { return data_; }

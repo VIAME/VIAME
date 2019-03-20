@@ -82,7 +82,10 @@ public:
 
   /// Get an in-memory image class to access a sub-image of the data
   virtual image get_image(unsigned x_offset, unsigned y_offset,
-                          unsigned width, unsigned height) const = 0;
+                          unsigned width, unsigned height) const
+  {
+    return get_image().crop(x_offset, y_offset, width, height);
+  };
 
   /// Get metadata associated with this image
   virtual metadata_sptr get_metadata() const { return md_; }
