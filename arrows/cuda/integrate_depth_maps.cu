@@ -65,6 +65,40 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort =
 }
 
 //*****************************************************************************
+//     Truncated Signed Distance Function (TSDF) Parameter Description
+//*****************************************************************************
+//** Eta is a percentage of rho ( 0 < Eta < 1)
+//** Delta has to be superior to Thick
+//
+//                     'real distance' - 'depth value'
+//                                     |
+//                                     |
+//                                     |         ---------------  Rho
+//                                     |        /|             |
+//                                     |       /               |
+//                                     |      /  |             |
+//                                     |     /                 |
+//                                     |    /    |             |
+//                                     |   /                   |
+//                                     |  /      |             |
+//                                     | /                     |
+//                                     |/        |             |______________
+//----------------------------------------------------------------------------
+//                                    /
+//                                   /
+//                                  /
+//--------------  Eta*rho          /
+//             |                  /
+//             |                 /
+//             |                /
+//             |               /
+//             |              /
+//             ---------------
+//                            <--------->
+//                               Thick
+//             <----------------------->
+//                        Delta
+//*****************************************************************************
 
 __device__ void computeVoxelCenter(int voxelCoordinate[3], double output[3])
 {
