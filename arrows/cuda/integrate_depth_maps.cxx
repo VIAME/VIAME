@@ -60,10 +60,10 @@ class integrate_depth_maps::priv
 public:
   // Constructor
   priv()
-    : ray_potential_thickness(1.65),
+    : ray_potential_thickness(20.0),
       ray_potential_rho(1.0),
-      ray_potential_eta(0.03),
-      ray_potential_delta(16.5),
+      ray_potential_eta(1.0),
+      ray_potential_delta(200.0),
       voxel_spacing_factor(1.0),
       grid_spacing {1.0, 1.0, 1.0},
       m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
@@ -256,20 +256,26 @@ integrate_depth_maps::integrate(
 
   spacing = vector_3d(d_->grid_spacing);
   spacing *= pixel_to_world_scale * d_->voxel_spacing_factor;
+  double max_spacing = spacing.maxCoeff();
 
   for (int i = 0; i < 3; i++)
   {
     d_->grid_dims[i] = static_cast<int>((diff[i] / spacing[i]));
   }
 
+  LOG_DEBUG( logger(), "voxel size: " << spacing[0]
+                       << " "         << spacing[1]
+                       << " "         << spacing[2] );
   LOG_DEBUG( logger(), "grid: " << d_->grid_dims[0]
                        << " "   << d_->grid_dims[1]
                        << " "   << d_->grid_dims[2] );
 
   LOG_INFO( logger(), "initialize" );
   cuda_initalize(d_->grid_dims, orig.data(), spacing.data(),
-                 d_->ray_potential_thickness, d_->ray_potential_rho,
-                 d_->ray_potential_eta, d_->ray_potential_delta);
+                 d_->ray_potential_thickness * max_spacing,
+                 d_->ray_potential_rho,
+                 d_->ray_potential_eta,
+                 d_->ray_potential_delta * max_spacing);
   const size_t vsize = static_cast<size_t>(d_->grid_dims[0]) *
                        static_cast<size_t>(d_->grid_dims[1]) *
                        static_cast<size_t>(d_->grid_dims[2]);
