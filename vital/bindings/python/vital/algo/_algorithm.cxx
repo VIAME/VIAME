@@ -30,7 +30,7 @@
 #include <pybind11/pybind11.h>
 #include <sstream>
 #include <vital/algo/algorithm.h>
-#include <vital/algo/trampoline/algorithm_trampoline.tcc>
+#include <vital/algo/trampoline/algorithm_trampoline.txx>
 
 namespace py = pybind11;
 

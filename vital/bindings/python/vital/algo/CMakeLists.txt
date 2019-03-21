@@ -5,8 +5,8 @@ include_directories(${PYBIND11_INCLUDE_DIR})
 # Add trampolines
 
 set( vital_algo_trampoline
-    trampoline/algorithm_trampoline.tcc
-    trampoline/image_object_detector_trampoline.tcc
+    trampoline/algorithm_trampoline.txx
+    trampoline/image_object_detector_trampoline.txx
 )
 
 kwiver_add_library(

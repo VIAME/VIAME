@@ -35,7 +35,7 @@
  */
 
 #include <pybind11/pybind11.h>
-#include <vital/algo/trampoline/image_object_detector_trampoline.tcc>
+#include <vital/algo/trampoline/image_object_detector_trampoline.txx>
 
 namespace py = pybind11;
 

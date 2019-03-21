@@ -40,7 +40,7 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/image_object_detector.h>
-#include <vital/algo/trampoline/image_object_detector_trampoline.tcc>
+#include <vital/algo/trampoline/image_object_detector_trampoline.txx>
 #include <sstream>
 
 namespace py = pybind11;
