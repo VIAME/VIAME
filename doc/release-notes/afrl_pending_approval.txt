@@ -31,6 +31,12 @@ Arrows - CUDA
    average world distance per pixel.  This allows fusion to work on scenes
    of various scales without manually tuning the configuration parameters.
 
+ * Added utilities for checking CUDA functions for error codes and then
+   logging the error and throwing an exception.
+
+ * Added utilities for CUDA memory management with unique_ptr.  This is
+   required to prevent memory leak when exceptions are thrown.
+
 Arrows - FFMPEG
 
  * Added metadata handling to FFMPEG implementation of video_input
