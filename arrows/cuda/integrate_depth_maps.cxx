@@ -114,22 +114,26 @@ integrate_depth_maps::get_configuration() const
   auto config = vital::algo::integrate_depth_maps::get_configuration();
 
   config->set_value("ray_potential_thickness", d_->ray_potential_thickness,
-                    "ray potential thickness");
+                    "Distance that the TSDF covers sloping from Rho to zero. "
+                    "Units are in voxels.");
   config->set_value("ray_potential_rho", d_->ray_potential_rho,
-                    "ray potential rho");
+                    "Maximum magnitude of the TDSF");
   config->set_value("ray_potential_eta", d_->ray_potential_eta,
-                     "0 < Eta < 1 : will be applied as a percentage of rho ");
+                    "Fraction of rho to use for free space constraint. "
+                    "Requires 0 <= Eta <= 1.");
   config->set_value("ray_potential_delta", d_->ray_potential_delta,
-                    "delta has to be superior to Thick ");
+                    "Distance from the surface before the TSDF is truncate. "
+                    "Units are in voxels");
   config->set_value("voxel_spacing_factor", d_->voxel_spacing_factor,
-                    "multiplier on spacing");
+                    "Multiplier on voxel spacing.  Set to 1.0 for voxel "
+                    "sizes that project to 1 pixel on average.");
 
   std::ostringstream stream;
   stream << d_->grid_spacing[0] << " "
          << d_->grid_spacing[1] << " "
          << d_->grid_spacing[2];
   config->set_value("grid_spacing", stream.str(),
-                    "relative spacing for each dimension of the grid");
+                    "Relative spacing for each dimension of the grid");
 
   return config;
 }
