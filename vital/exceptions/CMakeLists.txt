@@ -5,6 +5,7 @@
 set( public_headers
   algorithm.h
   base.h
+  gpu.h
   image.h
   io.h
   math.h
@@ -17,6 +18,7 @@ set( public_headers
 set( sources
   algorithm.cxx
   base.cxx
+  gpu.cxx
   image.cxx
   io.cxx
   math.cxx

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,22 +30,50 @@
 
 /**
  * \file
- * \brief Base include file for all vital exceptions
- *
- * All exception types for vital::core are included through this file.
+ * \brief Interface for GPU exceptions
  */
 
-#ifndef VITAL_EXCEPTIONS_H_
-#define VITAL_EXCEPTIONS_H_
+#ifndef VITAL_CORE_EXCEPTIONS_GPU_H
+#define VITAL_CORE_EXCEPTIONS_GPU_H
 
-#include "exceptions/base.h"
-#include "exceptions/algorithm.h"
-#include "exceptions/gpu.h"
-#include "exceptions/image.h"
-#include "exceptions/io.h"
-#include "exceptions/math.h"
-#include "exceptions/metadata.h"
-#include "exceptions/video.h"
-#include "exceptions/serialize.h"
+#include <string>
 
-#endif // VITAL_EXCEPTIONS_H_
+#include <vital/exceptions/base.h>
+
+namespace kwiver {
+namespace vital {
+
+// ------------------------------------------------------------------
+/// Generic GPU exception
+class VITAL_EXCEPTIONS_EXPORT gpu_exception
+  : public vital_exception
+{
+public:
+  /// Constructor
+  gpu_exception() noexcept;
+
+  /// Destructor
+  virtual ~gpu_exception() noexcept;
+};
+
+
+// ------------------------------------------------------------------
+/// Video runtime error.
+/*
+ * This exception is thrown when the GPU is unable to allocate memory
+ */
+class VITAL_EXCEPTIONS_EXPORT gpu_memory_exception
+  : public gpu_exception
+{
+public:
+  /// Constructor
+  gpu_memory_exception( std::string const& msg ) noexcept;
+
+  /// Destructor
+  virtual ~gpu_memory_exception() noexcept;
+};
+
+} } // end namespace
+
+
+#endif /* VITAL_CORE_EXCEPTIONS_GPU_H */
