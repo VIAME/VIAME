@@ -77,9 +77,6 @@ public:
   /// stop matching against additional keyframes if at least one succeeds
   bool stop_after_match;
 
-  /// Indices of the the selected keyframes
-  std::vector<frame_id_t> keyframes;
-
   /// histogram of matches associated with each frame
   std::map<frame_id_t, unsigned int> frame_matches;
 
@@ -193,7 +190,10 @@ close_loops_keyframe
 
   // get a vector of all frame numbers contained in the tracks
   auto frame_set = input->all_frame_ids();
+  // Indices of the the selected keyframes
+  auto keyframe_set = input->keyframes();
   std::vector<frame_id_t> frames(frame_set.begin(), frame_set.end());
+  std::vector<frame_id_t> keyframes(keyframe_set.begin(), keyframe_set.end());
 
   // do nothing for the first two frames, there is nothing to match
   if( frames.size() <= 2 )
@@ -211,9 +211,17 @@ close_loops_keyframe
 
   // the first frame is always a key frame (for now)
   // This could proably be improved
-  if(d_->keyframes.empty())
+  if(keyframes.empty())
   {
-    d_->keyframes.push_back(input->first_frame());
+    keyframes.push_back(input->first_frame());
+    auto fd = input->frame_data(input->first_frame());
+    auto ffd = std::dynamic_pointer_cast<vital::feature_track_set_frame_data>(fd);
+    if (!ffd)
+    {
+      ffd = std::make_shared<vital::feature_track_set_frame_data>();
+      input->set_frame_data(ffd, input->first_frame());
+    }
+    ffd->is_keyframe = true;
   }
 
   // extract the subset of tracks on the current frame and their
@@ -246,7 +254,7 @@ close_loops_keyframe
   // use this iterator to step backward through the keyframes
   // as we step backward through the neighborhood to identify
   // which neighborhood frames are also keyframes
-  auto kitr = d_->keyframes.rbegin();
+  auto kitr = keyframes.rbegin();
   // since loop closure starts at frame n-2, if the latest
   // keyframe happens to be n-1 we need to skip that one
   if (*kitr == frames[frames.size() - 2])
@@ -264,7 +272,7 @@ close_loops_keyframe
     all_matches[*f] = pool.enqueue(match_func, *f);
   }
   // stitch with all previous keyframes
-  for(auto kitr = d_->keyframes.rbegin(); kitr != d_->keyframes.rend(); ++kitr)
+  for(auto kitr = keyframes.rbegin(); kitr != keyframes.rend(); ++kitr)
   {
     // if this frame was already matched above then skip it
     if(*kitr >= *last_frame_itr)
@@ -298,7 +306,7 @@ close_loops_keyframe
     // if this frame is a keyframe then account for it in the
     // computation of the maximum number of matches to all keyframes
     std::string frame_name = "";
-    if(kitr != d_->keyframes.rend() && *f == *kitr)
+    if(kitr != keyframes.rend() && *f == *kitr)
     {
       if( num_matched > max_keyframe_matched )
       {
@@ -317,7 +325,7 @@ close_loops_keyframe
     static_cast<unsigned int>(last_frame_itr - frames.rbegin() - 2);
 
   // stitch with all previous keyframes
-  for(auto kitr = d_->keyframes.rbegin(); kitr != d_->keyframes.rend(); ++kitr)
+  for(auto kitr = keyframes.rbegin(); kitr != keyframes.rend(); ++kitr)
   {
     // if this frame was already matched above then skip it
     if(*kitr >= *last_frame_itr)
@@ -387,8 +395,16 @@ close_loops_keyframe
     {
       // create the new keyframe and clear the list of misses
       LOG_INFO(logger(), "creating new keyframe on frame " << max_id);
-      d_->keyframes.push_back(max_id);
+      keyframes.push_back(max_id);
       d_->keyframe_misses.clear();
+      auto fd = input->frame_data(max_id);
+      auto ffd = std::dynamic_pointer_cast<vital::feature_track_set_frame_data>(fd);
+      if (!ffd)
+      {
+        ffd = std::make_shared<vital::feature_track_set_frame_data>();
+        input->set_frame_data(ffd, max_id);
+      }
+      ffd->is_keyframe = true;
     }
   }
 
