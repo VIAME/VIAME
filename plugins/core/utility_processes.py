@@ -40,6 +40,8 @@ from vital.types import ObjectTrackState, Track, ObjectTrackSet
 
 from vital.util.VitalPIL import get_pil_image, from_pil
 
+import numpy as np
+
 class blank_out_frames( KwiverProcess ):
     """
     This process blanks out images which don't have detections on them.
@@ -118,7 +120,7 @@ class percentile_norm_npy_16_to_8bit( KwiverProcess ):
         normalized = normalized * 255
         normalized[ normalized < 0 ] = 0
 
-        output = ImageContainer( Image( normalized ) ).astype( "uint8" )
+        output = ImageContainer( Image( normalized.astype( "uint8" ) ) )
 
          # push dummy image object (same as input) to output port
         self.push_to_port_using_trait( 'image', output )
