@@ -108,7 +108,7 @@ class percentile_norm_npy_16_to_8bit( KwiverProcess ):
         # grab image container from port using traits
         img_c = self.grab_input_using_trait( 'image' )
 
-        img = img_c.get_image().asarray().astype( 'uint16' )
+        img = img_c.image().asarray().astype( "uint16" )
 
         mi = np.percentile( img, 1 )
         ma = np.percentile( img, 100 )
@@ -118,10 +118,8 @@ class percentile_norm_npy_16_to_8bit( KwiverProcess ):
         normalized = normalized * 255
         normalized[ normalized < 0 ] = 0
 
-        # Get python image from conatiner (just for show)
-        in_img = get_pil_image( in_img_c.image() ).convert( 'RGB' )
+        output = ImageContainer( Image( normalized ) ).astype( "uint8" )
 
-        # push dummy image object (same as input) to output port
-        self.push_to_port_using_trait( 'image', ImageContainer( from_pil( in_img ) ) )
-
+         # push dummy image object (same as input) to output port
+        self.push_to_port_using_trait( 'image', output )
         self._base_step()
