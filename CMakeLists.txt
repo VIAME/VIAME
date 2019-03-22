@@ -78,6 +78,7 @@ option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
+option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugin"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
@@ -133,7 +134,8 @@ if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA OR
   set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"      FORCE )
 endif()
 
-if( VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH )
+if( VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR
+    VIAME_ENABLE_TENSORFLOW )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"   FORCE )
 endif()
 

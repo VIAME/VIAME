@@ -36,3 +36,7 @@ endif()
 if( VIAME_ENABLE_SMQTK )
   add_subdirectory( smqtk )
 endif()
+
+if( VIAME_ENABLE_TENSORFLOW )
+  add_subdirectory( tensorflow )
+endif()
