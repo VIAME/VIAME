@@ -80,6 +80,14 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-default_faster_rcnn-v1.0.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
+
+  if( VIAME_ENABLE_TENSORFLOW )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5c9461998d777f072bcb19da/download
+      5e16a3811fe20f4474e88610fd3c4764
+      ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+  endif()
 endif()
 
 ###
@@ -191,6 +199,12 @@ if( VIAME_ENABLE_ITK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/register_multimodal_sync_itk.pipe
     pipelines/register_multimodal_unsync_itk.pipe )
+endif()
+
+if( VIAME_ENABLE_TENSORFLOW )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/detector_arctic_seal_rgb_tf.pipe
+    pipelines/detector_arctic_seal_ir_tf.pipe )
 endif()
 
 if( VIAME_DOWNLOAD_MODELS-MOUSS )

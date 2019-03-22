@@ -8,5 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_scallop_tk.pipe \
-                -s input:video_filename=input_image_list_habcam.txt
+pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_arctic_seal_ir_tf.pipe
