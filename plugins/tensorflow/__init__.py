@@ -1,5 +1,5 @@
 
-from viame.processes.tf_detector import tf_detector
+from viame.processes.tensorflow import tf_detector
 
 
 def __sprokit_register__():
