@@ -10,15 +10,15 @@ config _scheduler
 # =============================================================================
 process input
   :: frame_list_input
-  :image_list_file     rgb_input_list.txt
-  :frame_time          .3333
-  :image_reader:type   ocv
+  :image_list_file                             rgb_input_list.txt
+  :frame_time                                  0.3333
+  :image_reader:type                           ocv
 
 # =============================================================================
 process detector
   :: tf_detector
-  :modelFile           seal_rgb_model.pb
-  :confidenceThresh    .5
+  relativepath model_file =                    models/arctic_seal_tf_rgb.pb
+  :confidence_thresh                           0.5
 
 # =============================================================================
 process draw_box

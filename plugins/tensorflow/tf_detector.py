@@ -1,5 +1,7 @@
+
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
+
 from vital.types import Image
 from vital.types import ImageContainer
 from vital.types import DetectedObject
@@ -14,7 +16,6 @@ import os
 
 from vital.util.VitalPIL import get_pil_image
 
-
 class tf_detector(KwiverProcess):
     """
     This process gets an image as input, does some stuff to it and
@@ -26,20 +27,20 @@ class tf_detector(KwiverProcess):
         print( "[DEBUG] ----- init" )
         KwiverProcess.__init__(self, conf)
 
-        self.add_config_trait("modelFile", "modelFile", "Model File",
+        self.add_config_trait("model_file", "model_file", "Model File",
           "Path to TF Inference Graph.")
 
-        self.declare_config_using_trait("modelFile")
+        self.declare_config_using_trait("model_file")
 
-        self.add_config_trait("normImageType", "normImageType", "",
+        self.add_config_trait("norm_image_type", "norm_image_type", "",
           "Type of normalization for input image.")
 
-        self.declare_config_using_trait("normImageType")
+        self.declare_config_using_trait("norm_image_type")
         
-        self.add_config_trait("confidenceThresh", "confidenceThresh", ".5",
+        self.add_config_trait("confidence_thresh", "confidence_thresh", ".5",
           "Confidence threshold for detection.")
 
-        self.declare_config_using_trait("confidenceThresh")        
+        self.declare_config_using_trait("confidence_thresh")
 
         self.add_port_trait("image_norm", "image", "Normalized image")
 
@@ -60,9 +61,9 @@ class tf_detector(KwiverProcess):
     # ----------------------------------------------
     def _configure(self):
         print( "[DEBUG] ----- configure" )
-        self.modelFile = self.config_value("modelFile")
-        self.normImageType = self.config_value("normImageType")
-        self.confidenceThresh = float(self.config_value("confidenceThresh"))
+        self.modelFile = self.config_value("model_file")
+        self.normImageType = self.config_value("norm_image_type")
+        self.confidenceThresh = float(self.config_value("confidence_thresh"))
 
         # Load and detector
         self.detection_graph = self.load_model(self.modelFile)
