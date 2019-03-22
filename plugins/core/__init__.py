@@ -43,4 +43,10 @@ def __sprokit_register__():
         utility_processes.blank_out_frames
     )
 
+    process_factory.add_process(
+        'percentile_norm_npy_16_to_8bit',
+        'A specialized percentile normalization method',
+        utility_processes.percentile_norm_npy_16_to_8bit
+    )
+
     process_factory.mark_process_module_as_loaded( module_name )
