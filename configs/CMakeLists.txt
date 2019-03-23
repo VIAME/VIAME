@@ -4,12 +4,14 @@
 ##
 if( VIAME_DOWNLOAD_MODELS )
 
-  # GUI Context View
-  DownloadAndExtract(
-    https://data.kitware.com/api/v1/item/5afe6c018d777f15ebe1d6f2/download
-    7e8800cb11a1a491140e7f58e9053030
-    ${VIAME_DOWNLOAD_DIR}/models-blue_marble_context-v1.0.0.tar.gz
-    ${CMAKE_CURRENT_SOURCE_DIR}/gui-params )
+  # GUI Background Context View
+  if( VIAME_ENABLE_VIVIA )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5afe6c018d777f15ebe1d6f2/download
+      7e8800cb11a1a491140e7f58e9053030
+      ${VIAME_DOWNLOAD_DIR}/models-blue_marble_context-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/gui-params )
+  endif()
 
   # PyTorch Tracking Models
   if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
@@ -70,6 +72,14 @@ if( VIAME_DOWNLOAD_MODELS )
         ${VIAME_DOWNLOAD_DIR}/models-mouss-v2.1.0.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
+
+    if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5c96b6d28d777f072bcf66da/download
+        18a6afd51cee80203e6d16a52430d683
+        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_yolo-v1.1.0.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
   endif()
 
   # Default Faster-RCNN Models
@@ -81,12 +91,14 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
+  # Tensorflow Models
   if( VIAME_ENABLE_TENSORFLOW )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5c9461998d777f072bcb19da/download
-      5e16a3811fe20f4474e88610fd3c4764
-      ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.0.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5c96b6ce8d777f072bcf66cc/download
+        b2e0dff332c39626643e4fe164f8d329
+        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.1.0.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 endif()
 
