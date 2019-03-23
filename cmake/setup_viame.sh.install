@@ -5,7 +5,8 @@
 # Paths to required dependencies, set these
 export PYTHON_INSTALL_DIR=/opt/noaa/python3
 
-# Does this actually need to be set? Answer: Only on some OS.
+# Does this actually need to be set? Answer: Only on some OS
+# Leave this commented out, unless you have issues finding CUDA libraries
 # export CUDA_INSTALL_DIR=/usr/local/cuda
 
 # Check variable paths
