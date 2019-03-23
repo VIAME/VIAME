@@ -99,6 +99,7 @@ if( VIAME_DOWNLOAD_MODELS )
         b2e0dff332c39626643e4fe164f8d329
         ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.1.0.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
   endif()
 endif()
 
