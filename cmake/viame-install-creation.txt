@@ -1,21 +1,23 @@
 To finalize binaries to make an installer:
 ------------------------------------------
 
-1. Do a complete build with build_internal_pytorch 'on', 'release' mode, and all depedencies
-2. Except on Ubuntu: Enable 'create_package' temporarily, uncommented two fixup_bundles after running once
-3. Copy in CUDNN binaries into install folder (bin windows, lib linux)
+1. Do a complete build with:
+  -  build_internal_pytorch 'on' (linux only)
+  - 'release' mode (all OS)
+  - 'create_package' cmake build flag on (all OS)
 
 Windows:
 
-4. Copy setup_viame.bat.install over setup_viame.bat
-5. Merge in all libsvm changes
-6. Merge in all postgressql changes
-7. Merge in all pytorch and torchvision changes
-8. Merge in CPU only pytorch changes, only if CPU only
-9. zip with 7zip
+2. Copy setup_viame.bat.install over setup_viame.bat
+3. Merge in all libsvm changes
+4. Merge in all postgressql changes
+5. Merge in all pytorch and torchvision changes
+  - (CPU only pytorch changes, if CPU only)
+6. zip with 7zip
 
 Ubuntu:
 
-4. Copy setup_viame.sh.install over setup_viame.sh
-5. Verify libsvm.so link is valid, if not remake
-6. tar -zcvf viame.tar.gz viame
+2. Copy setup_viame.sh.install over setup_viame.sh
+3. During create_package call, copy in libpython temporarily
+4. Verify libsvm.so link is valid, if not remake
+5. tar -zcvf viame.tar.gz viame
