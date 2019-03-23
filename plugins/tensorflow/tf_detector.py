@@ -6,6 +6,7 @@ from vital.types import Image
 from vital.types import ImageContainer
 from vital.types import DetectedObject
 from vital.types import DetectedObjectSet
+from vital.types import DetectedObjectType
 from vital.types import BoundingBox
 
 import tensorflow as tf
@@ -42,6 +43,11 @@ class tf_detector(KwiverProcess):
 
         self.declare_config_using_trait("confidence_thresh")
 
+        self.add_config_trait("category_name", "category_name", "seal",
+          "Output category ID if the model file doesn't contain any.")
+
+        self.declare_config_using_trait("category_name")
+
         self.add_port_trait("image_norm", "image", "Normalized image")
 
         # set up required flags
@@ -64,6 +70,7 @@ class tf_detector(KwiverProcess):
         self.modelFile = self.config_value("model_file")
         self.normImageType = self.config_value("norm_image_type")
         self.confidenceThresh = float(self.config_value("confidence_thresh"))
+        self.categoryName = self.config_value("category_name")
 
         # Load and detector
         self.detection_graph = self.load_model(self.modelFile)
@@ -117,7 +124,8 @@ class tf_detector(KwiverProcess):
                xmax = rightRel * imageWidth
                ymax = bottomRel * imageHeight
 
-               obj = DetectedObject(BoundingBox(xmin, ymin, xmax, ymax), scores[i])
+               dot = DetectedObjectType(self.categoryName, scores[i])
+               obj = DetectedObject(BoundingBox(xmin, ymin, xmax, ymax), scores[i], dot)
                detections.add(obj)
 
         print("Detected {}".format(len(goodBoxes)))
