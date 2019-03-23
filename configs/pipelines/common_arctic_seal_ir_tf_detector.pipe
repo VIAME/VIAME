@@ -1,0 +1,9 @@
+# ==================================================================================
+# Threaded seal detector file
+
+process detector
+  :: tf_detector
+  relativepath model_file =                    models/arctic_seal_ir.pb
+  :norm_image_type                             P
+  :confidence_thresh                           0.25
+  :category_name                               hotspot

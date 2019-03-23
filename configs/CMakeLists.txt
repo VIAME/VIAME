@@ -213,7 +213,7 @@ if( VIAME_ENABLE_ITK )
     pipelines/register_multimodal_unsync_itk.pipe )
 endif()
 
-if( VIAME_ENABLE_TENSORFLOW )
+if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/detector_arctic_seal_rgb_tf.pipe
     pipelines/detector_arctic_seal_ir_tf.pipe )

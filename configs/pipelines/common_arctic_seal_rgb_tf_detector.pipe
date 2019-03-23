@@ -1,0 +1,8 @@
+# ==================================================================================
+# Threaded seal detector file
+
+process detector
+  :: tf_detector
+  relativepath model_file =                    models/arctic_seal_rgb.pb
+  :confidence_thresh                           0.5
+  :category_name                               seal
