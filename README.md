@@ -56,8 +56,8 @@ In summary, extract the binaries and place them in a directory of your choosing,
 example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
 Next, set the PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or
 setup_viame.bat (Windows) script in the root install folder to point to the
-location of your installed Anaconda and CUDA distributions. Lastly, run through
-some of the examples to validate the installation.
+location of your installed Anaconda distribution. Lastly, run through some of the examples
+to validate the installation.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
