@@ -71,6 +71,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Linux Desktop Binaries:** <br>
 [VIAME v0.9.8.8 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5bd79fd68d777f06b93e7ad5/download) <br>
 [VIAME v0.9.8.8 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Yjs5oSlRkS-8ypIjBuna42qFSxqSGgb7) <br>
+[VIAME v0.9.9.7 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c96cbd88d777f072bcf7dd2/download) <br>
+[VIAME v0.9.9.7 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1KPADkjJc_5J7w_JkCfYEwORTTAAmNWYx) <br>
 [VIAME v0.9.9.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c6b0bf78d777f072b51ead3/download) <br>
 [VIAME v0.9.9.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1ZqERSOs10awJVMklln8Skx7RCsgqS2Wg)
 
@@ -83,7 +85,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Optional Patches:** <br>
 [MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
-[Arctic Seals Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c59cfe48d777f072b2ceef8/download) <br>
+[Arctic Seals Models Add-On, All Linux, CUDA 9](https://data.kitware.com/api/v1/item/5c96c90b8d777f072bcf7d5f/download) <br>
 [HabCam Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8ea8d777f072b2b97fa/download) <br>
 [Low Memory GPU (2 Gb to 4 Gb) Add-On, All OS](https://data.kitware.com/api/v1/item/5c74a0328d777f072b6615f3/download)
 
