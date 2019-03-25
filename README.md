@@ -79,8 +79,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Windows Desktop Binaries:** <br>
 [VIAME v0.9.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c916d278d777f072bc17c01/download) <br>
 [VIAME v0.9.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1qsA0XulI2sSeqlftdFG0WJrkn-HxurZ7) <br>
-[VIAME v0.9.9.6 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c7497868d777f072b660508/download) <br>
-[VIAME v0.9.9.6 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1fw6t26yY7lDhzHzx9gcaMU30zfQ-tJqR)
+[VIAME v0.9.9.7 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c98c5728d777f072bd52c43/download) <br>
+[VIAME v0.9.9.7 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=167QP2Iyyb862d_d9ebSDzgwLsY3MHl0M)
 
 **Optional Patches:** <br>
 [MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download) <br>
