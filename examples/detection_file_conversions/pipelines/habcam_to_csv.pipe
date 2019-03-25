@@ -10,10 +10,12 @@ config _pipeline:_edge
 
 # ====================== INPUT FRAME LIST ========================
 process image_reader
-  :: frame_list_input
-  :image_list_file                                  input_list.txt
+  :: video_input
+  :video_filename                                   input_list.txt
   :frame_time                                              0.03333
-  :image_reader:type                                           vxl
+  :disable_file_load                                          true
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type                   vxl
 
 process detection_reader
   :: detected_object_input
@@ -29,12 +31,12 @@ process detection_filter
 process detection_writer
   :: detected_object_output
   :file_name                                    converted_file.csv
-  :writer:type                                                 csv
+  :writer:type                                           viame_csv
 
-connect from image_reader.image_file_name
+connect from image_reader.file_name
         to   detection_reader.image_file_name
 
-connect from image_reader.image_file_name
+connect from image_reader.file_name
         to   detection_writer.image_file_name
 
 connect from detection_reader.detected_object_set
