@@ -27,25 +27,19 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/**
- * \file image_object_detector.cxx
- *
- * \brief Python bindings for \link vital::algo::image_object_detector\endlink
- */
-
 #include <pybind11/pybind11.h>
-#include <vital/algo/trampoline/image_object_detector_trampoline.txx>
+#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
+#include <vital/bindings/python/vital/algo/image_object_detector.h>
 
 namespace py = pybind11;
 
-void image_object_detector_implementation(py::module &m)
+void image_object_detector(py::module &m)
 {
   py::class_< kwiver::vital::algo::image_object_detector,
               std::shared_ptr<kwiver::vital::algo::image_object_detector>,
               kwiver::vital::algorithm_def<kwiver::vital::algo::image_object_detector>,
-              py_image_object_detector<> >(m, "ImageObjectDetector")
+              image_object_detector_trampoline<> >(m, "ImageObjectDetector")
     .def(py::init())
-    .def_static("static_type_name", &image_object_detector::static_type_name)
-    .def("detect", &image_object_detector::detect);
+    .def_static("static_type_name", &kwiver::vital::algo::image_object_detector::static_type_name)
+    .def("detect", &kwiver::vital::algo::image_object_detector::detect);
 }

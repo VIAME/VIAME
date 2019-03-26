@@ -34,47 +34,48 @@
  * \brief trampoline for overriding virtual functions of algorithm_def<image_object_detector> and image_object_detector
  */
 
-#ifndef PY_IMAGE_OBJECT_DETECTOR_TXX
-#define PY_IMAGE_OBJECT_DETECTOR_TXX
+#ifndef IMAGE_OBJECT_DETECTOR_TRAMPOLINE_TXX
+#define IMAGE_OBJECT_DETECTOR_TRAMPOLINE_TXX
 
 
-#include <vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
 #include <vital/algo/image_object_detector.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
-#include "algorithm_trampoline.txx"
-
-using namespace kwiver::vital::algo;
-using namespace kwiver::vital;
+#include <vital/bindings/python/vital/algo/trampoline/algorithm_trampoline.txx>
 
 
-template <class algorithm_def_iod_base=algorithm_def<image_object_detector>>
-class py_iod_algorithm_def : public py_algorithm<algorithm_def_iod_base>
+
+template <class algorithm_def_iod_base=kwiver::vital::algorithm_def<kwiver::vital::algo::image_object_detector>>
+class algorithm_def_iod_trampoline :
+      public algorithm_trampoline<algorithm_def_iod_base>
 {
   public:
-    using py_algorithm<algorithm_def_iod_base>::py_algorithm;
+    using algorithm_trampoline<algorithm_def_iod_base>::algorithm_trampoline;
 
     std::string type_name() const override 
     {
       VITAL_PYBIND11_OVERLOAD(
         std::string,
-        algorithm_def<image_object_detector>,
+        kwiver::vital::algorithm_def<kwiver::vital::algo::image_object_detector>,
         type_name,
       );
     }
 };
 
 
-template <class image_object_detector_base=image_object_detector>
-class py_image_object_detector : public py_iod_algorithm_def<image_object_detector_base>
+template <class image_object_detector_base=kwiver::vital::algo::image_object_detector>
+class image_object_detector_trampoline :
+      public algorithm_def_iod_trampoline<image_object_detector_base>
 {
   public:
-    using py_iod_algorithm_def<image_object_detector_base>::py_iod_algorithm_def;
-    detected_object_set_sptr detect(image_container_sptr image_data) const override
+    using algorithm_def_iod_trampoline<image_object_detector_base>::
+              algorithm_def_iod_trampoline;
+    kwiver::vital::detected_object_set_sptr detect(kwiver::vital::image_container_sptr image_data) const override
     {
       VITAL_PYBIND11_OVERLOAD_PURE(
-        detected_object_set_sptr,
-        image_object_detector,
+        kwiver::vital::detected_object_set_sptr,
+        kwiver::vital::algo::image_object_detector,
         detect,
         image_data
       );

@@ -41,7 +41,7 @@
 #include <pybind11/embed.h>
 #include <iostream>
 
-#include <vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
 
 namespace py = pybind11;
 

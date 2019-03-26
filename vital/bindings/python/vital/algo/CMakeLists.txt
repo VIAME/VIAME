@@ -2,41 +2,24 @@ project(vital_python_algo)
 
 include_directories(${PYBIND11_INCLUDE_DIR})
 
-# Add trampolines
-
-set( vital_algo_trampoline
-    trampoline/algorithm_trampoline.txx
-    trampoline/image_object_detector_trampoline.txx
-)
-
-kwiver_add_library(
-  vital_algo_trampoline
-  ${vital_algo_trampoline}
-)
-
-set_target_properties(vital_algo_trampoline PROPERTIES LINKER_LANGUAGE CXX)
-
-target_link_libraries(vital_algo_trampoline
-  PUBLIC ${PYTHON_LIBRARIES}
-          vital_algo
-          vital_config
-          vital
-          vital_python_util
-)
-
-
 kwiver_add_python_library(algorithm
-  vital/algo
-  _algorithm.cxx
+  kwiver/vital/algo
+  algorithm.h
+  image_object_detector.h 
   algorithm.cxx
   image_object_detector.cxx
+  algorithm_module.cxx
+  trampoline/algorithm_trampoline.txx
+  trampoline/image_object_detector_trampoline.txx
 )
 
-target_link_libraries(python-vital.algo-algorithm
+
+target_link_libraries(python-kwiver.vital.algo-algorithm
   PUBLIC ${PYTHON_LIBRARIES}
           vital
           vital_config
           vital_algo
+          vital_python_util
 )
 
 kwiver_add_python_library(algorithm_factory
@@ -50,10 +33,9 @@ target_link_libraries(python-vital.algo-algorithm_factory
           vital_algo
 )
 
-
 kwiver_create_python_init(vital/algo
   algorithm
   algorithm_factory
 )
 
-add_subdirectory(py)
+#add_subdirectory(py)

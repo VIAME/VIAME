@@ -34,15 +34,15 @@
  * \brief trampoline for overriding virtual functions of vital::algorithm
  */
 
-#ifndef PY_ALGORITHM_TRAMPOLINE_TXX
-#define PY_ALGORITHM_TRAMPOLINE_TXX
+#ifndef ALGORITHM_TRAMPOLINE_TXX
+#define ALGORITHM_TRAMPOLINE_TXX
 
 #include <vital/algo/algorithm.h>
 #include <vital/config/config_block.h>
-#include <vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
 
 template <class algorithm_base=kwiver::vital::algorithm>
-class py_algorithm : public algorithm_base
+class algorithm_trampoline : public algorithm_base
 {
   public:
     using algorithm_base::algorithm_base;
@@ -85,5 +85,4 @@ class py_algorithm : public algorithm_base
       );
     }
 };
-
 #endif

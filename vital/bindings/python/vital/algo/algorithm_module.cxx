@@ -27,19 +27,30 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/**
+ * \file algorithm_implementation.cxx
+ *
+ * \brief python bindings for algorithm
+ */
+
+
 #include <pybind11/pybind11.h>
-#include <sstream>
+#include <pybind11/stl.h>
+
 #include <vital/algo/algorithm.h>
-#include <vital/algo/trampoline/algorithm_trampoline.txx>
+#include <vital/algo/image_object_detector.h>
+#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
+#include <vital/bindings/python/vital/algo/algorithm.h>
+#include <vital/bindings/python/vital/algo/image_object_detector.h>
+#include <sstream>
 
 namespace py = pybind11;
 
-void algorithm_implementation(py::module &m)
+PYBIND11_MODULE(algorithm, m)
 {
-  py::class_<kwiver::vital::algorithm, std::shared_ptr<kwiver::vital::algorithm>,
-             py_algorithm<>>(m, "_algorithm")
-    .def("get_configuration", &kwiver::vital::algorithm::get_configuration)
-    .def("set_configuration", &kwiver::vital::algorithm::set_configuration)
-    .def("check_configuration", &kwiver::vital::algorithm::check_configuration);
+  algorithm(m);
+  register_algorithm<kwiver::vital::algo::image_object_detector,
+            algorithm_def_iod_trampoline<>>(m, "image_object_detector");
+  image_object_detector(m);
 }
-
