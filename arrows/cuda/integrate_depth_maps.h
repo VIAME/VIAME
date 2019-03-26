@@ -33,8 +33,8 @@
 * \brief Header file for compute depth
 */
 
-#ifndef KWIVER_ALGO_CUDA_INTEGRATE_DEPTH_MAPS_H_
-#define KWIVER_ALGO_CUDA_INTEGRATE_DEPTH_MAPS_H_
+#ifndef KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_
+#define KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_
 
 #include <arrows/cuda/kwiver_algo_cuda_export.h>
 
@@ -50,6 +50,9 @@ class KWIVER_ALGO_CUDA_EXPORT integrate_depth_maps
   : public vital::algorithm_impl<integrate_depth_maps, vital::algo::integrate_depth_maps>
 {
 public:
+  PLUGIN_INFO( "cuda",
+               "depth map fusion" )
+
   /// Constructor
   integrate_depth_maps();
 
@@ -82,8 +85,6 @@ public:
               std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
               kwiver::vital::image_container_sptr& volume) const;
 
-
-
 private:
   /// private implementation class
   class priv;
@@ -94,4 +95,4 @@ private:
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ALGO_CUDA_INTEGRATE_DEPTH_MAPS_H_
+#endif // KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_

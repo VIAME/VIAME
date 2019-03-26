@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,57 +28,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef KWIVER_VITAL_UTIL_FILE_MD5_H
+#define KWIVER_VITAL_UTIL_FILE_MD5_H
+
+#include <vital/util/vital_util_export.h>
+
+#include <string>
+
+namespace kwiver {
+namespace vital {
+
 /**
- * \file
- * \brief Interface for read_object_track process
+ * @brief Compute the md5 of a file
+ *
+ * Compute the md5 sum of the named file
+ *
+ * @param fn Path to the file
+ *
+ * @return MD5 sum as a string; empty if an error ocurred.
  */
 
-#ifndef _KWIVER_READ_OBJECT_TRACK_PROCESS_H
-#define _KWIVER_READ_OBJECT_TRACK_PROCESS_H
+VITAL_UTIL_EXPORT std::string
+file_md5( const std::string& fn );
 
-#include <sprokit/pipeline/process.h>
+} // ...vital
+} // ...kwiver
 
-#include "kwiver_processes_export.h"
-
-#include <memory>
-
-namespace kwiver
-{
-
-// -------------------------------------------------------------------------------
-/**
- * \class read_object_track_process
- *
- * \brief Reads a series or single set of track descriptors
- *
- * \iports
- * \iport{image_name}
- * \oport{track descriptor_set}
- */
-class KWIVER_PROCESSES_NO_EXPORT read_object_track_process
-  : public sprokit::process
-{
-public:
-  PLUGIN_INFO( "read_object_track",
-               "Reads object track sets from an input file." )
-
-  read_object_track_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~read_object_track_process();
-
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
-
-private:
-  void make_ports();
-  void make_config();
-
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class read_object_track_process
-
-
-} // end namespace
-
-#endif // _KWIVER_READ_OBJECT_TRACK_PROCESS_H
+#endif

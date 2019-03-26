@@ -54,6 +54,9 @@ class KWIVER_PROCESSES_NO_EXPORT image_object_detector_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "image_object_detector",
+               "Apply selected image object detector algorithm to incoming images." )
+
   image_object_detector_process( kwiver::vital::config_block_sptr const& config );
   virtual ~image_object_detector_process();
 

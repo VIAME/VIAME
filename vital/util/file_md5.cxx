@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,57 +28,65 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Interface for read_object_track process
- */
+#include "file_md5.h"
 
-#ifndef _KWIVER_READ_OBJECT_TRACK_PROCESS_H
-#define _KWIVER_READ_OBJECT_TRACK_PROCESS_H
+#include <kwiversys/MD5.h>
+#include <iostream>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
 
-#include <sprokit/pipeline/process.h>
+using std::string;
+using std::ifstream;
+using std::ostringstream;
 
-#include "kwiver_processes_export.h"
+namespace kwiver {
+namespace vital {
 
-#include <memory>
-
-namespace kwiver
+string
+file_md5( const string& fn )
 {
 
-// -------------------------------------------------------------------------------
-/**
- * \class read_object_track_process
- *
- * \brief Reads a series or single set of track descriptors
- *
- * \iports
- * \iport{image_name}
- * \oport{track descriptor_set}
- */
-class KWIVER_PROCESSES_NO_EXPORT read_object_track_process
-  : public sprokit::process
-{
-public:
-  PLUGIN_INFO( "read_object_track",
-               "Reads object track sets from an input file." )
+  ifstream is( fn.c_str(), ifstream::binary );
+  if ( ! is )
+  {
+    return "";
+  }
 
-  read_object_track_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~read_object_track_process();
+  const size_t digest_size = 16;
+  unsigned char digest[ digest_size ];
 
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
+  {
+    const size_t bufsize=16384;
+    unsigned char* buf = new unsigned char[bufsize];
+    kwiversysMD5* md5 = kwiversysMD5_New();
+    kwiversysMD5_Initialize( md5 );
 
-private:
-  void make_ports();
-  void make_config();
+    while (is)
+    {
+      is.read( reinterpret_cast<char*>( buf ), bufsize );
+      if (is.gcount())
+      {
+        kwiversysMD5_Append( md5, buf, is.gcount());
+      }
+    }
+    kwiversysMD5_Finalize( md5, digest );
+    kwiversysMD5_Delete( md5 );
+    delete[] buf;
+  }
 
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class read_object_track_process
+  ostringstream oss;
+  {
+    const size_t bufsize=5;
+    char buf[bufsize];
+    for (size_t i=0; i<digest_size; ++i)
+    {
+      snprintf(buf, bufsize, "%x", digest[i]);
+      oss << buf;
+    }
+  }
+  return oss.str();
+}
 
-
-} // end namespace
-
-#endif // _KWIVER_READ_OBJECT_TRACK_PROCESS_H
+} // ...vital
+} // ...kwiver

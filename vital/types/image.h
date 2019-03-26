@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -219,13 +219,6 @@ public:
    * \param other image_memory to copy from.
    */
   image_memory& operator=( const image_memory& other );
-
-  /// Equality operator
-  /**
-   * Compares the data in other image memory with this image data.
-   * \param other image_memory to compare with
-   */
-  bool operator==( const image_memory& other ) const;
 
   /// Destructor
   virtual ~image_memory();
@@ -451,11 +444,33 @@ public:
 
   /// Equality operator
   /**
-   * Compares this image to another image. Uses image data, pixel trait and image
-   * dimension for comparision
+   * Compares this image to another image to test equality.
+   *
    * \param other image to compare with
+   *
+   * \note This function computes only "shallow" equality.  That is, the images
+   *       are considered equal if they point to the same memory and have the
+   *       dimensions and pixel step sizes.  Deep equality testing requires
+   *       stepping through and testing that the values of each pixel are the
+   *       same even if the memory and possibly memory layout differ.
+   *
+   * \sa   For deep equality comparison see equal_content
    */
-  bool operator==( const image& other_image ) const;
+  bool operator==( image const& other ) const;
+
+  /// Inequality operator
+  /**
+  * Compares this image to another image to test inequality.
+  *
+  * \param other image to compare with
+  *
+  * \note This function computes only "shallow" inequality.  Refer to the
+  *       equality operator (==) for details.
+  */
+  bool operator!=(image const& other) const
+  {
+    return !(*this == other);
+  }
 
   /// Access pixels in the first channel of the image
   /**
@@ -522,6 +537,16 @@ public:
    */
   void set_size( size_t width, size_t height, size_t depth );
 
+  /// Get a cropped view of the image.
+  /**
+   * Get a cropped view of the image. The cropped view shares memory with the
+   * original image so no deep copy is done.
+   * \param x_offset start of the crop region in x (width)
+   * \param y_offset start of the crop region in y (height)
+   * \param width width of the crop region
+   * \param height height of the crop region
+   */
+  image crop(unsigned x_offset, unsigned y_offset, unsigned width, unsigned height) const;
 
 protected:
   /// Smart pointer to memory viewed by this class

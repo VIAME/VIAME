@@ -49,7 +49,10 @@ class KWIVER_ALGO_OCV_EXPORT estimate_fundamental_matrix
   : public vital::algorithm_impl<estimate_fundamental_matrix, vital::algo::estimate_fundamental_matrix>
 {
 public:
-    /// Constructor
+  PLUGIN_INFO( "ocv",
+               "Use OpenCV to estimate a fundimental matrix from feature matches." )
+
+   /// Constructor
   estimate_fundamental_matrix();
 
   /// Destructor

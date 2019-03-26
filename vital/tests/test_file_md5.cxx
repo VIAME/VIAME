@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,55 +30,33 @@
 
 /**
  * \file
- * \brief Interface for read_object_track process
+ * \brief test file md5 computation
  */
 
-#ifndef _KWIVER_READ_OBJECT_TRACK_PROCESS_H
-#define _KWIVER_READ_OBJECT_TRACK_PROCESS_H
+#include <tests/test_gtest.h>
 
-#include <sprokit/pipeline/process.h>
+#include <vital/vital_types.h>
+#include <vital/util/file_md5.h>
 
-#include "kwiver_processes_export.h"
+#include <string>
 
-#include <memory>
+using std::string;
 
-namespace kwiver
+kwiver::vital::path_t g_test_file;
+string g_ref_value;
+
+// ----------------------------------------------------------------------------
+int main(int argc, char* argv[])
 {
+  ::testing::InitGoogleTest( &argc, argv );
+  GET_ARG(1, g_test_file);
+  GET_ARG(2, g_ref_value);
+  return RUN_ALL_TESTS();
+}
 
-// -------------------------------------------------------------------------------
-/**
- * \class read_object_track_process
- *
- * \brief Reads a series or single set of track descriptors
- *
- * \iports
- * \iport{image_name}
- * \oport{track descriptor_set}
- */
-class KWIVER_PROCESSES_NO_EXPORT read_object_track_process
-  : public sprokit::process
+// ----------------------------------------------------------------------------
+TEST(file_md5, file)
 {
-public:
-  PLUGIN_INFO( "read_object_track",
-               "Reads object track sets from an input file." )
-
-  read_object_track_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~read_object_track_process();
-
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
-
-private:
-  void make_ports();
-  void make_config();
-
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class read_object_track_process
-
-
-} // end namespace
-
-#endif // _KWIVER_READ_OBJECT_TRACK_PROCESS_H
+  string test_md5 = kwiver::vital::file_md5( g_test_file );
+  EXPECT_EQ( test_md5, g_ref_value );
+}

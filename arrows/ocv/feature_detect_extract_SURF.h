@@ -56,6 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_SURF
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_SURF",
+               "OpenCV feature detection via the SURF algorithm" )
+
   /// Constructor
   detect_features_SURF();
 
@@ -81,6 +84,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_SURF
                                   vital::algo::extract_descriptors >
 {
 public:
+  PLUGIN_INFO( "ocv_SURF",
+               "OpenCV feature-point descriptor extraction via the SURF algorithm" )
+
   /// Constructor
   extract_descriptors_SURF();
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #include <test_gtest.h>
 
 #include <arrows/gdal/image_io.h>
+#include <arrows/tests/test_image.h>
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/types/metadata_traits.h>
 
@@ -47,6 +48,7 @@ static int expected_size = 32;
 static std::string geotiff_file_name = "test.tif";
 static std::string nitf_file_name = "test.ntf";
 static std::string jpeg_file_name = "test.jpg";
+static std::string png_file_name = "test.png";
 static std::vector<int> test_x_pixels = {0, 3, 11, 21, 31};
 static std::vector<int> test_y_pixels = {0, 5, 8, 13, 31};
 
@@ -214,5 +216,23 @@ TEST_F(image_io, load_jpeg)
         << "Incorrect green value at pixel (" << x_px << "," << y_px << ")";
     }
   }
+}
+
+// ----------------------------------------------------------------------------
+class get_image : public ::testing::Test
+{
+  TEST_ARG(data_dir);
+};
+
+// ----------------------------------------------------------------------------
+TEST_F(get_image, crop)
+{
+  kwiver::arrows::gdal::image_io img_io;
+
+  kwiver::vital::path_t file_path = data_dir + "/" + png_file_name;
+
+  auto img_cont = img_io.load(file_path);
+
+  test_get_image_crop<uint8_t>( img_cont );
 }
 

@@ -35,16 +35,13 @@
 
 #include "process_instrumentation.h"
 
+#include <sprokit/pipeline/process.h>
+
 namespace sprokit {
 
 process_instrumentation::
 process_instrumentation()
   : m_process( 0 )
-{ }
-
-
-process_instrumentation::
-~process_instrumentation()
 { }
 
 
@@ -68,6 +65,14 @@ get_configuration() const
 {
   auto conf = kwiver::vital::config_block::empty_config();
   return conf;
+}
+
+
+std::string
+process_instrumentation::
+process_name() const
+{
+  return m_process->name ();
 }
 
 } // end namespace sprokit

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,55 +30,55 @@
 
 /**
  * \file
- * \brief Interface for read_object_track process
+ * \brief A simple demonstration that reads a yaml KPF file and writes it back out.
+ *
  */
 
-#ifndef _KWIVER_READ_OBJECT_TRACK_PROCESS_H
-#define _KWIVER_READ_OBJECT_TRACK_PROCESS_H
+#include <arrows/kpf/yaml/kpf_reader.h>
+#include <arrows/kpf/yaml/kpf_yaml_parser.h>
+#include <arrows/kpf/yaml/kpf_yaml_writer.h>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 
-#include <sprokit/pipeline/process.h>
+namespace KPF=kwiver::vital::kpf;
 
-#include "kwiver_processes_export.h"
 
-#include <memory>
-
-namespace kwiver
+int main( int argc, char* argv[] )
 {
+  if (argc != 2)
+  {
+    std::cerr << "Usage: " << argv[0] << " file.kpf\n";
+    return EXIT_FAILURE;
+  }
 
-// -------------------------------------------------------------------------------
-/**
- * \class read_object_track_process
- *
- * \brief Reads a series or single set of track descriptors
- *
- * \iports
- * \iport{image_name}
- * \oport{track descriptor_set}
- */
-class KWIVER_PROCESSES_NO_EXPORT read_object_track_process
-  : public sprokit::process
-{
-public:
-  PLUGIN_INFO( "read_object_track",
-               "Reads object track sets from an input file." )
+  std::ifstream is( argv[1] );
+  if (!is)
+  {
+    std::cerr << "Couldn't open '" << argv[1] << "' for reading\n";
+    return EXIT_FAILURE;
+  }
 
-  read_object_track_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~read_object_track_process();
+  KPF::kpf_yaml_parser_t parser( is );
+  KPF::kpf_reader_t reader( parser );
+  KPF::record_yaml_writer writer( std::cout );
+  while (reader.next())
+  {
+    const KPF::packet_buffer_t& packets = reader.get_packet_buffer();
 
-protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
-
-private:
-  void make_ports();
-  void make_config();
-
-  class priv;
-  const std::unique_ptr<priv> d;
-}; // end class read_object_track_process
-
-
-} // end namespace
-
-#endif // _KWIVER_READ_OBJECT_TRACK_PROCESS_H
+    std::vector< std::string > meta = reader.get_meta_packets();
+    writer.set_schema( KPF::schema_style::META );
+    for (auto m: meta)
+    {
+      writer << m << KPF::record_yaml_writer::endl;
+    }
+    writer.set_schema( parser.get_current_record_schema() );
+    for (auto p: packets )
+    {
+      writer << p.second;
+    }
+    writer << KPF::record_yaml_writer::endl;
+    reader.flush();
+  }
+}

@@ -57,6 +57,9 @@ class KWIVER_PROCESSES_NO_EXPORT keyframe_selection_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "keyframe_selection",
+               "Selects keyframes from a track set.")
+
   typedef sprokit::process base_t;
 
   keyframe_selection_process( kwiver::vital::config_block_sptr const& config );

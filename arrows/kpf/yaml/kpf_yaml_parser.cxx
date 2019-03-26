@@ -519,6 +519,7 @@ namespace kpf {
 
 kpf_yaml_parser_t
 ::kpf_yaml_parser_t( istream& is )
+  : current_record_schema( schema_style::INVALID )
 {
   try
   {
@@ -546,6 +547,13 @@ kpf_yaml_parser_t
 ::eof() const
 {
   return this->current_record == this->root.end();
+}
+
+schema_style
+kpf_yaml_parser_t
+::get_current_record_schema() const
+{
+  return this->current_record_schema;
 }
 
 /**
@@ -612,6 +620,8 @@ kpf_yaml_parser_t
   bool okay = false;
   auto check = kpf_v3_check( n );
   auto n_sub = n.begin();
+
+  this->current_record_schema = check;
 
   // special case for meta
   if ((check == schema_style::INVALID) && ( str2style( n_sub->first.as<string>()) == packet_style::META ))

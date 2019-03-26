@@ -60,133 +60,30 @@ KWIVER_ALGO_VXL_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "arrows.vxl" );
-  if (vpm.is_module_loaded( module_name ) )
+    kwiver::vital::algorithm_registrar reg( vpm, "arrows.vxl" );
+
+  if (reg.is_module_loaded())
   {
     return;
   }
 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::bundle_adjust );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (vpgl) to bundle adjust cameras and landmarks." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  using namespace kwiver::arrows::vxl;
 
+  reg.register_algorithm< bundle_adjust >();
+  reg.register_algorithm< close_loops_homography_guided >();
+  reg.register_algorithm< estimate_canonical_transform >();
+  reg.register_algorithm< estimate_essential_matrix >();
+  reg.register_algorithm< estimate_fundamental_matrix >();
+  reg.register_algorithm< estimate_homography >();
+  reg.register_algorithm< estimate_similarity_transform >();
+  reg.register_algorithm< image_io >();
+  reg.register_algorithm< optimize_cameras >();
+  reg.register_algorithm< split_image >();
+  reg.register_algorithm< triangulate_landmarks >();
+  reg.register_algorithm< match_features_constrained >();
+  reg.register_algorithm< vidl_ffmpeg_video_input >();
 
-  fact = vpm.ADD_ALGORITHM( "vxl_homography_guided", kwiver::arrows::vxl::close_loops_homography_guided );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL to estimate a sequence of ground plane homographies to identify "
-                       "frames to match for loop closure." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl_plane", kwiver::arrows::vxl::estimate_canonical_transform );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (rrel) to robustly estimate a ground plane for a canonical transform." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::estimate_essential_matrix );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (vpgl) to estimate an essential matrix." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::estimate_fundamental_matrix );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (vpgl) to estimate a fundamental matrix." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::estimate_homography );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (rrel) to robustly estimate a homography from matched features." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::estimate_similarity_transform );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (vpgl) to estimate a 3D similarity transformation between corresponding landmarks." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::image_io );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (vil) to load and save image files." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::optimize_cameras );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (vpgl) to optimize camera parameters for fixed landmarks and tracks." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::split_image );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Split a larger image into multiple smaller images" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl", kwiver::arrows::vxl::triangulate_landmarks );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (vpgl) to triangulate 3D landmarks from cameras and tracks." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vxl_constrained", kwiver::arrows::vxl::match_features_constrained );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL to match descriptors under the constraints of similar geometry "
-                       "(rotation, scale, position)." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  fact = vpm.ADD_ALGORITHM( "vidl_ffmpeg", kwiver::arrows::vxl::vidl_ffmpeg_video_input );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Use VXL (vidl with FFMPEG) to read video files as a sequence of images." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-
-  vpm.mark_module_as_loaded( module_name );
+  reg.mark_module_as_loaded();
 }
 
 } // end namespace vxl

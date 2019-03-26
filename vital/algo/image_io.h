@@ -42,7 +42,9 @@
 #include <string>
 
 #include <vital/algo/algorithm.h>
+#include <vital/algorithm_capabilities.h>
 #include <vital/types/image_container.h>
+#include <vital/types/metadata.h>
 
 namespace kwiver {
 namespace vital {
@@ -52,11 +54,22 @@ namespace algo {
 /**
  * This class represents an abstract interface for reading and writing
  * images.
+ *
+ * A note about the basic capabilities:
+ *
+ * HAS_TIME - This capability is set to true if the image metadata
+ *     supplies a timestamp. If a timestamp is supplied, it is made
+ *     available in the metadata for the image. If the timestamp
+ *     is not supplied, then the metadata will not have the timestamp set.
  */
 class VITAL_ALGO_EXPORT image_io
   : public kwiver::vital::algorithm_def<image_io>
 {
 public:
+  // Common capabilities
+  // -- basic capabilities --
+  static const algorithm_capabilities::capability_name_t HAS_TIME;
+
   virtual ~image_io() = default;
 
   /// Return the name of this algorithm
@@ -69,7 +82,7 @@ public:
    * \throws kwiver::vital::path_not_a_file Thrown when the given path does
    *    not point to a file (i.e. it points to a directory).
    *
-   * \param filename the path to the file the load
+   * \param filename the path to the file to load
    * \returns an image container refering to the loaded image
    */
   kwiver::vital::image_container_sptr load(std::string const& filename) const;
@@ -90,8 +103,31 @@ public:
    */
   void save(std::string const& filename, kwiver::vital::image_container_sptr data) const;
 
+  /// Get the image metadata
+  /**
+   * \throws kwiver::vital::path_not_exists Thrown when the given path does not exist.
+   *
+   * \throws kwiver::vital::path_not_a_file Thrown when the given path does
+   *    not point to a file (i.e. it points to a directory).
+   *
+   * \param filename the path to the file to read
+   * \returns pointer to the loaded metadata
+   */
+  kwiver::vital::metadata_sptr load_metadata(std::string const& filename) const;
+
+  /**
+   * \brief Return capabilities of concrete implementation.
+   *
+   * This method returns the capabilities for the current image reader/writer.
+   *
+   * \return Reference to supported image capabilities.
+   */
+  algorithm_capabilities const& get_implementation_capabilities() const;
+
 protected:
   image_io();
+
+  void set_capability( algorithm_capabilities::capability_name_t const& name, bool val );
 
 private:
   /// Implementation specific load functionality.
@@ -114,6 +150,20 @@ private:
    */
   virtual void save_(std::string const& filename,
                      kwiver::vital::image_container_sptr data) const = 0;
+
+  /// Implementation specific metadata functionality.
+  /**
+   * If a concrete implementation provides metadata, it must be provided
+   * in both load() and load_metadata(), and it must be the same metadata.
+   * To provide it in one but not the other, or to provide different metadata
+   * in each, is an error.
+   *
+   * \param filename the path to the file to read
+   * \returns pointer to the loaded metadata
+   */
+  virtual kwiver::vital::metadata_sptr load_metadata_(std::string const& filename) const;
+
+  algorithm_capabilities m_capabilities;
 };
 
 

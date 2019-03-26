@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -159,18 +159,11 @@ image_memory
   return *this;
 }
 
-/// Equality operator
-bool image_memory::operator==( const image_memory& other) const
-{
-  return other.size_ == size_ &&
-        std::strcmp(static_cast< char* >( other.data_ ), 
-                    static_cast< char* >( data_ )) == 0;
-}
 
 /// Return a pointer to the allocated memory
 void*
 image_memory
-::data() 
+::data()
 {
   return data_;
 }
@@ -296,13 +289,17 @@ image
 
 /// Equality operator
 bool image::
-operator==( const image& other_image ) const
+operator==( image const& other ) const
 {
-  return *(data_.get()) == *(other_image.data_.get()) &&
-          pixel_traits_ == other_image.pixel_traits_ &&
-          width_ == other_image.width_ &&
-          height_ == other_image.height_ &&
-          depth_ == other_image.depth_;
+  return  data_         == other.data_ &&
+          first_pixel_  == other.first_pixel_ &&
+          pixel_traits_ == other.pixel_traits_ &&
+          width_        == other.width_ &&
+          height_       == other.height_ &&
+          depth_        == other.depth_ &&
+          w_step_       == other.w_step_ &&
+          h_step_       == other.h_step_ &&
+          d_step_       == other.d_step_;
 }
 
 /// The size of the image data in bytes
@@ -422,6 +419,22 @@ image
   }
   h_step_ = width * w_step_;
   d_step_ = ( w_step_ == 1 ) ? width * height : 1;
+}
+
+
+/// Get a cropped view of the image.
+image
+image
+::crop(unsigned x_offset, unsigned y_offset, unsigned width, unsigned height) const
+{
+  auto crop_first_pixel = reinterpret_cast< const char* >( this->first_pixel() );
+  crop_first_pixel += this->pixel_traits().num_bytes *
+                     ( this->w_step() * x_offset + this->h_step() * y_offset );
+  return image( this->memory(),
+                crop_first_pixel,
+                width, height, this->depth(),
+                this->w_step(), this->h_step(), this->d_step(),
+                this->pixel_traits() );
 }
 
 

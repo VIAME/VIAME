@@ -50,6 +50,9 @@ class KWIVER_ALGO_VXL_EXPORT triangulate_landmarks
                                        vital::algo::triangulate_landmarks>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to triangulate 3D landmarks from cameras and tracks." )
+
   /// Constructor
   triangulate_landmarks();
 

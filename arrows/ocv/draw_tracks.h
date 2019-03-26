@@ -49,6 +49,8 @@ class KWIVER_ALGO_OCV_EXPORT draw_tracks
 : public vital::algorithm_impl<draw_tracks, vital::algo::draw_tracks>
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "Use OpenCV to draw tracked features on the images." )
 
   /// Constructor
   draw_tracks();

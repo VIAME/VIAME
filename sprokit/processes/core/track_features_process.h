@@ -57,10 +57,13 @@ class KWIVER_PROCESSES_NO_EXPORT track_features_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "feature_tracker",
+               "Tracks features from frame to frame.")
+
   typedef sprokit::process base_t;
 
   track_features_process( kwiver::vital::config_block_sptr const& config );
-    virtual ~track_features_process();
+  virtual ~track_features_process();
 
 protected:
     virtual void _configure();

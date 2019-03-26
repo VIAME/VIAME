@@ -43,6 +43,9 @@ class KWIVER_ALGO_OCV_EXPORT hough_circle_detector
   : public vital::algorithm_impl< hough_circle_detector, vital::algo::image_object_detector>
 {
 public:
+  PLUGIN_INFO( "hough_circle",
+               "Hough circle detector" )
+
   hough_circle_detector();
   virtual ~hough_circle_detector();
 

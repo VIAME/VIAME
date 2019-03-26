@@ -53,6 +53,9 @@ class KWIVER_ALGO_OCV_EXPORT estimate_pnp
   : public vital::algorithm_impl<estimate_pnp, vital::algo::estimate_pnp>
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "Estimate camera pose with perspective N point method")
+
     /// Constructor
   estimate_pnp();
 
