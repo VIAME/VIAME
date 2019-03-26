@@ -2,22 +2,23 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity 5
+  :capacity                                    5
 
 config _scheduler
-   :type pythread_per_process
+  :type                                        pythread_per_process
 
 # =============================================================================
-process input
-  :: frame_list_input
-  :image_list_file     input_list.txt
-  :frame_time          .3333
-  :image_reader:type   ocv
+process image_reader
+  :: video_input
+  :video_filename                              input_list.txt
+  :frame_time                                  0.03333
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   vxl
 
 # =============================================================================
 process detector
   :: hello_world_detector
-  :text                Hello World!! (from python)
+  :text                                        Hello World!! (from python)
 
 # =============================================================================
 # connections

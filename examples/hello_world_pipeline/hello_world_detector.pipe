@@ -1,15 +1,16 @@
 # =============================================================================
-process input
-  :: frame_list_input
-  :image_list_file     input_list.txt
-  :frame_time          .3333
-  :image_reader:type   ocv
+process image_reader
+  :: video_input
+  :video_filename                              input_list.txt
+  :frame_time                                  0.3333
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   ocv
 
 # =============================================================================
 process detector
   :: image_object_detector
-  :detector:type                     hello_world
-  :detector:hello_world:text         Hello World!!!
+  :detector:type                               hello_world
+  :detector:hello_world:text                   Hello World!!!
 
 # =============================================================================
 # global pipeline config
