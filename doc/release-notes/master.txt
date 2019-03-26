@@ -43,6 +43,8 @@ Vital
  * Changes to track_set_impl to facilitate passing track changes between
    Sprokit processes rather than full track sets for efficiency.
 
+ * Moved python module loader and registration from sprokit to vital
+
 Vital Tools
 
  * Converted tools to use applet plugin approach.
@@ -52,6 +54,8 @@ Vital Tools
    "kwiver" tool runner.
 
 Vital Bindings
+
+ * Added python bindings for image_object_detector
 
 Arrows: Core
 
@@ -170,6 +174,14 @@ Arrows: Super3d
  * Added region of interest specification for depth maps
 
 Arrows: VXL
+
+Arrows: Python
+
+ * Added python arrow
+
+ * Added simple_image_object_detector.py that serves as a use-case for python
+   bindings of image_object_detector and replicates the functionality of
+   example_detector in python
 
 Sprokit
 
