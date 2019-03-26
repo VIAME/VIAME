@@ -56,7 +56,7 @@ class SimpleImageObjectDetector(ImageObjectDetector):
         >>> image_detector = ImageObjectDetector.create("SimpleImageObjectDetector")
         >>> from vital.types import Image, ImageContainer
         >>> image = ImageContainer(Image())
-        from sprokit.pipeline import config
+        >>> from sprokit.pipeline import config
         >>> tc = config.empty_config()
         >>> tc.set_value("center_x", "200")
         >>> tc.set_value("center_y", "100")
@@ -114,7 +114,7 @@ class SimpleImageObjectDetector(ImageObjectDetector):
             return False
         if cfg.has_value("dy") and not float(cfg.get_value( "dy" ))==self.m_dy:
             return False
-        return True 
+        return True
 
     def detect(self, image_data):
         dot = DetectedObjectSet([DetectedObject(

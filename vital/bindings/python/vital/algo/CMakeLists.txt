@@ -5,7 +5,7 @@ include_directories(${PYBIND11_INCLUDE_DIR})
 kwiver_add_python_library(algorithm
   vital/algo
   algorithm.h
-  image_object_detector.h 
+  image_object_detector.h
   algorithm.cxx
   image_object_detector.cxx
   algorithm_module.cxx
@@ -37,5 +37,3 @@ kwiver_create_python_init(vital/algo
   algorithm
   algorithm_factory
 )
-
-#add_subdirectory(py)
