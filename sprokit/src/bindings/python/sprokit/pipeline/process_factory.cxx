@@ -39,8 +39,8 @@
 #include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline/process_registry_exception.h>
 
-#include <vital/util/pybind11.h>
-#include <vital/util/python_exceptions.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/python_exceptions.h>
 
 #include <vital/plugin_loader/plugin_manager.h>
 

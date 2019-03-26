@@ -31,8 +31,8 @@
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
 
-#include <vital/util/pybind11.h>
-#include <vital/util/python_exceptions.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/python_exceptions.h>
 
 #include "python_wrappers.cxx"
 

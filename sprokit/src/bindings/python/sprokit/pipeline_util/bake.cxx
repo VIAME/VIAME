@@ -35,7 +35,7 @@
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process_factory.h>
 
-#include <vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
 #include <sprokit/python/util/pystream.h>
 
 #include <pybind11/pybind11.h>

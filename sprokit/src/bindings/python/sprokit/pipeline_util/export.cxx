@@ -33,7 +33,7 @@
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/export_dot_exception.h>
 
-#include <vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
 #include <sprokit/python/util/pystream.h>
 
 #include <pybind11/pybind11.h>

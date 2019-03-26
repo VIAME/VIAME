@@ -32,8 +32,8 @@
 typedef std::set<std::string> string_set; // This has to be done first thing, or the macro breaks
 PYBIND11_MAKE_OPAQUE(string_set)
 
-#include <vital/util/pybind11.h>
-#include <vital/util/python_exceptions.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/python_exceptions.h>
 
 #include <pybind11/stl_bind.h>
 #include <pybind11/operators.h>
