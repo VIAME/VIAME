@@ -3,7 +3,7 @@ project(vital_python_algo)
 include_directories(${PYBIND11_INCLUDE_DIR})
 
 kwiver_add_python_library(algorithm
-  kwiver/vital/algo
+  vital/algo
   algorithm.h
   image_object_detector.h 
   algorithm.cxx
@@ -14,7 +14,7 @@ kwiver_add_python_library(algorithm
 )
 
 
-target_link_libraries(python-kwiver.vital.algo-algorithm
+target_link_libraries(python-vital.algo-algorithm
   PUBLIC ${PYTHON_LIBRARIES}
           vital
           vital_config
