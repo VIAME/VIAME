@@ -425,13 +425,14 @@ image
 /// Get a cropped view of the image.
 image
 image
-::crop(unsigned x_offset, unsigned y_offset, unsigned width, unsigned height) const
+::crop(size_t x_offset, size_t y_offset, size_t width, size_t height) const
 {
   auto crop_first_pixel = reinterpret_cast< const char* >( this->first_pixel() );
-  crop_first_pixel += this->pixel_traits().num_bytes *
-                     ( this->w_step() * x_offset + this->h_step() * y_offset );
-  return image( this->memory(),
-                crop_first_pixel,
+  crop_first_pixel +=
+    static_cast< ptrdiff_t >( this->pixel_traits().num_bytes ) *
+    ( this->w_step() * static_cast< ptrdiff_t >( x_offset ) +
+      this->h_step() * static_cast< ptrdiff_t >( y_offset ) );
+  return image( this->memory(), crop_first_pixel,
                 width, height, this->depth(),
                 this->w_step(), this->h_step(), this->d_step(),
                 this->pixel_traits() );
