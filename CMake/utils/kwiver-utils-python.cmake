@@ -192,7 +192,17 @@ endfunction ()
 #     in the arguments for the package.
 #
 function (kwiver_create_python_init    modpath)
-  set (init_path "${kwiver_python_output_path}/${python_sitename}/${modpath}/__init__.py")
+  set(python_arch)
+  set(python_noarchdir)
+
+  if (NOT WIN32)
+    if (python_noarch)
+      set(python_noarchdir /noarch)
+      set(python_arch u)
+    endif ()
+  endif ()
+
+  set (init_path "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${modpath}/__init__.py")
 
   if (NOT EXISTS "${init_path}")
     if (NOT copyright_header)
