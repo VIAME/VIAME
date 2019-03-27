@@ -1,0 +1,155 @@
+/*ckwg +29
+ * Copyright 2019 by Kitware, Inc.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+ *    to endorse or promote products derived from this software without specific
+ *    prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#include "ocv_random_hue_shift.h"
+
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/photo/photo.hpp>
+
+#include <arrows/ocv/image_container.h>
+
+#include <cmath>
+
+namespace viame {
+
+using namespace kwiver;
+
+// -----------------------------------------------------------------------------------------------
+/**
+ * @brief Storage class for private member variables
+ */
+class ocv_random_hue_shift::priv
+{
+public:
+
+  priv()
+    : m_range( 180.0 )
+  {}
+
+  ~priv() {}
+
+  double m_range;
+};
+
+// =================================================================================================
+
+ocv_random_hue_shift
+::ocv_random_hue_shift()
+  : d( new priv )
+{
+  attach_logger( "viame.opencv.ocv_random_hue_shift" );
+}
+
+
+ocv_random_hue_shift
+::~ocv_random_hue_shift()
+{
+}
+
+
+// -------------------------------------------------------------------------------------------------
+kwiver::vital::config_block_sptr
+ocv_random_hue_shift
+::get_configuration() const
+{
+  // Get base config from base class
+  kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
+
+  config->set_value( "range", d->m_range, "Adjustment range" );
+
+  return config;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+void
+ocv_random_hue_shift
+::set_configuration( kwiver::vital::config_block_sptr config_in )
+{
+  vital::config_block_sptr config = this->get_configuration();
+  config->merge_config( config_in );
+
+  d->m_range = config->get_value< double >( "range" );
+}
+
+
+// -------------------------------------------------------------------------------------------------
+bool
+ocv_random_hue_shift
+::check_configuration( kwiver::vital::config_block_sptr config ) const
+{
+  return true;
+}
+
+
+// -------------------------------------------------------------------------------------------------
+kwiver::vital::image_container_sptr
+ocv_random_hue_shift
+::filter( kwiver::vital::image_container_sptr image_data )
+{
+  cv::Mat input_ocv =
+    arrows::ocv::image_container::vital_to_ocv( image_data->get_image(),
+      kwiver::arrows::ocv::image_container::BGR_COLOR );
+
+  // Shift Hue
+  cv::Mat hsv_image, output_ocv;
+
+  cv::cvtColor( input_ocv, hsv_image, CV_BGR2HSV );
+
+  double rand_shift = d->m_range * ( rand() / ( RAND_MAX + 1.0 ) );
+
+  for( auto i = 0; i < input_ocv.cols; ++i )
+  {
+    for( auto j = 0; j < input_ocv.rows; ++j )
+    {
+      const unsigned cc = 0;
+
+      if( rand_shift + hsv_image.at<cv::Vec3b>(j,i)[cc] > 180 )
+      {
+        hsv_image.at<cv::Vec3b>(j,i)[cc] = rand_shift + hsv_image.at<cv::Vec3b>(j,i)[cc] - 180;
+      }
+      else
+      {
+        hsv_image.at<cv::Vec3b>(j,i)[cc] = rand_shift + hsv_image.at<cv::Vec3b>(j,i)[cc];
+      }
+    }
+  }
+
+  cv::cvtColor( hsv_image, output_ocv, CV_HSV2BGR );
+
+  kwiver::vital::image_container_sptr output(
+    new arrows::ocv::image_container( output_ocv,
+      kwiver::arrows::ocv::image_container::BGR_COLOR ) );
+
+  return output;
+}
+
+
+} // end namespace
