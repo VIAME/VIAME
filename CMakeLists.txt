@@ -123,7 +123,14 @@ if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
   endif()
 endif()
 
+# =========================================================================================
+###
+# KWIVER CMake config
+#
+include( kwiver-utils )
+
 if (KWIVER_ENABLE_PYTHON)
+  kwiver_create_python_init(kwiver)
 
   if (NOT WIN32)
     OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
@@ -133,16 +140,10 @@ if (KWIVER_ENABLE_PYTHON)
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS "
       "is also enabled." )
   endif()
-
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
-# ===========================================================================================
-###
-# KWIVER CMake config
-#
-include( kwiver-utils )
 
 # Set directories where loadable modules are stored.
 # These subdirs are under .../lib/
