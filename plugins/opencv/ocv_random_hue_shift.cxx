@@ -50,12 +50,16 @@ class ocv_random_hue_shift::priv
 public:
 
   priv()
-    : m_range( 180.0 )
+    : m_hue_range( 180.0 )
+    , m_sat_range( 0.0 )
+    , m_int_range( 0.0 )
   {}
 
   ~priv() {}
 
-  double m_range;
+  double m_hue_range;
+  double m_sat_range;
+  double m_int_range;
 };
 
 // =================================================================================================
@@ -82,7 +86,9 @@ ocv_random_hue_shift
   // Get base config from base class
   kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
 
-  config->set_value( "range", d->m_range, "Adjustment range" );
+  config->set_value( "hue_range", d->m_hue_range, "Hue random adjustment range" );
+  config->set_value( "sat_range", d->m_sat_range, "Saturation random adjustment range" );
+  config->set_value( "int_range", d->m_int_range, "Intensity random adjustment range" );
 
   return config;
 }
@@ -96,7 +102,9 @@ ocv_random_hue_shift
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( config_in );
 
-  d->m_range = config->get_value< double >( "range" );
+  d->m_hue_range = config->get_value< double >( "hue_range" );
+  d->m_sat_range = config->get_value< double >( "sat_range" );
+  d->m_int_range = config->get_value< double >( "int_range" );
 }
 
 
@@ -123,7 +131,7 @@ ocv_random_hue_shift
 
   cv::cvtColor( input_ocv, hsv_image, CV_BGR2HSV );
 
-  double rand_shift = d->m_range * ( rand() / ( RAND_MAX + 1.0 ) );
+  double hue_shift = d->m_hue_range * ( rand() / ( RAND_MAX + 1.0 ) );
 
   for( auto i = 0; i < input_ocv.cols; ++i )
   {
@@ -131,13 +139,39 @@ ocv_random_hue_shift
     {
       const unsigned cc = 0;
 
-      if( rand_shift + hsv_image.at<cv::Vec3b>(j,i)[cc] > 180 )
+      if( hue_shift + hsv_image.at<cv::Vec3b>(j,i)[cc] > 180 )
       {
-        hsv_image.at<cv::Vec3b>(j,i)[cc] = rand_shift + hsv_image.at<cv::Vec3b>(j,i)[cc] - 180;
+        hsv_image.at<cv::Vec3b>(j,i)[cc] = hue_shift + hsv_image.at<cv::Vec3b>(j,i)[cc] - 180;
       }
       else
       {
-        hsv_image.at<cv::Vec3b>(j,i)[cc] = rand_shift + hsv_image.at<cv::Vec3b>(j,i)[cc];
+        hsv_image.at<cv::Vec3b>(j,i)[cc] = hue_shift + hsv_image.at<cv::Vec3b>(j,i)[cc];
+      }
+    }
+  }
+
+  if( d->m_sat_range )
+  {
+    double sat_shift = ( rand() % 2 ? 1 : -1 ) * d->m_sat_range * ( rand() / ( RAND_MAX + 1.0 ) );
+
+    for( auto i = 0; i < input_ocv.cols; ++i )
+    {
+      for( auto j = 0; j < input_ocv.rows; ++j )
+      {
+        hsv_image.at<cv::Vec3b>(j,i)[1] = sat_shift + hsv_image.at<cv::Vec3b>(j,i)[1];
+      }
+    }
+  }
+
+  if( d->m_int_range )
+  {
+    double int_shift = ( rand() % 2 ? 1 : -1 ) * d->m_int_range * ( rand() / ( RAND_MAX + 1.0 ) );
+
+    for( auto i = 0; i < input_ocv.cols; ++i )
+    {
+      for( auto j = 0; j < input_ocv.rows; ++j )
+      {
+        hsv_image.at<cv::Vec3b>(j,i)[2] = int_shift + hsv_image.at<cv::Vec3b>(j,i)[2];
       }
     }
   }
