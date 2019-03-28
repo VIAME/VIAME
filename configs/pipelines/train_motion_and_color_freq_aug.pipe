@@ -38,7 +38,7 @@ process random_hue
   :filter:type                                 ocv_random_hue_shift
 
   block filter:ocv_random_hue_shift
-    :hue_range                                 180.0
+    :hue_range                                 90.0
     :sat_range                                 0.0
     :int_range                                 0.0
   endblock
@@ -91,7 +91,7 @@ process float_to_byte
 
   block filter:vxl_convert_image
     :format                                    byte
-    :scale_factor                              0.10
+    :scale_factor                              0.50
   endblock
 
 connect from motion_filter.image
