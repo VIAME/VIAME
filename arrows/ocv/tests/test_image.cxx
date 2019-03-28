@@ -422,7 +422,9 @@ TYPED_TEST_CASE(get_image, get_image_types);
 TYPED_TEST(get_image, crop)
 {
   using pix_t = typename TypeParam::pixel_type;
-  cv::Mat_<cv::Vec<pix_t, TypeParam::depth>> img{ cv::Size{ full_width, full_height } };
+  cv::Mat_< cv::Vec< pix_t, TypeParam::depth > > img{
+    cv::Size{ static_cast<int>( full_width ),
+              static_cast<int>( full_height ) } };
   populate_ocv_image<pix_t>( img );
 
   image_container_sptr img_cont =
