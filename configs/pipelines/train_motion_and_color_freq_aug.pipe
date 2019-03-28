@@ -33,6 +33,19 @@ process random_grey
 connect from image_reader.image
         to   random_grey.image
 
+process random_hue
+  :: image_filter
+  :filter:type                                 ocv_random_hue_shift
+
+  block filter:ocv_random_hue_shift
+    :hue_range                                 180.0
+    :sat_range                                 0.0
+    :int_range                                 0.0
+  endblock
+
+connect from random_grey.image
+        to   random_hue.image
+
 process color_freq_filter
   :: image_filter
   :filter:type                                 vxl_color_commonality
@@ -43,7 +56,7 @@ process color_freq_filter
     :output_scale                              512
   endblock
 
-connect from random_grey.image
+connect from random_hue.image
         to   color_freq_filter.image
 
 process rgb_to_grey
@@ -78,7 +91,7 @@ process float_to_byte
 
   block filter:vxl_convert_image
     :format                                    byte
-    :scale_factor                              0.01
+    :scale_factor                              0.10
   endblock
 
 connect from motion_filter.image
@@ -90,7 +103,7 @@ process image_merger
   :: merge_images
   :merge_images:type                           ocv
 
-connect from random_grey.image
+connect from random_hue.image
         to   image_merger.image1
 connect from color_freq_filter.image
         to   image_merger.image2
