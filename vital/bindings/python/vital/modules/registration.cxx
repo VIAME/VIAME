@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/src/bindings/python/modules/modules_python_export.h>
+#include <vital/modules/modules_python_export.h>
 
 #if WIN32
 #pragma warning (push)
@@ -39,15 +39,15 @@
 #pragma warning (pop)
 #endif
 
-#include <sprokit/pipeline/utils.h>
-#include <sprokit/python/util/pybind11.h>
-#include <sprokit/python/util/python_exceptions.h>
-#include <sprokit/python/util/python.h>
+//#include <sprokit/pipeline/utils.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/python_exceptions.h>
+#include <vital/bindings/python/vital/util/python.h>
 
 #include <vital/plugin_loader/plugin_loader.h>
 #include <kwiversys/SystemTools.hxx>
 
-#ifdef SPROKIT_LOAD_PYLIB_SYM
+#ifdef VITAL_LOAD_PYLIB_SYM
   #include <dlfcn.h>
 #endif
 
@@ -77,10 +77,10 @@ static void _load_python_library_symbols();
  * This function is called by the plugin loader when it is scanning
  * all plugins. It looks like a standard registration entry point for
  * a set or processes, but it activates the python interpreter and
- * causes it to call sprokit.module.modules.load_python_modules()
+ * causes it to call vital.modules.module_loader.load_python_modules()
  *
  * Also note that setting the environment variable
- * SPROKIT_NO_PYTHON_MODULES will suppress loading all python modules.
+ * VITAL_NO_PYTHON_MODULES will suppress loading all python modules.
  */
 
 extern "C"
@@ -118,9 +118,9 @@ register_factories(kwiver::vital::plugin_loader& vpm)
   _load_python_library_symbols();
 
   {
-    sprokit::python::gil_scoped_acquire acquire;
+    kwiver::vital::python::gil_scoped_acquire acquire;
     (void)acquire;
-    SPROKIT_PYTHON_IGNORE_EXCEPTION(load())
+    VITAL_PYTHON_IGNORE_EXCEPTION(load())
   }
 }
 
@@ -132,9 +132,9 @@ register_factories(kwiver::vital::plugin_loader& vpm)
  */
 void _load_python_library_symbols()
 {
-  auto logger = kwiver::vital::get_logger("sprokit.python_modules");
+  auto logger = kwiver::vital::get_logger("vital.python_modules");
 
-#ifdef SPROKIT_LOAD_PYLIB_SYM
+#ifdef VITAL_LOAD_PYLIB_SYM
   const char *env_pylib = kwiversys::SystemTools::GetEnv( "PYTHON_LIBRARY" );
 
   // cmake should provide this definition
@@ -178,9 +178,8 @@ void _load_python_library_symbols()
 void
 load()
 {
-  py::object const modules = py::module::import("sprokit.modules.modules");
+  py::object const modules = py::module::import("vital.modules.module_loader");
   py::object const loader = modules.attr("load_python_modules");
-
   loader();
 }
 

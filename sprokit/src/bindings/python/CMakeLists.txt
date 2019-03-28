@@ -38,7 +38,6 @@ set(copyright_header
 )
 
 add_subdirectory(sprokit)
-add_subdirectory(modules)
 add_subdirectory(processes)
 add_subdirectory(schedulers)
 add_subdirectory(test)

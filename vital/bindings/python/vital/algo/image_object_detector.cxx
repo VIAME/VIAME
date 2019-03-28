@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011, 2013-2014 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,19 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <pybind11/pybind11.h>
+#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
+#include <vital/bindings/python/vital/algo/image_object_detector.h>
 
-#ifndef SPROKIT_MODULES_PYTHON_MODULES_CONFIG_H
-#define SPROKIT_MODULES_PYTHON_MODULES_CONFIG_H
+namespace py = pybind11;
 
-#include <sprokit/config.h>
-
-#ifdef MAKE_SPROKIT_MODULES_PYTHON_LIB
-/// Export the symbol if building the library.
-#define SPROKIT_MODULES_PYTHON_EXPORT SPROKIT_EXPORT
-#else
-/// Import the symbol if including the library.
-#define SPROKIT_MODULES_PYTHON_EXPORT SPROKIT_IMPORT
-#endif
-
-/// Hide the symbol from the library interface.
-#define SPROKIT_MODULES_PYTHON_NO_EXPORT SPROKIT_NO_EXPORT
-
-/// Mark as deprecated.
-#define SPROKIT_MODULES_PYTHON_EXPORT_DEPRECATED SPROKIT_DEPRECATED SPROKIT_MODULES_PYTHON_EXPORT
-
-#endif // SPROKIT_MODULES_PYTHON_MODULES_CONFIG_H
+void image_object_detector(py::module &m)
+{
+  py::class_< kwiver::vital::algo::image_object_detector,
+              std::shared_ptr<kwiver::vital::algo::image_object_detector>,
+              kwiver::vital::algorithm_def<kwiver::vital::algo::image_object_detector>,
+              image_object_detector_trampoline<> >(m, "ImageObjectDetector")
+    .def(py::init())
+    .def_static("static_type_name", &kwiver::vital::algo::image_object_detector::static_type_name)
+    .def("detect", &kwiver::vital::algo::image_object_detector::detect);
+}

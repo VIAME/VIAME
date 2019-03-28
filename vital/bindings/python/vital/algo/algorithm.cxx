@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,87 +27,19 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include "pystream.h"
-
 #include <pybind11/pybind11.h>
+#include <vital/algo/algorithm.h>
+#include <vital/bindings/python/vital/algo/trampoline/algorithm_trampoline.txx>
+#include <vital/bindings/python/vital/algo/algorithm.h>
 
-#include <vital/bindings/python/vital/util/pybind11.h>
+namespace py = pybind11;
 
-#include <algorithm>
-#include <string>
-
-#include <cstddef>
-
-namespace sprokit
+void algorithm(py::module &m)
 {
-
-namespace python
-{
-
-pyistream_device
-::pyistream_device(pybind11::object const& obj)
-  : m_obj(obj)
-{
-  // \todo Check that the object has a "read" attribute and that it is callable.
+  py::class_<kwiver::vital::algorithm, std::shared_ptr<kwiver::vital::algorithm>,
+             algorithm_trampoline<>>(m, "_algorithm")
+    .def("get_configuration", &kwiver::vital::algorithm::get_configuration)
+    .def("set_configuration", &kwiver::vital::algorithm::set_configuration)
+    .def("check_configuration", &kwiver::vital::algorithm::check_configuration);
 }
 
-pyistream_device
-::~pyistream_device()
-{
-}
-
-std::streamsize
-pyistream_device
-::read(char_type* s, std::streamsize n)
-{
-  kwiver::vital::python::gil_scoped_acquire acquire;
-  (void)acquire;
-
-  pybind11::str const bytes = pybind11::str(m_obj.attr("read")(n));
-
-  pybind11::ssize_t const sz = len(bytes);
-
-  if (sz)
-  {
-    std::string const cppstr = bytes.cast<std::string>();
-
-    std::copy(cppstr.begin(), cppstr.end(), s);
-
-    return sz;
-  }
-  else
-  {
-    return -1;
-  }
-}
-
-pyostream_device
-::pyostream_device(pybind11::object const& obj)
-  : m_obj(obj)
-{
-  // \todo Check that the object has a "write" attribute and that it is callable.
-}
-
-pyostream_device
-::~pyostream_device()
-{
-}
-
-std::streamsize
-pyostream_device
-::write(char_type const* s, std::streamsize n)
-{
-  kwiver::vital::python::gil_scoped_acquire acquire;
-  (void)acquire;
-
-  pybind11::str const bytes(s, static_cast<size_t>(n));
-
-  m_obj.attr("write")(bytes);
-
-  return n;
-}
-
-}
-
-}

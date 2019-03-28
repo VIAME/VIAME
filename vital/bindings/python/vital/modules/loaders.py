@@ -33,8 +33,8 @@ from __future__ import print_function
 import sys
 import os
 from importlib import import_module
-from sprokit import sprokit_logging
-logger = sprokit_logging.getLogger(__name__)
+from vital import vital_logging
+logger = vital_logging.getLogger(__name__)
 
 
 class Loader(object):

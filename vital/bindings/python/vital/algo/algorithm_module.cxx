@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,41 +28,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "python_exceptions.h"
+/**
+ * \file algorithm_implementation.cxx
+ *
+ * \brief python bindings for algorithm
+ */
 
-#include <sprokit/python/util/python.h>
 
-namespace sprokit
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <vital/algo/algorithm.h>
+#include <vital/algo/image_object_detector.h>
+#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
+#include <vital/bindings/python/vital/algo/algorithm.h>
+#include <vital/bindings/python/vital/algo/image_object_detector.h>
+#include <sstream>
+
+namespace py = pybind11;
+
+PYBIND11_MODULE(algorithm, m)
 {
-
-namespace python
-{
-
-void
-python_print_exception()
-{
-  PyObject* type;
-  PyObject* value;
-  PyObject* traceback;
-
-  // Increments refcounts for returns.
-  PyErr_Fetch(&type, &value, &traceback);
-
-  // Increment ourselves.
-  Py_XINCREF(type);
-  Py_XINCREF(value);
-  Py_XINCREF(traceback);
-
-  // Put the error back (decrements refcounts).
-  PyErr_Restore(type, value, traceback);
-
-  // Print the error (also clears it).
-  PyErr_PrintEx(0);
-
-  // Put the error back for everyone else.
-  PyErr_Restore(type, value, traceback);
-}
-
-}
-
+  algorithm(m);
+  register_algorithm<kwiver::vital::algo::image_object_detector,
+            algorithm_def_iod_trampoline<>>(m, "image_object_detector");
+  image_object_detector(m);
 }

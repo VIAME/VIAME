@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013 by Kitware, Inc.
+ * Copyright 2011-2012 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,86 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "pystream.h"
+#include <vital/plugin_loader/plugin_manager.h>
 
 #include <pybind11/pybind11.h>
 
-#include <vital/bindings/python/vital/util/pybind11.h>
+/**
+ * \file module_loader.cxx
+ *
+ * \brief Python bindings for module loading.
+ */
 
-#include <algorithm>
-#include <string>
+using namespace pybind11;
 
-#include <cstddef>
+namespace kwiver {
+namespace vital {
+namespace python {
 
-namespace sprokit
+//@todo Alternative is to provide C bindings for the plugin manager.
+
+void load_known_modules()
 {
-
-namespace python
-{
-
-pyistream_device
-::pyistream_device(pybind11::object const& obj)
-  : m_obj(obj)
-{
-  // \todo Check that the object has a "read" attribute and that it is callable.
+  kwiver::vital::plugin_manager::instance().load_all_plugins();
 }
 
-pyistream_device
-::~pyistream_device()
+bool is_module_loaded(std::string module_name)
 {
+  return kwiver::vital::plugin_manager::instance().is_module_loaded(module_name);
 }
 
-std::streamsize
-pyistream_device
-::read(char_type* s, std::streamsize n)
+PYBIND11_MODULE(modules, m)
 {
-  kwiver::vital::python::gil_scoped_acquire acquire;
-  (void)acquire;
-
-  pybind11::str const bytes = pybind11::str(m_obj.attr("read")(n));
-
-  pybind11::ssize_t const sz = len(bytes);
-
-  if (sz)
-  {
-    std::string const cppstr = bytes.cast<std::string>();
-
-    std::copy(cppstr.begin(), cppstr.end(), s);
-
-    return sz;
-  }
-  else
-  {
-    return -1;
-  }
+  m.def("load_known_modules", &kwiver::vital::python::load_known_modules
+    , "Loads modules to populate the process and scheduler registries.");
+  m.def("is_module_loaded", &kwiver::vital::python::is_module_loaded, 
+      "Check if a module has been loaded");
 }
 
-pyostream_device
-::pyostream_device(pybind11::object const& obj)
-  : m_obj(obj)
-{
-  // \todo Check that the object has a "write" attribute and that it is callable.
-}
-
-pyostream_device
-::~pyostream_device()
-{
-}
-
-std::streamsize
-pyostream_device
-::write(char_type const* s, std::streamsize n)
-{
-  kwiver::vital::python::gil_scoped_acquire acquire;
-  (void)acquire;
-
-  pybind11::str const bytes(s, static_cast<size_t>(n));
-
-  m_obj.attr("write")(bytes);
-
-  return n;
-}
-
-}
-
-}
+} } }  // end namespace 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +28,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/plugin_loader/plugin_manager.h>
-
-#include <pybind11/pybind11.h>
-
 /**
- * \file modules.cxx
+ * \file algorithm_trampoline.txx
  *
- * \brief Python bindings for module loading.
+ * \brief trampoline for overriding virtual functions of vital::algorithm
  */
 
-using namespace pybind11;
+#ifndef ALGORITHM_TRAMPOLINE_TXX
+#define ALGORITHM_TRAMPOLINE_TXX
 
-namespace sprokit {
+#include <vital/algo/algorithm.h>
+#include <vital/config/config_block.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
 
-//@todo Alternative is to provide C bindings for the plugin manager.
-
-void load_known_modules()
+template <class algorithm_base=kwiver::vital::algorithm>
+class algorithm_trampoline : public algorithm_base
 {
-  kwiver::vital::plugin_manager::instance().load_all_plugins();
-}
+  public:
+    using algorithm_base::algorithm_base;
 
-PYBIND11_MODULE(modules, m)
-{
-  m.def("load_known_modules", &sprokit::load_known_modules
-    , "Loads sprokit modules to populate the process and scheduler registries.");
-}
+    std::string type_name() const override
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
+        std::string,
+        algorithm_base,
+        type_name,
+      );
+    }
 
-} // end namespace sprokit
+    kwiver::vital::config_block_sptr get_configuration() const override
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        kwiver::vital::config_block_sptr,
+        algorithm_base,
+        get_configuration,
+      );
+    }
+
+    void set_configuration(kwiver::vital::config_block_sptr config) override
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
+        void,
+        algorithm_base,
+        set_configuration,
+        config
+      );
+    }
+
+    bool check_configuration(kwiver::vital::config_block_sptr config) const override 
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
+        bool,
+        algorithm_base,
+        check_configuration,
+        config
+      );
+    }
+};
+#endif

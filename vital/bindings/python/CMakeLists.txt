@@ -31,4 +31,5 @@ set( copyright_header
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 )
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_subdirectory( vital )

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2012-2013 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PYTHON_UTIL_PYTHON_H
-#define SPROKIT_PYTHON_UTIL_PYTHON_H
+#include <vital/bindings/python/vital/util/python.h>
+#include <vital/bindings/python/vital/util/python_exceptions.h>
 
-#if defined(_MSC_VER) && defined(_DEBUG)
-  // Include these low level headers before undefing _DEBUG. Otherwise when doing
-  // a debug build against a release build of python the compiler will end up
-  // including these low level headers without DEBUG enabled, causing it to try
-  // and link release versions of this low level C api.
-  #include <basetsd.h>
-  #include <assert.h>
-  #include <ctype.h>
-  #include <errno.h>
-  #include <io.h>
-  #include <math.h>
-  #include <sal.h>
-  #include <stdarg.h>
-  #include <stddef.h>
-  #include <stdio.h>
-  #include <stdlib.h>
-  #include <string.h>
-  #include <sys/stat.h>
-  #include <time.h>
-  #include <wchar.h>
-  #undef _DEBUG
-  #include <Python.h>
-  #define _DEBUG
-#else
-  #include <Python.h>
-#endif
+namespace kwiver {
+namespace vital {
+namespace python {
 
-#endif // SPROKIT_PYTHON_UTIL_PYSTREAM_H
+void
+python_print_exception()
+{
+  PyObject* type;
+  PyObject* value;
+  PyObject* traceback;
+
+  // Increments refcounts for returns.
+  PyErr_Fetch(&type, &value, &traceback);
+
+  // Increment ourselves.
+  Py_XINCREF(type);
+  Py_XINCREF(value);
+  Py_XINCREF(traceback);
+
+  // Put the error back (decrements refcounts).
+  PyErr_Restore(type, value, traceback);
+
+  // Print the error (also clears it).
+  PyErr_PrintEx(0);
+
+  // Put the error back for everyone else.
+  PyErr_Restore(type, value, traceback);
+}
+
+} } } // end of namespaces
