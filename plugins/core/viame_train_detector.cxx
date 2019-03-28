@@ -632,7 +632,7 @@ main( int argc, char* argv[] )
 
   if( !does_file_exist( label_fn ) && g_params.opt_out_config.empty() )
   {
-    std::cerr << "Label file (label.txt) does not exist in data folder" << std::endl;
+    std::cerr << "Label file (labels.txt) does not exist in data folder" << std::endl;
     exit( 0 );
   }
   else if( g_params.opt_out_config.empty() )
