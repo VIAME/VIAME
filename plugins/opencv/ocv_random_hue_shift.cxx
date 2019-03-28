@@ -156,7 +156,20 @@ ocv_random_hue_shift
     {
       for( auto j = 0; j < input_ocv.rows; ++j )
       {
-        hsv_image.at<cv::Vec3b>(j,i)[1] = sat_shift + hsv_image.at<cv::Vec3b>(j,i)[1];
+        double new_value = sat_shift + hsv_image.at<cv::Vec3b>(j,i)[1];
+
+        if( new_value > 255.0 )
+        {
+          hsv_image.at<cv::Vec3b>(j,i)[1] = 255;
+        }
+        else if( new_value < 0.0 )
+        {
+          hsv_image.at<cv::Vec3b>(j,i)[1] = 0;
+        }
+        else
+        {
+          hsv_image.at<cv::Vec3b>(j,i)[1] = new_value;
+        }
       }
     }
   }
@@ -169,7 +182,20 @@ ocv_random_hue_shift
     {
       for( auto j = 0; j < input_ocv.rows; ++j )
       {
-        hsv_image.at<cv::Vec3b>(j,i)[2] = int_shift + hsv_image.at<cv::Vec3b>(j,i)[2];
+        double new_value = int_shift + hsv_image.at<cv::Vec3b>(j,i)[2];
+
+        if( new_value > 255.0 )
+        {
+          hsv_image.at<cv::Vec3b>(j,i)[2] = 255;
+        }
+        else if( new_value < 0.0 )
+        {
+          hsv_image.at<cv::Vec3b>(j,i)[2] = 0;
+        }
+        else
+        {
+          hsv_image.at<cv::Vec3b>(j,i)[2] = new_value;
+        }
       }
     }
   }
