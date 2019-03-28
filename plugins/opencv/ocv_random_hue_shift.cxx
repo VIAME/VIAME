@@ -137,15 +137,13 @@ ocv_random_hue_shift
   {
     for( auto j = 0; j < input_ocv.rows; ++j )
     {
-      const unsigned cc = 0;
-
-      if( hue_shift + hsv_image.at<cv::Vec3b>(j,i)[cc] > 180 )
+      if( hue_shift + hsv_image.at<cv::Vec3b>(j,i)[0] > 180 )
       {
-        hsv_image.at<cv::Vec3b>(j,i)[cc] = hue_shift + hsv_image.at<cv::Vec3b>(j,i)[cc] - 180;
+        hsv_image.at<cv::Vec3b>(j,i)[0] = hue_shift + hsv_image.at<cv::Vec3b>(j,i)[0] - 180;
       }
       else
       {
-        hsv_image.at<cv::Vec3b>(j,i)[cc] = hue_shift + hsv_image.at<cv::Vec3b>(j,i)[cc];
+        hsv_image.at<cv::Vec3b>(j,i)[0] = hue_shift + hsv_image.at<cv::Vec3b>(j,i)[0];
       }
     }
   }

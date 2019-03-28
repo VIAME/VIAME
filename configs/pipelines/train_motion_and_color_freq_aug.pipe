@@ -38,9 +38,7 @@ process random_hue
   :filter:type                                 ocv_random_hue_shift
 
   block filter:ocv_random_hue_shift
-    :hue_range                                 90.0
-    :sat_range                                 0.0
-    :int_range                                 0.0
+    :hue_range                                 180.0
   endblock
 
 connect from random_grey.image
