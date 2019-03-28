@@ -478,11 +478,11 @@ public:
    * \param j height position (y)
    */
   template <typename T>
-  inline T& at( unsigned i, unsigned j )
+  inline T& at( size_t i, size_t j )
   {
     if( i >= width_ || j >= height_ )
     {
-      throw std::out_of_range("kwiver::vital::image::at<T>(unsigned, unsigned)");
+      throw std::out_of_range("kwiver::vital::image::at<T>(size_t, size_t)");
     }
     return reinterpret_cast<T*>(first_pixel_)[w_step_ * i + h_step_ * j];
   }
@@ -490,11 +490,11 @@ public:
 
   /// Const access pixels in the first channel of the image
   template <typename T>
-  inline const T& at( unsigned i, unsigned j ) const
+  inline const T& at( size_t i, size_t j ) const
   {
     if( i >= width_ || j >= height_ )
     {
-      throw std::out_of_range("kwiver::vital::image::at<T>(unsigned, unsigned) const");
+      throw std::out_of_range("kwiver::vital::image::at<T>(size_t, size_t) const");
     }
     return reinterpret_cast<const T*>(first_pixel_)[w_step_ * i + h_step_ * j];
   }
@@ -502,11 +502,11 @@ public:
 
   /// Access pixels in the image (width, height, channel)
   template <typename T>
-  inline T& at( unsigned i, unsigned j, unsigned k )
+  inline T& at( size_t i, size_t j, size_t k )
   {
     if( i >= width_ || j >= height_ || k >= depth_ )
     {
-      throw std::out_of_range("kwiver::vital::image::at<T>(unsigned, unsigned, unsigned)");
+      throw std::out_of_range("kwiver::vital::image::at<T>(size_t, size_t, size_t)");
     }
     return reinterpret_cast<T*>(first_pixel_)[w_step_ * i + h_step_ * j + d_step_ * k];
   }
@@ -514,11 +514,11 @@ public:
 
   /// Const access pixels in the image (width, height, channel)
   template <typename T>
-  inline const T& at( unsigned i, unsigned j, unsigned k ) const
+  inline const T& at( size_t i, size_t j, size_t k ) const
   {
     if( i >= width_ || j >= height_ || k >= depth_ )
     {
-      throw std::out_of_range("kwiver::vital::image::at<T>(unsigned, unsigned, unsigned) const");
+      throw std::out_of_range("kwiver::vital::image::at<T>(size_t, size_t, size_t) const");
     }
     return reinterpret_cast<const T*>(first_pixel_)[w_step_ * i + h_step_ * j + d_step_ * k];
   }
@@ -546,7 +546,7 @@ public:
    * \param width width of the crop region
    * \param height height of the crop region
    */
-  image crop(unsigned x_offset, unsigned y_offset, unsigned width, unsigned height) const;
+  image crop(size_t x_offset, size_t y_offset, size_t width, size_t height) const;
 
 protected:
   /// Smart pointer to memory viewed by this class
@@ -728,11 +728,11 @@ public:
    * \param i width position (x)
    * \param j height position (y)
    */
-  inline rgb_color at( unsigned i, unsigned j ) const
+  inline rgb_color at( size_t i, size_t j ) const
   {
     if( i >= width_ || j >= height_ )
     {
-      throw std::out_of_range("kwiver::vital::image::at(unsigned, unsigned) const");
+      throw std::out_of_range("kwiver::vital::image::at(size_t, size_t) const");
     }
 
     T const* data = this->first_pixel();
@@ -754,28 +754,28 @@ public:
    * \param i width position (x)
    * \param j height position (y)
    */
-  inline T& operator()( unsigned i, unsigned j )
+  inline T& operator()( size_t i, size_t j )
   {
     return image::at<T>(i,j);
   }
 
   // ----------------------------------------------------------------------------
   /// Const access pixels in the first channel of the image
-  inline const T& operator()( unsigned i, unsigned j ) const
+  inline const T& operator()( size_t i, size_t j ) const
   {
     return image::at<T>(i,j);
   }
 
   // ----------------------------------------------------------------------------
   /// Access pixels in the image (width, height, channel)
-  inline T& operator()( unsigned i, unsigned j, unsigned k )
+  inline T& operator()( size_t i, size_t j, size_t k )
   {
     return image::at<T>(i,j,k);
   }
 
   // ----------------------------------------------------------------------------
   /// Const access pixels in the image (width, height, channel)
-  inline const T& operator()( unsigned i, unsigned j, unsigned k ) const
+  inline const T& operator()( size_t i, size_t j, size_t k ) const
   {
     return image::at<T>(i,j,k);
   }
