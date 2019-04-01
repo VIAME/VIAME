@@ -1,14 +1,12 @@
 project(sprokit_python_util)
 
-if( NOT WIN32 )
-  set(python_util_srcs
-      ${python_util_srcs}
-      pystream.cxx)
+set(python_util_srcs
+    ${python_util_srcs}
+    pystream.cxx)
 
-  set(python_util_headers
-      ${python_util_headers}
-      pystream.h)
-endif()
+set(python_util_headers
+    ${python_util_headers}
+    pystream.h)
 
 kwiver_add_library(sprokit_python_util
   ${python_util_srcs}
