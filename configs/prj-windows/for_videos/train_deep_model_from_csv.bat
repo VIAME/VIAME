@@ -3,9 +3,6 @@
 REM Path to VIAME installation
 SET VIAME_INSTALL=C:\Program Files\VIAME
 
-REM Processing options
-SET INPUT_DIRECTORY=training_data
-
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
