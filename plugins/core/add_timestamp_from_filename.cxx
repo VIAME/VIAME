@@ -152,6 +152,7 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
     std::string name_only = kwiversys::SystemTools::GetFilenameName( filename );
     std::vector< std::string > parts = split( name_only, '_' );
 
+    // Example: CHESS_FL1_C_160407_234502.428_COLOR-8-BIT.JPG
     if( parts.size() > 4 && parts[0] == "CHESS" &&
         parts[3].size() > 5 && parts[4].size() > 9 )
     {
@@ -170,6 +171,7 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
       utc_time_usec =
         static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
     }
+    // Example: CHESS2016_N94S_FL23_P__20160518012412.111GMT_THERM-16BIT.PNG
     else if( parts.size() > 5 && parts[0].size() > 5 &&
              parts[0].substr( 0, 5 ) == "CHESS" )
     {
@@ -195,7 +197,44 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
     }
     else if( parts.size() == 1 )
     {
-      
+      parts = split( name_only, '.' );
+
+      // Example: 20151023.200145.662.017459.png
+      if( parts.size() > 3 && parts[0].size() == 8 && parts[1].size() == 6 )
+      {
+        tm t;
+
+        t.tm_year = std::stoi( parts[0].substr( 0, 4 ) ) - 1900;
+        t.tm_mon = std::stoi( parts[0].substr( 4, 2 ) ) - 1;
+        t.tm_mday = std::stoi( parts[0].substr( 6, 2 ) );
+  
+        t.tm_hour = std::stoi( parts[1].substr( 0, 2 ) );
+        t.tm_min = std::stoi( parts[1].substr( 2, 2 ) );
+        t.tm_sec = std::stoi( parts[1].substr( 4, 2 ) );
+
+        kwiver::vital::time_usec_t msec =
+          std::stoi( parts[2].substr( 0, 3 ) ) * 1e3;
+        utc_time_usec =
+          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+      }
+      // Example 201503.20150517.105551974.76450.png
+      if( parts.size() > 3 && parts[0].size() == 6 && parts[1].size() == 8 )
+      {
+        tm t;
+
+        t.tm_year = std::stoi( parts[1].substr( 0, 4 ) ) - 1900;
+        t.tm_mon = std::stoi( parts[1].substr( 4, 2 ) ) - 1;
+        t.tm_mday = std::stoi( parts[1].substr( 6, 2 ) );
+  
+        t.tm_hour = std::stoi( parts[2].substr( 0, 2 ) );
+        t.tm_min = std::stoi( parts[2].substr( 2, 2 ) );
+        t.tm_sec = std::stoi( parts[2].substr( 4, 2 ) );
+
+        kwiver::vital::time_usec_t msec =
+          std::stoi( parts[2].substr( 6, 3 ) ) * 1e3;
+        utc_time_usec =
+          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+      }
     }
   }
 
