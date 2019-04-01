@@ -1,7 +1,7 @@
 # ==================================================================================
 # Commonly used default detector when the user hasn't specified one.
 #
-# Classifies vertebrate vs invertebrate vs inorganic.
+# Classifies vertebrate vs invertebrate.
 
 include common_default_detector.pipe
 
