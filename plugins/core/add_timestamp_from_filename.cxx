@@ -171,7 +171,7 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
     {
       std::string date_str = ( parts[4].empty() ? parts[5] : parts[4] );
 
-      if( date_str.size() < 21 || date_str.substr( 18, 3 ) != "GMT" )
+      if( date_str.size() >= 21 && date_str.substr( 18, 3 ) == "GMT" )
       {
         tm t;
 
