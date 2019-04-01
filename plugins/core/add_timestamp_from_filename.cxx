@@ -167,6 +167,23 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
       kwiver::vital::time_usec_t msec = std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
       utc_time_usec = static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
     }
+    else if( parts[0].size() > 5 && parts[0].substr( 0, 5 ) == "CHESS" && parts.size() > 5 )
+    {
+      std::string date_str = ( parts[4].empty() ? parts[5] : parts[4] );
+
+      tm t;
+
+      t.tm_year = std::stoi( date_str.substr( 0, 4 ) ) - 1900;
+      t.tm_mon = std::stoi( parts[3].substr( 4, 2 ) ) - 1;
+      t.tm_mday = std::stoi( parts[3].substr( 6, 2 ) );
+
+      t.tm_hour = std::stoi( parts[4].substr( 8, 2 ) );
+      t.tm_min = std::stoi( parts[4].substr( 10, 2 ) );
+      t.tm_sec = std::stoi( parts[4].substr( 12, 2 ) );
+
+      kwiver::vital::time_usec_t msec = std::stoi( parts[4].substr( 15, 3 ) ) * 1e3;
+      utc_time_usec = static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+    }
   }
 
   if( !utc_time_usec )
