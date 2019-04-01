@@ -15,6 +15,7 @@ process optical_input
   :: video_input
   :video_filename                                       input_optical_images.txt
   :video_reader:type                                    image_list
+  :video_reader:image_list:sort_by_time                 true
   block video_reader:image_list:image_reader
     :type                                               add_timestamp_from_filename
     block add_timestamp_from_filename
@@ -27,6 +28,7 @@ process thermal_input
   :: video_input
   :video_filename                                       input_thermal_images.txt
   :video_reader:type                                    image_list
+  :video_reader:image_list:sort_by_time                 true
   block video_reader:image_list:image_reader
     :type                                               add_timestamp_from_filename
     block add_timestamp_from_filename
