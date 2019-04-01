@@ -152,7 +152,8 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
     std::string name_only = kwiversys::SystemTools::GetFilenameName( filename );
     std::vector< std::string > parts = split( name_only, '_' );
 
-    if( parts.size() > 4 && parts[0] == "CHESS" && parts[3].size() > 5 && parts[4].size() > 9 )
+    if( parts.size() > 4 && parts[0] == "CHESS" &&
+        parts[3].size() > 5 && parts[4].size() > 9 )
     {
       tm t;
 
@@ -164,10 +165,13 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
       t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
       t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
 
-      kwiver::vital::time_usec_t msec = std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
-      utc_time_usec = static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+      kwiver::vital::time_usec_t msec =
+        std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
+      utc_time_usec =
+        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
     }
-    else if( parts.size() > 5 && parts[0].size() > 5 && parts[0].substr( 0, 5 ) == "CHESS" )
+    else if( parts.size() > 5 && parts[0].size() > 5 &&
+             parts[0].substr( 0, 5 ) == "CHESS" )
     {
       std::string date_str = ( parts[4].empty() ? parts[5] : parts[4] );
 
@@ -183,8 +187,10 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
         t.tm_min = std::stoi( date_str.substr( 10, 2 ) );
         t.tm_sec = std::stoi( date_str.substr( 12, 2 ) );
 
-        kwiver::vital::time_usec_t msec = std::stoi( date_str.substr( 15, 3 ) ) * 1e3;
-        utc_time_usec = static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+        kwiver::vital::time_usec_t msec =
+          std::stoi( date_str.substr( 15, 3 ) ) * 1e3;
+        utc_time_usec =
+          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
       }
     }
     else if( parts.size() == 1 )
