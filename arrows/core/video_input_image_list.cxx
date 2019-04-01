@@ -58,6 +58,7 @@ class video_input_image_list::priv
 public:
   priv( video_input_image_list* parent )
   : m_parent( parent )
+  , c_sort_by_time( false )
   , m_current_file( m_files.end() )
   , m_frame_number( 0 )
   , m_image( nullptr )
@@ -69,6 +70,7 @@ public:
   // Configuration values
   std::vector< std::string > c_search_path;
   std::vector< std::string > c_allowed_extensions;
+  bool c_sort_by_time;
 
   // local state
   std::vector < kwiver::vital::path_t > m_files;
@@ -86,13 +88,14 @@ public:
 
   void read_from_file( std::string const& filename );
   void read_from_directory( std::string const& dirname );
+  void sort_by_time( std::vector < kwiver::vital::path_t >& files );
   vital::metadata_sptr frame_metadata(
     const kwiver::vital::path_t& file,
     kwiver::vital::image_container_sptr image = nullptr );
 };
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 video_input_image_list
 ::video_input_image_list()
   : d( new video_input_image_list::priv( this ) )
@@ -111,14 +114,14 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 video_input_image_list
 ::~video_input_image_list()
 {
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 vital::config_block_sptr
 video_input_image_list
 ::get_configuration() const
@@ -128,13 +131,18 @@ video_input_image_list
 
   config->set_value( "path", "",
                      "Path to search for image file. "
-                     "If a file name is not absolute, this list of directories is scanned to find the file. "
-                     "The current directory '.' is automatically appended to the end of the path. "
-                     "The format of this path is the same as the standard "
-                     "path specification, a set of directories separated by a colon (':')" );
+                     "If a file name is not absolute, this list of directories "
+                     "is scanned to find the file. The current directory '.' is "
+                     "automatically appended to the end of the path. The format "
+                     "of this path is the same as the standard path specification, "
+                     "a set of directories separated by a colon (':')" );
   config->set_value( "allowed_extensions", "",
                      "Semicolon-separated list of allowed file extensions. "
                      "Leave empty to allow all file extensions." );
+  config->set_value( "sort_by_time", "false",
+                     "Instead of accepting the input list as-is, sort input file "
+                     "order based on timestamp metadata contained either in the "
+                     "file or in each filename." );
 
   vital::algo::image_io::
     get_nested_algo_configuration( "image_reader", config, d->m_image_reader );
@@ -143,7 +151,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 video_input_image_list
 ::set_configuration( vital::config_block_sptr in_config )
@@ -160,6 +168,9 @@ video_input_image_list
   std::string extensions = config->get_value<std::string>( "allowed_extensions", "" );
   kwiver::vital::tokenize( extensions, d->c_allowed_extensions, ";", kwiver::vital::TokenizeTrimEmpty );
 
+  // Read standalone variables
+  d->c_sort_by_time = config->get_value<bool>( "sort_by_time" );
+
   // Setup actual reader algorithm
   vital::algo::image_io::
     set_nested_algo_configuration( "image_reader", config, d->m_image_reader );
@@ -171,7 +182,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool
 video_input_image_list
 ::check_configuration( vital::config_block_sptr config ) const
@@ -182,7 +193,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 video_input_image_list
 ::open( std::string list_name )
@@ -212,7 +223,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 video_input_image_list
 ::close()
@@ -224,7 +235,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool
 video_input_image_list
 ::end_of_video() const
@@ -233,7 +244,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool
 video_input_image_list
 ::good() const
@@ -241,7 +252,7 @@ video_input_image_list
   return d->m_frame_number > 0 && ! this->end_of_video();
 }
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool
 video_input_image_list
 ::seekable() const
@@ -249,7 +260,7 @@ video_input_image_list
   return true;
 }
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 size_t
 video_input_image_list
 ::num_frames() const
@@ -257,7 +268,7 @@ video_input_image_list
   return d->m_files.size();
 }
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 kwiver::vital::path_t
 video_input_image_list
 ::filename() const
@@ -265,7 +276,7 @@ video_input_image_list
   return *(d->m_current_file);
 }
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool
 video_input_image_list
 ::next_frame( kwiver::vital::timestamp& ts,
@@ -297,7 +308,7 @@ video_input_image_list
   return ! this->end_of_video();
 }
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 bool
 video_input_image_list
 ::seek_frame( kwiver::vital::timestamp& ts,   // returns timestamp
@@ -331,7 +342,7 @@ video_input_image_list
   return ! this->end_of_video();
 }
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 kwiver::vital::timestamp
 video_input_image_list
 ::frame_timestamp() const
@@ -363,7 +374,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 kwiver::vital::image_container_sptr
 video_input_image_list
 ::frame_image()
@@ -382,7 +393,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 kwiver::vital::metadata_vector
 video_input_image_list
 ::frame_metadata()
@@ -397,7 +408,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 kwiver::vital::metadata_map_sptr
 video_input_image_list
 ::metadata_map()
@@ -420,7 +431,7 @@ video_input_image_list
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 void
 video_input_image_list::priv
 ::read_from_file( std::string const& filename )
@@ -485,10 +496,43 @@ video_input_image_list::priv
 
     this->m_files.push_back( resolved_file );
   } // end while
+
+  if ( c_sort_by_time )
+  {
+    sort_by_time( this->m_files );
+  }
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void
+video_input_image_list::priv
+::sort_by_time( std::vector< kwiver::vital::path_t >& files )
+{
+  std::map< kwiver::vital::time_usec_t, kwiver::vital::path_t > m_sorted_files;
+
+  for ( auto file : this->m_files )
+  {
+    kwiver::vital::metadata_sptr md = m_image_reader->load_metadata( file );
+
+    if ( !md || !md->timestamp().has_valid_time() )
+    {
+      VITAL_THROW( kwiver::vital::invalid_file, file, "Could not load time" );
+    }
+
+    m_sorted_files[ md->timestamp().get_time_usec() ] = file;
+  }
+
+  files.clear();
+
+  for ( auto file : m_sorted_files )
+  {
+    files.push_back( file.second );
+  }
+}
+
+
+// ----------------------------------------------------------------------------
 void
 video_input_image_list::priv
 ::read_from_directory( std::string const& dirname )
@@ -535,11 +579,18 @@ video_input_image_list::priv
   }
 
   // Sort the list
-  std::sort( this->m_files.begin(), this->m_files.end() );
+  if ( c_sort_by_time )
+  {
+    sort_by_time( this->m_files );
+  }
+  else
+  {
+    std::sort( this->m_files.begin(), this->m_files.end() );
+  }
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 kwiver::vital::metadata_sptr
 video_input_image_list::priv
 ::frame_metadata( const kwiver::vital::path_t& file,
