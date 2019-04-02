@@ -83,7 +83,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Optional Patches:** <br>
 [MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
-[Arctic Seals Models Add-On, All Linux, CUDA 9](https://data.kitware.com/api/v1/item/5c990d438d777f072bd89f1f/download) <br>
+[Arctic Seals Models Add-On, All Linux, CUDA 9](https://data.kitware.com/api/v1/item/5ca3e4df8d777f072bf2aa65/download) <br>
 [HabCam Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8ea8d777f072b2b97fa/download) <br>
 [Low Memory GPU (2 Gb to 4 Gb) Add-On, All OS](https://data.kitware.com/api/v1/item/5c74a0328d777f072b6615f3/download)
 
