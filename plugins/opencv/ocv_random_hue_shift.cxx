@@ -50,13 +50,16 @@ class ocv_random_hue_shift::priv
 public:
 
   priv()
-    : m_hue_range( 180.0 )
+    : m_trigger_percent( 0.50 )
+    , m_hue_range( 0.0 )
     , m_sat_range( 0.0 )
     , m_int_range( 0.0 )
     , m_rgb_shift_range( 0.0 )
   {}
 
   ~priv() {}
+
+  double m_trigger_percent;
 
   double m_hue_range;
   double m_sat_range;
@@ -89,6 +92,8 @@ ocv_random_hue_shift
   // Get base config from base class
   kwiver::vital::config_block_sptr config = kwiver::vital::algorithm::get_configuration();
 
+  config->set_value( "trigger_percent", d->m_trigger_percent, "Trigger for other operations" );
+
   config->set_value( "hue_range", d->m_hue_range, "Hue random adjustment range" );
   config->set_value( "sat_range", d->m_sat_range, "Saturation random adjustment range" );
   config->set_value( "int_range", d->m_int_range, "Intensity random adjustment range" );
@@ -106,6 +111,8 @@ ocv_random_hue_shift
 {
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( config_in );
+
+  d->m_trigger_percent = config->get_value< double >( "trigger_percent" );
 
   d->m_hue_range = config->get_value< double >( "hue_range" );
   d->m_sat_range = config->get_value< double >( "sat_range" );
@@ -129,6 +136,11 @@ kwiver::vital::image_container_sptr
 ocv_random_hue_shift
 ::filter( kwiver::vital::image_container_sptr image_data )
 {
+  if( rand() / ( RAND_MAX + 1.0 ) >= d->m_trigger_percent )
+  {
+    return image_data;
+  }
+
   cv::Mat input_ocv =
     arrows::ocv::image_container::vital_to_ocv( image_data->get_image(),
       kwiver::arrows::ocv::image_container::BGR_COLOR );
