@@ -321,8 +321,11 @@ bool PerformRegistration(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
   NetTransformType::Pointer& outputTransformation,
-  double opticalImageShrinkFactor,
-  double thermalImageShrinkFactor )
+  const double opticalImageShrinkFactor,
+  const double thermalImageShrinkFactor,
+  const unsigned iterationCount,
+  const double maximumPhysicalStepSize,
+  const double pointSetSigma )
 {
   constexpr unsigned int Dimension = 2;
   using PointSetType = ::itk::PointSet< float, Dimension >;
@@ -343,10 +346,6 @@ bool PerformRegistration(
   JHCTPointSetMetricType::Pointer jhctMetric = JHCTPointSetMetricType::New();
   AffineTransformType::Pointer pointSetTransform = AffineTransformType::New();
   pointSetTransform->SetIdentity();
-
-  constexpr unsigned int numberOfIterations = 100;
-  constexpr double maximumPhysicalStepSize = 2.0;
-  constexpr double pointSetSigma = 3.0;
 
   JHCTPointSetMetricRegistration< AffineTransformType, JHCTPointSetMetricType, PointSetType >
     ( numberOfIterations, maximumPhysicalStepSize,

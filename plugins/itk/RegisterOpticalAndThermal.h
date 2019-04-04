@@ -64,8 +64,11 @@ VIAME_ITK_EXPORT bool PerformRegistration(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
   NetTransformType::Pointer& outputTransformation,
-  double opticalImageShrinkFactor = 10.0,
-  double thermalImageShrinkFactor = 1.0 );
+  const double opticalImageShrinkFactor = 10.0,
+  const double thermalImageShrinkFactor = 1.0,
+  const unsigned iterationCount = 100,
+  const double maximumPhysicalStepSize = 2.0,
+  const double pointSetSigma = 3.0 );
 
 VIAME_ITK_EXPORT bool WarpThermalToOpticalImage(
   const OpticalImageType& inputOpticalImage,
