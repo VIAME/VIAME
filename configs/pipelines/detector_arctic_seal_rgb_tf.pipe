@@ -8,36 +8,41 @@ config _scheduler
   :type                                        pythread_per_process
 
 # =============================================================================
-process input
-  :: frame_list_input
-  :image_list_file                             rgb_input_list.txt
-  :frame_time                                  0.3333
-  :image_reader:type                           ocv
+include common_default_input.pipe
 
 # =============================================================================
 include common_arctic_seal_rgb_tf.pipe
 
-# =============================================================================
-process draw_box
-:: draw_detected_object_set
-  :draw_algo:type                              ocv
-
-process writer
-  :: image_writer
-  :file_name_template                          rgb_out_images/frame%06d.jpg
-  :image_writer:type                           ocv
-
-# =============================================================================
 connect from input.image
         to   detector.image
 
-connect from input.image
-        to   draw_box.image
+# =============================================================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   detections_tf_rgb.csv
+  :writer:type                                 viame_csv
 
 connect from detector.detected_object_set
-        to   draw_box.detected_object_set
+        to   detector_writer.detected_object_set
 
-connect from draw_box.image
-        to   writer.image
+# =============================================================================
+#process draw_box
+#:: draw_detected_object_set
+#  :draw_algo:type                              ocv
+#
+#process image_writer
+#  :: image_writer
+#  :file_name_template                          rgb_detections%06d.jpg
+#  :image_writer:type                           ocv
+#
+#connect from input.image
+#        to   draw_box.image
+#connect from detector.detected_object_set
+#        to   draw_box.detected_object_set
+#
+#connect from draw_box.image
+#        to   image_writer.image
 
 # -- end of file --
