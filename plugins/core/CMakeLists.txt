@@ -86,12 +86,14 @@ target_link_libraries( viame_train_detector
 # Add process library
 set( process_headers
   align_multimodal_imagery_process.h
+  filter_frame_process.h
   write_homography_list_process.h
 )
 
 set( process_sources
   register_processes.cxx
   align_multimodal_imagery_process.cxx
+  filter_frame_process.cxx
   write_homography_list_process.cxx
 )
 
