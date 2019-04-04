@@ -11,7 +11,7 @@ config _scheduler
 include common_default_input.pipe
 
 # =============================================================================
-include common_arctic_seal_rgb_tf.pipe
+include common_arctic_seal_rgb_tf_detector.pipe
 
 connect from input.image
         to   detector.image
