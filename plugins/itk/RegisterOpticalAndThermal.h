@@ -66,7 +66,7 @@ VIAME_ITK_EXPORT bool PerformRegistration(
   NetTransformType::Pointer& outputTransformation,
   const double opticalImageShrinkFactor = 10.0,
   const double thermalImageShrinkFactor = 1.0,
-  const unsigned iterationCount = 100,
+  const unsigned numberOfIterations = 100,
   const double maximumPhysicalStepSize = 2.0,
   const double pointSetSigma = 3.0 );
 

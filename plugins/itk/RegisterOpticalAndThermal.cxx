@@ -323,7 +323,7 @@ bool PerformRegistration(
   NetTransformType::Pointer& outputTransformation,
   const double opticalImageShrinkFactor,
   const double thermalImageShrinkFactor,
-  const unsigned iterationCount,
+  const unsigned numberOfIterations,
   const double maximumPhysicalStepSize,
   const double pointSetSigma )
 {
