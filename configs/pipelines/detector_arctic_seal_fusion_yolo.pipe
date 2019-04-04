@@ -90,8 +90,8 @@ process thermal_detector
   endblock
 
 connect from align_images.thermal_image
-        to   format_thremal_image.image
-connect from format_thremal_image.image
+        to   format_thermal_image.image
+connect from format_thermal_image.image
         to   thermal_detector.image
 
 # ================================= EO DETECTOR ====================================
