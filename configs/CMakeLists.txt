@@ -228,6 +228,7 @@ if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_arctic_seal_rgb_yolo_detector.pipe
     pipelines/common_arctic_seal_ir_yolo_detector.pipe
+    pipelines/detector_arctic_seal_fusion_yolo.pipe
     pipelines/gui_embedded/arctic_seal_rgb_yolo_detector.pipe
     pipelines/gui_embedded/arctic_seal_ir_yolo_detector.pipe )
 endif()

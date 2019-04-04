@@ -1,0 +1,155 @@
+# ==================================================================================
+#
+# Run detectors on unsynchronous co-collected optical and thermal imagery
+#
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                             5
+
+config _scheduler
+  :type                                                 pythread_per_process
+
+# ================================= INPUT VIDEO ====================================
+
+process optical_input
+  :: video_input
+  :video_filename                                       input_optical_images.txt
+  :video_reader:type                                    image_list
+  :video_reader:image_list:sort_by_time                 true
+  block video_reader:image_list:image_reader
+    :type                                               add_timestamp_from_filename
+    block add_timestamp_from_filename
+      :image_reader:type                                vxl
+      :image_reader:vxl:vxl:force_byte                  false
+    endblock
+  endblock
+
+process thermal_input
+  :: video_input
+  :video_filename                                       input_thermal_images.txt
+  :video_reader:type                                    image_list
+  :video_reader:image_list:sort_by_time                 true
+  block video_reader:image_list:image_reader
+    :type                                               add_timestamp_from_filename
+    block add_timestamp_from_filename
+      :image_reader:type                                vxl
+      :image_reader:vxl:vxl:force_byte                  false
+    endblock
+  endblock
+
+# ================================== ALIGNMENT =====================================
+
+process align_images
+  :: align_multimodal_imagery
+  :output_frames_without_match                          false
+  :max_time_offset                                      1.0
+
+connect from optical_input.image
+        to   align_images.optical_image
+connect from optical_input.timestamp
+        to   align_images.optical_timestamp
+connect from optical_input.file_name
+        to   align_images.optical_file_name
+
+connect from thermal_input.image
+        to   align_images.thermal_image
+connect from thermal_input.timestamp
+        to   align_images.thermal_timestamp
+connect from thermal_input.file_name
+        to   align_images.thermal_file_name
+
+# ================================= IR DETECTOR ====================================
+
+process format_thermal_image
+  :: percentile_norm_npy_16_to_8bit
+
+process thermal_detector
+  :: image_object_detector
+  :detector:type                                        darknet
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                          models/arctic_seal_ir.cfg
+    relativepath weight_file =                          models/arctic_seal_ir.weights
+    relativepath class_names =                          models/arctic_seal_ir.lbl
+
+    # Detector parameters
+    :thresh                                             0.010
+    :hier_thresh                                        0.001
+    :gpu_index                                          0
+
+    # Image scaling parameters
+    :resize_option                                      maintain_ar
+    :scale                                              1.0
+    :chip_step                                          600
+    :chip_edge_filter                                   10
+
+  endblock
+
+connect from align_images.thermal_image
+        to   format_thremal_image.image
+connect from format_thremal_image.image
+        to   thermal_detector.image
+
+# ================================= EO DETECTOR ====================================
+
+process optical_trigger
+  :: filter_frames
+  :detection_threshold                                  0.01
+
+process optical_detector
+  :: image_object_detector
+  :detector:type                                        darknet
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                          models/arctic_seal_rgb.cfg
+    relativepath weight_file =                          models/arctic_seal_rgb.weights
+    relativepath class_names =                          models/arctic_seal_rgb.lbl
+
+    # Detector parameters
+    :thresh                                             0.010
+    :hier_thresh                                        0.001
+    :gpu_index                                          0
+
+    # Image scaling parameters
+    :resize_option                                      chip
+    :scale                                              1.0
+    :chip_step                                          600
+    :chip_edge_filter                                   10
+
+  endblock
+
+connect from align_images.optical_image
+        to   optical_trigger.image
+connect from thermal_detector.detected_object_set
+        to   optical_trigger.detected_object_set
+
+connect from optical_trigger.image
+        to   optical_detector.image
+
+# =================================== OUTPUTS ======================================
+
+process draw_optical_detections
+  :: draw_detected_object_set
+  :draw_algo:type                                       ocv
+
+process write_optical_detections
+  :: image_writer
+  :file_name_template                                   output_result%06d.jpg
+  :image_writer:type                                    ocv
+
+connect from align_images.optical_image
+        to   draw_optical_detections.image
+
+connect from optical_detector.detected_object_set
+        to   draw_optical_detections.detected_object_set
+
+connect from draw_optical_detections.image
+        to   write_optical_detections.image
+
+
+# -- end of file --
