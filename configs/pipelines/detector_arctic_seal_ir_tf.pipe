@@ -14,8 +14,7 @@ process input
   :frame_time                                           1
   :exit_on_invalid                                      true
   :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type            vxl
-  :video_reader:image_list:image_reader:vxl:force_byte  false
+  :video_reader:image_list:image_reader:type            ocv
 
 # =============================================================================
 include common_arctic_seal_ir_tf_detector.pipe
