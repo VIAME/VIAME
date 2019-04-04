@@ -33,6 +33,7 @@
 #include <vital/plugin_loader/plugin_loader.h>
 
 #include "RegistrationProcess.h"
+#include "WarpDetectionsProcess.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -59,6 +60,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Display input image and delay" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::itk::itk_warp_detections_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "itk_warp_detections_process" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Warp detections based on an ITK transformation" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

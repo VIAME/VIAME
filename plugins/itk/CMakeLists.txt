@@ -67,12 +67,14 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
 
     RegisterProcesses.cxx
     RegistrationProcess.cxx
+    WarpDetectionsProcess.cxx
   )
   
   set( process_headers
     ../core/align_multimodal_imagery_process.h
 
-    RegistreationProcess.h
+    RegistrationProcess.h
+    WarpDetectionsProcess.h
   )
 
   kwiver_add_plugin( viame_processes_itk

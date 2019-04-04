@@ -45,6 +45,8 @@ namespace itk
 
 constexpr unsigned int Dimension = 2;
 
+using TransformFloatType = double;
+
 using OpticalPixelType = unsigned short;
 using ThermalPixelType = unsigned short;
 using WarpedOpticalPixelType = unsigned char;
@@ -55,8 +57,8 @@ using ThermalImageType = ::itk::Image< ThermalPixelType, Dimension >;
 using WarpedOpticalImageType = ::itk::Image< WarpedOpticalPixelType, Dimension >;
 using WarpedThermalImageType = ::itk::Image< WarpedThermalPixelType, Dimension >;
 
-using AffineTransformType = ::itk::AffineTransform< double, Dimension >;
-using NetTransformType = ::itk::CompositeTransform< double, Dimension >;
+using AffineTransformType = ::itk::AffineTransform< TransformFloatType, Dimension >;
+using NetTransformType = ::itk::CompositeTransform< TransformFloatType, Dimension >;
 
 VIAME_ITK_EXPORT bool PerformRegistration(
   const OpticalImageType& inputOpticalImage,
