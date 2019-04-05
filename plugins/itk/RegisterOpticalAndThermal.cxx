@@ -327,38 +327,45 @@ bool PerformRegistration(
   const double maximumPhysicalStepSize,
   const double pointSetSigma )
 {
-  constexpr unsigned int Dimension = 2;
-  using PointSetType = ::itk::PointSet< float, Dimension >;
+  try
+    {
+    constexpr unsigned int Dimension = 2;
+    using PointSetType = ::itk::PointSet< float, Dimension >;
 
-  AffineTransformType::Pointer opticalToPointSet;
-  AffineTransformType::Pointer thermalToPointSet;
+    AffineTransformType::Pointer opticalToPointSet;
+    AffineTransformType::Pointer thermalToPointSet;
 
-  PointSetType::Pointer opticalPhaseSymmetryPointSet =
-    PhaseSymmetryPointSet< OpticalImageType, PointSetType >(
-      inputOpticalImage, false, opticalImageShrinkFactor, opticalToPointSet );
-  PointSetType::Pointer thermalPhaseSymmetryPointSet =
-    PhaseSymmetryPointSet< ThermalImageType, PointSetType >(
-      inputThermalImage, true, thermalImageShrinkFactor, thermalToPointSet );
+    PointSetType::Pointer opticalPhaseSymmetryPointSet =
+      PhaseSymmetryPointSet< OpticalImageType, PointSetType >(
+        inputOpticalImage, false, opticalImageShrinkFactor, opticalToPointSet );
+    PointSetType::Pointer thermalPhaseSymmetryPointSet =
+      PhaseSymmetryPointSet< ThermalImageType, PointSetType >(
+        inputThermalImage, true, thermalImageShrinkFactor, thermalToPointSet );
 
-  using JHCTPointSetMetricType =
-    ::itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4< PointSetType >;
+    using JHCTPointSetMetricType =
+      ::itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4< PointSetType >;
 
-  JHCTPointSetMetricType::Pointer jhctMetric = JHCTPointSetMetricType::New();
-  AffineTransformType::Pointer pointSetTransform = AffineTransformType::New();
-  pointSetTransform->SetIdentity();
+    JHCTPointSetMetricType::Pointer jhctMetric = JHCTPointSetMetricType::New();
+    AffineTransformType::Pointer pointSetTransform = AffineTransformType::New();
+    pointSetTransform->SetIdentity();
 
-  JHCTPointSetMetricRegistration< AffineTransformType, JHCTPointSetMetricType, PointSetType >
-    ( numberOfIterations, maximumPhysicalStepSize,
-      pointSetTransform, jhctMetric,
-      thermalPhaseSymmetryPointSet,
-      opticalPhaseSymmetryPointSet,
-      pointSetSigma );
+    JHCTPointSetMetricRegistration< AffineTransformType, JHCTPointSetMetricType, PointSetType >
+      ( numberOfIterations, maximumPhysicalStepSize,
+        pointSetTransform, jhctMetric,
+        thermalPhaseSymmetryPointSet,
+        opticalPhaseSymmetryPointSet,
+        pointSetSigma );
 
-  outputTransformation = NetTransformType::New();
+    outputTransformation = NetTransformType::New();
 
-  outputTransformation->AddTransform( opticalToPointSet );
-  outputTransformation->AddTransform( pointSetTransform->GetInverseTransform() );
-  outputTransformation->AddTransform( thermalToPointSet->GetInverseTransform() );
+    outputTransformation->AddTransform( opticalToPointSet );
+    outputTransformation->AddTransform( pointSetTransform->GetInverseTransform() );
+    outputTransformation->AddTransform( thermalToPointSet->GetInverseTransform() );
+    }
+  catch( ... )
+    {
+      return false;
+    }
 
   return true;
 }
