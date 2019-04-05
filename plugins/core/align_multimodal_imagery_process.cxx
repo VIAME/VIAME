@@ -82,6 +82,9 @@ public:
 
   bool m_optical_finished;
   bool m_thermal_finished;
+
+  bool m_check_optical;
+  bool m_check_thermal;
 };
 
 // =============================================================================
@@ -151,24 +154,27 @@ align_multimodal_imagery_process
   }
 
   // Read optical frame
-  if( !d->m_optical_finished &&
-      has_input_port_edge_using_trait( optical_image ) )
+  if( d->m_check_optical )
   {
-    optical_image = grab_from_port_using_trait( optical_image );
-  }
+    if( !d->m_optical_finished &&
+        has_input_port_edge_using_trait( optical_image ) )
+    {
+      optical_image = grab_from_port_using_trait( optical_image );
+    }
 
-  if( !d->m_optical_finished &&
-      has_input_port_edge_using_trait( optical_timestamp ) )
-  {
-    optical_time = grab_from_port_using_trait( optical_timestamp );
+    if( !d->m_optical_finished &&
+        has_input_port_edge_using_trait( optical_timestamp ) )
+    {
+      optical_time = grab_from_port_using_trait( optical_timestamp );
+  
+      LOG_DEBUG( logger(), "Received optical frame " << optical_time );
+    }
 
-    LOG_DEBUG( logger(), "Received optical frame " << optical_time );
-  }
-
-  if( !d->m_optical_finished &&
-      has_input_port_edge_using_trait( optical_file_name ) )
-  {
-    optical_file_name = grab_from_port_using_trait( optical_file_name );
+    if( !d->m_optical_finished &&
+        has_input_port_edge_using_trait( optical_file_name ) )
+    {
+      optical_file_name = grab_from_port_using_trait( optical_file_name );
+    }
   }
 
   // Check for completion of thermal frame stream
@@ -193,24 +199,27 @@ align_multimodal_imagery_process
   }
 
   // Read thermal frame
-  if( !d->m_thermal_finished &&
-      has_input_port_edge_using_trait( thermal_image ) )
+  if( d->m_check_thermal )
   {
-    thermal_image = grab_from_port_using_trait( thermal_image );
-  }
+    if( !d->m_thermal_finished &&
+        has_input_port_edge_using_trait( thermal_image ) )
+    {
+      thermal_image = grab_from_port_using_trait( thermal_image );
+    }
 
-  if( !d->m_thermal_finished &&
-      has_input_port_edge_using_trait( thermal_timestamp ) )
-  {
-    thermal_time = grab_from_port_using_trait( thermal_timestamp );
+    if( !d->m_thermal_finished &&
+        has_input_port_edge_using_trait( thermal_timestamp ) )
+    {
+      thermal_time = grab_from_port_using_trait( thermal_timestamp );
+  
+      LOG_DEBUG( logger(), "Received thermal frame " << thermal_time );
+    }
 
-    LOG_DEBUG( logger(), "Received thermal frame " << thermal_time );
-  }
-
-  if( !d->m_thermal_finished &&
-      has_input_port_edge_using_trait( thermal_file_name ) )
-  {
-    thermal_file_name = grab_from_port_using_trait( thermal_file_name );
+    if( !d->m_thermal_finished &&
+        has_input_port_edge_using_trait( thermal_file_name ) )
+    {
+      thermal_file_name = grab_from_port_using_trait( thermal_file_name );
+    }
   }
 
   // Determine dominant type
@@ -270,6 +279,9 @@ align_multimodal_imagery_process
 
   const bool this_is_the_end = ( d->m_optical_finished && d->m_thermal_finished );
 
+  d->m_check_optical = true;
+  d->m_check_thermal = true;
+
   if( !dom->empty() )
   {
     for( auto dom_entry = dom->begin(); dom_entry != dom->end(); )
@@ -284,6 +296,16 @@ align_multimodal_imagery_process
 
       double min_dist = std::numeric_limits< double >::max();
       buffered_frame* closest_frame = NULL;
+
+      // Special case to prevent over-buffering
+      if( dom_entry == dom->begin() &&
+          sub->size() == 1 && sub->begin()->time() < lower_time )
+      {
+        sub->erase( sub->begin() );
+        d->m_check_optical = !optical_dominant;
+        d->m_check_thermal = optical_dominant;
+        break;
+      }
 
       // Iterate over sub
       for( auto sub_entry = sub->begin(); sub_entry != sub->end(); )
@@ -429,6 +451,8 @@ align_multimodal_imagery_process::priv
 ::priv()
   : m_optical_finished( false )
   , m_thermal_finished( false )
+  , m_check_optical( true )
+  , m_check_thermal( true )
 {
 }
 
