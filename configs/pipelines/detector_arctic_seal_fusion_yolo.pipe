@@ -22,8 +22,7 @@ process optical_input
   block video_reader:image_list:image_reader
     :type                                               add_timestamp_from_filename
     block add_timestamp_from_filename
-      :image_reader:type                                vxl
-      :image_reader:vxl:vxl:force_byte                  false
+      :image_reader:type                                ocv
     endblock
   endblock
 
@@ -35,8 +34,7 @@ process thermal_input
   block video_reader:image_list:image_reader
     :type                                               add_timestamp_from_filename
     block add_timestamp_from_filename
-      :image_reader:type                                vxl
-      :image_reader:vxl:vxl:force_byte                  false
+      :image_reader:type                                ocv
     endblock
   endblock
 
