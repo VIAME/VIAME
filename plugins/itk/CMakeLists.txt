@@ -86,6 +86,9 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
                      vital vital_vpm vital_logger vital_config
                      kwiver_algo_core kwiver_algo_ocv
                      kwiversys ${OpenCV_LIBS}
+                     ITKIOTransformBase ITKTransformFactory
+                     ITKIOTransformInsightLegacy
+                     ITKIOHDF5 ITKIOTransformHDF5 ITKIOTransformMatlab
                      ${Boost_SYSTEM_LIBRARY}
                      ${Boost_FILESYSTEM_LIBRARY}
    )
