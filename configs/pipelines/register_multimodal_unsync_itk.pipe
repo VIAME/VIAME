@@ -9,9 +9,6 @@
 config _pipeline:_edge
    :capacity                                            5
 
-config _scheduler
-   :type                                                pythread_per_process
-
 # ================================= INPUT VIDEO ====================================
 
 process optical_input
@@ -62,7 +59,14 @@ connect from thermal_input.file_name
 # ==================================== OUTPUT ======================================
 
 process scale_warped
-  :: percentile_norm_npy_16_to_8bit
+  :: image_filter
+  :filter:type                                          vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                             byte
+    :single_channel                                     false
+    :percentile_norm                                    0.001
+  endblock
 
 connect from register_images.warped_thermal_image
         to   scale_warped.image
@@ -79,6 +83,7 @@ connect from scale_warped.image
 process fused_writer
   :: image_writer
   :image_writer:type                                    vxl
+  :replace_filename_strings                             COLOR,FUSED,JPG,PNG
 
 connect from register_images.optical_file_name
         to   fused_writer.image_file_name
