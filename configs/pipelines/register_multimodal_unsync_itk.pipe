@@ -7,7 +7,10 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity                                        5
+   :capacity                                            5
+
+config _scheduler
+   :type                                                pythread_per_process
 
 # ================================= INPUT VIDEO ====================================
 
@@ -59,25 +62,28 @@ connect from thermal_input.file_name
 # ==================================== OUTPUT ======================================
 
 process scale_warped
-  :: image_filter
-  :filter:type                                          vxl_convert_image
-
-  block filter:vxl_convert_image
-    :format                                             byte
-    :single_channel                                     false
-    :percentile_norm                                    0.001
-  endblock
+  :: percentile_norm_npy_16_to_8bit
 
 connect from register_images.warped_thermal_image
         to   scale_warped.image
 
-process warped_writer
+process fused_merger
+  :: merge_images
+  :merge_images:type                                    ocv
+
+connect from register_images.optical_image
+        to   fused_merger.image1
+connect from scale_warped.image
+        to   fused_merger.image2
+
+process fused_writer
   :: image_writer
-  :file_name_template                                   frame%06d.png
   :image_writer:type                                    vxl
 
-connect from scale_warped.image
-        to   warped_writer.image
+connect from register_images.optical_file_name
+        to   fused_writer.image_file_name
+connect from fused_merger.image
+        to   fused_writer.image
 
 process homography_writer
   :: write_homography_list
