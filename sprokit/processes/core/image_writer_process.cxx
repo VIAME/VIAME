@@ -68,11 +68,16 @@ create_config_trait( file_name_template, std::string, "image%04d.png",
   "increasing image number. The image file type is determined by the file "
   "extension and the concrete writer selected." );
 
-// This is more for documentation
 create_config_trait( image_writer, std::string , "", "Config block name "
   "to configure algorithm. The algorithm type is selected with "
   "\"image_writer:type\". Specific writer parameters depend on writer type "
   "selected.");
+
+create_config_trait( replace_filename_strings, std::string , "",
+  "An optional comma-seperated list of pairs, corresponding to filename "
+  "components we wish to replace. For example, if this is color,grey "
+  "all instances of the word color in the filename will be replaced "
+  "with grey." );
 
 // -----------------------------------------------------------------------------
 // Private implementation class
@@ -94,6 +99,9 @@ public:
   // processing classes
   algo::image_io_sptr m_image_writer;
 
+  // replace strings
+  std::vector< std::string > m_find_strings;
+  std::vector< std::string > m_replace_strings;
 }; // end priv class
 
 
@@ -142,6 +150,30 @@ void image_writer_process
   {
     throw sprokit::invalid_configuration_exception( name(),
       "Configuration check failed." );
+  }
+
+  // Identify find-replace strings
+  std::string full_string = config_value_using_trait( replace_filename_strings );
+
+  std::vector< std::string > parsed_string;
+  std::stringstream iss( full_string );
+  std::string tmp;
+
+  while( getline( iss, tmp, ',' ) )
+  {
+    parsed_string.push_back( tmp );
+  }
+
+  if( parsed_string.size() % 2 == 1 )
+  {
+    throw sprokit::invalid_configuration_exception( name(),
+      "Length of replace string vector must be even." );
+  }
+
+  for( unsigned i = 0; i < parsed_string.size(); i+=2 )
+  {
+    d->m_find_strings.push_back( parsed_string[i] );
+    d->m_replace_strings.push_back( parsed_string[i+1] );
   }
 }
 
@@ -195,6 +227,17 @@ void image_writer_process
     a_file = kwiver::vital::string_format( d->m_file_template, d->m_frame_number );
   }
 
+  for( unsigned i = 0; i < d->m_find_strings.size(); ++i )
+  {
+    size_t start_pos = 0;
+
+    while( ( start_pos = a_file.find( d->m_find_strings[i], start_pos ) ) != std::string::npos )
+    {
+      a_file.replace( start_pos, d->m_find_strings[i].length(), d->m_replace_strings[i] );
+      start_pos += d->m_replace_strings[i].length();
+    }
+  }
+
   if( input )
   {
     scoped_step_instrumentation();
@@ -238,6 +281,7 @@ void image_writer_process
 {
   declare_config_using_trait( file_name_template );
   declare_config_using_trait( image_writer );
+  declare_config_using_trait( replace_filename_strings );
 }
 
 
