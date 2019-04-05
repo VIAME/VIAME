@@ -134,16 +134,22 @@ write_homography_list_process
   dest_file_name = grab_from_port_using_trait( dest_file_name );
   homog = grab_from_port_using_trait( homography );
 
-  d->m_writer << source_file_name << std::endl;
+  if( !source_file_name.empty() )
+  {
+    d->m_writer << source_file_name << std::endl;
+  }
+  if( !dest_file_name.empty() )
+  {
+    d->m_writer << dest_file_name << std::endl;
+  }
 
   if( homog )
   {
-    d->m_writer << dest_file_name << std::endl;
     d->m_writer << *homog << std::endl;
   }
   else
   {
-    d->m_writer << d->m_no_homography_string;
+    d->m_writer << d->m_no_homography_string << std::endl;
   }
 
   d->m_writer << std::endl;

@@ -16,7 +16,7 @@ process optical_input
   :video_filename                                       input_optical_images.txt
   :frame_time                                           1
   :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type            vxl
+  :video_reader:image_list:image_reader:type            ocv
   :video_reader:image_list:image_reader:vxl:force_byte  false
   :video_reader:vidl_ffmpeg:time_source                 start_at_0
 
@@ -25,7 +25,7 @@ process thermal_input
   :video_filename                                       input_thermal_images.txt
   :frame_time                                           1
   :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type            vxl
+  :video_reader:image_list:image_reader:type            ocv
   :video_reader:image_list:image_reader:vxl:force_byte  false
   :video_reader:vidl_ffmpeg:time_source                 start_at_0
 

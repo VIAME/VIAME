@@ -508,6 +508,10 @@ align_multimodal_imagery_process
       frame.image );
     this->push_to_port_using_trait( thermal_image,
       kwiver::vital::image_container_sptr() );
+    this->push_to_port_using_trait( optical_file_name,
+      frame.name );
+    this->push_to_port_using_trait( thermal_file_name,
+      std::string() );
   }
   else if( stream_id == 1 )
   {
@@ -515,16 +519,16 @@ align_multimodal_imagery_process
       kwiver::vital::image_container_sptr() );
     this->push_to_port_using_trait( thermal_image,
       frame.image );
+    this->push_to_port_using_trait( optical_file_name,
+      std::string() );
+    this->push_to_port_using_trait( thermal_file_name,
+      frame.name );
   }
   else
   {
     throw std::runtime_error( "Invalid index" );
   }
 
-  this->push_to_port_using_trait( optical_file_name,
-    frame.name );
-  this->push_to_port_using_trait( thermal_file_name,
-    std::string() );
   this->push_to_port_using_trait( timestamp,
     frame.ts );
   this->push_to_port_using_trait( warped_optical_image,
