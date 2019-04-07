@@ -42,7 +42,7 @@ process thermal_input
 
 process align_images
   :: align_multimodal_imagery
-  :output_frames_without_match                          true
+  :output_frames_without_match                          false
   :max_time_offset                                      1.0
 
 connect from optical_input.image

@@ -32,7 +32,7 @@ process thermal_input
 
 process register_images
   :: itk_eo_ir_registration
-  :output_frames_without_match                          true
+  :output_frames_without_match                          false
   :max_time_offset                                      1.0
 
 connect from optical_input.image
