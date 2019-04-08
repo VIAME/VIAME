@@ -51,7 +51,7 @@ class PyDescriptorBase
     virtual py::object get_slice(py::slice slice) {return py::none();};
 
     virtual std::vector<double> as_double() { return std::vector<double>();};
-    virtual std::vector<unsigned char> as_bytes() { return std::vector<unsigned char>();};
+    virtual kwiver::vital::byte const* as_bytes() { return nullptr;};
 
 };
 
@@ -82,7 +82,7 @@ class PyDescriptorD
     }
 
     std::vector<double> as_double() { return desc.as_double();};
-    std::vector<unsigned char> as_bytes() { return desc.as_bytes();};
+    kwiver::vital::byte const* as_bytes() { return desc.as_bytes();};
 
     void set_slice(py::slice slice, py::object val_obj)
     {
@@ -153,7 +153,7 @@ class PyDescriptorF
     }
 
     std::vector<double> as_double() { return desc.as_double();};
-    std::vector<unsigned char> as_bytes() { return desc.as_bytes();};
+    kwiver::vital::byte const* as_bytes() { return desc.as_bytes();};
 
     void set_slice(py::slice slice, py::object val_obj)
     {

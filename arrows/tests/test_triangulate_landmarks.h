@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,7 @@ void test_from_solution(kwiver::vital::algo::triangulate_landmarks& tri_lm)
 
   EXPECT_LE(init_rmse, 1e-12) << "Initial reprojection RMSE should be small";
 
+  reset_inlier_flag( tracks );
   tri_lm.triangulate(cameras, tracks, landmarks);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
@@ -105,6 +106,7 @@ void test_noisy_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   EXPECT_GE(init_rmse, 10.0)
     << "Initial reprojection RMSE should be large before triangulation";
 
+  reset_inlier_flag( tracks );
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
@@ -140,6 +142,7 @@ void test_zero_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   EXPECT_GE(init_rmse, 10.0)
     << "Initial reprojection RMSE should be large before triangulation";
 
+  reset_inlier_flag( tracks );
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
@@ -189,6 +192,7 @@ void test_subset_cameras(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   EXPECT_GE(init_rmse, 10.0)
     << "Initial reprojection RMSE should be large before triangulation";
 
+  reset_inlier_flag( tracks );
   tri_lm.triangulate(cameras0, tracks, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras0->cameras(),
@@ -232,6 +236,7 @@ void test_subset_landmarks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   EXPECT_GE(init_rmse, 10.0)
     << "Initial reprojection RMSE should be large before triangulation";
 
+  reset_inlier_flag( tracks );
   tri_lm.triangulate(cameras, tracks, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
@@ -269,6 +274,7 @@ void test_subset_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   EXPECT_GE(init_rmse, 10.0)
     << "Initial reprojection RMSE should be large before triangulation";
 
+  reset_inlier_flag( tracks );
   tri_lm.triangulate(cameras, tracks0, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),
@@ -310,6 +316,7 @@ void test_noisy_tracks(kwiver::vital::algo::triangulate_landmarks& tri_lm)
   EXPECT_GE(init_rmse, 10.0)
     << "Initial reprojection RMSE should be large before triangulation";
 
+  reset_inlier_flag( tracks );
   tri_lm.triangulate(cameras, tracks0, landmarks0);
 
   double end_rmse = kwiver::arrows::reprojection_rmse(cameras->cameras(),

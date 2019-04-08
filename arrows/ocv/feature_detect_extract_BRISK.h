@@ -52,6 +52,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_BRISK
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_BRISK",
+               "OpenCV feature detection via the BRISK algorithm" )
+
   /// Constructor
   detect_features_BRISK();
 
@@ -77,6 +80,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_BRISK
                                   vital::algo::extract_descriptors >
 {
 public:
+  PLUGIN_INFO( "ocv_BRISK",
+               "OpenCV feature-point descriptor extraction via the BRISK algorithm" )
+
   /// Constructor
   extract_descriptors_BRISK();
 

@@ -140,6 +140,24 @@ feature_track_set
   return descriptor_set_sptr(new simple_descriptor_set(descriptors));
 }
 
+/// Return the vector of feature track states for all tracks for the given frame.
+std::vector<feature_track_state_sptr>
+feature_track_set
+::frame_feature_track_states(frame_id_t offset) const
+{
+  std::vector<feature_track_state_sptr>  feat_states;
+  std::vector<track_state_sptr> fsd = this->frame_states(offset);
+  for (auto const data : fsd)
+  {
+    auto fdata = std::dynamic_pointer_cast<feature_track_state>(data);
+    if (fdata)
+    {
+      feat_states.push_back(fdata);
+    }
+  }
+  return feat_states;
+}
+
 
 feature_info_sptr
 feature_track_set
@@ -228,6 +246,5 @@ feature_track_set
 {
   return std::dynamic_pointer_cast<feature_track_set_frame_data>(impl_->frame_data(offset));
 }
-
 
 } } // end namespace vital

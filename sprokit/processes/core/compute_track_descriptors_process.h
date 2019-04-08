@@ -60,23 +60,26 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT compute_track_descriptors_process
   : public sprokit::process
 {
-  public:
+public:
+  PLUGIN_INFO( "compute_track_descriptors",
+               "Compute track descriptors on the input tracks or detections." )
+
   compute_track_descriptors_process( vital::config_block_sptr const& config );
   virtual ~compute_track_descriptors_process();
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-  private:
-    void make_ports();
-    void make_config();
+private:
+  void make_ports();
+  void make_config();
 
-    void push_outputs( vital::track_descriptor_set_sptr& to_output );
+  void push_outputs( vital::track_descriptor_set_sptr& to_output );
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class compute_track_descriptors_process
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class compute_track_descriptors_process
 
 
 } // end namespace

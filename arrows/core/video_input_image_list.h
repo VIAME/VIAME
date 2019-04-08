@@ -54,16 +54,12 @@ class KWIVER_ALGO_CORE_EXPORT video_input_image_list
   : public vital::algorithm_impl < video_input_image_list, vital::algo::video_input >
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "image_list";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Read a list of images from a list of file names"
-    " and presents them in the same way as reading a video."
-    " The actual algorithm to read an image is specified"
-    " in the \"image_reader\" config block."
-    " Read an image list as a video stream.";
+  PLUGIN_INFO( "image_list",
+               "Read a list of images from a list of file names"
+               " and presents them in the same way as reading a video."
+               " The actual algorithm to read an image is specified"
+               " in the \"image_reader\" config block."
+               " Read an image list as a video stream." )
 
   /// Constructor
   video_input_image_list();
@@ -114,4 +110,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_IMAGE_LIST_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_IMAGE_LIST_H

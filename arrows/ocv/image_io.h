@@ -49,6 +49,9 @@ class KWIVER_ALGO_OCV_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "Read and write image using OpenCV." )
+
   // No configuration for this class yet
   /// \cond DoxygenSuppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) { }
@@ -58,7 +61,7 @@ public:
 private:
   /// Implementation specific load functionality.
   /**
-   * \param filename the path to the file the load
+   * \param filename the path to the file to load
    * \returns an image container refering to the loaded image
    */
   virtual vital::image_container_sptr load_(const std::string& filename) const;
@@ -70,6 +73,13 @@ private:
    */
   virtual void save_(const std::string& filename,
                      vital::image_container_sptr data) const;
+
+  /// Implementation specific metadata functionality.
+  /**
+   * \param filename the path to the file to read
+   * \returns pointer to the loaded metadata
+   */
+  virtual kwiver::vital::metadata_sptr load_metadata_(std::string const& filename) const;
 };
 
 } // end namespace ocv

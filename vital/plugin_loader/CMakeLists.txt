@@ -7,6 +7,8 @@ set(vital_vpm_headers
   plugin_loader.h
   plugin_factory.h
   plugin_manager.h
+  plugin_info.h
+  plugin_registrar.h
   )
 
 set(vital_vpm_sources
@@ -38,9 +40,9 @@ kwiver_install_headers(
 
 target_link_libraries(vital_vpm
   PUBLIC              vital_util
+                      kwiversys
   PRIVATE             vital_logger
                       vital_exceptions
-                      kwiversys
   )
 
 ###

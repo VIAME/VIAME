@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,9 @@ class KWIVER_ALGO_VXL_EXPORT triangulate_landmarks
                                        vital::algo::triangulate_landmarks>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to triangulate 3D landmarks from cameras and tracks." )
+
   /// Constructor
   triangulate_landmarks();
 
@@ -76,6 +79,7 @@ public:
   triangulate(vital::camera_map_sptr cameras,
               vital::feature_track_set_sptr tracks,
               vital::landmark_map_sptr& landmarks) const;
+  using vital::algo::triangulate_landmarks::triangulate;
 
 private:
   /// private implementation class

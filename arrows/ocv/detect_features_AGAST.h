@@ -55,6 +55,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_AGAST
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_AGAST",
+               "OpenCV feature detection via the AGAST algorithm" )
+
   /// Constructor
   detect_features_AGAST();
 

@@ -46,43 +46,56 @@ namespace sprokit {
 class PROCESSES_FLOW_NO_EXPORT collate_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    collate_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~collate_process();
-  protected:
-    /**
-     * \brief Initialize the process.
-     */
-    void _init();
+public:
+  PLUGIN_INFO( "collate",
+               "Collates data from multiple worker processes," )
 
-    /**
-     * \brief Reset the process.
-     */
-    void _reset();
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+  collate_process( kwiver::vital::config_block_sptr const& config );
+  /**
+   * \brief Destructor.
+   */
+  ~collate_process();
 
-    /**
-     * \brief Step the process.
-     */
-    void _step();
 
-    /**
-     * \brief The properties on the process.
-     */
-    properties_t _properties() const;
+protected:
+  /**
+   * \brief Initialize the process.
+   */
+  void _init() override;
 
-    void input_port_undefined(port_t const& port) override;
+  /**
+   * \brief Reset the process.
+   */
+  void _reset() override;
+
+  /**
+   * \brief Step the process.
+   */
+  void _step() override;
+
+  /**
+   * \brief The properties on the process.
+   */
+  properties_t _properties() const override;
+
+  /**
+   * \brief Input port information.
+   *
+   * \param port The port to get information about.
+   *
+   * \returns Information about an input port.
+   */
+  void input_port_undefined( port_t const& port ) override;
+
 
 private:
-    class priv;
-    std::unique_ptr<priv> d;
+  class priv;
+  std::unique_ptr< priv > d;
 };
 
 } // end namespace

@@ -43,7 +43,7 @@
 #include <vital/bindings/c/types/image_container.h>
 #include <vital/bindings/c/types/track_set.h>
 
-#include <sprokit/python/util/python.h>
+#include <vital/bindings/python/vital/util/python.h>
 
 #ifdef __cplusplus
 extern "C"

@@ -95,27 +95,6 @@ application_paths( config_path_list_t const& paths,
 
 
 // ------------------------------------------------------------------
-// Helper method to write out a comment to a configuration file ostream
-/**
- * Makes sure there is no trailing white-space printed to file.
- */
-void
-write_cb_comment( std::ostream& ofile, config_block_description_t const& comment )
-{
-  kwiver::vital::wrap_text_block wtb;
-  wtb.set_indent_string( "# " );
-  wtb.set_line_length( 80 );
-
-  // Add a leading new-line to separate comment block from previous config
-  // entry.
-  ofile << "\n";
-
-  const auto formatted = wtb.wrap_text( comment );
-  ofile << formatted;
-}
-
-
-// ------------------------------------------------------------------
 /// Add paths in the KWIVER_CONFIG_PATH env variable to the given path vector
 /**
  * Appends the current working directory (".") and then the contents of the
@@ -268,7 +247,7 @@ read_config_file( std::string const& file_name,
 
   auto result = config_block_sptr{};
 
-  auto const& search_paths =
+  auto const search_paths =
     application_config_file_paths( application_name, application_version,
                                    install_prefix );
 
@@ -352,7 +331,6 @@ write_config_file( config_block_sptr const& config,
     kwiversys::SystemTools::CollapseFullPath( file_path ) );
   if ( ! kwiversys::SystemTools::FileIsDirectory( parent_dir ) )
   {
-    //std::cerr << "at least one containing directory not found, creating them..." << std::endl;
     if ( ! kwiversys::SystemTools::MakeDirectory( parent_dir ) )
     {
       VITAL_THROW( config_file_write_exception, parent_dir,
@@ -362,6 +340,12 @@ write_config_file( config_block_sptr const& config,
 
   // open output file and write each key/value to a line.
   std::ofstream ofile( file_path.c_str() );
+
+  if ( ! ofile )
+  {
+    VITAL_THROW( config_file_write_exception, file_path,
+                 "Could not open config file for writing" );
+  }
 
   write_config( config, ofile );
   ofile.close();
@@ -384,6 +368,9 @@ void write_config( config_block_sptr const& config,
   config_block_keys_t avail_keys = config->available_values();
   std::sort( avail_keys.begin(), avail_keys.end() );
 
+  kwiver::vital::wrap_text_block wtb;
+  wtb.set_indent_string( "# " );
+  wtb.set_line_length( 80 );
 
   bool prev_had_descr = false;  // for additional spacing
   for( config_block_key_t key : avail_keys )
@@ -398,8 +385,10 @@ void write_config( config_block_sptr const& config,
 
     if ( descr != config_block_description_t() )
     {
-      //std::cerr << "[write_config_file] Writing comment for '" << key << "'." << std::endl;
-      write_cb_comment( ofile, descr );
+      // Add a leading new-line to separate comment block from previous config
+      // entry.
+      ofile << "\n" << wtb.wrap_text( descr );
+
       prev_had_descr = true;
     }
     else if ( prev_had_descr )
@@ -409,15 +398,16 @@ void write_config( config_block_sptr const& config,
       prev_had_descr = false;
     }
 
-    ofile << key << " = " << config->get_value< config_block_value_t > ( key ) << "\n";
-
-    std::string file;
-    int line;
-    if ( config->get_location( key, file, line ) )
+    std::string ro;
+    if ( config->is_read_only( key ) )
     {
-      ofile << "# defined - " << file << ":" << line << "\n";
+      ro = "[RO]";
     }
-  }
+
+    ofile << key << ro << " = " << config->get_value< config_block_value_t > ( key ) << "\n";
+
+  } // end for
+
   ofile.flush();
 } // write_config_file
 

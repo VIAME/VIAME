@@ -49,13 +49,9 @@ class KWIVER_ALGO_CORE_EXPORT dynamic_config_none
   : public vital::algorithm_impl<dynamic_config_none, vital::algo::dynamic_configuration>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "none";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Null implementation of dynamic_configuration.\n\n"
-    "This algorithm always returns an empty configuration block.";
+  PLUGIN_INFO( "none",
+               "Null implementation of dynamic_configuration.\n\n"
+               "This algorithm always returns an empty configuration block." )
 
   /// Default constructor
   dynamic_config_none();

@@ -50,6 +50,9 @@ class KWIVER_ALGO_OCV_EXPORT draw_detected_object_set
   : public vital::algorithm_impl< draw_detected_object_set, vital::algo::draw_detected_object_set>
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "Draw bounding box around detected objects on supplied image." )
+
   draw_detected_object_set();
   virtual ~draw_detected_object_set();
 

@@ -42,6 +42,7 @@
 #include <vital/logger/logger.h>
 #include <vital/util/wall_timer.h>
 #include <vital/util/cpu_timer.h>
+#include <vital/util/simple_stats.h>
 
 #include <memory>
 
@@ -55,6 +56,17 @@ namespace sprokit {
  * where each event is recorded to the logger.
  *
  ** Note: The current implementation does not handle reentrant processes.
+ *
+ * Timing information can be obtained on a per-process basis by using
+ * this process instrumentation provider. The provider is configured
+ * in the pipe file as shown below:
+ *
+\code
+process motion :: detect_motion
+    block _instrumentation
+       type = timing
+    endblock
+\endcode
  */
 class INSTRUMENTATION_PLUGIN_NO_EXPORT timing_process_instrumentation
   : public process_instrumentation
@@ -94,6 +106,9 @@ private:
   std::ofstream* m_output_file;
 
   kwiver::vital::logger_handle_t m_logger;
+
+  // Statistics for step, since it is called frequently.
+  kwiver::vital::simple_stats m_step_stats;
 
 }; // end class timing_process_instrumentation
 

@@ -32,7 +32,7 @@
 #include <sprokit/pipeline/process.h>
 #include <sprokit/pipeline/process_cluster.h>
 
-#include <sprokit/python/util/python_exceptions.h>
+#include <vital/bindings/python/vital/util/python_exceptions.h>
 
 #include "python_wrappers.cxx"
 

@@ -468,6 +468,18 @@ image_io
   }
 }
 
+
+// ----------------------------------------------------------------------------
+/// Load image metadata from the file
+kwiver::vital::metadata_sptr
+image_io
+::load_metadata_(const std::string& filename) const
+{
+  auto md = std::make_shared<kwiver::vital::metadata>();
+  md->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_URI, filename) );
+  return md;
+}
+
 } // end namespace vxl
 } // end namespace arrows
 } // end namespace kwiver

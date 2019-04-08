@@ -15,6 +15,7 @@ configure_file(pipelines/number_flow.pipe.in ${EXAMPLE_DIR}/pipelines/number_flo
 configure_file(pipelines/number_flow_python.pipe.in ${EXAMPLE_DIR}/pipelines/number_flow_python.pipe @ONLY )
 configure_file(pipelines/video_display.pipe.in ${EXAMPLE_DIR}/pipelines/video_display.pipe @ONLY )
 configure_file(pipelines/example_detector_on_image.pipe.in ${EXAMPLE_DIR}/pipelines/example_detector_on_image.pipe @ONLY )
+configure_file(pipelines/example_pydetector_on_image.pipe.in ${EXAMPLE_DIR}/pipelines/example_pydetector_on_image.pipe @ONLY )
 configure_file(pipelines/example_detector_on_video.pipe.in ${EXAMPLE_DIR}/pipelines/example_detector_on_video.pipe @ONLY )
 
 configure_file(pipelines/descriptor.pipe.in ${EXAMPLE_DIR}/pipelines/descriptor.pipe @ONLY )

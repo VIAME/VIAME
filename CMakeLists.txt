@@ -123,7 +123,14 @@ if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
   endif()
 endif()
 
+# =========================================================================================
+###
+# KWIVER CMake config
+#
+include( kwiver-utils )
+
 if (KWIVER_ENABLE_PYTHON)
+  kwiver_create_python_init(kwiver)
 
   if (NOT WIN32)
     OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
@@ -137,11 +144,6 @@ endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
-# ===========================================================================================
-###
-# KWIVER CMake config
-#
-include( kwiver-utils )
 
 # Set directories where loadable modules are stored.
 # These subdirs are under .../lib/
@@ -180,6 +182,8 @@ else()
   set(BOOST_ROOT_ARG ${Boost_LIBRARY_DIR}/..)
 endif()
 
+add_definitions(-DKWIVER_DEFAULT_PLUGIN_ORGANIZATION="Kitware Inc.")
+
 # ===========================================================================================
 link_directories( ${KWIVER_BINARY_DIR}/lib )
 
@@ -202,6 +206,25 @@ if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
 endif ()
 
 # =============================================================================================
+
+###
+# Generate vital/version.h. This file is needed by sprokit so must be generated here, before sprokit is included
+#---------------------------------------------------------------------
+#
+
+# Use Git (if available) to add Git hash info to the version header
+set(kwiver_configure_with_git on)
+kwiver_configure_file(version.h
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/version.h"
+  KWIVER_VERSION_MAJOR
+  KWIVER_VERSION_MINOR
+  KWIVER_VERSION_PATCH
+  KWIVER_VERSION
+  KWIVER_SOURCE_DIR
+  )
+set(kwiver_configure_with_git)
+
 
 set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
@@ -243,10 +266,9 @@ endif()
 #############################################################################################
 # Marking source root for documentation generation
 #
-if (KWIVER_ENABLE_DOCS)
-  kwiver_create_doxygen( kwiver "${CMAKE_CURRENT_LIST_DIR}" )
-  kwiver_create_sphinx()
-endif()
+kwiver_create_doxygen( kwiver "${CMAKE_CURRENT_LIST_DIR}" )
+kwiver_create_sphinx()
+
 
 #############################################################################################
 # Top level installation

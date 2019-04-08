@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -218,7 +218,7 @@ image_container
 }
 
 // ----------------------------------------------------------------------------
-/// Return a vital image. Unlike other image container must allocate memory.
+/// Get image. Unlike other image containers must allocate memory
 vital::image
 image_container
 ::get_image() const
@@ -227,7 +227,7 @@ image_container
 
   // Loop over bands and copy data
   CPLErr err;
-  for (int i = 1; i <= depth(); ++i)
+  for (size_t i = 1; i <= depth(); ++i)
   {
     GDALRasterBand* band = gdal_dataset_->GetRasterBand(i);
     auto bandType = band->GetRasterDataType();
@@ -235,6 +235,30 @@ image_container
       static_cast<void*>(reinterpret_cast<GByte*>(
         img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
       width(), height(), bandType, 0, 0);
+  }
+
+  return img;
+}
+
+// ----------------------------------------------------------------------------
+/// Get cropped view of image. Unlike other image containers must allocate memory
+vital::image
+image_container
+::get_image(unsigned x_offset, unsigned y_offset,
+            unsigned width, unsigned height) const
+{
+  vital::image img( width, height, depth(), false, pixel_traits_ );
+
+  // Loop over bands and copy data
+  CPLErr err;
+  for (size_t i = 1; i <= depth(); ++i)
+  {
+    GDALRasterBand* band = gdal_dataset_->GetRasterBand(i);
+    auto bandType = band->GetRasterDataType();
+    err = band->RasterIO(GF_Read, x_offset, y_offset, width, height,
+      static_cast<void*>(reinterpret_cast<GByte*>(
+        img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
+      width, height, bandType, 0, 0);
   }
 
   return img;

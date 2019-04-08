@@ -40,6 +40,10 @@ if( KWIVER_ENABLE_VXL )
   endif()
 endif()
 
+if ( KWIVER_ENABLE_CUDA )
+  add_subdirectory( cuda )
+endif()
+
 # Add VisCL plugin if enabled
 #  needs VXL
 if( KWIVER_ENABLE_VISCL )
@@ -76,20 +80,14 @@ if( KWIVER_ENABLE_UUID )
   add_subdirectory( uuid )
 endif()
 
-# Pytorch depends on python
-CMAKE_DEPENDENT_OPTION( KWIVER_ENABLE_PYTORCH   "Enable pytorch arrow" OFF
-    KWIVER_ENABLE_PYTHON OFF )
-
 # if python is enabled
 if( KWIVER_ENABLE_PYTHON )
-  set(kwiver_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
-  set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}")
-  kwiver_create_python_plugin_init( kwiver/arrows )
-  if( KWIVER_ENABLE_PYTORCH )
-      #TODO Find Pytorch
-      add_subdirectory( pytorch )
-  endif()
+  kwiver_create_python_init( kwiver/arrows )
+  add_subdirectory( python )
 
+  if( KWIVER_ENABLE_PYTORCH )
+    add_subdirectory( pytorch )
+  endif()
 endif()
 
 # if FFMPEG is enabled

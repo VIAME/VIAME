@@ -50,6 +50,8 @@ class KWIVER_ALGO_OCV_EXPORT refine_detections_write_to_disk
     vital::algo::refine_detections>
 {
 public:
+  PLUGIN_INFO( "ocv_write",
+               "Debugging process for writing out detections" )
 
   /// Constructor
   refine_detections_write_to_disk();

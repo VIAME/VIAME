@@ -53,3 +53,35 @@ TEST(track, id)
   t->set_id( 25 );
   EXPECT_EQ( 25, t->id() );
 }
+
+TEST(track, insert_remove)
+{
+  auto t = kwiver::vital::track::create();
+  auto ts1 = std::make_shared < kwiver::vital::track_state>(1);
+  auto ts2 = std::make_shared < kwiver::vital::track_state>(2);
+  auto ts4 = std::make_shared < kwiver::vital::track_state>(4);
+  auto ts7 = std::make_shared < kwiver::vital::track_state>(7);
+  auto ts8 = std::make_shared < kwiver::vital::track_state>(8);
+
+  t->insert(ts1);
+  t->insert(ts2);
+  t->insert(ts4);
+  t->insert(ts8);
+
+  EXPECT_EQ(4, t->size());
+  EXPECT_TRUE(t->remove(ts2));
+  EXPECT_EQ(3, t->size());
+  EXPECT_FALSE(t->remove(ts2));
+  EXPECT_EQ(3, t->size());
+  EXPECT_TRUE(t->remove(ts1));
+  EXPECT_EQ(2, t->size());
+  EXPECT_TRUE(t->remove(ts4));
+  EXPECT_EQ(1, t->size());
+  EXPECT_TRUE(t->remove(ts8));
+  EXPECT_EQ(0, t->size());
+  EXPECT_FALSE(t->remove(ts1));
+  t->insert(ts7);
+  EXPECT_EQ(1, t->size());
+  EXPECT_TRUE(t->remove(ts7));
+  EXPECT_FALSE(t->remove(ts7));
+}

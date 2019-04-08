@@ -57,6 +57,9 @@ class KWIVER_PROCESSES_NO_EXPORT extract_descriptors_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "extract_descriptors",
+               "Extract descriptors from detected features." )
+
   typedef sprokit::process base_t;
 
   extract_descriptors_process( kwiver::vital::config_block_sptr const& config );

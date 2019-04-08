@@ -54,6 +54,9 @@ class KWIVER_PROCESSES_NO_EXPORT refine_detections_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "refine_detections",
+               "Refines detections for a given frame," )
+
   refine_detections_process( kwiver::vital::config_block_sptr const& config );
   virtual ~refine_detections_process();
 

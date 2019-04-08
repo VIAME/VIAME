@@ -54,6 +54,9 @@ class KWIVER_ALGO_OCV_EXPORT match_features_flannbased
                                   vital::algo::match_features >
 {
 public:
+  PLUGIN_INFO( "ocv_flann_based",
+               "OpenCV feature matcher using FLANN (Approximate Nearest Neighbors).")
+
   /// Constructor
   match_features_flannbased();
 

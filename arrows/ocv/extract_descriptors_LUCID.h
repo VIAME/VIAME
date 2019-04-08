@@ -56,6 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_LUCID
                                   vital::algo::extract_descriptors >
 {
 public:
+  PLUGIN_INFO( "ocv_LUCID",
+               "OpenCV feature-point descriptor extraction via the LUCID algorithm" )
+
   /// Constructor
   extract_descriptors_LUCID();
 

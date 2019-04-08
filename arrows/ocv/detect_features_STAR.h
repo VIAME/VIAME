@@ -56,6 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_STAR
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_STAR",
+               "OpenCV feature detection via the STAR algorithm" )
+
   /// Constructor
   detect_features_STAR();
 

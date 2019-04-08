@@ -56,22 +56,25 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT merge_images_process
   : public sprokit::process
 {
-  public:
-    merge_images_process( kwiver::vital::config_block_sptr const& config );
-    virtual ~merge_images_process();
+public:
+  PLUGIN_INFO( "merge_image",
+               "Merge multiple images into one." )
 
-  protected:
-    virtual void _configure() override;
-    virtual void _step() override;
-    virtual void input_port_undefined(port_t const& port) override;
+  merge_images_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~merge_images_process();
 
-  private:
-    void make_ports();
-    void make_config();
+protected:
+  virtual void _configure() override;
+  virtual void _step() override;
+  virtual void input_port_undefined(port_t const& port) override;
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class merge_images_process
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class merge_images_process
 
 
 } // end namespace

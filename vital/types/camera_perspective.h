@@ -110,6 +110,13 @@ public:
    */
   virtual matrix_3x4d as_matrix() const;
 
+  /// Convert to a 3x4 pose matrix (no intrinsics)
+  /**
+  *  \note This matrix representation does not account for camera intrisics
+  *  and only models the extinsic pose of the camera.
+  */
+  matrix_3x4d pose_matrix() const;
+
   /// Project a 3D point into a 2D image point
   virtual vector_2d project( const vector_3d& pt ) const;
 
@@ -130,6 +137,10 @@ protected:
 VITAL_EXPORT std::ostream& operator<<( std::ostream& s,
                                        const camera_perspective& c );
 
+/// forward declaration of simple perspective camera class
+class simple_camera_perspective;
+/// typedef for a simple_camera_perspective shared pointer
+typedef std::shared_ptr< simple_camera_perspective > simple_camera_perspective_sptr;
 
 /// A representation of a camera
 /**

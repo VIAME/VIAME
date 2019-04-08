@@ -43,7 +43,7 @@
 #include <vital/types/feature_track_set.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/landmark_map.h>
-#include <vital/types/metadata_map.h>
+#include <vital/types/sfm_constraints.h>
 
 #include <functional>
 
@@ -84,11 +84,12 @@ public:
   initialize(kwiver::vital::camera_map_sptr& cameras,
              kwiver::vital::landmark_map_sptr& landmarks,
              kwiver::vital::feature_track_set_sptr tracks,
-             kwiver::vital::metadata_map_sptr metadata = nullptr) const = 0;
+             kwiver::vital::sfm_constraints_sptr constraints = nullptr) const = 0;
 
   /// Typedef for the callback function signature
   typedef std::function<bool(kwiver::vital::camera_map_sptr,
-                             kwiver::vital::landmark_map_sptr)> callback_t;
+                             kwiver::vital::landmark_map_sptr,
+                             kwiver::vital::feature_track_set_changes_sptr)> callback_t;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

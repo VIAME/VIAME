@@ -86,6 +86,12 @@ namespace vital {
 namespace kpf {
 
 bool
+operator==( const packet_header_t& lhs, const packet_header_t& rhs )
+{
+  return ( (lhs.style == rhs.style) && (lhs.domain == rhs.domain) );
+}
+
+bool
 packet_header_cmp
 ::operator()( const packet_header_t& lhs, const packet_header_t& rhs ) const
 { return ( lhs.style == rhs.style )

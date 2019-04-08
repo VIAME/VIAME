@@ -48,6 +48,14 @@ class KWIVER_PROCESSES_NO_EXPORT print_config_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "print_config",
+               "Print process configuration.\n\n"
+               "This process is a debugging aide and performs no other function in a pipeline. "
+               "The supplied configuration is printed when it is presented to the process. "
+               "All ports connections to the process are accepted and the supplied data is "
+               "taken from the port and discarded. This process produces no outputs and "
+               "has no output ports.")
+
   print_config_process( kwiver::vital::config_block_sptr const& config );
   virtual ~print_config_process();
 

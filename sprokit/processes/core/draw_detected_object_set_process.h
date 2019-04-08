@@ -53,6 +53,10 @@ class KWIVER_PROCESSES_NO_EXPORT draw_detected_object_set_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "draw_detected_object_set",
+               "Draws border around detected objects in the set using the selected algorithm.\n\n"
+               "This process is a wrapper around a draw_detected_object_set algorithm.")
+
   draw_detected_object_set_process( kwiver::vital::config_block_sptr const& config );
   virtual ~draw_detected_object_set_process();
 

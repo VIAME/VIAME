@@ -64,6 +64,7 @@ using std::make_pair;
 using std::make_tuple;
 
 namespace KPF=kwiver::vital::kpf;
+namespace KPFC=kwiver::vital::kpf::canonical;
 
 namespace { // anon
 
@@ -326,4 +327,45 @@ IMPLEMENT_TEST( improper_kpf_parse )
     reader.flush();
   }
   TEST_EQUAL( "Got to end of improper kpf_parse", true, true );
+}
+
+IMPLEMENT_TEST( kpf_packet_extraction )
+{
+  vector< user_complex_detection_t > src_dets = make_sample_detections();
+  stringstream ss;
+  write_detections_to_stream( ss, src_dets );
+
+  KPF::kpf_yaml_parser_t parser( ss );
+  KPF::kpf_reader_t reader( parser );
+
+  TEST_EQUAL( "Start of packet extraction: reader is good", static_cast<bool>(reader), true );
+
+  // read a line of packets
+  reader.next();
+  TEST_EQUAL( "Read one line; reader is good", static_cast<bool>(reader), true );
+
+  auto packet_buffer = reader.get_packet_buffer();
+  TEST_EQUAL( "After one line: non-zero number of packets", packet_buffer.empty(), false );
+
+  const auto id_header = KPF::packet_header_t( KPF::packet_style::ID, KPFC::id_t::DETECTION_ID );
+
+  // get the detection ID
+  auto id_one = reader.transfer_packet_from_buffer( id_header );
+  TEST_EQUAL( "After one line: first transfer of ID succeeded", id_one.first, true );
+  TEST_EQUAL( "After one line: reader still good", static_cast<bool>(reader), true );
+
+  // get the detection ID again (should fail but leave reader good)
+  auto id_two = reader.transfer_packet_from_buffer( id_header );
+  TEST_EQUAL( "After one line: second transfer of ID failed", id_two.first, false );
+  TEST_EQUAL( "After one line: reader still good", static_cast<bool>(reader), true );
+
+  // we should be able to read non-zero more lines
+  size_t c = 0;
+  while (reader.next())
+  {
+    ++c;
+    reader.flush();
+  }
+  TEST_EQUAL( "Read more lines after first line", c > 0, true );
+
 }
