@@ -7,9 +7,9 @@ if( KWIVER_ENABLE_PYTORCH )
   if( KWIVER_ENABLE_PROCESSES )
     kwiver_create_python_init( kwiver/processes/pytorch )
     
-    kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/SRNN_tracker.py
+    kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/srnn_tracker.py
       kwiver/processes/pytorch
-      SRNN_tracker )
+      srnn_tracker )
     
     kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/data_augmentation.py
       kwiver/processes/pytorch
@@ -48,9 +48,9 @@ if( KWIVER_ENABLE_PYTORCH )
     kwiver/arrows/pytorch
     models )
 
-  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/SRNN_matching.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/srnn_matching.py
     kwiver/arrows/pytorch
-    SRNN_matching )
+    srnn_matching )
 
   kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/gt_bbox.py
     kwiver/arrows/pytorch

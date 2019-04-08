@@ -1,5 +1,5 @@
 # ckwg +29
-# Copyright 2018 by Kitware, Inc.
+# Copyright 2018-2019 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,24 +33,30 @@ from __future__ import absolute_import
 
 import sys
 import torch
+
 from torchvision import models, transforms
 from torch.autograd import Variable
-from torch import nn
+
 import numpy as np
 import scipy as sp
 import scipy.optimize
+
+from timeit import default_timer as timer
 from PIL import Image as pilImage
+
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
+
 from vital.types import Image
 from vital.types import DetectedObject, DetectedObjectSet
 from vital.types import new_descriptor
-from timeit import default_timer as timer
+
 from vital.types import  ObjectTrackState, Track, ObjectTrackSet
 from vital.util.VitalPIL import get_pil_image
+
 from kwiver.arrows.pytorch.models import Siamese
 from kwiver.arrows.pytorch.grid import Grid
-from kwiver.arrows.pytorch.SRNN_matching import SRNNMatching, RnnType
+from kwiver.arrows.pytorch.srnn_matching import SRNNMatching, RnnType
 from kwiver.arrows.pytorch.siamese_feature_extractor import SiameseFeatureExtractor
 from kwiver.arrows.pytorch.iou_tracker import IOUTracker
 from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
@@ -451,7 +457,7 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.add_process('SRNNTracker', 'Structural RNN based tracking',
+    process_factory.add_process('srnn_tracker', 'Structural RNN based tracking',
                                 SRNNTracker)
 
     process_factory.mark_process_module_as_loaded(module_name)
