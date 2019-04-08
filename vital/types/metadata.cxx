@@ -360,13 +360,12 @@ bool test_equal_content( const kwiver::vital::metadata& one,
     const auto tag = mi.first;
     const auto metap = mi.second;
 
-    if ( ! other.has( tag ) ) { return false; }
-
-    const auto& omi = other.find( tag );
+    auto* const omi = other.get( tag );
+    if ( ! omi ) { return false; }
 
     // It is simpler to just do a string comparison than to try to do
     // a type specific comparison.
-    if ( metap->as_string() != omi.as_string() ) { return false; }
+    if ( metap->as_string() != omi->as_string() ) { return false; }
 
   } // end for
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -413,23 +413,20 @@ public:
       {
         // A metadata collection was created
         // check to see if it is of the desired type.
-        std::string collection_type;
         for( auto meta : klv_metadata )
         {
           // Test to see if the collection is from the specified standard (0104/0601)
-          if (meta->has( VITAL_META_METADATA_ORIGIN ) )
+          auto* const meta_origin = meta->get( VITAL_META_METADATA_ORIGIN );
+          if ( meta_origin )
           {
-            collection_type = meta->find( VITAL_META_METADATA_ORIGIN ).as_string();
-
-            if (type == collection_type)
+            if (type == meta_origin->as_string())
             {
-              if (meta->has( VITAL_META_UNIX_TIMESTAMP ) )
+              auto* const meta_ts = meta->get( VITAL_META_UNIX_TIMESTAMP );
+              if ( meta_ts )
               {
-                // Get unix timestamp as usec
-                meta_ts = meta->find( VITAL_META_UNIX_TIMESTAMP ).as_uint64();
-
+                // Log unix timestamp as usec
                 LOG_DEBUG( this->d_logger, "Found initial " << type <<
-                           " timestamp: " << meta_ts );
+                           " timestamp: " << meta_ts->as_uint64() );
 
                 d_have_abs_frame_time = true;
                 retval = true;

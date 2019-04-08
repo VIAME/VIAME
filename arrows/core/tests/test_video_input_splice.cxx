@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -341,8 +341,10 @@ TEST_F(video_input_splice, metadata_map)
   std::string file_name;
   while ( std::getline( list_file_stream, file_name ) )
   {
-    auto md_file_name = md_map[frame_number][0]->find(
-        kwiver::vital::VITAL_META_IMAGE_URI).as_string();
+    auto* const md_item = md_map[frame_number][0]->get(
+        kwiver::vital::VITAL_META_IMAGE_URI);
+    auto const& md_file_name =
+      (md_item ? md_item->as_string() : std::string{});
     EXPECT_TRUE( md_file_name.find( file_name ) != std::string::npos )
       << "File path in metadata should contain " << file_name;
     frame_number++;
