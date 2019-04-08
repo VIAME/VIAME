@@ -56,43 +56,43 @@ class track_state(object):
 
         # FIXME: the detected_object confidence does not work
         # For now, I just set the confidence = 1.0
-        #self._conf = detectedObject.confidence()
+        #self.conf = detectedObject.confidence()
         self.conf = 1.0
 
 
 class track(object):
-    def __init__(self, id):
-        self.track_id = id
+    def __init__(self, track_id):
+        self.track_id = track_id
         self.track_state_list = []
         self.max_conf = 0.0
         self.updated_flag = False
 
     def __len__(self):
-        return len(self._track_state_list)
+        return len(self.track_state_list)
 
     def __getitem__(self, idx):
-        return self._track_state_list[idx]
+        return self.track_state_list[idx]
 
     def __iter__(self):
-        return iter(self._track_state_list)
+        return iter(self.track_state_list)
 
     def append(self, new_track_state):
-        if not self._track_state_list:
+        if not self.track_state_list:
             new_track_state.motion_feature = torch.FloatTensor(2).zero_()
         else:
-            pre_bbox_center = np.asarray(self._track_state_list[-1].bbox_center, dtype=np.float32).reshape(2)
+            pre_bbox_center = np.asarray(self.track_state_list[-1].bbox_center, dtype=np.float32).reshape(2)
             cur_bbox_center = np.asarray(new_track_state.bbox_center, dtype=np.float32).reshape(2)
             new_track_state.motion_feature = torch.from_numpy(cur_bbox_center - pre_bbox_center)
 
-        new_track_state.track_id = self._track_id
-        self._track_state_list.append(new_track_state)
-        self._max_conf = max(self._max_conf, new_track_state.conf)
+        new_track_state.track_id = self.track_id
+        self.track_state_list.append(new_track_state)
+        self.max_conf = max(self.max_conf, new_track_state.conf)
 
     def duplicate_track_state(self, timestep_len = 6):
-        du_track = track(self._track_id)
-        du_track.track_state_list = list(self._track_state_list)
-        du_track.updated_flag = self._updated_flag
-        du_track.max_conf = self._max_conf
+        du_track = track(self.track_id)
+        du_track.track_state_list = list(self.track_state_list)
+        du_track.updated_flag = self.updated_flag
+        du_track.max_conf = self.max_conf
 
         for _ in range(timestep_len - len(du_track)):
             du_track.append(du_track[-1])
@@ -107,39 +107,39 @@ class track_set(object):
         self.active_id_set = collections.OrderedDict()
 
     def __len__(self):
-        return len(self._id_ts_dict)
+        return len(self.id_ts_dict)
 
     def __iter__(self):
-        return iter(self._id_ts_dict.values())
+        return iter(self.id_ts_dict.values())
 
     def iter_active(self):
-        return (self[i] for i in self._active_id_set)
+        return (self[i] for i in self.active_id_set)
 
     def __getitem__(self, track_id):
         try:
-            return self._id_ts_dict[track_id]
+            return self.id_ts_dict[track_id]
         except KeyError:
             raise IndexError
 
-    def get_all_trackID(self):
-        return sorted(self._id_ts_dict)
+    def get_all_track_id(self):
+        return sorted(self.id_ts_dict)
 
-    def get_max_track_ID(self):
-        return max(self._id_ts_dict) if self._id_ts_dict else 0
+    def get_max_track_id(self):
+        return max(self.id_ts_dict) if self.id_ts_dict else 0
 
     def deactivate_track(self, track):
-        del self._active_id_set[track.id]
+        del self.active_id_set[track.track_id]
 
     def active_count(self):
-        return len(self._active_id_set)
+        return len(self.active_id_set)
 
     def add_new_track(self, track):
-        if track.id in self._id_ts_dict:
+        if track.track_id in self.id_ts_dict:
             print("track ID exists in the track set!!!")
             raise RuntimeError
 
-        self._id_ts_dict[track.id] = track
-        self._active_id_set[track.id] = None
+        self.id_ts_dict[track.track_id] = track
+        self.active_id_set[track.track_id] = None
 
     def add_new_track_state(self, track_id, track_state):
         new_track = track(track_id)
@@ -149,7 +149,7 @@ class track_set(object):
     def add_new_track_state_list(self, start_track_id, ts_list, thresh=0.0):
         track_id = start_track_id
         for ts in ts_list:
-            if ts.detectedObj.confidence() >= thresh:
+            if ts.detected_object.confidence() >= thresh:
                 self.add_new_track_state(track_id, ts)
                 track_id += 1
         return track_id

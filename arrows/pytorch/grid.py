@@ -58,11 +58,15 @@ class Grid(object):
         # build the grid for current image
         for idx, item in enumerate(bbox_list):
             bb = item if mot_flag else item.bounding_box()
-            x, y, w, h = map(int, bb.min_x(), bb.min_y(), bb.width(), bb.height())
+
+            x = int(bb.min_x())
+            y = int(bb.min_y())
+            w = int(bb.width())
+            h = int(bb.height())
 
             # bbox center
-            c_w = min(x + w / 2, self._img_w - 1)
-            c_h = min(y + h / 2, self._img_h - 1)
+            c_w = min(x + w / 2, self.img_w - 1)
+            c_h = min(y + h / 2, self.img_h - 1)
 
             # cell idxs
             row_idx = int(c_h // cell_h)

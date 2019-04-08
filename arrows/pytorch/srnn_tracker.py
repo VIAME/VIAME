@@ -49,9 +49,10 @@ from kwiver.kwiver_process import KwiverProcess
 
 from vital.types import Image
 from vital.types import DetectedObject, DetectedObjectSet
+from vital.types import ObjectTrackState, Track, ObjectTrackSet
 from vital.types import new_descriptor
 
-from vital.types import  ObjectTrackState, Track, ObjectTrackSet
+from kwiver.arrows.pytorch.track import track_state, track, track_set
 from vital.util.VitalPIL import get_pil_image
 
 from kwiver.arrows.pytorch.models import Siamese
@@ -66,13 +67,13 @@ from kwiver.arrows.pytorch.models import get_config
 g_config = get_config()
 
 def ts2ot_list(track_set):
-    ot_list = [Track(id=t.id) for t in track_set]
+    ot_list = [Track(id=t.track_id) for t in track_set]
 
     for idx, t in enumerate(track_set):
         ot = ot_list[idx]
         for ti in t:
             ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time, 
-                                        ti.detectedObj)
+                                        ti.detected_object)
             if not ot.append(ot_state):
                 print('Error: Cannot add ObjectTrackState')
     return ot_list
@@ -263,7 +264,7 @@ class SRNNTracker(KwiverProcess):
         self._gtbbox_flag = MOT_GT_flag or AFRL_GT_flag
 
         # read GT bbox related
-        if self._GTbbox_flag:
+        if self._gtbbox_flag:
             gtbbox_file_path = self.config_value('GT_bbox_file_path')
             self._m_bbox = GTBBox(gtbbox_file_path, file_format)
 
@@ -278,7 +279,7 @@ class SRNNTracker(KwiverProcess):
         self._ts_threshold = float(self.config_value('track_search_threshold'))
         self._grid = Grid()
         # generated track_set
-        self._track_set = ObjectTrackSet()
+        self._track_set = track_set()
         self._terminate_track_threshold = int(self.config_value('terminate_track_threshold'))
         self._sys_terminate_track_threshold = int(self.config_value('sys_terminate_track_threshold'))
         # add features to detections?
@@ -327,7 +328,7 @@ class SRNNTracker(KwiverProcess):
                 print('%%%app feature elapsed time: {}'.format(app_f_end - app_f_begin))
 
                 track_state_list = []
-                next_trackID = int(self._track_set.get_max_track_ID()) + 1
+                next_track_id = int(self._track_set.get_max_track_id()) + 1
 
                 # get new track state from new frame and detections
                 for idx, item in enumerate(dos):
@@ -342,7 +343,7 @@ class SRNNTracker(KwiverProcess):
                         ts = timestamp.get_time_usec()
                         d_obj = item
 
-                    # store app feature to detectedObject
+                    # store app feature to detected_object
                     app_f = new_descriptor(g_config.A_F_num)
                     app_f[:] = pt_app_features[idx].numpy()
                     if self._add_features_to_detections:
@@ -356,13 +357,13 @@ class SRNNTracker(KwiverProcess):
                                         app_feature=pt_app_features[idx], 
                                         bbox=[int(bbox.min_x()), int(bbox.min_y()),
                                             int(bbox.width()), int(bbox.height())],
-                                         detectedObject=d_obj, 
-                                         sys_frame_id=fid, sys_frame_time=ts)
+                                        detected_object=d_obj, 
+                                        sys_frame_id=fid, sys_frame_time=ts)
                     track_state_list.append(cur_ts)
 
                 # if there are no tracks, generate new tracks from the track_state_list
                 if not self._track_flag:
-                    next_trackID = self._track_set.add_new_track_state_list(next_trackID, 
+                    next_track_id = self._track_set.add_new_track_state_list(next_track_id, 
                                     track_state_list, self._track_initialization_threshold)
                     self._track_flag = True
                 else:
@@ -411,9 +412,9 @@ class SRNNTracker(KwiverProcess):
                             # initialize a new track
                             if track_state_list[c].detected_object.confidence() >= \
                                     self._track_initialization_threshold:
-                                self._track_set.add_new_track_state(next_trackID, 
+                                self._track_set.add_new_track_state(next_track_id, 
                                         track_state_list[c])
-                                next_trackID += 1
+                                next_track_id += 1
                         else:
                             # add to existing track
                             self._track_set.update_track(track_idx_list[r], track_state_list[c])
@@ -424,9 +425,9 @@ class SRNNTracker(KwiverProcess):
                             if i not in col_idx_list and \
                                  track_state_list[i].detected_object.confidence() >= \
                                  self._track_initialization_threshold:
-                                self._track_set.add_new_track_state(next_trackID, \
+                                self._track_set.add_new_track_state(next_track_id, \
                                         track_state_list[i])
-                                next_trackID += 1
+                                next_track_id += 1
 
                 print('total tracks {}'.format(len(self._track_set)))
 
@@ -457,7 +458,8 @@ def __sprokit_register__():
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.add_process('srnn_tracker', 'Structural RNN based tracking',
+    process_factory.add_process('srnn_tracker',
+                                'Structural RNN based tracking',
                                 SRNNTracker)
 
     process_factory.mark_process_module_as_loaded(module_name)

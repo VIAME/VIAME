@@ -26,12 +26,14 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
 import torch
 import torch.utils.data as data
+
 from torchvision import transforms
 
 from PIL import Image as pilImage
@@ -50,7 +52,7 @@ class SiameseDataLoader(data.Dataset):
         self._in_size = in_size
 
     def __getitem__(self, index):
-        bb = self._bbox_list[index] if self.mot_flag else self._bbox_list[index].bounding_box()
+        bb = self._bbox_list[index] if self._mot_flag else self._bbox_list[index].bounding_box()
         im = self._frame_img.crop((float(bb.min_x()), float(bb.min_y()),
                       float(bb.max_x()), float(bb.max_y())))
         im = im.resize((self._in_size, self._in_size), pilImage.BILINEAR)
@@ -106,7 +108,7 @@ class SiameseFeatureExtractor(object):
     def __call__(self, bbox_list, mot_flag):
         return self._obtain_feature(bbox_list, mot_flag)
 
-    def _obtain_feature(self, bbox_list, MOT_flag):
+    def _obtain_feature(self, bbox_list, mot_flag):
         kwargs = {'num_workers': 0, 'pin_memory': True}
         if self.frame is not None:
             bbox_loader_class = SiameseDataLoader(bbox_list, self._transform, 

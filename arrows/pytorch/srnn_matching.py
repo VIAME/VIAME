@@ -86,13 +86,13 @@ class TargetRNNDataLoader(data.Dataset):
 class SRNNMatching(object):
     def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, 
                     batch_size, gpu_list=None):
-        self._device, _use_gpu_flag = get_device(gpu_list)
+        self._device, self._use_gpu_flag = get_device(gpu_list)
         self._batch_size = batch_size
 
         # load target AIM model, trained with fixed variable timestep
         full_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
         self._targetRNN_full_model = TargetLSTM(model_list=full_model_list, 
-                                                use_gpu_flag=_use_gpu_flag)
+                                                use_gpu_flag=self._use_gpu_flag)
         self._targetRNN_full_model = self._targetRNN_full_model.to(self._device)
 
         if self._use_gpu_flag:
@@ -103,7 +103,7 @@ class SRNNMatching(object):
         self._targetRNN_full_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_full_model.eval()
 
-        if _use_gpu_flag:
+        if self._use_gpu_flag:
             # DataParallel also understands device_ids=None to mean "all devices", so we're good.
             self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model, 
                                                                     device_ids=gpu_list)
@@ -111,9 +111,9 @@ class SRNNMatching(object):
         # load  target AIM_V model, but trained with variable timestep
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
         self._targetRNN_AIM_V_model = TargetLSTM(model_list=V_model_list, 
-                            use_gpu_flag=_use_gpu_flag).to(self._device)
+                            use_gpu_flag=self._use_gpu_flag).to(self._device)
 
-        if _use_gpu_flag:
+        if self._use_gpu_flag:
             snapshot = torch.load(targetRNN_AIM_V_model_path)
         else:
             snapshot = torch.load(targetRNN_AIM_V_model_path, map_location='cpu')
@@ -121,7 +121,7 @@ class SRNNMatching(object):
         self._targetRNN_AIM_V_model.load_state_dict(snapshot['state_dict'])
         self._targetRNN_AIM_V_model.eval()
 
-        if _use_gpu_flag:
+        if self._use_gpu_flag:
             self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, 
                                                             device_ids=gpu_list)
 
@@ -130,7 +130,7 @@ class SRNNMatching(object):
         track_states_num = len(track_state_list)
 
         # obtain the list mapping: similarity row idx->track_id
-        track_idx_list = [track.id for track in track_set.iter_active()]
+        track_idx_list = [track.track_id for track in track_set.iter_active()]
 
         if 0 in (tracks_num, track_states_num):
             # PyTorch doesn't handle zero-length dimensions cleanly
