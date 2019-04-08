@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -168,6 +168,21 @@ metadata
 ::has( vital_metadata_tag tag ) const
 {
   return m_metadata_map.find( tag ) != m_metadata_map.end();
+}
+
+
+// ----------------------------------------------------------------------------
+metadata_item const*
+metadata
+::get( vital_metadata_tag tag ) const
+{
+  auto const it = m_metadata_map.find( tag );
+  if ( it == m_metadata_map.end() )
+  {
+    return nullptr;
+  }
+
+  return it->second.get();
 }
 
 
