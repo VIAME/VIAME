@@ -44,7 +44,7 @@ from timeit import default_timer as timer
 from vital.util.VitalPIL import get_pil_image
 
 from kwiver.arrows.pytorch.grid import Grid
-from kwiver.arrows.pytorch.resnet_feature_extractor import ResnetFeatureExtractor # the feature extractor
+from kwiver.arrows.pytorch.resnet_feature_extractor import ResnetFeatureExtractor
 from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 class ResnetDescriptors(KwiverProcess):

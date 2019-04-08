@@ -31,9 +31,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import six
-import scipy.misc
-import scipy.ndimage
-import skimage.color
 import warnings
 import numpy as np
 
@@ -69,6 +66,9 @@ def label_colormap(N=256):
 
 def label2rgb(lbl, img=None, label_names=None, n_labels=None,
               alpha=0.3, thresh_suppress=0):
+
+    import skimage.color
+
     if label_names is None:
         if n_labels is None:
             n_labels = lbl.max() + 1  # +1 for bg_label 0
@@ -108,6 +108,7 @@ def label2rgb(lbl, img=None, label_names=None, n_labels=None,
         if 1. * mask.sum() / mask.size < thresh_suppress:
             continue
         mask = (mask * 255).astype(np.uint8)
+        import scipy.ndimage
         y, x = scipy.ndimage.center_of_mass(mask)
         y, x = map(int, [y, x])
 

@@ -52,7 +52,7 @@ class IOUTracker(object):
                             self._iou_score(track[-1].bbox, sorted_ts_list[1].bbox) < \
                             self._iou_reject_threshold:
                         track.updated_flag = True
-                        track_set.update_track(track.id, best_match)
+                        track_set.update_track(track.track_id, best_match)
                         # remove best matching detection from detections
                         del track_state_list[track_state_list.index(best_match)]
         return track_set, track_state_list

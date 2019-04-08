@@ -41,7 +41,7 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/augmented_resnet_feature_e
   
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/alexnet_feature_extractor.py
   kwiver/arrows/pytorch
-  alexnet_feature_extractor.py )
+  alexnet_feature_extractor )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/grid.py
   kwiver/arrows/pytorch
