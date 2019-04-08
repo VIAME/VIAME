@@ -57,12 +57,13 @@ public:
 
   virtual bool get_status() const;
   virtual bool parse_next_record( packet_buffer_t& pb );
+  virtual schema_style get_current_record_schema() const;
   virtual bool eof() const;
 
 private:
   YAML::Node root;
   YAML::const_iterator current_record;
-
+  schema_style current_record_schema;
 };
 
 } // ...kpf

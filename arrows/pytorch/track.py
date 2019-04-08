@@ -1,137 +1,71 @@
+# ckwg +28
+# Copyright 2018 by Kitware, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+#    to endorse or promote products derived from this software without specific
+#    prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 import numpy as np
 import torch
 import copy
 import collections
 
 class track_state(object):
-    def __init__(self, frame_id, bbox_center, interaction_feature, app_feature, bbox, detectedObject, sys_frame_id, sys_frame_time):
-        self._bbox_center = bbox_center
+    def __init__(self, frame_id, bbox_center, interaction_feature, app_feature, bbox, 
+                    detected_object, sys_frame_id, sys_frame_time):
+        self.bbox_center = bbox_center
 
         '''a list [x, y, w, h]'''
-        self._bbox = bbox
+        self.bbox = bbox
 
         # got required AMI features in torch.tensor format
-        self._app_feature = app_feature
-        self._motion_feature = torch.FloatTensor(2).zero_()
-        self._interaction_feature = interaction_feature
-        self._bbar_feature = torch.FloatTensor(2).zero_()
+        self.app_feature = app_feature
+        self.motion_feature = torch.FloatTensor(2).zero_()
+        self.interaction_feature = interaction_feature
+        self.bbar_feature = torch.FloatTensor(2).zero_()
 
-        self._track_id = -1
-        self._frame_id = frame_id
+        self.track_id = -1
+        self.frame_id = frame_id
 
-        self._detectedObj = detectedObject
+        self.detected_object = detected_object
 
-        self._sys_frame_id = sys_frame_id
-        self._sys_frame_time = sys_frame_time
+        self.sys_frame_id = sys_frame_id
+        self.sys_frame_time = sys_frame_time
 
         # FIXME: the detected_object confidence does not work
         # For now, I just set the confidence = 1.0
         #self._conf = detectedObject.confidence()
-        self._conf = 1.0
+        self.conf = 1.0
 
-    @property
-    def bbox(self):
-        return self._bbox
-
-    @bbox.setter
-    def bbox(self, val):
-        self._bbox = val
-
-    @property
-    def bbox_center(self):
-        return self._bbox_center
-
-    @bbox_center.setter
-    # bbox_center is a tuple type
-    def bbox_center(self, val):
-        self._bbox_center = val
-
-    @property
-    def app_feature(self):
-        return self._app_feature
-
-    @app_feature.setter
-    def app_feature(self, val):
-        self._app_feature = val
-
-    @property
-    def motion_feature(self):
-        return self._motion_feature
-
-    @motion_feature.setter
-    def motion_feature(self, val):
-        self._motion_feature = val
-
-    @property
-    def interaction_feature(self):
-        return self._interaction_feature
-
-    @interaction_feature.setter
-    def interaction_feature(self, val):
-        self._interaction_feature = val
-
-    @property
-    def bbar_feature(self):
-        return self._bbar_feature
-
-    @bbar_feature.setter
-    def bbar_feature(self, val):
-        self._bbar_feature = val
-
-    @property
-    def track_id(self):
-        return self._track_id
-
-    @track_id.setter
-    def track_id(self, val):
-        self._track_id = val
-
-    @property
-    def frame_id(self):
-        return self._frame_id
-
-    @frame_id.setter
-    def frame_id(self, val):
-        self._frame_id = val
-
-    @property
-    def detectedObj(self):
-        return self._detectedObj
-
-    @detectedObj.setter
-    def detectedObj(self, val):
-        self._detectedObj = val
-
-    @property
-    def conf(self):
-        return self._conf
-
-    @conf.setter
-    def conf(self, val):
-        self._conf = val
-
-    @property
-    def sys_frame_id(self):
-        return self._sys_frame_id
-
-    @sys_frame_id.setter
-    def sys_frame_id(self, val):
-        self._sys_frame_id = val
-
-    @property
-    def sys_frame_time(self):
-        return self._sys_frame_time
-
-    @sys_frame_time.setter
-    def sys_frame_time(self, val):
-        self._sys_frame_time = val
 
 class track(object):
     def __init__(self, id):
-        self._track_id = id
-        self._track_state_list = []
-        self._max_conf = 0.0
-        self._updated_flag = False
+        self.track_id = id
+        self.track_state_list = []
+        self.max_conf = 0.0
+        self.updated_flag = False
 
     def __len__(self):
         return len(self._track_state_list)
@@ -141,38 +75,6 @@ class track(object):
 
     def __iter__(self):
         return iter(self._track_state_list)
-
-    @property
-    def id(self):
-        return self._track_id
-
-    @id.setter
-    def id(self, val):
-        self._track_id = val
-
-    @property
-    def updated_flag(self):
-        return self._updated_flag
-
-    @updated_flag.setter
-    def updated_flag(self, val):
-        self._updated_flag = val
-
-    @property
-    def track_state_list(self):
-        return self._track_state_list
-
-    @track_state_list.setter
-    def track_state_list(self, val):
-        self._track_state_list = val
-
-    @property
-    def max_conf(self):
-        return self._max_conf
-
-    @max_conf.setter
-    def max_conf(self, val):
-        self._max_conf = val
 
     def append(self, new_track_state):
         if not self._track_state_list:
@@ -187,7 +89,6 @@ class track(object):
         self._max_conf = max(self._max_conf, new_track_state.conf)
 
     def duplicate_track_state(self, timestep_len = 6):
-        #du_track = copy.deepcopy(self)
         du_track = track(self._track_id)
         du_track.track_state_list = list(self._track_state_list)
         du_track.updated_flag = self._updated_flag
@@ -201,9 +102,9 @@ class track(object):
 
 class track_set(object):
     def __init__(self):
-        self._id_ts_dict = collections.OrderedDict()
+        self.id_ts_dict = collections.OrderedDict()
         # We implement an ordered set by mapping to None
-        self._active_id_set = collections.OrderedDict()
+        self.active_id_set = collections.OrderedDict()
 
     def __len__(self):
         return len(self._id_ts_dict)

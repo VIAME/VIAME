@@ -43,11 +43,11 @@ from timeit import default_timer as timer
 
 from vital.util.VitalPIL import get_pil_image
 
-from kwiver.arrows.pytorch.grid import grid
-from kwiver.arrows.pytorch.pytorch_resnet_f_extractor import pytorch_resnet_f_extractor # the feature extractor
+from kwiver.arrows.pytorch.grid import Grid
+from kwiver.arrows.pytorch.resnet_feature_extractor import ResnetFeatureExtractor # the feature extractor
 from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
-class Resnet_descriptors(KwiverProcess):
+class ResnetDescriptors(KwiverProcess):
 
     # ----------------------------------------------
     def __init__(self, conf):
@@ -97,17 +97,18 @@ class Resnet_descriptors(KwiverProcess):
     def _configure(self):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
 
-        # GPU_list
-        self._GPU_list = parse_gpu_list(self.config_value('gpu_list'))
+        # gpu_list
+        self._gpu_list = parse_gpu_list(self.config_value('gpu_list'))
 
         # Resnet model config
         resnet_img_size = int(self.config_value('resnet_model_input_size'))
         resnet_batch_size = int(self.config_value('resnet_batch_size'))
         resnet_model_path = self.config_value('resnet_model_path')
-        self._app_feature_extractor = pytorch_resnet_f_extractor(resnet_model_path, resnet_img_size, resnet_batch_size, self._GPU_list)
+        self._app_feature_extractor = ResnetFeatureExtractor(resnet_model_path, 
+                            resnet_img_size, resnet_batch_size, self._gpu_list)
 
         # Init variables
-        self._grid = grid()
+        self._grid = Grid()
 
         self._base_configure()
 
@@ -129,7 +130,6 @@ class Resnet_descriptors(KwiverProcess):
             # Get detection bbox
             dos = dos_ptr.select(self._select_threshold)
             bbox_num = dos.size()
-
             det_obj_set = DetectedObjectSet()
 
             if bbox_num == 0:
@@ -172,12 +172,12 @@ class Resnet_descriptors(KwiverProcess):
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
-    module_name = 'python:kwiver.resnet_descriptors'
+    module_name = 'python:kwiver.pytorch.resnet_descriptors'
 
     if process_factory.is_process_module_loaded(module_name):
         return
 
     process_factory.add_process('resnet_descriptors', 'resnet feature extraction',
-                                Resnet_descriptors)
+                                ResnetDescriptors)
 
     process_factory.mark_process_module_as_loaded(module_name)

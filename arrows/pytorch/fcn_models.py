@@ -1,7 +1,32 @@
+# ckwg +28
+# Copyright 2018 by Kitware, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+#    to endorse or promote products derived from this software without specific
+#    prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import torch.nn as nn
-
-#from .fcn32s import get_upsampling_weight
-
 
 class FCN16s(nn.Module):
 
@@ -66,19 +91,6 @@ class FCN16s(nn.Module):
         self.upscore16 = nn.ConvTranspose2d(
             n_class, n_class, 32, stride=16, bias=False)
 
-        #self._initialize_weights()
-
-    #def _initialize_weights(self):
-        #for m in self.modules():
-            #if isinstance(m, nn.Conv2d):
-                #m.weight.data.zero_()
-                #if m.bias is not None:
-                    #m.bias.data.zero_()
-            #if isinstance(m, nn.ConvTranspose2d):
-                #assert m.kernel_size[0] == m.kernel_size[1]
-                #initial_weight = get_upsampling_weight(
-                    #m.in_channels, m.out_channels, m.kernel_size[0])
-                #m.weight.data.copy_(initial_weight)
 
     def forward(self, x):
         h = x
@@ -126,16 +138,4 @@ class FCN16s(nn.Module):
         h = h[:, :, 27:27 + x.size()[2], 27:27 + x.size()[3]].contiguous()
 
         return h
-
-    #def copy_params_from_fcn32s(self, fcn32s):
-        #for name, l1 in fcn32s.named_children():
-            #try:
-                #l2 = getattr(self, name)
-                #l2.weight  # skip ReLU / Dropout
-            #except Exception:
-                #continue
-            #assert l1.weight.size() == l2.weight.size()
-            #assert l1.bias.size() == l2.bias.size()
-            #l2.weight.data.copy_(l1.weight.data)
-            #l2.bias.data.copy_(l1.bias.data)
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,8 +86,9 @@ public:
   /// The depth (or number of channels) of the image
   virtual size_t depth() const { return data_.channels(); }
 
-  /// Get and in-memory image class to access the data
+  /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return ocv_to_vital(data_, RGB_COLOR); }
+  using vital::image_container::get_image;
 
   /// Access the underlying cv::Mat data structure
   cv::Mat get_Mat() const { return data_; }

@@ -1,3 +1,31 @@
+# ckwg +28
+# Copyright 2018 by Kitware, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#  * Redistributions of source code must retain the above copyright notice,
+#    this list of conditions and the following disclaimer.
+#
+#  * Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+#  * Neither name of Kitware, Inc. nor the names of any contributors may be used
+#    to endorse or promote products derived from this software without specific
+#    prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
@@ -15,15 +43,11 @@ import math
 import random
 
 import numpy as np
-
+import cv2
 from vital.types import BoundingBox
 
 
 def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3, iflux=0.2 ):
-
-    if 'cv2' not in sys.modules:
-        import cv2
-
     rt2 = math.sqrt( 2.0 )
     csize = csize * ( 1.0 + random.uniform( -sflux, sflux ) )
     boxsize = int( csize * rt2 )
@@ -52,7 +76,7 @@ def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3
     return crop
 
 
-class aug_resnet_data_loader(data.Dataset):
+class AugmentedResnetDataLoader(data.Dataset):
     def __init__(self, bbox_list, transform, frame_img, in_size, rot_shifts):
         self._frame_img = pilImage.new( "RGB", frame_img.size )
         self._frame_img.paste( frame_img )
@@ -79,15 +103,6 @@ class aug_resnet_data_loader(data.Dataset):
 
         crop = augment_region( self._frame_img, c_x, c_y, diameter, self._in_size, rot )
 
-        # DEBUG
-        #print( index )
-        #print( bid )
-        #print( rot )
-        #print( crop.shape )
-        #outfile2 = "augmented_" + str( index ) + ".png"
-        #cv2.imwrite( outfile2, crop )
-        # DEBUG
-
         if self._transform is not None:
             im = self._transform(pilImage.fromarray(crop.astype('uint8'), 'RGB'))
         else:
@@ -99,19 +114,20 @@ class aug_resnet_data_loader(data.Dataset):
         return self._bbox_list.size() * self._rot_shifts
     
 
-class pytorch_aug_resnet_extractor(object):
+class AugmentedResnetFeatureExtractor(object):
     """
     Obtain the appearance features from a trained pytorch resnet50
     model
     """
 
-    def __init__(self, resnet_model_path, img_size, batch_size, GPU_list=None, rotational_shifts=360, resize_factor=0.2, int_shift_factor=0.2):
-
-        if GPU_list is None:
-            GPU_list = [x for x in range(torch.cuda.device_count())]
-            target_GPU = 0 # I assume this is just hardcoding in using the first GPU
+    def __init__(self, resnet_model_path, img_size, batch_size, 
+                 gpu_list=None, rotational_shifts=360, resize_factor=0.2, 
+                 int_shift_factor=0.2):
+        if gpu_list is None:
+            gpu_list = [x for x in range(torch.cuda.device_count())]
+            target_gpu = 0 # I assume this is just hardcoding in using the first GPU
         else:
-            target_GPU = GPU_list[0]
+            target_gpu = gup_list[0]
 
         # load the resnet50 model. Maybe this shouldn't be hardcoded?
         self._resnet_model = models.resnet50().cuda(device=target_GPU)
@@ -134,31 +150,27 @@ class pytorch_aug_resnet_extractor(object):
         self._rotational_shifts = rotational_shifts
         self._resize_factor = resize_factor
         self._int_shift_factor = int_shift_factor
-
-    @property
-    def frame(self):
-        return self._frame
-
-    @frame.setter
-    def frame(self, val):
-        self._frame = val
-
+        self.frame = None
+    
     def __call__(self, bbox_list):
         return self._obtain_feature(bbox_list)
 
     def _obtain_feature(self, bbox_list):
-
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        bbox_loader_class = aug_resnet_data_loader(bbox_list, self._transform, self._frame, self._img_size, self._rotational_shifts) 
-        bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
-
+        if self.frame is not None:
+            bbox_loader_class = AugmentedResnetDataLoader(bbox_list, self._transform, 
+                    self.frame, self._img_size, self._rotational_shifts) 
+        else:
+            raise ValueError("Trying to create AugmentedResnetDataLoader without a frame")
+        bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, 
+                                batch_size=self._b_size, shuffle=False, **kwargs)
+        
         for idx, imgs in enumerate(bbox_loader):
             v_imgs = Variable(imgs).cuda()
             output = self._resnet_model(v_imgs)
-
             if idx == 0:
                 app_features = output.data
             else:
                 app_features = torch.cat((app_features, output.data), dim=0)
-
+        
         return app_features.cpu()

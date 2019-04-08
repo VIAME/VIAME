@@ -47,12 +47,11 @@ from vital.types import Image
 from vital.types import DetectedObject
 from vital.types import DetectedObjectSet
 
-from kwiver.arrows.pytorch.fcn_segmentation import FCN_Segmentation
+from kwiver.arrows.pytorch.fcn_segmentation import FCNSegmentation
 from kwiver.arrows.pytorch.fcn_models import FCN16s
 
 
-class seg_detection(KwiverProcess):
-
+class SegmentationDetection(KwiverProcess):
     # ----------------------------------------------
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
@@ -64,39 +63,29 @@ class seg_detection(KwiverProcess):
 
         self.add_config_trait("fcn_flag", "fcn_flag", 'True', 'define whether use FCN based or contour based detection')
         self.declare_config_using_trait('fcn_flag')
-    
-
         # set up required flags
         optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
-
         #  input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
-
         #  output port ( port-name,flags)
         self.declare_output_port_using_trait('detected_object_set', optional)
 
     # ----------------------------------------------
     def _configure(self):
-
         fcn_flag = self.config_value('fcn_flag')
         self._fcn_flag = True if fcn_flag == 'True' else False 
-
         fcn_seg_model_path = self.config_value('fcn_model_path')
-
         fcn_model = FCN16s(n_class=21).cuda()
         checkpoint = torch.load(fcn_seg_model_path)
         fcn_model.load_state_dict(checkpoint['model_state_dict'])
-
-        self._fcn_seg = FCN_Segmentation(fcn_model)
+        self._fcn_seg = FCNSegmentation(fcn_model)
         self._frame_id = 0
-
         self._base_configure()
 
     # ----------------------------------------------
     def _step(self):
-
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait('image')
 
@@ -105,13 +94,8 @@ class seg_detection(KwiverProcess):
         im = np.array(im, dtype=np.uint8)
         
         dos, cv_pred, lbl_pred_overlap = self._fcn_seg(im, fcn_flag=self._fcn_flag)
-        #cv2.imwrite('det_frame_{}.jpg'.format(self._frame_id), cv_pred)
-        #if lbl_pred_overlap is not None:
-            #cv2.imwrite('lbl_frame_{}.jpg'.format(self._frame_id), lbl_pred_overlap)
-
         print('dos length {}'.format(dos.size()))
         self._frame_id += 1
-
         self.push_to_port_using_trait('detected_object_set', dos)
         self._base_step()
 
@@ -120,13 +104,13 @@ class seg_detection(KwiverProcess):
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
-    module_name = 'python:kwiver.seg_detection'
+    module_name = 'python:kwiver.pytorch.SegmentationDetection'
 
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.add_process('seg_detection', 'segmentation based detection',
-                                seg_detection)
+    process_factory.add_process('SegmentationDetection', 'segmentation based detection',
+                                SegmentationDetection)
 
     process_factory.mark_process_module_as_loaded(module_name)
 

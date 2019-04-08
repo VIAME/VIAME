@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -419,6 +419,23 @@ image
   }
   h_step_ = width * w_step_;
   d_step_ = ( w_step_ == 1 ) ? width * height : 1;
+}
+
+
+/// Get a cropped view of the image.
+image
+image
+::crop(size_t x_offset, size_t y_offset, size_t width, size_t height) const
+{
+  auto crop_first_pixel = reinterpret_cast< const char* >( this->first_pixel() );
+  crop_first_pixel +=
+    static_cast< ptrdiff_t >( this->pixel_traits().num_bytes ) *
+    ( this->w_step() * static_cast< ptrdiff_t >( x_offset ) +
+      this->h_step() * static_cast< ptrdiff_t >( y_offset ) );
+  return image( this->memory(), crop_first_pixel,
+                width, height, this->depth(),
+                this->w_step(), this->h_step(), this->d_step(),
+                this->pixel_traits() );
 }
 
 

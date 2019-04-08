@@ -92,11 +92,12 @@ endif()
 
 # if python is enabled
 if( KWIVER_ENABLE_PYTHON )
-  set(kwiver_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
-  set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}")
+  kwiver_create_python_init( kwiver/arrows )
+  add_subdirectory( python )
 
-  kwiver_create_python_plugin_init( kwiver/arrows )
-  add_subdirectory( pytorch )
+  if( KWIVER_ENABLE_PYTORCH )
+    add_subdirectory( pytorch )
+  endif()
 endif()
 
 # if FFMPEG is enabled

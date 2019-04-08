@@ -1,87 +1,84 @@
 ###
-# Loadable algorithms
+# Loadable algorithms and processes
 
-set(kwiver_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}")
-set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}")
+kwiver_create_python_init( kwiver/arrows/pytorch )
 
-kwiver_create_python_plugin_init(kwiver/arrows/pytorch)
+if( KWIVER_ENABLE_PROCESSES )
+  kwiver_create_python_init( kwiver/processes/pytorch )
 
-# TODO: change KWIVER_ENABLE_PYTHON to KWIVER_ENABLE_PYTORCH
-if( KWIVER_ENABLE_PYTHON )
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/srnn_tracker.py
+    kwiver/processes/pytorch
+    srnn_tracker )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
-    kwiver/processes
-    resnet_descriptors)
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
+    kwiver/processes/pytorch
+    resnet_descriptors )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/alexnet_descriptors.py
-    kwiver/processes
-    alexnet_descriptors)
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_augmentation.py
+    kwiver/processes/pytorch
+    resnet_augmentation )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/SRNN_tracking.py
-    kwiver/processes
-    SRNN_tracking)
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/alexnet_descriptors.py
+    kwiver/processes/pytorch
+    alexnet_descriptors )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
-    kwiver/processes
-    seg_detection)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_augmentation.py
-    kwiver/processes
-    pytorch_augmentation)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_siamese_f_extractor.py
-    kwiver/arrows/pytorch
-    pytorch_siamese_f_extractor)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_resnet_f_extractor.py
-    kwiver/arrows/pytorch
-    pytorch_resnet_f_extractor)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_alexnet_f_extractor.py
-    kwiver/arrows/pytorch
-    pytorch_alexnet_f_extractor)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/pytorch_aug_resnet_extractor.py
-    kwiver/arrows/pytorch
-    pytorch_aug_resnet_extractor)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/grid.py
-    kwiver/arrows/pytorch
-    grid)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/track.py
-    kwiver/arrows/pytorch
-    track)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/models.py
-    kwiver/arrows/pytorch
-    models)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/SRNN_matching.py
-    kwiver/arrows/pytorch
-    SRNN_matching)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/MOT_bbox.py
-    kwiver/arrows/pytorch
-    MOT_bbox)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/seg_utils.py
-    kwiver/arrows/pytorch
-    seg_utils)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/fcn_segmentation.py
-    kwiver/arrows/pytorch
-    fcn_segmentation)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/fcn_models.py
-    kwiver/arrows/pytorch
-    fcn_models)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/iou_tracking.py
-    kwiver/arrows/pytorch
-    iou_tracking)
-
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/parse_gpu_list.py
-    kwiver/arrows/pytorch
-    parse_gpu_list)
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
+    kwiver/processes/pytorch
+    seg_detection )
 endif()
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/siamese_feature_extractor.py
+  kwiver/arrows/pytorch
+  siamese_feature_extractor )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_feature_extractor.py
+  kwiver/arrows/pytorch
+  resnet_feature_extractor )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/augmented_resnet_feature_extractor.py
+  kwiver/arrows/pytorch
+  augmented_resnet_feature_extractor )
+  
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/alexnet_feature_extractor.py
+  kwiver/arrows/pytorch
+  alexnet_feature_extractor.py )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/grid.py
+  kwiver/arrows/pytorch
+  grid )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track.py
+  kwiver/arrows/pytorch
+  track )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/models.py
+  kwiver/arrows/pytorch
+  models )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/srnn_matching.py
+  kwiver/arrows/pytorch
+  srnn_matching )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/gt_bbox.py
+  kwiver/arrows/pytorch
+  gt_bbox )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/seg_utils.py
+  kwiver/arrows/pytorch
+  seg_utils )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/fcn_segmentation.py
+  kwiver/arrows/pytorch
+  fcn_segmentation )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/fcn_models.py
+  kwiver/arrows/pytorch
+  fcn_models )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/iou_tracker.py
+  kwiver/arrows/pytorch
+  iou_tracker )
+
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/parse_gpu_list.py
+  kwiver/arrows/pytorch
+  parse_gpu_list )

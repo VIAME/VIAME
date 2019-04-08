@@ -40,7 +40,7 @@ def test_simple_pipeline(path):
     import os
 
     from sprokit.pipeline import pipeline
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline_util import bake
     from sprokit.pipeline_util import export_
 

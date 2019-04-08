@@ -1,7 +1,7 @@
 #
 #
 #
-if (KWIVER_ENABLE_PYTHON)
+if ( KWIVER_ENABLE_PYTHON AND NOT WIN32 )
   add_subdirectory(python)
 endif ()
 

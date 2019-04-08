@@ -112,7 +112,7 @@ def make_sink(conf):
 
 
 def create_process(type, name, conf):
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import process_factory
 
     modules.load_known_modules()
@@ -124,7 +124,7 @@ def create_process(type, name, conf):
 
 def run_pipeline(sched_type, pipe, conf):
     from sprokit.pipeline import config
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import scheduler_factory
     import sys
 

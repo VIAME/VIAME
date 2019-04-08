@@ -87,6 +87,8 @@ struct KPF_YAML_EXPORT packet_header_t
   explicit packet_header_t( packet_style s ): style(s), domain( NO_DOMAIN ) {}
 };
 
+KPF_YAML_EXPORT bool operator==( const packet_header_t& lhs, const packet_header_t& rhs );
+
 /**
  * @brief Class for sorting packets based on their header.
  *

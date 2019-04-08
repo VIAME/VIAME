@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * Copyright 2016 by Wenzel Jakob
  * All rights reserved.
  *
@@ -29,12 +29,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef SPROKIT_PYTHON_UTIL_PYBIND11_H
-#define SPROKIT_PYTHON_UTIL_PYBIND11_H
+#ifndef VITAL_PYTHON_UTIL_PYBIND11_H
+#define VITAL_PYTHON_UTIL_PYBIND11_H
 
 #include <pybind11/pybind11.h>
 
-namespace sprokit {
+namespace kwiver {
+namespace vital {
 namespace python {
 
 /*
@@ -79,39 +80,39 @@ class gil_scoped_release
     PyThreadState* state;
 };
 
-#define SPROKIT_PYBIND11_OVERLOAD_INT( ret_type, cname, name, ... ) \
+#define VITAL_PYBIND11_OVERLOAD_INT( ret_type, cname, name, ... ) \
 { \
-  sprokit::python::gil_scoped_acquire gil; \
-  pybind11::function overload = pybind11::get_overload( static_cast< const cname* > ( this ), name ); \
-  if( overload ) \
-  { \
-    auto o = overload( __VA_ARGS__ ); \
-    if( pybind11::detail::cast_is_temporary_value_reference< ret_type >::value ) \
+    kwiver::vital::python::gil_scoped_acquire gil; \
+    pybind11::function overload = pybind11::get_overload( static_cast< const cname* > ( this ), name ); \
+    if( overload ) \
     { \
-      static pybind11::detail::overload_caster_t< ret_type > caster; \
-      return pybind11::detail::cast_ref< ret_type > ( std::move( o ), caster ); \
-    } \
-    else \
-    { \
-      return pybind11::detail::cast_safe< ret_type > ( std::move( o ) ); \
-    } \
-  } \
+          auto o = overload( __VA_ARGS__ ); \
+          if( pybind11::detail::cast_is_temporary_value_reference< ret_type >::value ) \
+          { \
+                  static pybind11::detail::overload_caster_t< ret_type > caster; \
+                  return pybind11::detail::cast_ref< ret_type > ( std::move( o ), caster ); \
+                } \
+          else \
+          { \
+                  return pybind11::detail::cast_safe< ret_type > ( std::move( o ) ); \
+                } \
+        } \
 }
 
-#define SPROKIT_PYBIND11_OVERLOAD_NAME( ret_type, cname, name, fn, ... ) \
-  SPROKIT_PYBIND11_OVERLOAD_INT( ret_type, cname, name, __VA_ARGS__ ) \
+#define VITAL_PYBIND11_OVERLOAD_NAME( ret_type, cname, name, fn, ... ) \
+    VITAL_PYBIND11_OVERLOAD_INT( ret_type, cname, name, __VA_ARGS__ ) \
   return cname::fn( __VA_ARGS__ )
 
-#define SPROKIT_PYBIND11_OVERLOAD_PURE_NAME( ret_type, cname, name, fn, ... ) \
-  SPROKIT_PYBIND11_OVERLOAD_INT( ret_type, cname, name, __VA_ARGS__ ) \
+#define VITAL_PYBIND11_OVERLOAD_PURE_NAME( ret_type, cname, name, fn, ... ) \
+    VITAL_PYBIND11_OVERLOAD_INT( ret_type, cname, name, __VA_ARGS__ ) \
   pybind11::pybind11_fail( "Tried to call pure virtual function \"" #cname "::" name "\"" );
 
-#define SPROKIT_PYBIND11_OVERLOAD( ret_type, cname, fn, ... ) \
-  SPROKIT_PYBIND11_OVERLOAD_NAME( ret_type, cname, #fn, fn, __VA_ARGS__ )
+#define VITAL_PYBIND11_OVERLOAD( ret_type, cname, fn, ... ) \
+    VITAL_PYBIND11_OVERLOAD_NAME( ret_type, cname, #fn, fn, __VA_ARGS__ )
 
-#define SPROKIT_PYBIND11_OVERLOAD_PURE( ret_type, cname, fn, ... ) \
-  SPROKIT_PYBIND11_OVERLOAD_PURE_NAME( ret_type, cname, #fn, fn, __VA_ARGS__ )
+#define VITAL_PYBIND11_OVERLOAD_PURE( ret_type, cname, fn, ... ) \
+    VITAL_PYBIND11_OVERLOAD_PURE_NAME( ret_type, cname, #fn, fn, __VA_ARGS__ )
 
-} }
+} } }
 
-#endif // SPROKIT_PYTHON_UTIL_PYBIND11_H
+#endif // VITAL_PYTHON_UTIL_PYBIND11_H

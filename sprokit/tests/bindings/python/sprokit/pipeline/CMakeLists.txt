@@ -5,7 +5,6 @@ set(__simple_testable_modnames
   config
   datum
   edge
-  modules
   pipeline
   process
   process_cluster
