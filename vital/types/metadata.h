@@ -381,19 +381,6 @@ public:
   metadata_item const* get( vital_metadata_tag tag ) const;
 
 
-  /// Find metadata entry for specified tag.
-  /**
-   * This method looks for the metadata entrty corresponding to the
-   * supplied tag. If the tag is not present in the collection, the
-   * results are undefined.
-   *
-   * @param tag Look for this tag in collection of metadata.
-   *
-   * @return metadata item object for tag.
-   */
-  metadata_item const& find( vital_metadata_tag tag ) const;
-
-
   /// Get starting iterator for collection of metadata items.
   /**
    * This method returns the const iterator to the first element in

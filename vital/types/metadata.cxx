@@ -42,34 +42,6 @@ namespace kwiver {
 namespace vital {
 
 
-// ----------------------------------------------------------------
-/*
- * This class is returned when find can not locate the requested tag.
- *
- */
-  class unknown_metadata_item
-    : public metadata_item
-  {
-  public:
-    // -- CONSTRUCTORS --
-    unknown_metadata_item()
-      : metadata_item( "Requested metadata item is not in collection", 0, VITAL_META_UNKNOWN )
-    { }
-
-    virtual ~unknown_metadata_item() {}
-    virtual vital_metadata_tag tag() const { return static_cast< vital_metadata_tag >(0); }
-    virtual std::type_info const& type() const { return typeid( void ); }
-    virtual std::string as_string() const { return "--Unknown metadata item--"; }
-    virtual double as_double() const { return 0; }
-    virtual double as_uint64() const { return 0; }
-    virtual std::ostream& print_value(std::ostream& os) const
-    {
-      os << this->as_string();
-      return os;
-    }
-
-  }; // end class unknown_metadata_item
-
 // ==================================================================
 
 metadata_item
@@ -183,23 +155,6 @@ metadata
   }
 
   return it->second.get();
-}
-
-
-// ------------------------------------------------------------------
-metadata_item const&
-metadata
-::find( vital_metadata_tag tag ) const
-{
-  static unknown_metadata_item unknown_item;
-
-  const_iterator_t it = m_metadata_map.find( tag );
-  if ( it == m_metadata_map.end() )
-  {
-    return unknown_item;
-  }
-
-  return *(it->second);
 }
 
 
