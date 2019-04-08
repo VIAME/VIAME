@@ -44,10 +44,10 @@ from timeit import default_timer as timer
 from vital.util.VitalPIL import get_pil_image
 
 from kwiver.arrows.pytorch.grid import grid
-from kwiver.arrows.pytorch.pytorch_alexnet_f_extractor import pytorch_alexnet_f_extractor # the feature extractor
+from kwiver.arrows.pytorch.alexnet_feature_extractor import AlexNetFeatureExtractor
 from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
-class alexnet_descriptors(KwiverProcess):
+class AlexNetDescriptors(KwiverProcess):
 
     # -------------------------------------------------------------------------
     def __init__(self, conf):
@@ -104,7 +104,7 @@ class alexnet_descriptors(KwiverProcess):
         alexnet_img_size = int(self.config_value('alexnet_model_input_size'))
         alexnet_batch_size = int(self.config_value('alexnet_batch_size'))
         alexnet_model_path = self.config_value('alexnet_model_path')
-        self._app_feature_extractor = pytorch_alexnet_f_extractor(alexnet_model_path, alexnet_img_size, alexnet_batch_size, self._GPU_list)
+        self._app_feature_extractor = AlexNetFeatureExtractor(alexnet_model_path, alexnet_img_size, alexnet_batch_size, self._GPU_list)
 
         # Init variables
         self._grid = grid()
@@ -178,6 +178,6 @@ def __sprokit_register__():
         return
 
     process_factory.add_process('alexnet_descriptors', 'alexnet feature extraction',
-                                alexnet_descriptors)
+                                AlexNetDescriptors)
 
     process_factory.mark_process_module_as_loaded(module_name)
