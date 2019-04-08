@@ -2,77 +2,77 @@
 # Loadable algorithms
 
 if( KWIVER_ENABLE_PYTORCH )
-  kwiver_create_python_plugin_init(kwiver/arrows/pytorch)
+  kwiver_create_python_init( kwiver/arrows/pytorch )
   
-  if ( KWIVER_ENABLE_PROCESSES )
-    kwiver_create_python_plugin_init(kwiver/processes/pytorch)
+  if( KWIVER_ENABLE_PROCESSES )
+    kwiver_create_python_init( kwiver/processes/pytorch )
     
-    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/SRNN_tracker.py
+    kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/SRNN_tracker.py
       kwiver/processes/pytorch
-      SRNN_tracker)
+      SRNN_tracker )
     
-    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/data_augmentation.py
+    kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/data_augmentation.py
       kwiver/processes/pytorch
-      data_augmentation)
+      data_augmentation )
     
-    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
+    kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_descriptors.py
       kwiver/processes/pytorch
-      resnet_descriptors)
+      resnet_descriptors )
 
-    kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
+    kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
       kwiver/processes/pytorch
-      seg_detection)
+      seg_detection )
   endif()
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/siamese_feature_extractor.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/siamese_feature_extractor.py
     kwiver/arrows/pytorch
-    siamese_feature_extractor)
+    siamese_feature_extractor )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/resnet_feature_extractor.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/resnet_feature_extractor.py
     kwiver/arrows/pytorch
-    resnet_feature_extractor)
+    resnet_feature_extractor )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/augmented_resnet_feature_extractor.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/augmented_resnet_feature_extractor.py
     kwiver/arrows/pytorch
-    augmented_resnet_feature_extractor)
+    augmented_resnet_feature_extractor )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/grid.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/grid.py
     kwiver/arrows/pytorch
-    grid)
+    grid )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/track.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track.py
     kwiver/arrows/pytorch
-    track)
+    track )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/models.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/models.py
     kwiver/arrows/pytorch
-    models)
+    models )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/SRNN_matching.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/SRNN_matching.py
     kwiver/arrows/pytorch
-    SRNN_matching)
+    SRNN_matching )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/gt_bbox.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/gt_bbox.py
     kwiver/arrows/pytorch
-    gt_bbox)
+    gt_bbox )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/seg_utils.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/seg_utils.py
     kwiver/arrows/pytorch
-    seg_utils)
+    seg_utils )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/fcn_segmentation.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/fcn_segmentation.py
     kwiver/arrows/pytorch
-    fcn_segmentation)
+    fcn_segmentation )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/fcn_models.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/fcn_models.py
     kwiver/arrows/pytorch
-    fcn_models)
+    fcn_models )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/iou_tracker.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/iou_tracker.py
     kwiver/arrows/pytorch
-    iou_tracker)
+    iou_tracker )
 
-  kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/parse_gpu_list.py
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/parse_gpu_list.py
     kwiver/arrows/pytorch
-    parse_gpu_list)
+    parse_gpu_list )
 endif()
