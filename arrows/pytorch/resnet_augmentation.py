@@ -296,12 +296,12 @@ class DataAugmentation(KwiverProcess):
 def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
-    module_name = 'python:kwiver.pytorch.data_augmentation'
+    module_name = 'python:kwiver.pytorch.resnet_augmentation'
 
     if process_factory.is_process_module_loaded(module_name):
         return
 
-    process_factory.add_process('data_augmentation',
+    process_factory.add_process('resnet_augmentation',
                                 'Pytorch-Based Augmentation',
                                 DataAugmentation)
 
