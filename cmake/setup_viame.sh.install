@@ -46,7 +46,7 @@ export PYTHONPATH=$this_dir/lib/python3.6m/site-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python3.6/dist-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python3.6m/dist-packages:$PYTHONPATH
 export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
-export SPROKIT_PYTHON_MODULES=kwiver.processes:viame.processes
+export SPROKIT_PYTHON_MODULES=kwiver.processes:kwiver.processes.pytorch:viame.processes
 
 # Set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=debug
