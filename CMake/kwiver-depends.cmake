@@ -33,6 +33,7 @@ if(KWIVER_ENABLE_ARROWS)
   include( kwiver-depends-kpf )
   include( kwiver-depends-ffmpeg )
   include( kwiver-depends-GDAL )
+  include( kwiver-depends-PyTorch )
 endif()
 
 include( kwiver-depends-ZeroMQ )

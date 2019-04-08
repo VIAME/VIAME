@@ -129,14 +129,17 @@ endif()
 #
 include( kwiver-utils )
 
-if (KWIVER_ENABLE_PYTHON)
-  kwiver_create_python_init(kwiver)
+if( KWIVER_ENABLE_PYTHON )
+  set( kwiver_python_subdir "python${PYTHON_VERSION}${PYTHON_ABIFLAGS}" )
+  set( kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}" )
 
-  if (NOT WIN32)
-    OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
+  kwiver_create_python_init( kwiver )
+
+  if( NOT WIN32 )
+    OPTION( KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
   endif()
 
-  if ( NOT KWIVER_ENABLE_C_BINDINGS )
+  if( NOT KWIVER_ENABLE_C_BINDINGS )
     message( SEND_ERROR  "Python can not be enabled unless KWIVER_ENABLE_C_BINDINGS "
       "is also enabled." )
   endif()
