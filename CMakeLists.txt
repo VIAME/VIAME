@@ -218,7 +218,7 @@ if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "" CACHE PATH "CUDNN root folder, leave as blank to auto-detect." )
 
   find_library( CUDNN_LIBRARY REQUIRED
-    NAMES cudnn libcudnn.so libcudnn.so.6
+    NAMES cudnn libcudnn.so libcudnn.so.8 libcudnn.so.7 libcudnn.so.6
     HINTS ${CUDNN_ROOT_DIR}
           ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
           ${CUDA_TOOLKIT_ROOT_DIR}
@@ -226,9 +226,29 @@ if( VIAME_ENABLE_CUDNN )
 
   if( NOT CUDNN_LIBRARY )
     message( FATAL_ERROR "Unable to locate CUDNN library" )
-  else()
-    # Different subprojects use each variable
-    set( CUDNN_LIBRARIES "${CUDNN_LIBRARY}" CACHE INTERNAL "" FORCE )
+  endif()
+
+  # Different subprojects use each variable
+  set( CUDNN_LIBRARIES "${CUDNN_LIBRARY}" CACHE INTERNAL "" FORCE )
+
+  # Check version of CUDNN
+  get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_LIBRARY}" DIRECTORY )
+  get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_ROOT_DIR_TMP}" DIRECTORY )
+
+  set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
+  set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
+
+  if( EXISTS "${CUDNN_INCLUDE_FILE}" )
+    file( READ "${CUDNN_INCLUDE_FILE}" CUDNN_VERSION_FILE_CONTENTS )
+
+    string( REGEX MATCH "define CUDNN_MAJOR * +([0-9]+)"
+            CUDNN_VERSION_MAJOR "${CUDNN_VERSION_FILE_CONTENTS}" )
+    string( REGEX REPLACE "define CUDNN_MAJOR * +([0-9]+)" "\\1"
+            CUDNN_VERSION_MAJOR "${CUDNN_VERSION_MAJOR}" )
+
+    if( VIAME_BUILD_INTERNAL_PYTORCH AND "${CUDNN_VERSION_MAJOR}" VERSION_LESS "7.0.0" )
+      message( FATAL_ERROR "CUDNN version 7.0 or higher required for internal pytorch" )
+    endif()
   endif()
 endif()
 
@@ -419,8 +439,8 @@ else()
     set( kwiver_python_subdir "python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" )
     set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
 
-    kwiver_create_python_plugin_init( viame )
-    kwiver_create_python_plugin_init( viame/processes )
+    kwiver_create_python_init( viame )
+    kwiver_create_python_init( viame/processes )
   endif()
 
   ###

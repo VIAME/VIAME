@@ -6,7 +6,7 @@
 # in pytorch, trained on assorted fish data.
 
 process tracker
-  :: SRNN_tracking
+  :: srnn_tracker
   :siamese_model_input_size                    224
   :detection_select_threshold                  0.2
   :similarity_threshold                        0.2
