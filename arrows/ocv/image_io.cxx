@@ -76,6 +76,10 @@ image_io
 ::save_(const std::string& filename,
        vital::image_container_sptr data) const
 {
+  if(!data)
+  {
+    return;
+  }
   cv::Mat img = ocv::image_container::vital_to_ocv(data->get_image(), ocv::image_container::BGR_COLOR);
   cv::imwrite(filename.c_str(), img);
 }
