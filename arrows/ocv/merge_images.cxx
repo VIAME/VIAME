@@ -77,9 +77,12 @@ merge_images
 
 void
 merge_images
-::set_configuration( kwiver::vital::config_block_sptr config )
+::set_configuration( kwiver::vital::config_block_sptr in_config )
 {
-  error_on_invalid = config->get_value<int>( "error_on_invalid" );
+  vital::config_block_sptr config = this->get_configuration();
+  config->merge_config( in_config );
+
+  error_on_invalid = config->get_value< bool >( "error_on_invalid" );
 }
 
 bool
