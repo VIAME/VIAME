@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,72 +30,61 @@
 
 /**
  * \file
- * \brief Implementation for image exceptions
+ * \brief Register Qt algorithms implementation
  */
 
-#include "image.h"
+#include <arrows/qt/kwiver_algo_qt_plugin_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <sstream>
+#include <arrows/qt/image_io.h>
 
 namespace kwiver {
-namespace vital {
+
+namespace arrows {
+
+namespace qt {
+
+namespace {
+
+static auto const module_name         = std::string{ "arrows.qt" };
+static auto const module_version      = std::string{ "1.0" };
+static auto const module_organization = std::string{ "Kitware Inc." };
 
 // ----------------------------------------------------------------------------
-image_exception
-::image_exception( std::string const& message ) noexcept
+template < typename algorithm_t >
+void
+register_algorithm( kwiver::vital::plugin_loader& vpm )
 {
-  m_what = message;
+  using kvpf = kwiver::vital::plugin_factory;
+
+  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
+  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
+       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
+       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
+       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
+       ;
 }
+
+} // namespace (anonymous)
 
 // ----------------------------------------------------------------------------
-image_exception
-::image_exception( std::nullptr_t ) noexcept
+extern "C"
+KWIVER_ALGO_QT_PLUGIN_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
 {
+  if ( vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
+
+  register_algorithm< image_io >( vpm );
+
+  vpm.mark_module_as_loaded( module_name );
 }
 
-// ----------------------------------------------------------------------------
-image_exception
-::~image_exception() noexcept
-{
-}
+} // end namespace qt
 
-// ----------------------------------------------------------------------------
-image_type_mismatch_exception
-::image_type_mismatch_exception( std::string const& message ) noexcept
-  : image_exception{ message }
-{
-}
+} // end namespace arrows
 
-// ----------------------------------------------------------------------------
-image_type_mismatch_exception
-::~image_type_mismatch_exception() noexcept
-{
-}
-
-// ----------------------------------------------------------------------------
-image_size_mismatch_exception
-::image_size_mismatch_exception( std::string const& message,
-                                 size_t correct_w, size_t correct_h,
-                                 size_t given_w, size_t given_h ) noexcept
-  : image_exception{ nullptr },
-    m_message{ message },
-    m_correct_w{ correct_w },
-    m_correct_h{ correct_h },
-    m_given_w{ given_w },
-    m_given_h{ given_h }
-{
-  std::ostringstream ss;
-  ss << message
-     << " (given: [" << given_w << ", " << given_h << "],"
-     << " should be: [" << correct_w << ", " << correct_h << "])";
-  m_what = ss.str();
-}
-
-// ----------------------------------------------------------------------------
-image_size_mismatch_exception
-::~image_size_mismatch_exception() noexcept
-{
-}
-
-} // end namespace vital
 } // end namespace kwiver

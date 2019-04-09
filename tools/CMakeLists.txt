@@ -73,3 +73,7 @@ kwiver_install_headers(
   NOPATH
   SUBDIR      tools
   )
+
+if( KWIVER_ENABLE_ARROWS AND KWIVER_ENABLE_QT AND KWIVER_ENABLE_PROCESSES )
+  add_subdirectory( pipeline_viewer )
+endif()

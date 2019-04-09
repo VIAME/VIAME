@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -30,72 +30,78 @@
 
 /**
  * \file
- * \brief Implementation for image exceptions
+ * \brief test range iota
  */
 
-#include "image.h"
+#include <vital/range/iota.h>
 
-#include <sstream>
+#include <gtest/gtest.h>
 
-namespace kwiver {
-namespace vital {
+#include <memory>
+#include <vector>
+
+using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------
-image_exception
-::image_exception( std::string const& message ) noexcept
+int
+main( int argc, char** argv )
 {
-  m_what = message;
+  ::testing::InitGoogleTest( &argc, argv );
+  return RUN_ALL_TESTS();
 }
 
 // ----------------------------------------------------------------------------
-image_exception
-::image_exception( std::nullptr_t ) noexcept
+TEST(range_iota, empty)
 {
+  auto test_values = std::vector< int >{};
+
+  auto counter = int{ 0 };
+  for ( auto const x : range::iota( int{ 0 } ) )
+  {
+    test_values.push_back( x );
+    ++counter;
+  }
+
+  EXPECT_EQ( 0, counter );
+  EXPECT_TRUE( test_values.empty() );
 }
 
 // ----------------------------------------------------------------------------
-image_exception
-::~image_exception() noexcept
+TEST(range_iota, basic)
 {
+  auto test_values = std::vector< int >{};
+
+  auto counter = int{ 0 };
+  auto accumulator = int{ 0 };
+  for ( auto const x : range::iota( int{ 5 } ) )
+  {
+    test_values.push_back( x );
+    ++counter;
+    accumulator += x;
+  }
+
+  EXPECT_EQ( 5, counter );
+  EXPECT_EQ( 10, accumulator );
+
+  ASSERT_EQ( 5, test_values.size() );
+  EXPECT_EQ( 0, test_values[ 0 ] );
+  EXPECT_EQ( 1, test_values[ 1 ] );
+  EXPECT_EQ( 2, test_values[ 2 ] );
+  EXPECT_EQ( 3, test_values[ 3 ] );
+  EXPECT_EQ( 4, test_values[ 4 ] );
 }
 
 // ----------------------------------------------------------------------------
-image_type_mismatch_exception
-::image_type_mismatch_exception( std::string const& message ) noexcept
-  : image_exception{ message }
+TEST(range_iota, limit)
 {
-}
+  constexpr auto limit = int{ 1 } << 20;
 
-// ----------------------------------------------------------------------------
-image_type_mismatch_exception
-::~image_type_mismatch_exception() noexcept
-{
-}
+  auto counter = int{ 0 };
+  for ( auto const x : range::iota( limit ) )
+  {
+    static_cast< void >( x );
+    ++counter;
+  }
 
-// ----------------------------------------------------------------------------
-image_size_mismatch_exception
-::image_size_mismatch_exception( std::string const& message,
-                                 size_t correct_w, size_t correct_h,
-                                 size_t given_w, size_t given_h ) noexcept
-  : image_exception{ nullptr },
-    m_message{ message },
-    m_correct_w{ correct_w },
-    m_correct_h{ correct_h },
-    m_given_w{ given_w },
-    m_given_h{ given_h }
-{
-  std::ostringstream ss;
-  ss << message
-     << " (given: [" << given_w << ", " << given_h << "],"
-     << " should be: [" << correct_w << ", " << correct_h << "])";
-  m_what = ss.str();
+  EXPECT_EQ( limit, counter );
 }
-
-// ----------------------------------------------------------------------------
-image_size_mismatch_exception
-::~image_size_mismatch_exception() noexcept
-{
-}
-
-} // end namespace vital
-} // end namespace kwiver
