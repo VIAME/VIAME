@@ -32,7 +32,7 @@ process thermal_input
 
 process register_images
   :: itk_eo_ir_registration
-  :output_frames_without_match                          false
+  :output_frames_without_match                          true
   :max_time_offset                                      1.0
 
 connect from optical_input.image
@@ -67,6 +67,7 @@ connect from register_images.warped_thermal_image
 process fused_merger
   :: merge_images
   :merge_images:type                                    ocv
+  :merge_images:ocv:error_on_invalid                    false
 
 connect from register_images.optical_image
         to   fused_merger.image1
