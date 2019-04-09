@@ -73,7 +73,7 @@ TEST( image, create )
 
 namespace {
 
-template < typename T, int Depth > void populate_qt_image( QImage& );
+template < typename T, size_t Depth > void populate_qt_image( QImage& );
 
 // ----------------------------------------------------------------------------
 // Helper function to populate the (bitmask) image with a pattern
@@ -162,21 +162,21 @@ native_format( QImage::Format format )
 } // namespace (anonymous)
 
 // ----------------------------------------------------------------------------
-template < typename T, int Depth, QImage::Format QImageFormat >
+template < typename T, size_t Depth, QImage::Format QImageFormat >
 struct image_type
 {
   using pixel_type = T;
 
-  static constexpr int depth = Depth;
+  static constexpr size_t depth = Depth;
   static constexpr QImage::Format qimage_format = QImageFormat;
 };
 
 // Declare storage for these members, which is required to use them in
 // assertions
-template < typename T, int Depth, QImage::Format QImageFormat >
-constexpr int image_type< T, Depth, QImageFormat >::depth;
+template < typename T, size_t Depth, QImage::Format QImageFormat >
+constexpr size_t image_type< T, Depth, QImageFormat >::depth;
 
-template < typename T, int Depth, QImage::Format QImageFormat >
+template < typename T, size_t Depth, QImage::Format QImageFormat >
 constexpr QImage::Format image_type< T, Depth, QImageFormat >::qimage_format;
 
 // ----------------------------------------------------------------------------
@@ -199,7 +199,7 @@ TYPED_TEST( image_io, type )
 {
   using pix_t = typename TypeParam::pixel_type;
 
-  image_of< pix_t > img( 200, 300, TypeParam::depth );
+  image_of< pix_t > img{ 200, 300, TypeParam::depth };
   populate_vital_image< pix_t >( img );
 
   auto const image_ext = ( img.depth() == 4 ? ".png" : ".tiff" );
@@ -220,10 +220,10 @@ TYPED_TEST( image_io, type )
 
 namespace {
 
-template < typename T, int Depth >
+template < typename T, size_t Depth >
 void compare_pixels( QImage const&, image const&, int, int );
 
-template < typename T, int Depth >
+template < typename T, size_t Depth >
 void compare_pixels( image const&, QImage const&, size_t, size_t );
 
 // ----------------------------------------------------------------------------
