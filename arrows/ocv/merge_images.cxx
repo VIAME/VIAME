@@ -61,6 +61,20 @@ merge_images
 {
 }
 
+kwiver::vital::config_block_sptr
+merge_images
+::get_configuration() const
+{
+  config_block_sptr config = vital::algorithm::get_configuration();
+
+  config->set_value( "error_on_invalid", error_on_invalid,
+    "Whether or not to throw an exception on an invalid input image "
+    "or to return an empty image." );
+
+  return config;
+}
+
+
 void
 merge_images
 ::set_configuration( kwiver::vital::config_block_sptr config )

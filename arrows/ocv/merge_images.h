@@ -58,6 +58,7 @@ public:
   /// Destructor
   virtual ~merge_images();
 
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
   virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
