@@ -28,7 +28,9 @@ list( INSERT CMAKE_MODULE_PATH 0    "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${KWIVE
 set( VIAME_SOURCE_DIR               "${CMAKE_SOURCE_DIR}" )
 set( VIAME_BINARY_DIR               "${CMAKE_BINARY_DIR}/build" )
 set( VIAME_BUILD_PREFIX             "${CMAKE_BINARY_DIR}/build" )
-set( VIAME_BUILD_INSTALL_PREFIX     "${CMAKE_BINARY_DIR}/install" )
+set( VIAME_BUILD_INSTALL_PREFIX     "${CMAKE_BINARY_DIR}/install"
+     CACHE STRING                   "Installation directory to place all final output files" )
+mark_as_advanced( VIAME_BUILD_INSTALL_PREFIX )
 
 set( VIAME_PACKAGES_DIR             "${VIAME_SOURCE_DIR}/packages" )
 set( VIAME_DOWNLOAD_DIR             "${VIAME_PACKAGES_DIR}/downloads" )
