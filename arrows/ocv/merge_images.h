@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,14 +58,18 @@ public:
   /// Destructor
   virtual ~merge_images();
 
-  virtual void set_configuration( kwiver::vital::config_block_sptr ) { }
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config )
-    const { return true; }
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
   /// Merge images
   virtual kwiver::vital::image_container_sptr
-  merge(kwiver::vital::image_container_sptr image1,
-        kwiver::vital::image_container_sptr image2) const;
+  merge( kwiver::vital::image_container_sptr image1,
+         kwiver::vital::image_container_sptr image2 ) const;
+
+private:
+
+  /// Whether or not an error will be thrown on an invalid input
+  bool error_on_invalid;
 };
 
 } // end namespace ocv
