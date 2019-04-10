@@ -64,8 +64,8 @@ public:
       ray_potential_thickness(20.0),
       ray_potential_eta(1.0),
       ray_potential_delta(200.0),
-      voxel_spacing_factor(1.0),
       grid_spacing {1.0, 1.0, 1.0},
+      voxel_spacing_factor(1.0),
       m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
   {
   }
