@@ -9,13 +9,15 @@ from vital.types import DetectedObjectSet
 from vital.types import DetectedObjectType
 from vital.types import BoundingBox
 
-import tensorflow as tf
+from vital.util.VitalPIL import get_pil_image
+
 import numpy as np
 import humanfriendly
 import time
 import os
 
-from vital.util.VitalPIL import get_pil_image
+import tensorflow as tf
+
 
 class tf_detector(KwiverProcess):
     """
