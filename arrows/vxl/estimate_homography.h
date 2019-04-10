@@ -49,6 +49,9 @@ class KWIVER_ALGO_VXL_EXPORT estimate_homography
   : public vital::algorithm_impl<estimate_homography, vital::algo::estimate_homography>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (rrel) to robustly estimate a homography from matched features." )
+
   // No configuration yet for this class.
   /// \cond DoxygenSuppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) {}

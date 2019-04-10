@@ -51,7 +51,7 @@ algorithms_create_plugin( kwiver_algo_kpf
 
 # Python Support?
 #if( KWIVER_ENABLE_PYTHON )
-#  kwiver_create_python_plugin_init( kwiver/arrows/kpf )
+#  kwiver_create_python_init( kwiver/arrows/kpf )
 #
 #  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/generate_headers.py
 #    kwiver/arrows/kpf

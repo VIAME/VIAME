@@ -50,6 +50,9 @@ class KWIVER_PROCESSES_TRANSPORT_NO_EXPORT file_transport_send_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "file_transport_send",
+               "Writes the serialized buffer to a file." )
+
   file_transport_send_process( kwiver::vital::config_block_sptr const& config );
   virtual ~file_transport_send_process();
 

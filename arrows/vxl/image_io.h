@@ -49,6 +49,9 @@ class KWIVER_ALGO_VXL_EXPORT image_io
   : public vital::algorithm_impl<image_io, vital::algo::image_io>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vil) to load and save image files." )
+
   /// Constructor
   image_io();
 
@@ -68,7 +71,7 @@ private:
    * NOTE: When loading boolean images (ppm, pbm, etc.), true-value regions are
    * represented in the returned image as regions of 1's.
    *
-   * \param filename the path to the file the load
+   * \param filename the path to the file to load
    * \returns an image container refering to the loaded image
    */
   virtual vital::image_container_sptr load_(const std::string& filename) const;
@@ -80,6 +83,13 @@ private:
    */
   virtual void save_(const std::string& filename,
                      vital::image_container_sptr data) const;
+
+  /// Implementation specific metadata functionality.
+  /**
+   * \param filename the path to the file to read
+   * \returns pointer to the loaded metadata
+   */
+  virtual kwiver::vital::metadata_sptr load_metadata_(std::string const& filename) const;
 
   /// private implementation class
   class priv;

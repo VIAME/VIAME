@@ -64,6 +64,7 @@ include(kwiver-cmake-future)
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_SOURCE_DIR}/sprokit/src")
 include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${KWIVER_BINARY_DIR}/sprokit/src")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # include vital internal headers for private use only
@@ -123,7 +124,14 @@ if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
   endif()
 endif()
 
+# =========================================================================================
+###
+# KWIVER CMake config
+#
+include( kwiver-utils )
+
 if (KWIVER_ENABLE_PYTHON)
+  kwiver_create_python_init(kwiver)
 
   if (NOT WIN32)
     OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
@@ -137,11 +145,6 @@ endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
-# ===========================================================================================
-###
-# KWIVER CMake config
-#
-include( kwiver-utils )
 
 # Set directories where loadable modules are stored.
 # These subdirs are under .../lib/

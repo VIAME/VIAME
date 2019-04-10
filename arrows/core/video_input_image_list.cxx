@@ -79,12 +79,16 @@ public:
   // metadata map
   bool m_have_metadata_map;
   vital::metadata_map::map_metadata_t m_metadata_map;
+  std::map< kwiver::vital::path_t, kwiver::vital::metadata_sptr > m_metadata_by_path;
 
   // processing classes
   vital::algo::image_io_sptr m_image_reader;
 
   void read_from_file( std::string const& filename );
   void read_from_directory( std::string const& dirname );
+  vital::metadata_sptr frame_metadata(
+    const kwiver::vital::path_t& file,
+    kwiver::vital::image_container_sptr image = nullptr );
 };
 
 
@@ -159,6 +163,11 @@ video_input_image_list
   // Setup actual reader algorithm
   vital::algo::image_io::
     set_nested_algo_configuration( "image_reader", config, d->m_image_reader );
+
+  // Check capabilities of image reader
+  set_capability( vital::algo::video_input::HAS_FRAME_TIME,
+    d->m_image_reader->get_implementation_capabilities().capability(
+      vital::algo::image_io::HAS_TIME ) );
 }
 
 
@@ -309,9 +318,7 @@ video_input_image_list
   d->m_image = nullptr;
 
   // Return timestamp
-  ts = kwiver::vital::timestamp();
-
-  ts.set_frame( d->m_frame_number );
+  ts = this->frame_timestamp();
 
   return ! this->end_of_video();
 }
@@ -329,6 +336,20 @@ video_input_image_list
   kwiver::vital::timestamp ts;
 
   ts.set_frame( d->m_frame_number );
+
+  if ( d->m_image_reader->get_implementation_capabilities().capability(
+      kwiver::vital::algo::image_io::HAS_TIME ) )
+  {
+    auto md = d->frame_metadata( *d->m_current_file, d->m_image );
+    if ( md )
+    {
+      auto mdts = md->timestamp();
+      if ( mdts.has_valid_time() )
+      {
+        ts.set_time_usec( mdts.get_time_usec() );
+      }
+    }
+  }
 
   return ts;
 }
@@ -362,10 +383,7 @@ video_input_image_list
   {
     return vital::metadata_vector();
   }
-  // For now, the only metadata is the filename of the image
-  auto md = std::make_shared<vital::metadata>();
-  md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
-                              *d->m_current_file ) );
+  auto md = d->frame_metadata( *d->m_current_file, d->m_image );
   vital::metadata_vector mdv(1, md);
   return mdv;
 }
@@ -382,9 +400,7 @@ video_input_image_list
     for (const auto& f: d->m_files)
     {
       ++fn;
-      // For now, the only metadata is the filename
-      auto md = std::make_shared<vital::metadata>();
-      md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI, f ) );
+      auto md = d->frame_metadata( f );
       vital::metadata_vector mdv(1, md);
       d->m_metadata_map[fn] = mdv;
     }
@@ -512,6 +528,39 @@ video_input_image_list::priv
 
   // Sort the list
   std::sort( this->m_files.begin(), this->m_files.end() );
+}
+
+
+// ------------------------------------------------------------------
+kwiver::vital::metadata_sptr
+video_input_image_list::priv
+::frame_metadata( const kwiver::vital::path_t& file,
+                  kwiver::vital::image_container_sptr image )
+{
+  auto it = m_metadata_by_path.find( file );
+  if ( it != m_metadata_by_path.end() )
+  {
+    return it->second;
+  }
+
+  kwiver::vital::metadata_sptr md;
+  if ( image )
+  {
+    md = image->get_metadata();
+  }
+  if ( ! md )
+  {
+    md = m_image_reader->load_metadata( file );
+  }
+  if ( ! md )
+  {
+    md = std::make_shared<kwiver::vital::metadata>();
+  }
+
+  md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI, file ) );
+
+  m_metadata_by_path[file] = md;
+  return md;
 }
 
 } } }     // end namespace

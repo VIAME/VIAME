@@ -32,8 +32,8 @@
  * \brief Header file for world_angled_frustum, world space with an angled frustum that
  *        aligned with a normal (often the ground plane's)
  */
-#ifndef KWIVER_ALGO_SUPER3D_WORLD_ANGLED_FRUSTUM_H_
-#define KWIVER_ALGO_SUPER3D_WORLD_ANGLED_FRUSTUM_H_
+#ifndef KWIVER_ARROWS_SUPER3D_WORLD_ANGLED_FRUSTUM_H_
+#define KWIVER_ARROWS_SUPER3D_WORLD_ANGLED_FRUSTUM_H_
 
 #include "world_space.h"
 
@@ -109,4 +109,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ALGO_SUPER3D_WORLD_ANGLED_FRUSTUM_H_
+#endif // KWIVER_ARROWS_SUPER3D_WORLD_ANGLED_FRUSTUM_H_

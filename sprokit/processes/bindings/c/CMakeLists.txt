@@ -35,6 +35,7 @@ kwiver_add_library( vital_type_converters
 
 target_link_libraries( vital_type_converters
   PRIVATE              vital
+                       vital_python_util
                        sprokit_pipeline
                        vital_c
                        vital_logger

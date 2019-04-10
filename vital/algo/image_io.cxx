@@ -50,6 +50,8 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
+const algorithm_capabilities::capability_name_t image_io::HAS_TIME( "has-time" );
+
 image_io
 ::image_io()
 {
@@ -94,6 +96,49 @@ image_io
   }
 
   this->save_(filename, data);
+}
+
+
+metadata_sptr
+image_io
+::load_metadata(std::string const& filename) const
+{
+  // Make sure that the given file path exists and is a file.
+  if ( ! kwiversys::SystemTools::FileExists( filename ) )
+  {
+    VITAL_THROW( path_not_exists, filename);
+  }
+  else if ( kwiversys::SystemTools::FileIsDirectory( filename ) )
+  {
+    VITAL_THROW( path_not_a_file, filename);
+  }
+
+  return this->load_metadata_(filename);
+}
+
+
+const vital::algorithm_capabilities&
+image_io
+::get_implementation_capabilities() const
+{
+  return this->m_capabilities;
+}
+
+
+void
+image_io
+::set_capability( algorithm_capabilities::capability_name_t const& name, bool val )
+{
+  this->m_capabilities.set_capability( name, val );
+}
+
+
+metadata_sptr
+image_io
+::load_metadata_(std::string const& filename) const
+{
+  // No metadata-only loading by default.
+  return nullptr;
 }
 
 

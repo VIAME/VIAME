@@ -172,4 +172,6 @@ if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)
 endif()
 
-add_subdirectory(applets)
+if (KWIVER_ENABLE_TOOLS)
+  add_subdirectory(applets)
+endif()

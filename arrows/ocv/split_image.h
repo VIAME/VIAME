@@ -50,6 +50,8 @@ class KWIVER_ALGO_OCV_EXPORT split_image
   : public vital::algorithm_impl<split_image, vital::algo::split_image>
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "Split an image  into multiple smaller images using opencv functions" )
 
   /// Constructor
   split_image();

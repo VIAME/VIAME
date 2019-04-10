@@ -40,7 +40,7 @@ INSTRUMENTATION_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kpi-logger" );
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver.process_instrumentation" );
 
   if ( vpm.is_module_loaded( module_name ) )
   {

@@ -32,8 +32,8 @@
  * \brief Header file for util, various helper functions for depth estimation
  */
 
-#ifndef KWIVER_ALGO_SUPER3D_UTIL_H_
-#define KWIVER_ALGO_SUPER3D_UTIL_H_
+#ifndef KWIVER_ARROWS_SUPER3D_UTIL_H_
+#define KWIVER_ARROWS_SUPER3D_UTIL_H_
 
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vil/vil_image_view.h>
@@ -83,4 +83,4 @@ void height_map_to_depth_map(const vpgl_perspective_camera<double>& camera,
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ALGO_SUPER3D_UTIL_H_
+#endif // KWIVER_ARROWS_SUPER3D_UTIL_H_

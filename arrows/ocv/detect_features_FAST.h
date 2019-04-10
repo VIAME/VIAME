@@ -50,6 +50,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_FAST
                                  vital::algo::detect_features>
 {
 public:
+  PLUGIN_INFO("ocv_FAST",
+              "OpenCV feature detection via the FAST algorithm" )
+
   /// Constructor
   detect_features_FAST();
 

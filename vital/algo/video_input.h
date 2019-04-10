@@ -94,7 +94,7 @@ namespace algo {
  * HAS_FRAME_TIME - This capability is set to true if the video source
  *     supplies a frame time. If a frame time is supplied, it is made
  *     available in the time stamp for that frame. If the frame time
- *     is not supplied, then the timestamp will hot have the time set.
+ *     is not supplied, then the timestamp will not have the time set.
  *
  * HAS_FRAME_DATA - This capability is set to true if the video source
  *     supplies frame images. It may seem strange for a video input

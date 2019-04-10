@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ class SPROKIT_PIPELINE_EXPORT process_instrumentation
 {
 public:
   process_instrumentation();
-  virtual ~process_instrumentation();
+  virtual ~process_instrumentation() = default;
 
   void set_process( sprokit::process const& proc );
 
@@ -89,6 +89,15 @@ public:
    * @return Pointer to process object.
    */
   sprokit::process const* process() const { return m_process; }
+
+  /**
+   * @brief Get name or process
+   *
+   * This method returns the name of the associated process.
+   *
+   * @return Name of process.
+   */
+  std::string process_name() const;
 
   /**
    * @brief Configure provider.

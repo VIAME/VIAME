@@ -51,6 +51,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_MSER
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO("ocv_MSER",
+              "OpenCV feature detection via the MSER algorithm" )
+
   /// Constructor
   detect_features_MSER();
 

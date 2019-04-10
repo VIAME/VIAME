@@ -59,6 +59,9 @@ class KWIVER_ALGO_VXL_EXPORT close_loops_homography_guided
   : public vital::algorithm_impl<vxl::close_loops_homography_guided, vital::algo::close_loops>
 {
 public:
+  PLUGIN_INFO( "vxl_homography_guided",
+               "Use VXL to estimate a sequence of ground plane homographies to identify "
+               "frames to match for loop closure." )
 
   /// Default Constructor
   close_loops_homography_guided();

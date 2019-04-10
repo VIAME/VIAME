@@ -49,6 +49,10 @@ class KWIVER_PROCESSES_NO_EXPORT deserializer_process
   , public serializer_base
 {
 public:
+  PLUGIN_INFO( "deserializer",
+               "Deserializes data types from byte streams. "
+               "Input and output ports are dynamically created based on connection." )
+
   deserializer_process( kwiver::vital::config_block_sptr const& config );
   virtual ~deserializer_process();
 

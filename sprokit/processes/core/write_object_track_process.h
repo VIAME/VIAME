@@ -59,6 +59,10 @@ class KWIVER_PROCESSES_NO_EXPORT write_object_track_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "write_object_track",
+               "Writes object track sets to an output file. "
+               "All descriptors are written to the same file." )
+
   write_object_track_process( kwiver::vital::config_block_sptr const& config );
   virtual ~write_object_track_process();
 

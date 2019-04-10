@@ -95,11 +95,11 @@ public:
   // look for a packet matching the header; if found,
   // return true, remove from buffer, return the packet
   // if not found, return false
-  std::pair< bool, packet_t > transfer_packet_from_buffer( const packet_header_t& h );
+  std::pair< bool, packet_t > transfer_packet_from_buffer( const packet_header_t& h, bool set_bad_if_missing = false );
 
   // like above, but specifically for kv (key/value) packets with a
   // particular key
-  std::pair< bool, packet_t > transfer_kv_packet_from_buffer( const std::string& key );
+  std::pair< bool, packet_t > transfer_kv_packet_from_buffer( const std::string& key, bool set_bad_if_missing = false );
 
   // return any meta packets
   std::vector< std::string > get_meta_packets() const;

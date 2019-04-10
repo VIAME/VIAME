@@ -39,7 +39,7 @@ def test_import():
 
 def test_api_calls():
     from sprokit.pipeline import config
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import process
     from sprokit.pipeline import process_factory
 

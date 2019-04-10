@@ -41,6 +41,7 @@
 #define KWIVER_VITAL_KPF_PARSER_BASE_
 
 #include <arrows/kpf/yaml/kpf_parse_utils.h>
+#include <arrows/kpf/yaml/kpf_yaml_schemas.h>
 
 namespace kwiver {
 namespace vital {
@@ -54,6 +55,7 @@ public:
 
   virtual bool get_status() const = 0;
   virtual bool parse_next_record( packet_buffer_t& ) = 0;
+  virtual schema_style get_current_record_schema() const = 0;
   virtual bool eof() const = 0;
 };
 

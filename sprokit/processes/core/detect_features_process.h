@@ -57,6 +57,10 @@ class KWIVER_PROCESSES_NO_EXPORT detect_features_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "detect_features",
+               "Detect features in an image that will be used "
+               "for stabilization." )
+
   typedef sprokit::process base_t;
 
   detect_features_process( kwiver::vital::config_block_sptr const& config );

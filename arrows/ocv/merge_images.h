@@ -49,6 +49,8 @@ class KWIVER_ALGO_OCV_EXPORT merge_images
   : public vital::algorithm_impl<merge_images, vital::algo::merge_images>
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "Merge two images into one using opencv functions" )
 
   /// Constructor
   merge_images();
@@ -69,4 +71,3 @@ public:
 } // end namespace ocv
 } // end namespace arrows
 } // end namespace kwiver
-

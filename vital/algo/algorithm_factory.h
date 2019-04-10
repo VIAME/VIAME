@@ -144,7 +144,7 @@ bool has_algorithm_impl_name(std::string const& type_name,
  * \return
  */
 #define ADD_ALGORITHM( impl_name, conc_T)                    \
-  add_factory( new kwiver::vital::algorithm_factory_0<conc_T>( conc_T::static_type_name(), impl_name ))
+  add_factory( new ::kwiver::vital::algorithm_factory_0<conc_T>( conc_T::static_type_name(), impl_name ))
 
 // ============================================================================
 /// Derived class to register algorithms.

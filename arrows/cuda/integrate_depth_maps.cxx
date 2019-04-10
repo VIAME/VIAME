@@ -60,8 +60,8 @@ class integrate_depth_maps::priv
 public:
   // Constructor
   priv()
-    : ray_potential_thickness(20.0),
-      ray_potential_rho(1.0),
+    : ray_potential_rho(1.0),
+      ray_potential_thickness(20.0),
       ray_potential_eta(1.0),
       ray_potential_delta(200.0),
       voxel_spacing_factor(1.0),

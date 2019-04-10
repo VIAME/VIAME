@@ -59,6 +59,9 @@ class KWIVER_PROCESSES_NO_EXPORT read_track_descriptor_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "read_track_descriptor",
+               "Reads track descriptor sets from an input file." )
+
   read_track_descriptor_process( kwiver::vital::config_block_sptr const& config );
   virtual ~read_track_descriptor_process();
 

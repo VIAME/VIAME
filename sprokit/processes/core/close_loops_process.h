@@ -58,6 +58,9 @@ class KWIVER_PROCESSES_NO_EXPORT close_loops_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "close_loops",
+               "Detects loops in a track set using features with descriptors.")
+
   typedef sprokit::process base_t;
 
   close_loops_process( kwiver::vital::config_block_sptr const& config );

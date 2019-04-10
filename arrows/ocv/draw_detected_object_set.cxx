@@ -227,7 +227,7 @@ public:
     for ( auto det = in_set->cbegin(); det != ie; ++det )
     {
       auto det_type = (*det)->type();
-      if ( ! det_type )
+      if ( ! det_type || det_type->size() == 0 )
       {
         // No type has been assigned. Just filter on threshold
         if ((*det)->confidence() < m_threshold )
