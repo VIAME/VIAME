@@ -12,75 +12,9 @@ Updates since last public release
 
 Vital
 
- * Added metadata tag, VITAL_META_VIDEO_KEY_FRAME, which is a bool that
-   marks if a video frame is a key frame.
-
 Arrows - Core
-
- * Added functions to clip meshes with a plane or a camera frustum.
-
- * Added a temporal downsampling option to video_input_filter where
-   only every nth frame of the video source will be provided.
-
- * Added a utility function to compute the average world distance per pixel
-   in a provided world region of interest.
-
- * Updated the keyframe loop closure algorithm to store keyframes in the track
-   set data structure rather than internally.  This changes exposes the list
-   of selected keyframes outside of this algorithm.
-
-Arrows - CUDA
-
- * Updated depth map integration to adjust the voxel size relative to the
-   average world distance per pixel.  This allows fusion to work on scenes
-   of various scales without manually tuning the configuration parameters.
-
- * Added utilities for checking CUDA functions for error codes and then
-   logging the error and throwing an exception.
-
- * Added utilities for CUDA memory management with unique_ptr.  This is
-   required to prevent memory leak when exceptions are thrown.
-
-Arrows - FFMPEG
-
- * Added metadata handling to FFMPEG implementation of video_input
-
- * Improved the seek_frame call to seek to a nearby keyframe first before
-   advancing to the precise frame requested. This is much faster than running
-   through the entire video until hitting the requested frame.
-
- * Using the new metadata tag, VITAL_META_VIDEO_KEY_FRAME, mark each frame
-   of the video whether is is or isn't a key frame.
-
-Arrows - OpenCV
-
- * Added an option to the FLANN-based matcher to use binary descriptors
 
 
 Fixes since last public release
 -------------------------------
 
-Arrows - Core
-
- * Added gradual reprojection error threshold reduction in metadata based SfM
-   to keep solutions from falling apart.
-
-Arrows - VXL
-
- * Fixed bug in vidl_ffmpeg_video_input that occurs when both the
-   start_after_frame and output_nth_frame are used. In this situation the
-   first frame would always be the one right after start_after_frame even
-   if it didn't satisfiy the output_nth_frame condition.
-
-Arrows - DBOW2
-
- * In match_descriptor_sets, set the number of levels in the vocabulary tree
-   based on the total number of features rather than a fixed value.
-
-Arrows - CUDA
-
- * In integrate_depth_maps.cu depthMapKernel a test was included for depth values
-   equal to -1 which should be excluded.  Testing for equality in a float is generally
-   bad practice because of machine precision issues.  Changed to testing if the depth
-   value is less than or equal to zero.  If it is, then the depth value is skipped.
-   This can be used to mask out bad measurements in the depth map, e.g.
