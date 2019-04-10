@@ -36,6 +36,8 @@
 #include <vital/util/demangle.h>
 #include <vital/util/string.h>
 
+#include <algorithm>
+#include <vector>
 #include <sstream>
 
 #include <kwiversys/SystemTools.hxx>
@@ -331,10 +333,19 @@ plugin_loader_impl
   dir.Load( dir_path );
   unsigned long num_files = dir.GetNumberOfFiles();
 
-  for (unsigned long i = 0; i < num_files; ++i )
+  std::vector< std::string > file_list;
+
+  for ( unsigned long i = 0; i < num_files; ++i )
+  {
+    file_list.push_back( std::string( dir.GetFile( i ) ) );
+  }
+
+  std::sort( file_list.begin(), file_list.end() );
+
+  for ( auto file_no_path : file_list )
   {
     std::string file = dir.GetPath();
-    file += "/" + std::string( dir.GetFile( i ) );
+    file += "/" + file_no_path;
 
     // Accept this file as a module to check if it has the correct library
     // suffix and matches a provided module name if one was provided.
