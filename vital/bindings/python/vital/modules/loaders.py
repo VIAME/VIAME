@@ -143,7 +143,13 @@ class ModuleLoader(Loader):
                             break
 
     def _findPluginModules(self, namespace):
-        for filepath in self._findPluginFilePaths(namespace):
+
+        filepaths = [ p for p in self._findPluginFilePaths(namespace) ]
+
+        if len( filepaths ) > 0:
+            filepaths.sort( reverse=True )
+
+        for filepath in filepaths:
             path_segments = list(filepath.split(os.path.sep))
             path_segments = [p for p in path_segments if p]
             path_segments[-1] = os.path.splitext(path_segments[-1])[0]

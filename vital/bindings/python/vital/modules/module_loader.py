@@ -78,6 +78,8 @@ def load_python_modules():
         'Preparing to load sprokit python plugin modules: '
         '[\n    {}\n]'.format(',\n    '.join(list(map(repr, packages)))))
 
+    packages.sort( reverse=True )
+
     loader = loaders.ModuleLoader()
     all_modules = []
 
