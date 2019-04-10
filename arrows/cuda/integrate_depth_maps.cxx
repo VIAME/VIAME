@@ -288,7 +288,7 @@ integrate_depth_maps::integrate(
   cuda_ptr<double> d_K = make_cuda_mem<double>(16);
   cuda_ptr<double> d_RT = make_cuda_mem<double>(16);
 
-  for (int i = 0; i < depth_maps.size(); i++)
+  for (size_t i = 0; i < depth_maps.size(); i++)
   {
     int depthmap_dims[2];
     depthmap_dims[0] = static_cast<int>(depth_maps[i]->width());
