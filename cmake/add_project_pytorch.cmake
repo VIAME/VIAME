@@ -12,7 +12,6 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
 CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
 set( PYTORCH_LIBRARIES pytorch torchvision mmcv mmdetection )
-set( PYTHON_PIP_COMMAND ${PYTHON_EXECUTABLE} -m pip )
 
 if( VIAME_ENABLE_CUDNN )
   set(CUDNN_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}")
@@ -57,17 +56,11 @@ foreach( LIB ${PYTORCH_LIBRARIES} )
   set( LIBRARY_PIP_SETTINGS ${LIBRARY_PIP_BUILD_DIR_CMD} ${LIBRARY_PIP_CACHE_DIR_CMD} )
 
   if( VIAME_SYMLINK_PYTHON )
-    set( LIBRARY_PIP_CMD
-      pip install ${LIBRARY_PIP_SETTINGS} --user -e . )
-
     set( LIBRARY_PIP_BUILD_CMD
       ${PYTHON_EXECUTABLE} setup.py build )
     set( LIBRARY_PIP_INSTALL_CMD
-      ${PYTHON_PIP_COMMAND} install --user -e . )
+      ${PYTHON_EXECUTABLE} -m pip install --user -e . )
   else()
-    set( LIBRARY_PIP_CMD
-      pip install ${LIBRARY_PIP_SETTINGS} --user ${LIBRARY_LOCATION_URL} )
-
     set( LIBRARY_PIP_BUILD_CMD
       ${PYTHON_EXECUTABLE} setup.py bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     set( LIBRARY_PIP_INSTALL_CMD
@@ -102,10 +95,36 @@ foreach( LIB ${PYTORCH_LIBRARIES} )
                         ${CUDNN_ENV}
       ${LIBRARY_PIP_INSTALL_CMD} )
 
-  if( "${LIB}" STREQUAL "pytorch" )
+  if( "${LIB}" STREQUAL "mmdetection" )
+    set( MMDET_SUBDEPS roi_align roi_pool nms dcn )
+
+    foreach( DEP ${MMDET_SUBDEPS} )
+      set( DEP_PYTHON_BUILD
+        ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
+                            TMPDIR=${LIBRARY_PIP_TMP_DIR}
+                            PATH=${CUSTOM_PATH}
+                            PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
+                            CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
+                            TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}
+                            TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}
+                            ${CUDNN_ENV}
+          ${PYTHON_EXECUTABLE} setup.py build_ext --inplace )
+      ExternalProject_Add( mmdet_${DEP}
+        DEPENDS fletch pytorch mmcv
+        PREFIX ${VIAME_BUILD_PREFIX}
+        SOURCE_DIR ${VIAME_PACKAGES_DIR}/pytorch-libs/${LIB}/mmdet/ops/${DEP}
+        STAMP_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${DEP}-stamp
+        BUILD_IN_SOURCE 1
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ${DEP_PYTHON_BUILD}
+        INSTALL_COMMAND ""
+        )
+    endforeach()
+
+    set( PROJECT_DEPS fletch pytorch mmcv
+         mmdet_roi_align mmdet_roi_pool mmdet_dcn mmdet_nms )
+  elseif( "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS fletch )
-  elseif( "${LIB}" STREQUAL "mmdetection" )
-    set( PROJECT_DEPS fletch pytorch mmcv )
   else()
     set( PROJECT_DEPS fletch pytorch )
   endif()
