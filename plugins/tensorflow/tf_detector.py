@@ -34,7 +34,8 @@ class tf_detector(KwiverProcess):
         self.declare_config_using_trait("model_file")
 
         self.add_config_trait("norm_image_type", "norm_image_type", "",
-          "Type of normalization for input image.")
+          "Type of normalization for input image. Options: S, P, C, "
+          "and adaptive_min_fixed_range")
 
         self.declare_config_using_trait("norm_image_type")
         
@@ -67,13 +68,13 @@ class tf_detector(KwiverProcess):
     # ----------------------------------------------
     def _configure(self):
         print( "[DEBUG] ----- configure" )
-        self.modelFile = self.config_value("model_file")
-        self.normImageType = self.config_value("norm_image_type")
-        self.confidenceThresh = float(self.config_value("confidence_thresh"))
-        self.categoryName = self.config_value("category_name")
+        self.model_file = self.config_value("model_file")
+        self.norm_image_type = self.config_value("norm_image_type")
+        self.confidence_thresh = float(self.config_value("confidence_thresh"))
+        self.category_name = self.config_value("category_name")
 
         # Load and detector
-        self.detection_graph = self.load_model(self.modelFile)
+        self.detection_graph = self.load_model(self.model_file)
 
         self.sess = tf.Session(graph=self.detection_graph)
 
@@ -84,51 +85,51 @@ class tf_detector(KwiverProcess):
         print( "[DEBUG] ----- start step" )
         # grab image container from port using traits
         in_img_c = self.grab_input_using_trait("image")
-        
-        imageHeight = in_img_c.height(); imageWidth = in_img_c.width()
 
-        if (self.normImageType):
-            print("Normalize image")
-            
+        image_height = in_img_c.height(); image_width = in_img_c.width()
+
+        if (self.norm_image_type and self.norm_image_type != "none"):
+            print("Normalizing input image")
+
             in_img = in_img_c.image().asarray().astype("uint16")
-            
-            bottom, top = self.get_scaling_values(self.normImageType, imageHeight)
+
+            bottom, top = self.get_scaling_values(self.norm_image_type, in_img, image_height)
             in_img = self.lin_normalize_image(in_img, bottom, top)
-        
+
             in_img = np.tile(in_img, (1,1,3))
         else:
             in_img = np.array(get_pil_image(in_img_c.image()).convert("RGB"))
-                        
+
         self.push_to_port_using_trait("image_norm", ImageContainer(Image(in_img)))
-        
-        startTime = time.time()
+
+        start_time = time.time()
         boxes, scores, classes = self.generate_detection(self.detection_graph, in_img)
-        elapsed = time.time() - startTime
+        elapsed = time.time() - start_time
         print("Done running detector in {}".format(humanfriendly.format_timespan(elapsed)))
 
-        goodBoxes = []
+        good_boxes = []
         detections = DetectedObjectSet()
 
         for i in range(0, len(scores)):
-           if(scores[i] >= self.confidenceThresh):
+           if(scores[i] >= self.confidence_thresh):
                bbox = boxes[i]
-               goodBoxes.append(bbox)
+               good_boxes.append(bbox)
 
-               topRel = bbox[0]
-               leftRel = bbox[1]
-               bottomRel = bbox[2]
-               rightRel = bbox[3]
+               top_rel = bbox[0]
+               left_rel = bbox[1]
+               bottom_rel = bbox[2]
+               right_rel = bbox[3]
             
-               xmin = leftRel * imageWidth
-               ymin = topRel * imageHeight
-               xmax = rightRel * imageWidth
-               ymax = bottomRel * imageHeight
+               xmin = left_rel * image_width
+               ymin = top_rel * image_height
+               xmax = right_rel * image_width
+               ymax = bottom_rel * image_height
 
-               dot = DetectedObjectType(self.categoryName, scores[i])
+               dot = DetectedObjectType(self.category_name, scores[i])
                obj = DetectedObject(BoundingBox(xmin, ymin, xmax, ymax), scores[i], dot)
                detections.add(obj)
 
-        print("Detected {}".format(len(goodBoxes)))
+        print("Detected {}".format(len(good_boxes)))
 
         self.push_to_port_using_trait("detected_object_set", detections)
 
@@ -201,21 +202,23 @@ class tf_detector(KwiverProcess):
 
         return scaled_image
         
-    def get_scaling_values(self, camera_pos, num_rows):
+    def get_scaling_values(self, norm_method, in_img, num_rows):
         """Returns the bottom and top scaling parameters based on camera_pos
         Inputs:
-            camera_pos: string, name of camera pos
+            norm_method: string, name of camera pos or normalization method
             num_rows: int, number of rows in the image
         Outputs:
             bottom: int, number that maps to 0 in scaled image
             top: int, number that maps to 255 in scaled image
         """
-        
-        # camera_pos S and default
-        bottom = 51000
-        top = 57500
 
-        if camera_pos == "P":
+        if norm_method == "none":
+            bottom = 0
+            top = 65535
+        if norm_method == "adaptive_min_fixed_range":
+            bottom = np.min( in_img )
+            top = bottom + 7000
+        elif norm_method == "P":
             if num_rows == 512:
                 bottom = 53500
                 top = 56500
@@ -224,8 +227,12 @@ class tf_detector(KwiverProcess):
                 top = 58500
             else:
                 print("Unknown camera size for file %s" % filename)
-        elif camera_pos == "C":
+        elif norm_method == "C":
             bottom = 50500
-            top = 58500            
+            top = 58500
+        else:
+            # camera_pos S and default
+            bottom = 51000
+            top = 57500
                                     
         return bottom, top
