@@ -38,5 +38,3 @@ install( DIRECTORY   training_data_habcam
          DESTINATION examples/object_detector_training )
 install( DIRECTORY   training_data_mouss
          DESTINATION examples/object_detector_training )
-install( DIRECTORY   deprecated_old_api
-         DESTINATION examples/object_detector_training )
