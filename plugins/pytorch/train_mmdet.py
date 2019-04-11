@@ -61,7 +61,7 @@ class MMTrainDetector( TrainDetector ):
       return False
     return True
 
-  def add_data_from_disk( categories, train_files, train_dets, test_files, test_dets ):
+  def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
     print( "!! " + str( categories.all_class_names() ) )
 
   def update_model(self):
