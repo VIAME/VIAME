@@ -183,6 +183,47 @@ set( CORE_PIPELINE_FILES
   pipelines/train_yolo_960.viame_csv.conf
   pipelines/train_yolo_wtf_704.viame_csv.conf )
 
+if( VIAME_ENABLE_VIVIA )
+  set( GUI_PIPELINE_FILES
+    pipelines/gui_embedded/default_detector.pipe
+    pipelines/gui_embedded/default_tracker.pipe
+    pipelines/gui_embedded/generate_empty_full_frame_lbls.pipe
+    pipelines/gui_embedded/generic_detector.pipe
+    pipelines/gui_embedded/generic_tracker.pipe
+    pipelines/gui_embedded/local_deep_detector.pipe
+    pipelines/gui_embedded/local_deep_tracker.pipe
+    pipelines/gui_embedded/local_svm_full_frame_clfr.pipe
+    pipelines/gui_embedded/local_svm_detector.pipe
+    pipelines/gui_embedded/local_svm_tracker.pipe
+    pipelines/gui_embedded/train_deep_detector.pipe )
+
+  if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-MOUSS )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/gui_embedded/mouss_detector.pipe
+      pipelines/gui_embedded/mouss_tracker.pipe )
+  endif()
+
+  if( VIAME_DOWNLOAD_MODELS-HABCAM )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/gui_embedded/habcam_detector.pipe )
+  endif()
+
+  if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+    set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+      pipelines/gui_embedded/arctic_seal_rgb_tf_detector.pipe
+      pipelines/gui_embedded/arctic_seal_ir_tf_detector.pipe )
+  endif()
+
+  if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+    set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+      pipelines/gui_embedded/arctic_seal_rgb_yolo_detector.pipe
+      pipelines/gui_embedded/arctic_seal_ir_yolo_detector.pipe )
+  endif()
+
+  install( FILES       ${GUI_PIPELINE_FILES}
+           DESTINATION configs/pipelines/gui_embedded )
+endif()
+
 if( VIAME_ENABLE_BURNOUT )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/burnout_det_descriptor.cfe.conf
@@ -224,18 +265,14 @@ if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     pipelines/common_arctic_seal_rgb_tf_detector.pipe
     pipelines/common_arctic_seal_ir_tf_detector.pipe
     pipelines/detector_arctic_seal_rgb_tf.pipe
-    pipelines/detector_arctic_seal_ir_tf.pipe
-    pipelines/gui_embedded/arctic_seal_rgb_tf_detector.pipe
-    pipelines/gui_embedded/arctic_seal_ir_tf_detector.pipe )
+    pipelines/detector_arctic_seal_ir_tf.pipe )
 endif()
 
 if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_arctic_seal_rgb_yolo_detector.pipe
     pipelines/common_arctic_seal_ir_yolo_detector.pipe
-    pipelines/detector_arctic_seal_fusion_yolo.pipe
-    pipelines/gui_embedded/arctic_seal_rgb_yolo_detector.pipe
-    pipelines/gui_embedded/arctic_seal_ir_yolo_detector.pipe )
+    pipelines/detector_arctic_seal_fusion_yolo.pipe )
 endif()
 
 if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-MOUSS )
@@ -277,31 +314,3 @@ install( FILES       ${CORE_PIPELINE_FILES}
          DESTINATION configs/pipelines )
 install( DIRECTORY   pipelines/models
          DESTINATION configs/pipelines )
-
-
-if( VIAME_ENABLE_VIVIA )
-  set( GUI_PIPELINE_FILES
-    pipelines/gui_embedded/default_detector.pipe
-    pipelines/gui_embedded/default_tracker.pipe
-    pipelines/gui_embedded/generic_detector.pipe
-    pipelines/gui_embedded/generic_tracker.pipe
-    pipelines/gui_embedded/local_deep_detector.pipe
-    pipelines/gui_embedded/local_deep_tracker.pipe
-    pipelines/gui_embedded/local_svm_detector.pipe
-    pipelines/gui_embedded/local_svm_tracker.pipe
-    pipelines/gui_embedded/train_deep_detector.pipe )
-
-  if( VIAME_DOWNLOAD_MODELS-MOUSS )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/gui_embedded/mouss_detector.pipe
-      pipelines/gui_embedded/mouss_tracker.pipe )
-  endif()
-
-  if( VIAME_DOWNLOAD_MODELS-HABCAM )
-    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/gui_embedded/habcam_detector.pipe )
-  endif()
-
-  install( FILES       ${GUI_PIPELINE_FILES}
-           DESTINATION configs/pipelines/gui_embedded )
-endif()
