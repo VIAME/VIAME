@@ -42,7 +42,7 @@ class MMTrainDetector( TrainDetector ):
   """
   def __init__( self ):
     TrainDetector.__init__(self)
-    self._model_file = ""
+    self._model_file = "models/cascade_rnn.pt"
 
   def get_configuration(self):
     # Inherit from the base class
@@ -56,7 +56,7 @@ class MMTrainDetector( TrainDetector ):
     self._model_file = str( cfg.get_value( "model_file" ) )
 
   def check_configuration( self, cfg ):
-    if not cfg.has_value("center_x") or len(cfg.get_value( "model_file")) == 0:
+    if not cfg.has_value("model_file") or len(cfg.get_value( "model_file")) == 0:
       print( "A model file must be specified!" )
       return False
     return True
