@@ -40,7 +40,12 @@ class tf_detector(KwiverProcess):
           "and adaptive_min_fixed_range")
 
         self.declare_config_using_trait("norm_image_type")
-        
+
+        self.add_config_trait("fixed_range", "fixed_range", "7000",
+          "Intensity value for normalization if using fixed range.")
+
+        self.declare_config_using_trait("fixed_range")
+
         self.add_config_trait("confidence_thresh", "confidence_thresh", ".5",
           "Confidence threshold for detection.")
 
@@ -72,6 +77,7 @@ class tf_detector(KwiverProcess):
         print( "[DEBUG] ----- configure" )
         self.model_file = self.config_value("model_file")
         self.norm_image_type = self.config_value("norm_image_type")
+        self.fixed_range = int(self.config_value("fixed_range"))
         self.confidence_thresh = float(self.config_value("confidence_thresh"))
         self.category_name = self.config_value("category_name")
 
@@ -218,8 +224,8 @@ class tf_detector(KwiverProcess):
             bottom = 0
             top = 65535
         if norm_method == "adaptive_min_fixed_range":
-            bottom = np.min( in_img )
-            top = bottom + 7000
+            bottom = np.percentile( in_img, 1 )
+            top = bottom + self.fixed_range
         elif norm_method == "P":
             if num_rows == 512:
                 bottom = 53500
