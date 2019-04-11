@@ -45,6 +45,8 @@
 #include <vital/types/image_container.h>
 #include <vital/bindings/python/vital/algo/trampoline/algorithm_trampoline.txx>
 
+#include <pybind11/stl.h>
+
 
 template < class algorithm_def_td_base=kwiver::vital::algorithm_def<
   kwiver::vital::algo::train_detector > >
