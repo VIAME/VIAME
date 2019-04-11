@@ -19,7 +19,7 @@ process out_adapt
 process detector
   :: image_object_detector
   :detector:type                               full_frame
-  #:detector:full_frame:detection_type         generic_object_proposal
+  :detector:full_frame:detection_type          unannotated_frame
 
 connect from in_adapt.image
         to   detector.image

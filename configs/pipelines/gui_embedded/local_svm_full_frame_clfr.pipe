@@ -21,7 +21,7 @@ process detector
   :detector:type                               full_frame
   :detector:full_frame:detection_type          generic_object_proposal
 
-include common_default_descriptor.pipe
+include ../common_default_descriptor.pipe
 
 connect from in_adapt.image
         to   detector.image
