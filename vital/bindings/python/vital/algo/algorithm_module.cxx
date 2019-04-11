@@ -39,10 +39,17 @@
 #include <pybind11/stl.h>
 
 #include <vital/algo/algorithm.h>
-#include <vital/algo/image_object_detector.h>
-#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
 #include <vital/bindings/python/vital/algo/algorithm.h>
+
+#include <vital/algo/image_object_detector.h>
+#include <vital/algo/train_detector.h>
+
+#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
+#include <vital/bindings/python/vital/algo/trampoline/train_detector_trampoline.txx>
+
 #include <vital/bindings/python/vital/algo/image_object_detector.h>
+#include <vital/bindings/python/vital/algo/train_detector.h>
+
 #include <sstream>
 
 namespace py = pybind11;
@@ -50,7 +57,13 @@ namespace py = pybind11;
 PYBIND11_MODULE(algorithm, m)
 {
   algorithm(m);
+
   register_algorithm<kwiver::vital::algo::image_object_detector,
-            algorithm_def_iod_trampoline<>>(m, "image_object_detector");
+    algorithm_def_iod_trampoline<>>(m, "image_object_detector");
   image_object_detector(m);
+
+  register_algorithm<kwiver::vital::algo::train_detector,
+    algorithm_def_td_trampoline<>>(m, "train_detector");
+  train_detector(m);
+
 }
