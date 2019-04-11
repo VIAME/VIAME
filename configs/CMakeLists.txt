@@ -208,6 +208,11 @@ if( VIAME_ENABLE_OPENCV )
     pipelines/register_multimodal_unsync_ocv.pipe )
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/train_mmdet_cascade.conf )
+endif()
+
 if( VIAME_ENABLE_ITK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/register_multimodal_sync_itk.pipe
