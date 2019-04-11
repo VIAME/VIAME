@@ -29,6 +29,18 @@ if( VIAME_ENABLE_YOLO )
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_cfrnn_viame_csv.bat )
+  else()
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_cfrnn_viame_csv.sh  )
+  endif()
+endif()
+
 ###
 # Install pipelines to example directory
 ##
