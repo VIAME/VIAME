@@ -235,6 +235,9 @@ image_container
       static_cast<void*>(reinterpret_cast<GByte*>(
         img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
       width(), height(), bandType, 0, 0);
+    // TODO Error checking on return value
+    // this line silences unused variable warnings
+    (void) err;
   }
 
   return img;
