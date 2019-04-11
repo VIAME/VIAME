@@ -252,7 +252,7 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/train_mmdet_cascade.viame.csv.conf )
+    pipelines/train_mmdet_cascade.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_ITK )
