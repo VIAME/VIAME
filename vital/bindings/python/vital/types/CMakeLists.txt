@@ -175,6 +175,7 @@ kwiver_create_python_init(vital/types
   camera
   camera_intrinsics
   camera_map
+  category_hierarchy
   color
   covariance
   descriptor
