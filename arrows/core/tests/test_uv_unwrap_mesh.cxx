@@ -85,6 +85,15 @@ public:
   mesh_sptr mesh;
 };
 
+// ----------------------------------------------------------------------------
+TEST(uv_unwrap_mesh, create)
+{
+  using namespace kwiver::vital;
+
+  plugin_manager::instance().load_all_plugins();
+
+  EXPECT_NE(nullptr, algo::uv_unwrap_mesh::create("core"));
+}
 
 // ----------------------------------------------------------------------------
 TEST_F(uv_unwrap_mesh_test, check_texture_coordinates)
