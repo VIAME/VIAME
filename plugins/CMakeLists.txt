@@ -43,3 +43,7 @@ endif()
 if( VIAME_ENABLE_TENSORFLOW )
   add_subdirectory( tensorflow )
 endif()
+
+if( VIAME_ENABLE_PYTORCH )
+  add_subdirectory( pytorch )
+endif()
