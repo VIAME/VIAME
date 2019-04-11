@@ -33,7 +33,6 @@
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/types/mesh.h>
 
-#include <Eigen/Dense>
 #include <gtest/gtest.h>
 
 #include <algorithm>
