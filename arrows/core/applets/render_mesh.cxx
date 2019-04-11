@@ -146,7 +146,7 @@ add_command_options()
     ( "output-image", "Output image file name", cxxopts::value<std::string>() )
     ;
 
-    m_cmd_options->parse_positional({"mesh-file", "camera-file", "output-image", "extra"});
+    m_cmd_options->parse_positional({"mesh-file", "camera-file", "output-image"});
 }
 
 

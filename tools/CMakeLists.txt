@@ -15,8 +15,8 @@ set( headers
   cxxopts.hpp
   )
 
-if ( NOT STD_REGEX )
-  set( BOOST_REGEX boost_regex)
+if ( NOT VITAL_USE_STD_REGEX )
+  set( BOOST_REGEX ${Boost_REGEX_LIBRARY})
   add_definitions( -DKWIVER_USE_BOOST_REGEX )
 endif()
 
