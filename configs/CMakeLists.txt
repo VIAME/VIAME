@@ -188,12 +188,12 @@ if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
     pipelines/gui_embedded/default_detector.pipe
     pipelines/gui_embedded/default_tracker.pipe
-    pipelines/gui_embedded/generate_empty_full_frame_lbls.pipe
+    pipelines/gui_embedded/generate_empty_frame_lbls.pipe
     pipelines/gui_embedded/generic_detector.pipe
     pipelines/gui_embedded/generic_tracker.pipe
     pipelines/gui_embedded/local_deep_detector.pipe
     pipelines/gui_embedded/local_deep_tracker.pipe
-    pipelines/gui_embedded/local_svm_full_frame_clfr.pipe
+    pipelines/gui_embedded/local_svm_frame_classifier.pipe
     pipelines/gui_embedded/local_svm_detector.pipe
     pipelines/gui_embedded/local_svm_tracker.pipe
     pipelines/gui_embedded/train_deep_detector.pipe )
