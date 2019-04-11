@@ -6,11 +6,16 @@ kwiver_add_python_library(algorithm
   vital/algo
   algorithm.h
   image_object_detector.h
+  train_detector.h
+
   algorithm.cxx
   image_object_detector.cxx
+  train_detector.cxx
   algorithm_module.cxx
+
   trampoline/algorithm_trampoline.txx
   trampoline/image_object_detector_trampoline.txx
+  trampoline/train_detector_trampoline.txx
 )
 
 
