@@ -55,8 +55,8 @@ class MMTrainDetector( TrainDetector ):
     cfg.merge_config( cfg_in )
     self._model_file = str( cfg.get_value( "model_file" ) )
 
-  def check_configuration( self, cfg):
-    if !cfg.has_value("center_x") or len(cfg.get_value( "model_file")) == 0:
+  def check_configuration( self, cfg ):
+    if not cfg.has_value("center_x") or len(cfg.get_value( "model_file")) == 0:
       print( "A model file must be specified!" )
       return False
     return True
@@ -72,7 +72,7 @@ def __vital_algorithm_register__():
   # Register Algorithm
   implementation_name  = "mmdet"
   if algorithm_factory.has_algorithm_impl_name(
-      MMTrainDetector.static_type_name(), implementation_name):
+      MMTrainDetector.static_type_name(), implementation_name ):
     return
   algorithm_factory.add_algorithm( implementation_name,
     "PyTorch MMDetection training routine", MMTrainDetector )
