@@ -64,8 +64,8 @@ public:
       ray_potential_thickness(20.0),
       ray_potential_eta(1.0),
       ray_potential_delta(200.0),
-      voxel_spacing_factor(1.0),
       grid_spacing {1.0, 1.0, 1.0},
+      voxel_spacing_factor(1.0),
       m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
   {
   }
@@ -288,7 +288,7 @@ integrate_depth_maps::integrate(
   cuda_ptr<double> d_K = make_cuda_mem<double>(16);
   cuda_ptr<double> d_RT = make_cuda_mem<double>(16);
 
-  for (int i = 0; i < depth_maps.size(); i++)
+  for (size_t i = 0; i < depth_maps.size(); i++)
   {
     int depthmap_dims[2];
     depthmap_dims[0] = static_cast<int>(depth_maps[i]->width());

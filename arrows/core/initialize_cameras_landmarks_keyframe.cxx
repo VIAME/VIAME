@@ -3487,7 +3487,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   bool done_registering_keyframes = false;
 
-  bool frames_since_last_ba = 0;
+  int frames_since_last_ba = 0;
 
   std::map<frame_id_t, double> last_reproj_by_cam;
   while(!frames_to_register.empty())
