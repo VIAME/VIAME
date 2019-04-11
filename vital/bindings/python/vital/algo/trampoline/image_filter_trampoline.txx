@@ -29,47 +29,59 @@
  */
 
 /**
- * \file algorithm_implementation.cxx
+ * \file image_filter_trampoline.txx
  *
- * \brief python bindings for algorithm
+ * \brief trampoline for overriding virtual functions of
+ *        algorithm_def<image_filter> and image_filter
  */
 
+#ifndef IMAGE_FILTER_TRAMPOLINE_TXX
+#define IMAGE_FILTER_TRAMPOLINE_TXX
 
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 
-#include <vital/algo/algorithm.h>
-#include <vital/bindings/python/vital/algo/algorithm.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
+#include <vital/algo/image_filter.h>
+#include <vital/types/image_container.h>
+#include <vital/bindings/python/vital/algo/trampoline/algorithm_trampoline.txx>
 
-#include <vital/algo/image_object_detector.h>
-#include <vital/algo/train_detector.h>
 
-#include <vital/bindings/python/vital/algo/trampoline/image_filter_trampoline.txx>
-#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
-#include <vital/bindings/python/vital/algo/trampoline/train_detector_trampoline.txx>
-
-#include <vital/bindings/python/vital/algo/image_filter.h>
-#include <vital/bindings/python/vital/algo/image_object_detector.h>
-#include <vital/bindings/python/vital/algo/train_detector.h>
-
-#include <sstream>
-
-namespace py = pybind11;
-
-PYBIND11_MODULE(algorithm, m)
+template < class algorithm_def_if_base=kwiver::vital::algorithm_def<
+  kwiver::vital::algo::image_filter > >
+class algorithm_def_if_trampoline :
+  public algorithm_trampoline< algorithm_def_if_base >
 {
-  algorithm(m);
+  public:
+    using algorithm_trampoline< algorithm_def_if_base >::algorithm_trampoline;
 
-  register_algorithm<kwiver::vital::algo::image_filter,
-    algorithm_def_if_trampoline<>>(m, "image_filter");
-  image_filter(m);
+    std::string type_name() const override 
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        std::string,
+        kwiver::vital::algorithm_def<kwiver::vital::algo::image_filter>,
+        type_name,
+      );
+    }
+};
 
-  register_algorithm<kwiver::vital::algo::image_object_detector,
-    algorithm_def_iod_trampoline<>>(m, "image_object_detector");
-  image_object_detector(m);
 
-  register_algorithm<kwiver::vital::algo::train_detector,
-    algorithm_def_td_trampoline<>>(m, "train_detector");
-  train_detector(m);
+template < class image_filter_base=kwiver::vital::algo::image_filter >
+class image_filter_trampoline :
+  public algorithm_def_if_trampoline< image_filter_base >
+{
+  public:
+    using algorithm_def_if_trampoline< image_filter_base >::
+      algorithm_def_if_trampoline;
 
-}
+    kwiver::vital::image_container_sptr
+    filter( kwiver::vital::image_container_sptr image_data ) override
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
+        kwiver::vital::image_container_sptr,
+        kwiver::vital::algo::image_filter,
+        filter,
+        image_data
+      );
+    }
+};
+
+#endif
