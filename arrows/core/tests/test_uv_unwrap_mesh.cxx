@@ -43,7 +43,6 @@ using namespace kwiver::arrows::core;
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
-  plugin_manager::instance().load_all_plugins();
   ::testing::InitGoogleTest( &argc, argv );
   return RUN_ALL_TESTS();
 }
