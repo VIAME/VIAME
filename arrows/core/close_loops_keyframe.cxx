@@ -275,7 +275,7 @@ close_loops_keyframe
   for(auto kitr = keyframes.rbegin(); kitr != keyframes.rend(); ++kitr)
   {
     // if this frame was already matched above then skip it
-    if(*kitr >= *last_frame_itr)
+    if(last_frame_itr == frames.rend() || *kitr >= *last_frame_itr)
     {
       continue;
     }
@@ -328,7 +328,7 @@ close_loops_keyframe
   for(auto kitr = keyframes.rbegin(); kitr != keyframes.rend(); ++kitr)
   {
     // if this frame was already matched above then skip it
-    if(*kitr >= *last_frame_itr)
+    if(last_frame_itr == frames.rend() || *kitr >= *last_frame_itr)
     {
       continue;
     }
