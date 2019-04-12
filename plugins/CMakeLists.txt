@@ -8,6 +8,10 @@ set( viame_plugin_process_subdir   ${viame_plugin_subdir}/processes )
 add_subdirectory( core )
 add_subdirectory( hello_world )
 
+if( VIAME_ENABLE_PYTHON )
+  kwiver_create_python_init( viame/arrows )
+endif()
+
 if( VIAME_ENABLE_OPENCV )
   add_subdirectory( opencv )
 endif()

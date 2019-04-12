@@ -111,6 +111,13 @@ kwiver_add_plugin( viame_processes_core
 
 if( VIAME_ENABLE_PYTHON )
 
+  kwiver_create_python_init( viame/arrows/core )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/npy_image_normalization.py
+    viame/arrows/core
+    npy_image_normalization )
+
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
     viame/processes/core
