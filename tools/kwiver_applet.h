@@ -106,6 +106,14 @@ m_cmd_options.add_option("group")
   cxxopts::ParseResult& command_args();
 
   /**
+   * @brief Skip command line args parsing.
+   *
+   * When called, the regular command line parsing is skipped. This is
+   * useful for applets that use a different command arg parser.
+   */
+  void skip_parse_args();
+
+  /**
    * Command line options specification. This is initialized by the
    * add_command_options() method as delegated to the derived applet.
    * This is managed by unique pointer to delay creation.
@@ -135,6 +143,15 @@ protected:
    * @return Text string wrapped into a block.
    */
   std::string wrap_text( const std::string& text );
+
+  /**
+   * @brief Return original arguments
+   *
+   * The vector of original applet args is returned.
+   *
+   * @return Read only vector of args
+   */
+  const std::vector<std::string>& applet_args() const;
 
 private:
   /**

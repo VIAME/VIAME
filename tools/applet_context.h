@@ -62,8 +62,13 @@ public:
    * Results from parsing the command options. Note that you do not
    * own this storage.
    */
-  cxxopts::ParseResult*  m_result;
+  cxxopts::ParseResult*  m_result { nullptr };
 
+  // Original args for plugin for alternate command line processing.
+  std::vector< std::string >m_argv;
+
+  // Flag for skipping command line parsing
+  bool m_skip_command_args_parsing { false };
 
 }; // end class applet_context
 
