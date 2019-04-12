@@ -31,6 +31,24 @@ if( VIAME_ENABLE_VXL OR VIAME_ENABLE_OPENCV )
   )
 endif()
 
+if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Qt:BOOL=ON
+    -Dfletch_ENABLE_TinyXML:BOOL=ON
+    -Dfletch_ENABLE_libjson:BOOL=ON
+    -Dfletch_ENABLE_GeographicLib:BOOL=ON
+  )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Qt:BOOL=OFF
+    -Dfletch_ENABLE_TinyXML:BOOL=OFF
+    -Dfletch_ENABLE_libjson:BOOL=OFF
+    -Dfletch_ENABLE_GeographicLib:BOOL=OFF
+  )
+endif()
+
 if( VIAME_ENABLE_VIVIA )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
@@ -38,6 +56,7 @@ if( VIAME_ENABLE_VIVIA )
     -Dfletch_ENABLE_VTK:BOOL=ON
     -Dfletch_ENABLE_qtExtensions:BOOL=ON
     -DVTK_SELECT_VERSION:STRING=8.0
+    -DQt_SELECT_VERSION:STRING=4.8.6
     -Dfletch_ENABLE_PROJ4:BOOL=ON
     -Dfletch_ENABLE_libkml:BOOL=ON
     -Dfletch_ENABLE_PNG:BOOL=ON
@@ -48,6 +67,13 @@ if( VIAME_ENABLE_VIVIA )
       -Dfletch_ENABLE_libxml2:BOOL=ON
     )
   endif()
+elseif( VIAME_ENABLE_SEAK_TK )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_qtExtensions:BOOL=ON
+    -Dfletch_ENABLE_VTK:BOOL=OFF
+    -DQt_SELECT_VERSION:STRING=5.10.0
+  )
 else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
@@ -64,24 +90,6 @@ else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_libgeotiff:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT )
-  set( fletch_DEP_FLAGS
-    ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_Qt:BOOL=ON
-    -Dfletch_ENABLE_TinyXML:BOOL=ON
-    -Dfletch_ENABLE_libjson:BOOL=ON
-    -Dfletch_ENABLE_GeographicLib:BOOL=ON
-  )
-else()
-  set( fletch_DEP_FLAGS
-    ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_Qt:BOOL=OFF
-    -Dfletch_ENABLE_TinyXML:BOOL=OFF
-    -Dfletch_ENABLE_libjson:BOOL=OFF
-    -Dfletch_ENABLE_GeographicLib:BOOL=OFF
   )
 endif()
 
