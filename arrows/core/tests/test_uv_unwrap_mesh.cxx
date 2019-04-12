@@ -33,7 +33,6 @@
 #include <vital/plugin_loader/plugin_manager.h>
 #include <vital/types/mesh.h>
 
-#include <Eigen/Dense>
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -44,7 +43,6 @@ using namespace kwiver::arrows::core;
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
-  plugin_manager::instance().load_all_plugins();
   ::testing::InitGoogleTest( &argc, argv );
   return RUN_ALL_TESTS();
 }
@@ -87,6 +85,15 @@ public:
   mesh_sptr mesh;
 };
 
+// ----------------------------------------------------------------------------
+TEST(uv_unwrap_mesh, create)
+{
+  using namespace kwiver::vital;
+
+  plugin_manager::instance().load_all_plugins();
+
+  EXPECT_NE(nullptr, algo::uv_unwrap_mesh::create("core"));
+}
 
 // ----------------------------------------------------------------------------
 TEST_F(uv_unwrap_mesh_test, check_texture_coordinates)
