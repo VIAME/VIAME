@@ -178,6 +178,9 @@ Arrows: CUDA
 
 Arrows: FFmpeg
 
+ * Translated log messages from FFMPEG into KWIVER log messages so we can
+   control the verbosity.
+
 Arrows: GDAL
 
 Arrows: KPF
