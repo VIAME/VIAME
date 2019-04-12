@@ -88,7 +88,6 @@ void ffmpeg_init()
   static bool initialized = false;
   if ( ! initialized ) {
     av_register_all();
-    av_log_set_level(AV_LOG_ERROR);
     av_log_set_callback(ffmpeg_kwiver_log_callback);
     initialized = true;
   }
