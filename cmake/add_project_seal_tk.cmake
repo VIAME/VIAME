@@ -9,18 +9,6 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} seal_tk )
 
-if( WIN32 )
-  set( VIAME_QMAKE_EXE ${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake.exe )
-else()
-  set( VIAME_QMAKE_EXE ${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake )
-endif()
-
-if( APPLE )
-  set( SEAL_TK_DISABLE_FIXUP OFF )
-else()
-  set( SEAL_TK_DISABLE_FIXUP ON )
-endif()
-
 ExternalProject_Add(seal_tk
   DEPENDS fletch kwiver
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -30,9 +18,8 @@ ExternalProject_Add(seal_tk
     ${VIAME_ARGS_COMMON}
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
+    ${VIAME_ARGS_Qt}
     -DBUILD_SHARED_LIBS:BOOL=ON
-    -DDISABLE_FIXUP_BUNDLE:BOOL=${SEAL_TK_DISABLE_FIXUP}
-    -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_QMAKE_EXE}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )

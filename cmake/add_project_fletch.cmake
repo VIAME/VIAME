@@ -67,7 +67,7 @@ if( VIAME_ENABLE_VIVIA )
       -Dfletch_ENABLE_libxml2:BOOL=ON
     )
   endif()
-elseif( VIAME_ENABLE_SEAK_TK )
+elseif( VIAME_ENABLE_SEAL_TK)
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_qtExtensions:BOOL=ON
@@ -263,17 +263,25 @@ if( VIAME_ENABLE_VIVIA )
      ${VIAME_ARGS_PROJ4}
     -DPROJ4_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/include
     )
-  if( NOT WIN32 )
-    set(VIAME_ARGS_QT
-      ${VIAME_ARGS_QT}
-      -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake
-    )
-  endif()
   if( WIN32 )
     set(VIAME_ARGS_PROJ4
        ${VIAME_ARGS_PROJ4}
       -DPROJ4_LIBRARY:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/proj_4_9.lib
       )
+  endif()
+endif()
+
+if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
+  if( WIN32 )
+    set(VIAME_ARGS_Qt
+       ${VIAME_ARGS_Qt}
+       -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake.exe
+    )
+  else()
+    set(VIAME_ARGS_Qt
+       ${VIAME_ARGS_Qt}
+       -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake
+    )
   endif()
 endif()
 
