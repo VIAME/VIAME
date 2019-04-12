@@ -1,0 +1,54 @@
+# Seal-TK External Project
+#
+# Required symbols are:
+#   VIAME_BUILD_PREFIX - where packages are built
+#   VIAME_BUILD_INSTALL_PREFIX - directory install target
+#   VIAME_PACKAGES_DIR - location of git submodule packages
+#   VIAME_ARGS_COMMON -
+##
+
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} seal-tk )
+
+if( WIN32 )
+  set( VIAME_QMAKE_EXE ${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake.exe )
+else()
+  set( VIAME_QMAKE_EXE ${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake )
+endif()
+
+if( APPLE )
+  set( SEAL_TK_DISABLE_FIXUP OFF )
+else()
+  set( SEAL_TK_DISABLE_FIXUP ON )
+endif()
+
+ExternalProject_Add(seal_tk
+  DEPENDS fletch kwiver
+  PREFIX ${VIAME_BUILD_PREFIX}
+  SOURCE_DIR ${VIAME_PACKAGES_DIR}/seal-tk
+  CMAKE_GENERATOR ${gen}
+  CMAKE_CACHE_ARGS
+    ${VIAME_ARGS_COMMON}
+    ${VIAME_ARGS_fletch}
+    ${VIAME_ARGS_kwiver}
+    -DBUILD_SHARED_LIBS:BOOL=ON
+    -DDISABLE_FIXUP_BUNDLE:BOOL=${SEAL_TK_DISABLE_FIXUP}
+    -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_QMAKE_EXE}
+
+  INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
+  )
+
+if( VIAME_FORCEBUILD )
+  ExternalProject_Add_Step(seal_tk forcebuild
+    COMMAND ${CMAKE_COMMAND}
+      -E remove ${VIAME_BUILD_PREFIX}/src/seal_tk-stamp/seal_tk-build
+    COMMENT "Removing build stamp file for build update (forcebuild)."
+    DEPENDEES configure
+    DEPENDERS build
+    ALWAYS 1
+    )
+endif()
+
+set(VIAME_ARGS_seal_tk
+  -Dseal_tk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/seal_tk-build
+  )
+

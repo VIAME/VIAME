@@ -70,8 +70,11 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 ##
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             ON )
+option( VIAME_ENABLE_SEAL_TK        "Enable Seal-TK GUIs"           OFF )
 option( VIAME_ENABLE_FLASK          "Enable Flask GUIs"             OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
+
+mark_as_advanced( VIAME_ENABLE_SEAL_TK )
 
 ###
 # Add algorithmic plugin enable flags
@@ -91,6 +94,10 @@ option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
+
+mark_as_advanced( VIAME_ENABLE_BURNOUT )
+mark_as_advanced( VIAME_ENABLE_ITK )
+mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 
 ###
 # Add assorted other enable flags
@@ -181,6 +188,10 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH )
   option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  OFF )
+endif()
+
+if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL_TK )
+  message( FATAL_ERROR "Cannot yet enable both VIVIA and Seal-TK GUIs" )
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
@@ -342,6 +353,10 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_VIVIA )
     include( add_project_vivia )
+  endif()
+
+  if( VIAME_ENABLE_SEAL_TK )
+    include( add_project_seal_tk )
   endif()
 
   if( VIAME_ENABLE_KWANT )
