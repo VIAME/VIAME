@@ -35,8 +35,10 @@
 
 #include "ffmpeg_init.h"
 
-#include <mutex>
+
 #include <algorithm>
+#include <cctype>
+#include <mutex>
 
 extern "C" {
 #include <libavformat/avformat.h>
