@@ -36,8 +36,6 @@
 #include "ffmpeg_init.h"
 
 
-#include <algorithm>
-#include <cctype>
 #include <mutex>
 
 extern "C" {
@@ -45,18 +43,11 @@ extern "C" {
 }
 
 #include <vital/logger/logger.h>
+#include <vital/util/string.h>
 
 std::mutex ffmpeg_init_mutex;
 
 static auto ffmpeg_logger = kwiver::vital::get_logger( "arrows.ffmpeg" );
-
-//-----------------------------------------------------------------------------
-// trim whitespace from end of string (in place)
-static inline void rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(),
-                         [](int ch) { return !std::isspace(ch);}
-                         ).base(), s.end());
-}
 
 //-----------------------------------------------------------------------------
 void
@@ -66,7 +57,7 @@ ffmpeg_kwiver_log_callback(void* ptr, int level, const char* fmt, va_list vl)
   char line[1024];
   av_log_format_line(ptr, level, fmt, vl, line, sizeof(line), &print_prefix);
   std::string msg(line);
-  rtrim(msg);
+  kwiver::vital::right_trim(msg);
   switch(level)
   {
     case AV_LOG_PANIC:
