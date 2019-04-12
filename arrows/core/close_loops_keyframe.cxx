@@ -204,7 +204,7 @@ close_loops_keyframe
   // compute the last frame we need to match to within the search bandwidth
   // the conditional accounts for the boundary case at startup
   auto last_frame_itr = frames.rend();
-  if(frames.size() > d_->search_bandwidth)
+  if(frames.size() > static_cast<size_t>(d_->search_bandwidth))
   {
     last_frame_itr = frames.rbegin() + d_->search_bandwidth;
   }
