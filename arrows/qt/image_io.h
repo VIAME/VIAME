@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, SAS.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,63 +30,64 @@
 
 /**
  * \file
- * \brief Header for mesh uv unwrapping
+ * \brief Qt image_io interface
  */
 
-#ifndef KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
-#define KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
+#ifndef KWIVER_ARROWS_QT_IMAGE_IO_H_
+#define KWIVER_ARROWS_QT_IMAGE_IO_H_
 
-#include <arrows/core/kwiver_algo_core_export.h>
+#include <arrows/qt/kwiver_algo_qt_export.h>
 
-#include <vital/algo/uv_unwrap_mesh.h>
-#include <vital/types/mesh.h>
-#include <vital/vital_config.h>
-
+#include <vital/algo/image_io.h>
 
 namespace kwiver {
-namespace arrows {
-namespace core {
 
-/// A class for unwrapping a mesh and generating texture coordinates
-class KWIVER_ALGO_CORE_EXPORT uv_unwrap_mesh
-    : public vital::algorithm_impl<uv_unwrap_mesh, vital::algo::uv_unwrap_mesh>
+namespace arrows {
+
+namespace qt {
+
+/// A class for using Qt to read and write images.
+///
+/// This class provides an algorithm which can be used to read and write image
+/// files using Qt. This algorithm is quite limited in terms of what formats
+/// are supported, and offers no configuration. It is intended more as a proof
+/// of concept.
+class KWIVER_ALGO_QT_EXPORT image_io
+  : public vital::algorithm_impl< image_io, vital::algo::image_io >
 {
 public:
-  PLUGIN_INFO( "core",
-               "Unwrap a mesh and generate texture coordinates" )
+  static constexpr char const* name = "qt";
 
-  /// Get configuration
-  virtual vital::config_block_sptr get_configuration() const;
-
-  /// Set configuration
-  virtual void set_configuration(vital::config_block_sptr in_config);
-
-  /// Check configuration
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  static constexpr char const* description =
+    "Use Qt to load and save image files.";
 
   /// Constructor
-  uv_unwrap_mesh();
+  image_io();
 
   /// Destructor
-  virtual ~uv_unwrap_mesh();
+  virtual ~image_io();
 
-  /// Copy Constructor
-  uv_unwrap_mesh(const uv_unwrap_mesh& other);
-
-  /// Unwrap a mesh and generate texture coordinate
-  /**
-   * \param mesh [in/out]
-   */
-  virtual void unwrap(kwiver::vital::mesh_sptr mesh) const;
+  /// \copydoc vital::algo::image_io::set_configuration
+  virtual void set_configuration(
+    vital::config_block_sptr config ) override;
+  /// \copydoc vital::algo::image_io::check_configuration
+  virtual bool check_configuration(
+    vital::config_block_sptr config ) const override;
 
 private:
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
+  /// \copydoc vital::algo::image_io::load_
+  virtual vital::image_container_sptr load_(
+    std::string const& filename ) const override;
+
+  /// \copydoc vital::algo::image_io::save_
+  virtual void save_( std::string const& filename,
+                      vital::image_container_sptr data ) const override;
 };
 
-}
-}
-}
+} // end namespace qt
 
-#endif // KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
+} // end namespace arrows
+
+} // end namespace kwiver
+
+#endif

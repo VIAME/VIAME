@@ -29,6 +29,11 @@ if( KWIVER_ENABLE_PROJ )
   add_subdirectory( proj )
 endif()
 
+# Add Qt plugin if enabled
+if( KWIVER_ENABLE_QT )
+  add_subdirectory( qt )
+endif()
+
 # Add VXL plugin if enabled
 if( KWIVER_ENABLE_VXL )
   add_subdirectory( vxl )

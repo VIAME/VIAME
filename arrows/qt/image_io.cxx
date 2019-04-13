@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,86 +30,95 @@
 
 /**
  * \file
- * \brief Implementation for image exceptions
+ * \brief Qt image_io implementation
  */
 
-#include "image.h"
+#include "image_io.h"
 
-#include <sstream>
+#include <arrows/qt/image_container.h>
+
+namespace {
+
+// ----------------------------------------------------------------------------
+QString
+qt_string( std::string const& in )
+{
+  return QString::fromLocal8Bit( in.data(), static_cast< int >( in.size() ) );
+}
+
+} // end namespace (anonymous)
 
 namespace kwiver {
-namespace vital {
+
+namespace arrows {
+
+namespace qt {
 
 // ----------------------------------------------------------------------------
-image_exception
-::image_exception( std::string const& message ) noexcept
+image_io
+::image_io()
 {
-  m_what = message;
+  attach_logger( "arrows.qt.image_io" );
 }
 
 // ----------------------------------------------------------------------------
-image_exception
-::image_exception( std::nullptr_t ) noexcept
-{
-}
-
-// ----------------------------------------------------------------------------
-image_exception
-::~image_exception() noexcept
+image_io
+::~image_io()
 {
 }
 
 // ----------------------------------------------------------------------------
-image_load_exception
-::image_load_exception(std::string message) noexcept
-  : m_message(message)
+void
+image_io
+::set_configuration( vital::config_block_sptr in_config )
 {
-  m_what = message;
+  static_cast< void >( in_config );
 }
 
 // ----------------------------------------------------------------------------
-image_load_exception
-::~image_load_exception() noexcept
+// Check that the algorithm's currently configuration is valid
+bool
+image_io
+::check_configuration( vital::config_block_sptr config ) const
 {
+  static_cast< void >( config );
+  return true;
 }
 
 // ----------------------------------------------------------------------------
-image_type_mismatch_exception
-::image_type_mismatch_exception( std::string const& message ) noexcept
-  : image_exception{ message }
+// Load image image from the file
+vital::image_container_sptr
+image_io
+::load_( std::string const& filename ) const
 {
+  LOG_DEBUG( logger(), "Loading image from file: " << filename );
+
+  auto img = QImage{ qt_string( filename ) };
+  if ( img.isNull() )
+  {
+    return {};
+  }
+
+  return std::make_shared< image_container >( img );
 }
 
 // ----------------------------------------------------------------------------
-image_type_mismatch_exception
-::~image_type_mismatch_exception() noexcept
+void
+image_io
+::save_( std::string const& filename, vital::image_container_sptr data ) const
 {
+  auto qdata = std::dynamic_pointer_cast< image_container >( data );
+  auto const& img =
+    ( qdata ? ( *qdata ) : image_container::vital_to_qt( data->get_image() ) );
+
+  if ( !img.isNull() )
+  {
+    img.save( qt_string( filename ) );
+  }
 }
 
-// ----------------------------------------------------------------------------
-image_size_mismatch_exception
-::image_size_mismatch_exception( std::string const& message,
-                                 size_t correct_w, size_t correct_h,
-                                 size_t given_w, size_t given_h ) noexcept
-  : image_exception{ nullptr },
-    m_message{ message },
-    m_correct_w{ correct_w },
-    m_correct_h{ correct_h },
-    m_given_w{ given_w },
-    m_given_h{ given_h }
-{
-  std::ostringstream ss;
-  ss << message
-     << " (given: [" << given_w << ", " << given_h << "],"
-     << " should be: [" << correct_w << ", " << correct_h << "])";
-  m_what = ss.str();
-}
+} // end namespace qt
 
-// ----------------------------------------------------------------------------
-image_size_mismatch_exception
-::~image_size_mismatch_exception() noexcept
-{
-}
+} // end namespace arrows
 
-} // end namespace vital
 } // end namespace kwiver

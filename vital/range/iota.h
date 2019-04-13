@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, SAS.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,65 +28,67 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Header for mesh uv unwrapping
- */
-
-#ifndef KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
-#define KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
-
-#include <arrows/core/kwiver_algo_core_export.h>
-
-#include <vital/algo/uv_unwrap_mesh.h>
-#include <vital/types/mesh.h>
-#include <vital/vital_config.h>
-
+#ifndef VITAL_RANGE_IOTA_H
+#define VITAL_RANGE_IOTA_H
 
 namespace kwiver {
-namespace arrows {
-namespace core {
 
-/// A class for unwrapping a mesh and generating texture coordinates
-class KWIVER_ALGO_CORE_EXPORT uv_unwrap_mesh
-    : public vital::algorithm_impl<uv_unwrap_mesh, vital::algo::uv_unwrap_mesh>
+namespace vital {
+
+namespace range {
+
+/**
+ * \file
+ * \brief Utility to produce a half-open range of integers.
+ */
+
+// ----------------------------------------------------------------------------
+template < typename T > class iota_range
 {
 public:
-  PLUGIN_INFO( "core",
-               "Unwrap a mesh and generate texture coordinates" )
+  class iterator;
 
-  /// Get configuration
-  virtual vital::config_block_sptr get_configuration() const;
+  iota_range( T count ) : end_{ count } {}
 
-  /// Set configuration
-  virtual void set_configuration(vital::config_block_sptr in_config);
+  iterator begin() const { return { T{ 0 } }; }
+  iterator end() const { return { end_ }; }
 
-  /// Check configuration
-  virtual bool check_configuration(vital::config_block_sptr config) const;
-
-  /// Constructor
-  uv_unwrap_mesh();
-
-  /// Destructor
-  virtual ~uv_unwrap_mesh();
-
-  /// Copy Constructor
-  uv_unwrap_mesh(const uv_unwrap_mesh& other);
-
-  /// Unwrap a mesh and generate texture coordinate
-  /**
-   * \param mesh [in/out]
-   */
-  virtual void unwrap(kwiver::vital::mesh_sptr mesh) const;
-
-private:
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
+protected:
+  T end_;
 };
 
-}
-}
+// ----------------------------------------------------------------------------
+template < typename T > class iota_range< T >::iterator
+{
+public:
+  T operator*() const { return value_; }
+  iterator& operator++() { ++value_; return *this; }
+
+  bool operator==( iterator const& other ) const
+  { return value_ == other.value_; }
+
+  bool operator!=( iterator const& other ) const
+  { return value_ != other.value_; }
+
+protected:
+  friend class iota_range< T >;
+  iterator( T value ) : value_{ value } {}
+
+  T value_;
+};
+
+// ----------------------------------------------------------------------------
+template < typename T >
+iota_range< T >
+iota( T upper_bound )
+{
+  return { upper_bound };
 }
 
-#endif // KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
+} // namespace range
+
+} // namespace vital
+
+} // namespace kwiver
+
+#endif

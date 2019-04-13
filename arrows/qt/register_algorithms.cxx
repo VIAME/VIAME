@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, SAS.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,63 +30,61 @@
 
 /**
  * \file
- * \brief Header for mesh uv unwrapping
+ * \brief Register Qt algorithms implementation
  */
 
-#ifndef KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
-#define KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
+#include <arrows/qt/kwiver_algo_qt_plugin_export.h>
+#include <vital/algo/algorithm_factory.h>
 
-#include <arrows/core/kwiver_algo_core_export.h>
-
-#include <vital/algo/uv_unwrap_mesh.h>
-#include <vital/types/mesh.h>
-#include <vital/vital_config.h>
-
+#include <arrows/qt/image_io.h>
 
 namespace kwiver {
+
 namespace arrows {
-namespace core {
 
-/// A class for unwrapping a mesh and generating texture coordinates
-class KWIVER_ALGO_CORE_EXPORT uv_unwrap_mesh
-    : public vital::algorithm_impl<uv_unwrap_mesh, vital::algo::uv_unwrap_mesh>
+namespace qt {
+
+namespace {
+
+static auto const module_name         = std::string{ "arrows.qt" };
+static auto const module_version      = std::string{ "1.0" };
+static auto const module_organization = std::string{ "Kitware Inc." };
+
+// ----------------------------------------------------------------------------
+template < typename algorithm_t >
+void
+register_algorithm( kwiver::vital::plugin_loader& vpm )
 {
-public:
-  PLUGIN_INFO( "core",
-               "Unwrap a mesh and generate texture coordinates" )
+  using kvpf = kwiver::vital::plugin_factory;
 
-  /// Get configuration
-  virtual vital::config_block_sptr get_configuration() const;
-
-  /// Set configuration
-  virtual void set_configuration(vital::config_block_sptr in_config);
-
-  /// Check configuration
-  virtual bool check_configuration(vital::config_block_sptr config) const;
-
-  /// Constructor
-  uv_unwrap_mesh();
-
-  /// Destructor
-  virtual ~uv_unwrap_mesh();
-
-  /// Copy Constructor
-  uv_unwrap_mesh(const uv_unwrap_mesh& other);
-
-  /// Unwrap a mesh and generate texture coordinate
-  /**
-   * \param mesh [in/out]
-   */
-  virtual void unwrap(kwiver::vital::mesh_sptr mesh) const;
-
-private:
-  /// private implementation class
-  class priv;
-  const std::unique_ptr<priv> d_;
-};
-
-}
-}
+  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
+  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
+       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
+       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
+       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
+       ;
 }
 
-#endif // KWIVER_ARROWS_CORE_UV_UNWRAP_MESH_H
+} // namespace (anonymous)
+
+// ----------------------------------------------------------------------------
+extern "C"
+KWIVER_ALGO_QT_PLUGIN_EXPORT
+void
+register_factories( kwiver::vital::plugin_loader& vpm )
+{
+  if ( vpm.is_module_loaded( module_name ) )
+  {
+    return;
+  }
+
+  register_algorithm< image_io >( vpm );
+
+  vpm.mark_module_as_loaded( module_name );
+}
+
+} // end namespace qt
+
+} // end namespace arrows
+
+} // end namespace kwiver
