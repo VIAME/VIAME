@@ -195,6 +195,24 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
           static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
       }
     }
+    // Example: default2019_fl00_D_20190401_220727.714_ir.tif
+    else if( parts.size() == 6 && parts[3].size() == 8 && parts[4].size() == 10 )
+    {
+      tm t;
+
+      t.tm_year = std::stoi( parts[3].substr( 0, 4 ) ) - 1900;
+      t.tm_mon = std::stoi( parts[3].substr( 4, 2 ) ) - 1;
+      t.tm_mday = std::stoi( parts[3].substr( 6, 2 ) );
+
+      t.tm_hour = std::stoi( parts[4].substr( 0, 2 ) );
+      t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
+      t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
+
+      kwiver::vital::time_usec_t msec =
+        std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
+      utc_time_usec =
+        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+    }
     else if( parts.size() == 1 )
     {
       parts = split( name_only, '.' );
