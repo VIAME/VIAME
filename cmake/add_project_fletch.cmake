@@ -73,7 +73,7 @@ elseif( VIAME_ENABLE_SEAL_TK)
     -Dfletch_ENABLE_qtExtensions:BOOL=ON
     -Dfletch_ENABLE_VTK:BOOL=OFF
     -Dfletch_ENABLE_ZLib:BOOL=ON
-    -DQt_SELECT_VERSION:STRING=5.10.0
+    -DQt_SELECT_VERSION:STRING=5.11.2
   )
 else()
   set( fletch_DEP_FLAGS
