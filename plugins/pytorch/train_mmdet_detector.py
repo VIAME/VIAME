@@ -43,6 +43,7 @@ from distutils.util import strtobool
 import argparse
 import numpy as np
 import torch
+import json
 
 from mmcv import Config
 
@@ -53,6 +54,8 @@ from mmdet.apis import train_detector
 from mmdet.apis import init_dist
 from mmdet.apis import get_root_logger
 from mmdet.apis import set_random_seed
+
+from mmdet.datasets.custom import CustomDataset
 
 
 class MMTrainDetector( TrainDetector ):
@@ -105,18 +108,20 @@ class MMTrainDetector( TrainDetector ):
     if self._cfg.get( 'cudnn_benchmark', False ):
       torch.backends.cudnn.benchmark = True
 
-    if self._training_directory is not None:
-      self._cfg.work_dir = self._training_directory
+    if self._train_directory is not None:
+      self._cfg.work_dir = self._train_directory
 
     if self._seed_weights is not None:
       self._cfg.resume_from = self._seed_weights
 
     if self._gpu_count > 0:
       self._cfg.gpus = self._gpu_count
+    else:
+      self._cfg.gpus = torch.cuda.device_count()
 
     if self._cfg.checkpoint_config is not None:
       self._cfg.checkpoint_config.meta = dict(
-        mmdet_version=__version__, config=cfg.text )
+        mmdet_version=__version__, config=self._cfg.text )
 
     if self._launcher == 'none':
       self._distributed = False
@@ -125,7 +130,7 @@ class MMTrainDetector( TrainDetector ):
       init_dist( self._launcher, **cfg.dist_params )
 
     self._logger = get_root_logger( self._cfg.log_level )
-    self._logger.info( 'Distributed training: {}'.format( distributed ) )
+    self._logger.info( 'Distributed training: {}'.format( self._distributed ) )
 
     if self._random_seed is not "none":
       logger.info( 'Set random seed to {}'.format( self._random_seed ) )
@@ -185,14 +190,29 @@ class MMTrainDetector( TrainDetector ):
 
       self._training_data.append( entry )
 
-  def update_model(self):
+  def update_model( self ):
+
+    with open( self._groundtruth_store, 'w' ) as fp:
+      json.dump( sample, fp )
+
+    train_dataset = CustomDataset(
+      filename,
+      '.',
+      self._cfg.data.train.img_scale,
+      self._cfg.data.train.img_norm_cfg,
+      size_divisor = self._cfg.data.train.size_divisor,
+      flip_ratio = self._cfg.data.train.flip_ratio,
+      with_mask = self._cfg.data.train.with_mask,
+      with_crowd = self._cfg.data.train.with_crowd,
+      with_label = self._cfg.data.train.with_label )
+
     train_detector(
-        self._model,
-        self._training_data,
-        self._cfg,
-        distributed = self._distributed,
-        validate = self._validate,
-        logger = self._logger )
+      self._model,
+      train_dataset,
+      self._cfg,
+      distributed = self._distributed,
+      validate = self._validate,
+      logger = self._logger )
 
 def __vital_algorithm_register__():
   from vital.algo import algorithm_factory
