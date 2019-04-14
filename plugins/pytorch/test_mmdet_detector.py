@@ -29,99 +29,59 @@
 
 from __future__ import print_function
 
-from vital.algo import TrainDetector
+from vital.algo import ImageObjectDetector
 
 from vital.types import BoundingBox
-from vital.types import CategoryHierarchy
 from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
-
-from PIL import Image
-from distutils.util import strtobool
 
 import numpy as np
 
 import mmcv
-import mmdet
 
-class MMTrainDetector( TrainDetector ):
+from mmcv.runner import load_checkpoint
+from mmdet.models import build_detector
+from mmdet.apis import inference_detector
+
+class MMTestDetector( ImageObjectDetector ):
   """
   Implementation of TrainDetector class
   """
   def __init__( self ):
     TrainDetector.__init__(self)
     self._config_file = ""
-    self._integer_labels = "False"
+    self._model_weights = ""
 
   def get_configuration(self):
     # Inherit from the base class
     cfg = super(TrainDetector, self).get_configuration()
     cfg.set_value( "config_file", self._config_file )
-    cfg.set_value( "seed_weights", self._seed_weights )
-    cfg.set_value( "integer_labels", str( self._integer_labels ) )
+    cfg.set_value( "model_weights", self._model_weights )
     return cfg
 
   def set_configuration( self, cfg_in ):
     cfg = self.get_configuration()
     cfg.merge_config( cfg_in )
+
     self._config_file = str( cfg.get_value( "config_file" ) )
-    self._seed_weights = str( cfg.get_value( "seed_weights" ) )
-    self._integer_labels = strtobool( cfg.get_value( "integer_labels" ) )
-    self._training_data = []
+    self._model_weights = str( cfg.get_value( "model_weights" ) )
+
+    self._cfg = mmcv.Config.fromfile( self._config_file )
+    cfg.model.pretrained = None
+    self._model = build_detector( self._cfg.model, test_cfg=self._cfg.test_cfg )
+    _ = load_checkpoint( self._model, self._model_weights )
 
   def check_configuration( self, cfg ):
-    if not cfg.has_value("config_file") or len(cfg.get_value( "config_file")) == 0:
+    if not cfg.has_value( "config_file" ) or len( cfg.get_value( "config_file") ) == 0:
       print( "A config file must be specified!" )
       return False
     return True
 
-  def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
-    if len( train_files ) != len( train_dets ):
-      print( "Error: train file and groundtruth count mismatch" )
-      return
-
-    for filename, groundtruth in zip( train_files, train_dets ):
-      entry = dict()
-
-      im = Image.open( filename, 'r' )
-      width, height = im.size
-
-      annotations = dict()
-
-      boxes = np.ndarray( ( 0, 4 ) )
-      labels = np.ndarray( 0 )
-
-      for i, item in enumerate( groundtruth ):
-
-        obj_id = item.type().get_most_likely_class()
-
-        if categories.has_class_id( obj_id ):
-
-          obj_box = [ [ item.bounding_box().min_x(),
-                        item.bounding_box().min_y(),
-                        item.bounding_box().max_x(),
-                        item.bounding_box().max_y() ] ]
-
-          boxes = np.append( boxes, obj_box, axis = 0 )
-
-          # removes synonynms
-          if self._integer_labels:
-            labels = np.append( labels, categories.get_class_id( obj_id ) )
-          else:
-            labels = np.append( labels, categories.get_class_name( obj_id ) )
-
-      annotations["bboxes"] = boxes
-      annotations["labels"] = labels
-
-      entry["filename"] = filename
-      entry["width"] = width
-      entry["height"] = height
-      entry["ann"] = annotations
-
-      self._training_data.append( entry )
-
-  def update_model(self):
-    return
+  def detect( self, image_data ):
+    input_image = image_data.asarray().astype( 'uint8' )
+    detections = inference_detector( self_.model, input_image, self._cfg, device='cuda:0' )
+    for detection in detections:
+      print detection
 
 def __vital_algorithm_register__():
   from vital.algo import algorithm_factory
@@ -130,10 +90,10 @@ def __vital_algorithm_register__():
   implementation_name  = "mmdet"
 
   if algorithm_factory.has_algorithm_impl_name(
-      MMTrainDetector.static_type_name(), implementation_name ):
+      MMTestDetector.static_type_name(), implementation_name ):
     return
 
   algorithm_factory.add_algorithm( implementation_name,
-    "PyTorch MMDetection training routine", MMTrainDetector )
+    "PyTorch MMDetection testing routine", MMTestDetector )
 
   algorithm_factory.mark_algorithm_as_loaded( implementation_name )
