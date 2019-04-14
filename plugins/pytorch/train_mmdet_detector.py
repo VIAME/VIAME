@@ -69,6 +69,7 @@ class MMTrainDetector( TrainDetector ):
     self._config_file = ""
     self._seed_weights = ""
     self._train_directory = "deep_training"
+    self._output_directory = "category_models"
     self._gpu_count = -1
     self._integer_labels = "true"
     self._launcher = "none"    # "none, pytorch, slurm, or mpi" 
@@ -83,6 +84,7 @@ class MMTrainDetector( TrainDetector ):
     cfg.set_value( "config_file", self._config_file )
     cfg.set_value( "seed_weights", self._seed_weights )
     cfg.set_value( "train_directory", self._train_directory )
+    cfg.set_value( "output_directory", self._output_directory )
     cfg.set_value( "gpu_count", str( self._gpu_count ) )
     cfg.set_value( "integer_labels", str( self._integer_labels ) )
     cfg.set_value( "launcher", str( self._launcher ) )
@@ -98,6 +100,7 @@ class MMTrainDetector( TrainDetector ):
     self._config_file = str( cfg.get_value( "config_file" ) )
     self._seed_weights = str( cfg.get_value( "seed_weights" ) )
     self._train_directory = str( cfg.get_value( "train_directory" ) )
+    self._output_directory = str( cfg.get_value( "output_directory" ) )
     self._gpu_count = int( cfg.get_value( "gpu_count" ) )
     self._integer_labels = strtobool( cfg.get_value( "integer_labels" ) )
     self._launcher = str( cfg.get_value( "launcher" ) )
