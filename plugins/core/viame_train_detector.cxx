@@ -351,6 +351,8 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "regenerate_cache", "true",
                      "If an augmentation cache already exists, should we regenerate it "
                      "or use it as-is?" );
+  config->set_value( "augmented_ext_override", ".png",
+                     "Optional image extension over-ride for augmented images." );
   config->set_value( "default_percent_test", "0.05",
                      "Percent [0.0, 1.0] of test samples to use if no manual files "
                      "specified." );
@@ -453,7 +455,8 @@ bool run_pipeline_on_image( pipeline_t& pipe,
 
 std::string get_augmented_filename( std::string name,
                                     std::string subdir,
-                                    std::string output_dir = "" )
+                                    std::string output_dir = "",
+                                    std::string ext = ".png" )
 {
   std::string parent_directory =
     kwiversys::SystemTools::GetParentDirectory( name );
@@ -463,8 +466,6 @@ std::string get_augmented_filename( std::string name,
 
   std::size_t last_index = file_name.find_last_of( "." );
   std::string file_name_no_ext = file_name.substr( 0, last_index );
-
-  std::string adj_extension = ".png";
 
   std::vector< std::string > full_path;
 
@@ -480,7 +481,7 @@ std::string get_augmented_filename( std::string name,
   }
 
   full_path.push_back( subdir );
-  full_path.push_back( file_name_no_ext + adj_extension );
+  full_path.push_back( file_name_no_ext + ext );
 
   std::string mod_path = kwiversys::SystemTools::JoinPath( full_path );
   return mod_path;
@@ -814,6 +815,8 @@ main( int argc, char* argv[] )
     config->get_value< std::string >( "augmentation_pipeline" );
   std::string augmented_cache =
     config->get_value< std::string >( "augmentation_cache" );
+  std::string augmented_ext_override =
+    config->get_value< std::string >( "augmented_ext_override" );
   bool regenerate_cache =
     config->get_value< bool >( "regenerate_cache" );
   bool check_override =
@@ -961,7 +964,8 @@ main( int argc, char* argv[] )
 
       if( augmentation_pipe )
       {
-        filtered_image_file = get_augmented_filename( image_file, last_subdir, augmented_cache );
+        filtered_image_file = get_augmented_filename( image_file, last_subdir,
+          augmented_cache, augmented_ext_override );
 
         if( regenerate_cache )
         {
