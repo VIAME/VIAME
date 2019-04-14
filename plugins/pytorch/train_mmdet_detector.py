@@ -167,6 +167,9 @@ class MMTrainDetector( TrainDetector ):
       im = Image.open( filename, 'r' )
       width, height = im.size
 
+      if width <= 1 or height <= 1:
+        continue
+
       annotations = dict()
 
       boxes = np.ndarray( ( 0, 4 ) )
