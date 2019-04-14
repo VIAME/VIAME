@@ -42,11 +42,11 @@ export VIDTK_MODULE_PATH=$this_dir/lib/modules
 export PYTHON_LIBRARY=$PYTHON_INSTALL_DIR/lib/libpython3.6m.so
 export PYTHONPATH=$this_dir/python:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python3.6/site-packages:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python3.6m/site-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python3.6/dist-packages:$PYTHONPATH
-export PYTHONPATH=$this_dir/lib/python3.6m/dist-packages:$PYTHONPATH
 export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
-export SPROKIT_PYTHON_MODULES=kwiver.processes:kwiver.processes.pytorch:viame.processes
+export SPROKIT_PYTHON_MODULES=kwiver.arrows:kwiver.processes:kwiver.processes.pytorch
+export SPROKIT_PYTHON_MODULES=viame.arrows.core:viame.arrows.pytorch:$SPROKIT_PYTHON_MODULES
+export SPROKIT_PYTHON_MODULES=viame.processes:viame.processes.pytorch:$SPROKIT_PYTHON_MODULES
 
 # Set default log level
 export KWIVER_DEFAULT_LOG_LEVEL=debug
