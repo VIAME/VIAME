@@ -28,6 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import print_function
+from __future__ import division
 
 from vital.algo import TrainDetector
 
@@ -39,39 +40,102 @@ from vital.types import DetectedObject
 from PIL import Image
 from distutils.util import strtobool
 
+import argparse
 import numpy as np
+import torch
 
-import mmcv
-import mmdet
+from mmcv import Config
+
+from mmdet import __version__
+from mmdet.datasets import get_dataset
+from mmdet.models import build_detector
+from mmdet.apis import train_detector
+from mmdet.apis import init_dist
+from mmdet.apis import get_root_logger
+from mmdet.apis import set_random_seed
+
 
 class MMTrainDetector( TrainDetector ):
   """
   Implementation of TrainDetector class
   """
   def __init__( self ):
-    TrainDetector.__init__(self)
+    TrainDetector.__init__( self )
+
     self._config_file = ""
     self._seed_weights = ""
-    self._integer_labels = "False"
+    self._train_directory = "deep_training"
+    self._gpu_count = -1
+    self._integer_labels = "false"
+    self._launcher = "none"    # "none, pytorch, slurm, or mpi" 
+    self._random_seed = "none"
+    self._validate = "false"
 
-  def get_configuration(self):
+  def get_configuration( self ):
     # Inherit from the base class
-    cfg = super(TrainDetector, self).get_configuration()
+    cfg = super( TrainDetector, self ).get_configuration()
+
     cfg.set_value( "config_file", self._config_file )
     cfg.set_value( "seed_weights", self._seed_weights )
+    cfg.set_value( "train_directory", self._train_directory )
+    cfg.set_value( "gpu_count", str( self._gpu_count ) )
     cfg.set_value( "integer_labels", str( self._integer_labels ) )
+    cfg.set_value( "launcher", str( self._launcher ) )
+    cfg.set_value( "random_seed", str( self._random_seed ) )
+    cfg.set_value( "validate", str( self._validate ) )
+
     return cfg
 
   def set_configuration( self, cfg_in ):
     cfg = self.get_configuration()
     cfg.merge_config( cfg_in )
+
     self._config_file = str( cfg.get_value( "config_file" ) )
     self._seed_weights = str( cfg.get_value( "seed_weights" ) )
+    self._train_directory = str( cfg.get_value( "train_directory" ) )
+    self._gpu_count = int( cfg.get_value( "gpu_count" ) )
     self._integer_labels = strtobool( cfg.get_value( "integer_labels" ) )
+    self._launcher = str( cfg.get_value( "launcher" ) )
+    self._validate = strtobool( cfg.get_value( "validate" ) )
+
     self._training_data = []
 
+    self._cfg = Config.fromfile( self._config_file )
+
+    if self._cfg.get( 'cudnn_benchmark', False ):
+      torch.backends.cudnn.benchmark = True
+
+    if self._training_directory is not None:
+      self._cfg.work_dir = self._training_directory
+
+    if self._seed_weights is not None:
+      self._cfg.resume_from = self._seed_weights
+
+    if self._gpu_count > 0:
+      self._cfg.gpus = self._gpu_count
+
+    if self._cfg.checkpoint_config is not None:
+      self._cfg.checkpoint_config.meta = dict(
+        mmdet_version=__version__, config=cfg.text )
+
+    if self._launcher == 'none':
+      self._distributed = False
+    else:
+      self._distributed = True
+      init_dist( self._launcher, **cfg.dist_params )
+
+    self._logger = get_root_logger( self._cfg.log_level )
+    self._logger.info( 'Distributed training: {}'.format( distributed ) )
+
+    if self._random_seed is not "none":
+      logger.info( 'Set random seed to {}'.format( self._random_seed ) )
+      set_random_seed( int( self._random_seed ) )
+
+    self._model = build_detector(
+      self._cfg.model, train_cfg=self._cfg.train_cfg, test_cfg=self._cfg.test_cfg )
+
   def check_configuration( self, cfg ):
-    if not cfg.has_value("config_file") or len(cfg.get_value( "config_file")) == 0:
+    if not cfg.has_value( "config_file" ) or len(cfg.get_value( "config_file")) == 0:
       print( "A config file must be specified!" )
       return False
     return True
@@ -122,7 +186,13 @@ class MMTrainDetector( TrainDetector ):
       self._training_data.append( entry )
 
   def update_model(self):
-    return
+    train_detector(
+        self._model,
+        self._training_data,
+        self._cfg,
+        distributed = self._distributed,
+        validate = self._validate,
+        logger = self._logger )
 
 def __vital_algorithm_register__():
   from vital.algo import algorithm_factory
