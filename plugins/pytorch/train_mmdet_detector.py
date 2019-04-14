@@ -166,7 +166,7 @@ class MMTrainDetector( TrainDetector ):
 
       annotations = dict()
 
-      boxes = np.ndarray( ( 0, 4 ), dtype=np.float64 )
+      boxes = np.ndarray( ( 0, 4 ) )
       labels = np.ndarray( 0 )
 
       for i, item in enumerate( groundtruth ):
@@ -188,8 +188,8 @@ class MMTrainDetector( TrainDetector ):
           else:
             labels = np.append( labels, categories.get_class_name( obj_id ) )
 
-      annotations["bboxes"] = boxes
-      annotations["labels"] = labels
+      annotations["bboxes"] = boxes.astype( np.float32 )
+      annotations["labels"] = labels.astype( np.int_ )
 
       entry["filename"] = filename
       entry["width"] = width
