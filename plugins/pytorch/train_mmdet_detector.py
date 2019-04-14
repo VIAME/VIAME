@@ -43,7 +43,8 @@ from distutils.util import strtobool
 import argparse
 import numpy as np
 import torch
-import json
+import pickle
+import os
 
 from mmcv import Config
 
@@ -69,10 +70,11 @@ class MMTrainDetector( TrainDetector ):
     self._seed_weights = ""
     self._train_directory = "deep_training"
     self._gpu_count = -1
-    self._integer_labels = "false"
+    self._integer_labels = "true"
     self._launcher = "none"    # "none, pytorch, slurm, or mpi" 
     self._random_seed = "none"
     self._validate = "false"
+    self._tmp_annotation_file = "annotations.pickle"
 
   def get_configuration( self ):
     # Inherit from the base class
@@ -110,6 +112,12 @@ class MMTrainDetector( TrainDetector ):
 
     if self._train_directory is not None:
       self._cfg.work_dir = self._train_directory
+      self._groundtruth_store = os.path.join(
+        self._train_directory, self._tmp_annotation_file )
+      if not os.path.exists( self._train_directory ):
+        os.mkdir( self._train_directory )
+    else:
+      self._groundtruth_store = self._tmp_annotation_file
 
     if self._seed_weights is not None:
       self._cfg.resume_from = self._seed_weights
@@ -158,7 +166,7 @@ class MMTrainDetector( TrainDetector ):
 
       annotations = dict()
 
-      boxes = np.ndarray( ( 0, 4 ) )
+      boxes = np.ndarray( ( 0, 4 ), dtype=np.float64 )
       labels = np.ndarray( 0 )
 
       for i, item in enumerate( groundtruth ):
@@ -192,11 +200,11 @@ class MMTrainDetector( TrainDetector ):
 
   def update_model( self ):
 
-    with open( self._groundtruth_store, 'w' ) as fp:
-      json.dump( sample, fp )
+    with open( self._groundtruth_store, 'wb' ) as fp:
+      pickle.dump( self._training_data, fp )
 
     train_dataset = CustomDataset(
-      filename,
+      self._groundtruth_store,
       '.',
       self._cfg.data.train.img_scale,
       self._cfg.data.train.img_norm_cfg,
