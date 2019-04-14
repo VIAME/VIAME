@@ -81,7 +81,7 @@ class MMTestDetector( ImageObjectDetector ):
     input_image = image_data.asarray().astype( 'uint8' )
     detections = inference_detector( self_.model, input_image, self._cfg, device='cuda:0' )
     for detection in detections:
-      print detection
+      print( detection )
 
 def __vital_algorithm_register__():
   from vital.algo import algorithm_factory

@@ -51,6 +51,7 @@ class MMTrainDetector( TrainDetector ):
   def __init__( self ):
     TrainDetector.__init__(self)
     self._config_file = ""
+    self._seed_weights = ""
     self._integer_labels = "False"
 
   def get_configuration(self):
