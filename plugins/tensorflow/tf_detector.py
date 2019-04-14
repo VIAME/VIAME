@@ -36,8 +36,8 @@ class tf_detector(KwiverProcess):
         self.declare_config_using_trait("model_file")
 
         self.add_config_trait("norm_image_type", "norm_image_type", "",
-          "Type of normalization for input image. Options: S, P, C, "
-          "and adaptive_min_fixed_range")
+          "Type of normalization for input image. Options: none, S, P, C, "
+          "adaptive_min_fixed_range or comma seperated values")
 
         self.declare_config_using_trait("norm_image_type")
 
@@ -238,6 +238,10 @@ class tf_detector(KwiverProcess):
         elif norm_method == "C":
             bottom = 50500
             top = 58500
+        elif "," in norm_method:
+            tokens = norm_method.rstrip().split(',')
+            bottom = int(tokens[0])
+            top = int(tokens[1])
         else:
             # camera_pos S and default
             bottom = 51000
