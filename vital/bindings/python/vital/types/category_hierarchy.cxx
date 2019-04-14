@@ -47,6 +47,8 @@ PYBIND11_MODULE(category_hierarchy, m)
     py::arg("class_name"), py::arg("class_parent"), py::arg("class_id"))
   .def("has_class_id", &kwiver::vital::category_hierarchy::has_class_name,
     py::arg("class_name"))
+  .def("get_class_name", &kwiver::vital::category_hierarchy::get_class_name,
+    py::arg("class_name"))
   .def("get_class_id", &kwiver::vital::category_hierarchy::get_class_id,
     py::arg("class_name"))
   .def("get_class_parents", &kwiver::vital::category_hierarchy::get_class_parents,
