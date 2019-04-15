@@ -34,6 +34,7 @@
 
 #include "RegistrationProcess.h"
 #include "WarpDetectionsProcess.h"
+#include "WarpImageProcess.h"
 
 // -----------------------------------------------------------------------------
 /*! \brief Regsiter processes
@@ -70,6 +71,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Warp detections based on an ITK transformation" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::itk::itk_warp_image_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "itk_warp_image_process" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Warp image based on an ITK transformation" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

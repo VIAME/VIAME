@@ -68,6 +68,7 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
     RegisterProcesses.cxx
     RegistrationProcess.cxx
     WarpDetectionsProcess.cxx
+    WarpImageProcess.cxx
   )
   
   set( process_headers
@@ -75,6 +76,7 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
 
     RegistrationProcess.h
     WarpDetectionsProcess.h
+    WarpImageProcess.h
   )
 
   kwiver_add_plugin( viame_processes_itk

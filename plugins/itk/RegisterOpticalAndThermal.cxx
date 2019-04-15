@@ -398,6 +398,34 @@ bool WarpThermalToOpticalImage(
   return true;
 }
 
+bool WarpThermalToOpticalImage(
+  const ThermalImageType& inputThermalImage,
+  const NetTransformType& inputTransformation,
+  const ThermalImageType::SizeType& outputSize,
+  WarpedThermalImageType::Pointer& outputWarpedImage )
+{
+  using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, WarpedThermalImageType >;
+  ResamplerType::Pointer resampler = ResamplerType::New();
+  resampler->SetInput( &inputThermalImage );
+  resampler->SetSize( outputSize );
+  resampler->SetDefaultPixelValue( 0 );
+
+  resampler->SetTransform( &inputTransformation );
+
+  try
+    {
+    resampler->Update();
+    }
+  catch( ::itk::ExceptionObject& error )
+    {
+    std::cerr << "Error when resampling: " << error << std::endl;
+    return false;
+    }
+
+  outputWarpedImage = resampler->GetOutput();
+  return true;
+}
+
 bool WarpOpticalToThermalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,

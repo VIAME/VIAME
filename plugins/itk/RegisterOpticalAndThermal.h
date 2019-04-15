@@ -76,6 +76,12 @@ VIAME_ITK_EXPORT bool WarpThermalToOpticalImage(
   const NetTransformType& inputTransformation,
   WarpedThermalImageType::Pointer& outputWarpedImage );
 
+VIAME_ITK_EXPORT bool WarpThermalToOpticalImage(
+  const ThermalImageType& inputThermalImage,
+  const NetTransformType& inputTransformation,
+  const ThermalImageType::SizeType& outputSize,
+  WarpedThermalImageType::Pointer& outputWarpedImage );
+
 VIAME_ITK_EXPORT bool WarpOpticalToThermalImage(
   const OpticalImageType& inputOpticalImage,
   const ThermalImageType& inputThermalImage,
