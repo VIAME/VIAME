@@ -9,28 +9,22 @@ process detector_input
 
   block filter:vxl_convert_image
     :format                                    byte
+    :force_three_channel                       true
   endblock
 
 process detector1
   :: image_object_detector
-  :detector:type                               darknet
+  :detector:type                               mmdet
 
-  block detector:darknet
+  block detector:mmdet
     # Network config, weights, and names
-    relativepath net_config  =                 models/generic_yolo_v2.cfg
-    relativepath weight_file =                 models/generic_yolo_v2.weights
-    relativepath class_names =                 models/generic_yolo_v2.lbl
+    relativepath net_config  =                 models/generic_cfrnn.cfg
+    relativepath weight_file =                 models/generic_cfrnn.weights
+    relativepath class_names =                 models/generic_cfrnn.lbl
 
     # Detector parameters
     :thresh                                    0.010
-    :hier_thresh                               0.001
     :gpu_index                                 0
-
-    # Image scaling parameters
-    :resize_option                             adaptive
-    :scale                                     1.25
-    :chip_step                                 650
-    :chip_edge_filter                          10
 
   endblock
 
