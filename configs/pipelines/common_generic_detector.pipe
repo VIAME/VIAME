@@ -18,8 +18,8 @@ process detector1
 
   block detector:mmdet
     # Network config, weights, and names
-    relativepath net_config  =                 models/generic_cfrnn.cfg
-    relativepath weight_file =                 models/generic_cfrnn.weights
+    relativepath net_config  =                 models/generic_cfrnn.py
+    relativepath weight_file =                 models/generic_cfrnn.pth
     relativepath class_names =                 models/generic_cfrnn.lbl
 
     # Detector parameters
