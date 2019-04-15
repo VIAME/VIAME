@@ -310,7 +310,7 @@ if __name__ == "__main__" :
                       help="Predefined query directory, if present")
 
   parser.add_argument("-pipelines", dest="pipelines",
-                      default="pipelines" + div + "gui_embedded" + div + "*.pipe",
+                      default="pipelines" + div + "embedded_single_stream" + div + "*.pipe",
                       help="Glob pattern for runable processing pipelines")
 
   parser.add_argument("-cache-pipe", dest="cache_pipeline",

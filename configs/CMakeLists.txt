@@ -192,43 +192,43 @@ set( CORE_PIPELINE_FILES
 
 if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
-    pipelines/gui_embedded/default_detector.pipe
-    pipelines/gui_embedded/default_tracker.pipe
-    pipelines/gui_embedded/generate_empty_frame_lbls.pipe
-    pipelines/gui_embedded/generic_detector.pipe
-    pipelines/gui_embedded/generic_tracker.pipe
-    pipelines/gui_embedded/local_deep_detector.pipe
-    pipelines/gui_embedded/local_deep_tracker.pipe
-    pipelines/gui_embedded/local_svm_frame_classifier.pipe
-    pipelines/gui_embedded/local_svm_detector.pipe
-    pipelines/gui_embedded/local_svm_tracker.pipe
-    pipelines/gui_embedded/train_deep_detector.pipe )
+    pipelines/embedded_single_stream/default_detector.pipe
+    pipelines/embedded_single_stream/default_tracker.pipe
+    pipelines/embedded_single_stream/generate_empty_frame_lbls.pipe
+    pipelines/embedded_single_stream/generic_detector.pipe
+    pipelines/embedded_single_stream/generic_tracker.pipe
+    pipelines/embedded_single_stream/local_deep_detector.pipe
+    pipelines/embedded_single_stream/local_deep_tracker.pipe
+    pipelines/embedded_single_stream/local_svm_frame_classifier.pipe
+    pipelines/embedded_single_stream/local_svm_detector.pipe
+    pipelines/embedded_single_stream/local_svm_tracker.pipe
+    pipelines/embedded_single_stream/train_deep_detector.pipe )
 
   if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-MOUSS )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/gui_embedded/mouss_detector.pipe
-      pipelines/gui_embedded/mouss_tracker.pipe )
+      pipelines/embedded_single_stream/mouss_detector.pipe
+      pipelines/embedded_single_stream/mouss_tracker.pipe )
   endif()
 
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/gui_embedded/habcam_detector.pipe )
+      pipelines/embedded_single_stream/habcam_detector.pipe )
   endif()
 
   if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-      pipelines/gui_embedded/arctic_seal_rgb_tf_detector.pipe
-      pipelines/gui_embedded/arctic_seal_ir_tf_detector.pipe )
+      pipelines/embedded_single_stream/arctic_seal_rgb_tf_detector.pipe
+      pipelines/embedded_single_stream/arctic_seal_ir_tf_detector.pipe )
   endif()
 
   if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-      pipelines/gui_embedded/arctic_seal_rgb_yolo_detector.pipe
-      pipelines/gui_embedded/arctic_seal_ir_yolo_detector.pipe )
+      pipelines/embedded_single_stream/arctic_seal_rgb_yolo_detector.pipe
+      pipelines/embedded_single_stream/arctic_seal_ir_yolo_detector.pipe )
   endif()
 
   install( FILES       ${GUI_PIPELINE_FILES}
-           DESTINATION configs/pipelines/gui_embedded )
+           DESTINATION configs/pipelines/embedded_single_stream )
 endif()
 
 if( VIAME_ENABLE_BURNOUT )
