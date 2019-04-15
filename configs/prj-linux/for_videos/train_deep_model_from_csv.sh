@@ -9,7 +9,6 @@ export INPUT_DIRECTORY=training_data
 # Setup paths and run command
 source ${VIAME_INSTALL}/setup_viame.sh
 
-# Setup paths and run command
 viame_train_detector \
   -i ${INPUT_DIRECTORY} \
   -c ${VIAME_INSTALL}/configs/pipelines/train_yolo_704.viame_csv.conf \
