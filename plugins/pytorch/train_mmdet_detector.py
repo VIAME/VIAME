@@ -138,7 +138,7 @@ class MMTrainDetector( TrainDetector ):
       self._distributed = False
     else:
       self._distributed = True
-      init_dist( self._launcher, **cfg.dist_params )
+      init_dist( self._launcher, **self._cfg.dist_params )
 
     self._logger = get_root_logger( self._cfg.log_level )
     self._logger.info( 'Distributed training: {}'.format( self._distributed ) )
