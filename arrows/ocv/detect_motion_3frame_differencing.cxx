@@ -69,7 +69,7 @@ static
 void
 rms_over_channels( const cv::Mat &src, cv::Mat &dst)
 {
-  cv::Mat src_split[src.channels()];
+  cv::Mat *src_split = new cv::Mat[src.channels()];
   cv::split(src, src_split);
   cv::Mat accum = cv::Mat(src.rows, src.cols, CV_32F, cvScalar(0));
   for( int i=0; i<src.channels(); ++i)
@@ -84,6 +84,7 @@ rms_over_channels( const cv::Mat &src, cv::Mat &dst)
   }
   cv::sqrt(accum, accum);
   accum.convertTo(dst, CV_8UC1);
+  delete [] src_split;
 }
 
 
