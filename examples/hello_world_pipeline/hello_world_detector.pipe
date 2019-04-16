@@ -7,7 +7,7 @@ process image_reader
   :video_reader:image_list:image_reader:type   ocv
 
 # =============================================================================
-process detector
+process input
   :: image_object_detector
   :detector:type                               hello_world
   :detector:hello_world:text                   Hello World!!!
