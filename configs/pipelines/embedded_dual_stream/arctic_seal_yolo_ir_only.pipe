@@ -1,1 +1,26 @@
- 
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+include ../common_arctic_seal_ir_yolo_detector.pipe
+
+connect from in_adapt.image2
+        to   thermal_detector_input.image
+
+# ==================================================================================
+
+connect from thermal_detector_output.detected_object_set
+        to   out_adapt.detected_object_set2
+
+# -- end of file --
