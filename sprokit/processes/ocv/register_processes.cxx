@@ -34,7 +34,7 @@
 
 // -- list processes to register --
 #include "image_viewer_process.h"
-#include "image_object_classifier_process.h"
+#include "detect_in_subregions_process.h"
 
 // ----------------------------------------------------------------
 /*! \brief Regsiter processes

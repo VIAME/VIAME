@@ -7,12 +7,12 @@ set( sources
   register_processes.cxx
 
   image_viewer_process.cxx
-  image_object_classifier_process.cxx
+  detect_in_subregions_process.cxx
 )
 
 set( private_headers
   image_viewer_process.h
-  image_object_classifier_process.h
+  detect_in_subregions_process.h
 )
 
 kwiver_private_header_group( ${private_headers} )

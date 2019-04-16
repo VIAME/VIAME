@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "image_object_classifier_process.h"
+#include "detect_in_subregions_process.h"
 #include <arrows/ocv/image_container.h>
 
 #include <vital/algo/image_object_detector.h>
