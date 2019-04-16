@@ -52,15 +52,15 @@ namespace kwiver {
  * bounding boxes.
  *
  */
-class KWIVER_PROCESSES_OCV_NO_EXPORT image_object_classifier_process
+class KWIVER_PROCESSES_OCV_NO_EXPORT detect_in_subregions_process
   : public sprokit::process
 {
 public:
-  PLUGIN_INFO( "image_object_classifier",
+  PLUGIN_INFO( "detect_in_subregions",
                "Run a detection algorithm on all of the chips repersented by an incoming detected_object_set" )
 
-  image_object_classifier_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~image_object_classifier_process();
+  detect_in_subregions_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~detect_in_subregions_process();
 
 
 protected:
@@ -73,7 +73,7 @@ private:
 
   class priv;
   const std::unique_ptr<priv> d;
-}; // end class image_object_classifier_process
+}; // end class detect_in_subregions_process
 
 
 

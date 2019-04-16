@@ -55,7 +55,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   reg.register_process< kwiver::image_viewer_process >();
-  reg.register_process< kwiver::image_object_classifier_process >();
+  reg.register_process< kwiver::detect_in_subregions_process >();
 
 // - - - - - - - - - - - - - - - - - - - - - - -
   mark_process_module_as_loaded( vpm, reg.module_name() );
