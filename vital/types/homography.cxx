@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,11 +122,11 @@ homography_< double >
 
 /// Create a clone of outself as a shared pointer
 template < typename T >
-homography_sptr
+transform_sptr
 homography_< T >
 ::clone() const
 {
-  return homography_sptr( new homography_< T > ( *this ) );
+  return std::make_shared< homography_< T > >( *this );
 }
 
 

@@ -58,8 +58,6 @@ typedef std::shared_ptr< transform > transform_sptr;
 class VITAL_EXPORT transform
 {
 public:
-  enum class cookie {};
-
   /// Destructor
   virtual ~transform() = default;
 
@@ -67,7 +65,7 @@ public:
   /**
    * \return A new deep clone of this transformation.
    */
-  virtual transform_sptr clone( cookie = {} ) const = 0;
+  virtual transform_sptr clone() const = 0;
 
   /// Map a 2D double-type point using this transform
   /**
