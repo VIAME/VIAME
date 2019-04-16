@@ -217,13 +217,13 @@ if( VIAME_ENABLE_VIVIA )
 
   if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-      pipelines/embedded_single_stream/arctic_seal_rgb_tf_detector.pipe
+      pipelines/embedded_single_stream/arctic_seal_eo_tf_detector.pipe
       pipelines/embedded_single_stream/arctic_seal_ir_tf_detector.pipe )
   endif()
 
   if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-      pipelines/embedded_single_stream/arctic_seal_rgb_yolo_detector.pipe
+      pipelines/embedded_single_stream/arctic_seal_eo_yolo_detector.pipe
       pipelines/embedded_single_stream/arctic_seal_ir_yolo_detector.pipe )
   endif()
 
@@ -270,15 +270,15 @@ endif()
 
 if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/common_arctic_seal_rgb_tf_detector.pipe
+    pipelines/common_arctic_seal_eo_tf_detector.pipe
     pipelines/common_arctic_seal_ir_tf_detector.pipe
-    pipelines/detector_arctic_seal_rgb_tf.pipe
+    pipelines/detector_arctic_seal_eo_tf.pipe
     pipelines/detector_arctic_seal_ir_tf.pipe )
 endif()
 
 if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/common_arctic_seal_rgb_yolo_detector.pipe
+    pipelines/common_arctic_seal_eo_yolo.detector.pipe
     pipelines/common_arctic_seal_ir_yolo_detector.pipe
     pipelines/detector_arctic_seal_fusion_yolo.pipe )
 endif()

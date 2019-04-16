@@ -16,7 +16,7 @@ process out_adapt
 
 # ==================================================================================
 
-include ../common_arctic_seal_rgb_tf_detector.pipe
+include ../common_arctic_seal_eo_tf_detector.pipe
 
 connect from in_adapt.image
         to   detector.image

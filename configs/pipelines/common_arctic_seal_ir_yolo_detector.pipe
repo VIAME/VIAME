@@ -1,10 +1,11 @@
 # ==================================================================================
 # Threaded seal detector file
 
-process detector_input
-  :: percentile_norm_npy_16_to_8bit
+process thermal_input
+  :: image_filter
+  :filter:type                                 npy_image_normalization
 
-process detector1
+process thermal_detector1
   :: image_object_detector
   :detector:type                               darknet
 
@@ -30,10 +31,10 @@ process detector1
 
   endblock
 
-connect from detector_input.image
-        to   detector1.image
+connect from thermal_detector_input.image
+        to   thermal_detector1.image
 
-process detector2
+process thermal_detector2
   :: image_object_detector
   :detector:type                               darknet
 
@@ -59,13 +60,13 @@ process detector2
 
   endblock
 
-connect from detector_input.image
-        to   detector2.image
+connect from thermal_detector_input.image
+        to   thermal_detector2.image
 
-process detector_output
+process thermal_detector_output
   :: merge_detection_sets
 
-connect from detector1.detected_object_set
-        to   detector_output.detected_object_set1
-connect from detector2.detected_object_set
-        to   detector_output.detected_object_set2
+connect from thermal_detector1.detected_object_set
+        to   thermal_detector_output.detected_object_set1
+connect from thermal_detector2.detected_object_set
+        to   thermal_detector_output.detected_object_set2

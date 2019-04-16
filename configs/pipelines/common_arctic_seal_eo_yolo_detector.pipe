@@ -1,7 +1,7 @@
 # ==================================================================================
 # Threaded seal detector file
 
-process detector_input
+process optical_detector_input
   :: image_filter
   :filter:type                                 vxl_convert_image
 
@@ -9,7 +9,7 @@ process detector_input
     :format                                    byte
   endblock
 
-process detector1
+process optical_detector1
   :: image_object_detector
   :detector:type                               darknet
 
@@ -35,10 +35,10 @@ process detector1
 
   endblock
 
-connect from detector_input.image
-        to   detector1.image
+connect from optical_detector_input.image
+        to   optical_detector1.image
 
-process detector2
+process optical_detector2
   :: image_object_detector
   :detector:type                               darknet
 
@@ -64,13 +64,13 @@ process detector2
 
   endblock
 
-connect from detector_input.image
-        to   detector2.image
+connect from optical_detector_input.image
+        to   optical_detector2.image
 
-process detector_output
+process optical_detector_output
   :: merge_detection_sets
 
-connect from detector1.detected_object_set
-        to   detector_output.detected_object_set1
-connect from detector2.detected_object_set
-        to   detector_output.detected_object_set2
+connect from optical_detector1.detected_object_set
+        to   optical_detector_output.detected_object_set1
+connect from optical_detector2.detected_object_set
+        to   optical_detector_output.detected_object_set2

@@ -13,7 +13,7 @@ process out_adapt
 
 # ==================================================================================
 
-include ../common_arctic_seal_rgb_yolo_detector.pipe
+include ../common_arctic_seal_eo_yolo.detector.pipe
 
 connect from in_adapt.image
         to   detector_input.image

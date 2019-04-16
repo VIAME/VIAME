@@ -18,7 +18,7 @@ process input
   :video_reader:image_list:image_reader:vxl:force_byte  false
 
 # =============================================================================
-include common_arctic_seal_rgb_tf_detector.pipe
+include common_arctic_seal_eo_tf_detector.pipe
 
 connect from input.image
         to   detector.image
