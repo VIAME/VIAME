@@ -6,7 +6,7 @@ process optical_detector
   :detector:type                               tensorflow
 
   block detector:tensorflow
-    relativepath model_file =                  models/arctic_seal_rgb.pb
+    relativepath model_file =                  models/arctic_seal_eo.pb
     :confidence_thresh                         0.25
     :category_name                             seal
   endblock

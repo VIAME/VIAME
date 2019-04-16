@@ -10,11 +10,11 @@ config _scheduler
 # =============================================================================
 process input
   :: video_input
-  :video_filename                                       input_list.txt
-  :frame_time                                           1
-  :exit_on_invalid                                      true
-  :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type            ocv
+  :video_filename                              input_list.txt
+  :frame_time                                  1
+  :exit_on_invalid                             true
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   ocv
 
 # =============================================================================
 include common_arctic_seal_ir_tf_detector.pipe
