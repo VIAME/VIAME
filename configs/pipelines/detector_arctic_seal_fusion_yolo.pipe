@@ -64,7 +64,7 @@ connect from thermal_input.file_name
 include common_arctic_seal_ir_yolo.detector.pipe
 
 connect from align_images.thermal_image
-        to   thermal_input.image
+        to   thermal_detector_input.image
 
 # ================================= EO DETECTOR ====================================
 
@@ -80,7 +80,7 @@ connect from thermal_detector_output.detected_object_set
         to   optical_trigger.detected_object_set
 
 connect from optical_trigger.image
-        to   optical_detector.image
+        to   optical_detector_input.image
 
 # =================================== OUTPUTS ======================================
 
@@ -95,7 +95,7 @@ process write_optical_detections
 
 connect from align_images.optical_image
         to   draw_optical_detections.image
-connect from optical_detector.detected_object_set
+connect from optical_detector_output.detected_object_set
         to   draw_optical_detections.detected_object_set
 
 connect from draw_optical_detections.image

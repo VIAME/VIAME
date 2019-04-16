@@ -20,7 +20,7 @@ process input
 include common_arctic_seal_ir_tf_detector.pipe
 
 connect from input.image
-        to   detector.image
+        to   thermal_detector.image
 
 # =============================================================================
 process detector_writer
@@ -30,7 +30,7 @@ process detector_writer
   :file_name                                   detections_tf_ir.csv
   :writer:type                                 viame_csv
 
-connect from detector.detected_object_set
+connect from thermal_detector.detected_object_set
         to   detector_writer.detected_object_set
 
 # =============================================================================
@@ -43,7 +43,7 @@ connect from detector.detected_object_set
 #  :file_name_template                          ir_out_images/frame%06d.jpg
 #  :image_writer:type                           ocv
 #
-#connect from detector.image_norm
+#connect from thermal_detector.image_norm
 #        to   draw_box.image
 #connect from detector.detected_object_set
 #        to   draw_box.detected_object_set

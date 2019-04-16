@@ -19,7 +19,7 @@ process out_adapt
 include ../common_arctic_seal_ir_tf_detector.pipe
 
 connect from in_adapt.image
-        to   detector.image
+        to   thermal_detector.image
 
 # ==================================================================================
 
@@ -27,7 +27,7 @@ include ../common_default_initializer.pipe
 
 connect from in_adapt.timestamp
         to   track_initializer.timestamp
-connect from detector.detected_object_set
+connect from thermal_detector.detected_object_set
         to   track_initializer.detected_object_set
 
 connect from track_initializer.object_track_set

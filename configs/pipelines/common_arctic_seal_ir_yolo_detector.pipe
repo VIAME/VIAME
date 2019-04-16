@@ -1,7 +1,7 @@
 # ==================================================================================
 # Threaded seal detector file
 
-process thermal_input
+process thermal_detector_input
   :: image_filter
   :filter:type                                 npy_image_normalization
 
