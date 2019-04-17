@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/ocv/kwiver_processes_ocv_export.h>
-#include <sprokit/pipeline/process_factory.h>
-#include <vital/plugin_loader/plugin_loader.h>
+#ifndef SPROKIT_PROCESSES_DETECT_MOTION_PROCESS_H
+#define SPROKIT_PROCESSES_DETECT_MOTION_PROCESS_H
 
-// -- list processes to register --
-#include "image_viewer_process.h"
-#include "detect_in_subregions_process.h"
+#include "kwiver_processes_export.h"
+#include <sprokit/pipeline/process.h>
+#include <vital/config/config_block.h>
+
+
+namespace kwiver {
 
 // ----------------------------------------------------------------
-/*! \brief Regsiter processes
+/**
+ * @brief Motion detection process.
  *
  */
-extern "C"
-KWIVER_PROCESSES_OCV_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+class KWIVER_PROCESSES_NO_EXPORT detect_motion_process
+  : public sprokit::process
 {
-  using namespace sprokit;
+public:
+  PLUGIN_INFO( "detect_motion",
+               "Detect motion in a sequence of images" )
 
-  process_registrar reg( vpm, "kwiver_processes_ocv" );
+  detect_motion_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~detect_motion_process();
 
-  if ( is_process_module_loaded( vpm, reg.module_name() ) )
-  {
-    return;
-  }
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-  reg.register_process< kwiver::image_viewer_process >();
-  reg.register_process< kwiver::detect_in_subregions_process >();
+private:
+  void make_ports();
+  void make_config();
 
-// - - - - - - - - - - - - - - - - - - - - - - -
-  mark_process_module_as_loaded( vpm, reg.module_name() );
-}
+  class priv;
+  const std::unique_ptr<priv> d;
+};
+
+} // end namespace
+
+#endif /* SPROKIT_PROCESSES_DETECT_MOTION_PROCESS_H */

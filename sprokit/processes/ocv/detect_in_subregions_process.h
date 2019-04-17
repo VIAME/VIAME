@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,55 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/ocv/kwiver_processes_ocv_export.h>
-#include <sprokit/pipeline/process_factory.h>
-#include <vital/plugin_loader/plugin_loader.h>
+#ifndef _KWIVER_IMAGE_OBJECT_CLASSIFIER_PROCESS_H
+#define _KWIVER_IMAGE_OBJECT_CLASSIFIER_PROCESS_H
 
-// -- list processes to register --
-#include "image_viewer_process.h"
-#include "detect_in_subregions_process.h"
+#include <sprokit/pipeline/process.h>
+#include "kwiver_processes_ocv_export.h"
+#include <vital/config/config_block.h>
+
+namespace kwiver {
 
 // ----------------------------------------------------------------
-/*! \brief Regsiter processes
+/**
+ * @brief Image object classifier process.
+ *
+ * This process is intended to be used after an initial object detection step
+ * identifies potentially interesting regions within an image, defined by a
+ * detected_object_set, to run a subsequent, potentially more
+ * expensive, detector/classifier algorithm. Each bounding box from the input
+ * detected_object_set defines a sub-image, which is passed to the specified
+ * detection algorithm. The result is a new, presumably more accurate,
+ * detected_object_set, which may not have direct correlation with the input set
+ * of image_object_detection other than being contained within the union of its
+ * bounding boxes.
  *
  */
-extern "C"
-KWIVER_PROCESSES_OCV_EXPORT
-void
-register_factories( kwiver::vital::plugin_loader& vpm )
+class KWIVER_PROCESSES_OCV_NO_EXPORT detect_in_subregions_process
+  : public sprokit::process
 {
-  using namespace sprokit;
+public:
+  PLUGIN_INFO( "detect_in_subregions",
+               "Run a detection algorithm on all of the chips repersented by an incoming detected_object_set" )
 
-  process_registrar reg( vpm, "kwiver_processes_ocv" );
+  detect_in_subregions_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~detect_in_subregions_process();
 
-  if ( is_process_module_loaded( vpm, reg.module_name() ) )
-  {
-    return;
-  }
 
-  reg.register_process< kwiver::image_viewer_process >();
-  reg.register_process< kwiver::detect_in_subregions_process >();
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-// - - - - - - - - - - - - - - - - - - - - - - -
-  mark_process_module_as_loaded( vpm, reg.module_name() );
-}
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class detect_in_subregions_process
+
+
+
+} // end namespace
+
+#endif /* _KWIVER_IMAGE_OBJECT_CLASSIFIER_PROCESS_H */

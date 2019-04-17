@@ -64,6 +64,7 @@
 #include "merge_track_sets_process.h"
 #include "perform_query_process.h"
 #include "print_config_process.h"
+#include "detect_motion_process.h"
 #include "read_descriptor_process.h"
 #include "read_object_track_process.h"
 #include "read_track_descriptor_process.h"
@@ -141,6 +142,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< handle_descriptor_request_process >();
   reg.register_process< compute_track_descriptors_process >();
   reg.register_process< perform_query_process >();
+  reg.register_process< detect_motion_process >();
   reg.register_process< downsample_process >();
   reg.register_process< unwrap_detections_process >();
 

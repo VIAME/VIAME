@@ -15,6 +15,7 @@ set( sources
   convert_tracks_to_detections_process.cxx
   detect_features_if_keyframe_process.cxx
   detect_features_process.cxx
+  detect_motion_process.cxx
   detected_object_output_process.cxx
   detected_object_input_process.cxx
   detected_object_filter_process.cxx
@@ -66,6 +67,7 @@ set( private_headers
   detected_object_output_process.h
   detected_object_input_process.h
   detected_object_filter_process.h
+  detect_motion_process.h
   downsample_process.h
   draw_detected_object_set_process.h
   draw_tracks_process.h

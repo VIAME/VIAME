@@ -22,6 +22,7 @@ set( public_headers
   convert_image.h
   data_serializer.h
   detect_features.h
+  detect_motion.h
   detected_object_filter.h
   detected_object_set_input.h
   detected_object_set_output.h
@@ -82,6 +83,7 @@ set( sources
   convert_image.cxx
   data_serializer.cxx
   detect_features.cxx
+  detect_motion.cxx
   detected_object_filter.cxx
   detected_object_set_input.cxx
   detected_object_set_output.cxx
