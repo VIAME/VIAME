@@ -43,7 +43,7 @@ from mmcv.runner import load_checkpoint
 from mmdet.models import build_detector
 from mmdet.apis import inference_detector
 
-class MMTestDetector( ImageObjectDetector ):
+class MMDetDetector( ImageObjectDetector ):
   """
   Implementation of ImageObjectDetector class
   """
@@ -143,10 +143,10 @@ def __vital_algorithm_register__():
   implementation_name  = "mmdet"
 
   if algorithm_factory.has_algorithm_impl_name(
-      MMTestDetector.static_type_name(), implementation_name ):
+      MMDetDetector.static_type_name(), implementation_name ):
     return
 
   algorithm_factory.add_algorithm( implementation_name,
-    "PyTorch MMDetection testing routine", MMTestDetector )
+    "PyTorch MMDetection testing routine", MMDetDetector )
 
   algorithm_factory.mark_algorithm_as_loaded( implementation_name )
