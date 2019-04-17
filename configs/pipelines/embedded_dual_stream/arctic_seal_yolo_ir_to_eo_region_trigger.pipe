@@ -20,25 +20,57 @@ connect from in_adapt.image2
 
 # ================================= EO DETECTOR ====================================
 
-process warp_ir_to_eo_detections
-  :: itk_warp_detections_process
+process warp_ir_detections_to_eo
+  :: itk_warp_detections
   :transformation_file                         ir_to_eo_registration.h5
 
-process optical_subregion_trigger
-  :: detect_in_subregions_process
-  :
-  :
-  :detector:type
+process optical_subregion_selector
+  :: detect_in_subregions
 
-include ../common_arctic_seal_eo_yolo.detector.pipe
+  :method                                      fixed_size
+  :max_subregion_count                         10
+  :fixed_size                                  704 ## CHECK THIS
+
+  :detector:type                               darknet
+
+  block detector:darknet
+
+    # Network config, weights, and names
+    relativepath net_config  =                 models/arctic_seal_eo.cfg
+    relativepath weight_file =                 models/arctic_seal_eo.weights
+    relativepath class_names =                 models/arctic_seal_eo.lbl
+
+    # Detector parameters
+    :thresh                                    0.010
+    :hier_thresh                               0.001
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             maintain_ar
+    :scale                                     1.0
+
+  endblock
+
+connect from thermal_detector_output.detected_object_set
+        to   warp_ir_detections_to_eo.detected_object_set
 
 connect from in_adapt.image
-        to   optical_trigger.image
-connect from thermal_detector_output.detected_object_set
-        to   optical_trigger.detected_object_set
+        to   optical_subregion_selector.image
+connect from warp_ir_detections_to_eo.detected_object_set
+        to   optical_subregion_selector.detected_object_set
 
-connect from optical_trigger.image
-        to   optical_detector_input.image
+process optical_detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from optical_subregion_selector.detected_object_set
+        to   optical_detector_output
 
 # =============================== FUSION AND OUTPUT ================================
 
@@ -46,5 +78,87 @@ connect from optical_detector_output.detected_object_set
         to   out_adapt.detected_object_set
 connect from thermal_detector_output.detected_object_set
         to   out_adapt.detected_object_set2
+
+# ================================== CSV WRITERS ===================================
+
+process optical_writer_csv
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   optical_detections.csv
+  :writer:type                                 viame_csv
+
+connect from optical_detector_output.detected_object_set
+        to   optical_writer_csv.detected_object_set
+connect from in_adapt.file_name
+        to   optical_writer_csv.image_file_name
+
+process thermal_writer_csv
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   thermal_detections.csv
+  :writer:type                                 viame_csv
+
+connect from thermal_detector_output.detected_object_set
+        to   thermal_writer_csv.detected_object_set
+connect from in_adapt.file_name2
+        to   thermal_writer_csv.image_file_name
+
+# ================================== DB WRITERS ====================================
+
+#process optical_filter_db
+#  :: initialize_object_tracks
+#  :track_initializer:type                      threshold
+#
+#  block track_initializer:threshold:filter
+#    :type                                      class_probablity_filter
+#    :class_probablity_filter:threshold         0.010
+#    :class_probablity_filter:keep_all_classes  true
+#  endblock
+
+#process optical_writer_db
+#  :: write_object_track
+#  :file_name                                   none
+#  :writer:type                                 db
+#  :writer:db:conn_str                          postgresql:host=localhost;user=postgres
+#  :writer:db:video_name                        optical_stream
+
+#connect from in_adapt.timestamp
+#        to   optical_filter_db.timestamp
+#connect from optical_detector_output.detected_object_set
+#        to   optical_filter_db.detected_object_set
+
+#connect from in_adapt.timestamp
+#        to   optical_writer_db.timestamp
+#connect from optical_filter_db.object_track_set
+#        to   optical_writer_db.object_track_set
+
+#process thermal_filter_db
+#  :: initialize_object_tracks
+#  :track_initializer:type                      threshold
+#
+#  block track_initializer:threshold:filter
+#    :type                                      class_probablity_filter
+#    :class_probablity_filter:threshold         0.010
+#    :class_probablity_filter:keep_all_classes  true
+#  endblock
+
+#process thermal_writer_db
+#  :: write_object_track
+#  :file_name                                   none
+#  :writer:type                                 db
+#  :writer:db:conn_str                          postgresql:host=localhost;user=postgres
+#  :writer:db:video_name                        thermal_stream
+
+#connect from in_adapt.timestamp2
+#        to   thermal_filter_db.timestamp
+#connect from thermal_detector_output.detected_object_set
+#        to   thermal_filter_db.detected_object_set
+
+#connect from in_adapt.timestamp2
+#        to   thermal_writer_db.timestamp
+#connect from thermal_filter_db.object_track_set
+#        to   thermal_writer_db.object_track_se
 
 # -- end of file --

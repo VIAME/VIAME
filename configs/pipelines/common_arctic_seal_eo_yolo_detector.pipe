@@ -38,6 +38,19 @@ process optical_detector1
 connect from optical_detector_input.image
         to   optical_detector1.image
 
+process optical_detector1_nms
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from optical_detector1.detected_object_set
+        to   optical_detector1_nms.detected_object_set
+
 process optical_detector2
   :: image_object_detector
   :detector:type                               darknet
@@ -67,10 +80,23 @@ process optical_detector2
 connect from optical_detector_input.image
         to   optical_detector2.image
 
+process optical_detector2_nms
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from optical_detector2.detected_object_set
+        to   optical_detector2_nms.detected_object_set
+
 process optical_detector_output
   :: merge_detection_sets
 
-connect from optical_detector1.detected_object_set
+connect from optical_detector1_nms.detected_object_set
         to   optical_detector_output.detected_object_set1
-connect from optical_detector2.detected_object_set
+connect from optical_detector2_nms.detected_object_set
         to   optical_detector_output.detected_object_set2
