@@ -246,8 +246,8 @@ def __vital_algorithm_register__():
   implementation_name  = "tensorflow"
 
   if algorithm_factory.has_algorithm_impl_name(
-    TFDetector.static_type_name(), implementation_name ):
-  return
+      TFDetector.static_type_name(), implementation_name ):
+    return
 
   algorithm_factory.add_algorithm( implementation_name,
   "Tensorflow detector testing routine", TFDetector )
