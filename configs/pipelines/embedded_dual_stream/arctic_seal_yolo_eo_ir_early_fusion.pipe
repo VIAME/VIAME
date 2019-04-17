@@ -1,4 +1,3 @@
- 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
 #
@@ -143,6 +142,8 @@ connect from fusion_detector2_nms.detected_object_set
 
 connect from fusion_detector_output.detected_object_set
         to   out_adapt.detected_object_set
+connect from in_adapt.file_name
+        to   out_adapt.file_name
 
 # ==================================================================================
 

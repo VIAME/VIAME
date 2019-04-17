@@ -38,8 +38,13 @@ connect from optical_trigger.image
 
 connect from optical_detector.detected_object_set
         to   out_adapt.detected_object_set
+connect from in_adapt.file_name
+        to   out_adapt.file_name
+
 connect from thermal_detector.detected_object_set
         to   out_adapt.detected_object_set2
+connect from in_adapt.file_name2
+        to   out_adapt.file_name2
 
 # ================================== CSV WRITERS ===================================
 

@@ -22,6 +22,8 @@ connect from in_adapt.image
 
 connect from optical_detector.detected_object_set
         to   out_adapt.detected_object_set
+connect from in_adapt.file_name
+        to   out_adapt.file_name
 
 # ==================================================================================
 
