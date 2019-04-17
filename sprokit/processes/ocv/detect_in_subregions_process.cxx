@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@
  */
 
 #include "detect_in_subregions_process.h"
+
 #include <arrows/ocv/image_container.h>
 
 #include <vital/algo/image_object_detector.h>
@@ -40,15 +41,24 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-namespace kwiver {
+namespace kwiver
+{
 
-create_config_trait( detector, std::string, "", "Algorithm configuration subblock.\n\n"
-  "Use 'detector:type' to select desired detector implementation.");
+create_config_trait( detector, std::string, "", "Algorithm configuration "
+  "subblock.\n\nUse 'detector:type' to select desired detector implementation." );
+
+create_config_trait( method, std::string, "", "Method to extract subregions "
+  "to process. Options: detection_bbox, fixed_size." );
+create_config_trait( max_subgregion_count, int, "-1", "Maximum number of "
+  "subregions to process." );
+create_config_trait( fixed_size, unsigned, "", "If mode is fixed size, "
+  "the width and height of the chip around each input detection to process" );
+create_config_trait( threshold, double, "0.0", "If the input is object detections "
+  "only consider regions above this confidence" );
 create_config_trait( include_input_dets, bool, "false", "Include the input "
-                     "detected object set in the output detected object set." );
+  "detected object set in the output detected object set." );
 
-
-//----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Private implementation class
 class detect_in_subregions_process::priv
 {
@@ -64,10 +74,11 @@ public:
 
   bool m_include_input_dets;
   kwiver::vital::logger_handle_t m_logger;
+
   vital::algo::image_object_detector_sptr m_detector;
 
 
-  // ------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   /**
    * @brief Classify regions defined within the provided detected object set.
    *
@@ -86,7 +97,8 @@ public:
             vital::detected_object_set_sptr &dets_out_sptr )
   {
     kwiver::vital::wall_timer timer;
-    cv::Mat cv_src = arrows::ocv::image_container::vital_to_ocv( src_image->get_image(), arrows::ocv::image_container::BGR_COLOR );
+    cv::Mat cv_src = arrows::ocv::image_container::vital_to_ocv(
+      src_image->get_image(), arrows::ocv::image_container::BGR_COLOR );
 
     vital::detected_object::vector_t dets_out;
 
@@ -102,7 +114,9 @@ public:
                                vital::bounding_box_d::vector_type( s.width, s.height ) );
 
     kwiver::vital::image_container_sptr windowed_image;
+
     LOG_DEBUG( m_logger, "Considering " << dets_in->size() << " ROI" );
+
     for( auto det : *dets_in )
     {
       timer.start();
@@ -133,7 +147,9 @@ public:
       cv::Rect roi( x, y, w, h );
 
       // Detect within the region of interest.
-      windowed_image = vital::image_container_sptr( new arrows::ocv::image_container( cv_src(roi), arrows::ocv::image_container::BGR_COLOR ) );
+      windowed_image = vital::image_container_sptr(
+        new arrows::ocv::image_container(
+          cv_src( roi ), arrows::ocv::image_container::BGR_COLOR ) );
 
       auto dets = m_detector->detect( windowed_image );
 
@@ -151,15 +167,15 @@ public:
       LOG_TRACE( m_logger, "Time to classify window: " << timer.elapsed() );
     } // end foreach
 
-    dets_out_sptr = std::make_shared<vital::detected_object_set>(dets_out);
+    dets_out_sptr = std::make_shared<vital::detected_object_set>( dets_out );
   }
 
 }; // end priv class
 
 
-// ==================================================================
-detect_in_subregions_process::
-detect_in_subregions_process( kwiver::vital::config_block_sptr const& config )
+// =============================================================================
+detect_in_subregions_process
+::detect_in_subregions_process( kwiver::vital::config_block_sptr const& config )
   : process( config ),
     d( new detect_in_subregions_process::priv )
 {
@@ -172,29 +188,32 @@ detect_in_subregions_process( kwiver::vital::config_block_sptr const& config )
 }
 
 
-detect_in_subregions_process::
-~detect_in_subregions_process()
+detect_in_subregions_process
+::~detect_in_subregions_process()
 {
 }
 
 
-// ------------------------------------------------------------------
+//------------------------------------------------------------------------------
 void
-detect_in_subregions_process::
-_configure()
+detect_in_subregions_process
+::_configure()
 {
   scoped_configure_instrumentation();
 
   vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::image_object_detector::check_nested_algo_configuration( "detector", algo_config ) )
+  if( !vital::algo::image_object_detector::
+       check_nested_algo_configuration( "detector", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
-  vital::algo::image_object_detector::set_nested_algo_configuration( "detector", algo_config, d->m_detector );
-  if ( ! d->m_detector )
+  vital::algo::image_object_detector::
+    set_nested_algo_configuration( "detector", algo_config, d->m_detector );
+
+  if( !d->m_detector )
   {
     throw sprokit::invalid_configuration_exception( name(), "Unable to create detector" );
   }
@@ -203,10 +222,10 @@ _configure()
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
-detect_in_subregions_process::
-_step()
+detect_in_subregions_process
+::_step()
 {
   vital::detected_object_set_sptr dets_out;
   double elapsed_time(0);;
@@ -216,16 +235,20 @@ _step()
   kwiver::vital::wall_timer timer;
   timer.start();
 
-  vital::image_container_sptr src_image = grab_from_port_using_trait( image );
-  vital::detected_object_set_sptr dets_in = grab_from_port_using_trait( detected_object_set );
+  vital::image_container_sptr src_image =
+    grab_from_port_using_trait( image );
+  vital::detected_object_set_sptr dets_in =
+    grab_from_port_using_trait( detected_object_set );
 
   {
     scoped_step_instrumentation();
+
     // Get detections from detector on image
     d->classify( src_image, dets_in, dets_out );
 
     timer.stop();
     elapsed_time = timer.elapsed();
+
     LOG_DEBUG( logger(), "Total processing time: " << elapsed_time );
   }
 
@@ -234,10 +257,10 @@ _step()
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
-detect_in_subregions_process::
-make_ports()
+detect_in_subregions_process
+::make_ports()
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
@@ -255,15 +278,15 @@ make_ports()
 }
 
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void
-detect_in_subregions_process::
-make_config()
+detect_in_subregions_process
+::make_config()
 {
   declare_config_using_trait( detector );
   declare_config_using_trait( include_input_dets );
 }
 
-// ================================================================
+// =============================================================================
 
 } // end namespace kwiver

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _KWIVER_IMAGE_OBJECT_CLASSIFIER_PROCESS_H
-#define _KWIVER_IMAGE_OBJECT_CLASSIFIER_PROCESS_H
+#ifndef _KWIVER_DETECT_IN_SUBREGIONS_PROCESS_H
+#define _KWIVER_DETECT_IN_SUBREGIONS_PROCESS_H
 
 #include <sprokit/pipeline/process.h>
-#include "kwiver_processes_ocv_export.h"
+
 #include <vital/config/config_block.h>
 
-namespace kwiver {
+#include "kwiver_processes_ocv_export.h"
 
-// ----------------------------------------------------------------
+namespace kwiver
+{
+
+// -----------------------------------------------------------------------------
 /**
- * @brief Image object classifier process.
+ * @brief Detect in subregions process.
  *
  * This process is intended to be used after an initial object detection step
  * identifies potentially interesting regions within an image, defined by a
@@ -57,11 +60,11 @@ class KWIVER_PROCESSES_OCV_NO_EXPORT detect_in_subregions_process
 {
 public:
   PLUGIN_INFO( "detect_in_subregions",
-               "Run a detection algorithm on all of the chips repersented by an incoming detected_object_set" )
+               "Run a detection algorithm on all of the chips represented "
+               "by an incoming detected_object_set" )
 
   detect_in_subregions_process( kwiver::vital::config_block_sptr const& config );
   virtual ~detect_in_subregions_process();
-
 
 protected:
   virtual void _configure();
@@ -73,10 +76,11 @@ private:
 
   class priv;
   const std::unique_ptr<priv> d;
+
 }; // end class detect_in_subregions_process
 
 
 
 } // end namespace
 
-#endif /* _KWIVER_IMAGE_OBJECT_CLASSIFIER_PROCESS_H */
+#endif /* _KWIVER_DETECT_IN_SUBREGIONS_PROCESS_H */
