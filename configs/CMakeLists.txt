@@ -217,13 +217,13 @@ if( VIAME_ENABLE_VIVIA )
 
   if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-      pipelines/embedded_single_stream/arctic_seal_rgb_tf_detector.pipe
+      pipelines/embedded_single_stream/arctic_seal_eo_tf_detector.pipe
       pipelines/embedded_single_stream/arctic_seal_ir_tf_detector.pipe )
   endif()
 
   if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-      pipelines/embedded_single_stream/arctic_seal_rgb_yolo_detector.pipe
+      pipelines/embedded_single_stream/arctic_seal_eo_yolo_detector.pipe
       pipelines/embedded_single_stream/arctic_seal_ir_yolo_detector.pipe )
   endif()
 
@@ -270,15 +270,15 @@ endif()
 
 if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/common_arctic_seal_rgb_tf_detector.pipe
+    pipelines/common_arctic_seal_eo_tf_detector.pipe
     pipelines/common_arctic_seal_ir_tf_detector.pipe
-    pipelines/detector_arctic_seal_rgb_tf.pipe
+    pipelines/detector_arctic_seal_eo_tf.pipe
     pipelines/detector_arctic_seal_ir_tf.pipe )
 endif()
 
 if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/common_arctic_seal_rgb_yolo_detector.pipe
+    pipelines/common_arctic_seal_eo_yolo.detector.pipe
     pipelines/common_arctic_seal_ir_yolo_detector.pipe
     pipelines/detector_arctic_seal_fusion_yolo.pipe )
 endif()
@@ -314,6 +314,20 @@ if( VIAME_ENABLE_CAFFE )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/tracker_default.sfd.cfe.pipe
     pipelines/index_default.sfd.cfe.pipe )
+endif()
+
+if( VIAME_ENABLE_SEAK_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/embedded_dual_stream/arctic_seal_tf_eo_only.pipe
+    pipelines/embedded_dual_stream/arctic_seal_tf_ir_only.pipe
+    pipelines/embedded_dual_stream/arctic_seal_tf_ir_to_eo_frame_trigger.pipe
+    pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_only.pipe
+    pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_ir_to_eo_region_tigger.pipe
+    pipelines/embedded_dual_stream/arctic_seal_yolo_eo_ir_early_fusion.pipe
+    pipelines/embedded_dual_stream/arctic_seal_yolo_eo_only.pipe
+    pipelines/embedded_dual_stream/arctic_seal_yolo_ir_only.pipe
+    pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_frame_trigger.pipe
+    pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_region_trigger.pipe )
 endif()
 
 install( FILES       ${RUN_SCRIPT_FILES}

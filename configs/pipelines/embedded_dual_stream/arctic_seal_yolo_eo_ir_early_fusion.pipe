@@ -1,1 +1,190 @@
  
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+process warp_image
+  :: itk_warp_image
+  :transformation_file                         ir_to_eo_registration.h5
+
+connect from in_adapt.image2
+        to   warp_image.image
+connect from in_adapt.image
+        to   warp_image.size_image
+
+process scale_warped
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            false
+    :percentile_norm                           0.001
+  endblock
+
+connect from warp_image.image
+        to   scale_warped.image
+
+process fused_detector_input
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from in_adapt.image
+        to   fused_detector_input.image1
+connect from scale_warped.image
+        to   fused_detector_input.image2
+
+# ==================================================================================
+
+process fusion_detector1
+  :: image_object_detector
+  :detector:type                               darknet
+
+  :frame_downsample                            2
+  :frame_offset                                0
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                 ../models/arctic_seal_fusion.cfg
+    relativepath weight_file =                 ../models/arctic_seal_fusion.weights
+    relativepath class_names =                 ../models/arctic_seal_fusion.lbl
+
+    # Detector parameters
+    :thresh                                    0.010
+    :hier_thresh                               0.001
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             chip
+    :scale                                     1.0
+    :chip_step                                 600
+    :chip_edge_filter                          10
+
+  endblock
+
+connect from fusion_detector_input.image
+        to   fusion_detector1.image
+
+process fusion_detector1_nms
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from fusion_detector1.detected_object_set
+        to   fusion_detector1_nms.detected_object_set
+
+process fusion_detector2
+  :: image_object_detector
+  :detector:type                               darknet
+
+  :frame_downsample                            2
+  :frame_offset                                1
+
+  block detector:darknet
+    # Network config, weights, and names
+    relativepath net_config  =                 ../models/arctic_seal_fusion.cfg
+    relativepath weight_file =                 ../models/arctic_seal_fusion.weights
+    relativepath class_names =                 ../models/arctic_seal_fusion.lbl
+
+    # Detector parameters
+    :thresh                                    0.010
+    :hier_thresh                               0.001
+    :gpu_index                                 0
+
+    # Image scaling parameters
+    :resize_option                             chip
+    :scale                                     1.0
+    :chip_step                                 600
+    :chip_edge_filter                          10
+
+  endblock
+
+connect from fusion_detector_input.image
+        to   fusion_detector2.image
+
+process fusion_detector2_nms
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from fusion_detector2.detected_object_set
+        to   fusion_detector2_nms.detected_object_set
+
+process fusion_detector_output
+  :: merge_detection_sets
+
+connect from fusion_detector1_nms.detected_object_set
+        to   fusion_detector_output.detected_object_set1
+connect from fusion_detector2_nms.detected_object_set
+        to   fusion_detector_output.detected_object_set2
+
+# ==================================================================================
+
+connect from fusion_detector_output.detected_object_set
+        to   out_adapt.detected_object_set
+
+# ==================================================================================
+
+process fusion_writer_csv
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   fusion_detections.csv
+  :writer:type                                 viame_csv
+
+connect from fusion_detector_output.detected_object_set
+        to   fusion_writer_csv.detected_object_set
+connect from in_adapt.file_name
+        to   fusion_writer_csv.image_file_name
+
+# ==================================================================================
+
+#process fusion_filter_db
+#  :: initialize_object_tracks
+#  :track_initializer:type                      threshold
+#
+#  block track_initializer:threshold:filter
+#    :type                                      class_probablity_filter
+#    :class_probablity_filter:threshold         0.010
+#    :class_probablity_filter:keep_all_classes  true
+#  endblock
+
+#process fusion_writer_db
+#  :: write_object_track
+#  :file_name                                   none
+#  :writer:type                                 db
+#  :writer:db:conn_str                          postgresql:host=localhost;user=postgres
+#  :writer:db:video_name                        fusion_stream
+
+#connect from in_adapt.timestamp
+#        to   fusion_filter_db.timestamp
+#connect from fusion_detector_output.detected_object_set
+#        to   fusion_filter_db.detected_object_set
+
+#connect from in_adapt.timestamp
+#        to   fusion_writer_db.timestamp
+#connect from fusion_filter_db.object_track_set
+#        to   fusion_writer_db.object_track_set
+
+# -- end of file --

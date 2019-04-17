@@ -1,14 +1,12 @@
 # ==================================================================================
 # Threaded seal detector file
 
-process thermal_detector
+process optical_detector
   :: image_object_detector
   :detector:type                               tensorflow
 
   block detector:tensorflow
-    relativepath model_file =                  models/arctic_seal_ir.pb
-    :norm_image_type                           adaptive_min_fixed_range
-    :fixed_range                               7000
+    relativepath model_file =                  models/arctic_seal_eo.pb
     :confidence_thresh                         0.25
-    :category_name                             hotspot
+    :category_name                             seal
   endblock

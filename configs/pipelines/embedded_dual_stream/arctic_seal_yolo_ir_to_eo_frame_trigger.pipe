@@ -1,1 +1,126 @@
- 
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ================================= IR DETECTOR ====================================
+
+include ../common_arctic_seal_ir_yolo_detector.pipe
+
+connect from in_adapt.image2
+        to   thermal_detector_input.image
+
+# ================================= EO DETECTOR ====================================
+
+process optical_trigger
+  :: filter_frames
+  :detection_threshold                         0.01
+
+include ../common_arctic_seal_eo_yolo.detector.pipe
+
+connect from in_adapt.image
+        to   optical_trigger.image
+connect from thermal_detector_output.detected_object_set
+        to   optical_trigger.detected_object_set
+
+connect from optical_trigger.image
+        to   optical_detector_input.image
+
+# =============================== FUSION AND OUTPUT ================================
+
+connect from optical_detector_output.detected_object_set
+        to   out_adapt.detected_object_set
+connect from thermal_detector_output.detected_object_set
+        to   out_adapt.detected_object_set2
+
+# ================================== CSV WRITERS ===================================
+
+process optical_writer_csv
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   optical_detections.csv
+  :writer:type                                 viame_csv
+
+connect from optical_detector_output.detected_object_set
+        to   optical_writer_csv.detected_object_set
+connect from in_adapt.file_name
+        to   optical_writer_csv.image_file_name
+
+process thermal_writer_csv
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   thermal_detections.csv
+  :writer:type                                 viame_csv
+
+connect from thermal_detector_output.detected_object_set
+        to   thermal_writer_csv.detected_object_set
+connect from in_adapt.file_name2
+        to   thermal_writer_csv.image_file_name
+
+# ================================== DB WRITERS ====================================
+
+#process optical_filter_db
+#  :: initialize_object_tracks
+#  :track_initializer:type                      threshold
+#
+#  block track_initializer:threshold:filter
+#    :type                                      class_probablity_filter
+#    :class_probablity_filter:threshold         0.010
+#    :class_probablity_filter:keep_all_classes  true
+#  endblock
+
+#process optical_writer_db
+#  :: write_object_track
+#  :file_name                                   none
+#  :writer:type                                 db
+#  :writer:db:conn_str                          postgresql:host=localhost;user=postgres
+#  :writer:db:video_name                        optical_stream
+
+#connect from in_adapt.timestamp
+#        to   optical_filter_db.timestamp
+#connect from optical_detector_output.detected_object_set
+#        to   optical_filter_db.detected_object_set
+
+#connect from in_adapt.timestamp
+#        to   optical_writer_db.timestamp
+#connect from optical_filter_db.object_track_set
+#        to   optical_writer_db.object_track_set
+
+#process thermal_filter_db
+#  :: initialize_object_tracks
+#  :track_initializer:type                      threshold
+#
+#  block track_initializer:threshold:filter
+#    :type                                      class_probablity_filter
+#    :class_probablity_filter:threshold         0.010
+#    :class_probablity_filter:keep_all_classes  true
+#  endblock
+
+#process thermal_writer_db
+#  :: write_object_track
+#  :file_name                                   none
+#  :writer:type                                 db
+#  :writer:db:conn_str                          postgresql:host=localhost;user=postgres
+#  :writer:db:video_name                        thermal_stream
+
+#connect from in_adapt.timestamp2
+#        to   thermal_filter_db.timestamp
+#connect from thermal_detector_output.detected_object_set
+#        to   thermal_filter_db.detected_object_set
+
+#connect from in_adapt.timestamp2
+#        to   thermal_writer_db.timestamp
+#connect from thermal_filter_db.object_track_set
+#        to   thermal_writer_db.object_track_set
+
+# -- end of file --

@@ -61,37 +61,10 @@ connect from thermal_input.file_name
 
 # ================================= IR DETECTOR ====================================
 
-process format_thermal_image
-  :: percentile_norm_npy_16_to_8bit
-
-process thermal_detector
-  :: image_object_detector
-  :detector:type                                        darknet
-
-  block detector:darknet
-    # Network config, weights, and names
-    relativepath net_config  =                          models/arctic_seal_ir.cfg
-    relativepath weight_file =                          models/arctic_seal_ir.weights
-    relativepath class_names =                          models/arctic_seal_ir.lbl
-
-    # Detector parameters
-    :thresh                                             0.010
-    :hier_thresh                                        0.001
-    :gpu_index                                          0
-
-    # Image scaling parameters
-    :resize_option                                      maintain_ar
-    :scale                                              1.0
-    :chip_step                                          600
-    :chip_edge_filter                                   10
-
-  endblock
+include common_arctic_seal_ir_yolo.detector.pipe
 
 connect from align_images.thermal_image
-        to   format_thermal_image.image
-
-connect from format_thermal_image.image
-        to   thermal_detector.image
+        to   thermal_detector_input.image
 
 # ================================= EO DETECTOR ====================================
 
@@ -99,36 +72,15 @@ process optical_trigger
   :: filter_frames
   :detection_threshold                                  0.01
 
-process optical_detector
-  :: image_object_detector
-  :detector:type                                        darknet
-
-  block detector:darknet
-    # Network config, weights, and names
-    relativepath net_config  =                          models/arctic_seal_rgb.cfg
-    relativepath weight_file =                          models/arctic_seal_rgb.weights
-    relativepath class_names =                          models/arctic_seal_rgb.lbl
-
-    # Detector parameters
-    :thresh                                             0.010
-    :hier_thresh                                        0.001
-    :gpu_index                                          0
-
-    # Image scaling parameters
-    :resize_option                                      chip
-    :scale                                              1.0
-    :chip_step                                          600
-    :chip_edge_filter                                   10
-
-  endblock
+include common_arctic_seal_eo_yolo.detector.pipe
 
 connect from align_images.optical_image
         to   optical_trigger.image
-connect from thermal_detector.detected_object_set
+connect from thermal_detector_output.detected_object_set
         to   optical_trigger.detected_object_set
 
 connect from optical_trigger.image
-        to   optical_detector.image
+        to   optical_detector_input.image
 
 # =================================== OUTPUTS ======================================
 
@@ -143,7 +95,7 @@ process write_optical_detections
 
 connect from align_images.optical_image
         to   draw_optical_detections.image
-connect from optical_detector.detected_object_set
+connect from optical_detector_output.detected_object_set
         to   draw_optical_detections.detected_object_set
 
 connect from draw_optical_detections.image

@@ -66,7 +66,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_PROCESS( viame::itk::itk_warp_detections_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "itk_warp_detections_process" )
+                        "itk_warp_detections" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
@@ -76,7 +76,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   fact = vpm.ADD_PROCESS( viame::itk::itk_warp_image_process );
   fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
-                        "itk_warp_image_process" )
+                        "itk_warp_image" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
