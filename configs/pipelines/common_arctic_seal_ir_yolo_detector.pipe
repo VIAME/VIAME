@@ -3,7 +3,7 @@
 
 process thermal_detector_input
   :: image_filter
-  :filter:type                                 npy_image_normalization
+  :filter:type                                 npy_percentile_norm
 
 process thermal_detector1
   :: image_object_detector
