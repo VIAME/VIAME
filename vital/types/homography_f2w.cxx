@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ f2w_homography
 /// Construct given an existing homography
 f2w_homography
 ::f2w_homography( homography_sptr const &h, frame_id_t const frame_id )
-  : h_( h->clone() ),
+  : h_( std::static_pointer_cast< vital::homography >( h->clone() ) ),
     frame_id_( frame_id )
 {
 }
@@ -58,7 +58,7 @@ f2w_homography
 /// Copy Constructor
 f2w_homography
 ::f2w_homography( f2w_homography const &h )
-  : h_( h.h_->clone() ),
+  : h_( std::static_pointer_cast< vital::homography >( h.h_->clone() ) ),
     frame_id_( h.frame_id_ )
 {
 }

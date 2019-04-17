@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,17 +36,10 @@
 #ifndef VITAL_HOMOGRAPHY_H_
 #define VITAL_HOMOGRAPHY_H_
 
-#include <vital/vital_export.h>
-#include <vital/vital_config.h>
-#include <vital/vital_types.h>
-
 #include <vital/types/matrix.h>
-#include <vital/types/vector.h>
+#include <vital/types/transform.h>
 
 #include <iostream>
-#include <map>
-#include <vector>
-#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -63,7 +56,7 @@ typedef std::shared_ptr< homography > homography_sptr;
 // ---------------------------------------------------------------------------
 
 /// Abstract base homography transformation representation class
-class VITAL_EXPORT homography
+class VITAL_EXPORT homography : public transform
 {
 public:
   /// Destructor
@@ -71,12 +64,6 @@ public:
 
   /// Access the type info of the underlying data
   virtual std::type_info const& data_type() const = 0;
-
-  /// Create a clone of this homography object, returning as smart pointer
-  /**
-   * \return A new deep clone of this homography transformation.
-   */
-  virtual homography_sptr clone() const = 0;
 
   /// Get a double-typed copy of the underlying matrix transformation
   /**
@@ -101,15 +88,6 @@ public:
    * \return New homography transformation instance.
    */
   virtual homography_sptr inverse() const = 0;
-
-  /// Map a 2D double-type point using this homography
-  /**
-   * \param p Point to map against this homography
-   * \return New point in the projected coordinate system.
-   */
-  virtual Eigen::Matrix< double, 2, 1 >
-  map( Eigen::Matrix< double, 2, 1 > const& p ) const = 0;
-
 };
 
 
@@ -166,7 +144,7 @@ public:
   /**
    * \return A new clone of this homography transformation.
    */
-  virtual homography_sptr clone() const;
+  virtual transform_sptr clone() const;
 
   /// Get a double-typed copy of the underlying matrix transformation
   /**
@@ -198,8 +176,7 @@ public:
    * \param p Point to map against this homography
    * \return New point in the projected coordinate system.
    */
-  virtual Eigen::Matrix< double, 2, 1 >
-  map( Eigen::Matrix< double, 2, 1 > const& p ) const;
+  virtual vector_2d map( vector_2d const& p ) const;
 
   // ---- Member Functions ----
 
