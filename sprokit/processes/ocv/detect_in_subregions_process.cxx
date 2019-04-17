@@ -48,10 +48,10 @@ create_config_trait( detector, std::string, "", "Algorithm configuration "
   "subblock.\n\nUse 'detector:type' to select desired detector implementation." );
 
 create_config_trait( method, std::string, "", "Method to extract subregions "
-  "to process. Options: detection_bbox, fixed_size." );
-create_config_trait( max_subgregion_count, int, "-1", "Maximum number of "
+  "to process. Options: detection_box, fixed_size." );
+create_config_trait( max_subregion_count, int, "-1", "Maximum number of "
   "subregions to process." );
-create_config_trait( fixed_size, unsigned, "", "If mode is fixed size, "
+create_config_trait( fixed_size, int, "0", "If mode is fixed size, "
   "the width and height of the chip around each input detection to process" );
 create_config_trait( threshold, double, "0.0", "If the input is object detections "
   "only consider regions above this confidence" );
@@ -64,7 +64,11 @@ class detect_in_subregions_process::priv
 {
 public:
   priv()
-    : m_include_input_dets(false)
+    : m_method(DETECTION_BOX)
+    , m_max_subregion_count(-1)
+    , m_fixed_size(0)
+    , m_threshold(0.0)
+    , m_include_input_dets(false)
   {
   }
 
@@ -72,6 +76,10 @@ public:
   {
   }
 
+  enum{ DETECTION_BOX, FIXED_SIZE } m_method;
+  int m_max_subregion_count;
+  int m_fixed_size;
+  double m_threshold;
   bool m_include_input_dets;
   kwiver::vital::logger_handle_t m_logger;
 
@@ -117,8 +125,17 @@ public:
 
     LOG_DEBUG( m_logger, "Considering " << dets_in->size() << " ROI" );
 
-    for( auto det : *dets_in )
+    int processed_count = 0;
+
+    std::vector< cv::Rect > previous_regions;
+
+    for( auto det : *dets_in->select( m_threshold ) )
     {
+      if( m_max_subregion_count > 0 && processed_count >= m_max_subregion_count )
+      {
+        break;
+      }
+
       timer.start();
       vital::bounding_box_d bbox = det->bounding_box();
 
@@ -134,6 +151,46 @@ public:
       int y = bbox.upper_left()[1];
       int w = bbox.width();
       int h = bbox.height();
+
+      if( m_method == FIXED_SIZE )
+      {
+        int cx = ( x + w ) / 2;
+        int cy = ( y + h ) / 2;
+
+        bool intersect_found = false;
+
+        for( auto region : previous_regions )
+        {
+          if( region.contains( cv::Point( cx, cy ) ) )
+          {
+            intersect_found = true;
+            break;
+          }
+        }
+        if( intersect_found )
+        {
+          continue;
+        }
+
+        x = std::max( 0, cx - m_fixed_size / 2 );
+        y = std::max( 0, cy - m_fixed_size / 2 );
+
+        w = m_fixed_size;
+        h = m_fixed_size;
+
+        if( x + w > img.width() )
+        {
+          w = img.width() - x;
+        }
+        if( y + h > img.height() )
+        {
+          h = img.height() - y;
+        }
+        if( w <= 1 || h <= 1 )
+        {
+          continue;
+        }
+      }
 
       LOG_TRACE( m_logger, "Processing ROI window with upper left coordinates (" +
                  std::to_string(x) + "," + std::to_string(y) + ") of size (" +
@@ -156,7 +213,9 @@ public:
       for( auto det : *dets )
       {
         auto det_bbox = det->bounding_box();
-        kwiver::vital::translate( det_bbox, bbox.upper_left() );
+        vital::bounding_box_d::vector_type offset( 2 );
+        offset[0] = x; offset[1] = y;
+        kwiver::vital::translate( det_bbox, offset );
         det->set_bounding_box( det_bbox );
       }
 
@@ -164,6 +223,10 @@ public:
       dets_out.insert( dets_out.end(), dets->cbegin(), dets->cend() );
 
       timer.stop();
+
+      processed_count++;
+      previous_regions.push_back( roi );
+
       LOG_TRACE( m_logger, "Time to classify window: " << timer.elapsed() );
     } // end foreach
 
@@ -218,6 +281,24 @@ detect_in_subregions_process
     throw sprokit::invalid_configuration_exception( name(), "Unable to create detector" );
   }
 
+  std::string method = config_value_using_trait( method );
+
+  if( method == "detection_box" )
+  {
+    d->m_method = priv::DETECTION_BOX;
+  }
+  else if( method == "fixed_size" )
+  {
+    d->m_method = priv::FIXED_SIZE;
+  }
+  else
+  {
+    throw sprokit::invalid_configuration_exception( name(), "Invalid method: " + method );
+  }
+
+  d->m_max_subregion_count = config_value_using_trait( max_subregion_count );
+  d->m_fixed_size = config_value_using_trait( fixed_size );
+  d->m_threshold = config_value_using_trait( threshold );
   d->m_include_input_dets = config_value_using_trait( include_input_dets );
 }
 
