@@ -186,7 +186,7 @@ public:
 
     if (this->f_data_index < 0)
     {
-      LOG_INFO(this->logger, "No data stream available, using AVMEDIA_TYPE_UNKNOWN stream instead");
+      LOG_INFO(this->logger, "No data stream available");
       // Fallback for the DATA stream if incorrectly coded as UNKNOWN.
       for (unsigned i = 0; i < this->f_format_context->nb_streams; ++i)
       {
@@ -194,6 +194,7 @@ public:
         if (enc->codec_type == AVMEDIA_TYPE_UNKNOWN)
         {
           this->f_data_index = i;
+          LOG_INFO(this->logger, "Using AVMEDIA_TYPE_UNKNOWN stream as a data stream");
         }
       }
     }
@@ -497,6 +498,8 @@ ffmpeg_video_input
     {
       throw kwiver::vital::video_runtime_exception("Video stream open failed for unknown reasons");
     }
+    this->set_capability(vital::algo::video_input::HAS_METADATA,
+                         d->f_data_index >= 0);
     d->end_of_video = false;
   }
 }
