@@ -29,7 +29,7 @@ process optical_subregion_selector
 
   :method                                      fixed_size
   :max_subregion_count                         10
-  :fixed_size                                  704 ## CHECK THIS
+  :fixed_size                                  640
 
   :detector:type                               darknet
 
