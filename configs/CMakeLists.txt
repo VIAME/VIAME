@@ -81,9 +81,9 @@ if( VIAME_DOWNLOAD_MODELS )
 
     if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5c96b6d28d777f072bcf66da/download
-        18a6afd51cee80203e6d16a52430d683
-        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_yolo-v1.1.0.tar.gz
+        https://data.kitware.com/api/v1/item/5cb74ef78d777f072b40f927/download
+        98bea8a78590bb6f27b5ecf16d55101b
+        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_yolo-v1.1.1.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
   endif()
@@ -101,9 +101,9 @@ if( VIAME_DOWNLOAD_MODELS )
   if( VIAME_ENABLE_TENSORFLOW )
     if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5c96b6ce8d777f072bcf66cc/download
-        b2e0dff332c39626643e4fe164f8d329
-        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.1.0.tar.gz
+        https://data.kitware.com/api/v1/item/5cb74eeb8d777f072b40f904/download
+        5af19ef3d8c29d3726674421912a44dc
+        ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.1.1.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
   endif()
