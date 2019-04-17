@@ -46,7 +46,7 @@ process optical_detector1
     :resize_option                             chip
     :scale                                     1.0
     :chip_step                                 600
-    :chip_edge_filter                          10
+    :chip_edge_filter                          0
 
   endblock
 
@@ -88,7 +88,7 @@ process optical_detector2
     :resize_option                             chip
     :scale                                     1.0
     :chip_step                                 600
-    :chip_edge_filter                          10
+    :chip_edge_filter                          0
 
   endblock
 
