@@ -32,6 +32,7 @@ class TFDetector( ImageObjectDetector ):
     self.norm_image_type = ""
     self.fixed_range = 7000
     self.confidence_thresh = 0.5
+    self.memory_usage = 1.0
     self.category_name = "detection"
 
   def __del__(self):
@@ -51,6 +52,8 @@ class TFDetector( ImageObjectDetector ):
       "Intensity value for normalization if using fixed range.")
     cfg.set_value_descr( "confidence_thresh", str( self.confidence_thresh ),
       "Confidence threshold for detection.")
+    cfg.set_value_descr( "memory_usage", str( self.memory_usage ),
+      "Percent range [0.0,1.0] of memory that this process is allowed to consume.")
     cfg.set_value_descr( "category_name", self.category_name,
       "Output category ID if the model file doesn't contain any.")
 
@@ -64,11 +67,18 @@ class TFDetector( ImageObjectDetector ):
     self.norm_image_type = str(cfg.get_value("norm_image_type"))
     self.fixed_range = int(cfg.get_value("fixed_range"))
     self.confidence_thresh = float(cfg.get_value("confidence_thresh"))
+    self.memory_usage = float(cfg.get_value("memory_usage"))
     self.category_name = str(cfg.get_value("category_name"))
 
     # Load detector
     self.detection_graph = self.load_model(self.model_file)
-    self.sess = tf.Session(graph=self.detection_graph)
+
+    if self.memory_usage < 1.0:
+      config = tf.ConfigProto()
+      config.gpu_options.per_process_gpu_memory_fraction = self.memory_usage
+      self.sess = tf.Session(graph=self.detection_graph, config=config)
+    else:
+      self.sess = tf.Session(graph=self.detection_graph)
 
   def check_configuration( self, cfg ):
     if not cfg.has_value( "model_file" ) or len( fg.get_value("model_file")) == 0:

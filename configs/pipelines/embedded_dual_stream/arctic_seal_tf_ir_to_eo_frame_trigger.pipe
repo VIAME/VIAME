@@ -13,7 +13,18 @@ process out_adapt
 
 # ================================= IR DETECTOR ====================================
 
-include ../common_arctic_seal_ir_tf_detector.pipe
+process thermal_detector
+  :: image_object_detector
+  :detector:type                               tensorflow
+
+  block detector:tensorflow
+    relativepath model_file =                  models/arctic_seal_ir.pb
+    :norm_image_type                           adaptive_min_fixed_range
+    :fixed_range                               7000
+    :confidence_thresh                         0.25
+    :category_name                             hotspot
+    :memory_usage                              0.50
+  endblock
 
 connect from in_adapt.image2
         to   thermal_detector.image
@@ -24,7 +35,16 @@ process optical_trigger
   :: filter_frames
   :detection_threshold                         0.01
 
-include ../common_arctic_seal_eo_tf_detector.pipe
+process optical_detector
+  :: image_object_detector
+  :detector:type                               tensorflow
+
+  block detector:tensorflow
+    relativepath model_file =                  models/arctic_seal_eo.pb
+    :confidence_thresh                         0.25
+    :category_name                             seal
+    :memory_usage                              0.50
+  endblock
 
 connect from in_adapt.image
         to   optical_trigger.image

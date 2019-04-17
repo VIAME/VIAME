@@ -1,5 +1,5 @@
 # ==================================================================================
-# Threaded seal detector file
+# Thermal seal detector file
 
 process thermal_detector
   :: image_object_detector

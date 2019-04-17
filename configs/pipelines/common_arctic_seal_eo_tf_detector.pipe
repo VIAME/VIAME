@@ -1,5 +1,5 @@
 # ==================================================================================
-# Threaded seal detector file
+# Optical seal detector file
 
 process optical_detector
   :: image_object_detector
