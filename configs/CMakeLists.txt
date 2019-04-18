@@ -81,8 +81,8 @@ if( VIAME_DOWNLOAD_MODELS )
 
     if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5cb802e38d777f072b445591/download
-        bdd91bb75d673487c4afeeec0ba8d41e
+        https://data.kitware.com/api/v1/item/5cb80b008d777f072b44a652/download
+        662d740822145f3a099df1d58549ab13
         ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_yolo-v1.2.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
