@@ -43,19 +43,12 @@ class TFDetector( ImageObjectDetector ):
     # Inherit from the base class
     cfg = super(ImageObjectDetector, self).get_configuration()
 
-    cfg.set_value_descr( "model_file", self.model_file,
-      "Path to TF Inference Graph.")
-    cfg.set_value_descr( "norm_image_type", self.norm_image_type,
-      "Type of normalization for input image. Options: none, S, P, C, "
-      "adaptive_min_fixed_range or comma seperated values")
-    cfg.set_value_descr( "fixed_range", str( self.fixed_range ),
-      "Intensity value for normalization if using fixed range.")
-    cfg.set_value_descr( "confidence_thresh", str( self.confidence_thresh ),
-      "Confidence threshold for detection.")
-    cfg.set_value_descr( "memory_usage", str( self.memory_usage ),
-      "Percent range [0.0,1.0] of memory that this process is allowed to consume.")
-    cfg.set_value_descr( "category_name", self.category_name,
-      "Output category ID if the model file doesn't contain any.")
+    cfg.set_value( "model_file", self.model_file )
+    cfg.set_value( "norm_image_type", self.norm_image_type )
+    cfg.set_value( "fixed_range", str( self.fixed_range ) )
+    cfg.set_value( "confidence_thresh", str( self.confidence_thresh ) )
+    cfg.set_value( "memory_usage", str( self.memory_usage ) )
+    cfg.set_value( "category_name", self.category_name )
 
     return cfg
 
