@@ -53,7 +53,7 @@ class PercentileNorm16BitTo8Bit( ImageFilter ):
   def check_configuration( self, cfg ):
     return True
 
-  def add_data_from_disk( self, in_img ):
+  def filter( self, in_img ):
     img = in_img.image().asarray().astype( "uint16" )
 
     mi = np.percentile( img, 1 )
