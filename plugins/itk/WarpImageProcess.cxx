@@ -140,17 +140,21 @@ itk_warp_image_process
     output_size[1] = image->height();
   }
 
-  auto itk_input_image = 
+  auto itk_input_image =
     ::itk::OpenCVImageBridge::CVMatToITKImage< viame::itk::ThermalImageType >(
       kwiver::arrows::ocv::image_container::vital_to_ocv(
         image->get_image(),
         kwiver::arrows::ocv::image_container::BGR_COLOR ) );
 
-  WarpThermalToOpticalImage(
-    *itk_input_image,
-    *d->m_transformation,
-    output_size,
-    output_image );
+  if( !WarpThermalToOpticalImage(
+        *itk_input_image,
+        *d->m_transformation,
+        output_size,
+        output_image ) )
+  {
+    push_to_port_using_trait( image, kwiver::vital::image_container_sptr() );
+    return;
+  }
 
   push_to_port_using_trait( image,
     kwiver::vital::image_container_sptr(

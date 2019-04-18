@@ -376,17 +376,18 @@ bool WarpThermalToOpticalImage(
   const NetTransformType& inputTransformation,
   WarpedThermalImageType::Pointer& outputWarpedImage )
 {
-  using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, WarpedThermalImageType >;
-  ResamplerType::Pointer resampler = ResamplerType::New();
-  resampler->SetInput( &inputThermalImage );
-  resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
-  resampler->SetDefaultPixelValue( 0 );
-
-  resampler->SetTransform( &inputTransformation );
-
   try
     {
+    using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, WarpedThermalImageType >;
+    ResamplerType::Pointer resampler = ResamplerType::New();
+    resampler->SetInput( &inputThermalImage );
+    resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
+    resampler->SetDefaultPixelValue( 0 );
+
+    resampler->SetTransform( &inputTransformation );
     resampler->Update();
+
+    outputWarpedImage = resampler->GetOutput();
     }
   catch( ::itk::ExceptionObject& error )
     {
@@ -394,7 +395,6 @@ bool WarpThermalToOpticalImage(
     return false;
     }
 
-  outputWarpedImage = resampler->GetOutput();
   return true;
 }
 
@@ -404,17 +404,18 @@ bool WarpThermalToOpticalImage(
   const ThermalImageType::SizeType& outputSize,
   WarpedThermalImageType::Pointer& outputWarpedImage )
 {
-  using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, WarpedThermalImageType >;
-  ResamplerType::Pointer resampler = ResamplerType::New();
-  resampler->SetInput( &inputThermalImage );
-  resampler->SetSize( outputSize );
-  resampler->SetDefaultPixelValue( 0 );
-
-  resampler->SetTransform( &inputTransformation );
-
   try
     {
+    using ResamplerType = ::itk::ResampleImageFilter< ThermalImageType, WarpedThermalImageType >;
+    ResamplerType::Pointer resampler = ResamplerType::New();
+    resampler->SetInput( &inputThermalImage );
+    resampler->SetSize( outputSize );
+    resampler->SetDefaultPixelValue( 0 );
+
+    resampler->SetTransform( &inputTransformation );
     resampler->Update();
+
+    outputWarpedImage = resampler->GetOutput();
     }
   catch( ::itk::ExceptionObject& error )
     {
@@ -422,7 +423,6 @@ bool WarpThermalToOpticalImage(
     return false;
     }
 
-  outputWarpedImage = resampler->GetOutput();
   return true;
 }
 
@@ -432,17 +432,18 @@ bool WarpOpticalToThermalImage(
   const NetTransformType& inputTransformation,
   WarpedOpticalImageType::Pointer& outputWarpedImage )
 {
-  using ResamplerType = ::itk::ResampleImageFilter< OpticalImageType, WarpedOpticalImageType >;
-  ResamplerType::Pointer resampler = ResamplerType::New();
-  resampler->SetInput( &inputThermalImage );
-  resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
-  resampler->SetDefaultPixelValue( 0 );
-
-  resampler->SetTransform( inputTransformation.GetInverseTransform() );
-
   try
     {
+    using ResamplerType = ::itk::ResampleImageFilter< OpticalImageType, WarpedOpticalImageType >;
+    ResamplerType::Pointer resampler = ResamplerType::New();
+    resampler->SetInput( &inputThermalImage );
+    resampler->SetSize( inputOpticalImage.GetLargestPossibleRegion().GetSize() );
+    resampler->SetDefaultPixelValue( 0 );
+
+    resampler->SetTransform( inputTransformation.GetInverseTransform() );
     resampler->Update();
+
+    outputWarpedImage = resampler->GetOutput();
     }
   catch( ::itk::ExceptionObject& error )
     {
@@ -450,7 +451,6 @@ bool WarpOpticalToThermalImage(
     return false;
     }
 
-  outputWarpedImage = resampler->GetOutput();
   return true;
 }
 
