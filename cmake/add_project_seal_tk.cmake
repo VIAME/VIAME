@@ -19,6 +19,7 @@ ExternalProject_Add(seal_tk
     ${VIAME_ARGS_fletch}
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_Qt}
+    -DQt5_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/cmake/Qt5
     -DBUILD_SHARED_LIBS:BOOL=ON
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
