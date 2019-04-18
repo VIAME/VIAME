@@ -60,9 +60,9 @@ process optical_detector2
 
   block detector:darknet
     # Network config, weights, and names
-    relativepath net_config  =                 ../models/arctic_seal_eo.cfg
-    relativepath weight_file =                 ../models/arctic_seal_eo.weights
-    relativepath class_names =                 ../models/arctic_seal_eo.lbl
+    relativepath net_config  =                 models/arctic_seal_eo.cfg
+    relativepath weight_file =                 models/arctic_seal_eo.weights
+    relativepath class_names =                 models/arctic_seal_eo.lbl
 
     # Detector parameters
     :thresh                                    0.010

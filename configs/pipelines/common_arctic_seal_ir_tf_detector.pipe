@@ -6,7 +6,7 @@ process thermal_detector
   :detector:type                               tensorflow
 
   block detector:tensorflow
-    relativepath model_file =                  ../models/arctic_seal_ir.pb
+    relativepath model_file =                  models/arctic_seal_ir.pb
     :norm_image_type                           adaptive_min_fixed_range
     :fixed_range                               7000
     :confidence_thresh                         0.25
