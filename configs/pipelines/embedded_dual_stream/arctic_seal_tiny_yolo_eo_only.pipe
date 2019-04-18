@@ -24,7 +24,6 @@ process optical_detector_input
 connect from in_adapt.image
         to   optical_detector_input.image
 
-
 process optical_detector1
   :: image_object_detector
   :detector:type                               darknet
@@ -53,8 +52,6 @@ process optical_detector1
 
 connect from optical_detector_input.image
         to   optical_detector1.image
-
-
 
 process optical_detector2
   :: image_object_detector
@@ -85,8 +82,6 @@ process optical_detector2
 connect from optical_detector_input.image
         to   optical_detector2.image
 
-
-
 process optical_detector3
   :: image_object_detector
   :detector:type                               darknet
@@ -115,8 +110,6 @@ process optical_detector3
 
 connect from optical_detector_input.image
         to   optical_detector3.image
-
-
 
 process optical_detector4
   :: image_object_detector
@@ -147,16 +140,6 @@ process optical_detector4
 connect from optical_detector_input.image
         to   optical_detector4.image
 
-process optical_detector_nms
-  :: refine_detections
-  :refiner:type                                nms
-
-  block refiner:nms
-    :max_overlap                               0.70
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
 process optical_detector_output
   :: merge_detection_sets
 
@@ -168,6 +151,16 @@ connect from optical_detector3.detected_object_set
         to   optical_detector_output.detected_object_set3
 connect from optical_detector4.detected_object_set
         to   optical_detector_output.detected_object_set4
+
+process optical_detector_nms
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.80
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
 
 connect from optical_detector_output.detected_object_set
         to   optical_detector_nms.detected_object_set

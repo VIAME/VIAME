@@ -80,7 +80,7 @@ process fusion_detector1_nms
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.50
+    :max_overlap                               0.80
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
   endblock
@@ -122,7 +122,7 @@ process fusion_detector2_nms
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.50
+    :max_overlap                               0.80
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
   endblock
