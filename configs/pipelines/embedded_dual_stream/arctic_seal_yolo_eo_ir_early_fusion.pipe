@@ -35,14 +35,14 @@ process scale_warped
 connect from warp_image.image
         to   scale_warped.image
 
-process fused_detector_input
+process fusion_detector_input
   :: merge_images
   :merge_images:type                           ocv
 
 connect from in_adapt.image
-        to   fused_detector_input.image1
+        to   fusion_detector_input.image1
 connect from scale_warped.image
-        to   fused_detector_input.image2
+        to   fusion_detector_input.image2
 
 # ==================================================================================
 
