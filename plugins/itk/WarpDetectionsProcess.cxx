@@ -120,34 +120,53 @@ itk_warp_detections_process
 
   input = grab_from_port_using_trait( detected_object_set );
 
-  if( input )
+  try
   {
-    output = input->clone();
-
-    for( auto detection : *output )
+    if( input )
     {
-      // Adjust detection box
-      TransformFloatType lower[2] = {
-        detection->bounding_box().min_x(), detection->bounding_box().min_y() };
-      TransformFloatType upper[2] = {
-        detection->bounding_box().max_x(), detection->bounding_box().max_y() };
+      output = input->clone();
 
-      NetTransformType::OutputPointType pt1 =
-        d->m_transformation->TransformPoint(
-          NetTransformType::InputPointType( lower ) );
-      NetTransformType::OutputPointType pt2 =
-        d->m_transformation->TransformPoint(
-          NetTransformType::InputPointType( upper ) );
+      for( auto detection : *output )
+      {
+        // Adjust detection box
+        TransformFloatType lower_left[2] = {
+          detection->bounding_box().min_x(), detection->bounding_box().min_y() };
+        TransformFloatType lower_right[2] = {
+          detection->bounding_box().max_x(), detection->bounding_box().min_y() };
+        TransformFloatType upper_right[2] = {
+          detection->bounding_box().max_x(), detection->bounding_box().max_y() };
+        TransformFloatType upper_left[2] = {
+          detection->bounding_box().min_x(), detection->bounding_box().max_y() };
 
-      lower[0] = std::min( pt1[0], pt2[0] );
-      lower[1] = std::min( pt1[1], pt2[1] );
-      upper[0] = std::max( pt1[0], pt2[0] );
-      upper[1] = std::max( pt1[1], pt2[1] );
+        NetTransformType::OutputPointType pt1 =
+          d->m_transformation->TransformPoint(
+            NetTransformType::InputPointType( lower_left ) );
+        NetTransformType::OutputPointType pt2 =
+          d->m_transformation->TransformPoint(
+            NetTransformType::InputPointType( lower_right ) );
+        NetTransformType::OutputPointType pt3 =
+          d->m_transformation->TransformPoint(
+            NetTransformType::InputPointType( upper_right ) );
+        NetTransformType::OutputPointType pt4 =
+          d->m_transformation->TransformPoint(
+            NetTransformType::InputPointType( upper_left ) );
 
-      detection->set_bounding_box(
-        kwiver::vital::bounding_box_d(
-          lower[0], lower[1], upper[0], upper[1] ) );
+        lower_left[0] = std::min( { pt1[0], pt2[0], pt3[0], pt4[0] } );
+        lower_left[1] = std::min( { pt1[1], pt2[1], pt3[1], pt4[1] } );
+        upper_right[0] = std::max( { pt1[0], pt2[0], pt3[0], pt4[0] } );
+        upper_right[1] = std::max( { pt1[1], pt2[1], pt3[1], pt4[1] } );
+
+        detection->set_bounding_box(
+          kwiver::vital::bounding_box_d(
+            lower_left[0], lower_left[1], upper_right[0], upper_right[1] ) );
+      }
     }
+  }
+  catch( ... )
+  {
+    push_to_port_using_trait( detected_object_set,
+      kwiver::vital::detected_object_set_sptr() );
+    return;
   }
 
   push_to_port_using_trait( detected_object_set, output );
