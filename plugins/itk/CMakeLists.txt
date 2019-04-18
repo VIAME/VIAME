@@ -22,8 +22,6 @@ set( plugin_sources
   ${plugin_sources}
   RegisterOpticalAndThermal.cxx
   ITKTransform.cxx
-
-  RegisterPlugins.cxx
   )
 
 kwiver_install_headers(
@@ -62,6 +60,14 @@ target_link_libraries( viame_itk
 
 set_target_properties( viame_itk PROPERTIES
   SOVERSION            ${VIAME_VERSION_MAJOR}
+  )
+
+algorithms_create_plugin( viame_itk
+  RegisterPlugins.cxx
+  )
+
+target_link_libraries( viame_itk_plugin
+  PUBLIC               vital_vpm
   )
 
 # Add KWIVER plugin registration

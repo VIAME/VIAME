@@ -33,6 +33,9 @@
 
 #include <plugins/itk/viame_itk_export.h>
 
+#include <vital/algo/transform_io.h>
+#include <vital/types/transform.h>
+
 #include "RegisterOpticalAndThermal.h"
 
 namespace viame
@@ -41,6 +44,76 @@ namespace viame
 namespace itk
 {
 
+/// Wraps ITK transforms in KWIVER vital types
+class VIAME_ITK_EXPORT ITKTransform : public kwiver::vital::transform
+{
+public:
+
+  ITKTransform( NetTransformType::Pointer transform );
+  virtual ~ITKTransform();
+
+  /// Create a clone of this transform object, returning as smart pointer
+  /**
+   * \return A new deep clone of this transformation.
+   */
+  virtual kwiver::vital::transform_sptr clone() const;
+
+  /// Map a 2D double-type point using this transform
+  /**
+   * \param p Point to map against this transform
+   * \return New point in the projected coordinate system.
+   */
+  virtual kwiver::vital::vector_2d map( kwiver::vital::vector_2d const& p ) const;
+
+private:
+
+  NetTransformType::Pointer m_transform;
+};
+
+
+/// A class for using ITK to read and write arbitrary transforms
+class VIAME_ITK_EXPORT ITKTransformIO
+  : public kwiver::vital::algorithm_impl<
+      ITKTransformIO, kwiver::vital::algo::transform_io>
+{
+public:
+  /// Constructor
+  ITKTransformIO();
+
+  /// Destructor
+  virtual ~ITKTransformIO();
+
+  /// Get this algorithm's \link vital::config_block configuration block \endlink
+  virtual kwiver::vital::config_block_sptr get_configuration() const;
+  /// Set this algorithm's properties via a config block
+  virtual void set_configuration( kwiver::vital::config_block_sptr config );
+  /// Check that the algorithm's currently configuration is valid
+  virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
+
+private:
+  /// Implementation specific load functionality.
+  /**
+   * Concrete implementations of transform_io class must provide an
+   * implementation for this method.
+   *
+   * \param filename the path to the file the load
+   * \returns a transform instance referring to the loaded transform
+   */
+  virtual kwiver::vital::transform_sptr load_(
+    std::string const& filename ) const;
+
+  /// Implementation specific save functionality.
+  /**
+   * Concrete implementations of transform_io class must provide an
+   * implementation for this method.
+   *
+   * \param filename the path to the file to save
+   * \param data the transform instance referring to the transform to write
+   */
+  virtual void save_( std::string const& filename,
+                      kwiver::vital::transform_sptr data ) const;
+
+};
 
 
 } // end namespace itk
