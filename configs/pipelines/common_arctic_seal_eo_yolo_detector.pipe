@@ -23,7 +23,7 @@ process optical_detector1
     relativepath class_names =                 models/arctic_seal_eo.lbl
 
     # Detector parameters
-    :thresh                                    0.010
+    :thresh                                    0.001
     :hier_thresh                               0.001
     :gpu_index                                 0
 
@@ -65,7 +65,7 @@ process optical_detector2
     relativepath class_names =                 models/arctic_seal_eo.lbl
 
     # Detector parameters
-    :thresh                                    0.010
+    :thresh                                    0.001
     :hier_thresh                               0.001
     :gpu_index                                 0
 

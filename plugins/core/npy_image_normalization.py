@@ -64,7 +64,7 @@ class PercentileNorm16BitTo8Bit( ImageFilter ):
     normalized[ normalized < 0 ] = 0
 
     output = ImageContainer( Image( normalized.astype( "uint8" ) ) )
-    return
+    return output
 
 def __vital_algorithm_register__():
   from vital.algo import algorithm_factory
