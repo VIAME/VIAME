@@ -43,14 +43,22 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
+#include <fstream>
+#include <memory>
+#include <ctime>
+
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver {
 
 // (config-key, value-type, default-value, description )
-create_config_trait( file_name, std::string, "", "Name of the detection set file to write." );
-create_config_trait( writer, std::string , "", "Block name for algorithm parameters. "
-                     "e.g. writer:type would be used to specify the algorithm type." );
+create_config_trait( file_name, std::string, "",
+  "Name of the detection set file to write." );
+create_config_trait( frame_list_output, std::string, "",
+  "Optional frame list output to also write." );
+create_config_trait( writer, std::string , "",
+  "Block name for algorithm parameters. "
+  "e.g. writer:type would be used to specify the algorithm type." );
 
 /**
  * \class detected_object_output_process
@@ -87,8 +95,10 @@ public:
 
   // Configuration values
   std::string m_file_name;
+  std::string m_frame_list_output;
 
   algo::detected_object_set_output_sptr m_writer;
+  std::unique_ptr< std::ofstream > m_frame_list_writer;
 }; // end priv class
 
 
@@ -118,10 +128,35 @@ void detected_object_output_process
 
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
-  if ( d->m_file_name.empty() )
+  d->m_frame_list_output = config_value_using_trait( frame_list_output );
+
+  if( d->m_file_name.empty() )
   {
     throw sprokit::invalid_configuration_exception( name(),
              "Required file name not specified." );
+  }
+
+  if( d->m_file_name.substr( 0, 14 ) == "[CURRENT_TIME]" )
+  {
+    char buffer[256];
+    time_t raw;
+    struct tm *t;
+    time( &raw );
+    t = localtime( &raw );
+
+    strftime( buffer, sizeof( buffer ), "%Y%m%d_%H%M%S.%f", t );
+    d->m_file_name = buffer + d->m_file_name.substr( 14 );
+
+    if( !d->m_frame_list_output.empty() &&
+        d->m_frame_list_output.substr( 0, 14 ) == "[CURRENT_TIME]" )
+    {
+      d->m_frame_list_output = buffer + d->m_frame_list_output.substr( 14 );
+    }
+  }
+
+  if( !d->m_frame_list_output.empty() )
+  {
+    d->m_frame_list_writer.reset( new std::ofstream( d->m_frame_list_output ) );
   }
 
   // Get algo conrig entries
@@ -163,6 +198,11 @@ void detected_object_output_process
   if ( has_input_port_edge_using_trait( image_file_name ) )
   {
     file_name = grab_from_port_using_trait( image_file_name );
+  }
+
+  if ( d->m_frame_list_writer )
+  {
+    *d->m_frame_list_writer << file_name << std::endl;
   }
 
   kwiver::vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
@@ -208,6 +248,10 @@ detected_object_output_process::priv
 detected_object_output_process::priv
 ::~priv()
 {
+  if( m_frame_list_writer )
+  {
+    m_frame_list_writer->close();
+  }
 }
 
 } // end namespace
