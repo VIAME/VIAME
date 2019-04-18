@@ -56,7 +56,10 @@ if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
   if( NOT WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         run_arctic_seal_rgb_tf.sh
+         input_image_list_seal_eo.txt
+         input_image_list_seal_ir.txt
+         run_arctic_seal_fusion_yolo.sh
+         run_arctic_seal_eo_tf.sh
          run_arctic_seal_ir_tf.sh )
   endif()
 endif()

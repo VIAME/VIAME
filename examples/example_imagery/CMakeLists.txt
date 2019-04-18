@@ -49,5 +49,16 @@ if( VIAME_DOWNLOAD_MODELS )
     examples/example_imagery
     raw_auv_image_set1 )
 
+  # Download arctic seal aerial imagery
+  if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+    DownloadExtractAndInstall(
+      https://data.kitware.com/api/v1/item/5cb822c48d777f072b4556e2/download
+      0491109936bb39457e1540d6a85bc659
+      ${VIAME_DOWNLOAD_DIR}/arctic_seal_example_set1.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}
+      examples/example_imagery
+      arctic_seal_example_set1 )
+  endif()
+
 endif()
 
