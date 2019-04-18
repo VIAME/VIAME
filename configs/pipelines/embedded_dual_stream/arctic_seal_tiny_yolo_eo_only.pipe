@@ -24,6 +24,7 @@ process optical_detector_input
 connect from in_adapt.image
         to   optical_detector_input.image
 
+
 process optical_detector1
   :: image_object_detector
   :detector:type                               darknet
@@ -38,7 +39,7 @@ process optical_detector1
     relativepath class_names =                 ../models/arctic_seal_eo_tiny.lbl
 
     # Detector parameters
-    :thresh                                    0.7
+    :thresh                                    0.01
     :hier_thresh                               0.001
     :gpu_index                                 0
 
@@ -53,18 +54,7 @@ process optical_detector1
 connect from optical_detector_input.image
         to   optical_detector1.image
 
-process optical_detector1_nms
-  :: refine_detections
-  :refiner:type                                nms
 
-  block refiner:nms
-    :max_overlap                               0.90
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
-connect from optical_detector1.detected_object_set
-        to   optical_detector1_nms.detected_object_set
 
 process optical_detector2
   :: image_object_detector
@@ -78,9 +68,9 @@ process optical_detector2
     relativepath net_config  =                 ../models/arctic_seal_eo_tiny.cfg
     relativepath weight_file =                 ../models/arctic_seal_eo_tiny.weights
     relativepath class_names =                 ../models/arctic_seal_eo_tiny.lbl
-    
+
     # Detector parameters
-    :thresh                                    0.7
+    :thresh                                    0.01
     :hier_thresh                               0.001
     :gpu_index                                 0
 
@@ -95,18 +85,7 @@ process optical_detector2
 connect from optical_detector_input.image
         to   optical_detector2.image
 
-process optical_detector2_nms
-  :: refine_detections
-  :refiner:type                                nms
 
-  block refiner:nms
-    :max_overlap                               0.90
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
-connect from optical_detector2.detected_object_set
-        to   optical_detector2_nms.detected_object_set
 
 process optical_detector3
   :: image_object_detector
@@ -122,7 +101,7 @@ process optical_detector3
     relativepath class_names =                 ../models/arctic_seal_eo_tiny.lbl
 
     # Detector parameters
-    :thresh                                    0.7
+    :thresh                                    0.01
     :hier_thresh                               0.001
     :gpu_index                                 0
 
@@ -137,18 +116,7 @@ process optical_detector3
 connect from optical_detector_input.image
         to   optical_detector3.image
 
-process optical_detector3_nms
-  :: refine_detections
-  :refiner:type                                nms
 
-  block refiner:nms
-    :max_overlap                               0.9
-    :nms_scale_factor                          1.0
-    :output_scale_factor                       1.0
-  endblock
-
-connect from optical_detector3.detected_object_set
-        to   optical_detector3_nms.detected_object_set
 
 process optical_detector4
   :: image_object_detector
@@ -164,7 +132,7 @@ process optical_detector4
     relativepath class_names =                 ../models/arctic_seal_eo_tiny.lbl
 
     # Detector parameters
-    :thresh                                    0.7
+    :thresh                                    0.01
     :hier_thresh                               0.001
     :gpu_index                                 0
 
@@ -179,30 +147,30 @@ process optical_detector4
 connect from optical_detector_input.image
         to   optical_detector4.image
 
-process optical_detector4_nms
+process optical_detector_nms
   :: refine_detections
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.90
+    :max_overlap                               0.70
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
   endblock
 
-connect from optical_detector4.detected_object_set
-        to   optical_detector4_nms.detected_object_set
-
 process optical_detector_output
   :: merge_detection_sets
 
-connect from optical_detector1_nms.detected_object_set
+connect from optical_detector1.detected_object_set
         to   optical_detector_output.detected_object_set1
-connect from optical_detector2_nms.detected_object_set
+connect from optical_detector2.detected_object_set
         to   optical_detector_output.detected_object_set2
-connect from optical_detector3_nms.detected_object_set
+connect from optical_detector3.detected_object_set
         to   optical_detector_output.detected_object_set3
-connect from optical_detector4_nms.detected_object_set
+connect from optical_detector4.detected_object_set
         to   optical_detector_output.detected_object_set4
+
+connect from optical_detector_output.detected_object_set
+        to   optical_detector_nms.detected_object_set
 
 # ==================================================================================
 
