@@ -365,6 +365,10 @@ detect_in_subregions_process
 ::make_config()
 {
   declare_config_using_trait( detector );
+  declare_config_using_trait( method );
+  declare_config_using_trait( max_subregion_count );
+  declare_config_using_trait( fixed_size );
+  declare_config_using_trait( threshold );
   declare_config_using_trait( include_input_dets );
 }
 
