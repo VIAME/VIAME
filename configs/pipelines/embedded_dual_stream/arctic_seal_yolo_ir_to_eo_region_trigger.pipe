@@ -70,7 +70,7 @@ process optical_detector_output
   endblock
 
 connect from optical_subregion_selector.detected_object_set
-        to   optical_detector_output
+        to   optical_detector_output.detected_object_set
 
 # =============================== FUSION AND OUTPUT ================================
 
