@@ -81,7 +81,7 @@ class TFDetector( ImageObjectDetector ):
       self.sess = tf.Session(graph=self.detection_graph)
 
   def check_configuration( self, cfg ):
-    if not cfg.has_value( "model_file" ) or len( fg.get_value("model_file")) == 0:
+    if not cfg.has_value( "model_file" ) or len( cfg.get_value("model_file")) == 0:
       print( "A network model file must be specified!" )
       return False
     return True
