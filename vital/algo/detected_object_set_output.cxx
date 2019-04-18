@@ -41,6 +41,8 @@
 
 #include <kwiversys/SystemTools.hxx>
 
+#include <ctime>
+
 /// \cond DoxygenSuppress
 INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::detected_object_set_output);
 /// \endcond
@@ -71,8 +73,29 @@ detected_object_set_output
 ::open( std::string const& filename )
 {
   // try to open the file
-  std::ostream* file( new std::ofstream( filename ) );
-  if ( ! file )
+  std::ostream* file;
+
+  if( filename.substr( 0, 14 ) == "[CURRENT_TIME]" )
+  {
+    char buffer[256];
+    time_t raw;
+    struct tm *t;
+    time( &raw );
+    t = localtime( &raw );
+
+    strftime( buffer, sizeof( buffer ), "%Y%m%d_%H%M%S.%f", t );
+
+    std::string adj_filename = buffer;
+    adj_filename += filename.substr( 14 );
+
+    file = new std::ofstream( adj_filename );
+  }
+  else
+  {
+    file = new std::ofstream( filename );
+  }
+
+  if ( !file )
   {
     throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
