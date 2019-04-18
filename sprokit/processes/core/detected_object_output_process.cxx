@@ -234,6 +234,7 @@ void detected_object_output_process
 ::make_config()
 {
   declare_config_using_trait( file_name );
+  declare_config_using_trait( frame_list_output );
   declare_config_using_trait( writer );
 }
 
