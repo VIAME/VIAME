@@ -15,11 +15,15 @@ include( ${ITK_USE_FILE} )
 set( plugin_headers
   ${plugin_headers}
   RegisterOpticalAndThermal.h
+  ITKTransform.h
   )
 
 set( plugin_sources
   ${plugin_sources}
   RegisterOpticalAndThermal.cxx
+  ITKTransform.cxx
+
+  RegisterPlugins.cxx
   )
 
 kwiver_install_headers(
