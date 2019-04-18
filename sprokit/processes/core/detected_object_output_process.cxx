@@ -144,7 +144,7 @@ void detected_object_output_process
     time( &raw );
     t = localtime( &raw );
 
-    strftime( buffer, sizeof( buffer ), "%Y%m%d_%H%M%S.%f", t );
+    strftime( buffer, sizeof( buffer ), "%Y%m%d_%H%M%S", t );
     d->m_file_name = buffer + d->m_file_name.substr( 14 );
 
     if( !d->m_frame_list_output.empty() &&
