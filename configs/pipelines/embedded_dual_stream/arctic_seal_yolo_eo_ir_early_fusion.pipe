@@ -152,6 +152,7 @@ process fusion_writer_csv
 
   # Type of file to output
   :file_name                                   [CURRENT_TIME]_FUSED.csv
+  :frame_list_output                           [CURRENT_TIME]_FUSED_images.txt
   :writer:type                                 viame_csv
 
 connect from fusion_detector_output.detected_object_set

@@ -91,6 +91,7 @@ process optical_writer_csv
 
   # Type of file to output
   :file_name                                   [CURRENT_TIME]_EO.csv
+  :frame_list_output                           [CURRENT_TIME]_EO_images.txt
   :writer:type                                 viame_csv
 
 connect from optical_detector_output.detected_object_set
@@ -103,6 +104,7 @@ process thermal_writer_csv
 
   # Type of file to output
   :file_name                                   [CURRENT_TIME]_IR.csv
+  :frame_list_output                           [CURRENT_TIME]_IR_images.txt
   :writer:type                                 viame_csv
 
 connect from thermal_detector_output.detected_object_set

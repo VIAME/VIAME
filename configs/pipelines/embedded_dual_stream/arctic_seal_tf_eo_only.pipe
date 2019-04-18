@@ -32,6 +32,7 @@ process optical_writer_csv
 
   # Type of file to output
   :file_name                                   [CURRENT_TIME]_EO.csv
+  :frame_list_output                           [CURRENT_TIME]_EO_images.txt
   :writer:type                                 viame_csv
 
 connect from optical_detector.detected_object_set
