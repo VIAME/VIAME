@@ -116,8 +116,6 @@ filter_frame_process
 
   bool criteria_met = false;
 
-  std::cout << "!! " << detections->size() << std::endl;
-
   if( detections )
   {
     for( auto detection : *detections )

@@ -19,7 +19,7 @@ process thermal_detector1
     relativepath class_names =                 models/arctic_seal_ir.lbl
 
     # Detector parameters
-    :thresh                                    0.001
+    :thresh                                    0.010
     :hier_thresh                               0.001
     :gpu_index                                 0
 
@@ -48,7 +48,7 @@ process thermal_detector2
     relativepath class_names =                 models/arctic_seal_ir.lbl
 
     # Detector parameters
-    :thresh                                    0.001
+    :thresh                                    0.010
     :hier_thresh                               0.001
     :gpu_index                                 0
 
