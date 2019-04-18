@@ -14,9 +14,9 @@ process thermal_detector1
 
   block detector:darknet
     # Network config, weights, and names
-    relativepath net_config  =                 ../models/arctic_seal_ir.cfg
-    relativepath weight_file =                 ../models/arctic_seal_ir.weights
-    relativepath class_names =                 ../models/arctic_seal_ir.lbl
+    relativepath net_config  =                 models/arctic_seal_ir.cfg
+    relativepath weight_file =                 models/arctic_seal_ir.weights
+    relativepath class_names =                 models/arctic_seal_ir.lbl
 
     # Detector parameters
     :thresh                                    0.010
