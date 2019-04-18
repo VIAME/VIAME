@@ -72,7 +72,7 @@ process optical_writer_csv
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   optical_detections.csv
+  :file_name                                   [CURRENT_TIME]_EO.csv
   :writer:type                                 viame_csv
 
 connect from optical_detector.detected_object_set
@@ -84,7 +84,7 @@ process thermal_writer_csv
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   thermal_detections.csv
+  :file_name                                   [CURRENT_TIME]_IR.csv
   :writer:type                                 viame_csv
 
 connect from thermal_detector.detected_object_set

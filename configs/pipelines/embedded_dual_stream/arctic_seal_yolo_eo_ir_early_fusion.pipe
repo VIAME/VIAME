@@ -151,7 +151,7 @@ process fusion_writer_csv
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   fusion_detections.csv
+  :file_name                                   [CURRENT_TIME]_FUSED.csv
   :writer:type                                 viame_csv
 
 connect from fusion_detector_output.detected_object_set
