@@ -72,7 +72,7 @@ process optical_trigger
   :: filter_frames
   :detection_threshold                                  0.01
 
-include common_arctic_seal_eo_yolo.detector.pipe
+include common_arctic_seal_eo_yolo_detector.pipe
 
 connect from align_images.optical_image
         to   optical_trigger.image
