@@ -38,7 +38,7 @@ kwiver_add_library( viame_opencv
 
 get_target_property( results viame_opencv COMPILE_DEFINITIONS )
 
-if( VIAME_OPENCV_VERSION MATCHES "2.*" )
+if( "${OpenCV_VERSION}" VERSION_LESS "3.0.0" )
   target_compile_definitions( viame_opencv PRIVATE -DVIAME_OPENCV_VER_2 )
 endif()
 
