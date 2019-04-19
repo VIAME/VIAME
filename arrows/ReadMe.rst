@@ -19,6 +19,8 @@ Directory Structure and Provided Functionality
                       Includes feature detectors and descriptor, homography
                       and fundamental matrix estimation, image IO, and more.
 `<arrows/proj>`_      Geographic conversion functions implemented with PROJ4_.
+`<arrows/sfm>`_       Structure-from-Motion algorithms with no additional
+                      dependencies.
 `<arrows/uuid>`_      [*Experimental*] Implementation of unique IDs using libuuid
 `<arrows/viscl>`_     [*Experimental*] Algorithms using VisCL to implement
                       algorithms in OpenCL 
