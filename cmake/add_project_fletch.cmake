@@ -29,6 +29,19 @@ if( VIAME_ENABLE_VXL OR VIAME_ENABLE_OPENCV OR VIAME_ENABLE_SEAL_TK )
     -Dfletch_ENABLE_libtiff:BOOL=${VIAME_BUILD_CORE_IMAGE_LIBS}
     -Dfletch_ENABLE_PNG:BOOL=${VIAME_BUILD_CORE_IMAGE_LIBS}
   )
+  if( VIAME_ENABLE_VXL )
+    set( fletch_DEP_FLAGS
+      ${fletch_DEP_FLAGS}
+      -Dfletch_ENABLE_libgeotiff:BOOL=${VIAME_BUILD_CORE_IMAGE_LIBS}
+    )
+  endif()
+endif()
+
+if( VIAME_ENABLE_GDAL )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_libgeotiff:BOOL=ON
+  )
 endif()
 
 if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
@@ -79,18 +92,6 @@ else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_VTK:BOOL=OFF
-  )
-endif()
-
-if( VIAME_ENABLE_VXL OR VIAME_ENABLE_GDAL )
-  set( fletch_DEP_FLAGS
-    ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_libgeotiff:BOOL=ON
-  )
-else()
-  set( fletch_DEP_FLAGS
-    ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_libgeotiff:BOOL=OFF
   )
 endif()
 
