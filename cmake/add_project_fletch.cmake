@@ -42,6 +42,11 @@ if( VIAME_ENABLE_GDAL )
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_libgeotiff:BOOL=ON
   )
+elseif( NOT VIAME_ENABLE_GDAL AND NOT VIAME_ENABLE_VXL )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_libgeotiff:BOOL=OFF
+  )
 endif()
 
 if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
