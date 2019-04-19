@@ -88,9 +88,7 @@ class MMDetDetector( ImageObjectDetector ):
     return True
 
   def detect( self, image_data ):
-    #input_image = image_data.asarray().astype( 'uint8' )[...,::-1]
     input_image = image_data.asarray().astype( 'uint8' )
-    print( np.shape( input_image ) )
 
     gpu_string = 'cuda:' + str( self._gpu_index )
     detections = inference_detector( self._model, input_image, self._cfg, device=gpu_string )
@@ -102,7 +100,13 @@ class MMDetDetector( ImageObjectDetector ):
     else:
       bbox_result, segm_result = detections, None
 
-    bboxes = np.vstack( bbox_result )
+    if np.size( bbox_result ) > 0:
+      bboxes = np.vstack( bbox_result )
+    else:
+      bboxes = []
+
+    sys.stdout.write( "Detected " + str( len( bbox_result ) ) + " objects" )
+    sys.stdout.flush()
 
     # convert segmentation masks
     masks = []
@@ -114,19 +118,23 @@ class MMDetDetector( ImageObjectDetector ):
 
     # collect labels
     labels = [
-        np.full( bbox.shape[0], i, dtype=np.int32 )
-        for i, bbox in enumerate( bbox_result )
+      np.full( bbox.shape[0], i, dtype=np.int32 )
+      for i, bbox in enumerate( bbox_result )
     ]
 
-    labels = np.concatenate( labels )
+    if np.size( labels ) > 0:
+      labels = np.concatenate( labels )
+    else:
+      labels = []
 
     # convert to kwiver format, apply threshold
     output = []
 
     for entry in []:
-       output.append( DetectedObject( BoundingBox( 1,1,2,2 ) ) )
+      output.append( DetectedObject( BoundingBox( 1,1,2,2 ) ) )
 
-    mmcv.imshow_det_bboxes(
+    if np.size( labels ) > 0:
+      mmcv.imshow_det_bboxes(
         input_image,
         bboxes,
         labels,
