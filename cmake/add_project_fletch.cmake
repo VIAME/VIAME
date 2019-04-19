@@ -32,7 +32,7 @@ if( VIAME_ENABLE_VXL OR VIAME_ENABLE_OPENCV OR VIAME_ENABLE_SEAL_TK )
   if( VIAME_ENABLE_VXL )
     set( fletch_DEP_FLAGS
       ${fletch_DEP_FLAGS}
-      -Dfletch_ENABLE_libgeotiff:BOOL=${VIAME_BUILD_CORE_IMAGE_LIBS}
+      -Dfletch_ENABLE_libgeotiff:BOOL=OFF
       -Dfletch_ENABLE_libtiff:BOOL=OFF
     )
   endif()
