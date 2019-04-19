@@ -190,7 +190,7 @@ class MMTrainDetector( TrainDetector ):
 
           # removes synonynms
           if self._integer_labels:
-            labels = np.append( labels, categories.get_class_id( obj_id ) )
+            labels = np.append( labels, categories.get_class_id( obj_id ) + 1 )
           else:
             labels = np.append( labels, categories.get_class_name( obj_id ) )
 
