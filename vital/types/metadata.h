@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -368,17 +368,17 @@ public:
   bool has( vital_metadata_tag tag ) const; // needs not-found return value
 
 
-  /// Find metadata entry for specified tag.
+  /// Get metadata entry for specified tag, if present.
   /**
-   * This method looks for the metadata entrty corresponding to the
-   * supplied tag. If the tag is not present in the collection, the
-   * results are undefined.
+   * This method looks for the metadata entrty corresponding to the supplied
+   * tag. If the tag is not present in the collection, a null pointer is
+   * returned.
    *
    * @param tag Look for this tag in collection of metadata.
    *
-   * @return metadata item object for tag.
+   * @return Pointer to metadata item object for tag.
    */
-  metadata_item const& find( vital_metadata_tag tag ) const;
+  metadata_item const* get( vital_metadata_tag tag ) const;
 
 
   /// Get starting iterator for collection of metadata items.

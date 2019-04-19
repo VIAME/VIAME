@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,34 +41,6 @@
 namespace kwiver {
 namespace vital {
 
-
-// ----------------------------------------------------------------
-/*
- * This class is returned when find can not locate the requested tag.
- *
- */
-  class unknown_metadata_item
-    : public metadata_item
-  {
-  public:
-    // -- CONSTRUCTORS --
-    unknown_metadata_item()
-      : metadata_item( "Requested metadata item is not in collection", 0, VITAL_META_UNKNOWN )
-    { }
-
-    virtual ~unknown_metadata_item() {}
-    virtual vital_metadata_tag tag() const { return static_cast< vital_metadata_tag >(0); }
-    virtual std::type_info const& type() const { return typeid( void ); }
-    virtual std::string as_string() const { return "--Unknown metadata item--"; }
-    virtual double as_double() const { return 0; }
-    virtual double as_uint64() const { return 0; }
-    virtual std::ostream& print_value(std::ostream& os) const
-    {
-      os << this->as_string();
-      return os;
-    }
-
-  }; // end class unknown_metadata_item
 
 // ==================================================================
 
@@ -171,20 +143,18 @@ metadata
 }
 
 
-// ------------------------------------------------------------------
-metadata_item const&
+// ----------------------------------------------------------------------------
+metadata_item const*
 metadata
-::find( vital_metadata_tag tag ) const
+::get( vital_metadata_tag tag ) const
 {
-  static unknown_metadata_item unknown_item;
-
-  const_iterator_t it = m_metadata_map.find( tag );
+  auto const it = m_metadata_map.find( tag );
   if ( it == m_metadata_map.end() )
   {
-    return unknown_item;
+    return nullptr;
   }
 
-  return *(it->second);
+  return it->second.get();
 }
 
 
@@ -345,13 +315,12 @@ bool test_equal_content( const kwiver::vital::metadata& one,
     const auto tag = mi.first;
     const auto metap = mi.second;
 
-    if ( ! other.has( tag ) ) { return false; }
-
-    const auto& omi = other.find( tag );
+    auto* const omi = other.get( tag );
+    if ( ! omi ) { return false; }
 
     // It is simpler to just do a string comparison than to try to do
     // a type specific comparison.
-    if ( metap->as_string() != omi.as_string() ) { return false; }
+    if ( metap->as_string() != omi->as_string() ) { return false; }
 
   } // end for
 
