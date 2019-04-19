@@ -41,8 +41,6 @@
 #include <vital/types/image_container.h>
 #include <vital/types/homography.h>
 
-#include <arrows/ocv/image_container.h>
-
 #include <sstream>
 #include <iostream>
 #include <list>
