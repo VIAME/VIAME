@@ -156,6 +156,12 @@ else()
   )
 endif()
 
+if( NOT EXTERNAL_OpenCV )
+  set( FLETCH_BUILD_OPENCV ${VIAME_ENABLE_OPENCV} )
+else()
+  set( FLETCH_BUILD_OPENCV OFF )
+endif()
+
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
@@ -177,7 +183,7 @@ ExternalProject_Add(fletch
 
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
     -Dfletch_ENABLE_ITK:BOOL=${VIAME_ENABLE_ITK}
-    -Dfletch_ENABLE_OpenCV:BOOL=${VIAME_ENABLE_OPENCV}
+    -Dfletch_ENABLE_OpenCV:BOOL=${FLETCH_BUILD_OPENCV}
     -DOpenCV_SELECT_VERSION:STRING=${VIAME_OPENCV_VERSION}
 
     -Dfletch_ENABLE_Caffe:BOOL=${VIAME_ENABLE_CAFFE}
@@ -244,10 +250,17 @@ set( VIAME_ARGS_Boost
   )
 
 if( VIAME_ENABLE_OPENCV )
-  set(VIAME_ARGS_fletch
-    ${VIAME_ARGS_fletch}
-    -DOpenCV_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/OpenCV-build
-    )
+  if( NOT EXTERNAL_OpenCV )
+    set(VIAME_ARGS_fletch
+      ${VIAME_ARGS_fletch}
+      -DOpenCV_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/OpenCV-build
+      )
+  else()
+    set(VIAME_ARGS_fletch
+      ${VIAME_ARGS_fletch}
+      -DOpenCV_DIR:PATH=${EXTERNAL_OpenCV}
+      )
+  endif()
 endif()
 
 if( VIAME_ENABLE_CAFFE )
