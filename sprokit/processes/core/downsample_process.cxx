@@ -130,9 +130,19 @@ void downsample_process
 void downsample_process
 ::_step()
 {
-  kwiver::vital::timestamp ts = grab_from_port_using_trait( timestamp );
-  double frame_rate = grab_from_port_using_trait( frame_rate );
-  bool send_frame = !d->skip_frame( ts, frame_rate );
+  bool send_frame = true;
+
+  kwiver::vital::timestamp ts;
+  double frame_rate;
+
+  if( has_input_port_edge_using_trait( timestamp ) &&
+      has_input_port_edge_using_trait( frame_rate ) )
+  {
+    ts = grab_from_port_using_trait( timestamp );
+    frame_rate = grab_from_port_using_trait( frame_rate );
+
+    send_frame = !d->skip_frame( ts, frame_rate );
+  }
 
   if( send_frame )
   {
@@ -141,7 +151,10 @@ void downsample_process
       ts.set_frame( d->output_counter_++ );
     }
 
-    LOG_DEBUG( logger(), "Sending frame " << ts.get_frame() );
+    if( ts.has_valid_frame() )
+    {
+      LOG_DEBUG( logger(), "Sending frame " << ts.get_frame() );
+    }
     push_to_port_using_trait( timestamp, ts );
   }
 
@@ -163,12 +176,9 @@ void downsample_process
 ::make_ports()
 {
   sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
 
-  required.insert( flag_required );
-
-  declare_input_port_using_trait( timestamp, required );
-  declare_input_port_using_trait( frame_rate, required );
+  declare_input_port_using_trait( timestamp, optional );
+  declare_input_port_using_trait( frame_rate, optional );
   for( size_t i = 0; i < 5; i++ )
   {
     declare_input_port( priv::port_inputs[i],
