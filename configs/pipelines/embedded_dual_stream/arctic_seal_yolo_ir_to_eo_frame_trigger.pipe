@@ -2,7 +2,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-   :capacity                                   10
+   :capacity                                   5
 
 # ==================================================================================
 process in_adapt
@@ -11,11 +11,25 @@ process in_adapt
 process out_adapt
  :: output_adapter
 
+process downsampler
+  :: downsample
+  _non_blocking =                              4
+
+connect from in_adapt.image
+        to   downsampler.input_1
+connect from in_adapt.file_name
+        to   downsampler.input_2
+
+connect from in_adapt.image2
+        to   downsampler.input_3
+connect from in_adapt.file_name
+        to   downsampler.input_4
+
 # ================================= IR DETECTOR ====================================
 
 include ../common_arctic_seal_ir_yolo_detector.pipe
 
-connect from in_adapt.image2
+connect from downsampler.output_3
         to   thermal_detector_input.image
 
 # ================================= EO DETECTOR ====================================
@@ -26,7 +40,7 @@ process optical_trigger
 
 include ../common_arctic_seal_eo_yolo_detector.pipe
 
-connect from in_adapt.image
+connect from downsampler.output_1
         to   optical_trigger.image
 connect from thermal_detector_output.detected_object_set
         to   optical_trigger.detected_object_set
@@ -38,12 +52,12 @@ connect from optical_trigger.image
 
 connect from optical_detector_output.detected_object_set
         to   out_adapt.detected_object_set
-connect from in_adapt.file_name
+connect from downsampler.output_2
         to   out_adapt.file_name
 
 connect from thermal_detector_output.detected_object_set
         to   out_adapt.detected_object_set2
-connect from in_adapt.file_name2
+connect from downsampler.output_4
         to   out_adapt.file_name2
 
 # ================================== CSV WRITERS ===================================
@@ -58,7 +72,7 @@ process optical_writer_csv
 
 connect from optical_detector_output.detected_object_set
         to   optical_writer_csv.detected_object_set
-connect from in_adapt.file_name
+connect from downsampler.output_2
         to   optical_writer_csv.image_file_name
 
 process thermal_writer_csv
@@ -71,7 +85,7 @@ process thermal_writer_csv
 
 connect from thermal_detector_output.detected_object_set
         to   thermal_writer_csv.detected_object_set
-connect from in_adapt.file_name2
+connect from downsampler.output_4
         to   thermal_writer_csv.image_file_name
 
 # ================================== DB WRITERS ====================================
@@ -94,11 +108,14 @@ connect from in_adapt.file_name2
 #  :writer:db:video_name                        optical_stream
 
 #connect from in_adapt.timestamp
+#        to   downsampler.timestamp
+
+#connect from downsampler.timestamp
 #        to   optical_filter_db.timestamp
 #connect from optical_detector_output.detected_object_set
 #        to   optical_filter_db.detected_object_set
 
-#connect from in_adapt.timestamp
+#connect from downsampler.timestamp
 #        to   optical_writer_db.timestamp
 #connect from optical_filter_db.object_track_set
 #        to   optical_writer_db.object_track_set
@@ -120,12 +137,12 @@ connect from in_adapt.file_name2
 #  :writer:db:conn_str                          postgresql:host=localhost;user=postgres
 #  :writer:db:video_name                        thermal_stream
 
-#connect from in_adapt.timestamp2
+#connect from downsampler.timestamp
 #        to   thermal_filter_db.timestamp
 #connect from thermal_detector_output.detected_object_set
 #        to   thermal_filter_db.detected_object_set
 
-#connect from in_adapt.timestamp2
+#connect from downsampler.timestamp
 #        to   thermal_writer_db.timestamp
 #connect from thermal_filter_db.object_track_set
 #        to   thermal_writer_db.object_track_set

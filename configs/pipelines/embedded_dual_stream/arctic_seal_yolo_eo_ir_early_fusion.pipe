@@ -2,7 +2,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-   :capacity                                   10
+   :capacity                                   5
 
 # ==================================================================================
 process in_adapt
@@ -11,15 +11,29 @@ process in_adapt
 process out_adapt
  :: output_adapter
 
+process downsampler
+  :: downsample
+  _non_blocking =                              4
+
+connect from in_adapt.image
+        to   downsampler.input_1
+connect from in_adapt.file_name
+        to   downsampler.input_2
+
+connect from in_adapt.image2
+        to   downsampler.input_3
+connect from in_adapt.file_name
+        to   downsampler.input_4
+
 # ==================================================================================
 
 process warp_image
   :: itk_warp_image
   :transformation_file                         ir_to_eo_registration.h5
 
-connect from in_adapt.image2
+connect from downsampler.output_3
         to   warp_image.image
-connect from in_adapt.image
+connect from downsampler.output_1
         to   warp_image.size_image
 
 process scale_warped
@@ -39,7 +53,7 @@ process fusion_detector_input
   :: merge_images
   :merge_images:type                           ocv
 
-connect from in_adapt.image
+connect from downsampler.output_1
         to   fusion_detector_input.image1
 connect from scale_warped.image
         to   fusion_detector_input.image2
@@ -142,7 +156,7 @@ connect from fusion_detector2_nms.detected_object_set
 
 connect from fusion_detector_output.detected_object_set
         to   out_adapt.detected_object_set
-connect from in_adapt.file_name
+connect from downsampler.output_2
         to   out_adapt.file_name
 
 # ==================================================================================
@@ -157,7 +171,7 @@ process fusion_writer_csv
 
 connect from fusion_detector_output.detected_object_set
         to   fusion_writer_csv.detected_object_set
-connect from in_adapt.file_name
+connect from downsampler.output_2
         to   fusion_writer_csv.image_file_name
 
 # ==================================================================================
@@ -180,11 +194,14 @@ connect from in_adapt.file_name
 #  :writer:db:video_name                        fusion_stream
 
 #connect from in_adapt.timestamp
+#        to   downsampler.timestamp
+
+#connect from downsampler.timestamp
 #        to   fusion_filter_db.timestamp
 #connect from fusion_detector_output.detected_object_set
 #        to   fusion_filter_db.detected_object_set
 
-#connect from in_adapt.timestamp
+#connect from downsampler.timestamp
 #        to   fusion_writer_db.timestamp
 #connect from fusion_filter_db.object_track_set
 #        to   fusion_writer_db.object_track_set

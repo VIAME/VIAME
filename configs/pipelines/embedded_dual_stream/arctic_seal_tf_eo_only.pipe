@@ -2,7 +2,7 @@
 # global pipeline config
 #
 config _pipeline:_edge
-   :capacity                                   10
+   :capacity                                   5
 
 # ==================================================================================
 process in_adapt
@@ -11,18 +11,32 @@ process in_adapt
 process out_adapt
  :: output_adapter
 
+process downsampler
+  :: downsample
+  _non_blocking =                              4
+
+connect from in_adapt.image
+        to   downsampler.input_1
+connect from in_adapt.file_name
+        to   downsampler.input_2
+
+connect from in_adapt.image2
+        to   downsampler.input_3
+connect from in_adapt.file_name
+        to   downsampler.input_4
+
 # ==================================================================================
 
 include ../common_arctic_seal_eo_tf_detector.pipe
 
-connect from in_adapt.image
+connect from downsampler.output_1
         to   optical_detector.image
 
 # ==================================================================================
 
 connect from optical_detector.detected_object_set
         to   out_adapt.detected_object_set
-connect from in_adapt.file_name
+connect from downsampler.output_2
         to   out_adapt.file_name
 
 # ==================================================================================
@@ -37,7 +51,7 @@ process optical_writer_csv
 
 connect from optical_detector.detected_object_set
         to   optical_writer_csv.detected_object_set
-connect from in_adapt.file_name
+connect from downsampler.output_2
         to   optical_writer_csv.image_file_name
 
 # ==================================================================================
@@ -60,11 +74,14 @@ connect from in_adapt.file_name
 #  :writer:db:video_name                        optical_stream
 
 #connect from in_adapt.timestamp
+#        to   downsampler.timestamp
+
+#connect from downsampler.timestamp
 #        to   optical_filter_db.timestamp
 #connect from optical_detector.detected_object_set
 #        to   optical_filter_db.detected_object_set
 
-#connect from in_adapt.timestamp
+#connect from downsampler.timestamp
 #        to   optical_writer_db.timestamp
 #connect from optical_filter_db.object_track_set
 #        to   optical_writer_db.object_track_set
