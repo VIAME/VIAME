@@ -151,9 +151,17 @@ else()
 endif()
 
 if( NOT EXTERNAL_OpenCV )
-  set( FLETCH_BUILD_OPENCV ${VIAME_ENABLE_OPENCV} )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_OpenCV:BOOL=${VIAME_ENABLE_OPENCV}
+    -DOpenCV_SELECT_VERSION:STRING=${VIAME_OPENCV_VERSION}
+  )
 else()
-  set( FLETCH_BUILD_OPENCV OFF )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_OpenCV:BOOL=OFF
+    -DOpenCV_DIR:PATH=${EXTERNAL_OpenCV}
+  )
 endif()
 
 ExternalProject_Add(fletch
@@ -177,8 +185,6 @@ ExternalProject_Add(fletch
 
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
     -Dfletch_ENABLE_ITK:BOOL=${VIAME_ENABLE_ITK}
-    -Dfletch_ENABLE_OpenCV:BOOL=${FLETCH_BUILD_OPENCV}
-    -DOpenCV_SELECT_VERSION:STRING=${VIAME_OPENCV_VERSION}
 
     -Dfletch_ENABLE_Caffe:BOOL=${VIAME_ENABLE_CAFFE}
     -DAUTO_ENABLE_CAFFE_DEPENDENCY:BOOL=${VIAME_ENABLE_CAFFE}
