@@ -95,6 +95,8 @@ downsample_process
 {
   attach_logger( vital::get_logger( name() ) );
 
+  set_data_checking_level( check_sync );
+
   make_ports();
   make_config();
 }
@@ -130,17 +132,44 @@ void downsample_process
 void downsample_process
 ::_step()
 {
+  bool is_finished = false;
   bool send_frame = true;
 
   kwiver::vital::timestamp ts;
-  double frame_rate;
+  double frame_rate = -1.0;
 
-  if( has_input_port_edge_using_trait( timestamp ) &&
-      has_input_port_edge_using_trait( frame_rate ) )
+  if( has_input_port_edge_using_trait( timestamp ) )
   {
-    ts = grab_from_port_using_trait( timestamp );
-    frame_rate = grab_from_port_using_trait( frame_rate );
+    auto port_info = peek_at_port_using_trait( timestamp );
 
+    if( port_info.datum->type() == sprokit::datum::complete )
+    {
+      grab_edge_datum_using_trait( timestamp );
+      is_finished = true;
+    }
+    else
+    {
+      ts = grab_from_port_using_trait( timestamp );
+    }
+  }
+
+  if( has_input_port_edge_using_trait( frame_rate ) )
+  {
+    auto port_info = peek_at_port_using_trait( frame_rate );
+
+    if( port_info.datum->type() == sprokit::datum::complete )
+    {
+      grab_edge_datum_using_trait( frame_rate );
+      is_finished = true;
+    }
+    else
+    {
+      frame_rate = grab_from_port_using_trait( frame_rate );
+    }
+  }
+
+  if( ts.has_valid_frame() || ts.has_valid_time() )
+  {
     send_frame = !d->skip_frame( ts, frame_rate );
   }
 
@@ -155,6 +184,7 @@ void downsample_process
     {
       LOG_DEBUG( logger(), "Sending frame " << ts.get_frame() );
     }
+
     push_to_port_using_trait( timestamp, ts );
   }
 
@@ -163,11 +193,32 @@ void downsample_process
     if( has_input_port_edge( d->port_inputs[i] ) )
     {
       sprokit::datum_t datum = grab_datum_from_port( d->port_inputs[i] );
-      if( send_frame )
+
+      if( datum->type() == sprokit::datum::complete )
+      {
+        is_finished = true;
+      }
+      else if( send_frame )
       {
         push_datum_to_port( d->port_outputs[i], datum );
       }
     }
+  }
+
+  if( is_finished )
+  {
+    const sprokit::datum_t dat = sprokit::datum::complete_datum();
+    push_datum_to_port_using_trait( timestamp, dat );
+
+    for( size_t i = 0; i < 5; i++ )
+    {
+      if( has_input_port_edge( d->port_inputs[i] ) )
+      {
+        push_datum_to_port( d->port_outputs[i], dat );
+      }
+    }
+
+    mark_process_as_complete();
   }
 }
 
