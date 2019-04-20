@@ -131,7 +131,10 @@ image_object_detector_process
     scoped_step_instrumentation();
 
     // Get detections from detector on image
-    result = d->m_detector->detect( input );
+    if( input )
+    {
+      result = d->m_detector->detect( input );
+    }
   }
 
   push_to_port_using_trait( detected_object_set, result );
