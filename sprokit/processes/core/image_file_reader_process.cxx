@@ -56,6 +56,7 @@
 #include <stdint.h>
 #include <fstream>
 #include <string>
+#include <exception>
 
 // -- DEBUG
 #if defined DEBUG
@@ -216,7 +217,21 @@ void image_file_reader_process
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    img_c = d->m_image_reader->load( resolved_file );
+    try
+    {
+      img_c = d->m_image_reader->load( resolved_file );
+    }
+    catch (std::exception e)
+    {
+      if ( d->m_config_error_mode == priv::ERROR_SKIP )
+      {
+        img_c = kwiver::vital::image_container_sptr();
+      }
+      else
+      {
+        throw e;
+      }
+    }
 
     // --- debug
 #if defined DEBUG
