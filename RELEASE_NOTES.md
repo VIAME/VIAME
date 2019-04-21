@@ -1,4 +1,18 @@
 
+v0.9.10.0 - 4/22/2019
+=====================
+
+
+-New detection techniques and default models: cascade faster rcnn, cfrnn with motion, YOLO-WTF
+
+
+-Additional support for frame-level classification in the system
+
+
+-Image registration example added, arctic seal examples
+
+
+
 v0.9.9.7 - 3/19/2019
 ====================
 
