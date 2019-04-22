@@ -13,6 +13,7 @@ process out_adapt
 
 process image_reader
  :: image_file_reader
+ :error_mode                                   skip
  :image_reader:type                            vxl
 
 connect from in_adapt.input_file_name
