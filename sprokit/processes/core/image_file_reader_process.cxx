@@ -232,6 +232,17 @@ void image_file_reader_process
         throw e;
       }
     }
+    catch (...)
+    {
+      if ( d->m_config_error_mode == priv::ERROR_SKIP )
+      {
+        img_c = kwiver::vital::image_container_sptr();
+      }
+      else
+      {
+        throw std::runtime_error( "Invalid exception thrown" );
+      }
+    }
 
     // --- debug
 #if defined DEBUG
