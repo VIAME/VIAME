@@ -22,7 +22,7 @@ connect from in_adapt.file_name
 
 connect from in_adapt.image2
         to   downsampler.input_3
-connect from in_adapt.file_name
+connect from in_adapt.file_name2
         to   downsampler.input_4
 
 # ================================= IR DETECTOR ====================================
