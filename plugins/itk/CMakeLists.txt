@@ -80,7 +80,7 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
     WarpDetectionsProcess.cxx
     WarpImageProcess.cxx
   )
-  
+
   set( process_headers
     ../core/align_multimodal_imagery_process.h
 
@@ -88,6 +88,15 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
     WarpDetectionsProcess.h
     WarpImageProcess.h
   )
+
+  find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
+    COMPONENTS
+      chrono
+      filesystem
+      system)
+
+  include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
+  link_directories( ${Boost_LIBRARY_DIRS} )
 
   kwiver_add_plugin( viame_processes_itk
     SUBDIR           ${viame_plugin_process_subdir}
@@ -119,5 +128,5 @@ target_link_libraries( itk_2_point_set_registration ${ITK_LIBRARIES} )
 kwiver_add_executable( itk_3_transform_point_set_and_image TransformPointSetAndImage.cxx )
 target_link_libraries( itk_3_transform_point_set_and_image ${ITK_LIBRARIES} )
 
-kwiver_add_executable( itk_eo_ir_registration RegistrationTool.cxx )
-target_link_libraries( itk_eo_ir_registration viame_itk )
+#kwiver_add_executable( itk_eo_ir_registration RegistrationTool.cxx )
+#target_link_libraries( itk_eo_ir_registration viame_itk )
