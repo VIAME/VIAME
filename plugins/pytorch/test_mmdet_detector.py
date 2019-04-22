@@ -39,9 +39,6 @@ import numpy as np
 
 import mmcv
 
-from mmcv.runner import load_checkpoint
-from mmdet.models import build_detector
-from mmdet.apis import inference_detector
 
 class MMDetDetector( ImageObjectDetector ):
   """
@@ -75,6 +72,9 @@ class MMDetDetector( ImageObjectDetector ):
     self._thresh = float( cfg.get_value( "thresh" ) )
     self._gpu_index = str( cfg.get_value( "gpu_index" ) )
 
+    from mmdet.models import build_detector
+    from mmcv.runner import load_checkpoint
+
     self._cfg = mmcv.Config.fromfile( self._net_config )
     self._cfg.model.pretrained = None
     self._model = build_detector( self._cfg.model, test_cfg=self._cfg.test_cfg )
@@ -89,6 +89,8 @@ class MMDetDetector( ImageObjectDetector ):
 
   def detect( self, image_data ):
     input_image = image_data.asarray().astype( 'uint8' )
+
+    from mmdet.apis import inference_detector
 
     gpu_string = 'cuda:' + str( self._gpu_index )
     detections = inference_detector( self._model, input_image, self._cfg, device=gpu_string )

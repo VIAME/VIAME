@@ -46,18 +46,6 @@ import torch
 import pickle
 import os
 
-from mmcv import Config
-
-from mmdet import __version__
-from mmdet.datasets import get_dataset
-from mmdet.models import build_detector
-from mmdet.apis import train_detector
-from mmdet.apis import init_dist
-from mmdet.apis import get_root_logger
-from mmdet.apis import set_random_seed
-
-from mmdet.datasets.custom import CustomDataset
-
 
 class MMTrainDetector( TrainDetector ):
   """
@@ -108,6 +96,7 @@ class MMTrainDetector( TrainDetector ):
 
     self._training_data = []
 
+    from mmcv import Config
     self._cfg = Config.fromfile( self._config_file )
 
     if self._cfg.get( 'cudnn_benchmark', False ):
@@ -131,6 +120,7 @@ class MMTrainDetector( TrainDetector ):
       self._cfg.gpus = torch.cuda.device_count()
 
     if self._cfg.checkpoint_config is not None:
+      from mmdet import __version__
       self._cfg.checkpoint_config.meta = dict(
         mmdet_version=__version__, config=self._cfg.text )
 
@@ -138,14 +128,19 @@ class MMTrainDetector( TrainDetector ):
       self._distributed = False
     else:
       self._distributed = True
+      from mmdet.apis import init_dist
       init_dist( self._launcher, **self._cfg.dist_params )
 
+    from mmdet.apis import get_root_logger
     self._logger = get_root_logger( self._cfg.log_level )
     self._logger.info( 'Distributed training: {}'.format( self._distributed ) )
 
     if self._random_seed is not "none":
       logger.info( 'Set random seed to {}'.format( self._random_seed ) )
+      from mmdet.apis import set_random_seed
       set_random_seed( int( self._random_seed ) )
+
+    from mmdet.models import build_detector
 
     self._model = build_detector(
       self._cfg.model, train_cfg=self._cfg.train_cfg, test_cfg=self._cfg.test_cfg )
@@ -209,6 +204,8 @@ class MMTrainDetector( TrainDetector ):
     with open( self._groundtruth_store, 'wb' ) as fp:
       pickle.dump( self._training_data, fp )
 
+    from mmdet.datasets.custom import CustomDataset
+
     train_dataset = CustomDataset(
       self._groundtruth_store,
       '.',
@@ -219,6 +216,8 @@ class MMTrainDetector( TrainDetector ):
       with_mask = self._cfg.data.train.with_mask,
       with_crowd = self._cfg.data.train.with_crowd,
       with_label = self._cfg.data.train.with_label )
+
+    from mmdet.apis import train_detector
 
     train_detector(
       self._model,

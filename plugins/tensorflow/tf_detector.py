@@ -13,11 +13,8 @@ from vital.types import BoundingBox
 from vital.util.VitalPIL import get_pil_image
 
 import numpy as np
-import humanfriendly
 import time
 import os
-
-import tensorflow as tf
 
 
 class TFDetector( ImageObjectDetector ):
@@ -64,6 +61,8 @@ class TFDetector( ImageObjectDetector ):
     self.category_name = str(cfg.get_value("category_name"))
 
     # Load detector
+    import tensorflow as tf
+
     self.detection_graph = self.load_model(self.model_file)
 
     if self.memory_usage < 1.0:
@@ -81,6 +80,9 @@ class TFDetector( ImageObjectDetector ):
 
   # --------------------------------------------------------------------------
   def detect( self, in_img_c ):
+
+    import tensorflow as tf
+    import humanfriendly
 
     image_height = in_img_c.height(); image_width = in_img_c.width()
 
@@ -132,6 +134,8 @@ class TFDetector( ImageObjectDetector ):
     """
 
     print("Creating Graph...")
+    import tensorflow as tf
+
     detection_graph = tf.Graph()
     with detection_graph.as_default():
       od_graph_def = tf.GraphDef()
