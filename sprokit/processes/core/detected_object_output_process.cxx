@@ -120,6 +120,24 @@ detected_object_output_process
 }
 
 
+namespace
+{
+
+bool replace(std::string& str, const std::string& from, const std::string& to)
+{
+  size_t start_pos = str.find( from );
+
+  if( start_pos == std::string::npos )
+  {
+    return false;
+  }
+
+  str.replace( start_pos, from.length(), to );
+  return true;
+}
+
+}
+
 // ----------------------------------------------------------------
 void detected_object_output_process
 ::_configure()
@@ -136,7 +154,7 @@ void detected_object_output_process
              "Required file name not specified." );
   }
 
-  if( d->m_file_name.substr( 0, 14 ) == "[CURRENT_TIME]" )
+  if( d->m_file_name.find( "[CURRENT_TIME]" ) != std::string::npos )
   {
     char buffer[256];
     time_t raw;
@@ -145,12 +163,12 @@ void detected_object_output_process
     t = localtime( &raw );
 
     strftime( buffer, sizeof( buffer ), "%Y%m%d_%H%M%S", t );
-    d->m_file_name = buffer + d->m_file_name.substr( 14 );
+    replace( d->m_file_name, "[CURRENT_TIME]", buffer );
 
     if( !d->m_frame_list_output.empty() &&
-        d->m_frame_list_output.substr( 0, 14 ) == "[CURRENT_TIME]" )
+        d->m_frame_list_output.find( "[CURRENT_TIME]" ) != std::string::npos )
     {
-      d->m_frame_list_output = buffer + d->m_frame_list_output.substr( 14 );
+      replace( d->m_frame_list_output, "[CURRENT_TIME]", buffer );
     }
   }
 
