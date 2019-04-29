@@ -15,6 +15,7 @@ kwiver_check_compiler_flag( -Werror=init-self )
 kwiver_check_compiler_flag( -Werror=reorder )
 kwiver_check_compiler_flag( -Werror=overloaded-virtual )
 kwiver_check_compiler_flag( -Werror=cast-qual )
+kwiver_check_compiler_flag( -Werror=vla )
 
 # linker shared object control flags
 kwiver_check_compiler_flag( -Wl,--no-undefined )
