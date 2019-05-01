@@ -56,9 +56,6 @@
 #      python output paths. This may be removed in the future.
 #      (e.g. build/lib)
 #
-#    boost_python_library_var
-#      Set to either Boost_PYTHON_LIBRARY or Boost_PYTHON3_LIBRARY.
-
 
 ###
 # Private helper function to execute `python -c "<cmd>"`
