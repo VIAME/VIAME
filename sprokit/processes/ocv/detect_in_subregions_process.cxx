@@ -129,7 +129,9 @@ public:
 
     std::vector< cv::Rect > previous_regions;
 
-    for( auto det : *dets_in->select( m_threshold ) )
+    auto ordered_dets = dets_in->select( m_threshold );
+
+    for( auto det : *ordered_dets )
     {
       if( m_max_subregion_count > 0 && processed_count >= m_max_subregion_count )
       {
