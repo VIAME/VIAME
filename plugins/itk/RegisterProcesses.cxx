@@ -41,7 +41,7 @@
  *
  */
 extern "C"
-VIAME_ITK_NO_EXPORT
+VIAME_ITK_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
