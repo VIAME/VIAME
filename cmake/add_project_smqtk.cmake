@@ -27,11 +27,11 @@ else()
     pip install --user file://${VIAME_PACKAGES_DIR}/smqtk\#egg=smqtk[postgres] )
 endif()
 set( PYTHON_BASEPATH
-  ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}${PYTHON_ABIFLAGS} )
+  ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
 set( CUSTOM_PYTHONPATH
   ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
 set( CUSTOM_PATH
-  ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
+  ${VIAME_BUILD_INSTALL_PREFIX}/bin )
 set( SMQTK_PYTHON_INSTALL
   ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
                       PATH=${CUSTOM_PATH}
