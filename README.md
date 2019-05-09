@@ -80,15 +80,14 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.9.9.7 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c98c5728d777f072bd52c43/download) <br>
 [VIAME v0.9.9.7 Windows 7/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=167QP2Iyyb862d_d9ebSDzgwLsY3MHl0M)
 
-**Experimental Binaries**: <br>
-[VIAME v0.9.10.0 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c916d278dasdf072bc17c01/download) <br>
-[VIAME v0.9.10.0 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ds916d278dasdf072bc17c01/download)
+**Web Annotator**: <br>
+[Experimental Detection Annotator](https://images.slide-atlas.org/#item/5b6890c170aaa94f2e5bfbd1) <br>
 
 **Optional Patches:** <br>
 [MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
 [Arctic Seals Models Add-On, All Linux, CUDA 9](https://data.kitware.com/api/v1/item/5ca3e4df8d777f072bf2aa65/download) <br>
-[Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cbfc3d28d777f072b5f2e68/download) <br>
+[Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download) <br>
 [HabCam Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8ea8d777f072b2b97fa/download) <br>
 [Low Memory GPU (2 Gb to 4 Gb) Add-On, All OS](https://data.kitware.com/api/v1/item/5c74a0328d777f072b6615f3/download)
 
