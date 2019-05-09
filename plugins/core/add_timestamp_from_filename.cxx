@@ -166,10 +166,10 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
       t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
       t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
 
-      kwiver::vital::time_usec_t msec =
+      kwiver::vital::time_usec_t usec =
         std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
       utc_time_usec =
-        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
     }
     // Example: CHESS2016_N94S_FL23_P__20160518012412.111GMT_THERM-16BIT.PNG
     else if( parts.size() > 5 && parts[0].size() > 5 &&
@@ -189,10 +189,10 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
         t.tm_min = std::stoi( date_str.substr( 10, 2 ) );
         t.tm_sec = std::stoi( date_str.substr( 12, 2 ) );
 
-        kwiver::vital::time_usec_t msec =
+        kwiver::vital::time_usec_t usec =
           std::stoi( date_str.substr( 15, 3 ) ) * 1e3;
         utc_time_usec =
-          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
     }
     // Example: default2019_fl00_D_20190401_220727.714_ir.tif
@@ -208,10 +208,29 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
       t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
       t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
 
-      kwiver::vital::time_usec_t msec =
+      kwiver::vital::time_usec_t usec =
         std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
       utc_time_usec =
-        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+    }
+    // Example: kotz_01_X_20190507_004346.455104.ir.tif
+    else if( parts.size() == 5 && parts[3].size() == 8 &&
+             parts[4].size() > 10 && parts[4][6] == '.' )
+    {
+      tm t;
+
+      t.tm_year = std::stoi( parts[3].substr( 0, 4 ) ) - 1900;
+      t.tm_mon = std::stoi( parts[3].substr( 4, 2 ) ) - 1;
+      t.tm_mday = std::stoi( parts[3].substr( 6, 2 ) );
+
+      t.tm_hour = std::stoi( parts[4].substr( 0, 2 ) );
+      t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
+      t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
+
+      kwiver::vital::time_usec_t usec = std::stoi( parts[4].substr( 7, 6 ) );
+
+      utc_time_usec =
+        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
     }
     else if( parts.size() == 1 )
     {
@@ -230,10 +249,10 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
         t.tm_min = std::stoi( parts[1].substr( 2, 2 ) );
         t.tm_sec = std::stoi( parts[1].substr( 4, 2 ) );
 
-        kwiver::vital::time_usec_t msec =
+        kwiver::vital::time_usec_t usec =
           std::stoi( parts[2].substr( 0, 3 ) ) * 1e3;
         utc_time_usec =
-          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
       // Example: 00231.00232.20171025.182621.170.004021.tif
      else if( parts.size() > 6 && parts[2].size() == 8 && parts[3].size() == 6 )
@@ -248,10 +267,10 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
         t.tm_min = std::stoi( parts[3].substr( 2, 2 ) );
         t.tm_sec = std::stoi( parts[3].substr( 4, 2 ) );
 
-        kwiver::vital::time_usec_t msec =
+        kwiver::vital::time_usec_t usec =
           std::stoi( parts[4].substr( 0, 3 ) ) * 1e3;
         utc_time_usec =
-          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
       // Example 201503.20150517.105551974.76450.png
       else if( parts.size() > 3 && parts[0].size() == 6 && parts[1].size() == 8 )
@@ -266,10 +285,10 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
         t.tm_min = std::stoi( parts[2].substr( 2, 2 ) );
         t.tm_sec = std::stoi( parts[2].substr( 4, 2 ) );
 
-        kwiver::vital::time_usec_t msec =
+        kwiver::vital::time_usec_t usec =
           std::stoi( parts[2].substr( 6, 3 ) ) * 1e3;
         utc_time_usec =
-          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + msec;
+          static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
     }
   }
