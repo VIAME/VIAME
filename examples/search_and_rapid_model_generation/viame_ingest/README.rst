@@ -10,7 +10,7 @@ This section corresponds to `this example online`_, in addition to the
 viame_ingest example folder in a VIAME installation. This folder contains examples
 covering image search on top of an archive of videos or images.
 
-.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/viame_ingest
+.. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation/viame_ingest
 
 An arbitrary detection and/or tracking pipeline is used to first generate spatio-temporal
 object tracks representing object candidate locations in video or imagery. Descriptors are
@@ -243,8 +243,8 @@ need to be the same imagery you trained it on.
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_19_edited_detections.png
 
-.. _within the annotation GUI: https://github.com/Kitware/VIAME/tree/master/examples/object_detection
-.. _see here: https://github.com/Kitware/VIAME/tree/master/examples/annotation_and_visualization
+.. _within the annotation GUI: https://github.com/VIAME/VIAME/tree/master/examples/object_detection
+.. _see here: https://github.com/VIAME/VIAME/tree/master/examples/annotation_and_visualization
 
 Correct Results and Train a Better Model
 ========================================
@@ -264,7 +264,7 @@ in the [train].sh script you use for new model training.
    :align: center
    :target: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_20_edited_detections.png
 
-.. _detector training example: https://github.com/Kitware/VIAME/tree/master/examples/object_detector_training
+.. _detector training example: https://github.com/VIAME/VIAME/tree/master/examples/object_detector_training
 
 Tuning Algorithms (Advanced)
 ============================

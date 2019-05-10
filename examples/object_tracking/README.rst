@@ -10,7 +10,7 @@ Object Tracking Examples
 This document corresponds to `this example online`_, in addition to the object_tracking example
 folder in a VIAME installation.
 
-.. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/object_tracking
+.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/object_tracking
 
 This folder contains object tracking examples using an assortment of trackers. Additional
 tracking examples will be added in the future.

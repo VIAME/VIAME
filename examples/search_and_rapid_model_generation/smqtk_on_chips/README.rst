@@ -6,7 +6,7 @@ Image Search Using SMQTK
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/01/search_ex.png
    :scale: 30
    :align: center
-   :target: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/smqtk_on_chips
+   :target: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation/smqtk_on_chips
 
 This section corresponds to this `example online`_, in addition to the
 smqtk_on_chips example folder in a VIAME installation. This folder contains examples
@@ -15,7 +15,7 @@ via SMQTK does currently let you save out final results, it does not let you sav
 final detection models for re-use, unlike in the other image search and rapid model generation
 examples.
 
-.. _example online: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/smqtk_on_chips
+.. _example online: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation/smqtk_on_chips
 
 | Building and running this example requires:
 |

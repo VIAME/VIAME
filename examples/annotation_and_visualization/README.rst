@@ -6,12 +6,12 @@ GUIs for Visualization and Annotation
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/02/annotation_example_painted.png
    :scale: 30
    :align: center
-   :target: https://github.com/Kitware/VIAME/blob/master/examples/annotation_and_visualization/README.rst
+   :target: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization/README.rst
 |
 This document corresponds to `this example online`_, in addition to the
 annotation_and_visualization example folder in a VIAME installation.
 
-.. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/annotation_and_visualization
+.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
 
 There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
 GUIs are useful for displaying detections, their respective probabilities, for running detectors,

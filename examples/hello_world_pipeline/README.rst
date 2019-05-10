@@ -11,9 +11,9 @@ and [viame-source]/plugins/templates folder in a VIAME installation, respectivel
 Throughout these folders are example object detectors, image filters, and image classifier
 implementations written in both Python and C++.
 
-.. _this runable example: https://github.com/Kitware/VIAME/tree/master/examples/hello_world_pipeline
-.. _these example simple plugins: https://github.com/Kitware/VIAME/tree/master/plugins/hello_world
-.. _these example plugin templates: https://github.com/Kitware/VIAME/tree/master/plugins/templates
+.. _this runable example: https://github.com/VIAME/VIAME/tree/master/examples/hello_world_pipeline
+.. _these example simple plugins: https://github.com/VIAME/VIAME/tree/master/plugins/hello_world
+.. _these example plugin templates: https://github.com/VIAME/VIAME/tree/master/plugins/templates
 
 
 **********************************

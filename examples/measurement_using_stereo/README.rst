@@ -15,7 +15,7 @@ measurement_using_stereo example folder in a VIAME installation. This folder con
 examples covering fish measurement using stereo. This example is currently a work
 in progress.
 
-.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/measurement_using_stereo
+.. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/measurement_using_stereo
 
 Run CMake to automatically download the demo data into this example folder.
 Alternatively you can download the demo data `directly`_.

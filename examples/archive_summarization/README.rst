@@ -6,7 +6,7 @@ Video Archive Summarization
 This document corresponds to `this example online`_, in addition to the
 archive_summarization example folder in a VIAME installation.
 
-.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/archive_summarization
+.. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/archive_summarization
 
 
 This example covers scripts which simultaneously create a searchable index of video archive

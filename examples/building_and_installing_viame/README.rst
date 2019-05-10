@@ -10,7 +10,7 @@ Installing from Pre-Built Binaries
 
 First, download the binaries for your operating system from the main github page:
 
-https://github.com/Kitware/VIAME
+https://github.com/VIAME/VIAME
 
 Next, use the offline install guide located at the below link to complete the installation:
 
@@ -27,7 +27,7 @@ See the platform-specific guides below, though the process is similar for each.
 This document corresponds to the example `located online here`_ and also to the
 building_and_installing_viame example folder in a VIAME installation.
 
-.. _located online here: https://github.com/Kitware/VIAME/tree/master/examples/building_viame
+.. _located online here: https://github.com/VIAME/VIAME/tree/master/examples/building_viame
 
 
 *****************
@@ -219,7 +219,7 @@ Currently Visual Studio 2015 and some versions of 2017 are supported.
 
 First do a Git clone of the source code for VIAME. If you have TortoiseGit this
 involves right clicking in your folder of choice, selecting Git Clone, and then
-entering the URL to VIAME (``https://github.com/Kitware/VIAME.git``) and the location
+entering the URL to VIAME (``https://github.com/VIAME/VIAME.git``) and the location
 of where you want to put the downloaded source code.
 
 Next, do a git submodule update to pull down all required packages. In TortoiseGit

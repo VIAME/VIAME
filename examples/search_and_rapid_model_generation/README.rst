@@ -10,7 +10,7 @@ Overview
 This document corresponds to `this folder online`_, in addition to the
 search_and_rapid_model_generation example folder in a VIAME installation.
 
-.. _this folder online: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation
+.. _this folder online: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation
 
 This directory contains methods to accomplish two tasks: 
 
@@ -46,4 +46,4 @@ image, and the refinement of results via iterative query refinement (IQR),
 similarly to the VIAME example. IQR generates an SVM classifier on user-nominated
 positive and negative examples from the result set to refine results.
 
-.. _default: https://github.com/Kitware/VIAME/tree/master/examples/search_and_rapid_model_generation/viame_ingest
+.. _default: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation/viame_ingest

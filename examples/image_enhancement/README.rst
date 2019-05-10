@@ -13,7 +13,7 @@ image_enhancement example folder in a VIAME installation. This directory stores
 assorted scripts for debayering, color correction, illumination normalization, and
 general image contrast enhancement.
 
-.. _this example online: https://github.com/Kitware/VIAME/blob/master/examples/image_enhancement
+.. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/image_enhancement
 
 
 ******************

@@ -6,7 +6,7 @@ Detection File Formats and Conversions
 This document corresponds to `this example online`_, in addition to the
 detection_file_conversions example folder in a VIAME installation.
 
-.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/detection_file_conversions
+.. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/detection_file_conversions
 
 This folder contains examples of how to convert between textual formats representing object
 detections, tracks, results, etc. There are multiple ways to perform format conversions,

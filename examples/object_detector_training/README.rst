@@ -6,7 +6,7 @@ Detector Training Examples
 This document corresponds to `this example online`_, in addition to the
 object_detector_training example folder in a VIAME installation.
 
-.. _this example online: https://github.com/Kitware/VIAME/tree/master/examples/object_detector_training
+.. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/object_detector_training
 
 The common detector training API is used for training multiple object
 detectors from the same input format for both experimentation and
