@@ -7,7 +7,7 @@ algorithms and compiles several other popular repositories together as a part of
 useful as a general computer vision toolkit. The core infrastructure connecting different system components is
 currently the KWIVER library, which can connect C/C++, python, and matlab nodes together in a graph-like pipeline
 architecture. Alongside the pipelined image processing system are a number of standalone utilties for model training,
-output detection visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring), image/video search,
+output visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring), image/video search,
 and rapid model generation.
 
 Example Capabilities
