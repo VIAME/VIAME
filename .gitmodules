@@ -21,7 +21,7 @@
 	url = https://github.com/Kitware/burn-out.git
 [submodule "packages/darknet"]
 	path = packages/darknet
-	url = https://gitlab.kitware.com/kwiver/darknet.git
+	url = https://github.com/VIAME/darknet.git
 [submodule "packages/smqtk"]
 	path = packages/smqtk
 	url = https://github.com/Kitware/SMQTK.git
