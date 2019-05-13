@@ -97,6 +97,42 @@ if ( key == #GN)                              \
 #undef MAP_METADATA_COEFF
 }
 
+void add_nitf_metadata(char* raw_md, vital::metadata_sptr md)
+{
+  std::istringstream md_string(raw_md);
+
+  // Get the key
+  std::string key;
+  if ( !std::getline( md_string, key, '=') )
+  {
+    return;
+  }
+
+  // Get the value
+  std::string value;
+  if ( !std::getline( md_string, value, '=') )
+  {
+    return;
+  }
+
+#define MAP_METADATA_COEFF( GN, KN )          \
+if ( key == #GN)                              \
+{                                             \
+  md->add( NEW_METADATA_ITEM(                 \
+    vital::VITAL_META_NITF_ ## KN, value ) );  \
+}                                             \
+
+  MAP_METADATA_COEFF( NITF_IDATIM, IDATIM )
+  MAP_METADATA_COEFF( NITF_BLOCKA_FRFC_LOC_01, BLOCKA_FRFC_LOC_01 )
+  MAP_METADATA_COEFF( NITF_BLOCKA_FRLC_LOC_01, BLOCKA_FRLC_LOC_01 )
+  MAP_METADATA_COEFF( NITF_BLOCKA_LRLC_LOC_01, BLOCKA_LRLC_LOC_01 )
+  MAP_METADATA_COEFF( NITF_BLOCKA_LRFC_LOC_01, BLOCKA_LRFC_LOC_01 )
+  MAP_METADATA_COEFF( NITF_IMAGE_COMMENTS, IMAGE_COMMENTS )
+
+#undef MAP_METADATA_SCALAR
+#undef MAP_METADATA_COEFF
+}
+
 vital::polygon::point_t apply_geo_transform(double gt[], double x, double y)
 {
   vital::polygon::point_t retVal;
@@ -205,7 +241,23 @@ image_container
     }
   }
 
+  // Get NITF metadata
+  char** nitf_metadata = gdal_dataset_->GetMetadata("");
+  if (CSLCount(nitf_metadata) > 0)
+  {
+    for (int i = 0; nitf_metadata[i] != NULL; ++i)
+    {
+      add_nitf_metadata( nitf_metadata[i] , md );
+    }
+  }
+
   this->set_metadata( md );
+}
+
+char** 
+image_container::get_raw_metadata_for_domain(const char *domain)
+{
+  return this->gdal_dataset_->GetMetadata(domain);
 }
 
 // ----------------------------------------------------------------------------

@@ -80,6 +80,7 @@ public:
   virtual vital::image get_image(unsigned x_offset, unsigned y_offset,
                                  unsigned width, unsigned height) const;
 
+  char **get_raw_metadata_for_domain(const char *domain);
 protected:
 
   std::shared_ptr<GDALDataset> gdal_dataset_;
