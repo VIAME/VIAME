@@ -2,11 +2,11 @@
 kwiver_create_python_init( viame/arrows/pytorch )
 
 kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/train_mmdet_detector.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_detector.py
   viame/arrows/pytorch
-  train_mmdet_detector )
+  mmdet_detector )
 
 kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/test_mmdet_detector.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_trainer.py
   viame/arrows/pytorch
-  test_mmdet_detector )
+  mmdet_trainer )
