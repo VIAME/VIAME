@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -273,7 +273,7 @@ public:
   {
     bool retval( true );
 
-    meta_ts = 0.0;
+    meta_ts = 0;
     if ( ! this->d_video_stream.advance() )
     {
       return false;
@@ -413,20 +413,17 @@ public:
       {
         // A metadata collection was created
         // check to see if it is of the desired type.
-        std::string collection_type;
         for( auto meta : klv_metadata )
         {
           // Test to see if the collection is from the specified standard (0104/0601)
-          if (meta->has( VITAL_META_METADATA_ORIGIN ) )
+          if ( auto& origin = meta->find( VITAL_META_METADATA_ORIGIN ) )
           {
-            collection_type = meta->find( VITAL_META_METADATA_ORIGIN ).as_string();
-
-            if (type == collection_type)
+            if (type == origin.as_string())
             {
-              if (meta->has( VITAL_META_UNIX_TIMESTAMP ) )
+              if ( auto& ts = meta->find( VITAL_META_UNIX_TIMESTAMP ) )
               {
                 // Get unix timestamp as usec
-                meta_ts = meta->find( VITAL_META_UNIX_TIMESTAMP ).as_uint64();
+                meta_ts = static_cast< time_usec_t >( ts.as_uint64() );
 
                 LOG_DEBUG( this->d_logger, "Found initial " << type <<
                            " timestamp: " << meta_ts );

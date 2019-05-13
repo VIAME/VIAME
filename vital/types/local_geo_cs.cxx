@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,35 +86,35 @@ local_geo_cs
   bool has_sensor_pitch = false;
 
   double platform_yaw = 0.0, platform_pitch = 0.0, platform_roll = 0.0;
-  if (md.has(vital::VITAL_META_PLATFORM_HEADING_ANGLE))
+  if (auto& mdi = md.find(vital::VITAL_META_PLATFORM_HEADING_ANGLE))
   {
-    md.find(vital::VITAL_META_PLATFORM_HEADING_ANGLE).data(platform_yaw);
+    mdi.data(platform_yaw);
     has_platform_yaw = true;
   }
-  if (md.has(vital::VITAL_META_PLATFORM_PITCH_ANGLE))
+  if (auto& mdi = md.find(vital::VITAL_META_PLATFORM_PITCH_ANGLE))
   {
-    md.find(vital::VITAL_META_PLATFORM_PITCH_ANGLE).data(platform_pitch);
+    mdi.data(platform_pitch);
     has_platform_pitch = true;
   }
-  if (md.has(vital::VITAL_META_PLATFORM_ROLL_ANGLE))
+  if (auto& mdi = md.find(vital::VITAL_META_PLATFORM_ROLL_ANGLE))
   {
-    md.find(vital::VITAL_META_PLATFORM_ROLL_ANGLE).data(platform_roll);
+    mdi.data(platform_roll);
     has_platform_roll = true;
   }
   double sensor_yaw = 0.0, sensor_pitch = 0.0, sensor_roll = 0.0;
-  if (md.has(vital::VITAL_META_SENSOR_REL_AZ_ANGLE))
+  if (auto& mdi = md.find(vital::VITAL_META_SENSOR_REL_AZ_ANGLE))
   {
-    md.find(vital::VITAL_META_SENSOR_REL_AZ_ANGLE).data(sensor_yaw);
+    mdi.data(sensor_yaw);
     has_sensor_yaw = true;
   }
-  if (md.has(vital::VITAL_META_SENSOR_REL_EL_ANGLE))
+  if (auto& mdi = md.find(vital::VITAL_META_SENSOR_REL_EL_ANGLE))
   {
-    md.find(vital::VITAL_META_SENSOR_REL_EL_ANGLE).data(sensor_pitch);
+    mdi.data(sensor_pitch);
     has_sensor_pitch = true;
   }
-  if (md.has(vital::VITAL_META_SENSOR_REL_ROLL_ANGLE))
+  if (auto& mdi = md.find(vital::VITAL_META_SENSOR_REL_ROLL_ANGLE))
   {
-    md.find(vital::VITAL_META_SENSOR_REL_ROLL_ANGLE).data(sensor_roll);
+    mdi.data(sensor_roll);
   }
 
 
@@ -134,12 +134,15 @@ local_geo_cs
     rotation_set = true;
   }
 
-  if( md.has( vital::VITAL_META_SENSOR_LOCATION) &&
-      md.has( vital::VITAL_META_SENSOR_ALTITUDE) )
+  auto& md_sensor_location =
+    md.find( vital::VITAL_META_SENSOR_LOCATION );
+  auto& md_sensor_altitude =
+    md.find( vital::VITAL_META_SENSOR_ALTITUDE );
+  if( md_sensor_location && md_sensor_altitude )
   {
-    double alt = md.find( vital::VITAL_META_SENSOR_ALTITUDE ).as_double();
+    double alt = md_sensor_altitude.as_double();
     vital::geo_point gloc;
-    md.find( vital::VITAL_META_SENSOR_LOCATION ).data( gloc );
+    md_sensor_location.data( gloc );
 
     // get the location in the same UTM zone as the origin
     vector_2d loc = gloc.location(geo_origin_.crs());
@@ -225,25 +228,28 @@ bool set_intrinsics_from_metadata(simple_camera_perspective &cam, std::map<vital
 
   for (auto const &md : md_map)
   {
-    if (md.second->has(vital::VITAL_META_SLANT_RANGE) && md.second->has(vital::VITAL_META_TARGET_WIDTH))
+    auto& md_slant_range =
+      md.second->find( vital::VITAL_META_SLANT_RANGE );
+    auto& md_target_width =
+      md.second->find( vital::VITAL_META_TARGET_WIDTH );
+    if ( md_slant_range && md_target_width )
     {
-      double slant_range=0.0, target_width=0.0;
-      md.second->find(vital::VITAL_META_SLANT_RANGE).data(slant_range);
-      md.second->find(vital::VITAL_META_TARGET_WIDTH).data(target_width);
-      double f = im_w*(slant_range / target_width);
-      intrin->set_focal_length(f);
-    }
-    else if (md.second->has(vital::VITAL_META_SENSOR_HORIZONTAL_FOV))
-    {
-      double hfov=0.0;
-      md.second->find(vital::VITAL_META_SENSOR_HORIZONTAL_FOV).data(hfov);
-      double f = (im_w / 2) / tan(0.5*hfov*deg_to_rad);
-
-      intrin->set_focal_length(f);
+      intrin->set_focal_length(
+        im_w * ( md_slant_range.as_double() / md_target_width.as_double() ) );
     }
     else
     {
-      continue;
+      auto& md_hfov =
+        md.second->find( vital::VITAL_META_SENSOR_HORIZONTAL_FOV );
+      if ( md_hfov )
+      {
+        intrin->set_focal_length(
+          ( im_w / 2.0 ) / tan( 0.5 * md_hfov.as_double() * deg_to_rad ) );
+      }
+      else
+      {
+        continue;
+      }
     }
 
     vital::vector_2d pp(0.5*im_w, 0.5*im_h);
@@ -276,10 +282,14 @@ initialize_cameras_with_metadata(std::map<vital::frame_id_t,
     // use the coordinates of the first camera
     for( auto m : md_map )
     {
-      if( m.second && m.second->has(vital::VITAL_META_SENSOR_LOCATION) )
+      if( !m.second )
+      {
+        continue;
+      }
+      if ( auto& mdi = m.second->find( vital::VITAL_META_SENSOR_LOCATION ) )
       {
         vital::geo_point gloc;
-        m.second->find(vital::VITAL_META_SENSOR_LOCATION).data(gloc);
+        mdi.data(gloc);
 
         lgcs.set_origin(gloc);
         lgcs.set_origin_altitude(0.0);
