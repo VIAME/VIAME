@@ -142,7 +142,7 @@ class MMDetDetector( ImageObjectDetector ):
         labels,
         class_names=class_names,
         score_thr=-100.0,
-        show=True)
+        show=True )
 
     return DetectedObjectSet( output )
 
