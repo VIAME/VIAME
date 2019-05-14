@@ -105,8 +105,7 @@ class MMDetTrainer( TrainDetector ):
       return False
     return True
 
-
-  def load_network( self, categories ):
+  def load_network( self ):
 
     train_config = "train_config.py"
 
@@ -115,7 +114,7 @@ class MMDetTrainer( TrainDetector ):
         os.mkdir( self._train_directory )
       train_config = os.path.join( self._train_directory, train_config )
 
-    insert_class_count( self_.config_file, train_config, len( categories ) )
+    self.insert_class_count( self_.config_file, train_config )
 
     from mmcv import Config
     self._cfg = Config.fromfile( train_config )
@@ -213,7 +212,7 @@ class MMDetTrainer( TrainDetector ):
 
   def update_model( self ):
 
-    self.load_network( self._categories )
+    self.load_network()
 
     with open( self._groundtruth_store, 'wb' ) as fp:
       pickle.dump( self._training_data, fp )
@@ -262,12 +261,33 @@ class MMDetTrainer( TrainDetector ):
       output_wgt_file = os.path.join( self._output_directory, output_wgt_file )
       output_lbl_file = os.path.join( self._output_directory, output_lbl_file )
 
-    insert_class_count( self_.config_file, output_cfg_file, len( self_.categories ) )
+    self.insert_class_count( self_.config_file, output_cfg_file )
     copyfile( os.path.join( self._train_directory, "latest.pth" ), output_wgt_file )
 
     with open( output_lbl_file, "w" ) as fout:
       for category in self._categories:
         fout.write( category + "\n" )
+
+  def insert_class_count( self, input_cfg, output_cfg ):
+
+    repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self._categories)+1) ] ]
+
+    fin = open( input_cfg )
+    fout = open( output_cfg, 'w' )
+
+    all_lines = []
+    for s in list( fin ):
+      all_lines.append( s )
+
+    for repl in repl_strs:
+      for i, s in enumerate( all_lines ):
+        all_lines[i] = s.replace( repl[0], repl[1] )
+    for s in all_lines:
+      fout.write( s )
+
+    fout.close()
+    fin.close()
+
 
 def __vital_algorithm_register__():
   from vital.algo import algorithm_factory
