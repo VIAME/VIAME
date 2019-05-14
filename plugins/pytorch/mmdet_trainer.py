@@ -38,16 +38,19 @@ from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
 
 from PIL import Image
+
 from distutils.util import strtobool
+from shutil import copyfile
 
 import argparse
 import numpy as np
 import torch
 import pickle
 import os
+import signal
+import sys
 
-
-class MMTrainDetector( TrainDetector ):
+class MMDetTrainer( TrainDetector ):
   """
   Implementation of TrainDetector class
   """
@@ -58,8 +61,8 @@ class MMTrainDetector( TrainDetector ):
     self._seed_weights = ""
     self._train_directory = "deep_training"
     self._output_directory = "category_models"
+    self._output_prefix = "custom_cfrnn"
     self._gpu_count = -1
-    self._integer_labels = "true"
     self._launcher = "none"    # "none, pytorch, slurm, or mpi" 
     self._random_seed = "none"
     self._validate = "false"
@@ -73,8 +76,8 @@ class MMTrainDetector( TrainDetector ):
     cfg.set_value( "seed_weights", self._seed_weights )
     cfg.set_value( "train_directory", self._train_directory )
     cfg.set_value( "output_directory", self._output_directory )
+    cfg.set_value( "output_prefix", self._output_prefix )
     cfg.set_value( "gpu_count", str( self._gpu_count ) )
-    cfg.set_value( "integer_labels", str( self._integer_labels ) )
     cfg.set_value( "launcher", str( self._launcher ) )
     cfg.set_value( "random_seed", str( self._random_seed ) )
     cfg.set_value( "validate", str( self._validate ) )
@@ -89,15 +92,33 @@ class MMTrainDetector( TrainDetector ):
     self._seed_weights = str( cfg.get_value( "seed_weights" ) )
     self._train_directory = str( cfg.get_value( "train_directory" ) )
     self._output_directory = str( cfg.get_value( "output_directory" ) )
+    self._output_prefix = str( cfg.get_value( "output_prefix" ) )
     self._gpu_count = int( cfg.get_value( "gpu_count" ) )
-    self._integer_labels = strtobool( cfg.get_value( "integer_labels" ) )
     self._launcher = str( cfg.get_value( "launcher" ) )
     self._validate = strtobool( cfg.get_value( "validate" ) )
 
     self._training_data = []
 
+  def check_configuration( self, cfg ):
+    if not cfg.has_value( "config_file" ) or len( cfg.get_value( "config_file") ) == 0:
+      print( "A config file must be specified!" )
+      return False
+    return True
+
+
+  def load_network( self, categories ):
+
+    train_config = "train_config.py"
+
+    if len( self._train_directory ) > 0:
+      if not os.path.exists( self._train_directory ):
+        os.mkdir( self._train_directory )
+      train_config = os.path.join( self._train_directory, train_config )
+
+    insert_class_count( self_.config_file, train_config, len( categories ) )
+
     from mmcv import Config
-    self._cfg = Config.fromfile( self._config_file )
+    self._cfg = Config.fromfile( train_config )
 
     if self._cfg.get( 'cudnn_benchmark', False ):
       torch.backends.cudnn.benchmark = True
@@ -145,16 +166,12 @@ class MMTrainDetector( TrainDetector ):
     self._model = build_detector(
       self._cfg.model, train_cfg=self._cfg.train_cfg, test_cfg=self._cfg.test_cfg )
 
-  def check_configuration( self, cfg ):
-    if not cfg.has_value( "config_file" ) or len(cfg.get_value( "config_file")) == 0:
-      print( "A config file must be specified!" )
-      return False
-    return True
-
   def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
     if len( train_files ) != len( train_dets ):
       print( "Error: train file and groundtruth count mismatch" )
       return
+
+    self._categories = categories
 
     for filename, groundtruth in zip( train_files, train_dets ):
       entry = dict()
@@ -182,12 +199,7 @@ class MMTrainDetector( TrainDetector ):
                         item.bounding_box().max_y() ] ]
 
           boxes = np.append( boxes, obj_box, axis = 0 )
-
-          # removes synonynms
-          if self._integer_labels:
-            labels = np.append( labels, categories.get_class_id( obj_id ) + 1 )
-          else:
-            labels = np.append( labels, categories.get_class_name( obj_id ) )
+          labels = np.append( labels, categories.get_class_id( obj_id ) + 1 )
 
       annotations["bboxes"] = boxes.astype( np.float32 )
       annotations["labels"] = labels.astype( np.int_ )
@@ -201,10 +213,14 @@ class MMTrainDetector( TrainDetector ):
 
   def update_model( self ):
 
+    self.load_network( self._categories )
+
     with open( self._groundtruth_store, 'wb' ) as fp:
       pickle.dump( self._training_data, fp )
 
     from mmdet.datasets.custom import CustomDataset
+
+    signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
 
     train_dataset = CustomDataset(
       self._groundtruth_store,
@@ -227,6 +243,32 @@ class MMTrainDetector( TrainDetector ):
       validate = self._validate,
       logger = self._logger )
 
+    self.save_final_model()
+
+  def interupt_handler( self ):
+    self.save_final_model()
+    sys.exit( 0 )
+
+  def save_final_model( self ):
+    output_cfg_file = self._output_prefix + ".py"
+    output_wgt_file = self._output_prefix + ".pth"
+    output_lbl_file = self._output_prefix + ".lbl"
+
+    if len( self._output_directory ) > 0:
+      if not os.path.exists( self._output_directory ):
+        os.mkdir( self._output_directory )
+
+      output_cfg_file = os.path.join( self._output_directory, output_cfg_file )
+      output_wgt_file = os.path.join( self._output_directory, output_wgt_file )
+      output_lbl_file = os.path.join( self._output_directory, output_lbl_file )
+
+    insert_class_count( self_.config_file, output_cfg_file, len( self_.categories ) )
+    copyfile( os.path.join( self._train_directory, "latest.pth" ), output_wgt_file )
+
+    with open( output_lbl_file, "w" ) as fout:
+      for category in self._categories:
+        fout.write( category + "\n" )
+
 def __vital_algorithm_register__():
   from vital.algo import algorithm_factory
 
@@ -234,10 +276,10 @@ def __vital_algorithm_register__():
   implementation_name  = "mmdet"
 
   if algorithm_factory.has_algorithm_impl_name(
-      MMTrainDetector.static_type_name(), implementation_name ):
+      MMDetTrainer.static_type_name(), implementation_name ):
     return
 
   algorithm_factory.add_algorithm( implementation_name,
-    "PyTorch MMDetection training routine", MMTrainDetector )
+    "PyTorch MMDet training routine", MMDetTrainer )
 
   algorithm_factory.mark_algorithm_as_loaded( implementation_name )
