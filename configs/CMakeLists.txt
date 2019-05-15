@@ -16,6 +16,12 @@ if( VIAME_DOWNLOAD_MODELS )
   # PyTorch Detection, Tracking And Rapid Model Generation Models
   if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
     DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5cdc4ff88d777f072bad5473/download
+      0fd5ca7ed332ecd9be5fa423b59d1157
+      ${VIAME_DOWNLOAD_DIR}/models-mmdet_detection-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+
+    DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5b6890a38d777f06857c1f22/download
       51b979d61df667b4751000192426f106
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.1.0.tar.gz
@@ -25,12 +31,6 @@ if( VIAME_DOWNLOAD_MODELS )
       https://data.kitware.com/api/v1/item/5bad56178d777f06b908c47c/download
       3fe6c43e8bf6ab49cb8f6687f38bdbd6
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.1.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5cb2cf098d777f072b2d029a/download
-      e926963ac7ed8adfbef9887f35f835b1
-      ${VIAME_DOWNLOAD_DIR}/models-mmdet_seed_model-v1.0.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
@@ -45,12 +45,6 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # Default YOLO Configs
   if( VIAME_ENABLE_YOLO )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5b5f00d18d777f06857c17fa/download
-      fad64978df6322605530a5cc6274467c
-      ${VIAME_DOWNLOAD_DIR}/models-default_yolo_v2-v2.1.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5c423a5f8d777f072b0ba58f/download
       d568eab97562b39500d774bc072726c0
@@ -176,6 +170,7 @@ set( CORE_PIPELINE_FILES
   pipelines/tracker_generic.pipe
   pipelines/tracker_svm_models.pipe
   pipelines/train_color_freq_aug.pipe
+  pipelines/train_hue_shifting_only_aug.pipe
   pipelines/train_motion_and_color_freq_aug.pipe
   pipelines/train_motion_aug.pipe
   pipelines/train_split_and_stereo_aug.pipe
@@ -258,6 +253,7 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/train_mmdet_cascade.habcam.conf
     pipelines/train_mmdet_cascade.viame_csv.conf
     pipelines/train_mmdet_cascade_wtf.viame_csv.conf )
 endif()

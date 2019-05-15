@@ -34,8 +34,10 @@ from vital.algo import ImageObjectDetector
 from vital.types import BoundingBox
 from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
+from vital.types import DetectedObjectType
 
 import numpy as np
+import sys
 
 import mmcv
 
@@ -51,6 +53,7 @@ class MMDetDetector( ImageObjectDetector ):
     self._class_names = ""
     self._thresh = 0.01
     self._gpu_index = "0"
+    self._display_detections = False
 
   def get_configuration(self):
     # Inherit from the base class
@@ -72,6 +75,8 @@ class MMDetDetector( ImageObjectDetector ):
     self._thresh = float( cfg.get_value( "thresh" ) )
     self._gpu_index = str( cfg.get_value( "gpu_index" ) )
 
+    import matplotlib
+    matplotlib.use( 'PS' ) # bypass multiple Qt load issues
     from mmdet.models import build_detector
     from mmcv.runner import load_checkpoint
 
@@ -80,11 +85,18 @@ class MMDetDetector( ImageObjectDetector ):
     self._model = build_detector( self._cfg.model, test_cfg=self._cfg.test_cfg )
     _ = load_checkpoint( self._model, self._weight_file )
 
+    self._labels = open( self._class_names, "r" ).read().splitlines()
+
   def check_configuration( self, cfg ):
-    if not cfg.has_value( "net_config" ) or len( cfg.get_value( "net_config") ) == 0:
+    if not cfg.has_value( "net_config" ):
       print( "A network config file must be specified!" )
       return False
-
+    if not cfg.has_value( "class_names" ):
+      print( "A class file must be specified!" )
+      return False
+    if not cfg.has_value( "weight_file" ):
+      print("No weight file specified")
+      return False
     return True
 
   def detect( self, image_data ):
@@ -95,8 +107,6 @@ class MMDetDetector( ImageObjectDetector ):
     gpu_string = 'cuda:' + str( self._gpu_index )
     detections = inference_detector( self._model, input_image, self._cfg, device=gpu_string )
 
-    class_names = [ 'fish' ] * 10000
-
     if isinstance( detections, tuple ):
       bbox_result, segm_result = detections
     else:
@@ -106,9 +116,6 @@ class MMDetDetector( ImageObjectDetector ):
       bboxes = np.vstack( bbox_result )
     else:
       bboxes = []
-
-    sys.stdout.write( "Detected " + str( len( bbox_result ) ) + " objects" )
-    sys.stdout.flush()
 
     # convert segmentation masks
     masks = []
@@ -130,21 +137,31 @@ class MMDetDetector( ImageObjectDetector ):
       labels = []
 
     # convert to kwiver format, apply threshold
-    output = []
+    output = DetectedObjectSet()
 
-    for entry in []:
-      output.append( DetectedObject( BoundingBox( 1,1,2,2 ) ) )
+    for bbox, label in zip( bboxes, labels ):
+      class_confidence = float( bbox[-1] )
+      if class_confidence < self._thresh:
+        continue
 
-    if np.size( labels ) > 0:
+      bbox_int = bbox.astype( np.int32 )
+      bounding_box = BoundingBox( bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3] )
+      class_name = self._labels[ label ]
+
+      detected_object_type = DetectedObjectType( class_name, class_confidence )
+      detected_object = DetectedObject( bounding_box, np.max( class_confidence ), detected_object_type)
+      output.add( detected_object )
+
+    if np.size( labels ) > 0 and self._display_detections:
       mmcv.imshow_det_bboxes(
         input_image,
         bboxes,
         labels,
         class_names=class_names,
-        score_thr=-100.0,
+        score_thr=self._thresh,
         show=True )
 
-    return DetectedObjectSet( output )
+    return output
 
 def __vital_algorithm_register__():
   from vital.algo import algorithm_factory
