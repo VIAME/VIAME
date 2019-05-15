@@ -146,9 +146,6 @@ class MMDetDetector( ImageObjectDetector ):
       detected_object = DetectedObject( bounding_box, np.max( class_confidence ), detected_object_type)
       output.add( detected_object )
 
-    for entry in []:
-      output.append( DetectedObject( BoundingBox( 1,1,2,2 ) ) )
-
     if np.size( labels ) > 0 and self._display_detections:
       mmcv.imshow_det_bboxes(
         input_image,
