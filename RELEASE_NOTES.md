@@ -1,4 +1,19 @@
 
+
+v0.9.11 - 5/16/2019
+===================
+
+
+-New default and generic object detection models
+
+
+-Improved IQR detector performance
+
+
+-The default box detector training routine is now cascade rnn instead of yolo
+
+
+
 v0.9.10.0 - 4/22/2019
 =====================
 
