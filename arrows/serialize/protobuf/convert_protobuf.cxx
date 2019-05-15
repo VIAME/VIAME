@@ -304,7 +304,7 @@ void convert_protobuf( const kwiver::vital::image_container_sptr img,
   const uLongf size = compressBound( local_image.size() );
   uLongf out_size(size);
   std::vector<uint8_t> image_data( size );
-  Bytef out_buf[size];
+  Bytef *out_buf = new Bytef[size];
   Bytef const* in_buf = reinterpret_cast< Bytef * >(local_image.memory()->data());
 
   // Since the image is contiguous, we can calculate the size
@@ -332,32 +332,35 @@ void convert_protobuf( const kwiver::vital::image_container_sptr img,
                  "Error compressing image data." );
       break;
     } // end switch
-    return;
   }
-
-  proto_img.set_width( static_cast< int64_t > ( local_image.width() ) );
-  proto_img.set_height( static_cast< int64_t > ( local_image.height() ) );
-  proto_img.set_depth( static_cast< int64_t > ( local_image.depth() ) );
-
-  proto_img.set_w_step( static_cast< int64_t > ( local_image.w_step() ) );
-  proto_img.set_h_step( static_cast< int64_t > ( local_image.h_step() ) );
-  proto_img.set_d_step( static_cast< int64_t > ( local_image.d_step() ) );
-
-  // Get pixel trait
-  auto pixel_trait = local_image.pixel_traits();
-  proto_img.set_trait_type( pixel_trait.type );
-  proto_img.set_trait_num_bytes( pixel_trait.num_bytes );
-
-  proto_img.set_size( local_image.size() ); // uncompressed size
-  proto_img.set_data( out_buf, size );
-
-  // serialize the metadata if there is any.
-  if ( img->get_metadata() )
+  else
   {
-    auto* proto_meta = new kwiver::protobuf::metadata();
-    convert_protobuf( *img->get_metadata(), *proto_meta );
-    proto_img.set_allocated_image_metadata( proto_meta );
+
+    proto_img.set_width( static_cast< int64_t > ( local_image.width() ) );
+    proto_img.set_height( static_cast< int64_t > ( local_image.height() ) );
+    proto_img.set_depth( static_cast< int64_t > ( local_image.depth() ) );
+
+    proto_img.set_w_step( static_cast< int64_t > ( local_image.w_step() ) );
+    proto_img.set_h_step( static_cast< int64_t > ( local_image.h_step() ) );
+    proto_img.set_d_step( static_cast< int64_t > ( local_image.d_step() ) );
+
+    // Get pixel trait
+    auto pixel_trait = local_image.pixel_traits();
+    proto_img.set_trait_type( pixel_trait.type );
+    proto_img.set_trait_num_bytes( pixel_trait.num_bytes );
+
+    proto_img.set_size( local_image.size() ); // uncompressed size
+    proto_img.set_data( out_buf, size );
+
+    // serialize the metadata if there is any.
+    if ( img->get_metadata() )
+    {
+      auto* proto_meta = new kwiver::protobuf::metadata();
+      convert_protobuf( *img->get_metadata(), *proto_meta );
+      proto_img.set_allocated_image_metadata( proto_meta );
+    }
   }
+  delete []out_buf;
 }
 
 // ----------------------------------------------------------------------------

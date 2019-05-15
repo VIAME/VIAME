@@ -14,7 +14,9 @@ find_path( FFMPEG_INCLUDE1_DIR ffmpeg/avcodec.h
 )
 find_path( FFMPEG_INCLUDE2_DIR libavcodec/avcodec.h
   /usr/include
+  /usr/include/ffmpeg
   /usr/local/include
+  /usr/local/include/ffmpeg
 )
 if( FFMPEG_INCLUDE1_DIR)
   set(FFMPEG_INCLUDE_DIR ${FFMPEG_INCLUDE1_DIR} )

@@ -113,6 +113,11 @@ kwiver_add_library(sprokit_pipeline
   ${VITAL_VERSION_H}
   )
 
+target_include_directories(sprokit_pipeline INTERFACE
+  $<BUILD_INTERFACE:${sprokit_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${sprokit_BINARY_DIR}/src>
+  )
+
 add_dependencies(sprokit_pipeline configure-version.h)
 
 target_link_libraries(sprokit_pipeline
