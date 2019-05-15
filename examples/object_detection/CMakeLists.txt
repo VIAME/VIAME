@@ -10,11 +10,13 @@ if( VIAME_ENABLE_PYTORCH )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         run_default.bat )
+         run_default.bat
+         run_generic.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         run_default.sh )
+         run_default.sh
+         run_generic.sh )
   endif()
 endif()
 
