@@ -16,6 +16,12 @@ if( VIAME_DOWNLOAD_MODELS )
   # PyTorch Detection, Tracking And Rapid Model Generation Models
   if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
     DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5cd9d9948d777f072ba4cfd7/download
+      7a6802ee1a838a3aa86dafa1e26170e2
+      ${VIAME_DOWNLOAD_DIR}/models-mmdet_detection-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+
+    DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5b6890a38d777f06857c1f22/download
       51b979d61df667b4751000192426f106
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_tracking-v1.1.0.tar.gz
@@ -25,12 +31,6 @@ if( VIAME_DOWNLOAD_MODELS )
       https://data.kitware.com/api/v1/item/5bad56178d777f06b908c47c/download
       3fe6c43e8bf6ab49cb8f6687f38bdbd6
       ${VIAME_DOWNLOAD_DIR}/models-pytorch_descriptors-v1.1.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5cb2cf098d777f072b2d029a/download
-      e926963ac7ed8adfbef9887f35f835b1
-      ${VIAME_DOWNLOAD_DIR}/models-mmdet_seed_model-v1.0.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
@@ -45,12 +45,6 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # Default YOLO Configs
   if( VIAME_ENABLE_YOLO )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5b5f00d18d777f06857c17fa/download
-      fad64978df6322605530a5cc6274467c
-      ${VIAME_DOWNLOAD_DIR}/models-default_yolo_v2-v2.1.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5c423a5f8d777f072b0ba58f/download
       d568eab97562b39500d774bc072726c0
