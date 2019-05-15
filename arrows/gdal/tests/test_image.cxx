@@ -168,19 +168,16 @@ TEST_F(image_io, load_geotiff)
   test_rpc_metadata(md);
 
   // Test corner points
-  EXPECT_TRUE( md->has( kwiver::vital::VITAL_META_CORNER_POINTS ) )
+  ASSERT_TRUE( md->has( kwiver::vital::VITAL_META_CORNER_POINTS ) )
     << "Metadata should include corner points.";
 
-  if ( md->has( kwiver::vital::VITAL_META_CORNER_POINTS ) )
-  {
-    kwiver::vital::geo_polygon corner_pts;
-    md->find( kwiver::vital::VITAL_META_CORNER_POINTS ).data( corner_pts );
-    EXPECT_EQ( corner_pts.crs(), 4326);
-    EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( -16.0, 0.0) );
-    EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 0.0, 32.0) );
-    EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 0.0, -32.0) );
-    EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 16.0, 0.0) );
-  }
+  kwiver::vital::geo_polygon corner_pts;
+  md->find( kwiver::vital::VITAL_META_CORNER_POINTS ).data( corner_pts );
+  EXPECT_EQ( corner_pts.crs(), 4326);
+  EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( -16.0, 0.0) );
+  EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 0.0, 32.0) );
+  EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 0.0, -32.0) );
+  EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 16.0, 0.0) );
 }
 
 TEST_F(image_io, load_nitf)
