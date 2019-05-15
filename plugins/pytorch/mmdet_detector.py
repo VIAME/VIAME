@@ -36,6 +36,7 @@ from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
 
 import numpy as np
+import sys
 
 import mmcv
 
