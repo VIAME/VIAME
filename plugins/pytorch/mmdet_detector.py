@@ -75,6 +75,8 @@ class MMDetDetector( ImageObjectDetector ):
     self._thresh = float( cfg.get_value( "thresh" ) )
     self._gpu_index = str( cfg.get_value( "gpu_index" ) )
 
+    import matplotlib
+    matplotlib.use( 'PS' ) # bypass multiple Qt load issues
     from mmdet.models import build_detector
     from mmcv.runner import load_checkpoint
 
