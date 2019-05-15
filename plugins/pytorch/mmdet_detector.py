@@ -141,7 +141,7 @@ class MMDetDetector( ImageObjectDetector ):
       bbox_int = bbox.astype( np.int32 )
       bounding_box = BoundingBox( bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3] )
       class_confidence = float( bbox[-1] )
-      class_name = self._class_names[ label+1 ]
+      class_name = self._labels[ label ]
       detected_object_type = DetectedObjectType( class_name, class_confidence )
       detected_object = DetectedObject( bounding_box, np.max( class_confidence ), detected_object_type)
       output.add( detected_object )
