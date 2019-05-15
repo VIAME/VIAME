@@ -115,8 +115,6 @@ class MMDetDetector( ImageObjectDetector ):
     else:
       bboxes = []
 
-    print( "Detected " + str( len( bbox_result ) ) + " objects" )
-
     # convert segmentation masks
     masks = []
     if segm_result is not None:
