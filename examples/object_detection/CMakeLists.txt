@@ -6,17 +6,19 @@ set( EXAMPLE_INSTALL_FILES
      input_image_list_habcam.txt
      input_image_list_small_set.txt )
 
-if( VIAME_ENABLE_YOLO )
+if( VIAME_ENABLE_PYTORCH )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         run_yolo.bat )
+         run_default.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         run_yolo.sh )
+         run_default.sh )
   endif()
+endif()
 
+if( VIAME_ENABLE_YOLO )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
