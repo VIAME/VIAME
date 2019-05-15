@@ -275,7 +275,7 @@ close_loops_keyframe
   for(auto kitr = keyframes.rbegin(); kitr != keyframes.rend(); ++kitr)
   {
     // if this frame was already matched above then skip it
-    if(*kitr >= *last_frame_itr)
+    if(last_frame_itr == frames.rend() || *kitr >= *last_frame_itr)
     {
       continue;
     }
@@ -286,6 +286,12 @@ close_loops_keyframe
   // stitch with all frames within a neighborhood of the current frame
   for(auto f = frames.rbegin() + 2; f != last_frame_itr; ++f )
   {
+    if (!all_matches[*f].valid())
+    {
+      LOG_WARN(logger(), "match from " << frame_number << " to "
+                         << *f << " not available");
+      continue;
+    }
     auto const& matches = all_matches[*f].get();
     int num_matched = static_cast<int>(matches.size());
     int num_linked = 0;
@@ -328,8 +334,14 @@ close_loops_keyframe
   for(auto kitr = keyframes.rbegin(); kitr != keyframes.rend(); ++kitr)
   {
     // if this frame was already matched above then skip it
-    if(*kitr >= *last_frame_itr)
+    if(last_frame_itr == frames.rend() || *kitr >= *last_frame_itr)
     {
+      continue;
+    }
+    if (!all_matches[*kitr].valid())
+    {
+      LOG_WARN(logger(), "keyframe match from "<< frame_number << " to "
+                         << *kitr << " not available");
       continue;
     }
     auto const& matches = all_matches[*kitr].get();
