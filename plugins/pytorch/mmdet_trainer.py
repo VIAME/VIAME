@@ -114,7 +114,7 @@ class MMDetTrainer( TrainDetector ):
         os.mkdir( self._train_directory )
       train_config = os.path.join( self._train_directory, train_config )
 
-    self.insert_class_count( self_.config_file, train_config )
+    self.insert_class_count( self._config_file, train_config )
 
     from mmcv import Config
     self._cfg = Config.fromfile( train_config )
@@ -170,7 +170,7 @@ class MMDetTrainer( TrainDetector ):
       print( "Error: train file and groundtruth count mismatch" )
       return
 
-    self._categories = categories
+    self._categories = categories.all_class_names()
 
     for filename, groundtruth in zip( train_files, train_dets ):
       entry = dict()
@@ -261,7 +261,7 @@ class MMDetTrainer( TrainDetector ):
       output_wgt_file = os.path.join( self._output_directory, output_wgt_file )
       output_lbl_file = os.path.join( self._output_directory, output_lbl_file )
 
-    self.insert_class_count( self_.config_file, output_cfg_file )
+    self.insert_class_count( self._config_file, output_cfg_file )
     copyfile( os.path.join( self._train_directory, "latest.pth" ), output_wgt_file )
 
     with open( output_lbl_file, "w" ) as fout:
