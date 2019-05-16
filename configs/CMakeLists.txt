@@ -16,9 +16,9 @@ if( VIAME_DOWNLOAD_MODELS )
   # PyTorch Detection, Tracking And Rapid Model Generation Models
   if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5cdc4ff88d777f072bad5473/download
-      0fd5ca7ed332ecd9be5fa423b59d1157
-      ${VIAME_DOWNLOAD_DIR}/models-mmdet_detection-v1.0.0.tar.gz
+      https://data.kitware.com/api/v1/item/5cdda0b78d777f072bb09919/download
+      63848830dd40b9b1ae9e3a589d4dc8f4
+      ${VIAME_DOWNLOAD_DIR}/models-mmdet_detection-v1.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
 
     DownloadAndExtract(
