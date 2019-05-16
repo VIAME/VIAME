@@ -1,5 +1,5 @@
 #
-# CMake file fot the vital tools
+# CMake file for the vital tools
 #
 
 ###
