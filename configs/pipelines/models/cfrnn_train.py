@@ -2,7 +2,7 @@
 model = dict(
     type='CascadeRCNN',
     num_stages=3,
-    pretrained='open-mmlab://resnext101_32x4d',
+    pretrained='pytorch_resnext101.pth',
     backbone=dict(
         type='ResNeXt',
         depth=101,
