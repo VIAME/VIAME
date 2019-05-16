@@ -75,6 +75,7 @@ option( VIAME_ENABLE_FLASK          "Enable Flask GUIs"             OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
 mark_as_advanced( VIAME_ENABLE_SEAL_TK )
+mark_as_advanced( VIAME_ENABLE_FLASK )
 
 ###
 # Add algorithmic plugin enable flags
