@@ -162,6 +162,13 @@ class MMDetTrainer( TrainDetector ):
 
     from mmdet.models import build_detector
 
+    if self._cfg.model['pretrained'] is not None:
+      if not os.path.exists( self._cfg.model['pretrained'] ):
+        dirname = os.path.dirname( self._config_file )
+        relpath = os.path.join( dirname, self._cfg.model['pretrained'] )
+        if os.path.exists( relpath ):
+          self._cfg.model['pretrained'] = relpath
+
     self._model = build_detector(
       self._cfg.model, train_cfg=self._cfg.train_cfg, test_cfg=self._cfg.test_cfg )
 
