@@ -87,7 +87,6 @@ option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
-option( VIAME_ENABLE_FASTER_RCNN    "Enable Faster RCNN plugin"     OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
@@ -137,7 +136,7 @@ mark_as_advanced( VIAME_BUILD_TESTS )
 # Add logic relating to enable flags
 ##
 if( VIAME_ENABLE_CAFFE OR VIAME_ENABLE_SCALLOP_TK OR VIAME_ENABLE_BURNOUT OR
-    VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_YOLO )
+    VIAME_ENABLE_YOLO )
   set( VIAME_ENABLE_OPENCV  ON CACHE BOOL "OpenCV required for other projects"   FORCE )
 endif()
 
@@ -146,13 +145,9 @@ if( VIAME_ENABLE_KWANT OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_VIVIA OR
   set( VIAME_ENABLE_VXL     ON CACHE BOOL "VXL required for other projects"      FORCE )
 endif()
 
-if( VIAME_ENABLE_FASTER_RCNN OR VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR
-    VIAME_ENABLE_TENSORFLOW OR VIAME_ENABLE_SEAL_TK )
+if( VIAME_ENABLE_SMQTK OR VIAME_ENABLE_PYTORCH OR VIAME_ENABLE_TENSORFLOW OR
+    VIAME_ENABLE_SEAL_TK )
   set( VIAME_ENABLE_PYTHON  ON CACHE BOOL "Python required for other projects"   FORCE )
-endif()
-
-if( VIAME_ENABLE_FASTER_RCNN )
-  set( VIAME_ENABLE_CAFFE   ON CACHE BOOL "Caffe required for other projects"    FORCE )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
@@ -219,12 +214,6 @@ endif()
 
 if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )
   message( FATAL_ERROR "Cannot enable CUDNN without CUDA support" )
-endif()
-
-if( WIN32 AND VIAME_ENABLE_FASTER_RCNN )
-  message( FATAL_ERROR "Faster R-CNN on windows is currently untested \
-    in VIAME, either disable it, or if you're ambitious, disable this message \
-    and continue." )
 endif()
 
 if( VIAME_ENABLE_CUDNN )
@@ -361,10 +350,6 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_KWANT )
     include( add_project_kwant )
-  endif()
-
-  if( VIAME_ENABLE_FASTER_RCNN )
-    include( add_project_faster_rcnn )
   endif()
 
   if( VIAME_ENABLE_SMQTK )
