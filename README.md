@@ -86,10 +86,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Optional Patches:** <br>
 [MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
-[Arctic Seals Models Add-On, All Linux, CUDA 9](https://data.kitware.com/api/v1/item/5ca3e4df8d777f072bf2aa65/download) <br>
+[Arctic Seals Models Add-On, All Linux, CUDA 9.0](https://data.kitware.com/api/v1/item/5ca3e4df8d777f072bf2aa65/download) <br>
 [Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdc7b198d777f072bad8f44/download) <br>
-[Low Memory GPU (2 Gb to 4 Gb) Add-On, All OS](https://data.kitware.com/api/v1/item/5c74a0328d777f072b6615f3/download)
+[Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5c74a0328d777f072b6615f3/download)
 
 Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.
 
@@ -175,7 +175,6 @@ such as OpenCV) then the dependency flag will be forced to on.
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
 | VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |
-| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin                                       |
 | VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                         |
 | VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                      |
 
