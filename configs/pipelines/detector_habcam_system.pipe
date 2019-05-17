@@ -4,10 +4,11 @@
 #
 # Un-comment each detector in order to use it (memory usage / load will increase):
 #
-#    (a) YOLOv2 - High Res YOLOv2 Scallop Detector Edition (enabled by default)
+#    (a) CFRNN - High Res Cascade RNN Scallop Detector (enabled by default)
 #    (b) YOLOv2 - Mid Res YOLOv2 HabCam Fish Detector (enabled by default)
-#    (c) Scallop-TK - Alternative Scallop Detector (disabled by default)
-#    (d) Scallop-Finder - Alternative Scallop Detector (disabled by default)
+#    (c) YOLOv2 - High Res YOLOv2 Alternative Scallop Detector (disabled by default)
+#    (d) Scallop-TK - Alternative Scallop Detector (disabled by default)
+#    (e) Scallop-Finder - Alternative Scallop Detector (disabled by default)
 #
 # This pipeline assumes stereo imagery together in a composite image as input. The
 # first 'splitting' process selects either the left or right side of the image to
@@ -29,41 +30,35 @@ config _pipeline:_edge
 
 # =============================== INPUT FRAME LIST =================================
 
-include common_default_input_with_downsampler.pipe
+include common_default_input.pipe
 
-# ================================== CROP INPUTS ===================================
+# ================================= CROP INPUTS ====================================
 process split
   :: split_image
   :split_image:type                            ocv
 
-connect from downsampler.output_1
+connect from input.image
         to   split.image
 
-# ================================ YOLO V2 SCALLOP =================================
+# ================================= CFRNN SCALLOP ==================================
 
-process scallop_yolo_v2_detector
+process scallop_cfrnn_detector
   :: image_object_detector
-  :detector:type                               darknet
+  :detector:type                               mmdet
 
-  block detector:darknet
-
+  block detector:mmdet
     # Network config, weights, and names
-    relativepath net_config =                  models/habcam_scallop_yolo_v2.cfg
-    relativepath weight_file =                 models/habcam_scallop_yolo_v2.weights
-    relativepath class_names =                 models/habcam_scallop_yolo_v2.lbl
+    relativepath net_config  =                 models/habcam_scallop_cfrnn.py
+    relativepath weight_file =                 models/habcam_scallop_cfrnn.pth
+    relativepath class_names =                 models/habcam_scallop_cfrnn.lbl
 
     # Detector parameters
     :thresh                                    0.001
-    :hier_thresh                               0.001
     :gpu_index                                 0
-
-    # Image scaling parameters
-    :resize_option                             maintain_ar
-    :scale                                     1.0
 
   endblock
 
-process scallop_yolo_v2_filter
+process scallop_cfrnn_filter
   :: detected_object_filter
   :filter:type                                 class_probablity_filter
 
@@ -76,21 +71,21 @@ process scallop_yolo_v2_filter
   
   endblock
 
-process scallop_yolo_v2_csv_writer
+process scallop_cfrnn_csv_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   scallop_yolo_v2_detections.csv
+  :file_name                                   scallop_cfrnn_detections.csv
   :writer:type                                 viame_csv
 
 connect from split.left_image
-        to   scallop_yolo_v2_detector.image
-connect from scallop_yolo_v2_detector.detected_object_set
-        to   scallop_yolo_v2_filter.detected_object_set
-connect from scallop_yolo_v2_filter.detected_object_set
-        to   scallop_yolo_v2_csv_writer.detected_object_set
-connect from downsampler.output_2
-        to   scallop_yolo_v2_csv_writer.image_file_name
+        to   scallop_cfrnn_detector.image
+connect from scallop_cfrnn_detector.detected_object_set
+        to   scallop_cfrnn_filter.detected_object_set
+connect from scallop_cfrnn_filter.detected_object_set
+        to   scallop_cfrnn_csv_writer.detected_object_set
+connect from input.file_name
+        to   scallop_cfrnn_csv_writer.image_file_name
 
 # ================================= YOLO V2 FISH ===================================
 
@@ -142,9 +137,61 @@ connect from fish_yolo_v2_detector.detected_object_set
         to   fish_yolo_v2_filter.detected_object_set
 connect from fish_yolo_v2_filter.detected_object_set
         to   fish_yolo_v2_csv_writer.detected_object_set
-connect from downsampler.output_2
+connect from input.file_name
         to   fish_yolo_v2_csv_writer.image_file_name
 
+# ================================ YOLO V2 SCALLOP =================================
+
+#process scallop_yolo_v2_detector
+#  :: image_object_detector
+#  :detector:type                               darknet
+#
+#  block detector:darknet
+#
+#    # Network config, weights, and names
+#    relativepath net_config =                  models/habcam_scallop_yolo_v2.cfg
+#    relativepath weight_file =                 models/habcam_scallop_yolo_v2.weights
+#    relativepath class_names =                 models/habcam_scallop_yolo_v2.lbl
+#
+#    # Detector parameters
+#    :thresh                                    0.001
+#    :hier_thresh                               0.001
+#    :gpu_index                                 0
+#
+#    # Image scaling parameters
+#    :resize_option                             maintain_ar
+#    :scale                                     1.0
+#
+#  endblock
+#
+#process scallop_yolo_v2_filter
+#  :: detected_object_filter
+#  :filter:type                                 class_probablity_filter
+#
+#  block filter:class_probablity_filter
+#
+#    # Filter parameters
+#    :threshold                                 0.100
+#    :keep_all_classes                          false
+#    :keep_classes                              live_scallop;dead_scallop
+#  
+#  endblock
+#
+#process scallop_yolo_v2_csv_writer
+#  :: detected_object_output
+#
+#  # Type of file to output
+#  :file_name                                   scallop_yolo_v2_detections.csv
+#  :writer:type                                 viame_csv
+#
+#connect from split.left_image
+#        to   scallop_yolo_v2_detector.image
+#connect from scallop_yolo_v2_detector.detected_object_set
+#        to   scallop_yolo_v2_filter.detected_object_set
+#connect from scallop_yolo_v2_filter.detected_object_set
+#        to   scallop_yolo_v2_csv_writer.detected_object_set
+#connect from input.file_name
+#        to   scallop_yolo_v2_csv_writer.image_file_name
 
 # =================================== SCALLOP-TK ===================================
 
@@ -167,7 +214,7 @@ connect from downsampler.output_2
 #        to   scallop_tk_detector.image
 #connect from scallop_tk_detector.detected_object_set
 #        to   scallop_tk_csv_writer.detected_object_set
-#connect from downsampler.output_2
+#connect from input.file_name
 #        to   scallop_tk_csv_writer.image_file_name
 
 # ================================= SCALLOP-FINDER =================================
@@ -189,7 +236,7 @@ connect from downsampler.output_2
 #        to   lanl_detector.image
 #connect from lanl_detector.detected_object_set
 #        to   lanl_csv_writer.detected_object_set
-#connect from downsampler.output_2
+#connect from input.file_name
 #        to   lanl_csv_writer.image_file_name
 
 # -- end of file --
