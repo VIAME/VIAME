@@ -8,5 +8,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # change "-l input_list.txt" to "-d videos" if videos is a directory with videos
 
 python ${VIAME_INSTALL}/configs/process_video.py --init -l input_list.txt \
-  --build-index --ball-tree -p pipelines/index_default.trk.pipe \
+  --build-index --ball-tree -p pipelines/index_generic.trk.pipe \
   -install ${VIAME_INSTALL}
