@@ -10,15 +10,14 @@ Windows:
 
 2. Copy setup_viame.bat.install over setup_viame.bat
 3. Merge in all libsvm changes
-4. Merge in all postgressql changes
-5. Merge in all pytorch and torchvision changes
+4. Merge in all pytorch and torchvision changes
   - (CPU only pytorch changes, if CPU only)
-6. zip with 7zip
+5. zip with 7zip
 
 Linux:
 
 2. Copy setup_viame.sh.install over setup_viame.sh
-3. During create_package call, copy in libpython temporarily
+3. During create_package call, copy in libpython temporarily then remove
 4. Verify libsvm.so link is valid, if not remake
 5. Copy libcudart.so.9.0, libcusparse.so.9.0, libcufft.so.9.0 into lib if using CUDA
 5. tar -zcvf viame.tar.gz viame
