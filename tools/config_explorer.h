@@ -45,19 +45,16 @@ class config_explorer
 public:
   config_explorer();
 
-  static constexpr char const* name = "config_explorer";
+  static constexpr char const* name = "explore-config";
   static constexpr char const* description =
     "Explore configuration loading process.\n\n"
     "This program assists in debugging config loading problems. It loads a "
     "configuration and displays the contents or displays the search path.";
 
 
-  virtual int run( const std::vector<std::string>& argv );
-  virtual void usage( std::ostream& outstream ) const;
+  virtual int run() override;
 
-protected:
-
-private:
+  virtual void add_command_options() override;
 
 }; // end of class
 

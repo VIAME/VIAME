@@ -56,8 +56,8 @@ public:
     "various images such as depth map or height map.";
 
 
-  virtual int run( const std::vector<std::string>& argv );
-  virtual void usage( std::ostream& outstream ) const;
+  virtual int run();
+  virtual void add_command_options();
 
 protected:
 

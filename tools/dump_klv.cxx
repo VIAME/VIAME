@@ -48,19 +48,10 @@
 #include <vital/types/metadata.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
-#include <kwiversys/CommandLineArguments.hxx>
-
 namespace kwiver {
 namespace tools {
 
 namespace {
-
-// Global options
-bool        opt_help( false );
-std::string opt_config;         // config file name
-std::string opt_out_config;     // output config file name
-
-typedef kwiversys::CommandLineArguments argT;
 
 //+ maybe not needed
 // ------------------------------------------------------------------
@@ -83,103 +74,95 @@ static kwiver::vital::config_block_sptr default_config()
 } // end namespace
 
 
+// ----------------------------------------------------------------------------
+void
+dump_klv::
+add_command_options()
+{
+  m_cmd_options->custom_help( wrap_text(
+     "[options]  video-file\n"
+     "This program displays the KLV metadata packets that are embedded "
+     "in a video file."
+                                ) );
+  m_cmd_options->positional_help( "\n  video-file  - name of video file." );
+
+  m_cmd_options->add_options()
+    ( "h,help", "Display applet usage" )
+    ( "c,config", "Configuration file for tool", cxxopts::value<std::string>() )
+    ( "o,output", "Dump configuration to file and exit", cxxopts::value<std::string>() )
+
+    // positional parameters
+    ( "video-file", "Video input file", cxxopts::value<std::string>())
+    ( "extra", "Extra command line args",  cxxopts::value<std::vector<std::string>>())
+    ;
+
+  m_cmd_options->parse_positional({"video-file", "extra"});
+}
+
+
 // ============================================================================
 dump_klv::
 dump_klv()
 { }
 
-
-// ----------------------------------------------------------------------------
-void
-dump_klv::
-usage( std::ostream& outstream ) const
-{
-  outstream << "This program displays the KLV metadata packets that are embedded\n"
-            << "in a video stream.\n"
-            << "\n"
-            << "Usage: kwiver " << applet_name() << " [options] video-file-name\n"
-            << "\n"
-            << "Options are:\b"
-            << "  -h | --help            displays usage information\n"
-            << "  --config | -c  FILE    Configuration for tool\n"
-            << "  --output-config  FILE  Dump configuration to file\n"
-    ;
-}
-
-
 // ----------------------------------------------------------------
 /** Main entry. */
 int
 dump_klv::
-run( const std::vector<std::string>& argv )
+run()
 {
-  kwiversys::CommandLineArguments arg;
+  std::string opt_app_name = applet_name();
+  std::string video_file;
 
-  arg.Initialize( argv );
-  arg.StoreUnusedArguments( true );
+  auto& cmd_args = command_args();
 
-  arg.AddArgument( "--help",        argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-  arg.AddArgument( "-h",              argT::NO_ARGUMENT, &opt_help, "Display usage information" );
-  arg.AddArgument( "--config",      argT::SPACE_ARGUMENT, &opt_config, "Configuration file for tool" );
-  arg.AddArgument( "-c",            argT::SPACE_ARGUMENT, &opt_config, "Configuration file for tool" );
-  arg.AddArgument( "--output-config", argT::SPACE_ARGUMENT, &opt_out_config, "Dump configuration for tool" );
-
-  if ( ! arg.Parse() )
+  if ( cmd_args["help"].as<bool>() )
   {
-    std::cerr << "Problem parsing arguments" << std::endl;
-    return EXIT_FAILURE;
-  }
-
-  if ( opt_help )
-  {
-    usage( std::cerr );
+    std::cout << m_cmd_options->help();
     return EXIT_SUCCESS;
   }
 
-  char** newArgv = 0;
-  int newArgc = 0;
-  arg.GetUnusedArguments(&newArgc, &newArgv);
-
-  if( ( newArgc == 1 ) && ( opt_out_config.empty()) )
+  if ( cmd_args.count("video-file") )
   {
-    std::cout << "Missing file name.\n"
-      << "Usage: " << newArgv[0] << " video-file-name\n" << std::endl;
+    video_file = cmd_args["video-file"].as<std::string>();
+  }
+  else
+  {
+    std::cout << "Missing video file name.\n"
+              << m_cmd_options->help();
 
-      return EXIT_FAILURE;
+    return EXIT_FAILURE;
   }
 
-  std::string video_file = newArgv[1];
-
-  arg.DeleteRemainingArguments(newArgc, &newArgv);
-
   // register the algorithm implementations
-  std::string rel_plugin_path = kwiver::vital::get_executable_path() + "/../lib/modules";
+  const std::string rel_plugin_path = kwiver::vital::get_executable_path() + "/../lib/modules";
   kwiver::vital::plugin_manager::instance().add_search_path(rel_plugin_path);
   kwiver::vital::plugin_manager::instance().load_all_plugins();
   kwiver::vital::algo::video_input_sptr video_reader;
   kwiver::vital::config_block_sptr config = default_config();
 
   // If --config given, read in config file, merge in with default just generated
-  if( ! opt_config.empty() )
+  if( cmd_args.count("config") )
   {
-    config->merge_config( kwiver::vital::read_config_file( opt_config ) );
+    config->merge_config( kwiver::vital::read_config_file( cmd_args["config"].as<std::string>() ) );
   }
 
   kwiver::vital::algo::video_input::set_nested_algo_configuration( "video_reader", config, video_reader );
   kwiver::vital::algo::video_input::get_nested_algo_configuration( "video_reader", config, video_reader );
   // Check to see if we are to dump config
-  if ( ! opt_out_config.empty() )
+  if ( cmd_args.count("output") )
   {
-    std::ofstream fout( opt_out_config.c_str() );
+    const std::string out_file = cmd_args["output"].as<std::string>();
+    std::ofstream fout( out_file.c_str() );
     if( ! fout )
     {
-      std::cout << "Couldn't open \"" << opt_out_config << "\" for writing.\n";
+      std::cout << "Couldn't open \"" << out_file << "\" for writing.\n";
       return EXIT_FAILURE;
     }
 
     kwiver::vital::config_block_formatter fmt( config );
     fmt.print( fout );
-    std::cout << "Wrote config to \"" << opt_out_config << "\". Exiting.\n";
+    std::cout << "Wrote config to \"" << out_file << "\". Exiting.\n";
     return EXIT_SUCCESS;
   }
 
