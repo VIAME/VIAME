@@ -71,8 +71,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Linux Desktop Binaries:** <br>
 [VIAME v0.9.11 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5cdddd208d777f072bb13668/download) <br>
 [VIAME v0.9.11 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1hq_P2h1NktuLp2EijepH8w-bmY2tVvby) <br>
-[VIAME v0.9.9.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c6b0bf78d777f072b51ead3/download) <br>
-[VIAME v0.9.9.3 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1ZqERSOs10awJVMklln8Skx7RCsgqS2Wg)
+[VIAME v0.9.11 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5cdec78f8d777f072bb44328/download) <br>
+[VIAME v0.9.11 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1snXSd6jGwOF2ZlUdXdlcY12nYU-Bmys2)
 
 **Windows Desktop Binaries:** <br>
 [VIAME v0.9.9.7 Windows 7/8/10, 64-Bit, GPU Enabled, CUDA 8.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c916d278d777f072bc17c01/download) <br>
@@ -84,7 +84,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Experimental Online Annotator](https://images.slide-atlas.org/#collection/5b68666270aaa94f2e5bd975/folder/5b68667670aaa94f2e5bd976) <br>
 
 **Optional Patches:** <br>
-[MOUSS Models Add-On, All OS](https://data.kitware.com/api/v1/item/5c58d8f48d777f072b2b980d/download) <br>
+[MOUSS Models (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
 [Arctic Seals Models Add-On, All Linux, CUDA 9.0](https://data.kitware.com/api/v1/item/5ca3e4df8d777f072bf2aa65/download) <br>
 [Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download) <br>
