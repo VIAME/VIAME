@@ -34,7 +34,7 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
-  # Default Caffe Models
+  # Caffe Model Files
   if( VIAME_ENABLE_CAFFE )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5afe6e1e8d777f15ebe1d6fc/download
@@ -43,7 +43,7 @@ if( VIAME_DOWNLOAD_MODELS )
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 
-  # Default YOLO Configs
+  # YOLO Model Files
   if( VIAME_ENABLE_YOLO )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5c423a5f8d777f072b0ba58f/download
@@ -56,14 +56,6 @@ if( VIAME_DOWNLOAD_MODELS )
       1142628e15d6dbe70157a925bbe0e1f2
       ${VIAME_DOWNLOAD_DIR}/models-yolo_v3_seed_model-v1.2.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-
-    if( VIAME_DOWNLOAD_MODELS-HABCAM )
-      DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5b5e27cc8d777f06857c17c2/download
-        0ee03ac4a199cc6f884b2f9702e59eb1
-        ${VIAME_DOWNLOAD_DIR}/models-habcam-v2.0.0.tar.gz
-        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-    endif()
 
     if( VIAME_DOWNLOAD_MODELS-MOUSS )
       DownloadAndExtract(
@@ -82,15 +74,6 @@ if( VIAME_DOWNLOAD_MODELS )
     endif()
   endif()
 
-  # Default Faster-RCNN Models
-  if( VIAME_ENABLE_FASTER_RCNN )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5afe74fc8d777f15ebe1d70c/download
-      e4792d72721465a206580522c37d0000
-      ${VIAME_DOWNLOAD_DIR}/models-default_faster_rcnn-v1.0.0.tar.gz
-      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
-  endif()
-
   # Tensorflow Models
   if( VIAME_ENABLE_TENSORFLOW )
     if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
@@ -100,6 +83,15 @@ if( VIAME_DOWNLOAD_MODELS )
         ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_tf-v1.1.1.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
+  endif()
+
+  # Mixed Models
+  if( VIAME_DOWNLOAD_MODELS-HABCAM )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5cdf04218d777f072bb4fc37/download
+      5a0f1bf02ffb39100c7c7c42eaff8b8d
+      ${VIAME_DOWNLOAD_DIR}/models-habcam-v2.1.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 endif()
 
