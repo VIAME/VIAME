@@ -157,6 +157,16 @@ public:
     m_port_datum_set.emplace( port, sprokit::datum::new_datum<T>( val ) );
   }
 
+  /**
+   * @brief Query if data set is empty.
+   *
+   * This method tests if the data set is empty.
+   *
+   * @return \c true if the data set is empty (contains no values), otherwise
+   * \c false.
+   */
+  bool empty() const;
+
   //@{
   /**
    * @brief Get begin iterator for items in this data set.

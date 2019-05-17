@@ -80,6 +80,15 @@ adapter_data_set
 
 
 // ------------------------------------------------------------------
+bool
+adapter_data_set
+::empty() const
+{
+  return m_port_datum_set.empty();
+}
+
+
+// ------------------------------------------------------------------
 kwiver::adapter::adapter_data_set::datum_map_t::iterator
 adapter_data_set
 ::begin()
