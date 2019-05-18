@@ -90,6 +90,7 @@ set( vital_public_headers
   types/camera_map.h
   types/category_hierarchy.h
   types/color.h
+  types/color_space.h
   types/covariance.h
   types/database_query.h
   types/descriptor.h
@@ -161,6 +162,7 @@ set( vital_sources
   types/camera_perspective.cxx
   types/camera_rpc.cxx
   types/category_hierarchy.cxx
+  types/color_space.cxx
   types/database_query.cxx
   types/descriptor.cxx
   types/descriptor_request.cxx
