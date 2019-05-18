@@ -64,6 +64,9 @@ enum color_space
 /// \brief Converts a string to a known color space if possible.
 VITAL_EXPORT color_space string_to_color_space( const std::string& str );
 
+/// \brief Converts a string to a known color space if possible.
+VITAL_EXPORT std::string color_space_to_string( const color_space cs );
+
 
 } // end namespace vital
 } // end namespace kwiver

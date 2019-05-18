@@ -31,6 +31,7 @@
 #include "vital/types/color_space.h"
 
 #include <algorithm>
+#include <map>
 
 /// \brief Converts a string to a known color space if possible.
 kwiver::vital::color_space
@@ -61,17 +62,17 @@ kwiver::vital::string_to_color_space( const std::string& str )
     {
       return kwiver::vital::CMYK;
     }
-    if( lowercase_str == "hsv" )
+    if( lowercase_str == "hls" )
     {
-      return kwiver::vital::HSV;
+      return kwiver::vital::HLS;
     }
     if( lowercase_str == "hsl" )
     {
       return kwiver::vital::HSL;
     }
-    if( lowercase_str == "hls" )
+    if( lowercase_str == "hsv" )
     {
-      return kwiver::vital::HLS;
+      return kwiver::vital::HSV;
     }
   }
   else
@@ -103,4 +104,26 @@ kwiver::vital::string_to_color_space( const std::string& str )
   }
 
   return kwiver::vital::INVALID_CS;
+}
+
+/// \brief Converts a known color space to a string
+std::string
+kwiver::vital::color_space_to_string( const kwiver::vital::color_space cs )
+{
+
+  const static std::map< kwiver::vital::color_space, std::string > mapping =
+   { { kwiver::vital::INVALID_CS, "INVALID" },
+     { kwiver::vital::BGR, "BGR" },
+     { kwiver::vital::CMYK, "CMYK" },
+     { kwiver::vital::HLS, "HLS" },
+     { kwiver::vital::HSL, "HSL" },
+     { kwiver::vital::HSV, "HSV" },
+     { kwiver::vital::Lab, "Lab" },
+     { kwiver::vital::Luv, "Luv" },
+     { kwiver::vital::RGB, "RGB" },
+     { kwiver::vital::XYZ, "XYZ" },
+     { kwiver::vital::YCrCb, "YCrCb" },
+     { kwiver::vital::YCbCr, "YCbCr" } };
+
+  return mapping.at( cs );
 }
