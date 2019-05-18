@@ -62,7 +62,7 @@ process ensure_grey
   endblock
 
 connect from image_reader.image
-        to   rgb_to_grey.image
+        to   ensure_grey.image
 
 process motion_filter
   :: image_filter
@@ -75,7 +75,7 @@ process motion_filter
     :output_variance                           true
   endblock
 
-connect from rgb_to_grey.image
+connect from ensure_grey.image
         to   motion_filter.image
 
 process float_to_byte
