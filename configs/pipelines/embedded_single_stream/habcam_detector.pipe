@@ -13,7 +13,7 @@ process out_adapt
 
 process split
   :: split_image
-  :split_image:type                  ocv
+  :split_image:type                  ocv_horizontally
 
 connect from in_adapt.image
         to   split.image

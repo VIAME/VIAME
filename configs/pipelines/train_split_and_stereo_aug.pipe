@@ -22,7 +22,7 @@ connect from in_adapt.input_file_name
 
 process split
   :: split_image
-  :split_image:type                            ocv
+  :split_image:type                            ocv_horizontally
 
 connect from image_reader.image
         to   split.image

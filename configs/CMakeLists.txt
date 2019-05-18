@@ -163,6 +163,7 @@ set( CORE_PIPELINE_FILES
   pipelines/tracker_svm_models.pipe
   pipelines/train_color_freq_aug.pipe
   pipelines/train_hue_shifting_only_aug.pipe
+  pipelines/train_intensity_hue_motion_aug.pipe
   pipelines/train_motion_and_color_freq_aug.pipe
   pipelines/train_motion_aug.pipe
   pipelines/train_split_and_stereo_aug.pipe

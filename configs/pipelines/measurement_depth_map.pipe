@@ -13,7 +13,7 @@ include common_default_input.pipe
 # ================================== CROP INPUTS ===================================
 process split
   :: split_image
-  :split_image:type                            ocv
+  :split_image:type                            ocv_horizontally
 
 connect from input.image
         to   split.image
