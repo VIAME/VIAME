@@ -42,6 +42,7 @@
 #endif
 
 #include <arrows/ocv/analyze_tracks.h>
+#include <arrows/ocv/convert_color_space.h>
 #include <arrows/ocv/detect_features_AGAST.h>
 #include <arrows/ocv/detect_features_FAST.h>
 #include <arrows/ocv/detect_features_GFTT.h>
@@ -96,6 +97,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 #endif
 
   reg.register_algorithm< analyze_tracks >();
+  reg.register_algorithm< convert_color_space >();
   reg.register_algorithm< draw_tracks >();
   reg.register_algorithm< estimate_fundamental_matrix >();
   reg.register_algorithm< estimate_homography >();
