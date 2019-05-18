@@ -7,16 +7,17 @@ set( CMAKE_CXX_STANDARD 11 )
 
 project( VIAME )
 
-set( VIAME_VERSION_MAJOR 0 )
-set( VIAME_VERSION_MINOR 9 )
-set( VIAME_VERSION_PATCH 8 )
+set( VIAME_VERSION_MAJOR 1 )
+set( VIAME_VERSION_MINOR 0 )
+set( VIAME_VERSION_PATCH 0 )
+
+set( VIAME_VERSION "${VIAME_VERSION_MAJOR}.${VIAME_VERSION_MINOR}.${VIAME_VERSION_PATCH}" )
 
 include( CMakeDependentOption )
 
 
-# If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
-# other superbuild proejct (except for viame). This makes development builds
-# much quicker.
+# If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any other superbuild
+# projects (except for viame). This makes development builds much quicker.
 option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
 mark_as_advanced( VIAME_FORCEBUILD )
 
