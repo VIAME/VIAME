@@ -96,9 +96,9 @@ process image_merger
   :: merge_images
   :merge_images:type                           ocv
 
-connect from split_channels.image2
+connect from split_channels.right_image
         to   image_merger.image1
-connect from split_channels.image1
+connect from split_channels.left_image
         to   image_merger.image2
 connect from float_to_byte.image
         to   image_merger.image3
