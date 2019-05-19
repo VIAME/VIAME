@@ -250,7 +250,8 @@ if( VIAME_ENABLE_PYTORCH )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/train_mmdet_cascade.habcam.conf
     pipelines/train_mmdet_cascade.viame_csv.conf
-    pipelines/train_mmdet_cascade_wtf.viame_csv.conf )
+    pipelines/train_mmdet_cascade_icm.viame_csv.conf
+    pipelines/train_mmdet_cascade_ihm.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_ITK )
