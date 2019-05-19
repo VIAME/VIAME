@@ -191,8 +191,17 @@ if( VIAME_ENABLE_VIVIA )
     pipelines/embedded_single_stream/local_deep_tracker.pipe
     pipelines/embedded_single_stream/local_svm_frame_classifier.pipe
     pipelines/embedded_single_stream/local_svm_detector.pipe
-    pipelines/embedded_single_stream/local_svm_tracker.pipe
-    pipelines/embedded_single_stream/train_deep_detector.pipe )
+    pipelines/embedded_single_stream/local_svm_tracker.pipe )
+
+  if( VIAME_ENABLE_YOLO )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/embedded_single_stream/train_deep_detector_yolo.pipe )
+  endif()
+
+  if( VIAME_ENABLE_PYTORCH )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/embedded_single_stream/train_deep_detector_cfrnn.pipe )
+  endif()
 
   if( VIAME_ENABLE_YOLO AND VIAME_DOWNLOAD_MODELS-MOUSS )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
