@@ -107,21 +107,32 @@ split_image_process
 ::_step()
 {
   // Get image
-  kwiver::vital::image_container_sptr img = grab_from_port_using_trait( image );
-  std::vector< kwiver::vital::image_container_sptr > outputs;
+  vital::image_container_sptr img = grab_from_port_using_trait( image );
+  std::vector< vital::image_container_sptr > outputs;
 
-  // Get feature tracks
-  outputs = d->m_image_splitter->split( img );
+  // Get split images
+  if( img )
+  {
+    outputs = d->m_image_splitter->split( img );
+  }
 
   // Return by value
   if( outputs.size() >= 1 )
   {
     push_to_port_using_trait( left_image, outputs[0] );
   }
+  else
+  {
+    push_to_port_using_trait( left_image, vital::image_container_sptr() );
+  }
 
   if( outputs.size() >= 2 )
   {
     push_to_port_using_trait( right_image, outputs[1] );
+  }
+  else
+  {
+    push_to_port_using_trait( right_image, vital::image_container_sptr() );
   }
 }
 
