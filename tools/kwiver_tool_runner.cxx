@@ -131,7 +131,7 @@ void tool_runner_usage( applet_context_t ctxt,
     if ( pos != 0 )
     {
       // Take all but the ending newline
-      buf = buf.substr( 0, pos-1 );
+      buf = buf.substr( 0, pos );
     }
 
     std::cout << ctxt->m_wtb.wrap_text( buf );
@@ -160,6 +160,10 @@ void help_applet( const command_line_parser& options,
 
   // Create applet based on the name provided
   applet_factory app_fact;
+  std::string buf = "-- Not Set --";
+  auto fact = app_fact.find_factory( options.m_applet_args[1] );
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+
   kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_args[1] ) );
   tool_context->m_applet_name = options.m_applet_args[1];
   applet->initialize( tool_context.get() );
@@ -217,28 +221,38 @@ int main(int argc, char *argv[])
     // for.
     applet->add_command_options();
 
+    int local_argc = 0;
+    char** local_argv = 0;
+    std::vector<char *> argv_vect;
+
     if ( ! tool_context->m_skip_command_args_parsing )
     {
       // Convert args list back to argv style. :-(
       // This is needed for the command options support package.
-      std::vector<char *> argv_vect( options.m_applet_args.size() + 1 );    // one extra for the null
+      argv_vect.resize( options.m_applet_args.size() +1, nullptr );
       for (std::size_t i = 0; i != options.m_applet_args.size(); ++i)
       {
         argv_vect[i] = &options.m_applet_args[i][0];
       }
-
-      // The parse result has to be created locally due to class design.
-      // No default CTOR, copy CTOR or operation.
-      int local_argc = options.m_applet_args.size();
-      char** local_argv = &argv_vect[0];
-      cxxopts::ParseResult local_result = applet->m_cmd_options->parse( local_argc, local_argv );
-
-      // Make results available in the context,
-      tool_context->m_result = &local_result; // in this case the address of a stack variable is o.k.
+    }
+    else
+    {
+      argv_vect.resize( 2, nullptr );
+      argv_vect[0] = &options.m_applet_args[0][0];
     }
 
+    local_argc = argv_vect.size()-1;
+    local_argv = &argv_vect[0];
+
+    // The parse result has to be created locally due to class design.
+    // No default CTOR, copy CTOR or operation.
+    cxxopts::ParseResult local_result = applet->m_cmd_options->parse( local_argc, local_argv );
+
+    // Make results available in the context,
+    tool_context->m_result = &local_result; // in this case the address of a stack variable is o.k.
+
     // Run the specified tool
-    return applet->run(  );
+    return applet->run();
   }
   catch ( cxxopts::OptionException& e)
   {

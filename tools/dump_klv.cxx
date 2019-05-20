@@ -93,10 +93,9 @@ add_command_options()
 
     // positional parameters
     ( "video-file", "Video input file", cxxopts::value<std::string>())
-    ( "extra", "Extra command line args",  cxxopts::value<std::vector<std::string>>())
     ;
 
-  m_cmd_options->parse_positional({"video-file", "extra"});
+  m_cmd_options->parse_positional("video-file");
 }
 
 
