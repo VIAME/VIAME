@@ -155,7 +155,7 @@ Windows. The '-j8' tells the build to run multi-threaded using 8 threads, this i
 useful for a faster build though if you get an error it can be difficult to know
 here it was, in which case running just 'make' might be more helpful. For Windows,
 currently VS2015 (with only some sub-versions of 2017) are supported. If using CUDA,
-version 8.0 and above, with CUDNN 6.0 and above is desired. On Windows it can also be
+version 9.0 and above, with CUDNN 7.0 and above is desired. On Windows it can also be
 beneficial to use Anaconda to get multiple python packages. Boost Python (turned on by
 default when Python is enabled) requires Numpy and a few other dependencies.
 
