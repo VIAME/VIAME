@@ -81,7 +81,7 @@ connect from float_to_byte.image
 
 process detector1
   :: image_object_detector
-  :detector:type                               mmdet
+  :detector:type                               darknet
 
   block detector:darknet
     # Network config, weights, and names
