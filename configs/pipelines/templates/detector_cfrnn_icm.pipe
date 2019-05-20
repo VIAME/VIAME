@@ -10,8 +10,65 @@ process detector_input
 
   block filter:vxl_convert_image
     :format                                    byte
-    :force_three_channel                       true
+    :single_channel                            true
   endblock
+
+connect from image_reader.image
+        to   ensure_grey.image
+
+process color_freq_filter
+  :: image_filter
+  :filter:type                                 vxl_color_commonality
+
+  block filter:vxl_color_commonality
+    :color_resolution_per_channel              16
+    :internsity_hist_resolution                32
+    :output_scale                              512
+  endblock
+
+connect from detector_input.image
+        to   color_freq_filter.image
+
+process motion_filter
+  :: image_filter
+  :filter:type                                 vxl_average
+
+  block filter:vxl_average
+    :type                                      window
+    :window_size                               10
+    :round                                     false
+    :output_variance                           true
+  endblock
+
+connect from detector_input.image
+        to   motion_filter.image
+
+process float_to_byte
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :scale_factor                              0.50
+  endblock
+
+connect from motion_filter.image
+        to   float_to_byte.image
+
+# ==============================================================================
+
+process image_merger
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from detector_input.image
+        to   image_merger.image1
+connect from color_freq_filter.image
+        to   image_merger.image2
+connect from float_to_byte.image
+        to   image_merger.image3
+
+# ==============================================================================
 
 process detector1
   :: image_object_detector
@@ -29,8 +86,10 @@ process detector1
 
   endblock
 
-connect from detector_input.image
+connect from image_merger.image
         to   detector1.image
+
+# ==============================================================================
 
 process detector_output
   :: merge_detection_sets
