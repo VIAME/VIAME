@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,9 @@ public:
   priv()
     : cross_check( true ),
       cross_check_k( 1 ),
-      matcher( new cv::FlannBasedMatcher )
+      binary_descriptors( false )
   {
+    this->create();
   }
 
   // Can't currently update parameters on BF implementation, so no update
@@ -58,7 +59,15 @@ public:
   void create()
   {
     // cross version compatible
-    matcher = cv::Ptr<cv::FlannBasedMatcher>( new cv::FlannBasedMatcher );
+    if (binary_descriptors)
+    {
+      matcher = cv::Ptr<cv::FlannBasedMatcher>(new cv::FlannBasedMatcher(
+        cv::makePtr<cv::flann::LshIndexParams>(12, 20, 2)));
+    }
+    else
+    {
+      matcher = cv::Ptr<cv::FlannBasedMatcher>(new cv::FlannBasedMatcher );
+    }
   }
 
   /// Compute descriptor matching from 1 to 2 and from 2 to 1.
@@ -102,6 +111,7 @@ public:
   /// Parameters
   bool cross_check;
   unsigned cross_check_k;
+  bool binary_descriptors;
   cv::Ptr<cv::FlannBasedMatcher> matcher;
 
 }; // end match_features_flannbased::priv
@@ -131,6 +141,9 @@ match_features_flannbased
                      "If cross-check filtering should be performed." );
   config->set_value( "cross_check_k", p_->cross_check_k,
                      "Number of neighbors to use when cross checking" );
+  config->set_value( "binary_descriptors", p_->binary_descriptors,
+                     "If false assume float descriptors (use L2 KDTree). "
+                     "If true assume binary descriptors (use LSH).");
 
   return config;
 }
@@ -145,6 +158,7 @@ match_features_flannbased
 
   p_->cross_check = config->get_value<bool>( "cross_check" );
   p_->cross_check_k = config->get_value<unsigned>( "cross_check_k" );
+  p_->binary_descriptors = config->get_value<bool>( "binary_descriptors" );
 
   p_->create();
 }

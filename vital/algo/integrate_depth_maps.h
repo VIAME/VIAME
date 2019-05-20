@@ -77,13 +77,15 @@ public:
    * \param [in]     depth_maps  the set of floating point depth map images
    * \param [in]     cameras     the set of cameras, one for each depth map
    * \param [in,out] volume      the fused volumetric data
+   * \param [out]    spacing     the spacing between voxels in each dimension
    */
   virtual void
     integrate(kwiver::vital::vector_3d const& minpt_bound,
               kwiver::vital::vector_3d const& maxpt_bound,
               std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
               std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
-              kwiver::vital::image_container_sptr& volume) const = 0;
+              kwiver::vital::image_container_sptr& volume,
+              kwiver::vital::vector_3d &spacing) const = 0;
 
 protected:
   integrate_depth_maps();

@@ -146,6 +146,8 @@ compute_depth::get_configuration() const
                     "up direction in world space");
   config->set_value("callback_interval", d_->callback_interval,
                     "number of iterations between updates (-1 turns off updates)");
+  config->set_value("num_slices", d_->S, "Number of depth slices");
+
   return config;
 }
 
@@ -169,6 +171,7 @@ compute_depth::set_configuration(vital::config_block_sptr in_config)
   d_->epsilon = config->get_value<double>("epsilon", d_->epsilon);
   d_->callback_interval = config->get_value<double>("callback_interval",
                                                     d_->callback_interval);
+  d_->S = config->get_value<unsigned int>("num_slices", d_->S);
 
   std::istringstream ss(config->get_value<std::string>("world_plane_normal",
                                                        "0 0 1"));

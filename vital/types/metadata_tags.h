@@ -64,6 +64,7 @@ CALL( IMAGE_SOURCE_SENSOR,         "Image Source Sensor",             std::strin
 CALL( IMAGE_COORDINATE_SYSTEM,     "Image Coordinate System",         std::string) \
 CALL( IMAGE_URI,                   "Image URI",                       std::string) \
 CALL( VIDEO_URI,                   "Video URI",                       std::string) \
+CALL( VIDEO_KEY_FRAME,             "Is frame a key frame",            bool) \
 CALL( SENSOR_LOCATION,             "Sensor Geodetic Location",        geo_point) \
 CALL( SENSOR_ALTITUDE,             "Sensor Altitude",                 double) /* TODO: merge with previous? */ \
 CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View", double) \

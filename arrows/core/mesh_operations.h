@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 #include <arrows/core/kwiver_algo_core_export.h>
 
 #include <vital/types/mesh.h>
+#include <vital/types/camera_perspective.h>
 
 
 namespace kwiver {
@@ -83,6 +84,58 @@ KWIVER_ALGO_CORE_EXPORT
 void
 mesh_triangulate(kwiver::vital::mesh& mesh);
 
+
+/// Clip a triangular mesh with a plane
+/**
+ * Intersect a mesh with a plane and keep only the parts of the mesh that
+ * lie on the positive side of the plane (direction that the normal points).
+ * Faces crossing the plane are intersected with the plane and new
+ * vertices are added along the plane.  This implementation does not remove
+ * or renumber existing vertices, but may add new vertices.  It may leave
+ * vertices which are no longer used by the faces.
+ *
+ * \param [in,out]  mesh  A mesh to triangulate clip in place
+ * \param [in]      plane The clipping plane
+ *
+ * \note This implementation assumes that the mesh is triangular
+ */
+KWIVER_ALGO_CORE_EXPORT
+bool
+clip_mesh(kwiver::vital::mesh& mesh,
+          kwiver::vital::vector_4d const& plane);
+
+
+/// Clip a triangular mesh with a camera frustum
+/**
+ * Intersect a mesh with a camera frustum and keep only the parts of the mesh
+ * that lie inside the frustum.  Faces crossing the frustum planes are
+ * intersected with the planes and new vertices are added along the planes.
+ * This implementation does not remove or renumber existing vertices, but may
+ * add new vertices.  It may leave vertices which are no longer used by the
+ * faces.
+ *
+ * \param [in,out]  mesh   A mesh to triangulate clip in place
+ * \param [in]      camera The camera frustum to use in clipping
+ * \param [in]      near   The offset from the camera center to the near
+ *                         clipping plane (parallel to the image plane)
+ * \param [in]      far    The offset from the camera center to the far
+ *                         clipping plane (parallel to the image plane)
+ * \param [in]      margin Expand the frustum by this many pixels on all sides
+ *                         to avoid boundary effects from clipping too tightly.
+ *
+ * By default this function keeps all geometry in front of the camera that
+ * would project into the image.  The far clipping plane is set to infinity
+ * to disable far plane clipping.
+ *
+ * \note This implementation assumes that the mesh is triangular
+ */
+KWIVER_ALGO_CORE_EXPORT
+bool
+clip_mesh(kwiver::vital::mesh& mesh,
+          kwiver::vital::camera_perspective const& camera,
+          double near = 0.0,
+          double far = std::numeric_limits<double>::infinity(),
+          double margin = 1.0);
 
 }
 }

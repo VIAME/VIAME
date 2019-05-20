@@ -736,7 +736,8 @@ vidl_ffmpeg_video_input
     // move stream to specified frame number
     unsigned int frame_num = 1;
 
-    while (frame_num < d->c_start_at_frame)
+    while ( frame_num < d->c_start_at_frame ||
+            (frame_num - 1) % d->c_frame_skip != 0 )
     {
       if( ! d->d_video_stream.advance() )
       {

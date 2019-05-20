@@ -238,6 +238,9 @@ run()
     std::cout << "Triangulating Mesh" << std::endl;
     kwiver::arrows::core::mesh_triangulate(*mesh);
   }
+  std::cout << "Clipping Mesh to Camera Frustum" << std::endl;
+  kwiver::arrows::core::clip_mesh(*mesh, *camera);
+
   std::cout << "Rendering" << std::endl;
   vital::image_container_sptr image;
   if ( cmd_args["height-map"].as<bool>() )

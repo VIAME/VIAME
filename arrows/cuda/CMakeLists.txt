@@ -2,7 +2,13 @@ set(header_files
   integrate_depth_maps.h
   )
 
+set(private_header_files
+  cuda_error_check.h
+  cuda_memory.h
+  )
+
 set(cxx_files
+  cuda_error_check.cxx
   integrate_depth_maps.cxx
   )
 
@@ -19,7 +25,7 @@ kwiver_install_headers(
   NOPATH   SUBDIR     arrows/cuda
   )
 
-kwiver_add_library(kwiver_algo_cuda ${header_files} ${cxx_files} ${CUDA_COMPILE_O})
+kwiver_add_library(kwiver_algo_cuda ${header_files} ${private_header_files} ${cxx_files} ${CUDA_COMPILE_O})
 target_link_libraries(kwiver_algo_cuda kwiver_algo_core ${CUDA_LIBRARIES}
 )
 
