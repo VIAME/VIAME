@@ -1,7 +1,8 @@
 # ==================================================================================
-# Commonly used default detector when the user hasn't specified one.
 #
-# Classifies vertebrate vs invertebrate vs background.
+# YOLO Detector
+#
+# ==================================================================================
 
 process detector_input
   :: image_filter

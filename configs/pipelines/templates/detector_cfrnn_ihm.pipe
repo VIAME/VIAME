@@ -1,7 +1,8 @@
 # ==================================================================================
-# Commonly used default detector when the user hasn't specified one.
 #
-# Classifies vertebrate vs invertebrate vs background.
+# Cascade Faster R-CNN Detector with Intensity, Hue, and Motion Inputs
+#
+# ==================================================================================
 
 process detector_input
   :: image_filter
@@ -18,9 +19,9 @@ process detector1
 
   block detector:mmdet
     # Network config, weights, and names
-    relativepath net_config  =                 models/default_cfrnn.py
-    relativepath weight_file =                 models/default_cfrnn.pth
-    relativepath class_names =                 models/default_cfrnn.lbl
+    relativepath net_config  =                 [-NETWORK-CONFIG-]
+    relativepath weight_file =                 [-NETWORK-WEIGHTS-]
+    relativepath class_names =                 [-NETWORK-CLASSES-]
 
     # Detector parameters
     :thresh                                    0.001
