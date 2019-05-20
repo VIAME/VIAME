@@ -17,7 +17,7 @@ include common_default_input_with_downsampler.pipe
 
 # =========================== DETECTOR AND DESCRIPTORS =============================
 
-include common_default_detector.pipe
+include common_generic_detector.pipe
 include common_default_descriptor.pipe
 
 process svm_refiner
