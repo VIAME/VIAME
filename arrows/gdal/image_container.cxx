@@ -254,7 +254,7 @@ image_container
   this->set_metadata( md );
 }
 
-char** 
+char**
 image_container::get_raw_metadata_for_domain(const char *domain)
 {
   return this->gdal_dataset_->GetMetadata(domain);
@@ -314,6 +314,8 @@ image_container
       static_cast<void*>(reinterpret_cast<GByte*>(
         img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
       width, height, bandType, 0, 0);
+
+    (void) err;
   }
 
   return img;

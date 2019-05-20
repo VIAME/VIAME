@@ -17,6 +17,9 @@ kwiver_check_compiler_flag( -Werror=overloaded-virtual )
 kwiver_check_compiler_flag( -Werror=cast-qual )
 kwiver_check_compiler_flag( -Werror=vla )
 
+# to slience this warning
+kwiver_check_compiler_flag( -Wno-unknown-pragmas )
+
 # linker shared object control flags
 kwiver_check_compiler_flag( -Wl,--no-undefined )
 kwiver_check_compiler_flag( -Wl,--copy-dt-needed-entries )
