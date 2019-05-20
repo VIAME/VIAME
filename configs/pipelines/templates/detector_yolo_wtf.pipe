@@ -90,7 +90,7 @@ process detector1
     relativepath class_names =                 [-NETWORK-CLASSES-]
 
     # Detector parameters
-    :thresh                                    0.001
+    :thresh                                    0.010
     :gpu_index                                 0
 
     # Image scaling parameters
@@ -98,7 +98,6 @@ process detector1
     :scale                                     1.25
     :chip_step                                 650
     :chip_edge_filter                          10
-    :chip_adaptive_thresh                      900000
 
   endblock
 
