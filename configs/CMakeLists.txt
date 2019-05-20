@@ -338,6 +338,8 @@ install( FILES       ${RUN_SCRIPT_FILES}
          DESTINATION configs )
 install( FILES       ${CORE_PIPELINE_FILES}
          DESTINATION configs/pipelines )
+install( DIRECTORY   pipelines/templates
+         DESTINATION configs/pipelines )
 
 if( VIAME_DOWNLOAD_MODELS )
   install( DIRECTORY   pipelines/models
