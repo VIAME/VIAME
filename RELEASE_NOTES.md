@@ -3,7 +3,7 @@ v0.9.13 - 5/24/2019
 ===================
 
 
--Fixes to downsampler for data with irregular spacings between frames
+-Fixes to downsampler for data with irregular spacings between frames plus related
 
 
 v0.9.12 - 5/21/2019
