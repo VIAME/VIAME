@@ -261,7 +261,7 @@ class MMDetTrainer( TrainDetector ):
     sys.exit( 0 )
 
   def save_model_files( self, is_final=False ):
-    input_wgt_file = os.path.join( self._train_directory, "latest.pth" )
+    input_wgt_file_fp = os.path.join( self._train_directory, "latest.pth" )
 
     output_cfg_file = self._output_prefix + ".py"
     output_wgt_file = self._output_prefix + ".pth"
@@ -271,26 +271,35 @@ class MMDetTrainer( TrainDetector ):
     if len( self._output_directory ) > 0:
       if not os.path.exists( self._output_directory ):
         os.mkdir( self._output_directory )
+      output_cfg_file_fp = os.path.join( self._output_directory, output_cfg_file )
+      output_wgt_file_fp = os.path.join( self._output_directory, output_wgt_file )
+      output_lbl_file_fp = os.path.join( self._output_directory, output_lbl_file )
+      output_pipeline_fp = os.path.join( self._output_directory, output_pipeline )
+    else:
+      output_cfg_file_fp = output_cfg_file
+      output_wgt_file_fp = output_wgt_file
+      output_lbl_file_fp = output_lbl_file
+      output_pipeline_fp = output_pipeline
 
-      output_cfg_file = os.path.join( self._output_directory, output_cfg_file )
-      output_wgt_file = os.path.join( self._output_directory, output_wgt_file )
-      output_lbl_file = os.path.join( self._output_directory, output_lbl_file )
-      output_pipeline = os.path.join( self._output_directory, output_pipeline )
-
-    self.insert_class_count( self._config_file, output_cfg_file )
+    self.insert_class_count( self._config_file_fp, output_cfg_file_fp )
 
     if is_final:
-      copyfile( input_wgt_file, output_wgt_file )
+      copyfile( input_wgt_file_fp, output_wgt_file_fp )
 
-    with open( output_lbl_file, "w" ) as fout:
+    with open( output_lbl_file_fp, "w" ) as fout:
       for category in self._categories:
         fout.write( category + "\n" )
 
     if len( self._pipeline_template ) > 0:
+      input_wgt_relpath = input_wgt_file_fp
+
+      if not os.path.isabs( input_wgt_file_fp ):
+        input_wgt_relpath = os.path.join( "..", input_wgt_relpath )
+
       self.insert_model_files( self._pipeline_template,
-                               output_pipeline,
+                               output_pipeline_fp,
                                output_cfg_file,
-                               output_wgt_file if is_final else input_wgt_file,
+                               output_wgt_file if is_final else input_wgt_relpath,
                                output_lbl_file )
 
   def insert_class_count( self, input_cfg, output_cfg ):
