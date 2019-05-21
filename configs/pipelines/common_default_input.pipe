@@ -10,7 +10,25 @@ process input
   :video_filename                                       input_list.txt
   :frame_time                                           1
   :exit_on_invalid                                      false
+
   :video_reader:type                                    image_list
-  :video_reader:image_list:image_reader:type            vxl
-  :video_reader:image_list:image_reader:vxl:force_byte  true
-  :video_reader:vidl_ffmpeg:time_source                 start_at_0
+
+  block video_reader:vidl_ffmpeg
+    :time_source                                        start_at_0
+  endblock
+
+  block video_reader:image_list
+    :image_reader:type                                  vxl
+
+    block image_reader:vxl
+      :image_reader:vxl:force_byte                      true
+    endblock
+
+    block image_reader:add_timestamp_from_filename
+      :image_reader:type                                vxl
+
+      block image_reader:vxl
+        :image_reader:vxl:force_byte                    true
+      endblock
+    endblock
+  endblock
