@@ -22,3 +22,6 @@ Bug Fixes since v1.3.0
  * Added missing GDAL_DATA and PROJ_LIB environment variables in setup_KWIVER
    scripts.  These must be set to do any coordinate conversions with GDAL or
    PROJ.
+
+ * Install two CMake find-package modules (FFMPEG and Sphinx) that were
+   missing from the installation scripts.
