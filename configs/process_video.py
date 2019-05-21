@@ -529,13 +529,13 @@ if __name__ == "__main__" :
   parser.add_argument("--track-plots", dest="track_plots", action="store_true",
                       help="Produce per-video track plot summaries")
 
-  parser.add_argument("-objects", dest="objects", default="fish",
+  parser.add_argument("-plot-objects", dest="objects", default="fish",
                       help="Objects to generate plots for")
 
   parser.add_argument("-plot-threshold", dest="plot_threshold", default=0.25, type=float,
                       help="Threshold to generate plots for")
 
-  parser.add_argument("-smooth", dest="smooth", default=1, type=int,
+  parser.add_argument("-plot-smooth", dest="smooth", default=1, type=int,
                       help="Smoothing factor for plots")
 
   parser.add_argument("-plot-dir-prefix", dest="plot_dir_prefix", default="plots",

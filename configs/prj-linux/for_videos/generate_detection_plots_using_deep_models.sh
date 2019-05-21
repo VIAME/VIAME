@@ -29,7 +29,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 python ${VIAME_INSTALL}/configs/process_video.py --init \
   -d ${INPUT_DIRECTORY} \
   --detection-plots \
-  -objects ${OBJECT_LIST} \
-  -plot-threshold ${DETECTION_THRESHOLD} -frate ${FRAME_RATE} -smooth 2 \
+  -plot-objects ${OBJECT_LIST} \
+  -plot-threshold ${DETECTION_THRESHOLD} -frate ${FRAME_RATE} -plot-smooth 2 \
   -p ${VIAME_INSTALL}/configs/pipelines/index_mouss.no_desc.pipe \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU}
