@@ -62,6 +62,7 @@ class MMDetTrainer( TrainDetector ):
     self._train_directory = "deep_training"
     self._output_directory = "category_models"
     self._output_prefix = "custom_cfrnn"
+    self._pipeline_template = ""
     self._gpu_count = -1
     self._launcher = "none"    # "none, pytorch, slurm, or mpi" 
     self._random_seed = "none"
@@ -77,6 +78,7 @@ class MMDetTrainer( TrainDetector ):
     cfg.set_value( "train_directory", self._train_directory )
     cfg.set_value( "output_directory", self._output_directory )
     cfg.set_value( "output_prefix", self._output_prefix )
+    cfg.set_value( "pipeline_template", self._pipeline_template )
     cfg.set_value( "gpu_count", str( self._gpu_count ) )
     cfg.set_value( "launcher", str( self._launcher ) )
     cfg.set_value( "random_seed", str( self._random_seed ) )
@@ -93,6 +95,7 @@ class MMDetTrainer( TrainDetector ):
     self._train_directory = str( cfg.get_value( "train_directory" ) )
     self._output_directory = str( cfg.get_value( "output_directory" ) )
     self._output_prefix = str( cfg.get_value( "output_prefix" ) )
+    self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
     self._gpu_count = int( cfg.get_value( "gpu_count" ) )
     self._launcher = str( cfg.get_value( "launcher" ) )
     self._validate = strtobool( cfg.get_value( "validate" ) )
@@ -241,6 +244,8 @@ class MMDetTrainer( TrainDetector ):
 
     from mmdet.apis import train_detector
 
+    self.save_model_files( is_final=False )
+
     train_detector(
       self._model,
       train_dataset,
@@ -249,16 +254,19 @@ class MMDetTrainer( TrainDetector ):
       validate = self._validate,
       logger = self._logger )
 
-    self.save_final_model()
+    self.save_model_files( is_final=True )
 
   def interupt_handler( self ):
-    self.save_final_model()
+    self.save_model_files( is_final=True )
     sys.exit( 0 )
 
-  def save_final_model( self ):
+  def save_model_files( self, is_final=False ):
+    input_wgt_file = os.path.join( self._train_directory, "latest.pth" )
+
     output_cfg_file = self._output_prefix + ".py"
     output_wgt_file = self._output_prefix + ".pth"
     output_lbl_file = self._output_prefix + ".lbl"
+    output_pipeline = "detector.pipe"
 
     if len( self._output_directory ) > 0:
       if not os.path.exists( self._output_directory ):
@@ -267,17 +275,39 @@ class MMDetTrainer( TrainDetector ):
       output_cfg_file = os.path.join( self._output_directory, output_cfg_file )
       output_wgt_file = os.path.join( self._output_directory, output_wgt_file )
       output_lbl_file = os.path.join( self._output_directory, output_lbl_file )
+      output_pipeline = os.path.join( self._output_directory, output_pipeline )
 
     self.insert_class_count( self._config_file, output_cfg_file )
-    copyfile( os.path.join( self._train_directory, "latest.pth" ), output_wgt_file )
+
+    if is_final:
+      copyfile( input_wgt_file, output_wgt_file )
 
     with open( output_lbl_file, "w" ) as fout:
       for category in self._categories:
         fout.write( category + "\n" )
 
+    if len( self._pipeline_template ) > 0:
+      self.insert_model_files( self._pipeline_template,
+                               output_pipeline,
+                               output_cfg_file,
+                               output_wgt_file if is_final else input_wgt_file,
+                               output_lbl_file )
+
   def insert_class_count( self, input_cfg, output_cfg ):
 
     repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self._categories)+1) ] ]
+
+    self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
+
+  def insert_model_files( self, input_cfg, output_cfg, net, wgt, cls ):
+
+    repl_strs = [ [ "[-NETWORK-CONFIG-]", net ],
+                  [ "[-NETWORK-WEIGHTS-]", wgt ],
+                  [ "[-NETWORK-CLASSES-]", cls ] ]
+
+    self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
+
+  def replace_strs_in_file( self, input_cfg, output_cfg, repl_strs ):
 
     fin = open( input_cfg )
     fout = open( output_cfg, 'w' )

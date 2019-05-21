@@ -63,6 +63,7 @@ class MMDetDetector( ImageObjectDetector ):
     cfg.set_value( "class_names", self._class_names )
     cfg.set_value( "thresh", str( self._thresh ) )
     cfg.set_value( "gpu_index", self._gpu_index )
+    cfg.set_value( "display_detections", str( self._display_detections ) )
     return cfg
 
   def set_configuration( self, cfg_in ):
@@ -74,6 +75,7 @@ class MMDetDetector( ImageObjectDetector ):
     self._class_names = str( cfg.get_value( "class_names" ) )
     self._thresh = float( cfg.get_value( "thresh" ) )
     self._gpu_index = str( cfg.get_value( "gpu_index" ) )
+    self._display_detections = bool( cfg.get_value( "display_detections" ) )
 
     import matplotlib
     matplotlib.use( 'PS' ) # bypass multiple Qt load issues
