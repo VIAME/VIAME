@@ -52,9 +52,9 @@ def replace_str_in_file( input_fn, output_fn, repl_array ):
 def generate_kwiver_pipeline(
     input_pipe, output_pipe, net_config, wgt_file, lbl_file ):
 
-  repl_strs = [ [ "[-NETWORK-CONFIG-]", net ],
-                [ "[-NETWORK-WEIGHTS-]", wgt ],
-                [ "[-NETWORK-CLASSES-]", cls ] ]
+  repl_strs = [ [ "[-NETWORK-CONFIG-]", net_config ],
+                [ "[-NETWORK-WEIGHTS-]", wgt_file ],
+                [ "[-NETWORK-CLASSES-]", lbl_file ] ]
 
   replace_str_in_file( input_pipe, output_pipe, repl_strs )
 

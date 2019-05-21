@@ -542,12 +542,13 @@ darknet_trainer::priv
     m_train_directory + div + "models" + div +
     m_output_model_name + ".backup";
 
-  std::string output_cfg =
-    m_output_directory + div + m_output_model_name + ".cfg";
-  std::string output_model =
-    m_output_directory + div + m_output_model_name + ".weights";
-  std::string output_labels =
-    m_output_directory + div + m_output_model_name + ".lbl";
+  std::string output_cfg = m_output_model_name + ".cfg";
+  std::string output_model = m_output_model_name + ".weights";
+  std::string output_labels = m_output_model_name + ".lbl";
+
+  std::string output_cfg_fp = m_output_directory + div + output_cfg;
+  std::string output_model_fp = m_output_directory + div + output_model;
+  std::string output_labels_fp = m_output_directory + div + output_labels;
 
   if( kwiversys::SystemTools::FileExists( possible_model1 ) )
   {
@@ -558,11 +559,12 @@ darknet_trainer::priv
     input_model = possible_model2;
   }
 
+  kwiversys::SystemTools::CopyFileAlways( input_cfg, output_cfg_fp );
+  kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels_fp );
+
   if( is_final )
   {
-    kwiversys::SystemTools::CopyFileAlways( input_cfg, output_cfg );
-    kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels );
-    kwiversys::SystemTools::CopyFileAlways( input_model, output_model );
+    kwiversys::SystemTools::CopyFileAlways( input_model, output_model_fp );
   }
 
   if( !m_pipeline_template.empty() )
@@ -581,19 +583,18 @@ darknet_trainer::priv
 
     std::string header_args = eq + m_pipeline_template + eq;
     header_args = header_args + "," + eq + output_pipeline + eq;
+    header_args = header_args + "," + eq + output_cfg + eq;
 
     if( is_final )
     {
-      header_args = header_args + "," + eq + output_cfg + eq;
       header_args = header_args + "," + eq + output_model + eq;
-      header_args = header_args + "," + eq + output_labels + eq;
     }
     else
     {
-      header_args = header_args + "," + eq + input_cfg + eq;
-      header_args = header_args + "," + eq + input_model + eq;
-      header_args = header_args + "," + eq + input_labels + eq;
+      header_args = header_args + "," + eq + ".." + div + input_model + eq;
     }
+
+    header_args = header_args + "," + eq + output_labels + eq;
 
 #ifdef WIN32
     std::string header_end  = ")\"";
