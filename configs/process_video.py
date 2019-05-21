@@ -216,7 +216,8 @@ def make_filelist_for_image_dir( input_dir, output_dir, output_name ):
 
 # Other helpers
 def signal_handler( signal, frame ):
-  exit_with_error( lb + 'Processing aborted, see you next time' )
+  log_info( lb1 )
+  exit_with_error( 'Processing aborted, see you next time' )
 
 def fset( setting_str ):
   return ['-s', setting_str]
