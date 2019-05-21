@@ -281,7 +281,7 @@ class MMDetTrainer( TrainDetector ):
       output_lbl_file_fp = output_lbl_file
       output_pipeline_fp = output_pipeline
 
-    self.insert_class_count( self._config_file_fp, output_cfg_file_fp )
+    self.insert_class_count( self._config_file, output_cfg_file_fp )
 
     if is_final:
       copyfile( input_wgt_file_fp, output_wgt_file_fp )
