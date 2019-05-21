@@ -73,6 +73,7 @@
 #include <arrows/ocv/track_features_klt.h>
 #include <arrows/ocv/detect_motion_3frame_differencing.h>
 #include <arrows/ocv/detect_motion_mog2.h>
+#include <arrows/ocv/detect_heat_map.h>
 
 namespace kwiver {
 namespace arrows {
@@ -162,6 +163,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< detect_features_SURF >();
   reg.register_algorithm< extract_descriptors_SURF >();
 #endif
+
+  reg.register_algorithm< detect_heat_map >();
 
   reg.register_algorithm< refine_detections_write_to_disk >();
   reg.register_algorithm< split_image >();
