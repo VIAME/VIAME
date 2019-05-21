@@ -1,8 +1,8 @@
-# ==================================================================================
+# ==============================================================================
 #
 # Cascade Faster R-CNN Detector
 #
-# ==================================================================================
+# ==============================================================================
 
 process detector_input
   :: image_filter
@@ -12,6 +12,8 @@ process detector_input
     :format                                    byte
     :force_three_channel                       true
   endblock
+
+# ==============================================================================
 
 process detector1
   :: image_object_detector
@@ -31,6 +33,8 @@ process detector1
 
 connect from detector_input.image
         to   detector1.image
+
+# ==============================================================================
 
 process detector_output
   :: merge_detection_sets

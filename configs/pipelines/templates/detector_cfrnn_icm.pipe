@@ -1,8 +1,8 @@
-# ==================================================================================
+# ==============================================================================
 #
-# Cascade Faster R-CNN Detector with Intensity, Color Frequency, and Motion Inputs
+# Cascade Faster R-CNN Detector with Intensity, Color Frequency, and Motion
 #
-# ==================================================================================
+# ==============================================================================
 
 process detector_input
   :: image_filter
@@ -12,9 +12,6 @@ process detector_input
     :format                                    byte
     :single_channel                            true
   endblock
-
-connect from image_reader.image
-        to   ensure_grey.image
 
 process color_freq_filter
   :: image_filter
