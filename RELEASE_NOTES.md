@@ -10,7 +10,10 @@ v0.9.12 - 5/21/2019
 ===================
 
 
--Improved local detection running for multiple variants of motion detectors
+-Support local detection running for multiple variants of motion detectors
+
+
+-All detector training routines now also generate KWIVER pipelines
 
 
 -Remove index_existing and merged changes into index_defaults to reduce confusion
