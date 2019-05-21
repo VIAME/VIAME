@@ -132,6 +132,7 @@ set( CORE_PIPELINE_FILES
   pipelines/detector_default.pipe
   pipelines/detector_extract_chips.pipe
   pipelines/detector_generic.pipe
+  pipelines/detector_local.pipe
   pipelines/detector_simple_hough.pipe
   pipelines/detector_svm_models.pipe
   pipelines/display_annotations.pipe
@@ -158,6 +159,7 @@ set( CORE_PIPELINE_FILES
   pipelines/tracker_default.pipe
   pipelines/tracker_default.sfd.pipe
   pipelines/tracker_generic.pipe
+  pipelines/tracker_local.pipe
   pipelines/tracker_svm_models.pipe
   pipelines/train_color_freq_aug.pipe
   pipelines/train_hue_shifting_only_aug.pipe
