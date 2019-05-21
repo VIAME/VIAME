@@ -88,10 +88,12 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
 [Arctic Seals Models Add-On, All Linux](https://data.kitware.com/api/v1/item/5ce463258d777f072bc3fed1/download) <br>
-[Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdc7b198d777f072bad8f44/download) <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS, v0.9.11](https://data.kitware.com/api/v1/item/5cded9828d777f072bb46eba/download) <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS, v0.9.9.X](https://data.kitware.com/api/v1/item/5c74a0328d777f072b6615f3/download)
+
+**Standalone Tools:** <br>
+[Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download)
 
 Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.
 
