@@ -18,3 +18,6 @@ Bug Fixes since v1.3.0
 
  * Fixed an issue in the MSVC environment in which redefining variables
    from setup_KWIVER.bat would append to the old value instead of replacing.
+
+ * Install two CMake find-package modules (FFMPEG and Sphinx) that were
+   missing from the installation scripts.
