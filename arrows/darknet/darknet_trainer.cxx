@@ -68,6 +68,7 @@ public:
     , m_train_directory( "deep_training" )
     , m_output_directory( "category_models" )
     , m_output_model_name( "yolo" )
+    , m_pipeline_template( "" )
     , m_model_type( "yolov3" )
     , m_skip_format( false )
     , m_gpu_index( 0 )
@@ -98,6 +99,7 @@ public:
   std::string m_train_directory;
   std::string m_output_directory;
   std::string m_output_model_name;
+  std::string m_pipeline_template;
   std::string m_model_type;
   bool m_skip_format;
   int m_gpu_index;
@@ -148,6 +150,9 @@ public:
   int filter_count(
     int nclasses );
 
+  void save_model_files(
+    bool is_final );
+
   vital::category_hierarchy_sptr m_object_labels;
   bool m_image_loaded_successfully;
   unsigned m_channel_count;
@@ -190,7 +195,9 @@ darknet_trainer
   config->set_value( "output_directory", d->m_output_directory,
     "Final directory to output all models to." );
   config->set_value( "output_model_name", d->m_output_model_name,
-    "Optional model name over-ride, if unspecified default used." );
+    "Optional model name over-ride, if unspecified default used." );\
+  config->set_value( "pipeline_template", d->m_pipeline_template,
+    "Optional output kwiver pipeline for this detector" );
   config->set_value( "model_type", d->m_model_type,
     "Type of model (values understood are \"yolov2\" and \"yolov3\" [the "
     "default])." );
@@ -256,6 +263,7 @@ darknet_trainer
   this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
   this->d->m_output_directory = config->get_value< std::string >( "output_directory" );
   this->d->m_output_model_name = config->get_value< std::string >( "output_model_name" );
+  this->d->m_pipeline_template = config->get_value< std::string >( "pipeline_template" );
   this->d->m_model_type = config->get_value< std::string >( "model_type" );
   this->d->m_skip_format = config->get_value< bool >( "skip_format" );
   this->d->m_gpu_index   = config->get_value< int >( "gpu_index" );
@@ -466,7 +474,7 @@ darknet_trainer
 
     std::string full_cmd = python_cmd + import_cmd + header_cmd + header_args + header_end;
 
-    if ( system( full_cmd.c_str() ) != 0 )
+    if( system( full_cmd.c_str() ) != 0 )
     {
       LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
     }
@@ -495,15 +503,11 @@ darknet_trainer
 
   LOG_INFO( d->m_logger,  "Running " << full_cmd );
 
-  if ( system( full_cmd.c_str() ) != 0 )
+  d->save_model_files( false );
+
+  if( system( full_cmd.c_str() ) != 0 )
   {
     LOG_WARN( logger(), "System call \"" << full_cmd << "\" failed" );
-  }
-
-  // Copy final model into output directory
-  if( !kwiversys::SystemTools::FileExists( d->m_output_directory ) )
-  {
-    kwiversys::SystemTools::MakeDirectory( d->m_output_directory );
   }
 
   if( d->m_output_directory == d->m_train_directory )
@@ -511,36 +515,99 @@ darknet_trainer
     return;
   }
 
-  std::string input_model1 = d->m_train_directory + div + "models" + div +
-                             d->m_output_model_name + "_final.weights";
-  std::string input_model2 = d->m_train_directory + div + "models" + div +
-                             d->m_output_model_name + ".backup";
+  d->save_model_files( true );
+}
 
-  std::string output_labels = d->m_output_directory + div + d->m_output_model_name + ".lbl";
-  std::string output_model = d->m_output_directory + div + d->m_output_model_name + ".weights";
-  std::string output_cfg =  d->m_output_directory + div + d->m_output_model_name + ".cfg";
-
-  if( kwiversys::SystemTools::FileExists( input_model1 ) )
+void
+darknet_trainer::priv
+::save_model_files( bool is_final )
+{
+  if( !kwiversys::SystemTools::FileExists( m_output_directory ) )
   {
-    std::string input_labels = d->m_train_directory + div + d->m_output_model_name + ".lbl";
-    std::string input_cfg = d->m_train_directory + div + d->m_output_model_name + "_test.cfg";
-
-    kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels );
-    kwiversys::SystemTools::CopyFileAlways( input_model1, output_model );
-    kwiversys::SystemTools::CopyFileAlways( input_cfg, output_cfg );
+    kwiversys::SystemTools::MakeDirectory( m_output_directory );
   }
-  else if( kwiversys::SystemTools::FileExists( input_model2 ) )
-  {
-    std::string input_labels = d->m_train_directory + div + d->m_output_model_name + ".lbl";
-    std::string input_cfg = d->m_train_directory + div + d->m_output_model_name + "_test.cfg";
 
-    kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels );
-    kwiversys::SystemTools::CopyFileAlways( input_model2, output_model );
-    kwiversys::SystemTools::CopyFileAlways( input_cfg, output_cfg );
+  std::string input_model;
+
+  std::string input_labels =
+    m_train_directory + div + m_output_model_name + ".lbl";
+  std::string input_cfg =
+    m_train_directory + div + m_output_model_name + "_test.cfg";
+
+  std::string possible_model1 =
+    m_train_directory + div + "models" + div +
+    m_output_model_name + "_final.weights";
+
+  std::string possible_model2 =
+    m_train_directory + div + "models" + div +
+    m_output_model_name + ".backup";
+
+  std::string output_cfg =
+    m_output_directory + div + m_output_model_name + ".cfg";
+  std::string output_model =
+    m_output_directory + div + m_output_model_name + ".weights";
+  std::string output_labels =
+    m_output_directory + div + m_output_model_name + ".lbl";
+
+  if( kwiversys::SystemTools::FileExists( possible_model1 ) )
+  {
+    input_model = possible_model1;
   }
   else
   {
-    LOG_ERROR( logger(), "Couldn't move final models to output directory" );
+    input_model = possible_model2;
+  }
+
+  if( is_final )
+  {
+    kwiversys::SystemTools::CopyFileAlways( input_cfg, output_cfg );
+    kwiversys::SystemTools::CopyFileAlways( input_labels, output_labels );
+    kwiversys::SystemTools::CopyFileAlways( input_model, output_model );
+  }
+
+  if( !m_pipeline_template.empty() )
+  {
+#ifdef WIN32
+    const std::string eq = "\\\"";  // Escaped Quotation mark
+    std::string python_cmd = "python.exe -c \"";
+#else
+    const std::string eq = "\"";  // Escaped Quotation mark
+    std::string python_cmd = "python -c '";
+#endif
+    std::string import_cmd = "import kwiver.arrows.darknet.generate_headers as dth;";
+    std::string header_cmd = "dth.generate_kwiver_pipeline(";
+
+    std::string output_pipeline = m_output_directory + div + "detector.pipe";
+
+    std::string header_args = eq + m_pipeline_template + eq;
+    header_args = header_args + "," + eq + output_pipeline + eq;
+
+    if( is_final )
+    {
+      header_args = header_args + "," + eq + output_cfg + eq;
+      header_args = header_args + "," + eq + output_model + eq;
+      header_args = header_args + "," + eq + output_labels + eq;
+    }
+    else
+    {
+      header_args = header_args + "," + eq + input_cfg + eq;
+      header_args = header_args + "," + eq + input_model + eq;
+      header_args = header_args + "," + eq + input_labels + eq;
+    }
+
+#ifdef WIN32
+    std::string header_end  = ")\"";
+#else
+    std::string header_end  = ")'";
+#endif
+
+    std::string full_cmd = python_cmd +
+                           import_cmd +
+                           header_cmd +
+                           header_args +
+                           header_end;
+
+    system( full_cmd.c_str() );
   }
 }
 

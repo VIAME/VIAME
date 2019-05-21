@@ -49,7 +49,15 @@ def replace_str_in_file( input_fn, output_fn, repl_array ):
   outputf.close()
   inputf.close()
 
-# Main Utility
+def generate_kwiver_pipeline(
+    input_pipe, output_pipe, net_config, wgt_file, lbl_file ):
+
+  repl_strs = [ [ "[-NETWORK-CONFIG-]", net ],
+                [ "[-NETWORK-WEIGHTS-]", wgt ],
+                [ "[-NETWORK-CLASSES-]", cls ] ]
+
+  replace_str_in_file( input_pipe, output_pipe, repl_strs )
+
 def generate_yolo_headers(
     working_dir, labels, width, height, channels, filter_count,
     batch_size, batch_subdivisions, input_model,
@@ -83,8 +91,11 @@ def generate_yolo_headers(
                      ["[-BATCH_SUBDIVISIONS_INSERT-]","1"],
                      ["[-CLASS_COUNT_INSERT-]",str(len(labels))] ]
 
-  replace_str_in_file( input_model, working_dir + div + train_conf_file, train_repl_strs )
-  replace_str_in_file( input_model, working_dir + div + test_conf_file, test_repl_strs )
+  output_train_cfg = working_dir + div + train_conf_file
+  output_test_cfg = working_dir + div + test_conf_file
+
+  replace_str_in_file( input_model, output_train_cfg, train_repl_strs )
+  replace_str_in_file( input_model, output_test_cfg, test_repl_strs )
 
   # Dump out labels file
   with open( working_dir + div + label_file, "w" ) as f:
