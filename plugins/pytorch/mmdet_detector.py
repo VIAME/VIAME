@@ -36,6 +36,8 @@ from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
 from vital.types import DetectedObjectType
 
+from distutils.util import strtobool
+
 import numpy as np
 import sys
 
@@ -75,7 +77,7 @@ class MMDetDetector( ImageObjectDetector ):
     self._class_names = str( cfg.get_value( "class_names" ) )
     self._thresh = float( cfg.get_value( "thresh" ) )
     self._gpu_index = str( cfg.get_value( "gpu_index" ) )
-    self._display_detections = bool( cfg.get_value( "display_detections" ) )
+    self._display_detections = strtobool( cfg.get_value( "display_detections" ) )
 
     import matplotlib
     matplotlib.use( 'PS' ) # bypass multiple Qt load issues
@@ -159,7 +161,7 @@ class MMDetDetector( ImageObjectDetector ):
         input_image,
         bboxes,
         labels,
-        class_names=class_names,
+        class_names=self._labels,
         score_thr=self._thresh,
         show=True )
 
