@@ -22,7 +22,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/process_video.py \
   -l ${INPUT_LIST} -ifrate ${INPUT_FRAME_RATE} -frate ${PROCESS_FRAME_RATE} \
-  -p pipelines/detector_default.pipe --no-reset-prompt \
+  -p pipelines/detector_local.pipe --no-reset-prompt \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU} \
   --find-local-models \
   -s detector_writer:file_name=deep_detections.csv
