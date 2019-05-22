@@ -86,6 +86,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Optional Patches:** <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
+[MOUSS Model Set 2 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
 [Arctic Seals Models Add-On, All Linux](https://data.kitware.com/api/v1/item/5ce463258d777f072bc3fed1/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdc7b198d777f072bad8f44/download) <br>
