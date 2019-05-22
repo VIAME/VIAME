@@ -122,7 +122,7 @@ homography_< double >
 
 /// Create a clone of outself as a shared pointer
 template < typename T >
-transform_sptr
+transform_2d_sptr
 homography_< T >
 ::clone() const
 {

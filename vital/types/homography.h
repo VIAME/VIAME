@@ -37,7 +37,7 @@
 #define VITAL_HOMOGRAPHY_H_
 
 #include <vital/types/matrix.h>
-#include <vital/types/transform.h>
+#include <vital/types/transform_2d.h>
 
 #include <iostream>
 
@@ -56,7 +56,7 @@ typedef std::shared_ptr< homography > homography_sptr;
 // ---------------------------------------------------------------------------
 
 /// Abstract base homography transformation representation class
-class VITAL_EXPORT homography : public transform
+class VITAL_EXPORT homography : public transform_2d
 {
 public:
   /// Destructor
@@ -144,7 +144,7 @@ public:
   /**
    * \return A new clone of this homography transformation.
    */
-  virtual transform_sptr clone() const;
+  virtual transform_2d_sptr clone() const;
 
   /// Get a double-typed copy of the underlying matrix transformation
   /**
