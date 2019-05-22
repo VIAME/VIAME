@@ -735,6 +735,7 @@ resolve_file_name( kwiver::vital::config_path_t const& file_name )
   // See if file can be found in the search path.
   std::string res_file =
     kwiversys::SystemTools::FindFile( file_name, this->m_search_path, true );
+
   if ( "" != res_file )
   {
     return res_file;
@@ -759,9 +760,18 @@ resolve_file_name( kwiver::vital::config_path_t const& file_name )
       dir_set.insert( config_file_dir );
       include_paths.push_back( config_file_dir );
     }
-  }     // end for
+  }
 
-  return kwiversys::SystemTools::FindFile( file_name, include_paths, true );
+  res_file = kwiversys::SystemTools::FindFile( file_name, include_paths, true );
+
+  if ( "" != res_file )
+  {
+    return res_file;
+  }
+
+  // Lastly, as a last resort, see if file can be found in a local directory.
+  std::vector< std::string > relative_path( 1, "." );
+  return kwiversys::SystemTools::FindFile( file_name, relative_path, true );
 }
 
 } // end namespace
