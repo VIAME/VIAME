@@ -273,7 +273,7 @@ public:
   {
     bool retval( true );
 
-    meta_ts = 0.0;
+    meta_ts = 0;
     if ( ! this->d_video_stream.advance() )
     {
       return false;
@@ -416,17 +416,17 @@ public:
         for( auto meta : klv_metadata )
         {
           // Test to see if the collection is from the specified standard (0104/0601)
-          auto* const meta_origin = meta->get( VITAL_META_METADATA_ORIGIN );
-          if ( meta_origin )
+          if ( auto& origin = meta->find( VITAL_META_METADATA_ORIGIN ) )
           {
-            if (type == meta_origin->as_string())
+            if (type == origin.as_string())
             {
-              auto* const meta_ts = meta->get( VITAL_META_UNIX_TIMESTAMP );
-              if ( meta_ts )
+              if ( auto& ts = meta->find( VITAL_META_UNIX_TIMESTAMP ) )
               {
-                // Log unix timestamp as usec
+                // Get unix timestamp as usec
+                meta_ts = static_cast< time_usec_t >( ts.as_uint64() );
+
                 LOG_DEBUG( this->d_logger, "Found initial " << type <<
-                           " timestamp: " << meta_ts->as_uint64() );
+                           " timestamp: " << meta_ts );
 
                 d_have_abs_frame_time = true;
                 retval = true;
@@ -736,7 +736,8 @@ vidl_ffmpeg_video_input
     // move stream to specified frame number
     unsigned int frame_num = 1;
 
-    while (frame_num < d->c_start_at_frame)
+    while ( frame_num < d->c_start_at_frame ||
+            (frame_num - 1) % d->c_frame_skip != 0 )
     {
       if( ! d->d_video_stream.advance() )
       {

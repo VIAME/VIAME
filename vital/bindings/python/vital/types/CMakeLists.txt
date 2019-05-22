@@ -1,6 +1,6 @@
 project(vital_python_types)
 
-include_directories(${PYBIND11_INCLUDE_DIR})
+include_directories(${pybind11_INCLUDE_DIR})
 
 kwiver_add_python_library(bounding_box
   vital/types

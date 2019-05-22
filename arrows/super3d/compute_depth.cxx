@@ -146,6 +146,8 @@ compute_depth::get_configuration() const
                     "up direction in world space");
   config->set_value("callback_interval", d_->callback_interval,
                     "number of iterations between updates (-1 turns off updates)");
+  config->set_value("num_slices", d_->S, "Number of depth slices");
+
   return config;
 }
 
@@ -169,6 +171,7 @@ compute_depth::set_configuration(vital::config_block_sptr in_config)
   d_->epsilon = config->get_value<double>("epsilon", d_->epsilon);
   d_->callback_interval = config->get_value<double>("callback_interval",
                                                     d_->callback_interval);
+  d_->S = config->get_value<unsigned int>("num_slices", d_->S);
 
   std::istringstream ss(config->get_value<std::string>("world_plane_normal",
                                                        "0 0 1"));
@@ -194,7 +197,7 @@ compute_depth::priv
                           vil_image_view<double> &frame,
                           double depth_min, double depth_max,
                           vital::bounding_box<int> const& roi)
-{  
+{
   frame = vil_crop(frame, roi.min_x(), roi.width(), roi.min_y(), roi.height());
   cam = crop_camera(cam, roi.min_x(), roi.min_y());
 
@@ -216,7 +219,8 @@ compute_depth
   //convert frames
   std::vector<vil_image_view<double> > frames(frames_in.size());
 #pragma omp parallel for schedule(static, 1)
-  for (int i = 0; i < frames.size(); i++) {
+  for (int i = 0; i < static_cast< int >(frames.size()); i++)
+  {
     vil_image_view<vxl_byte> img =
       vxl::image_container::vital_to_vxl(frames_in[i]->get_image());
     vil_convert_planes_to_grey(img, frames[i]);
@@ -233,7 +237,8 @@ compute_depth
   {
     masks.resize(masks_in.size());
 #pragma omp parallel for schedule(static, 1)
-    for (int i = 0; i < masks.size(); i++) {
+    for (int i = 0; i < static_cast< int >(masks.size()); i++)
+    {
       masks[i] = vxl::image_container::vital_to_vxl(masks_in[i]->get_image());
     }
     ref_mask = &masks[ref_frame];
@@ -243,8 +248,8 @@ compute_depth
   std::vector<vpgl_perspective_camera<double> > cameras(cameras_in.size());
   for (unsigned int i = 0; i < cameras.size(); i++) {
     vxl::vital_to_vpgl_camera<double>(*cameras_in[i], cameras[i]);
-  }  
-  
+  }
+
   std::unique_ptr<world_space> ws = d_->compute_world_space_roi(cameras[ref_frame], frames[ref_frame], depth_min, depth_max, roi);
 
   d_->ref_cam = cameras[ref_frame];

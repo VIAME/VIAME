@@ -50,8 +50,8 @@ public:
     "This program provides a simple Qt-based front-end "
     "for executing pipelines and viewing images produced by the same.";
 
-  virtual int run( std::vector< std::string > const& args ) override;
-  virtual void usage( std::ostream& out ) const override;
+  virtual int run() override;
+  virtual void add_command_options() override;
 };
 
 } // namespace tools

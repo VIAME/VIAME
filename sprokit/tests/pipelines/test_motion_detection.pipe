@@ -1,0 +1,77 @@
+# ================================================================
+#
+# Using a pedestrian data set from Kaggle:
+#
+#   https://www.kaggle.com/smeschke/pedestrian-dataset
+#
+# Video is 30fps
+#
+process input
+  :: video_input
+  video_filename      = /Users/kfieldho/Projects/Kitware/Vision/Data/Kaggle/smeschke/pedestrian-dataset/crosswalk.avi
+#/Data/Kaggle/smeschke/pedestrian-dataset/crosswalk.avi
+  frame_time         = .3333
+  video_reader:type  = vidl_ffmpeg
+
+# ================================================================
+#
+# We can add a config block for two types of motion detectors
+# Only the one we select gets used
+#
+process motion
+  :: detect_motion
+
+  block algo
+    #type =  detect_motion_mog2
+    type =  detect_motion_3frame_differencing
+
+    block ocv_MOG2
+      var_threshold = 16
+      history = 1000
+      learning_rate = 0.005
+      blur_kernel_size = 20
+      min_frames = 7
+      max_foreground_fract = 0.3
+    endblock
+    block ocv_3frame_diff
+      frame_separation = 5
+      jitter_radius = 0
+      max_foreground_fract = .1
+      max_foreground_fract_thresh = 10
+    endblock
+  endblock
+
+connect from input.image to motion.image
+
+# ================================================================
+process make_detections_from_motion
+  :: image_object_detector
+  block detector
+    type = detect_heat_map
+
+    block detect_heat_map
+      threshold = 10
+      min_area = 50
+      max_area = 50000
+      min_fill_fraction = 0.25
+      class_name = Motion
+    endblock
+  endblock
+
+connect from motion.motion_heat_map to make_detections_from_motion.image
+
+process annotate
+  :: draw_detected_object_set
+  draw_algo:type = ocv
+  draw_algo:ocv:default_line_thickness = 3
+
+connect from motion.motion_heat_map to annotate.image
+connect from make_detections_from_motion.detected_object_set to annotate.detected_object_set
+
+process output
+  :: image_writer
+  file_name_template = OUTPUT/mask%04d.png
+  image_writer:type  = ocv
+
+connect from annotate.image to output.image
+

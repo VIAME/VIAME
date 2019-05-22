@@ -32,6 +32,7 @@ set( ocv_headers_public
   feature_detect_extract_ORB.h
   feature_detect_extract_SIFT.h
   feature_detect_extract_SURF.h
+  detect_heat_map.h
   hough_circle_detector.h
   image_container.h
   image_io.h
@@ -81,6 +82,7 @@ set( ocv_sources
   extract_descriptors_FREAK.cxx
   extract_descriptors_LATCH.cxx
   extract_descriptors_LUCID.cxx
+  detect_heat_map.cxx
   hough_circle_detector.cxx
   feature_set.cxx
   feature_detect_extract_BRISK.cxx

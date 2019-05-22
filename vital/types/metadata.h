@@ -73,6 +73,18 @@ class VITAL_EXPORT metadata_item
 public:
   virtual ~metadata_item();
 
+  /// Test if metadata item is valid.
+  /**
+   * This method tests if this metadata item is valid.
+   *
+   * @return \c true if the item is valid, otherwise \c false.
+   *
+   * @sa metadata::find
+   */
+  virtual bool is_valid() const;
+
+  /// @copydoc is_valid
+  operator bool() const { return this->is_valid(); }
 
   /// Get name of metadata item.
   /**
@@ -368,17 +380,18 @@ public:
   bool has( vital_metadata_tag tag ) const; // needs not-found return value
 
 
-  /// Get metadata entry for specified tag, if present.
+  /// Find metadata entry for specified tag.
   /**
    * This method looks for the metadata entrty corresponding to the supplied
-   * tag. If the tag is not present in the collection, a null pointer is
-   * returned.
+   * tag. If the tag is not present in the collection, the result will be a
+   * instance for which metadata_item::is_valid returns \c false and whose
+   * behavior otherwise is unspecified.
    *
    * @param tag Look for this tag in collection of metadata.
    *
-   * @return Pointer to metadata item object for tag.
+   * @return metadata item object for tag.
    */
-  metadata_item const* get( vital_metadata_tag tag ) const;
+  metadata_item const& find( vital_metadata_tag tag ) const;
 
 
   /// Get starting iterator for collection of metadata items.

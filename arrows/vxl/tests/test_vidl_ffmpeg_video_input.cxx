@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@
 
 #include <test_gtest.h>
 
-#include <arrows/core/tests/barcode_decode.h>
-#include <arrows/core/tests/seek_frame_common.h>
+#include <arrows/tests/test_video_input.h>
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -47,10 +46,6 @@
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
-static int num_expected_frames = 50;
-static int num_expected_frames_subset = 20;
-static int nth_frame_output = 3;
-static int num_expected_frames_nth_output = 17;
 static std::string video_file_name = "video.mp4";
 
 // ----------------------------------------------------------------------------
@@ -124,13 +119,13 @@ TEST_F(vidl_ffmpeg_video_input, read_video)
 }
 
 // ----------------------------------------------------------------------------
-TEST_F(vidl_ffmpeg_video_input, read_video_subset)
+TEST_F(vidl_ffmpeg_video_input, read_video_sublist)
 {
   // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
-  config->set_value( "start_at_frame", "11" );
-  config->set_value( "stop_after_frame", "30" );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
@@ -140,30 +135,55 @@ TEST_F(vidl_ffmpeg_video_input, read_video_subset)
   kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
   vfvi.open( video_file );
 
-  kwiver::vital::timestamp ts;
+  test_read_video_sublist( vfvi );
 
-  int num_frames = 0;
-  int frame_idx = 10;
-  while ( vfvi.next_frame( ts ) )
-  {
-    auto img = vfvi.frame_image();
-    auto md = vfvi.frame_metadata();
+  vfvi.close();
+}
 
-    if (md.size() > 0)
-    {
-      std::cout << "-----------------------------------\n" << std::endl;
-      kwiver::vital::print_metadata( std::cout, *md[0] );
-    }
+// ----------------------------------------------------------------------------
+TEST_F(vidl_ffmpeg_video_input, read_video_sublist_nth_frame)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
 
-    ++num_frames;
-    ++frame_idx;
-    EXPECT_EQ( frame_idx, ts.get_frame() )
-      << "Frame numbers should be sequential";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
-      << "Frame number should match barcode in frame image";
-  }
-  EXPECT_EQ( num_expected_frames_subset, num_frames );
-  EXPECT_EQ( num_expected_frames_subset, vfvi.num_frames() );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+  vfvi.open( video_file );
+
+  test_read_video_sublist_nth_frame( vfvi );
+
+  vfvi.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist_nth_frame)
+{
+  // Make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
+  config->set_value( "output_nth_frame", nth_frame_output );
+
+  kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
+
+  EXPECT_TRUE( vfvi.check_configuration( config ) );
+  vfvi.set_configuration( config );
+
+  kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
+  vfvi.open( video_file );
+
+  test_seek_sublist_nth_frame( vfvi );
+
+  vfvi.close();
 }
 
 // ----------------------------------------------------------------------------
@@ -241,8 +261,8 @@ TEST_F(vidl_ffmpeg_video_input, seek_frame_sublist)
   // Make config block
   auto config = kwiver::vital::config_block::empty_config();
 
-  config->set_value( "start_at_frame", "11" );
-  config->set_value( "stop_after_frame", "30" );
+  config->set_value( "start_at_frame", start_at_frame );
+  config->set_value( "stop_after_frame", stop_after_frame );
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
@@ -364,8 +384,8 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map_subset)
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
-  config->set_value("start_at_frame", "11");
-  config->set_value("stop_after_frame", "30");
+  config->set_value("start_at_frame", start_at_frame);
+  config->set_value("stop_after_frame", stop_after_frame);
 
   vfvi.check_configuration(config);
   vfvi.set_configuration(config);
@@ -407,8 +427,8 @@ TEST_F(vidl_ffmpeg_video_input, metadata_map_nth_frame)
 
   kwiver::arrows::vxl::vidl_ffmpeg_video_input vfvi;
 
-  config->set_value("start_at_frame", "11");
-  config->set_value("stop_after_frame", "30");
+  config->set_value("start_at_frame", start_at_frame);
+  config->set_value("stop_after_frame", stop_after_frame);
   config->set_value("output_nth_frame", nth_frame_output);
 
   vfvi.check_configuration(config);
@@ -459,38 +479,9 @@ TEST_F(vidl_ffmpeg_video_input, read_video_nth_frame_output)
   kwiver::vital::path_t video_file = data_dir + "/" + video_file_name;
   vfvi.open( video_file );
 
-  kwiver::vital::timestamp ts;
+  test_read_video_nth_frame( vfvi );
 
-  EXPECT_EQ( num_expected_frames, vfvi.num_frames() )
-    << "Number of frames before extracting frames should be "
-    << num_expected_frames;
-
-  int num_frames = 0;
-  int expected_frame_num = 1;
-  while ( vfvi.next_frame( ts ) )
-  {
-    auto img = vfvi.frame_image();
-    auto md = vfvi.frame_metadata();
-
-    if (md.size() > 0)
-    {
-      std::cout << "-----------------------------------\n" << std::endl;
-      kwiver::vital::print_metadata( std::cout, *md[0] );
-    }
-
-    ++num_frames;
-    EXPECT_EQ( expected_frame_num, ts.get_frame() )
-      << "Frame numbers should be sequential";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
-      << "Frame number should match barcode in frame image";
-    expected_frame_num += 3;
-  }
-  EXPECT_EQ( num_expected_frames_nth_output, num_frames )
-    << "Number of frames found should be "
-    << num_expected_frames;
-  EXPECT_EQ( num_expected_frames, vfvi.num_frames() )
-    << "Number of frames after extracting frames should be "
-    << num_expected_frames;
+  vfvi.close();
 }
 
 // ----------------------------------------------------------------------------
@@ -511,34 +502,7 @@ TEST_F(vidl_ffmpeg_video_input, seek_nth_frame_output)
   // Open the video
   vfvi.open( video_file );
 
-  kwiver::vital::timestamp ts;
-
-  // Video should be seekable
-  ASSERT_TRUE( vfvi.seekable() );
-
-  // Test various valid seeks
-  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
-    {4, 10, 13, 22, 49};
-  for (auto requested_frame : valid_seeks)
-  {
-    EXPECT_TRUE( vfvi.seek_frame( ts, requested_frame) );
-
-    auto img = vfvi.frame_image();
-
-    EXPECT_EQ( requested_frame, ts.get_frame() )
-      << "Frame number should match seek request";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
-      << "Frame number should match barcode in frame image";
-  }
-
-  // Test various invalid seeks past end of vfvideo
-  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
-    {-3, -1, 0, 2, 12, 11, 21, 24, 51, 55};
-  for (auto requested_frame : in_valid_seeks)
-  {
-    EXPECT_FALSE( vfvi.seek_frame( ts, requested_frame) );
-    EXPECT_NE( requested_frame, ts.get_frame() );
-  }
+  test_seek_nth_frame( vfvi );
 
   vfvi.close();
 }

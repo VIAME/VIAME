@@ -58,17 +58,17 @@ basename_from_metadata(metadata_sptr md,
   std::string basename = "frame";
   if( md )
   {
-    if ( auto* const mdi = md->get( kwiver::vital::VITAL_META_IMAGE_URI ) )
+    if ( auto& mdi = md->find( kwiver::vital::VITAL_META_IMAGE_URI ) )
     {
-      return ST::GetFilenameWithoutLastExtension( mdi->as_string() );
+      return ST::GetFilenameWithoutLastExtension( mdi.as_string() );
     }
   }
 
   if( md )
   {
-    if ( auto* const mdi = md->get( kwiver::vital::VITAL_META_VIDEO_URI ) )
+    if ( auto& mdi = md->find( kwiver::vital::VITAL_META_VIDEO_URI ) )
     {
-      basename = ST::GetFilenameWithoutLastExtension( mdi->as_string() );
+      basename = ST::GetFilenameWithoutLastExtension( mdi.as_string() );
     }
   }
 
@@ -197,9 +197,9 @@ write_pos_file( metadata const& md,
                               vital_metadata_tag const& tag,
                               std::string const& dflt) -> std::ostream&
   {
-    if ( auto* const mdi = md.get(tag) )
+    if ( auto& mdi = md.find(tag) )
     {
-      mdi->print_value(os);
+      mdi.print_value(os);
     }
     else
     {
@@ -216,10 +216,10 @@ write_pos_file( metadata const& md,
   print_default( ofile, VITAL_META_SENSOR_PITCH_ANGLE,  "0" ) << ", ";
   print_default( ofile, VITAL_META_SENSOR_ROLL_ANGLE,   "0" ) << ", ";
 
-  if ( auto* const mdi = md.get( VITAL_META_SENSOR_LOCATION ) )
+  if ( auto& mdi = md.find( VITAL_META_SENSOR_LOCATION ) )
   {
     kwiver::vital::geo_point latlon;
-    mdi->data( latlon );
+    mdi.data( latlon );
     auto const& raw_latlon = latlon.location( SRID::lat_lon_WGS84 );
     ofile << raw_latlon[1] << ", " << raw_latlon[0] << ", ";
   }
@@ -231,9 +231,9 @@ write_pos_file( metadata const& md,
   // altitude is in feet in a POS file and needs to be converted to feet
   constexpr double feet2meters = 0.3048;
   double altitude = 0.0;
-  if ( auto* const mdi = md.get( VITAL_META_SENSOR_ALTITUDE ) )
+  if ( auto& mdi = md.find( VITAL_META_SENSOR_ALTITUDE ) )
   {
-    altitude = mdi->as_double() / feet2meters;
+    altitude = mdi.as_double() / feet2meters;
   }
   ofile << altitude << ", ";
   print_default( ofile, VITAL_META_GPS_SEC,       "0" ) << ", ";

@@ -40,15 +40,17 @@
 // ----------------------------------------------------------------------------
 void
 kwiver::tools::pipeline_viewer
-::usage( std::ostream& out ) const
+::add_command_options()
 {
+  skip_parse_args();
 }
 
 // ----------------------------------------------------------------------------
 int
 kwiver::tools::pipeline_viewer
-::run( std::vector< std::string > const& args )
+::run()
 {
+  std::vector< std::string > const& args = applet_args();
   // Create mutable arguments (needed by QApplication)
   auto argc = static_cast< int >( args.size() );
   auto argv = std::unique_ptr< char*[] >{ new char*[ argc ] };
@@ -57,7 +59,7 @@ kwiver::tools::pipeline_viewer
   for ( auto const i : vital::range::iota( args.size() ) )
   {
     auto const& arg = args[ i ];
-    auto const l = args.size() + 1;
+    auto const l = arg.size() + 1;
 
     auto marg = std::unique_ptr< char[] >{ new char[ l ] };
     memcpy( marg.get(), arg.c_str(), l );

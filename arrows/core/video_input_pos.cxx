@@ -100,9 +100,9 @@ public:
     ts.set_frame( frame );
     if ( metadata )
     {
-      if ( auto* const item = metadata->get( vital::VITAL_META_GPS_SEC ) )
+      if ( auto& item = metadata->find( vital::VITAL_META_GPS_SEC ) )
       {
-        double gps_sec = item->as_double();
+        double gps_sec = item.as_double();
         // TODO: also use gps_week and convert to UTC to get abosolute time
         // or subtract off first frame time to get time relative to start
         ts.set_time_seconds( gps_sec );
@@ -386,9 +386,9 @@ video_input_pos
   ts.set_frame( d->d_frame_number );
   if ( d->d_metadata )
   {
-    if ( auto* const item = d->d_metadata->get( vital::VITAL_META_GPS_SEC ) )
+    if ( auto& item = d->d_metadata->find( vital::VITAL_META_GPS_SEC ) )
     {
-      double gps_sec = item->as_double();
+      double gps_sec = item.as_double();
       // TODO: also use gps_week and convert to UTC to get abosolute time
       // or subtract off first frame time to get time relative to start
       ts.set_time_seconds( gps_sec );

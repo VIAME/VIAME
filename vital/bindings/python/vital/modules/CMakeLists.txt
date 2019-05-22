@@ -1,6 +1,6 @@
 project(vital_python_modules)
 
-include_directories(${PYBIND11_INCLUDE_DIR})
+include_directories(${pybind11_INCLUDE_DIR})
 set(modules_python_srcs
   registration.cxx)
 

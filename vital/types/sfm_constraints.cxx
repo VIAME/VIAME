@@ -181,13 +181,15 @@ sfm_constraints
     frame_ids_to_try = md.frames();
   }
 
+  std::vector<double> focal_lengths;
   for (auto test_fid : frame_ids_to_try)
   {
     if ( md.has<VITAL_META_SENSOR_HORIZONTAL_FOV>(test_fid) )
     {
       double hfov = md.get<VITAL_META_SENSOR_HORIZONTAL_FOV>(test_fid);
-      focal_length = static_cast<float>((image_width*0.5) / tan(0.5*hfov*deg_to_rad));
-      return true;
+      focal_lengths.push_back(static_cast<float>(
+        (image_width*0.5) / tan(0.5*hfov*deg_to_rad)));
+      continue;
     }
 
     if ( md.has<VITAL_META_TARGET_WIDTH>(test_fid) &&
@@ -196,12 +198,21 @@ sfm_constraints
       focal_length = static_cast<float>(image_width *
         md.get<VITAL_META_SLANT_RANGE>(test_fid) /
         md.get<VITAL_META_TARGET_WIDTH>(test_fid) );
-
-      return true;
+      focal_lengths.push_back(focal_length);
+      continue;
     }
   }
+  if (focal_lengths.empty())
+  {
+    return false;
+  }
+  // compute the median focal length
+  std::nth_element(focal_lengths.begin(),
+                   focal_lengths.begin() + focal_lengths.size() / 2,
+                   focal_lengths.end());
+  focal_length = focal_lengths[focal_lengths.size() / 2];
 
-  return false;
+  return true;
 }
 
 bool

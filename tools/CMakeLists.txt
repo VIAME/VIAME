@@ -12,6 +12,7 @@ set( sources
 set( headers
   config_explorer.h
   dump_klv.h
+  cxxopts.hpp
   )
 
 ###
@@ -31,7 +32,8 @@ kwiver_add_library( kwiver_tools_applet
 )
 
 target_link_libraries( kwiver_tools_applet
-              vital_util
+    PUBLIC    vital_util
+              ${VITAL_BOOST_REGEX}
   )
 
 
@@ -65,6 +67,7 @@ kwiver_add_plugin( kwiver_tools
 
 kwiver_install_headers(
   kwiver_applet.h
+  cxxopts.hpp
   SUBDIR      tools
   )
 

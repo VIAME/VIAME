@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_CORE_TEST_BARCODE_DECODE_H
-#define ARROWS_CORE_TEST_BARCODE_DECODE_H
+/**
+ * \file
+ * \brief Implementation for GPU exceptions
+ */
 
-#include <vital/types/image_container.h>
+#include "gpu.h"
 
-// Ignore 8 pixels on either side of the barcode
-static int bc_buffer = 8;
-// Barcode lines two pixels wide and 4 pixels high
-static int bc_width = 2;
-static int bc_height = 4;
-static int bit_depth = 256;
-static int bc_area = bc_width*bc_height;
+namespace kwiver {
+namespace vital {
 
-// Decode barcodes from test frame images
-uint32_t decode_barcode(kwiver::vital::image_container& img_ct)
+
+// ------------------------------------------------------------------
+gpu_exception
+::gpu_exception() noexcept
 {
-  auto img = img_ct.get_image();
-  kwiver::vital::image_of<uint8_t> frame_img(img);
-
-  uint32_t retVal = 0;
-  uint32_t bit_shift = 0;
-  int width = static_cast<int>(img.width());
-  // Start at the back
-  for (int i=width-bc_buffer-1; i > bc_buffer; i-=bc_width)
-  {
-    uint16_t bc_sum = 0;
-    for (int j=0; j < bc_width; ++j)
-    {
-      for (int k=0; k < bc_height; ++k)
-      {
-        bc_sum += frame_img(i-j, k);
-      }
-    }
-
-    if (bc_sum/bc_area < bit_depth/2)
-    {
-      retVal += (1 << bit_shift);
-    }
-    bit_shift++;
-  }
-
-  return retVal;
+  m_what = "GPU error";
 }
 
-#endif /* ARROWS_CORE_TEST_BARCODE_DECODE_H */
+gpu_exception
+::~gpu_exception() noexcept
+{
+}
+
+// ------------------------------------------------------------------
+gpu_memory_exception
+::gpu_memory_exception( std::string const& msg) noexcept
+{
+  m_what = "GPU memory exception: " + msg;
+}
+
+
+gpu_memory_exception
+::~gpu_memory_exception() noexcept
+{
+}
+
+} } // end namespace

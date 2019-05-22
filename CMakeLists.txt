@@ -188,6 +188,13 @@ endif()
 
 add_definitions(-DKWIVER_DEFAULT_PLUGIN_ORGANIZATION="Kitware Inc.")
 
+# This regex stuff is to support CentOS with broken std::regex
+if ( NOT VITAL_USE_STD_REGEX )
+  set( VITAL_BOOST_REGEX ${Boost_REGEX_LIBRARY})
+  add_definitions( -DKWIVER_USE_BOOST_REGEX )
+endif()
+
+
 # ===========================================================================================
 link_directories( ${KWIVER_BINARY_DIR}/lib )
 

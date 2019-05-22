@@ -47,6 +47,18 @@ kwiver_applet::
 {
 }
 
+// ----------------------------------------------------------------------------
+cxxopts::ParseResult&
+kwiver_applet::
+command_args()
+{
+  if (m_context && m_context->m_result)
+  {
+    return *m_context->m_result;
+  }
+
+  throw std::runtime_error( "Invalid context pointer or command line results are not available." );
+}
 
 // ----------------------------------------------------------------------------
 void
@@ -54,8 +66,8 @@ kwiver_applet::
 initialize( kwiver::tools::applet_context* ctxt)
 {
   m_context = ctxt;
+  m_cmd_options.reset( new cxxopts::Options( applet_name(), "" ) );
 }
-
 
 // ----------------------------------------------------------------------------
 std::string
@@ -70,6 +82,18 @@ wrap_text( const std::string& text )
   throw std::runtime_error( "Invalid context pointer" );
 }
 
+// ----------------------------------------------------------------------------
+const std::vector<std::string>&
+kwiver_applet::
+applet_args() const
+{
+  if ( m_context )
+  {
+    return m_context->m_argv;
+  }
+
+  throw std::runtime_error( "Invalid context pointer" );
+}
 
 // ----------------------------------------------------------------------------
 const std::string&
@@ -82,6 +106,21 @@ applet_name() const
   }
 
   throw std::runtime_error( "Invalid context pointer" );
+}
+
+// ----------------------------------------------------------------------------
+void
+kwiver_applet::
+skip_parse_args()
+{
+  if ( m_context )
+  {
+    m_context->m_skip_command_args_parsing = true;
+  }
+  else
+  {
+    throw std::runtime_error( "Invalid context pointer" );
+  }
 }
 
 } } // end namespace kwiver

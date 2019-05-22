@@ -162,10 +162,10 @@ refine_detections_write_to_disk
   auto md = image_data->get_metadata();
   if( md )
   {
-    if ( auto* const mdi = md->get( VITAL_META_IMAGE_URI ) )
+    if ( auto& mdi = md->find( VITAL_META_IMAGE_URI ) )
     {
       // Get the full path, and then extract just the filename proper
-      filename = ST::GetFilenameName( mdi->as_string() );
+      filename = ST::GetFilenameName( mdi.as_string() );
     }
   }
 

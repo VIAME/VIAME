@@ -45,19 +45,15 @@ class dump_klv
 public:
   dump_klv();
 
-  static constexpr char const* name = "dump_klv";
+  static constexpr char const* name = "dump-klv";
   static constexpr char const* description =
     "Dump KLV stream from video.\n\n"
     "This program displays the KLV metadata packets that are embedded in "
     "a video stream.";
 
 
-  virtual int run( const std::vector<std::string>& argv );
-  virtual void usage( std::ostream& outstream ) const;
-
-protected:
-
-private:
+  virtual int run() override;
+  virtual void add_command_options() override;
 
 }; // end of class
 

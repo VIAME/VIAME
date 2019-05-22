@@ -111,7 +111,7 @@ public:
   typename vital_meta_trait<tag>::type
   get(frame_id_t fid) const
   {
-    typename vital_meta_trait<tag>::type val;
+    typename vital_meta_trait<tag>::type val {};
     this->get_item(tag, fid).data(val);
     return val;
   }
@@ -169,9 +169,9 @@ public:
     auto &mdv = d_it->second;
     for (auto md : mdv)
     {
-      if (auto const* item = md->get(tag))
+      if (auto const& item = md->find(tag))
       {
-        return *item;
+        return item;
       }
     }
 

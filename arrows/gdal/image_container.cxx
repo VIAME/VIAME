@@ -97,6 +97,42 @@ if ( key == #GN)                              \
 #undef MAP_METADATA_COEFF
 }
 
+void add_nitf_metadata(char* raw_md, vital::metadata_sptr md)
+{
+  std::istringstream md_string(raw_md);
+
+  // Get the key
+  std::string key;
+  if ( !std::getline( md_string, key, '=') )
+  {
+    return;
+  }
+
+  // Get the value
+  std::string value;
+  if ( !std::getline( md_string, value, '=') )
+  {
+    return;
+  }
+
+#define MAP_METADATA_COEFF( GN, KN )          \
+if ( key == #GN)                              \
+{                                             \
+  md->add( NEW_METADATA_ITEM(                 \
+    vital::VITAL_META_NITF_ ## KN, value ) );  \
+}                                             \
+
+  MAP_METADATA_COEFF( NITF_IDATIM, IDATIM )
+  MAP_METADATA_COEFF( NITF_BLOCKA_FRFC_LOC_01, BLOCKA_FRFC_LOC_01 )
+  MAP_METADATA_COEFF( NITF_BLOCKA_FRLC_LOC_01, BLOCKA_FRLC_LOC_01 )
+  MAP_METADATA_COEFF( NITF_BLOCKA_LRLC_LOC_01, BLOCKA_LRLC_LOC_01 )
+  MAP_METADATA_COEFF( NITF_BLOCKA_LRFC_LOC_01, BLOCKA_LRFC_LOC_01 )
+  MAP_METADATA_COEFF( NITF_IMAGE_COMMENTS, IMAGE_COMMENTS )
+
+#undef MAP_METADATA_SCALAR
+#undef MAP_METADATA_COEFF
+}
+
 vital::polygon::point_t apply_geo_transform(double gt[], double x, double y)
 {
   vital::polygon::point_t retVal;
@@ -186,10 +222,12 @@ image_container
   if ( osrs.GetAuthorityCode("GEOGCS") )
   {
     vital::polygon points;
+    const double h = static_cast<double>(this->height());
+    const double w = static_cast<double>(this->width());
     points.push_back( apply_geo_transform(geo_transform, 0, 0) );
-    points.push_back( apply_geo_transform(geo_transform, 0, height() ) );
-    points.push_back( apply_geo_transform(geo_transform, width(), 0) );
-    points.push_back( apply_geo_transform(geo_transform, width(), height() ) );
+    points.push_back( apply_geo_transform(geo_transform, 0, h ) );
+    points.push_back( apply_geo_transform(geo_transform, w, 0) );
+    points.push_back( apply_geo_transform(geo_transform, w, h ) );
 
     md->add( NEW_METADATA_ITEM( vital::VITAL_META_CORNER_POINTS,
       vital::geo_polygon( points, atoi( osrs.GetAuthorityCode("GEOGCS") ) ) ) );
@@ -205,7 +243,23 @@ image_container
     }
   }
 
+  // Get NITF metadata
+  char** nitf_metadata = gdal_dataset_->GetMetadata("");
+  if (CSLCount(nitf_metadata) > 0)
+  {
+    for (int i = 0; nitf_metadata[i] != NULL; ++i)
+    {
+      add_nitf_metadata( nitf_metadata[i] , md );
+    }
+  }
+
   this->set_metadata( md );
+}
+
+char**
+image_container::get_raw_metadata_for_domain(const char *domain)
+{
+  return this->gdal_dataset_->GetMetadata(domain);
 }
 
 // ----------------------------------------------------------------------------
@@ -229,12 +283,14 @@ image_container
   CPLErr err;
   for (size_t i = 1; i <= depth(); ++i)
   {
-    GDALRasterBand* band = gdal_dataset_->GetRasterBand(i);
+    GDALRasterBand* band = gdal_dataset_->GetRasterBand(static_cast<int>(i));
     auto bandType = band->GetRasterDataType();
-    err = band->RasterIO(GF_Read, 0, 0, width(), height(),
+    const int h = static_cast<int>(this->height());
+    const int w = static_cast<int>(this->width());
+    err = band->RasterIO(GF_Read, 0, 0, w, h,
       static_cast<void*>(reinterpret_cast<GByte*>(
         img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
-      width(), height(), bandType, 0, 0);
+      w, h, bandType, 0, 0);
     // TODO Error checking on return value
     // this line silences unused variable warnings
     (void) err;
@@ -262,6 +318,8 @@ image_container
       static_cast<void*>(reinterpret_cast<GByte*>(
         img.first_pixel()) + (i-1)*img.d_step()*img.pixel_traits().num_bytes),
       width, height, bandType, 0, 0);
+
+    (void) err;
   }
 
   return img;
