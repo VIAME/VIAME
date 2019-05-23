@@ -333,7 +333,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   if not is_image_list:
     input_settings += fset( 'input:video_reader:type=vidl_ffmpeg' )
-  else if options.ts_from_file:
+  elif options.ts_from_file:
     input_settings += fset( 'input:video_reader:type=add_timestamp_from_filename' )
 
   command = ( get_pipeline_cmd( options.debug ) +
