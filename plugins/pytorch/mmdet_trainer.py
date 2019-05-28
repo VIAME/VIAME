@@ -102,6 +102,11 @@ class MMDetTrainer( TrainDetector ):
 
     self._training_data = []
 
+    self._sample_count = 0
+
+    self._training_width_sum = 0
+    self._training_height_sum = 0
+
   def check_configuration( self, cfg ):
     if not cfg.has_value( "config_file" ) or len( cfg.get_value( "config_file") ) == 0:
       print( "A config file must be specified!" )
@@ -117,7 +122,7 @@ class MMDetTrainer( TrainDetector ):
         os.mkdir( self._train_directory )
       train_config = os.path.join( self._train_directory, train_config )
 
-    self.insert_class_count( self._config_file, train_config )
+    self.insert_training_params( self._config_file, train_config )
 
     from mmcv import Config
     self._cfg = Config.fromfile( train_config )
@@ -218,6 +223,11 @@ class MMDetTrainer( TrainDetector ):
       entry["height"] = height
       entry["ann"] = annotations
 
+      self._sample_count = self._sample_count + 1
+
+      self._training_width_sum = self._training_width_sum + width
+      self._training_height_sum = self._training_height_sum + height
+
       self._training_data.append( entry )
 
   def update_model( self ):
@@ -281,7 +291,7 @@ class MMDetTrainer( TrainDetector ):
       output_lbl_file_fp = output_lbl_file
       output_pipeline_fp = output_pipeline
 
-    self.insert_class_count( self._config_file, output_cfg_file_fp )
+    self.insert_training_params( self._config_file, output_cfg_file_fp )
 
     if is_final:
       copyfile( input_wgt_file_fp, output_wgt_file_fp )
@@ -302,9 +312,24 @@ class MMDetTrainer( TrainDetector ):
                                output_wgt_file if is_final else input_wgt_relpath,
                                output_lbl_file )
 
-  def insert_class_count( self, input_cfg, output_cfg ):
+  def insert_training_params( self, input_cfg, output_cfg ):
 
-    repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self._categories)+1) ] ]
+    images_per_gpu = "2"
+    workers_per_gpu = "2"
+    base_size = "(1333, 800)"
+
+    average_height = int( self._training_height_sum / self._sample_count )
+    average_width = int( self._training_width_sum / self._sample_count )
+
+    if average_height > 2000 or average_width > 2000:
+      images_per_gpu = "1"
+      workers_per_gpu = "2"
+      base_size = "(2000, 2000)"
+
+    repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self._categories)+1) ],
+                  [ "[-IMAGE_SCALE_INSERT-]", base_size ],
+                  [ "[-IMAGES_PER_GPU_INSERT-]", images_per_gpu ],
+                  [ "[-WORKERS_PER_GPU_INSERT-]", workers_per_gpu ] ]
 
     self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
 
