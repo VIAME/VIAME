@@ -1,9 +1,9 @@
 
-v0.9.13 - 5/24/2019
+v0.9.13 - 5/30/2019
 ===================
 
 
--Fixes to downsampler for data with irregular spacings between frames plus related
+-Add missing .so files into CentOS and Ubuntu binaries to not require external packages
 
 
 v0.9.12 - 5/21/2019

@@ -57,8 +57,7 @@ your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame 
 Next, set the PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or
 setup_viame.bat (Windows) script in the root install folder to point to the
 location of your installed Anaconda distribution. Lastly, run through some of the examples
-to validate the installation. Ubuntu and CentOS sometimes require additional packages to be
-installed (libva and libva-dev (Ubuntu) and libva and libva-devel (CentOS)).
+to validate the installation.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
@@ -70,8 +69,8 @@ RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.9.12 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ce703418d777f072bdc4ae7/download) <br>
-[VIAME v0.9.12 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1QdyDrIHwuoyJf3bkcofL6hBMVXBaxwt9) <br>
+[VIAME v0.9.13 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5cf046918d777f072bfbfedc/download) <br>
+[VIAME v0.9.13 Ubuntu 16.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=158OtVqUoZL5Ee7FjoWqX2sNASFVXvtHC) <br>
 [VIAME v0.9.12 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ce706dd8d777f072bdc4bf5/download) <br>
 [VIAME v0.9.12 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=16k0DFtLSKz-lZ-Zju1kZizU_g8Cvjhgl)
 
