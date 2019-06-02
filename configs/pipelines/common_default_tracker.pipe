@@ -8,13 +8,13 @@
 process tracker
   :: srnn_tracker
   :siamese_model_input_size                    224
-  :detection_select_threshold                  0.2
-  :similarity_threshold                        0.2
+  :detection_select_threshold                  0.001
+  :similarity_threshold                        0.200
   :terminate_track_threshold                   10
   :add_features_to_detections                  False
   :IOU_tracker_flag                            True
-  :IOU_accept_threshold                        0.5
-  :IOU_reject_threshold                        0.1
+  :IOU_accept_threshold                        0.500
+  :IOU_reject_threshold                        0.100
   :track_search_threshold                      2
   :gpu_list                                    0
 
