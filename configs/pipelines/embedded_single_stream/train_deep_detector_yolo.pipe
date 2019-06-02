@@ -28,7 +28,7 @@ process detector_trainer
     :model_type                               yolov3
     :image_reader:type                        vxl
     :image_reader:vxl:force_byte              true
-    :image_reader:vxl:split_channels          true
+    :image_reader:vxl:split_channels          false
     :train_directory                          deep_training
     :output_weights                           output_weights.wt
     :chips_w_gt_only                          false
