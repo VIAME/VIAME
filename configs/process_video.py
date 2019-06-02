@@ -573,9 +573,6 @@ if __name__ == "__main__" :
   if ( args.detection_plots or args.track_plots ) and len( args.frame_rate ) == 0:
     exit_with_error( "Must specify frame rate if generating detection or track plots" )
 
-  if args.pipeline == default_pipeline:
-    args.init_db = True
-
   signal.signal( signal.SIGINT, signal_handler )
 
   # Initialize database
