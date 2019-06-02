@@ -246,7 +246,10 @@ void image_writer_process
     d->m_image_writer->save( a_file, input );
   }
 
-  push_to_port_using_trait( success_flag, ( input && input->size() > 0 ) );
+  bool output_flag = ( input && input->size() > 0 );
+
+  push_to_port_using_trait( success_flag, output_flag );
+  push_to_port_using_trait( image_file_name, ( output_flag ? a_file : "" ) );
 }
 
 
@@ -269,6 +272,9 @@ void image_writer_process
     "Image timestamp, optional. The frame number from this timestamp is used to "
     "number the output files. If the timestamp is not connected or not valid, "
     "the output files are sequentially numbered from 1." );
+
+  declare_output_port_using_trait( image_file_name, optional,
+    "Name of the image file written to." );
 
   declare_output_port_using_trait( success_flag, optional,
     "Flag indicating the image write was successful" );
