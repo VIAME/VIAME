@@ -28,15 +28,29 @@ else()
 endif()
 set( PYTHON_BASEPATH
   ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
-set( CUSTOM_PYTHONPATH
-  ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
-set( CUSTOM_PATH
-  ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
+
+if( WIN32 )
+  set( CUSTOM_PYTHONPATH
+    ${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
+  set( CUSTOM_PATH
+    ${VIAME_BUILD_INSTALL_PREFIX}/bin;$ENV{PATH} )
+  string( REPLACE ";" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
+  string( REPLACE ";" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
+else()
+  set( CUSTOM_PYTHONPATH
+    ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
+  set( CUSTOM_PATH
+    ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
+  string( REPLACE ":" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
+  string( REPLACE ":" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
+endif()
+
 set( SMQTK_PYTHON_INSTALL
-  ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
-                      PATH=${CUSTOM_PATH}
-                      PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
-    ${PYTHON_EXECUTABLE} -m ${SMQTK_PIP_CMD} )
+  ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
+                          "PATH=${CUSTOM_PATH}"
+                          "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
+    ${PYTHON_EXECUTABLE} -m ${SMQTK_PIP_CMD}
+  )
 
 ExternalProject_Add( smqtk
   DEPENDS fletch
@@ -54,6 +68,7 @@ ExternalProject_Add( smqtk
     ${VIAME_CUDA_FLAGS}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
+  LIST_SEPARATOR "----"
   )
 
 ExternalProject_Add_Step(smqtk install_python

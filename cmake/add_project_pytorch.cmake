@@ -18,18 +18,50 @@ if( VIAME_ENABLE_CUDNN )
   if( CUDNN_ROOT_DIR )
     list(APPEND CUDNN_ENV "CUDNN_INCLUDE_DIR=${CUDNN_ROOT_DIR}/include")
   endif()
+  if( WIN32 )
+    string( REPLACE ";" "----" CUDNN_ENV "${CUDNN_ENV}" )
+  else()
+    string( REPLACE ":" "----" CUDNN_ENV "${CUDNN_ENV}" )
+  endif()
 else()
   unset(CUDNN_ENV)
 endif()
 
+set( PYTHON_BASEPATH
+  ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
+
 if( VIAME_ENABLE_CUDA )
   set( TORCH_CUDA_ARCHITECTURES "3.0 3.5 5.0 5.2 6.0 6.1+PTX" )
   set( TORCH_NVCC_FLAGS "-Xfatbin -compress-all" )
-  set( CUSTOM_PATH ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDA_TOOLKIT_ROOT_DIR}/bin:$ENV{PATH} )
 else()
   set( TORCH_CUDA_ARCHITECTURES )
   set( TORCH_NVCC_FLAGS )
-  set( CUSTOM_PATH ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
+endif()
+
+if( WIN32 )
+  set( CUSTOM_PYTHONPATH
+    ${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
+  if( VIAME_ENABLE_CUDA )
+    set( CUSTOM_PATH
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin;${CUDA_TOOLKIT_ROOT_DIR}/bin;$ENV{PATH} )
+  else()
+    set( CUSTOM_PATH
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin;$ENV{PATH} )
+  endif()
+  string( REPLACE ";" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
+  string( REPLACE ";" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
+else()
+  set( CUSTOM_PYTHONPATH
+    ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
+  if( VIAME_ENABLE_CUDA )
+    set( CUSTOM_PATH
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDA_TOOLKIT_ROOT_DIR}/bin:$ENV{PATH} )
+  else()
+    set( CUSTOM_PATH
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
+  endif()
+  string( REPLACE ":" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
+  string( REPLACE ":" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
 endif()
 
 foreach( LIB ${PYTORCH_LIBRARIES} )
@@ -70,29 +102,25 @@ foreach( LIB ${PYTORCH_LIBRARIES} )
         -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake )
   endif()
 
-  set( PYTHON_BASEPATH
-    ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
-  set( CUSTOM_PYTHONPATH
-    ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
   set( LIBRARY_PYTHON_BUILD
-    ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
-                        TMPDIR=${LIBRARY_PIP_TMP_DIR}
-                        PATH=${CUSTOM_PATH}
-                        PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
-                        CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
-                        TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}
-                        TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}
-                        ${CUDNN_ENV}
+    ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
+                            "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
+                            "PATH=${CUSTOM_PATH}"
+                            "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
+                            "CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}"
+                            "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}"
+                            "TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}"
+                            "${CUDNN_ENV}"
       ${LIBRARY_PIP_BUILD_CMD} )
   set( LIBRARY_PYTHON_INSTALL
-    ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
-                        TMPDIR=${LIBRARY_PIP_TMP_DIR}
-                        PATH=${CUSTOM_PATH}
-                        PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
-                        CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
-                        TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}
-                        TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}
-                        ${CUDNN_ENV}
+    ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
+                            "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
+                            "PATH=${CUSTOM_PATH}"
+                            "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
+                            "CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}"
+                            "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}"
+                            "TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}"
+                            "${CUDNN_ENV}"
       ${LIBRARY_PIP_INSTALL_CMD} )
 
   if( "${LIB}" STREQUAL "mmdetection" )
@@ -100,14 +128,14 @@ foreach( LIB ${PYTORCH_LIBRARIES} )
 
     foreach( DEP ${MMDET_SUBDEPS} )
       set( DEP_PYTHON_BUILD
-        ${CMAKE_COMMAND} -E env PYTHONPATH=${CUSTOM_PYTHONPATH}
-                            TMPDIR=${LIBRARY_PIP_TMP_DIR}
-                            PATH=${CUSTOM_PATH}
-                            PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}
-                            CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}
-                            TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}
-                            TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}
-                            ${CUDNN_ENV}
+        ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
+                                "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
+                                "PATH=${CUSTOM_PATH}"
+                                "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
+                                "CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}"
+                                "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}"
+                                "TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}"
+                                "${CUDNN_ENV}"
           ${PYTHON_EXECUTABLE} setup.py build_ext --inplace )
       ExternalProject_Add( mmdet_${DEP}
         DEPENDS fletch pytorch mmcv
@@ -118,6 +146,7 @@ foreach( LIB ${PYTORCH_LIBRARIES} )
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ${DEP_PYTHON_BUILD}
         INSTALL_COMMAND ""
+        LIST_SEPARATOR "----"
         )
     endforeach()
 
@@ -137,6 +166,7 @@ foreach( LIB ${PYTORCH_LIBRARIES} )
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ${LIBRARY_PYTHON_BUILD}
     INSTALL_COMMAND ${LIBRARY_PYTHON_INSTALL}
+    LIST_SEPARATOR "----"
     )
 
   if( VIAME_FORCEBUILD )
