@@ -71,6 +71,16 @@ process scallop_cfrnn_filter
   
   endblock
 
+process scallop_cfrnn_nms_filter
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
 process scallop_cfrnn_csv_writer
   :: detected_object_output
 
@@ -83,6 +93,8 @@ connect from split.left_image
 connect from scallop_cfrnn_detector.detected_object_set
         to   scallop_cfrnn_filter.detected_object_set
 connect from scallop_cfrnn_filter.detected_object_set
+        to   scallop_cfrnn_nms_filter.detected_object_set
+connect from scallop_cfrnn_nms_filter.detected_object_set
         to   scallop_cfrnn_csv_writer.detected_object_set
 connect from input.file_name
         to   scallop_cfrnn_csv_writer.image_file_name
