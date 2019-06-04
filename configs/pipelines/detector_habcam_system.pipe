@@ -65,7 +65,7 @@ process scallop_cfrnn_filter
   block filter:class_probablity_filter
 
     # Filter parameters
-    :threshold                                 0.100
+    :threshold                                 0.001
     :keep_all_classes                          false
     :keep_classes                              live_scallop;dead_scallop
   
