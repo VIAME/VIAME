@@ -50,11 +50,11 @@ connect from cam1_imread.image
 connect from cam2_imread.image
         to   cam2_detect.image
 
-connect from cam2_imread.image_file_name
+connect from cam2_imread.file_name
         to   measure.image_file_name2
 connect from cam2_detect.detected_object_set
         to   measure.detected_object_set2
 connect from cam1_detect.detected_object_set
         to   measure.detected_object_set1
-connect from cam1_imread.image_file_name
+connect from cam1_imread.file_name
         to   measure.image_file_name1
