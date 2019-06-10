@@ -12,7 +12,10 @@ Windows:
 3. Merge in all libsvm changes
 4. Merge in all pytorch and torchvision changes
   - (CPU only pytorch changes, if CPU only)
-5. zip with 7zip
+5. copy in altnertive geotiff.dll from fletch not vxl if using gdal
+6. copy lib/python3.6/* to lib/site-packages
+7. apply mmdet patch to add ops manually if using pytorch
+8. zip with 7zip
 
 Linux:
 
