@@ -4,9 +4,6 @@ KWIVER v1.3.1 Release Notes
 This is a minor release of KWIVER that provides both new functionality and
 fixes over the previous v1.3.0 release.
 
-Updates since v1.3.0
---------------------
-
 Bug Fixes since v1.3.0
 ----------------------
 
