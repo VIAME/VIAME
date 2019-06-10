@@ -14,19 +14,27 @@ config _scheduler
 # ================================== VIDEO INPUT ==================================
 
 process cam1_imread
-  :: frame_list_input
-  :image_reader:type                           ocv
-  :image_list_file                             cam1_images.txt
-  :frame_time                                  0.03333333
+  :: video_input
+  :video_filename                              cam1_images.txt
+  :frame_time                                  0.033333333
+  :video_reader:type                           image_list
+
+  block video_reader:image_list
+    :image_reader:type                         ocv
+  endblock
 
 process cam1_detect
   :: camtrawl_detect_fish
 
 process cam2_imread
-  :: frame_list_input
-  :image_reader:type                           ocv
-  :image_list_file                             cam2_images.txt
-  :frame_time                                  0.03333333
+  :: video_input
+  :video_filename                              cam2_images.txt
+  :frame_time                                  0.033333333
+  :video_reader:type                           image_list
+
+  block video_reader:image_list
+    :image_reader:type                         ocv
+  endblock
 
 process cam2_detect
   :: camtrawl_detect_fish
