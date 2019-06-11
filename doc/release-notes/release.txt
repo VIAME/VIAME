@@ -1,0 +1,9 @@
+KWIVER v1.4.1 Release Notes
+===========================
+
+This is a patch release of KWIVER that provides fixes over the previous v1.4.0
+release.
+
+Bug Fixes since v1.4.0
+----------------------
+
