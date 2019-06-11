@@ -33,7 +33,7 @@
 	url = https://github.com/viame/mmdetection.git
 [submodule "packages/pytorch-libs/mmcv"]
 	path = packages/pytorch-libs/mmcv
-	url = https://github.com/open-mmlab/mmcv.git
+	url = https://github.com/VIAME/mmcv.git
 [submodule "packages/pytorch-libs/netharn"]
 	path = packages/pytorch-libs/netharn
 	url = https://github.com/Erotemic/netharn.git
