@@ -90,7 +90,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Arctic Seals Models Add-On, All Linux](https://data.kitware.com/api/v1/item/5ce463258d777f072bc3fed1/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cf6a54a8d777f072b11d9f8/download) <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
-[Low Memory GPU (For 4+ Gb Cards) Add-On, All OS, v0.9.11+](https://data.kitware.com/api/v1/item/5cded9828d777f072bb46eba/download)
+[Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5cded9828d777f072bb46eba/download)
 
 **Standalone Tools:** <br>
 [Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download)
