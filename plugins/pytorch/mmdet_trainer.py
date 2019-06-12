@@ -68,6 +68,10 @@ class MMDetTrainer( TrainDetector ):
     self._random_seed = "none"
     self._validate = "false"
     self._tmp_annotation_file = "annotations.pickle"
+    self._chip_step_width = -1
+    self._chip_step_height = -1
+    self._chip_adaptive_thresh = -1
+    self._chip_and_original = "false"
 
   def get_configuration( self ):
     # Inherit from the base class
@@ -83,6 +87,10 @@ class MMDetTrainer( TrainDetector ):
     cfg.set_value( "launcher", str( self._launcher ) )
     cfg.set_value( "random_seed", str( self._random_seed ) )
     cfg.set_value( "validate", str( self._validate ) )
+    cfg.set_value( "chip_step_width", str( self._chip_step_width ) )
+    cfg.set_value( "chip_step_height", str( self._chip_step_height ) )
+    cfg.set_value( "chip_adaptive_thresh", str( self._chip_adaptive_thresh ) )
+    cfg.set_value( "chip_and_original", str( self._chip_and_original ) )
 
     return cfg
 
@@ -99,9 +107,12 @@ class MMDetTrainer( TrainDetector ):
     self._gpu_count = int( cfg.get_value( "gpu_count" ) )
     self._launcher = str( cfg.get_value( "launcher" ) )
     self._validate = strtobool( cfg.get_value( "validate" ) )
+    self._chip_step_width = int( cfg.get_value( "chip_step_width" ) )
+    self._chip_step_height = int( cfg.get_value( "chip_step_height" ) )
+    self._chip_adaptive_thresh = int( cfg.get_value( "chip_adaptive_thresh" ) )
+    self._chip_and_original = strtobool( cfg.get_value( "chip_and_original" ) )
 
     self._training_data = []
-
     self._sample_count = 0
 
     self._training_width_sum = 0
@@ -185,6 +196,11 @@ class MMDetTrainer( TrainDetector ):
 
     self._model = build_detector(
       self._cfg.model, train_cfg=self._cfg.train_cfg, test_cfg=self._cfg.test_cfg )
+
+  def add_data_from_memory( self, categories, train_images, train_dets, test_images, test_dets ):
+    if len( train_files ) != len( train_dets ):
+      print( "Error: train file and groundtruth count mismatch" )
+      return
 
   def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
     if len( train_files ) != len( train_dets ):

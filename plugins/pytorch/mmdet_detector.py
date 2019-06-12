@@ -56,6 +56,10 @@ class MMDetDetector( ImageObjectDetector ):
     self._thresh = 0.01
     self._gpu_index = "0"
     self._display_detections = False
+    self._chip_step_width = -1
+    self._chip_step_height = -1
+    self._chip_adaptive_thresh = -1
+    self._chip_and_original = "false"
 
   def get_configuration(self):
     # Inherit from the base class
@@ -66,6 +70,11 @@ class MMDetDetector( ImageObjectDetector ):
     cfg.set_value( "thresh", str( self._thresh ) )
     cfg.set_value( "gpu_index", self._gpu_index )
     cfg.set_value( "display_detections", str( self._display_detections ) )
+    cfg.set_value( "chip_step_width", str( self._chip_step_width ) )
+    cfg.set_value( "chip_step_height", str( self._chip_step_height ) )
+    cfg.set_value( "chip_adaptive_thresh", str( self._chip_adaptive_thresh ) )
+    cfg.set_value( "chip_and_original", str( self._chip_and_original ) )
+
     return cfg
 
   def set_configuration( self, cfg_in ):
@@ -78,6 +87,10 @@ class MMDetDetector( ImageObjectDetector ):
     self._thresh = float( cfg.get_value( "thresh" ) )
     self._gpu_index = str( cfg.get_value( "gpu_index" ) )
     self._display_detections = strtobool( cfg.get_value( "display_detections" ) )
+    self._chip_step_width = int( cfg.get_value( "chip_step_width" ) )
+    self._chip_step_height = int( cfg.get_value( "chip_step_height" ) )
+    self._chip_adaptive_thresh = int( cfg.get_value( "chip_adaptive_thresh" ) )
+    self._chip_and_original = strtobool( cfg.get_value( "chip_and_original" ) )
 
     import matplotlib
     matplotlib.use( 'PS' ) # bypass multiple Qt load issues
