@@ -113,8 +113,13 @@ class MMDetTrainer( TrainDetector ):
       return False
     return True
 
-  def load_network( self ):
+  def __getstate__( self ):
+    return self.__dict__
 
+  def __setstate__( self, dict ):
+    self.__dict__ = dict
+
+  def load_network( self ):
     train_config = "train_config.py"
 
     if len( self._train_directory ) > 0:
@@ -163,10 +168,11 @@ class MMDetTrainer( TrainDetector ):
     self._logger = get_root_logger( self._cfg.log_level )
     self._logger.info( 'Distributed training: {}'.format( self._distributed ) )
 
-    if self._random_seed is not "none":
-      logger.info( 'Set random seed to {}'.format( self._random_seed ) )
+    if self._random_seed is not 'none':
+      self._logger.info( 'Set random seed to {}'.format( self._random_seed ) )
       from mmdet.apis import set_random_seed
-      set_random_seed( int( self._random_seed ) )
+      if isinstance( self._random_seed, int ):
+        set_random_seed( int( self._random_seed ) )
 
     from mmdet.models import build_detector
 
@@ -232,6 +238,12 @@ class MMDetTrainer( TrainDetector ):
 
   def update_model( self ):
 
+    if os.name == 'nt':
+      self.external_update()
+    else:
+      self.internal_update()
+
+  def internal_update( self ):
     self.load_network()
 
     with open( self._groundtruth_store, 'wb' ) as fp:
@@ -265,6 +277,33 @@ class MMDetTrainer( TrainDetector ):
       logger = self._logger )
 
     self.save_model_files( is_final=True )
+
+  def external_update( self ):
+    if not os.path.exists( self._train_directory ):
+      os.mkdir( self._train_directory )
+ 
+    state_file = os.path.join( self._train_directory, "trainer_state.pickle" )
+
+    with open( state_file, 'wb' ) as fp:
+      pickle.dump( self, fp )
+
+    state_file = state_file.replace( "\\", "\\\\" )
+
+    cmd = []
+
+    if os.name == 'nt':
+      cmd += [ "python.exe", "-c" ]
+    else:
+      cmd += [ "python", "-c" ]
+
+    cmd += [ "\""
+             "import pickle;"
+             "infile=open('" + state_file + "','rb');"
+             "trainer=pickle.load(infile);"
+             "trainer.internal_update();"
+             "\"" ]
+
+    os.system( ' '.join( cmd ) )
 
   def interupt_handler( self ):
     self.save_model_files( is_final=True )
