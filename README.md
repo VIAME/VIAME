@@ -62,7 +62,7 @@ to validate the installation.
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 [Anaconda3 5.2.0 x86_64](https://repo.continuum.io/archive/) (Note: Anaconda**3 5.2.0 x86_64**, not Anaconda2 or x86 or 5.3.0) <br>
-5 Gb of Disk Space for the Full Installation <br>
+6 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
 [NVIDIA Drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) (Version 384.81+) <br>
