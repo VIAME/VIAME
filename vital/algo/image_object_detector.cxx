@@ -46,6 +46,20 @@ image_object_detector
   attach_logger( "algo.image_object_detector" ); // specify a logger
 }
 
+std::vector< vital::detected_object_set_sptr >
+image_object_detector
+::batch_detect( const std::vector< image_container_sptr >& images ) const
+{
+  std::vector< vital::detected_object_set_sptr > output;
+
+  for( auto image : images )
+  {
+    output.push_back( this->detect( image ) );
+  }
+
+  return output;
+}
+
 } } }
 
 /// \cond DoxygenSuppress

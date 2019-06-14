@@ -67,14 +67,30 @@ public:
    * \returns vector of image objects found
    */
   virtual detected_object_set_sptr
-      detect( image_container_sptr image_data) const = 0;
+      detect( image_container_sptr image_data ) const = 0;
+
+
+  /// Find all objects on the provided images
+  /**
+   * This method analyzes the supplied images and along with any saved
+   * context, returns a vector of detected image objects.
+   *
+   * By default this just calls the single image detector, but this
+   * call can be over-written for detectors which perform optimized
+   * batching.
+   *
+   * \param images the image pixels
+   * \returns vector of image objects found
+   */
+  virtual std::vector< vital::detected_object_set_sptr >
+      batch_detect( const std::vector< image_container_sptr >& images ) const;
 
 protected:
   image_object_detector();
 };
 
 /// Shared pointer for generic image_object_detector definition type.
-typedef std::shared_ptr<image_object_detector> image_object_detector_sptr;
+typedef std::shared_ptr< image_object_detector > image_object_detector_sptr;
 
 } } } // end namespace
 
