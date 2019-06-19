@@ -30,7 +30,8 @@ Example Capabilities
 Documentation
 -------------
 
-The [VIAME manual](http://viame.readthedocs.io/en/latest/) is more comprehensive,
+The [VIAME Quick-Start Guide](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download)
+and [VIAME manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below:
 
 
@@ -51,9 +52,9 @@ but select entries are also listed below:
 Pre-Built Binaries
 ------------------
 
-For a full installation and quick-start guide, [see here](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download).
-In summary, install Anaconda, extract the binaries and place them in a directory of
-your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
+For a full installation see the quick-start guide, above, but in summary, install Anaconda,
+extract the binaries and place them in a directory of your choosing, for example
+C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
 Next, set the PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or
 setup_viame.bat (Windows) script in the root install folder to point to the
 location of your installed Anaconda distribution. Lastly, run through some of the examples
@@ -103,8 +104,9 @@ Note: To install Add-Ons, copy them into your install. To use project files extr
 Quick Build Instructions
 ------------------------
 
-More in-depth build instructions can be found [here](examples/building_and_installing_viame), but
-VIAME itself can be built either as a super-build, which builds most of its
+The instructions are intended for developers or those interested in building the latest
+master branch. More in-depth build instructions can be found [here](examples/building_and_installing_viame),
+but VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
 [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
 If using the command line, run the following commands, only replacing [source-directory] and
