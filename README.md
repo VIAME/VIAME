@@ -51,7 +51,7 @@ but select entries are also listed below:
 Pre-Built Binaries
 ------------------
 
-For a full installation guide, [see here](https://data.kitware.com/api/v1/item/5c9aad768d777f072bdcab59/download).
+For a full installation and quick-start guide, [see here](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download).
 In summary, install Anaconda, extract the binaries and place them in a directory of
 your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
 Next, set the PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or
@@ -98,35 +98,6 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download)
 
 Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.
-
-
-Quick Run Instructions
-----------------------
-
-If building from the source, all final compiled binaries are placed in the
-[build-directory]/install directory, which is the same as the root directory
-in the above pre-built binaries. This will hereby be refered to as the [install-directory].
-
-One way to test the system is to see if you can run the examples in the
-[[install-directory]/examples](https://github.com/Kitware/VIAME/tree/master/examples)
-folder, for example, the pipelined object detectors or annotation GUI. If pursuing this route, we
-recommend reading the: 
-[Examples Overview](https://viame.readthedocs.io/en/latest/section_links/example_capabilities.html), 
-[Annotation Overview](https://viame.readthedocs.io/en/latest/section_links/annotation_and_visualization.html), 
-[Deep Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/object_detector_training.html), and
-[Rapid Model Generation Overview](https://viame.readthedocs.io/en/latest/section_links/search_and_rapid_model_generation.html#video-and-image-search-using-viame).
-
-The 'examples' folder is one of two core entry points into running VIAME functionality. The other is
-to copy project files for your operating system,
-[[install-directory]/configs/prj-linux](https://github.com/Kitware/VIAME/tree/master/configs/prj-linux) or
-[[install-directory]/configs/prj-windows](https://github.com/Kitware/VIAME/tree/master/configs/prj-windows)
-to a directory of your choice and run things from there. Not all functionality is in the default project
-file scripts, however, but it is a good entry point if you just want to get started on training object
-detection and/or tracking models. There are some environment variables in these files that need to
-be set up before you can run on any OS, which are all in the [install-directory]/setup_viame.sh/.bat script.
-This script is sourced in all of the project scripts, so there is no need to modify anything unless you
-installed VIAME to a non-default location. For the later case you will need to need to modify the
-VIAME_INSTALL path at the top of each run script to point to your installed location. 
 
 
 Quick Build Instructions
