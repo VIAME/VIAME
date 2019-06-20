@@ -79,7 +79,7 @@ public:
     , m_max_neg_ratio( 0.0 )
     , m_ignore_category( "false_alarm" )
     , m_min_train_box_length( 5 )
-    , m_synthetic_labels( false )
+    , m_synthetic_labels( true )
   {}
 
   ~priv()
@@ -128,6 +128,7 @@ public:
 
   bool m_synthetic_labels;
   vital::category_hierarchy_sptr m_labels;
+  std::map< std::string, int > m_category_map;
   vital::algo::image_io_sptr m_image_io;
   vital::algo::train_detector_sptr m_trainer;
   vital::logger_handle_t m_logger;
@@ -310,10 +311,28 @@ windowed_trainer
       filtered_test_names, filtered_test_truth );
   }
 
-  d->m_trainer->add_data_from_disk(
-    object_labels,
-    filtered_train_names, filtered_train_truth,
-    filtered_test_names, filtered_test_truth );
+  if( d->m_synthetic_labels )
+  {
+    vital::category_hierarchy_sptr all_labels =
+      std::make_shared< vital::category_hierarchy >();
+
+    for( auto p = d->m_category_map.begin(); p != d->m_category_map.end(); p++ )
+    {
+      all_labels->add_class( p->first );
+    }
+
+    d->m_trainer->add_data_from_disk(
+      all_labels,
+      filtered_train_names, filtered_train_truth,
+      filtered_test_names, filtered_test_truth );
+  }
+  else
+  {
+    d->m_trainer->add_data_from_disk(
+      object_labels,
+      filtered_train_names, filtered_train_truth,
+      filtered_test_names, filtered_test_truth );
+  }
 }
 
 void
@@ -593,19 +612,17 @@ windowed_trainer::priv
   vital::bounding_box_d region,
   vital::detected_object_set_sptr& filtered_detections )
 {
-  /*const double width = region.width();
-  const double height = region.height();
-
   auto ie = all_detections->cend();
 
-  filtered_detections = std::make_shared< vital::detected_object_set_sptr >();
+  filtered_detections = std::make_shared< vital::detected_object_set >();
 
   for( auto detection = all_detections->cbegin(); detection != ie; ++detection )
   {
     vital::bounding_box_d det_box = (*detection)->bounding_box();
     vital::bounding_box_d overlap = vital::intersection( region, det_box );
 
-    if( det_box.width() < m_min_train_box_length || det_box.height() < m_min_train_box_length )
+    if( det_box.width() < m_min_train_box_length ||
+        det_box.height() < m_min_train_box_length )
     {
       return false;
     }
@@ -629,7 +646,7 @@ windowed_trainer::priv
       {
         continue;
       }
-      else if( !m_labels )
+      else if( m_synthetic_labels )
       {
         if( m_category_map.find( category ) == m_category_map.end() )
         {
@@ -652,35 +669,16 @@ windowed_trainer::priv
       double max_x = overlap.max_x() - region.min_x();
       double max_y = overlap.max_y() - region.min_y();
 
-      std::string line = category + " ";
+      vital::bounding_box_d bbox( min_x, min_y, max_x, max_y );
 
-      line += std::to_string( 0.5 * ( min_x + max_x ) / width ) + " ";
-      line += std::to_string( 0.5 * ( min_y + max_y ) / height ) + " ";
+      auto odet = (*detection)->clone();
+      odet->set_bounding_box( bbox );
 
-      line += std::to_string( overlap.width() / width ) + " ";
-      line += std::to_string( overlap.height() / height );
-
-      to_write.push_back( line );
+      filtered_detections->add( odet );
     }
   }
 
-  [MAKE SHARED OBJECT]
-
-
-  if( !m_chips_w_gt_only || !to_write.empty() )
-  {
-    std::ofstream fout( filename.c_str() );
-
-    for( std::string line : to_write )
-    {
-      fout << line << std::endl;
-    }
-
-    fout.close();
-    return true;
-  }*/
-
-  return false;
+  return true;
 }
 
 
