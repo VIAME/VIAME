@@ -52,9 +52,9 @@ but select entries are also listed below:
 Pre-Built Binaries
 ------------------
 
-For a full installation see the quick-start guide, above, but in summary, install Anaconda,
-extract the binaries and place them in a directory of your choosing, for example
-C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
+For a full installation guide see the quick-start slide deck above, but in summary,
+install Anaconda, extract the binaries and place them in a directory of your choosing,
+for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
 Next, set the PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or
 setup_viame.bat (Windows) script in the root install folder to point to the
 location of your installed Anaconda distribution. Lastly, run through some of the examples
