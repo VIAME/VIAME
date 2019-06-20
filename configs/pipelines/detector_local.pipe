@@ -10,11 +10,11 @@ config _pipeline:_edge
 
 # =============================== INPUT FRAME LIST =================================
 
-include category_models/detector.pipe
+include common_default_input_with_downsampler.pipe
 
 # ====================================== YOLO ======================================
 
-include common_default_detector_with_filter.pipe
+include category_models/detector.pipe
 
 process detector_writer
   :: detected_object_output
