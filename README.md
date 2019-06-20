@@ -30,7 +30,7 @@ Example Capabilities
 Documentation
 -------------
 
-The [VIAME Quick-Start Guide](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download)
+The [Quick-Start Guide](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download)
 and [VIAME manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below:
 
@@ -104,7 +104,7 @@ Note: To install Add-Ons, copy them into your install. To use project files extr
 Quick Build Instructions
 ------------------------
 
-The instructions are intended for developers or those interested in building the latest
+These instructions are intended for developers or those interested in building the latest
 master branch. More in-depth build instructions can be found [here](examples/building_and_installing_viame),
 but VIAME itself can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
