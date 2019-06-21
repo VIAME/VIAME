@@ -54,28 +54,50 @@ process tracks_to_detections
 
 process detector_trainer
   :: train_detector
-  :trainer:type                               darknet
+  #  Algorithm to use for 'detector_trainer'.
+  #  Must be one of the following options: darket, scallop_tk, mmdet, ocv_windowed
+  trainer:type = ocv_windowed
 
-  block trainer:darknet
-    relativepath net_config =                 ../models/yolo_v3_train.cfg
-    relativepath seed_weights =               ../models/yolo_v3_seed.wt
-    :model_type                               yolov3
-    :image_reader:type                        vxl
-    :image_reader:vxl:force_byte              true
-    :image_reader:vxl:split_channels          true
-    :train_directory                          deep_training
-    :output_weights                           output_weights.wt
-    :chips_w_gt_only                          false
-    :resize_option                            chip_and_original
-    :scale                                    1.0
-    :resize_ni                                704
-    :resize_nj                                704
-    :chip_step                                500
-    :batch_size                               64
-    :batch_subdivisions                       32
-    :overlap_required                         0.05
-    :random_int_shift                         0.60
-    :skip_format                              false
+  block trainer:ocv_windowed
+    # Directory for all files used in training
+    train_directory = deep_training
+    # Windowing mode, can be disabled, maintain_ar, scale, chip, adaptive
+    mode = adaptive
+    # Image scaling factor used when mode is scale or chip
+    scale = 1.25
+    # When in chip mode, the chip width.
+    chip_width = 1333
+    # When in chip mode, the chip height.
+    chip_height = 800
+    # When in chip mode, the chip step size between chips.
+    chip_step_height = 1100
+    # When in chip mode, the chip step size between chips.
+    chip_step_width = 600
+    # If using adaptive selection, total pixel count at which we start to chip
+    chip_adaptive_thresh = 2000000
+    # Image reader type
+    image_reader:type = vxl
+  endblock
+
+  block trainer:ocv_windowed:trainer
+    # Trainer type
+    type = mmdet
+    # Configuration File
+    relativepath mmdet:config_file = ../models/cfrnn_train.py
+    # Seed Weights
+    relativepath mmdet:seed_weights = ../models/cfrnn_seed.pth
+    # Pipeline template file.
+    relativepath mmdet:pipeline_template = ../templates/detector_cfrnn.pipe
+    # Training temp directory
+    mmdet:train_directory = deep_training
+    # GPU Count, set as -1 to auto-detect and use maximum
+    mmdet:gpu_count = -1
+    # Launch type, can be: none, pytorch, slurm, or mpi
+    mmdet:launcher = none
+    # Random numeric seed for weights
+    mmdet:random_seed = none
+    # Should validation be run every epoch?
+    mmdet:validate = false
   endblock
 
 connect from in_adapt.object_track_set
