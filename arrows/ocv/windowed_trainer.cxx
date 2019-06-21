@@ -275,7 +275,7 @@ windowed_trainer
   return vital::algo::image_io::check_nested_algo_configuration(
      "image_reader", config )
    && vital::algo::train_detector::check_nested_algo_configuration(
-     "train_detector", config );
+     "trainer", config );
 }
 
 
