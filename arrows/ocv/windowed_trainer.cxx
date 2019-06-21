@@ -473,6 +473,10 @@ windowed_trainer::priv
       formatted_truth.push_back( groundtruth[fid] );
       continue;
     }
+    else
+    {
+      m_mode = "chip_and_original";
+    }
 
     // Format image and write new ones to disk
     format_image_from_memory(
