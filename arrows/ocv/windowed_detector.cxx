@@ -288,6 +288,11 @@ windowed_detector
       {
         int tj = std::min( lj + d->m_chip_height, cv_resized_image.rows );
 
+        if( tj-lj < 0 || ti-li < 0 )
+        {
+          continue;
+        }
+
         cv::Rect resized_roi( li, lj, ti-li, tj-lj );
         cv::Rect original_roi( li / scale_factor,
                                lj / scale_factor,
