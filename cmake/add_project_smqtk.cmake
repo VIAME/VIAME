@@ -41,8 +41,6 @@ else()
     ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
   set( CUSTOM_PATH
     ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
-  string( REPLACE ":" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
-  string( REPLACE ":" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
 endif()
 
 set( SMQTK_PYTHON_INSTALL
