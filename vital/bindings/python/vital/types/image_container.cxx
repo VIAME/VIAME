@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,54 +29,44 @@
  */
 
 #include <vital/types/image_container.h>
-
+#include <vital/bindings/python/vital/types/image_container.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/embed.h>
 #include <pybind11/numpy.h>
 
-
-namespace py = pybind11;
-
-typedef kwiver::vital::image_container image_cont;
-typedef kwiver::vital::simple_image_container s_image_cont;
-
-// We need to return a shared pointer--otherwise, pybind11 may lose the subtype
-std::shared_ptr<s_image_cont>
-new_cont(kwiver::vital::image &img)
+std::shared_ptr<s_image_cont_t>
+kwiver::vital::python::image_container::new_cont(kwiver::vital::image &img)
 {
-  return std::shared_ptr<s_image_cont>(new s_image_cont(img));
+  return std::shared_ptr<s_image_cont_t>(new s_image_cont_t(img));
 }
 
-// We need to do a deep copy instead of just calling get_image, so we can ref track in python
 kwiver::vital::image
-get_image(std::shared_ptr<image_cont> self)
+kwiver::vital::python::image_container::get_image(std::shared_ptr<image_cont_t> self)
 {
   kwiver::vital::image img;
   img.copy_from(self->get_image());
   return img;
 }
 
-PYBIND11_MODULE(image_container, m)
+void image_container(py::module& m)
 {
   /*
    *
-
     Developer:
         python -c "import vital.types; help(vital.types.ImageContainer)"
         python -m xdoctest vital.types ImageContainer --xdoc-dynamic
         python -m xdoctest vital.types ImageContainer.asarray --xdoc-dynamic  # fix xdoctest to execute this
-
    *
    */
-  py::class_<image_cont, std::shared_ptr<image_cont>>(m, "BaseImageContainer")
-  .def("size", &image_cont::size)
-  .def("width", &image_cont::width)
-  .def("height", &image_cont::height)
-  .def("depth", &image_cont::depth)
-  .def("image", &get_image)
+  py::class_<image_cont_t, std::shared_ptr<image_cont_t>>(m, "BaseImageContainer")
+  .def("size", &image_cont_t::size)
+  .def("width", &image_cont_t::width)
+  .def("height", &image_cont_t::height)
+  .def("depth", &image_cont_t::depth)
+  .def("image", &kwiver::vital::python::image_container::get_image)
 
   .def("asarray",
-    [](image_cont& self) -> py::array
+    [](image_cont_t& self) -> py::array
     {
       auto locals = py::dict(py::arg("self")=self);
       py::exec(R"(
@@ -119,11 +109,9 @@ PYBIND11_MODULE(image_container, m)
       retval = '<%s(%s)>' % (classname, devnice)
       )", py::globals(), locals);
     return locals["retval"].cast<std::string>();
-  })
+  });
 
-  ;
-
-  py::class_<s_image_cont, image_cont, std::shared_ptr<s_image_cont>>(m, "ImageContainer", R"(
+  py::class_<s_image_cont_t, image_cont_t, std::shared_ptr<s_image_cont_t>>(m, "ImageContainer", R"(
     Example:
         >>> # Example using PIL utility
         >>> from vital.types import ImageContainer
@@ -151,10 +139,9 @@ PYBIND11_MODULE(image_container, m)
         >>> assert np.all(np_img == np_img2)
     )")
 
-  .def(py::init(&new_cont), py::arg("image"))
-
+  .def(py::init(&kwiver::vital::python::image_container::new_cont), py::arg("image"))
   .def_static("fromarray",
-    [](py::array& arr) -> s_image_cont {
+    [](py::array& arr) -> s_image_cont_t {
       auto locals = py::dict(py::arg("arr")=arr);
       py::exec(R"(
           from vital.types import ImageContainer
@@ -164,7 +151,7 @@ PYBIND11_MODULE(image_container, m)
           vital_img = VitalPIL.from_pil(pil_img)
           self = ImageContainer(vital_img)
           )", py::globals(), locals);
-      return locals["self"].cast<s_image_cont>();
+      return locals["self"].cast<s_image_cont_t>();
     }, py::doc(R"(
     Create an ImageContainer from a numpy array
 
@@ -178,6 +165,5 @@ PYBIND11_MODULE(image_container, m)
         >>> np_img2 = self.asarray()
         >>> assert np.all(np_img == np_img2)
     )")
-  )
-  ;
+  );
 }
