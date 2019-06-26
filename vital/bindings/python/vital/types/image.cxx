@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,20 @@
  */
 
 #include <vital/types/image.h>
-
+#include <vital/bindings/python/vital/types/image.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
-namespace py = pybind11;
-
-typedef kwiver::vital::image image_t;
-typedef kwiver::vital::image_pixel_traits pixel_traits;
-
 pixel_traits::pixel_type
-pixel_type(std::shared_ptr<image_t> &self)
+kwiver::vital::python::image::pixel_type(std::shared_ptr<image_t> &self)
 {
   auto traits = self->pixel_traits();
   return traits.type;
 }
 
 std::string
-pixel_type_name(std::shared_ptr<image_t> &self)
+kwiver::vital::python::image::pixel_type_name(std::shared_ptr<image_t> &self)
 {
   auto traits = self->pixel_traits();
   pixel_traits::pixel_type type = traits.type;
@@ -77,14 +72,15 @@ pixel_type_name(std::shared_ptr<image_t> &self)
 }
 
 size_t
-pixel_num_bytes(std::shared_ptr<image_t> &self)
+kwiver::vital::python::image::pixel_num_bytes(std::shared_ptr<image_t> &self)
 {
   auto traits = self->pixel_traits();
   return traits.num_bytes;
 }
 
 py::object
-get_pixel2(std::shared_ptr<image_t> &img, unsigned i, unsigned j)
+kwiver::vital::python::image::get_pixel2(std::shared_ptr<image_t> &img,
+                                  unsigned i, unsigned j)
 {
   std::string type = pixel_type_name(img);
 
@@ -115,7 +111,8 @@ get_pixel2(std::shared_ptr<image_t> &img, unsigned i, unsigned j)
 }
 
 py::object
-get_pixel3(std::shared_ptr<image_t> &img, unsigned i, unsigned j, unsigned k)
+kwiver::vital::python::image::get_pixel3(std::shared_ptr<image_t> &img,
+                                  unsigned i, unsigned j, unsigned k)
 {
   std::string type = pixel_type_name(img);
 
@@ -148,7 +145,8 @@ get_pixel3(std::shared_ptr<image_t> &img, unsigned i, unsigned j, unsigned k)
 // __getitem__ has 2 or 3 dimensions, each calling a different function
 // so the index has to be passed in as a vector
 py::object
-get_pixel(std::shared_ptr<image_t> &img, std::vector<unsigned> idx)
+kwiver::vital::python::image::get_pixel(std::shared_ptr<image_t> &img,
+                                  std::vector<unsigned> idx)
 {
   if(idx.size() == 2)
   {
@@ -162,21 +160,22 @@ get_pixel(std::shared_ptr<image_t> &img, std::vector<unsigned> idx)
 }
 
 void*
-first_pixel(std::shared_ptr<image_t> &img)
+kwiver::vital::python::image::first_pixel(std::shared_ptr<image_t> &img)
 {
   return img->first_pixel();
 }
 
 image_t
-new_image(size_t width, size_t height, size_t depth, bool interleave,
-          pixel_traits::pixel_type &type, size_t bytes)
+kwiver::vital::python::image::new_image(size_t width, size_t height, size_t depth,
+                                bool interleave, pixel_traits::pixel_type &type,
+                                size_t bytes)
 {
   pixel_traits traits(type, bytes);
   return image_t(width, height, depth, interleave, traits);
 }
 
 image_t
-new_image_from_data( char* first_pixel,
+kwiver::vital::python::image::new_image_from_data( char* first_pixel,
                      size_t width, size_t height, size_t depth,
                      int32_t w_step, int32_t h_step, int32_t d_step,
                      pixel_traits::pixel_type pixel_type,
@@ -190,62 +189,14 @@ new_image_from_data( char* first_pixel,
   return new_img;
 }
 
-
-template <typename T>
-image_t
-new_image_from_numpy(py::array_t<T> array)
-{
-
-  // Request a buffer descriptor from Python
-  py::buffer_info info = array.request();
-
-  // Determine if the type has numeric_limits, is integral, and / or is signed
-  // Note: the following function does not handle float16. Should it?
-  pixel_traits traits =  kwiver::vital::image_pixel_traits_of<T>();
-
-  // numpy images are in height x width format by default (row major)
-  size_t height = info.shape[0];
-  size_t width = info.shape[1];
-  size_t depth;
-
-  size_t h_step = info.strides[0] / traits.num_bytes;
-  size_t w_step = info.strides[1] / traits.num_bytes;
-  size_t d_step;
-
-  if (info.ndim == 2)
-  {
-      depth = 1;
-      d_step = 1;
-  }
-  else if (info.ndim == 3)
-  {
-    depth = info.shape[2];
-    d_step = info.strides[2]  / traits.num_bytes;
-  }
-  else
-  {
-    throw std::runtime_error("Incompatible buffer dimension!");
-  }
-
-  char* first_pixel = static_cast<char *>(info.ptr);
-  image_t img = image_t(first_pixel, width, height, depth,
-                        w_step, h_step, d_step, traits);
-
-  // TODO: is is possible to share memory?
-
-  image_t new_img = image_t(); // copy so we can use fresh memory not used elsewhere
-  new_img.copy_from(img);
-  return new_img;
-}
-
-
 /*
  * Get the appropriate python format descriptor string to describe pixel traits
  *
  * References:
  *     https://docs.python.org/3/library/struct.html
  */
-const char* get_trait_format_descriptor(const pixel_traits& traits)
+const char* kwiver::vital::python::image::get_trait_format_descriptor(
+    const pixel_traits& traits)
 {
     const size_t itemsize = traits.num_bytes;
     switch (traits.type)
@@ -311,7 +262,7 @@ const char* get_trait_format_descriptor(const pixel_traits& traits)
 }
 
 
-py::buffer_info get_buffer_info(image_t &img)
+py::buffer_info kwiver::vital::python::image::get_buffer_info(image_t &img)
 {
     const pixel_traits traits = img.pixel_traits();
     const size_t itemsize = traits.num_bytes;
@@ -341,8 +292,7 @@ py::buffer_info get_buffer_info(image_t &img)
     );
 }
 
-
-PYBIND11_MODULE(image, m)
+void image(py::module& m)
 {
   py::class_<image_t, std::shared_ptr<image_t>> img(m, "Image", py::buffer_protocol());
   /*
@@ -373,25 +323,25 @@ PYBIND11_MODULE(image, m)
       "    >>> assert np.all(np_img != vital_img.asarray())\n"
   );
 
-py::enum_<pixel_traits::pixel_type>(img, "Types") .value("PIXEL_UNKNOWN",
-pixel_traits::pixel_type::UNKNOWN) .value("PIXEL_BOOL",
-pixel_traits::pixel_type::BOOL) .value("PIXEL_UNSIGNED",
-pixel_traits::pixel_type::UNSIGNED) .value("PIXEL_SIGNED",
-pixel_traits::pixel_type::SIGNED) .value("PIXEL_FLOAT",
-pixel_traits::pixel_type::FLOAT) .export_values();
+  py::enum_<pixel_traits::pixel_type>(img, "Types") .value("PIXEL_UNKNOWN",
+  pixel_traits::pixel_type::UNKNOWN) .value("PIXEL_BOOL",
+  pixel_traits::pixel_type::BOOL) .value("PIXEL_UNSIGNED",
+  pixel_traits::pixel_type::UNSIGNED) .value("PIXEL_SIGNED",
+  pixel_traits::pixel_type::SIGNED) .value("PIXEL_FLOAT",
+  pixel_traits::pixel_type::FLOAT) .export_values();
 
-  img.def(py::init(&new_image),
+  img.def(py::init(&kwiver::vital::python::image::new_image),
     py::arg("width")=0, py::arg("height")=0, py::arg("depth")=1,
     py::arg("interleave")=false, py::arg("pixel_type")=pixel_traits::pixel_type::UNSIGNED,
     py::arg("bytes")=1)
-  .def(py::init(&new_image_from_data),
+  .def(py::init(&kwiver::vital::python::image::new_image_from_data),
    py::arg("first_pixel"), py::arg("width"), py::arg("height"), py::arg("depth"),
    py::arg("w_step"), py::arg("h_step"), py::arg("d_step"),
    py::arg("pixel_type"), py::arg("bytes"))
 
   // create initializer from typed numpy arrays
   #define init_from_numpy( T ) \
-  .def(py::init(&new_image_from_numpy< T >), py::arg("array"),\
+  .def(py::init(&kwiver::vital::python::image::new_image_from_numpy< T >), py::arg("array"),\
        py::doc("Create (copy) a vital image from a 2D or 3D numpy array"))
   init_from_numpy( uint8_t )
   init_from_numpy( int8_t )
@@ -414,13 +364,12 @@ pixel_traits::pixel_type::FLOAT) .export_values();
   .def("w_step", &image_t::w_step)
   .def("h_step", &image_t::h_step)
   .def("d_step", &image_t::d_step)
-  .def("first_pixel_address", &first_pixel)
-  .def("pixel_type", &pixel_type)
-  .def("pixel_type_name", &pixel_type_name)
-  .def("pixel_num_bytes", &pixel_num_bytes)
-  .def("__getitem__", &get_pixel)
-  .def_buffer(&get_buffer_info)
-
+  .def("first_pixel_address", &kwiver::vital::python::image::first_pixel)
+  .def("pixel_type", &kwiver::vital::python::image::pixel_type)
+  .def("pixel_type_name", &kwiver::vital::python::image::pixel_type_name)
+  .def("pixel_num_bytes", &kwiver::vital::python::image::pixel_num_bytes)
+  .def("__getitem__", &kwiver::vital::python::image::get_pixel)
+  .def_buffer(&kwiver::vital::python::image::get_buffer_info)
   .def("asarray", [](image_t &img){
         // It may be possible to write this method to share memory between
         // vital and numpy using the py::capsule class. For references see:
@@ -428,6 +377,5 @@ pixel_traits::pixel_type::FLOAT) .export_values();
         py::object np = py::module::import("numpy");
         py::object arr = np.attr("array")(img);
         return arr;
-      }, py::doc("Copy the image into a numpy array'"))
-  ;
+      }, py::doc("Copy the image into a numpy array'"));
 }
