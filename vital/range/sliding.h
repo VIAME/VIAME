@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,9 @@ protected:
 public:
   using value_t = std::array< single_value_t, Size >;
 
+  sliding_view( sliding_view const& ) = default;
+  sliding_view( sliding_view&& ) = default;
+
   class iterator
   {
   public:
@@ -108,7 +111,7 @@ public:
     std::array< range_iterator_t, Size > m_iter;
   };
 
-  sliding_view( Range const& range ) : m_range{ range } {}
+  sliding_view( Range&& range ) : m_range( std::forward< Range >( range ) ) {}
 
   iterator begin() const
   { return { m_range.begin(), m_range.end() }; }

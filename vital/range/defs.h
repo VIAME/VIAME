@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,13 +53,8 @@ namespace range {
   { \
     template < typename Range > \
     static name##_view< Range > \
-    adapt( Range& range ) \
-    { return { range }; } \
-    \
-    template < typename Range > \
-    static name##_view< Range const > \
-    adapt( Range const& range ) \
-    { return { range }; } \
+    adapt( Range&& range ) \
+    { return { std::forward< Range >( range ) }; } \
   }; \
   \
   inline constexpr \
@@ -73,8 +68,8 @@ namespace range {
   { \
     template < typename Range > \
     static name##_view< KWIVER_UNPACK_TOKENS arg_names, Range > \
-    adapt( Range const& range ) \
-    { return { range }; } \
+    adapt( Range&& range ) \
+    { return { std::forward< Range >( range ) }; } \
   }; \
   \
   template < KWIVER_UNPACK_TOKENS args > inline constexpr \
@@ -88,8 +83,8 @@ namespace range {
   { \
     template < typename Range > \
     name##_view< Functor, Range > \
-    adapt( Range const& range ) const \
-    { return { range, m_func }; } \
+    adapt( Range&& range ) const \
+    { return { std::forward< Range >( range ), m_func }; } \
     \
     Functor m_func; \
   }; \
@@ -102,11 +97,11 @@ namespace range {
   template < typename Range, typename... Args > \
   auto \
   operator|( \
-    Range const& range, \
+    Range&& range, \
     name##_view_adapter_t< Args... > const& adapter ) \
-  -> decltype( adapter.adapt( range ) ) \
+  -> decltype( adapter.adapt(  std::forward< Range >( range ) ) ) \
   { \
-    return adapter.adapt( range ); \
+    return adapter.adapt( std::forward< Range >( range ) ); \
   }
 
 // ----------------------------------------------------------------------------
@@ -145,18 +140,21 @@ struct function_detail< ReturnType ( Object::* )( ArgsType... ) const >
   using return_type_t = ReturnType;
 };
 
-// ----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+
 namespace range_detail {
 
+// ----------------------------------------------------------------------------
 using std::begin;
 using std::end;
 
+// ----------------------------------------------------------------------------
 template < typename Range >
 class range_helper
 {
 protected:
-  static auto begin_helper( Range&& range )
-  -> decltype( begin( range ) );
+  static auto begin_helper()
+  -> decltype( begin( std::declval< Range >() ) );
 
 public:
   static auto begin_helper( Range& range )
@@ -171,54 +169,60 @@ public:
     return end( range );
   }
 
-  using iterator_t = decltype( begin_helper( std::declval< Range >() ) );
+  using iterator_t = decltype( begin_helper() );
 };
 
 } // namespace range_detail
 
+///////////////////////////////////////////////////////////////////////////////
+
 // ----------------------------------------------------------------------------
-template < typename Range,
-           bool = std::is_base_of< generic_view, Range >::value >
+template < typename Range, bool = std::is_rvalue_reference< Range&& >::value >
 class range_ref : range_detail::range_helper< Range >
+{
+protected:
+  using detail = range_detail::range_helper< Range >;
+
+public:
+  using iterator_t = typename detail::iterator_t;
+  using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
+  using value_t = typename std::remove_reference< value_ref_t >::type;
+
+  range_ref( Range& range ) : m_range( range ) {}
+
+  range_ref( range_ref const& ) = default;
+  range_ref( range_ref&& ) = default;
+
+  iterator_t begin() const { return detail::begin_helper( m_range ); }
+  iterator_t end() const { return detail::end_helper( m_range ); }
+
+protected:
+  Range& m_range;
+};
+
+// ----------------------------------------------------------------------------
+template < typename Range >
+class range_ref< Range, true > : range_detail::range_helper< Range >
 {
 public:
   using iterator_t = typename range_detail::range_helper< Range >::iterator_t;
   using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
   using value_t = typename std::remove_reference< value_ref_t >::type;
 
-  range_ref( Range& range ) : m_range( range ) {}
+  range_ref( Range&& range ) : m_range( std::forward< Range >( range ) ) {}
+
   range_ref( range_ref const& ) = default;
+  range_ref( range_ref&& ) = default;
 
   iterator_t begin() const { return detail::begin_helper( m_range ); }
   iterator_t end() const { return detail::end_helper( m_range ); }
 
 protected:
-  using detail = range_detail::range_helper< Range >;
+  using detail = range_detail::range_helper< Range const >;
+  using range_ref_t = typename std::remove_const< Range >::type;
+  using range_t = typename std::remove_reference< range_ref_t >::type;
 
-  Range& m_range;
-};
-
-/// \endcond
-
-/// \cond DoxygenSuppress
-
-// ----------------------------------------------------------------------------
-template < typename Range >
-class range_ref< Range, true >
-{
-public:
-  using iterator_t = typename Range::iterator;
-  using value_ref_t = decltype( *( std::declval< iterator_t >() ) );
-  using value_t = typename std::remove_reference< value_ref_t >::type;
-
-  range_ref( Range const& range ) : m_range( range ) {}
-  range_ref( range_ref const& ) = default;
-
-  iterator_t begin() const { return m_range.begin(); }
-  iterator_t end() const { return m_range.end(); }
-
-protected:
-  typename std::remove_const< Range >::type m_range;
+  range_t m_range;
 };
 
 /// \endcond
@@ -235,7 +239,7 @@ protected:
  */
 template < typename Range, typename Adapter >
 auto
-operator|( Range const&, Adapter );
+operator|( Range, Adapter );
 
 #else
 
@@ -243,22 +247,22 @@ operator|( Range const&, Adapter );
 template < typename Range, typename Adapter >
 auto
 operator|(
-  Range& range,
+  Range&& range,
   kwiver::vital::range::range_adapter_t< Adapter > (*)() )
--> decltype( Adapter::adapt( range ) )
+-> decltype( Adapter::adapt( std::forward< Range >( range ) ) )
 {
-  return Adapter::adapt( range );
+  return Adapter::adapt( std::forward< Range >( range ) );
 }
 
 // ----------------------------------------------------------------------------
 template < typename Range, typename Adapter >
 auto
 operator|(
-  Range& range,
+  Range&& range,
   kwiver::vital::range::range_adapter_t< Adapter > )
--> decltype( Adapter::adapt( range ) )
+-> decltype( Adapter::adapt( std::forward< Range >( range ) ) )
 {
-  return Adapter::adapt( range );
+  return Adapter::adapt( std::forward< Range >( range ) );
 }
 
 #endif
