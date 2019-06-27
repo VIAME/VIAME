@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2019 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -175,3 +175,39 @@ def reprojection_error_sqr(cam, lm, feat):
     return (reprojection_error_vec(cam, lm, feat) ** 2).sum()
 
 
+def create_numpy_image(dtype_name, nchannels, order='c'):
+    if nchannels is None:
+        shape = (5, 4)
+    else:
+        shape = (5, 4, nchannels)
+    size = numpy.prod(shape)
+
+    dtype = numpy.dtype(dtype_name)
+
+    if dtype_name == 'bool':
+        np_img = numpy.zeros(size, dtype=dtype).reshape(shape)
+        np_img[0::2] = 1
+    else:
+        np_img = numpy.arange(size, dtype=dtype).reshape(shape)
+
+    if order.startswith('c'):
+        np_img = numpy.ascontiguousarray(np_img)
+    elif order.startswith('fortran'):
+        np_img = numpy.asfortranarray(np_img)
+    else:
+        raise KeyError(order)
+    if order.endswith('-reverse'):
+        np_img = np_img[::-1, ::-1]
+
+    return np_img
+
+def map_dtype_name_to_pixel_type(dtype_name):
+    if dtype_name == 'float16':
+        want = 'float16'
+    if dtype_name == 'float32':
+        want = 'float'
+    elif dtype_name == 'float64':
+        want = 'double'
+    else:
+        want = dtype_name
+    return want
