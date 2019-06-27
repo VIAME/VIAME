@@ -52,6 +52,13 @@ std::shared_ptr<s_image_cont_t>new_cont(kwiver::vital::image &img);
 // We need to do a deep copy instead of just calling get_image, so we can ref track in python
 kwiver::vital::image get_image(std::shared_ptr<image_cont_t> self);
 
+template <typename T>
+s_image_cont_t new_image_container_from_numpy(py::array_t<T> array)
+{
+  kwiver::vital::image img = kwiver::vital::python::image::new_image_from_numpy(array);
+  return s_image_cont_t(img);
+}
+
 } } } }
 
 #endif

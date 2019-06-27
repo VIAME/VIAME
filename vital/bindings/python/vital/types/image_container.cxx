@@ -48,6 +48,7 @@ kwiver::vital::python::image_container::get_image(std::shared_ptr<image_cont_t> 
   return img;
 }
 
+
 void image_container(py::module& m)
 {
   /*
@@ -64,19 +65,11 @@ void image_container(py::module& m)
   .def("height", &image_cont_t::height)
   .def("depth", &image_cont_t::depth)
   .def("image", &kwiver::vital::python::image_container::get_image)
-
   .def("asarray",
-    [](image_cont_t& self) -> py::array
+    [](image_cont_t& img_cont)
     {
-      auto locals = py::dict(py::arg("self")=self);
-      py::exec(R"(
-        from vital.util import VitalPIL
-        import numpy as np
-        vital_img = self.image()
-        pil_img = VitalPIL.get_pil_image(vital_img)
-        retval = np.asarray(pil_img)
-        )", py::globals(), locals);
-      return locals["retval"].cast<py::array>();
+      py::object np_arr = kwiver::vital::python::image::asarray(img_cont.get_image());
+      return np_arr;
     },
     py::doc(R"(
     Returns a copy of the internal image data as a numpy array.
@@ -140,30 +133,22 @@ void image_container(py::module& m)
     )")
 
   .def(py::init(&kwiver::vital::python::image_container::new_cont), py::arg("image"))
-  .def_static("fromarray",
-    [](py::array& arr) -> s_image_cont_t {
-      auto locals = py::dict(py::arg("arr")=arr);
-      py::exec(R"(
-          from vital.types import ImageContainer
-          from PIL import Image as PILImage
-          from vital.util import VitalPIL
-          pil_img = PILImage.fromarray(arr)
-          vital_img = VitalPIL.from_pil(pil_img)
-          self = ImageContainer(vital_img)
-          )", py::globals(), locals);
-      return locals["self"].cast<s_image_cont_t>();
-    }, py::doc(R"(
-    Create an ImageContainer from a numpy array
 
-    Example:
-        >>> from vital.types import ImageContainer
-        >>> import numpy as np
-        >>> np_img = (np.random.rand(10, 20, 3) * 255).astype(np.uint8)
-        >>> self = ImageContainer.fromarray(np_img)
-        >>> print(str(self))
-        <ImageContainer(whd=20x10x3)>
-        >>> np_img2 = self.asarray()
-        >>> assert np.all(np_img == np_img2)
-    )")
-  );
+  // Create initialzer based on numpy array type
+  #define fromarray( T ) \
+  .def_static("fromarray", \
+              &kwiver::vital::python::image_container::new_image_container_from_numpy<T>, \
+              py::arg("array"),\
+      py::doc("Create an ImageContainer from a numpy array"))
+  fromarray( uint8_t )
+  fromarray( int8_t )
+  fromarray( uint16_t )
+  fromarray( int16_t )
+  fromarray( uint32_t )
+  fromarray( int32_t )
+  fromarray( uint64_t )
+  fromarray( int64_t )
+  fromarray( float )
+  fromarray( double )
+  fromarray( bool );
 }
