@@ -107,6 +107,7 @@ namespace image {
   }
   const char* get_trait_format_descriptor(const pixel_traits& traits);
   py::buffer_info get_buffer_info(image_t &img);
+  py::object asarray(image_t img);
 
 } } } }
 #endif

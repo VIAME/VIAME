@@ -292,6 +292,244 @@ py::buffer_info kwiver::vital::python::image::get_buffer_info(image_t &img)
     );
 }
 
+py::object kwiver::vital::python::image::asarray(image_t img)
+{
+  const pixel_traits traits = img.pixel_traits();
+  const size_t num_bytes = traits.num_bytes;
+  const pixel_traits::pixel_type pixel_type = traits.type;
+  py::object np = py::module::import("numpy");
+  //py::object np_arr = np.attr("array")(img);
+  //return np_arr;
+  switch(pixel_type)
+  {
+    case pixel_traits::pixel_type::BOOL:
+    {
+        switch (num_bytes)
+        {
+            case 1:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::BOOL, 1>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::BOOL, 1 >::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            default:
+                throw std::runtime_error(
+                    "Boolean image supports single byte pixels. "
+                    + std::to_string(num_bytes)  + " provided." );
+        }
+    }
+    case pixel_traits::pixel_type::UNSIGNED:
+    {
+        switch (traits.num_bytes)
+        {
+            case 1:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::UNSIGNED, 1>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::UNSIGNED, 1 >::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            case 2:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::UNSIGNED, 2>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::UNSIGNED, 2 >::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            case 4:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::UNSIGNED, 4>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::UNSIGNED, 4>::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            case 8:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::UNSIGNED, 8>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::UNSIGNED, 8>::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            default:
+                throw std::runtime_error(
+                    "Unsigned Integer image supports 1, 2, 4, 8 byte pixels. "
+                    + std::to_string(num_bytes)  + " provided." );
+        }
+    }
+    case pixel_traits::pixel_type::SIGNED:
+    {
+        switch (traits.num_bytes)
+        {
+            case 1:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::SIGNED, 1>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::SIGNED, 1 >::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            case 2:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::SIGNED, 2>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::SIGNED, 2 >::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            case 4:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::SIGNED, 4>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::SIGNED, 4>::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            case 8:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::SIGNED, 8>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::SIGNED, 8>::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            default:
+                throw std::runtime_error(
+                    "Signed Integer image supports 1, 2, 4, 8 byte pixels. "
+                    + std::to_string(num_bytes)  + " provided." );
+        }
+    }
+    case pixel_traits::pixel_type::FLOAT:
+    {
+        switch (traits.num_bytes)
+        {
+            case 2:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::FLOAT, 2>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::FLOAT, 2 >::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            case 4:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::FLOAT, 4>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::FLOAT, 4>::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            case 8:
+            {
+              auto first_pixel = static_cast< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::FLOAT, 8>::type* >
+                                             ( img.first_pixel() );
+              auto arr = py::array_t< kwiver::vital::image_pixel_from_traits
+                                             < pixel_traits::pixel_type::FLOAT, 8>::type >
+                                         ( { img.height(), img.width(), img.depth() },
+                                           { img.h_step()*num_bytes,
+                                             img.w_step()*num_bytes,
+                                             img.d_step()*num_bytes },
+                                           first_pixel );
+              py::object np_arr = np.attr("array")(arr);
+              return np_arr;
+            }
+            default:
+                throw std::runtime_error(
+                    "Float image supports 2, 4, 8 byte pixels. "
+                    + std::to_string(num_bytes)  + " provided." );
+        }
+    }
+    case pixel_traits::pixel_type::UNKNOWN:
+        throw std::runtime_error(
+                "Cannot handle traits with unknown pixel type ");
+    default:
+        throw std::runtime_error("Unidentified pixel trait and number of bytes encoutered");
+  }
+}
+
 void image(py::module& m)
 {
   py::class_<image_t, std::shared_ptr<image_t>> img(m, "Image", py::buffer_protocol());
@@ -374,8 +612,7 @@ void image(py::module& m)
         // It may be possible to write this method to share memory between
         // vital and numpy using the py::capsule class. For references see:
         // https://stackoverflow.com/questions/44659924/ret-nparrays-pybind11
-        py::object np = py::module::import("numpy");
-        py::object arr = np.attr("array")(img);
-        return arr;
+        py::object np_arr = kwiver::vital::python::image::asarray(img);
+        return np_arr;
       }, py::doc("Copy the image into a numpy array'"));
 }
