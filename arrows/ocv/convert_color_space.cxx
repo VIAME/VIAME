@@ -11,8 +11,8 @@
 
 #include <arrows/ocv/image_container.h>
 
-#include <opencv/cxcore.h>
-#include <opencv/cv.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 namespace kwiver {
 namespace arrows {
