@@ -52,13 +52,12 @@ but select entries are also listed below:
 Pre-Built Binaries
 ------------------
 
-For a full installation guide see the quick-start slide deck above, but in summary,
-first install Anaconda. Secondly, extract the binaries and place them in a directory of your choosing,
-for example C:\Program Files\VIAME on Windows or /opt/noaa/viame on Linux.
-Next, set the PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or
-setup_viame.bat (Windows) script in the root install folder to point to the
-location of your installed Anaconda distribution. Lastly, run through some of the examples
-to validate the installation.
+For a full installation guide see the quick-start slide deck above, but in summary, first install Anaconda.
+Secondly, extract the binaries and place them in a directory of your choosing, for example C:\Program Files\VIAME
+on Windows or /opt/noaa/viame on Linux. Next, set the PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or
+setup_viame.bat (Windows) script in the root install folder to point to the location of your installed Anaconda
+distribution, if Anaconda was installed to a non-default location. Lastly, run through some of the examples to
+validate the installation.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
@@ -77,6 +76,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
 [VIAME v0.9.15 Windows 7\*/8/10, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d0cde7e877dfcc902a01d2c/download) <br>
+[VIAME v0.9.15 Windows 7\*/8/10, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1E9w4b1t4H3hT_i5Uovh78y5f88LQN0Vc) <br>
 [VIAME v0.9.9.7 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c98c5728d777f072bd52c43/download) <br>
 [VIAME v0.9.9.7 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=167QP2Iyyb862d_d9ebSDzgwLsY3MHl0M)
 
