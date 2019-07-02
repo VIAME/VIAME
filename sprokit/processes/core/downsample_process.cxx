@@ -61,7 +61,6 @@ public:
 
   double ds_counter_;
   unsigned burst_counter_;
-  bool burst_skip_mode_;
   unsigned output_counter_;
   bool is_first_;
 
@@ -122,7 +121,6 @@ void downsample_process
 {
   d->ds_counter_ = 0.0;
   d->burst_counter_ = 0;
-  d->burst_skip_mode_ = false;
   d->output_counter_ = 0;
   d->is_first_ = true;
 }
@@ -286,21 +284,13 @@ bool downsample_process::priv
   if( burst_frame_count_ != 0 && burst_frame_break_ != 0 )
   {
     burst_counter_++;
+    burst_counter_ %= burst_frame_count_ + burst_frame_break_;
 
-    if( burst_skip_mode_ )
+    // If burst_counter_ is in [1..burst_frame_count_], we're in
+    // pass-through mode; otherwise we're in skip mode.
+    if( burst_counter_ > burst_frame_count_ || burst_counter_ == 0)
     {
-      if( burst_counter_ >= burst_frame_break_ )
-      {
-        burst_counter_ = 0;
-        burst_skip_mode_ = false;
-      }
-
       return true;
-    }
-    else if( burst_counter_ >= burst_frame_count_ )
-    {
-      burst_counter_ = 0;
-      burst_skip_mode_ = true;
     }
   }
 
