@@ -298,7 +298,7 @@ bool downsample_process::priv
 
   if( burst_frame_count_ != 0 && burst_frame_break_ != 0 )
   {
-    burst_counter_++;
+    burst_counter_ += elapsed_frames;
     burst_counter_ %= burst_frame_count_ + burst_frame_break_;
 
     // If burst_counter_ is in [1..burst_frame_count_], we're in
