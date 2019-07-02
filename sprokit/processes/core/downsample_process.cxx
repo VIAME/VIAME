@@ -59,7 +59,6 @@ public:
   unsigned burst_frame_break_;
   bool renumber_frames_;
 
-  double ds_factor_;
   double ds_counter_;
   unsigned burst_counter_;
   bool burst_skip_mode_;
@@ -262,12 +261,12 @@ void downsample_process
 bool downsample_process::priv
 ::skip_frame( vital::timestamp const& ts, double frame_rate )
 {
-  ds_factor_ = frame_rate / target_frame_rate_;
+  double ds_factor = frame_rate / target_frame_rate_;
 
   if( is_first_ )
   {
     // Triggers always sending the first frame
-    ds_counter_ = ds_factor_;
+    ds_counter_ = ds_factor;
     is_first_ = false;
   }
   else
@@ -275,13 +274,13 @@ bool downsample_process::priv
     ds_counter_ += 1.0;
   }
 
-  if( ds_counter_ < ds_factor_ )
+  if( ds_counter_ < ds_factor )
   {
     return true;
   }
   else
   {
-    ds_counter_ = std::fmod( ds_counter_, ds_factor_ );
+    ds_counter_ = std::fmod( ds_counter_, ds_factor );
   }
 
   if( burst_frame_count_ != 0 && burst_frame_break_ != 0 )
