@@ -107,10 +107,8 @@ class TestVitalImage (object):
             np_img = create_numpy_image(dtype_name, nchannels, order)
             vital_img = Image(np_img)
             recast = vital_img.asarray()
-
-            if nchannels is None:
-                # asarray always returns 3 channels
-                np_img = np_img[..., None]
+            # asarray always returns 3 channels
+            np_img = np.atleast_3d(np_img)
             pixel_type_name = vital_img.pixel_type_name()
             want = map_dtype_name_to_pixel_type(dtype_name)
 

@@ -82,9 +82,8 @@ class TestVitalImageContainer (object):
             img_container = ImageContainer.fromarray(np_img)
             recast = img_container.asarray()
 
-            if nchannels is None:
-                # asarray always returns 3 channels
-                np_img = np_img[..., None]
+            # asarray always returns 3 channels
+            np_img = np.atleast_3d(np_img)
 
             vital_img = img_container.image()
             pixel_type_name = vital_img.pixel_type_name()
@@ -120,9 +119,8 @@ class TestVitalImageContainer (object):
             img_container = ImageContainer(Image(np_img))
             recast = img_container.asarray()
 
-            if nchannels is None:
-                # asarray always returns 3 channels
-                np_img = np_img[..., None]
+            # asarray always returns 3 channels
+            np_img = np.atleast_3d(np_img)
 
             vital_img = img_container.image()
             pixel_type_name = vital_img.pixel_type_name()
