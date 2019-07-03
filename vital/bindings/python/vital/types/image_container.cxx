@@ -134,21 +134,22 @@ void image_container(py::module& m)
 
   .def(py::init(&kwiver::vital::python::image_container::new_cont), py::arg("image"))
 
-  // Create initialzer based on numpy array type
-  #define fromarray( T ) \
+  // Create initializer based on numpy array type
+  #define def_fromarray( T ) \
   .def_static("fromarray", \
               &kwiver::vital::python::image_container::new_image_container_from_numpy<T>, \
               py::arg("array"),\
       py::doc("Create an ImageContainer from a numpy array"))
-  fromarray( uint8_t )
-  fromarray( int8_t )
-  fromarray( uint16_t )
-  fromarray( int16_t )
-  fromarray( uint32_t )
-  fromarray( int32_t )
-  fromarray( uint64_t )
-  fromarray( int64_t )
-  fromarray( float )
-  fromarray( double )
-  fromarray( bool );
+  def_fromarray( uint8_t )
+  def_fromarray( int8_t )
+  def_fromarray( uint16_t )
+  def_fromarray( int16_t )
+  def_fromarray( uint32_t )
+  def_fromarray( int32_t )
+  def_fromarray( uint64_t )
+  def_fromarray( int64_t )
+  def_fromarray( float )
+  def_fromarray( double )
+  def_fromarray( bool );
+  #undef def_fromarray
 }
