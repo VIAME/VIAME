@@ -213,6 +213,24 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
       utc_time_usec =
         static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
     }
+    // Example: calibration_2019_00_C_20190509_035506.681605_ir.tif
+    else if( parts.size() == 6 && parts[4].size() == 8 && parts[5].size() == 13 )
+    {
+      tm t;
+
+      t.tm_year = std::stoi( parts[4].substr( 0, 4 ) ) - 1900;
+      t.tm_mon = std::stoi( parts[4].substr( 4, 2 ) ) - 1;
+      t.tm_mday = std::stoi( parts[4].substr( 6, 2 ) );
+
+      t.tm_hour = std::stoi( parts[5].substr( 0, 2 ) );
+      t.tm_min = std::stoi( parts[5].substr( 2, 2 ) );
+      t.tm_sec = std::stoi( parts[5].substr( 4, 2 ) );
+
+      kwiver::vital::time_usec_t usec =
+        std::stoi( parts[5].substr( 7, 3 ) ) * 1e3;
+      utc_time_usec =
+        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+    }
     // Example: kotz_01_X_20190507_004346.455104.ir.tif
     else if( parts.size() == 5 && parts[3].size() == 8 &&
              parts[4].size() > 10 && parts[4][6] == '.' )
