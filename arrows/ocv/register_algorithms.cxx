@@ -76,6 +76,8 @@
 #include <arrows/ocv/detect_motion_3frame_differencing.h>
 #include <arrows/ocv/detect_motion_mog2.h>
 #include <arrows/ocv/detect_heat_map.h>
+#include <arrows/ocv/windowed_detector.h>
+#include <arrows/ocv/windowed_trainer.h>
 
 namespace kwiver {
 namespace arrows {
@@ -121,6 +123,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< hough_circle_detector >();
   reg.register_algorithm< detect_motion_3frame_differencing >();
   reg.register_algorithm< detect_motion_mog2 >();
+
+  reg.register_algorithm< windowed_detector >();
+  reg.register_algorithm< windowed_trainer >();
 
   // Conditional algorithms
   // Source ``KWIVER_OCV_HAS_*`` symbol definitions can be found in the header

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,40 +28,28 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief image_object_detector algorithm instantiation
- */
+#ifndef KWIVER_ARROWS_OCV_WINDOWED_RESIZE
+#define KWIVER_ARROWS_OCV_WINDOWED_RESIZE
 
-#include <vital/algo/algorithm.txx>
+
+#include <arrows/ocv/kwiver_algo_ocv_export.h>
+
+#include <opencv2/core/core.hpp>
+
 #include <vital/algo/image_object_detector.h>
 
 namespace kwiver {
-namespace vital {
-namespace algo {
+namespace arrows {
+namespace ocv {
 
-image_object_detector
-::image_object_detector()
-{
-  attach_logger( "algo.image_object_detector" ); // specify a logger
-}
+double
+scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst,
+                            int width, int height );
 
-std::vector< vital::detected_object_set_sptr >
-image_object_detector
-::batch_detect( const std::vector< image_container_sptr >& images ) const
-{
-  std::vector< vital::detected_object_set_sptr > output;
-
-  for( auto image : images )
-  {
-    output.push_back( this->detect( image ) );
-  }
-
-  return output;
-}
+double
+format_image( const cv::Mat& src, cv::Mat& dst, std::string option,
+              double scale_factor, int width, int height );
 
 } } }
 
-/// \cond DoxygenSuppress
-INSTANTIATE_ALGORITHM_DEF(kwiver::vital::algo::image_object_detector);
-/// \endcond
+#endif /* KWIVER_ARROWS_OCV_WINDOWED_DETECTOR */

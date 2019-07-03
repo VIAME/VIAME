@@ -46,6 +46,9 @@ set( ocv_headers_public
   split_image_channels.h
   split_image_horizontally.h
   track_features_klt.h
+  windowed_detector.h
+  windowed_detector_resize.h
+  windowed_trainer.h
   )
 kwiver_install_headers(
   SUBDIR     arrows/ocv
@@ -101,6 +104,9 @@ set( ocv_sources
   split_image_channels.cxx
   split_image_horizontally.cxx
   track_features_klt.cxx
+  windowed_detector.cxx
+  windowed_detector_resize.cxx
+  windowed_trainer.cxx
   )
 
 if( KWIVER_HAS_OPENCV_VER_3 )
