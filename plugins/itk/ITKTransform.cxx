@@ -21,11 +21,11 @@ ITKTransform
 {
 }
 
-kwiver::vital::transform_sptr
+kwiver::vital::transform_2d_sptr
 ITKTransform
 ::clone() const
 {
-  return kwiver::vital::transform_sptr( new ITKTransform( m_transform ) );
+  return kwiver::vital::transform_2d_sptr( new ITKTransform( m_transform ) );
 }
 
 kwiver::vital::vector_2d
@@ -56,7 +56,7 @@ kwiver::vital::config_block_sptr
 ITKTransformIO
 ::get_configuration() const
 {
-  return kwiver::vital::algo::transform_io::get_configuration();
+  return kwiver::vital::algo::transform_2d_io::get_configuration();
 }
 
 void
@@ -73,7 +73,7 @@ ITKTransformIO
   return true;
 }
 
-kwiver::vital::transform_sptr
+kwiver::vital::transform_2d_sptr
 ITKTransformIO
 ::load_( std::string const& filename ) const
 {
@@ -88,7 +88,7 @@ ITKTransformIO
     throw std::runtime_error( "Unable to load: " + filename );
   }
 
-  return kwiver::vital::transform_sptr(
+  return kwiver::vital::transform_2d_sptr(
     new viame::itk::ITKTransform(
       static_cast< NetTransformType* >(
         reader->GetTransformList()->begin()->GetPointer() ) ) );
@@ -96,7 +96,7 @@ ITKTransformIO
 
 void
 ITKTransformIO
-::save_( std::string const& /*filename*/, kwiver::vital::transform_sptr /*data*/ ) const
+::save_( std::string const& /*filename*/, kwiver::vital::transform_2d_sptr /*data*/ ) const
 {
 }
 

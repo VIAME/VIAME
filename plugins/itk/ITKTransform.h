@@ -33,8 +33,8 @@
 
 #include <plugins/itk/viame_itk_export.h>
 
-#include <vital/algo/transform_io.h>
-#include <vital/types/transform.h>
+#include <vital/algo/transform_2d_io.h>
+#include <vital/types/transform_2d.h>
 
 #include "RegisterOpticalAndThermal.h"
 
@@ -45,7 +45,7 @@ namespace itk
 {
 
 /// Wraps ITK transforms in KWIVER vital types
-class VIAME_ITK_EXPORT ITKTransform : public kwiver::vital::transform
+class VIAME_ITK_EXPORT ITKTransform : public kwiver::vital::transform_2d
 {
 public:
 
@@ -56,7 +56,7 @@ public:
   /**
    * \return A new deep clone of this transformation.
    */
-  virtual kwiver::vital::transform_sptr clone() const;
+  virtual kwiver::vital::transform_2d_sptr clone() const;
 
   /// Map a 2D double-type point using this transform
   /**
@@ -74,7 +74,7 @@ private:
 /// A class for using ITK to read and write arbitrary transforms
 class VIAME_ITK_EXPORT ITKTransformIO
   : public kwiver::vital::algorithm_impl<
-      ITKTransformIO, kwiver::vital::algo::transform_io>
+      ITKTransformIO, kwiver::vital::algo::transform_2d_io>
 {
 public:
   /// Constructor
@@ -99,7 +99,7 @@ private:
    * \param filename the path to the file the load
    * \returns a transform instance referring to the loaded transform
    */
-  virtual kwiver::vital::transform_sptr load_(
+  virtual kwiver::vital::transform_2d_sptr load_(
     std::string const& filename ) const;
 
   /// Implementation specific save functionality.
@@ -111,7 +111,7 @@ private:
    * \param data the transform instance referring to the transform to write
    */
   virtual void save_( std::string const& filename,
-                      kwiver::vital::transform_sptr data ) const;
+                      kwiver::vital::transform_2d_sptr data ) const;
 
 };
 
