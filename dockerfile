@@ -5,9 +5,9 @@ FROM kitware/fletch:latest
 #
 # Building Kwiver
 #
- 
-RUN git clone -b master --single-branch https://github.com/Kitware/kwiver.git kwiver \
-  && cd kwiver \
+
+COPY . /kwiver
+RUN cd /kwiver \
   && mkdir build \
   && cd build \
   && cmake ../ -DCMAKE_BUILD_TYPE=Release \

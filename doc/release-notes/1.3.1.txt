@@ -1,0 +1,24 @@
+KWIVER v1.3.1 Release Notes
+===========================
+
+This is a patch release of KWIVER that provides fixes over the previous v1.3.0
+release.
+
+Bug Fixes since v1.3.0
+----------------------
+
+ * Fixed issue where ffmpeg_video_input does not set the depth step for
+   frame images correctly.
+
+ * Fixed an issue in the MSVC environment in which and extra ";" was
+   appended to each variable
+
+ * Fixed an issue in the MSVC environment in which redefining variables
+   from setup_KWIVER.bat would append to the old value instead of replacing.
+
+ * Added missing GDAL_DATA and PROJ_LIB environment variables in setup_KWIVER
+   scripts.  These must be set to do any coordinate conversions with GDAL or
+   PROJ.
+
+ * Install two CMake find-package modules (FFMPEG and Sphinx) that were
+   missing from the installation scripts.
