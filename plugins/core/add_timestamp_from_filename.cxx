@@ -214,7 +214,7 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
         static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
     }
     // Example: calibration_2019_00_C_20190509_035506.681605_ir.tif
-    else if( parts.size() == 6 && parts[4].size() == 8 && parts[5].size() == 13 )
+    else if( parts.size() == 7 && parts[4].size() == 8 && parts[5].size() == 13 )
     {
       tm t;
 
