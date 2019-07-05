@@ -26,9 +26,13 @@ this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
 
 # Paths for loading algorithm plugins
 export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/modules:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/processes:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/modules:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/modules:$KWIVER_PLUGIN_PATH
 export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/processes:$KWIVER_PLUGIN_PATH
 
 # Paths for loading process plugins
 export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
@@ -67,3 +71,4 @@ fi
 # Paths for adding exes to path (must occur after python and matlab)
 export PATH=$this_dir/bin:$PATH
 export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$this_dir/lib64:$LD_LIBRARY_PATH
