@@ -123,8 +123,9 @@ VIAME may be built with a number of optional plugins--VXL, Caffe, OpenCV,
 Scallop_TK, and Matlab--with a corresponding option called VIAME_ENABLE_[option],
 in all caps. For each plugin to install, you need a cmake build flag setting the
 option. The flag looks like ``-DVIAME_ENABLE_OPENCV:BOOL=ON``, of course changing
-OPENCV to match the plugin. Multiple plugins may be used, or none. They are listed
-below:
+OPENCV to match the plugin. Multiple plugins may be used, or none. If uncertain what
+to turn on, it's best to just leave the default enable and disable flags which will
+build most (though not all) functionalities. They are listed below:
 
 
 

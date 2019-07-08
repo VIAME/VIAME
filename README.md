@@ -139,7 +139,9 @@ default when Python is enabled) requires Numpy and a few other dependencies.
 
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency
-such as OpenCV) then the dependency flag will be forced to on.
+such as OpenCV) then the dependency flag will be forced to on. If uncertain what to turn
+on, it's best to just leave the default enable and disable flags which will build most
+(though not all) functionalities.
 
 
 <center>
