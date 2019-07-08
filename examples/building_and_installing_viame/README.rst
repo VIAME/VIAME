@@ -135,17 +135,15 @@ below:
 +------------------------------+---------------------------------------------------------------------------------------+
 | VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
 +------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_CAFFE           | Builds Caffe and basic Caffe processes (pixel classifiers, FRCNN dependency)          |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                     |
 +------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes                                           |
+| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                     |
 +------------------------------+---------------------------------------------------------------------------------------+
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
 +------------------------------+---------------------------------------------------------------------------------------+
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
 +------------------------------+---------------------------------------------------------------------------------------+
 | VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_FASTER_RCNN     | Builds Faster-RCNN based object detector plugin                                       |
 +------------------------------+---------------------------------------------------------------------------------------+
 | VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                         |
 +------------------------------+---------------------------------------------------------------------------------------+
