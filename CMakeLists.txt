@@ -96,6 +96,7 @@ option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
 
+mark_as_advanced( VIAME_ENABLE_CAFFE )
 mark_as_advanced( VIAME_ENABLE_BURNOUT )
 mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
@@ -133,6 +134,14 @@ mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
 option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled" OFF )
 mark_as_advanced( VIAME_BUILD_TESTS )
+
+if( VIAME_ENABLE_PYTORCH )
+  if( WIN32 )
+    option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  OFF )
+  else()
+    option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  ON )
+  endif()
+endif()
 
 ###
 # Add logic relating to enable flags
@@ -181,10 +190,6 @@ if( VIAME_ENABLE_PYTHON )
 
   set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
        CACHE STRING "Python version number" )
-endif()
-
-if( VIAME_ENABLE_PYTORCH )
-  option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  OFF )
 endif()
 
 if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL_TK )
