@@ -213,6 +213,10 @@ if( VIAME_ENABLE_CUDA )
     set( CUDA_cublas_device_LIBRARY CACHE INTERNAL "${CUDA_cublas_LIBRARY}" )
   endif()
 
+  if( CUDA_VERSION_MAJOR GREATER_EQUAL 10 AND VIAME_ENABLE_CAFFE )
+    message( FATAL_ERROR "Caffe does not support CUDA 10 or above" )
+  endif()
+
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
   mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
 else()
