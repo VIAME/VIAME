@@ -12,5 +12,5 @@ option( KWIVER_ENABLE_QT
   )
 
 if( KWIVER_ENABLE_QT )
-  find_package( Qt5 REQUIRED COMPONENTS Core Gui )
+  find_package( Qt5 5.10 REQUIRED COMPONENTS Core Gui )
 endif( KWIVER_ENABLE_QT )
