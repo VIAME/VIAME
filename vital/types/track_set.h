@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -430,7 +430,8 @@ public:
   virtual frame_id_t offset_to_frame( frame_id_t offset ) const;
 
   /// Clone this track set implementation
-  virtual track_set_implementation_uptr clone() const = 0;
+  virtual track_set_implementation_uptr clone(
+    clone_type = clone_type::DEEP ) const = 0;
 };
 
 
@@ -646,17 +647,21 @@ public:
     return impl_->offset_to_frame(offset);
   }
 
-  virtual track_set_sptr clone() const;
+  virtual track_set_sptr clone( clone_type = clone_type::DEEP ) const;
 
   /// Merges the other feature track set into this feature track set.
   /**
-  * \param [in] other  the other feature track set to merge into this one
-  * \param [in] do_not_append_tracks if true, the other tracks are cloned and assigned a new track id.
-  *  if false, if the same track id is found in other and in the current feature track set, then
-  *  track states from other are cloned and appended to this object's track.
+  * \param other The other feature track set to merge into this one.
+  * \param clone_method How to clone track states, if needed.
+  * \param do_not_append_tracks
+  *   If \c true, the other tracks are cloned and assigned a new track id. If
+  *   \c false, if the same track id is found in other and in the current
+  *   track set, then track states from other are cloned and appended to this
+  *   object's track.
   */
   virtual void merge_in_other_track_set(
-    track_set_sptr other,
+    track_set_sptr const& other,
+    clone_type clone_method = clone_type::SHALLOW,
     bool do_not_append_tracks = false);
 
 protected:
@@ -723,7 +728,8 @@ public:
   virtual bool set_frame_data( track_set_frame_data_sptr data,
                                frame_id_t offset = -1 );
 
-  virtual track_set_implementation_uptr clone() const;
+  track_set_implementation_uptr clone(
+    clone_type = clone_type::DEEP ) const override;
 
 protected:
   /// The vector of tracks

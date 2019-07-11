@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,9 @@ namespace vital {
 
 void
 track_set
-::merge_in_other_track_set(track_set_sptr other, bool do_not_append_tracks)
+::merge_in_other_track_set(
+  track_set_sptr const& other, clone_type clone_method,
+  bool do_not_append_tracks)
 {
   auto ot = other->tracks();
 
@@ -56,13 +58,13 @@ track_set
     auto ct = this->get_track(t->id());
     if (!ct)
     {
-      this->insert(t->clone());
+      this->insert(t->clone( clone_method ));
     }
     else
     {
       if (do_not_append_tracks)
       {
-        auto tc = t->clone();
+        auto tc = t->clone( clone_method );
         tc->set_id(next_track_id++);
         this->insert(tc);
       }
@@ -70,7 +72,7 @@ track_set
       {
         for (auto ts : *t)
         {
-          auto ts_clone = ts->clone();
+          auto ts_clone = ts->clone( clone_method );
           if (ct->back()->frame() < ts_clone->frame())
           {
             if (ct->append(ts_clone))
@@ -475,9 +477,9 @@ track_set
 
 track_set_sptr
 track_set
-::clone() const {
+::clone( clone_type ct ) const {
 
-  track_set_implementation_uptr my_impl = impl_->clone();
+  track_set_implementation_uptr my_impl = impl_->clone( ct );
 
   track_set_sptr ts = std::make_shared<track_set>(std::move(my_impl));
 
@@ -578,21 +580,18 @@ simple_track_set_implementation
 
 track_set_implementation_uptr
 simple_track_set_implementation
-::clone() const
+::clone( clone_type ct ) const
 {
   std::unique_ptr<simple_track_set_implementation> new_stsi =
     std::unique_ptr<simple_track_set_implementation>(new simple_track_set_implementation());
 
-  for (auto trk : data_)
+  for ( auto const& trk : data_ )
   {
-    new_stsi->data_.push_back(trk->clone());
+    new_stsi->data_.emplace_back( trk->clone( ct ) );
   }
-  for (auto fd : frame_data_)
+  for ( auto const& fd : frame_data_ )
   {
-    if ( fd.second )
-    {
-      new_stsi->frame_data_[fd.first] = fd.second->clone();
-    }
+    new_stsi->frame_data_.emplace( fd.first, fd.second->clone() );
   }
 
   std::unique_ptr<track_set_implementation> new_tsi(new_stsi.get());

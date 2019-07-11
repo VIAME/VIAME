@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -159,7 +159,8 @@ public:
   virtual bool set_frame_data( vital::track_set_frame_data_sptr data,
                                vital::frame_id_t offset = -1 );
 
-  virtual vital::track_set_implementation_uptr clone() const;
+  vital::track_set_implementation_uptr clone(
+    vital::clone_type = vital::clone_type::DEEP ) const override;
 
 protected:
   /// Populate frame_map_ with data from all_tracks_

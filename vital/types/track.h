@@ -48,19 +48,30 @@
 namespace kwiver {
 namespace vital {
 
-
-/// Forward declaration of track object
 class track;
 class track_state;
+using track_sptr = std::shared_ptr< track >;
+using track_state_sptr = std::shared_ptr< track_state >;
 
 constexpr track_id_t invalid_track_id = -1;
 
+// ----------------------------------------------------------------------------
+class VITAL_EXPORT track_ref : public std::weak_ptr< track >
+{
+public:
+  track_ref() = default;
+  track_ref( track_ref const& other ) {}
+  track_ref( track_ref&& other ) {}
 
-/// Shared pointers for general track type
-typedef std::shared_ptr< track > track_sptr;
-typedef std::weak_ptr< track > track_wptr;
-typedef std::shared_ptr< track_state > track_state_sptr;
+  track_ref& operator= ( track_ref const& rhs ) = delete;
+  track_ref& operator= ( track_ref&& rhs ) = delete;
 
+  track_ref& operator= ( track_sptr const& rhs )
+  {
+    this->std::weak_ptr< track >::operator= ( rhs );
+    return *this;
+  }
+};
 
 // ----------------------------------------------------------------------------
 /// Empty base class for data associated with a track state
@@ -68,25 +79,22 @@ class VITAL_EXPORT track_state
 {
 public:
   friend class track;
-  
-  track_state( )
-    : frame_id_( 0 )
-  { } 
-  //  Constructor
+
+  track_state() = default;
+
+  /// Constructor
   track_state( frame_id_t frame )
     : frame_id_( frame )
-  { }
+  {}
 
-  /// Copy Constructor
-  track_state( track_state const& other )
-    : frame_id_( other.frame_id_ )
-  { }
+  /// Copy constructor
+  track_state( track_state const& other ) = default;
 
-  /// Assignment Operator
-  track_state& operator= ( track_state const& rhs ) = delete;
+  /// Move constructor
+  track_state( track_state&& other ) = default;
 
   /// Clone the track state (polymorphic copy constructor)
-  virtual track_state_sptr clone() const
+  virtual track_state_sptr clone( clone_type = clone_type::DEEP ) const
   {
     return std::make_shared<track_state>( *this );
   }
@@ -96,8 +104,8 @@ public:
 
   /// Access the track containing this state
   track_sptr track() const { return track_.lock(); }
-  
-  /// Set the frame identifier 
+
+  /// Set the frame identifier
   void set_frame( frame_id_t frame_id ) { frame_id_ = frame_id; }
 
   virtual ~track_state() = default;
@@ -106,10 +114,10 @@ public:
 
 private:
   /// The frame identifier for this state
-  frame_id_t frame_id_;
+  frame_id_t frame_id_ = 0;
 
   /// A weak reference back to the parent track
-  track_wptr track_;
+  track_ref track_;
 };
 
 
@@ -181,7 +189,7 @@ public:
   static track_sptr create( track_data_sptr data = nullptr );
 
   /// Clone
-  track_sptr clone() const;
+  track_sptr clone( clone_type = clone_type::DEEP ) const;
 
   /// Access the track identification number
   track_id_t id() const { return id_; }

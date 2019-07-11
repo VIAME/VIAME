@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,41 +59,64 @@ namespace vital {
 class VITAL_EXPORT object_track_state : public track_state
 {
 public:
+  object_track_state() = default;
 
-  object_track_state()
-    : track_state( 0 )
-      , detection( nullptr ) 
-      , time_( 0 )
-  {}
-  
+  //@{
   /// Default constructor
   object_track_state( frame_id_t frame,
                       time_usec_t time,
-                      detected_object_sptr d = nullptr )
+                      detected_object_sptr const& d = nullptr )
     : track_state( frame )
     , detection( d )
     , time_( time )
   {}
 
+  object_track_state( frame_id_t frame,
+                      time_usec_t time,
+                      detected_object_sptr&& d )
+    : track_state( frame )
+    , detection( std::move( d ) )
+    , time_( time )
+  {}
+  //@}
+
+  //@{
   /// Alternative constructor
-  object_track_state( const timestamp& ts,
-                      detected_object_sptr d = nullptr )
+  object_track_state( timestamp const& ts,
+                      detected_object_sptr const& d = nullptr )
     : track_state( ts.get_frame() )
     , detection( d )
     , time_( ts.get_time_usec() )
   {}
 
-  /// Copy constructor
-  object_track_state( object_track_state const& ot )
-    : track_state( ot.frame() )
-    , detection( ot.detection )
-    , time_( ot.time() )
+  object_track_state( timestamp const& ts,
+                      detected_object_sptr&& d )
+    : track_state( ts.get_frame() )
+    , detection( std::move( d ) )
+    , time_( ts.get_time_usec() )
   {}
+  //@}
+
+  /// Copy constructor
+  object_track_state( object_track_state const& other ) = default;
+
+  /// Move constructor
+  object_track_state( object_track_state&& other ) = default;
 
   /// Clone the track state (polymorphic copy constructor)
-  virtual track_state_sptr clone() const
+  track_state_sptr clone( clone_type ct = clone_type::DEEP ) const override
   {
-    return std::make_shared< object_track_state >( *this );
+    if ( ct == clone_type::DEEP )
+    {
+      auto new_detection =
+        ( this->detection ? this->detection->clone() : nullptr );
+      return std::make_shared< object_track_state >(
+        this->frame(), this->time(), std::move( new_detection ) );
+    }
+    else
+    {
+      return std::make_shared< object_track_state >( *this );
+    }
   }
 
   void set_time( time_usec_t time )
@@ -118,7 +141,7 @@ public:
   static constexpr auto downcast_transform = range::transform( downcast );
 
 private:
-  time_usec_t time_;
+  time_usec_t time_ = 0;
 };
 
 

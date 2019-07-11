@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,10 +70,10 @@ feature_track_set
 
 track_set_sptr
 feature_track_set
-::clone() const
+::clone( clone_type ct ) const
 {
   track_set_implementation_uptr new_imp =
-    this->impl_->clone();
+    this->impl_->clone( ct );
   feature_track_set_sptr new_fts =
     std::make_shared<feature_track_set>(std::move(new_imp));
   return std::dynamic_pointer_cast<track_set>(new_fts);
