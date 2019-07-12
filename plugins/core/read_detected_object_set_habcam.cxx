@@ -403,7 +403,7 @@ read_all()
     // Automatically figure out delim if not set
     if( m_delim.empty() )
     {
-      if( line.find( ',' ) )
+      if( line.find( ',' ) != std::string::npos )
       {
         m_delim = ",";
         m_detected_version = 2;
