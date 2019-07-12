@@ -22,7 +22,7 @@ Linux:
 2. Copy setup_viame.sh.install over setup_viame.sh
 3. During create_package call, copy in libpython temporarily then remove
 4. Verify libsvm.so link is valid, if not remake
-5. Copy libcudart.so.9.0, libcusparse.so.9.0, libcufft.so.9.0 into lib if using CUDA
+5. Copy libcudart.so.9.0, libcusparse.so.9.0, libcufft.so.9.0 libcusolver.so.9.0 into lib if using CUDA
 6. Copy libva.so.1, libreadline.so.6, libdc1394.so.22 into install since packager broken
 7. Ubuntu compatability if no MPI install: libhwloc.so.5 libmpi_cxx.so.1
       libnvToolsExt.so.1 libopen-rte.so.12 libibverbs.so.1 libmpi.so.12 libopen-pal.so.13
