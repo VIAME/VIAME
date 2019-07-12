@@ -43,6 +43,7 @@ set( FIXUP_DIRS )
 
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/bin )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib64 )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/include )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/plugins )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/sprokit )
@@ -72,6 +73,15 @@ fixup_bundle(
 if( "@DARKNET_APP@" )
   fixup_bundle(
     "${CMAKE_INSTALL_PREFIX}/bin/@DARKNET_APP@"
+    ""
+    "${FIXUP_DIRS}"
+    IGNORE_ITEM "libpython3.6m.so.1.0"
+    )
+endif()
+
+if( "@SEAL_TK_APP@" )
+  fixup_bundle(
+    "${CMAKE_INSTALL_PREFIX}/bin/@SEAL_TK_APP@"
     ""
     "${FIXUP_DIRS}"
     IGNORE_ITEM "libpython3.6m.so.1.0"
