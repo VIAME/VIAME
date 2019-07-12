@@ -1140,7 +1140,7 @@ main( int argc, char* argv[] )
     {
       if( class_count[ cls ] == 0 )
       {
-        std::cout << "Error: no entries in groundtruth of class " << cls << std::endl;
+        std::cout << "Error: no entries in groundtruth of class " << cls << std::endl << std::endl;
         std::cout << "Optionally set \"check_override\" parameter to ignore this check." << std::endl;
         exit( 0 );
       }
