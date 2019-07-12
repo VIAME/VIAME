@@ -1128,9 +1128,9 @@ main( int argc, char* argv[] )
     }
     else // Not okay
     {
-      std::cout << "Error: input labels.txt contains multiple classes, but supplied truth file "
-                   "does not contain the training classes of interest, or there was an error "
-                   "reading them from the input truth file." << std::endl;
+      std::cout << "Error: input labels.txt contains multiple classes, but supplied truth files "
+                   "do not contain the training classes of interest, or there was an error "
+                   "reading them from the input annotations." << std::endl;
       return 0;
     }
   }
