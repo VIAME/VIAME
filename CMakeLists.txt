@@ -546,6 +546,16 @@ else()
       set( DARKNET_APP )
     endif()
 
+    if( VIAME_ENABLE_SEAL_TK )
+      if( WIN32 )
+        set( SEAL_TK_APP "sealtk.exe" )
+      else()
+        set( SEAL_TK_APP "sealtk" )
+      endif()
+    else()
+      set( SEAL_TK_APP )
+    endif()
+
     configure_file(
       ${CMAKE_SOURCE_DIR}/cmake/viame-install-fixup.cmake.in
       ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake
