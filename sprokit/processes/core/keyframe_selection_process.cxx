@@ -49,7 +49,20 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver
 {
 
-  create_config_trait( keyframe_selection, std::string, "", "Algorithm configuration subblock." )
+create_config_trait( keyframe_selection, std::string, "", "Algorithm configuration subblock." )
+
+create_port_trait( next_tracks, feature_track_set,
+                   "feature track set for the next frame.");
+
+create_port_trait( loop_back_tracks, feature_track_set,
+                   "feature track set from last call to keyframe_selection_process.");
+
+create_port_trait( only_frame_data_tracks, feature_track_set,
+                   "output track set with only frame data, no klt tracks.");
+
+create_port_trait( to_loop_back_tracks, feature_track_set,
+                   "accumulated klt tracks");
+
 
 /**
  * \class keyframe_selection_process
@@ -139,7 +152,7 @@ void keyframe_selection_process
   algo::keyframe_selection::set_nested_algo_configuration(algo_name, algo_config, d->m_keyframe_selection );
   if ( ! d->m_keyframe_selection )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create keyframe_selection" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create keyframe_selection" );
   }
 
   algo::keyframe_selection::get_nested_algo_configuration(algo_name, algo_config, d->m_keyframe_selection);
@@ -147,7 +160,7 @@ void keyframe_selection_process
   //// Check config so it will give run-time diagnostic if any config problems are found
   if ( ! algo::keyframe_selection::check_nested_algo_configuration(algo_name, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -159,16 +172,14 @@ keyframe_selection_process
 {
   // timestamp
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
-  vital::feature_track_set_sptr next_tracks =
-    grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
+  vital::feature_track_set_sptr next_tracks = grab_from_port_using_trait( next_tracks );
 
   next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
 
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first_frame)
   {
-    vital::feature_track_set_sptr loop_back_tracks =
-      grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
+    vital::feature_track_set_sptr loop_back_tracks = grab_from_port_using_trait( loop_back_tracks );
 
     loop_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
 
@@ -201,7 +212,7 @@ keyframe_selection_process
   }
 
   // return by value
-  push_to_port_as<vital::feature_track_set_sptr>("to_loop_back_tracks", new_kf_tracks);
+  push_to_port_using_trait(to_loop_back_tracks, new_kf_tracks);
 
   typedef std::unique_ptr<vital::track_set_implementation> tsi_uptr;
 
@@ -210,8 +221,7 @@ keyframe_selection_process
 
   continuing_tracks->set_frame_data(new_kf_tracks->all_frame_data());
 
-  push_to_port_as<vital::feature_track_set_sptr>("only_frame_data_tracks", continuing_tracks);
-
+  push_to_port_using_trait(only_frame_data_tracks, continuing_tracks);
 }
 
 
@@ -221,26 +231,18 @@ void keyframe_selection_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t no_dep;
   required.insert( flag_required );
-  optional.insert( flag_input_nodep );
+  no_dep.insert( flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( timestamp, required );
-
-  declare_input_port("next_tracks", "kwiver:feature_track_set", required,
-    "feature track set for the next frame.");
-
-  declare_input_port("loop_back_tracks", "kwiver:feature_track_set", optional,
-    "feature track set from last call to keyframe_selection_process.");
+  declare_input_port_using_trait( next_tracks, required );
+  declare_input_port_using_trait( loop_back_tracks, no_dep );
 
   // -- output --
-  declare_output_port("only_frame_data_tracks", "kwiver:feature_track_set",
-    required, "output track set with only frame data, no klt tracks.");
-
-  declare_output_port("to_loop_back_tracks", "kwiver:feature_track_set",
-    required, "accumulated klt tracks");
-
+  declare_input_port_using_trait( only_frame_data_tracks, required );
+  declare_input_port_using_trait( to_loop_back_tracks, required );
 }
 
 
