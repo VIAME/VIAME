@@ -56,6 +56,10 @@ namespace viame {
 /// 201503.20150525.101430169.572475.png,185,live sea scallop,"""line"": ...
 /// ...[[963.3651240907222, 1011.8916075814615], [964.870387904199, 966.7336931771592]]"
 ///
+/// or alternatively for version 3:
+///
+/// "201503.20150525.102214751.575250.png" 185 "boundingBox" 1195 380 1239 424
+///
 /// 1: image name
 /// 2: species code
 /// 3: date?
@@ -86,6 +90,10 @@ public:
   void init_species_map();
   std::string decode_species( int code );
   void parse_detection( const std::vector< std::string >& parsed_line );
+
+  bool parse_box( const std::vector< std::string >& parsed_line,
+                  unsigned index,
+                  kwiver::vital::bounding_box_d& bbox );
 
   // -- initialized data --
   read_detected_object_set_habcam* m_parent;
@@ -243,96 +251,7 @@ parse_detection( const std::vector< std::string >& parsed_line )
   kwiver::vital::bounding_box_d bbox( 0, 0, 0, 0 );
 
   // Generate bbox based on annotation type
-  if ( "boundingBox" == parsed_line[3] )
-  {
-    if ( parsed_line.size() == 8 )
-    {
-      bbox = kwiver::vital::bounding_box_d(
-        atof( parsed_line[4].c_str() ),
-        atof( parsed_line[5].c_str() ),
-        atof( parsed_line[6].c_str() ),
-        atof( parsed_line[7].c_str() ) );
-    }
-    else
-    {
-      // invalid line format
-      LOG_WARN( m_parent->logger(), "Invalid format for boundingBox annotation" );
-      return;
-    }
-  }
-  else if ( "line" == parsed_line[3] )
-  {
-    if ( parsed_line.size() == 8 )
-    {
-      const double x1 = atof( parsed_line[4].c_str() );
-      const double y1 = atof( parsed_line[5].c_str() );
-      const double x2 = atof( parsed_line[6].c_str() );
-      const double y2 = atof( parsed_line[7].c_str() );
-
-      const double cx = ( x1 + x2 ) / 2;
-      const double cy = ( y1 + y2 ) / 2;
-
-      const double dx = x1 - cx;
-      const double dy = y1 - cy;
-      const double r = sqrt( ( dx * dx ) + ( dy * dy ) );
-
-      bbox = kwiver::vital::bounding_box_d(
-        cx - r, cy - r,
-        cx + r, cy + r );
-    }
-    else
-    {
-      // invalid line format
-      LOG_WARN( m_parent->logger(), "Invalid format for line annotation" );
-      return;
-    }
-  }
-  else if ( "point" == parsed_line[3] )
-  {
-    if ( parsed_line.size() == 6 )
-    {
-      const double cx = atof( parsed_line[4].c_str() );
-      const double cy = atof( parsed_line[5].c_str() );
-
-      bbox = kwiver::vital::bounding_box_d(
-        cx - m_point_dilation, cy - m_point_dilation,
-        cx + m_point_dilation, cy + m_point_dilation );
-    }
-    else
-    {
-      // invalid line format
-      LOG_WARN( m_parent->logger(), "Invalid format for point annotation" );
-      return;
-    }
-  }
-  else if ( "circle" == parsed_line[3] )
-  {
-    if ( parsed_line.size() == 8 )
-    {
-      const double x1 = atof( parsed_line[4].c_str() );
-      const double y1 = atof( parsed_line[5].c_str() );
-      const double x2 = atof( parsed_line[6].c_str() );
-      const double y2 = atof( parsed_line[7].c_str() );
-
-      const double cx = ( x1 + x2 ) / 2;
-      const double cy = ( y1 + y2 ) / 2;
-
-      const double dx = x1 - cx;
-      const double dy = y1 - cy;
-      const double r = sqrt( ( dx * dx ) + ( dy * dy ) );
-
-      bbox = kwiver::vital::bounding_box_d(
-        cx - r, cy - r,
-        cx + r, cy + r );
-    }
-    else
-    {
-      // invalid line format
-      LOG_WARN( m_parent->logger(), "Invalid format for circle annotation" );
-      return;
-    }
-  }
-  else
+  if ( !parse_box( parsed_line, 3, bbox ) && !parse_box( parsed_line, 2, bbox ) )
   {
     // Unknown annotation type
     LOG_WARN( m_parent->logger(), "Unknown annotation type \"" << parsed_line[3] << "\"" );
@@ -342,6 +261,108 @@ parse_detection( const std::vector< std::string >& parsed_line )
   m_gt_sets[ parsed_line[0] ]->add(
     std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
 } // read_detected_object_set_habcam::priv::add_detection
+
+
+// -----------------------------------------------------------------------------
+bool
+read_detected_object_set_habcam::priv::
+parse_box( const std::vector< std::string >& parsed_line,
+           unsigned index,
+           kwiver::vital::bounding_box_d& bbox )
+{
+  // Generate bbox based on annotation type
+  if ( "boundingBox" == parsed_line[ index ] )
+  {
+    if ( parsed_line.size() > index + 4 )
+    {
+      bbox = kwiver::vital::bounding_box_d(
+        atof( parsed_line[ index + 1 ].c_str() ),
+        atof( parsed_line[ index + 2 ].c_str() ),
+        atof( parsed_line[ index + 3 ].c_str() ),
+        atof( parsed_line[ index + 4 ].c_str() ) );
+    }
+    else
+    {
+      LOG_WARN( m_parent->logger(), "Invalid format for boundingBox annotation" );
+      return false;
+    }
+  }
+  else if ( "line" == parsed_line[ index ] )
+  {
+    if ( parsed_line.size() > index + 4 )
+    {
+      const double x1 = atof( parsed_line[ index + 1 ].c_str() );
+      const double y1 = atof( parsed_line[ index + 2 ].c_str() );
+      const double x2 = atof( parsed_line[ index + 3 ].c_str() );
+      const double y2 = atof( parsed_line[ index + 4 ].c_str() );
+
+      const double cx = ( x1 + x2 ) / 2;
+      const double cy = ( y1 + y2 ) / 2;
+
+      const double dx = x1 - cx;
+      const double dy = y1 - cy;
+      const double r = sqrt( ( dx * dx ) + ( dy * dy ) );
+
+      bbox = kwiver::vital::bounding_box_d(
+        cx - r, cy - r,
+        cx + r, cy + r );
+    }
+    else
+    {
+      LOG_WARN( m_parent->logger(), "Invalid format for line annotation" );
+      return false;
+    }
+  }
+  else if ( "point" == parsed_line[ index ] )
+  {
+    if ( parsed_line.size() > index + 2 )
+    {
+      const double cx = atof( parsed_line[ index + 1 ].c_str() );
+      const double cy = atof( parsed_line[ index + 2 ].c_str() );
+
+      bbox = kwiver::vital::bounding_box_d(
+        cx - m_point_dilation, cy - m_point_dilation,
+        cx + m_point_dilation, cy + m_point_dilation );
+    }
+    else
+    {
+      LOG_WARN( m_parent->logger(), "Invalid format for point annotation" );
+      return false;
+    }
+  }
+  else if ( "circle" == parsed_line[index] )
+  {
+    if ( parsed_line.size() > index + 4 )
+    {
+      const double x1 = atof( parsed_line[ index + 1 ].c_str() );
+      const double y1 = atof( parsed_line[ index + 2 ].c_str() );
+      const double x2 = atof( parsed_line[ index + 3 ].c_str() );
+      const double y2 = atof( parsed_line[ index + 4 ].c_str() );
+
+      const double cx = ( x1 + x2 ) / 2;
+      const double cy = ( y1 + y2 ) / 2;
+
+      const double dx = x1 - cx;
+      const double dy = y1 - cy;
+      const double r = sqrt( ( dx * dx ) + ( dy * dy ) );
+
+      bbox = kwiver::vital::bounding_box_d(
+        cx - r, cy - r,
+        cx + r, cy + r );
+    }
+    else
+    {
+      LOG_WARN( m_parent->logger(), "Invalid format for circle annotation" );
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+
+  return true;
+} // read_detected_object_set_habcam::priv::parse_box
 
 
 // -----------------------------------------------------------------------------
@@ -400,6 +421,10 @@ read_all()
       line.erase( std::remove( line.begin(), line.end(), ']' ), line.end() );
       line.erase( std::remove( line.begin(), line.end(), '\"' ), line.end() );
       line.erase( std::remove( line.begin(), line.end(), ':' ), line.end() );
+    }
+    else
+    {
+      line.erase( std::remove( line.begin(), line.end(), '"' ), line.end() );
     }
 
     std::vector< std::string > parsed_line;
