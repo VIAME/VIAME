@@ -256,7 +256,7 @@ if( VIAME_ENABLE_OPENCV )
       -DOpenCV_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/OpenCV-build
       )
   else()
-    set(VIAME_ARGS_fletch
+    set( VIAME_ARGS_fletch
       ${VIAME_ARGS_fletch}
       -DOpenCV_DIR:PATH=${EXTERNAL_OpenCV}
       )
@@ -264,27 +264,27 @@ if( VIAME_ENABLE_OPENCV )
 endif()
 
 if( VIAME_ENABLE_CAFFE )
-  set(VIAME_ARGS_fletch
+  set( VIAME_ARGS_fletch
      ${VIAME_ARGS_fletch}
     -DCaffe_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/Caffe-build
     )
 endif()
 
 if( VIAME_ENABLE_VIVIA )
-  set(VIAME_ARGS_libkml
+  set( VIAME_ARGS_libkml
      ${VIAME_ARGS_libkml}
     -DKML_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/libkml-build
     )
-  set(VIAME_ARGS_VTK
+  set( VIAME_ARGS_VTK
      ${VIAME_ARGS_VTK}
     -DVTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VTK-build
     )
-  set(VIAME_ARGS_PROJ4
+  set( VIAME_ARGS_PROJ4
      ${VIAME_ARGS_PROJ4}
     -DPROJ4_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/include
     )
   if( WIN32 )
-    set(VIAME_ARGS_PROJ4
+    set( VIAME_ARGS_PROJ4
        ${VIAME_ARGS_PROJ4}
       -DPROJ4_LIBRARY:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/proj_4_9.lib
       )
@@ -293,12 +293,12 @@ endif()
 
 if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
   if( WIN32 )
-    set(VIAME_ARGS_Qt
+    set( VIAME_ARGS_Qt
        ${VIAME_ARGS_Qt}
        -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake.exe
     )
   else()
-    set(VIAME_ARGS_Qt
+    set( VIAME_ARGS_Qt
        ${VIAME_ARGS_Qt}
        -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake
     )
@@ -306,12 +306,19 @@ if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
 endif()
 
 if( VIAME_ENABLE_VXL )
-  set(VIAME_ARGS_VXL
+  set( VIAME_ARGS_VXL
     ${VIAME_ARGS_VXL}
     -DVXL_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VXL-build
     )
-  set(VIAME_ARGS_VXL_INSTALL
+  set( VIAME_ARGS_VXL_INSTALL
     ${VIAME_ARGS_VXL_INSTALL}
     -DVXL_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/share/vxl/cmake
+    )
+endif()
+
+if( VIAME_ENABLE_ITK )
+  set( VIAME_ARGS_ITK
+    ${VIAME_ARGS_ITK}
+    -DITK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/ITK-build
     )
 endif()
