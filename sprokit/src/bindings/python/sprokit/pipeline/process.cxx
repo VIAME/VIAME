@@ -792,7 +792,6 @@ grab_from_port(sprokit::process &self, sprokit::process::port_t const& port)
   return wrap_edge_datum(((wrap_process*) self_ptr)->grab_from_port(port));
 }
 
-
 object
 grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port)
 {
