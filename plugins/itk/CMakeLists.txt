@@ -52,9 +52,9 @@ target_link_libraries( viame_itk
                        ITKIOGE ITKIOIPL ITKIOGIPL ITKIOGDCM
                        ITKIOHDF5 ITKIOJPEG ITKIOJPEG2000 ITKIOLSM
                        ITKIOTIFF ITKIOMINC ITKIOMRC ITKIOMeta
-                       ITKIONIFTI ITKIONRRD ITKIOPNG ITKIOStimulate
-                       ITKIOVTK ITKIOMesh ITKIOMeshBYU ITKIOMeshBase
-                       ITKIOTransformMatlab ITKIOBMP ITKIOBioRad
+                       ITKIONIFTI ITKIONRRD ITKIOPNG ITKIOStimulate ITKIOVTK
+                       ITKIOMeshOFF ITKIOMeshOBJ ITKIOMeshBYU ITKIOMeshBase
+                       ITKIOMeshGifti ITKIOTransformMatlab ITKIOBMP ITKIOBioRad
                        ITKIOBruker ITKIOImageBase ITKIOSpatialObjects
   )
 
