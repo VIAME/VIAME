@@ -271,7 +271,7 @@ if( WIN32 AND VIAME_ENABLE_PYTHON AND CMAKE_CONFIGURATION_TYPES EQUAL "Debug" )
 endif()
 
 if( VIAME_ENABLE_OPENCV )
-  set( VIAME_OPENCV_VERSION 2.4.13 CACHE STRING "Version of OpenCV to use" )
+  set( VIAME_OPENCV_VERSION 3.4.0 CACHE STRING "Version of OpenCV to use" )
   set_property( CACHE VIAME_OPENCV_VERSION PROPERTY STRINGS 2.4.13 3.4.0 )
 
   # Version 2.4.11 no longer present fletch
