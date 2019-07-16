@@ -79,21 +79,25 @@ mark_as_advanced( VIAME_ENABLE_SEAL_TK )
 mark_as_advanced( VIAME_ENABLE_FLASK )
 
 ###
-# Add algorithmic plugin enable flags
+# Add default-enabled algorithmic plugin enable flags
 ##
 option( VIAME_ENABLE_VXL            "Enable VXL plugins"            ON )
 option( VIAME_ENABLE_OPENCV         "Enable OpenCV plugins"         ON )
-option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_PYTHON         "Enable Python plugins"         ON )
+option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
+option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
+option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
+
+###
+# Add secondary plugin enable flags
+##
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
 option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
-option( VIAME_ENABLE_PYTORCH        "Enable PyTorch plugins"        ON )
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
+option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
-option( VIAME_ENABLE_YOLO           "Enable YOLO (darknet) plugin"  ON )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
-option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
 
 mark_as_advanced( VIAME_ENABLE_CAFFE )
