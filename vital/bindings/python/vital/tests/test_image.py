@@ -38,7 +38,7 @@ import nose.tools
 
 from vital.types import Image
 import numpy as np
-
+from vital.tests.helpers import create_numpy_image, map_dtype_name_to_pixel_type
 
 class TestVitalImage (object):
 
@@ -104,46 +104,13 @@ class TestVitalImage (object):
                        'float64']
 
         def _test_numpy(dtype_name, nchannels, order='c'):
-            if nchannels is None:
-                shape = (5, 4)
-            else:
-                shape = (5, 4, nchannels)
-            size = np.prod(shape)
-
-            dtype = np.dtype(dtype_name)
-
-            if dtype_name == 'bool':
-                np_img = np.zeros(size, dtype=dtype).reshape(shape)
-                np_img[0::2] = 1
-            else:
-                np_img = np.arange(size, dtype=dtype).reshape(shape)
-
-            if order.startswith('c'):
-                np_img = np.ascontiguousarray(np_img)
-            elif order.startswith('fortran'):
-                np_img = np.asfortranarray(np_img)
-            else:
-                raise KeyError(order)
-            if order.endswith('-reverse'):
-                np_img = np_img[::-1, ::-1]
-
+            np_img = create_numpy_image(dtype_name, nchannels, order)
             vital_img = Image(np_img)
             recast = vital_img.asarray()
-
-            if nchannels is None:
-                # asarray always returns 3 channels
-                np_img = np_img[..., None]
-
+            # asarray always returns 3 channels
+            np_img = np.atleast_3d(np_img)
             pixel_type_name = vital_img.pixel_type_name()
-
-            if dtype_name == 'float16':
-                want = 'float16'
-            if dtype_name == 'float32':
-                want = 'float'
-            elif dtype_name == 'float64':
-                want = 'double'
-            else:
-                want = dtype_name
+            want = map_dtype_name_to_pixel_type(dtype_name)
 
             assert pixel_type_name == want, 'want={} but got={}'.format(
                 want, pixel_type_name)
