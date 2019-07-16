@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,7 @@ public:
   using transform_function_t = Functor;
 
   transform_view( transform_view const& ) = default;
+  transform_view( transform_view&& ) = default;
 
   class iterator
   {
@@ -83,7 +84,7 @@ public:
     bool operator!=( iterator const& other ) const
     { return m_iter != other.m_iter; }
 
-    value_t operator*() const {  return m_func( *m_iter ); }
+    value_t operator*() const { return m_func( *m_iter ); }
 
     iterator& operator++() { ++m_iter; return *this; }
 
@@ -97,8 +98,8 @@ public:
     transform_function_t m_func;
   };
 
-  transform_view( Range const& range, transform_function_t func )
-    : m_range{ range }, m_func{ func } {}
+  transform_view( Range&& range, transform_function_t func )
+    : m_range( std::forward< Range >( range ) ), m_func( func ) {}
 
   iterator begin() const { return { m_range.begin(), m_func }; }
   iterator end() const { return { m_range.end(), m_func }; }
