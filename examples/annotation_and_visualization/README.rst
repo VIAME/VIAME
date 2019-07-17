@@ -34,10 +34,12 @@ vpView Annotation Process Overview
 **********************************
 
 | `Manual Annotation Guide (PDF)`_
-| `Example Video Overview (MP4)`_
+| `Example Video Overview (MP4)`_, `VIMEO`_, `YouTube`_
 
 .. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5c6574668d777f072b47cbd6/download
 .. _Example Video Overview (MP4): https://data.kitware.com/api/v1/item/5d2f2f32877dfcc9020fcbe2/download
+.. _VIMEO: https://vimeo.com/user100902888
+.. _YouTube: https://youtu.be/o4_QX0DdOHU
 
 ************************************
 Notable Annotation GUI Shortcut Keys
