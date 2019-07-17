@@ -53,9 +53,10 @@ vpView GUI Project File Overview
 ********************************
 
 Examples of the optional contents of loadable prj files are listed below for quick reference.
-For those not familiary with the tool, downloading the above manual is best. Project files
+For those not familiar with the tool, downloading the above manual is best. Project files
 no longer need to be used (imagery can be opened directly via the 'New Project' dropdown),
-however, these are listed here for advanced users.
+however, these are listed here for advanced users who may want to configure with multiple
+homographies.
 
 Note: The list is not complete, but currently focusing on the most used (and new) parameters
 
