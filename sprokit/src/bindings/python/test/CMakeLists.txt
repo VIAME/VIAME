@@ -4,10 +4,6 @@ kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/test.py
   sprokit/test
   test)
 
-kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/test_process.py
-  sprokit/test
-  test_process)
-
 kwiver_create_python_init(sprokit/test)
 
 if (KWIVER_ENABLE_TESTS)
