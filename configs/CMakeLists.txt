@@ -104,6 +104,15 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_transforms-v0.2.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
+
+  # PySOT Tracking Models
+  if( VIAME_ENABLE_PYTORCH-PYSOT )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5d2f87ac877dfcc90212d12c/download
+      33a518bdeb07c46e33da6abcd6b96137
+      ${VIAME_DOWNLOAD_DIR}/models-pysot_siammask_siamrpn_models-v1.0.0.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+  endif()
 endif()
 
 ###
@@ -251,6 +260,11 @@ if( VIAME_ENABLE_VIVIA )
       pipelines/embedded_single_stream/arctic_seal_ir_yolo_detector.pipe )
   endif()
 
+  if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
+    set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+      pipelines/embedded_single_stream/pysot_tracker.pipe )
+  endif()
+
   install( FILES       ${GUI_PIPELINE_FILES}
            DESTINATION configs/pipelines/embedded_single_stream )
 endif()
@@ -287,6 +301,12 @@ if( VIAME_ENABLE_PYTORCH )
     pipelines/train_mmdet_cascade.viame_csv.conf
     pipelines/train_mmdet_cascade_icm.viame_csv.conf
     pipelines/train_mmdet_cascade_ihm.viame_csv.conf )
+endif()
+
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYSOT )
+  set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
+    pipelines/pysot_common_default_tracker.pipe
+    pipelines/pysot_tracker_default.pipe )
 endif()
 
 if( VIAME_ENABLE_ITK )

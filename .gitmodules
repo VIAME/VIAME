@@ -37,6 +37,9 @@
 [submodule "packages/pytorch-libs/netharn"]
 	path = packages/pytorch-libs/netharn
 	url = https://github.com/Erotemic/netharn.git
+[submodule "packages/pytorch-libs/pysot"]
+	path = packages/pytorch-libs/pysot
+	url = https://github.com/VIAME/pysot
 [submodule "packages/seal-tk"]
 	path = packages/seal-tk
 	url = https://github.com/Kitware/seal-tk.git
