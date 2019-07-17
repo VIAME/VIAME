@@ -110,7 +110,7 @@ if( VIAME_DOWNLOAD_MODELS )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5d2f87ac877dfcc90212d12c/download
       33a518bdeb07c46e33da6abcd6b96137
-      ${VIAME_DOWNLOAD_DIR}/models-pysot_siammask_siamrpn_models-v1.0.0.tar.gz
+      ${VIAME_DOWNLOAD_DIR}/models-pysot_tracking_models-v1.0.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 endif()
