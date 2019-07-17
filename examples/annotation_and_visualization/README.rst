@@ -37,7 +37,7 @@ vpView Annotation Process Overview
 | `Example Video Overview (MP4)`_
 
 .. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5c6574668d777f072b47cbd6/download
-.. _Example Video Overview (MP4): https://data.kitware.com/api/v1/item/5d2dfb6f877dfcc90209ba97/download
+.. _Example Video Overview (MP4): https://data.kitware.com/api/v1/item/5d2f2f32877dfcc9020fcbe2/download
 
 ************************************
 Notable Annotation GUI Shortcut Keys
