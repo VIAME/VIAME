@@ -109,7 +109,7 @@ if( VIAME_DOWNLOAD_MODELS )
   if( VIAME_ENABLE_PYTORCH-PYSOT )
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5d2f87ac877dfcc90212d12c/download
-      33a518bdeb07c46e33da6abcd6b96137
+      ce3cf69626b6b8724112c7d0a3be66e4
       ${VIAME_DOWNLOAD_DIR}/models-pysot_tracking_models-v1.0.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
