@@ -25,6 +25,11 @@ if( KWIVER_ENABLE_PROCESSES )
   kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
     kwiver/processes/pytorch
     seg_detection )
+
+  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/pysot_tracker.py
+    kwiver/processes/pytorch
+    pysot_tracker )
+
 endif()
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/siamese_feature_extractor.py
