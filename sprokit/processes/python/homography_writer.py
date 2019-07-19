@@ -58,8 +58,8 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
                 print(val, end=' ')
                 self.fout.write( '%.20g ' % val )
 
-        print(h.from_id(), h.to_id())
-        self.fout.write( '%d %d\n' % (h.from_id(), h.to_id()) )
+        print(h.from_id, h.to_id)
+        self.fout.write( '%d %d\n' % (h.from_id, h.to_id) )
         self.fout.flush()
         ## t = h # .transform()
 
