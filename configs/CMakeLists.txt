@@ -119,6 +119,7 @@ set( RUN_SCRIPT_FILES
   score_results.py )
 
 set( CORE_PIPELINE_FILES
+  pipelines/classify_detections_svm.pipe
   pipelines/common_default_descriptor.pipe
   pipelines/common_default_detector.pipe
   pipelines/common_default_detector_with_filter.pipe
