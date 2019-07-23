@@ -131,44 +131,42 @@ convert_to_timestamp( const std::string& filename )
       utc_time_usec =
         static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
     }
-    // Example: calibration_2019_00_C_20190509_035506.681605_ir.tif
-    else if( parts.size() == 7 && parts[4].size() == 8 && parts[5].size() == 13 )
+    // Example: *_20190507_004346.455104*
+    else if( parts.size() > 2 )
     {
-      tm t;
+      for( unsigned i = 0; i < parts.size()-1; i++ )
+      {
+        if( parts[i].size() == 8 &&
+            parts[i][0] == '2' && // Invalid in year 3000, lol, I'll be dead. Maybe O_o.
+            parts[i+1].size() > 10 && parts[i+1][6] == '.' )
+        {
+          tm t;
 
-      t.tm_year = std::stoi( parts[4].substr( 0, 4 ) ) - 1900;
-      t.tm_mon = std::stoi( parts[4].substr( 4, 2 ) ) - 1;
-      t.tm_mday = std::stoi( parts[4].substr( 6, 2 ) );
+          t.tm_year = std::stoi( parts[i].substr( 0, 4 ) ) - 1900;
+          t.tm_mon = std::stoi( parts[i].substr( 4, 2 ) ) - 1;
+          t.tm_mday = std::stoi( parts[i].substr( 6, 2 ) );
 
-      t.tm_hour = std::stoi( parts[5].substr( 0, 2 ) );
-      t.tm_min = std::stoi( parts[5].substr( 2, 2 ) );
-      t.tm_sec = std::stoi( parts[5].substr( 4, 2 ) );
+          t.tm_hour = std::stoi( parts[i+1].substr( 0, 2 ) );
+          t.tm_min = std::stoi( parts[i+1].substr( 2, 2 ) );
+          t.tm_sec = std::stoi( parts[i+1].substr( 4, 2 ) );
 
-      kwiver::vital::time_usec_t usec =
-        std::stoi( parts[5].substr( 7, 3 ) ) * 1e3;
-      utc_time_usec =
-        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+          kwiver::vital::time_usec_t usec;
+
+          if( parts[i+1].size() < 12 )
+          {
+            usec = std::stoi( parts[i+1].substr( 7, 3 ) ) * 1e3;
+          }
+          else
+          {
+            usec = std::stoi( parts[i+1].substr( 7, 6 ) );
+          }
+
+          utc_time_usec = static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+          break;
+        }
+      }
     }
-    // Example: kotz_01_X_20190507_004346.455104.ir.tif
-    else if( parts.size() == 5 && parts[3].size() == 8 &&
-             parts[4].size() > 10 && parts[4][6] == '.' )
-    {
-      tm t;
-
-      t.tm_year = std::stoi( parts[3].substr( 0, 4 ) ) - 1900;
-      t.tm_mon = std::stoi( parts[3].substr( 4, 2 ) ) - 1;
-      t.tm_mday = std::stoi( parts[3].substr( 6, 2 ) );
-
-      t.tm_hour = std::stoi( parts[4].substr( 0, 2 ) );
-      t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
-      t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
-
-      kwiver::vital::time_usec_t usec = std::stoi( parts[4].substr( 7, 6 ) );
-
-      utc_time_usec =
-        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
-    }
-    else if( parts.size() == 1 )
+    else
     {
       parts = split( name_only, '.' );
 
