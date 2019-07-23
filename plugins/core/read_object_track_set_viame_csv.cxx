@@ -34,6 +34,7 @@
  */
 
 #include "read_object_track_set_viame_csv.h"
+#include "filename_to_timestamp.h"
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
@@ -237,6 +238,7 @@ read_object_track_set_viame_csv::priv
      */
     int trk_id = atoi( col[COL_DET_ID].c_str() );
     kwiver::vital::frame_id_t frame_id = atoi( col[COL_FRAME_ID].c_str() );
+    kwiver::vital::time_usec_t frame_time;
     std::string str_id = col[COL_SOURCE_ID];
 
     kwiver::vital::bounding_box_d bbox(
@@ -278,9 +280,18 @@ read_object_track_set_viame_csv::priv
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
     }
 
+    try
+    {
+      frame_time = convert_to_timestamp( str_id );
+    }
+    catch( ... )
+    {
+      frame_time = frame_id;
+    }
+
     // Create new object track state
     kwiver::vital::track_state_sptr ots =
-      std::make_shared< kwiver::vital::object_track_state >( frame_id, frame_id, dob );
+      std::make_shared< kwiver::vital::object_track_state >( frame_id, frame_time, dob );
 
     // Assign object track state to track
     kwiver::vital::track_sptr trk;

@@ -60,7 +60,7 @@ std::vector< std::string > split( const std::string &s, char delim )
 }
 
 // ----------------------------------------------------------------------------
-kwiver::vital::timestamp
+kwiver::vital::time_usec_t
 convert_to_timestamp( const std::string& filename )
 {
   kwiver::vital::time_usec_t utc_time_usec = 0;
@@ -234,10 +234,7 @@ convert_to_timestamp( const std::string& filename )
     throw std::runtime_error( "Unable to decode timestamp for file: " + filename );
   }
 
-  kwiver::vital::timestamp ts;
-  ts.set_time_usec( utc_time_usec );
-
-  return ts;
+  return utc_time_usec;
 }
 
 }

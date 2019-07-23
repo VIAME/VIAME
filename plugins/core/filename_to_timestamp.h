@@ -43,7 +43,7 @@ namespace viame
 /// @throws runtime_error on invalid or unable to parse filename format
 ///
 VIAME_CORE_EXPORT
-kwiver::vital::timestamp
+kwiver::vital::time_usec_t
 convert_to_timestamp( const std::string& filename );
 
 } // end namespace viame
