@@ -29,8 +29,7 @@ atlas-devel
 wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
 bash Anaconda3-5.2.0-Linux-x86_64.sh -b
 export PATH=$PATH:/root/anaconda3/bin
-conda create -q -y --name viame python=3.6
-source activate viame
+source /root/anaconda3/bin/activate
 rm -rf Anaconda3-5.2.0-Linux-x86_64.sh
 
 # Install CMAKE
@@ -99,7 +98,7 @@ cp ../viame/cmake/setup_viame.sh.install install/setup_viame.sh
 
 # HACK: Copy in CUDA dlls missed by create_package
 # Should be removed when this issue is fixed
-cp -P /usr/local/cuda/libcudart.so* lib
-cp -P /usr/local/cuda/libcusparse.so* lib
-cp -P /usr/local/cuda/libcufft.so* lib
-cp -P /usr/local/cuda/libcusolver.so* lib
+cp -P /usr/local/cuda/lib64/libcudart.so* lib
+cp -P /usr/local/cuda/lib64/libcusparse.so* lib
+cp -P /usr/local/cuda/lib64/libcufft.so* lib
+cp -P /usr/local/cuda/lib64/libcusolver.so* lib
