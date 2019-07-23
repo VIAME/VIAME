@@ -51,12 +51,6 @@ cd build
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib
 
-# HACK: Python3.6 copy so that create_package succeeds
-# Should be removed when this issue is fixed
-# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
-mkdir -p install/lib
-cp /root/anaconda3/lib/libpython3.6m.* install/lib
-
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
@@ -86,7 +80,17 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_YOLO:BOOL=ON 
 
-# Build VIAME
+# Build VIAME first attempt
+make -j$(nproc) -k || true
+
+# HACK: Python3.6 copy so that create_package succeeds
+# Should be removed when this issue is fixed
+# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
+mkdir -p install/lib
+cp /root/anaconda3/lib/libpython3.6m.* install/lib
+
+# HACK: Double tap the build tree after adding in python
+# Should be removed when this issue is fixed
 make -j$(nproc)
 
 # HACK: Remove libpython.so files necessary for create_package
