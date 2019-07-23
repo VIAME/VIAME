@@ -44,7 +44,6 @@ rm -rf cmake-3.14.0.tar.gz
 
 # Update VIAME sub git sources
 cd /viame/
-git fetch -p
 git submodule update --init --recursive
 mkdir build
 cd build 
