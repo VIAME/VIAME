@@ -80,9 +80,11 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 # Build VIAME first attempt
 make -j$(nproc) -k || true
 
+# Below be krakens
+# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
+
 # HACK: Python3.6 copy so that create_package succeeds
 # Should be removed when this issue is fixed
-# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 mkdir -p install/lib
 cp /root/anaconda3/lib/libpython3.6m.* install/lib
 
@@ -98,10 +100,20 @@ rm -r install/lib/libpython*
 # Should be removed when this issue is fixed
 cp ../viame/cmake/setup_viame.sh.install install/setup_viame.sh
 
+# HACK: Ensure invalid libsvm symlink isn't created
+# Should be removed when this issue is fixed
+rm install/lib/libsvm.so
+cp install/lib/libsvm.so.2 install/lib/libsvm.so
+
 # HACK: Copy in CUDA dlls missed by create_package
 # Should be removed when this issue is fixed
-cp -P /usr/local/cuda/lib64/libcudart.so* lib
-cp -P /usr/local/cuda/lib64/libcusparse.so* lib
-cp -P /usr/local/cuda/lib64/libcufft.so* lib
-cp -P /usr/local/cuda/lib64/libcusolver.so* lib
+cp -P /usr/local/cuda/lib64/libcudart.so* install/lib
+cp -P /usr/local/cuda/lib64/libcusparse.so* install/lib
+cp -P /usr/local/cuda/lib64/libcufft.so* install/lib
+cp -P /usr/local/cuda/lib64/libcusolver.so* install/lib
 
+# HACK: Copy in other possible library requirements if present
+# Should be removed when this issue is fixed
+cp /usr/lib64/libva.so.1 install/lib || true
+cp /usr/lib64/libreadline.so.6 install/lib || true
+cp /usr/lib64/libdc1394.so.22 install/lib || true
