@@ -113,25 +113,7 @@ convert_to_timestamp( const std::string& filename )
           static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
       }
     }
-    // Example: default2019_fl00_D_20190401_220727.714_ir.tif
-    else if( parts.size() == 6 && parts[3].size() == 8 && parts[4].size() == 10 )
-    {
-      tm t;
-
-      t.tm_year = std::stoi( parts[3].substr( 0, 4 ) ) - 1900;
-      t.tm_mon = std::stoi( parts[3].substr( 4, 2 ) ) - 1;
-      t.tm_mday = std::stoi( parts[3].substr( 6, 2 ) );
-
-      t.tm_hour = std::stoi( parts[4].substr( 0, 2 ) );
-      t.tm_min = std::stoi( parts[4].substr( 2, 2 ) );
-      t.tm_sec = std::stoi( parts[4].substr( 4, 2 ) );
-
-      kwiver::vital::time_usec_t usec =
-        std::stoi( parts[4].substr( 7, 3 ) ) * 1e3;
-      utc_time_usec =
-        static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
-    }
-    // Example: *_20190507_004346.455104*
+    // Example: *_20190507_004346.455104* or *_20190401_220727.714*
     else if( parts.size() > 2 )
     {
       for( unsigned i = 0; i < parts.size()-1; i++ )
