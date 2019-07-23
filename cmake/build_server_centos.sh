@@ -51,17 +51,22 @@ cd build
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib
 
+# HACK: Python3.6 copy so that create_package succeeds
+# Should be removed when this issue is fixed
+mkdir -p install/lib
+cp /root/anaconda3/lib/libpython3.6m.* install/lib
+
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
--DVIAME_ENABLE_BURNOUT:BOOL=ON \
+-DVIAME_CREATE_PACKAGE:BOOL=ON \
+-DVIAME_ENABLE_BURNOUT:BOOL=OFF \
 -DVIAME_ENABLE_CAFFE:BOOL=OFF \
 -DVIAME_ENABLE_CAMTRAWL:BOOL=ON \
 -DVIAME_ENABLE_CUDA:BOOL=ON \
 -DVIAME_ENABLE_CUDNN:BOOL=ON \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
 -DVIAME_ENABLE_FFMPEG:BOOL=ON \
--DVIAME_ENABLE_FASTER_RCNN:BOOL=OFF \
 -DVIAME_ENABLE_GDAL:BOOL=ON \
 -DVIAME_ENABLE_FLASK:BOOL=OFF \
 -DVIAME_ENABLE_ITK:BOOL=OFF \
@@ -82,3 +87,18 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 
 # Build VIAME
 make -j$(nproc)
+
+# HACK: Remove libpython.so files necessary for create_package
+# Should be removed when this issue is fixed
+rm -r install/lib/libpython*
+
+# HACK: Copy setup_viame.sh.install over setup_viame.sh
+# Should be removed when this issue is fixed
+cp ../viame/cmake/setup_viame.sh.install install/setup_viame.sh
+
+# HACK: Copy in CUDA dlls missed by create_package
+# Should be removed when this issue is fixed
+cp -P /usr/local/cuda/libcudart.so* lib
+cp -P /usr/local/cuda/libcusparse.so* lib
+cp -P /usr/local/cuda/libcufft.so* lib
+cp -P /usr/local/cuda/libcusolver.so* lib
