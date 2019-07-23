@@ -2,6 +2,7 @@
 
 set( plugin_headers
   add_timestamp_from_filename.h
+  filename_to_timestamp.h
   read_detected_object_set_habcam.h
   read_detected_object_set_viame_csv.h
   read_object_track_set_viame_csv.h
@@ -11,6 +12,7 @@ set( plugin_headers
 
 set( plugin_sources
   add_timestamp_from_filename.cxx
+  filename_to_timestamp.cxx
   read_detected_object_set_habcam.cxx
   read_detected_object_set_viame_csv.cxx
   read_object_track_set_viame_csv.cxx
