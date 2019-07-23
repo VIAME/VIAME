@@ -53,6 +53,7 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib
 
 # HACK: Python3.6 copy so that create_package succeeds
 # Should be removed when this issue is fixed
+# (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 mkdir -p install/lib
 cp /root/anaconda3/lib/libpython3.6m.* install/lib
 
