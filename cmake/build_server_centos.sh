@@ -6,6 +6,10 @@ set -x
 # install Fletch & VIAME system deps
 yum update -y
 yum -y groupinstall 'Development Tools'
+yum install -y epel-release centos-release-scl 
+yum install -y devtoolset-6-gcc* devtoolset-6-binutils 
+yum install -y fontconfig freetype freetype-devel fontconfig-devel libstdc++ 
+yum install -y libxslt libxml2 libxml2-devel libxslt-devel
 yum install -y zip \
 git \
 wget \
@@ -24,6 +28,12 @@ readline-devel \
 curl \
 curl-devel \
 atlas-devel 
+
+# Move to GCC 6 rather than GCC 4 for Qt5
+source /opt/rh/devtoolset-6/enable
+export PATH=$PATH:/opt/rh/devtoolset-6/root/usr/bin
+export CC=/opt/rh/devtoolset-6/root/usr/bin/gcc
+export CXX=/opt/rh/devtoolset-6/root/usr/bin/g++
 
 # Setup anaconda
 wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
