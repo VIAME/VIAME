@@ -98,8 +98,13 @@ merge_detection_sets_process
 
   for ( const auto port_name : d->p_port_list )
   {
-    vital::detected_object_set_sptr set_in = grab_from_port_as<vital::detected_object_set_sptr>( port_name );
-    set_out->add( set_in );
+    vital::detected_object_set_sptr set_in =
+      grab_from_port_as< vital::detected_object_set_sptr >( port_name );
+
+    if( set_in )
+    {
+      set_out->add( set_in );
+    }
   } // end for
 
   push_to_port_using_trait(detected_object_set, set_out);

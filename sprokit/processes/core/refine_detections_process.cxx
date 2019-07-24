@@ -99,18 +99,28 @@ refine_detections_process::
 _step()
 {
   vital::image_container_sptr image;
+
   if( has_input_port_edge_using_trait( image ) )
   {
     image = grab_from_port_using_trait( image );
   }
-  vital::detected_object_set_sptr dets = grab_from_port_using_trait( detected_object_set );
+
+  vital::detected_object_set_sptr dets =
+    grab_from_port_using_trait( detected_object_set );
 
   vital::detected_object_set_sptr results;
   {
     scoped_step_instrumentation();
 
     // Get detections from refiner on image
-    results = d->m_refiner->refine( image, dets );
+    if( dets )
+    {
+      results = d->m_refiner->refine( image, dets );
+    }
+    else
+    {
+      results = dets;
+    }
   }
 
   push_to_port_using_trait( detected_object_set, results );
