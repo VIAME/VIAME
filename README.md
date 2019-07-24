@@ -96,7 +96,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5cded9828d777f072bb46eba/download)
 
 **Standalone Tools:** <br>
-[Seal Dual Display GUI, CentOS 7, 64-Bit](https://data.kitware.com/api/v1/item/5d23a3bc877dfcc902deb96a/download) <br>
+[Seal Dual Display GUI, CentOS 7, 64-Bit](https://data.kitware.com/api/v1/item/5d38a311877dfcc9022a3ee2/download) <br>
 [Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download)
 
 Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.
