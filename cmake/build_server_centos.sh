@@ -100,7 +100,7 @@ rm -r install/lib/libpython*
 
 # HACK: Copy setup_viame.sh.install over setup_viame.sh
 # Should be removed when this issue is fixed
-cp ../viame/cmake/setup_viame.sh.install install/setup_viame.sh
+cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed
