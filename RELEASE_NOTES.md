@@ -1,4 +1,17 @@
 
+v0.9.16 - 7/24/2019
+===================
+
+
+-Lots of bug fixes (windows project files)
+
+
+-Learning rate tuning for latest detection models
+
+
+-CUDA 10.0 support
+
+
 v0.9.13 - 5/30/2019
 ===================
 
