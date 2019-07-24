@@ -25,7 +25,6 @@ zlib1g-dev
 # Setup anaconda
 wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
 bash Anaconda3-5.2.0-Linux-x86_64.sh -b
-export PATH=$PATH:/root/anaconda3/bin
 source /root/anaconda3/bin/activate
 rm -rf Anaconda3-5.2.0-Linux-x86_64.sh
 
@@ -45,6 +44,7 @@ git submodule update --init --recursive
 mkdir build
 cd build 
 
+export PATH=$PATH:/viame/build/install/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib
 
 # Configure VIAME
