@@ -12,11 +12,13 @@ v0.9.16 - 7/24/2019
 -CUDA 10.0 support
 
 
+
 v0.9.13 - 5/30/2019
 ===================
 
 
 -Add missing .so files into CentOS and Ubuntu binaries to not require external packages
+
 
 
 v0.9.12 - 5/21/2019
