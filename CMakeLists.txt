@@ -513,6 +513,19 @@ else()
 
     install( PROGRAMS      ${VIAME_SETUP_SCRIPT_FILE}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+
+    if( VIAME_ENABLE_SEAL_TK )
+      set( VIAME_SEAL_SCRIPT_FILE    "${VIAME_BINARY_DIR}/launch_seal_interface.sh" )
+
+      configure_file(
+        ${CMAKE_SOURCE_DIR}/cmake/launch_seal_interface.sh.in
+        ${VIAME_SEAL_SCRIPT_FILE}
+      )
+
+      install( PROGRAMS      ${VIAME_SEAL_SCRIPT_FILE}
+               DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+
+    endif()
   endif()
 
   ###

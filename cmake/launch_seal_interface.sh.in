@@ -1,0 +1,78 @@
+#
+# Script to set up environment to use VIAME
+#
+
+# Paths to required dependencies, set these
+export PYTHON_INSTALL_DIR=/opt/noaa/python3
+
+# Does this actually need to be set? Answer: Only on some OS
+# Leave this commented out, unless you have issues finding CUDA libraries
+# export CUDA_INSTALL_DIR=/usr/local/cuda
+
+# Check variable paths
+if [ ! -d "$PYTHON_INSTALL_DIR" ]; then
+  echo "Python directory specified in setup_viame.sh does not exist"
+  return
+fi
+
+# Activate python anaconda environment, this can be removed if you already have it
+# activated within your environment.
+source $PYTHON_INSTALL_DIR/bin/activate
+
+# The below variables specify search paths for plugins and modules within the VIAME
+# framework. It is not recommended to modify any of the below paths, unless you know
+# what you're doing.
+this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
+
+# Paths for loading algorithm plugins
+export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/modules:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/modules:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/kwiver/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/kwiver/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/modules:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/modules:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib/viame/processes:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/lib64/viame/processes:$KWIVER_PLUGIN_PATH
+
+# Paths for loading process plugins
+export SPROKIT_MODULE_PATH=$this_dir/lib/sprokit:$SPROKIT_MODULE_PATH
+
+# Paths for the GUIs
+export QT_PLUGIN_PATH=$this_dir/lib/qt5/plugins
+export VG_PLUGIN_PATH=$this_dir
+export VIDTK_MODULE_PATH=$this_dir/lib/modules
+
+# Excessive paths for loading python plugins
+export PYTHON_LIBRARY=$PYTHON_INSTALL_DIR/lib/libpython3.6m.so
+export PYTHONPATH=$this_dir/python:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/python3.6/site-packages:$PYTHONPATH
+export PYTHONPATH=$this_dir/lib/python3.6/dist-packages:$PYTHONPATH
+export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
+export SPROKIT_PYTHON_MODULES=kwiver.arrows:kwiver.processes:kwiver.processes.pytorch
+export SPROKIT_PYTHON_MODULES=viame.arrows.core:viame.arrows.pytorch:$SPROKIT_PYTHON_MODULES
+export SPROKIT_PYTHON_MODULES=viame.arrows.tensorflow:$SPROKIT_PYTHON_MODULES
+export SPROKIT_PYTHON_MODULES=viame.processes:viame.processes.pytorch:$SPROKIT_PYTHON_MODULES
+
+# Set default log level
+export KWIVER_DEFAULT_LOG_LEVEL=debug
+
+# Paths for matlab (empty if not built with matlab)
+
+# Paths for CUDA libraries
+if [ ! -z "$CUDA_INSTALL_DIR" ]; then
+  if [ -d "$CUDA_INSTALL_DIR" ]; then
+    export LD_LIBRARY_PATH=$CUDA_INSTALL_DIR/lib64:$LD_LIBRARY_PATH
+  else
+    echo "CUDA directory specified in setup_viame.sh does not exist"
+    return
+  fi
+fi
+
+# Paths for adding exes to path (must occur after python and matlab)
+export PATH=$this_dir/bin:$PATH
+export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$this_dir/lib64:$LD_LIBRARY_PATH
+
+# Launch the GUI
+sealtk --pipeline-directory $this_dir/configs/pipelines/embedded_dual_stream
+
