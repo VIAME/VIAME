@@ -62,15 +62,15 @@ the examples to validate the installation.
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 [Anaconda3 5.2.0 x86_64](https://repo.continuum.io/archive/) (Note: Anaconda**3 5.2.0 x86_64**, not Anaconda2 or x86 or 5.3.0) <br>
-6 Gb of Disk Space for the Full Installation <br>
+5 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
 [NVIDIA Drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) (Version 384.81+ for CUDA 9.0, Version 410.48+ for CUDA 10.0) <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.9.13 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d37bf25877dfcc902284ec7/download) <br>
-[VIAME v0.9.13 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1_nbnjQXiiljSQEr1_sK-7eAANBfX6qSy) <br>
+[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d39e7dd877dfcc9022d9723/download) <br>
+[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1dnnEeEp5GyVqlzoIpYa-6nphPwSX6Vdy) <br>
 [VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d386e91877dfcc90229b666/download) <br>
 [VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Z-m672GmUwvIPULmmXES73A2Bqyx23kc)
 
