@@ -5,29 +5,29 @@ set -x
  
 # install Fletch & VIAME system deps
 yum update -y
-yum -y groupinstall 'Development Tools'
-yum install -y epel-release centos-release-scl 
-yum install -y devtoolset-6-gcc* devtoolset-6-binutils 
-yum install -y fontconfig freetype freetype-devel fontconfig-devel libstdc++ 
-yum install -y libxslt libxml2 libxml2-devel libxslt-devel
-yum install -y zip \
-git \
-wget \
+yum install -y deltarpm 
+yum install -y epel-release
+yum install -y centos-release-scl
+yum install -y devtoolset-6-gcc* devtoolset-6-binutils
+yum install -y llvm llvm-devel
+yum install -y mesa-libGL-devel
+yum install -y fontconfig freetype freetype-devel fontconfig-devel libstdc++
+yum install -y https://centos7.iuscommunity.org/ius-release.rpm
+yum install -y libxslt \
+libxml2 \
+libxml2-devel \
+libxslt-devel \
+cmake3 \
 openssl \
-openssl-devel \
-zlib \
-zlib-devel \
-freeglut-devel \
-mesa-libGLU-devel \
-lapack-devel \
-libXt-devel \
-libXmu-devel \
-libXi-devel \
-expat-devel \
-readline-devel \
+which \
 curl \
-curl-devel \
-atlas-devel 
+bzip2 \
+wget \
+git \
+zip \
+lapack-devel \
+expat-devel \
+freeglut-devel
 
 # Move to GCC 6 rather than GCC 4 for Qt5
 source /opt/rh/devtoolset-6/enable
@@ -41,16 +41,6 @@ bash Anaconda3-5.2.0-Linux-x86_64.sh -b
 source /root/anaconda3/bin/activate
 rm -rf Anaconda3-5.2.0-Linux-x86_64.sh
 
-# Install CMAKE
-wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz
-tar zxvf cmake-3.*
-cd cmake-3.*
-./bootstrap --prefix=/usr/local --system-curl
-make -j$(nproc)
-make install
-cd /
-rm -rf cmake-3.14.0.tar.gz
-
 # Update VIAME sub git sources
 cd /viame/
 git submodule update --init --recursive
@@ -61,7 +51,7 @@ export PATH=$PATH:/viame/build/install/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib
 
 # Configure VIAME
-cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
+cmake3 ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
 -DVIAME_CREATE_PACKAGE:BOOL=ON \
 -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
