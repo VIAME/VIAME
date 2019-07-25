@@ -1,9 +1,10 @@
-# Use latest Fletch as base image
+# Install KWIVER to /opt/kitware/kwiver
+# Use latest Fletch as base image (Ubuntu 18.04)
 
 FROM kitware/fletch:latest
 
 #
-# Building Kwiver
+# Build KWIVER
 #
 
 COPY . /kwiver
@@ -11,7 +12,7 @@ RUN cd /kwiver \
   && mkdir build \
   && cd build \
   && cmake ../ -DCMAKE_BUILD_TYPE=Release \
-    -Dfletch_DIR:PATH=/fletch_install/share/cmake \
+    -Dfletch_DIR:PATH=/opt/kitware/fletch/share/cmake \
     -DKWIVER_ENABLE_ARROWS=ON \
     -DKWIVER_ENABLE_C_BINDINGS=ON \
     -DKWIVER_ENABLE_CERES=ON \
