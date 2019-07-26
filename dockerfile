@@ -27,6 +27,7 @@ RUN cd /kwiver \
     -DKWIVER_ENABLE_VXL=ON \
     -DKWIVER_ENABLE_DOCS=ON \
     -DKWIVER_INSTALL_DOCS=ON \
+    -DKWIVER_PYTHON_MAJOR_VERSION=3 \
     -DKWIVER_USE_BUILD_TREE=ON \
   && make -j$(nproc) -k 
 
