@@ -66,9 +66,10 @@ RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 5 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
-NVIDIA Drivers: [Option1](https://www.nvidia.com/Download/index.aspx?lang=en-us),
+NVIDIA Drivers (384.81+ for CUDA 9.0, 410.48+ for CUDA 10.0 - 
+[Option1](https://www.nvidia.com/Download/index.aspx?lang=en-us),
 [Option2](https://developer.nvidia.com/cuda-downloads),
-[Option3](https://linuxhint.com/ubuntu_nvidia_ppa/), (384.81+ for CUDA 9.0, 410.48+ for CUDA 10.0) <br>
+[Option3](https://linuxhint.com/ubuntu_nvidia_ppa/)) <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
