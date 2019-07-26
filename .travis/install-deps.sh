@@ -12,21 +12,11 @@ mkdir -p $INSTALL_DIR
 # Make a directory to test installation of KWIVER into
 mkdir -p $HOME/install
 
-# check if directory is cached
-if [ ! -f "$INSTALL_DIR/bin/cmake" ]; then
-  cd /tmp
-  wget --no-check-certificate https://cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.sh
-  bash cmake-3.4.0-Linux-x86_64.sh --skip-license --prefix="$INSTALL_DIR/"
-else
-  echo 'Using cached CMake directory.';
-fi
-
-
 # download and unpack Fletch
 HASH_FILE="$HASH_DIR/fletch.sha512"
 cd /tmp
 if [ -f $TRAVIS_BUILD_DIR/doc/release-notes/master.txt ]; then
-  TAR_FILE_ID=599c39468d777f7d33e9cbe5
+  TAR_FILE_ID=5d3a2d40877dfcc9022ec9f5
   echo "Using master branch of Fletch"
 else
   TAR_FILE_ID=599f2db18d777f7d33e9cc9e
