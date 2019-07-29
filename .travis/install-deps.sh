@@ -19,7 +19,7 @@ if [ -f $TRAVIS_BUILD_DIR/doc/release-notes/master.txt ]; then
   TAR_FILE_ID=5d3a2d40877dfcc9022ec9f5
   echo "Using master branch of Fletch"
 else
-  TAR_FILE_ID=599f2db18d777f7d33e9cc9e
+  TAR_FILE_ID=5d3f0c94877dfcc90235f064
   echo "Using release branch of Fletch"
 fi
 
