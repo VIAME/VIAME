@@ -40,9 +40,14 @@ kwiver_add_library( viame_itk
   )
 
 target_link_libraries( viame_itk
-  PUBLIC               vital vital_algo vital_config
-                       vital_exceptions vital_logger vital_util
-                       kwiversys ITKCommon
+  PUBLIC               kwiver::vital
+                       kwiver::vital_algo
+                       kwiver::vital_config
+                       kwiver::vital_exceptions
+                       kwiver::vital_logger
+                       kwiver::vital_util
+                       kwiver::kwiversys
+                       ITKCommon
   PRIVATE              ITKLabelMap ITKPath ITKOptimizersv4 ITKOptimizers
                        ITKStatistics ITKTransform ITKSpatialObjects
                        ITKEXPAT ITKMesh ITKQuadEdgeMesh ITKIOMeshFreeSurfer
@@ -67,7 +72,7 @@ algorithms_create_plugin( viame_itk
   )
 
 target_link_libraries( viame_itk_plugin
-  PUBLIC               vital_vpm
+  PUBLIC               kwiver::vital_vpm
   )
 
 # Add KWIVER plugin registration
@@ -102,11 +107,16 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
     SUBDIR           ${viame_plugin_process_subdir}
     SOURCES          ${process_sources}
                      ${private_headers}
-    PRIVATE          sprokit_pipeline
+    PRIVATE          kwiver::sprokit_pipeline
                      viame_itk
-                     vital vital_vpm vital_logger vital_config
-                     kwiver_algo_core kwiver_algo_ocv
-                     kwiversys ${OpenCV_LIBS}
+                     kwiver::vital
+                     kwiver::vital_vpm
+                     kwiver::vital_logger
+                     kwiver::vital_config
+                     kwiver::kwiver_algo_core
+                     kwiver::kwiver_algo_ocv
+                     kwiver::kwiversys
+                     ${OpenCV_LIBS}
                      ITKIOTransformBase ITKTransformFactory
                      ITKIOTransformInsightLegacy
                      ITKIOHDF5 ITKIOTransformHDF5 ITKIOTransformMatlab
