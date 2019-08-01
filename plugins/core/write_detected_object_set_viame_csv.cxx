@@ -162,6 +162,11 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
     d->m_first = false;
   } // end first
 
+  if( image_name.empty() )
+  {
+    return;
+  }
+
   // process all detections
   auto ie = set->cend();
 
