@@ -33,12 +33,12 @@ kwiver_add_library( viame_scallop_tk
   )
 
 target_link_libraries( viame_scallop_tk
-  PUBLIC               vital
-                       vital_algo
-                       vital_config
-                       vital_exceptions
-                       vital_logger
-                       kwiver_algo_ocv
+  PUBLIC               kwiver::vital
+                       kwiver::vital_algo
+                       kwiver::vital_config
+                       kwiver::vital_exceptions
+                       kwiver::vital_logger
+                       kwiver::kwiver_algo_ocv
                        opencv_core opencv_legacy
                        ScallopTK
   )
@@ -65,5 +65,5 @@ algorithms_create_plugin( viame_scallop_tk
   )
 
 target_link_libraries( viame_scallop_tk_plugin
-  PUBLIC               vital_vpm
+  PUBLIC               kwiver::vital_vpm
   )

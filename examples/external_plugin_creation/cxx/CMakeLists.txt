@@ -48,12 +48,12 @@ add_library( ${PLUGIN_NAME}
   )
 
 target_link_libraries( ${PLUGIN_NAME}
-  PUBLIC               vital
-                       vital_algo
-                       vital_config
-                       vital_exceptions
-                       vital_logger
-                       kwiver_algo_ocv
+  PUBLIC               kwiver::vital
+                       kwiver::vital_algo
+                       kwiver::vital_config
+                       kwiver::vital_exceptions
+                       kwiver::vital_logger
+                       kwiver::kwiver_algo_ocv
   )
 
 set_target_properties( ${PLUGIN_NAME}
