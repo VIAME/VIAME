@@ -104,6 +104,7 @@ _step()
 
   vital::image_container_sptr result;
 
+  if( input )
   {
     scoped_step_instrumentation();
 
