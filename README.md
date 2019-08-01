@@ -30,9 +30,10 @@ Example Capabilities
 Documentation
 -------------
 
-The [Quick-Start Guide](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download)
-and [VIAME Developer's Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
-but select entries are also listed below:
+The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download),
+[Example Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
+and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
+but select entries are also listed below broken down by individual functionality:
 
 
 [Build and Install Guide](examples/building_and_installing_viame) <> 
@@ -62,17 +63,26 @@ the examples to validate the installation.
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 [Anaconda3 5.2.0 x86_64](https://repo.continuum.io/archive/) (Note: Anaconda**3 5.2.0 x86_64**, not Anaconda2 or x86 or 5.3.0) <br>
-6 Gb of Disk Space for the Full Installation <br>
+5 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
-[NVIDIA Drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) (Version 384.81+ for CUDA 9.0, Version 410.48+ for CUDA 10.0) <br>
+NVIDIA Drivers (Version 410.48+ 
+Windows 
+[\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
+[\[2\]](https://developer.nvidia.com/cuda-downloads)
+Ubuntu 
+[\[1\]](https://linuxhint.com/ubuntu_nvidia_ppa/)
+[\[2\]](https://developer.nvidia.com/cuda-downloads)
+CentOS 
+[\[1\]](https://developer.nvidia.com/cuda-downloads)
+[\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)) <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.9.13 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d37bf25877dfcc902284ec7/download) <br>
-[VIAME v0.9.13 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1_nbnjQXiiljSQEr1_sK-7eAANBfX6qSy) <br>
-[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d37bf9c877dfcc902284f03/download) <br>
-[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1QfvNHgMgawIfvGESq61aj6zn3SxW2brU)
+[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d4228d2877dfcc9023e3f38/download) <br>
+[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1KxjkS9bc0Z4wxADKaaaNGiFtyNwXWPZ0) <br>
+[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d422875877dfcc9023e3bc0/download) <br>
+[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1wuw5-yekax2PWayCaZv8yF_uhqX2em34)
 
 **Windows Desktop Binaries:** <br>
 [VIAME v0.9.15 Windows 7\*/8/10, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d0cde7e877dfcc902a01d2c/download) <br>
@@ -89,14 +99,14 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Model Set 2 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download) <br>
-[Arctic Seals Models Add-On, CUDA 10.0, All Linux](https://data.kitware.com/api/v1/item/5d37cced877dfcc902289312/download) <br>
+[Arctic Seals Models Add-On, CUDA 10.0, All Linux](https://data.kitware.com/api/v1/item/5d3a83cf877dfcc9022fb5aa/download) <br>
 [Arctic Seals Models Add-On, CUDA 9.0, All Linux](https://data.kitware.com/api/v1/item/5d0928f3676794a06e4cffbb/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5d016fbf8d777f072b2955c9/download) <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5cded9828d777f072bb46eba/download)
 
 **Standalone Tools:** <br>
-[Seal Dual Display GUI, CentOS 7, 64-Bit](https://data.kitware.com/api/v1/item/5d23a3bc877dfcc902deb96a/download) <br>
+[Seal Dual Display GUI, CentOS 7, 64-Bit](https://data.kitware.com/api/v1/item/5d38a311877dfcc9022a3ee2/download) <br>
 [Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download)
 
 Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.

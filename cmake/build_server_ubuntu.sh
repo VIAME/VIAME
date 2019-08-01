@@ -68,7 +68,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
--DVIAME_ENABLE_SCALLOP_TK:BOOL=ON \
+-DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
 -DVIAME_ENABLE_SEAL_TK:BOOL=OFF \
 -DVIAME_ENABLE_SMQTK:BOOL=ON \
 -DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
@@ -119,3 +119,5 @@ cp /usr/lib64/libreadline.so.6 install/lib || true
 cp /usr/lib64/libdc1394.so.22 install/lib || true
 cp /usr/lib64/libcrypto.so.10 install/lib || true
 cp /usr/lib64/libpcre.so.1 install/lib || true
+
+cp -P /usr/lib/x86_64-linux-gnu/libnccl.so* install/lib || true
