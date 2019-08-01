@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -243,7 +243,7 @@ compute_track_descriptors_process
         // Reset all descriptors stored in detections
         for( vital::detected_object_sptr det : *detections )
         {
-          det->set_descriptor( vital::detected_object::descriptor_sptr() );
+          det->set_descriptor( nullptr );
         }
 
         // Inject computed descriptors
