@@ -36,13 +36,13 @@ kwiver_add_library( viame_core
   )
 
 target_link_libraries( viame_core
-  PUBLIC               vital
-                       vital_algo
-                       vital_config
-                       vital_exceptions
-                       vital_logger
-                       vital_util
-                       kwiversys
+  PUBLIC               kwiver::vital
+                       kwiver::vital_algo
+                       kwiver::vital_config
+                       kwiver::vital_exceptions
+                       kwiver::vital_logger
+                       kwiver::vital_util
+                       kwiver::kwiversys
   )
 
 set_target_properties( viame_core PROPERTIES
@@ -54,7 +54,7 @@ algorithms_create_plugin( viame_core
   )
   
 target_link_libraries( viame_core_plugin
-  PUBLIC               vital_vpm
+  PUBLIC               kwiver::vital_vpm
   )
 
 kwiver_add_executable( viame_train_detector
@@ -71,14 +71,14 @@ include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
 
 target_link_libraries( viame_train_detector
-  PRIVATE      vital
-               vital_vpm
-               vital_config
-               vital_exceptions
-               vital_logger
-               vital_algo
-               vital_util
-               kwiversys
+  PRIVATE      kwiver::vital
+               kwiver::vital_vpm
+               kwiver::vital_config
+               kwiver::vital_exceptions
+               kwiver::vital_logger
+               kwiver::vital_algo
+               kwiver::vital_util
+               kwiver::kwiversys
                kwiver::sprokit_pipeline
                kwiver::kwiver_adapter
                ${Boost_SYSTEM_LIBRARY}
@@ -103,10 +103,16 @@ kwiver_add_plugin( viame_processes_core
   SUBDIR           ${viame_plugin_process_subdir}
   SOURCES          ${process_sources}
                    ${private_headers}
-  PRIVATE          sprokit_pipeline
-                   kwiver_algo_core kwiversys kwiver_adapter
-                   vital vital_vpm vital_logger vital_config
-                   vital_util vital_exceptions
+  PRIVATE          kwiver::sprokit_pipeline
+                   kwiver::kwiver_algo_core
+                   kwiver::kwiversys
+                   kwiver::kwiver_adapter
+                   kwiver::vital
+                   kwiver::vital_vpm
+                   kwiver::vital_logger
+                   kwiver::vital_config
+                   kwiver::vital_util
+                   kwiver::vital_exceptions
                    ${Boost_SYSTEM_LIBRARY}
                    ${Boost_FILESYSTEM_LIBRARY}
  )

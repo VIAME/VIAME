@@ -45,14 +45,14 @@ endif()
 get_target_property( results viame_opencv COMPILE_DEFINITIONS )
 
 target_link_libraries( viame_opencv
-  PUBLIC               vital
-                       vital_algo
-                       vital_config
-                       vital_exceptions
-                       vital_logger
-                       vital_util
-                       kwiversys
-                       kwiver_algo_ocv
+  PUBLIC               kwiver::vital
+                       kwiver::vital_algo
+                       kwiver::vital_config
+                       kwiver::vital_exceptions
+                       kwiver::vital_logger
+                       kwiver::vital_util
+                       kwiver::kwiversys
+                       kwiver::kwiver_algo_ocv
                        ${OpenCV_LIBRARIES}
   )
 
@@ -65,7 +65,7 @@ algorithms_create_plugin( viame_opencv
   )
 
 target_link_libraries( viame_opencv_plugin
-  PUBLIC               vital_vpm
+  PUBLIC               kwiver::vital_vpm
   )
 
 if( VIAME_ENABLE_PYTHON )

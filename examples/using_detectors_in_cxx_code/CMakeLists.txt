@@ -26,13 +26,13 @@ if( VIAME_ENABLE_OPENCV )
   add_executable( detector1       detector1.cxx )
 
   target_link_libraries( detector1
-    PRIVATE    vital
-               vital_algo
-               vital_config
-               vital_logger
-               vital_util
-               kwiver_algo_core
-               kwiver_algo_ocv
+    PRIVATE    kwiver::vital
+               kwiver::vital_algo
+               kwiver::vital_config
+               kwiver::vital_logger
+               kwiver::vital_util
+               kwiver::kwiver_algo_core
+               kwiver::kwiver_algo_ocv
                ${OpenCV_LIBS}
     )
 
@@ -42,14 +42,14 @@ if( VIAME_ENABLE_OPENCV )
   add_executable( detector3       detector3.cxx )
 
   target_link_libraries( detector3
-    PRIVATE    vital
-               vital_algo
-               vital_config
-               vital_logger
-               vital_util
-               vital_vpm
-               kwiver_algo_core
-               kwiver_algo_ocv
+    PRIVATE    kwiver::vital
+               kwiver::vital_algo
+               kwiver::vital_config
+               kwiver::vital_logger
+               kwiver::vital_util
+               kwiver::vital_vpm
+               kwiver::kwiver_algo_core
+               kwiver::kwiver_algo_ocv
                ${OpenCV_LIBS}
     )
 
