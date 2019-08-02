@@ -52,11 +52,11 @@ enum
   COL_FRAME_ID=0,  // 0: Object ID
   COL_DET_ID,      // 1: Detection ID
   COL_MIN_X,       // 2: Min X
-  COL_MIN_Y,       // 3: Min Y
-  COL_MAX_X,       // 4: Max X
+  COL_MAX_X,       // 3: Max X
+  COL_MIN_Y,       // 4: Min Y
   COL_MAX_Y,       // 5: Max Y
   COL_LABEL,       // 6: Label
-  COL_TOT          // 7: Total Columns
+  COL_TOT          // 7: Total Required Columns
 };
 
 // -----------------------------------------------------------------------------------
