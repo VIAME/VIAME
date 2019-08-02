@@ -73,7 +73,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH:BOOL=OFF \
 -DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
--DVIAME_ENABLE_SEAL_TK:BOOL=OFF \
+-DVIAME_ENABLE_SEAL_TK:BOOL=ON \
 -DVIAME_ENABLE_SMQTK:BOOL=OFF \
 -DVIAME_ENABLE_TENSORFLOW:BOOL=ON \
 -DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \
@@ -104,6 +104,10 @@ rm -r install/lib/libpython*
 # HACK: Copy setup_viame.sh.install over setup_viame.sh
 # Should be removed when this issue is fixed
 cp ../cmake/setup_viame.sh.install install/setup_viame.sh
+
+# HACK: Copy setup_viame.sh.install over setup_viame.sh
+# Should be removed when this issue is fixed
+cp ../cmake/launch_seal_interface.sh.in install/launch_seal_interface.sh
 
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed
