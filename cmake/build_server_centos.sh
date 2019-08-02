@@ -24,7 +24,8 @@ readline-devel \
 curl \
 curl-devel \
 atlas-devel \
-file
+file \
+which
 
 # Setup anaconda
 wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
