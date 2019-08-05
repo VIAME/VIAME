@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,7 +140,8 @@ bool
 read_object_track_set_kw18
 ::read_set( vital::object_track_set_sptr& set )
 {
-  if( d->m_first )
+  auto const first = d->m_first;
+  if( first )
   {
     // Read in all detections
     d->read_all();
@@ -149,14 +150,19 @@ read_object_track_set_kw18
 
   if( d->m_batch_load )
   {
-    std::vector< vital::track_sptr > trks;
-
-    for( auto it = d->m_all_tracks.begin(); it != d->m_all_tracks.end(); ++it )
+    if ( !first )
     {
-      trks.push_back( it->second );
+      return false;
     }
 
-    set = vital::object_track_set_sptr( new vital::object_track_set( trks ) );
+    std::vector< vital::track_sptr > trks;
+
+    for( auto const& it : d->m_all_tracks )
+    {
+      trks.push_back( it.second );
+    }
+
+    set = std::make_shared< vital::object_track_set >( trks );
     return true;
   }
 
