@@ -66,7 +66,6 @@ public:
   priv( read_detected_object_set_fishnet* parent )
     : m_parent( parent )
     , m_first( true )
-    , m_current_idx( 0 )
   {}
 
   ~priv() { }
