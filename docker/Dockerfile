@@ -42,8 +42,8 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
         pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-## === === === === ===  Building VIAME === === === === ===
-FROM compiler as viame
+## === === === === ===  Building VIAME Deps === === === === ===
+FROM compiler as viame_repo
 
 # Get VIAME
 WORKDIR /root/viame
@@ -57,6 +57,19 @@ COPY . .
 RUN git pull https://github.com/VIAME/VIAME.git --recurse-submodules &&\
     git submodule update --init --recursive
 
+## == == == == == == == ==  Building Fletch == == == == == == == ==
+RUN cd /root/viame/packages/fletch &&\
+    mkdir -p build && \
+    cd build &&\
+    cmake \
+        -G Ninja \
+        .. &&\
+    ninja
+
+## === === === === ===  Building VIAME in full === === === === ===
+FROM viame_repo as viame
+
+# build the full system
 RUN mkdir -p build && \
     export FLAGS="$(./configs/parse_flags.sh \
         ./configs/build-flags/common.txt \
@@ -72,6 +85,6 @@ RUN mkdir -p build && \
 
 FROM base
 
-COPY --from=base /root/viame/build/install /root/viame
+COPY --from=viame /root/viame/build/install /root/viame
 WORKDIR /root/viame
 
