@@ -7,7 +7,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 # System Deps for VIAME
 # Fletch system dependencies
 RUN apt-get update -qq &&\
-    apt-get install -qq curl &&\
+    apt-get install -qq \
+    curl \
+    &&\
     apt-get install -qq --no-install-recommends \
         apt-transport-https \
         ca-certificates \
@@ -35,7 +37,10 @@ FROM base as compiler
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&\
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main' &&\
     apt-get update -qq &&\
-    apt-get install -qq cmake &&\
+    apt-get install -qq \
+        cmake \
+        python3-setuptools \
+    &&\
     apt-get install -qq --no-install-recommends \
         build-essential\
         ninja-build \
@@ -54,7 +59,9 @@ ENV VIAME_VARIANT=$VIAME_VARIANT
 # normally one would just git pull origin
 # todo: more granular dependencies
 COPY . .
-RUN git pull https://github.com/VIAME/VIAME.git --recurse-submodules &&\
+RUN git config --global user.email "dockerfile@kitware.com" &&\
+    git config --global user.name "Dockerfile dummy git" &&\
+    git pull https://github.com/VIAME/VIAME.git --recurse-submodules &&\
     git submodule update --init --recursive
 
 ## == == == == == == == ==  Building Fletch == == == == == == == ==
@@ -62,6 +69,7 @@ RUN cd /root/viame/packages/fletch &&\
     mkdir -p build && \
     cd build &&\
     cmake \
+        -Dfletch_ENABLE_ALL_PACKAGES=OFF \
         -G Ninja \
         .. &&\
     ninja
