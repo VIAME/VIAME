@@ -345,6 +345,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_burnout )
   endif()
 
+  if( VIAME_ENABLE_SMQTK )
+    include( add_project_smqtk )
+  endif()
+
   # Add core (required) kwiver requirement
   if( VIAME_ENABLE_KWIVER )
     include( add_project_kwiver )
@@ -365,10 +369,6 @@ if( VIAME_BUILD_DEPENDENCIES )
 
   if( VIAME_ENABLE_KWANT )
     include( add_project_kwant )
-  endif()
-
-  if( VIAME_ENABLE_SMQTK )
-    include( add_project_smqtk )
   endif()
 
   if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_INTERNAL_PYTORCH )
