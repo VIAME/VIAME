@@ -114,7 +114,7 @@ cp -P /usr/local/cuda/lib64/libcusolver.so* install/lib
 
 # HACK: Copy in CUDNN dlls missing by create_package
 # Should be removed when this issue is fixed
-cp -P /usr/lib/x86_64-linux-gnu/libcudnn*so* install/lib
+cp -P /usr/lib/x86_64-linux-gnu/libcudnn*so.7* install/lib
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
