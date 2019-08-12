@@ -112,6 +112,10 @@ cp -P /usr/local/cuda/lib64/libcusparse.so* install/lib
 cp -P /usr/local/cuda/lib64/libcufft.so* install/lib
 cp -P /usr/local/cuda/lib64/libcusolver.so* install/lib
 
+# HACK: Copy in CUDNN dlls missing by create_package
+# Should be removed when this issue is fixed
+cp -P /usr/lib/x86_64-linux-gnu/libcudnn*so* install/lib
+
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
 cp /usr/lib64/libva.so.1 install/lib || true
