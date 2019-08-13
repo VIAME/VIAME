@@ -88,7 +88,10 @@ find_track( const track_sptr& trk, track_info_buffer_sptr buffer )
 {
   track_info_t ti;
   ti.tid = trk->id();
-  return std::lower_bound( buffer->begin(), buffer->end(), ti, compare_ti );
+  auto end = buffer->end();
+  auto result = std::lower_bound( buffer->begin(), end, ti, compare_ti );
+  // Check that we really found the track_info_t we're looking for
+  return ( result == end || result->tid == ti.tid ) ? result : end;
 }
 
 // ----------------------------------------------------------------------------
