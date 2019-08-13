@@ -427,7 +427,7 @@ compute_ref_homography_core
       track_info_t new_entry;
 
       new_entry.tid = trk->id();
-      new_entry.ref_loc = vector_2d( fts->feature->loc() );
+      new_entry.ref_loc = fts->feature->loc();
       new_entry.ref_id = frame_number;
       new_entry.active = false; // don't want to use this track on this frame
       new_entry.trk = trk;
@@ -542,7 +542,7 @@ compute_ref_homography_core
     else if ( !d_->allow_ref_frame_regression && ti.active )
     {
       ++ti_reset_count;
-      ti.ref_loc = vector_2d( fts->feature->loc() );
+      ti.ref_loc = fts->feature->loc();
       ti.ref_id = frame_number;
     }
   }
