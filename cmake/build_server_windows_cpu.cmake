@@ -1,7 +1,7 @@
 set(CTEST_SITE "zeah.kitware.com")
 set(CTEST_BUILD_NAME "Windows7_GPU_Master_Nightly")
-set(CTEST_SOURCE_DIRECTORY "C:/workspace/VIAME-master_WinNight")
-set(CTEST_BINARY_DIRECTORY "C:/workspace/VIAME-master_WinNight/build/")
+set(CTEST_SOURCE_DIRECTORY "C:/workspace/VIAME-CPU-master_WinNight")
+set(CTEST_BINARY_DIRECTORY "C:/workspace/VIAME-CPU-master_WinNight/build/")
 set(CTEST_CMAKE_GENERATOR "Visual Studio 15 2017 Win64")
 #set(CTEST_CMAKE_GENERATOR "Visual Studio 15 2017")
 #set(CTEST_CMAKE_GENERATOR_PLATFORM "x64")
@@ -16,6 +16,7 @@ set(OPTIONS
   "-DPYTHON_EXECUTABLE:PATH=C:/Python36/python.exe"
   "-DPYTHON_INCLUDE_DIR:PATH=C:/Python36/include"
   "-DPYTHON_LIBRARY:PATH=C:/Python36/libs/python36.lib"
+  "-DPYTHON_VERSION=3.6"
   "-DVIAME_CREATE_PACKAGE=ON"
   "-DVIAME_ENABLE_CUDNN=OFF"
   "-DVIAME_ENABLE_CUDA=OFF"
