@@ -13,6 +13,9 @@ set(CTEST_USE_LAUNCHERS 1)
 include(CTestUseLaunchers)
 set(OPTIONS 
   "-DCMAKE_BUILD_TYPE=Release"
+  "-DPYTHON_EXECUTABLE:PATH=C:/Python36/python.exe"
+  "-DPYTHON_INCLUDE_DIR:PATH=C:/Python36/include"
+  "-DPYTHON_LIBRARY:PATH=C:/Python36/libs/python36.lib"
   "-DVIAME_CREATE_PACKAGE=ON"
   "-DVIAME_ENABLE_CUDNN=OFF"
   "-DVIAME_ENABLE_CUDA=OFF"
