@@ -521,7 +521,7 @@ compute_ref_homography_core
       // current_frame).
       if( (ti.active && ti.ref_id != earliest_ref) || ti.ref_id == frame_number )
       {
-        ti.ref_loc = output->homography()->map( ti.ref_loc );
+        ti.ref_loc = output->homography()->map( fts->feature->loc() );
         ti.ref_id = output->to_id();
       }
       // Test back-projection on active tracks that we did not just set ref_loc
