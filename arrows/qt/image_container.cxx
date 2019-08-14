@@ -35,11 +35,8 @@
 
 #include "image_container.h"
 
-#include <vital/exceptions/image.h>
-
+#include <vital/exceptions.h>
 #include <vital/range/iota.h>
-
-#define MODULE "kwiver::arrows::qt::image_container"
 
 using kwiver::vital::range::iota;
 
@@ -91,9 +88,9 @@ depth( QImage::Format format )
     case QImage::Format_A2RGB30_Premultiplied:
       return 4;
     default:
-      throw kwiver::vital::image_type_mismatch_exception{
-              MODULE "::depth: unsupported image format " +
-              std::to_string( format ) };
+      VITAL_THROW( kwiver::vital::image_type_mismatch_exception,
+              "depth: unsupported image format " +
+              std::to_string( format ) );
   }
 }
 
@@ -276,9 +273,9 @@ image_container
       break;
   }
 
-  throw kwiver::vital::image_type_mismatch_exception{
-          MODULE "::qt_to_vital: unsupported image format " +
-          std::to_string( img.format() ) };
+  VITAL_THROW( kwiver::vital::image_type_mismatch_exception,
+               "qt_to_vital: unsupported image format " +
+               std::to_string( img.format() ) );
 }
 
 // ----------------------------------------------------------------------------
@@ -292,12 +289,12 @@ image_container
   if ( img.width() > MAX_DIM ||
        img.height() > MAX_DIM )
   {
-    throw kwiver::vital::image_exception{
-            MODULE "::vital_to_qt: input image dimensions "
+    VITAL_THROW( kwiver::vital::image_exception,
+            "vital_to_qt: input image dimensions "
             "(width = " + std::to_string( img.width() ) +
             ", height = " + std::to_string( img.height() ) +
             ") exceed maximum output dimension (" +
-            std::to_string( MAX_DIM ) + ")" };
+                 std::to_string( MAX_DIM ) + ")" );
   }
 
   auto const& pt = img.pixel_traits();
@@ -307,9 +304,9 @@ image_container
     {
       if ( img.depth() != 1 )
       {
-        throw kwiver::vital::image_type_mismatch_exception{
-                MODULE "::vital_to_qt: unsupported image format "
-                "(depth = " + std::to_string( img.depth() ) + ")" };
+        VITAL_THROW( kwiver::vital::image_type_mismatch_exception,
+                     "vital_to_qt: unsupported image format "
+                     "(depth = " + std::to_string( img.depth() ) + ")" );
       }
 
       auto const w = static_cast< int >( img.width() );
@@ -368,17 +365,17 @@ image_container
           return ::vital_to_qt< uint32_t >(
             img, QImage::Format_ARGB32, &get_pixel_rgba );
         default:
-          throw kwiver::vital::image_type_mismatch_exception{
-                  MODULE "::vital_to_qt: unsupported image format "
-                  "(depth = " + std::to_string( img.depth() ) + ")" };
+          VITAL_THROW( kwiver::vital::image_type_mismatch_exception,
+                       "vital_to_qt: unsupported image format "
+                       "(depth = " + std::to_string( img.depth() ) + ")" );
       }
     }
   }
 
-  throw kwiver::vital::image_type_mismatch_exception{
-          MODULE "::vital_to_qt: unsupported image format "
-          "(type = " + std::to_string( pt.type ) +
-          ", bytes = " + std::to_string( pt.num_bytes ) + ")" };
+  VITAL_THROW( kwiver::vital::image_type_mismatch_exception,
+               "vital_to_qt: unsupported image format "
+               "(type = " + std::to_string( pt.type ) +
+               ", bytes = " + std::to_string( pt.num_bytes ) + ")" );
 }
 
 } // end namespace vxl

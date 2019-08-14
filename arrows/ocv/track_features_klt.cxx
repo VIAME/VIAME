@@ -513,7 +513,7 @@ track_features_klt
   if( !d_->detector )
   {
     // Something did not initialize
-    throw vital::algorithm_configuration_exception(
+    VITAL_THROW( vital::algorithm_configuration_exception,
       this->type_name(), this->impl_name(),
         "not all sub-algorithms have been initialized");
   }
@@ -529,7 +529,7 @@ track_features_klt
     if ( image_data->width() != mask->width() ||
          image_data->height() != mask->height() )
     {
-      throw image_size_mismatch_exception(
+      VITAL_THROW( image_size_mismatch_exception,
           "OCV KLT feature tracker algorithm given a non-zero mask with "
           "mismatched shape compared to input image",
           image_data->width(), image_data->height(),

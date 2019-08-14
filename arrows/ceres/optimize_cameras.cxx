@@ -180,7 +180,7 @@ optimize_cameras
 {
   if( !cameras || !landmarks || !tracks )
   {
-    throw vital::invalid_value("One or more input data pieces are Null!");
+    VITAL_THROW( vital::invalid_value, "One or more input data pieces are Null!");
   }
   typedef camera_map::map_camera_t map_camera_t;
   typedef landmark_map::map_landmark_t map_landmark_t;

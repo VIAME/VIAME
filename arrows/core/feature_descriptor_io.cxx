@@ -132,7 +132,7 @@ save_features(Archive & ar, std::vector<feature_sptr> const& features)
   {
     if( !f )
     {
-      throw vital::invalid_data("not able to write a Null feature");
+      VITAL_THROW( vital::invalid_data,"not able to write a Null feature");
     }
     if( auto ft = std::dynamic_pointer_cast<feature_<T> >(f) )
     {
@@ -177,11 +177,11 @@ save_descriptors(Archive & ar, std::vector<descriptor_sptr> const& descriptors)
   {
     if( !d )
     {
-      throw vital::invalid_data("not able to write a Null descriptor");
+      VITAL_THROW( vital::invalid_data, "not able to write a Null descriptor");
     }
     if( d->size() != dim )
     {
-      throw vital::invalid_data(std::string("descriptor dimension is not ")
+      VITAL_THROW( vital::invalid_data, std::string("descriptor dimension is not ")
                                 + "consistent, should be " + std::to_string(dim)
                                 + ", is " + std::to_string(d->size()));
     }
@@ -195,7 +195,7 @@ save_descriptors(Archive & ar, std::vector<descriptor_sptr> const& descriptors)
     }
     else
     {
-      throw vital::invalid_data(std::string("saving descriptors of type ")
+      VITAL_THROW( vital::invalid_data, std::string("saving descriptors of type ")
                                 + typeid(T).name() + " but received type "
                                 + d->data_type().name());
     }
@@ -304,7 +304,7 @@ feature_descriptor_io
   ifile.read(file_id, 4);
   if (std::strncmp(file_id, "KWFD", 4) != 0)
   {
-    throw vital::invalid_data("Does not look like a KWIVER feature/descriptor file: "
+    VITAL_THROW( vital::invalid_data, "Does not look like a KWIVER feature/descriptor file: "
                               + filename);
   }
 
@@ -316,7 +316,7 @@ feature_descriptor_io
   ar( version );
   if( version != 1 )
   {
-    throw vital::invalid_data( "Unknown file format version: "
+    VITAL_THROW( vital::invalid_data, "Unknown file format version: "
                                + std::to_string(version) );
   }
 
@@ -335,7 +335,7 @@ feature_descriptor_io
         feat = read_features<Archive_t, double>(ar, num_feat);
         break;
       default:
-        throw vital::invalid_data("unknown feature type code: "
+        VITAL_THROW( vital::invalid_data, "unknown feature type code: "
                                   + std::to_string(type_code));
     }
   }
@@ -370,7 +370,7 @@ feature_descriptor_io
 #undef DO_CASE
 
       default:
-        throw vital::invalid_data("unknown descriptor type code: "
+        VITAL_THROW( vital::invalid_data, "unknown descriptor type code: "
                                   + std::to_string(type_code));
     }
   }
@@ -429,7 +429,7 @@ feature_descriptor_io
         save_features<Archive_t, double>(ar, features);
         break;
       default:
-        throw vital::invalid_data("features must be float or double");
+        VITAL_THROW( vital::invalid_data, "features must be float or double");
     }
   }
   else
@@ -464,7 +464,7 @@ feature_descriptor_io
 #undef DO_CASE
 
       default:
-        throw vital::invalid_data(std::string("descriptor type not supported: ")
+        VITAL_THROW( vital::invalid_data, std::string("descriptor type not supported: ")
                                   + descriptors[0]->data_type().name());
     }
   }
