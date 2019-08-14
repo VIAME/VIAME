@@ -13,7 +13,6 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python -m torch.distributed.launch \
         --nproc_per_node=${NUM_PROC} \
-        --master_port=2335 \
     ${VIAME_INSTALL}/lib/python3.6/site-packages/pysot/viame/viame_train_tracker.py \
         -i ${VIAME_INSTALL}/examples/object_tracker_training/${DATA_FOLDER} \
         -s ${VIAME_INSTALL}/examples/object_tracker_training/${MODEL_FOLDER} \
