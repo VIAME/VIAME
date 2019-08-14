@@ -70,6 +70,23 @@ private:
   kwiver::vital::camera_perspective_sptr dest_camera;
 
   virtual vital::bounding_box<double> transform_bounding_box(vital::bounding_box<double>& bbox) const;
+
+  virtual Eigen::Vector3d backproject_to_height(const kwiver::vital::camera_perspective_sptr camera,
+						const Eigen::Vector2d img_pt) const;
+
+  virtual Eigen::Vector3d backproject_to_plane(const kwiver::vital::camera_perspective_sptr camera,
+					       const Eigen::Vector2d img_pt,
+					       const Eigen::Vector4d plane) const;
+
+  virtual Eigen::Matrix<double, 8, 3> backproject_bbox(const kwiver::vital::camera_perspective_sptr camera,
+						       const Eigen::Vector4d box) const;
+
+  virtual Eigen::Vector4d box_around_box3d(const kwiver::vital::camera_perspective_sptr camera,
+					   const Eigen::Matrix<double, 8, 3> box3d) const;
+
+  virtual Eigen::Vector4d view_to_view(const kwiver::vital::camera_perspective_sptr src_camera,
+				       const kwiver::vital::camera_perspective_sptr dest_camera,
+				       const Eigen::Vector4d bounds) const;
 };
 
 }}} //End namespace
