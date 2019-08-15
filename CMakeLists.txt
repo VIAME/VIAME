@@ -140,14 +140,6 @@ mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled" OFF )
 mark_as_advanced( VIAME_BUILD_TESTS )
 
-if( VIAME_ENABLE_PYTORCH )
-  if( WIN32 )
-    option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  OFF )
-  else()
-    option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  ON )
-  endif()
-endif()
-
 ###
 # Add logic relating to enable flags
 ##
@@ -263,10 +255,6 @@ if( VIAME_ENABLE_CUDNN )
             CUDNN_VERSION_MAJOR "${TMP_CUDNN_VERSION_FILE_CONTENTS}" )
     string( REGEX REPLACE "define CUDNN_MAJOR * +([0-9]+)" "\\1"
             CUDNN_VERSION_MAJOR "${CUDNN_VERSION_MAJOR}" )
-
-    if( VIAME_BUILD_INTERNAL_PYTORCH AND "${CUDNN_VERSION_MAJOR}" VERSION_LESS "7.0.0" )
-      message( FATAL_ERROR "CUDNN version 7.0 or higher required for internal pytorch" )
-    endif()
   endif()
 endif()
 

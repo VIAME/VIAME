@@ -7,15 +7,21 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
-
 CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
-option( VIAME_ENABLE_PYTORCH-VISION   "Enable torchvision PyTorch code" ON )
+if( WIN32 )
+  option( VIAME_ENABLE_PYTORCH-CORE   "Enable internal PyTorch build"   OFF )
+  option( VIAME_ENABLE_PYTORCH-VISION "Enable torchvision PyTorch code" OFF )
+else()
+  option( VIAME_ENABLE_PYTORCH-CORE   "Enable internal PyTorch build"   ON )
+  option( VIAME_ENABLE_PYTORCH-VISION "Enable torchvision PyTorch code" ON )
+endif()
+
 option( VIAME_ENABLE_PYTORCH-MMDET    "Enable mmdet PyTorch code"       ON )
 option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"       OFF )
 option( VIAME_ENABLE_PYTORCH-NETHARN  "Enable netharn PyTorch code"     OFF )
 
+mark_as_advanced( VIAME_ENABLE_PYTORCH-CORE )
 mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
 mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
 mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
@@ -23,7 +29,7 @@ mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
 
 set( PYTORCH_LIBRARIES )
 
-if( VIAME_BUILD_INTERNAL_PYTORCH )
+if( VIAME_ENABLE_PYTORCH-CORE )
   set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} pytorch )
 endif()
 
@@ -43,8 +49,20 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} netharn )
 endif()
 
+set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${PYTORCH_LIBRARIES} )
+
+if( VIAME_ENABLE_PYTORCH-CORE )
+  set( COMMON_PYTORCH_PROJECT_DEP fletch pytorch )
+else()
+  set( COMMON_PYTORCH_PROJECT_DEP fletch )
+endif()
+
 if( VIAME_ENABLE_CUDNN )
-  set(CUDNN_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}")
+  if( VIAME_ENABLE_PYTORCH-CORE AND "${CUDNN_VERSION_MAJOR}" VERSION_LESS "7.0.0" )
+    message( FATAL_ERROR "CUDNN version 7.0 or higher required for internal pytorch" )
+  endif()
+
+  set( CUDNN_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}" )
   if( CUDNN_ROOT_DIR )
     list( APPEND CUDNN_ENV "CUDNN_INCLUDE_DIR=${CUDNN_ROOT_DIR}/include" )
   endif()
@@ -163,8 +181,9 @@ foreach( LIB ${PYTORCH_LIBRARIES} )
                                 "TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}"
                                 "${CUDNN_ENV}"
           ${PYTHON_EXECUTABLE} setup.py build_ext --inplace )
+      set( DEP_DEPS ${COMMON_PYTORCH_PROJECT_DEP} mmcv )
       ExternalProject_Add( mmdet_${DEP}
-        DEPENDS fletch pytorch mmcv
+        DEPENDS ${DEP_DEPS}
         PREFIX ${VIAME_BUILD_PREFIX}
         SOURCE_DIR ${VIAME_PACKAGES_DIR}/pytorch-libs/${LIB}/mmdet/ops/${DEP}
         STAMP_DIR ${VIAME_BUILD_PREFIX}/src/pytorch-build/${DEP}-stamp
@@ -176,12 +195,12 @@ foreach( LIB ${PYTORCH_LIBRARIES} )
         )
     endforeach()
 
-    set( PROJECT_DEPS fletch pytorch mmcv
+    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} mmcv
          mmdet_roi_align mmdet_roi_pool mmdet_dcn mmdet_nms )
   elseif( "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS fletch )
   else()
-    set( PROJECT_DEPS fletch pytorch )
+    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} )
   endif()
 
   ExternalProject_Add( ${LIB}
