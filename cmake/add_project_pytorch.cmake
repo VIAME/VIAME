@@ -9,14 +9,8 @@
 
 CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
-if( WIN32 )
-  option( VIAME_ENABLE_PYTORCH-CORE   "Enable internal PyTorch build"   OFF )
-  option( VIAME_ENABLE_PYTORCH-VISION "Enable torchvision PyTorch code" OFF )
-else()
-  option( VIAME_ENABLE_PYTORCH-CORE   "Enable internal PyTorch build"   ON )
-  option( VIAME_ENABLE_PYTORCH-VISION "Enable torchvision PyTorch code" ON )
-endif()
-
+option( VIAME_ENABLE_PYTORCH-CORE     "Enable internal PyTorch build"   ON )
+option( VIAME_ENABLE_PYTORCH-VISION   "Enable torchvision PyTorch code" ON )
 option( VIAME_ENABLE_PYTORCH-MMDET    "Enable mmdet PyTorch code"       ON )
 option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"       OFF )
 option( VIAME_ENABLE_PYTORCH-NETHARN  "Enable netharn PyTorch code"     OFF )
