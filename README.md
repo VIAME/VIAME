@@ -31,7 +31,7 @@ Documentation
 -------------
 
 The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download),
-[Example Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
+[Tutorial Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
 and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
 
