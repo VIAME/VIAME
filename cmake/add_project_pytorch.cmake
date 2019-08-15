@@ -11,7 +11,37 @@ set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} pytorch )
 
 CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
+option( VIAME_ENABLE_PYTORCH-VISION   "Enable torchvision PyTorch code" ON )
+option( VIAME_ENABLE_PYTORCH-MMDET    "Enable mmdet PyTorch code"       ON )
+option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"       OFF )
+option( VIAME_ENABLE_PYTORCH-NETHARN  "Enable netharn PyTorch code"     OFF )
+
+mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
+mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
+mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
+mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
+
 set( PYTORCH_LIBRARIES pytorch torchvision mmcv mmdetection )
+
+if( VIAME_BUILD_INTERNAL_PYTORCH )
+  set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} pytorch )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-VISION )
+  set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} torchvision )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-MMDET )
+  set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} mmcv mmdetection )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-PYSOT )
+  set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} pysot )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-NETHARN )
+  set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} netharn )
+endif()
 
 if( VIAME_ENABLE_CUDNN )
   set(CUDNN_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}")

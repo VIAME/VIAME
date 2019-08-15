@@ -371,7 +371,7 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_kwant )
   endif()
 
-  if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_INTERNAL_PYTORCH )
+  if( VIAME_ENABLE_PYTORCH )
     include( add_project_pytorch )
   endif()
 
