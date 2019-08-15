@@ -29,4 +29,9 @@ move "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
 move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages /H /R
 rmdir %VIAME_BUILD_DIR%\VIAME\lib\site-packages /s /q
+
+REM ---------------------------------------------------
+REM COMPRESS FINAL PACKAGE
+REM ---------------------------------------------------
+
 "C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%/VIAME-vX.X.X-Windows-64Bit.zip" "%VIAME_BUILD_DIR%/VIAME
