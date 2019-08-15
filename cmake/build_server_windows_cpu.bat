@@ -34,4 +34,4 @@ REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
 REM ---------------------------------------------------
 
-"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%/VIAME-vX.X.X-Windows-64Bit-CPU.zip" "%VIAME_BUILD_DIR%/VIAME
+"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%/VIAME-Windows-64Bit-CPU.zip" "%VIAME_BUILD_DIR%/VIAME
