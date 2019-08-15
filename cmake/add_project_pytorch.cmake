@@ -21,7 +21,7 @@ mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
 mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
 mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
 
-set( PYTORCH_LIBRARIES pytorch torchvision mmcv mmdetection )
+set( PYTORCH_LIBRARIES )
 
 if( VIAME_BUILD_INTERNAL_PYTORCH )
   set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} pytorch )
