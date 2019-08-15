@@ -256,7 +256,7 @@ clip_mesh(mesh& mesh,
       // use the initial order [0, 1, 2]
       break;
     default:
-      throw  vital::invalid_data("invalid triangle clipping case");
+      VITAL_THROW( vital::invalid_data, "invalid triangle clipping case");
     }
     clipped = true;
 

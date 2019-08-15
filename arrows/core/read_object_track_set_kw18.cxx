@@ -217,7 +217,7 @@ read_object_track_set_kw18::priv
       str << "This is not a kw18 kw19 or kw20 file; found "
           << col.size() << " columns in\n\"" << line << "\"";
 
-      throw vital::invalid_data( str.str() );
+      VITAL_THROW( vital::invalid_data, str.str() );
     }
 
     /*

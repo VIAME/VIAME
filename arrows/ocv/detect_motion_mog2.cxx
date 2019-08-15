@@ -172,14 +172,14 @@ detect_motion_mog2
   d_->m_max_foreground_fract   = config->get_value<double>( "max_foreground_fract" );
   if( d_->m_max_foreground_fract < 0 || d_->m_max_foreground_fract > 1 )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "max_foreground_fract must be in "
                                              "the range 0-1." );
   }
 
   if( d_->m_min_frames < 0 )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "min_frames must be greater than zero." );
   }
 
@@ -208,7 +208,7 @@ detect_motion_mog2
 {
   if ( !image)
   {
-    throw vital::invalid_data("Inputs to ocv::detect_motion_mog2 are null");
+    VITAL_THROW( vital::invalid_data, "Inputs to ocv::detect_motion_mog2 are null");
   }
 
   if( reset_model )

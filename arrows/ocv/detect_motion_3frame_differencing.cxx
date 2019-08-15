@@ -356,28 +356,28 @@ detect_motion_3frame_differencing
 
   if( d_->m_frame_separation < 0 )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "frame_separation must be an "
                                              "integer greater than 0." );
   }
 
   if( d_->m_jitter_radius < 0 )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "m_jitter_radius must be an "
                                              "integer greater than 0." );
   }
 
   if( d_->m_max_foreground_fract < 0 || d_->m_max_foreground_fract > 1 )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "max_foreground_fract must be in "
                                              "the range 0-1." );
   }
 
   if( d_->m_max_foreground_fract != 1 && d_->m_max_foreground_fract_thresh < 0 )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "max_foreground_fract_thresh must "
                                              "be set as a positive value." );
   }
@@ -412,7 +412,7 @@ detect_motion_3frame_differencing
 {
   if ( !image)
   {
-    throw vital::invalid_data("Inputs to ocv::detect_motion_3frame_differencing are null");
+    VITAL_THROW( vital::invalid_data, "Inputs to ocv::detect_motion_3frame_differencing are null");
   }
 
   if( reset_model )

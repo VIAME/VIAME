@@ -198,7 +198,7 @@ video_input_pos
   std::ifstream ifs( image_list_name.c_str() );
   if ( ! ifs )
   {
-    throw kwiver::vital::invalid_file( image_list_name, "Could not open file" );
+    VITAL_THROW( kwiver::vital::invalid_file, image_list_name, "Could not open file" );
   }
 
   kwiver::vital::data_stream_reader stream_reader( ifs );
