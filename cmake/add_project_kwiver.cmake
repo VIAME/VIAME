@@ -43,6 +43,10 @@ if( VIAME_ENABLE_BURNOUT )
   set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} burnout )
 endif()
 
+if( VIAME_ENABLE_SMQTK )
+  set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} smqtk )
+endif()
+
 ExternalProject_Add(kwiver
   DEPENDS ${VIAME_KWIVER_DEPS}
   PREFIX ${VIAME_BUILD_PREFIX}

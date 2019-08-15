@@ -17,7 +17,8 @@ include( CMakeDependentOption )
 
 
 # If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any other superbuild
-# projects (except for viame). This makes development builds much quicker.
+# projects (except for viame). This makes development builds much quicker if just doing
+# development only in viame.
 option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
 mark_as_advanced( VIAME_FORCEBUILD )
 
@@ -35,29 +36,6 @@ mark_as_advanced( VIAME_BUILD_INSTALL_PREFIX )
 
 set( VIAME_PACKAGES_DIR             "${VIAME_SOURCE_DIR}/packages" )
 set( VIAME_DOWNLOAD_DIR             "${VIAME_PACKAGES_DIR}/downloads" )
-
-###
-# Flags relating to examples
-##
-option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
-option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
-
-if( VIAME_DOWNLOAD_MODELS )
-  option( VIAME_DOWNLOAD_MODELS-HABCAM      "Download habcam detection models" OFF )
-  option( VIAME_DOWNLOAD_MODELS-MOUSS       "Download mouss detection models"  OFF )
-  option( VIAME_DOWNLOAD_MODELS-PYTORCH     "Download pytorch models"          ON )
-  option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"   OFF )
-
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOUSS )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-else()
-  set( VIAME_DOWNLOAD_MODELS-HABCAM      OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-MOUSS       OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
-endif()
 
 ###
 # GPU and FFMPEG utilization flags used across projects
@@ -112,6 +90,29 @@ option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 mark_as_advanced( VIAME_ENABLE_GDAL )
 
 ###
+# Flags relating to examples
+##
+option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
+option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
+
+if( VIAME_DOWNLOAD_MODELS )
+  option( VIAME_DOWNLOAD_MODELS-HABCAM      "Download habcam detection models" OFF )
+  option( VIAME_DOWNLOAD_MODELS-MOUSS       "Download mouss detection models"  OFF )
+  option( VIAME_DOWNLOAD_MODELS-PYTORCH     "Download default pytorch models"  ON )
+  option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"   OFF )
+
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOUSS )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+else()
+  set( VIAME_DOWNLOAD_MODELS-HABCAM      OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-MOUSS       OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
+endif()
+
+###
 # Advanced hidden flags used for disabling core features
 #
 # These are meant for use by advanced users when you only want to use VIAME
@@ -138,14 +139,6 @@ mark_as_advanced( VIAME_BUILD_CORE_IMAGE_LIBS )
 
 option( VIAME_BUILD_TESTS "Build VIAME and all sub-packages with tests enabled" OFF )
 mark_as_advanced( VIAME_BUILD_TESTS )
-
-if( VIAME_ENABLE_PYTORCH )
-  if( WIN32 )
-    option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  OFF )
-  else()
-    option( VIAME_BUILD_INTERNAL_PYTORCH  "Enable internal PyTorch build"  ON )
-  endif()
-endif()
 
 ###
 # Add logic relating to enable flags
@@ -255,6 +248,13 @@ if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
   set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
 
+  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} AND WIN32 )
+    get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_ROOT_DIR_TMP}" DIRECTORY )
+
+    set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
+    set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
+  endif()
+
   if( EXISTS "${CUDNN_INCLUDE_FILE}" )
     file( READ "${CUDNN_INCLUDE_FILE}" TMP_CUDNN_VERSION_FILE_CONTENTS )
 
@@ -262,10 +262,6 @@ if( VIAME_ENABLE_CUDNN )
             CUDNN_VERSION_MAJOR "${TMP_CUDNN_VERSION_FILE_CONTENTS}" )
     string( REGEX REPLACE "define CUDNN_MAJOR * +([0-9]+)" "\\1"
             CUDNN_VERSION_MAJOR "${CUDNN_VERSION_MAJOR}" )
-
-    if( VIAME_BUILD_INTERNAL_PYTORCH AND "${CUDNN_VERSION_MAJOR}" VERSION_LESS "7.0.0" )
-      message( FATAL_ERROR "CUDNN version 7.0 or higher required for internal pytorch" )
-    endif()
   endif()
 endif()
 
@@ -345,6 +341,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_burnout )
   endif()
 
+  if( VIAME_ENABLE_SMQTK )
+    include( add_project_smqtk )
+  endif()
+
   # Add core (required) kwiver requirement
   if( VIAME_ENABLE_KWIVER )
     include( add_project_kwiver )
@@ -367,16 +367,12 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_kwant )
   endif()
 
-  if( VIAME_ENABLE_SMQTK )
-    include( add_project_smqtk )
+  if( VIAME_ENABLE_PYTORCH )
+    include( add_project_pytorch )
   endif()
 
   if( VIAME_ENABLE_ITK )
     include( add_project_itk_modules )
-  endif()
-
-  if( VIAME_ENABLE_PYTORCH AND VIAME_BUILD_INTERNAL_PYTORCH )
-    include( add_project_pytorch )
   endif()
 
   if( WIN32 )

@@ -31,7 +31,7 @@ Documentation
 -------------
 
 The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download),
-[Example Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
+[Tutorial Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
 and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
 
@@ -79,16 +79,16 @@ CentOS
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d4228d2877dfcc9023e3f38/download) <br>
-[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1KxjkS9bc0Z4wxADKaaaNGiFtyNwXWPZ0) <br>
+[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d510b0cd3cb600adb506294/download) <br>
+[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1EqriqlcKj2VZ7hPzvxRvCMCs6u-QuTpG) <br>
 [VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d422875877dfcc9023e3bc0/download) <br>
 [VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1wuw5-yekax2PWayCaZv8yF_uhqX2em34)
 
 **Windows Desktop Binaries:** <br>
 [VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d436bcc877dfcc902426eac/download) <br>
 [VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Vy7rjkEnVx1DpT5gWeMep4hBFPiS7lh6) <br>
-[VIAME v0.9.9 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5c98c5728d777f072bd52c43/download) <br>
-[VIAME v0.9.9 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=167QP2Iyyb862d_d9ebSDzgwLsY3MHl0M)
+[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d547f2f85f25b11ff2c9771/download) <br>
+[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=12ruw0Ojrnr8ZmHHyi8aq8c43OPNFzKBY)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
@@ -106,7 +106,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5c58d8f68d777f072b2b9815/download)
 
 **Standalone Tools:** <br>
-[Seal Dual Display GUI, CentOS 7, 64-Bit](https://data.kitware.com/api/v1/item/5d38a311877dfcc9022a3ee2/download) <br>
+[Seal Dual Display GUI, CentOS 7, 64-Bit](https://data.kitware.com/api/v1/item/5d449171877dfcc90247da5c/download) <br>
 [Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download)
 
 Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.

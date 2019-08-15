@@ -115,23 +115,23 @@ public:
 
 
 // =============================================================================
-read_detected_object_set_habcam::
-read_detected_object_set_habcam()
+read_detected_object_set_habcam
+::read_detected_object_set_habcam()
   : d( new read_detected_object_set_habcam::priv( this ) )
 {
 }
 
 
-read_detected_object_set_habcam::
-~read_detected_object_set_habcam()
+read_detected_object_set_habcam
+::~read_detected_object_set_habcam()
 {
 }
 
 
 // -----------------------------------------------------------------------------
 void
-read_detected_object_set_habcam::
-set_configuration( kwiver::vital::config_block_sptr config )
+read_detected_object_set_habcam
+::set_configuration( kwiver::vital::config_block_sptr config )
 {
   d->m_delim =
     config->get_value<std::string>( "delimiter", d->m_delim );
@@ -144,8 +144,8 @@ set_configuration( kwiver::vital::config_block_sptr config )
 
 // -----------------------------------------------------------------------------
 bool
-read_detected_object_set_habcam::
-check_configuration( kwiver::vital::config_block_sptr config ) const
+read_detected_object_set_habcam
+::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -153,8 +153,8 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 
 // -----------------------------------------------------------------------------
 bool
-read_detected_object_set_habcam::
-read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+read_detected_object_set_habcam
+::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -202,8 +202,8 @@ read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name 
 
 // -----------------------------------------------------------------------------
 void
-read_detected_object_set_habcam::
-new_stream()
+read_detected_object_set_habcam
+::new_stream()
 {
   d->m_first = true;
   d->m_filenames.clear();
@@ -213,8 +213,8 @@ new_stream()
 
 // -----------------------------------------------------------------------------
 void
-read_detected_object_set_habcam::priv::
-parse_detection( const std::vector< std::string >& parsed_line )
+read_detected_object_set_habcam::priv
+::parse_detection( const std::vector< std::string >& parsed_line )
 {
   if ( parsed_line.size() < 4 )
   {
@@ -265,8 +265,8 @@ parse_detection( const std::vector< std::string >& parsed_line )
 
 // -----------------------------------------------------------------------------
 bool
-read_detected_object_set_habcam::priv::
-parse_box( const std::vector< std::string >& parsed_line,
+read_detected_object_set_habcam::priv
+::parse_box( const std::vector< std::string >& parsed_line,
            unsigned index,
            kwiver::vital::bounding_box_d& bbox )
 {
@@ -367,8 +367,8 @@ parse_box( const std::vector< std::string >& parsed_line,
 
 // -----------------------------------------------------------------------------
 std::string
-read_detected_object_set_habcam::priv::
-decode_species( int code )
+read_detected_object_set_habcam::priv
+::decode_species( int code )
 {
   std::stringstream str;
 
@@ -385,8 +385,8 @@ decode_species( int code )
 
 // =============================================================================
 void
-read_detected_object_set_habcam::priv::
-read_all()
+read_detected_object_set_habcam::priv
+::read_all()
 {
   std::string line;
   kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
@@ -461,8 +461,8 @@ read_all()
 
 // -----------------------------------------------------------------------------
 void
-read_detected_object_set_habcam::priv::
-init_species_map()
+read_detected_object_set_habcam::priv
+::init_species_map()
 {
   // Could read the species definition from a file.
   // The map will be constant and large, so this could be class static.

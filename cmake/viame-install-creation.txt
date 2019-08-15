@@ -2,7 +2,7 @@ To finalize binaries to make an installer:
 ------------------------------------------
 
 1. Do a complete build with:
-  -  build_internal_pytorch 'on' (linux only)
+  -  VIAME_ENABLE_PYTORCH-CORE 'on' (linux only)
   - 'release' mode (all OS)
   - 'create_package' cmake build flag on (all OS)
 
