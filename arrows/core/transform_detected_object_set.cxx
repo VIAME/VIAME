@@ -48,6 +48,13 @@ transform_detected_object_set::transform_detected_object_set()
 {
 }
 
+// ------------------------------------------------------------------
+transform_detected_object_set::transform_detected_object_set(kwiver::vital::camera_perspective_sptr src_cam,
+							     kwiver::vital::camera_perspective_sptr dest_cam)
+  : src_camera( src_cam )
+  , dest_camera( dest_cam )
+{
+}
 
 // ------------------------------------------------------------------
 vital::config_block_sptr

@@ -54,6 +54,10 @@ public:
                "Transforms a detected object set based on source and destination cameras.\n\n" )
 
   transform_detected_object_set();
+
+  transform_detected_object_set(kwiver::vital::camera_perspective_sptr src_cam,
+				kwiver::vital::camera_perspective_sptr dest_cam);
+
   virtual ~transform_detected_object_set() = default;
 
   virtual vital::config_block_sptr get_configuration() const;
