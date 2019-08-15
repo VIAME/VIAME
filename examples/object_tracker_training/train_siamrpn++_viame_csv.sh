@@ -6,6 +6,7 @@ export VIAME_INSTALL=./../..
 export DATA_FOLDER=data_folder/
 export MODEL_FOLDER=siamrpn++_model/
 export NUM_PROC=1
+export THRESH=0.0
 
 source ${VIAME_INSTALL}/setup_viame.sh
 
@@ -17,4 +18,4 @@ python -m torch.distributed.launch \
         -i ${VIAME_INSTALL}/examples/object_tracker_training/${DATA_FOLDER} \
         -s ${VIAME_INSTALL}/examples/object_tracker_training/${MODEL_FOLDER} \
         -c ${VIAME_INSTALL}/configs/pipelines/models/pysot_training_config.yaml \
-        --threshold 0.0 # --skip-crop
+        --threshold ${THRESH} # --skip-crop

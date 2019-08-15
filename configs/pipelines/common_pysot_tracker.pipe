@@ -1,6 +1,4 @@
 # =======================================================================================
-# Commonly used default tracker when the user hasn't specified one.
-#
 # This is a version of SiamRPN++ implemented in pytorch with the pysot library.
 
 process tracker
