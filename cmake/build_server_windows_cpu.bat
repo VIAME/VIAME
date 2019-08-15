@@ -1,3 +1,7 @@
+REM ---------------------------------------------------
+REM CORE BUILD PIPELINE
+REM ---------------------------------------------------
+
 IF EXIST build rmdir /s /q build
 
 IF NOT EXIST C:\tmp mkdir C:\tmp
@@ -9,3 +13,20 @@ SET "PATH=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v10.0\bin;C:\Progra
 git submodule update --init --recursive
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
+
+REM ---------------------------------------------------
+REM HACKS UNTIL THESE THINGS ARE BETTER HANDLED IN CODE
+REM ---------------------------------------------------
+
+SET VIAME_SOURCE_DIR=C:\workspace\VIAME-CPU-master_WinNight
+SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
+
+SET CPU_ADD_ON_PACKAGE=C:\tmp\VIAME-Windows-CPU.zip
+SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
+
+move "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
+"C:\Program Files\7-Zip\7z.exe" x -aoa %CPU_ADD_ON_PACKAGE% -o%VIAME_BUILD_DIR%
+move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
+xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages /H /R
+rmdir %VIAME_BUILD_DIR%\VIAME\lib\site-packages /s /q
+"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%/VIAME-vX.X.X-Windows-64Bit-CPU.zip" "%VIAME_BUILD_DIR%/VIAME
