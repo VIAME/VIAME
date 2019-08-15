@@ -2,6 +2,9 @@ REM ---------------------------------------------------
 REM CORE BUILD PIPELINE
 REM ---------------------------------------------------
 
+SET VIAME_SOURCE_DIR=C:\workspace\VIAME-CPU-master_WinNight
+SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
+
 IF EXIST build rmdir /s /q build
 
 IF NOT EXIST C:\tmp mkdir C:\tmp
@@ -17,9 +20,6 @@ git submodule update --init --recursive
 REM ---------------------------------------------------
 REM HACKS UNTIL THESE THINGS ARE BETTER HANDLED IN CODE
 REM ---------------------------------------------------
-
-SET VIAME_SOURCE_DIR=C:\workspace\VIAME-CPU-master_WinNight
-SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
 
 SET CPU_ADD_ON_PACKAGE=C:\tmp\VIAME-Windows-CPU.zip
 SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libsvm.dll
