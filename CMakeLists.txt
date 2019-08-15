@@ -17,7 +17,8 @@ include( CMakeDependentOption )
 
 
 # If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any other superbuild
-# projects (except for viame). This makes development builds much quicker.
+# projects (except for viame). This makes development builds much quicker if just doing
+# development only in viame.
 option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
 mark_as_advanced( VIAME_FORCEBUILD )
 
@@ -35,29 +36,6 @@ mark_as_advanced( VIAME_BUILD_INSTALL_PREFIX )
 
 set( VIAME_PACKAGES_DIR             "${VIAME_SOURCE_DIR}/packages" )
 set( VIAME_DOWNLOAD_DIR             "${VIAME_PACKAGES_DIR}/downloads" )
-
-###
-# Flags relating to examples
-##
-option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
-option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
-
-if( VIAME_DOWNLOAD_MODELS )
-  option( VIAME_DOWNLOAD_MODELS-HABCAM      "Download habcam detection models" OFF )
-  option( VIAME_DOWNLOAD_MODELS-MOUSS       "Download mouss detection models"  OFF )
-  option( VIAME_DOWNLOAD_MODELS-PYTORCH     "Download pytorch models"          ON )
-  option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"   OFF )
-
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOUSS )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-else()
-  set( VIAME_DOWNLOAD_MODELS-HABCAM      OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-MOUSS       OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
-endif()
 
 ###
 # GPU and FFMPEG utilization flags used across projects
@@ -110,6 +88,29 @@ mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
 ##
 option( VIAME_ENABLE_GDAL           "Enable GDAL image source"      OFF )
 mark_as_advanced( VIAME_ENABLE_GDAL )
+
+###
+# Flags relating to examples
+##
+option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
+option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
+
+if( VIAME_DOWNLOAD_MODELS )
+  option( VIAME_DOWNLOAD_MODELS-HABCAM      "Download habcam detection models" OFF )
+  option( VIAME_DOWNLOAD_MODELS-MOUSS       "Download mouss detection models"  OFF )
+  option( VIAME_DOWNLOAD_MODELS-PYTORCH     "Download default pytorch models"  ON )
+  option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"   OFF )
+
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOUSS )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+else()
+  set( VIAME_DOWNLOAD_MODELS-HABCAM      OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-MOUSS       OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
+  set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
+endif()
 
 ###
 # Advanced hidden flags used for disabling core features
