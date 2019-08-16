@@ -27,7 +27,7 @@ SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libs
 move "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
 "C:\Program Files\7-Zip\7z.exe" x -aoa %GPU_ADD_ON_PACKAGE% -o%VIAME_BUILD_DIR%
 move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
-xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages /H /R
+xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages /H /R /S
 rmdir %VIAME_BUILD_DIR%\VIAME\lib\site-packages /s /q
 
 REM ---------------------------------------------------
