@@ -79,14 +79,14 @@ CentOS
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d510b0cd3cb600adb506294/download) <br>
-[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1EqriqlcKj2VZ7hPzvxRvCMCs6u-QuTpG) <br>
-[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d422875877dfcc9023e3bc0/download) <br>
-[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, CUDA 10.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1wuw5-yekax2PWayCaZv8yF_uhqX2em34)
+[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d510b0cd3cb600adb506294/download) <br>
+[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1EqriqlcKj2VZ7hPzvxRvCMCs6u-QuTpG) <br>
+[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d422875877dfcc9023e3bc0/download) <br>
+[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1wuw5-yekax2PWayCaZv8yF_uhqX2em34)
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d436bcc877dfcc902426eac/download) <br>
-[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, CUDA 9.0, Python 3.6, Mirror2](https://drive.google.com/open?id=1Vy7rjkEnVx1DpT5gWeMep4hBFPiS7lh6) <br>
+[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d56ed3785f25b11ff323b50/download) <br>
+[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1js74hPySv2CmDDTgFqUI8svFHELWGW6d) <br>
 [VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/file/5d55cfd085f25b11ff2fc648/download) <br>
 [VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1c3K5-nBvGgQlUkT_iMOhe1WP2ZxmGsQi)
 
@@ -97,8 +97,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
-[Arctic Seals Models Add-On, CUDA 10.0, All Linux](https://data.kitware.com/api/v1/item/5d3a83cf877dfcc9022fb5aa/download) <br>
-[Arctic Seals Models Add-On, CUDA 9.0, All Linux](https://data.kitware.com/api/v1/item/5d0928f3676794a06e4cffbb/download) <br>
+[Arctic Seals Models Add-On, GPU Enabled, All Linux](https://data.kitware.com/api/v1/item/5d3a83cf877dfcc9022fb5aa/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5d016fbf8d777f072b2955c9/download) <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5cded9828d777f072bb46eba/download) <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
