@@ -49,11 +49,16 @@ track_set
   track_set_sptr const& other, clone_type clone_method,
   bool do_not_append_tracks)
 {
-  auto ot = other->tracks();
+  auto const& ot = other->tracks();
+
+  if (this->empty())
+  {
+    this->set_tracks(ot);
+  }
 
   track_id_t next_track_id = (*this->all_track_ids().crbegin()) + 1;
 
-  for (auto &t : ot)
+  for (auto const& t : ot)
   {
     auto ct = this->get_track(t->id());
     if (!ct)
@@ -70,7 +75,7 @@ track_set
       }
       else
       {
-        for (auto ts : *t)
+        for (auto const& ts : *t)
         {
           auto ts_clone = ts->clone( clone_method );
           if (ct->back()->frame() < ts_clone->frame())
