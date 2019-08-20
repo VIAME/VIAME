@@ -1,7 +1,7 @@
 set(CTEST_SITE "zeah.kitware.com")
 set(CTEST_BUILD_NAME "Windows7_GPU_Master_Nightly")
-set(CTEST_SOURCE_DIRECTORY "C:/workspace/VIAME-CPU-master_WinNight")
-set(CTEST_BINARY_DIRECTORY "C:/workspace/VIAME-CPU-master_WinNight/build/")
+set(CTEST_SOURCE_DIRECTORY "C:/workspace/VIAME-Seal-CPU")
+set(CTEST_BINARY_DIRECTORY "C:/workspace/VIAME-Seal-CPU/build/")
 set(CTEST_CMAKE_GENERATOR "Visual Studio 15 2017 Win64")
 #set(CTEST_CMAKE_GENERATOR "Visual Studio 15 2017")
 #set(CTEST_CMAKE_GENERATOR_PLATFORM "x64")
@@ -32,8 +32,8 @@ set(OPTIONS
   "-DVIAME_ENABLE_TENSORFLOW=ON"
   "-DVIAME_ENABLE_VIVIA=OFF"
   "-DVIAME_ENABLE_SEAL_TK=ON"
-  "-DVIAME_KWIVER_BUILD_DIR=C:/tmp/kv2"
-  "-DVIAME_PLUGINS_BUILD_DIR=C:/tmp/vm2"
+  "-DVIAME_KWIVER_BUILD_DIR=C:/tmp/kv4"
+  "-DVIAME_PLUGINS_BUILD_DIR=C:/tmp/vm4"
 )
 
 set(platform Windows7)
