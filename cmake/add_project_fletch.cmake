@@ -52,7 +52,6 @@ endif()
 if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_Qt:BOOL=ON
     -Dfletch_ENABLE_TinyXML1:BOOL=ON
     -Dfletch_ENABLE_libjson:BOOL=ON
     -Dfletch_ENABLE_GeographicLib:BOOL=ON
@@ -60,7 +59,6 @@ if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
 else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_Qt:BOOL=OFF
     -Dfletch_ENABLE_TinyXML1:BOOL=OFF
     -Dfletch_ENABLE_libjson:BOOL=OFF
     -Dfletch_ENABLE_GeographicLib:BOOL=OFF
@@ -156,10 +154,28 @@ else()
   )
 endif()
 
-if( NOT EXTERNAL_OpenCV )
-  set( FLETCH_BUILD_OPENCV ${VIAME_ENABLE_OPENCV} )
+if( EXTERNAL_Qt )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Qt:BOOL=OFF
+    -DQt5_DIR:PATH=${EXTERNAL_Qt}
+  )
+elseif( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Qt:BOOL=ON
+  )
 else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Qt:BOOL=OFF
+  )
+endif()
+
+if( EXTERNAL_OpenCV )
   set( FLETCH_BUILD_OPENCV OFF )
+else()
+  set( FLETCH_BUILD_OPENCV ${VIAME_ENABLE_OPENCV} )
 endif()
 
 ExternalProject_Add(fletch
@@ -292,7 +308,19 @@ if( VIAME_ENABLE_VIVIA )
   endif()
 endif()
 
-if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
+if( EXTERNAL_Qt )
+  if( WIN32 )
+    set(VIAME_ARGS_Qt
+       ${VIAME_ARGS_Qt}
+       -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake.exe
+    )
+  else()
+    set(VIAME_ARGS_Qt
+       ${VIAME_ARGS_Qt}
+       -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake
+    )
+  endif()
+elseif( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
   if( WIN32 )
     set( VIAME_ARGS_Qt
        ${VIAME_ARGS_Qt}
