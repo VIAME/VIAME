@@ -46,6 +46,12 @@ rm -rf cmake-3.14.0.tar.gz
 # Update VIAME sub git sources
 cd /viame/
 git submodule update --init --recursive
+
+# Install Qt5 (tmp hack)
+wget https://data.kitware.com/api/v1/item/5d5dd35185f25b11ff435f80/download
+tar -xvf qt5-5.12.2-centos7.tar.gz
+
+# Make build directory
 mkdir build
 cd build 
 
@@ -80,7 +86,8 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_VIVIA:BOOL=OFF \
 -DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_YOLO:BOOL=ON \
--DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=ON
+-DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=ON \
+-DEXTERNAL_Qt:PATH=../qt5-centos7
 
 # Build VIAME first attempt
 make -j$(nproc) -k || true
