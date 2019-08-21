@@ -308,7 +308,19 @@ if( VIAME_ENABLE_VIVIA )
   endif()
 endif()
 
-if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
+if( EXTERNAL_Qt )
+  if( WIN32 )
+    set(VIAME_ARGS_Qt
+       ${VIAME_ARGS_Qt}
+       -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake.exe
+    )
+  else()
+    set(VIAME_ARGS_Qt
+       ${VIAME_ARGS_Qt}
+       -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake
+    )
+  endif()
+elseif( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
   if( WIN32 )
     set(VIAME_ARGS_Qt
        ${VIAME_ARGS_Qt}
