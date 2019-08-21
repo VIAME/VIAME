@@ -130,7 +130,7 @@ convert_tracks_to_detections_process
 
       if( state &&
           ( ( d->frame_ids_only && state->frame() == ts.get_frame() ) ||
-            state->timestamp() == ts ) )
+            state->ts() == ts ) )
       {
         output.push_back( state->detection );
       }
