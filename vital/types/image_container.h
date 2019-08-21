@@ -100,8 +100,8 @@ protected:
 
 
 /// Shared pointer for base image_container type
-typedef std::shared_ptr<image_container> image_container_sptr;
-
+using image_container_sptr = std::shared_ptr< image_container >;
+using image_container_scptr = std::shared_ptr< image_container const >;
 
 /// List of image_container shared pointers
 typedef std::vector<image_container_sptr> image_container_sptr_list;

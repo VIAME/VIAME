@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017, 2019 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/tests/test_track_set.h>
+/**
+ * \file algorithm_implementation.cxx
+ *
+ * \brief python bindings for algorithm
+ */
 
-// ----------------------------------------------------------------------------
-int main( int argc, char** argv )
+#include <pybind11/pybind11.h>
+#include <vital/bindings/python/vital/types/image.h>
+#include <vital/bindings/python/vital/types/image_container.h>
+
+namespace py = pybind11;
+
+PYBIND11_MODULE(types, m)
 {
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
+  image(m);
+  image_container(m);
 }
-
-// ----------------------------------------------------------------------------
-TEST(track_set, accessor_functions)
-{
-  using namespace kwiver::vital::testing;
-
-  auto test_set = make_simple_track_set(1);
-  test_track_set_accessors( test_set );
-}
-
-// ----------------------------------------------------------------------------
-TEST(track_set, modifier_functions)
-{
-  using namespace kwiver::vital::testing;
-
-  auto test_set = make_simple_track_set(1);
-  test_track_set_modifiers( test_set );
-}
-
-// ----------------------------------------------------------------------------
-TEST(track_set, merge_functions)
-{
-  using namespace kwiver::vital::testing;
-
-  auto test_set_1 = make_simple_track_set(1);
-  auto test_set_2 = make_simple_track_set(2);
-  test_track_set_merge(test_set_1, test_set_2);
-
-  auto test_set_3 = std::make_shared< kwiver::vital::track_set >();
-  ASSERT_TRUE( test_set_3->empty() );
-
-  test_set_3->merge_in_other_track_set( test_set_2 );
-
-  EXPECT_FALSE( test_set_3->empty() );
-  ASSERT_EQ( 4, test_set_3->size() );
-}
-

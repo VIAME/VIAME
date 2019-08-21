@@ -46,7 +46,7 @@ namespace vital {
  * \brief Frame time.
  *
  * This class represents a timestamp for a single video frame.  The
- * time is represented in seconds and frame numbers start at one.
+ * time is stored in micro-seconds and frame numbers start at one.
  *
  * A timestamp has the notion of valid time and valid frame. This is
  * useful when dealing with interpolated timestamps. In this case, a
@@ -219,7 +219,7 @@ private:
   bool m_valid_time;            ///< indicates valid time
   bool m_valid_frame;           ///< indicates valid frame number
 
-  time_usec_t m_time;             ///< frame time in seconds
+  time_usec_t m_time;             ///< frame time in micro-seconds
   frame_id_t  m_frame;          ///< frame number
 
   // index used to determine the time domain for this timestamp.

@@ -225,7 +225,7 @@ video_input_splice
   std::ifstream ifs( list_name.c_str() );
   if ( ! ifs )
   {
-    throw kwiver::vital::invalid_file( list_name, "Could not open file" );
+    VITAL_THROW( kwiver::vital::invalid_file, list_name, "Could not open file" );
   }
 
   // Add directory that contains the list file to the path

@@ -209,7 +209,7 @@ video_input_filter
 {
   if ( ! d->d_video_input )
   {
-    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( kwiver::vital::algorithm_configuration_exception, type_name(), impl_name(),
           "invalid video_input." );
   }
   d->d_video_input->open( name );

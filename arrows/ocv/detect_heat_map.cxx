@@ -59,7 +59,7 @@ linspace(T a, T b, int n)
 {
   if( n == 0 )
   {
-    throw "n must be a positive integer.";
+    VITAL_THROW( invalid_value, "n must be a positive integer.");
   }
 
   std::vector<T> array;
@@ -128,7 +128,7 @@ mask_bounding_box( const cv::Mat image, double threshold = 0, int first_row = 0,
 {
   if ( image.channels() > 1 )
   {
-    throw vital::invalid_data("image must be single channel.");
+    VITAL_THROW( vital::invalid_data, "image must be single channel.");
   }
 
   // Find the first/last non-zero rows and columns where we should consider
@@ -298,7 +298,7 @@ public:
     if( heat_map.rows < m_force_bbox_height ||
         heat_map.cols < m_force_bbox_width )
     {
-      throw invalid_value( std::string("Forced bounding box size exceeds") +
+      VITAL_THROW( invalid_value, std::string("Forced bounding box size exceeds") +
                            "provided image size (" + std::to_string(hmap_w) +
                            " x " + std::to_string(hmap_h) + ")" );
     }
@@ -431,7 +431,7 @@ public:
     if( heat_map0.rows < bbox_height ||
         heat_map0.cols < bbox_width )
     {
-      throw invalid_value( std::string("Forced bounding box size exceeds ") +
+      VITAL_THROW( invalid_value, std::string("Forced bounding box size exceeds ") +
                            "provided image size (" +
                            std::to_string(heat_map0.cols) + " x " +
                            std::to_string(heat_map0.rows) + ")" );
@@ -761,7 +761,7 @@ detect_heat_map
       (d_->m_force_bbox_width != -1  && d_->m_force_bbox_width <= 0)   ||
       (d_->m_force_bbox_height != -1 && d_->m_force_bbox_height <= 0) )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "'force_bbox_width' and "
                                              "'force_bbox_height' must both be "
                                              "-1, indicating that a particular "
@@ -776,14 +776,14 @@ detect_heat_map
   {
     if( d_->m_force_bbox_width - d_->m_bbox_buffer <= 0 )
     {
-      throw algorithm_configuration_exception( type_name(), impl_name(),
+      VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                                "(force_bbox_width - bbox_buffer) "
                                                "must be positive." );
     }
 
     if( d_->m_force_bbox_height - d_->m_bbox_buffer <= 0 )
     {
-      throw algorithm_configuration_exception( type_name(), impl_name(),
+      VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                                "(force_bbox_height - "
                                                "bbox_buffer) must be "
                                                "positive." );
@@ -793,7 +793,7 @@ detect_heat_map
   }
   else if( d_->m_threshold == -1 )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "If 'force_bbox_width' and "
                                              "'force_bbox_height' are not set,"
                                              "then a positive 'threshold' is "
@@ -802,7 +802,7 @@ detect_heat_map
 
   if( d_->m_threshold < 0 && d_->m_threshold != -1 )
   {
-    throw algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( algorithm_configuration_exception, type_name(), impl_name(),
                                              "'threshold' must be non-negative "
                                              "in order for valid thresholding "
                                              "or equal to -1, indicating that "
@@ -850,7 +850,7 @@ detect_heat_map
 {
   if ( !image_data)
   {
-    throw vital::invalid_data("Inputs to ocv::detect_heat_map are null");
+    VITAL_THROW( vital::invalid_data, "Inputs to ocv::detect_heat_map are null");
   }
   LOG_TRACE( logger(), "Received image");
 
@@ -858,7 +858,7 @@ detect_heat_map
 
   if ( cv_src.channels() > 1 )
   {
-    throw vital::invalid_data("Heat map image must be single channel.");
+    VITAL_THROW( vital::invalid_data, "Heat map image must be single channel.");
   }
 
   return d_->get_bounding_boxes(cv_src);

@@ -9,6 +9,14 @@ Updates since v1.4.0
 
 Vital
 
+ * Added a parameter to the clone() methods of the track_state, track and
+   track_set types controlling whether to make an actual deep copy (default) or
+   to make a shallow copy (previous behavior) where elements of the derived
+   feature_track_state or object_track_state would still be shared. (This
+   change also affects track_set::merge_in_other_track_set(). However, the copy
+   constructors of feature_track_state and object_track_state still make only
+   shallow copies.)
+
 Vital Util
 
 Vital Tools

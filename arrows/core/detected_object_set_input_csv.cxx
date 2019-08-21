@@ -216,7 +216,7 @@ get_input()
     std::stringstream str;
     str << "Too few field in input at line " << m_stream_reader->line_number() << std::endl
         << "\"" << line << "\"";
-    throw kwiver::vital::invalid_data( str.str() );
+    VITAL_THROW( kwiver::vital::invalid_data, str.str() );
   }
 
   if ( ! ( m_input_buffer.size() & 0x001 ) )
@@ -224,7 +224,7 @@ get_input()
     std::stringstream str;
     str << "Invalid format in input at line " << m_stream_reader->line_number() << std::endl
         << "\"" << line << "\"";
-    throw kwiver::vital::invalid_data( str.str() );
+    VITAL_THROW( kwiver::vital::invalid_data, str.str() );
   }
 
   return true;

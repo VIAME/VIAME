@@ -618,7 +618,7 @@ public:
     // is stream open?
     if ( ! this->is_opened() )
     {
-      throw vital::file_not_read_exception( video_path, "Video not open" );
+      VITAL_THROW( vital::file_not_read_exception, video_path, "Video not open" );
     }
 
     if ( !have_loop_vars )
@@ -755,12 +755,12 @@ ffmpeg_video_input
     if (!kwiversys::SystemTools::FileExists(d->video_path))
     {
       // Throw exception
-      throw kwiver::vital::file_not_found_exception(video_name, "File not found");
+      VITAL_THROW( kwiver::vital::file_not_found_exception, video_name, "File not found");
     }
 
     if (!d->open(video_name))
     {
-      throw kwiver::vital::video_runtime_exception("Video stream open failed for unknown reasons");
+      VITAL_THROW( kwiver::vital::video_runtime_exception, "Video stream open failed for unknown reasons");
     }
     this->set_capability(vital::algo::video_input::HAS_METADATA,
                          d->f_data_index >= 0);
@@ -792,7 +792,7 @@ ffmpeg_video_input
 {
   if (!d->is_opened())
   {
-    throw vital::file_not_read_exception(d->video_path, "Video not open");
+    VITAL_THROW( vital::file_not_read_exception, d->video_path, "Video not open");
   }
 
   bool ret = d->advance();
@@ -813,7 +813,7 @@ bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
   // Quick return if the stream isn't open.
   if (!d->is_opened())
   {
-    throw vital::file_not_read_exception(d->video_path, "Video not open");
+    VITAL_THROW( vital::file_not_read_exception, d->video_path, "Video not open");
     return false;
   }
   if (frame_number <= 0)

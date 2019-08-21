@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #ckwg +28
-# Copyright 2011-2013 by Kitware, Inc.
+# Copyright 2011-2013, 2019 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -245,6 +245,30 @@ def test_flags_as_set():
     if not len(a) == 4:
         test_error(".update() does not work: expected 4, got %d" % len(a))
 
+def test_peek_at_datum_on_port():
+    """
+    Test peek at datum on a test port with complete datum
+    """
+    from sprokit.pipeline import process
+    from sprokit.pipeline import datum, DatumType
+    from sprokit.pipeline import config
+    from sprokit.pipeline import edge
+    from sprokit.pipeline import stamp
+    cfg = config.empty_config()
+    # Create Dummy Receiver process
+    receiver_proc = process.PythonProcess(cfg)
+    optional = process.PortFlags()
+    receiver_proc.declare_input_port("test_port", "test", optional, "test_port")
+    # Create an Edge and connect input port to the edge
+    test_edge = edge.Edge()
+    receiver_proc.connect_input_port("test_port", test_edge)
+    # Create an Edge Datum and push it to the port
+    s = stamp.new_stamp(1)
+    e_datum = edge.EdgeDatum(datum.complete(), s)
+    test_edge.push_datum(e_datum)
+    receiver_datum_type = receiver_proc.peek_at_datum_on_port("test_port").type()
+    if receiver_datum_type != DatumType.complete:
+        test_error("Datum mismatch: expected a complete datum, got {0}".format(receiver_datum_type))
 
 if __name__ == '__main__':
     import os

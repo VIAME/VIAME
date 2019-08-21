@@ -205,7 +205,7 @@ read_track_descriptor_set_csv::priv
       str << "This is not a correct descriptor csv; found "
           << tokens.size() << " columns in\n\"" << line << "\"";
 
-      throw vital::invalid_data( str.str() );
+      VITAL_THROW( vital::invalid_data, str.str() );
     }
 
     vital::track_descriptor_sptr desc = vital::track_descriptor::create( tokens[1] );
@@ -232,7 +232,7 @@ read_track_descriptor_set_csv::priv
         ( m_read_raw_descriptor && desc_size != raw_tokens.size() ) ||
         ( !contains_world_info && hist_size != hist_tokens.size() / 6 ) )
     {
-      throw vital::invalid_data( "Track descriptor reading size checksum failed" );
+      VITAL_THROW( vital::invalid_data, "Track descriptor reading size checksum failed" );
     }
 
     for( auto id : tid_tokens )

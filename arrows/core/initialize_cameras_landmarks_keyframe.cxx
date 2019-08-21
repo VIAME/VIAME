@@ -561,15 +561,15 @@ initialize_cameras_landmarks_keyframe::priv
 {
   if (!tracks)
   {
-    throw invalid_value("required feature tracks are NULL.");
+    VITAL_THROW( invalid_value, "required feature tracks are NULL.");
   }
   if (!e_estimator)
   {
-    throw invalid_value("Essential matrix estimator not initialized.");
+    VITAL_THROW( invalid_value, "Essential matrix estimator not initialized.");
   }
   if (!lm_triangulator)
   {
-    throw invalid_value("Landmark triangulator not initialized.");
+    VITAL_THROW( invalid_value, "Landmark triangulator not initialized.");
   }
 }
 

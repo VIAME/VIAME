@@ -1,6 +1,13 @@
 .. image:: doc/kwiver_Logo-300x78.png
    :alt: KWIVER
    
+|master|   |release|   |version|   |docker|
+
+.. |master| image:: https://img.shields.io/travis/Kitware/kwiver/master?label=master
+.. |release| image:: https://img.shields.io/travis/Kitware/kwiver/release?label=release
+.. |version| image:: https://img.shields.io/github/release/kitware/kwiver
+.. |docker| image:: https://img.shields.io/docker/pulls/kitware/kwiver
+
 Kitware Image and Video Exploitation and Retrieval
 ==================================================
 
@@ -39,6 +46,26 @@ the content they contain.
 `<vital>`_       Core libraries source and headers
 ================ ===========================================================
 
+KWIVER Docker Image
+=============================
+
+Kitware maintains a `Docker <https://www.docker.com/>`_ image with KWIVER prebuilt.
+The Dockerfile used to build the image can be found `here <dockerfile>`_.
+
+Pull the image from Dockerhub::
+
+ "docker pull kitware/kwiver:master" (latest master)
+                
+ "docker pull kitware/kwiver:release" (latest release)
+ 
+ "docker pull kitware/kwiver:1.4.0" (static release)
+
+(`https://hub.docker.com/r/kitware/kwiver <https://hub.docker.com/r/kitware/kwiver>`_)
+
+or build the KWIVER image using the dockerfile::
+
+ "docker build -t kwiver:tagname ."
+ 
 Building KWIVER
 ===============
 
@@ -250,16 +277,6 @@ Anyone can contribute a build to this dashboard using the
 provided.  Follow the instructions in the comments.
 
 
-`Travis CI`_ is also used for continued integration testing.
-Travis CI is limited to a single platform (Ubuntu Linux), but provides
-automated testing of all topic branches and pull requests whenever they are created.
-
-============================= =============
-Travis CI **master** branch:  |CI:master|_
-Travis CI **release** branch: |CI:release|_
-============================= =============
-
-
 Contributing
 ============
 
@@ -323,9 +340,3 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 .. |cmake_link| replace:: CMake
 
 .. |>=| unicode:: U+02265 .. greater or equal sign
-
-.. |CI:master| image:: https://travis-ci.org/Kitware/kwiver.svg?branch=master
-.. |CI:release| image:: https://travis-ci.org/Kitware/kwiver.svg?branch=release
-
-.. _CI:master: https://travis-ci.org/Kitware/kwiver
-.. _CI:release: https://travis-ci.org/Kitware/kwiver
