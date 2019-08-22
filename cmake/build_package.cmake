@@ -4,6 +4,8 @@
 
 set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH} )
 
+include( installation_blacklist )
+
 if( NOT DEFINED VIAME_INSTALL_DIR )
   set( VIAME_INSTALL_DIR "${VIAME_BUILD_INSTALL_PREFIX}")
 endif()
