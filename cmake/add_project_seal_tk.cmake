@@ -9,7 +9,9 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} seal_tk )
 
-ExternalProject_Add(seal_tk
+set( SEAL_CXX_FLAGS -I${VIAME_BUILD_INSTALL_PREFIX}/include ${CMAKE_CXX_FLAGS} )
+
+ExternalProject_Add( seal_tk
   DEPENDS fletch kwiver
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/seal-tk
@@ -21,6 +23,7 @@ ExternalProject_Add(seal_tk
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_Qt}
     -DBUILD_SHARED_LIBS:BOOL=ON
+    -DCMAKE_CXX_FLAGS:STRING=${SEAL_CXX_FLAGS}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
@@ -36,7 +39,7 @@ if( VIAME_FORCEBUILD )
     )
 endif()
 
-set(VIAME_ARGS_seal_tk
+set( VIAME_ARGS_seal_tk
   -Dseal_tk_DIR:PATH=${VIAME_BUILD_PREFIX}/src/seal_tk-build
   )
 
