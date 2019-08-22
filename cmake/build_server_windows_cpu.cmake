@@ -34,7 +34,7 @@ set(OPTIONS
   "-DVIAME_ENABLE_SEAL_TK=ON"
   "-DVIAME_KWIVER_BUILD_DIR=C:/tmp/kv4"
   "-DVIAME_PLUGINS_BUILD_DIR=C:/tmp/vm4"
-  "-DEXTERNAL_Qt=C:\Qt5\5.12.0\msvc2017_64"
+  "-DEXTERNAL_Qt=C:/Qt5/5.12.0/msvc2017_64"
 )
 
 set(platform Windows7)
