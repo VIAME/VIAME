@@ -137,3 +137,12 @@ cp /usr/lib64/libreadline.so.6 install/lib || true
 cp /usr/lib64/libdc1394.so.22 install/lib || true
 cp /usr/lib64/libcrypto.so.10 install/lib || true
 cp /usr/lib64/libpcre.so.1 install/lib || true
+
+# HACK: Install correct Qt5 binaries in install tree
+# Should be removed when this issue is fixed
+cd install
+wget https://data.kitware.com/api/v1/item/5d5f112385f25b11ff47c1a8/download
+mv download download.tar.gz
+tar -xvf download.tar.gz
+rm download.tar.gz
+
