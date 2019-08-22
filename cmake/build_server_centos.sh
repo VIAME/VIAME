@@ -88,7 +88,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_VXL:BOOL=ON \
 -DVIAME_ENABLE_YOLO:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=ON \
--DEXTERNAL_Qt:PATH=../qt5-centos7
+-DEXTERNAL_Qt:PATH=/viame/qt5-centos7
 
 # Build VIAME first attempt
 make -j$(nproc) -k || true
