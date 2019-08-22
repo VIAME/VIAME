@@ -102,7 +102,7 @@ set( VIAME_BLACKLISTED_BINARIES
   xmlpatternsvalidator
   )
 
-foreach( binary_file IN ${VIAME_BLACKLISTED_BINARIES} )
+foreach( binary_file ${VIAME_BLACKLISTED_BINARIES} )
   if( EXISTS ${VIAME_BUILD_INSTALL_PREFIX}/bin/${binary_file} )
     file( REMOVE ${VIAME_BUILD_INSTALL_PREFIX}/bin/${binary_file} )
   endif()
