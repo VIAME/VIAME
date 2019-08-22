@@ -9,7 +9,11 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} seal_tk )
 
-set( SEAL_CXX_FLAGS -I${VIAME_BUILD_INSTALL_PREFIX}/include ${CMAKE_CXX_FLAGS} )
+if( WIN32 )
+  set( SEAL_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
+else()
+  set( SEAL_CXX_FLAGS -I${VIAME_BUILD_INSTALL_PREFIX}/include ${CMAKE_CXX_FLAGS} )
+endif()
 
 ExternalProject_Add( seal_tk
   DEPENDS fletch kwiver
