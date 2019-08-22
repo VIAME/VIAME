@@ -75,7 +75,7 @@ private:
 
   virtual vital::bounding_box<double> transform_bounding_box(vital::bounding_box<double>& bbox) const;
 
-  virtual Eigen::Vector3d backproject_to_height(const kwiver::vital::camera_perspective_sptr camera,
+  virtual Eigen::Vector3d backproject_to_ground(const kwiver::vital::camera_perspective_sptr camera,
 						const Eigen::Vector2d img_pt) const;
 
   virtual Eigen::Vector3d backproject_to_plane(const kwiver::vital::camera_perspective_sptr camera,
