@@ -49,7 +49,8 @@ git submodule update --init --recursive
 
 # Install Qt5 (tmp hack)
 wget https://data.kitware.com/api/v1/item/5d5dd35185f25b11ff435f80/download
-tar -xvf qt5-5.12.2-centos7.tar.gz
+mv download download.tar.gz
+tar -xvf download.tar.gz
 
 # Make build directory
 mkdir build
