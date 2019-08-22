@@ -154,6 +154,13 @@ else()
   )
 endif()
 
+if( WIN32 AND VIAME_ENABLE_ITK )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_HDF5:BOOL=ON
+  )
+endif()
+
 if( EXTERNAL_Qt )
   if( WIN32 )
     set( fletch_DEP_FLAGS
