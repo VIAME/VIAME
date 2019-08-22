@@ -334,11 +334,13 @@ elseif( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
   if( WIN32 )
     set( VIAME_ARGS_Qt
        ${VIAME_ARGS_Qt}
+       -DQt5_DIR:PATH=${EXTERNAL_Qt}/lib/cmake/Qt5
        -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake.exe
     )
   else()
     set( VIAME_ARGS_Qt
        ${VIAME_ARGS_Qt}
+       -DQt5_DIR:PATH=${EXTERNAL_Qt}/lib/cmake/Qt5
        -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake
     )
   endif()
