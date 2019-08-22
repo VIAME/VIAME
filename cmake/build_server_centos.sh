@@ -51,6 +51,7 @@ git submodule update --init --recursive
 wget https://data.kitware.com/api/v1/item/5d5dd35185f25b11ff435f80/download
 mv download download.tar.gz
 tar -xvf download.tar.gz
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/qt5-centos7/lib
 
 # Make build directory
 mkdir build
