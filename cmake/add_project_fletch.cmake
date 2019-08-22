@@ -160,7 +160,7 @@ if( EXTERNAL_Qt )
       ${fletch_DEP_FLAGS}
       -Dfletch_ENABLE_Qt:BOOL=OFF
       -DQt5_DIR:PATH=${EXTERNAL_Qt}/lib/cmake/Qt5
-      -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake.cmake
+      -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake.exe
     )
   else()
     set( fletch_DEP_FLAGS
