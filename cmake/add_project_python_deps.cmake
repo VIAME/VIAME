@@ -9,29 +9,24 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} python_deps )
 
-set( VIAME_PYTHON_DEPS_DEPS fletch )
+# --------------------- ADD ANY EXTRA PYTHON DEPS HERE -------------------------
 
-if( VIAME_ENABLE_SMQTK )
-  set( VIAME_PYTHON_DEPS_DEPS smqtk ${VIAME_PYTHON_DEPS} )
-endif()
-
-set( VIAME_PYTHON_DEPS matplotlib )
+set( VIAME_PYTHON_DEPS numpy matplotlib )
 
 if( VIAME_ENABLE_OPENCV )
-  set( VIAME_PYTHON_DEPS opencv-python )
+  set( VIAME_PYTHON_DEPS opencv-python ${VIAME_PYTHON_DEPS} )
 endif()
 
 if( VIAME_ENABLE_CAMTRAWL )
-  set( VIAME_PYTHON_DEPS ubelt )
+  set( VIAME_PYTHON_DEPS ubelt ${VIAME_PYTHON_DEPS} )
 endif()
 
-if( VIAME_SYMLINK_PYTHON )
-  set( PYTHON_DEPS_PIP_CMD
-    pip install --user -e . )
-else()
-  set( PYTHON_DEPS_PIP_CMD
-    pip install --user file://${VIAME_CMAKE_DIR}\#egg=python_deps )
-endif()
+# ------------------------------------------------------------------------------
+
+string( REPLACE ";" " " VIAME_PYTHON_DEPS "${VIAME_PYTHON_DEPS}" )
+
+set( PYTHON_DEPS_PIP_CMD
+    pip install --user ${VIAME_PYTHON_DEPS} )
 
 set( PYTHON_BASEPATH
   ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
@@ -50,12 +45,18 @@ else()
     ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
 endif()
 
-set( PYTHON_DEPS_PYTHON_INSTALL
+set( PYTHON_DEPS_INSTALL
   ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
                           "PATH=${CUSTOM_PATH}"
                           "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
     ${PYTHON_EXECUTABLE} -m ${PYTHON_DEPS_PIP_CMD}
   )
+
+set( VIAME_PYTHON_DEPS_DEPS fletch )
+
+if( VIAME_ENABLE_SMQTK )
+  set( VIAME_PYTHON_DEPS_DEPS smqtk ${VIAME_PYTHON_DEPS_DEPS} )
+endif()
 
 ExternalProject_Add( python_deps
   DEPENDS ${VIAME_PYTHON_DEPS_DEPS}
@@ -63,7 +64,7 @@ ExternalProject_Add( python_deps
   SOURCE_DIR ${VIAME_CMAKE_DIR}
   USES_TERMINAL_BUILD 1
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND ${PYTHON_DEPS_PYTHON_INSTALL}
+  BUILD_COMMAND ${PYTHON_DEPS_INSTALL}
   INSTALL_COMMAND ""
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   LIST_SEPARATOR "----"
