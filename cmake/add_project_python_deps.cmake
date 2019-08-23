@@ -21,9 +21,9 @@ endif()
 
 if( VIAME_ENABLE_TENSORFLOW )
   if( VIAME_ENABLE_CUDA )
-    set( tensorflow-gpu=1.12.0 ubelt ${VIAME_PYTHON_DEPS} )
+    set( VIAME_PYTHON_DEPS tensorflow-gpu ${VIAME_PYTHON_DEPS} )
   else()
-    set( tensorflow=1.12.0 ubelt ${VIAME_PYTHON_DEPS} )
+    set( VIAME_PYTHON_DEPS tensorflow ${VIAME_PYTHON_DEPS} )
   endif()
 endif()
 
