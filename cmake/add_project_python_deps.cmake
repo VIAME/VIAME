@@ -19,6 +19,18 @@ if( VIAME_ENABLE_CAMTRAWL )
   set( VIAME_PYTHON_DEPS ubelt ${VIAME_PYTHON_DEPS} )
 endif()
 
+if( VIAME_ENABLE_TENSORFLOW )
+  if( VIAME_ENABLE_CUDA )
+    set( tensorflow-gpu=1.12.0 ubelt ${VIAME_PYTHON_DEPS} )
+  else()
+    set( tensorflow=1.12.0 ubelt ${VIAME_PYTHON_DEPS} )
+  endif()
+endif()
+
+if( VIAME_ENABLE_PYTOCH AND NOT VIAME_ENABLE_PYTORCH-CORE )
+  set( pytorch torchvision ${VIAME_PYTHON_DEPS} )
+endif()
+
 # ------------------------------------------------------------------------------
 
 set( PYTHON_BASEPATH
