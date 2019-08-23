@@ -28,6 +28,7 @@ mark_as_advanced( VIAME_FORCEBUILD )
 list( INSERT CMAKE_MODULE_PATH 0    "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${KWIVER_CMAKE_DIR}" )
 
 set( VIAME_SOURCE_DIR               "${CMAKE_SOURCE_DIR}" )
+set( VIAME_CMAKE_DIR                "${CMAKE_SOURCE_DIR}/cmake" )
 set( VIAME_BINARY_DIR               "${CMAKE_BINARY_DIR}/build" )
 set( VIAME_BUILD_PREFIX             "${CMAKE_BINARY_DIR}/build" )
 set( VIAME_BUILD_INSTALL_PREFIX     "${CMAKE_BINARY_DIR}/install"
@@ -367,6 +368,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_kwant )
   endif()
 
+  if( VIAME_ENABLE_PYTHON )
+    include( add_project_python_deps )
+  endif()
+
   if( VIAME_ENABLE_PYTORCH )
     include( add_project_pytorch )
   endif()
@@ -478,19 +483,19 @@ else()
     set( VIAME_SETUP_SCRIPT             "${VIAME_BINARY_DIR}/setup_viame.bat" )
 
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/pipeline_runner.bat.in
+      ${VIAME_CMAKE_DIR}/pipeline_runner.bat.in
       ${VIAME_PIPELINE_RUNNER_SCRIPT}
     )
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/processopedia.bat.in
+      ${VIAME_CMAKE_DIR}/processopedia.bat.in
       ${VIAME_PROCESSOPEDIA_SCRIPT}
     )
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/plugin_explorer.bat.in
+      ${VIAME_CMAKE_DIR}/plugin_explorer.bat.in
       ${VIAME_PLUGIN_EXPLORER_SCRIPT}
     )
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/setup_viame.bat.in
+      ${VIAME_CMAKE_DIR}/setup_viame.bat.in
       ${VIAME_SETUP_SCRIPT}
     )
 
@@ -503,7 +508,7 @@ else()
     set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/setup_viame.sh.in
+      ${VIAME_CMAKE_DIR}/setup_viame.sh.in
       ${VIAME_SETUP_SCRIPT_FILE}
     )
 
@@ -514,7 +519,7 @@ else()
       set( VIAME_SEAL_SCRIPT_FILE    "${VIAME_BINARY_DIR}/launch_seal_interface.sh" )
 
       configure_file(
-        ${CMAKE_SOURCE_DIR}/cmake/launch_seal_interface.sh.in
+        ${VIAME_CMAKE_DIR}/launch_seal_interface.sh.in
         ${VIAME_SEAL_SCRIPT_FILE}
       )
 
@@ -570,7 +575,7 @@ else()
     endif()
 
     configure_file(
-      ${CMAKE_SOURCE_DIR}/cmake/viame-install-fixup.cmake.in
+      ${VIAME_CMAKE_DIR}/viame-install-fixup.cmake.in
       ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake
       @ONLY
       )
