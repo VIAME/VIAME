@@ -7,8 +7,6 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} python_deps )
-
 # --------------------- ADD ANY EXTRA PYTHON DEPS HERE -------------------------
 
 set( VIAME_PYTHON_DEPS numpy matplotlib )
@@ -22,11 +20,6 @@ if( VIAME_ENABLE_CAMTRAWL )
 endif()
 
 # ------------------------------------------------------------------------------
-
-string( REPLACE ";" " " VIAME_PYTHON_DEPS "${VIAME_PYTHON_DEPS}" )
-
-set( PYTHON_DEPS_PIP_CMD
-    pip install --user ${VIAME_PYTHON_DEPS} )
 
 set( PYTHON_BASEPATH
   ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
@@ -45,38 +38,35 @@ else()
     ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
 endif()
 
-set( PYTHON_DEPS_INSTALL
-  ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
-                          "PATH=${CUSTOM_PATH}"
-                          "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
-    ${PYTHON_EXECUTABLE} -m ${PYTHON_DEPS_PIP_CMD}
-  )
-
 set( VIAME_PYTHON_DEPS_DEPS fletch )
 
 if( VIAME_ENABLE_SMQTK )
   set( VIAME_PYTHON_DEPS_DEPS smqtk ${VIAME_PYTHON_DEPS_DEPS} )
 endif()
 
-ExternalProject_Add( python_deps
-  DEPENDS ${VIAME_PYTHON_DEPS_DEPS}
-  PREFIX ${VIAME_BUILD_PREFIX}
-  SOURCE_DIR ${VIAME_CMAKE_DIR}
-  USES_TERMINAL_BUILD 1
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ${PYTHON_DEPS_INSTALL}
-  INSTALL_COMMAND ""
-  INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
-  LIST_SEPARATOR "----"
-  )
+foreach( DEP ${VIAME_PYTHON_DEPS} )
 
-if ( VIAME_FORCEBUILD )
-  ExternalProject_Add_Step(python_deps forcebuild
-    COMMAND ${CMAKE_COMMAND}
-      -E remove ${VIAME_BUILD_PREFIX}/src/python_deps-stamp/python_deps-build
-    COMMENT "Removing build stamp file for build update (forcebuild)."
-    DEPENDEES configure
-    DEPENDERS build
-    ALWAYS 1
+  set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${DEP} )
+
+  set( PYTHON_DEP_PIP_CMD
+      pip install --user ${DEP} )
+
+  set( PYTHON_DEP_INSTALL
+    ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
+                            "PATH=${CUSTOM_PATH}"
+                            "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
+      ${PYTHON_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD}
     )
-endif()
+
+  ExternalProject_Add( ${DEP}
+    DEPENDS ${VIAME_PYTHON_DEPS_DEPS}
+    PREFIX ${VIAME_BUILD_PREFIX}
+    SOURCE_DIR ${VIAME_CMAKE_DIR}
+    USES_TERMINAL_BUILD 1
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${PYTHON_DEP_INSTALL}
+    INSTALL_COMMAND ""
+    INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
+    LIST_SEPARATOR "----"
+    )
+endforeach()
