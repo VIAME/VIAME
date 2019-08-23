@@ -34,7 +34,7 @@ set( VIAME_BUILD_PREFIX             "${CMAKE_BINARY_DIR}/build" )
 set( VIAME_BUILD_INSTALL_PREFIX     "${CMAKE_BINARY_DIR}/install"
      CACHE STRING                   "Installation directory to place all final output files" )
 mark_as_advanced( VIAME_BUILD_INSTALL_PREFIX )
-set( CMAKE_INSTALL_PREFIX           "${VIAME_BUILD_INSTALL_PREFIX}" FORCE )
+set( CMAKE_INSTALL_PREFIX           "${VIAME_BUILD_INSTALL_PREFIX}" )
 
 set( VIAME_PACKAGES_DIR             "${VIAME_SOURCE_DIR}/packages" )
 set( VIAME_DOWNLOAD_DIR             "${VIAME_PACKAGES_DIR}/downloads" )
