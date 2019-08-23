@@ -188,8 +188,6 @@ kwiver_create_python_init(vital/types
   descriptor
   descriptor_set
   detected_object_type
-  image
-  image_container
   detected_object
   detected_object_set
   eigen
