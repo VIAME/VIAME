@@ -28,7 +28,7 @@ if( VIAME_ENABLE_TENSORFLOW )
 endif()
 
 if( VIAME_ENABLE_PYTOCH AND NOT VIAME_ENABLE_PYTORCH-CORE )
-  set( pytorch torchvision ${VIAME_PYTHON_DEPS} )
+  set( torch torchvision ${VIAME_PYTHON_DEPS} )
 endif()
 
 # ------------------------------------------------------------------------------
