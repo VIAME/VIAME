@@ -95,6 +95,15 @@ if( VIAME_DOWNLOAD_MODELS )
       ${VIAME_DOWNLOAD_DIR}/models-habcam-v2.1.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
+
+  # Transformation Models
+  if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+    DownloadAndExtract(
+      https://data.kitware.com/api/v1/item/5d606146d35580e6dcb70c06/download
+      3cc9249897e4c09f98e53d4c8aca39f5
+      ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_transforms-v0.1.tar.gz
+      ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+  endif()
 endif()
 
 ###
@@ -347,4 +356,9 @@ install( DIRECTORY   pipelines/templates
 if( VIAME_DOWNLOAD_MODELS )
   install( DIRECTORY   pipelines/models
            DESTINATION configs/pipelines )
+
+  if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+    install( DIRECTORY   pipelines/transformations
+             DESTINATION configs/pipelines )
+  endif()
 endif()
