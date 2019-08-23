@@ -89,12 +89,12 @@ endif()
 install( DIRECTORY ${VIAME_INSTALL_DIR}/ DESTINATION . )
 
 if( WIN32 )
-  install( FILES ${CMAKE_SOURCE_DIR}/cmake/setup_viame.bat.install
+  install( FILES ${VIAME_CMAKE_DIR}/setup_viame.bat.install
     DESTINATION .
     RENAME setup_viame.bat
     )
 else()
-  install( FILES ${CMAKE_SOURCE_DIR}/cmake/setup_viame.sh.install
+  install( FILES ${VIAME_CMAKE_DIR}/setup_viame.sh.install
     DESTINATION .
     RENAME setup_viame.sh
     )
