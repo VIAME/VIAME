@@ -9,53 +9,24 @@
 
 CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
-option( VIAME_ENABLE_PYTORCH-CORE     "Enable internal PyTorch build"   ON )
-option( VIAME_ENABLE_PYTORCH-VISION   "Enable torchvision PyTorch code" ON )
-option( VIAME_ENABLE_PYTORCH-MMDET    "Enable mmdet PyTorch code"       ON )
-option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"       OFF )
-option( VIAME_ENABLE_PYTORCH-NETHARN  "Enable netharn PyTorch code"     OFF )
+option( VIAME_ENABLE_PYTORCH-INTERNAL "Enable internal PyTorch build"  OFF )
+option( VIAME_ENABLE_PYTORCH-MMDET    "Enable mmdet PyTorch code"      ON )
+option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"      OFF )
+option( VIAME_ENABLE_PYTORCH-NETHARN  "Enable netharn PyTorch code"    OFF )
 
-mark_as_advanced( VIAME_ENABLE_PYTORCH-CORE )
-mark_as_advanced( VIAME_ENABLE_PYTORCH-VISION )
+mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
 mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
 mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
 mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
 
-set( VIAME_PYTORCH_BUILD_CORE   ${VIAME_ENABLE_PYTORCH-CORE}   CACHE INTERNAL "" )
-set( VIAME_PYTORCH_BUILD_VISION ${VIAME_ENABLE_PYTORCH-VISION} CACHE INTERNAL "" )
-
-if( WIN32 AND VIAME_ENABLE_PYTORCH-CORE )
-  if( VIAME_ENABLE_CUDA AND CUDA_VERSION_MAJOR EQUAL 10 )
-    set( VIAME_PYTORCH_BUILD_CORE OFF )
-    set( VIAME_PYTORCH_BUILD_VISION OFF )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5d522e3867a3767939173f83/download
-      193222893140fed4898fb67da1067a13
-      ${VIAME_DOWNLOAD_DIR}/torch-1.0.1-cu10-windows-x64-binaries.zip
-      ${VIAME_BUILD_INSTALL_PREFIX} )
-  elseif( NOT VIAME_ENABLE_CUDA )
-    set( VIAME_PYTORCH_BUILD_CORE OFF )
-    set( VIAME_PYTORCH_BUILD_VISION OFF )
-    DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5d54df4185f25b11ff2ded7a/download
-      db5543b42f697c05329d288357835f8a
-      ${VIAME_DOWNLOAD_DIR}/torch-1.0.1-cpu-windows-x64-binaries.zip
-      ${VIAME_BUILD_INSTALL_PREFIX} )
-  endif()
-endif()
-
 set( PYTORCH_LIBRARIES )
 
-if( VIAME_PYTORCH_BUILD_CORE )
-  set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} pytorch )
+if( VIAME_ENABLE_PYTORCH-INTERNAL )
+  set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} pytorch torchvision )
 
   set( COMMON_PYTORCH_PROJECT_DEP fletch pytorch )
 else()
   set( COMMON_PYTORCH_PROJECT_DEP fletch )
-endif()
-
-if( VIAME_PYTORCH_BUILD_VISION )
-  set( PYTORCH_LIBRARIES ${PYTORCH_LIBRARIES} torchvision )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
@@ -73,7 +44,7 @@ endif()
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${PYTORCH_LIBRARIES} )
 
 if( VIAME_ENABLE_CUDNN )
-  if( VIAME_ENABLE_PYTORCH-CORE AND "${CUDNN_VERSION_MAJOR}" VERSION_LESS "7.0.0" )
+  if( VIAME_ENABLE_PYTORCH-INTERNAL AND "${CUDNN_VERSION_MAJOR}" VERSION_LESS "7.0.0" )
     message( FATAL_ERROR "CUDNN version 7.0 or higher required for internal pytorch" )
   endif()
 
