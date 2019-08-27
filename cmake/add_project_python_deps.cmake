@@ -11,11 +11,6 @@
 
 set( VIAME_PYTHON_DEPS numpy matplotlib )
 
-if( VIAME_ENABLE_OPENCV )
-  set( VIAME_PYTHON_DEPS opencv-python ${VIAME_PYTHON_DEPS} )
-
-  set( VIAME_PIP_ARGS_OPENCV ==${VIAME_OPENCV_VERSION} )
-endif()
 
 if( VIAME_ENABLE_CAMTRAWL )
   set( VIAME_PYTHON_DEPS ubelt ${VIAME_PYTHON_DEPS} )
