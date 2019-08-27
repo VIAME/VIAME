@@ -304,8 +304,8 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYSOT )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/pysot_common_default_tracker.pipe
-    pipelines/pysot_tracker_default.pipe )
+    pipelines/common_pysot_tracker.pipe
+    pipelines/tracker_pysot.pipe )
 endif()
 
 if( VIAME_ENABLE_ITK )
