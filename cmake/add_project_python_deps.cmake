@@ -13,6 +13,8 @@ set( VIAME_PYTHON_DEPS numpy matplotlib )
 
 if( VIAME_ENABLE_OPENCV )
   set( VIAME_PYTHON_DEPS opencv-python ${VIAME_PYTHON_DEPS} )
+
+  set( VIAME_PIP_ARGS_OPENCV ==${VIAME_OPENCV_VERSION} )
 endif()
 
 if( VIAME_ENABLE_CAMTRAWL )
@@ -98,6 +100,8 @@ foreach( DEP ${VIAME_PYTHON_DEPS} )
     set( DEPARGS ${VIAME_PIP_ARGS_TORCHVISION} )
   elseif( "${DEP}" STREQUAL "tensorflow" OR "${DEP}" STREQUAL "tensorflow-gpu" )
     set( DEPARGS ${VIAME_PIP_ARGS_TENSORFLOW} )
+  elseif( "${DEP}" STREQUAL "opencv" OR "${DEP}" STREQUAL "opencv-python" )
+    set( DEPARGS ${VIAME_PIP_ARGS_OPENCV} )
   else()
     set( DEPARGS )
   endif()
