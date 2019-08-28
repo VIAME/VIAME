@@ -36,6 +36,8 @@
 #include <vital/algo/detected_object_filter.h>
 #include <vital/io/camera_io.h>
 
+using namespace kwiver::vital;
+
 namespace kwiver {
 namespace arrows {
 namespace core {
@@ -47,11 +49,13 @@ namespace core {
  */
 
 class KWIVER_ALGO_CORE_EXPORT transform_detected_object_set
-  : public vital::algorithm_impl<transform_detected_object_set, vital::algo::detected_object_filter>
+  : public vital::algorithm_impl<transform_detected_object_set,
+				 vital::algo::detected_object_filter>
 {
 public:
   PLUGIN_INFO( "transform_detected_object_set",
-               "Transforms a detected object set based on source and destination cameras.\n\n" )
+               "Transforms a detected object set based on source and "
+	       "destination cameras.\n\n" )
 
   transform_detected_object_set();
 
@@ -64,7 +68,8 @@ public:
   virtual void set_configuration(vital::config_block_sptr config);
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  virtual vital::detected_object_set_sptr filter( const vital::detected_object_set_sptr input_set) const;
+  virtual vital::detected_object_set_sptr
+    filter( const vital::detected_object_set_sptr input_set) const;
 
 private:
   std::string src_camera_krtd_file_name;
@@ -73,24 +78,30 @@ private:
   kwiver::vital::camera_perspective_sptr src_camera;
   kwiver::vital::camera_perspective_sptr dest_camera;
 
-  virtual vital::bounding_box<double> transform_bounding_box(vital::bounding_box<double>& bbox) const;
+  virtual vital::bounding_box<double>
+    transform_bounding_box(vital::bounding_box<double>& bbox) const;
 
-  virtual Eigen::Vector3d backproject_to_ground(const kwiver::vital::camera_perspective_sptr camera,
-						const Eigen::Vector2d img_pt) const;
+  virtual vector_3d
+    backproject_to_ground(const kwiver::vital::camera_perspective_sptr camera,
+			  const vector_2d img_pt) const;
 
-  virtual Eigen::Vector3d backproject_to_plane(const kwiver::vital::camera_perspective_sptr camera,
-					       const Eigen::Vector2d img_pt,
-					       const Eigen::Vector4d plane) const;
+  virtual vector_3d
+    backproject_to_plane(const kwiver::vital::camera_perspective_sptr camera,
+			 const vector_2d img_pt,
+			 const vector_4d plane) const;
 
-  virtual Eigen::Matrix<double, 8, 3> backproject_bbox(const kwiver::vital::camera_perspective_sptr camera,
-						       const Eigen::Vector4d box) const;
+  virtual Eigen::Matrix<double, 8, 3>
+    backproject_bbox(const kwiver::vital::camera_perspective_sptr camera,
+		     const vector_4d box) const;
 
-  virtual Eigen::Vector4d box_around_box3d(const kwiver::vital::camera_perspective_sptr camera,
-					   const Eigen::Matrix<double, 8, 3> box3d) const;
+  virtual vector_4d
+    box_around_box3d(const kwiver::vital::camera_perspective_sptr camera,
+		     const Eigen::Matrix<double, 8, 3> box3d) const;
 
-  virtual Eigen::Vector4d view_to_view(const kwiver::vital::camera_perspective_sptr src_camera,
-				       const kwiver::vital::camera_perspective_sptr dest_camera,
-				       const Eigen::Vector4d bounds) const;
+  virtual vector_4d
+    view_to_view(const kwiver::vital::camera_perspective_sptr src_camera,
+		 const kwiver::vital::camera_perspective_sptr dest_camera,
+		 const vector_4d bounds) const;
 };
 
 }}} //End namespace

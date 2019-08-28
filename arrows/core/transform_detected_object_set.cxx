@@ -44,15 +44,17 @@ namespace arrows {
 namespace core {
 
 // ------------------------------------------------------------------
-transform_detected_object_set::transform_detected_object_set()
+transform_detected_object_set::
+transform_detected_object_set()
   : src_camera_krtd_file_name( "" )
   , dest_camera_krtd_file_name( "" )
 {
 }
 
 // ------------------------------------------------------------------
-transform_detected_object_set::transform_detected_object_set(kwiver::vital::camera_perspective_sptr src_cam,
-							     kwiver::vital::camera_perspective_sptr dest_cam)
+transform_detected_object_set::
+transform_detected_object_set(kwiver::vital::camera_perspective_sptr src_cam,
+			      kwiver::vital::camera_perspective_sptr dest_cam)
   : src_camera( src_cam )
   , dest_camera( dest_cam )
 {
@@ -83,11 +85,15 @@ set_configuration( vital::config_block_sptr config_in )
   vital::config_block_sptr config = this->get_configuration();
 
   config->merge_config( config_in );
-  this->src_camera_krtd_file_name = config->get_value< std::string > ( "src_camera_krtd_file_name" );
-  this->dest_camera_krtd_file_name = config->get_value< std::string > ( "dest_camera_krtd_file_name" );
+  this->src_camera_krtd_file_name =\
+    config->get_value< std::string > ( "src_camera_krtd_file_name" );
+  this->dest_camera_krtd_file_name =\
+    config->get_value< std::string > ( "dest_camera_krtd_file_name" );
 
-  this->src_camera = kwiver::vital::read_krtd_file( this->src_camera_krtd_file_name );
-  this->dest_camera = kwiver::vital::read_krtd_file( this->dest_camera_krtd_file_name );
+  this->src_camera =\
+    kwiver::vital::read_krtd_file( this->src_camera_krtd_file_name );
+  this->dest_camera =\
+    kwiver::vital::read_krtd_file( this->dest_camera_krtd_file_name );
 }
 
 
@@ -101,7 +107,8 @@ check_configuration( vital::config_block_sptr config ) const
 
   if ( ! key_list.empty() )
   {
-    LOG_WARN( logger(), "Additional parameters found in config block that are not required or desired: "
+    LOG_WARN( logger(), "Additional parameters found in config block that are "
+	      "not required or desired: "
               << kwiver::vital::join( key_list, ", " ) );
   }
 
@@ -150,12 +157,14 @@ backproject_bbox( const kwiver::vital::camera_perspective_sptr camera,
   // project base of the box to the ground
   auto base_pt = vector_2d((box(0) + box(2)) / 2, box(3));
   vector_3d pc = this->backproject_to_ground( camera, base_pt );
-  vector_3d ray = pc - (-camera->rotation().matrix().transpose() * camera->translation());
+  vector_3d ray = pc - camera->center();
   ray(2) = 0.0;
   ray.normalize();
 
-  vector_3d p1 = this->backproject_to_ground( camera, vector_2d(box(0), box(3)) );
-  vector_3d p2 = this->backproject_to_ground( camera, vector_2d(box(2), box(3)) );
+  vector_3d p1 =\
+    this->backproject_to_ground( camera, vector_2d(box(0), box(3)) );
+  vector_3d p2 =\
+    this->backproject_to_ground( camera, vector_2d(box(2), box(3)) );
 
   vector_3d vh = p2 - p1;
   vector_3d vd = ray * vh.norm();
@@ -172,7 +181,8 @@ backproject_bbox( const kwiver::vital::camera_perspective_sptr camera,
 
   vector_4d back_plane;
   back_plane << n, d;
-  vector_3d p5 = this->backproject_to_plane( camera, vector_2d(box(0), box(1)), back_plane );
+  vector_3d p5 =\
+    this->backproject_to_plane( camera, vector_2d(box(0), box(1)), back_plane );
   double height = p5(2);
 
   Eigen::Matrix<double, 8, 3> box3d;
@@ -197,7 +207,8 @@ box_around_box3d( const kwiver::vital::camera_perspective_sptr camera,
   Eigen::Matrix<double, 8, 2> projected_points;
 
   // project the points
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<8; i++)
+  {
     projected_points.row(i) = camera->project(box3d.row(i)).transpose();
   }
 
@@ -215,7 +226,8 @@ view_to_view( const kwiver::vital::camera_perspective_sptr src_camera,
 	      const kwiver::vital::camera_perspective_sptr dest_camera,
 	      const vector_4d bounds ) const
 {
-  Eigen::Matrix<double, 8, 3> box3d = this->backproject_bbox( src_camera, bounds );
+  Eigen::Matrix<double, 8, 3> box3d =\
+    this->backproject_bbox( src_camera, bounds );
   vector_4d tgt_box = this->box_around_box3d( dest_camera, box3d );
 
   return tgt_box;
@@ -231,8 +243,8 @@ transform_bounding_box( vital::bounding_box<double>& bbox ) const
     bbox.max_x(), bbox.max_y();
 
   vector_4d out_bounds = this->view_to_view( this->src_camera,
-						   this->dest_camera,
-						   bbox_bounds );
+					     this->dest_camera,
+					     bbox_bounds );
 
   return vital::bounding_box<double>(out_bounds(0),
 				     out_bounds(1),
@@ -248,10 +260,9 @@ filter( const vital::detected_object_set_sptr input_set ) const
   auto ret_set = std::make_shared<vital::detected_object_set>();
 
   // loop over all detections
-  auto ie = input_set->cend();
-  for ( auto det = input_set->cbegin(); det != ie; ++det )
+  for ( auto det : *input_set )
   {
-    auto out_det = (*det)->clone();
+    auto out_det = det->clone();
     auto out_box = out_det->bounding_box();
     auto new_out_box = this->transform_bounding_box(out_box);
     out_det->set_bounding_box( new_out_box );
