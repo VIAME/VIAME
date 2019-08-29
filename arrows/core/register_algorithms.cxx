@@ -48,6 +48,7 @@
 #include <arrows/core/compute_ref_homography_core.h>
 #include <arrows/core/convert_image_bypass.h>
 #include <arrows/core/create_detection_grid.h>
+#include <arrows/core/detect_features_filtered.h>
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_input_kw18.h>
 #include <arrows/core/detected_object_set_input_simulator.h>
@@ -114,6 +115,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< compute_ref_homography_core >();
   reg.register_algorithm< convert_image_bypass >();
   reg.register_algorithm< create_detection_grid >();
+  reg.register_algorithm< detect_features_filtered >();
   reg.register_algorithm< detected_object_set_input_csv >();
   reg.register_algorithm< detected_object_set_input_kw18 >();
   reg.register_algorithm< detected_object_set_input_simulator >();
