@@ -219,6 +219,11 @@ endif()
 
 if( EXTERNAL_OpenCV )
   set( FLETCH_BUILD_OPENCV OFF )
+
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -DOpenCV_DIR:PATH=${EXTERNAL_OpenCV}
+  )
 else()
   set( FLETCH_BUILD_OPENCV ${VIAME_ENABLE_OPENCV} )
 endif()
