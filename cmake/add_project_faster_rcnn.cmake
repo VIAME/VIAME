@@ -18,7 +18,7 @@ if( NOT WIN32 )
       ${VIAME_PACKAGES_DIR}/py-faster-rcnn/caffe-fast-rcnn
     BUILD_COMMAND cd ${VIAME_PACKAGES_DIR}/py-faster-rcnn/lib && make
     INSTALL_COMMAND ${CMAKE_COMMAND}
-      -DVIAME_CMAKE_DIR:PATH=${CMAKE_SOURCE_DIR}/cmake
+      -DVIAME_CMAKE_DIR:PATH=${VIAME_CMAKE_DIR}
       -P ${VIAME_SOURCE_DIR}/cmake/custom_faster_rcnn_install.cmake
     )
 endif()

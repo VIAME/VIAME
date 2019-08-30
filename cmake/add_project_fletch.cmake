@@ -52,7 +52,6 @@ endif()
 if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_Qt:BOOL=ON
     -Dfletch_ENABLE_TinyXML1:BOOL=ON
     -Dfletch_ENABLE_libjson:BOOL=ON
     -Dfletch_ENABLE_GeographicLib:BOOL=ON
@@ -60,7 +59,6 @@ if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
 else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
-    -Dfletch_ENABLE_Qt:BOOL=OFF
     -Dfletch_ENABLE_TinyXML1:BOOL=OFF
     -Dfletch_ENABLE_libjson:BOOL=OFF
     -Dfletch_ENABLE_GeographicLib:BOOL=OFF
@@ -156,10 +154,51 @@ else()
   )
 endif()
 
-if( NOT EXTERNAL_OpenCV )
-  set( FLETCH_BUILD_OPENCV ${VIAME_ENABLE_OPENCV} )
+if( WIN32 AND VIAME_ENABLE_ITK )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_HDF5:BOOL=ON
+  )
+endif()
+
+if( EXTERNAL_Qt )
+  if( WIN32 )
+    set( fletch_DEP_FLAGS
+      ${fletch_DEP_FLAGS}
+      -Dfletch_ENABLE_Qt:BOOL=OFF
+      -DQt5_DIR:PATH=${EXTERNAL_Qt}/lib/cmake/Qt5
+      -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake.exe
+    )
+  else()
+    set( fletch_DEP_FLAGS
+      ${fletch_DEP_FLAGS}
+      -Dfletch_ENABLE_Qt:BOOL=OFF
+      -DQt5_DIR:PATH=${EXTERNAL_Qt}/lib/cmake/Qt5
+      -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake
+    )
+  endif()
+elseif( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_BURNOUT OR VIAME_ENABLE_SEAL_TK )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Qt:BOOL=ON
+  )
 else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_Qt:BOOL=OFF
+  )
+endif()
+
+if( EXTERNAL_OpenCV )
   set( FLETCH_BUILD_OPENCV OFF )
+else()
+  set( FLETCH_BUILD_OPENCV ${VIAME_ENABLE_OPENCV} )
+endif()
+
+if( EXTERNAL_ITK )
+  set( FLETCH_BUILD_ITK OFF )
+else()
+  set( FLETCH_BUILD_ITK ${VIAME_ENABLE_ITK} )
 endif()
 
 ExternalProject_Add(fletch
@@ -183,7 +222,7 @@ ExternalProject_Add(fletch
     ${fletch_DEP_FLAGS}
 
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
-    -Dfletch_ENABLE_ITK:BOOL=${VIAME_ENABLE_ITK}
+    -Dfletch_ENABLE_ITK:BOOL=${FLETCH_BUILD_ITK}
     -Dfletch_ENABLE_OpenCV:BOOL=${FLETCH_BUILD_OPENCV}
     -DOpenCV_SELECT_VERSION:STRING=${VIAME_OPENCV_VERSION}
 
@@ -213,7 +252,7 @@ ExternalProject_Add(fletch
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   INSTALL_COMMAND ${CMAKE_COMMAND}
-    -DVIAME_CMAKE_DIR:PATH=${CMAKE_SOURCE_DIR}/cmake
+    -DVIAME_CMAKE_DIR:PATH=${VIAME_CMAKE_DIR}
     -DVIAME_ENABLE_OPENCV:BOOL=${VIAME_ENABLE_OPENCV}
     -DVIAME_BUILD_PREFIX:PATH=${VIAME_BUILD_PREFIX}
     -DVIAME_BUILD_INSTALL_PREFIX:PATH=${VIAME_BUILD_INSTALL_PREFIX}
@@ -257,7 +296,7 @@ if( VIAME_ENABLE_OPENCV )
       -DOpenCV_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/OpenCV-build
       )
   else()
-    set(VIAME_ARGS_fletch
+    set( VIAME_ARGS_fletch
       ${VIAME_ARGS_fletch}
       -DOpenCV_DIR:PATH=${EXTERNAL_OpenCV}
       )
@@ -265,41 +304,55 @@ if( VIAME_ENABLE_OPENCV )
 endif()
 
 if( VIAME_ENABLE_CAFFE )
-  set(VIAME_ARGS_fletch
+  set( VIAME_ARGS_fletch
      ${VIAME_ARGS_fletch}
     -DCaffe_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/Caffe-build
     )
 endif()
 
 if( VIAME_ENABLE_VIVIA )
-  set(VIAME_ARGS_libkml
+  set( VIAME_ARGS_libkml
      ${VIAME_ARGS_libkml}
     -DKML_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/libkml-build
     )
-  set(VIAME_ARGS_VTK
+  set( VIAME_ARGS_VTK
      ${VIAME_ARGS_VTK}
     -DVTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VTK-build
     )
-  set(VIAME_ARGS_PROJ4
+  set( VIAME_ARGS_PROJ4
      ${VIAME_ARGS_PROJ4}
     -DPROJ4_INCLUDE_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/include
     )
   if( WIN32 )
-    set(VIAME_ARGS_PROJ4
+    set( VIAME_ARGS_PROJ4
        ${VIAME_ARGS_PROJ4}
       -DPROJ4_LIBRARY:PATH=${VIAME_BUILD_INSTALL_PREFIX}/lib/proj_4_9.lib
       )
   endif()
 endif()
 
-if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
+if( EXTERNAL_Qt )
   if( WIN32 )
     set(VIAME_ARGS_Qt
+       ${VIAME_ARGS_Qt}
+       -DQt5_DIR:PATH=${EXTERNAL_Qt}/lib/cmake/Qt5
+       -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake.exe
+    )
+  else()
+    set(VIAME_ARGS_Qt
+       ${VIAME_ARGS_Qt}
+       -DQt5_DIR:PATH=${EXTERNAL_Qt}/lib/cmake/Qt5
+       -DQT_QMAKE_EXECUTABLE:PATH=${EXTERNAL_Qt}/bin/qmake
+    )
+  endif()
+elseif( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
+  if( WIN32 )
+    set( VIAME_ARGS_Qt
        ${VIAME_ARGS_Qt}
        -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake.exe
     )
   else()
-    set(VIAME_ARGS_Qt
+    set( VIAME_ARGS_Qt
        ${VIAME_ARGS_Qt}
        -DQT_QMAKE_EXECUTABLE:PATH=${VIAME_BUILD_INSTALL_PREFIX}/bin/qmake
     )
@@ -307,12 +360,24 @@ if( VIAME_ENABLE_VIVIA OR VIAME_ENABLE_SEAL_TK )
 endif()
 
 if( VIAME_ENABLE_VXL )
-  set(VIAME_ARGS_VXL
+  set( VIAME_ARGS_VXL
     ${VIAME_ARGS_VXL}
     -DVXL_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VXL-build
     )
-  set(VIAME_ARGS_VXL_INSTALL
+  set( VIAME_ARGS_VXL_INSTALL
     ${VIAME_ARGS_VXL_INSTALL}
     -DVXL_DIR:PATH=${VIAME_BUILD_INSTALL_PREFIX}/share/vxl/cmake
+    )
+endif()
+
+if( EXTERNAL_ITK )
+  set( VIAME_ARGS_ITK
+    ${VIAME_ARGS_ITK}
+    -DITK_DIR:PATH=${EXTERNAL_ITK}
+    )
+elseif( VIAME_ENABLE_ITK )
+  set( VIAME_ARGS_ITK
+    ${VIAME_ARGS_ITK}
+    -DITK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/ITK-build
     )
 endif()

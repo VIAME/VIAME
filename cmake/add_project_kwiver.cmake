@@ -43,6 +43,10 @@ if( VIAME_ENABLE_BURNOUT )
   set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} burnout )
 endif()
 
+if( VIAME_ENABLE_SMQTK )
+  set( VIAME_KWIVER_DEPS ${VIAME_KWIVER_DEPS} smqtk )
+endif()
+
 ExternalProject_Add(kwiver
   DEPENDS ${VIAME_KWIVER_DEPS}
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -58,6 +62,7 @@ ExternalProject_Add(kwiver
     ${VIAME_ARGS_darknet}
     ${VIAME_ARGS_burnout}
     ${VIAME_ARGS_PROJ4}
+    ${VIAME_ARGS_Qt}
     ${VIAME_MATLAB_FLAGS}
     ${VIAME_PYTHON_FLAGS}
     ${VIAME_CUDA_FLAGS}
