@@ -199,6 +199,12 @@ else()
   set( FLETCH_BUILD_OPENCV ${VIAME_ENABLE_OPENCV} )
 endif()
 
+if( EXTERNAL_ITK )
+  set( FLETCH_BUILD_ITK OFF )
+else()
+  set( FLETCH_BUILD_ITK ${VIAME_ENABLE_ITK} )
+endif()
+
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
@@ -221,7 +227,7 @@ ExternalProject_Add(fletch
     ${fletch_DEP_FLAGS}
 
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
-    -Dfletch_ENABLE_ITK:BOOL=${VIAME_ENABLE_ITK}
+    -Dfletch_ENABLE_ITK:BOOL=${FLETCH_BUILD_ITK}
     -Dfletch_ENABLE_OpenCV:BOOL=${FLETCH_BUILD_OPENCV}
     -DOpenCV_SELECT_VERSION:STRING=${VIAME_OPENCV_VERSION}
 
@@ -370,7 +376,12 @@ if( VIAME_ENABLE_VXL )
     )
 endif()
 
-if( VIAME_ENABLE_ITK )
+if( EXTERNAL_ITK )
+  set( VIAME_ARGS_ITK
+    ${VIAME_ARGS_ITK}
+    -DITK_DIR:PATH=${EXTERNAL_ITK}
+    )
+elseif( VIAME_ENABLE_ITK )
   set( VIAME_ARGS_ITK
     ${VIAME_ARGS_ITK}
     -DITK_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}/build/src/ITK-build
