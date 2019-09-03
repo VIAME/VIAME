@@ -505,6 +505,18 @@ else()
                            ${VIAME_PLUGIN_EXPLORER_SCRIPT}
                            ${VIAME_SETUP_SCRIPT}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+
+    if( VIAME_ENABLE_SEAL_TK )
+      set( VIAME_SEAL_SCRIPT_FILE    "${VIAME_BINARY_DIR}/launch_seal_interface.bat" )
+
+      configure_file(
+        ${VIAME_CMAKE_DIR}/launch_seal_interface.bat.in
+        ${VIAME_SEAL_SCRIPT_FILE}
+      )
+
+      install( PROGRAMS      ${VIAME_SEAL_SCRIPT_FILE}
+               DESTINATION   ${CMAKE_INSTALL_PREFIX} )
+    endif()
   else()
     set( VIAME_SETUP_SCRIPT_FILE    "${VIAME_BINARY_DIR}/setup_viame.sh" )
 

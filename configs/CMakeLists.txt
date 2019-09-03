@@ -99,9 +99,9 @@ if( VIAME_DOWNLOAD_MODELS )
   # Transformation Models
   if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5d606146d35580e6dcb70c06/download
-      3cc9249897e4c09f98e53d4c8aca39f5
-      ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_transforms-v0.1.tar.gz
+      https://data.kitware.com/api/v1/item/5d6edf99d35580e6dcddbc3b/download
+      1a122a8a5ab5e59ca8a149954da8a252
+      ${VIAME_DOWNLOAD_DIR}/models-arctic_seal_transforms-v0.2.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 endif()
