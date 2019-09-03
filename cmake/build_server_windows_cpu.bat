@@ -8,6 +8,7 @@ SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
 IF EXIST build rmdir /s /q build
 
 IF NOT EXIST C:\tmp mkdir C:\tmp
+IF EXIST C:\tmp\fl4 rmdir /s /q C:\tmp\fl4
 IF EXIST C:\tmp\kv4 rmdir /s /q C:\tmp\kv4
 IF EXIST C:\tmp\vm4 rmdir /s /q C:\tmp\vm4
 
