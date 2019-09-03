@@ -25,6 +25,7 @@ set( plugin_core_headers
   example_detector.h
   feature_descriptor_io.h
   filter_features_magnitude.h
+  filter_features_nonmax.h
   filter_features_scale.h
   filter_tracks.h
   handle_descriptor_request_core.h
@@ -106,6 +107,7 @@ set( plugin_core_sources
   example_detector.cxx
   feature_descriptor_io.cxx
   filter_features_magnitude.cxx
+  filter_features_nonmax.cxx
   filter_features_scale.cxx
   filter_tracks.cxx
   handle_descriptor_request_core.cxx
