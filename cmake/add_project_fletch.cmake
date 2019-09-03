@@ -9,6 +9,10 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} fletch )
 
+set( VIAME_FLETCH_BUILD_DIR "${VIAME_BUILD_PREFIX}/src/fletch-build"
+     CACHE STRING "Alternative FLETCH build dir" )
+mark_as_advanced( VIAME_FLETCH_BUILD_DIR )
+
 if( VIAME_ENABLE_PYTHON )
   FormatPassdowns( "PYTHON" VIAME_PYTHON_FLAGS )
 endif()
@@ -198,6 +202,7 @@ endif()
 ExternalProject_Add(fletch
   PREFIX ${VIAME_BUILD_PREFIX}
   SOURCE_DIR ${VIAME_PACKAGES_DIR}/fletch
+  BINARY_DIR ${VIAME_FLETCH_BUILD_DIR}
   USES_TERMINAL_BUILD 1
   CMAKE_GENERATOR ${gen}
   CMAKE_CACHE_ARGS
@@ -272,7 +277,7 @@ endif()
 
 if( WIN32 )
   set( VIAME_ARGS_fletch
-    -Dfletch_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build
+    -Dfletch_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}
     )
 else()
   set( VIAME_ARGS_fletch
@@ -288,7 +293,7 @@ if( VIAME_ENABLE_OPENCV )
   if( NOT EXTERNAL_OpenCV )
     set(VIAME_ARGS_fletch
       ${VIAME_ARGS_fletch}
-      -DOpenCV_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/OpenCV-build
+      -DOpenCV_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}/build/src/OpenCV-build
       )
   else()
     set( VIAME_ARGS_fletch
@@ -301,18 +306,18 @@ endif()
 if( VIAME_ENABLE_CAFFE )
   set( VIAME_ARGS_fletch
      ${VIAME_ARGS_fletch}
-    -DCaffe_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/Caffe-build
+    -DCaffe_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}/build/src/Caffe-build
     )
 endif()
 
 if( VIAME_ENABLE_VIVIA )
   set( VIAME_ARGS_libkml
      ${VIAME_ARGS_libkml}
-    -DKML_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/libkml-build
+    -DKML_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}/build/src/libkml-build
     )
   set( VIAME_ARGS_VTK
      ${VIAME_ARGS_VTK}
-    -DVTK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VTK-build
+    -DVTK_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}/build/src/VTK-build
     )
   set( VIAME_ARGS_PROJ4
      ${VIAME_ARGS_PROJ4}
@@ -357,7 +362,7 @@ endif()
 if( VIAME_ENABLE_VXL )
   set( VIAME_ARGS_VXL
     ${VIAME_ARGS_VXL}
-    -DVXL_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/VXL-build
+    -DVXL_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}/build/src/VXL-build
     )
   set( VIAME_ARGS_VXL_INSTALL
     ${VIAME_ARGS_VXL_INSTALL}
@@ -368,6 +373,6 @@ endif()
 if( VIAME_ENABLE_ITK )
   set( VIAME_ARGS_ITK
     ${VIAME_ARGS_ITK}
-    -DITK_DIR:PATH=${VIAME_BUILD_PREFIX}/src/fletch-build/build/src/ITK-build
+    -DITK_DIR:PATH=${VIAME_FLETCH_BUILD_DIR}/build/src/ITK-build
     )
 endif()
