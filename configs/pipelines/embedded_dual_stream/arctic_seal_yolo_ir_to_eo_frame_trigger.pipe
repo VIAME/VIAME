@@ -13,6 +13,7 @@ process out_adapt
 
 process downsampler
   :: downsample
+  _non_blocking =                              4
 
 connect from in_adapt.image
         to   downsampler.input_1
