@@ -43,3 +43,6 @@
 [submodule "packages/itk-modules/trimmed-point-set"]
 	path = packages/itk-modules/trimmed-point-set
 	url = https://github.com/InsightSoftwareConsortium/ITKTrimmedPointSetRegistration.git
+[submodule "packages/itk-modules/keypointgui"]
+	path = packages/itk-modules/keypointgui
+	url = https://github.com/VIAME/keypointgui.git
