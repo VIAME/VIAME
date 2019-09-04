@@ -35,5 +35,5 @@ REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
 REM ---------------------------------------------------
 
-move "%VIAME_BUILD_DIR%\VIAME" "%VIAME_BUILD_DIR%\SEAL_TK"
-"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%\SEAL_TK-Windows-64Bit-CPU.zip" "%VIAME_BUILD_DIR%\SEAL_TK
+move "%VIAME_BUILD_DIR%\VIAME" "%VIAME_BUILD_DIR%\SEAL"
+"C:\Program Files\7-Zip\7z.exe" a "%VIAME_BUILD_DIR%\SEAL-Windows-64Bit-CPU.zip" "%VIAME_BUILD_DIR%\SEAL
