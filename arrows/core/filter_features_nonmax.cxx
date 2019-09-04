@@ -53,10 +53,36 @@ class filter_features_nonmax::priv
 public:
   /// Constructor
   priv()
-    : suppression_radius(5.0)
+    : suppression_radius(5.0),
+      resolution(3)
   {
   }
 
+  // --------------------------------------------------------------------------
+  std::vector<ptrdiff_t>
+  compute_disk_offsets(unsigned int radius,
+                       ptrdiff_t w_step, ptrdiff_t h_step) const
+  {
+    std::vector<ptrdiff_t> disk;
+    const int r = static_cast<int>(radius);
+    const int r2 = r * r;
+    for (int j = -r; j <= r; ++j)
+    {
+      const int j2 = j * j;
+      for (int i = -r; i <= r; ++i)
+      {
+        const int i2 = i * i;
+        if ((i2 + j2) > r2)
+        {
+          continue;
+        }
+        disk.push_back(j*h_step + i*w_step);
+      }
+    }
+    return disk;
+  }
+
+  // --------------------------------------------------------------------------
   feature_set_sptr
   filter(feature_set_sptr feat, std::vector<unsigned int> &ind) const
   {
@@ -79,8 +105,9 @@ public:
       bbox.extend(feat_vec[i]->loc());
     }
 
-    vector_2d offset = -(bbox.min() / suppression_radius).array() + 0.5;
-    vector_2d range = (bbox.sizes() / suppression_radius).array() + 0.5;
+    const double radius = suppression_radius / resolution;
+    vector_2d offset = -(bbox.min() / radius).array() + 0.5 + resolution;
+    vector_2d range = (bbox.sizes() / radius).array() + 1.5 + 2*resolution;
     if (range[0] > std::numeric_limits<int>::max() ||
         range[1] > std::numeric_limits<int>::max())
     {
@@ -88,10 +115,14 @@ public:
                           "non-max suppression");
       return nullptr;
     }
-    image_of<bool> mask(static_cast<size_t>(range[0])+1,
-                        static_cast<size_t>(range[1])+1);
+    image_of<bool> mask(static_cast<size_t>(range[0]),
+                        static_cast<size_t>(range[1]));
     // set all pixels in the mask to false
     transform_image(mask, [](bool) { return false; });
+
+    // create the offsets for each pixel within the circle diameter
+    std::vector<ptrdiff_t> disk =
+      compute_disk_offsets(resolution, mask.w_step(), mask.h_step());
 
     // sort on descending feature magnitude
     std::sort(indices.begin(), indices.end(),
@@ -106,11 +137,14 @@ public:
     {
       unsigned int index = p.first;
       auto const& feat = feat_vec[index];
-      vector_2i bin_idx = (feat->loc() / suppression_radius + offset).cast<int>();
+      vector_2i bin_idx = (feat->loc() / radius + offset).cast<int>();
       bool& bin = mask(bin_idx[0], bin_idx[1]);
       if (!bin)
       {
-        bin = true;
+        for (auto const& ptr_offset : disk)
+        {
+          *(&bin + ptr_offset) = true;
+        }
         ind.push_back(index);
         filtered.push_back(feat);
       }
@@ -123,6 +157,7 @@ public:
   }
 
   double suppression_radius;
+  unsigned int resolution;
   vital::logger_handle_t m_logger;
 };
 
@@ -159,6 +194,13 @@ filter_features_nonmax
                     "The radius, in pixels, within which to "
                     "suppress weaker features");
 
+  config->set_value("resolution", d_->resolution,
+                    "The resolution (N) of the filter for computing neighbors."
+                    " The filter is an (2N+1) x (2N+1) box containing a circle"
+                    " of radius N. The value must be a positive integer. "
+                    "Larger values are more "
+                    "accurate at the cost of more memory and compute time.");
+
   return config;
 }
 
@@ -171,6 +213,8 @@ filter_features_nonmax
 {
   d_->suppression_radius =
     config->get_value<double>("suppression_radius", d_->suppression_radius);
+  d_->resolution =
+    config->get_value<unsigned int>("resolution", d_->resolution);
 }
 
 
@@ -186,6 +230,19 @@ filter_features_nonmax
   {
     LOG_ERROR( logger(), "suppression_radius must be at least 1.0");
     return false;
+  }
+  unsigned int resolution =
+    config->get_value<unsigned int>("resolution", d_->resolution);
+  if (resolution < 1)
+  {
+    LOG_ERROR(logger(), "resolution must be at least 1");
+    return false;
+  }
+  else if (resolution > suppression_radius)
+  {
+    LOG_WARN(logger(), "resolution is " << resolution << " which is larger "
+                       "than the suppression radius of "
+                       << suppression_radius);
   }
   return true;
 }
