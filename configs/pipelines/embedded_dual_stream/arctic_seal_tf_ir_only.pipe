@@ -33,6 +33,9 @@ connect from downsampler.output_3
 
 # ==================================================================================
 
+connect from downsampler.output_4
+        to   out_adapt.file_name
+
 connect from thermal_detector.detected_object_set
         to   out_adapt.detected_object_set2
 connect from downsampler.output_4
