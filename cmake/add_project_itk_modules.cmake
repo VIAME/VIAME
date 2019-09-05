@@ -57,6 +57,26 @@ if( VIAME_ENABLE_PYTHON )
       ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
   endif()
 
+  set( PHOENIX_INSTALL
+    ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
+                            "PATH=${CUSTOM_PATH}"
+                            "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
+      ${PYTHON_EXECUTABLE} build.py build_py
+    )
+
+  ExternalProject_Add( phoenix
+    DEPENDS fletch
+    PREFIX ${VIAME_BUILD_PREFIX}
+    SOURCE_DIR  ${VIAME_PACKAGES_DIR}/itk-modules/phoenix
+    BUILD_IN_SOURCE 1
+    USES_TERMINAL_BUILD 1
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${PHOENIX_INSTALL}
+    INSTALL_COMMAND ""
+    INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
+    LIST_SEPARATOR "----"
+    )
+
   if( VIAME_SYMLINK_PYTHON )
     set( KEYPOINTGUI_PIP_CMD
       pip install --user -e . )

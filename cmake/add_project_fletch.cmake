@@ -111,6 +111,13 @@ if( VIAME_ENABLE_KWANT )
   )
 endif()
 
+if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_ITK )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_wxWidgets:BOOL=ON
+  )
+endif()
+
 if( VIAME_ENABLE_CUDA )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}

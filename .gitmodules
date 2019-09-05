@@ -46,3 +46,6 @@
 [submodule "packages/itk-modules/keypointgui"]
 	path = packages/itk-modules/keypointgui
 	url = https://github.com/Kitware/keypointgui.git
+[submodule "packages/itk-modules/phoenix"]
+	path = packages/itk-modules/phoenix
+	url = https://github.com/wxWidgets/Phoenix.git
