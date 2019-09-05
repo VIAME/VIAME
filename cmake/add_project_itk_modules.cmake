@@ -9,6 +9,8 @@
 
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} itk_module_tps )
 
+# --------------------------------- C/C++ --------------------------------------
+
 ExternalProject_Add( itk_module_tps
   DEPENDS fletch
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -33,3 +35,55 @@ if( VIAME_FORCEBUILD )
     ALWAYS 1
   )
 endif()
+
+# --------------------------------- Python -------------------------------------
+
+if( VIAME_ENABLE_PYTHON )
+
+  set( PYTHON_BASEPATH
+    ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
+
+  if( WIN32 )
+    set( CUSTOM_PYTHONPATH
+      ${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
+    set( CUSTOM_PATH
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin;$ENV{PATH} )
+    string( REPLACE ";" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
+    string( REPLACE ";" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
+  else()
+    set( CUSTOM_PYTHONPATH
+      ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
+    set( CUSTOM_PATH
+      ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
+  endif()
+
+  if( VIAME_SYMLINK_PYTHON )
+    set( KEYPOINTGUI_PIP_CMD
+      pip install --user -e . )
+  else()
+    # This is only required for no symlink install without a -e with older
+    # versions of pip, for never versions the above command works with no -e
+    set( KEYPOINTGUI_PIP_CMD
+      pip install --user file://${VIAME_PACKAGES_DIR}/itk-modules/keypointgui )
+  endif()
+
+  set( KEYPOINTGUI_INSTALL
+    ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
+                            "PATH=${CUSTOM_PATH}"
+                            "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
+      ${PYTHON_EXECUTABLE} -m ${KEYPOINTGUI_PIP_CMD}
+    )
+
+  ExternalProject_Add( keypointgui
+    DEPENDS fletch phoenix
+    PREFIX ${VIAME_BUILD_PREFIX}
+    SOURCE_DIR  ${VIAME_PACKAGES_DIR}/itk-modules/keypointgui
+    USES_TERMINAL_BUILD 1
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ${KEYPOINTGUI_INSTALL}
+    INSTALL_COMMAND ""
+    INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
+    LIST_SEPARATOR "----"
+    )
+endif()
+  
