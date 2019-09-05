@@ -75,7 +75,7 @@ if( VIAME_ENABLE_PYTHON )
     )
 
   ExternalProject_Add( keypointgui
-    DEPENDS fletch phoenix
+    DEPENDS fletch
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR  ${VIAME_PACKAGES_DIR}/itk-modules/keypointgui
     USES_TERMINAL_BUILD 1
