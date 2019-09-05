@@ -1,4 +1,3 @@
-# Seal-TK superbuild with no fancy stuff
 ARG BASE_IMAGE=nvidia/cuda:9.1-cudnn7-devel-ubuntu16.04
 FROM $BASE_IMAGE as base
 
@@ -106,16 +105,24 @@ RUN cmake \
         -DVIAME_ENABLE_VXL:BOOL=ON \
         -DVIAME_ENABLE_YOLO:BOOL=ON\
     &&\
-    echo ""
+    ls
 
+# Build in stages to hopefully catch any build errors in fletch/ITK first
+# and get some cache speedups
+RUN cd ${WS_DIR}/build/${PROJ_NAME} &&\
+    make -j$((`nproc`-1)) fletch
 
 RUN cd ${WS_DIR}/build/${PROJ_NAME} &&\
-    make -j$((`nproc`-1))
-#
-### === === === === ===  Copy in build artifacts === === === === ===
-#
-#FROM base
-#
-#COPY --from=viame /root/viame/build/install /root/viame
-#WORKDIR /root/viame
+    make -j$((`nproc`-1)) kwiver
 
+RUN cd ${WS_DIR}/build/${PROJ_NAME} &&\
+    make -j$((`nproc`-1)) viame
+
+
+
+### === === === === ===  Copy in build artifacts === === === === ===
+
+FROM base
+
+COPY --from=viame /root/viame/build/install /root/viame
+WORKDIR /root/viame

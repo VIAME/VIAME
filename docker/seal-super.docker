@@ -5,10 +5,10 @@ FROM $BASE_IMAGE as base
 # System Deps for VIAME
 # Fletch system dependencies
 RUN apt-get update -qq &&\
-    apt-get install -qq \
+    apt-get install -y \
         curl \
     &&\
-    apt-get install -qq --no-install-recommends \
+    apt-get install -y --no-install-recommends \
         apt-transport-https \
         ca-certificates \
         git \
@@ -35,20 +35,37 @@ FROM base as compiler
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&\
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main' &&\
     apt-get update -qq &&\
-    apt-get install -qq cmake &&\
+    apt-get install -qq \
+        cmake\
+        python-dev\
+        python3-dev\
+        &&\
     apt-get install -qq --no-install-recommends \
         build-essential\
         ninja-build \
         pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+## -- -- -- -- -- --  Get pip the preferred way -- -- -- -- -- --
+RUN curl https://bootstrap.pypa.io/get-pip.py -o /root/get-pip.py \
+    && python3 /root/get-pip.py \
+    && python2 /root/get-pip.py
+
+RUN pip2 install --upgrade pip numpy &&\
+    pip3 install --upgrade pip numpy
+## -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 ## === === === === ===  Building VIAME === === === === ===
 FROM compiler as viame
 
 # Get VIAME
-RUN git clone https://github.com/Kitware/VIAME.git /root/viame \
-&& cd /root/viame \
-&& git submodule update --init --recursive
+RUN git clone https://github.com/Kitware/VIAME.git /root/viame &&\
+    cd /root/viame &&\
+    git submodule update --init --recursive
+
+RUN cd /root/viame &&\
+    git checkout kamera/master &&\
+    git submodule update --init --recursive
 
 # Configure VIAME as a submodule
 RUN cd /root/viame && mkdir build && cd build &&\
