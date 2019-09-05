@@ -7,8 +7,7 @@ FROM $BASE_IMAGE as base
 RUN apt-get update -qq &&\
     apt-get install -qq \
         curl \
-    &&\
-    apt-get install -qq --no-install-recommends \
+    && apt-get install -qq --no-install-recommends \
         apt-transport-https \
         ca-certificates \
         git \
@@ -32,33 +31,56 @@ FROM base as compiler
 
 # Need CMake >= 3.11.4 for VIAME,
 # Thus, install latest stable CMake 3.14.1
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - &&\
-    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main' &&\
-    apt-get update -qq &&\
-    apt-get install -qq cmake &&\
+RUN curl https://apt.kitware.com/keys/kitware-archive-latest.asc -L 2>/dev/null | apt-key add - \
+    && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+    && apt-get update -y \
+    && apt-get install -y \
+        cmake \
+        python-dev \
+        python3-dev \
+    &&\
     apt-get install -qq --no-install-recommends \
         build-essential\
         ninja-build \
         pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+
+## -- -- -- -- -- --  Get pip the preferred way -- -- -- -- -- --
+RUN curl https://bootstrap.pypa.io/get-pip.py -o /root/get-pip.py \
+    && python3 /root/get-pip.py \
+    && python2 /root/get-pip.py
+
+RUN pip2 install --upgrade pip numpy &&\
+    pip3 install --upgrade pip numpy
+## -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
 ## === === === === ===  Building VIAME === === === === ===
 FROM compiler as viame
 
-# Get VIAME
-RUN git clone https://github.com/Kitware/VIAME.git /root/viame \
-&& cd /root/viame \
-&& git submodule update --init --recursive
+WORKDIR /ws
+ENV WS_DIR=/ws\
+    SRC_DIR=/root\
+    PROJ_NAME=viame
+
+# Get VIAME and pull all the submodules
+RUN git clone https://github.com/Kitware/VIAME.git ${SRC_DIR}/${PROJ_NAME} &&\
+    cd ${SRC_DIR}/${PROJ_NAME} &&\
+    git submodule update --init --recursive
+
 
 # Configure VIAME as a submodule
-RUN cd /root/viame && mkdir build && cd build &&\
-    cmake \
+RUN mkdir -p ${WS_DIR}/build/${PROJ_NAME} ${WS_DIR}/release/${PROJ_NAME}
+
+RUN cmake \
+        -B ${WS_DIR}/build/${PROJ_NAME} \
+        -S ${SRC_DIR}/${PROJ_NAME} \
         -DCMAKE_BUILD_TYPE:STRING=Release \
         -DVIAME_BUILD_DEPENDENCIES:BOOL=ON \
         -DVIAME_BUILD_INTERNAL_PYTORCH:BOOL=OFF \
         -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
-        -DVIAME_DOWNLOAD_MODELS=ON \
-        -DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=ON \
+        -DVIAME_DOWNLOAD_MODELS=OFF \
+        -DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=OFF \
         -DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=OFF \
         -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=OFF \
         -DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=OFF \
@@ -78,19 +100,30 @@ RUN cd /root/viame && mkdir build && cd build &&\
         -DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
         -DVIAME_ENABLE_SEAL_TK:BOOL=OFF \
         -DVIAME_ENABLE_SMQTK:BOOL=OFF \
-        -DVIAME_ENABLE_TENSORFLOW:BOOL=ON \
+        -DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
         -DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \
         -DVIAME_ENABLE_VIVIA:BOOL=OFF \
         -DVIAME_ENABLE_VXL:BOOL=ON \
-        -DVIAME_ENABLE_YOLO:BOOL=ON \
-        -G Ninja \
-        .. &&\
-    ninja
+        -DVIAME_ENABLE_YOLO:BOOL=ON\
+    &&\
+    echo ""
 
-## === === === === ===  Copy in build artifacts === === === === ===
 
-FROM base
+RUN cd ${WS_DIR}/build/${PROJ_NAME} &&\
+    make -j$((`nproc`-1)) fletch
 
-COPY --from=viame /root/viame/build/install /root/viame
-WORKDIR /root/viame
+RUN cd ${WS_DIR}/build/${PROJ_NAME} &&\
+    make -j$((`nproc`-1)) kwiver
+
+RUN cd ${WS_DIR}/build/${PROJ_NAME} &&\
+    make -j$((`nproc`-1)) viame
+
+
+#
+### === === === === ===  Copy in build artifacts === === === === ===
+#
+#FROM base
+#
+#COPY --from=viame /root/viame/build/install /root/viame
+#WORKDIR /root/viame
 

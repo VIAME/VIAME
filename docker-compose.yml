@@ -11,7 +11,25 @@ services:
       args:
         BASE_IMAGE: "${BASE_IMAGE}"
         VIAME_VARIANT: "${VIAME_VARIANT}"
+    tty: true
+    volumes:
+      - "workspace:/ws"
+      - "${PWD}:/mnt/src/viame"
 
     image: gitlab.kitware.com:4567/noaa_uav/viame/base/viame:latest
+    command: "bash"
+  viame2:
+    build:
+      context: .
+      dockerfile: docker/parts.docker
+      args:
+        BASE_IMAGE: "${BASE_IMAGE}"
 
+
+    image: gitlab.kitware.com:4567/noaa_uav/viame/base/viame:part2
+
+volumes:
+  workspace:
+    labels:
+      com.kitware.description: "Persistence for interactive development"
 ...
