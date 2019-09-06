@@ -106,8 +106,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5d5d84d185f25b11ff427b4e/download)
 
 **Standalone Tools:** <br>
-[Seal Dual Display GUI, CentOS 7, 64-Bit](https://data.kitware.com/api/v1/item/5d6956f8d35580e6dcd13132/download) <br>
-[Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download)
+[Seal Dual Display GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5d6f7d23d35580e6dce05795/download) <br>
+[Seal Dual Display GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5d72c148d35580e6dcef09a5/download)
 
 Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.
 
