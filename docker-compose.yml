@@ -1,32 +1,34 @@
 ---
-## docker-compose for building and running KAMERA-variant of VIAME
-## This pulls from .env file, as well as any environment variables8
+## docker-compose for building and running VIAME containers
+## This pulls from .env file, as well as any environment variables
+## If you want to mount source code for live updates, uncomment the ${PWD} line
 
 version: '3'
 services:
+  ## "Basic" VIAME headless build. Contains only install dir files
   viame:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    tty: true
+    image: viame/viame:latest
+    command: "bash"
+
+  ## Development image. Preserves entire build tree so you can tinker
+  dev-viame:
+    build:
+      context: .
+      dockerfile: docker/dev_viame.docker
       args:
         BASE_IMAGE: "${BASE_IMAGE}"
-        VIAME_VARIANT: "${VIAME_VARIANT}"
     tty: true
     volumes:
       - "workspace:/ws"
-      - "${PWD}:/mnt/src/viame"
+#      - "${PWD}:/mnt/src/viame:ro"
 
-    image: gitlab.kitware.com:4567/noaa_uav/viame/base/viame:latest
+    image: viame/dev-viame:latest
     command: "bash"
-  viame2:
-    build:
-      context: .
-      dockerfile: docker/parts.docker
-      args:
-        BASE_IMAGE: "${BASE_IMAGE}"
 
-
-    image: gitlab.kitware.com:4567/noaa_uav/viame/base/viame:part2
 
 volumes:
   workspace:

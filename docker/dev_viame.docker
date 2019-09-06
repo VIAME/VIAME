@@ -120,12 +120,3 @@ RUN cd ${WS_DIR}/build/${PROJ_NAME} &&\
 
 RUN cd ${WS_DIR}/build/${PROJ_NAME} &&\
     make -j$((`nproc`-1)) viame
-
-
-
-### === === === === ===  Copy in build artifacts === === === === ===
-
-FROM base
-
-COPY --from=viame /ws/build/viame/install /root/viame
-WORKDIR /root/viame
