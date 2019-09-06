@@ -39,6 +39,7 @@
 
 #include <Eigen/Geometry>
 #include <algorithm>
+#include <cmath>
 
 using namespace kwiver::vital;
 
@@ -99,15 +100,29 @@ public:
     std::vector<ud_pair> indices;
     indices.reserve(feat_vec.size());
     Eigen::AlignedBox<double, 2> bbox;
+    Eigen::AlignedBox<double, 1> scale_box;
     for (unsigned int i = 0; i < feat_vec.size(); i++)
     {
-      indices.push_back(std::make_pair(i, feat_vec[i]->magnitude()));
-      bbox.extend(feat_vec[i]->loc());
+      auto const& feat = feat_vec[i];
+      indices.push_back(std::make_pair(i, feat->magnitude()));
+      bbox.extend(feat->loc());
+      scale_box.extend(Eigen::Matrix<double,1,1>(feat->scale()));
+    }
+
+    const double scale_min = std::log2(scale_box.min()[0]);
+    const double scale_range = std::log2(scale_box.max()[0]) - scale_min;
+    const unsigned scale_steps = static_cast<unsigned>(scale_range+1);
+    LOG_INFO(m_logger, "Using " << scale_steps << " scale steps");
+    if (scale_steps > 20)
+    {
+      LOG_ERROR(m_logger, "Scale range is too large.  Log2 scales from "
+                          << scale_box.min() << " to " << scale_box.max());
+      return nullptr;
     }
 
     const double radius = suppression_radius / resolution;
-    vector_2d offset = -(bbox.min() / radius).array() + 0.5 + resolution;
-    vector_2d range = (bbox.sizes() / radius).array() + 1.5 + 2*resolution;
+    vector_2d offset = -(bbox.min() / radius).array() + 0.5;
+    vector_2d range = (bbox.sizes() / radius).array() + 0.5;
     if (range[0] > std::numeric_limits<int>::max() ||
         range[1] > std::numeric_limits<int>::max())
     {
@@ -115,14 +130,25 @@ public:
                           "non-max suppression");
       return nullptr;
     }
-    image_of<bool> mask(static_cast<size_t>(range[0]),
-                        static_cast<size_t>(range[1]));
-    // set all pixels in the mask to false
-    transform_image(mask, [](bool) { return false; });
 
-    // create the offsets for each pixel within the circle diameter
-    std::vector<ptrdiff_t> disk =
-      compute_disk_offsets(resolution, mask.w_step(), mask.h_step());
+    std::vector<image_of<bool> > masks;
+    std::vector<std::vector<ptrdiff_t> > disks;
+    masks.reserve(scale_steps);
+    disks.reserve(scale_steps);
+    for (unsigned s = 0; s < scale_steps; ++s)
+    {
+      const size_t pad = 2 * resolution + 1;
+      const size_t w = (static_cast<size_t>(range[0]) >> s) + pad;
+      const size_t h = (static_cast<size_t>(range[1]) >> s) + pad;
+      masks.push_back(image_of<bool>(w, h));
+      // set all pixels in the mask to false
+      transform_image(masks.back(), [](bool) { return false; });
+
+      // create the offsets for each pixel within the circle diameter
+      disks.push_back(compute_disk_offsets(resolution,
+                                           masks.back().w_step(),
+                                           masks.back().h_step()));
+    }
 
     // sort on descending feature magnitude
     std::sort(indices.begin(), indices.end(),
@@ -131,20 +157,30 @@ public:
                 return l.second > r.second;
               });
 
+    // check each feature against the masks to see if that location
+    // has already been covered
     std::vector<feature_sptr> filtered;
     ind.reserve(indices.size());
     for (auto const& p : indices)
     {
       unsigned int index = p.first;
       auto const& feat = feat_vec[index];
+      // compute the scale and location bin indices
+      unsigned scale = static_cast<unsigned>(std::log2(feat->scale()) - scale_min);
       vector_2i bin_idx = (feat->loc() / radius + offset).cast<int>();
-      bool& bin = mask(bin_idx[0], bin_idx[1]);
+
+      // get the center bin at this location from the mask at the current scale
+      bool& bin = masks[scale]((bin_idx[0] >> scale) + resolution,
+                               (bin_idx[1] >> scale) + resolution);
+      // if the feature is at an uncovered location
       if (!bin)
       {
-        for (auto const& ptr_offset : disk)
+        // mark all points in a circular neighborhood as covered
+        for (auto const& ptr_offset : disks[scale])
         {
           *(&bin + ptr_offset) = true;
         }
+        // add this feature to the accepted list
         ind.push_back(index);
         filtered.push_back(feat);
       }
