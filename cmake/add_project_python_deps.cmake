@@ -10,20 +10,23 @@
 # --------------------- ADD ANY EXTRA PYTHON DEPS HERE -------------------------
 
 set( VIAME_PYTHON_DEPS numpy matplotlib )
-
+set( VIAME_PYTHON_DEP_CMDS "numpy" "matplotlib" )
 
 if( VIAME_ENABLE_CAMTRAWL )
-  set( VIAME_PYTHON_DEPS ubelt ${VIAME_PYTHON_DEPS} )
+  list( APPEND VIAME_PYTHON_DEPS ubelt )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "ubelt" )
 endif()
 
 if( VIAME_ENABLE_TENSORFLOW )
-  if( VIAME_ENABLE_CUDA )
-    set( VIAME_PYTHON_DEPS tensorflow-gpu humanfriendly ${VIAME_PYTHON_DEPS} )
-  else()
-    set( VIAME_PYTHON_DEPS tensorflow humanfriendly ${VIAME_PYTHON_DEPS} )
-  endif()
+  list( APPEND VIAME_PYTHON_DEPS humanfriendly )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "humanfriendly" )
 
-  set( VIAME_PIP_ARGS_TENSORFLOW )
+  list( APPEND VIAME_PYTHON_DEPS tensorflow )
+  if( VIAME_ENABLE_CUDA )
+    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow-gpu" )
+  else()
+    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow" )
+  endif()
 endif()
 
 if( VIAME_ENABLE_ITK )
@@ -31,20 +34,21 @@ if( VIAME_ENABLE_ITK )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
-  set( VIAME_PYTHON_DEPS torch torchvision ${VIAME_PYTHON_DEPS} )
+  list( APPEND VIAME_PYTHON_DEPS torch )
+  list( APPEND VIAME_PYTHON_DEPS torchvision )
 
-  set( VIAME_PIP_ARGS_TORCH )
-  set( VIAME_PIP_ARGS_TORCHVISION )
+  set( ARGS_TORCH )
+  set( ARGS_TORCHVISION )
 
   set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
 
   if( WIN32 )
     if( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
-      set( VIAME_PIP_ARGS_TORCH ==1.2.0 -f ${PYTORCH_ARCHIVE} )
-      set( VIAME_PIP_ARGS_TORCHVISION ==0.4.0 -f ${PYTORCH_ARCHIVE} )
+      set( ARGS_TORCH ==1.2.0 -f ${PYTORCH_ARCHIVE} )
+      set( ARGS_TORCHVISION ==0.4.0 -f ${PYTORCH_ARCHIVE} )
     elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
-      set( VIAME_PIP_ARGS_TORCH ==1.2.0+cu92 -f ${PYTORCH_ARCHIVE} )
-      set( VIAME_PIP_ARGS_TORCHVISION ==0.4.0+cu92 -f ${PYTORCH_ARCHIVE} )
+      set( ARGS_TORCH ==1.2.0+cu92 -f ${PYTORCH_ARCHIVE} )
+      set( ARGS_TORCHVISION ==0.4.0+cu92 -f ${PYTORCH_ARCHIVE} )
     else()
       message( FATAL_ERROR "With your current build settings you must either:\n"
         " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
@@ -53,8 +57,8 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
     endif()
   else()
     if( CUDA_VERSION VERSION_EQUAL "9.2" )
-      set( VIAME_PIP_ARGS_TORCH ==1.2.0+cu92 -f ${PYTORCH_ARCHIVE} )
-      set( VIAME_PIP_ARGS_TORCHVISION ==0.4.0+cu92 -f ${PYTORCH_ARCHIVE} )
+      set( ARGS_TORCH ==1.2.0+cu92 -f ${PYTORCH_ARCHIVE} )
+      set( ARGS_TORCHVISION ==0.4.0+cu92 -f ${PYTORCH_ARCHIVE} )
     elseif( CUDA_VERSION VERSION_LESS "10.0" )
       message( FATAL_ERROR "With your current build settings you must either:\n"
         " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
@@ -62,6 +66,9 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
   endif()
+
+  list( APPEND VIAME_PYTHON_DEP_CMDS "torch${ARGS_TORCH}" )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "torchvision${ARGS_TORCHVISION}" )
 endif()
 
 # ------------------------------------------------------------------------------
@@ -74,6 +81,7 @@ if( WIN32 )
     ${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
   set( CUSTOM_PATH
     ${VIAME_BUILD_INSTALL_PREFIX}/bin;$ENV{PATH} )
+
   string( REPLACE ";" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
   string( REPLACE ";" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
 else()
@@ -89,24 +97,20 @@ if( VIAME_ENABLE_SMQTK )
   set( VIAME_PYTHON_DEPS_DEPS smqtk ${VIAME_PYTHON_DEPS_DEPS} )
 endif()
 
-foreach( DEP ${VIAME_PYTHON_DEPS} )
+list( LENGTH VIAME_PYTHON_DEPS DEP_COUNT )
+math( EXPR DEP_COUNT "${DEP_COUNT} - 1" )
+
+foreach( ID RANGE ${DEP_COUNT} )
+
+  list( GET VIAME_PYTHON_DEPS ${ID} DEP )
+  list( GET VIAME_PYTHON_DEP_CMDS ${ID} CMD )
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${DEP} )
 
-  if( "${DEP}" STREQUAL "torch" )
-    set( DEPARGS ${VIAME_PIP_ARGS_TORCH} )
-  elseif( "${DEP}" STREQUAL "torchvision" )
-    set( DEPARGS ${VIAME_PIP_ARGS_TORCHVISION} )
-  elseif( "${DEP}" STREQUAL "tensorflow" OR "${DEP}" STREQUAL "tensorflow-gpu" )
-    set( DEPARGS ${VIAME_PIP_ARGS_TENSORFLOW} )
-  elseif( "${DEP}" STREQUAL "opencv" OR "${DEP}" STREQUAL "opencv-python" )
-    set( DEPARGS ${VIAME_PIP_ARGS_OPENCV} )
-  else()
-    set( DEPARGS )
-  endif()
+  set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
+  string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
-  set( PYTHON_DEP_PIP_CMD
-      pip install --user ${DEP}${DEPARGS} )
+  message( WARNING "${PYTHON_DEP_PIP_CMD}" )
 
   set( PYTHON_DEP_INSTALL
     ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
