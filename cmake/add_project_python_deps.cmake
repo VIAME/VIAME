@@ -30,7 +30,13 @@ if( VIAME_ENABLE_TENSORFLOW )
 endif()
 
 if( VIAME_ENABLE_ITK )
-  set( VIAME_PYTHON_DEPS msgpack ${VIAME_PYTHON_DEPS} )
+  list( APPEND VIAME_PYTHON_DEPS msgpack )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "msgpack" )
+
+  set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 )
+
+  list( APPEND VIAME_PYTHON_DEPS wxPython )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
