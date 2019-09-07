@@ -106,8 +106,6 @@ foreach( ID RANGE ${DEP_COUNT} )
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
-  message( WARNING "${PYTHON_DEP_PIP_CMD}" )
-
   set( PYTHON_DEP_INSTALL
     ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
                             "PATH=${CUSTOM_PATH}"
