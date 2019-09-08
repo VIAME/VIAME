@@ -140,3 +140,6 @@ target_link_libraries( itk_3_transform_point_set_and_image ${ITK_LIBRARIES} )
 
 #kwiver_add_executable( itk_eo_ir_registration RegistrationTool.cxx )
 #target_link_libraries( itk_eo_ir_registration viame_itk )
+
+kwiver_add_executable( itk_point_set_to_transform PointSetToTransform.cxx )
+target_link_libraries( itk_point_set_to_transform ${ITK_LIBRARIES} )
