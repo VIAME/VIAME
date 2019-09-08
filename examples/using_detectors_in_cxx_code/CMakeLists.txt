@@ -13,7 +13,7 @@ install( FILES       detector1.cxx
 
 
 # Build select files
-if( VIAME_ENABLE_OPENCV )
+if( VIAME_ENABLE_KWIVER AND VIAME_ENABLE_OPENCV )
 
   find_package( OpenCV REQUIRED )
   include_directories( SYSTEM ${OpenCV_INCLUDE_DIRS} )

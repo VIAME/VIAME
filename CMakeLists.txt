@@ -197,6 +197,10 @@ if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL_TK )
   message( FATAL_ERROR "Cannot yet enable both VIVIA and Seal-TK GUIs" )
 endif()
 
+if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
+  message( FATAL_ERROR "Building core VIAME plugins require KWIVER" )
+endif()
+
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL )
   find_package( PythonInterp QUIET )
@@ -394,83 +398,78 @@ if( VIAME_BUILD_DEPENDENCIES )
   endif()
 else()
 
-  if( VIAME_ENABLE_FLASK )
-    set(FT_DATA_ROOT "${CMAKE_BINARY_DIR}/data" CACHE STRING "Where fishtracker data is stored")
-    file(COPY "plugins/flask"
-         DESTINATION "plugins/flask"
-         PATTERN "*.in" EXCLUDE)
-    configure_file("plugins/flask/flask/fishtracker.py.in"
-                   "plugins/flask/flask/fishtracker.py"
-                   )
-    configure_file("plugins/flask/Python/run_python_script.sh.in"
-                   "plugins/flask/Python/run_python_script.sh"
-                   )
-  endif()
+  include_directories( "${CMAKE_CURRENT_BINARY_DIR}" )
 
   ###
   # Look for and use Fletch to find dependencies
   ##
-  find_package( kwiver REQUIRED )
-  include_directories( ${KWIVER_INCLUDE_DIRS} )
-  link_directories( ${KWIVER_LIBRARY_DIR} )
-  list( INSERT CMAKE_MODULE_PATH  0         "${KWIVER_CMAKE_DIR}" )
-
   if( IS_DIRECTORY ${fletch_DIR} )
     find_package( fletch NO_MODULE )
     list( APPEND CMAKE_PREFIX_PATH  "${fletch_DIR}" )
   endif()
 
+  ###
+  # Require OpenCV if enabled
+  ##
   if( VIAME_ENABLE_OPENCV )
     find_package( OpenCV REQUIRED )
   endif()
 
-  include_directories( "${CMAKE_CURRENT_BINARY_DIR}" "${KWIVER_INCLUDE_DIRS}" )
-
   ###
-  # KWIVER CMake config
+  # KWIVER configuration variables
   ##
-  include( kwiver-cmake-future )
-  include( kwiver-utils )
+  if( VIAME_ENABLE_KWIVER )
+    find_package( kwiver REQUIRED )
 
-  ##
-  # System specific compiler flags
-  include( viame-flags )
+    include_directories( ${KWIVER_INCLUDE_DIRS} )
+    link_directories( ${KWIVER_LIBRARY_DIR} )
+    list( INSERT CMAKE_MODULE_PATH 0 "${KWIVER_CMAKE_DIR}" )
+    include_directories( "${KWIVER_INCLUDE_DIRS}" )
 
-  ##
-  # Build system hack for visual system, will be removed
-  include( windows-ksys-hack )
+    include( kwiver-cmake-future )
+    include( kwiver-utils )
 
-  ##
-  # check compiler support
-  include( kwiver-configcheck )
+    ###
+    # System specific compiler flags
+    ##
+    include( viame-flags )
 
-  # set the name for our package exports and plugin directories
-  set( kwiver_export_name                           viame_exports )
+    ##
+    # Build system hack for visual system, will be removed
+    include( windows-ksys-hack )
 
-  set( kwiver_plugin_subdir                         viame )
-  set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
-  set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
-  set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
-  set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
-  set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
-  set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
+    ##
+    # check compiler support
+    include( kwiver-configcheck )
 
-  # Setup python directories for plugin processes in same style as KWIVER
-  if( VIAME_ENABLE_PYTHON )
-    set( kwiver_python_subdir "python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" )
-    set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
+    # set the name for our package exports and plugin directories
+    set( kwiver_export_name                           viame_exports )
 
-    kwiver_create_python_init( viame )
-    kwiver_create_python_init( viame/processes )
+    set( kwiver_plugin_subdir                         viame )
+    set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
+    set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
+    set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
+    set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
+    set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
+    set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
+
+    # Setup python directories for plugin processes in same style as KWIVER
+    if( VIAME_ENABLE_PYTHON )
+      set( kwiver_python_subdir "python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}" )
+      set( kwiver_python_output_path "${VIAME_BUILD_PREFIX}/lib/${kwiver_python_subdir}" )
+
+      kwiver_create_python_init( viame )
+      kwiver_create_python_init( viame/processes )
+    endif()
   endif()
 
   ###
-  # build submodules
-
-  ###
-  # add subdirs
+  # Add VIAME subdirs
   ##
-  add_subdirectory( plugins )
+  if( VIAME_ENABLE_KWIVER )
+    add_subdirectory( plugins )
+  endif()
+
   add_subdirectory( examples )
   add_subdirectory( configs )
 
@@ -595,5 +594,17 @@ else()
       @ONLY
       )
     install( SCRIPT ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake )
+  endif()
+
+  if( VIAME_ENABLE_FLASK )
+    set( FT_DATA_ROOT "${CMAKE_BINARY_DIR}/data"
+         CACHE STRING "Where fishtracker data is stored" )
+    file( COPY "plugins/flask"
+          DESTINATION "plugins/flask"
+          PATTERN "*.in" EXCLUDE )
+    configure_file( "plugins/flask/flask/fishtracker.py.in"
+                    "plugins/flask/flask/fishtracker.py" )
+    configure_file( "plugins/flask/Python/run_python_script.sh.in"
+                    "plugins/flask/Python/run_python_script.sh" )
   endif()
 endif()
