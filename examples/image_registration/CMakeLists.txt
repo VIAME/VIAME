@@ -10,13 +10,13 @@ if( VIAME_ENABLE_ITK )
       ${EXAMPLE_INSTALL_FILES}
       input_optical_images.txt
       input_thermal_images.txt
-      register_optical_and_thermal.bat )
+      register_eo_ir_per_frame_itk.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}
       input_optical_images.txt
       input_thermal_images.txt
-      register_optical_and_thermal.sh )
+      register_eo_ir_per_frame_itk.sh )
   endif()
 endif()
 
