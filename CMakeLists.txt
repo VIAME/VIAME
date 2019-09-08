@@ -15,13 +15,6 @@ set( VIAME_VERSION "${VIAME_VERSION_MAJOR}.${VIAME_VERSION_MINOR}.${VIAME_VERSIO
 
 include( CMakeDependentOption )
 
-
-# If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any other superbuild
-# projects (except for viame). This makes development builds much quicker if just doing
-# development only in viame.
-option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
-mark_as_advanced( VIAME_FORCEBUILD )
-
 ###
 # Add paths used throughout CMakeLists files
 ##
@@ -114,8 +107,17 @@ else()
   set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
 endif()
 
+# ##
+# Core build settings advanced flags
+#
+# If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
+# other superbuild projects (except for viame). This makes development builds
+# much quicker if just doing development only in viame.
+option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
+mark_as_advanced( VIAME_FORCEBUILD )
+
 ###
-# Advanced hidden flags used for disabling core features
+# Other advanced hidden flags used for disabling core features
 #
 # These are meant for use by advanced users when you only want to use VIAME
 # to build one of the above packages by itself, not VIAME core.
