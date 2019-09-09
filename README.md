@@ -109,8 +109,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Seal Dual Display GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5d6f7d23d35580e6dce05795/download) <br>
 [Seal Dual Display GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5d72c148d35580e6dcef09a5/download)
 
-Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.
-
+Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
+To use project files extract them into your working directory of choice. Custom Applications
+contain a full installation, only with non-default features turned on, and should not be copied
+into existing installations because they are a full installation.
 
 Quick Build Instructions
 ------------------------
@@ -123,7 +125,7 @@ dependencies alongside itself, or standalone. To build VIAME requires, at a mini
 If using the command line, run the following commands, only replacing [source-directory] and
 [build-directory] with locations of your choice:
 
-	git clone https://github.com/Kitware/VIAME.git [source-directory]
+	git clone https://github.com/VIAME/VIAME.git [source-directory]
 
 	cd [source-directory] && git submodule update --init --recursive
 
@@ -143,10 +145,11 @@ Or alternatively by building it in Visual Studio or your compiler of choice on
 Windows. The '-j8' tells the build to run multi-threaded using 8 threads, this is
 useful for a faster build though if you get an error it can be difficult to know
 here it was, in which case running just 'make' might be more helpful. For Windows,
-currently VS2015 (with only some sub-versions of 2017) are supported. If using CUDA,
-version 9.0 and above, with CUDNN 7.0 and above is desired. On Windows it can also be
-beneficial to use Anaconda to get multiple python packages. Boost Python (turned on by
-default when Python is enabled) requires Numpy and a few other dependencies.
+currently VS2017 is the desired compiler, though select versions of 2015 and 2019
+also work. If using CUDA, version 9.0 and above, with CUDNN 7.0 and above is desired,
+in particular we recommend CUDA 9.2 or 10.0. On both Windows and Linux it can also be
+beneficial to use Anaconda to get multiple standard python packages. Boost Python
+(turned on by default when Python is enabled) requires Numpy and a few other dependencies.
 
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency
