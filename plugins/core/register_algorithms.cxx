@@ -37,6 +37,7 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include "add_timestamp_from_filename.h"
+#include "auto_detect_transform.h"
 #include "read_detected_object_set_fishnet.h"
 #include "read_detected_object_set_habcam.h"
 #include "read_detected_object_set_viame_csv.h"
@@ -79,6 +80,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   register_algorithm< add_timestamp_from_filename >( vpm );
+  register_algorithm< auto_detect_transform_io >( vpm );
   register_algorithm< read_detected_object_set_fishnet >( vpm );
   register_algorithm< read_detected_object_set_habcam >( vpm );
   register_algorithm< read_detected_object_set_viame_csv >( vpm );
