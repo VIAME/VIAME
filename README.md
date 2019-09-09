@@ -98,7 +98,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
 [Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5d3a83cf877dfcc9022fb5aa/download) <br>
-[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5d5c6f7d85f25b11ff3f36d2/download) <br>
+[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5d76d351d35580e6dcfbd51b/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5d016fbf8d777f072b2955c9/download) <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5cded9828d777f072bb46eba/download) <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
@@ -106,8 +106,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5d5d84d185f25b11ff427b4e/download)
 
 **Custom Applications:** <br>
-[Seal Dual Display GUI, CentOS 7, 64-Bit](https://data.kitware.com/api/v1/item/5d6956f8d35580e6dcd13132/download) <br>
-[Seal Dual Display GUI, Windows 7/8/10, 64-Bit](https://data.kitware.com/api/v1/item/5cd4968a8d777f072b98c637/download)
+[Seal Dual Display GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5d6f7d23d35580e6dce05795/download) <br>
+[Seal Dual Display GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5d72c148d35580e6dcef09a5/download)
 
 Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.
 
