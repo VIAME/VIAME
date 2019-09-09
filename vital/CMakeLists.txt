@@ -31,6 +31,10 @@ set( CMAKE_CXX_FLAGS )
 include_directories( SYSTEM ${KWSYS_INCLUDE_DIR}/kwiversys )
 add_subdirectory(kwiversys)
 _kwiver_export( ${KWSYS_NAMESPACE} )
+get_target_property(kwsys_target_type "${KWSYS_NAMESPACE}" TYPE)
+if (kwsys_target_type STREQUAL "STATIC_LIBRARY")
+  _kwiver_compile_pic("${KWSYS_NAMESPACE}")
+endif()
 set_property(GLOBAL APPEND PROPERTY kwiver_libraries kwiversys)
 
 # force install to standard library directory
