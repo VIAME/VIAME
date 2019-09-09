@@ -109,8 +109,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Seal Dual Display GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5d6f7d23d35580e6dce05795/download) <br>
 [Seal Dual Display GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5d72c148d35580e6dcef09a5/download)
 
-Note: To install Add-Ons, copy them into your install. To use project files extract them into your working directory of choice.
-
+Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
+To use project files extract them into your working directory of choice. Custom Applications
+contain a full installation, only with non-default features turned on, and should not be copied
+into existing installations because they are a full installation.
 
 Quick Build Instructions
 ------------------------
