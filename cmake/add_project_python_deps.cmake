@@ -36,13 +36,15 @@ if( VIAME_ENABLE_ITK )
   list( APPEND VIAME_PYTHON_DEPS wxPython )
 
   if( UNIX )
-    string( REGEX MATCH "\\.el[1-9]" OS_RHEL_SUFFIX ${CMAKE_SYSTEM} )
+    if( EXISTS "/etc/os-release" )
+      ParseLinuxOSField( "ID" OS_ID )
+    endif()
 
     execute_process( COMMAND lsb_release -cs
       OUTPUT_VARIABLE RELEASE_CODENAME
       OUTPUT_STRIP_TRAILING_WHITESPACE )
 
-    if( "${OS_RHEL_SUFFIX}" MATCHES ".el7*" )
+    if( "${OS_ID}" MATCHES "centos" )
       set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/centos-7 )
       list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython" )
     elseif( "${RELEASE_CODENAME}" MATCHES "xenial" )
