@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-python ${VIAME_INSTALL}/lib/python3.6/
+python ${VIAME_INSTALL}/lib/python3.6/site-packages/keypointgui/gui.py

@@ -1,11 +1,11 @@
-#!/bin/sh
+@echo off
 
-# Setup VIAME Paths (no need to run multiple times if you already ran it)
+REM Setup VIAME Paths (no need to set if installed to registry or already set up)
 
-export VIAME_INSTALL=./../..
+SET VIAME_INSTALL=.\..\..
 
-source ${VIAME_INSTALL}/setup_viame.sh
+CALL "%VIAME_INSTALL%\setup_viame.bat"
 
-# Run pipeline
+REM Run Pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/register_multimodal_unsync_itk.pipe
+python.exe "%VIAME_INSTALL%\Python36\site-packages\keypointgui\gui.py"
