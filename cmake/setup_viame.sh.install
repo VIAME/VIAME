@@ -5,13 +5,13 @@
 # Paths to required dependencies, set these
 export PYTHON_INSTALL_DIR=/opt/noaa/python3
 
-# Does this actually need to be set? Answer: Only on some OS
-# Leave this commented out, unless you have issues finding CUDA libraries
-# export CUDA_INSTALL_DIR=/usr/local/cuda
-
 # Check variable paths
 if [ ! -d "$PYTHON_INSTALL_DIR" ]; then
-  echo "Python directory specified in setup_viame.sh does not exist"
+  echo "------------------------------------------------------------------"
+  echo "Error: Python directory specified in setup_viame.sh does not exist"
+  echo ""
+  echo "Open setup_viame.sh in a text editor and set PYTHON_INSTALL_DIR"
+  echo "------------------------------------------------------------------"
   return
 fi
 

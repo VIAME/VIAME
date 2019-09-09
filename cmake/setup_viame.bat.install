@@ -8,7 +8,11 @@ REM Do not edit the below
 SET VIAME_INSTALL=%~dp0
 
 IF NOT EXIST %PYTHON_INSTALL_DIR%\ (
-  ECHO Python Install Dir in "setup_viame.bat" is Invalid
+  ECHO -------------------------------------------------------------------
+  ECHO Error: Python directory specified in setup_viame.bat does not exist
+  ECHO  
+  ECHO Open setup_viame.sh in a text editor and set PYTHON_INSTALL_DIR
+  ECHO -------------------------------------------------------------------
   PAUSE
   EXIT \B
 )
