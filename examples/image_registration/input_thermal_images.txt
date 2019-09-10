@@ -1,5 +1,2 @@
-../example_imagery/mouss_example_image_set1/20151023.200145.662.017459.png
-../example_imagery/mouss_example_image_set1/20151023.200145.704.017460.png
-../example_imagery/mouss_example_image_set1/20151023.200145.746.017461.png
-../example_imagery/mouss_example_image_set1/20151023.200145.788.017462.png
-../example_imagery/mouss_example_image_set1/20151023.200145.830.017463.png
+../example_imagery/arctic_seal_example_set1/CHESS_FL4_C_160410_200007.344_THERM-16BIT.PNG
+../example_imagery/arctic_seal_example_set1/CHESS_FL4_C_160410_222712.510_THERM-16BIT.PNG

@@ -50,7 +50,7 @@ if( VIAME_DOWNLOAD_MODELS )
     raw_auv_image_set1 )
 
   # Download arctic seal aerial imagery
-  if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+  if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OR VIAME_ENABLE_ITK OR VIAME_ENABLE_OPENCV )
     DownloadExtractAndInstall(
       https://data.kitware.com/api/v1/item/5cb822c48d777f072b4556e2/download
       0491109936bb39457e1540d6a85bc659
