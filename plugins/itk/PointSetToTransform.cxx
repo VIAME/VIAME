@@ -254,7 +254,7 @@ int JHCTPointSetMetricRegistration(
 }
 int main(int argc, char * argv[])
 {
-  if( argc < 4 )
+  if( argc < 3 )
     {
     std::cerr << "Usage: " << argv[0] << " <InputPoints> <OutputTransform> [MetricId] [NumberOfIterations] [MaximumPhysicalStepSize] [PointSetSigma]" << std::endl;
     return EXIT_FAILURE;

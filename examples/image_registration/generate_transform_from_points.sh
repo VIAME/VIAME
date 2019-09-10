@@ -8,5 +8,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-itk_point_set_to_transform annotated_points.txt output_transform.h5
+itk_point_set_to_transform points.txt output_transform.h5
 

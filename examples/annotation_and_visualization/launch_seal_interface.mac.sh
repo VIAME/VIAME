@@ -2,7 +2,7 @@
 
 # Setup VIAME Paths (set path if script moved to another directory)
 
-export VIAME_INSTALL=.
+export VIAME_INSTALL=./../..
 
 source ${VIAME_INSTALL}/setup_viame.sh
 

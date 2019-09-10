@@ -8,7 +8,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-itk_point_set_to_transform.exe annotated_points.txt output_transform.h5
+itk_point_set_to_transform.exe points.txt output_transform.h5
 
 pause
 

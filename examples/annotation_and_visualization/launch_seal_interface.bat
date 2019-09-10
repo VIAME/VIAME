@@ -2,7 +2,7 @@
 
 REM Setup VIAME Paths (set path if script moved to another directory)
 
-SET VIAME_INSTALL=.
+SET VIAME_INSTALL=.\..\..
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
