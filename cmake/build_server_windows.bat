@@ -2,12 +2,13 @@ REM ---------------------------------------------------
 REM CORE BUILD PIPELINE
 REM ---------------------------------------------------
 
-SET VIAME_SOURCE_DIR=C:\workspace\VIAME-Seal
+SET VIAME_SOURCE_DIR=C:\workspace\VIAME-Seal-GPU
 SET VIAME_BUILD_DIR=%VIAME_SOURCE_DIR%\build
 
 IF EXIST build rmdir /s /q build
 
 IF NOT EXIST C:\tmp mkdir C:\tmp
+IF EXIST C:\tmp\fl3 rmdir /s /q C:\tmp\fl3
 IF EXIST C:\tmp\kv3 rmdir /s /q C:\tmp\kv3
 IF EXIST C:\tmp\vm3 rmdir /s /q C:\tmp\vm3
 
@@ -29,14 +30,6 @@ move "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
 move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages /H /R /S
 rmdir %VIAME_BUILD_DIR%\VIAME\lib\site-packages /s /q
-
-SET MMDET_OPS_SOURCE=%VIAME_SOURCE_DIR%\packages\pytorch-libs\mmdetection\mmdet\ops
-SET MMDET_OPS_INSTALL=%VIAME_BUILD_DIR%\VIAME\Python36\site-packages\mmdet\ops
-
-xcopy %MMDET_OPS_SOURCE%\nms\*.pyd %MMDET_OPS_INSTALL%\nms\ /H /R /S
-xcopy %MMDET_OPS_SOURCE%\dcn\*.pyd %MMDET_OPS_INSTALL%\dcn\ /H /R /S
-xcopy %MMDET_OPS_SOURCE%\roi_align\*.pyd %MMDET_OPS_INSTALL%\roi_align\ /H /R /S
-xcopy %MMDET_OPS_SOURCE%\roi_pool\*.pyd %MMDET_OPS_INSTALL%\roi_pool\ /H /R /S
 
 REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
