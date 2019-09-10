@@ -303,10 +303,10 @@ int main(int argc, char * argv[])
   {
       PointSetType::PointType pIR(ir);
       irPoints.push_back(pIR);
-      fixedPointSet->SetPoint(id, pIR);
+      movingPointSet->SetPoint(id, pIR);
       PointSetType::PointType pRGB(rgb);
       rgbPoints.push_back(pRGB);
-      movingPointSet->SetPoint(id, pRGB);
+      fixedPointSet->SetPoint(id, pRGB);
       ++id;
   }
 
@@ -325,8 +325,8 @@ int main(int argc, char * argv[])
 
   using InitializerType = itk::LandmarkBasedTransformInitializer<AffineTransformType>;
   InitializerType::Pointer initializer = InitializerType::New();
-  initializer->SetFixedLandmarks(irPoints);
-  initializer->SetMovingLandmarks(rgbPoints);
+  initializer->SetFixedLandmarks(rgbPoints);
+  initializer->SetMovingLandmarks(irPoints);
   initializer->SetTransform(affineTransform);
   initializer->InitializeTransform();
 
