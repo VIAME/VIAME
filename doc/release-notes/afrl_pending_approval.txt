@@ -14,6 +14,9 @@ Vital
 
 Arrows - Core
 
+ * Added a detect_features adaptor that applies a filter_features
+   algorithm to filter features returned by the detector.  This allows
+   a filter to be injected anywhere a detector is normally used.
 
 Fixes since last public release
 -------------------------------
