@@ -48,17 +48,100 @@ namespace arrows {
 namespace core {
 
 
-/// Private implementation class
-class filter_features_nonmax::priv
+class nonmax_suppressor
 {
 public:
-  /// Constructor
-  priv()
-    : suppression_radius(5.0),
-      resolution(3)
+  // constructor
+  nonmax_suppressor(const double suppression_radius,
+                    Eigen::AlignedBox<double, 2> feat_bbox,
+                    const double scale_min,
+                    const unsigned int scale_steps,
+                    const unsigned int resolution)
+    : m_resolution(resolution),
+      m_radius(suppression_radius / resolution),
+      m_feat_bbox(feat_bbox),
+      m_offset(-(feat_bbox.min() / m_radius).array() + 0.5),
+      m_range((feat_bbox.sizes() / m_radius).array() + 0.5),
+      m_scale_min(scale_min)
   {
+    masks.reserve(scale_steps);
+    disks.reserve(scale_steps);
+    for (unsigned s = 0; s < scale_steps; ++s)
+    {
+      const size_t pad = 2 * resolution + 1;
+      const size_t w = (static_cast<size_t>(m_range[0]) >> s) + pad;
+      const size_t h = (static_cast<size_t>(m_range[1]) >> s) + pad;
+      masks.push_back(image_of<bool>(w, h));
+      // set all pixels in the mask to false
+      transform_image(masks.back(), [](bool) { return false; });
+
+      // create the offsets for each pixel within the circle diameter
+      disks.push_back(compute_disk_offsets(resolution,
+                                           masks.back().w_step(),
+                                           masks.back().h_step()));
+    }
   }
 
+  // --------------------------------------------------------------------------
+  // test if a feature is already covered and if not, cover it
+  // return true if the feature was covered by this call
+  bool cover(feature const& feat)
+  {
+    // compute the scale and location bin indices
+    unsigned scale = static_cast<unsigned>(std::log2(feat.scale()) - m_scale_min);
+    vector_2i bin_idx = (feat.loc() / m_radius + m_offset).cast<int>();
+
+    // get the center bin at this location from the mask at the current scale
+    bool& bin = masks[scale]((bin_idx[0] >> scale) + m_resolution,
+                             (bin_idx[1] >> scale) + m_resolution);
+    // if the feature is at an uncovered location
+    if (!bin)
+    {
+      // mark all points in a circular neighborhood as covered
+      for (auto const& ptr_offset : disks[scale])
+      {
+        *(&bin + ptr_offset) = true;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  // --------------------------------------------------------------------------
+  // uncover all pixels in the suppression masks
+  void uncover_all()
+  {
+    for (auto& mask : masks)
+    {
+      transform_image(mask, [](bool) { return false; });
+    }
+  }
+
+  void set_radius(double r)
+  {
+    m_radius = r / m_resolution;
+    m_offset = -(m_feat_bbox.min() / m_radius).array() + 0.5;
+    m_range = (m_feat_bbox.sizes() / m_radius).array() + 0.5;
+
+    auto scale_steps = masks.size();
+    for (unsigned s = 0; s < scale_steps; ++s)
+    {
+      const size_t pad = 2 * m_resolution + 1;
+      const size_t w = (static_cast<size_t>(m_range[0]) >> s) + pad;
+      const size_t h = (static_cast<size_t>(m_range[1]) >> s) + pad;
+      masks[s].set_size(w, h, 1);
+
+      // set all pixels in the mask to false
+      transform_image(masks[s], [](bool) { return false; });
+
+      // create the offsets for each pixel within the circle diameter
+      disks[s] = compute_disk_offsets(m_resolution,
+                                      masks[s].w_step(),
+                                      masks[s].h_step());
+    }
+  }
+
+private:
   // --------------------------------------------------------------------------
   std::vector<ptrdiff_t>
   compute_disk_offsets(unsigned int radius,
@@ -83,14 +166,36 @@ public:
     return disk;
   }
 
+  std::vector<image_of<bool> > masks;
+  std::vector<std::vector<ptrdiff_t> > disks;
+  unsigned int m_resolution;
+  double m_radius;
+  Eigen::AlignedBox<double, 2> m_feat_bbox;
+  vector_2d m_offset;
+  vector_2d m_range;
+  double m_scale_min;
+};
+
+/// Private implementation class
+class filter_features_nonmax::priv
+{
+public:
+  /// Constructor
+  priv()
+    : suppression_radius(0),
+      resolution(3),
+      num_features_target(500),
+      num_features_range(50)
+  {
+  }
+
   // --------------------------------------------------------------------------
   feature_set_sptr
   filter(feature_set_sptr feat, std::vector<unsigned int> &ind) const
   {
     const std::vector<feature_sptr> &feat_vec = feat->features();
-    ind.clear();
 
-    if (feat_vec.empty())
+    if (feat_vec.size() <= num_features_target)
     {
       return feat;
     }
@@ -112,7 +217,7 @@ public:
     const double scale_min = std::log2(scale_box.min()[0]);
     const double scale_range = std::log2(scale_box.max()[0]) - scale_min;
     const unsigned scale_steps = static_cast<unsigned>(scale_range+1);
-    LOG_INFO(m_logger, "Using " << scale_steps << " scale steps");
+    LOG_DEBUG(m_logger, "Using " << scale_steps << " scale steps");
     if (scale_steps > 20)
     {
       LOG_ERROR(m_logger, "Scale range is too large.  Log2 scales from "
@@ -120,34 +225,10 @@ public:
       return nullptr;
     }
 
-    const double radius = suppression_radius / resolution;
-    vector_2d offset = -(bbox.min() / radius).array() + 0.5;
-    vector_2d range = (bbox.sizes() / radius).array() + 0.5;
-    if (range[0] > std::numeric_limits<int>::max() ||
-        range[1] > std::numeric_limits<int>::max())
+    if (!bbox.sizes().allFinite())
     {
-      LOG_ERROR(m_logger, "Range of feature locations is tool large for "
-                          "non-max suppression");
+      LOG_ERROR(m_logger, "Not all features are finite");
       return nullptr;
-    }
-
-    std::vector<image_of<bool> > masks;
-    std::vector<std::vector<ptrdiff_t> > disks;
-    masks.reserve(scale_steps);
-    disks.reserve(scale_steps);
-    for (unsigned s = 0; s < scale_steps; ++s)
-    {
-      const size_t pad = 2 * resolution + 1;
-      const size_t w = (static_cast<size_t>(range[0]) >> s) + pad;
-      const size_t h = (static_cast<size_t>(range[1]) >> s) + pad;
-      masks.push_back(image_of<bool>(w, h));
-      // set all pixels in the mask to false
-      transform_image(masks.back(), [](bool) { return false; });
-
-      // create the offsets for each pixel within the circle diameter
-      disks.push_back(compute_disk_offsets(resolution,
-                                           masks.back().w_step(),
-                                           masks.back().h_step()));
     }
 
     // sort on descending feature magnitude
@@ -157,44 +238,90 @@ public:
                 return l.second > r.second;
               });
 
-    // check each feature against the masks to see if that location
-    // has already been covered
-    std::vector<feature_sptr> filtered;
-    ind.reserve(indices.size());
-    for (auto const& p : indices)
-    {
-      unsigned int index = p.first;
-      auto const& feat = feat_vec[index];
-      // compute the scale and location bin indices
-      unsigned scale = static_cast<unsigned>(std::log2(feat->scale()) - scale_min);
-      vector_2i bin_idx = (feat->loc() / radius + offset).cast<int>();
+    // compute an upper bound on the radius
+    const double& w = bbox.sizes()[0];
+    const double& h = bbox.sizes()[1];
+    const double wph = w + h;
+    const double m = num_features_target - 1;
+    double high_radius = (wph + std::sqrt(wph*wph + 4 * m*w*h)) / (2 * m);
+    double low_radius = 0.0;
 
-      // get the center bin at this location from the mask at the current scale
-      bool& bin = masks[scale]((bin_idx[0] >> scale) + resolution,
-                               (bin_idx[1] >> scale) + resolution);
-      // if the feature is at an uncovered location
-      if (!bin)
-      {
-        // mark all points in a circular neighborhood as covered
-        for (auto const& ptr_offset : disks[scale])
-        {
-          *(&bin + ptr_offset) = true;
-        }
-        // add this feature to the accepted list
-        ind.push_back(index);
-        filtered.push_back(feat);
-      }
+    // initial guess for radius, if not specified
+    if (suppression_radius <= 0.0)
+    {
+      suppression_radius = high_radius / 2.0;
     }
 
-    LOG_INFO( m_logger,
-             "Reduced " << feat_vec.size() << " features to " << filtered.size() << " features.");
+    nonmax_suppressor suppressor(suppression_radius,
+                                 bbox, scale_min, scale_steps,
+                                 resolution);
 
-    return std::make_shared<vital::simple_feature_set>(vital::simple_feature_set(filtered));
+    // binary search of radius to find the target number of features
+    std::vector<feature_sptr> filtered;
+    while (true)
+    {
+      ind.clear();
+      filtered.clear();
+      filtered.reserve(indices.size());
+      ind.reserve(indices.size());
+      // check each feature against the masks to see if that location
+      // has already been covered
+      for (auto const& p : indices)
+      {
+        unsigned int index = p.first;
+        auto const& feat = feat_vec[index];
+        if (suppressor.cover(*feat))
+        {
+          // add this feature to the accepted list
+          ind.push_back(index);
+          filtered.push_back(feat);
+        }
+      }
+      // if not using a target number of features, keep this result
+      if (num_features_target == 0)
+      {
+        break;
+      }
+
+      // adjust the bounds to continue binary search
+      if (filtered.size() < num_features_target)
+      {
+        high_radius = suppression_radius;
+      }
+      else if (filtered.size() > num_features_target + num_features_range)
+      {
+        low_radius = suppression_radius;
+      }
+      else
+      {
+        // in the valid range, so we are done
+        break;
+      }
+      suppression_radius = (high_radius + low_radius) / 2;
+      suppressor.set_radius(suppression_radius);
+      LOG_DEBUG(m_logger, "Found " << filtered.size() << " features.  "
+                          "Changing suppression radius to "
+                          << suppression_radius);
+    }
+
+    LOG_INFO(m_logger, "Reduced " << feat_vec.size() << " features to "
+                       << filtered.size() << " features with non-max radius "
+                       << suppression_radius);
+
+    return std::make_shared<vital::simple_feature_set>(
+      vital::simple_feature_set(filtered));
   }
 
-  double suppression_radius;
+
+  // configuration paramters
+  mutable double suppression_radius;
   unsigned int resolution;
+  unsigned int num_features_target;
+  unsigned int num_features_range;
   vital::logger_handle_t m_logger;
+
+private:
+
 };
 
 
@@ -228,7 +355,20 @@ filter_features_nonmax
 
   config->set_value("suppression_radius", d_->suppression_radius,
                     "The radius, in pixels, within which to "
-                    "suppress weaker features");
+                    "suppress weaker features.  This is an initial guess. "
+                    "The radius is adapted to reach the desired number of "
+                    "features.  If target_num_features is 0 then this radius "
+                    "is not adapted.");
+
+  config->set_value("num_features_target", d_->num_features_target,
+                    "The target number of features to detect. "
+                    "The suppression radius is dynamically adjusted to "
+                    "acheive this number of features.");
+
+  config->set_value("num_features_range", d_->num_features_range,
+                    "The number of features above target_num_features to "
+                    "allow in the output.  This window allows the binary "
+                    "search on radius to terminate sooner.");
 
   config->set_value("resolution", d_->resolution,
                     "The resolution (N) of the filter for computing neighbors."
@@ -247,10 +387,15 @@ void
 filter_features_nonmax
 ::set_configuration(vital::config_block_sptr config)
 {
-  d_->suppression_radius =
-    config->get_value<double>("suppression_radius", d_->suppression_radius);
-  d_->resolution =
-    config->get_value<unsigned int>("resolution", d_->resolution);
+#define GET_VALUE(name, type) \
+  d_->name = config->get_value<type>(#name, d_->name)
+
+  GET_VALUE(suppression_radius, double);
+  GET_VALUE(resolution, unsigned int);
+  GET_VALUE(num_features_target, unsigned int);
+  GET_VALUE(num_features_range, unsigned int);
+
+#undef GET_VALUE
 }
 
 
@@ -260,13 +405,6 @@ bool
 filter_features_nonmax
 ::check_configuration(vital::config_block_sptr config) const
 {
-  double suppression_radius =
-    config->get_value<double>("suppression_radius", d_->suppression_radius);
-  if( suppression_radius < 1.0)
-  {
-    LOG_ERROR( logger(), "suppression_radius must be at least 1.0");
-    return false;
-  }
   unsigned int resolution =
     config->get_value<unsigned int>("resolution", d_->resolution);
   if (resolution < 1)
@@ -274,12 +412,7 @@ filter_features_nonmax
     LOG_ERROR(logger(), "resolution must be at least 1");
     return false;
   }
-  else if (resolution > suppression_radius)
-  {
-    LOG_WARN(logger(), "resolution is " << resolution << " which is larger "
-                       "than the suppression radius of "
-                       << suppression_radius);
-  }
+
   return true;
 }
 
