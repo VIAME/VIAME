@@ -75,8 +75,10 @@ target_link_libraries( viame_itk_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
+
 # Add KWIVER plugin registration
 if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
+
   set( process_sources
     ../core/align_multimodal_imagery_process.cxx
 

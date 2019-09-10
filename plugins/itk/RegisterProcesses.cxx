@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <plugins/itk/viame_itk_export.h>
+#include <plugins/itk/viame_processes_itk_export.h>
 #include <sprokit/pipeline/process_factory.h>
 #include <vital/plugin_loader/plugin_loader.h>
 
@@ -41,7 +41,7 @@
  *
  */
 extern "C"
-VIAME_ITK_NO_EXPORT
+VIAME_PROCESSES_ITK_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
