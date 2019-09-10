@@ -4,9 +4,6 @@
 config _pipeline:_edge
   :capacity                                    5
 
-config _scheduler
-  :type                                        pythread_per_process
-
 # =============================================================================
 process input
   :: video_input
@@ -17,20 +14,20 @@ process input
   :video_reader:image_list:image_reader:type   ocv
 
 # =============================================================================
-include common_arctic_seal_ir_tf_detector.pipe
+include common_arctic_seal_eo_yolo_detector.pipe
 
 connect from input.image
-        to   thermal_detector.image
+        to   optical_detector_input.image
 
 # =============================================================================
 process detector_writer
   :: detected_object_output
 
   # Type of file to output
-  :file_name                                   detections_tf_ir.csv
+  :file_name                                   detections_yolo_eo.csv
   :writer:type                                 viame_csv
 
-connect from thermal_detector.detected_object_set
+connect from optical_detector_output.detected_object_set
         to   detector_writer.detected_object_set
 
 # =============================================================================
@@ -40,12 +37,12 @@ connect from thermal_detector.detected_object_set
 #
 #process image_writer
 #  :: image_writer
-#  :file_name_template                          ir_out_images/frame%06d.jpg
+#  :file_name_template                          eo_detections%06d.jpg
 #  :image_writer:type                           ocv
 #
-#connect from thermal_detector.image_norm
+#connect from input.image
 #        to   draw_box.image
-#connect from thermal_detector.detected_object_set
+#connect from optical_detector_output.detected_object_set
 #        to   draw_box.detected_object_set
 #
 #connect from draw_box.image
