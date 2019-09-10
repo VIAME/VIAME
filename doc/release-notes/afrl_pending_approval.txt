@@ -18,5 +18,11 @@ Arrows - Core
    algorithm to filter features returned by the detector.  This allows
    a filter to be injected anywhere a detector is normally used.
 
+ * Added an adaptive non-max suppression filter for features points.
+   This algorithm provides more uniformity to detected features by
+   removing all features within a radius of the strongest points.
+   The radius is dynamically adapted to achieve a target point count.
+
+
 Fixes since last public release
 -------------------------------
