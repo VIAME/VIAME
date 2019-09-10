@@ -168,50 +168,56 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
   }
 
   // process all detections
-  auto ie = set->cend();
-
-  for( auto det = set->cbegin(); det != ie; ++det )
+  if( set )
   {
-    const kwiver::vital::bounding_box_d bbox( (*det)->bounding_box() );
+    auto ie = set->cend();
 
-    static std::atomic<unsigned> id_counter( 0 );
-    const unsigned det_id = id_counter++;
-
-    const std::string video_id = ( !d->m_stream_identifier.empty() ?
-                                    d->m_stream_identifier :
-                                    image_name );
-
-    stream() << det_id << ","               // 1: track id
-             << video_id << ",";            // 2: video or image id
-
-    if( d->m_write_frame_number )
-      stream() << d->m_frame_number << ","; // 3: frame number
-    else
-      stream() << image_name << ",";        // 3: frame identfier
-  
-    stream() << bbox.min_x() << ","         // 4: TL-x
-             << bbox.min_y() << ","         // 5: TL-y
-             << bbox.max_x() << ","         // 6: BR-x
-             << bbox.max_y() << ","         // 7: BR-y
-             << (*det)->confidence() << "," // 8: confidence
-             << "0";                        // 9: length
-
-    const auto dot = (*det)->type();
-
-    if( dot )
+    for( auto det = set->cbegin(); det != ie; ++det )
     {
-      const auto name_list( dot->class_names() );
+      const kwiver::vital::bounding_box_d bbox( (*det)->bounding_box() );
 
-      for( auto name : name_list )
+      static std::atomic<unsigned> id_counter( 0 );
+      const unsigned det_id = id_counter++;
+
+      const std::string video_id = ( !d->m_stream_identifier.empty() ?
+                                      d->m_stream_identifier :
+                                      image_name );
+
+      stream() << det_id << ","               // 1: track id
+               << video_id << ",";            // 2: video or image id
+
+      if( d->m_write_frame_number )
       {
-        // Write out the <name> <score> pair
-        stream() << "," << name << "," << dot->score( name );
-      } // end foreach
+        stream() << d->m_frame_number << ","; // 3: frame number
+      }
+      else
+      {
+        stream() << image_name << ",";        // 3: frame identfier
+      }
+
+      stream() << bbox.min_x() << ","         // 4: TL-x
+               << bbox.min_y() << ","         // 5: TL-y
+               << bbox.max_x() << ","         // 6: BR-x
+               << bbox.max_y() << ","         // 7: BR-y
+               << (*det)->confidence() << "," // 8: confidence
+               << "0";                        // 9: length
+
+      const auto dot = (*det)->type();
+
+      if( dot )
+      {
+        const auto name_list( dot->class_names() );
+
+        for( auto name : name_list )
+        {
+          // Write out the <name> <score> pair
+          stream() << "," << name << "," << dot->score( name );
+        } // end foreach
+      }
+
+      stream() << std::endl;
     }
-
-    stream() << std::endl;
-
-  } // end foreach
+  }
 
   // Put each set on a new frame
   ++d->m_frame_number;
