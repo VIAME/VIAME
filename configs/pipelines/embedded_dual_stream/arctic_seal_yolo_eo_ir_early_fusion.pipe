@@ -30,7 +30,7 @@ connect from in_adapt.file_name2
 
 process warp_image
   :: itk_warp_image
-  :transformation_file                         ir_to_eo_registration.h5
+  relativepath transformation_file = ../transformations/Kotz-2019-Flight-Center.h5
 
 connect from downsampler.output_3
         to   warp_image.image
