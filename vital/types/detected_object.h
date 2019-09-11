@@ -79,7 +79,6 @@ public:
   typedef std::vector< detected_object_sptr > vector_t;
   typedef descriptor_dynamic< double > descriptor_t;
   typedef std::shared_ptr< descriptor_t const > descriptor_scptr;
-  typedef std::shared_ptr< bounding_box_d > bounding_box_sptr;
 
   /**
    * @brief Create detected object with bounding box and other attributes.
@@ -250,7 +249,7 @@ public:
   void set_descriptor( descriptor_scptr d );
 
 private:
-  bounding_box_sptr m_bounding_box;
+  bounding_box_d m_bounding_box;
   double m_confidence;
   image_container_scptr m_mask_image;
   descriptor_scptr m_descriptor;

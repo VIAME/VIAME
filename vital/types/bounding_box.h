@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ public:
    * @param height Height of box.
    */
   bounding_box( vector_type const& upper_left,
-                T const& width, T const& height )
+                T width, T height )
   {
     vector_type lr( upper_left );
     lr.x() += width;
