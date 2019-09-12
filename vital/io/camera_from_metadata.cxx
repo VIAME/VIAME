@@ -214,6 +214,7 @@ initialize_cameras_with_metadata(std::map<frame_id_t,
                                           metadata_sptr> const& md_map,
                                  simple_camera_perspective const& base_camera,
                                  local_geo_cs& lgcs,
+                                 bool init_intrinsics,
                                  rotation_d const& rot_offset)
 {
   std::map<frame_id_t, camera_sptr> cam_map;
@@ -250,11 +251,14 @@ initialize_cameras_with_metadata(std::map<frame_id_t,
     {
       continue;
     }
-    auto K = base_camera.get_intrinsics();
-    K = intrinsics_from_metadata(*md, K->image_width(), K->image_height());
-    if (K)
+    if (init_intrinsics)
     {
-      active_cam.set_intrinsics(K);
+      auto K = base_camera.get_intrinsics();
+      K = intrinsics_from_metadata(*md, K->image_width(), K->image_height());
+      if (K)
+      {
+        active_cam.set_intrinsics(K);
+      }
     }
     if (update_camera_from_metadata(*md, lgcs, active_cam, rot_offset))
     {

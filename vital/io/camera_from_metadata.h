@@ -84,6 +84,8 @@ intrinsics_from_metadata(metadata const& md,
  * \param [in]     base_camera  The camera to reposition at each metadata pose.
  * \param [in,out] lgcs         The local geographic coordinate system used to
  *                              map lat/long to a local UTM coordinate system
+ * \param [in] init_intrinsics  Initialize intrinsics with metadata.  If set
+ *                              false then use the base_camera intrinsics.
  * \param [in]     rot_offset   Rotation offset to apply to yaw/pitch/roll
  *                              metadata before updating a camera's rotation.
  * \returns a mapping from frame number to camera
@@ -97,6 +99,7 @@ initialize_cameras_with_metadata(std::map<frame_id_t,
                                           metadata_sptr> const& md_map,
                                  simple_camera_perspective const& base_camera,
                                  local_geo_cs& lgcs,
+                                 bool init_intrinsics = true,
                                  rotation_d const& rot_offset = rotation_d());
 
 /// Use the pose data provided by metadata to update camera pose
