@@ -38,6 +38,7 @@
 #include <vital/vital_config.h>
 
 #include <vital/types/metadata_map.h>
+#include <vital/types/rotation.h>
 #include <vital/types/local_geo_cs.h>
 
 

@@ -39,23 +39,15 @@
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
 
-#include <vital/types/camera_perspective.h>
 #include <vital/types/geo_point.h>
-#include <vital/types/metadata.h>
-#include <vital/types/rotation.h>
 #include <vital/vital_types.h>
 #include <vital/vital_config.h>
-#include <vital/types/image_container.h>
 
 namespace kwiver {
 namespace vital {
 
 
 /// Represents a local geo coordinate system origin expressed in UTM
-/**
- *  Provides functions to use global metadata to update local camera pose
- *  and local camera pose to update global metadata.
- */
 class VITAL_EXPORT local_geo_cs
 {
 public:
@@ -70,22 +62,6 @@ public:
 
   /// Access the geographic coordinate of the origin
   const vital::geo_point& origin() const { return geo_origin_; }
-
-  /// Use the pose data provided by metadata to update camera pose
-  /**
-   * \param metadata    The metadata packet to update the camera with
-   * \param cam         The camera to be updated.
-   * \param rot_offset  A rotation offset to apply to metadata yaw/pitch/roll data
-   *
-   * \return            True if metadata was available to set camera, false otherwise
-   */
-  bool update_camera(vital::metadata const& md,
-                     vital::simple_camera_perspective& cam,
-                     vital::rotation_d const& rot_offset = vital::rotation_d()) const;
-
-  /// Use the camera pose to update the metadata structure
-  void update_metadata(vital::simple_camera_perspective const& cam,
-                       vital::metadata& md) const;
 
 private:
   /// The local coordinates origin

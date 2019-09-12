@@ -43,7 +43,8 @@ namespace vital {
 
 /// Extract scale or offset metadata to a vector
 Eigen::VectorXd
-tags_to_vector( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
+tags_to_vector( metadata_sptr const& md,
+                std::vector<vital_metadata_tag> tags )
 {
   metadata_traits md_traits;
   auto vec_length = tags.size();
@@ -68,12 +69,14 @@ tags_to_vector( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
 
 /// Extract coefficient metadata to a matrix
 rpc_matrix
-tags_to_matrix( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
+tags_to_matrix( metadata_sptr const& md,
+                std::vector<vital_metadata_tag> tags )
 {
   metadata_traits md_traits;
   if (tags.size() != 4)
   {
-    throw metadata_exception("Should have 4 metadata tags for RPC coefficients");
+    throw metadata_exception(
+      "Should have 4 metadata tags for RPC coefficients");
   }
 
   rpc_matrix rslt;
@@ -126,36 +129,36 @@ VITAL_EXPORT camera_from_metadata( metadata_sptr const& md )
   metadata_traits md_traits;
 
   std::vector<vital_metadata_tag> world_scale_tags = {
-    vital::VITAL_META_RPC_LONG_SCALE,
-    vital::VITAL_META_RPC_LAT_SCALE,
-    vital::VITAL_META_RPC_HEIGHT_SCALE
+    VITAL_META_RPC_LONG_SCALE,
+    VITAL_META_RPC_LAT_SCALE,
+    VITAL_META_RPC_HEIGHT_SCALE
   };
   world_scale = tags_to_vector(md, world_scale_tags);
 
   std::vector<vital_metadata_tag> world_offset_tags = {
-    vital::VITAL_META_RPC_LONG_OFFSET,
-    vital::VITAL_META_RPC_LAT_OFFSET,
-    vital::VITAL_META_RPC_HEIGHT_OFFSET
+    VITAL_META_RPC_LONG_OFFSET,
+    VITAL_META_RPC_LAT_OFFSET,
+    VITAL_META_RPC_HEIGHT_OFFSET
   };
   world_offset = tags_to_vector(md, world_offset_tags);
 
   std::vector<vital_metadata_tag> image_scale_tags = {
-    vital::VITAL_META_RPC_ROW_SCALE,
-    vital::VITAL_META_RPC_COL_SCALE
+    VITAL_META_RPC_ROW_SCALE,
+    VITAL_META_RPC_COL_SCALE
   };
   image_scale = tags_to_vector(md, image_scale_tags);
 
   std::vector<vital_metadata_tag> image_offset_tags = {
-    vital::VITAL_META_RPC_ROW_OFFSET,
-    vital::VITAL_META_RPC_COL_OFFSET
+    VITAL_META_RPC_ROW_OFFSET,
+    VITAL_META_RPC_COL_OFFSET
   };
   image_offset = tags_to_vector(md, image_offset_tags);
 
   std::vector<vital_metadata_tag> rpc_coeffs_tags = {
-    vital::VITAL_META_RPC_ROW_NUM_COEFF,
-    vital::VITAL_META_RPC_ROW_DEN_COEFF,
-    vital::VITAL_META_RPC_COL_NUM_COEFF,
-    vital::VITAL_META_RPC_COL_DEN_COEFF
+    VITAL_META_RPC_ROW_NUM_COEFF,
+    VITAL_META_RPC_ROW_DEN_COEFF,
+    VITAL_META_RPC_COL_NUM_COEFF,
+    VITAL_META_RPC_COL_DEN_COEFF
   };
   rpc_coeffs = tags_to_matrix(md, rpc_coeffs_tags);
 
@@ -176,9 +179,9 @@ intrinsics_from_metadata(metadata const& md,
   double focal_len = 0;
 
   auto& md_slant_range =
-    md.find( vital::VITAL_META_SLANT_RANGE );
+    md.find( VITAL_META_SLANT_RANGE );
   auto& md_target_width =
-    md.find( vital::VITAL_META_TARGET_WIDTH );
+    md.find( VITAL_META_TARGET_WIDTH );
   if ( md_slant_range && md_target_width )
   {
     focal_len =
@@ -187,7 +190,7 @@ intrinsics_from_metadata(metadata const& md,
   else
   {
     auto& md_hfov =
-      md.find( vital::VITAL_META_SENSOR_HORIZONTAL_FOV );
+      md.find( VITAL_META_SENSOR_HORIZONTAL_FOV );
     if ( md_hfov )
     {
       focal_len =
@@ -199,7 +202,7 @@ intrinsics_from_metadata(metadata const& md,
     }
   }
 
-  vital::vector_2d pp(0.5*im_w, 0.5*im_h);
+  vector_2d pp(0.5*im_w, 0.5*im_h);
   return std::make_shared<simple_camera_intrinsics>
     (focal_len, pp, 1.0, 0.0, Eigen::VectorXd(), image_width, image_height);
 }
@@ -207,13 +210,14 @@ intrinsics_from_metadata(metadata const& md,
 
 /// Use a sequence of metadata objects to initialize a sequence of cameras
 std::map<frame_id_t, camera_sptr>
-initialize_cameras_with_metadata(std::map<frame_id_t, metadata_sptr> const& md_map,
+initialize_cameras_with_metadata(std::map<frame_id_t,
+                                          metadata_sptr> const& md_map,
                                  simple_camera_perspective const& base_camera,
                                  local_geo_cs& lgcs,
                                  rotation_d const& rot_offset)
 {
   std::map<frame_id_t, camera_sptr> cam_map;
-  vital::vector_3d mean(0, 0, 0);
+  vector_3d mean(0, 0, 0);
   simple_camera_perspective active_cam(base_camera);
 
   bool update_local_origin = false;
@@ -227,9 +231,9 @@ initialize_cameras_with_metadata(std::map<frame_id_t, metadata_sptr> const& md_m
       {
         continue;
       }
-      if(auto& mdi = m.second->find(vital::VITAL_META_SENSOR_LOCATION))
+      if(auto& mdi = m.second->find(VITAL_META_SENSOR_LOCATION))
       {
-        vital::geo_point gloc;
+        geo_point gloc;
         mdi.data(gloc);
 
         lgcs.set_origin(gloc);
@@ -252,10 +256,11 @@ initialize_cameras_with_metadata(std::map<frame_id_t, metadata_sptr> const& md_m
     {
       active_cam.set_intrinsics(K);
     }
-    if (lgcs.update_camera(*md, active_cam, rot_offset))
+    if (update_camera_from_metadata(*md, lgcs, active_cam, rot_offset))
     {
       mean += active_cam.center();
-      cam_map[p.first] = camera_sptr(new simple_camera_perspective(active_cam));
+      cam_map[p.first] =
+        std::make_shared<simple_camera_perspective>(active_cam);
     }
   }
 
@@ -267,18 +272,108 @@ initialize_cameras_with_metadata(std::map<frame_id_t, metadata_sptr> const& md_m
 
     // shift the UTM origin to the mean of the cameras easting and northing
     vector_2d mean_xy(mean.x(), mean.y());
-    lgcs.set_origin(geo_point(lgcs.origin().location() + mean_xy, lgcs.origin().crs()));
+    lgcs.set_origin(geo_point(lgcs.origin().location() + mean_xy,
+                              lgcs.origin().crs()));
 
     // shift all cameras to the new coordinate system.
     typedef std::map<frame_id_t, camera_sptr>::value_type cam_map_val_t;
     for (cam_map_val_t const &p : cam_map)
     {
-      simple_camera_perspective* cam = dynamic_cast<simple_camera_perspective*>(p.second.get());
+      simple_camera_perspective* cam =
+        dynamic_cast<simple_camera_perspective*>(p.second.get());
       cam->set_center(cam->get_center() - mean);
     }
   }
 
   return cam_map;
+}
+
+
+/// Use the pose data provided by metadata to update camera pose
+bool
+update_camera_from_metadata(metadata const& md,
+                            local_geo_cs const& lgcs,
+                            simple_camera_perspective& cam,
+                            rotation_d const& rot_offset)
+{
+  bool rotation_set = false;
+  bool translation_set = false;
+
+  bool has_platform_yaw = false;
+  bool has_platform_pitch = false;
+  bool has_platform_roll = false;
+  bool has_sensor_yaw = false;
+  bool has_sensor_pitch = false;
+
+  double platform_yaw = 0.0, platform_pitch = 0.0, platform_roll = 0.0;
+  if (auto& mdi = md.find(VITAL_META_PLATFORM_HEADING_ANGLE))
+  {
+    mdi.data(platform_yaw);
+    has_platform_yaw = true;
+  }
+  if (auto& mdi = md.find(VITAL_META_PLATFORM_PITCH_ANGLE))
+  {
+    mdi.data(platform_pitch);
+    has_platform_pitch = true;
+  }
+  if (auto& mdi = md.find(VITAL_META_PLATFORM_ROLL_ANGLE))
+  {
+    mdi.data(platform_roll);
+    has_platform_roll = true;
+  }
+  double sensor_yaw = 0.0, sensor_pitch = 0.0, sensor_roll = 0.0;
+  if (auto& mdi = md.find(VITAL_META_SENSOR_REL_AZ_ANGLE))
+  {
+    mdi.data(sensor_yaw);
+    has_sensor_yaw = true;
+  }
+  if (auto& mdi = md.find(VITAL_META_SENSOR_REL_EL_ANGLE))
+  {
+    mdi.data(sensor_pitch);
+    has_sensor_pitch = true;
+  }
+  if (auto& mdi = md.find(VITAL_META_SENSOR_REL_ROLL_ANGLE))
+  {
+    mdi.data(sensor_roll);
+  }
+
+
+  if (has_platform_yaw && has_platform_pitch && has_platform_roll &&
+      has_sensor_yaw && has_sensor_pitch &&
+      // Sensor roll is ignored here on purpose.
+      // It is fixed on some platforms to zero.
+      !(std::isnan(platform_yaw) || std::isnan(platform_pitch) ||
+        std::isnan(platform_roll) || std::isnan(sensor_yaw) ||
+        std::isnan(sensor_pitch) || std::isnan(sensor_roll)))
+  {
+    //only set the camera's rotation if all metadata angles are present
+
+    auto R = compose_rotations<double>(
+      platform_yaw, platform_pitch, platform_roll,
+      sensor_yaw, sensor_pitch, sensor_roll);
+
+    cam.set_rotation(R);
+
+    rotation_set = true;
+  }
+
+  auto& md_sensor_location =
+    md.find(VITAL_META_SENSOR_LOCATION);
+  auto& md_sensor_altitude =
+    md.find(VITAL_META_SENSOR_ALTITUDE);
+  if (md_sensor_location && md_sensor_altitude)
+  {
+    double alt = md_sensor_altitude.as_double();
+    geo_point gloc;
+    md_sensor_location.data(gloc);
+
+    // get the location in the same UTM zone as the origin
+    vector_2d loc = gloc.location(lgcs.origin().crs());
+    loc -= lgcs.origin().location();
+    cam.set_center(vector_3d(loc.x(), loc.y(), alt - lgcs.origin_altitude()));
+    translation_set = true;
+  }
+  return rotation_set || translation_set;
 }
 
 
@@ -291,8 +386,8 @@ update_metadata_from_cameras(std::map<frame_id_t, camera_sptr> const& cam_map,
   if (lgcs.origin().is_empty())
   {
     // TODO throw an exception here?
-    vital::logger_handle_t
-      logger(vital::get_logger("update_metadata_from_cameras"));
+    logger_handle_t
+      logger(get_logger("update_metadata_from_cameras"));
     LOG_WARN(logger, "local geo coordinates do not have an origin");
     return;
   }
@@ -303,13 +398,52 @@ update_metadata_from_cameras(std::map<frame_id_t, camera_sptr> const& cam_map,
     auto active_md = md_map[p.first];
     if (!active_md)
     {
-      md_map[p.first] = active_md = std::make_shared<vital::metadata>();
+      md_map[p.first] = active_md = std::make_shared<metadata>();
     }
-    auto cam = dynamic_cast<vital::simple_camera_perspective*>(p.second.get());
+    auto cam = dynamic_cast<simple_camera_perspective*>(p.second.get());
     if (active_md && cam)
     {
-      lgcs.update_metadata(*cam, *active_md);
+      update_metadata_from_camera(*cam, lgcs, *active_md);
     }
+  }
+}
+
+
+/// Use the camera pose to update the metadata structure
+void
+update_metadata_from_camera(simple_camera_perspective const& cam,
+                            local_geo_cs const& lgcs,
+                            metadata& md)
+{
+  if (md.has(VITAL_META_PLATFORM_HEADING_ANGLE) &&
+      md.has(VITAL_META_PLATFORM_PITCH_ANGLE) &&
+      md.has(VITAL_META_PLATFORM_ROLL_ANGLE) &&
+      md.has(VITAL_META_SENSOR_REL_AZ_ANGLE) &&
+      md.has(VITAL_META_SENSOR_REL_EL_ANGLE))
+  {
+    // We have a complete metadata rotation.
+    // Note that sensor roll is ignored here on purpose.
+    double yaw, pitch, roll;
+    cam.rotation().get_yaw_pitch_roll(yaw, pitch, roll);
+    yaw *= rad_to_deg;
+    pitch *= rad_to_deg;
+    roll *= rad_to_deg;
+    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_YAW_ANGLE, yaw));
+    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_PITCH_ANGLE, pitch));
+    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ROLL_ANGLE, roll));
+  }
+
+  if (md.has(VITAL_META_SENSOR_LOCATION) &&
+      md.has(VITAL_META_SENSOR_ALTITUDE))
+  {
+    // we have a complete position from metadata.
+    vector_3d c = cam.get_center();
+    geo_point gc(vector_2d(c.x(), c.y()) + lgcs.origin().location(),
+                        lgcs.origin().crs());
+
+    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_LOCATION, gc));
+    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ALTITUDE,
+                             c.z() + lgcs.origin_altitude()));
   }
 }
 

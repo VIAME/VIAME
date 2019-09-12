@@ -80,40 +80,67 @@ intrinsics_from_metadata(metadata const& md,
 
 /// Use a sequence of metadata objects to initialize a sequence of cameras
 /**
-* \param [in]     md_map       A mapping from frame number to metadata object
-* \param [in]     base_camera  The camera to reposition at each metadata pose.
-* \param [in,out] lgcs         The local geographic coordinate system used to
-*                              map lat/long to a local UTM coordinate system
-* \param [in]     rot_offset   Rotation offset to apply to yaw/pitch/roll
-*                              metadata before updating a camera's rotation.
-* \returns a mapping from frame number to camera
-* \note The \c lgcs object is updated only if it does not contain a valid
-*       utm_origin_zone().  If updated, the computed local origin
-*       and zone are determined from the mean camera easting and northing
-*       at zero altitude.
-*/
+ * \param [in]     md_map       A mapping from frame number to metadata object
+ * \param [in]     base_camera  The camera to reposition at each metadata pose.
+ * \param [in,out] lgcs         The local geographic coordinate system used to
+ *                              map lat/long to a local UTM coordinate system
+ * \param [in]     rot_offset   Rotation offset to apply to yaw/pitch/roll
+ *                              metadata before updating a camera's rotation.
+ * \returns a mapping from frame number to camera
+ * \note The \c lgcs object is updated only if it is not already initialized.
+ *       If updated, the computed local origin is determined from the mean
+ *       camera easting and northing at zero altitude.
+ */
 VITAL_EXPORT
 std::map<frame_id_t, camera_sptr>
-initialize_cameras_with_metadata(std::map<frame_id_t, metadata_sptr> const& md_map,
+initialize_cameras_with_metadata(std::map<frame_id_t,
+                                          metadata_sptr> const& md_map,
                                  simple_camera_perspective const& base_camera,
                                  local_geo_cs& lgcs,
                                  rotation_d const& rot_offset = rotation_d());
 
+/// Use the pose data provided by metadata to update camera pose
+/**
+ * \param metadata    The metadata packet to update the camera with
+ * \param cam         The camera to be updated.
+ * \param rot_offset  A rotation offset to apply to metadata rotation data
+ *
+ * \return            True only if metadata is sufficient to update the camera
+ */
+VITAL_EXPORT
+bool
+update_camera_from_metadata(metadata const& md,
+                            local_geo_cs const& lgcs,
+                            simple_camera_perspective& cam,
+                            rotation_d const& rot_offset = rotation_d());
+
 /// Update a sequence of metadata from a sequence of cameras and local_geo_cs
 /**
-* \param [in]      cam_map   A mapping from frame number to camera
-* \param [in]      lgcs      The local geographic coordinate system used to
-*                            map local UTM to lat/long
-* \param [in,out]  md_map    A mapping from frame_number of metadata objects
-*                            to update.  If no metadata object is found for
-*                            a frame, a new one is created.
-* \note the supplied lgcs must have a valid utm_origin_zone()
-*/
+ * \param [in]      cam_map   A mapping from frame number to camera
+ * \param [in]      lgcs      The local geographic coordinate system used to
+ *                            map local UTM to lat/long
+ * \param [in,out]  md_map    A mapping from frame_number of metadata objects
+ *                            to update.  If no metadata object is found for
+ *                            a frame, a new one is created.
+ */
 VITAL_EXPORT
 void
 update_metadata_from_cameras(std::map<frame_id_t, camera_sptr> const& cam_map,
                              local_geo_cs const& lgcs,
                              std::map<frame_id_t, metadata_sptr>& md_map);
+
+/// Use the camera pose to update the metadata structure
+/**
+ * \param [in]      cam   The camera data
+ * \param [in]      lgcs  The local geographic coordinate system used to
+ *                        map local UTM to lat/long
+ * \param [in,out]  md    The metadata object to update in place
+ */
+VITAL_EXPORT
+void
+update_metadata_from_camera(simple_camera_perspective const& cam,
+                            local_geo_cs const& lgcs,
+                            metadata& md);
 
 } } // end namespace
 
