@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2019 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,52 +28,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief PROJ geo_conversion functor interface
- */
+ /**
+  * \file
+  * \brief This file contains the interface to a geo point.
+  */
 
-#ifndef KWIVER_ARROWS_PROJ_GEO_CONV_H_
-#define KWIVER_ARROWS_PROJ_GEO_CONV_H_
+#ifndef KWIVER_VITAL_GEO_COVARIANCE_H_
+#define KWIVER_VITAL_GEO_COVARIANCE_H_
 
-
-#include <vital/vital_config.h>
-#include <arrows/proj/kwiver_algo_proj_export.h>
-
-#include <vital/types/geodesy.h>
-
-#include <unordered_map>
+#include <vital/types/geo_point.h>
+#include <vital/types/covariance.h>
+#include <memory>
 
 namespace kwiver {
-namespace arrows {
-namespace proj {
+namespace vital {
 
-/// PROJ implementation of geo_conversion functor
-class KWIVER_ALGO_PROJ_EXPORT geo_conversion
-  : public vital::geo_conversion
+// ----------------------------------------------------------------------------
+/** A geo_point with covariance
+ */
+class VITAL_EXPORT geo_covariance : public geo_point
 {
 public:
-  geo_conversion() {}
-  virtual ~geo_conversion();
+  using covariance_type = covariance_<3, float>;
 
-  virtual char const* id() const override;
+  geo_covariance();
+  geo_covariance( geo_2d_point_t const&, int crs );
+  geo_covariance( geo_raw_point_t const& pt, int crs );
 
-  virtual vital::geo_crs_description_t describe( int crs ) override;
+  virtual ~geo_covariance() = default;
 
-  /// Conversion operator
-  virtual vital::vector_2d operator()( vital::vector_2d const& point,
-                                       int from, int to ) override;
+  covariance_type covariance() const { return m_covariance; }
+  void set_covariance( covariance_3f c )
+  {
+    m_covariance = c;
+  }
 
-  /// Conversion operator
-  virtual vital::vector_3d operator()( vital::vector_3d const& point,
-                                       int from, int to ) override;
+protected:
 
-private:
-  void* projection( int crs );
-
-  std::unordered_map< int, void* > m_projections;
+  covariance_type m_covariance;
 };
 
-} } } // end namespace
+VITAL_EXPORT::std::ostream& operator<< ( ::std::ostream& str, geo_covariance const& obj );
 
-#endif // KWIVER_ARROWS_PROJ_GEO_CONV_H_
+}
+} // end namespace
+
+#endif /* KWIVER_VITAL_GEO_POINT_W_COV_H_ */

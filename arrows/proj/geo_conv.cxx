@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -167,6 +167,40 @@ vital::vector_2d geo_conversion
   }
 
   return { x, y };
+}
+
+// ----------------------------------------------------------------------------
+vital::vector_3d geo_conversion
+::operator()( vital::vector_3d const& point, int from, int to )
+{
+  auto const proj_from = projection( from );
+  auto const proj_to = projection( to );
+
+  auto x = point[0];
+  auto y = point[1];
+  auto z = point[2];
+
+  if ( pj_is_latlong( proj_from ) )
+  {
+    x *= DEG_TO_RAD;
+    y *= DEG_TO_RAD;
+  }
+
+  int err = pj_transform( proj_from, proj_to, 1, 1, &x, &y, &z );
+  if ( err )
+  {
+    auto const msg =
+      std::string{ "PROJ conversion failed: error " } + std::to_string( err );
+    throw std::runtime_error( msg );
+  }
+
+  if ( pj_is_latlong( proj_to ) )
+  {
+    x *= RAD_TO_DEG;
+    y *= RAD_TO_DEG;
+  }
+
+  return { x, y, z };
 }
 
 // ----------------------------------------------------------------------------

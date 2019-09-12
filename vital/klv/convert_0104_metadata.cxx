@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ namespace vital {
 namespace {
 
 // ----------------------------------------------------------------------------
-template < int N = 2 >
+template < int N >
 Eigen::Matrix< double, N, 1 >
 empty_vector()
 {
@@ -62,7 +62,7 @@ empty_vector()
 }
 
 // ----------------------------------------------------------------------------
-template < int N = 2 >
+template < int N >
 bool
 is_empty( Eigen::Matrix< double, N, 1, 0, N, 1 > const& vec )
 {
@@ -75,6 +75,16 @@ is_empty( Eigen::Matrix< double, N, 1, 0, N, 1 > const& vec )
   }
 
   return false;
+}
+
+// ----------------------------------------------------------------------------
+bool
+is_valid_lon_lat( vector_3d const& vec )
+{
+  auto const lat = vec[1];
+  auto const lon = vec[0];
+  return ( lat >= -90.0 && lat <= 90.0 ) &&
+         ( lon >= -180.0 && lon <= 360.0 );
 }
 
 // ----------------------------------------------------------------------------
@@ -145,12 +155,12 @@ void convert_metadata
   // lat-lon points and image corner points. All geodetic points are assumed to
   // be WGS84 lat-lon.
   //
-  auto raw_sensor_location = empty_vector();
-  auto raw_frame_center = empty_vector();
-  auto raw_corner_pt1 = empty_vector(); // offsets relative to frame_center
-  auto raw_corner_pt2 = empty_vector();
-  auto raw_corner_pt3 = empty_vector();
-  auto raw_corner_pt4 = empty_vector();
+  auto raw_sensor_location = empty_vector<3>();
+  auto raw_frame_center = empty_vector<3>();
+  auto raw_corner_pt1 = empty_vector<2>(); // offsets relative to frame_center
+  auto raw_corner_pt2 = empty_vector<2>();
+  auto raw_corner_pt3 = empty_vector<2>();
+  auto raw_corner_pt4 = empty_vector<2>();
 
   //
   // Add our "origin" tag to indicate that the source of this metadata

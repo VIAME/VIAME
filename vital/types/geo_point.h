@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,9 +68,11 @@ namespace vital {
 class VITAL_EXPORT geo_point
 {
 public:
-  using geo_raw_point_t = kwiver::vital::vector_2d;
+  using geo_raw_point_t = kwiver::vital::vector_3d;
+  using geo_2d_point_t = kwiver::vital::vector_2d;
 
   geo_point();
+  geo_point( geo_2d_point_t const&, int crs );
   geo_point( geo_raw_point_t const&, int crs );
 
   virtual ~geo_point() = default;
@@ -102,13 +104,16 @@ public:
    */
   geo_raw_point_t location( int crs ) const;
 
+  //@{
   /**
    * \brief Set location.
    *
    * This sets the geo-coordinate to the specified location, which is defined
    * by the raw location and specified CRS.
    */
+  void set_location( geo_2d_point_t const&, int crs );
   void set_location( geo_raw_point_t const&, int crs );
+  //@}
 
   /**
    * \brief Test if point has a specified location.

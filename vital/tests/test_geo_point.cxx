@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,10 @@
 static auto const loc1 = kwiver::vital::vector_2d{ -73.759291, 42.849631 };
 static auto const loc2 = kwiver::vital::vector_2d{ -73.757161, 42.849764 };
 static auto const loc3 = kwiver::vital::vector_2d{ 601375.01, 4744863.31 };
+
+static auto const loc1a = kwiver::vital::vector_3d{ -73.759291, 42.849631, 50 };
+static auto const loc2a = kwiver::vital::vector_3d{ -73.757161, 42.849764, 50 };
+static auto const loc3a = kwiver::vital::vector_3d{ 601375.01, 4744863.31, 50 };
 
 static auto constexpr crs_ll = kwiver::vital::SRID::lat_lon_WGS84;
 static auto constexpr crs_utm_18n = kwiver::vital::SRID::UTM_WGS84_north + 18;
@@ -96,30 +100,33 @@ TEST(geo_point, assignment)
 TEST(geo_point, api)
 {
   kwiver::vital::geo_point p{ loc1, crs_ll };
+  kwiver::vital::vector_3d _loc1{ loc1[0], loc1[1], 0 };
 
   // Test values of the point as originally constructed
   EXPECT_EQ( crs_ll, p.crs() );
-  EXPECT_EQ( loc1, p.location() );
-  EXPECT_EQ( loc1, p.location( crs_ll ) );
+  EXPECT_EQ( _loc1, p.location() );
+  EXPECT_EQ( _loc1, p.location( crs_ll ) );
 
   // Modify the location and test the new values
   p.set_location( loc3, crs_utm_18n );
+  kwiver::vital::vector_3d _loc3{ loc3[0], loc3[1], 0 };
 
   EXPECT_EQ( crs_utm_18n, p.crs() );
-  EXPECT_EQ( loc3, p.location() );
-  EXPECT_EQ( loc3, p.location( crs_utm_18n ) );
+  EXPECT_EQ( _loc3, p.location() );
+  EXPECT_EQ( _loc3, p.location( crs_utm_18n ) );
 
   // Modify the location again and test the new values
   p.set_location( loc2, crs_ll );
+  kwiver::vital::vector_3d _loc2{ loc2[0], loc2[1], 0 };
 
   EXPECT_EQ( crs_ll, p.crs() );
-  EXPECT_EQ( loc2, p.location() );
-  EXPECT_EQ( loc2, p.location( crs_ll ) );
+  EXPECT_EQ( _loc2, p.location() );
+  EXPECT_EQ( _loc2, p.location( crs_ll ) );
 
   // Test that the old location is not cached
   try
   {
-    EXPECT_NE( loc3, p.location( crs_utm_18n ) )
+    EXPECT_NE( _loc3, p.location( crs_utm_18n ) )
       << "Changing the location did not clear the location cache";
   }
   catch (...)
@@ -142,8 +149,11 @@ TEST(geo_point, conversion)
   auto const conv_loc_utm = p_ll.location( p_utm.crs() );
   auto const conv_loc_ll = p_utm.location( p_ll.crs() );
 
-  auto const epsilon_ll_to_utm = ( loc3 - conv_loc_utm ).norm();
-  auto const epsilon_utm_to_ll = ( loc1 - conv_loc_ll ).norm();
+  kwiver::vital::vector_3d _loc3{ loc3[0], loc3[1], 0 };
+  auto const epsilon_ll_to_utm = ( _loc3 - conv_loc_utm ).norm();
+
+  kwiver::vital::vector_3d _loc1{ loc1[0], loc1[1], 0 };
+  auto const epsilon_utm_to_ll = ( _loc1 - conv_loc_ll ).norm();
 
   EXPECT_MATRIX_NEAR( p_ll.location(), conv_loc_ll, 1e-7 );
   EXPECT_MATRIX_NEAR( p_utm.location(), conv_loc_utm, 1e-2 );
@@ -152,4 +162,22 @@ TEST(geo_point, conversion)
 
   std::cout << "LL->UTM epsilon: " << epsilon_ll_to_utm << std::endl;
   std::cout << "UTM->LL epsilon: " << epsilon_utm_to_ll << std::endl;
+
+  // Test with altitude
+  kwiver::vital::geo_point p_lla{ loc1a, crs_ll };
+  kwiver::vital::geo_point p_utma{ loc3a, crs_utm_18n };
+
+  auto const conv_loc_utma = p_lla.location( p_utma.crs() );
+  auto const conv_loc_lla = p_utma.location( p_lla.crs() );
+
+  auto const epsilon_lla_to_utma = ( loc3a - conv_loc_utma ).norm();
+  auto const epsilon_utma_to_lla = ( loc1a - conv_loc_lla ).norm();
+
+  EXPECT_MATRIX_NEAR( p_lla.location(), conv_loc_lla, 1e-7 );
+  EXPECT_MATRIX_NEAR( p_utma.location(), conv_loc_utma, 1e-2 );
+  EXPECT_LT( epsilon_lla_to_utma, 1e-2 );
+  EXPECT_LT( epsilon_utma_to_lla, 1e-7 );
+
+  std::cout << "LLA->UTMa epsilon: " << epsilon_lla_to_utma << std::endl;
+  std::cout << "UTMa->LLA epsilon: " << epsilon_utma_to_lla << std::endl;
 }

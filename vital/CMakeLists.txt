@@ -105,6 +105,7 @@ set( vital_public_headers
   types/feature_set.h
   types/feature_track_set.h
   types/fundamental_matrix.h
+  types/geo_covariance.h
   types/geo_MGRS.h
   types/geo_point.h
   types/geo_polygon.h
@@ -172,6 +173,7 @@ set( vital_sources
   types/feature.cxx
   types/feature_track_set.cxx
   types/fundamental_matrix.cxx
+  types/geo_covariance.cxx
   types/geo_MGRS.cxx
   types/geo_point.cxx
   types/geo_polygon.cxx
