@@ -17,6 +17,9 @@ Vital
    constructors of feature_track_state and object_track_state still make only
    shallow copies.)
 
+ * Added a variant of config_block::get_enum_value that accepts a default
+   value to fall back on.
+
 Vital Util
 
 Vital Tools
