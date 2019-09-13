@@ -222,7 +222,7 @@ public:
         zabs = fabs(Z);
 
         new_ct = rho / zabs;
-        new_f = DBL_MAX;
+        new_f = std::numeric_limits<double>::max();
 
         do
         {
