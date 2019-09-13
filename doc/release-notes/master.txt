@@ -23,6 +23,9 @@ Vital Tools
 
 Vital Types
 
+ * Added get_vector() member function to access the vector of all metadata on
+   a frame in metadata_map.
+
 Vital Bindings
 
 Arrows
