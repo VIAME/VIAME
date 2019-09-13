@@ -26,3 +26,8 @@ Arrows - Core
 
 Fixes since last public release
 -------------------------------
+
+Arrows - Core
+
+ * Fixed a bug in initialize_cameras_landmarks_keyframe that was causing
+   points to be rejected because cameras were swapped.
