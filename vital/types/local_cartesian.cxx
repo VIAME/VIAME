@@ -33,6 +33,7 @@
  * \brief This file contains the implementation of a local geographical offset coordinate system.
  */
 
+#include <vital/math_constants.h>
 #include <vital/types/local_cartesian.h>
 #include <vital/types/geodesy.h>
 
@@ -42,13 +43,6 @@
 namespace kwiver {
 namespace vital {
 
-const double PI = 3.14159265358979323e0;
-const double PI_OVER_2 = (PI / 2.0e0);
-const double TWO_PI = (2.0 * PI);
-const double DEG_TO_RAD = (PI / 180.0);
-const double RAD_TO_DEG = (180.0 / PI);
-const double AD_C = 1.0026000;            /* Toms region 1 constant */
-const double COS_67P5 = 0.38268343236508977;  /* cosine of 67.5 degrees */
 #define Iterative_Geocent_algorithm true
 
 /**
@@ -72,8 +66,11 @@ public:
 
     Geocent_e2 = 2 * flattening - flattening * flattening;
     Geocent_ep2 = (1 / (1 - Geocent_e2)) - 1;
+    Cos_67p5 = 0.38268343236508977; // cosine of 67.5 degrees
+
     set_origin(origin, orientation);
   }
+   ~geotrans() = default;
 
   /**
    * @brief Set origin of the cartesian system as a geo_point
@@ -98,14 +95,14 @@ public:
 
     auto loc = origin.location(kwiver::vital::SRID::lat_lon_WGS84);
 
-    LocalCart_Origin_Lat = loc[1] * DEG_TO_RAD;
-    LocalCart_Origin_Long = loc[0] * DEG_TO_RAD;
-    if (LocalCart_Origin_Long > PI)
-      LocalCart_Origin_Long -= TWO_PI;
+    LocalCart_Origin_Lat = loc[1] * deg_to_rad;
+    LocalCart_Origin_Long = loc[0] * deg_to_rad;
+    if (LocalCart_Origin_Long > pi)
+      LocalCart_Origin_Long -= two_pi;
     LocalCart_Origin_Height = loc[2];
-    if (orientation > PI)
+    if (orientation > pi)
     {
-      orientation -= TWO_PI;
+      orientation -= two_pi;
     }
     LocalCart_Orientation = orientation;
 
@@ -139,8 +136,8 @@ public:
    */
   void convert_from_geodetic( vector_3d const& geodetic_coordinate, vector_3d& cartesian_coordinate ) const
   {
-    double longitude = geodetic_coordinate.x() * DEG_TO_RAD;
-    double latitude = geodetic_coordinate.y() * DEG_TO_RAD;
+    double longitude = geodetic_coordinate.x() * deg_to_rad;
+    double latitude = geodetic_coordinate.y() * deg_to_rad;
     double height = geodetic_coordinate.z();
 
     double Rn;            /*  Earth radius at location  */
@@ -148,9 +145,9 @@ public:
     double Sin2_Lat;      /*  Square of sin(Latitude)  */
     double Cos_Lat;       /*  cos(Latitude)  */
 
-    if (longitude > PI)
+    if (longitude > pi)
     {
-      longitude -= (2 * PI);
+      longitude -= (2 * pi);
     }
     Sin_Lat = sin(latitude);
     Cos_Lat = cos(latitude);
@@ -287,11 +284,11 @@ public:
       {
         if (Y > 0)
         {
-          longitude = PI_OVER_2;
+          longitude = pi_over_2;
         }
         else if (Y < 0)
         {
-          longitude = -PI_OVER_2;
+          longitude = -pi_over_2;
         }
         else
         {
@@ -299,24 +296,24 @@ public:
           longitude = 0.0;
           if (Z > 0.0)
           {  /* north pole */
-            latitude = PI_OVER_2;
+            latitude = pi_over_2;
           }
           else if (Z < 0.0)
           {  /* south pole */
-            latitude = -PI_OVER_2;
+            latitude = -pi_over_2;
           }
           else
           {  /* center of earth */
-            latitude = PI_OVER_2;
+            latitude = pi_over_2;
             height = -Geocent_b;
-            geodetic_coordinate << (longitude*RAD_TO_DEG), (latitude*RAD_TO_DEG), height;
+            geodetic_coordinate << (longitude*rad_to_deg), (latitude*rad_to_deg), height;
             return;
           }
         }
       }
       W2 = X * X + Y * Y;
       W = sqrt(W2);
-      T0 = Z * AD_C;
+      T0 = Z * 1.0026000; /* Toms region 1 constant */
       S0 = sqrt(T0 * T0 + W2);
       Sin_B0 = T0 / S0;
       Cos_B0 = W / S0;
@@ -327,11 +324,11 @@ public:
       Sin_p1 = T1 / S1;
       Cos_p1 = Sum / S1;
       Rn = semiMajorAxis / sqrt(1.0 - Geocent_e2 * Sin_p1 * Sin_p1);
-      if (Cos_p1 >= COS_67P5)
+      if (Cos_p1 >= Cos_67p5)
       {
         height = W / Cos_p1 - Rn;
       }
-      else if (Cos_p1 <= -COS_67P5)
+      else if (Cos_p1 <= -Cos_67p5)
       {
         height = W / -Cos_p1 - Rn;
       }
@@ -344,16 +341,16 @@ public:
         latitude = atan(Sin_p1 / Cos_p1);
       }
 
-      if (longitude > PI)
+      if (longitude > pi)
       {
-        longitude = (longitude -= TWO_PI);
+        longitude = (longitude -= two_pi);
       }
-      if (longitude < -PI)
+      if (longitude < -pi)
       {
-        longitude = (longitude += TWO_PI);
+        longitude = (longitude += two_pi);
       }
     }
-    geodetic_coordinate << (longitude*RAD_TO_DEG), (latitude*RAD_TO_DEG), height;
+    geodetic_coordinate << (longitude*rad_to_deg), (latitude*rad_to_deg), height;
   }
 
   /**
@@ -460,6 +457,7 @@ private:
   double inv_f;
   double Geocent_e2;
   double Geocent_ep2;
+  double Cos_67p5;
 
   double es2;                       /* Eccentricity (0.08181919084262188000) squared */
   double u0;                        /* Geocentric origin coordinates in */
@@ -492,16 +490,17 @@ local_cartesian::local_cartesian( geo_point const& origin, double orientation )
   geotrans_ = new geotrans(origin, orientation);
 }
 
-local_cartesian::~local_cartesian()
-{
-  delete geotrans_;
-}
 
 void local_cartesian::set_origin( geo_point const& origin, double orientation )
 {
   origin_ = origin;
   orientation_ = orientation;
   geotrans_->set_origin(origin, orientation);
+}
+
+local_cartesian::~local_cartesian()
+{
+  delete geotrans_;
 }
 
 geo_point local_cartesian::get_origin() const
