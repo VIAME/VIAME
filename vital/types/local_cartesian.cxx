@@ -489,7 +489,12 @@ local_cartesian::local_cartesian( geo_point const& origin, double orientation )
 {
   origin_ = origin;
   orientation_ = orientation;
-  geotrans_ = std::make_unique<geotrans>(origin, orientation);
+  geotrans_ = new geotrans(origin, orientation);
+}
+
+local_cartesian::~local_cartesian()
+{
+  delete geotrans_;
 }
 
 void local_cartesian::set_origin( geo_point const& origin, double orientation )

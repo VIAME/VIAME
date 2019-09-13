@@ -49,7 +49,7 @@ class VITAL_EXPORT local_cartesian
 public:
 
   local_cartesian( geo_point const& origin, double orientation = 0 );
-  virtual ~local_cartesian() = default;
+  virtual ~local_cartesian();
 
   /**
    * @brief Set origin of the cartesian system as a geo_point
@@ -96,7 +96,7 @@ public:
 
 private:
   class geotrans;
-  std::unique_ptr<geotrans> geotrans_;
+  geotrans* geotrans_;
   geo_point origin_;
   double orientation_;
 };
