@@ -902,11 +902,11 @@ initialize_cameras_landmarks_keyframe::priv
     {
       continue;
     }
-    auto undist_f1 = cal_right->unmap(frame_data_1->feature->loc());
-    auto undist_f0 = cal_left->unmap(frame_data_0->feature->loc());
+    auto undist_f1 = cal_left->unmap(frame_data_1->feature->loc());
+    auto undist_f0 = cal_right->unmap(frame_data_0->feature->loc());
 
-    pts_right.push_back(cal_right_no_dist->map(undist_f1));
-    pts_left.push_back(cal_left_no_dist->map(undist_f0));
+    pts_left.push_back(cal_left_no_dist->map(undist_f1));
+    pts_right.push_back(cal_right_no_dist->map(undist_f0));
   }
 
   std::vector<bool> inliers;
