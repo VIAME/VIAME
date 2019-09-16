@@ -90,40 +90,57 @@ TEST(geo_point, api)
   EXPECT_EQ(lc1.get_orientation(), 22);
 }
 
+void CompareLLA(kwiver::vital::vector_3d gp1, kwiver::vital::vector_3d gp2)
+{
+  EXPECT_NEAR(gp1[0], gp2[0], 1e-8);
+  EXPECT_NEAR(gp1[1], gp2[1], 1e-8);
+  EXPECT_NEAR(gp1[2], gp2[2], 1e-3);
+}
+
 // ----------------------------------------------------------------------------
 TEST(geo_point, conversion)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  kwiver::vital::geo_point geo_out;
-  kwiver::vital::vector_3d cart_out;
+  kwiver::vital::geo_point geo_outA;
+  kwiver::vital::vector_3d cart_outA;
   kwiver::vital::local_cartesian lc_lla(origA);
 
   // Get the geopoint from an offset
-  lc_lla.convert_from_cartesian(offset1, geo_out);
-  auto const epsilon_geo_out_to_geo1 = (geo_out.location() - geo1.location()).norm();
-  EXPECT_MATRIX_NEAR(geo_out.location(), geo1.location(), 1e-3);
-  EXPECT_LT(epsilon_geo_out_to_geo1, 1e-3);
+  lc_lla.convert_from_cartesian(offset1, geo_outA);
+  CompareLLA(geo_outA.location(), geo1.location());
 
   // Now get the cartesian value from that geo_point
-  lc_lla.convert_to_cartesian(geo_out, cart_out);
-  auto const epsilon_cart_out_to_offset1 = (cart_out - offset1).norm();
-  EXPECT_MATRIX_NEAR(cart_out, offset1, 1e-8);
-  EXPECT_LT(epsilon_cart_out_to_offset1, 1e-8);
+  lc_lla.convert_to_cartesian(geo_outA, cart_outA);
+  CompareLLA(cart_outA, offset1);
 
   // Get the geopoint from another offset
-  lc_lla.convert_from_cartesian(offset2, geo_out);
-  auto const epsilon_geo_out_to_geo2 = (geo_out.location() - geo2.location()).norm();
-  EXPECT_MATRIX_NEAR(geo_out.location(), geo2.location(), 1e-3);
-  EXPECT_LT(epsilon_geo_out_to_geo2, 1e-3);
+  lc_lla.convert_from_cartesian(offset2, geo_outA);
+  CompareLLA(geo_outA.location(), geo2.location());
 
   // Now get the cartesian value from that geo_point
-  lc_lla.convert_to_cartesian(geo_out, cart_out);
-  auto const epsilon_cart_out_to_offset2 = (cart_out - offset2).norm();
-  EXPECT_MATRIX_NEAR(cart_out, offset2, 1e-8);
-  EXPECT_LT(epsilon_cart_out_to_offset2, 1e-8);
+  lc_lla.convert_to_cartesian(geo_outA, cart_outA);
+  CompareLLA(cart_outA, offset2);
 
   // Convert with a origin based in UTM
+  kwiver::vital::geo_point geo_outB;
+  kwiver::vital::vector_3d cart_outB;
   kwiver::vital::local_cartesian lc_utm(origB);
+
+  // Get the geopoint from an offset
+  lc_lla.convert_from_cartesian(offset1, geo_outB);
+  CompareLLA(geo_outB.location(), geo1.location());
+
+  // Now get the cartesian value from that geo_point
+  lc_lla.convert_to_cartesian(geo_outB, cart_outB);
+  CompareLLA(cart_outB, offset1);
+
+  // Get the geopoint from another offset
+  lc_lla.convert_from_cartesian(offset2, geo_outB);
+  CompareLLA(geo_outB.location(), geo2.location());
+
+  // Now get the cartesian value from that geo_point
+  lc_lla.convert_to_cartesian(geo_outB, cart_outB);
+  CompareLLA(cart_outB, offset2);
 
 }
