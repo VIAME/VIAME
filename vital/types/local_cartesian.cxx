@@ -43,8 +43,6 @@
 namespace kwiver {
 namespace vital {
 
-#define Iterative_Geocent_algorithm true
-
 /**
  * @Brief Local Cartesian Conversion Math Utility
  *
@@ -183,173 +181,70 @@ public:
     double Z = geocentric_coordinate.z();
     double latitude, longitude, height;
 
-    if (Iterative_Geocent_algorithm)
+    // Only copied the new geocentric-to-geodetic algorithm
+    // Removed the legacy geocentric-to-geodetic algorithm
+    double equatorial_radius = semiMajorAxis;
+    double eccentricity_squared = Geocent_e2;
+
+    double rho, c, s, ct2, e1, e2a;
+
+    e1 = 1.0 - eccentricity_squared;
+    e2a = eccentricity_squared * equatorial_radius;
+
+    rho = sqrt(X * X + Y * Y);
+
+    if (Z == 0.0)
     {
-      double equatorial_radius = semiMajorAxis;
-      double eccentricity_squared = Geocent_e2;
-
-      double rho, c, s, ct2, e1, e2a;
-
-      e1 = 1.0 - eccentricity_squared;
-      e2a = eccentricity_squared * equatorial_radius;
-
-      rho = sqrt(X * X + Y * Y);
-
-      if (Z == 0.0)
-      {
-        if (rho < e2a)
-        {
-          ct2 = rho * rho*e1 / (e2a*e2a - rho * rho);
-          c = sqrt(ct2 / (1.0 + ct2));
-          s = sqrt(1.0 / (1.0 + ct2));
-        }
-        else
-        {
-          c = 1.0;
-          s = 0.0;
-        }
-
-        latitude = 0.0;
-      }
-      else
-      {
-        double  ct, new_ct, zabs;
-        double  f, new_f, df_dct, e2;
-
-        zabs = fabs(Z);
-
-        new_ct = rho / zabs;
-        new_f = std::numeric_limits<double>::max();
-
-        do
-        {
-          ct = new_ct;
-          f = new_f;
-
-          e2 = sqrt(e1 + ct * ct);
-
-          new_f = rho - zabs * ct - e2a * ct / e2;
-
-          if (new_f == 0.0) break;
-
-          df_dct = -zabs - (e2a*e1) / (e2*e2*e2);
-
-          new_ct = ct - new_f / df_dct;
-
-          if (new_ct < 0.0) new_ct = 0.0;
-        } while (fabs(new_f) < fabs(f));
-
-        s = 1.0 / sqrt(1.0 + ct * ct);
-        c = ct * s;
-
-        if (Z < 0.0)
-        {
-          s = -s;
-          latitude = -atan(1.0 / ct);
-        }
-        else
-        {
-          latitude = atan(1.0 / ct);
-        }
-      }
-
-      longitude = atan2(Y, X);
-
-      height = rho * c + Z * s - equatorial_radius * sqrt(1.0 - eccentricity_squared * s*s);
+      c = 1.0;
+      s = 0.0;
+      latitude = 0.0;
     }
     else
     {
-      double W;        /* distance from Z axis */
-      double W2;       /* square of distance from Z axis */
-      double T0;       /* initial estimate of vertical component */
-      double T1;       /* corrected estimate of vertical component */
-      double S0;       /* initial estimate of horizontal component */
-      double S1;       /* corrected estimate of horizontal component */
-      double Sin_B0;   /* sin(B0), B0 is estimate of Bowring aux variable */
-      double Sin3_B0;  /* cube of sin(B0) */
-      double Cos_B0;   /* cos(B0) */
-      double Sin_p1;   /* sin(phi1), phi1 is estimated latitude */
-      double Cos_p1;   /* cos(phi1) */
-      double Rn;       /* Earth radius at location */
-      double Sum;      /* numerator of cos(phi1) */
-      bool At_Pole;     /* indicates location is in polar region */
-      double Geocent_b = semiMajorAxis * (1 - flattening); /* Semi-minor axis of ellipsoid, in meters */
+      double  ct, new_ct, zabs;
+      double  f, new_f, df_dct, e2;
 
-      At_Pole = false;
-      if (X != 0.0)
+      zabs = fabs(Z);
+
+      new_ct = rho / zabs;
+      new_f = std::numeric_limits<double>::max();
+
+      do
       {
-        longitude = atan2(Y, X);
+        ct = new_ct;
+        f = new_f;
+
+        e2 = sqrt(e1 + ct * ct);
+
+        new_f = rho - zabs * ct - e2a * ct / e2;
+
+        if (new_f == 0.0) break;
+
+        df_dct = -zabs - (e2a*e1) / (e2*e2*e2);
+
+        new_ct = ct - new_f / df_dct;
+
+        if (new_ct < 0.0) new_ct = 0.0;
+      } while (fabs(new_f) < fabs(f));
+
+      s = 1.0 / sqrt(1.0 + ct * ct);
+      c = ct * s;
+
+      if (Z < 0.0)
+      {
+        s = -s;
+        latitude = -atan(1.0 / ct);
       }
       else
       {
-        if (Y > 0)
-        {
-          longitude = pi_over_2;
-        }
-        else if (Y < 0)
-        {
-          longitude = -pi_over_2;
-        }
-        else
-        {
-          At_Pole = true;
-          longitude = 0.0;
-          if (Z > 0.0)
-          {  /* north pole */
-            latitude = pi_over_2;
-          }
-          else if (Z < 0.0)
-          {  /* south pole */
-            latitude = -pi_over_2;
-          }
-          else
-          {  /* center of earth */
-            latitude = pi_over_2;
-            height = -Geocent_b;
-            geodetic_coordinate << (longitude*rad_to_deg), (latitude*rad_to_deg), height;
-            return;
-          }
-        }
-      }
-      W2 = X * X + Y * Y;
-      W = sqrt(W2);
-      T0 = Z * 1.0026000; /* Toms region 1 constant */
-      S0 = sqrt(T0 * T0 + W2);
-      Sin_B0 = T0 / S0;
-      Cos_B0 = W / S0;
-      Sin3_B0 = Sin_B0 * Sin_B0 * Sin_B0;
-      T1 = Z + Geocent_b * Geocent_ep2 * Sin3_B0;
-      Sum = W - semiMajorAxis * Geocent_e2 * Cos_B0 * Cos_B0 * Cos_B0;
-      S1 = sqrt(T1*T1 + Sum * Sum);
-      Sin_p1 = T1 / S1;
-      Cos_p1 = Sum / S1;
-      Rn = semiMajorAxis / sqrt(1.0 - Geocent_e2 * Sin_p1 * Sin_p1);
-      if (Cos_p1 >= Cos_67p5)
-      {
-        height = W / Cos_p1 - Rn;
-      }
-      else if (Cos_p1 <= -Cos_67p5)
-      {
-        height = W / -Cos_p1 - Rn;
-      }
-      else
-      {
-        height = Z / Sin_p1 + Rn * (Geocent_e2 - 1.0);
-      }
-      if (At_Pole == false)
-      {
-        latitude = atan(Sin_p1 / Cos_p1);
-      }
-
-      if (longitude > pi)
-      {
-        longitude = (longitude -= two_pi);
-      }
-      if (longitude < -pi)
-      {
-        longitude = (longitude += two_pi);
+        latitude = atan(1.0 / ct);
       }
     }
+
+    longitude = atan2(Y, X);
+
+    height = rho * c + Z * s - equatorial_radius * sqrt(1.0 - eccentricity_squared * s*s);
+
     geodetic_coordinate << (longitude*rad_to_deg), (latitude*rad_to_deg), height;
   }
 
