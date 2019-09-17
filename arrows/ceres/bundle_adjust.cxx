@@ -405,7 +405,6 @@ bundle_adjust
       if (fixed_landmark && fixed_camera)
       {
         //skip this measurement because it involves both a fixed camera and fixed landmark.
-        //It could influence the intrinsics but we will ignore that for speed.
         continue;
       }
 
@@ -445,6 +444,7 @@ bundle_adjust
   }
 
   //fix all the cameras in the to_fix_cameras list
+  std::unordered_set<unsigned int> to_fix_intrinsics;
   for (auto tfc : to_fix_cameras)
   {
     auto cam_itr = d_->camera_params.find(tfc);
@@ -457,6 +457,14 @@ bundle_adjust
     {
       problem.SetParameterBlockConstant(state_ptr);
       fixed_cameras.insert(tfc);
+    }
+    // Mark the intrinsics for this camera fixed as well.
+    // Only optimize intrinsics if no cameras using these
+    // intrinsics are fixed
+    auto const& intr_itr = d_->frame_to_intr_map.find(tfc);
+    if (intr_itr != d_->frame_to_intr_map.end())
+    {
+      to_fix_intrinsics.insert(intr_itr->second);
     }
   }
 
@@ -538,7 +546,8 @@ bundle_adjust
   {
     std::vector<double>& cip = d_->camera_intr_params[idx];
     // apply the constraints
-    if (constant_intrinsics.size() > 4 + ndp)
+    if (constant_intrinsics.size() > 4 + ndp ||
+        to_fix_intrinsics.count(idx) > 0)
     {
       // set all parameters in the block constant
       problem.SetParameterBlockConstant(&cip[0]);
