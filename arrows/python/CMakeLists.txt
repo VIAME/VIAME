@@ -6,9 +6,9 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/simple_image_detector.py
   simple_image_detector )
 
 if( KWIVER_ENABLE_PROCESSES )
-  kwiver_create_python_init( kwiver/processes/python )
+  kwiver_create_python_init( kwiver/processes )
 
   kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/simple_homog_tracker.py
-    kwiver/processes/python
+    kwiver/processes
     simple_homog_tracker )
 endif()
