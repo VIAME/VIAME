@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2019 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,7 +103,7 @@ void compare_tag( kwiver::vital::metadata_item const& expected,
   SCOPED_TRACE( "At tag " + expected.name() );
   ASSERT_TRUE( md->has( expected.tag() ) );
 
-  auto const& actual = *md->get( expected.tag() );
+  auto const& actual = md->find( expected.tag() );
   if ( expected.type() == typeid(double) )
   {
     EXPECT_NEAR( expected.as_double(), actual.as_double(), epsilon );
