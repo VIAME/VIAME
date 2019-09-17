@@ -345,10 +345,12 @@ class SimpleHomogTracker(KwiverProcess):
         self._base_configure()
 
     def _step(self):
-        ots = self._tracker.step(TrackInput(*map(
-            self.grab_input_using_trait,
-            ['detected_object_set', 'homography_src_to_ref', 'timestamp'],
-        ))).object_track_set
+        ots = self._tracker.step(TrackInput(
+            self.grab_input_using_trait('detected_object_set'),
+            # For some reason grab_input_using_trait just returns a Datum here
+            self.grab_input_using_trait('homography_src_to_ref').get_homography_f2f(),
+            self.grab_input_using_trait('timestamp'),
+        )).object_track_set
         self.push_to_port_using_trait('object_track_set', ots)
         self._base_step()
 
