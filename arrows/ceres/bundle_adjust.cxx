@@ -387,9 +387,6 @@ bundle_adjust
       continue;
     }
 
-    int num_fixed_cameras_this_lm = 0;
-    //lowest index track is landmark id
-
     bool fixed_landmark = to_fix_landmarks.find(lm_id) != to_fix_landmarks.end();
 
     for (auto ts : *t)
@@ -416,15 +413,6 @@ bundle_adjust
       if (!fts->inlier)
       {
         continue; // feature is not an inlier so don't use it in ba.
-      }
-
-      if (fixed_camera)
-      {
-        ++num_fixed_cameras_this_lm;
-        if (num_fixed_cameras_this_lm > 4)
-        {
-          continue;
-        }
       }
 
       unsigned intr_idx = d_->frame_to_intr_map[fts->frame()];
