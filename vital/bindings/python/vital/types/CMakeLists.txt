@@ -127,6 +127,13 @@ target_link_libraries(python-vital.types-homography
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
+kwiver_add_python_library(homography_f2f
+  vital/types
+  homography_f2f.cxx)
+target_link_libraries(python-vital.types-homography_f2f
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
 kwiver_add_python_library(landmark
   vital/types
   landmark.cxx)
@@ -193,6 +200,7 @@ kwiver_create_python_init(vital/types
   eigen
   feature
   homography
+  homography_f2f
   landmark
   rotation
   similarity

@@ -50,6 +50,7 @@
 #include <vital/types/feature_track_set.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/geo_polygon.h>
+#include <vital/types/homography_f2f.h>
 
 #include <limits>
 #include <string>
@@ -207,6 +208,8 @@ PYBIND11_MODULE(datum, m)
          , "Convert the data to a set of corner points")
     .def("get_string", &datum_get_object<std::string>,
             "Convert the data to a string")
+    .def("get_homography_f2f", &datum_get_object<kwiver::vital::f2f_homography>,
+	 "Convert the data to a f2f_homography")
   ;
 
 } // end module
