@@ -32,7 +32,18 @@
       padding-left: 0.7em !important;
       border-left: 0.3em solid #aaa;
     }
+    h1 > .title {
+      font-weight: bold;
+      display: block;
+      float: right;
+    }
+    li .title {
+      font-weight: bold;
+    }
   </style>
+
+.. role:: a(literal)
+   :class: title
 
 .. role:: cpp(code)
    :language: c++
@@ -40,10 +51,11 @@
 .. role:: cmake(code)
    :language: cmake
 
-General Presentation:
-'''''''''''''''''''''
+General Presentation: :a:`[gen]`
+''''''''''''''''''''''''''''''''
 
-- Prefer to limit lines to at most 79 characters. Use of the 80th character is
+- :a:`[gen.len]`
+  Prefer to limit lines to at most 79 characters. Use of the 80th character is
   acceptable in cases where doing so is beneficial to readability.
 
   .. admonition:: Rationale:
@@ -57,7 +69,8 @@ General Presentation:
     often default to 80 columns wide) or other contexts such as github diffs
     where long lines are undesirable or problematic.
 
-- Place "header lines" immediately before a non-local function definition.
+- :a:`[gen.lines]`
+  Place "header lines" immediately before a non-local function definition.
   Header lines may also be placed before other definitions (e.g. classes) where
   deemed beneficial to readability. A header line consists of a C++ comment
   (two forward slashes), followed by a space, followed by a number of hyphens.
@@ -71,12 +84,14 @@ General Presentation:
     The header line is highly visible and *greatly* aids the reader in quickly
     locating function boundaries.
 
-- In case of long function definitions inside of a class definition, consider
-  use of indented header lines. An indented header line is indented to the same
-  level as the function header, and the number of hyphen characters is reduced
-  by the indent level.
+  - :a:`[gen.lines.indent]`
+    In case of long function definitions inside of a class definition, consider
+    use of indented header lines. An indented header line is indented to the
+    same level as the function header, and the number of hyphen characters is
+    reduced by the indent level.
 
-- Use region markers and separators when appropriate. Region markers consist of
+- :a:`[gen.regions]`
+  Use region markers and separators when appropriate. Region markers consist of
   C++ comments followed *immediately* (i.e. with no intervening whitespace) by
   ``BEGIN`` or ``END``, followed by a brief description of the contents of the
   region. Regions should be separated from one another by a line consisting of
@@ -93,27 +108,31 @@ General Presentation:
     is recognized by some editors and will be specially highlighted and may
     create folding regions.
 
-- Comments (meaning here, *textual* comments, not region markers and separator
+- :a:`[gen.comments]`
+  Comments (meaning here, *textual* comments, not region markers and separator
   lines) should be used judiciously. Don't use comments to say something that
   is obvious from the code itself, but do use comments to point out design
   choices, "gotchas", areas that need improvement, and to help separate blocks
   of related code.
 
-- Comments should start with a capital letter, and should use correct spelling
-  and grammar. (If possible, use an editor with built-in spell checking.)
-  However, comments normally do *not* end with a period, unless a comment
-  consists of more than one sentence. Sentence fragments (as long as the
-  grammar is not atrocious) are acceptable.
+  - :a:`[gen.comments.grammar]`
+    Comments should start with a capital letter, and should use correct
+    spelling and grammar. (If possible, use an editor with built-in spell
+    checking.) However, comments normally do *not* end with a period, unless a
+    comment consists of more than one sentence. Sentence fragments (as long as
+    the grammar is not atrocious) are acceptable.
 
-- When using C-style multi-line comments, the initial :cpp:`/*` should be
-  indented to the same level as surrounding code. Additional lines should start
-  with :code:`*` and be indented one additional space, so that each :code:`*`
-  lines up with the *first* :code:`*` of the initial line. (However, prefer to
-  avoid such comments aside from copyright notices and Doxygen documentation
-  blocks. For that matter, consider using :cpp:`///` for Doxygen documentation
-  of new code.)
+  - :a:`[gen.comments.format]`
+    When using C-style multi-line comments, the initial :cpp:`/*` should be
+    indented to the same level as surrounding code. Additional lines should
+    start with :code:`*` and be indented one additional space, so that each
+    :code:`*` lines up with the *first* :code:`*` of the initial line.
+    (However, prefer to avoid such comments aside from copyright notices and
+    Doxygen documentation blocks. For that matter, consider using :cpp:`///`
+    for Doxygen documentation of new code.)
 
-- Function prototypes should place the return type, class name, and method name
+- :a:`[gen.proto]`
+  Function prototypes should place the return type, class name, and method name
   on separate lines. Parameters may start on the same line as the method name.
 
   .. admonition:: Example:
@@ -127,7 +146,8 @@ General Presentation:
         ...
       }
 
-- A :cpp:`:` following a class declaration or constructor should be indented
+- :a:`[gen.class_colon]`
+  A :cpp:`:` following a class declaration or constructor should be indented
   and preceded by a newline, if the preceding and following text is not all on
   the same line. (Base class lists, however, may span lines without breaking
   before the :cpp:`:`.)
@@ -156,10 +176,11 @@ General Presentation:
       {
       }
 
-Whitespace:
-'''''''''''
+:a:`[ws]` Whitespace:
+'''''''''''''''''''''
 
-- Avoid tabulators.
+- :a:`[ws.tabs]`
+  Avoid tabulators.
 
   .. admonition:: Rationale:
 
@@ -167,7 +188,8 @@ Whitespace:
     confusing indentation when viewed in a context other than the author's
     editor.
 
-- Avoid trailing whitespace. If possible, configure your editor to
+- :a:`[ws.trailing]`
+  Avoid trailing whitespace. If possible, configure your editor to
   automatically remove trailing whitespace. This includes unnecessary blank
   lines at the end of a file.
 
@@ -177,7 +199,8 @@ Whitespace:
     to unnecessary diff noise. Many tools, including git itself, consider
     trailing whitespace to be an "error" and will highlight it accordingly.
 
-- Always end files with a newline character. If possible, configure your editor
+- :a:`[ws.eof]`
+  Always end files with a newline character. If possible, configure your editor
   to automatically add a newline if necessary.
 
   .. admonition:: Rationale:
@@ -187,7 +210,8 @@ Whitespace:
     As with trailing whitespace, some tools, including git, consider the lack
     of a terminal newline to be an error.
 
-- Prefer to avoid consecutive blank lines.
+- :a:`[ws.blanks]`
+  Prefer to avoid consecutive blank lines.
 
   .. admonition:: Rationale:
 
@@ -198,13 +222,15 @@ Whitespace:
     indicators such as header lines generally makes the additional visual
     distinction provided by multiple blank lines unnecessary.
 
-- Avoid blank lines after an access specifier (e.g. :cpp:`public:`) or the
+- :a:`[ws.access]`
+  Avoid blank lines after an access specifier (e.g. :cpp:`public:`) or the
   :cpp:`case` label of a :cpp:`switch`. However, prefer a blank line *before*
   these, unless the preceding line is the opening :cpp:`{`. (For multiple
   :cpp:`case` labels, omit lines between consecutive labels, placing a blank
   line before the first of the group of labels only.)
 
-- Use whitespace consistently. KWIVER generally adds whitespace:
+- :a:`[ws.space]`
+  Use whitespace consistently. KWIVER generally adds whitespace:
 
   - Inside of matching brackets (all of ``(){}[]<>``).
 
@@ -235,11 +261,13 @@ Whitespace:
   Avoid use of more than one space (besides indentation) unless aligning
   related text across multiple lines.
 
-- Aligning variable or parameter names across multiple lines (i.e. by the use
+- :a:`[ws.align]`
+  Aligning variable or parameter names across multiple lines (i.e. by the use
   of multiple spaces between the type name and identifier) is discouraged.
   (Aligning assignments is usually acceptable.)
 
-- Avoid blank lines in between the opening and closing lines of namespaces.
+- :a:`[ws.namespace]`
+  Avoid blank lines in between the opening and closing lines of namespaces.
   *Do* use a blank line between the opening of a namespace and any contents of
   that namespace other than a nested namespace, and between the end of such
   content and the brace closing the namespace.
@@ -259,12 +287,14 @@ Whitespace:
       } // namespace vital
       } // namespace kwiver
 
-Indentation and Braces:
-'''''''''''''''''''''''
+:a:`[indent]` Indentation and Braces:
+'''''''''''''''''''''''''''''''''''''
 
-- Use two spaces per level to indent.
+- :a:`[indent.amount]`
+  Use two spaces per level to indent.
 
-- Indent lists starting on the next line by one level relative to the list
+- :a:`[indent.broken]`
+  Indent lists starting on the next line by one level relative to the list
   scope.
 
   .. admonition:: Example:
@@ -275,7 +305,8 @@ Indentation and Braces:
                    it_has_many_parameters, that_have_very_long_names,
                    which_do_not_fit_on_one_line);
 
-- Indent broken lists to the same indentation as the first item.
+- :a:`[indent.continuation]`
+  Indent broken lists to the same indentation as the first item.
 
   .. admonition:: Example:
 
@@ -284,7 +315,8 @@ Indentation and Braces:
       example(this_function_also_has_a_really_long_parameter_list,
               so_it_too_needs_to_span_multiple_lines);
 
-- Prefer to break *after* operators, rather than before.
+- :a:`[indent.operator]`
+  Prefer to break *after* operators, rather than before.
 
   .. admonition:: Rationale:
 
@@ -316,32 +348,38 @@ Indentation and Braces:
         EXPECT_EQ(long_name, another_long_name)
           << "My assertion message does not fit on the same line!";
 
-- Use `Allman Style`_ braces. Indent braces to the same level as their
+- :a:`[indent.braces]`
+  Use `Allman Style`_ braces. Indent braces to the same level as their
   enclosing scope and/or initiating statement. Place initial braces on a new
   line.
 
-  - Exception: the initial brace of an initializer list or lambda normally
-    should *not* start a new line.
+  - :a:`[indent.braces.lambda]`
+    As an exception to the above, the initial brace of an initializer list or
+    lambda normally should *not* start a new line.
 
-- Prefer to use braces around single-line statements.
+  - :a:`[indent.braces.optional]`
+    Prefer to use braces around single-line statements.
 
-- Do not indent contents of namespaces.
+- :a:`[indent.namespace]`
+  Do not indent contents of namespaces.
 
-- Do not indent the :cpp:`->` of a trailing return type specifier; this should
+- :a:`[indent.trailing_return]`
+  Do not indent the :cpp:`->` of a trailing return type specifier; this should
   instead line up with the function name.
 
-    .. admonition:: Example:
+  .. admonition:: Example:
 
-      .. code:: c++
+    .. code:: c++
 
-        auto
-        my_function( ... )
-        -> decltype( ... );
+      auto
+      my_function( ... )
+      -> decltype( ... );
 
-Type Names:
-'''''''''''
+Type Names: :a:`[types]`
+''''''''''''''''''''''''
 
-- Prefer :cpp:`T const` to :cpp:`const T`.
+- :a:`[types.qualified]`
+  Prefer :cpp:`T const` to :cpp:`const T`.
 
   .. admonition:: Rationale:
 
@@ -360,7 +398,8 @@ Type Names:
     not match the naïve replacement pattern and will thus force the developer
     to consider the appropriate replacement for that case.
 
-- Prefer to use :cpp:`auto`, especially for overly long type names and where
+- :a:`[types.auto]`
+  Prefer to use :cpp:`auto`, especially for overly long type names and where
   the type is obvious from context. *Especially* prefer to use :cpp:`auto` if
   the type name is already present on the RHS of an assignment (such as when
   the RHS is a :cpp:`static_cast`).
@@ -378,7 +417,8 @@ Type Names:
     Most modern IDE's can deduce (and display) actual types when :cpp:`auto` is
     used for those instances when a reader needs to know the actual type.
 
-- Prefer to :cpp:`const`-qualify variables whenever possible. Additionally,
+- :a:`[types.const]`
+  Prefer to :cpp:`const`-qualify variables whenever possible. Additionally,
   prefer to make literal constants (that is, identifiers whose value is
   statically known) :cpp:`constexpr`.
 
@@ -387,14 +427,16 @@ Type Names:
     Making variables immutable helps to avoid unintended modification, and may
     permit additional compiler optimizations.
 
-- Create type aliases where appropriate. In particular, prefer to use type
+- :a:`[types.aliases]`
+  Create type aliases where appropriate. In particular, prefer to use type
   aliases in class definitions to clarify the intent of a specific
   instantiation of a template type.
 
-Includes:
-'''''''''
+Includes: :a:`[include]`
+''''''''''''''''''''''''
 
-- Separate groups of include directives with a single blank line. A "group" is
+- :a:`[include.groups]`
+  Separate groups of include directives with a single blank line. A "group" is
   a set of headers which belong to the same library or module.
 
   .. admonition:: Rationale:
@@ -402,7 +444,8 @@ Includes:
     Keeping groups separate improves readability and is necessary for other
     include rules to be applied sensibly.
 
-- Order groups of includes in decreasing order of dependency. The header
+- :a:`[includes.group_order]`
+  Order groups of includes in decreasing order of dependency. The header
   corresponding to the source file (e.g. ``#include "foo.h"`` in ``foo.cpp``)
   should always be first. (Private headers, e.g. ``foo_priv.h``, should appear
   before ``foo.h``, or instead of ``foo.h`` if that is included by the private
@@ -419,7 +462,8 @@ Includes:
     component's source file helps to ensure that the component's header is
     "self contained".
 
-- Prefer to order includes within a group by lexicographical order. (Don't get
+- :a:`[includes.order]`
+  Prefer to order includes within a group by lexicographical order. (Don't get
   hung up on the correct order of symbols versus letters, however, so long as
   such ordering is consistent within a group.)
 
@@ -429,12 +473,14 @@ Includes:
     limited; thus, some other criteria is needed to keep includes from being in
     arbitrary order. Lexicographical order is easy to remember.
 
-Miscellaneous:
-''''''''''''''
+Miscellaneous: :a:`[misc]`
+''''''''''''''''''''''''''
 
-- Use modern C++ when possible and applicable. In particular:
+- :a:`[misc.modern]`
+  Use modern C++ when possible and applicable. In particular:
 
-  - Prefer to use range-based :cpp:`for`.
+  - :a:`[misc.modern.range_for]`
+    Prefer to use range-based :cpp:`for`.
 
     .. admonition:: Example:
 
@@ -450,14 +496,18 @@ Miscellaneous:
         // If you really need the iterator...
         for ( auto iter : md | kwiver::vital::range::indirect )
 
-  - Write type aliases like :cpp:`using alias_name = aliased_type`.
+  - :a:`[misc.modern.typedef]`
+    Write type aliases like :cpp:`using alias_name = aliased_type`.
     Avoid :cpp:`typedef`.
 
-  - Always write :cpp:`nullptr`. Never use :cpp:`0` as a pointer.
+  - :a:`[misc.modern.nullptr]`
+    Always write :cpp:`nullptr`. Never use :cpp:`0` as a pointer.
 
-  - Always decorate virtual method overrides with :cpp:`override`.
+  - :a:`[misc.modern.override]`
+    Always decorate virtual method overrides with :cpp:`override`.
 
-  - Prefer inline member initialization when possible.
+  - :a:`[misc.modern.member_init]`
+    Prefer inline member initialization when possible.
 
     .. admonition:: Example:
 
@@ -477,9 +527,11 @@ Miscellaneous:
           int bar = 42;
         };
 
-  - Prefer uniform initialization (using ``{}``\ s, not ``()``\ s).
+  - :a:`[misc.modern.construct]`
+    Prefer uniform initialization (using ``{}``\ s, not ``()``\ s).
 
-  - Prefer to omit unneeded type names when constructing objects inline.
+  - :a:`[misc.modern.elision]`
+    Prefer to omit unneeded type names when constructing objects inline.
 
     .. admonition:: Example:
 
@@ -498,7 +550,8 @@ Miscellaneous:
     expresses programmer intent more explicitly, which allows the compiler to
     catch more errors.
 
-- Avoid use of postfix increment and decrement unless the old value is needed.
+- :a:`[misc.postfix]`
+  Avoid use of postfix increment and decrement unless the old value is needed.
 
   .. admonition:: Rationale:
 
@@ -508,7 +561,8 @@ Miscellaneous:
     data types (assuming that the compiler will optimize away the unneeded code
     when it sees that the result is unused), it is good to be consistent.
 
-- Avoid :cpp:`new` when possible. In particular, avoid :cpp:`new` when creating
+- :a:`[misc.new]`
+  Avoid :cpp:`new` when possible. In particular, avoid :cpp:`new` when creating
   a :cpp:`shared_ptr`; use :cpp:`make_shared` instead.
 
   .. admonition:: Rationale:
@@ -518,16 +572,19 @@ Miscellaneous:
     it is more efficient in many cases. For a more detailed rationale, see Herb
     Sutter's |gotw89|_.
 
-- Avoid explicit casts when an implicit conversion will suffice. In particular,
+- :a:`[misc.casts]`
+  Avoid explicit casts when an implicit conversion will suffice. In particular,
   avoid use of :cpp:`const_cast` and :cpp:`const_pointer_cast`, which are
   usually indicators that a potentially dangerous operation is occurring, to
   *add* :cpp:`const`-qualification; this can almost always be done implicitly.
 
-- Prefer to store intermediate values in local (:cpp:`const`-qualified!)
+- :a:`[misc.locals]`
+  Prefer to store intermediate values in local (:cpp:`const`-qualified!)
   variables. This increases the chances of being able to inspect these values
   in a debugger.
 
-- Prefer to omit comments after the :cpp:`#endif` of a multiple-inclusion
+- :a:`[misc.include_guard]`
+  Prefer to omit comments after the :cpp:`#endif` of a multiple-inclusion
   guard.
 
   .. admonition:: Rationale:
@@ -543,13 +600,15 @@ Miscellaneous:
     middle of a file, whereas multiple-inclusion guards are never nested and
     the :cpp:`#endif` is almost universally the last line of the header.
 
-API Style:
-''''''''''
+API Style: :a:`[api]`
+'''''''''''''''''''''
 
-- Prefer to follow STL naming conventions (lower case names with ``_`` between
+- :a:`[api.naming]`
+  Prefer to follow STL naming conventions (lower case names with ``_`` between
   words) for symbol names.
 
-- Avoid the use of abbreviations in names, especially in public API. Acronyms,
+- :a:`[api.abbrev]`
+  Avoid the use of abbreviations in names, especially in public API. Acronyms,
   especially where the full phrase is rarely or almost never used (e.g. "IO",
   "URI"), are okay, but prefer to use the full phrase if in doubt. (As an
   exception, :cpp:`foo_sptr` and :cpp:`foo_scptr` are commonly used to denote
@@ -565,7 +624,8 @@ API Style:
     to puzzle out what the abbreviation means), and encourages greater care to
     be given to devising concise names.
 
-- Prefer to avoid returning references. There may be exceptions where returning
+- :a:`[api.return]`
+  Prefer to avoid returning references. There may be exceptions where returning
   a reference is necessary, but in general it is dangerous as it opens the
   possibility of the reference outliving its owner. Moreover, if you *must*
   return a reference to an object your class owns, *strongly* consider adding
@@ -583,7 +643,8 @@ API Style:
     the local variable, especially if the reference is owned by the object on
     which the method is called, and that method is called on a temporary.
 
-- Use PIMPL_ when appropriate.
+- :a:`[api.pimpl]`
+  Use PIMPL_ when appropriate.
 
   .. admonition:: Example:
 
@@ -598,41 +659,47 @@ API Style:
         std::unique_ptr< priv > const d;
       };
 
-- Remember to decorate symbols that should be exported. Use generated export
+- :a:`[api.export]`
+  Remember to decorate symbols that should be exported. Use generated export
   headers.
 
-- Use exceptions and return values, not error codes and output parameters.
+- :a:`[api.exceptions]`
+  Use exceptions and return values, not error codes and output parameters.
 
   .. admonition:: Rationale:
 
     This allows for chaining functions, works with ``<algorithm>`` better,
     and allows more variables to be :cpp:`const`.
 
-API Documentation:
-''''''''''''''''''
+API Documentation: :a:`[doc]`
+'''''''''''''''''''''''''''''
 
 This section needs to be written.
 
-Unit Tests:
-'''''''''''
+Unit Tests: :a:`[test]`
+'''''''''''''''''''''''
 
-- New code should have unit tests wherever possible. Google Test is used for
-  writing C++ unit tests.
+New code should have unit tests wherever possible.
+Google Test is used for writing C++ unit tests.
 
-- Tests should use a suite name that reflects the class or algorithm being
+- :a:`[test.naming]`
+  Tests should use a suite name that reflects the class or algorithm being
   tested, and a case name that reflects what aspect or behavior of the class or
   algorithm is being tested. See existing tests for examples.
 
-- Prefer to use parameterized tests when appropriate. Avoid creating multiple
+- :a:`[test.parameterized]`
+  Prefer to use parameterized tests when appropriate. Avoid creating multiple
   test cases that differ only by input types or values. Also avoid setting up
   test cases where a single test case performs the same set of tests on a set
   of types or values; these should be refactored as parameterized test.
 
-- Reuse test code when possible. If two or more arrows implement similar
+- :a:`[test.reuse]`
+  Reuse test code when possible. If two or more arrows implement similar
   algorithms, try to implement the tests so that they share code as much as
   possible. See ``arrows/tests`` for some examples.
 
-- Don't forget to use fatal assertions (``ASSERT_*`` vs. ``EXPECT_*``) when
+- :a:`[test.assertions]`
+  Don't forget to use fatal assertions (``ASSERT_*`` vs. ``EXPECT_*``) when
   appropriate. If it does not make sense to continue a test case after a
   particular failure, use a fatal rather than non-fatal assertion. Especially
   use fatal assertions when obtaining a resource for later use in order to
@@ -640,7 +707,8 @@ Unit Tests:
   dereference. (Similarly, don't use :cpp:`if` to avoid crashes that are better
   prevented by stopping a test case via a fatal assertion.)
 
-- Use helper functions or inline, immediately invoked lambdas when it is
+- :a:`[test.helpers]`
+  Use helper functions or inline, immediately invoked lambdas when it is
   helpful for an assertion to terminate a block of code, but not the entire
   test case.
 
@@ -662,10 +730,12 @@ Unit Tests:
         // More assertions...
       }
 
-- Make use of ``SCOPED_TRACE``. Using this to provide information about the
+- :a:`[test.trace]`
+  Make use of ``SCOPED_TRACE``. Using this to provide information about the
   current loop iteration inside of a loop body is especially useful.
 
-- Provide additional information about a failed assertion when necessary, but
+- :a:`[test.info]`
+  Provide additional information about a failed assertion when necessary, but
   do so *judiciously*. In particular, resist the urge to repeat information
   that is already available from the assertion itself. Keep in mind that Google
   Test will print the arguments of a failed assertion as well as the location
@@ -689,32 +759,38 @@ Unit Tests:
         ASSERT_TRUE( !!r ) << "Failed to obtain required resource";
       }
 
-CMake:
-''''''
+CMake: :a:`[cmake]`
+'''''''''''''''''''
 
 To the extent possible, CMake source should follow the same rules as C++ code.
 In particular:
 
-- Use two spaces to indent.
+- :a:`[cmake.indent]`
+  Use two spaces to indent.
 
-- Break lines in the same manner as in C++.
+- :a:`[cmake.line_breaks]`
+  Break lines in the same manner as in C++.
 
 Also, try to follow best practices for modern CMake, and use KWIVER utility
 functions as appropriate. In particular:
 
-- Use lowercase for private variables, and uppercase for user-controlled
+- :a:`[cmake.variables]`
+  Use lowercase for private variables, and uppercase for user-controlled
   variables.
 
-- Prefer functions over macros
+- :a:`[cmake.functions]`
+  Prefer functions over macros
 
   .. admonition:: Rationale:
 
     Unlike macros, functions create a new variable scope which prevents
     "leaking" variables into the caller's scope. They are also easier to debug.
 
-- Prefer :cmake:`foreach (var IN LISTS list)` and :cmake:`list(APPEND)`.
+- :a:`[cmake.lists]`
+  Prefer :cmake:`foreach (var IN LISTS list)` and :cmake:`list(APPEND)`.
 
-- Prefer :cmake:`kwiver_configure_file` over :cmake:`configure_file` when
+- :a:`[cmake.configure_file]`
+  Prefer :cmake:`kwiver_configure_file` over :cmake:`configure_file` when
   possible.
 
   .. admonition:: Rationale:
@@ -724,11 +800,13 @@ functions as appropriate. In particular:
     the configure dependencies and avoids forcing the user to re-run CMake when
     the inputs change.
 
-- Use the ``kwiver_`` wrappers of common commands (e.g., :cmake:`add_library`,
+- :a:`[cmake.wrappers]`
+  Use the ``kwiver_`` wrappers of common commands (e.g., :cmake:`add_library`,
   :cmake:`add_test`, etc.) as they automatically Do The Right Thing with
   installation, compile flags, build locations, and more.
 
-- Quote *all* paths and variable expansions unless list expansion is required
+- :a:`[cmake.paths]`
+  Quote *all* paths and variable expansions unless list expansion is required
   (usually in command arguments or optional arguments).
 
 .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
