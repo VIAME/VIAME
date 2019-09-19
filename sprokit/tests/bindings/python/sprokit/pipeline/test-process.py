@@ -251,7 +251,7 @@ def test_peek_at_datum_on_port():
     """
     from sprokit.pipeline import process
     from sprokit.pipeline import datum, DatumType
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import edge
     from sprokit.pipeline import stamp
     cfg = config.empty_config()

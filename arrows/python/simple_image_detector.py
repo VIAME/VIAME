@@ -56,7 +56,7 @@ class SimpleImageObjectDetector(ImageObjectDetector):
         >>> image_detector = ImageObjectDetector.create("SimpleImageObjectDetector")
         >>> from vital.types import Image, ImageContainer
         >>> image = ImageContainer(Image())
-        >>> from sprokit.pipeline import config
+        >>> from vital.config import config
         >>> tc = config.empty_config()
         >>> tc.set_value("center_x", "200")
         >>> tc.set_value("center_y", "100")
