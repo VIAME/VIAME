@@ -505,4 +505,4 @@ VITAL_EXPORT bool test_equal_content( const kwiver::vital::metadata& one,
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_METADATA_H_ */
+#endif

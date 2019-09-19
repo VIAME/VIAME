@@ -97,4 +97,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_INITIALIZE_CAMERAS_LANDMARKS_KEYFRAME_H_
+#endif

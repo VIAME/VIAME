@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,4 +101,4 @@ features_to_viscl(const vital::feature_set& features);
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VISCL_FEATURE_SET_H_
+#endif

@@ -228,4 +228,4 @@ protected:
 } // end namespace vital
 } // end namespace kwiver
 
-#endif // KWIVER_VITAL_METADATA_MAP_H_
+#endif

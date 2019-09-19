@@ -92,4 +92,4 @@ protected:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_GDAL_IMAGE_CONTAINER_H_
+#endif

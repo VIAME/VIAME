@@ -73,4 +73,4 @@ VITAL_EXPORT::std::ostream& operator<< ( ::std::ostream& str, geo_covariance con
 }
 } // end namespace
 
-#endif /* KWIVER_VITAL_GEO_POINT_W_COV_H_ */
+#endif

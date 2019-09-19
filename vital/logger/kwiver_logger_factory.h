@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,4 +93,4 @@ private:
 } } } // end namespace
 
 
-#endif /* KWIVER_KWIVER_LOGGER_FACTORY_H_ */
+#endif

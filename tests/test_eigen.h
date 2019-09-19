@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -173,4 +173,4 @@ static auto compare_similar_matrices = similar_matrix_comparator{};
 } // end namespace testing
 } // end namespace kwiver
 
-#endif // KWIVER_TEST_TEST_EIGEN_H_
+#endif

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,4 +162,4 @@ CERES_ENUM_HELPERS(kwiver::arrows::ceres, CameraIntrinsicShareType)
 #undef CERES_ENUM_HELPERS
 
 
-#endif // KWIVER_ARROWS_CERES_TYPES_H_
+#endif

@@ -134,4 +134,4 @@ VITAL_EXPORT ::std::ostream& operator<< ( ::std::ostream& str, geo_point const& 
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_GEO_POINT_H_ */
+#endif
