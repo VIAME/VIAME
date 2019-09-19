@@ -527,6 +527,22 @@ Miscellaneous:
   variables. This increases the chances of being able to inspect these values
   in a debugger.
 
+- Prefer to omit comments after the :cpp:`#endif` of a multiple-inclusion
+  guard.
+
+  .. admonition:: Rationale:
+
+    Although it is fairly common practice to repeat the guard symbol after the
+    :cpp:`#endif`, these comments actually serve very little purpose, and they
+    add an additional maintenance burden. Headers are often copied or renamed,
+    and it is very easy for these comments to become outdated and incorrect.
+
+    Although we *do* recommend similar comments after the brace ending a
+    namespace, namespaces change far less often, and a single brace is much
+    more ambiguous, especially as namespaces may be nested and/or end in the
+    middle of a file, whereas multiple-inclusion guards are never nested and
+    the :cpp:`#endif` is almost universally the last line of the header.
+
 API Style:
 ''''''''''
 
