@@ -37,6 +37,9 @@ Vital Types
 
 Vital Bindings
 
+ * Moved python bindings associated with config from sprokit.pipeline to
+   vital.config.
+
 Arrows
 
 Arrows: Core
