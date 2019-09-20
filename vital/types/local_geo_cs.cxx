@@ -283,6 +283,11 @@ initialize_cameras_with_metadata(std::map<vital::frame_id_t,
         vital::geo_point gloc;
         mdi.data(gloc);
 
+        // set the origin to the ground
+        vital::vector_3d loc = gloc.location();
+        loc[2] = 0.0;
+        gloc.set_location(loc, gloc.crs());
+
         lgcs.set_origin(gloc);
         update_local_origin = true;
         break;

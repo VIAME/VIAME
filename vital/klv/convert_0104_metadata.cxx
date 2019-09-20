@@ -79,16 +79,6 @@ is_empty( Eigen::Matrix< double, N, 1, 0, N, 1 > const& vec )
 
 // ----------------------------------------------------------------------------
 bool
-is_valid_lon_lat( vector_3d const& vec )
-{
-  auto const lat = vec[1];
-  auto const lon = vec[0];
-  return ( lat >= -90.0 && lat <= 90.0 ) &&
-         ( lon >= -180.0 && lon <= 360.0 );
-}
-
-// ----------------------------------------------------------------------------
-bool
 is_valid_lon_lat( vector_2d const& vec )
 {
   auto const lat = vec[1];
@@ -155,8 +145,8 @@ void convert_metadata
   // lat-lon points and image corner points. All geodetic points are assumed to
   // be WGS84 lat-lon.
   //
-  auto raw_sensor_location = empty_vector<3>();
-  auto raw_frame_center = empty_vector<3>();
+  auto raw_sensor_location = empty_vector<2>();
+  auto raw_frame_center = empty_vector<2>();
   auto raw_corner_pt1 = empty_vector<2>(); // offsets relative to frame_center
   auto raw_corner_pt2 = empty_vector<2>();
   auto raw_corner_pt3 = empty_vector<2>();
@@ -309,7 +299,13 @@ case klv_0104::N:                                         \
     }
     else
     {
-      auto const sensor_location = geo_point{ raw_sensor_location, SRID::lat_lon_WGS84 };
+      vector_3d sensor_loc(raw_sensor_location[0], raw_sensor_location[1], 0.0);
+      // add altitude, if available, to the sensor location
+      if (auto const& alt = md.find(VITAL_META_SENSOR_ALTITUDE))
+      {
+        sensor_loc[2] = alt.as_double();
+      }
+      auto const sensor_location = geo_point{ sensor_loc, SRID::lat_lon_WGS84 };
       md.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
     }
   }
