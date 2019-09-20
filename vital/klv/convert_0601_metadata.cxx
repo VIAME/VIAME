@@ -178,13 +178,13 @@ convert_metadata
   // lat-lon points and image corner points. All geodetic points are assumed to
   // be WGS84 lat-lon.
   //
-  auto raw_sensor_location = empty_vector<3>();
-  auto raw_frame_center = empty_vector<3>();
+  auto raw_sensor_location = empty_vector<2>();
+  auto raw_frame_center = empty_vector<2>();
   auto raw_corner_pt1 = empty_vector<2>(); // offsets relative to frame_center
   auto raw_corner_pt2 = empty_vector<2>();
   auto raw_corner_pt3 = empty_vector<2>();
   auto raw_corner_pt4 = empty_vector<2>();
-  auto raw_target_location = empty_vector<3>();
+  auto raw_target_location = empty_vector<2>();
 
   for ( auto itr = lds.begin(); itr != lds.end(); ++itr )
   {
