@@ -79,16 +79,6 @@ is_empty( Eigen::Matrix< double, N, 1, 0, N, 1 > const& vec )
 
 // ----------------------------------------------------------------------------
 bool
-is_valid_lon_lat( vector_3d const& vec )
-{
-  auto const lat = vec[1];
-  auto const lon = vec[0];
-  return ( lat >= -90.0 && lat <= 90.0 ) &&
-         ( lon >= -180.0 && lon <= 360.0 );
-}
-
-// ----------------------------------------------------------------------------
-bool
 is_valid_lon_lat( vector_2d const& vec )
 {
   auto const lat = vec[1];
