@@ -12,6 +12,8 @@
 
 #include <track_oracle/core/track_base.h>
 #include <track_oracle/core/track_field.h>
+#include <track_oracle/data_terms/data_terms.h>
+
 #include <string>
 #include <utility>
 #include <vgl/vgl_box_2d.h>
@@ -24,22 +26,23 @@ namespace track_oracle {
 
 struct TRACK_VPD_EXPORT track_vpd_event_type: public track_base< track_vpd_event_type >
 {
-  track_field< unsigned >& event_id;
+  track_field< dt::events::event_id > event_id;
   track_field< unsigned >& event_type;
   track_field< unsigned >& start_frame;
   track_field< unsigned >& end_frame;
   track_field< std::vector< unsigned > >& object_id_list;
-  track_field< unsigned >& frame_number;
-  track_field< vgl_box_2d<double> >& bounding_box;
+  track_field< dt::tracking::frame_number > frame_number;
+  track_field< dt::tracking::bounding_box > bounding_box;
   track_vpd_event_type():
-    event_id( Track.add_field< unsigned >( "event_id" )),
     event_type( Track.add_field< unsigned >( "vpd_event_type" )),
     start_frame( Track.add_field< unsigned >( "start_frame" )),
     end_frame( Track.add_field< unsigned >( "end_frame" )),
-    object_id_list( Track.add_field< std::vector< unsigned > >( "object_id_list" )),
-    frame_number( Frame.add_field< unsigned >( "frame_number" )),
-    bounding_box( Frame.add_field< vgl_box_2d<double> >( "bounding_box" ))
-  {}
+    object_id_list( Track.add_field< std::vector< unsigned > >( "object_id_list" ))
+  {
+    Track.add_field( event_id );
+    Frame.add_field( frame_number );
+    Frame.add_field( bounding_box );
+  }
 
   static std::string event_type_to_str( unsigned t );
   static unsigned str_to_event_type( const std::string& s );
