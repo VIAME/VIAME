@@ -23,6 +23,10 @@ Arrows - Core
    removing all features within a radius of the strongest points.
    The radius is dynamically adapted to achieve a target point count.
 
+ * Added an option to the fundamental matrix matcher that does a second
+   round of filtering to remove outliers with large motion relative to
+   most other matches.
+
 
 Fixes since last public release
 -------------------------------
