@@ -299,7 +299,13 @@ case klv_0104::N:                                         \
     }
     else
     {
-      auto const sensor_location = geo_point{ raw_sensor_location, SRID::lat_lon_WGS84 };
+      vector_3d sensor_loc(raw_sensor_location[0], raw_sensor_location[1], 0.0);
+      // add altitude, if available, to the sensor location
+      if (auto const& alt = md.find(VITAL_META_SENSOR_ALTITUDE))
+      {
+        sensor_loc[2] = alt.as_double();
+      }
+      auto const sensor_location = geo_point{ sensor_loc, SRID::lat_lon_WGS84 };
       md.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
     }
   }
