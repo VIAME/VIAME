@@ -551,7 +551,10 @@ bundle_adjust
   }
 
   // Add camera path regularization residuals
-  d_->add_camera_path_smoothness_cost(problem, d_->camera_params);
+  if (to_fix_cameras.empty())
+  {
+    d_->add_camera_path_smoothness_cost(problem, d_->camera_params);
+  }
 
   // Add camera path regularization residuals
   d_->add_forward_motion_damping_cost(problem, d_->camera_params, d_->frame_to_intr_map);
