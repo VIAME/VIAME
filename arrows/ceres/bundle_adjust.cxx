@@ -517,14 +517,16 @@ bundle_adjust
       {
         double *param0 = &cam_itr_0->second[0];
         double *param1 = &cam_itr_1->second[0];
-        double dx = param0[3] - param1[3];
-        double dy = param0[4] - param1[4];
-        double dz = param0[5] - param1[5];
-        double distance_squared = dx*dx + dy*dy + dz*dz;
-        int num_residuals = problem.NumResiduals();
+        double distance_squared =
+          (Eigen::Map<vector_3d>(param0 + 3) -
+           Eigen::Map<vector_3d>(param1 + 3)).squaredNorm();
+        double scale = problem.NumResiduals() / distance_squared;
 
-        auto dist_loss = new ::ceres::ScaledLoss(NULL, num_residuals, ::ceres::Ownership::TAKE_OWNERSHIP);
-        problem.AddResidualBlock(distance_constraint::create(distance_squared), dist_loss, param0, param1);
+        auto dist_loss =
+          new ::ceres::ScaledLoss(NULL, scale,
+                                  ::ceres::Ownership::TAKE_OWNERSHIP);
+        problem.AddResidualBlock(distance_constraint::create(distance_squared),
+                                 dist_loss, param0, param1);
       }
     }
   }

@@ -473,3 +473,63 @@ TEST(bundle_adjust, auto_share_intrinsics)
   EXPECT_EQ( 2, test_ba_intrinsic_sharing( cameras, cfg ) )
     << "Resulting camera intrinsics should be unique";
 }
+
+// ----------------------------------------------------------------------------
+// Helper for tests of different data scales
+static void
+test_ba_data_scales(kwiver::vital::config_block_sptr cfg,
+                    double scale = 1.0)
+{
+  ceres::bundle_adjust ba;
+  ba.set_configuration(cfg);
+
+  // The intrinsic camera parameters to use
+  simple_camera_intrinsics K(1000, vector_2d(640, 480));
+
+  // create a camera sequence (elliptical path)
+  camera_map_sptr cameras = kwiver::testing::camera_seq(20, K, scale);
+
+  // create landmarks at the corners of a cube
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0 * scale);
+
+  // create tracks from the projections
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
+
+  // add Gaussian noise to the landmark positions
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1*scale);
+
+  // add Gaussian noise to the camera positions and orientations
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1*scale, 0.1);
+
+
+  double init_rmse = reprojection_rmse(cameras0->cameras(),
+    landmarks0->landmarks(),
+    tracks->tracks());
+  std::cout << "Data scaled by " << scale << "X" << std::endl;
+  std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
+
+  ba.optimize(cameras0, landmarks0, tracks);
+
+  double end_rmse = reprojection_rmse(cameras0->cameras(),
+    landmarks0->landmarks(),
+    tracks->tracks());
+  std::cout << "Final reprojection RMSE: " << end_rmse << std::endl;
+  EXPECT_NEAR(0.0, end_rmse, 1e-5);
+}
+
+// ----------------------------------------------------------------------------
+// Test bundle adjustment with different data scales
+TEST(bundle_adjust, data_scales)
+{
+  ceres::bundle_adjust ba;
+  config_block_sptr cfg = ba.get_configuration();
+  cfg->set_value("verbose", "true");
+  cfg->set_value("camera_intrinsic_share_type", "FORCE_COMMON_INTRINSICS");
+
+  test_ba_data_scales(cfg, 1.0);
+  test_ba_data_scales(cfg, 10.0);
+  test_ba_data_scales(cfg, 100.0);
+  test_ba_data_scales(cfg, 1000.0);
+}
