@@ -546,28 +546,30 @@ camera_options
       ext_params.size() >= 3 )
   {
     ::ceres::CostFunction* smoothness_cost = NULL;
-    typedef cam_param_map_t::iterator cp_itr_t;
-    cp_itr_t prev_cam = ext_params.begin();
-    cp_itr_t curr_cam = prev_cam;
+    std::map<vital::frame_id_t, double *> sorted_map;
+    for (auto& item : ext_params)
+    {
+      sorted_map.insert(std::make_pair(item.first, &item.second[0]));
+    }
+    auto prev_cam = sorted_map.begin();
+    auto curr_cam = prev_cam;
     curr_cam++;
-    cp_itr_t next_cam = curr_cam;
+    auto next_cam = curr_cam;
     next_cam++;
-    for(; next_cam != ext_params.end();
+    for(; next_cam != sorted_map.end();
         prev_cam = curr_cam, curr_cam = next_cam, next_cam++)
     {
-      if(std::abs(prev_cam->first - curr_cam->first) == 1 &&
-         std::abs(curr_cam->first - next_cam->first) == 1 )
+      double total = static_cast<double>(next_cam->first - prev_cam->first);
+      double frac = (curr_cam->first - prev_cam->first) / total;
+      if (total > 0.0 && frac > 0.0 && frac < 1.0 )
       {
-        if(!smoothness_cost)
-        {
-          smoothness_cost =
-            camera_position_smoothness::create(this->camera_path_smoothness);
-        }
+        smoothness_cost = camera_position_smoothness::create(
+          this->camera_path_smoothness / total, frac);
         problem.AddResidualBlock(smoothness_cost,
                                  NULL,
-                                 &prev_cam->second[0],
-                                 &curr_cam->second[0],
-                                 &next_cam->second[0]);
+                                 prev_cam->second,
+                                 curr_cam->second,
+                                 next_cam->second);
       }
     }
   }
