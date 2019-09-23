@@ -44,3 +44,7 @@ Arrows - Ceres
    bundle adjustment.  As a result, filtering often removed these points as
    outliers.  It is better to only optimize intrinsics when not shared with
    a fixed camera.
+
+ * Fixed and issue with bundle adjustment regularization in which the
+   regularization would dominate the data terms if the scale of the data
+   was large.
