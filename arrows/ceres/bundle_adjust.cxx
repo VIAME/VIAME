@@ -431,6 +431,26 @@ bundle_adjust
     }
   }
 
+
+  if (d_->camera_path_smoothness > 0.0 ||
+      d_->camera_forward_motion_damping > 0.0)
+  {
+    // sort the camera parameters in order of frame number
+    std::vector<std::pair<vital::frame_id_t, double *> > ordered_params;
+    for (auto& item : d_->camera_params)
+    {
+      ordered_params.push_back(std::make_pair(item.first, &item.second[0]));
+    }
+    std::sort(ordered_params.begin(), ordered_params.end());
+
+    // Add camera path regularization residuals
+    d_->add_camera_path_smoothness_cost(problem, ordered_params);
+
+    // Add forward motion regularization residuals
+    d_->add_forward_motion_damping_cost(problem, ordered_params, d_->frame_to_intr_map);
+  }
+
+
   //fix all the cameras in the to_fix_cameras list
   std::unordered_set<unsigned int> to_fix_intrinsics;
   for (auto tfc : to_fix_cameras)
@@ -549,15 +569,6 @@ bundle_adjust
         new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
     }
   }
-
-  // Add camera path regularization residuals
-  if (to_fix_cameras.empty())
-  {
-    d_->add_camera_path_smoothness_cost(problem, d_->camera_params);
-  }
-
-  // Add camera path regularization residuals
-  d_->add_forward_motion_damping_cost(problem, d_->camera_params, d_->frame_to_intr_map);
 
   // If the loss function was added to a residual block, ownership was
   // transfered.  If not then we need to delete it.

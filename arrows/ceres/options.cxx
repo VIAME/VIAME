@@ -538,39 +538,49 @@ camera_options
 /// Add the camera path smoothness costs to the Ceres problem
 void
 camera_options
-::add_camera_path_smoothness_cost(::ceres::Problem& problem,
-                                  cam_param_map_t& ext_params) const
+::add_camera_path_smoothness_cost(
+    ::ceres::Problem& problem,
+    frame_params_t const& ordered_params) const
 {
   // Add camera path regularization residuals
   if( this->camera_path_smoothness > 0.0 &&
-      ext_params.size() >= 3 )
+      ordered_params.size() >= 3 )
   {
     ::ceres::CostFunction* smoothness_cost = NULL;
-    std::map<vital::frame_id_t, double *> sorted_map;
-    for (auto& item : ext_params)
-    {
-      sorted_map.insert(std::make_pair(item.first, &item.second[0]));
-    }
-    auto prev_cam = sorted_map.begin();
+    double sum_dist = 0.0;
+    auto prev_cam = ordered_params.begin();
     auto curr_cam = prev_cam;
     curr_cam++;
     auto next_cam = curr_cam;
     next_cam++;
-    for(; next_cam != sorted_map.end();
+    std::vector<std::tuple<decltype(curr_cam), double, double> > constraints;
+    for(; next_cam != ordered_params.end();
         prev_cam = curr_cam, curr_cam = next_cam, next_cam++)
     {
-      double total = static_cast<double>(next_cam->first - prev_cam->first);
-      double frac = (curr_cam->first - prev_cam->first) / total;
-      if (total > 0.0 && frac > 0.0 && frac < 1.0 )
+      double inv_dist = 1.0 / static_cast<double>(next_cam->first -
+                                                  prev_cam->first);
+      double frac = (curr_cam->first - prev_cam->first) * inv_dist;
+      if (inv_dist > 0.0 && frac > 0.0 && frac < 1.0 )
       {
-        smoothness_cost = camera_position_smoothness::create(
-          this->camera_path_smoothness / total, frac);
-        problem.AddResidualBlock(smoothness_cost,
-                                 NULL,
-                                 prev_cam->second,
-                                 curr_cam->second,
-                                 next_cam->second);
+        double d = (Eigen::Map<vector_3d>(prev_cam->second+3) -
+                    Eigen::Map<vector_3d>(next_cam->second+3)).norm();
+        sum_dist += d;
+        constraints.push_back(std::make_tuple(curr_cam, inv_dist, frac));
       }
+    }
+    // Normalize the weight
+    const double weight = this->camera_path_smoothness
+      * problem.NumResiduals() / sum_dist; // constraints.size();
+    for (auto const& t : constraints)
+    {
+      auto cam_itr = std::get<0>(t);
+      const double w = weight * std::get<1>(t);
+      smoothness_cost = camera_position_smoothness::create(w, std::get<2>(t));
+      problem.AddResidualBlock(smoothness_cost,
+                               NULL,
+                               (cam_itr-1)->second,
+                               cam_itr->second,
+                               (cam_itr+1)->second);
     }
   }
 }
@@ -579,20 +589,20 @@ camera_options
 /// Add the camera forward motion damping costs to the Ceres problem
 void
 camera_options
-::add_forward_motion_damping_cost(::ceres::Problem& problem,
-                                  cam_param_map_t& ext_params,
-                                  cam_intrinsic_id_map_t const& frame_to_intr_map) const
+::add_forward_motion_damping_cost(
+    ::ceres::Problem& problem,
+    frame_params_t const& ordered_params,
+    cam_intrinsic_id_map_t const& frame_to_intr_map) const
 {
   if( this->camera_forward_motion_damping > 0.0 &&
-      ext_params.size() >= 2 )
+      ordered_params.size() >= 2 )
   {
     ::ceres::CostFunction* fwd_mo_cost =
       camera_limit_forward_motion::create(this->camera_forward_motion_damping);
-    typedef cam_param_map_t::iterator cp_itr_t;
-    cp_itr_t prev_cam = ext_params.begin();
-    cp_itr_t curr_cam = prev_cam;
+    auto prev_cam = ordered_params.begin();
+    auto curr_cam = prev_cam;
     curr_cam++;
-    for(; curr_cam != ext_params.end();
+    for(; curr_cam != ordered_params.end();
         prev_cam = curr_cam, curr_cam++)
     {
       // add a forward motion residual only when the camera intrinsic models
@@ -605,8 +615,8 @@ camera_options
       {
         problem.AddResidualBlock(fwd_mo_cost,
                                  NULL,
-                                 &prev_cam->second[0],
-                                 &curr_cam->second[0]);
+                                 prev_cam->second,
+                                 curr_cam->second);
       }
     }
   }
