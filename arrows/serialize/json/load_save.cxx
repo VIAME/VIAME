@@ -452,7 +452,7 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::geo_point& point 
              CEREAL_NVP( y )
       );
 
-    const kwiver::vital::geo_point::geo_raw_point_t raw( x, y );
+    const kwiver::vital::geo_point::geo_raw_point_t raw( x, y, 0 );
     point.set_location( raw, crs );
   }
 }
