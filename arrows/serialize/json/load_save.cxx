@@ -433,7 +433,8 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::geo_point&
 
     archive( ::cereal::make_nvp( "crs", point.crs() ),
              ::cereal::make_nvp( "x", loc[0] ),
-             ::cereal::make_nvp( "y", loc[1] )
+             ::cereal::make_nvp( "y", loc[1] ),
+             ::cereal::make_nvp( "z", loc[2] )
       );
   }
 }
@@ -446,13 +447,14 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::geo_point& point 
 
   if ( crs != -1 ) // empty marker
   {
-    double x, y;
+    double x, y, z;
     archive( CEREAL_NVP( crs ),
              CEREAL_NVP( x ),
-             CEREAL_NVP( y )
+             CEREAL_NVP( y ),
+             CEREAL_NVP( z )
       );
 
-    const kwiver::vital::geo_point::geo_raw_point_t raw( x, y );
+    const kwiver::vital::geo_point::geo_raw_point_t raw( x, y, z );
     point.set_location( raw, crs );
   }
 }

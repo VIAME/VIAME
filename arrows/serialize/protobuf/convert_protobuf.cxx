@@ -556,6 +556,7 @@ void convert_protobuf( const kwiver::protobuf::geo_point&  proto_point,
     kwiver::vital::geo_point::geo_raw_point_t pt;
     pt[0] = proto_point.x();
     pt[1] = proto_point.y();
+    pt[2] = proto_point.z();
     point.set_location( pt, proto_point.crs() );
   }
 }
@@ -571,6 +572,7 @@ void convert_protobuf( const kwiver::vital::geo_point& point,
     const auto loc = point.location( point.crs() );
     proto_point.set_x( loc[0] );
     proto_point.set_y( loc[1] );
+    proto_point.set_z( loc[2] );
   }
 }
 
