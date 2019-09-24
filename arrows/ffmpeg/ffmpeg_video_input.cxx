@@ -285,7 +285,6 @@ public:
         this->f_start_time = -1;
         return false;
     }
-
     // Now seek back to the start of the video
     auto seek_rslt = av_seek_frame( this->f_format_context,
                                     this->f_video_index,
@@ -300,7 +299,8 @@ public:
     }
     this->frame_advanced = 0;
     this->f_frame->data[0] = NULL;
-
+    avcodec_close(codec_context_origin);
+    codec_context_origin = NULL;
     return true;
   }
 
@@ -339,7 +339,7 @@ public:
       avformat_close_input(&this->f_format_context);
       this->f_format_context = nullptr;
     }
-
+    avcodec_close(this->f_video_encoding);
     this->f_video_encoding = nullptr;
   }
 
