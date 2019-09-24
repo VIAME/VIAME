@@ -546,7 +546,6 @@ camera_options
   if( this->camera_path_smoothness > 0.0 &&
       ordered_params.size() >= 3 )
   {
-    ::ceres::CostFunction* smoothness_cost = NULL;
     double sum_dist = 0.0;
     auto prev_cam = ordered_params.begin();
     auto curr_cam = prev_cam;
@@ -562,20 +561,20 @@ camera_options
       double frac = (curr_cam->first - prev_cam->first) * inv_dist;
       if (inv_dist > 0.0 && frac > 0.0 && frac < 1.0 )
       {
-        double d = (Eigen::Map<vector_3d>(prev_cam->second+3) -
-                    Eigen::Map<vector_3d>(next_cam->second+3)).norm();
-        sum_dist += d;
+        sum_dist += (Eigen::Map<vector_3d>(prev_cam->second+3) -
+                     Eigen::Map<vector_3d>(next_cam->second+3)).norm();
         constraints.push_back(std::make_tuple(curr_cam, inv_dist, frac));
       }
     }
     // Normalize the weight
     const double weight = this->camera_path_smoothness
-      * problem.NumResiduals() / sum_dist; // constraints.size();
+                        * problem.NumResiduals() / sum_dist;
     for (auto const& t : constraints)
     {
       auto cam_itr = std::get<0>(t);
       const double w = weight * std::get<1>(t);
-      smoothness_cost = camera_position_smoothness::create(w, std::get<2>(t));
+      ::ceres::CostFunction* smoothness_cost  =
+        camera_position_smoothness::create(w, std::get<2>(t));
       problem.AddResidualBlock(smoothness_cost,
                                NULL,
                                (cam_itr-1)->second,
@@ -597,27 +596,41 @@ camera_options
   if( this->camera_forward_motion_damping > 0.0 &&
       ordered_params.size() >= 2 )
   {
-    ::ceres::CostFunction* fwd_mo_cost =
-      camera_limit_forward_motion::create(this->camera_forward_motion_damping);
+    double sum_dist = 0.0;
     auto prev_cam = ordered_params.begin();
     auto curr_cam = prev_cam;
     curr_cam++;
-    for(; curr_cam != ordered_params.end();
-        prev_cam = curr_cam, curr_cam++)
+    std::vector<decltype(curr_cam) > constraints;
+    for (; curr_cam != ordered_params.end();
+           prev_cam = curr_cam, curr_cam++)
     {
       // add a forward motion residual only when the camera intrinsic models
       // are not the same instance
       auto prev_idx = frame_to_intr_map.find(prev_cam->first);
       auto curr_idx = frame_to_intr_map.find(curr_cam->first);
-      if(prev_idx != frame_to_intr_map.end() &&
-         curr_idx != frame_to_intr_map.end() &&
-         prev_idx->second != curr_idx->second)
+      if (prev_idx != frame_to_intr_map.end() &&
+          curr_idx != frame_to_intr_map.end() &&
+          prev_idx->second != curr_idx->second)
       {
-        problem.AddResidualBlock(fwd_mo_cost,
-                                 NULL,
-                                 prev_cam->second,
-                                 curr_cam->second);
+        sum_dist += (Eigen::Map<vector_3d>(prev_cam->second + 3) -
+                     Eigen::Map<vector_3d>(curr_cam->second + 3)).squaredNorm();
+        constraints.push_back(curr_cam);
       }
+    }
+    // Normalize the weight
+    const double weight = this->camera_forward_motion_damping
+                        * problem.NumResiduals() / sum_dist;
+    for (auto curr_cam : constraints)
+    {
+      auto prev_cam = curr_cam - 1;
+      double inv_dist = 1.0 / static_cast<double>(curr_cam->first -
+                                                  prev_cam->first);
+      ::ceres::CostFunction* fwd_mo_cost =
+        camera_limit_forward_motion::create(weight * inv_dist);
+      problem.AddResidualBlock(fwd_mo_cost,
+                               NULL,
+                               prev_cam->second,
+                               curr_cam->second);
     }
   }
 }
