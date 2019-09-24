@@ -316,11 +316,11 @@ TEST( convert_protobuf, geo_point_2d )
 TEST( convert_protobuf, geo_point_raw )
 {
   // --- 3d variant ---
-  kwiver::vital::geo_point::geo_raw_point_t geo( 42.50, 73.54, 16.33 );
+  kwiver::vital::geo_point::geo_3d_point_t geo( 42.50, 73.54, 16.33 );
   kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
 
   kwiver::protobuf::geo_point obj_proto;
-  kwiver::vital::geo_point::geo_raw_point_t geo_dser( 0, 0, 0 );
+  kwiver::vital::geo_point::geo_3d_point_t geo_dser( 0, 0, 0 );
   kwiver::vital::geo_point obj_dser( geo_dser, 0 );
 
   kasp::convert_protobuf( obj, obj_proto );
@@ -392,7 +392,7 @@ TEST( convert_protobuf, metadata )
   {
     const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
 
-    kwiver::vital::geo_point::geo_raw_point_t geo( 42.50, 73.54, 16.33 );
+    kwiver::vital::geo_point::geo_3d_point_t geo( 42.50, 73.54, 16.33 );
     kwiver::vital::geo_point pt ( geo, kwiver::vital::SRID::lat_lon_WGS84 );
     auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
     meta.add( item );

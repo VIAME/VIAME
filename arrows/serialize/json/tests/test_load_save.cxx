@@ -152,7 +152,7 @@ TEST( load_save, geo_point_2d )
 // ----------------------------------------------------------------------------
 TEST( load_save, geo_point_raw )
 {
-  kwiver::vital::geo_point::geo_raw_point_t geo( 42.50, 73.54, 16.33 );
+  kwiver::vital::geo_point::geo_3d_point_t geo( 42.50, 73.54, 16.33 );
   kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
 
   std::stringstream msg;
@@ -245,7 +245,7 @@ kwiver::vital::metadata create_meta_collection()
 
   {
     const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
-    kwiver::vital::geo_point::geo_raw_point_t geo( 42.50, 73.54, 16.33 );
+    kwiver::vital::geo_point::geo_3d_point_t geo( 42.50, 73.54, 16.33 );
     kwiver::vital::geo_point pt ( geo, kwiver::vital::SRID::lat_lon_WGS84 );
     auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
     meta.add( item );

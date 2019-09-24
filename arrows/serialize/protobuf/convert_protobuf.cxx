@@ -553,7 +553,7 @@ void convert_protobuf( const kwiver::protobuf::geo_point&  proto_point,
 {
   if ( proto_point.has_crs() )
   {
-    kwiver::vital::geo_point::geo_raw_point_t pt;
+    kwiver::vital::geo_point::geo_3d_point_t pt;
     pt[0] = proto_point.x();
     pt[1] = proto_point.y();
     pt[2] = proto_point.z();

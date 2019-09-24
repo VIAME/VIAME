@@ -57,7 +57,7 @@ geo_covariance( geo_2d_point_t const& point, int crs )
 
 // ----------------------------------------------------------------------------
 geo_covariance::
-geo_covariance( geo_raw_point_t const& point, int crs )
+geo_covariance( geo_3d_point_t const& point, int crs )
   : geo_point(point, crs)
 {
 
