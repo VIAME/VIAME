@@ -237,8 +237,12 @@ initialize_cameras_with_metadata(std::map<frame_id_t,
         geo_point gloc;
         mdi.data(gloc);
 
+        // set the origin to the ground
+        vital::vector_3d loc = gloc.location();
+        loc[2] = 0.0;
+        gloc.set_location(loc, gloc.crs());
+
         lgcs.set_origin(gloc);
-        lgcs.set_origin_altitude(0.0);
         update_local_origin = true;
         break;
       }
@@ -275,9 +279,8 @@ initialize_cameras_with_metadata(std::map<frame_id_t,
     mean[2] = 0.0;
 
     // shift the UTM origin to the mean of the cameras easting and northing
-    vector_2d mean_xy(mean.x(), mean.y());
-    lgcs.set_origin(geo_point(lgcs.origin().location() + mean_xy,
-                              lgcs.origin().crs()));
+    vital::vector_3d offset = lgcs.origin().location() + mean;
+    lgcs.set_origin(geo_point(offset, lgcs.origin().crs()));
 
     // shift all cameras to the new coordinate system.
     typedef std::map<frame_id_t, camera_sptr>::value_type cam_map_val_t;
@@ -361,20 +364,15 @@ update_camera_from_metadata(metadata const& md,
     rotation_set = true;
   }
 
-  auto& md_sensor_location =
-    md.find(VITAL_META_SENSOR_LOCATION);
-  auto& md_sensor_altitude =
-    md.find(VITAL_META_SENSOR_ALTITUDE);
-  if (md_sensor_location && md_sensor_altitude)
+  if (auto& mdi = md.find(VITAL_META_SENSOR_LOCATION))
   {
-    double alt = md_sensor_altitude.as_double();
     geo_point gloc;
-    md_sensor_location.data(gloc);
+    mdi.data(gloc);
 
     // get the location in the same UTM zone as the origin
-    vector_2d loc = gloc.location(lgcs.origin().crs());
-    loc -= lgcs.origin().location();
-    cam.set_center(vector_3d(loc.x(), loc.y(), alt - lgcs.origin_altitude()));
+    vector_3d loc = gloc.location(lgcs.origin().crs())
+                  - lgcs.origin().location();
+    cam.set_center(loc);
     translation_set = true;
   }
   return rotation_set || translation_set;
@@ -437,17 +435,15 @@ update_metadata_from_camera(simple_camera_perspective const& cam,
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ROLL_ANGLE, roll));
   }
 
-  if (md.has(VITAL_META_SENSOR_LOCATION) &&
-      md.has(VITAL_META_SENSOR_ALTITUDE))
+  if (md.has(VITAL_META_SENSOR_LOCATION))
   {
     // we have a complete position from metadata.
-    vector_3d c = cam.get_center();
-    geo_point gc(vector_2d(c.x(), c.y()) + lgcs.origin().location(),
-                        lgcs.origin().crs());
+    const vector_3d loc = cam.get_center() + lgcs.origin().location();
+    geo_point gc(loc, lgcs.origin().crs());
 
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_LOCATION, gc));
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ALTITUDE,
-                             c.z() + lgcs.origin_altitude()));
+                             gc.location().z()));
   }
 }
 
