@@ -125,10 +125,35 @@ TEST( load_save, polygon )
 }
 
 // ----------------------------------------------------------------------------
-TEST( load_save, geo_point )
+TEST( load_save, geo_point_2d )
 {
-  kwiver::vital::geo_point::geo_2d_point_t geo_2d( 42.50, 73.54 );
-  kwiver::vital::geo_point obj( geo_2d, kwiver::vital::SRID::lat_lon_WGS84 );
+  kwiver::vital::geo_point::geo_2d_point_t geo( 42.50, 73.54 );
+  kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
+
+  std::stringstream msg;
+  {
+    cereal::JSONOutputArchive ar( msg );
+    cereal::save( ar, obj );
+  }
+
+#if DEBUG
+  std::cout << "geo_point as json - " << msg.str() << std::endl;
+#endif
+
+  kwiver::vital::geo_point obj_dser;
+  {
+    cereal::JSONInputArchive ar( msg );
+    cereal::load( ar, obj_dser );
+  }
+
+  EXPECT_EQ( obj.location(), obj_dser.location() );
+}
+
+// ----------------------------------------------------------------------------
+TEST( load_save, geo_point_raw )
+{
+  kwiver::vital::geo_point::geo_raw_point_t geo( 42.50, 73.54, 16.33 );
+  kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
 
   std::stringstream msg;
   {
@@ -212,8 +237,16 @@ kwiver::vital::metadata create_meta_collection()
 
   {
     const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
-    kwiver::vital::geo_point::geo_2d_point_t geo_2d( 42.50, 73.54 );
-    kwiver::vital::geo_point pt ( geo_2d, kwiver::vital::SRID::lat_lon_WGS84 );
+    kwiver::vital::geo_point::geo_2d_point_t geo( 42.50, 73.54 );
+    kwiver::vital::geo_point pt ( geo, kwiver::vital::SRID::lat_lon_WGS84 );
+    auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
+    meta.add( item );
+  }
+
+  {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
+    kwiver::vital::geo_point::geo_raw_point_t geo( 42.50, 73.54, 16.33 );
+    kwiver::vital::geo_point pt ( geo, kwiver::vital::SRID::lat_lon_WGS84 );
     auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
     meta.add( item );
   }

@@ -296,14 +296,32 @@ TEST( convert_protobuf, polygon )
 }
 
 // ----------------------------------------------------------------------------
-TEST( convert_protobuf, geo_point )
+TEST( convert_protobuf, geo_point_2d )
 {
-  kwiver::vital::geo_point::geo_2d_point_t geo_2d( 42.50, 73.54 );
-  kwiver::vital::geo_point obj( geo_2d, kwiver::vital::SRID::lat_lon_WGS84 );
+  // --- 2d variant ---
+  kwiver::vital::geo_point::geo_2d_point_t geo( 42.50, 73.54 );
+  kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
 
   kwiver::protobuf::geo_point obj_proto;
-  kwiver::vital::geo_point::geo_2d_point_t obj_dser_2d( 0, 0 );
-  kwiver::vital::geo_point obj_dser( obj_dser_2d, 0 );
+  kwiver::vital::geo_point::geo_2d_point_t geo_dser( 0, 0 );
+  kwiver::vital::geo_point obj_dser( geo_dser, 0 );
+
+  kasp::convert_protobuf( obj, obj_proto );
+  kasp::convert_protobuf( obj_proto, obj_dser );
+
+  EXPECT_EQ( obj.location(), obj_dser.location() );
+}
+
+// ----------------------------------------------------------------------------
+TEST( convert_protobuf, geo_point_raw )
+{
+  // --- 3d variant ---
+  kwiver::vital::geo_point::geo_raw_point_t geo( 42.50, 73.54, 16.33 );
+  kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
+
+  kwiver::protobuf::geo_point obj_proto;
+  kwiver::vital::geo_point::geo_raw_point_t geo_dser( 0, 0, 0 );
+  kwiver::vital::geo_point obj_dser( geo_dser, 0 );
 
   kasp::convert_protobuf( obj, obj_proto );
   kasp::convert_protobuf( obj_proto, obj_dser );
@@ -367,6 +385,15 @@ TEST( convert_protobuf, metadata )
 
     kwiver::vital::geo_point::geo_2d_point_t geo_2d( 42.50, 73.54 );
     kwiver::vital::geo_point pt ( geo_2d, kwiver::vital::SRID::lat_lon_WGS84 );
+    auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
+    meta.add( item );
+  }
+
+  {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
+
+    kwiver::vital::geo_point::geo_raw_point_t geo( 42.50, 73.54, 16.33 );
+    kwiver::vital::geo_point pt ( geo, kwiver::vital::SRID::lat_lon_WGS84 );
     auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
     meta.add( item );
   }
