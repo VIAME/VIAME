@@ -27,6 +27,15 @@ Arrows - Core
    round of filtering to remove outliers with large motion relative to
    most other matches.
 
+Arrows - Ceres
+
+ * Fixed long-broken bundle adjustment regularization parameters for
+   camera smoothness and forward motion damping.  The fixed versions now
+   support non-sequential camera frame numbers and the residual costs are
+   normalized relative to both the number of existing residuals and the
+   spatial scale of the camera positions.  These normalization allow the
+   regularization to work similarly across different problem sizes and scales.
+
 
 Fixes since last public release
 -------------------------------
