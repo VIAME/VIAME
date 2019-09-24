@@ -533,3 +533,119 @@ TEST(bundle_adjust, data_scales)
   test_ba_data_scales(cfg, 100.0);
   test_ba_data_scales(cfg, 1000.0);
 }
+
+// ----------------------------------------------------------------------------
+// Helper for tests of camera smoothness constraints
+static void
+test_ba_camera_smoothing(camera_map_sptr cameras,
+                         kwiver::vital::config_block_sptr cfg,
+                         double scale = 1.0)
+{
+  ceres::bundle_adjust ba;
+  ba.set_configuration(cfg);
+
+  // create landmarks at the corners of a cube
+  landmark_map_sptr landmarks = kwiver::testing::cube_corners(2.0 * scale);
+
+  // create tracks from the projections
+  feature_track_set_sptr tracks = projected_tracks(landmarks, cameras);
+
+  // add Gaussian noise to the landmark positions
+  landmark_map_sptr landmarks0 = kwiver::testing::noisy_landmarks(landmarks, 0.1*scale);
+
+  // add Gaussian noise to the camera positions and orientations
+  camera_map_sptr cameras0 = kwiver::testing::noisy_cameras(cameras, 0.1*scale, 0.1);
+
+
+  double init_rmse = reprojection_rmse(cameras0->cameras(),
+                                       landmarks0->landmarks(),
+                                       tracks->tracks());
+  std::cout << "initial reprojection RMSE: " << init_rmse << std::endl;
+  EXPECT_GE(init_rmse, 10.0)
+    << "Initial reprojection RMSE should be large before SBA";
+
+  ba.optimize(cameras0, landmarks0, tracks);
+
+  double end_rmse = reprojection_rmse(cameras0->cameras(),
+                                      landmarks0->landmarks(),
+                                      tracks->tracks());
+  std::cout << "Final reprojection RMSE: " << end_rmse << std::endl;
+  EXPECT_NEAR(0.0, end_rmse, 1e-3);
+}
+
+// ----------------------------------------------------------------------------
+// Test bundle adjustment with camera path smoothness
+TEST(bundle_adjust, camera_path_smoothness)
+{
+  ceres::bundle_adjust ba;
+  config_block_sptr cfg = ba.get_configuration();
+  cfg->set_value("verbose", "true");
+  cfg->set_value("camera_intrinsic_share_type", "FORCE_COMMON_INTRINSICS");
+  cfg->set_value("camera_path_smoothness", 1.0);
+
+  // The intrinsic camera parameters to use
+  simple_camera_intrinsics K(1000, vector_2d(640, 480));
+
+  // create a camera sequence (elliptical path)
+  camera_map_sptr cameras = kwiver::testing::camera_seq(20, K);
+  test_ba_camera_smoothing(cameras, cfg);
+
+
+  // create a camera sequence (elliptical path)
+  cameras = kwiver::testing::camera_seq(100, K);
+  test_ba_camera_smoothing(cameras, cfg);
+
+
+  // create a camera sequence (elliptical path)
+  cameras = kwiver::testing::camera_seq(100, K, 1000.0);
+  test_ba_camera_smoothing(cameras, cfg, 1000.0);
+
+  // test with non-sequential cameras
+  auto cams = cameras->cameras();
+  for (auto frame : { 2, 3, 6, 11, 13, 19, 20, 21, 23,
+                      24, 27, 33, 34, 50, 51, 53 })
+  {
+    cams.erase(frame);
+  }
+  cameras = std::make_shared<simple_camera_map>(cams);
+  test_ba_camera_smoothing(cameras, cfg, 1000.0);
+}
+
+// ----------------------------------------------------------------------------
+// Test bundle adjustment with camera forward motion damping
+TEST(bundle_adjust, camera_forward_motion_damping)
+{
+  ceres::bundle_adjust ba;
+  config_block_sptr cfg = ba.get_configuration();
+  cfg->set_value("verbose", "true");
+  // forward motion damping only applies to unique intrinsics
+  cfg->set_value("camera_intrinsic_share_type", "FORCE_UNIQUE_INTRINSICS");
+  cfg->set_value("camera_forward_motion_damping", 0.1);
+
+  // The intrinsic camera parameters to use
+  simple_camera_intrinsics K(1000, vector_2d(640, 480));
+
+  // create a camera sequence (elliptical path)
+  camera_map_sptr cameras = kwiver::testing::camera_seq(20, K);
+  test_ba_camera_smoothing(cameras, cfg);
+
+
+  // create a camera sequence (elliptical path)
+  cameras = kwiver::testing::camera_seq(100, K);
+  test_ba_camera_smoothing(cameras, cfg);
+
+
+  // create a camera sequence (elliptical path)
+  cameras = kwiver::testing::camera_seq(100, K, 1000.0);
+  test_ba_camera_smoothing(cameras, cfg, 1000.0);
+
+  // test with non-sequential cameras
+  auto cams = cameras->cameras();
+  for (auto frame : { 2, 3, 6, 11, 13, 19, 20, 21, 23,
+    24, 27, 33, 34, 50, 51, 53 })
+  {
+    cams.erase(frame);
+  }
+  cameras = std::make_shared<simple_camera_map>(cams);
+  test_ba_camera_smoothing(cameras, cfg, 1000.0);
+}
