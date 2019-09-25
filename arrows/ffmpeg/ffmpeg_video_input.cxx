@@ -299,8 +299,6 @@ public:
     }
     this->frame_advanced = 0;
     this->f_frame->data[0] = NULL;
-    avcodec_close(codec_context_origin);
-    codec_context_origin = NULL;
     return true;
   }
 
@@ -339,8 +337,11 @@ public:
       avformat_close_input(&this->f_format_context);
       this->f_format_context = nullptr;
     }
-    avcodec_close(this->f_video_encoding);
-    this->f_video_encoding = nullptr;
+    if (this->f_video_encoding)
+    {
+      avcodec_close(this->f_video_encoding);
+      this->f_video_encoding = nullptr;
+    }
   }
 
   // ==================================================================
