@@ -285,6 +285,7 @@ public:
         this->f_start_time = -1;
         return false;
     }
+
     // Now seek back to the start of the video
     auto seek_rslt = av_seek_frame( this->f_format_context,
                                     this->f_video_index,
@@ -340,6 +341,7 @@ public:
     if (this->f_video_encoding)
     {
       avcodec_close(this->f_video_encoding);
+      avcodec_free_context(&this->f_video_encoding);
       this->f_video_encoding = nullptr;
     }
   }
