@@ -27,6 +27,11 @@ Arrows - Core
    round of filtering to remove outliers with large motion relative to
    most other matches.
 
+ * When resectioning cameras in the keyframe initializer we now copy the
+   intrinsics from the nearest existing camera rather than from the base
+   camera in the config or metadata.  This way the focal length better matches
+   existing cameras and the initial pose will better match as well.
+
 Arrows - Ceres
 
  * Fixed long-broken bundle adjustment regularization parameters for
