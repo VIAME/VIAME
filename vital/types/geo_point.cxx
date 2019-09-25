@@ -42,7 +42,7 @@
 namespace kwiver {
 namespace vital {
 
-using geo_raw_point_t = geo_point::geo_raw_point_t;
+using geo_3d_point_t = geo_point::geo_3d_point_t;
 
 // ----------------------------------------------------------------------------
 geo_point::
@@ -55,14 +55,14 @@ geo_point::
 geo_point( geo_2d_point_t const& point, int crs )
   : m_original_crs( crs )
 {
-  m_loc.insert( std::make_pair( crs, geo_raw_point_t{ point[0],
+  m_loc.insert( std::make_pair( crs, geo_3d_point_t{ point[0],
                                                       point[1],
                                                       0 } ));
 }
 
 // ----------------------------------------------------------------------------
 geo_point::
-geo_point( geo_raw_point_t const& point, int crs )
+geo_point( geo_3d_point_t const& point, int crs )
   : m_original_crs( crs )
 {
   m_loc.insert( std::make_pair( crs, point ) );
@@ -76,7 +76,7 @@ bool geo_point
 }
 
 // ----------------------------------------------------------------------------
-geo_raw_point_t geo_point
+geo_3d_point_t geo_point
 ::location() const
 {
   return m_loc.at( m_original_crs );
@@ -90,7 +90,7 @@ int geo_point
 }
 
 // ----------------------------------------------------------------------------
-geo_raw_point_t geo_point
+geo_3d_point_t geo_point
 ::location( int crs ) const
 {
   auto const i = m_loc.find( crs );
@@ -110,12 +110,12 @@ void geo_point
 {
   m_original_crs = crs;
   m_loc.clear();
-  m_loc.insert( std::make_pair( crs, geo_raw_point_t { loc[0], loc[1], 0 } ) );
+  m_loc.insert( std::make_pair( crs, geo_3d_point_t { loc[0], loc[1], 0 } ) );
 }
 
 // ----------------------------------------------------------------------------
 void geo_point
-::set_location( geo_raw_point_t const& loc, int crs )
+::set_location( geo_3d_point_t const& loc, int crs )
 {
   m_original_crs = crs;
   m_loc.clear();
