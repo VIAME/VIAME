@@ -1393,16 +1393,31 @@ initialize_cameras_landmarks_keyframe::priv
   frame_id_t fid_to_resection)
 {
   LOG_DEBUG(m_logger, "resectioning camera " << fid_to_resection);
+  auto model_intrinsics = m_base_camera.intrinsics();
+
+  // Find the closest existing camera in time and
+  // use those intrinsics if available
+  auto const all_cameras = cams->cameras();
+  if (!all_cameras.empty())
+  {
+    auto closest_cam = all_cameras.lower_bound(fid_to_resection);
+    if (closest_cam != all_cameras.end())
+    {
+      auto const cam_p = std::static_pointer_cast<camera_perspective>(
+        closest_cam->second);
+      model_intrinsics = cam_p->intrinsics();
+    }
+  }
   std::shared_ptr<vital::simple_camera_perspective>
     nc(std::static_pointer_cast<simple_camera_perspective>(m_base_camera.clone()));
 
   if (m_force_common_intrinsics)
   {
-    nc->set_intrinsics(m_base_camera.intrinsics());
+    nc->set_intrinsics(model_intrinsics);
   }
   else
   {
-    nc->set_intrinsics(m_base_camera.intrinsics()->clone());
+    nc->set_intrinsics(model_intrinsics->clone());
   }
 
   // do 3PT algorithm here
