@@ -329,7 +329,7 @@ public:
 
     if (this->f_video_stream)
     {
-      avcodec_close(this->f_video_stream ->codec);
+      avcodec_close(this->f_video_stream->codec);
       this->f_video_stream = nullptr;
     }
     if (this->f_format_context)
