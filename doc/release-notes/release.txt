@@ -7,3 +7,6 @@ release.
 Bug Fixes since v1.4.0
 ----------------------
 
+Arrows: ffmpeg
+
+ * Fixed the memory leak that occurred when a video was opened and closed.
