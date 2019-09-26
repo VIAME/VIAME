@@ -339,7 +339,7 @@ public:
     std::set<frame_id_t> &registered_frames,
     std::set<frame_id_t> &non_registered_frames) const;
 
-  bool get_next_fid_to_register_and_its_closets_registered_cam(
+  bool get_next_fid_to_register_and_its_closest_registered_cam(
     simple_camera_perspective_map_sptr cams,
     std::set<frame_id_t> &frames_to_register,
     frame_id_t &fid_to_register, frame_id_t &closest_frame) const;
@@ -2848,7 +2848,7 @@ initialize_cameras_landmarks_keyframe::priv
 
 bool
 initialize_cameras_landmarks_keyframe::priv
-::get_next_fid_to_register_and_its_closets_registered_cam(
+::get_next_fid_to_register_and_its_closest_registered_cam(
   simple_camera_perspective_map_sptr cams,
   std::set<frame_id_t> &frames_to_register,
   frame_id_t &fid_to_register, frame_id_t &closest_frame) const
@@ -2900,10 +2900,14 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<frame_id_t> &already_registred_cams)
 {
   frame_id_t closest_cam_fid;
-  get_next_fid_to_register_and_its_closets_registered_cam(cams,
-                                                          frames_to_register,
-                                                          fid_to_register,
-                                                          closest_cam_fid);
+  if (!get_next_fid_to_register_and_its_closest_registered_cam(
+        cams,
+        frames_to_register,
+        fid_to_register,
+        closest_cam_fid))
+  {
+    return false;
+  }
   frames_to_register.erase(fid_to_register);
 
   simple_camera_perspective_sptr closest_cam = cams->find(closest_cam_fid);
