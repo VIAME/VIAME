@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -177,4 +177,4 @@ private:
   new kwiver::vital::typed_metadata< TAG, kwiver::vital::vital_meta_trait<TAG>::type > \
   ( kwiver::vital::vital_meta_trait<TAG>::name(), DATA )
 
-#endif /* KWIVER_VITAL_METADATA_TRAITS_H_ */
+#endif

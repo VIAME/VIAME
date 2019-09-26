@@ -116,4 +116,4 @@ KWIVER_ALGO_VISCL_EXPORT viscl::image image_container_to_viscl(const vital::imag
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VISCL_IMAGE_CONTAINER_H_
+#endif

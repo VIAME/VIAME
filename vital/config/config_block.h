@@ -905,4 +905,4 @@ config_block
 
 } }
 
-#endif // KWIVER_CONFIG_BLOCK_H_
+#endif

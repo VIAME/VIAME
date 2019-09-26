@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,4 +45,4 @@ void min_image_dimensions(const vital::feature_set &feat, unsigned int &width, u
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VISCL_UTILS_H_
+#endif

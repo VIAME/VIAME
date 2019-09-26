@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2014, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -249,4 +249,4 @@ application_config_file_paths(std::string const& application_name,
 
 } }
 
-#endif // KWIVER_CONFIG_BLOCK_IO_H_
+#endif

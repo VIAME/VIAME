@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018 by Kitware, Inc.
+* Copyright 2018-2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -97,4 +97,4 @@ private:
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_
+#endif

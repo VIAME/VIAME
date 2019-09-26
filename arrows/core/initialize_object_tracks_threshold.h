@@ -112,4 +112,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_INITIALIZE_OBJECT_TRACKS_THRESHOLD_H_
+#endif

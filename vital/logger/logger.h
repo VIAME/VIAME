@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -258,4 +258,4 @@ logger_handle_t VITAL_LOGGER_EXPORT get_logger( std::string const& name );
 
 } } // end namespace
 
-#endif /* KWIVER_CORE_LOGGER_H_ */
+#endif

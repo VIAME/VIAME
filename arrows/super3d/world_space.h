@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2012-2018 by Kitware, Inc.
+* Copyright 2012-2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -121,4 +121,4 @@ compute_offset_range(const std::vector<vnl_double_3> &landmarks,
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_SUPER3D_WORLD_SPACE_H_
+#endif

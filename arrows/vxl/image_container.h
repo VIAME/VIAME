@@ -116,4 +116,4 @@ protected:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_IMAGE_CONTAINER_H_
+#endif

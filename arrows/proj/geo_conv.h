@@ -76,4 +76,4 @@ private:
 
 } } } // end namespace
 
-#endif // KWIVER_ARROWS_PROJ_GEO_CONV_H_
+#endif

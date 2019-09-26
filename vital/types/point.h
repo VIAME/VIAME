@@ -93,4 +93,4 @@ VITAL_EXPORT ::std::ostream& operator<< ( ::std::ostream& str, point_4f const& o
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_POINT_H_ */
+#endif

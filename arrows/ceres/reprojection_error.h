@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,4 +58,4 @@ create_cost_func(LensDistortionType ldt, double x, double y);
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CERES_REPROJECTION_ERROR_H_
+#endif

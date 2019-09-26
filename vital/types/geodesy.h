@@ -160,4 +160,4 @@ VITAL_EXPORT utm_ups_zone_t utm_ups_zone( vector_3d const& lon_lat_alt );
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_GEODESY_H_ */
+#endif
