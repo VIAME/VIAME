@@ -323,6 +323,7 @@ detect_in_subregions_process
   vital::detected_object_set_sptr dets_in =
     grab_from_port_using_trait( detected_object_set );
 
+  if( src_image )
   {
     scoped_step_instrumentation();
 
