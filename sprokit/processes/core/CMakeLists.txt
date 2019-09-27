@@ -41,6 +41,7 @@ set( sources
   serializer_base.cxx
   serializer_process.cxx
   deserializer_process.cxx
+  shift_detected_object_set_frames_process.cxx
   split_image_process.cxx
   stabilize_image_process.cxx
   track_features_process.cxx
@@ -85,6 +86,7 @@ set( private_headers
   serializer_base.h
   serializer_process.h
   deserializer_process.h
+  shift_detected_object_set_frames_process.h
   split_image_process.h
   stabilize_image_process.h
   track_features_process.h

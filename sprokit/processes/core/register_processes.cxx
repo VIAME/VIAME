@@ -68,6 +68,7 @@
 #include "refine_detections_process.h"
 #include "serializer_process.h"
 #include "deserializer_process.h"
+#include "shift_detected_object_set_frames_process.h"
 #include "split_image_process.h"
 #include "stabilize_image_process.h"
 #include "track_features_process.h"
@@ -135,6 +136,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< compute_track_descriptors_process >();
   reg.register_process< perform_query_process >();
   reg.register_process< detect_motion_process >();
+  reg.register_process< shift_detected_object_set_frames_process >();
 
   mark_process_module_as_loaded( vpm, reg.module_name() );
 } // register_process

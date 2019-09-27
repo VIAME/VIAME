@@ -65,6 +65,13 @@ Sprokit
 
 Sprokit: Processes
 
+ * Added a core sprokit process to shift a stream of detected object
+   sets by a specified offset.  When a negative offset is specified,
+   detected object sets are initially consumed from the stream until
+   the offset is satisfied.  When a positive offset is specified,
+   empty detected object sets are prepended to the stream until the
+   offset is satisfied.
+
 Tools
 
 Unit Tests
