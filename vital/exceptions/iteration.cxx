@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -33,27 +33,25 @@
  * \brief VITAL Exceptions pertaining to iteration.
  */
 
-#ifndef KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
-#define KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
+#include "iteration.h"
 
-#include <vital/exceptions/base.h>
-#include <string>
+#include <sstream>
 
 namespace kwiver {
 namespace vital {
 
-/// Exception thrown from next value function to signify the end of iteration.
-class VITAL_EXCEPTIONS_EXPORT stop_iteration_exception
-  : public vital_exception
+// ----------------------------------------------------------------------------
+stop_iteration_exception::
+stop_iteration_exception( std::string const& container ) noexcept
 {
-public:
-  /// Constructor
-  stop_iteration_exception( std::string const& container) noexcept;
+  std::ostringstream ss;
 
-  /// Destructor
-  virtual ~stop_iteration_exception() noexcept = default;
-};
+  ss << "Attempt to iterate past the end of a "
+     << container << " container.";
 
-} } //end namespaces
+  m_what = ss.str();
+}
 
-#endif //KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
+
+
+} } // end namespaces

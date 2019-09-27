@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,51 @@
 
 /**
  * \file
- * \brief VITAL Exceptions pertaining to iteration.
+ * \brief Interface for simple implementation of image_container_set
  */
 
-#ifndef KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
-#define KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
+#ifndef VITAL_IMAGE_CONTAINER_SET_SIMPLE_H_
+#define VITAL_IMAGE_CONTAINER_SET_SIMPLE_H_
 
-#include <vital/exceptions/base.h>
-#include <string>
+#include <vital/types/image_container_set.h>
+
 
 namespace kwiver {
 namespace vital {
 
-/// Exception thrown from next value function to signify the end of iteration.
-class VITAL_EXCEPTIONS_EXPORT stop_iteration_exception
-  : public vital_exception
+
+/// A concrete image container set that simply wraps a vector of images.
+class VITAL_EXPORT simple_image_container_set
+  : public image_container_set
 {
 public:
-  /// Constructor
-  stop_iteration_exception( std::string const& container) noexcept;
+  /// Default Constructor
+  simple_image_container_set();
 
-  /// Destructor
-  virtual ~stop_iteration_exception() noexcept = default;
+  /// Constructor from a vector of images
+  explicit simple_image_container_set( std::vector< image_container_sptr > const& images );
+
+  /// Return the number of items
+  virtual size_t size() const override;
+  virtual bool empty() const override;
+  virtual image_container_sptr at( size_t index ) override;
+  virtual image_container_sptr const at( size_t index ) const override;
+
+protected:
+  using vec_t = std::vector< image_container_sptr >;
+
+  /// The vector of images
+  vec_t data_;
+
+  /// Implement next function for non-const iterator.
+  iterator::next_value_func_t get_iter_next_func();
+
+  /// Implement next function for const iterator.
+  const_iterator::next_value_func_t get_const_iter_next_func() const;
 };
 
-} } //end namespaces
 
-#endif //KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
+} } // end namespaces
+
+
+#endif // VITAL_IMAGE_CONTAINER_SET_SIMPLE_H_

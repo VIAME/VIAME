@@ -29,6 +29,12 @@ Vital Types
  * Added get_vector() member function to access the vector of all metadata on
    a frame in metadata_map.
 
+ * Added ``kwiver::vital::set`` mixin class to define standard set methods as
+   well as iterability.
+
+ * Added iterator, const_iterator and iterable classes to support container-
+   independent iteration.
+
 Vital Bindings
 
 Arrows

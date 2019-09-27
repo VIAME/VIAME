@@ -115,6 +115,8 @@ set( vital_public_headers
   types/homography_f2w.h
   types/image.h
   types/image_container.h
+  types/image_container_set.h
+  types/image_container_set_simple.h
   types/iqr_feedback.h
   types/landmark.h
   types/landmark_map.h
@@ -182,6 +184,7 @@ set( vital_sources
   types/homography_f2f.cxx
   types/homography_f2w.cxx
   types/image.cxx
+  types/image_container_set_simple.cxx
   types/iqr_feedback.cxx
   types/landmark.cxx
   types/local_geo_cs.cxx

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,49 @@
 
 /**
  * \file
- * \brief VITAL Exceptions pertaining to iteration.
+ * \brief core image_container_set interface
  */
 
-#ifndef KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
-#define KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
+#ifndef VITAL_IMAGE_CONTAINER_SET_H_
+#define VITAL_IMAGE_CONTAINER_SET_H_
 
-#include <vital/exceptions/base.h>
-#include <string>
+#include "image_container.h"
+
+#include <vital/vital_export.h>
+#include <vital/set.h>
+#include <vital/logger/logger.h>
+#include <vital/noncopyable.h>
 
 namespace kwiver {
 namespace vital {
 
-/// Exception thrown from next value function to signify the end of iteration.
-class VITAL_EXCEPTIONS_EXPORT stop_iteration_exception
-  : public vital_exception
+/// An abstract ordered collection of feature images.
+/**
+ * The base class image_container_set is abstract and provides an interface
+ * for returning a vector of images.  There is a simple derived class
+ * that stores the data as a vector of images and returns it.  Other
+ * derived classes can store the data in other formats and convert on demand.
+ */
+class image_container_set
+  : public set< image_container_sptr >
+  , private noncopyable
 {
 public:
-  /// Constructor
-  stop_iteration_exception( std::string const& container) noexcept;
-
   /// Destructor
-  virtual ~stop_iteration_exception() noexcept = default;
+  virtual ~image_container_set() = default;
+
+protected:
+  image_container_set()
+   : m_logger( kwiver::vital::get_logger( "vital.image_container_set" ) )
+  {}
+
+  kwiver::vital::logger_handle_t m_logger;
 };
 
-} } //end namespaces
+/// Shared pointer for base image_container_set type
+typedef std::shared_ptr< image_container_set > image_container_set_sptr;
 
-#endif //KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
+
+} } // end namespace vital
+
+#endif // VITAL_IMAGE_CONTAINER_SET_H_

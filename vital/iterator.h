@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #ifndef KWIVER_VITAL_ITERATOR_H_
 #define KWIVER_VITAL_ITERATOR_H_
 
+#include <cstddef>
 #include <functional>
 
 #include <vital/exceptions/iteration.h>
@@ -43,6 +44,7 @@
 namespace kwiver {
 namespace vital {
 
+// ============================================================================
 /**
  * Internal base class for vital iterator types, fulfilling the input-iterator
  * concept.
@@ -282,6 +284,7 @@ protected:
   }
 };
 
+// ============================================================================
 // Forward declare const_iterator class for friending within iterator.
 template< typename T >
 class const_iterator;
@@ -355,6 +358,7 @@ public:
   friend class const_iterator<T>;
 };
 
+// ============================================================================
 /**
  * Vital templated const iterator class.
  *
@@ -475,6 +479,85 @@ public:
   {
     return ! (it == cit);
   }
+};
+
+// ============================================================================
+/**
+ * Pure-virtual mixin class to add iteration support to a class.
+ *
+ * \tparam Type to iterate over.
+ */
+template< typename T >
+class iterable
+{
+public:
+  using iterator       = vital::iterator< T >;
+  using const_iterator = vital::const_iterator< T >;
+
+  /// Constructor
+  iterable() = default;
+  /// Destructor
+  virtual ~iterable() = default;
+
+  /** @name Iterator Accessors
+   * Accessors for const and non-const iterators
+   */
+  ///@{
+  /**
+   * Get the non-const iterator to the beginning of the collection.
+   * @return An iterator over the objects in this collection.
+   */
+  virtual iterator begin()
+  {
+    return vital::iterator< T >( get_iter_next_func() );
+  }
+
+  /**
+   * Get the non-const iterator past the end of the collection
+   * @return An iterator base the end of this collection.
+   */
+  virtual iterator end()
+  {
+    return vital::iterator< T >();
+  }
+
+  /**
+   * Get the const iterator to the beginning of the collection.
+   * @return An iterator over the objects in this collection.
+   */
+  virtual const_iterator cbegin() const
+  {
+    return vital::const_iterator< T >( get_const_iter_next_func() );
+  }
+
+  /**
+   * Get the const iterator past the end of the collection
+   * @return An iterator base the end of this collection.
+   */
+  virtual const_iterator cend() const
+  {
+    return vital::const_iterator< T >();
+  }
+  ///@}
+
+protected:
+  /**
+   * Get a new function that returns the sequence of values via subsequent
+   * calls culminating with a stop_iteration_exception.
+   *
+   * @returns Function to generate value reference sequence.
+   */
+  virtual typename iterator::next_value_func_t
+    get_iter_next_func() = 0;
+
+  /**
+   * Get a new function that returns the const sequence of values via
+   * subsequent calls culminating with a stop_iteration_exception.
+   *
+   * @returns Function to generate value const-reference sequence.
+   */
+  virtual typename const_iterator::next_value_func_t
+    get_const_iter_next_func() const = 0;
 };
 
 } } // end namespaces
