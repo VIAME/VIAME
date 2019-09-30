@@ -93,6 +93,10 @@ solver_options
   config->set_value("dogleg_type", o.dogleg_type,
                     "Dogleg strategy to use."
                     + ceres_options< ::ceres::DoglegType >());
+  config->set_value("update_state_every_iteration", o.update_state_every_iteration,
+                    "If true, the updated state is computed and provided in "
+                    "the callback on every iteration.  This slows down "
+                    "optimization but can be useful for debugging.");
 }
 
 
@@ -114,6 +118,7 @@ solver_options
   GET_VALUE(::ceres::PreconditionerType, preconditioner_type);
   GET_VALUE(::ceres::TrustRegionStrategyType, trust_region_strategy_type);
   GET_VALUE(::ceres::DoglegType, dogleg_type);
+  GET_VALUE(bool, update_state_every_iteration);
 
 #undef GET_VALUE
 }

@@ -405,7 +405,6 @@ public:
   std::random_device m_rd;     // only used once to initialise (seed) engine
   std::mt19937 m_rng;    // random-number engine used (Mersenne-Twister in this case)
   double m_reverse_ba_error_ratio;
-  bool m_enable_BA_callback;
   bool m_solution_was_fit_to_constraints;
   int m_max_cams_in_keyframe_init;
   double m_frac_frames_for_init;
@@ -435,7 +434,6 @@ initialize_cameras_landmarks_keyframe::priv
   m_thresh_triang_cos_ang(cos(deg_to_rad * 2.0)),
   m_rng(m_rd()),
   m_reverse_ba_error_ratio(2.0),
-  m_enable_BA_callback(false),
   m_solution_was_fit_to_constraints(false),
   m_max_cams_in_keyframe_init(20),
   m_frac_frames_for_init(-1.0),
@@ -2029,6 +2027,11 @@ initialize_cameras_landmarks_keyframe::priv
   // get relative pose constraints for keyframes
   calc_rel_poses(beginning_keyframes, tracks);
 
+  if (!this->continue_processing)
+  {
+    return false;
+  }
+
   if (!initialize_reconstruction(cams, lms, tracks))
   {
     LOG_DEBUG(m_logger, "unable to find a good initial pair for reconstruction");
@@ -2074,7 +2077,8 @@ initialize_cameras_landmarks_keyframe::priv
 
   int frames_resectioned_since_last_ba = 0;
   std::deque<frame_id_t> added_frame_queue;
-  while (!frames_to_resection.empty() &&
+  while (this->continue_processing &&
+    !frames_to_resection.empty() &&
     (m_max_cams_in_keyframe_init < 0 ||
      cams->size() < static_cast<size_t>(m_max_cams_in_keyframe_init)))
   {
@@ -3508,7 +3512,8 @@ initialize_cameras_landmarks_keyframe::priv
   int frames_since_last_ba = 0;
 
   std::map<frame_id_t, double> last_reproj_by_cam;
-  while(!frames_to_register.empty())
+  while(!frames_to_register.empty() &&
+        this->continue_processing)
   {
     if (max_constraints_used < 10)
     {
@@ -3625,13 +3630,12 @@ initialize_cameras_landmarks_keyframe::priv
       auto chgs = get_feature_track_changes(tracks, *cams);
       continue_processing =
         callback(cams, std::make_shared<simple_landmark_map>(lmks),chgs);
-
-      if (!continue_processing)
-      {
-        LOG_DEBUG(m_logger, "continue processing is false, "
-                            "exiting initialize_remaining_cameras loop");
-        break;
-      }
+    }
+    if (!continue_processing)
+    {
+      LOG_DEBUG(m_logger, "continue processing is false, "
+        "exiting initialize_remaining_cameras loop");
+      break;
     }
     if ( frames_to_register.empty() &&
          !done_registering_keyframes &&
@@ -4074,7 +4078,7 @@ initialize_cameras_landmarks_keyframe
 {
   vital::algo::initialize_cameras_landmarks::set_callback(cb);
   // pass callback on to bundle adjuster if available
-  if(m_priv->bundle_adjuster && m_priv->m_enable_BA_callback)
+  if (m_priv->bundle_adjuster && this->m_callback)
   {
     using std::placeholders::_1;
     using std::placeholders::_2;

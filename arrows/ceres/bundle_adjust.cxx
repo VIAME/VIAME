@@ -606,15 +606,10 @@ bundle_adjust
 {
   kwiver::vital::algo::bundle_adjust::set_callback(cb);
   ::ceres::Solver::Options& o = d_->options;
+  o.callbacks.clear();
   if(this->m_callback)
   {
-    o.callbacks.clear();
     o.callbacks.push_back(&d_->ceres_callback);
-    o.update_state_every_iteration = true;
-  }
-  else
-  {
-    o.update_state_every_iteration = false;
   }
 }
 
@@ -627,6 +622,10 @@ bundle_adjust
 {
   if(this->m_callback)
   {
+    if (!d_->options.update_state_every_iteration)
+    {
+      return this->m_callback(nullptr, nullptr, nullptr);
+    }
     // Update the landmarks with the optimized values
     typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
     for(const lm_param_map_t::value_type& lmp : d_->landmark_params)
