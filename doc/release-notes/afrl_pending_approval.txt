@@ -35,6 +35,9 @@ Arrows - Core
  * Updated the initialize_cameras_landmarks_keyframe algorithm to better
    handle early termination through callbacks.
 
+ * Refactored initialize_cameras_landmarks_keyframe code for better
+   reuseability and readability.
+
 Arrows - Ceres
 
  * Fixed long-broken bundle adjustment regularization parameters for
