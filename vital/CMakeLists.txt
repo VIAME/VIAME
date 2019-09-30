@@ -120,6 +120,7 @@ set( vital_public_headers
   types/iqr_feedback.h
   types/landmark.h
   types/landmark_map.h
+  types/local_cartesian.h
   types/local_geo_cs.h
   types/match_set.h
   types/matrix.h
@@ -187,6 +188,7 @@ set( vital_sources
   types/image_container_set_simple.cxx
   types/iqr_feedback.cxx
   types/landmark.cxx
+  types/local_cartesian.cxx
   types/local_geo_cs.cxx
   types/mesh.cxx
   types/metadata.cxx

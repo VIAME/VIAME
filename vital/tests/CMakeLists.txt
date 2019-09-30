@@ -38,6 +38,7 @@ kwiver_discover_gtests(vital image_container_set            LIBRARIES ${test_lib
 kwiver_discover_gtests(vital iqr_feedback                   LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital iterable                       LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital iterator                       LIBRARIES ${test_libraries})
+kwiver_discover_gtests(vital local_cartesian                LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital metadata_io                    LIBRARIES ${test_libraries} ARGUMENTS "${kwiver_test_data_directory}")
 kwiver_discover_gtests(vital polygon                        LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital rotation                       LIBRARIES ${test_libraries})
