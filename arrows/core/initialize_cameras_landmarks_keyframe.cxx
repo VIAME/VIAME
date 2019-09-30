@@ -3862,23 +3862,13 @@ initialize_cameras_landmarks_keyframe
       ::set_nested_algo_configuration("bundle_adjuster",
                                       config, m_priv->bundle_adjuster);
 
+  // make sure the callback is applied to any new instances of
+  // nested algorithms
+  this->set_callback(this->m_callback);
+
   vital::algo::estimate_similarity_transform
     ::set_nested_algo_configuration("similarity_estimator",
                                     config, m_priv->m_similarity_estimator);
-
-  if(m_priv->bundle_adjuster &&
-     this->m_callback &&
-     m_priv->m_enable_BA_callback)
-  {
-    using std::placeholders::_1;
-    using std::placeholders::_2;
-    using std::placeholders::_3;
-    callback_t pcb =
-      std::bind(&initialize_cameras_landmarks_keyframe::priv
-                  ::pass_through_callback,
-                m_priv.get(), this->m_callback, _1, _2, _3);
-    m_priv->bundle_adjuster->set_callback(pcb);
-  }
 
   m_priv->m_frac_frames_for_init =
     config->get_value<double>("frac_frames_for_init",
