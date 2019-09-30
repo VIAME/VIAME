@@ -44,7 +44,7 @@
 #include <vital/vital_types.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/types/track_set.h>
+#include <vital/types/feature_track_set.h>
 #include <vital/types/landmark_map.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/camera_perspective.h>
@@ -54,6 +54,24 @@
 namespace kwiver {
 namespace arrows {
 namespace core{
+
+
+/// Detect tracks which remain stationary in the image
+/**
+ * For each track, compute its mean location in the image space and then
+ * check that at least one track state is a distance more than \p threshold
+ * pixels from the mean.  If all locations are close to the mean then
+ * add this to the set of stationary tracks to return.  If a subset of tracks
+ * are stationary it may indicate that these tracks lie on a heads-up display
+ * or other feature fixed to the camera, rather than on the scene.
+ * \param [in] tracks     The set of feature tracks to process.
+ * \param [in] threshold  The threshold on pixel distance to the mean
+ * \return                The set of stationary tracks
+ */
+KWIVER_ALGO_CORE_EXPORT
+std::set<vital::track_sptr>
+detect_stationary_tracks(vital::feature_track_set_sptr tracks,
+                         double threshold = 10.0);
 
 typedef std::pair<vital::frame_id_t, float> coverage_pair;
 typedef std::vector<coverage_pair> frame_coverage_vec;

@@ -46,6 +46,54 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
+
+/// Detect tracks which remain stationary in the image
+std::set<vital::track_sptr>
+detect_stationary_tracks(vital::feature_track_set_sptr tracks,
+                         double threshold)
+{
+  std::set<vital::track_sptr> stationary_tracks;
+  auto tids = tracks->all_track_ids();
+  for (auto tid : tids)
+  {
+    // Compute the mean image location of this track
+    auto tk_sptr = tracks->get_track(tid);
+    vital::vector_2d mean_loc(0.0, 0.0);
+    double nfts = 0;
+    for (auto fts : *tk_sptr | as_feature_track)
+    {
+      auto loc = fts->feature->loc();
+      mean_loc *= (nfts / (nfts + 1.0));
+      mean_loc += loc * (1.0 / (nfts + 1.0));
+      nfts += 1.0;
+    }
+    if (nfts <= 0)
+    {
+      continue;
+    }
+
+    // If at least one point is far from the mean then this
+    // this track is not considered stationary
+    bool stationary_track = true;
+    for (auto fts : *tk_sptr | as_feature_track)
+    {
+      auto loc = fts->feature->loc();
+      auto diff = loc - mean_loc;
+      if (diff.norm() > threshold)
+      {
+        stationary_track = false;
+        break;
+      }
+    }
+
+    if (stationary_track)
+    {
+      stationary_tracks.insert(tk_sptr);
+    }
+  }
+  return stationary_tracks;
+}
+
 /// Calculate fraction of each image that is covered by landmark projections
 frame_coverage_vec
 image_coverages(

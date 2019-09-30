@@ -3987,59 +3987,10 @@ initialize_cameras_landmarks_keyframe
              feature_track_set_sptr tracks,
              sfm_constraints_sptr constraints) const
 {
-
-  //Remove static tracks
-
-  std::set<track_sptr> static_tracks;
-  auto tids = tracks->all_track_ids();
-  for (auto tid : tids)
-  {
-    auto tk_sptr = tracks->get_track(tid);
-    vital::vector_2d mean_loc;
-    mean_loc.setZero();
-    double nfts = 0;
-    bool static_track = true;
-    for (auto ts : *tk_sptr)
-    {
-      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
-      if (!fts)
-      {
-        continue;
-      }
-
-      auto loc = fts->feature->loc();
-      mean_loc = mean_loc * (nfts / (nfts + +1.0)) + loc * (1.0 / (nfts + 1.0));
-      nfts += 1.0;
-    }
-    if (nfts <= 0)
-    {
-      continue;
-    }
-
-    for (auto ts : *tk_sptr)
-    {
-      auto fts = std::dynamic_pointer_cast<feature_track_state>(ts);
-      if (!fts)
-      {
-        continue;
-      }
-
-      auto loc = fts->feature->loc();
-      auto diff = loc - mean_loc;
-      if (diff.norm() > 10.0)
-      {
-        static_track = false;
-        break;
-      }
-    }
-
-    if (static_track)
-    {
-      static_tracks.insert(tk_sptr);
-    }
-  }
-
-  for (auto tk : static_tracks)
+  // Remove stationary tracks.
+  // These tracks are likely on a heads-up display, dead pixel, lens dirt, etc.
+  auto stationary_tracks = detect_stationary_tracks(tracks);
+  for (auto tk : stationary_tracks)
   {
     tracks->remove(tk);
   }
