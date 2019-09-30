@@ -32,6 +32,9 @@ Arrows - Core
    camera in the config or metadata.  This way the focal length better matches
    existing cameras and the initial pose will better match as well.
 
+ * Updated the initialize_cameras_landmarks_keyframe algorithm to better
+   handle early termination through callbacks.
+
 Arrows - Ceres
 
  * Fixed long-broken bundle adjustment regularization parameters for
@@ -40,6 +43,9 @@ Arrows - Ceres
    normalized relative to both the number of existing residuals and the
    spatial scale of the camera positions.  These normalization allow the
    regularization to work similarly across different problem sizes and scales.
+
+ * Added a configuration option to the bundle adjuster that allow for
+   callbacks to not provided updates on every iteration for efficiency.
 
 
 Fixes since last public release
