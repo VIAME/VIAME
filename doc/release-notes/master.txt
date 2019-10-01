@@ -29,9 +29,9 @@ Arrows
 
 Arrows: Core
 
- * Added an arrow (transform_detected_object_set) for transforming detected
-   object sets from one camera perspective to another.  This arrow is an
-   implementation of vital::algo::detected_object_filter.
+ * Added an algorithm implementation (transform_detected_object_set) for
+   transforming detected object sets from one camera perspective to another.
+   Implements vital::algo::detected_object_filter.
 
 Arrows: Ceres
 
