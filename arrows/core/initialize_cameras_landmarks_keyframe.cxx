@@ -215,9 +215,6 @@ public:
 
   bool bundle_adjust();
 
-  std::set<vital::frame_id_t> get_keyframe_ids(
-    feature_track_set_sptr tracks) const;
-
   rel_pose
   calc_rel_pose(frame_id_t frame_0, frame_id_t frame_1,
     const std::vector<track_sptr>& trks) const;
@@ -398,6 +395,7 @@ public:
   double m_thresh_triang_cos_ang;
   vital::algo::estimate_pnp_sptr m_pnp;
   std::set<rel_pose> m_rel_poses;
+  std::set<frame_id_t> m_keyframes;
   Eigen::SparseMatrix<unsigned int> m_kf_match_matrix;
   std::vector<frame_id_t> m_kf_mm_frames;
   std::set<frame_id_t> m_frames_removed_from_sfm_solution;
@@ -583,15 +581,6 @@ initialize_cameras_landmarks_keyframe::priv
   return this->continue_processing;
 }
 
-std::set<vital::frame_id_t>
-initialize_cameras_landmarks_keyframe::priv
-::get_keyframe_ids(feature_track_set_sptr tracks) const
-{
-  // Currently, the choice of keyframes can make this algorithm unstable.
-  // It is more reliable to ignore the incoming keyframes and let this
-  // algorithm pick which frames to use from the set of all frames.
-  return tracks->all_frame_ids();
-}
 
 /// Re-triangulate all landmarks for provided tracks
 void
@@ -1906,7 +1895,8 @@ initialize_cameras_landmarks_keyframe::priv
   feature_track_set_sptr tracks ) const
 {
   std::set<frame_id_t> beginning_keyframes;
-  auto keyframes = get_keyframe_ids(tracks);
+  auto keyframes = this->m_keyframes;
+
   auto first_fid = *keyframes.begin();
   auto ff_tracks = tracks->active_tracks(first_fid);
   auto all_frames = tracks->all_frame_ids();
@@ -2368,8 +2358,7 @@ initialize_cameras_landmarks_keyframe::priv
     // initialize the cameras from metadata
     cams->clear();
 
-    auto frames = tracks->all_frame_ids();
-    for (auto fid : frames)
+    for (auto fid : keyframes)
     {
       vector_3d pos_loc;
       rotation_d R_loc;
@@ -2603,7 +2592,7 @@ initialize_cameras_landmarks_keyframe::priv
   m_solution_was_fit_to_constraints = false;
 
   // get set of keyframe ids
-  auto keyframes = get_keyframe_ids(tracks);
+  auto keyframes = this->m_keyframes;
 
   // now try using the metadata to initialize the reconstruction
   if (metadata_centric_keyframe_initialization(cams, false, landmarks, tracks,
@@ -3473,10 +3462,9 @@ initialize_cameras_landmarks_keyframe::priv
                                            all_frames_to_register);
 
   // enforce registering only keyframes
-  auto keyframe_ids = tracks->keyframes();
   for (auto fid : all_frames_to_register)
   {
-    if (keyframe_ids.find(fid) != keyframe_ids.end())
+    if (m_keyframes.find(fid) != m_keyframes.end())
     {
       keyframes_to_register.insert(fid);
     }
@@ -3994,6 +3982,9 @@ initialize_cameras_landmarks_keyframe
   {
     tracks->remove(tk);
   }
+
+  // Compute keyframes to use for SFM
+  m_priv->m_keyframes = keyframes_for_sfm(tracks);
 
   m_priv->m_already_merged_landmarks.clear();
   m_priv->check_inputs(tracks);
