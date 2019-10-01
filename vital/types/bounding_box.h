@@ -96,6 +96,22 @@ public:
   }
 
   /**
+   * @brief Create default (invalid) box.
+   */
+  bounding_box() : bounding_box( -1, -1, -1, -1 )
+  { }
+
+  /**
+   * @brief Check to see if the two corner points are valid.
+   *
+   * @return true if the box is valid
+   */
+  bool is_valid() const
+  {
+    return (width() >= 0 && height() >= 0);
+  }
+
+  /**
    * @brief Get center coordinate of box.
    *
    * @return Center coordinate of box.

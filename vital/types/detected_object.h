@@ -43,10 +43,11 @@
 #include <vector>
 
 #include <vital/types/detected_object_type.h>
-#include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/descriptor.h>
+#include <vital/types/geo_point.h>
 #include <vital/types/image_container.h>
+#include <vital/types/vector.h>
 
 #include <vital/io/eigen_io.h>
 #include <Eigen/Geometry>
@@ -81,6 +82,15 @@ public:
   typedef std::shared_ptr< descriptor_t const > descriptor_scptr;
 
   /**
+   * @brief Create default detected object.
+   *
+   * @param confidence Detectors confidence in this detection.
+   * @param classifications Optional object classification.
+   */
+  detected_object( double confidence = 1.0,
+                   detected_object_type_sptr classifications = detected_object_type_sptr());
+
+  /**
    * @brief Create detected object with bounding box and other attributes.
    *
    * @param bbox Bounding box surrounding detected object, in image coordinates.
@@ -90,6 +100,17 @@ public:
   detected_object( const bounding_box_d& bbox,
                    double confidence = 1.0,
                    detected_object_type_sptr classifications = detected_object_type_sptr() );
+
+  /**
+   * @brief Create detected object with a geo_point and other attributes.
+   *
+   * @param geo_pt Geographic location of the detection, in world coordinates.
+   * @param confidence Detectors confidence in this detection.
+   * @param classifications Optional object classification.
+   */
+  detected_object( const kwiver::vital::geo_point& geo_pt,
+                   double confidence = 1.0,
+                   detected_object_type_sptr classifications = detected_object_type_sptr());
 
   virtual ~detected_object() = default;
 
@@ -119,6 +140,27 @@ public:
    * @param bbox Bounding box for this detection.
    */
   void set_bounding_box( const bounding_box_d& bbox );
+
+
+  /**
+   * @brief Get geo_point from this detection.
+   *
+   * The geo_point for this detection is returned. This point is in
+   * world coordinates. A default constructed (invalid) geo_point
+   * is returned if no point has been supplied for this detection.
+   *
+   * @return A copy of the geo_point.
+   */
+  kwiver::vital::geo_point geo_point() const;
+
+  /**
+   * @brief Set new geo_point for this detection.
+   *
+   * The supplied geo_point replaces the point for this detection.
+   *
+   * @param gp geo_point for this detection.
+   */
+  void set_geo_point( const kwiver::vital::geo_point& gp );
 
   /**
    * @brief Get confidence for this detection.
@@ -249,6 +291,7 @@ public:
   void set_descriptor( descriptor_scptr d );
 
 private:
+  kwiver::vital::geo_point m_geo_point;
   bounding_box_d m_bounding_box;
   double m_confidence;
   image_container_scptr m_mask_image;
