@@ -73,6 +73,26 @@ std::set<vital::track_sptr>
 detect_stationary_tracks(vital::feature_track_set_sptr tracks,
                          double threshold = 10.0);
 
+/// Select keyframes that are a good starting point for SfM
+/**
+ * Analyze a set of tracks and select a good subset of keyframe that would
+ * be useful to initialize structure-from-motion.  These frames are well
+ * distributed but still highly connected to each other.  The \p radius
+ * controls how far apart the initial keyframes must be.  The \p ratio
+ * then controls which key frame intervals are weak and must be sub-divided.
+ * \param [in] tracks     The set of feature tracks to process
+ * \param [in] radius     The number of adjacent frames to block
+ *                        in non-maximum suppression
+ * \param [in] ratio      The minimum ratio of number of tracks between
+ *                        adjacent key frames and adjacent frames
+ * \return                The set of selected frame numbers
+ */
+KWIVER_ALGO_CORE_EXPORT
+std::set<vital::frame_id_t>
+keyframes_for_sfm(vital::feature_track_set_sptr tracks,
+                  const vital::frame_id_t radius = 10,
+                  const double ratio = 0.75);
+
 typedef std::pair<vital::frame_id_t, float> coverage_pair;
 typedef std::vector<coverage_pair> frame_coverage_vec;
 

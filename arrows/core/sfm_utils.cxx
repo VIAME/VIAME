@@ -39,6 +39,7 @@
 #include <vital/vital_types.h>
 #include <vital/types/feature_track_set.h>
 #include <arrows/core/metrics.h>
+#include <arrows/core/match_matrix.h>
 
 using namespace kwiver::vital;
 
@@ -92,6 +93,142 @@ detect_stationary_tracks(vital::feature_track_set_sptr tracks,
     }
   }
   return stationary_tracks;
+}
+
+// anonymous namespace for local functions
+namespace
+{
+
+// Helper function to subdivide the keyframe list as needed for better
+// connectivity of tracks
+void subdivide_keyframes(std::set<vital::frame_id_t>& key_idx,
+                         Eigen::SparseMatrix<unsigned int> const& mm,
+                         double ratio_threshold = 0.75)
+{
+  if (key_idx.empty())
+  {
+    return;
+  }
+  // Check each pair of adjacent keyframes to ensure that they
+  // are reasonably well connected.  If not, recursively
+  // subdivide adding more frames until adjacent frames are well
+  // connected.
+  std::set<vital::frame_id_t> new_key_idx;
+  auto key2 = key_idx.begin();
+  for (auto key1 = key2++; key2 != key_idx.end(); ++key1, ++key2)
+  {
+    // key1 and key2 are always sequential keyframes in the original sequence
+    new_key_idx.insert(*key1);
+    // k1 and k2 are candidates for sequential keyframe in the new sequence
+    auto k1 = *key1;
+    auto k2 = *key2;
+    // If k1 == k2 then we have subdivided down to the sub-frame level
+    // and we need to stop and move to the next interval.
+    while (k1 != k2)
+    {
+      while (true)
+      {
+        // As a baseline, consider the average number of tracks between
+        // the nearest neighbors of each of k1 and k2 in this interval.
+        // This is typically the best case, adjacent frames are most similar.
+        double avg_tracks = (mm.coeff(k1, k1 + 1) + mm.coeff(k2 - 1, k2)) / 2;
+        // We want the number of tracks over this interval to be within
+        // a high percentage of the frame-to-frame track count
+        auto num_tracks = mm.coeff(k1, k2);
+        double ratio = num_tracks / avg_tracks;
+        if (ratio > ratio_threshold)
+        {
+          // This interval is good, so move on to the next
+          break;
+        }
+        // This interval is weak, so pick a new k2 half way between and retry
+        k2 = (k1 + k2) / 2;
+      }
+      // We found an acceptable k2, so add it
+      new_key_idx.insert(k2);
+      // Move on to the other half of the interval
+      k1 = k2;
+      k2 = *key2;
+    }
+  }
+  key_idx.swap(new_key_idx);
+}
+
+}
+
+/// Select keyframes that are a good starting point for SfM
+std::set<vital::frame_id_t>
+keyframes_for_sfm(feature_track_set_sptr tracks,
+                  const frame_id_t radius,
+                  const double ratio_threshold)
+{
+  std::set<vital::frame_id_t> keyframes;
+  // Compute the match matrix for all frames
+  auto all_frames_set = tracks->all_frame_ids();
+  std::vector<frame_id_t> all_frames(all_frames_set.begin(),
+                                     all_frames_set.end());
+  auto mm = match_matrix(tracks, all_frames);
+
+  // Compute the total track score on each frame.
+  // The track score is the sum of the lengths of the tracks
+  // passing through that frame.  This is equal to the sum
+  // of the rows or columns of the match matrix.
+  std::vector<std::pair<unsigned long, frame_id_t> > scores;
+  scores.reserve(all_frames.size());
+  for (frame_id_t k = 0; k < mm.outerSize(); ++k)
+  {
+    unsigned long score = 0;
+    for (decltype(mm)::InnerIterator it(mm, k); it; ++it)
+    {
+      score += it.value();
+    }
+    scores.push_back(std::make_pair(score, k));
+  }
+  // Sort the frames in order of decreasing score
+  std::sort(scores.begin(), scores.end(),
+    [](const auto &l, const auto &r)
+  {
+    return l.first > r.first;
+  });
+
+  // Consider each score in order and use non-maximum suppression
+  // to keep the strongest frames that are separated by at least
+  // radius frames.
+  std::vector<bool> mask(all_frames.size(), false);
+  std::set<vital::frame_id_t> key_idx;
+  for (auto const& s : scores)
+  {
+    auto const& idx = s.second;
+    if (mask[idx])
+    {
+      // A nearby frame was already selected
+      continue;
+    }
+    // Compute a range of indices within radius of the current
+    // accounting for boundary conditions.
+    const frame_id_t min_range = idx - std::min(idx, radius);
+    const frame_id_t max_range =
+      std::min(idx + radius, static_cast<frame_id_t>(mask.size() - 1));
+    // Mark each frame within radius as covered
+    for (frame_id_t i = min_range; i <= max_range; ++i)
+    {
+      mask[i] = true;
+    }
+    key_idx.insert(idx);
+  }
+
+  if (ratio_threshold > 0.0)
+  {
+    subdivide_keyframes(key_idx, mm, ratio_threshold);
+  }
+
+  // Look up the actual frame numbers for each selected index
+  for (auto k : key_idx)
+  {
+    keyframes.insert(all_frames[k]);
+  }
+
+  return keyframes;
 }
 
 /// Calculate fraction of each image that is covered by landmark projections
