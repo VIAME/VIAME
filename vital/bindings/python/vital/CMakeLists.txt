@@ -3,11 +3,6 @@
 #
 project(kwiver_python)
 
-# Add python modules
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/apm.py
-  vital
-  apm )
-
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/vital_logging.py
   vital
   vital_logging )
