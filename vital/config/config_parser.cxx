@@ -464,7 +464,7 @@ public:
         return false;
       }
 
-      ++ m_line_number; // count line number
+      ++m_line_number; // count line number
       m_last_line = line; // save for error reporting
 
       string_trim( line ); // trim off spaces

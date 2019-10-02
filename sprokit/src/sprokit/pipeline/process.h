@@ -593,7 +593,7 @@ class SPROKIT_PIPELINE_EXPORT process
       process::port_t const port_input = port_t("pass");
 
       declare_input_port(
-         priv::port_input, // port name
+         port_input, // port name
          type_flow_dependent + "tag",
          required,
          port_description_t("The datum to pass."));
@@ -879,6 +879,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns True if the type can work, false otherwise.
      */
     virtual bool _set_input_port_type(port_t const& port, port_type_t const& new_type);
+
     /**
      * \brief Subclass output port type setting.
      *
@@ -917,6 +918,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \param info Information about the port.
      */
     void declare_input_port(port_t const& port, port_info_t const& info);
+
     /**
      * \brief Declare an output port for the process.
      *
@@ -1268,8 +1270,7 @@ class SPROKIT_PIPELINE_EXPORT process
      * \flag{required} are guaranteed to be synchronized. When the inputs are
      * not synchronized, an error datum is pushed to all output ports and all
      * input ports will be grabbed from based on the relative frequency of the
-     * ports. If this behavior is not wanted, it must be manually handled. The
-     * default is that it is enabled.
+     * ports.
      *
      * If set to \ref check_valid, the input ports which are marked as
      * \flag{required} are guaranteed to have valid data available. When the

@@ -46,9 +46,8 @@ namespace vital {
 string
 file_md5( const string& fn )
 {
-
   ifstream is( fn.c_str(), ifstream::binary );
-  if ( ! is )
+  if ( !is )
   {
     return "";
   }
@@ -57,17 +56,17 @@ file_md5( const string& fn )
   unsigned char digest[ digest_size ];
 
   {
-    const size_t bufsize=16384;
-    unsigned char* buf = new unsigned char[bufsize];
+    const size_t bufsize = 16384;
+    unsigned char* buf = new unsigned char [ bufsize ];
     kwiversysMD5* md5 = kwiversysMD5_New();
     kwiversysMD5_Initialize( md5 );
 
-    while (is)
+    while ( is )
     {
-      is.read( reinterpret_cast<char*>( buf ), bufsize );
-      if (is.gcount())
+      is.read( reinterpret_cast< char* >( buf ), bufsize );
+      if ( is.gcount() )
       {
-        kwiversysMD5_Append( md5, buf, is.gcount());
+        kwiversysMD5_Append( md5, buf, is.gcount() );
       }
     }
     kwiversysMD5_Finalize( md5, digest );
@@ -77,11 +76,11 @@ file_md5( const string& fn )
 
   ostringstream oss;
   {
-    const size_t bufsize=5;
-    char buf[bufsize];
-    for (size_t i=0; i<digest_size; ++i)
+    const size_t bufsize = 5;
+    char buf[ bufsize ];
+    for ( size_t i = 0; i < digest_size; ++i )
     {
-      snprintf(buf, bufsize, "%x", digest[i]);
+      snprintf( buf, bufsize, "%x", digest[ i ] );
       oss << buf;
     }
   }
