@@ -9,6 +9,8 @@ set(python_util_headers
   python_exceptions.h
   python.h)
 
+include_directories(${pybind11_INCLUDE_DIR})
+
 kwiver_add_library(vital_python_util
   ${python_util_srcs}
   ${python_util_headers})
