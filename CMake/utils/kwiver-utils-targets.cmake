@@ -80,17 +80,10 @@ endfunction()
 # ------------------------------
 function(_kwiver_compile_pic name)
   message(STATUS "Adding PIC flag to target: ${name}")
-  if (CMAKE_VERSION VERSION_GREATER "2.8.12")
-    set_target_properties("${name}"
-      PROPERTIES
-        POSITION_INDEPENDENT_CODE TRUE
-      )
-  elseif(NOT MSVC)
-    set_target_properties("${name}"
-      PROPERTIES
-        COMPILE_FLAGS "-fPIC"
-      )
-  endif()
+  set_target_properties("${name}"
+    PROPERTIES
+      POSITION_INDEPENDENT_CODE TRUE
+    )
 endfunction()
 
 
