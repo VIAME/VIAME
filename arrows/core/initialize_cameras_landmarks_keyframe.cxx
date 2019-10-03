@@ -3545,11 +3545,9 @@ initialize_cameras_landmarks_keyframe::priv
 
     frames_since_last_local_ba.insert(fid_to_register);
 
-    auto cams_recent = kwiver::arrows::subsample_cameras_favor_recent(cams->cameras());
-
     auto reporj_by_cam =
-      kwiver::arrows::reprojection_rmse_by_cam(cams_recent,
-        lmks, tracks->tracks());
+      kwiver::arrows::reprojection_rmse_by_cam(cams->cameras(),
+                                               lmks, tracks->tracks());
 
     double rebundle_thresh = final_reproj_thresh * 4.0;
     bool bundle_because_of_reproj = false;
@@ -3597,13 +3595,9 @@ initialize_cameras_landmarks_keyframe::priv
         frames_since_last_local_ba.clear();
       }
 
-
-      auto cams_recent =
-        kwiver::arrows::subsample_cameras_favor_recent(cams->cameras());
-
       last_reproj_by_cam =
-        kwiver::arrows::reprojection_rmse_by_cam(cams_recent,
-          lmks, tracks->tracks());
+        kwiver::arrows::reprojection_rmse_by_cam(cams->cameras(),
+                                                 lmks, tracks->tracks());
     }
 
     already_registred_cams.insert(fid_to_register);
