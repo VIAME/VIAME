@@ -2125,9 +2125,15 @@ initialize_cameras_landmarks_keyframe::priv
         }
       }
 
+      auto ba_config = bundle_adjuster->get_configuration();
+      bool opt_focal_was_set = ba_config->get_value<bool>("optimize_focal_length");
+      ba_config->set_value<bool>("optimize_focal_length", false);
+      bundle_adjuster->set_configuration(ba_config);
       bundle_adjuster->optimize(*cams, lms, tracks,
                                 fixed_cameras, fixed_landmarks,
                                 ba_constraints);
+      ba_config->set_value<bool>("optimize_focal_length", opt_focal_was_set);
+      bundle_adjuster->set_configuration(ba_config);
 
       auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
         cams->cameras().begin()->second);
@@ -2418,6 +2424,8 @@ initialize_cameras_landmarks_keyframe::priv
   int iterations = 0;
   int num_permissive_triangulation_iterations = 3;
   int min_non_permissive_triangulation_iterations = 2;
+  auto ba_config = global_bundle_adjuster->get_configuration();
+  bool opt_focal_was_set = ba_config->get_value<bool>("optimize_focal_length");
   do {
     prev_inlier_lm_count = cur_inlier_lm_count;
 
@@ -2469,7 +2477,13 @@ initialize_cameras_landmarks_keyframe::priv
           fts->inlier = true;
         }
       }
+      ba_config->set_value<bool>("optimize_focal_length", false);
     }
+    else
+    {
+      ba_config->set_value<bool>("optimize_focal_length", opt_focal_was_set);
+    }
+    global_bundle_adjuster->set_configuration(ba_config);
 
     double init_rmse =
       kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
