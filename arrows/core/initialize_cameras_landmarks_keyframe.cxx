@@ -433,7 +433,7 @@ initialize_cameras_landmarks_keyframe::priv
   m_logger(vital::get_logger("arrows.core.initialize_cameras_landmarks_keyframe")),
   m_thresh_triang_cos_ang(cos(deg_to_rad * 2.0)),
   m_rng(m_rd()),
-  m_reverse_ba_error_ratio(2.0),
+  m_reverse_ba_error_ratio(0.0),
   m_solution_was_fit_to_constraints(false),
   m_max_cams_in_keyframe_init(20),
   m_frac_frames_for_init(-1.0),
