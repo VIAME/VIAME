@@ -389,6 +389,7 @@ public:
   vital::algo::optimize_cameras_sptr camera_optimizer;
   vital::algo::triangulate_landmarks_sptr lm_triangulator;
   vital::algo::bundle_adjust_sptr bundle_adjuster;
+  vital::algo::bundle_adjust_sptr global_bundle_adjuster;
   vital::algo::estimate_similarity_transform_sptr m_similarity_estimator;
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -428,6 +429,7 @@ initialize_cameras_landmarks_keyframe::priv
   // use the core triangulation as the default, users can change it
   lm_triangulator(new core::triangulate_landmarks()),
   bundle_adjuster(),
+  global_bundle_adjuster(),
   m_logger(vital::get_logger("arrows.core.initialize_cameras_landmarks_keyframe")),
   m_thresh_triang_cos_ang(cos(deg_to_rad * 2.0)),
   m_rng(m_rd()),
@@ -946,8 +948,8 @@ initialize_cameras_landmarks_keyframe::priv
     {
       std::set<frame_id_t> empty_fixed_cams;
       std::set<landmark_id_t> empty_fixed_lms;
-      bundle_adjuster->optimize(*cam_map, lms, trk_set,
-                                empty_fixed_cams, empty_fixed_lms);
+      global_bundle_adjuster->optimize(*cam_map, lms, trk_set,
+                                       empty_fixed_cams, empty_fixed_lms);
     }
     inlier_lm_ids.clear();
     retriangulate(lms, cam_map, trks, inlier_lm_ids);
@@ -2292,9 +2294,9 @@ initialize_cameras_landmarks_keyframe::priv
             LOG_DEBUG(m_logger, "Necker reversed before final reprojection RMSE: "
                                 << before_final_ba_rmse2);
 
-            bundle_adjuster->optimize(*nr_cams_perspec, nr_landmarks, tracks,
-                                      fixed_cameras, fixed_landmarks,
-                                      ba_constraints);
+            global_bundle_adjuster->optimize(*nr_cams_perspec, nr_landmarks, tracks,
+                                             fixed_cameras, fixed_landmarks,
+                                             ba_constraints);
 
             double final_rmse2 =
               kwiver::arrows::reprojection_rmse(nr_cams->cameras(),
@@ -2473,12 +2475,11 @@ initialize_cameras_landmarks_keyframe::priv
       kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
     LOG_INFO(m_logger, "initial reprojection RMSE: " << init_rmse);
 
-    // first a BA fixing all landmarks to correct the cameras
     std::set<frame_id_t> fixed_cameras;
     std::set<landmark_id_t> fixed_landmarks;
-    bundle_adjuster->optimize(*cams, lms, tracks,
-                              fixed_cameras, fixed_landmarks,
-                              constraints);
+    global_bundle_adjuster->optimize(*cams, lms, tracks,
+                                     fixed_cameras, fixed_landmarks,
+                                     constraints);
 
     if (cams->size() > 0)
     {
@@ -3085,9 +3086,18 @@ initialize_cameras_landmarks_keyframe::priv
     get_sub_landmark_map(lmks, variable_landmark_ids);
   std::set<landmark_id_t> empty_landmark_id_set;
 
-  bundle_adjuster->optimize(*cams, variable_landmarks, tracks,
-                            frames_to_fix, empty_landmark_id_set,
-                            constraints);
+  auto cam_frames = cams->get_frame_ids();
+  auto first_cam = *cam_frames.begin();
+  auto last_cam = *cam_frames.rbegin();
+  double video_coverage = static_cast<double>(last_cam - first_cam) / (tracks->last_frame() - tracks->first_frame());
+  auto ba = bundle_adjuster;
+  if (cams->size() > 50 && video_coverage > 0.8)
+  {
+    ba = global_bundle_adjuster;
+  }
+  ba->optimize(*cams, variable_landmarks, tracks,
+               frames_to_fix, empty_landmark_id_set,
+               constraints);
 
   clean_cameras_and_landmarks(*cams, lmks, tracks,
                               m_thresh_triang_cos_ang, removed_cams,
@@ -3797,6 +3807,9 @@ initialize_cameras_landmarks_keyframe
   vital::algo::bundle_adjust
       ::get_nested_algo_configuration("bundle_adjuster",
                                       config, m_priv->bundle_adjuster);
+  vital::algo::bundle_adjust
+      ::get_nested_algo_configuration("global_bundle_adjuster",
+                                      config, m_priv->global_bundle_adjuster);
   vital::algo::estimate_pnp
     ::get_nested_algo_configuration("estimate_pnp", config, m_priv->m_pnp);
 
@@ -3828,6 +3841,9 @@ initialize_cameras_landmarks_keyframe
   vital::algo::bundle_adjust
       ::set_nested_algo_configuration("bundle_adjuster",
                                       config, m_priv->bundle_adjuster);
+  vital::algo::bundle_adjust
+      ::set_nested_algo_configuration("global_bundle_adjuster",
+                                      config, m_priv->global_bundle_adjuster);
 
   // make sure the callback is applied to any new instances of
   // nested algorithms
@@ -3933,6 +3949,12 @@ initialize_cameras_landmarks_keyframe
   {
     return false;
   }
+  if (config->get_value<std::string>("global_bundle_adjuster", "") != ""
+      && !vital::algo::bundle_adjust
+         ::check_nested_algo_configuration("global_bundle_adjuster", config))
+  {
+    return false;
+  }
   return
     vital::algo::estimate_essential_matrix
       ::check_nested_algo_configuration("essential_mat_estimator",config) &&
@@ -3995,17 +4017,25 @@ initialize_cameras_landmarks_keyframe
 ::set_callback(callback_t cb)
 {
   vital::algo::initialize_cameras_landmarks::set_callback(cb);
-  // pass callback on to bundle adjuster if available
-  if (m_priv->bundle_adjuster && this->m_callback)
+  // pass callback on to bundle adjusters if available
+  if ((m_priv->bundle_adjuster || m_priv->global_bundle_adjuster) &&
+      this->m_callback)
   {
     using std::placeholders::_1;
     using std::placeholders::_2;
     using std::placeholders::_3;
     callback_t pcb =
       std::bind(&initialize_cameras_landmarks_keyframe::priv
-                  ::pass_through_callback,
-                m_priv.get(), cb, _1, _2, _3);
-    m_priv->bundle_adjuster->set_callback(pcb);
+        ::pass_through_callback,
+        m_priv.get(), this->m_callback, _1, _2, _3);
+    if (m_priv->bundle_adjuster)
+    {
+      m_priv->bundle_adjuster->set_callback(pcb);
+    }
+    if (m_priv->global_bundle_adjuster)
+    {
+      m_priv->global_bundle_adjuster->set_callback(pcb);
+    }
   }
 }
 
