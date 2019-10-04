@@ -2215,10 +2215,13 @@ initialize_cameras_landmarks_keyframe::priv
         bundle_adjuster->optimize(*cams, lms, tracks,
                                   fixed_cameras, fixed_landmarks,
                                   ba_constraints);
+        if (cams->size() > 0)
+        {
+          auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
+            cams->cameras().begin()->second);
+          m_base_camera.set_intrinsics(first_cam->intrinsics());
+        }
 
-        auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
-          cams->cameras().begin()->second);
-        m_base_camera.set_intrinsics(first_cam->intrinsics());
 
         double optimized_rmse =
           kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
@@ -2233,9 +2236,12 @@ initialize_cameras_landmarks_keyframe::priv
                                   fixed_cameras, fixed_landmarks,
                                   ba_constraints);
 
-        first_cam = std::static_pointer_cast<simple_camera_perspective>(
-          cams->cameras().begin()->second);
-        m_base_camera.set_intrinsics(first_cam->intrinsics());
+        if (cams->size() > 0)
+        {
+          auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
+            cams->cameras().begin()->second);
+          m_base_camera.set_intrinsics(first_cam->intrinsics());
+        }
 
         clean_cameras_and_landmarks(*cams, lms, tracks,
                                     m_thresh_triang_cos_ang, removed_cams,
@@ -3004,9 +3010,10 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (bundled_inlier_count < 4 * min_inliers)
   {
-    resection_camera(cams, lmks, tracks, fid_to_register);
+    bool resection_success = resection_camera(cams, lmks, tracks,
+                                              fid_to_register);
     resectioned_cam = cams->find(fid_to_register);
-    if (resectioned_cam)
+    if (resection_success && resectioned_cam)
     {
       int prev_resection_inlier_count = -1;
       int loop_count = 0;
@@ -3997,7 +4004,8 @@ initialize_cameras_landmarks_keyframe
     return;
   }
 
-  if (!m_priv->initialize_remaining_cameras(cams, landmarks, tracks,
+  if (cams->size() == 0 ||
+      !m_priv->initialize_remaining_cameras(cams, landmarks, tracks,
                                             constraints, this->m_callback))
   {
     return;
