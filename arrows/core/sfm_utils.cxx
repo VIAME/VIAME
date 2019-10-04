@@ -124,9 +124,9 @@ void subdivide_keyframes(std::set<vital::frame_id_t>& key_idx,
     auto k2 = *key2;
     // If k1 == k2 then we have subdivided down to the sub-frame level
     // and we need to stop and move to the next interval.
-    while (k1 != k2)
+    while (k1 < k2)
     {
-      while (true)
+      while (k1 < k2)
       {
         // As a baseline, consider the average number of tracks between
         // the nearest neighbors of each of k1 and k2 in this interval.
@@ -144,11 +144,14 @@ void subdivide_keyframes(std::set<vital::frame_id_t>& key_idx,
         // This interval is weak, so pick a new k2 half way between and retry
         k2 = (k1 + k2) / 2;
       }
-      // We found an acceptable k2, so add it
-      new_key_idx.insert(k2);
-      // Move on to the other half of the interval
-      k1 = k2;
-      k2 = *key2;
+      if (k1 < k2)
+      {
+        // We found an acceptable k2, so add it
+        new_key_idx.insert(k2);
+        // Move on to the other half of the interval
+        k1 = k2;
+        k2 = *key2;
+      }
     }
   }
   key_idx.swap(new_key_idx);
