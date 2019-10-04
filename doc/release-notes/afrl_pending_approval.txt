@@ -41,6 +41,12 @@ Arrows - Core
  * Added a new SfM utility function to compute a set of well-distributed
    but well-connected keyframes for use in initializing SfM.
 
+ * During keyframe camera initialization the algorithm detects if the camera
+   graph has split into multiple components.  Previously only the largest
+   component was kept resulting in significant data loss.  Instead the
+   algorithm now tries to retriangulate tracks that previously held the
+   camera graph together.
+
 Arrows - Ceres
 
  * Fixed long-broken bundle adjustment regularization parameters for
