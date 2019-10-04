@@ -2982,6 +2982,8 @@ initialize_cameras_landmarks_keyframe::priv
 
     int prev_bundled_inlier_count = -1;
     int loop_count = 0;
+    bundled_inlier_count = set_inlier_flags(fid_to_register, bundled_cam,
+                                            cur_landmarks, tracks, 50);
 
     while (bundled_inlier_count > prev_bundled_inlier_count)
     {
