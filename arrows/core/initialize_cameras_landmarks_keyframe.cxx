@@ -2342,14 +2342,24 @@ initialize_cameras_landmarks_keyframe::priv
     }
   }
 
-  std::vector<frame_id_t> removed_cams;
-  std::set<frame_id_t> empty_cam_set;
-  std::set<landmark_id_t> empty_lm_set;
-  clean_cameras_and_landmarks(*cams, lms, tracks,
-                              m_thresh_triang_cos_ang, removed_cams,
-                              empty_cam_set, empty_lm_set,
-                              image_coverage_threshold,
-                              interim_reproj_thresh);
+  if (continue_processing)
+  {
+    LOG_DEBUG(m_logger, "Final bundle adjustment of initial keyframes");
+    std::set<frame_id_t> fixed_cameras;
+    std::set<landmark_id_t> fixed_landmarks;
+    bundle_adjuster->optimize(*cams, lms, tracks,
+                              fixed_cameras, fixed_landmarks,
+                              ba_constraints);
+
+    std::vector<frame_id_t> removed_cams;
+    std::set<frame_id_t> empty_cam_set;
+    std::set<landmark_id_t> empty_lm_set;
+    clean_cameras_and_landmarks(*cams, lms, tracks,
+                                m_thresh_triang_cos_ang, removed_cams,
+                                empty_cam_set, empty_lm_set,
+                                image_coverage_threshold,
+                                interim_reproj_thresh);
+  }
 
   landmarks = landmark_map_sptr(new simple_landmark_map(lms));
 
