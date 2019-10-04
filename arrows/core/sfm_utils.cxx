@@ -445,6 +445,39 @@ connected_camera_components(
   return comps;
 }
 
+/// Detect critical tracks that connect disjoint components
+std::vector<track_sptr>
+detect_critical_tracks(camera_components const& cc,
+                       feature_track_set_sptr tracks)
+{
+  std::vector<track_sptr> critical_tracks;
+  // build a mapping from frame number to connected component index
+  std::map<frame_id_t, unsigned int> cc_map;
+  for (unsigned int i=0; i<cc.size(); ++i)
+  {
+    for (auto const& f : cc[i])
+    {
+      cc_map[f] = i;
+    }
+  }
+
+  // find tracks which span more than one connected component
+  for (auto const& t : tracks->tracks())
+  {
+    unsigned int first_idx = cc_map[t->first_frame()];
+    for (auto const& ts : *t)
+    {
+      auto idx = cc_map[ts->frame()];
+      if (idx != first_idx)
+      {
+        critical_tracks.push_back(t);
+        break;
+      }
+    }
+  }
+  return critical_tracks;
+}
+
 /// Detect underconstrained landmarks.
 std::set<landmark_id_t>
 detect_bad_landmarks(

@@ -2512,44 +2512,18 @@ initialize_cameras_landmarks_keyframe::priv
                                 empty_cam_set, empty_lm_set,
                                 coverage_thresh, reproj_thresh, 3);
 
+    // If more than one connected component, find critical tracks that tie
+    // the components back together and retriangulate them.
     auto cc = connected_camera_components(cams->T_cameras(), lms, tracks);
-
     if (cc.size() > 1)
     {
-      int cc_idx = 0;
-      int largest_cc_idx = -1;
-      int largest_cc_size = -1;
-      for (auto c : cc)
-      {
-        int c_size = c.size();
-        if (c_size > largest_cc_size)
-        {
-          largest_cc_size = c_size;
-          largest_cc_idx = cc_idx;
-        }
-        ++cc_idx;
-      }
-
-      std::set<frame_id_t> disconnected_cams;
-      auto largest_c = cc[largest_cc_idx];
-      for (auto cam : cams->cameras())
-      {
-        if (largest_c.find(cam.first) == largest_c.end())
-        {
-          disconnected_cams.insert(cam.first);
-        }
-      }
-
-      for (auto rem_cam : disconnected_cams)
-      {
-        cams->erase(rem_cam);
-      }
-    }
-
-    if (cams->size() < 2)
-    {
-      cams->clear();
-      return false;
+      auto critical_tracks = detect_critical_tracks(cc, tracks);
+      retriangulate(lms, cams, critical_tracks, inlier_lm_ids);
+      LOG_DEBUG(m_logger, "Found " << cc.size() << " connected components "
+                          "with " << critical_tracks.size()
+                          << " connecting them.\n"
+                          "Retriangulated " << inlier_lm_ids.size()
+                          << " landmarks");
     }
 
     cur_inlier_lm_count = lms.size();

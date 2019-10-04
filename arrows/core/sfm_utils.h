@@ -133,6 +133,20 @@ connected_camera_components(
   vital::landmark_map::map_landmark_t const& lms,
   vital::feature_track_set_sptr tracks);
 
+/// Detect critical tracks that connect disjoint components
+/**
+ * Compute the subset of all tracks which have track states in more than one
+ * connected component.  These tracks have likely been marked as outliers,
+ * which is why there are multiple connected components.  To avoid a
+ * fragmented solution these critical tracks need to be reconsidered.
+ * \param [in] cc      The connected camera components
+ * \param [in] tracks  The set of tracks
+ * \returns            A vector of all critical tracks
+ */
+std::vector<vital::track_sptr>
+detect_critical_tracks(camera_components const& cc,
+                       vital::feature_track_set_sptr tracks);
+
 /// detect bad landmarks
 /**
 * Checks landmark reprojection errors, triangulation angles and whether or not
