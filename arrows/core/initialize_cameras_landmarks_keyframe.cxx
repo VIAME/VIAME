@@ -2010,7 +2010,7 @@ initialize_cameras_landmarks_keyframe::priv
   callback_t callback)
 {
 
-  auto beginning_keyframes = select_begining_frames_for_initialization(tracks);
+  auto beginning_keyframes = keyframes;
 
   map_landmark_t lms;
 
