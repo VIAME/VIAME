@@ -81,14 +81,10 @@ class MMDetDetector( ImageObjectDetector ):
 
     import matplotlib
     matplotlib.use( 'PS' ) # bypass multiple Qt load issues
-    from mmdet.models import build_detector
-    from mmcv.runner import load_checkpoint
+    from mmdet.apis import init_detector
 
-    self._cfg = mmcv.Config.fromfile( self._net_config )
-    self._cfg.model.pretrained = None
-    self._model = build_detector( self._cfg.model, test_cfg=self._cfg.test_cfg )
-    _ = load_checkpoint( self._model, self._weight_file )
-
+    gpu_string = 'cuda:' + str( self._gpu_index )
+    self._model = init_detector( self._net_config, self._weight_file, device=gpu_string )
     self._labels = open( self._class_names, "r" ).read().splitlines()
 
   def check_configuration( self, cfg ):
@@ -107,9 +103,7 @@ class MMDetDetector( ImageObjectDetector ):
     input_image = image_data.asarray().astype( 'uint8' )
 
     from mmdet.apis import inference_detector
-
-    gpu_string = 'cuda:' + str( self._gpu_index )
-    detections = inference_detector( self._model, input_image, self._cfg, device=gpu_string )
+    detections = inference_detector( self._model, input_image )
 
     if isinstance( detections, tuple ):
       bbox_result, segm_result = detections
