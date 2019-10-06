@@ -79,6 +79,9 @@ class MMDetDetector( ImageObjectDetector ):
     self._gpu_index = str( cfg.get_value( "gpu_index" ) )
     self._display_detections = strtobool( cfg.get_value( "display_detections" ) )
 
+    from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
+    check_config_compatibility( self._net_config )
+
     import matplotlib
     matplotlib.use( 'PS' ) # bypass multiple Qt load issues
     from mmdet.apis import init_detector
