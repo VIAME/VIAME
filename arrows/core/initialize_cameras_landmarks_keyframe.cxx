@@ -51,6 +51,7 @@
 #include <vital/algo/triangulate_landmarks.h>
 #include <vital/algo/bundle_adjust.h>
 #include <vital/algo/optimize_cameras.h>
+#include <vital/algo/estimate_canonical_transform.h>
 #include <vital/algo/estimate_similarity_transform.h>
 
 #include <arrows/core/triangulate_landmarks.h>
@@ -390,6 +391,7 @@ public:
   vital::algo::triangulate_landmarks_sptr lm_triangulator;
   vital::algo::bundle_adjust_sptr bundle_adjuster;
   vital::algo::bundle_adjust_sptr global_bundle_adjuster;
+  vital::algo::estimate_canonical_transform_sptr m_canonical_estimator;
   vital::algo::estimate_similarity_transform_sptr m_similarity_estimator;
   /// Logger handle
   vital::logger_handle_t m_logger;
@@ -1464,124 +1466,110 @@ initialize_cameras_landmarks_keyframe::priv
   sfm_constraints_sptr constraints,
   int &num_constraints_used)
 {
+  similarity_d sim;
   num_constraints_used = 0;
-  if (!constraints)
+  if (!constraints || constraints->get_camera_position_priors().empty())
   {
-    return true;
-  }
-
-  int max_frame_diff = 20;
-
-  auto pos_priors = constraints->get_camera_position_priors();
-
-  auto persp_cams = cams->T_cameras();
-
-  if (!m_similarity_estimator)
-  {
-    LOG_DEBUG(m_logger, "No similarity estimator defined. "
-                        "Skipping fit to constraints.");
-    return false;
-  }
-
-  std::vector<vector_3d> cam_positions, sensor_positions;
-
-  for (auto &cam : persp_cams)
-  {
-    auto cam_fid = cam.first;
-    int best_fid_difference = std::numeric_limits<int>::max();
-    vector_3d closest_prior;
-    for (auto &prior : pos_priors)
+    // If no constraints then estimate the similarity transform to
+    // bring the solution into canonical pose
+    if (!m_canonical_estimator)
     {
-      auto prior_fid = prior.first;
-      auto cur_diff = abs(prior_fid - cam_fid);
-      if (cur_diff < best_fid_difference)
+      LOG_DEBUG(m_logger, "No canonial transform estimator defined. "
+                          "Skipping fit to constraints.");
+      return false;
+    }
+    auto landmarks = std::make_shared<simple_landmark_map>(lms);
+    sim = m_canonical_estimator->estimate_transform(cams, landmarks);
+  }
+  else
+  {
+    // Estimate a similarity transform to align the cameras
+    // with the constraints
+    int max_frame_diff = 20;
+
+    auto pos_priors = constraints->get_camera_position_priors();
+
+    auto persp_cams = cams->T_cameras();
+
+    if (!m_similarity_estimator)
+    {
+      LOG_DEBUG(m_logger, "No similarity estimator defined. "
+        "Skipping fit to constraints.");
+      return false;
+    }
+
+    std::vector<vector_3d> cam_positions, sensor_positions;
+
+    for (auto &cam : persp_cams)
+    {
+      auto cam_fid = cam.first;
+      int best_fid_difference = std::numeric_limits<int>::max();
+      vector_3d closest_prior;
+      for (auto &prior : pos_priors)
       {
-        best_fid_difference = cur_diff;
-        closest_prior = prior.second;
+        auto prior_fid = prior.first;
+        auto cur_diff = abs(prior_fid - cam_fid);
+        if (cur_diff < best_fid_difference)
+        {
+          best_fid_difference = cur_diff;
+          closest_prior = prior.second;
+        }
       }
+      if (best_fid_difference > max_frame_diff)
+      {
+        continue;
+      }
+      cam_positions.push_back(cam.second->center());
+      sensor_positions.push_back(closest_prior);
     }
-    if (best_fid_difference > max_frame_diff)
+
+    num_constraints_used = static_cast<int>(sensor_positions.size());
+    if (cam_positions.size() < 3)
     {
-      continue;
+      return false;
     }
-    cam_positions.push_back(cam.second->center());
-    sensor_positions.push_back(closest_prior);
-  }
 
-  num_constraints_used = static_cast<int>(sensor_positions.size());
-  if (cam_positions.size() < 3)
-  {
-    return false;
-  }
-
-  Eigen::Matrix<double, 3, Eigen::Dynamic> cam_mat;
-  cam_mat.resize(3, cam_positions.size());
-  for (size_t v = 0; v < cam_positions.size(); ++v)
-  {
-    cam_mat(0, v) = cam_positions[v].x();
-    cam_mat(1, v) = cam_positions[v].y();
-    cam_mat(2, v) = cam_positions[v].z();
-  }
-
-  Eigen::Vector3d cam_mean;
-  cam_mean(0) = cam_mat.row(0).mean();
-  cam_mean(1) = cam_mat.row(1).mean();
-  cam_mean(2) = cam_mat.row(2).mean();
-
-  auto cam_mat_centered = cam_mat - cam_mean.replicate(1, cam_mat.cols());
-
-  auto cov_mat = cam_mat_centered * cam_mat_centered.transpose();
-
-  Eigen::JacobiSVD<vital::matrix_3x3d> svd(cov_mat, Eigen::ComputeFullV);
-  auto sing_vals = svd.singularValues();
-  if (sing_vals(0) > 100 * sing_vals(1))
-  {
-    return false;
-  }
-
-  auto sim = m_similarity_estimator->estimate_transform(cam_positions,
-                                                        sensor_positions);
-
-  // transform all the points and camera centers
-
-  for (auto cam : persp_cams)
-  {
-    auto c_xformed = sim*cam.second->center();
-    auto rot = cam.second->rotation();
-    rot = rot * sim.rotation().inverse();
-    cam.second->set_center(c_xformed);
-    cam.second->set_rotation(rot);
-  }
-
-  for (auto &lm : lms)
-  {
-    auto lm_xformed = sim*lm.second->loc();
-    lms[lm.first] = std::make_shared<landmark_d>(lm_xformed);
-  }
-
-  int net_cams_pointing_up = 0;
-  for (auto &cam : cams->T_cameras())
-  {
-    auto Rmatrix = cam.second->rotation().matrix();
-    auto Y_axis = Rmatrix.row(1);
-    if (Y_axis(2) < 0)
+    Eigen::Matrix<double, 3, Eigen::Dynamic> cam_mat;
+    cam_mat.resize(3, cam_positions.size());
+    for (size_t v = 0; v < cam_positions.size(); ++v)
     {
-      ++net_cams_pointing_up;
+      cam_mat(0, v) = cam_positions[v].x();
+      cam_mat(1, v) = cam_positions[v].y();
+      cam_mat(2, v) = cam_positions[v].z();
     }
-    else
+
+    Eigen::Vector3d cam_mean;
+    cam_mean(0) = cam_mat.row(0).mean();
+    cam_mean(1) = cam_mat.row(1).mean();
+    cam_mean(2) = cam_mat.row(2).mean();
+
+    auto cam_mat_centered = cam_mat - cam_mean.replicate(1, cam_mat.cols());
+
+    auto cov_mat = cam_mat_centered * cam_mat_centered.transpose();
+
+    Eigen::JacobiSVD<vital::matrix_3x3d> svd(cov_mat, Eigen::ComputeFullV);
+    auto sing_vals = svd.singularValues();
+    if (sing_vals(0) > 100 * sing_vals(1))
     {
-      --net_cams_pointing_up;
+      return false;
     }
+
+    sim = m_similarity_estimator->estimate_transform(cam_positions,
+                                                     sensor_positions);
   }
 
-  if (net_cams_pointing_up < 0)
+  // Transform all the points and cameras
+  transform_inplace(lms, sim);
+  transform_inplace(*cams, sim);
+
+  // Test that the cameras are upright and necker reverse if not
+  if (!majority_upright(cams->map_of_<camera_perspective>()))
   {
-    auto nr_cams_perspec =
-      std::make_shared<simple_camera_perspective_map>(cams->T_cameras());
-    auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
-    landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
-    necker_reverse(nr_cams, ba_lms2, false);
-    cams->set_from_base_cams(nr_cams);
+    const vector_4d plane = landmark_plane(lms);
+    for (auto p : cams->T_cameras())
+    {
+      necker_reverse_inplace(*(p.second), plane);
+    }
   }
 
   std::set<landmark_id_t> inlier_lms;
@@ -3841,6 +3829,10 @@ initialize_cameras_landmarks_keyframe
   vital::algo::estimate_pnp
     ::get_nested_algo_configuration("estimate_pnp", config, m_priv->m_pnp);
 
+  vital::algo::estimate_canonical_transform
+    ::get_nested_algo_configuration("canonical_estimator", config,
+                                    m_priv->m_canonical_estimator);
+
   vital::algo::estimate_similarity_transform
     ::get_nested_algo_configuration("similarity_estimator", config,
                                     m_priv->m_similarity_estimator);
@@ -3876,6 +3868,10 @@ initialize_cameras_landmarks_keyframe
   // make sure the callback is applied to any new instances of
   // nested algorithms
   this->set_callback(this->m_callback);
+
+  vital::algo::estimate_canonical_transform
+    ::set_nested_algo_configuration("canonical_estimator",
+                                    config, m_priv->m_canonical_estimator);
 
   vital::algo::estimate_similarity_transform
     ::set_nested_algo_configuration("similarity_estimator",
@@ -3988,6 +3984,8 @@ initialize_cameras_landmarks_keyframe
       ::check_nested_algo_configuration("essential_mat_estimator",config) &&
     vital::algo::triangulate_landmarks
       ::check_nested_algo_configuration("lm_triangulator", config) &&
+    vital::algo::estimate_canonical_transform
+      ::check_nested_algo_configuration("canonical_estimator", config) &&
     vital::algo::estimate_similarity_transform
       ::check_nested_algo_configuration("similarity_estimator", config);
 }
