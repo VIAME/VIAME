@@ -47,6 +47,11 @@ Arrows - Core
    algorithm now tries to retriangulate tracks that previously held the
    camera graph together.
 
+ * Use a canonical transform estimator in initialize_cameras_landmarks_keyframe
+   to reorient the solution when no metadata constraints are available.
+   This also helps detect upside down cameras and trigger a Necker reversal to
+   correct for that case.
+
 Arrows - Ceres
 
  * Fixed long-broken bundle adjustment regularization parameters for
