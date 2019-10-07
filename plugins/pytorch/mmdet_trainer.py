@@ -69,6 +69,7 @@ class MMDetTrainer( TrainDetector ):
     self._validate = "false"
     self._tmp_annotation_file = "annotations.pickle"
     self._train_in_new_process = ( os.name == 'nt' )
+    self._categories = []
 
   def get_configuration( self ):
     # Inherit from the base class
@@ -196,8 +197,6 @@ class MMDetTrainer( TrainDetector ):
 
     if categories is not None:
       self._categories = categories.all_class_names()
-    else:
-      self._categories = []
 
     for filename, groundtruth in zip( train_files, train_dets ):
       entry = dict()
