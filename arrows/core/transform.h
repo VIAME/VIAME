@@ -113,6 +113,13 @@ vital::camera_map_sptr transform(vital::camera_map_sptr cameras,
                                  const vital::similarity_d& xform);
 
 
+/// construct a transformed map of cameras by applying a similarity transformation
+KWIVER_ALGO_CORE_EXPORT
+vital::camera_perspective_map_sptr
+transform(vital::camera_perspective_map_sptr cameras,
+          const vital::similarity_d& xform);
+
+
 /// construct a transformed landmark by applying a similarity transformation
 KWIVER_ALGO_CORE_EXPORT
 vital::landmark_sptr transform(vital::landmark_sptr lm,

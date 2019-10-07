@@ -162,6 +162,20 @@ vital::camera_map_sptr transform(vital::camera_map_sptr cameras,
 }
 
 
+/// construct a transformed map of cameras by applying a similarity transformation
+vital::camera_perspective_map_sptr
+transform(vital::camera_perspective_map_sptr cameras,
+          const vital::similarity_d& xform)
+{
+  auto cam_map = cameras->T_cameras();
+  for (auto& p : cam_map)
+  {
+    p.second = transform(p.second, xform);
+  }
+  return std::make_shared<vital::camera_perspective_map>(cam_map);
+}
+
+
 /// construct a transformed landmark by applying a similarity transformation
 vital::landmark_sptr transform(vital::landmark_sptr lm,
                                const vital::similarity_d& xform)
