@@ -89,6 +89,18 @@ void transform_inplace(vital::landmark_<T>& lm,
                        const vital::similarity_<T>& xform);
 
 
+/// Transform the landmark map by applying a similarity transformation in place
+KWIVER_ALGO_CORE_EXPORT
+void transform_inplace(vital::landmark_map& landmarks,
+                       const vital::similarity_d& xform);
+
+
+/// Transform the landmark map by applying a similarity transformation in place
+KWIVER_ALGO_CORE_EXPORT
+void transform_inplace(vital::landmark_map::map_landmark_t& landmarks,
+                       const vital::similarity_d& xform);
+
+
 /// construct a transformed camera by applying a similarity transformation
 KWIVER_ALGO_CORE_EXPORT
 vital::camera_perspective_sptr transform(vital::camera_perspective_sptr cam,

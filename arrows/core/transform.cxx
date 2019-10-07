@@ -78,6 +78,33 @@ transform_inplace(vital::landmark_<T>& lm,
 }
 
 
+/// Transform the landmark map by applying a similarity transformation in place
+void transform_inplace(vital::landmark_map& landmarks,
+                       const vital::similarity_d& xform)
+{
+  vital::landmark_map::map_landmark_t lm_map = landmarks.landmarks();
+  transform_inplace(lm_map, xform);
+}
+
+
+/// Transform the landmark map by applying a similarity transformation in place
+void transform_inplace(vital::landmark_map::map_landmark_t& landmarks,
+                       const vital::similarity_d& xform)
+{
+  for (vital::landmark_map::map_landmark_t::value_type& p : landmarks)
+  {
+    if (vital::landmark_d* vlm = dynamic_cast<vital::landmark_d*>(p.second.get()))
+    {
+      transform_inplace(*vlm, xform);
+    }
+    else if (vital::landmark_f* vlm = dynamic_cast<vital::landmark_f*>(p.second.get()))
+    {
+      transform_inplace(*vlm, vital::similarity_f(xform));
+    }
+  }
+}
+
+
 /// Transform a 3D covariance matrix with a similarity transformation
 template <typename T>
 vital::covariance_<3,T> transform(const vital::covariance_<3,T>& covar,
