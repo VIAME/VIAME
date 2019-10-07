@@ -258,8 +258,9 @@ camera_upright(vital::camera_perspective const& camera,
  */
 KWIVER_ALGO_CORE_EXPORT
 bool
-majority_upright(vital::camera_perspective_map const& cameras,
-                 vital::vector_3d const& up = vital::vector_3d(0,0,1));
+majority_upright(
+  vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
+  vital::vector_3d const& up = vital::vector_3d(0,0,1));
 
 }
 }

@@ -805,11 +805,12 @@ camera_upright(vital::camera_perspective const& camera,
 
 /// Return true if most cameras are upright
 bool
-majority_upright(vital::camera_perspective_map const& cameras,
-                 vital::vector_3d const& up)
+majority_upright(
+  vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
+  vital::vector_3d const& up)
 {
   int net_cams_pointing_up = 0;
-  for (auto const& cam : cameras.T_cameras())
+  for (auto const& cam : cameras)
   {
     if (camera_upright(*cam.second, up))
     {
