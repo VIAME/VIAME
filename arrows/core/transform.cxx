@@ -54,6 +54,18 @@ transform_inplace(vital::simple_camera_perspective& cam,
 }
 
 
+/// Transform the camera map by applying a similarity transformation in place
+void transform_inplace(vital::simple_camera_perspective_map& cameras,
+                       const vital::similarity_d& xform)
+{
+  auto cam_map = cameras.T_cameras();
+  for (auto& p : cam_map)
+  {
+    transform_inplace(*p.second, xform);
+  }
+}
+
+
 /// Transform the landmark by applying a similarity transformation in place
 template <typename T>
 void

@@ -40,7 +40,7 @@
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/types/camera_perspective.h>
+#include <vital/types/camera_perspective_map.h>
 #include <vital/types/similarity.h>
 #include <vital/types/covariance.h>
 #include <vital/types/camera_map.h>
@@ -73,6 +73,12 @@ vital::covariance_<3,T> transform(const vital::covariance_<3,T>& covar,
 /// Transform the camera by applying a similarity transformation in place
 KWIVER_ALGO_CORE_EXPORT
 void transform_inplace(vital::simple_camera_perspective& cam,
+                       const vital::similarity_d& xform);
+
+
+/// Transform the camera map by applying a similarity transformation in place
+KWIVER_ALGO_CORE_EXPORT
+void transform_inplace(vital::simple_camera_perspective_map& cameras,
                        const vital::similarity_d& xform);
 
 
