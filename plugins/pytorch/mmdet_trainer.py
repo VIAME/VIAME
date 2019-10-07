@@ -212,9 +212,9 @@ class MMDetTrainer( TrainDetector ):
 
       for i, item in enumerate( groundtruth ):
 
-        obj_id = item.type().get_most_likely_class()
+        class_lbl = item.type().get_most_likely_class()
 
-        if categories is not None and not categories.has_class_id( obj_id ):
+        if categories is not None and not categories.has_class_id( class_lbl ):
           continue
 
         obj_box = [ [ item.bounding_box().min_x(),
@@ -223,11 +223,11 @@ class MMDetTrainer( TrainDetector ):
                       item.bounding_box().max_y() ] ]
 
         if categories is not None:
-          class_id = categories.get_class_id( obj_id ) + 1
+          class_id = categories.get_class_id( class_lbl ) + 1
         else:
-          if class_id not in self._categories:
-            self._categories.append( class_id )
-          class_id = self._categories.index( class_id ) + 1
+          if class_lbl not in self._categories:
+            self._categories.append( class_lbl )
+          class_id = self._categories.index( class_lbl ) + 1
 
         boxes = np.append( boxes, obj_box, axis = 0 )
         labels = np.append( labels, class_id )
