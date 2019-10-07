@@ -255,14 +255,7 @@ class MMDetTrainer( TrainDetector ):
 
     train_dataset = CustomDataset(
       self._groundtruth_store,
-      '.',
-      self._cfg.data.train.img_scale,
-      self._cfg.data.train.img_norm_cfg,
-      size_divisor = self._cfg.data.train.size_divisor,
-      flip_ratio = self._cfg.data.train.flip_ratio,
-      with_mask = self._cfg.data.train.with_mask,
-      with_crowd = self._cfg.data.train.with_crowd,
-      with_label = self._cfg.data.train.with_label )
+      self._cfg.train_pipeline )
 
     from mmdet.apis import train_detector
 
