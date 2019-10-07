@@ -1562,8 +1562,7 @@ initialize_cameras_landmarks_keyframe::priv
   transform_inplace(lms, sim);
   transform_inplace(*cams, sim);
 
-  auto pcams = std::make_shared<camera_perspective_map>();
-  pcams->set_from_base_camera_map(cams->cameras());
+  auto pcams = cams->map_of_<camera_perspective>();
   if (!majority_upright(*pcams))
   {
     auto nr_cams_perspec =
