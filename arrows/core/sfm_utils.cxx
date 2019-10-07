@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018 by Kitware, Inc.
+* Copyright 2018-2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ frame_coverage_vec
 image_coverages(
   std::vector<track_sptr> const& trks,
   vital::landmark_map::map_landmark_t const& lms,
-  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams )
+  vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams )
 {
   const int mask_w(16);
   const int mask_h(16);
@@ -166,7 +166,7 @@ remove_landmarks(const std::set<track_id_t>& to_remove,
 /// find connected components of cameras
 camera_components
 connected_camera_components(
-  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
+  vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
   landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks)
 {
@@ -263,7 +263,7 @@ connected_camera_components(
 /// Detect underconstrained landmarks.
 std::set<landmark_id_t>
 detect_bad_landmarks(
-  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
+  vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
   landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
@@ -452,7 +452,7 @@ detect_bad_landmarks(
 /// detect bad cameras in sfm solution
 std::set<frame_id_t>
 detect_bad_cameras(
-  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
+  vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
   landmark_map::map_landmark_t const& lms,
   feature_track_set_sptr tracks,
   float coverage_thresh)
@@ -474,7 +474,7 @@ detect_bad_cameras(
 /// clean structure from motion solution
 void
 clean_cameras_and_landmarks(
-  vital::camera_map_of_<vital::simple_camera_perspective>& cams_persp,
+  vital::simple_camera_perspective_map& cams_persp,
   landmark_map::map_landmark_t& lms,
   feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
@@ -506,7 +506,7 @@ clean_cameras_and_landmarks(
     }
   }
 
-  camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map det_cams;
+  simple_camera_perspective_map::frame_to_T_sptr_map det_cams;
   if (active_cams.empty())
   {
     det_cams = cams;
