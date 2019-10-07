@@ -68,6 +68,7 @@ class MMDetTrainer( TrainDetector ):
     self._random_seed = "none"
     self._validate = "false"
     self._tmp_annotation_file = "annotations.pickle"
+    self._train_in_new_process = ( os.name == 'nt' )
 
   def get_configuration( self ):
     # Inherit from the base class
@@ -83,6 +84,7 @@ class MMDetTrainer( TrainDetector ):
     cfg.set_value( "launcher", str( self._launcher ) )
     cfg.set_value( "random_seed", str( self._random_seed ) )
     cfg.set_value( "validate", str( self._validate ) )
+    cfg.set_value( "train_in_new_process", str( self._train_in_new_process ) )
 
     return cfg
 
@@ -99,6 +101,7 @@ class MMDetTrainer( TrainDetector ):
     self._gpu_count = int( cfg.get_value( "gpu_count" ) )
     self._launcher = str( cfg.get_value( "launcher" ) )
     self._validate = strtobool( cfg.get_value( "validate" ) )
+    self._train_in_new_process = strtobool( cfg.get_value( "train_in_new_process" ) )
 
     self._training_data = []
 
@@ -249,7 +252,7 @@ class MMDetTrainer( TrainDetector ):
 
   def update_model( self ):
 
-    if os.name == 'nt':
+    if self._train_in_new_process:
       self.external_update()
     else:
       self.internal_update()
@@ -363,11 +366,6 @@ class MMDetTrainer( TrainDetector ):
 
     average_height = int( self._training_height_sum / self._sample_count )
     average_width = int( self._training_width_sum / self._sample_count )
-
-    if average_height > 2000 or average_width > 2000:
-      images_per_gpu = "1"
-      workers_per_gpu = "2"
-      base_size = "(2000, 2000)"
 
     repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self._categories)+1) ],
                   [ "[-IMAGE_SCALE_INSERT-]", base_size ],

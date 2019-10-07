@@ -80,6 +80,7 @@ process detector_trainer
     :mmdet:launcher                             none
     :mmdet:random_seed                          none
     :mmdet:validate                             false
+    :mmdet:train_in_new_process                 true
   endblock
 
 connect from in_adapt.object_track_set
