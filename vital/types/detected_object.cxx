@@ -42,7 +42,6 @@ detected_object::detected_object( double              confidence,
                                   detected_object_type_sptr classifications )
   : m_confidence( confidence )
   , m_type( classifications )
-  , m_index( 0 )
 {
 }
 
@@ -52,7 +51,6 @@ detected_object::detected_object( const bounding_box_d& bbox,
   : m_bounding_box( bbox )
   , m_confidence( confidence )
   , m_type( classifications )
-  , m_index( 0 )
 {
 }
 
@@ -62,7 +60,6 @@ detected_object::detected_object( const kwiver::vital::geo_point& gp,
   : m_geo_point(gp)
   , m_confidence( confidence )
   , m_type( classifications )
-  , m_index( 0 )
 {
 }
 

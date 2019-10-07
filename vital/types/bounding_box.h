@@ -108,7 +108,11 @@ public:
    */
   bool is_valid() const
   {
-    return (width() >= 0 && height() >= 0);
+    if ( this->upper_left()[0] == this->upper_left()[1] &&
+         this->upper_left()[0] == this->lower_right()[0] &&
+         this->upper_left()[0] == this->lower_right()[1] )
+      return false;
+    return true;
   }
 
   /**

@@ -83,7 +83,7 @@ object_track_state::clone ( clone_type ct ) const
     copy->set_image_point(this->image_point_);
     copy->set_track_point(this->track_point_);
 
-    return copy;
+    return std::move( copy );
   }
   else
   {

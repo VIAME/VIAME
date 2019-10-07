@@ -38,17 +38,16 @@
 #ifndef VITAL_OBJECT_TRACK_SET_H_
 #define VITAL_OBJECT_TRACK_SET_H_
 
-#include "timestamp.h"
-#include "track_set.h"
-#include "detected_object.h"
+#include <vital/types/detected_object.h>
+#include <vital/types/point.h>
+#include <vital/types/timestamp.h>
+#include <vital/types/track_set.h>
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
 #include <vital/vital_types.h>
 
 #include <vital/range/transform.h>
-
-#include <vital/types/point.h>
 
 #include <vector>
 #include <memory>
@@ -128,7 +127,7 @@ public:
     return detection_;
   }
 
-  void set_image_point(point_2d const& p )
+  void set_image_point( point_2d const& p )
   {
     image_point_ = p;
   }

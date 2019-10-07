@@ -88,7 +88,7 @@ public:
    * @param classifications Optional object classification.
    */
   detected_object( double confidence = 1.0,
-                   detected_object_type_sptr classifications = detected_object_type_sptr());
+                   detected_object_type_sptr classifications = nullptr);
 
   /**
    * @brief Create detected object with bounding box and other attributes.
@@ -97,9 +97,9 @@ public:
    * @param confidence Detectors confidence in this detection.
    * @param classifications Optional object classification.
    */
-  detected_object( const bounding_box_d& bbox,
+  detected_object( bounding_box_d const& bbox,
                    double confidence = 1.0,
-                   detected_object_type_sptr classifications = detected_object_type_sptr() );
+                   detected_object_type_sptr classifications = nullptr);
 
   /**
    * @brief Create detected object with a geo_point and other attributes.
@@ -108,9 +108,9 @@ public:
    * @param confidence Detectors confidence in this detection.
    * @param classifications Optional object classification.
    */
-  detected_object( const kwiver::vital::geo_point& geo_pt,
+  detected_object( kwiver::vital::geo_point const& geo_pt,
                    double confidence = 1.0,
-                   detected_object_type_sptr classifications = detected_object_type_sptr());
+                   detected_object_type_sptr classifications = nullptr);
 
   virtual ~detected_object() = default;
 
@@ -139,7 +139,7 @@ public:
    *
    * @param bbox Bounding box for this detection.
    */
-  void set_bounding_box( const bounding_box_d& bbox );
+  void set_bounding_box( bounding_box_d const& bbox );
 
 
   /**
@@ -160,7 +160,7 @@ public:
    *
    * @param gp geo_point for this detection.
    */
-  void set_geo_point( const kwiver::vital::geo_point& gp );
+  void set_geo_point( kwiver::vital::geo_point const& gp );
 
   /**
    * @brief Get confidence for this detection.
@@ -228,7 +228,7 @@ public:
    *
    * @param name Detector name.
    */
-  void set_detector_name( const std::string& name );
+  void set_detector_name( std::string const& name );
 
   /**
    * @brief Get pointer to optional classifications object.
@@ -300,7 +300,7 @@ private:
   // The detection type is an optional list of possible object types.
   detected_object_type_sptr m_type;
 
-  uint64_t m_index; ///< index for this object
+  uint64_t m_index = 0; ///< index for this object
   std::string m_detector_name;
 };
 
