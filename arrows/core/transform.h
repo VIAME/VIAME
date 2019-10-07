@@ -72,15 +72,15 @@ vital::covariance_<3,T> transform(const vital::covariance_<3,T>& covar,
 
 /// Transform the camera by applying a similarity transformation in place
 KWIVER_ALGO_CORE_EXPORT
-void transform_inplace(const vital::similarity_d& xform,
-                       vital::simple_camera_perspective& cam);
+void transform_inplace(vital::simple_camera_perspective& cam,
+                       const vital::similarity_d& xform);
 
 
 /// Transform the landmark by applying a similarity transformation in place
 template <typename T>
 KWIVER_ALGO_CORE_EXPORT
-void transform_inplace(const vital::similarity_<T>& xform,
-                       vital::landmark_<T>& lm);
+void transform_inplace(vital::landmark_<T>& lm,
+                       const vital::similarity_<T>& xform);
 
 
 /// construct a transformed camera by applying a similarity transformation

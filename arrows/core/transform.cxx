@@ -45,8 +45,8 @@ namespace arrows {
 
 /// Transform the camera by applying a similarity transformation in place
 void
-transform_inplace(const vital::similarity_d& xform,
-                  vital::simple_camera_perspective& cam)
+transform_inplace(vital::simple_camera_perspective& cam,
+                  const vital::similarity_d& xform)
 {
   cam.set_center( xform * cam.get_center() );
   cam.set_rotation( cam.get_rotation() * xform.rotation().inverse() );
@@ -57,8 +57,8 @@ transform_inplace(const vital::similarity_d& xform,
 /// Transform the landmark by applying a similarity transformation in place
 template <typename T>
 void
-transform_inplace(const vital::similarity_<T>& xform,
-                  vital::landmark_<T>& lm)
+transform_inplace(vital::landmark_<T>& lm,
+                  const vital::similarity_<T>& xform)
 {
   lm.set_loc( xform * lm.get_loc() );
   lm.set_scale( lm.get_scale() * xform.scale() );
@@ -89,7 +89,7 @@ vital::camera_perspective_sptr transform(vital::camera_perspective_sptr cam,
   if( vital::simple_camera_perspective* vcam =
       dynamic_cast<vital::simple_camera_perspective*>(cam.get()) )
   {
-    transform_inplace(xform, *vcam);
+    transform_inplace(*vcam, xform);
   }
   else
   {
@@ -129,11 +129,11 @@ vital::landmark_sptr transform(vital::landmark_sptr lm,
   lm = lm->clone();
   if( vital::landmark_d* vlm = dynamic_cast<vital::landmark_d*>(lm.get()) )
   {
-    transform_inplace(xform, *vlm);
+    transform_inplace(*vlm, xform);
   }
   else if( vital::landmark_f* vlm = dynamic_cast<vital::landmark_f*>(lm.get()) )
   {
-    transform_inplace(vital::similarity_f(xform), *vlm);
+    transform_inplace(*vlm, vital::similarity_f(xform));
   }
   else
   {
@@ -239,8 +239,8 @@ template KWIVER_ALGO_CORE_EXPORT vital::covariance_<3,T> \
 transform(const vital::covariance_<3,T>& covar, \
           const vital::similarity_<T>& xform); \
 template KWIVER_ALGO_CORE_EXPORT void \
-transform_inplace(const vital::similarity_<T>& xform, \
-                  vital::landmark_<T>& cam);
+transform_inplace(vital::landmark_<T>& cam, \
+                  const vital::similarity_<T>& xform);
 
 INSTANTIATE_TRANSFORM(double);
 INSTANTIATE_TRANSFORM(float);
