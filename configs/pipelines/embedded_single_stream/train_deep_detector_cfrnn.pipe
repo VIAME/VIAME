@@ -60,7 +60,7 @@ process detector_trainer
 
   block trainer:ocv_windowed
     :train_directory                            deep_training
-    :mode                                       adaptive
+    :mode                                       chip_and_original
     :scale                                      1.25
     :chip_width                                 1333
     :chip_height                                800
