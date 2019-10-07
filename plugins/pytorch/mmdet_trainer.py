@@ -191,7 +191,10 @@ class MMDetTrainer( TrainDetector ):
       print( "Error: train file and groundtruth count mismatch" )
       return
 
-    self._categories = categories.all_class_names()
+    if categories is not None:
+      self._categories = categories.all_class_names()
+    else:
+      self._categories = []
 
     for filename, groundtruth in zip( train_files, train_dets ):
       entry = dict()
@@ -211,15 +214,23 @@ class MMDetTrainer( TrainDetector ):
 
         obj_id = item.type().get_most_likely_class()
 
-        if categories.has_class_id( obj_id ):
+        if categories is not None and not categories.has_class_id( obj_id ):
+          continue
 
-          obj_box = [ [ item.bounding_box().min_x(),
-                        item.bounding_box().min_y(),
-                        item.bounding_box().max_x(),
-                        item.bounding_box().max_y() ] ]
+        obj_box = [ [ item.bounding_box().min_x(),
+                      item.bounding_box().min_y(),
+                      item.bounding_box().max_x(),
+                      item.bounding_box().max_y() ] ]
 
-          boxes = np.append( boxes, obj_box, axis = 0 )
-          labels = np.append( labels, categories.get_class_id( obj_id ) + 1 )
+        if categories is not None:
+          class_id = categories.get_class_id( obj_id ) + 1
+        else:
+          if class_id not in self._categories:
+            self._categories.append( class_id )
+          class_id = self._categories.index( class_id ) + 1
+
+        boxes = np.append( boxes, obj_box, axis = 0 )
+        labels = np.append( labels, class_id )
 
       annotations["bboxes"] = boxes.astype( np.float32 )
       annotations["labels"] = labels.astype( np.int_ )
