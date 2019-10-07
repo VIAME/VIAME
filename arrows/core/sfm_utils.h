@@ -239,6 +239,28 @@ clean_cameras_and_landmarks(
   double error_tol = 5.0,
   int min_landmark_inliers = -1);
 
+/// Return true if the camera is upright
+/*
+ * Test if "up" in the image aligns with "up" in the world for each camera.
+ * The alignment in this case means that the dot product of these vectors
+ * is postive, not that the vectors are equal.
+ * Up in the image is the negative Y-axis.  Up in the world defaults to
+ * the postive Z-axis, but this is configurable by specifying \p up.
+ */
+KWIVER_ALGO_CORE_EXPORT
+bool
+camera_upright(vital::camera_perspective const& camera,
+               vital::vector_3d const& up = vital::vector_3d(0, 0, 1));
+
+/// Return true if most cameras are upright
+/*
+ * \sa camera_upright
+ */
+KWIVER_ALGO_CORE_EXPORT
+bool
+majority_upright(vital::camera_perspective_map const& cameras,
+                 vital::vector_3d const& up = vital::vector_3d(0,0,1));
+
 }
 }
 }

@@ -794,6 +794,35 @@ clean_cameras_and_landmarks(
     }
   }
 }
+
+/// Return true if the camera is upright
+bool
+camera_upright(vital::camera_perspective const& camera,
+               vital::vector_3d const& up)
+{
+  return up.dot(camera.rotation() * vector_3d(0, -1, 0)) > 0;
+}
+
+/// Return true if most cameras are upright
+bool
+majority_upright(vital::camera_perspective_map const& cameras,
+                 vital::vector_3d const& up)
+{
+  int net_cams_pointing_up = 0;
+  for (auto const& cam : cameras.T_cameras())
+  {
+    if (camera_upright(*cam.second, up))
+    {
+      ++net_cams_pointing_up;
+    }
+    else
+    {
+      --net_cams_pointing_up;
+    }
+  }
+  return net_cams_pointing_up > 0;
+}
+
 }
 }
 }

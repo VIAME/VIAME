@@ -1562,14 +1562,16 @@ initialize_cameras_landmarks_keyframe::priv
   transform_inplace(lms, sim);
   transform_inplace(*cams, sim);
 
-  // Test that the cameras are upright and necker reverse if not
-  if (!majority_upright(cams->map_of_<camera_perspective>()))
+  auto pcams = std::make_shared<camera_perspective_map>();
+  pcams->set_from_base_camera_map(cams->cameras());
+  if (!majority_upright(*pcams))
   {
-    const vector_4d plane = landmark_plane(lms);
-    for (auto p : cams->T_cameras())
-    {
-      necker_reverse_inplace(*(p.second), plane);
-    }
+    auto nr_cams_perspec =
+      std::make_shared<simple_camera_perspective_map>(cams->T_cameras());
+    auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
+    landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
+    necker_reverse(nr_cams, ba_lms2, false);
+    cams->set_from_base_cams(nr_cams);
   }
 
   std::set<landmark_id_t> inlier_lms;
