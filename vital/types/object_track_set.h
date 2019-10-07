@@ -156,10 +156,10 @@ public:
   static constexpr auto downcast_transform = range::transform( downcast );
 
 private:
-  time_usec_t time_ = 0;
   detected_object_sptr detection_;
   point_2d image_point_;
   point_3d track_point_;
+  time_usec_t time_ = 0;
 };
 
 
