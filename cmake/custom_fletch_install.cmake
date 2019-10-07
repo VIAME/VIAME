@@ -32,4 +32,23 @@ if( NOT WIN32 AND VIAME_ENABLE_CAFFE )
                  ${VIAME_BUILD_INSTALL_PREFIX}/lib/libleveldb.so.1 )
 endif()
 
-message("Done")
+# Move any misinstalled python files
+if( PYTHON_VERSION )
+  set( OUTPUT_PYTHON_DIR "${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION}/site-packages/" )
+
+  if( EXISTS ${VIAME_BUILD_INSTALL_PREFIX}/lib/site-packages )
+    set( DIR_TO_MOVE "${VIAME_BUILD_INSTALL_PREFIX}/lib/site-packages" )
+    file( GLOB FILES_TO_MOVE "${DIR_TO_MOVE}/*" )
+    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( REMOVE_RECURSE  ${DIR_TO_MOVE} )
+  endif()
+
+  if( EXISTS ${VIAME_BUILD_INSTALL_PREFIX}/lib/python/site-packages )
+    set( DIR_TO_MOVE "${VIAME_BUILD_INSTALL_PREFIX}/lib/python/site-packages" )
+    file( GLOB FILES_TO_MOVE "${DIR_TO_MOVE}/*" )
+    file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
+    file( REMOVE_RECURSE  ${DIR_TO_MOVE} )
+  endif()
+endif()
+
+message( "Done" )

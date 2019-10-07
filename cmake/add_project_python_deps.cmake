@@ -10,25 +10,61 @@
 # --------------------- ADD ANY EXTRA PYTHON DEPS HERE -------------------------
 
 set( VIAME_PYTHON_DEPS numpy matplotlib )
-
-if( VIAME_ENABLE_OPENCV )
-  set( VIAME_PYTHON_DEPS opencv-python ${VIAME_PYTHON_DEPS} )
-endif()
+set( VIAME_PYTHON_DEP_CMDS "numpy" "matplotlib" )
 
 if( VIAME_ENABLE_CAMTRAWL )
-  set( VIAME_PYTHON_DEPS ubelt ${VIAME_PYTHON_DEPS} )
+  list( APPEND VIAME_PYTHON_DEPS ubelt )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "ubelt" )
 endif()
 
 if( VIAME_ENABLE_TENSORFLOW )
+  list( APPEND VIAME_PYTHON_DEPS humanfriendly )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "humanfriendly" )
+
+  list( APPEND VIAME_PYTHON_DEPS tensorflow )
   if( VIAME_ENABLE_CUDA )
-    set( VIAME_PYTHON_DEPS tensorflow-gpu ${VIAME_PYTHON_DEPS} )
+    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow-gpu" )
   else()
-    set( VIAME_PYTHON_DEPS tensorflow ${VIAME_PYTHON_DEPS} )
+    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow" )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTOCH AND NOT VIAME_ENABLE_PYTORCH-CORE )
-  set( torch torchvision ${VIAME_PYTHON_DEPS} )
+if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
+  list( APPEND VIAME_PYTHON_DEPS torch )
+  list( APPEND VIAME_PYTHON_DEPS torchvision )
+
+  set( ARGS_TORCH )
+  set( ARGS_TORCHVISION )
+
+  set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
+
+  if( WIN32 )
+    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
+      set( ARGS_TORCH "==1.2.0 -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==0.4.0 -f ${PYTORCH_ARCHIVE}" )
+    elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
+      set( ARGS_TORCH "==1.2.0+cu92 -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==0.4.0+cu92 -f ${PYTORCH_ARCHIVE}" )
+    else()
+      message( FATAL_ERROR "With your current build settings you must either:\n"
+        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
+        " (b) Use CUDA 9.2 or 10.0+\n"
+        " (c) Disable VIAME_ENABLE_PYTORCH\n" )
+    endif()
+  else()
+    if( CUDA_VERSION VERSION_EQUAL "9.2" )
+      set( ARGS_TORCH "==1.2.0+cu92 -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==0.4.0+cu92 -f ${PYTORCH_ARCHIVE}" )
+    elseif( CUDA_VERSION VERSION_LESS "10.0" )
+      message( FATAL_ERROR "With your current build settings you must either:\n"
+        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
+        " (b) Use CUDA 9.2 or 10.0+\n"
+        " (c) Disable VIAME_ENABLE_PYTORCH\n" )
+    endif()
+  endif()
+
+  list( APPEND VIAME_PYTHON_DEP_CMDS "torch${ARGS_TORCH}" )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "torchvision${ARGS_TORCHVISION}" )
 endif()
 
 # ------------------------------------------------------------------------------
@@ -41,6 +77,7 @@ if( WIN32 )
     ${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
   set( CUSTOM_PATH
     ${VIAME_BUILD_INSTALL_PREFIX}/bin;$ENV{PATH} )
+
   string( REPLACE ";" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
   string( REPLACE ";" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
 else()
@@ -56,12 +93,18 @@ if( VIAME_ENABLE_SMQTK )
   set( VIAME_PYTHON_DEPS_DEPS smqtk ${VIAME_PYTHON_DEPS_DEPS} )
 endif()
 
-foreach( DEP ${VIAME_PYTHON_DEPS} )
+list( LENGTH VIAME_PYTHON_DEPS DEP_COUNT )
+math( EXPR DEP_COUNT "${DEP_COUNT} - 1" )
+
+foreach( ID RANGE ${DEP_COUNT} )
+
+  list( GET VIAME_PYTHON_DEPS ${ID} DEP )
+  list( GET VIAME_PYTHON_DEP_CMDS ${ID} CMD )
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${DEP} )
 
-  set( PYTHON_DEP_PIP_CMD
-      pip install --user ${DEP} )
+  set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
+  string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
   set( PYTHON_DEP_INSTALL
     ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
