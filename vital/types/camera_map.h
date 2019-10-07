@@ -227,12 +227,12 @@ public:
 
   /// Convert to a camera map of a type B for which B is a base class of T
   template <typename B>
-  camera_map_of_sptr<B> map_of_()
+  std::map< frame_id_t, std::shared_ptr<B> > map_of_()
   {
-    auto new_map = std::make_shared<camera_map_of_<B>>();
+    std::map< frame_id_t, std::shared_ptr<B> > new_map;
     for (auto &d : data_)
     {
-      new_map->insert(d.first, d.second);
+      new_map[d.first] = d.second;
     }
     return new_map;
   }
