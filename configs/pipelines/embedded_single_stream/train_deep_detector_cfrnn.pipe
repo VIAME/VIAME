@@ -39,14 +39,6 @@ process random_hue
 connect from random_grey.image
         to   random_hue.image
 
-process image_writer
- :: image_writer
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
-
-connect from random_hue.image
-        to   image_writer.image
-
 # ==============================================================================
 
 process tracks_to_detections
