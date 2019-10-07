@@ -151,6 +151,11 @@ vital::camera_map_sptr transform(vital::camera_map_sptr cameras,
   for(vital::camera_map::map_camera_t::value_type& p : cam_map)
   {
     auto cam_ptr = std::dynamic_pointer_cast<vital::camera_perspective>(p.second);
+    if (!cam_ptr)
+    {
+      p.second = nullptr;
+      continue;
+    }
     p.second = transform(cam_ptr, xform);
   }
   return vital::camera_map_sptr(new vital::simple_camera_map(cam_map));
