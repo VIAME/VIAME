@@ -111,7 +111,7 @@ evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
     auto new_cam =
       std::dynamic_pointer_cast<vital::camera_perspective>(new_cams[p.first]);
     vital::camera_perspective_sptr new_cam_t =
-      arrows::transform(new_cam, global_sim);
+      arrows::core::transform(new_cam, global_sim);
     vital::rotation_d dR = new_cam_t->rotation().inverse() * orig_cam->rotation();
     EXPECT_NEAR(0.0, dR.angle(), tol) << "Rotation difference magnitude";
 
@@ -123,7 +123,8 @@ evaluate_initialization(const kwiver::vital::camera_map_sptr true_cams,
   vital::landmark_map::map_landmark_t new_lms = est_landmarks->landmarks();
   for (auto const& p : orig_lms)
   {
-    vital::landmark_sptr new_lm_tr = arrows::transform(new_lms[p.first], global_sim);
+    vital::landmark_sptr new_lm_tr =
+      arrows::core::transform(new_lms[p.first], global_sim);
 
     double dt = (p.second->loc() - new_lm_tr->loc()).norm();
     EXPECT_NEAR(0.0, dt, tol) << "Landmark location difference";
