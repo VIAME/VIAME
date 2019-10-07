@@ -257,6 +257,8 @@ class MMDetTrainer( TrainDetector ):
     else:
       self.internal_update()
 
+    print( "\nModel training complete!\n" )
+
   def internal_update( self ):
     self.load_network()
 
