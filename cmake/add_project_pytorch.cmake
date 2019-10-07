@@ -41,6 +41,17 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} netharn )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-MMDET )
+  if( VIAME_ENABLE_CUDA AND CUDA_VERSION VERSION_LESS "9.0" )
+    message( FATAL_ERROR "To use mmdetection you must have at least CUDA 9.0.\n\n"
+                         "Install CUDA 9.0+ or disable VIAME_ENABLE_PYTORCH-MMDET" )
+  endif()
+  if( PYTHON_VERSION VERSION_LESS "3.0" )
+    message( FATAL_ERROR "To use mmdetection you must have at least Python 3.0.\n\n"
+                         "Use Python3 or disable VIAME_ENABLE_PYTORCH-MMDET" )
+  endif()
+endif()
+
 set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${PYTORCH_LIBS_TO_BUILD} )
 
 if( VIAME_ENABLE_CUDNN )
