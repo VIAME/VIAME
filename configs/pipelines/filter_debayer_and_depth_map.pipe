@@ -1,0 +1,117 @@
+# Filters input images via debayering them and running basic image filtering
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               5
+
+# =============================== INPUT FRAME LIST =================================
+
+process input
+  :: video_input
+  :video_filename                              input_list.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
+  :video_reader:type                           image_list
+
+  block video_reader:image_list
+    :image_reader:type                         vxl
+  endblock
+
+process debayer
+  :: image_filter
+  :filter:type                                 ocv_debayer
+  :filter:ocv_debayer:pattern                  BG
+  :filter:ocv_debayer:force_8bit               false
+
+connect from input.image
+        to   debayer.image
+
+process initial_filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+
+  block filter:ocv_enhancer
+    :apply_smoothing                           false
+    :smooth_kernel                             3
+    :apply_denoising                           false
+    :denoise_kernel                            3
+    :denoise_coeff                             2
+    :auto_balance                              true
+    :force_8bit                                true
+    :apply_clahe                               true
+    :clip_limit                                1
+    :saturation                                1.25
+  endblock
+
+connect from debayer.image
+        to   initial_filter.image
+
+process debayered_writer
+  :: image_writer
+  :file_name_template                          frame%06d.png
+  :image_writer:type                           vxl
+
+connect from initial_filter.image
+        to   debayered_writer.image
+
+# ================================== CROP INPUTS ===================================
+
+process split
+  :: split_image
+  :split_image:type                            ocv_horizontally
+
+connect from initial_filter.image
+        to   split.image
+
+# =================================== DEPTH MAP ====================================
+
+process depth_map
+  :: compute_stereo_depth_map
+  :computer:type                               ocv
+
+  block computer:ocv
+    :algorithm                                 SGBM
+    :min_disparity                             64
+    :num_disparities                           192
+    :block_size                                15
+    :sad_window_size                           21
+  endblock
+
+connect from split.left_image
+        to   depth_map.left_image
+connect from split.right_image
+        to   depth_map.right_image
+
+process depth_map_filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+
+  block filter:ocv_enhancer
+    :apply_smoothing                           false
+    :smooth_kernel                             3
+    :apply_denoising                           false
+    :denoise_kernel                            3
+    :denoise_coeff                             2
+    :auto_balance                              false
+    :force_8bit                                true
+    :apply_clahe                               false
+    :clip_limit                                1
+    :saturation                                1.0
+  endblock
+
+connect from depth_map.depth_map
+        to   depth_map_filter.image
+
+# ==================================== OUTPUT ======================================
+
+process depth_map_writer
+  :: image_writer
+  :file_name_template                          depth_map%06d.png
+  :image_writer:type                           vxl
+
+connect from depth_map_filter.image
+        to   depth_map_writer.image
+
+# -- end of file --
