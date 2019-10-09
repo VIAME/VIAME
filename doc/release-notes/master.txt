@@ -37,6 +37,8 @@ Vital Types
 
 Vital Bindings
 
+ * Remove ctypes python bindings
+
 Arrows
 
 Arrows: Core
