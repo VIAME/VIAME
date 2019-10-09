@@ -50,7 +50,7 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
     # ----------------------------------------------------------------
     def _step(self):
         dat = self.grab_datum_from_port('homography')
-        h = dat.get_datum()
+        h = dat.get_homography_f2f()
 
         for r in [ 0, 1, 2 ]:
             for c in [ 0, 1, 2 ]:
@@ -58,8 +58,8 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
                 print(val, end=' ')
                 self.fout.write( '%.20g ' % val )
 
-        print(h.from_id(), h.to_id())
-        self.fout.write( '%d %d\n' % (h.from_id(), h.to_id()) )
+        print(h.from_id, h.to_id)
+        self.fout.write( '%d %d\n' % (h.from_id, h.to_id) )
         self.fout.flush()
         ## t = h # .transform()
 
