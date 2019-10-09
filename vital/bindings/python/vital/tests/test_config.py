@@ -66,12 +66,10 @@ class TestVitalConfig(object):
         get_valuea = nc.get_value(keyb)
         nose.tools.assert_equal(valuea, get_valuea)
 
-    @nose.tools.raises(BaseException)
+    @nose.tools.raises(RuntimeError)
     def test_get_value_no_exist(self):
         c = config.empty_config()
         keya = 'keya'
-        keyb = 'keyb'
-        valueb = 'valueb'
         c.get_value(keya)
 
     def test_default_value(self):
@@ -82,7 +80,7 @@ class TestVitalConfig(object):
         get_valueb = c.get_value(keyb, valueb)
         nose.tools.assert_equal(valueb, get_valueb)
 
-    @nose.tools.raises(BaseException)
+    @nose.tools.raises(RuntimeError)
     def test_unset_value(self):
         c = config.empty_config()
         keya = 'keya'
@@ -109,7 +107,7 @@ class TestVitalConfig(object):
         c = config.empty_config()
         nose.tools.ok_(hasattr(c, "__getitem__"))
 
-    @nose.tools.raises(BaseException)
+    @nose.tools.raises(RuntimeError)
     def test_read_only(self):
         c = config.empty_config()
         keya = 'keya'
@@ -119,7 +117,7 @@ class TestVitalConfig(object):
         c.mark_read_only(keya)
         c.set_value(keya, valueb)
 
-    @nose.tools.raises(BaseException)
+    @nose.tools.raises(RuntimeError)
     def test_read_only_unset(self):
         c = config.empty_config()
         keya = 'keya'
@@ -164,11 +162,9 @@ class TestVitalConfig(object):
 
         keya = 'keya'
         keyb = 'keyb'
-        keyc = 'keyc'
 
         valuea = 'valuea'
         valueb = 'valueb'
-        valuec = 'valuec'
 
         c.set_value(block1 + config.Config.block_sep + keya, valuea)
         c.set_value(block2 + config.Config.block_sep + keyb, valueb)
@@ -232,7 +228,7 @@ class TestVitalConfig(object):
 
         nose.tools.assert_equal(c[key], origvalue, "Value was overwritten")
 
-    @nose.tools.raises(BaseException)
+    @nose.tools.raises(KeyError)
     def test_invalid_getitem(self):
         c = config.empty_config()
         key = 'key'
@@ -246,7 +242,7 @@ class TestVitalConfig(object):
         del c[key]
         nose.tools.assert_equal(c.has_value(key), False, "The key was not deleted")
 
-    @nose.tools.raises(BaseException)
+    @nose.tools.raises(KeyError)
     def test_invalid_delitem(self):
         c = config.empty_config()
         key = 'key'
