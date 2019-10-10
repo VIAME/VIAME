@@ -385,12 +385,14 @@ class SRNNTracker(KwiverProcess):
                         sp.optimize.linear_sum_assignment(similarity_mat)
                     ))
 
-                    for i in range(len(row_idx_list)):
-                        r = row_idx_list[i]
-                        c = col_idx_list[i]
+                    # Contains the row associated with each column, or None
+                    hung_idx_list = [None] * len(track_state_list)
+                    for r, c in zip(row_idx_list, col_idx_list):
+                        hung_idx_list[c] = r
 
-                        if -similarity_mat[r, c] < self._similarity_threshold:
-                            # initialize a new track
+                    for c, r in enumerate(hung_idx_list):
+                        if r is None or -similarity_mat[r, c] < self._similarity_threshold:
+                            # Conditionally initialize a new track
                             if (track_state_list[c].detected_object.confidence()
                                    >= self._track_initialization_threshold):
                                 self._track_set.add_new_track_state(next_track_id,
@@ -399,16 +401,6 @@ class SRNNTracker(KwiverProcess):
                         else:
                             # add to existing track
                             self._track_set.update_track(track_idx_list[r], track_state_list[c])
-
-                    # for the remaining unmatched track states, we initialize new tracks
-                    if len(track_state_list) - len(col_idx_list) > 0:
-                        for i in range(len(track_state_list)):
-                            if (i not in col_idx_list
-                                and (track_state_list[i].detected_object.confidence()
-                                     >= self._track_initialization_threshold)):
-                                self._track_set.add_new_track_state(next_track_id,
-                                        track_state_list[i])
-                                next_track_id += 1
 
                 print('total tracks', len(self._track_set))
 
