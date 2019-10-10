@@ -47,26 +47,26 @@ class TargetRNNDataLoader(data.Dataset):
                         cur_data_item = []
 
                         #app feature and app target
-                        app_f_tensor = torch.stack([cur_track[i].app_feature \
+                        app_f_tensor = torch.stack([cur_track[i].app_feature
                                                 for i in range(-g_config.timeStep, 0)])
                         cur_data_item += app_f_tensor, track_state.app_feature
 
                         #motion feature and motion target
-                        motion_f_tensor = torch.stack([cur_track[i].motion_feature \
+                        motion_f_tensor = torch.stack([cur_track[i].motion_feature
                                                 for i in range(-g_config.timeStep, 0)])
-                        motion_target_f = (np.asarray(track_state.bbox_center, \
-                                            dtype=np.float32).reshape(g_config.M_F_num) - \
-                                           np.asarray(cur_track[-1].bbox_center, 
+                        motion_target_f = (np.asarray(track_state.bbox_center,
+                                            dtype=np.float32).reshape(g_config.M_F_num) -
+                                           np.asarray(cur_track[-1].bbox_center,
                                                dtype=np.float32).reshape(g_config.M_F_num))
                         cur_data_item += motion_f_tensor, torch.from_numpy(motion_target_f)
 
                         #interaction feature and interaction target
-                        interaction_f_tensor = torch.stack([cur_track[i].interaction_feature \
+                        interaction_f_tensor = torch.stack([cur_track[i].interaction_feature
                                                 for i in range(-g_config.timeStep, 0)])
                         cur_data_item += interaction_f_tensor, track_state.interaction_feature
 
                         #bbar feature and bbar target
-                        bbar_f_tensor = torch.stack([cur_track[i].bbar_feature \
+                        bbar_f_tensor = torch.stack([cur_track[i].bbar_feature
                                                 for i in range(-g_config.timeStep, 0)])
                         cur_data_item += bbar_f_tensor, track_state.bbar_feature
 
@@ -84,14 +84,14 @@ class TargetRNNDataLoader(data.Dataset):
 
 
 class SRNNMatching(object):
-    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path, 
+    def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path,
                     batch_size, gpu_list=None):
         self._device, self._use_gpu_flag = get_device(gpu_list)
         self._batch_size = batch_size
 
         # load target AIM model, trained with fixed variable timestep
         full_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
-        self._targetRNN_full_model = TargetLSTM(model_list=full_model_list, 
+        self._targetRNN_full_model = TargetLSTM(model_list=full_model_list,
                                                 use_gpu_flag=self._use_gpu_flag)
         self._targetRNN_full_model = self._targetRNN_full_model.to(self._device)
 
@@ -105,12 +105,12 @@ class SRNNMatching(object):
 
         if self._use_gpu_flag:
             # DataParallel also understands device_ids=None to mean "all devices", so we're good.
-            self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model, 
+            self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model,
                                                                     device_ids=gpu_list)
 
         # load  target AIM_V model, but trained with variable timestep
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
-        self._targetRNN_AIM_V_model = TargetLSTM(model_list=V_model_list, 
+        self._targetRNN_AIM_V_model = TargetLSTM(model_list=V_model_list,
                             use_gpu_flag=self._use_gpu_flag).to(self._device)
 
         if self._use_gpu_flag:
@@ -122,7 +122,7 @@ class SRNNMatching(object):
         self._targetRNN_AIM_V_model.eval()
 
         if self._use_gpu_flag:
-            self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model, 
+            self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model,
                                                             device_ids=gpu_list)
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
@@ -157,8 +157,8 @@ class SRNNMatching(object):
 
 
     def _est_similarity(self, loader, rnnType):
-        for (app_f_list, app_target_f, motion_f_list, motion_target_f, 
-                interaction_f_list, interaction_target_f, bbar_f_list, 
+        for (app_f_list, app_target_f, motion_f_list, motion_target_f,
+                interaction_f_list, interaction_target_f, bbar_f_list,
                 bbar_target_f, t, ts) in loader:
             v_app_seq = app_f_list.to(self._device)
             v_app_target =  app_target_f.to(self._device)
@@ -169,12 +169,12 @@ class SRNNMatching(object):
             v_bbar_seq = bbar_f_list.to(self._device)
             v_bbar_target = bbar_target_f.to(self._device)
             if rnnType is RnnType.Target_RNN_AIM:
-                output = self._targetRNN_full_model(v_app_seq, v_app_target, v_motion_seq, 
-                                        v_motion_target, v_interaction_seq, 
+                output = self._targetRNN_full_model(v_app_seq, v_app_target, v_motion_seq,
+                                        v_motion_target, v_interaction_seq,
                                         v_interaction_target, v_bbar_seq, v_bbar_target)
             elif rnnType is RnnType.Target_RNN_AIM_V:
-                output = self._targetRNN_AIM_V_model(v_app_seq, v_app_target, v_motion_seq, 
-                                        v_motion_target, v_interaction_seq, 
+                output = self._targetRNN_AIM_V_model(v_app_seq, v_app_target, v_motion_seq,
+                                        v_motion_target, v_interaction_seq,
                                         v_interaction_target)
 
             F_softmax = nn.Softmax()
