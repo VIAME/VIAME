@@ -290,6 +290,14 @@ class SRNNTracker(KwiverProcess):
     # ----------------------------------------------
     def _step(self):
         try:
+            def timing(desc, f):
+                """Return f(), printing a message about how long it took"""
+                start = timer()
+                result = f()
+                end = timer()
+                print('%%%', desc, ' elapsed time: ', end - start, sep='')
+                return result
+
             print('step', self._step_id)
 
             # grab image container from port using traits
@@ -316,16 +324,12 @@ class SRNNTracker(KwiverProcess):
                 print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
             else:
                 # interaction features
-                grid_f_begin = timer()
-                grid_feature_list = self._grid(im.size, dos, self._gtbbox_flag)
-                grid_f_end = timer()
-                print('%%%grid feature elapsed time:', grid_f_end - grid_f_begin)
+                grid_feature_list = timing('grid feature', lambda:
+                                           self._grid(im.size, dos, self._gtbbox_flag))
 
                 # appearance features (format: pytorch tensor)
-                app_f_begin = timer()
-                pt_app_features = self._app_feature_extractor(dos, self._gtbbox_flag)
-                app_f_end = timer()
-                print('%%%app feature elapsed time:', app_f_end - app_f_begin)
+                pt_app_features = timing('app feature', lambda:
+                                         self._app_feature_extractor(dos, self._gtbbox_flag))
 
                 track_state_list = []
                 next_track_id = int(self._track_set.get_max_track_id()) + 1
@@ -377,32 +381,25 @@ class SRNNTracker(KwiverProcess):
 
                     # call IOU tracker
                     if self._IOU_flag:
-                        IOU_begin = timer()
-                        self._track_set, track_state_list = self._iou_tracker(self._track_set,
-                                                                        track_state_list)
-                        IOU_end = timer()
-                        print('%%%IOU tracking elapsed time:', IOU_end - IOU_begin)
+                        self._track_set, track_state_list = timing('IOU tracking', lambda: (
+                            self._iou_tracker(self._track_set, track_state_list)
+                        ))
 
                     #print('***track_set len', len(self._track_set))
                     #print('***track_state_list len', len(track_state_list))
 
                     # estimate similarity matrix
-                    ttu_begin = timer()
-                    similarity_mat, track_idx_list = self._srnn_matching(self._track_set,
-                                                        track_state_list, self._ts_threshold)
-                    ttu_end = timer()
-                    print('%%%SRNN assication elapsed time:', ttu_end - ttu_begin)
+                    similarity_mat, track_idx_list = timing('SRNN association', lambda: (
+                        self._srnn_matching(self._track_set, track_state_list, self._ts_threshold)
+                    ))
 
                     # reset update_flag
                     self._track_set.reset_updated_flag()
 
                     # Hungarian algorithm
-                    hung_begin = timer()
-                    row_idx_list, col_idx_list = sp.optimize.linear_sum_assignment(
-                                                                        similarity_mat)
-                    hung_end = timer()
-                    print('%%%Hungarian algorithm elapsed time:',
-                          hung_end - hung_begin)
+                    row_idx_list, col_idx_list = timing('Hungarian algorithm', lambda: (
+                        sp.optimize.linear_sum_assignment(similarity_mat)
+                    ))
 
                     for i in range(len(row_idx_list)):
                         r = row_idx_list[i]
