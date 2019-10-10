@@ -336,21 +336,21 @@ class SRNNTracker(KwiverProcess):
 
                 # get new track state from new frame and detections
                 for idx, item in enumerate(dos):
-                    if self._gtbbox_flag is True:
+                    if self._gtbbox_flag:
                         bbox = item
                         fid = self._step_id
                         ts = self._step_id
-                        d_obj = DetectedObject(bbox=item , confidence=1.0)
+                        d_obj = DetectedObject(bbox=item, confidence=1.0)
                     else:
                         bbox = item.bounding_box()
                         fid = timestamp.get_frame()
                         ts = timestamp.get_time_usec()
                         d_obj = item
 
-                    # store app feature to detected_object
-                    app_f = new_descriptor(g_config.A_F_num)
-                    app_f[:] = pt_app_features[idx].numpy()
                     if self._add_features_to_detections:
+                        # store app feature to detected_object
+                        app_f = new_descriptor(g_config.A_F_num)
+                        app_f[:] = pt_app_features[idx].numpy()
                         d_obj.set_descriptor(app_f)
                     det_obj_set.add(d_obj)
 
