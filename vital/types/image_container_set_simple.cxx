@@ -64,7 +64,7 @@ empty() const
 
 
 // ----------------------------------------------------------------------------
-image_container_sptr
+image_container_sptr&
 simple_image_container_set::
 at( size_t index )
 {

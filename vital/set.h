@@ -92,8 +92,11 @@ public:
    * @throws std::out_of_range if position is now within the range of objects
    * in container.
    */
-  virtual T at( size_t index ) = 0;
+  virtual T& at( size_t index ) = 0;
   virtual T const at( size_t index ) const = 0;
+
+  virtual T& operator[]( int index ) { return this->at( index ); }
+  virtual const T& operator[]( int index ) const { return this->at( index ); }
   ///@}
 };
 
