@@ -188,8 +188,9 @@ keyframes_for_sfm(feature_track_set_sptr tracks,
     scores.push_back(std::make_pair(score, k));
   }
   // Sort the frames in order of decreasing score
+  typedef decltype(scores)::value_type s_t;
   std::sort(scores.begin(), scores.end(),
-    [](const auto &l, const auto &r)
+    [](const s_t &l, const s_t &r)
   {
     return l.first > r.first;
   });
