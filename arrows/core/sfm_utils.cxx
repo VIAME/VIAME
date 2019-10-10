@@ -800,7 +800,7 @@ bool
 camera_upright(vital::camera_perspective const& camera,
                vital::vector_3d const& up)
 {
-  return up.dot(camera.rotation() * vector_3d(0, -1, 0)) > 0;
+  return up.dot(camera.rotation().inverse() * vector_3d(0, -1, 0)) > 0;
 }
 
 /// Return true if most cameras are upright
