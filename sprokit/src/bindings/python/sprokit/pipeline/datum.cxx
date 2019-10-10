@@ -153,6 +153,9 @@ PYBIND11_MODULE(datum, m)
   m.def("new_uchar_vector", &new_datum<std::shared_ptr<std::vector<unsigned char>>>
     , (arg("dat"))
     , "Creates a new datum packet containing an unsigned char vector.");
+  m.def("new_f2f_homography", &new_datum<kwiver::vital::f2f_homography>
+    , (arg("dat"))
+    , "Creates a new f2f_homography");
 
   m.def("datum_from_capsule", &datum_from_capsule
     , (arg("dptr"))
