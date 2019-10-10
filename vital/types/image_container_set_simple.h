@@ -57,7 +57,7 @@ public:
   /// Return the number of items
   virtual size_t size() const override;
   virtual bool empty() const override;
-  virtual image_container_sptr& at( size_t index ) override;
+  virtual image_container_sptr at( size_t index ) override;
   virtual image_container_sptr const at( size_t index ) const override;
 
 protected:
