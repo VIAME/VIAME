@@ -39,10 +39,10 @@ class Grid(object):
 
     def __call__(self, im_size, bbox_list, mot_flag=False):
         return self.obtain_grid_feature_list(im_size, bbox_list, mot_flag)
-    
+
     def obtain_grid_feature_list(self, im_size, bbox_list, mot_flag):
         r"""
-            The output of the function is a grid feature list for 
+            The output of the function is a grid feature list for
             each corresponding bbox of current frame/image
         """
         self.img_w, self.img_h = im_size
@@ -73,7 +73,7 @@ class Grid(object):
             col_idx = int(c_w // cell_w)
 
             bbox_id_centerIDX[idx] = row_idx, col_idx
-            
+
             # Assertion for corner cases
             assert row_idx < grid.shape[0]
             assert col_idx < grid.shape[1]
@@ -86,17 +86,16 @@ class Grid(object):
             neighborhood_grid_top = bbox_id_centerIDX[idx][0] - self._half_cell_w
             neighborhood_grid_left = bbox_id_centerIDX[idx][1] - self._half_cell_w
 
-            neighborhood_grid = torch.FloatTensor(self._target_neighborhood_w, 
+            neighborhood_grid = torch.FloatTensor(self._target_neighborhood_w,
                                             self._target_neighborhood_w).zero_()
 
             for r in range(self._target_neighborhood_w):
                 for c in range(self._target_neighborhood_w):
-                    if 0 <= neighborhood_grid_top + r < grid.size(0) and \
-                            0 <= neighborhood_grid_left + c < grid.size(1):
-                        neighborhood_grid[r, c] = grid[neighborhood_grid_top + r, \
+                    if (0 <= neighborhood_grid_top + r < grid.size(0)
+                        and 0 <= neighborhood_grid_left + c < grid.size(1)):
+                        neighborhood_grid[r, c] = grid[neighborhood_grid_top + r,
                                                     neighborhood_grid_left + c]
 
             grid_feature_list.append(neighborhood_grid.view(neighborhood_grid.numel()))
 
         return grid_feature_list
-

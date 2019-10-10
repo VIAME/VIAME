@@ -72,7 +72,7 @@ def ts2ot_list(track_set):
     for idx, t in enumerate(track_set):
         ot = ot_list[idx]
         for ti in t:
-            ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time, 
+            ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time,
                                         ti.detected_object)
             if not ot.append(ot_state):
                 print('Error: Cannot add ObjectTrackState')
@@ -233,14 +233,14 @@ class SRNNTracker(KwiverProcess):
         siamese_img_size = int(self.config_value('siamese_model_input_size'))
         siamese_batch_size = int(self.config_value('siamese_batch_size'))
         siamese_model_path = self.config_value('siamese_model_path')
-        self._app_feature_extractor = SiameseFeatureExtractor(siamese_model_path, 
+        self._app_feature_extractor = SiameseFeatureExtractor(siamese_model_path,
                 siamese_img_size, siamese_batch_size, self._gpu_list)
 
         # targetRNN_full model config
         targetRNN_batch_size = int(self.config_value('targetRNN_batch_size'))
         targetRNN_AIM_model_path = self.config_value('targetRNN_AIM_model_path')
         targetRNN_AIM_V_model_path = self.config_value('targetRNN_AIM_V_model_path')
-        self._srnn_matching = SRNNMatching(targetRNN_AIM_model_path, 
+        self._srnn_matching = SRNNMatching(targetRNN_AIM_model_path,
                 targetRNN_AIM_V_model_path, targetRNN_batch_size, self._gpu_list)
 
         self._gtbbox_flag = False
@@ -290,13 +290,13 @@ class SRNNTracker(KwiverProcess):
     # ----------------------------------------------
     def _step(self):
         try:
-            print('step {}'.format(self._step_id))
+            print('step', self._step_id)
 
             # grab image container from port using traits
             in_img_c = self.grab_input_using_trait('image')
             timestamp = self.grab_input_using_trait('timestamp')
             dos_ptr = self.grab_input_using_trait('detected_object_set')
-            print('timestamp = {!r}'.format(timestamp))
+            print('timestamp =', repr(timestamp))
 
             # Get current frame and give it to app feature extractor
             im = get_pil_image(in_img_c.image()).convert('RGB')
@@ -309,7 +309,7 @@ class SRNNTracker(KwiverProcess):
             else:
                 dos = dos_ptr.select(self._select_threshold)
                 bbox_num = dos.size()
-            #print('bbox list len is {}'.format(dos.size()))
+            #print('bbox list len is', dos.size())
 
             det_obj_set = DetectedObjectSet()
             if bbox_num == 0:
@@ -319,13 +319,13 @@ class SRNNTracker(KwiverProcess):
                 grid_f_begin = timer()
                 grid_feature_list = self._grid(im.size, dos, self._gtbbox_flag)
                 grid_f_end = timer()
-                print('%%%grid feature elapsed time: {}'.format(grid_f_end - grid_f_begin))
+                print('%%%grid feature elapsed time:', grid_f_end - grid_f_begin)
 
                 # appearance features (format: pytorch tensor)
                 app_f_begin = timer()
                 pt_app_features = self._app_feature_extractor(dos, self._gtbbox_flag)
                 app_f_end = timer()
-                print('%%%app feature elapsed time: {}'.format(app_f_end - app_f_begin))
+                print('%%%app feature elapsed time:', app_f_end - app_f_begin)
 
                 track_state_list = []
                 next_track_id = int(self._track_set.get_max_track_id()) + 1
@@ -351,19 +351,19 @@ class SRNNTracker(KwiverProcess):
                     det_obj_set.add(d_obj)
 
                     # build track state for current bbox for matching
-                    cur_ts = track_state(frame_id=self._step_id, 
+                    cur_ts = track_state(frame_id=self._step_id,
                                         bbox_center=bbox.center(),
                                         interaction_feature=grid_feature_list[idx],
-                                        app_feature=pt_app_features[idx], 
+                                        app_feature=pt_app_features[idx],
                                         bbox=[int(bbox.min_x()), int(bbox.min_y()),
-                                            int(bbox.width()), int(bbox.height())],
-                                        detected_object=d_obj, 
+                                              int(bbox.width()), int(bbox.height())],
+                                        detected_object=d_obj,
                                         sys_frame_id=fid, sys_frame_time=ts)
                     track_state_list.append(cur_ts)
 
                 # if there are no tracks, generate new tracks from the track_state_list
                 if not self._track_flag:
-                    next_track_id = self._track_set.add_new_track_state_list(next_track_id, 
+                    next_track_id = self._track_set.add_new_track_state_list(next_track_id,
                                     track_state_list, self._track_initialization_threshold)
                     self._track_flag = True
                 else:
@@ -381,17 +381,17 @@ class SRNNTracker(KwiverProcess):
                         self._track_set, track_state_list = self._iou_tracker(self._track_set,
                                                                         track_state_list)
                         IOU_end = timer()
-                        print('%%%IOU tracking elapsed time: {}'.format(IOU_end - IOU_begin))
+                        print('%%%IOU tracking elapsed time:', IOU_end - IOU_begin)
 
-                    #print('***track_set len {}'.format(len(self._track_set)))
-                    #print('***track_state_list len {}'.format(len(track_state_list)))
+                    #print('***track_set len', len(self._track_set))
+                    #print('***track_state_list len', len(track_state_list))
 
                     # estimate similarity matrix
                     ttu_begin = timer()
-                    similarity_mat, track_idx_list = self._srnn_matching(self._track_set, 
+                    similarity_mat, track_idx_list = self._srnn_matching(self._track_set,
                                                         track_state_list, self._ts_threshold)
                     ttu_end = timer()
-                    print('%%%SRNN assication elapsed time: {}'.format(ttu_end - ttu_begin))
+                    print('%%%SRNN assication elapsed time:', ttu_end - ttu_begin)
 
                     # reset update_flag
                     self._track_set.reset_updated_flag()
@@ -401,8 +401,8 @@ class SRNNTracker(KwiverProcess):
                     row_idx_list, col_idx_list = sp.optimize.linear_sum_assignment(
                                                                         similarity_mat)
                     hung_end = timer()
-                    print('%%%Hungarian algorithm elapsed time: {}'.\
-                                            format(hung_end - hung_begin))
+                    print('%%%Hungarian algorithm elapsed time:',
+                          hung_end - hung_begin)
 
                     for i in range(len(row_idx_list)):
                         r = row_idx_list[i]
@@ -410,9 +410,9 @@ class SRNNTracker(KwiverProcess):
 
                         if -similarity_mat[r, c] < self._similarity_threshold:
                             # initialize a new track
-                            if track_state_list[c].detected_object.confidence() >= \
-                                    self._track_initialization_threshold:
-                                self._track_set.add_new_track_state(next_track_id, 
+                            if (track_state_list[c].detected_object.confidence()
+                                   >= self._track_initialization_threshold):
+                                self._track_set.add_new_track_state(next_track_id,
                                         track_state_list[c])
                                 next_track_id += 1
                         else:
@@ -422,14 +422,14 @@ class SRNNTracker(KwiverProcess):
                     # for the remaining unmatched track states, we initialize new tracks
                     if len(track_state_list) - len(col_idx_list) > 0:
                         for i in range(len(track_state_list)):
-                            if i not in col_idx_list and \
-                                 track_state_list[i].detected_object.confidence() >= \
-                                 self._track_initialization_threshold:
-                                self._track_set.add_new_track_state(next_track_id, \
+                            if (i not in col_idx_list
+                                and (track_state_list[i].detected_object.confidence()
+                                     >= self._track_initialization_threshold)):
+                                self._track_set.add_new_track_state(next_track_id,
                                         track_state_list[i])
                                 next_track_id += 1
 
-                print('total tracks {}'.format(len(self._track_set)))
+                print('total tracks', len(self._track_set))
 
             # push track set to output port
             ot_list = ts2ot_list(self._track_set)
