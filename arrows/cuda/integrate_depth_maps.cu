@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2016 by Kitware SAS, 2018 Kitware, Inc.
+* Copyright 2016 by Kitware SAS, 2018-2019 Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ __constant__ int2 c_depthMapDims;         // Dimensions of all depths map
 __constant__ double c_rayPotentialThick;  // Thickness threshold for the ray potential function
 __constant__ double c_rayPotentialRho;    // Rho at the Y axis for the ray potential function
 __constant__ double c_rayPotentialEta;
+__constant__ double c_rayPotentialEpsilon;
 __constant__ double c_rayPotentialDelta;
 int grid_dims[3];
 
@@ -57,6 +58,7 @@ int grid_dims[3];
 //     Truncated Signed Distance Function (TSDF) Parameter Description
 //*****************************************************************************
 //** Eta is a percentage of rho ( 0 < Eta < 1)
+//** Epsilon is a percentage of rho ( 0 < Epsilon < 1)
 //** Delta has to be superior to Thick
 //
 //                     'real distance' - 'depth value'
@@ -70,8 +72,8 @@ int grid_dims[3];
 //                                     |    /    |             |
 //                                     |   /                   |
 //                                     |  /      |             |
-//                                     | /                     |
-//                                     |/        |             |______________
+//                                     | /         Epsilon*Rho |______________
+//                                     |/        |
 //----------------------------------------------------------------------------
 //                                    /
 //                                   /
@@ -126,7 +128,8 @@ __device__ void rayPotential(double realDistance, double depthMapDistance, doubl
   int sign = diff != 0 ? diff / absoluteDiff : 0;
 
   if (absoluteDiff > c_rayPotentialDelta)
-    res = diff > 0 ? 0 : - c_rayPotentialEta * c_rayPotentialRho;
+    res = diff > 0 ? c_rayPotentialEpsilon * c_rayPotentialRho
+                   : - c_rayPotentialEta * c_rayPotentialRho;
   else if (absoluteDiff > c_rayPotentialThick)
     res = c_rayPotentialRho * sign;
   else
@@ -218,6 +221,7 @@ void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
           double h_rayPThick,
           double h_rayPRho,
           double h_rayPEta,
+          double h_rayPEpsilon,
           double h_rayPDelta)
 {
   CudaErrorCheck(cudaMemcpyToSymbol(c_gridDims, h_gridDims, 3 * sizeof(int)));
@@ -226,6 +230,7 @@ void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
   CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialThick, &h_rayPThick, sizeof(double)));
   CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialRho, &h_rayPRho, sizeof(double)));
   CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialEta, &h_rayPEta, sizeof(double)));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialEpsilon, &h_rayPEpsilon, sizeof(double)));
   CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialDelta, &h_rayPDelta, sizeof(double)));
 
   grid_dims[0] = h_gridDims[0];

@@ -45,7 +45,8 @@ using namespace kwiver::vital;
 
 void cuda_initalize(int h_gridDims[3], double h_gridOrig[3],
                     double h_gridSpacing[3], double h_rayPThick,
-                    double h_rayPRho, double h_rayPEta, double h_rayPDelta);
+                    double h_rayPRho, double h_rayPEta, double h_rayPEpsilon,
+                    double h_rayPDelta);
 
 void launch_depth_kernel(double * d_depth, int depthmap_dims[2],
                          double d_K[16], double d_RT[16], double* output);
@@ -63,6 +64,7 @@ public:
     : ray_potential_rho(1.0),
       ray_potential_thickness(20.0),
       ray_potential_eta(1.0),
+      ray_potential_epsilon(0.01),
       ray_potential_delta(200.0),
       grid_spacing {1.0, 1.0, 1.0},
       voxel_spacing_factor(1.0),
@@ -73,6 +75,7 @@ public:
   double ray_potential_rho;
   double ray_potential_thickness;
   double ray_potential_eta;
+  double ray_potential_epsilon;
   double ray_potential_delta;
 
   int grid_dims[3];
@@ -121,6 +124,9 @@ integrate_depth_maps::get_configuration() const
   config->set_value("ray_potential_eta", d_->ray_potential_eta,
                     "Fraction of rho to use for free space constraint. "
                     "Requires 0 <= Eta <= 1.");
+  config->set_value("ray_potential_epsilon", d_->ray_potential_epsilon,
+                    "Fraction of rho to use in occluded space. "
+                    "Requires 0 <= Epsilon <= 1.");
   config->set_value("ray_potential_delta", d_->ray_potential_delta,
                     "Distance from the surface before the TSDF is truncate. "
                     "Units are in voxels");
@@ -157,6 +163,8 @@ integrate_depth_maps::set_configuration(vital::config_block_sptr in_config)
                               d_->ray_potential_thickness);
   d_->ray_potential_eta =
     config->get_value<double>("ray_potential_eta", d_->ray_potential_eta);
+  d_->ray_potential_epsilon =
+    config->get_value<double>("ray_potential_epsilon", d_->ray_potential_epsilon);
   d_->ray_potential_delta =
     config->get_value<double>("ray_potential_delta", d_->ray_potential_delta);
   d_->voxel_spacing_factor =
@@ -279,6 +287,7 @@ integrate_depth_maps::integrate(
                  d_->ray_potential_thickness * max_spacing,
                  d_->ray_potential_rho,
                  d_->ray_potential_eta,
+                 d_->ray_potential_epsilon,
                  d_->ray_potential_delta * max_spacing);
   const size_t vsize = static_cast<size_t>(d_->grid_dims[0]) *
                        static_cast<size_t>(d_->grid_dims[1]) *
