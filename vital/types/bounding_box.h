@@ -98,8 +98,10 @@ public:
   /**
    * @brief Create default (invalid) box.
    */
-  bounding_box() : bounding_box( -1, -1, -1, -1 )
-  { }
+  bounding_box()
+  {
+    reset();
+  }
 
   /**
    * @brief Check to see if the two corner points are valid.
@@ -108,11 +110,15 @@ public:
    */
   bool is_valid() const
   {
-    if ( this->upper_left()[0] == this->upper_left()[1] &&
-         this->upper_left()[0] == this->lower_right()[0] &&
-         this->upper_left()[0] == this->lower_right()[1] )
-      return false;
-    return true;
+    return !m_bbox.isEmpty();
+  }
+
+  /**
+   * @brief Reset the bounding box to an initial invalid state.
+   */
+  void reset()
+  {
+    m_bbox = Eigen::AlignedBox< T, 2 >();
   }
 
   /**
