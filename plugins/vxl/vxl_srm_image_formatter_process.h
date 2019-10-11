@@ -38,7 +38,7 @@
 
 #include <sprokit/pipeline/process.h>
 
-#include <plugins/core/viame_processes_core_export.h>
+#include <plugins/vxl/viame_processes_vxl_export.h>
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
@@ -62,7 +62,7 @@ namespace vxl
  * the current GUI interface uses video-based KWA files for image storage, to
  * reduce disk usage and increase processing speeds.
  */
-class VIAME_PROCESSES_CORE_NO_EXPORT vxl_srm_image_formatter_process
+class VIAME_PROCESSES_VXL_NO_EXPORT vxl_srm_image_formatter_process
   : public sprokit::process
 {
 public:

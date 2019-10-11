@@ -133,6 +133,6 @@ vxl_srm_image_formatter_process::priv
 }
 
 
-} // end namespace core
+} // end namespace vxl
 
 } // end namespace viame
