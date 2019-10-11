@@ -49,5 +49,5 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 if( VIAME_ENABLE_VXL )
-  add_subdirectory( VXL )
+  add_subdirectory( vxl )
 endif()

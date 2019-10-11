@@ -10,7 +10,7 @@ set( process_sources
   vxl_srm_image_formatter_process.cxx
 )
 
-kwiver_add_plugin( viame_processes_core
+kwiver_add_plugin( viame_processes_vxl
   SUBDIR           ${viame_plugin_process_subdir}
   SOURCES          ${process_sources}
                    ${private_headers}
