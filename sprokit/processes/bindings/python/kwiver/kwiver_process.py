@@ -179,8 +179,12 @@ class KwiverProcess(process.PythonProcess):
                             datum.Datum.get_object_track_set,
                             datum.new_object_track_set)
 
-        self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography")
-        self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography")
+        self.add_type_trait("homography_src_to_ref", "kwiver:s2r_homography",
+                            datum.Datum.get_f2f_homography,
+                            datum.new_f2f_homography)
+        self.add_type_trait("homography_ref_to_src", "kwiver:r2s_homography",
+                            datum.Datum.get_f2f_homography,
+                            datum.new_f2f_homography)
         self.add_type_trait("file_name", "kwiver:file_name",
                             datum.Datum.get_string,
                             datum.new_string)
