@@ -89,41 +89,27 @@ class SRNNMatching(object):
         self._device, self._use_gpu_flag = get_device(gpu_list)
         self._batch_size = batch_size
 
+        def load_model(model_list, model_path):
+            model = TargetLSTM(model_list=model_list, use_gpu_flag=self._use_gpu_flag)
+            model = model.to(self._device)
+            if self._use_gpu_flag:
+                snapshot = torch.load(model_path)
+            else:
+                snapshot = torch.load(model_path, map_location='cpu')
+            model.load_state_dict(snapshot['state_dict'])
+            model.eval()
+            if self._use_gpu_flag:
+                # DataParallel also understands device_ids=None to mean "all devices", so we're good.
+                model = torch.nn.DataParallel(model, device_ids=gpu_list)
+            return model
+
         # load target AIM model, trained with fixed variable timestep
         full_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
-        self._targetRNN_full_model = TargetLSTM(model_list=full_model_list,
-                                                use_gpu_flag=self._use_gpu_flag)
-        self._targetRNN_full_model = self._targetRNN_full_model.to(self._device)
+        self._targetRNN_full_model = load_model(full_model_list, targetRNN_full_model_path)
 
-        if self._use_gpu_flag:
-            snapshot = torch.load(targetRNN_full_model_path)
-        else:
-            snapshot = torch.load(targetRNN_full_model_path, map_location='cpu')
-
-        self._targetRNN_full_model.load_state_dict(snapshot['state_dict'])
-        self._targetRNN_full_model.eval()
-
-        if self._use_gpu_flag:
-            # DataParallel also understands device_ids=None to mean "all devices", so we're good.
-            self._targetRNN_full_model = torch.nn.DataParallel(self._targetRNN_full_model,
-                                                                    device_ids=gpu_list)
-
-        # load  target AIM_V model, but trained with variable timestep
+        # load target AIM_V model, but trained with variable timestep
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
-        self._targetRNN_AIM_V_model = TargetLSTM(model_list=V_model_list,
-                            use_gpu_flag=self._use_gpu_flag).to(self._device)
-
-        if self._use_gpu_flag:
-            snapshot = torch.load(targetRNN_AIM_V_model_path)
-        else:
-            snapshot = torch.load(targetRNN_AIM_V_model_path, map_location='cpu')
-
-        self._targetRNN_AIM_V_model.load_state_dict(snapshot['state_dict'])
-        self._targetRNN_AIM_V_model.eval()
-
-        if self._use_gpu_flag:
-            self._targetRNN_AIM_V_model = torch.nn.DataParallel(self._targetRNN_AIM_V_model,
-                                                            device_ids=gpu_list)
+        self._targetRNN_AIM_V_model = load_model(V_model_list, targetRNN_AIM_V_model_path)
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
         tracks_num = track_set.active_count()
