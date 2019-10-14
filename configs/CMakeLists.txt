@@ -156,6 +156,7 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_to_kwa.pipe
   pipelines/full_frame_classifier_svm.pipe
   pipelines/index_default.pipe
+  pipelines/index_default.svm.pipe
   pipelines/index_default.trk.pipe
   pipelines/index_existing.pipe
   pipelines/index_full_frame.pipe

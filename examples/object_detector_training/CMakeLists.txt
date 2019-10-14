@@ -41,6 +41,18 @@ if( VIAME_ENABLE_PYTORCH )
          train_cfrnn_viame_csv.sh
          train_cfrnn_habcam.sh )
   endif()
+
+  if( VIAME_ENABLE_SMQTK )
+    if( WIN32 )
+      set( EXAMPLE_INSTALL_FILES
+           ${EXAMPLE_INSTALL_FILES}
+           train_svm_viame_csv.bat )
+    else()
+      set( EXAMPLE_INSTALL_FILES
+           ${EXAMPLE_INSTALL_FILES}
+           train_svm_viame_csv.sh )
+    endif()
+  endif()
 endif()
 
 ###
