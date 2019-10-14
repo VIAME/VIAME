@@ -132,16 +132,16 @@ extract_desc_ids_for_training_process
   d->m_classes.reset( new kwiver::vital::category_hierarchy( d->m_category_file ) );
   d->m_writers.resize( d->m_classes->size() + 1 );
 
-  if( !boost::filesystem::exists( d->m_output_directory ) )
-  {
-    boost::filesystem::create_directories( d->m_output_directory );
-  }
-
   std::string filename = d->m_background_label + "." + d->m_output_extension;
 
   if( !d->m_output_directory.empty() )
   {
     filename = d->m_output_directory + "/" + filename;
+
+    if( !boost::filesystem::exists( d->m_output_directory ) )
+    {
+      boost::filesystem::create_directories( d->m_output_directory );
+    }
   }
 
   d->m_writers[ d->m_classes->size() ].open(
@@ -192,7 +192,7 @@ extract_desc_ids_for_training_process
     if( !timestamp_set && desc->get_history().size() == 1 )
     {
       desc_box = desc->get_history()[0].get_image_location();
-    }    
+    }
     else
     {
       for( const auto& hist_entry : desc->get_history() )
@@ -205,7 +205,7 @@ extract_desc_ids_for_training_process
       }
     }
 
-    if( !desc_box.width() == 0 || desc_box.height() == 0 )
+    if( desc_box.width() == 0 || desc_box.height() == 0 )
     {
       continue;
     }

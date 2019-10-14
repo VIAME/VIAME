@@ -82,8 +82,8 @@ process write_descriptor_ids
  :: extract_desc_ids_for_training
   :category_file                              [INSERT_ME]
   :output_folder                              [INSERT_ME]
-  :positive_min_overlap                       0.5
-  :negative_max_overlap                       0.1
+  :positive_min_overlap                       0.60
+  :negative_max_overlap                       0.10
 
 connect from detection_reader.detected_object_set
         to   write_descriptor_ids.detected_object_set

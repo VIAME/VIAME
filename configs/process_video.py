@@ -332,7 +332,7 @@ def groundtruth_reader_settings_list( options, gt_files, basename ):
     output += fset( 'detection_reader:file_name=' + gt_files[0] )
     output += fset( 'detection_reader:reader:type=' + options.auto_detect_gt )
     output += fset( 'write_descriptor_ids:category_file=' + options.input_dir + "/labels.txt" )
-    output += fset( 'write_descriptor_ids:output_folder=' + options.output_directory )
+    output += fset( 'write_descriptor_ids:output_directory=' + options.output_directory )
   return output
 
 def remove_quotes( input_str ):
