@@ -42,8 +42,6 @@
 
 #include <sprokit/processes/kwiver_type_traits.h>
 
-#include <vital/types/timestamp.h>
-
 #include <memory>
 
 namespace viame
@@ -81,7 +79,7 @@ private:
   void make_config();
 
   class priv;
-  const std::unique_ptr<priv> d;
+  const std::unique_ptr< priv > d;
 
 }; // end class extract_desc_ids_for_training_process
 
