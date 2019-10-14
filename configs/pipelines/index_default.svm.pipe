@@ -90,21 +90,6 @@ connect from detection_reader.detected_object_set
 connect from track_descriptor.track_descriptor_set
         to   write_descriptor_ids.track_descriptor_set
 
-process kwa_writer
-  :: kw_archive_writer
-  :output_directory                           [INSERT_ME]
-  :base_filename                              [INSERT_ME]
-  :separate_meta                              true
-  :stream_id                                  [INSERT_ME]
-  :compress_image                             true
-  :static/gsd[ro]                             common:fixed_gsd
-  :static/corner_points[ro]                   0 0 0 0 0 0 0 0
-
-connect from downsampler.timestamp
-        to   kwa_writer.timestamp
-connect from downsampler.output_1
-        to   kwa_writer.image
-
 process track_writer_db
   :: write_object_track
   :file_name                                  none
