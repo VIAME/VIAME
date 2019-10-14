@@ -322,17 +322,22 @@ def video_frame_rate_settings_list( options ):
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
   return output
 
-def groundtruth_reader_settings_list( options, gt_files, basename ):
+def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id ):
   output = []
   if len( gt_files ) == 0:
     exit_with_error( "Directory " + basename + " contains no GT files" )
   elif len( gt_files ) > 1:
     exit_with_error( "Directory " + basename + " contains multiple GT files" )
   else:
+    if gpu_id > 0:
+      output_extension = str( gpu_id ) + '.lbl'
+    else:
+      output_extension = 'lbl'
     output += fset( 'detection_reader:file_name=' + gt_files[0] )
     output += fset( 'detection_reader:reader:type=' + options.auto_detect_gt )
     output += fset( 'write_descriptor_ids:category_file=' + options.input_dir + "/labels.txt" )
     output += fset( 'write_descriptor_ids:output_directory=' + options.output_directory )
+    output += fset( 'write_descriptor_ids:output_extension=' + output_extension )
   return output
 
 def remove_quotes( input_str ):
@@ -417,7 +422,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   command += object_tracker_settings_list( options )
 
   if auto_detect_gt:
-    command += groundtruth_reader_settings_list( options, gt_files, basename_no_path )
+    command += groundtruth_reader_settings_list( options, gt_files, basename_no_path, gpu )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
