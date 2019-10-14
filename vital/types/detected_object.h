@@ -59,7 +59,8 @@ namespace vital {
 class detected_object;
 
 // typedef for a detected_object shared pointer
-typedef std::shared_ptr< detected_object > detected_object_sptr;
+using detected_object_sptr = std::shared_ptr< detected_object >;
+using detected_object_scptr = std::shared_ptr< detected_object const >;
 
 
 // ----------------------------------------------------------------
@@ -77,9 +78,9 @@ class VITAL_EXPORT detected_object
 {
 public:
 
-  typedef std::vector< detected_object_sptr > vector_t;
-  typedef descriptor_dynamic< double > descriptor_t;
-  typedef std::shared_ptr< descriptor_t const > descriptor_scptr;
+  using vector_t = std::vector< detected_object_sptr >;
+  using descriptor_t = descriptor_dynamic< double >;
+  using descriptor_scptr = std::shared_ptr< descriptor_t const >;
 
   /**
    * @brief Create default detected object.

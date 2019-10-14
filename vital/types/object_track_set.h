@@ -127,6 +127,11 @@ public:
     return detection_;
   }
 
+  detected_object_scptr detection() const
+  {
+    return detection_;
+  }
+
   void set_image_point( point_2d const& p )
   {
     image_point_ = p;
