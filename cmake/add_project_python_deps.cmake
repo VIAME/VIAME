@@ -38,29 +38,20 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
 
   set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
 
-  if( WIN32 )
-    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
-      set( ARGS_TORCH "==1.2.0 -f ${PYTORCH_ARCHIVE}" )
-      set( ARGS_TORCHVISION "==0.4.0 -f ${PYTORCH_ARCHIVE}" )
-    elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
-      set( ARGS_TORCH "==1.2.0+cu92 -f ${PYTORCH_ARCHIVE}" )
-      set( ARGS_TORCHVISION "==0.4.0+cu92 -f ${PYTORCH_ARCHIVE}" )
-    else()
-      message( FATAL_ERROR "With your current build settings you must either:\n"
-        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
-        " (b) Use CUDA 9.2 or 10.0+\n"
-        " (c) Disable VIAME_ENABLE_PYTORCH\n" )
-    endif()
+  if( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
+    set( ARGS_TORCH "==1.3.0 -f ${PYTORCH_ARCHIVE}" )
+    set( ARGS_TORCHVISION "==0.4.0 -f ${PYTORCH_ARCHIVE}" )
+  elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
+    set( ARGS_TORCH "==1.3.0+cu100 -f ${PYTORCH_ARCHIVE}" )
+    set( ARGS_TORCHVISION "==0.4.0+cu100 -f ${PYTORCH_ARCHIVE}" )
+  elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
+    set( ARGS_TORCH "==1.3.0+cu92 -f ${PYTORCH_ARCHIVE}" )
+    set( ARGS_TORCHVISION "==0.4.0+cu92 -f ${PYTORCH_ARCHIVE}" )
   else()
-    if( CUDA_VERSION VERSION_EQUAL "9.2" )
-      set( ARGS_TORCH "==1.2.0+cu92 -f ${PYTORCH_ARCHIVE}" )
-      set( ARGS_TORCHVISION "==0.4.0+cu92 -f ${PYTORCH_ARCHIVE}" )
-    elseif( CUDA_VERSION VERSION_LESS "10.0" )
-      message( FATAL_ERROR "With your current build settings you must either:\n"
-        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
-        " (b) Use CUDA 9.2 or 10.0+\n"
-        " (c) Disable VIAME_ENABLE_PYTORCH\n" )
-    endif()
+    message( FATAL_ERROR "With your current build settings you must either:\n"
+      " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
+      " (b) Use CUDA 9.2 or 10.0+\n"
+      " (c) Disable VIAME_ENABLE_PYTORCH\n" )
   endif()
 
   list( APPEND VIAME_PYTHON_DEP_CMDS "torch${ARGS_TORCH}" )
