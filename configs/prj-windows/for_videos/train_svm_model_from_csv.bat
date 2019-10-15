@@ -7,7 +7,7 @@ SET ANNOTATION_TYPE=viame_csv
 
 REM Setup VIAME Paths (no need to set if installed to registry or already set up)
 
-SET VIAME_INSTALL=.\..\..
+SET VIAME_INSTALL=C:\Program Files\VIAME
 
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
