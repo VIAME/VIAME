@@ -39,212 +39,153 @@ import svmutil
 import svm
 import os
 import ctypes
-import filecmp
 import sys
 import numpy
 
-def generate_svm_model( input_folder,
-                        smqtk_params,
-                        target_id = "positive",
-                        id_extension = "lbl" ):
+def generate_svm_model( positive_uid_files, negative_uid_files,
+  output_file, smqtk_params = dict() ):
 
-  ## Member variables to be configured in ``_configure``.
-  di_json_config_path = None
-  di_json_config = None
+  # Add default values for params if not present in input dict
+  if not 'descriptor_index_config_file' in smqtk_params:
+    smqtk_params['descriptor_index_config_file'] = ""
+  if not 'neighbor_index_config_file' in smqtk_params:
+    smqtk_params['neighbor_index_config_file'] = ""
+  if not 'pos_seed_neighbors' in smqtk_params:
+    smqtk_params['pos_seed_neighbors'] = 10
+  if not 'train_on_neighbors_only' in smqtk_params:
+    smqtk_params['train_on_neighbors_only'] = False
+
+  # Member variables to be configured in ``_configure``.
+  di_json_config_path = smqtk_params['descriptor_index_config_file']
+  with open( di_json_config_path ) as f:
+    di_json_config = json.load( f )
 
   # Path to the json config file for the NearestNeighborsIndex
-  nn_json_config_path = None
-  nn_json_config = None
+  nn_json_config_path = smqtk_params['neighbor_index_config_file']
+  with open( nn_json_config_path ) as f:
+    nn_json_config = json.load( f )
 
   # Number of top, refined descriptor UUIDs to return per step.
-  query_return_n = None
+  pos_seed_neighbors = smqtk_params['pos_seed_neighbors']
 
   # Set of descriptors to pull positive/negative querys from.
-  descriptor_set = None
+  descriptor_set = smqtk.utils.plugin.from_plugin_config(
+    di_json_config,
+    smqtk.representation.get_descriptor_index_impls()
+  )
 
   # Nearest Neighbors index to use for IQR working index population.
-  neighbor_index = None
+  neighbor_index = smqtk.utils.plugin.from_plugin_config(
+    nn_json_config,
+    smqtk.algorithms.get_nn_index_impls()
+  )
 
   # IQR session state object
-  iqr_session = None
-
-  # Factory for converting vital descriptors IDs to SMQTK
-  smqtk_descriptor_element_factory = smqtk.representation.DescriptorElementFactory(
-      smqtk.representation.descriptor_element.local_elements.DescriptorMemoryElement,
-      {}
-  )
-
-  di_json_config_path = smqtk_params('descriptor_index_config_file')
-  nn_json_config_path = smqtk_params('neighbor_index_config_file')
-  pos_seed_neighbors = int(smqtk_params('pos_seed_neighbors'))
-  query_return_n = int(smqtk_params('query_return_size'))
-
-  # parse json files
-  with open(di_json_config_path) as f:
-      di_json_config = json.load(f)
-  with open(nn_json_config_path) as f:
-      nn_json_config = json.load(f)
-
-  descriptor_set = smqtk.utils.plugin.from_plugin_config(
-      di_json_config,
-      smqtk.representation.get_descriptor_index_impls()
-  )
-  neighbor_index = smqtk.utils.plugin.from_plugin_config(
-      nn_json_config,
-      smqtk.algorithms.get_nn_index_impls()
-  )
-
-  # Using default relevancy index configuration, which as of 2017/08/24
-  # is the only one: libSVM-based relevancy ranking.
   iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
 
-  print( "Stepping SMQTK Query Process" )
-  #
-  # Grab input values from ports using traits.
-  #
-  # Set/vector of descriptors to perform query off of
-  #
-  #: :type: vital.types.DescriptorSet
-  vital_positive_descriptor_set = grab_input_using_trait('positive_descriptor_set')
-  vital_positive_descriptor_uids = grab_input_using_trait('positive_exemplar_uids')
-  #
-  # Set/vector of descriptors to use as negative examples
-  #
-  #: :type: vital.types.DescriptorSet
-  vital_negative_descriptor_set = grab_input_using_trait('negative_descriptor_set')
-  vital_negative_descriptor_uids = grab_input_using_trait('negative_exemplar_uids')
-  #
-  # Vector of UIDs for vector of descriptors in descriptor_set.
-  #
-  #: :type: list[str]
-  iqr_positive_tuple = grab_input_using_trait('iqr_positive_uids')
-  iqr_negative_tuple = grab_input_using_trait('iqr_negative_uids')
-  #
-  # Optional input SVM model
-  #
-  #: :type: vital.types.UCharVector
-  iqr_query_model = grab_input_using_trait('iqr_query_model')
+  # Load positive samples for this class
+  if len( positive_uid_files ) == 0:
+    return
+
+  pos_uuids = []
+  neg_uuids = []
+
+  for pos_file in positive_uid_files:
+    for line in open( pos_file, "r" ):
+      pos_uuids.append( line.rstrip() )
+
+  pos_uuids = set( pos_uuids )
+
+  for neg_file in negative_uid_files:
+    for line in open( neg_file, "r" ):
+      uuid = line.rstrip()
+      if uuid not in pos_uuids:
+        neg_uuids.append( uuid )
 
   # Reset index on new query, a new query is one without IQR feedback
-  if len( iqr_positive_tuple ) == 0 and len( iqr_negative_tuple ) == 0:
-    iqr_session = smqtk.iqr.IqrSession(pos_seed_neighbors)
+  iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
+  pos_descrs = descriptor_set.get_many_descriptors( pos_uuids )
 
-  # Convert descriptors to SMQTK elements.
-  #: :type: list[DescriptorElement]
-  user_pos_elements = []
-  z = zip(vital_positive_descriptor_set.descriptors(), vital_positive_descriptor_uids)
-  for vital_descr, uid_str in z:
-      smqtk_descr = smqtk_descriptor_element_factory.new_descriptor(
-          'from_sprokit', uid_str
-      )
-      # A descriptor may already exist in the backend (if its persistant)
-      # for the given UID. We currently always overwrite.
-      smqtk_descr.set_vector(vital_descr.todoublearray())
-      # Queue up element for adding to set.
-      user_pos_elements.append(smqtk_descr)
+  if smqtk_params['train_on_neighbors_only']:
+    iqr_session.adjudicate( set( pos_descrs ) )
+  else:
+    neg_descrs = descriptor_set.get_many_descriptors( neg_uuids )
+    iqr_session.adjudicate( set( pos_descrs ), set( neg_descrs ) )
 
-  user_neg_elements = []
-  z = zip(vital_negative_descriptor_set.descriptors(), vital_negative_descriptor_uids)
-  for vital_descr, uid_str in z:
-      smqtk_descr = smqtk_descriptor_element_factory.new_descriptor(
-          'from_sprokit', uid_str
-      )
-      # A descriptor may already exist in the backend (if its persistant)
-      # for the given UID. We currently always overwrite.
-      smqtk_descr.set_vector(vital_descr.todoublearray())
-      # Queue up element for adding to set.
-      user_neg_elements.append(smqtk_descr)
-
-  # Get SMQTK descriptor elements from index for given pos/neg UUID-
-  # values.
-  #: :type: collections.Iterator[DescriptorElement]
-  pos_descrs = descriptor_set.get_many_descriptors(iqr_positive_tuple)
-  #: :type: collections.Iterator[DescriptorElement]
-  neg_descrs = descriptor_set.get_many_descriptors(iqr_negative_tuple)
-
-  iqr_session.adjudicate(user_pos_elements, user_neg_elements)
-  iqr_session.adjudicate(set(pos_descrs), set(neg_descrs))
-
-  # Update iqr working index for any new positives
-  iqr_session.update_working_index(neighbor_index)
-
+  # Update iqr working index for all samples
+  iqr_session.update_working_index( neighbor_index )
   iqr_session.refine()
 
-  ordered_results = iqr_session.ordered_results()
-  ordered_feedback = iqr_session.ordered_feedback()
-  if query_return_n > 0:
-      if ordered_feedback is not None:
-          ordered_feedback_results = ordered_feedback[:query_return_n]
-      else:
-          ordered_feedback_results = []
-      ordered_results = ordered_results[:query_return_n]
+  # Perform 2nd round training on negatives from NN search
+  if smqtk_params['train_on_neighbors_only']:
+    ordered_results = iqr_session.ordered_results()
+    if ordered_results is None:
+      ordered_results = []
+    ordered_feedback = iqr_session.ordered_feedback()
+    if ordered_feedback is None:
+      ordered_feedback = []
+    top_elems, top_dists = zip( *ordered_results )
+    top_uuids = [ e.uuid() for e in return_elems ]
+    feedback_uuids = [ e[0].uuid() for e in ordered_feedback ]
 
-  return_elems, return_dists = zip(*ordered_results)
-  return_uuids = [e.uuid() for e in return_elems]
-  ordered_feedback_uuids = [e[0].uuid() for e in ordered_feedback_results]
-  ordered_feedback_distances = [e[1] for e in ordered_feedback_results]
-  # Just creating the scores to preserve the order in case of equal floats
-  # because we're passing the distances explicity anyway
-  ordered_feedback_scores = numpy.linspace(1, 0,
-      len(ordered_feedback_distances))
+    best_neg_uuids = []
+    for uuid in top_uuids:
+      if uuid in neg_uuids:
+        best_neg_uuids.append( uuid )
+    for uuid in feedback_uuids:
+      if uuid in neg_uuids:
+        best_neg_uuids.append( uuid )
 
-  # Retrive IQR model from class
+    best_neg_descrs = descriptor_set.get_many_descriptors( best_neg_uuids )
+
+    iqr_session.adjudicate( set( pos_descrs ), set( best_neg_descrs ) )
+    iqr_session.update_working_index( neighbor_index )
+    iqr_session.refine()
+
   try:
-    return_model = get_svm_bytes()
+    svm_model = iqr_session.rel_index.get_model()
+    svmutil.svm_save_model( output_file.encode(), svm_model )
   except:
-    return_model = []
+    return
 
-
-    def get_svm_bytes(self):
-        svm_model = iqr_session.rel_index.get_model()
-        tmp_file_name = "tmp_svm.model"
-
-        svmutil.svm_save_model(tmp_file_name.encode(), svm_model)
-        with open(tmp_file_name, "rb") as f:
-            model_file = f.read()
-            b = bytearray(model_file)
-        os.remove(tmp_file_name)
-        return b
-
-    def get_model_from_bytes(self, bytes):
-        c_bytes = (ctypes.c_ubyte * len(bytes))(*bytes)
-        model = svmutil.svm_load_model_from_bytes(c_bytes)
-        return model
-
-    # (TODO (Mmanu)) Remove, intended for testing the code!
-    def test_model_from_byte(self):
-        # The original model
-        svm_model_1 = iqr_session.rel_index.get_model()
-        model_1_file, model_2_file = "tmp_svm_1.model", "tmp_svm_2.model"
-        svmutil.svm_save_model(model_1_file.encode(), svm_model_1)
-
-        # Get the bytes for the model first.
-        bytes = get_svm_bytes()
-        # Use the bytes to created a model
-        svm_model_2 = get_model_from_bytes(bytes)
-        # Save the model created using the bytes
-        svmutil.svm_save_model(model_2_file.encode(), svm_model_2)
-
-        # Check that the model created using the bytes is the same as the
-        # original model.
-        assert(filecmp.cmp(model_1_file, model_2_file) is True)
-        os.remove(model_1_file)
-        os.remove(model_2_file)
-
-def generate_svm_models( input_folder,
-                         smqtk_params = dict(),
-                         id_extension = "lbl",
-                         background_id = "background",
-                         output_folder = "category_models" ):
+def generate_svm_models( folder = "database", id_extension = "lbl",
+  background_id = "background", output_folder = "category_models",
+  smqtk_params = dict() ):
 
   # Find all label files in input folder except background
-  []
+  if not os.path.exists( folder ) and os.path.exists( folder + ".lnk" ):
+    folder = folder + ".lnk"
+  folder = folder if not os.path.islink( folder ) else os.readlink( folder )
+  if not os.path.isdir( folder ):
+    print( "Input folder \"" + folder + "\" does not exist" )
+    return
+  label_files = [
+    os.path.join( folder, f ) for f in sorted( os.listdir( folder ) )
+    if not f.startswith('.') and f.endswith( '.' + id_extension )
+  ]
 
-  # Error checking
-  []
+  # Error checking on inputs
+  if len( label_files ) == 0:
+    print( "No label files present in input folder \"" + folder + "\"" )
+    return
 
   # Generate output folder
-  []
+  if not os.path.exists( output_folder ):
+    os.makedirs( output_folder )
 
   # Generate SVM model for each category
-  []
+  all_categories = [
+    os.path.splitext( os.path.splitext( os.path.basename( f ) )[0] )[0]
+    for f in label_files
+  ]
+
+  for category in all_categories:
+    positive_files = []
+    negative_files = []
+    output_file = output_folder + '/' + category + '.svm'
+    for label_file in label_files:
+      if category + '.' in label_file:
+        positive_files.append( label_file )
+      else:
+        negative_files.append( label_file )
+    generate_svm_model( positive_files, negative_files, output_file, smqtk_params )

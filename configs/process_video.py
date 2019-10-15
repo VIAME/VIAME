@@ -363,9 +363,9 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   # Get video name without extension and full path
   if len( base_ovrd ) > 0:
-    basename_no_path = base_ovrd
+    basename_no_ext = base_ovrd
   else:
-    basename_no_path = os.path.splitext( input_basename )[0]
+    basename_no_ext = os.path.splitext( input_basename )[0]
 
   # Formulate input setting string
   if auto_detect_gt:
@@ -391,7 +391,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   elif os.path.isdir( input_name ):
     if auto_detect_gt:
       gt_files = list_files_in_dir_w_ext( input_name, gt_ext )
-    input_name = make_filelist_for_dir( input_name, options.output_directory, basename_no_path )
+    input_name = make_filelist_for_dir( input_name, options.output_directory, basename_no_ext )
     if len( input_name ) == 0:
       if multi_threaded:
         log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
@@ -416,13 +416,13 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
               input_settings )
 
   command += video_frame_rate_settings_list( options )
-  command += video_output_settings_list( options, basename_no_path )
+  command += video_output_settings_list( options, basename_no_ext )
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
 
   if auto_detect_gt:
-    command += groundtruth_reader_settings_list( options, gt_files, basename_no_path, gpu )
+    command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
@@ -442,7 +442,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   # Process command, possibly with logging
   log_base = ""
   if len( options.log_directory ) > 0 and not options.debug:
-    log_base = options.output_directory + div + options.log_directory + div + basename_no_path
+    log_base = options.output_directory + div + options.log_directory + div + basename_no_ext
     with get_log_output_files( log_base ) as kwargs:
       res = execute_command( command, gpu=gpu, **kwargs )
   else:

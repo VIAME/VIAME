@@ -21,7 +21,7 @@ if( VIAME_ENABLE_PYTHON AND VIAME_ENABLE_SMQTK )
     viame/processes/smqtk
     smqtk_object_track_descriptors )
 
-  # Functions and other Utilities
+  # Functions and other utilities
   kwiver_create_python_init( viame/arrows/smqtk )
 
   kwiver_add_python_module(
