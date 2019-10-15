@@ -29,7 +29,6 @@
 
 import numpy as np
 import torch
-import copy
 import collections
 
 class track_state(object):
