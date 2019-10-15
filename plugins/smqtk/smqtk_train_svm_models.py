@@ -42,20 +42,28 @@ import ctypes
 import sys
 import numpy
 
+default_desc_config = "/configs/pipelines/smqtk_desc_index.json"
+default_nn_config = "/configs/pipelines/smqtk_nn_index.json"
+
+default_desc_index = os.environ['VIAME_INSTALL'] + default_desc_config
+default_nn_index = os.environ['VIAME_INSTALL'] + default_nn_config
+
 def generate_svm_model( positive_uid_files, negative_uid_files,
   output_file, smqtk_params = dict() ):
 
   # Add default values for params if not present in input dict
   if not 'descriptor_index_config_file' in smqtk_params:
-    smqtk_params['descriptor_index_config_file'] = ""
+    smqtk_params['descriptor_index_config_file'] = default_desc_index
   if not 'neighbor_index_config_file' in smqtk_params:
-    smqtk_params['neighbor_index_config_file'] = ""
+    smqtk_params['neighbor_index_config_file'] = default_nn_index
   if not 'pos_seed_neighbors' in smqtk_params:
     smqtk_params['pos_seed_neighbors'] = 10
   if not 'train_on_neighbors_only' in smqtk_params:
     smqtk_params['train_on_neighbors_only'] = False
 
   # Member variables to be configured in ``_configure``.
+  print( " - Loading descriptor indices" )
+
   di_json_config_path = smqtk_params['descriptor_index_config_file']
   with open( di_json_config_path ) as f:
     di_json_config = json.load( f )
@@ -107,8 +115,10 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
   pos_descrs = descriptor_set.get_many_descriptors( pos_uuids )
 
   if smqtk_params['train_on_neighbors_only']:
+    print( " - Performing initial search" )
     iqr_session.adjudicate( set( pos_descrs ) )
   else:
+    print( " - Training SVM model" )
     neg_descrs = descriptor_set.get_many_descriptors( neg_uuids )
     iqr_session.adjudicate( set( pos_descrs ), set( neg_descrs ) )
 
@@ -118,6 +128,7 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
 
   # Perform 2nd round training on negatives from NN search
   if smqtk_params['train_on_neighbors_only']:
+    print( " - Training SVM model" )
     ordered_results = iqr_session.ordered_results()
     if ordered_results is None:
       ordered_results = []
@@ -125,7 +136,7 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     if ordered_feedback is None:
       ordered_feedback = []
     top_elems, top_dists = zip( *ordered_results )
-    top_uuids = [ e.uuid() for e in return_elems ]
+    top_uuids = [ e.uuid() for e in top_elems ]
     feedback_uuids = [ e[0].uuid() for e in ordered_feedback ]
 
     best_neg_uuids = []
@@ -180,6 +191,9 @@ def generate_svm_models( folder = "database", id_extension = "lbl",
   ]
 
   for category in all_categories:
+    if category == background_id:
+      continue
+    print( "Training model for category: " + category )
     positive_files = []
     negative_files = []
     output_file = output_folder + '/' + category + '.svm'
@@ -188,4 +202,5 @@ def generate_svm_models( folder = "database", id_extension = "lbl",
         positive_files.append( label_file )
       else:
         negative_files.append( label_file )
+    print( " - Positive files " + str( positive_files ) )
     generate_svm_model( positive_files, negative_files, output_file, smqtk_params )
