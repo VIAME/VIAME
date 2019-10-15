@@ -3,6 +3,7 @@
 import sys
 import os
 import shutil
+import math
 import numpy as np
 import argparse
 import contextlib
@@ -38,17 +39,6 @@ track_ext = "_tracks.csv"
 
 default_pipeline = "pipelines" + div + "index_default.pipe"
 no_pipeline = "none"
-
-detector_list = [ \
-  'detector:detector:darknet', \
-  'detector1:detector:darknet', \
-  'detector2:detector:darknet', \
-  'detector:detector:scallop_tk', \
-  'detector1:detector:scallop_tk', \
-  'detector1:detector:scallop_tk', \
-  'detector:detector:tensorflow', \
-  'detector1:detector:tensorflow', \
-  'detector2:detector:tensorflow' ];
 
 # Global flag to see if any video has successfully completed processing
 any_video_complete = False
@@ -219,8 +209,14 @@ def signal_handler( signal, frame ):
   log_info( lb1 )
   exit_with_error( 'Processing aborted, see you next time' )
 
+def file_length( filename ):
+  with open( filename, 'r' ) as f:
+    for i, l in enumerate( f ):
+      pass
+  return i + 1
+
 def split_image_list( image_list_file, n, dir ):
-  """Create and return the paths to n temp files that when interlaced
+  """Create and return the paths to n temp files that when appended
   reproduce the original file.  The names are created
   deterministically like "orig_name_part0.ext", "orig_name_part1.ext",
   etc., but with the original name used as is when n == 1.
@@ -229,30 +225,32 @@ def split_image_list( image_list_file, n, dir ):
   Deleting the files is the responsibility of the caller.
 
   """
-  bn = os.path.basename( image_list_file )
+  input_basename = os.path.basename( image_list_file )
   if n == 1:
-    file_names = [bn]
+    new_file_names = [ input_basename ]
   else:
-    prefix, suffix = os.path.splitext( bn )
+    prefix, suffix = os.path.splitext( input_basename )
     num_width = len( str( n - 1 ) )
-    file_names = [
+    new_file_names = [
       prefix + '_part{:0{}}'.format( i, num_width ) + suffix
       for i in range( n )
     ]
-  file_names = [ os.path.join( dir, fn ) for fn in file_names ]
+  new_file_names = [ os.path.join( dir, fn ) for fn in new_file_names ]
 
   try:
     # Build manually to have the intermediate state in case of error
-    tempfiles = []
-    for fn in file_names:
-      tempfiles.append( open( fn, 'w' ) )
+    temp_files = []
+    divisor = math.floor( file_len( image_list_file ) / n ) + 1
+    for fn in new_file_names:
+      temp_files.append( open( fn, 'w' ) )
     with open( image_list_file ) as f:
       for i, line in enumerate( f ):
-        tempfiles[i % n].write( line )
+        temp_index = int( math.floor( i / divisor ) )
+        temp_files[ temp_index ].write( line )
   finally:
-    for f in tempfiles:
+    for f in temp_files:
       f.close()
-  return file_names
+  return new_file_names
 
 def fset( setting_str ):
   return ['-s', setting_str]
