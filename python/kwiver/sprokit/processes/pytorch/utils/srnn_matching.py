@@ -53,9 +53,9 @@ class TargetRNNDataLoader(data.Dataset):
                         #motion feature and motion target
                         motion_f_tensor = torch.stack([cur_track[i].motion_feature
                                                 for i in range(-g_config.timeStep, 0)])
-                        motion_target_f = (np.asarray(track_state.bbox_center,
+                        motion_target_f = (np.asarray(track_state.ref_point,
                                             dtype=np.float32).reshape(g_config.M_F_num) -
-                                           np.asarray(cur_track[-1].bbox_center,
+                                           np.asarray(cur_track[-1].ref_point,
                                                dtype=np.float32).reshape(g_config.M_F_num))
                         cur_data_item += motion_f_tensor, torch.from_numpy(motion_target_f)
 

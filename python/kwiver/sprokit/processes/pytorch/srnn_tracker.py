@@ -78,6 +78,26 @@ def ts2ot_list(track_set):
                 print('Error: Cannot add ObjectTrackState')
     return ot_list
 
+def from_homog_f2f(homog_f2f):
+    """Take a F2FHomography and return a triple of a 3x3 numpy.ndarray and
+    two integers corresponding to the contained homography and the
+    from and to IDs, respectively.
+
+    """
+    arr = np.array([
+        [homog_f2f.get(r, c) for c in range(3)] for r in range(3)
+    ])
+    return arr, homog_f2f.from_id, homog_f2f.to_id
+
+def transform_homog(homog, point):
+    """Transform point (a length-2 array-like) using homog (a 3x3 ndarray)"""
+    # We actually write this generically so it has signature (m+1, n+1), (n) -> (m)
+    point = np.asarray(point)
+    ones = np.ones(point.shape[:-1] + (1,), dtype=point.dtype)
+    point = np.concatenate((point, ones), axis=-1)
+    result = np.matmul(homog, point[..., np.newaxis])[..., 0]
+    return result[..., :-1] / result[..., -1:]
+
 class SRNNTracker(KwiverProcess):
     # ----------------------------------------------
     def __init__(self, conf):
@@ -91,6 +111,29 @@ class SRNNTracker(KwiverProcess):
         # MOT start id : 1
         self._step_id = 0
 
+        # Homography state
+        #
+        # We maintain transformations to a "base" coordinate system.
+        # Since homographies come in as mappings from the current
+        # frame to an infrequently changing reference frame, we
+        # separately store the mapping from the current reference
+        # frame to "base" coordinates and the mapping from the current
+        # frame to the reference.
+        #
+        # We will handle breaks (changes in the reference frame) by
+        # assuming that the mapping from the new reference frame to
+        # the last frame is identity.
+        #
+        # Missing input is treated as a break with an anonymous
+        # reference.
+
+        # 3x3 ndarray from current reference frame to base
+        self._homog_ref_to_base = np.identity(3)
+        # Current reference frame (or None for anonymous)
+        self._homog_ref_id = None
+        # Mapping from current frame to reference (or None for identity)
+        self._homog_src_to_ref = None
+
         # set up required flags
         optional = process.PortFlags()
         required = process.PortFlags()
@@ -102,6 +145,7 @@ class SRNNTracker(KwiverProcess):
         self.declare_input_port_using_trait('detected_object_set', required)
         self.declare_input_port_using_trait('timestamp', required)
         self.declare_input_port_using_trait('object_track_set', optional)
+        self.declare_input_port_using_trait('homography_src_to_ref', optional)
 
         #  output port ( port-name,flags)
         self.declare_output_port_using_trait('object_track_set', optional)
@@ -289,6 +333,10 @@ class SRNNTracker(KwiverProcess):
             in_img_c = self.grab_input_using_trait('image')
             timestamp = self.grab_input_using_trait('timestamp')
             dos_ptr = self.grab_input_using_trait('detected_object_set')
+            if self.has_input_port_edge('homography_src_to_ref'):
+                homog_f2f = self.grab_input_using_trait('homography_src_to_ref')
+            else:
+                homog_f2f = None
             print('timestamp =', repr(timestamp))
 
             # Get current frame
@@ -302,6 +350,28 @@ class SRNNTracker(KwiverProcess):
                 dos = dos_ptr.select(self._select_threshold)
                 bbox_num = dos.size()
             #print('bbox list len is', dos.size())
+
+            # Update homography
+            if homog_f2f is not None:
+                homog_f2f_arr, homog_f2f_from, homog_f2f_to = from_homog_f2f(homog_f2f)
+            if homog_f2f is None or homog_f2f_to != self._homog_ref_id:
+                # We have a new reference frame
+                # Update self._homog_ref_to_base (assume curr->prev is identity)
+                if self._homog_src_to_ref is not None:
+                    self._homog_ref_to_base = np.matmul(self._homog_ref_to_base, self._homog_src_to_ref)
+                    self._homog_src_to_ref = None
+                # Update self._homog_ref_id
+                if homog_f2f is None:
+                    self._homog_ref_id = None
+                else:
+                    assert homog_f2f_from == homog_f2f_to, "After break homog should map to self"
+                    self._homog_ref_id = homog_f2f_to
+                # This is a reference frame, so src->base is just ref->base
+                homog_src_to_base = self._homog_ref_to_base
+            else:
+                # We use the same reference frame
+                self._homog_src_to_ref = homog_f2f_arr
+                homog_src_to_base = np.matmul(self._homog_ref_to_base, self._homog_src_to_ref)
 
             det_obj_set = DetectedObjectSet()
             if bbox_num == 0:
@@ -341,6 +411,7 @@ class SRNNTracker(KwiverProcess):
                     # build track state for current bbox for matching
                     cur_ts = track_state(frame_id=self._step_id,
                                         bbox_center=bbox.center(),
+                                        ref_point=transform_homog(homog_src_to_base, bbox.center()),
                                         interaction_feature=grid_feature_list[idx],
                                         app_feature=pt_app_features[idx],
                                         bbox=[int(bbox.min_x()), int(bbox.min_y()),

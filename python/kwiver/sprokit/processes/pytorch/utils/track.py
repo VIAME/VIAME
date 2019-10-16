@@ -32,9 +32,11 @@ import torch
 import collections
 
 class track_state(object):
-    def __init__(self, frame_id, bbox_center, interaction_feature, app_feature, bbox, 
-                    detected_object, sys_frame_id, sys_frame_time):
+    def __init__(self, frame_id, bbox_center, ref_point,
+                 interaction_feature, app_feature, bbox,
+                 detected_object, sys_frame_id, sys_frame_time):
         self.bbox_center = bbox_center
+        self.ref_point = ref_point
 
         '''a list [x, y, w, h]'''
         self.bbox = bbox
@@ -79,9 +81,9 @@ class track(object):
         if not self.track_state_list:
             new_track_state.motion_feature = torch.FloatTensor(2).zero_()
         else:
-            pre_bbox_center = np.asarray(self.track_state_list[-1].bbox_center, dtype=np.float32).reshape(2)
-            cur_bbox_center = np.asarray(new_track_state.bbox_center, dtype=np.float32).reshape(2)
-            new_track_state.motion_feature = torch.from_numpy(cur_bbox_center - pre_bbox_center)
+            pre_ref_point = np.asarray(self.track_state_list[-1].ref_point, dtype=np.float32).reshape(2)
+            cur_ref_point = np.asarray(new_track_state.ref_point, dtype=np.float32).reshape(2)
+            new_track_state.motion_feature = torch.from_numpy(cur_ref_point - pre_ref_point)
 
         new_track_state.track_id = self.track_id
         self.track_state_list.append(new_track_state)
