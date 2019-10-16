@@ -61,6 +61,16 @@ class SmqtkIngestDescriptors (KwiverProcess):
             'Path to the json configuration file for the descriptor index to add to.'
         )
         self.declare_config_using_trait('config_file')
+        self.add_config_trait(
+            'max_frame_buffer', 'max_frame_buffer', '10',
+            'Maximum number of frames to buffer descriptors over for larger batch sizes'
+        )
+        self.declare_config_using_trait('max_frame_buffer')
+        self.add_config_trait(
+            'max_descriptor_buffer', 'max_descriptor_buffer', '10000',
+            'Maximum number of descriptors to buffer over to make larger batch sizes'
+        )
+        self.declare_config_using_trait('max_descriptor_buffer')
 
         # set up required flags
         optional = process.PortFlags()
@@ -75,6 +85,12 @@ class SmqtkIngestDescriptors (KwiverProcess):
 
     def _configure(self):
         self.config_file = self.config_value('config_file')
+
+        self.max_frame_buffer = int( self.config_value('max_frame_buffer') )
+        self.max_descriptor_buffer = int( self.config_value('max_descriptor_buffer') )
+
+        self.frame_counter = 0
+        self.descriptor_buffer = []
 
         # parse json file
         with open(self.config_file) as data_file:
@@ -115,7 +131,6 @@ class SmqtkIngestDescriptors (KwiverProcess):
                                % (len(vital_descriptor_set), len(string_tuple)))
 
         # Convert descriptors to SMQTK elements and add to configured index
-        smqtk_descriptor_elements = []
         z = zip(vital_descriptor_set.descriptors(), string_tuple)
         for vital_descr, uid_str in z:
             smqtk_descr = self.smqtk_descriptor_element_factory.new_descriptor(
@@ -125,12 +140,21 @@ class SmqtkIngestDescriptors (KwiverProcess):
             # for the given UID. We currently always overwrite.
             smqtk_descr.set_vector(vital_descr.todoublearray())
             # Queue up element for adding to set.
-            smqtk_descriptor_elements.append(smqtk_descr)
+            self.descriptor_buffer.append(smqtk_descr)
 
-        # Ingest descriptors in batch
-        self.smqtk_descriptor_index.add_many_descriptors(
-            smqtk_descriptor_elements
-        )
+        # Determine if we need to write out a new batch
+        if len(self.descriptor_buffer) >= self.max_descriptor_buffer or
+             self.frame_counter >= self.max_frame_buffer:
+
+          # Ingest descriptors in batch
+          self.smqtk_descriptor_index.add_many_descriptors(
+              self.descriptor_buffer
+          )
+
+          self.frame_counter = 0
+          self.descriptor_buffer = []
+
+        self.frame_counter = self.frame_counter + 1
 
         # Pass on input descriptors and UIDs
         self.push_to_port_using_trait('descriptor_set', vital_descriptor_set)

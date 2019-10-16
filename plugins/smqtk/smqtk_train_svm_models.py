@@ -41,6 +41,7 @@ import svm
 import os
 import ctypes
 import sys
+import random
 import numpy
 
 default_desc_config = "/configs/pipelines/smqtk_desc_index.json"
@@ -57,6 +58,8 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     smqtk_params['descriptor_index_config_file'] = default_desc_index
   if not 'neighbor_index_config_file' in smqtk_params:
     smqtk_params['neighbor_index_config_file'] = default_nn_index
+  if not 'maximum_sample_count' in smqtk_params:
+    smqtk_params['maximum_sample_count'] = 50000
   if not 'train_on_neighbors_only' in smqtk_params:
     smqtk_params['train_on_neighbors_only'] = True
   if not smqtk_params['train_on_neighbors_only']:
@@ -120,6 +123,14 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
 
   iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
 
+  # Max count threshold
+  max_samples = smqtk_params['maximum_sample_count']
+
+  if len( pos_uuids ) > max_samples:
+    pos_uuids = [
+      pos_uuids[i] for i in random.sample( range( len( pos_uuids ) ), max_samples )
+    ]
+
   # Reset index on new query, a new query is one without IQR feedback
   iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
   pos_descrs = descriptor_set.get_many_descriptors( pos_uuids )
@@ -131,6 +142,10 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
   else:
     print( " - Formatting data for SVM model train" )
+    if len( neg_uuids ) > max_samples:
+      neg_uuids = [
+        neg_uuids[i] for i in random.sample( range( len( neg_uuids ) ), max_samples )
+      ]
     neg_descrs = descriptor_set.get_many_descriptors( neg_uuids )
     iqr_session.adjudicate( set( pos_descrs ), set( neg_descrs ) )
     print( " - Training SVM model" )
@@ -153,14 +168,13 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     top_uuids = [ e.uuid() for e in top_elems ]
     feedback_uuids = [ e[0].uuid() for e in ordered_feedback ]
 
-    best_neg_uuids = []
-    for uuid in top_uuids:
-      if uuid in neg_uuids:
-        best_neg_uuids.append( uuid )
-    for uuid in feedback_uuids:
-      if uuid in neg_uuids:
-        best_neg_uuids.append( uuid )
+    best_neg_uuids = top_uuids.intersection( neg_uuids )
+    best_neg_uuids.extend( feedback_uuids.intersection( neg_uuids ) )
 
+    if len( best_neg_uuids ) > max_samples:
+      best_neg_uuids = [
+        best_neg_uuids[i] for i in random.sample( range( len( best_neg_uuids ) ), max_samples )
+      ]
     best_neg_descrs = descriptor_set.get_many_descriptors( best_neg_uuids )
 
     iqr_session.adjudicate( set( pos_descrs ), set( best_neg_descrs ) )
