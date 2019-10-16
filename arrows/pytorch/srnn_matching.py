@@ -41,9 +41,9 @@ class TargetRNNDataLoader(data.Dataset):
                         bbox_area_ratio = 1.0 / bbox_area_ratio
 
                     # in the search area, we prepare data and calculate the similarity score
-                    if (dis < self._track_search_threshold * cur_track[-1].bbox[2] and                      # track dis constraint
-                        dis < self._track_search_threshold * track_state.bbox[2] and         # track_state dis constraint
-                        bbox_area_ratio < self._track_search_threshold):                                    # bbox area constraint
+                    if (dis < self._track_search_threshold * cur_track[-1].bbox[2] and         # track dis constraint
+                        dis < self._track_search_threshold * track_state.bbox[2] and           # track_state dis constraint
+                        bbox_area_ratio < self._track_search_threshold):                       # bbox area constraint
                         cur_data_item = []
 
                         #app feature and app target
