@@ -169,7 +169,7 @@ compute_g(const vil_image_view<double> &ref_img,
   {
     for (unsigned int j = 0; j < ref_img_g.nj(); j++)
     {
-      if (invalid_mask || !(*mask)(i, j))
+      if (invalid_mask || (*mask)(i, j))
       {
         double dx = ref_img_g(i, j, 0);
         double dy = ref_img_g(i, j, 1);
