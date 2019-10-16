@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2017-2018 by Kitware, Inc.
+* Copyright 2017-2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ public:
       world_plane_normal(0.0, 0.0, 1.0),
       callback_interval(-1),    //default is no callback
       callback(NULL),
-      m_logger(vital::get_logger("arrows.depth.compute_depth"))
+      m_logger(vital::get_logger("arrows.super3d.compute_depth"))
   {
   }
 
@@ -276,9 +276,11 @@ compute_depth
 
   compute_world_cost_volume(frames, cameras, ws.get(), ref_frame,
                             d_->S, cost_volume, masks);
+
+  LOG_DEBUG(d_->m_logger, "Computing g weighting");
   compute_g(frames[ref_frame], g, d_->gw_alpha, 1.0, ref_mask);
 
-  std::cout << "Refining Depth. ..\n";
+  LOG_DEBUG(d_->m_logger, "Refining Depth");
   vil_image_view<double> height_map(cost_volume.ni(), cost_volume.nj(), 1);
 
   if (d_->callback_interval <= 0 || !d_->callback)
