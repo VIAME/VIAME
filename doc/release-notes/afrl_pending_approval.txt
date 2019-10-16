@@ -10,7 +10,11 @@ release version, and the content of this file will be reset.
 Updates since last public release
 ---------------------------------
 
-Vital
+Vital - Algo
+
+ * Changed the callback API on compute_depth to accept a string status
+   message.  Integer progress is now interpreted as percent complete
+   rather than number of iterations.
 
 Arrows - Core
 
@@ -19,6 +23,10 @@ Arrows - Ceres
 Arrows - Super3D
 
  * Replaced cout and cerr usage in Super3D with vital logger.
+
+ * Improved callback handling in compute_depth.  Callbacks are now more
+   frequent providing better progress updates and quicker early termination.
+   However, depth maps updates still occur at the slower rate as before.
 
 
 Fixes since last public release
