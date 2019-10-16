@@ -160,12 +160,16 @@ compute_g(const vil_image_view<double> &ref_img,
   vil_image_view<double> ref_img_g;
   vil_sobel_3x3(ref_img, ref_img_g);
 
+  bool invalid_mask = !mask ||
+                      mask->ni() != ref_img.ni() ||
+                      mask->nj() != ref_img.nj();
+
   std::cout << "Computing g weighting.\n";
   for (unsigned int i = 0; i < ref_img_g.ni(); i++)
   {
     for (unsigned int j = 0; j < ref_img_g.nj(); j++)
     {
-      if (!mask || !(*mask)(i, j))
+      if (invalid_mask || !(*mask)(i, j))
       {
         double dx = ref_img_g(i, j, 0);
         double dy = ref_img_g(i, j, 1);
