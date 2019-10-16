@@ -83,7 +83,8 @@ public:
 
   /// Typedef for the callback function signature
   typedef std::function<bool (kwiver::vital::image_container_sptr,
-    unsigned int)> callback_t;
+                              std::string const&,
+                              unsigned int)> callback_t;
 
   /// Set a callback function to report intermediate progress
   virtual void set_callback(callback_t cb);

@@ -55,13 +55,14 @@ namespace kwiver {
 namespace arrows {
 namespace super3d {
 
-void
+bool
 compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
                           const std::vector<vpgl_perspective_camera<double> > &cameras,
                           world_space *ws,
                           unsigned int ref_frame,
                           unsigned int S,
                           vil_image_view<double> &cost_volume,
+                          cost_volume_callback_t callback,
                           const std::vector<vil_image_view<bool> > &masks)
 {
   static vital::logger_handle_t logger =
@@ -90,6 +91,13 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
   for (unsigned int k = 0; k < S; k++)
   {
     LOG_TRACE(logger, "Depth Layer: " << k);
+    if (callback)
+    {
+      if (!callback(k))
+      {
+        return false;
+      }
+    }
     double s = (k + 0.5) * s_step;
 
     // Warp ref image to world volume
@@ -148,6 +156,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
       }
     }
   }
+  return true;
 }
 
 //*****************************************************************************

@@ -114,10 +114,13 @@ refine_depth(vil_image_view<double> &cost_volume,
 
     if (drm)
     {
-      if (drm->callback_ && !(iter % drm->interval_))
+      if (drm->callback_)
       {
         depth_refinement_monitor::update_data data;
-        data.current_result.deep_copy(d);
+        if (!(iter % drm->interval_))
+        {
+          data.current_result.deep_copy(d);
+        }
         data.num_iterations = iter;
         // if the callback returns false, that means
         // the user has requested early termination
