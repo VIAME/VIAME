@@ -83,121 +83,7 @@ class SRNNTracker(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        #GPU list
-        self.add_config_trait("gpu_list", "gpu_list", 'all',
-                              gpu_list_desc(use_for='SRNN tracking'))
-        self.declare_config_using_trait('gpu_list')
-
-        # siamese
-        #----------------------------------------------------------------------------------
-        self.add_config_trait("siamese_model_path", "siamese_model_path",
-                              'siamese/snapshot_epoch_6.pt',
-                              'Trained PyTorch model.')
-        self.declare_config_using_trait('siamese_model_path')
-
-        self.add_config_trait("siamese_model_input_size", "siamese_model_input_size", '224',
-                              'Model input image size')
-        self.declare_config_using_trait('siamese_model_input_size')
-
-        self.add_config_trait("siamese_batch_size", "siamese_batch_size", '128',
-                              'siamese model processing batch size')
-        self.declare_config_using_trait('siamese_batch_size')
-        #----------------------------------------------------------------------------------
-
-        # detection select threshold
-        self.add_config_trait("detection_select_threshold", "detection_select_threshold", '0.0',
-                              'detection select threshold')
-        self.declare_config_using_trait('detection_select_threshold')
-        self.add_config_trait("track_initialization_threshold", "track_initialization_threshold", '0.0',
-                              'track_initialization_threshold')
-        self.declare_config_using_trait('track_initialization_threshold')
-
-        # SRNN
-        #----------------------------------------------------------------------------------
-        # target RNN full model
-        self.add_config_trait("targetRNN_AIM_model_path", "targetRNN_AIM_model_path",
-                              'targetRNN_snapshot/App_LSTM_epoch_51.pt',
-                              'Trained targetRNN PyTorch model.')
-        self.declare_config_using_trait('targetRNN_AIM_model_path')
-
-        # target RNN AI model
-        self.add_config_trait("targetRNN_AIM_V_model_path", "targetRNN_AIM_V_model_path",
-                              'targetRNN_AI/App_LSTM_epoch_51.pt',
-                              'Trained targetRNN AIM with variable input size PyTorch model.')
-        self.declare_config_using_trait('targetRNN_AIM_V_model_path')
-
-        # target RNN batch size
-        self.add_config_trait("targetRNN_batch_size", "targetRNN_batch_size", '256',
-                              'targetRNN model processing batch size')
-        self.declare_config_using_trait('targetRNN_batch_size')
-
-        # matching similarity threshold
-        self.add_config_trait("similarity_threshold", "similarity_threshold", '0.5',
-                              'similarity threshold.')
-        self.declare_config_using_trait('similarity_threshold')
-        #----------------------------------------------------------------------------------
-
-        # IOU
-        #----------------------------------------------------------------------------------
-        # IOU tracker flag
-        self.add_config_trait("IOU_tracker_flag", "IOU_tracker_flag", 'True', 'IOU tracker flag.')
-        self.declare_config_using_trait('IOU_tracker_flag')
-
-        # IOU accept threshold
-        self.add_config_trait("IOU_accept_threshold", "IOU_accept_threshold", '0.5',
-                              'IOU accept threshold.')
-        self.declare_config_using_trait('IOU_accept_threshold')
-
-        # IOU reject threshold
-        self.add_config_trait("IOU_reject_threshold", "IOU_reject_threshold", '0.1',
-                              'IOU reject threshold.')
-        self.declare_config_using_trait('IOU_reject_threshold')
-        #----------------------------------------------------------------------------------
-
-        # search threshold
-        self.add_config_trait("track_search_threshold", "track_search_threshold", '0.1',
-                              'track search threshold.')
-        self.declare_config_using_trait('track_search_threshold')
-
-        # matching active track threshold
-        self.add_config_trait("terminate_track_threshold", "terminate_track_threshold", '15',
-                              'terminate the tracking if the target has been lost for more than '
-                              'terminate_track_threshold read-in frames.')
-        self.declare_config_using_trait('terminate_track_threshold')
-
-        # matching active track threshold
-        self.add_config_trait("sys_terminate_track_threshold", "sys_terminate_track_threshold", '50',
-                              'terminate the tracking if the target has been lost for more than '
-                              'terminate_track_threshold system (original) frames.')
-        self.declare_config_using_trait('sys_terminate_track_threshold')
-
-        # MOT gt detection
-        #-------------------------------------------------------------------
-        self.add_config_trait("MOT_GTbbox_flag", "MOT_GTbbox_flag", 'False', 'MOT GT bbox flag')
-        self.declare_config_using_trait('MOT_GTbbox_flag')
-        #-------------------------------------------------------------------
-
-        # AFRL gt detection
-        #-------------------------------------------------------------------
-        self.add_config_trait("AFRL_GTbbox_flag", "AFRL_GTbbox_flag", 'False', 'AFRL GT bbox flag')
-        self.declare_config_using_trait('AFRL_GTbbox_flag')
-
-        #-------------------------------------------------------------------
-
-        # GT bbox file
-        #-------------------------------------------------------------------
-        self.add_config_trait("GT_bbox_file_path", "GT_bbox_file_path",
-                             '', 'ground truth detection file for testing')
-        self.declare_config_using_trait('GT_bbox_file_path')
-        #-------------------------------------------------------------------
-
-        # Add features to detections
-        #-------------------------------------------------------------------
-        self.add_config_trait("add_features_to_detections",
-                              "add_features_to_detections", 'True',
-                              'Should we add internally computed features to detections?')
-        self.declare_config_using_trait('add_features_to_detections')
-        #-------------------------------------------------------------------
+        self.__declare_config_traits()
 
         self._track_flag = False
 
@@ -220,6 +106,105 @@ class SRNNTracker(KwiverProcess):
         #  output port ( port-name,flags)
         self.declare_output_port_using_trait('object_track_set', optional)
         self.declare_output_port_using_trait('detected_object_set', optional)
+
+    def __declare_config_traits(self):
+        def add_declare_config_trait(name, default, desc):
+            self.add_config_trait(name, name, default, desc)
+            self.declare_config_using_trait(name)
+
+        #GPU list
+        add_declare_config_trait('gpu_list', 'all',
+                                 gpu_list_desc(use_for='SRNN tracking'))
+
+        # siamese
+        #----------------------------------------------------------------------------------
+        add_declare_config_trait('siamese_model_path',
+                                 'siamese/snapshot_epoch_6.pt',
+                                 'Trained PyTorch model.')
+
+        add_declare_config_trait('siamese_model_input_size', '224',
+                                 'Model input image size')
+
+        add_declare_config_trait('siamese_batch_size', '128',
+                                 'siamese model processing batch size')
+        #----------------------------------------------------------------------------------
+
+        # detection select threshold
+        add_declare_config_trait('detection_select_threshold', '0.0',
+                                 'detection select threshold')
+        add_declare_config_trait('track_initialization_threshold', '0.0',
+                                 'track initialization threshold')
+
+        # SRNN
+        #----------------------------------------------------------------------------------
+        # target RNN full model
+        add_declare_config_trait("targetRNN_AIM_model_path",
+                                 'targetRNN_snapshot/App_LSTM_epoch_51.pt',
+                                 'Trained targetRNN PyTorch model.')
+
+        # target RNN AI model
+        add_declare_config_trait("targetRNN_AIM_V_model_path",
+                                 'targetRNN_AI/App_LSTM_epoch_51.pt',
+                                 'Trained targetRNN AIM with variable input size PyTorch model.')
+
+        # target RNN batch size
+        add_declare_config_trait("targetRNN_batch_size", '256',
+                                 'targetRNN model processing batch size')
+
+        # matching similarity threshold
+        add_declare_config_trait("similarity_threshold", '0.5',
+                                 'similarity threshold.')
+        #----------------------------------------------------------------------------------
+
+        # IOU
+        #----------------------------------------------------------------------------------
+        # IOU tracker flag
+        add_declare_config_trait("IOU_tracker_flag", 'True', 'IOU tracker flag.')
+
+        # IOU accept threshold
+        add_declare_config_trait("IOU_accept_threshold", '0.5',
+                                 'IOU accept threshold.')
+
+        # IOU reject threshold
+        add_declare_config_trait("IOU_reject_threshold", '0.1',
+                                 'IOU reject threshold.')
+        #----------------------------------------------------------------------------------
+
+        # search threshold
+        add_declare_config_trait("track_search_threshold", '0.1',
+                                 'track search threshold.')
+
+        # matching active track threshold
+        add_declare_config_trait("terminate_track_threshold", '15',
+                                 'terminate the tracking if the target has been lost for more than '
+                                 'terminate_track_threshold read-in frames.')
+
+        # matching active track threshold
+        add_declare_config_trait("sys_terminate_track_threshold", '50',
+                                 'terminate the tracking if the target has been lost for more than '
+                                 'terminate_track_threshold system (original) frames.')
+
+        # MOT gt detection
+        #-------------------------------------------------------------------
+        add_declare_config_trait("MOT_GTbbox_flag", 'False', 'MOT GT bbox flag')
+        #-------------------------------------------------------------------
+
+        # AFRL gt detection
+        #-------------------------------------------------------------------
+        add_declare_config_trait("AFRL_GTbbox_flag", 'False', 'AFRL GT bbox flag')
+        #-------------------------------------------------------------------
+
+        # GT bbox file
+        #-------------------------------------------------------------------
+        add_declare_config_trait("GT_bbox_file_path", '',
+                                 'ground truth detection file for testing')
+        #-------------------------------------------------------------------
+
+        # Add features to detections
+        #-------------------------------------------------------------------
+        add_declare_config_trait("add_features_to_detections", 'True',
+                                 'Should we add internally computed features to detections?')
+        #-------------------------------------------------------------------
 
     # ----------------------------------------------
     def _configure(self):
