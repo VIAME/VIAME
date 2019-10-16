@@ -35,6 +35,7 @@ import smqtk.representation.descriptor_element.local_elements
 import smqtk.utils.plugin
 
 import json
+import math
 import svmutil
 import svm
 import os
@@ -56,12 +57,12 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     smqtk_params['descriptor_index_config_file'] = default_desc_index
   if not 'neighbor_index_config_file' in smqtk_params:
     smqtk_params['neighbor_index_config_file'] = default_nn_index
-  if not 'pos_seed_neighbors' in smqtk_params:
-    smqtk_params['pos_seed_neighbors'] = 10
   if not 'train_on_neighbors_only' in smqtk_params:
-    smqtk_params['train_on_neighbors_only'] = False
+    smqtk_params['train_on_neighbors_only'] = True
+  if not smqtk_params['train_on_neighbors_only']:
+    smqtk_params['pos_seed_neighbors'] = 1
 
-  # Member variables to be configured in ``_configure``.
+  # Load indices
   print( " - Loading descriptor indices" )
 
   di_json_config_path = smqtk_params['descriptor_index_config_file']
@@ -72,24 +73,6 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
   nn_json_config_path = smqtk_params['neighbor_index_config_file']
   with open( nn_json_config_path ) as f:
     nn_json_config = json.load( f )
-
-  # Number of top, refined descriptor UUIDs to return per step.
-  pos_seed_neighbors = smqtk_params['pos_seed_neighbors']
-
-  # Set of descriptors to pull positive/negative querys from.
-  descriptor_set = smqtk.utils.plugin.from_plugin_config(
-    di_json_config,
-    smqtk.representation.get_descriptor_index_impls()
-  )
-
-  # Nearest Neighbors index to use for IQR working index population.
-  neighbor_index = smqtk.utils.plugin.from_plugin_config(
-    nn_json_config,
-    smqtk.algorithms.get_nn_index_impls()
-  )
-
-  # IQR session state object
-  iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
 
   # Load positive samples for this class
   if len( positive_uid_files ) == 0:
@@ -110,25 +93,56 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
       if uuid not in pos_uuids:
         neg_uuids.append( uuid )
 
+  if len( pos_uuids ) == 0 or len( neg_uuids ) == 0:
+    print( "Error: Not enough training samples" )
+    return
+
+  # Set of descriptors to pull positive/negative querys from.
+  descriptor_set = smqtk.utils.plugin.from_plugin_config(
+    di_json_config,
+    smqtk.representation.get_descriptor_index_impls()
+  )
+
+  # Nearest Neighbors index to use for IQR working index population.
+  neighbor_index = smqtk.utils.plugin.from_plugin_config(
+    nn_json_config,
+    smqtk.algorithms.get_nn_index_impls()
+  )
+
+  # IQR session state object
+  if not 'pos_seed_neighbors' in smqtk_params:
+    if len( pos_uuids ) > 10:
+      pos_seed_neighbors = 100
+    else:
+      pos_seed_neighbors = math.ceil( 1000 / len( pos_uuids ) )
+  else:
+    pos_seed_neighbors = smqtk_params['pos_seed_neighbors']
+
+  iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
+
   # Reset index on new query, a new query is one without IQR feedback
   iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
   pos_descrs = descriptor_set.get_many_descriptors( pos_uuids )
 
   if smqtk_params['train_on_neighbors_only']:
-    print( " - Performing initial search" )
+    print( " - Formatting data for initial search" )
     iqr_session.adjudicate( set( pos_descrs ) )
+    print( " - Performing initial search" )
+    print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
   else:
-    print( " - Training SVM model" )
+    print( " - Formatting data for SVM model train" )
     neg_descrs = descriptor_set.get_many_descriptors( neg_uuids )
     iqr_session.adjudicate( set( pos_descrs ), set( neg_descrs ) )
+    print( " - Training SVM model" )
+    print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
+    print( "     + Negative sample count: " + str( len( neg_uuids ) ) )
 
-  # Update iqr working index for all samples
   iqr_session.update_working_index( neighbor_index )
   iqr_session.refine()
 
   # Perform 2nd round training on negatives from NN search
   if smqtk_params['train_on_neighbors_only']:
-    print( " - Training SVM model" )
+    print( " - Formatting data for SVM model train" )
     ordered_results = iqr_session.ordered_results()
     if ordered_results is None:
       ordered_results = []
@@ -150,6 +164,10 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     best_neg_descrs = descriptor_set.get_many_descriptors( best_neg_uuids )
 
     iqr_session.adjudicate( set( pos_descrs ), set( best_neg_descrs ) )
+
+    print( " - Training SVM model" )
+    print( "     + Positive sample count: " + str( len( pos_uuids ) ) )
+    print( "     + Negative sample count: " + str( len( best_neg_uuids ) ) )
     iqr_session.update_working_index( neighbor_index )
     iqr_session.refine()
 
