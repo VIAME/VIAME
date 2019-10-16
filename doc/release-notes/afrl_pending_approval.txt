@@ -19,3 +19,11 @@ Arrows - Ceres
 
 Fixes since last public release
 -------------------------------
+
+Arrows - Super3D
+
+ * Fixed mask conversion code to allow both boolean and byte images
+   without crashing.
+
+ * Fixed a bug in which the mask was being applied to G-weighting in an
+   inverted way from what was expected.
