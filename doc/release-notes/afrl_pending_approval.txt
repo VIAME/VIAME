@@ -16,6 +16,10 @@ Arrows - Core
 
 Arrows - Ceres
 
+Arrows - Super3D
+
+ * Replaced cout and cerr usage in Super3D with vital logger.
+
 
 Fixes since last public release
 -------------------------------
