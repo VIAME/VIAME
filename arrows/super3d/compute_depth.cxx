@@ -38,6 +38,7 @@
 #include <vital/types/landmark.h>
 #include <arrows/vxl/camera.h>
 #include <vnl/vnl_double_3.h>
+#include <vil/algo/vil_threshold.h>
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
 #include <vil/vil_convert.h>
@@ -239,7 +240,24 @@ compute_depth
 #pragma omp parallel for schedule(static, 1)
     for (int i = 0; i < static_cast< int >(masks.size()); i++)
     {
-      masks[i] = vxl::image_container::vital_to_vxl(masks_in[i]->get_image());
+      auto vxl_mask = vxl::image_container::vital_to_vxl(masks_in[i]->get_image());
+      if (!vxl_mask)
+      {
+        continue;
+      }
+      if (vxl_mask->pixel_format() == VIL_PIXEL_FORMAT_BOOL)
+      {
+        masks[i] = vxl_mask;
+      }
+      else if (vxl_mask->pixel_format() == VIL_PIXEL_FORMAT_BYTE)
+      {
+        vil_threshold_above<vxl_byte>(vxl_mask, masks[i], 128);
+      }
+      else
+      {
+        // unsupported pixel format
+        continue;
+      }
     }
     ref_mask = &masks[ref_frame];
   }
