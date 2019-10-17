@@ -127,9 +127,7 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
   max_samples = smqtk_params['maximum_sample_count']
 
   if len( pos_uuids ) > max_samples:
-    pos_uuids = [
-      pos_uuids[i] for i in random.sample( range( len( pos_uuids ) ), max_samples )
-    ]
+    pos_uuids = random.sample( pos_uuids, max_samples )
 
   # Reset index on new query, a new query is one without IQR feedback
   iqr_session = smqtk.iqr.IqrSession( pos_seed_neighbors )
@@ -168,13 +166,12 @@ def generate_svm_model( positive_uid_files, negative_uid_files,
     top_uuids = [ e.uuid() for e in top_elems ]
     feedback_uuids = [ e[0].uuid() for e in ordered_feedback ]
 
-    best_neg_uuids = top_uuids.intersection( neg_uuids )
-    best_neg_uuids.extend( feedback_uuids.intersection( neg_uuids ) )
+    best_neg_uuids = set( top_uuids ).intersection( neg_uuids )
+    best_neg_uuids.update( set( feedback_uuids ).intersection( neg_uuids ) )
 
     if len( best_neg_uuids ) > max_samples:
-      best_neg_uuids = [
-        best_neg_uuids[i] for i in random.sample( range( len( best_neg_uuids ) ), max_samples )
-      ]
+      best_neg_uuids = random.sample( best_neg_uuids, max_samples ) 
+
     best_neg_descrs = descriptor_set.get_many_descriptors( best_neg_uuids )
 
     iqr_session.adjudicate( set( pos_descrs ), set( best_neg_descrs ) )
