@@ -1,4 +1,18 @@
 
+v0.9.17 - 10/18/2019
+====================
+
+
+-Quick fixes to make IQR GUI not crash on images of different size and large images
+
+
+-Add SVM training tool example, for training SVMs from large amounts of annotations
+
+
+-Misc tuning and bug fixes
+
+
+
 v0.9.16 - 7/24/2019
 ===================
 
