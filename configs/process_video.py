@@ -240,7 +240,7 @@ def split_image_list( image_list_file, n, dir ):
   try:
     # Build manually to have the intermediate state in case of error
     temp_files = []
-    divisor = math.floor( file_len( image_list_file ) / n ) + 1
+    divisor = math.floor( file_length( image_list_file ) / n ) + 1
     for fn in new_file_names:
       temp_files.append( open( fn, 'w' ) )
     with open( image_list_file ) as f:
@@ -374,7 +374,8 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     else:
       gt_ext = options.auto_detect_gt
 
-  if input_ext == '.csv' or input_ext == '.txt' or input_name == "__pycache__":
+  if not is_image_list and \
+      ( input_ext == '.csv' or input_ext == '.txt' or input_name == "__pycache__" ):
     if multi_threaded:
       log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
     else:
