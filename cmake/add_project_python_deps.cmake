@@ -82,6 +82,11 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_DEP_CMDS "torchvision${ARGS_TORCHVISION}" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
+endif()
+
 # ------------------------------------------------------------------------------
 
 set( PYTHON_BASEPATH
