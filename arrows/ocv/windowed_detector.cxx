@@ -41,6 +41,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <algorithm>
 #include <string>
 #include <sstream>
 #include <exception>
@@ -64,6 +65,7 @@ public:
     , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
     , m_batch_size( 1 )
+    , m_min_detection_dim( 2 )
     , m_original_to_chip_size( false )
   {}
 
@@ -79,6 +81,7 @@ public:
   int m_chip_edge_filter;
   int m_chip_adaptive_thresh;
   int m_batch_size;
+  int m_min_detection_dim;
   bool m_original_to_chip_size;
 
   // Helper functions
@@ -154,6 +157,8 @@ windowed_detector
     "If using adaptive selection, total pixel count at which we start to chip." );
   config->set_value( "batch_size", d->m_batch_size,
     "Optional processing batch size to send to the detector." );
+  config->set_value( "min_detection_dim", d->m_min_detection_dim,
+    "Minimum detection dimension in original image space." );
   config->set_value( "original_to_chip_size", d->m_original_to_chip_size,
     "Optionally enforce the input image is the specified chip size" );
 
@@ -185,6 +190,7 @@ windowed_detector
   this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
   this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
   this->d->m_batch_size = config->get_value< int >( "batch_size" );
+  this->d->m_min_detection_dim = config->get_value< int >( "min_detection_dim" );
   this->d->m_original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
 
   vital::algo::image_object_detector::set_nested_algo_configuration(
@@ -368,6 +374,16 @@ windowed_detector
         region_properties[ i + j ] ) );
     }
   }
+
+  const int min_dim = d->m_min_detection_dim;
+
+  std::remove_if( detections->begin(),
+                  detections->end(),
+                  [&min_dim](kwiver::vital::detected_object_sptr dos)
+  {
+    return !dos || dos->bounding_box().width() < min_dim
+                || dos->bounding_box().height() < min_dim;
+  });
 
   return detections;
 } // windowed_detector::detect
