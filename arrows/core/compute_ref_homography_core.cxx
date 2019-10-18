@@ -404,7 +404,7 @@ compute_ref_homography_core
     // Save earliest reference frame of active tracks
     // If not allowing regression, take max against min_ref_frame
     if( ti.active && ti.ref_id < earliest_ref
-        && (d_->allow_ref_frame_regression || (earliest_ref >= d_->min_ref_frame) ) )
+        && (d_->allow_ref_frame_regression || (ti.ref_id >= d_->min_ref_frame) ) )
     {
       earliest_ref = ti.ref_id;
     }
