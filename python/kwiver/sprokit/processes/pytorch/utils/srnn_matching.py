@@ -11,8 +11,8 @@ g_config = get_config()
 
 
 class TargetRNNDataLoader(data.Dataset):
-    def __init__(self, track_set, track_state_list, track_search_threshold, rnnType):
-        self._track_set = track_set
+    def __init__(self, track_list, track_state_list, track_search_threshold, rnnType):
+        self._track_list = track_list
         self._track_state_list = track_state_list
         self._track_search_threshold = track_search_threshold
         self._rnnType = rnnType
@@ -20,7 +20,7 @@ class TargetRNNDataLoader(data.Dataset):
 
     def _make_dataset(self):
         _data_list = []
-        for t, cur_track in enumerate(self._track_set.iter_active()):
+        for t, cur_track in enumerate(self._track_list):
             if len(cur_track) < g_config.timeStep:
                 # if the track does not have enough track_state, we will duplicate to time-step and use Target_RNN_AIM_V
                 _rnnType = RnnType.Target_RNN_AIM_V
@@ -29,8 +29,7 @@ class TargetRNNDataLoader(data.Dataset):
             else:
                 _rnnType = RnnType.Target_RNN_AIM
 
-            # only process active and un-updated tracks
-            if not cur_track.updated_flag and (_rnnType is self._rnnType):
+            if _rnnType is self._rnnType:
                 for ts, track_state in enumerate(self._track_state_list):
                     # distance between the two bbox's x instead of center
                     dis = abs(cur_track[-1].bbox[0] - track_state.bbox[0])
@@ -112,11 +111,12 @@ class SRNNMatching(object):
         self._targetRNN_AIM_V_model = load_model(V_model_list, targetRNN_AIM_V_model_path)
 
     def __call__(self, track_set, track_state_list, track_search_threshold):
-        tracks_num = track_set.active_count()
+        track_list = [track for track in track_set.iter_active() if not track.updated_flag]
+        tracks_num = len(track_list)
         track_states_num = len(track_state_list)
 
         # obtain the list mapping: similarity row idx->track_id
-        track_idx_list = [track.track_id for track in track_set.iter_active()]
+        track_idx_list = [track.track_id for track in track_list]
 
         if 0 in (tracks_num, track_states_num):
             # PyTorch doesn't handle zero-length dimensions cleanly
@@ -128,11 +128,11 @@ class SRNNMatching(object):
 
         kwargs = {'num_workers': 0, 'pin_memory': True}
         AIM_V_data_loader = torch.utils.data.DataLoader(
-            TargetRNNDataLoader(track_set, track_state_list, track_search_threshold, RnnType.Target_RNN_AIM_V),
+            TargetRNNDataLoader(track_list, track_state_list, track_search_threshold, RnnType.Target_RNN_AIM_V),
             batch_size=self._batch_size, shuffle=False, **kwargs)
 
         AIM_data_loader = torch.utils.data.DataLoader(
-            TargetRNNDataLoader(track_set, track_state_list, track_search_threshold, RnnType.Target_RNN_AIM),
+            TargetRNNDataLoader(track_list, track_state_list, track_search_threshold, RnnType.Target_RNN_AIM),
             batch_size=self._batch_size, shuffle=False, **kwargs)
 
         with torch.no_grad():
