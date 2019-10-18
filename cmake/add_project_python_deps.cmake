@@ -37,28 +37,45 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
   set( ARGS_TORCHVISION )
 
   set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
-  set( PYTORCH_VERSION 1.3.0 )
-  set( TORCHVISION_VERSION 0.4.0 )
 
   if( WIN32 )
     set( PYTORCH_VERSION 1.2.0 )
     set( TORCHVISION_VERSION 0.4.0 )
-  endif()
 
-  if( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
-    set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
-    set( ARGS_TORCHVISION "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
-  elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
-    set( ARGS_TORCH "==${PYTORCH_VERSION}+cu100 -f ${PYTORCH_ARCHIVE}" )
-    set( ARGS_TORCHVISION "==${TORCHVISION_VERSION}+cu100 -f ${PYTORCH_ARCHIVE}" )
-  elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
-    set( ARGS_TORCH "==${PYTORCH_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
-    set( ARGS_TORCHVISION "==${TORCHVISION_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
+    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
+      set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
+    elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
+      set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==${TORCHVISION_VERSION} -f ${PYTORCH_ARCHIVE}" )
+    elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
+      set( ARGS_TORCH "==${PYTORCH_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==${TORCHVISION_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
+    else()
+      message( FATAL_ERROR "With your current build settings you must either:\n"
+        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
+        " (b) Use CUDA 9.2 or 10.0+\n"
+        " (c) Disable VIAME_ENABLE_PYTORCH\n" )
+    endif()
   else()
-    message( FATAL_ERROR "With your current build settings you must either:\n"
-      " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
-      " (b) Use CUDA 9.2 or 10.0+\n"
-      " (c) Disable VIAME_ENABLE_PYTORCH\n" )
+    set( PYTORCH_VERSION 1.3.0 )
+    set( TORCHVISION_VERSION 0.4.1 )
+
+    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
+      set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
+    elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
+      set( ARGS_TORCH "==${PYTORCH_VERSION}+cu100 -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==${TORCHVISION_VERSION}+cu100 -f ${PYTORCH_ARCHIVE}" )
+    elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
+      set( ARGS_TORCH "==${PYTORCH_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==${TORCHVISION_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
+    else()
+      message( FATAL_ERROR "With your current build settings you must either:\n"
+        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
+        " (b) Use CUDA 9.2 or 10.0+\n"
+        " (c) Disable VIAME_ENABLE_PYTORCH\n" )
+    endif()
   endif()
 
   list( APPEND VIAME_PYTHON_DEP_CMDS "torch${ARGS_TORCH}" )
