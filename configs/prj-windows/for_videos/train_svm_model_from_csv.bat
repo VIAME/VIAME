@@ -17,8 +17,8 @@ python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -d %INPUT_DIRECTORY
 
 REM Perform actual SVM model generation
 
-SET SVM_TRAIN_IMPORT="import viame.arrows.smqtk.smqtk_train_svm_models as trainer"
-SET SVM_TRAIN_START="trainer.generate_svm_models()"
+SET SVM_TRAIN_IMPORT=import viame.arrows.smqtk.smqtk_train_svm_models as trainer
+SET SVM_TRAIN_START=trainer.generate_svm_models()
 
 python.exe -c "%SVM_TRAIN_IMPORT%;%SVM_TRAIN_START%"
 
