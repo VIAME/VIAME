@@ -54,10 +54,24 @@ namespace viame
 namespace vxl
 {
 
-create_config_trait( output_frames_without_match, bool, "true",
-  "Output frames without any valid matches" );
-create_config_trait( max_time_offset, double, "0.5",
-  "The maximum time difference (s) under whitch two frames can be tested" );
+create_config_trait( fix_output_size, bool, "true",
+  "Should the output image size always be consistent and unchanging" );
+
+create_config_trait( resize_input, bool, "false",
+  "To meet output size requirements should the image be resized or chipped" );
+
+create_config_trait( max_image_width, unsigned, "1500",
+  "Maximum allowed image width of archive after a potential resize" );
+create_config_trait( max_image_height, unsigned, "1500",
+  "Maximum allowed image height of archive after a potential resize" );
+
+create_config_trait( chip_overlap, unsigned, "50",
+  "If we're chipping a large image into smaller chips, this is the approximate "
+  "overlap between neighboring chips" );
+create_config_trait( flux_factor, double, "0.05",
+  "Allowable error for resizing images to meet a more desirable size" );
+
+
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -67,7 +81,11 @@ public:
   priv();
   ~priv();
 
-  bool test;
+  bool m_fix_output_size;
+  bool m_resize_input;
+  unsigned m_max_image_width;
+  unsigned m_max_image_height;
+  unsigned m_chip_overlap;
 };
 
 // =============================================================================
