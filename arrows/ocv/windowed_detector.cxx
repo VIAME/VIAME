@@ -377,9 +377,7 @@ windowed_detector
 
   const int min_dim = d->m_min_detection_dim;
 
-  std::remove_if( detections->begin(),
-                  detections->end(),
-                  [&min_dim](kwiver::vital::detected_object_sptr dos)
+  detections->filter([&min_dim](kwiver::vital::detected_object_sptr dos)
   {
     return !dos || dos->bounding_box().width() < min_dim
                 || dos->bounding_box().height() < min_dim;
