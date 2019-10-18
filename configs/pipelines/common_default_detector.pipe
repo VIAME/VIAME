@@ -28,6 +28,7 @@ process detector1
     :chip_step_width                           600
     :chip_edge_filter                          -10
     :batch_size                                1
+    :min_detection_dim                         3
 
     block detector:mmdet
       # Network config, weights, and names
