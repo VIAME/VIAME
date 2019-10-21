@@ -32,17 +32,17 @@ class TargetRNNDataLoader(data.Dataset):
             if _rnnType is self._rnnType:
                 for ts, track_state in enumerate(self._track_state_list):
                     # distance between the two bbox's x instead of center
-                    dis = abs(cur_track[-1].bbox[0] - track_state.bbox[0])
+                    dis = abs(cur_track[-1].ref_bbox[0] - track_state.ref_bbox[0])
 
-                    bbox_area_ratio = (float(cur_track[-1].bbox[2] * cur_track[-1].bbox[3]) /
-                                       float(track_state.bbox[2] * track_state.bbox[3]))
+                    bbox_area_ratio = (float(cur_track[-1].ref_bbox[2] * cur_track[-1].ref_bbox[3]) /
+                                       float(track_state.ref_bbox[2] * track_state.ref_bbox[3]))
                     if bbox_area_ratio < 1.0:
                         bbox_area_ratio = 1.0 / bbox_area_ratio
 
                     # in the search area, we prepare data and calculate the similarity score
-                    if (dis < self._track_search_threshold * cur_track[-1].bbox[2] and         # track dis constraint
-                        dis < self._track_search_threshold * track_state.bbox[2] and           # track_state dis constraint
-                        bbox_area_ratio < self._track_search_threshold):                       # bbox area constraint
+                    if (dis < self._track_search_threshold * cur_track[-1].ref_bbox[2] and         # track dis constraint
+                        dis < self._track_search_threshold * track_state.ref_bbox[2] and           # track_state dis constraint
+                        bbox_area_ratio < self._track_search_threshold):                           # bbox area constraint
                         cur_data_item = []
 
                         #app feature and app target

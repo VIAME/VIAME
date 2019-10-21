@@ -45,7 +45,8 @@ class IOUTracker(object):
                 # Otherwise do nothing.
 
                 # Get IOUs
-                ious = [self._iou_score(track[-1].bbox, x.bbox) for x in track_state_list]
+                ious = [self._iou_score(track[-1].ref_bbox, x.ref_bbox)
+                        for x in track_state_list]
                 # Get dets with IOU over reject threshold
                 nonreject_dets = [(ts, iou) for ts, iou in zip(track_state_list, ious)
                                   if iou >= self._iou_reject_threshold]
