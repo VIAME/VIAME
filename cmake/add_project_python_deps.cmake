@@ -38,7 +38,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
 
   set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
 
-  if( WIN32 )
+  if( WIN32 AND VIAME_ENABLE_CUDA )
     set( PYTORCH_VERSION 1.2.0 )
     set( TORCHVISION_VERSION 0.4.0 )
 
@@ -57,7 +57,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
         " (b) Use CUDA 9.2 or 10.0+\n"
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
-  else()
+  elseif( VIAME_ENABLE_CUDA )
     set( PYTORCH_VERSION 1.3.0 )
     set( TORCHVISION_VERSION 0.4.1 )
 
@@ -76,6 +76,12 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
         " (b) Use CUDA 9.2 or 10.0+\n"
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
+  else()
+    set( PYTORCH_VERSION 1.3.0 )
+    set( TORCHVISION_VERSION 0.4.1 )
+
+    set( ARGS_TORCH "==${PYTORCH_VERSION}+cpu -f ${PYTORCH_ARCHIVE}" )
+    set( ARGS_TORCHVISION "==${PYTORCH_VERSION}+cpu -f ${PYTORCH_ARCHIVE}" )
   endif()
 
   list( APPEND VIAME_PYTHON_DEP_CMDS "torch${ARGS_TORCH}" )
