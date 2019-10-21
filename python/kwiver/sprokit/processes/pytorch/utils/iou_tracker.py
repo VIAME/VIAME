@@ -39,22 +39,29 @@ class IOUTracker(object):
         # IOU based tracking
         if track_state_list:
             for track in track_set.iter_active():
-                # get det with highest iou
-                best_match = max(track_state_list,
-                        key=lambda x: self._iou_score(track[-1].bbox, x.bbox))
-                # sort the track state list in order to check whether multiple bboxes overlap with the current track
-                sorted_ts_list = sorted(track_state_list,
-                        key=lambda x: self._iou_score(track[-1].bbox, x.bbox))
-                best_iou_score = self._iou_score(track[-1].bbox, best_match.bbox)
-                if best_iou_score >= self._iou_accept_threshold:
-                    # if no other bbox with overlap larger than iou_reject_threshold
-                    if (len(sorted_ts_list) < 2 or
-                        (self._iou_score(track[-1].bbox, sorted_ts_list[-2].bbox)
-                         < self._iou_reject_threshold)):
-                        track.updated_flag = True
-                        track_set.update_track(track.track_id, best_match)
-                        # remove best matching detection from detections
-                        del track_state_list[track_state_list.index(best_match)]
+                # If there is exactly one detection at or above the
+                # reject threshold, and it's additionally at or above
+                # the accept threshold, add it to the track.
+                # Otherwise do nothing.
+
+                # Get IOUs
+                ious = [self._iou_score(track[-1].bbox, x.bbox) for x in track_state_list]
+                # Get dets with IOU over reject threshold
+                nonreject_dets = [(ts, iou) for ts, iou in zip(track_state_list, ious)
+                                  if iou >= self._iou_reject_threshold]
+                # Do nothing unless there's only one det and it's at
+                # or above the accept threshold
+                if len(nonreject_dets) != 1:
+                    continue
+                match, iou = nonreject_dets[0]
+                if iou < self._iou_accept_threshold:
+                    continue
+
+                # Add the matching det
+                track.updated_flag = True
+                track_set.update_track(track.track_id, match)
+                # remove matching detection from detections
+                del track_state_list[track_state_list.index(match)]
         return track_set, track_state_list
 
     def _iou_score(self, bbox1, bbox2):
