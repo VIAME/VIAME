@@ -89,7 +89,7 @@ public:
   double m_negative_max_overlap;
 
   kwiver::vital::category_hierarchy_sptr m_classes;
-  std::vector< std::ofstream > m_writers;
+  std::vector< std::unique_ptr< std::ofstream > > m_writers;
 };
 
 // ===============================================================================
@@ -109,9 +109,9 @@ extract_desc_ids_for_training_process
 {
   for( unsigned i = 0; i < d->m_writers.size(); ++i )
   {
-    if( d->m_writers[i].is_open() )
+    if( d->m_writers[i] && d->m_writers[i]->is_open() )
     {
-      d->m_writers[i].close();
+      d->m_writers[i]->close();
     }
   }
 }
@@ -144,8 +144,8 @@ extract_desc_ids_for_training_process
     }
   }
 
-  d->m_writers[ d->m_classes->size() ].open(
-    filename, std::ofstream::out | std::ofstream::app );
+  d->m_writers[ d->m_classes->size() ] = std::unique_ptr< std::ofstream >(
+    new std::ofstream( filename, std::ofstream::out | std::ofstream::app ) );
 
   for( auto label : d->m_classes->all_class_names() )
   {
@@ -158,8 +158,8 @@ extract_desc_ids_for_training_process
 
     unsigned index = d->m_classes->get_class_id( label );
 
-    d->m_writers[ index ].open(
-      filename, std::ofstream::out | std::ofstream::app );
+    d->m_writers[ index ] = std::unique_ptr< std::ofstream >(
+      new std::ofstream( filename, std::ofstream::out | std::ofstream::app ) );
   }
 }
 
@@ -247,7 +247,7 @@ extract_desc_ids_for_training_process
 
         if( min_overlap >= d->m_positive_min_overlap )
         {
-          d->m_writers[ d->m_classes->get_class_id( top_category ) ]
+          *d->m_writers[ d->m_classes->get_class_id( top_category ) ]
             << desc->get_uid().value() << std::endl;
 
           is_background = false;
@@ -262,7 +262,7 @@ extract_desc_ids_for_training_process
     if( is_background )
     {
       // Print out in correct category file if match
-      d->m_writers.back() << desc->get_uid().value() << std::endl;
+      *d->m_writers.back() << desc->get_uid().value() << std::endl;
     }
   }
 }
