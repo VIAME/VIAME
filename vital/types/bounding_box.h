@@ -118,7 +118,7 @@ public:
    */
   void reset()
   {
-    m_bbox = Eigen::AlignedBox< T, 2 >();
+    m_bbox.setEmpty();
   }
 
   /**

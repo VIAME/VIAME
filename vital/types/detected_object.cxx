@@ -99,7 +99,7 @@ detected_object
 // ------------------------------------------------------------------
 void
 detected_object
-::set_geo_point(const kwiver::vital::geo_point& gp)
+::set_geo_point( kwiver::vital::geo_point const& gp )
 {
   m_geo_point = gp;
 }
@@ -116,7 +116,7 @@ detected_object
 // ------------------------------------------------------------------
 void
 detected_object
-::set_bounding_box( const bounding_box_d& bbox )
+::set_bounding_box( bounding_box_d const& bbox )
 {
   m_bounding_box = bbox;
 }
@@ -206,7 +206,7 @@ detected_object
 // ------------------------------------------------------------------
 void
 detected_object
-::set_detector_name( const std::string& name )
+::set_detector_name( std::string const& name )
 {
   m_detector_name = name;
 }

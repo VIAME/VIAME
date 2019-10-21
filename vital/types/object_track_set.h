@@ -142,7 +142,7 @@ public:
     return image_point_;
   }
 
-  void set_track_point(point_3d const& p )
+  void set_track_point( point_3d const& p )
   {
     track_point_ = p;
   }

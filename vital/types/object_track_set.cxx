@@ -80,8 +80,8 @@ object_track_state::clone ( clone_type ct ) const
     auto copy = std::make_shared< object_track_state >(
       this->frame(), this->time(), std::move( new_detection ) );
 
-    copy->set_image_point(this->image_point_);
-    copy->set_track_point(this->track_point_);
+    copy->set_image_point( this->image_point_ );
+    copy->set_track_point( this->track_point_ );
 
     return std::move( copy );
   }

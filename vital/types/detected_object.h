@@ -42,14 +42,15 @@
 #include <memory>
 #include <vector>
 
-#include <vital/types/detected_object_type.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/descriptor.h>
+#include <vital/types/detected_object_type.h>
 #include <vital/types/geo_point.h>
 #include <vital/types/image_container.h>
 #include <vital/types/vector.h>
 
 #include <vital/io/eigen_io.h>
+
 #include <Eigen/Geometry>
 
 namespace kwiver {
@@ -146,9 +147,9 @@ public:
   /**
    * @brief Get geo_point from this detection.
    *
-   * The geo_point for this detection is returned. This point is in
-   * world coordinates. A default constructed (invalid) geo_point
-   * is returned if no point has been supplied for this detection.
+   * The geo_point for this detection is returned.
+   * A default constructed (invalid) geo_point is returned
+   * if no point has been supplied for this detection.
    *
    * @return A copy of the geo_point.
    */
