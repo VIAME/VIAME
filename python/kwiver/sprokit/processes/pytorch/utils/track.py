@@ -33,13 +33,14 @@ import collections
 
 class track_state(object):
     def __init__(self, frame_id, bbox_center, ref_point,
-                 interaction_feature, app_feature, bbox,
+                 interaction_feature, app_feature, bbox, ref_bbox,
                  detected_object, sys_frame_id, sys_frame_time):
         self.bbox_center = bbox_center
         self.ref_point = ref_point
 
         '''a list [x, y, w, h]'''
         self.bbox = bbox
+        self.ref_bbox = ref_bbox
 
         # got required AMI features in torch.tensor format
         self.app_feature = app_feature

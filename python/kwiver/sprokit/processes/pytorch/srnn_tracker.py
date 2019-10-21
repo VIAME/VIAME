@@ -98,6 +98,25 @@ def transform_homog(homog, point):
     result = np.matmul(homog, point[..., np.newaxis])[..., 0]
     return result[..., :-1] / result[..., -1:]
 
+def transform_homog_bbox(homog, bbox):
+    """Given a bbox as [x_min, y_min, width, height], transform it
+    according to homog and return the smallest enclosing bbox in the
+    same format.
+
+    """
+    x_min, y_min, width, height = bbox
+    points = [
+        [x_min, y_min],
+        [x_min, y_min + height],
+        [x_min + width, y_min],
+        [x_min + width, y_min + height],
+    ]
+    tpoints = transform_homog(homog, points)
+    tx_min, ty_min = tpoints.min(0)
+    tx_max, ty_max = tpoints.max(0)
+    twidth, theight = tx_max - tx_min, ty_max - ty_min
+    return [tx_min, ty_min, twidth, theight]
+
 class SRNNTracker(KwiverProcess):
     # ----------------------------------------------
     def __init__(self, conf):
@@ -409,13 +428,14 @@ class SRNNTracker(KwiverProcess):
                     det_obj_set.add(d_obj)
 
                     # build track state for current bbox for matching
+                    bbox_as_list = [bbox.min_x(), bbox.min_y(), bbox.width(), bbox.height()]
                     cur_ts = track_state(frame_id=self._step_id,
                                         bbox_center=bbox.center(),
                                         ref_point=transform_homog(homog_src_to_base, bbox.center()),
                                         interaction_feature=grid_feature_list[idx],
                                         app_feature=pt_app_features[idx],
-                                        bbox=[int(bbox.min_x()), int(bbox.min_y()),
-                                              int(bbox.width()), int(bbox.height())],
+                                        bbox=[int(x) for x in bbox_as_list],
+                                        ref_bbox=[int(x) for x in transform_homog_bbox(homog_src_to_base, bbox_as_list)],
                                         detected_object=d_obj,
                                         sys_frame_id=fid, sys_frame_time=ts)
                     track_state_list.append(cur_ts)
