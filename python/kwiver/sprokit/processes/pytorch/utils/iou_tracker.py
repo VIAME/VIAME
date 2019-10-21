@@ -48,8 +48,8 @@ class IOUTracker(object):
                 best_iou_score = self._iou_score(track[-1].bbox, best_match.bbox)
                 if best_iou_score >= self._iou_accept_threshold:
                     # if no other bbox with overlap larger than iou_reject_threshold
-                    if (len(sorted_ts_list) >= 2 and
-                        (self._iou_score(track[-1].bbox, sorted_ts_list[1].bbox)
+                    if (len(sorted_ts_list) < 2 or
+                        (self._iou_score(track[-1].bbox, sorted_ts_list[-2].bbox)
                          < self._iou_reject_threshold)):
                         track.updated_flag = True
                         track_set.update_track(track.track_id, best_match)
