@@ -40,17 +40,17 @@ class IOUTracker(object):
         if track_state_list:
             for track in track_set.iter_active():
                 # get det with highest iou
-                best_match = max(track_state_list, \
+                best_match = max(track_state_list,
                         key=lambda x: self._iou_score(track[-1].bbox, x.bbox))
                 # sort the track state list in order to check whether multiple bboxes overlap with the current track
-                sorted_ts_list = sorted(track_state_list, \
+                sorted_ts_list = sorted(track_state_list,
                         key=lambda x: self._iou_score(track[-1].bbox, x.bbox))
                 best_iou_score = self._iou_score(track[-1].bbox, best_match.bbox)
                 if best_iou_score >= self._iou_accept_threshold:
                     # if no other bbox with overlap larger than iou_reject_threshold
-                    if len(sorted_ts_list) >= 2 and \
-                            self._iou_score(track[-1].bbox, sorted_ts_list[1].bbox) < \
-                            self._iou_reject_threshold:
+                    if (len(sorted_ts_list) >= 2 and
+                        (self._iou_score(track[-1].bbox, sorted_ts_list[1].bbox)
+                         < self._iou_reject_threshold)):
                         track.updated_flag = True
                         track_set.update_track(track.track_id, best_match)
                         # remove best matching detection from detections
