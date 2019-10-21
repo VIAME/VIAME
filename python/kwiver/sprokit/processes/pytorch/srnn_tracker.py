@@ -435,7 +435,7 @@ class SRNNTracker(KwiverProcess):
                                         interaction_feature=grid_feature_list[idx],
                                         app_feature=pt_app_features[idx],
                                         bbox=[int(x) for x in bbox_as_list],
-                                        ref_bbox=[int(x) for x in transform_homog_bbox(homog_src_to_base, bbox_as_list)],
+                                        ref_bbox=transform_homog_bbox(homog_src_to_base, bbox_as_list),
                                         detected_object=d_obj,
                                         sys_frame_id=fid, sys_frame_time=ts)
                     track_state_list.append(cur_ts)
