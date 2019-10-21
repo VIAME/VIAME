@@ -79,14 +79,14 @@ CentOS
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d510b0cd3cb600adb506294/download) <br>
-[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1EqriqlcKj2VZ7hPzvxRvCMCs6u-QuTpG) <br>
+[VIAME v0.9.17 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d2f80b1877dfcc90212b985/download) <br>
+[VIAME v0.9.17 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1Q0r0FvlPxTsMhKD4r5urfL8m0C6f7lG6) <br>
 [VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d422875877dfcc9023e3bc0/download) <br>
 [VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1wuw5-yekax2PWayCaZv8yF_uhqX2em34)
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d56ed3785f25b11ff323b50/download) <br>
-[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1js74hPySv2CmDDTgFqUI8svFHELWGW6d) <br>
+[VIAME v0.9.17 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dad43b4d35580e6dcae7dfa/download) <br>
+[VIAME v0.9.17 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1t_mvdZ3lZjTLXoE-5Xj2PrmWEANuNdVf) <br>
 [VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/file/5d55cfd085f25b11ff2fc648/download) <br>
 [VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1c3K5-nBvGgQlUkT_iMOhe1WP2ZxmGsQi)
 
@@ -106,9 +106,9 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5d5d84d185f25b11ff427b4e/download)
 
 **Custom Applications:** <br>
-[Seal Dual Display GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5d8c8347d35580e6dc44e7d4/download) <br>
-[Seal Dual Display GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5d8d37bed35580e6dc46a3f8/download) <br>
-[Seal Dual Display GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5d8d3867d35580e6dc46aad8/download)
+[Seal Multi-View GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5d8c8347d35580e6dc44e7d4/download) <br>
+[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5d8d37bed35580e6dc46a3f8/download) <br>
+[Seal Multi-View GUI, Display GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5d8d3867d35580e6dc46aad8/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom Applications
