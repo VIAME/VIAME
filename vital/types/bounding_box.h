@@ -100,7 +100,8 @@ public:
    */
   bounding_box()
   {
-    reset();
+    // Note That any initial state logic here
+    // Should be reproduced in the reset method
   }
 
   /**
