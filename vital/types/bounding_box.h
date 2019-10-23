@@ -100,7 +100,7 @@ public:
    */
   bounding_box()
   {
-    // Note That any initial state logic here
+    // NOTE: Any initial state logic here
     // Should be reproduced in the reset method
   }
 

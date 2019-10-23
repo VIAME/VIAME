@@ -90,7 +90,7 @@ public:
    * @param classifications Optional object classification.
    */
   detected_object( double confidence = 1.0,
-                   detected_object_type_sptr classifications = nullptr);
+                   detected_object_type_sptr classifications = nullptr );
 
   /**
    * @brief Create detected object with bounding box and other attributes.
@@ -101,7 +101,7 @@ public:
    */
   detected_object( bounding_box_d const& bbox,
                    double confidence = 1.0,
-                   detected_object_type_sptr classifications = nullptr);
+                   detected_object_type_sptr classifications = nullptr );
 
   /**
    * @brief Create detected object with a geo_point and other attributes.
@@ -112,7 +112,7 @@ public:
    */
   detected_object( kwiver::vital::geo_point const& geo_pt,
                    double confidence = 1.0,
-                   detected_object_type_sptr classifications = nullptr);
+                   detected_object_type_sptr classifications = nullptr );
 
   virtual ~detected_object() = default;
 
