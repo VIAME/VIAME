@@ -38,6 +38,12 @@
 namespace kwiver {
 namespace vital {
 
+detected_object::detected_object( double              confidence,
+                                  detected_object_type_sptr classifications )
+  : m_confidence( confidence )
+  , m_type( classifications )
+{
+}
 
 detected_object::detected_object( const bounding_box_d& bbox,
                                   double              confidence,
@@ -45,7 +51,15 @@ detected_object::detected_object( const bounding_box_d& bbox,
   : m_bounding_box( bbox )
   , m_confidence( confidence )
   , m_type( classifications )
-  , m_index( 0 )
+{
+}
+
+detected_object::detected_object( const kwiver::vital::geo_point& gp,
+                                  double              confidence,
+                                  detected_object_type_sptr classifications )
+  : m_geo_point(gp)
+  , m_confidence( confidence )
+  , m_type( classifications )
 {
 }
 
@@ -68,10 +82,27 @@ detected_object
   new_obj->m_index = this->m_index;
   new_obj->m_detector_name = this->m_detector_name;
   new_obj->m_descriptor = this->m_descriptor;
+  new_obj->m_geo_point = this->m_geo_point;
 
   return new_obj;
 }
 
+// ------------------------------------------------------------------
+kwiver::vital::geo_point
+detected_object
+::geo_point() const
+{
+  return m_geo_point;
+}
+
+
+// ------------------------------------------------------------------
+void
+detected_object
+::set_geo_point( kwiver::vital::geo_point const& gp )
+{
+  m_geo_point = gp;
+}
 
 // ------------------------------------------------------------------
 bounding_box_d
@@ -85,7 +116,7 @@ detected_object
 // ------------------------------------------------------------------
 void
 detected_object
-::set_bounding_box( const bounding_box_d& bbox )
+::set_bounding_box( bounding_box_d const& bbox )
 {
   m_bounding_box = bbox;
 }
@@ -175,7 +206,7 @@ detected_object
 // ------------------------------------------------------------------
 void
 detected_object
-::set_detector_name( const std::string& name )
+::set_detector_name( std::string const& name )
 {
   m_detector_name = name;
 }

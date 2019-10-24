@@ -377,8 +377,8 @@ TEST (serialize, object_track_state)
     kwiver::vital::any_cast< kwiver::vital::object_track_state > ( dser );
 
 
-  auto ser_do_sptr = obj_trk_state.detection;
-  auto deser_do_sptr = obj_trk_state_dser.detection;
+  auto ser_do_sptr = obj_trk_state.detection();
+  auto deser_do_sptr = obj_trk_state_dser.detection();
 
   EXPECT_EQ( ser_do_sptr->bounding_box(), deser_do_sptr->bounding_box() );
   EXPECT_EQ( ser_do_sptr->index(), deser_do_sptr->index() );
@@ -457,8 +457,8 @@ TEST( serialize, track )
                                                       downcast( dser_trk_state_sptr );
 
 
-    auto ser_do_sptr = obj_trk_state_sptr->detection;
-    auto dser_do_sptr = dser_obj_trk_state_sptr->detection;
+    auto ser_do_sptr = obj_trk_state_sptr->detection();
+    auto dser_do_sptr = dser_obj_trk_state_sptr->detection();
 
     EXPECT_EQ( ser_do_sptr->bounding_box(), dser_do_sptr->bounding_box() );
     EXPECT_EQ( ser_do_sptr->index(), dser_do_sptr->index() );
@@ -621,8 +621,8 @@ TEST( serialize, object_track_set )
                                                       downcast( dser_trk_state_sptr );
 
 
-      auto ser_do_sptr = obj_trk_state_sptr->detection;
-      auto dser_do_sptr = dser_obj_trk_state_sptr->detection;
+      auto ser_do_sptr = obj_trk_state_sptr->detection();
+      auto dser_do_sptr = dser_obj_trk_state_sptr->detection();
 
       EXPECT_EQ( ser_do_sptr->bounding_box(), dser_do_sptr->bounding_box() );
       EXPECT_EQ( ser_do_sptr->index(), dser_do_sptr->index() );

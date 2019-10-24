@@ -42,13 +42,15 @@
 #include <memory>
 #include <vector>
 
-#include <vital/types/detected_object_type.h>
-#include <vital/types/vector.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/descriptor.h>
+#include <vital/types/detected_object_type.h>
+#include <vital/types/geo_point.h>
 #include <vital/types/image_container.h>
+#include <vital/types/vector.h>
 
 #include <vital/io/eigen_io.h>
+
 #include <Eigen/Geometry>
 
 namespace kwiver {
@@ -58,7 +60,8 @@ namespace vital {
 class detected_object;
 
 // typedef for a detected_object shared pointer
-typedef std::shared_ptr< detected_object > detected_object_sptr;
+using detected_object_sptr = std::shared_ptr< detected_object >;
+using detected_object_scptr = std::shared_ptr< detected_object const >;
 
 
 // ----------------------------------------------------------------
@@ -76,9 +79,18 @@ class VITAL_EXPORT detected_object
 {
 public:
 
-  typedef std::vector< detected_object_sptr > vector_t;
-  typedef descriptor_dynamic< double > descriptor_t;
-  typedef std::shared_ptr< descriptor_t const > descriptor_scptr;
+  using vector_t = std::vector< detected_object_sptr >;
+  using descriptor_t = descriptor_dynamic< double >;
+  using descriptor_scptr = std::shared_ptr< descriptor_t const >;
+
+  /**
+   * @brief Create default detected object.
+   *
+   * @param confidence Detectors confidence in this detection.
+   * @param classifications Optional object classification.
+   */
+  detected_object( double confidence = 1.0,
+                   detected_object_type_sptr classifications = nullptr );
 
   /**
    * @brief Create detected object with bounding box and other attributes.
@@ -87,9 +99,20 @@ public:
    * @param confidence Detectors confidence in this detection.
    * @param classifications Optional object classification.
    */
-  detected_object( const bounding_box_d& bbox,
+  detected_object( bounding_box_d const& bbox,
                    double confidence = 1.0,
-                   detected_object_type_sptr classifications = detected_object_type_sptr() );
+                   detected_object_type_sptr classifications = nullptr );
+
+  /**
+   * @brief Create detected object with a geo_point and other attributes.
+   *
+   * @param geo_pt Geographic location of the detection, in world coordinates.
+   * @param confidence Detectors confidence in this detection.
+   * @param classifications Optional object classification.
+   */
+  detected_object( kwiver::vital::geo_point const& geo_pt,
+                   double confidence = 1.0,
+                   detected_object_type_sptr classifications = nullptr );
 
   virtual ~detected_object() = default;
 
@@ -118,7 +141,28 @@ public:
    *
    * @param bbox Bounding box for this detection.
    */
-  void set_bounding_box( const bounding_box_d& bbox );
+  void set_bounding_box( bounding_box_d const& bbox );
+
+
+  /**
+   * @brief Get geo_point from this detection.
+   *
+   * The geo_point for this detection is returned.
+   * A default constructed (invalid) geo_point is returned
+   * if no point has been supplied for this detection.
+   *
+   * @return A copy of the geo_point.
+   */
+  kwiver::vital::geo_point geo_point() const;
+
+  /**
+   * @brief Set new geo_point for this detection.
+   *
+   * The supplied geo_point replaces the point for this detection.
+   *
+   * @param gp geo_point for this detection.
+   */
+  void set_geo_point( kwiver::vital::geo_point const& gp );
 
   /**
    * @brief Get confidence for this detection.
@@ -186,7 +230,7 @@ public:
    *
    * @param name Detector name.
    */
-  void set_detector_name( const std::string& name );
+  void set_detector_name( std::string const& name );
 
   /**
    * @brief Get pointer to optional classifications object.
@@ -249,6 +293,7 @@ public:
   void set_descriptor( descriptor_scptr d );
 
 private:
+  kwiver::vital::geo_point m_geo_point;
   bounding_box_d m_bounding_box;
   double m_confidence;
   image_container_scptr m_mask_image;
@@ -257,7 +302,7 @@ private:
   // The detection type is an optional list of possible object types.
   detected_object_type_sptr m_type;
 
-  uint64_t m_index; ///< index for this object
+  uint64_t m_index = 0; ///< index for this object
   std::string m_detector_name;
 };
 
