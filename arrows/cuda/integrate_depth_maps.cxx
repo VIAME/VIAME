@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2016, Kitware SAS, Copyright 2018 by Kitware, Inc.
+* Copyright 2016, Kitware SAS, Copyright 2018-2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ void cuda_initalize(int h_gridDims[3], double h_gridOrig[3],
                     double h_rayPRho, double h_rayPEta, double h_rayPEpsilon,
                     double h_rayPDelta);
 
-void launch_depth_kernel(double * d_depth, double * d_conf, int depthmap_dims[2],
+void launch_depth_kernel(double * d_depth, double * d_weight, int depthmap_dims[2],
                          double d_K[16], double d_RT[16], double* output);
 
 namespace kwiver {
@@ -253,11 +253,11 @@ void
 integrate_depth_maps::integrate(
   vector_3d const& minpt_bound,
   vector_3d const& maxpt_bound,
-  std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
-  std::vector<kwiver::vital::image_container_sptr> const& confidence_maps,
-  std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
-  kwiver::vital::image_container_sptr& volume,
-  kwiver::vital::vector_3d &spacing) const
+  std::vector<image_container_sptr> const& depth_maps,
+  std::vector<image_container_sptr> const& weight_maps,
+  std::vector<camera_perspective_sptr> const& cameras,
+  image_container_sptr& volume,
+  vector_3d &spacing) const
 {
   double pixel_to_world_scale;
   pixel_to_world_scale =
@@ -304,12 +304,21 @@ integrate_depth_maps::integrate(
     depthmap_dims[0] = static_cast<int>(depth_maps[i]->width());
     depthmap_dims[1] = static_cast<int>(depth_maps[i]->height());
     cuda_ptr<double> d_depth = copy_img_to_gpu(depth_maps[i]);
-    cuda_ptr<double> d_conf = copy_img_to_gpu(confidence_maps[i]);
+    cuda_ptr<double> d_weight = nullptr;
+    if (i < weight_maps.size())
+    {
+      auto weight = weight_maps[i];
+      if (weight->width() == depth_maps[i]->width() &&
+          weight->height() == depth_maps[i]->height())
+      {
+        d_weight = copy_img_to_gpu(weight_maps[i]);
+      }
+    }
     copy_camera_to_gpu(cameras[i], d_K.get(), d_RT.get());
 
     // run code on device
     LOG_INFO( logger(), "depth map " << i );
-    launch_depth_kernel(d_depth.get(), d_conf.get(), depthmap_dims,
+    launch_depth_kernel(d_depth.get(), d_weight.get(), depthmap_dims,
                         d_K.get(), d_RT.get(), d_volume.get());
   }
 

@@ -165,7 +165,7 @@ __device__ int computeVoxelIDDepth(int coordinates[3])
 //*****************************************************************************
 
 // Main kernel for adding a depth map to the volume
-__global__ void depthMapKernel(double* depths, double* confs, double matrixK[size4x4], double matrixRT[size4x4],
+__global__ void depthMapKernel(double* depths, double* weights, double matrixK[size4x4], double matrixRT[size4x4],
   double* output)
 {
   // Get voxel coordinate according to thread id
@@ -201,8 +201,8 @@ __global__ void depthMapKernel(double* depths, double* confs, double matrixK[siz
   // Compute the ID on depthmap values according to pixel position and depth map dimensions
   int depthMapId = computeVoxelIDDepth(pixel);
   double depth = depths[depthMapId];
-  double conf = confs[depthMapId];
-  if (depth <= 0 || conf <= 0)
+  double weight = weights ? weights[depthMapId] : 1.0;
+  if (depth <= 0 || weight <= 0)
     return;
 
   int gridId = computeVoxelIDGrid(voxelIndex);  // Get the distance between voxel and camera
@@ -210,7 +210,7 @@ __global__ void depthMapKernel(double* depths, double* confs, double matrixK[siz
   double newValue;
   rayPotential(realDepth, depth, newValue);
   // Update the value to the output
-  output[gridId] += conf * newValue;
+  output[gridId] += weight * newValue;
 }
 
 //*****************************************************************************
