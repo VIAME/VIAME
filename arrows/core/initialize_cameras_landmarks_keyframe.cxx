@@ -3011,30 +3011,31 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (bundled_inlier_count < 4 * min_inliers)
   {
-    bool resection_success = resection_camera(cams, lmks, tracks,
-                                              fid_to_register);
-    resectioned_cam = cams->find(fid_to_register);
-    if (resection_success && resectioned_cam)
+    if (resection_camera(cams, lmks, tracks, fid_to_register))
     {
-      int prev_resection_inlier_count = -1;
-      int loop_count = 0;
-      while (resection_inlier_count > prev_resection_inlier_count)
+      resectioned_cam = cams->find(fid_to_register);
+      if (resectioned_cam)
       {
-        bundle_adjuster->optimize(*cams, cur_landmarks, tracks,
-                                  already_registred_cams,
-                                  cur_frame_landmarks,
-                                  constraints);
-        resectioned_cam = cams->find(fid_to_register);
-        prev_resection_inlier_count = resection_inlier_count;
-        resection_inlier_count =
-          set_inlier_flags(fid_to_register, resectioned_cam,
-                           cur_landmarks, tracks, 50);
-        ++loop_count;
-      }
-      if (loop_count > 2)
-      {
-        LOG_DEBUG(m_logger, "ran " << loop_count
-                            << " hill climbing resection BA loops");
+        int prev_resection_inlier_count = -1;
+        int loop_count = 0;
+        while (resection_inlier_count > prev_resection_inlier_count)
+        {
+          bundle_adjuster->optimize(*cams, cur_landmarks, tracks,
+                                    already_registred_cams,
+                                    cur_frame_landmarks,
+                                    constraints);
+          resectioned_cam = cams->find(fid_to_register);
+          prev_resection_inlier_count = resection_inlier_count;
+          resection_inlier_count =
+            set_inlier_flags(fid_to_register, resectioned_cam,
+                             cur_landmarks, tracks, 50);
+          ++loop_count;
+        }
+        if (loop_count > 2)
+        {
+          LOG_DEBUG(m_logger, "ran " << loop_count
+                              << " hill climbing resection BA loops");
+        }
       }
     }
   }
