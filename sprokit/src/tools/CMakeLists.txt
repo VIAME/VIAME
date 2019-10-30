@@ -34,6 +34,7 @@ add_tool(pipe_config
   vital_config vital_vpm
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
 
 add_tool(pipe_to_dot
@@ -42,7 +43,9 @@ add_tool(pipe_to_dot
   vital_config vital_vpm
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY})
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
+  )
 
 add_tool(pipeline_runner
   sprokit_tools
@@ -50,4 +53,5 @@ add_tool(pipeline_runner
   vital_config vital_vpm
   ${Boost_FILESYSTEM_LIBRARY}
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${Boost_THREAD_LIBRARY}
   ${Boost_SYSTEM_LIBRARY})
