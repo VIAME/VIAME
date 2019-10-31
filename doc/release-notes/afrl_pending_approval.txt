@@ -16,9 +16,19 @@ Vital - Algo
    message.  Integer progress is now interpreted as percent complete
    rather than number of iterations.
 
+ * Added a variant of the integrate_depth_maps API that takes weight images
+   along with depth images. This feature was added to include binary image
+   masks in the fusion, but it also extends to continuous weight values
+   between zero and one.
+
 Arrows - Core
 
 Arrows - Ceres
+
+Arrows - CUDA
+
+ * CUDA depth map integration now uses optional weight maps to down-weight
+   the contribution of some rays.
 
 Arrows - Super3D
 
