@@ -3820,7 +3820,7 @@ initialize_cameras_landmarks_keyframe
     ::get_nested_algo_configuration("estimate_pnp", config, m_priv->m_pnp);
 
   vital::algo::estimate_similarity_transform
-    ::get_nested_algo_configuration("estimate_similarity", config,
+    ::get_nested_algo_configuration("similarity_estimator", config,
                                     m_priv->m_similarity_estimator);
 
   return config;
