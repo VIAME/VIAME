@@ -64,14 +64,16 @@ set( CMAKE_CXX_FLAGS ${save_flags} )
 #
 set( vital_public_headers
   vital_types.h
-  noncopyable.h
-  any.h
+
   algorithm_capabilities.h
+  any.h
   attribute_set.h
   exceptions.h
   iterator.h
   math_constants.h
+  noncopyable.h
   optional.h
+  set.h
 
   io/camera_from_metadata.h
   io/camera_io.h
