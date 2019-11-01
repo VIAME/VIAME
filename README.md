@@ -93,7 +93,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
 **Web Applications**: <br>
-[VIAME Web Interface (Under Development)](https://github.com/VIAME/VIAME-Web) <br>
+[VIAME Web Repository (Under Development)](https://github.com/VIAME/VIAME-Web) <br>
 [VIAME Deprecated Web Annotator](https://images.slide-atlas.org/#collection/5b68666270aaa94f2e5bd975/folder/5b68667670aaa94f2e5bd976)
 
 **Optional Patches:** <br>
