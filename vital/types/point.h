@@ -55,8 +55,21 @@ public:
   using vector_type = Eigen::Matrix< T, N, 1 >;
   using covariance_type = covariance_<N, float>;
 
-  point() { }
-  point(vector_type const& v) : m_value(v) { }
+  point() {}
+  explicit point( vector_type const& v, covariance_type const& c = {} )
+    : m_value{ v }, m_covariance{ c } {}
+
+  template < unsigned K = N,
+             typename std::enable_if< K == 2, bool >::type = true >
+  point( T x, T y ) : m_value{ x, y } {}
+
+  template < unsigned K = N,
+             typename std::enable_if< K == 3, bool >::type = true >
+  point( T x, T y, T z ) : m_value{ x, y, z } {}
+
+  template < unsigned K = N,
+             typename std::enable_if< K == 4, bool >::type = true >
+  point( T x, T y, T z, T w ) : m_value{ x, y, z, w } {}
 
   virtual ~point() = default;
 
