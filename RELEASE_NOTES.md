@@ -1,4 +1,11 @@
 
+v0.9.18 - 11/01/2019
+===================
+
+
+-Fixed windows issues with running and training detectors introduced in last
+
+
 v0.9.17 - 10/18/2019
 ====================
 
