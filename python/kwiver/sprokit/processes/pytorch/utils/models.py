@@ -222,47 +222,35 @@ class TargetLSTM(nn.Module):
 
         self.model_list = model_list
 
-        if RnnType.Appearance in self.model_list:
+        def config_model(model, model_path):
+            """Move model to GPU if use_gpu_flag is true and initialize the model
+            from model_path if truthy.
+
+            """
             if use_gpu_flag:
-                self.appearance = AppearanceLSTM().cuda()
-            else:
-                self.appearance = AppearanceLSTM()
-            if app_model:
-                snapshot = torch.load(app_model)
-                self.appearance.load_state_dict(snapshot['state_dict'])
+                model = model.cuda()
+            if model_path:
+                snapshot = torch.load(model_path)
+                model.load_state_dict(snapshot['state_dict'])
+            return model
+
+        if RnnType.Appearance in self.model_list:
+            self.appearance = config_model(AppearanceLSTM(), app_model)
 
         if RnnType.Motion in self.model_list:
-            if use_gpu_flag:
-                self.motion = MotionLSTM().cuda()
-            else:
-                self.motion = MotionLSTM()
-            if motion_model:
-                snapshot = torch.load(motion_model)
-                self.motion.load_state_dict(snapshot['state_dict'])
+            self.motion = config_model(MotionLSTM(), motion_model)
 
         if RnnType.Interaction in self.model_list:
-            if use_gpu_flag:
-                self.interaction = InteractionLSTM().cuda()
-            else:
-                self.interaction = InteractionLSTM()
-            if interaction_model:
-                snapshot = torch.load(interaction_model)
-                self.interaction.load_state_dict(snapshot['state_dict'])
+            self.interaction = config_model(InteractionLSTM(), interaction_model)
 
         if RnnType.BBox in self.model_list:
-            if use_gpu_flag:
-                self.bbar = BBoxLSTM().cuda()
-            else:
-                self.bbar = BBoxLSTM()
-            if bbox_model:
-                snapshot = torch.load(bbox_model)
-                self.bbar.load_state_dict(snapshot['state_dict'])
+            self.bbar = config_model(BBoxLSTM(), bbox_model)
 
         self.lstm = nn.LSTM(
             input_size=g_config.K * len(model_list),
             hidden_size=g_config.H,
             num_layers=1,
-            batch_first=True
+            batch_first=True,
         )
 
         self.fc1 = nn.Linear(g_config.H, 2)
