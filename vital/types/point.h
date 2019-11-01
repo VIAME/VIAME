@@ -49,21 +49,19 @@ namespace kwiver {
 namespace vital {
 
 template < unsigned N, typename T >
-class VITAL_EXPORT point : protected Eigen::Matrix< T, N, 1 >
+class VITAL_EXPORT point
 {
 public:
   using vector_type = Eigen::Matrix< T, N, 1 >;
   using covariance_type = covariance_<N, float>;
 
-  point() : vector_type{ vector_type::Zero() } {}
-  point( vector_type v, covariance_type c )
-    : vector_type{ v }, m_covariance{ c } {}
+  point() { }
+  point(vector_type const& v) : m_value(v) { }
+
   virtual ~point() = default;
 
-  using vector_type::vector_type;
-
-  vector_type value() const { return *this; }
-  void set_value(vector_type v) { *this = v; }
+  vector_type value() const { return m_value; }
+  void set_value(vector_type v) { m_value = v; }
 
   covariance_type covariance() const { return m_covariance; }
   void set_covariance(covariance_type v)
@@ -72,6 +70,7 @@ public:
   }
 
 protected:
+  vector_type m_value = vector_type::Zero();
   covariance_type m_covariance;
 };
 
