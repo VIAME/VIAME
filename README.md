@@ -94,7 +94,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Web Applications**: <br>
 [VIAME Web Interface (Under Development)](https://github.com/VIAME/VIAME-Web) <br>
-[Older Online Annotator](https://images.slide-atlas.org/#collection/5b68666270aaa94f2e5bd975/folder/5b68667670aaa94f2e5bd976)
+[VIAME Deprecated Web Annotator](https://images.slide-atlas.org/#collection/5b68666270aaa94f2e5bd975/folder/5b68667670aaa94f2e5bd976)
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
