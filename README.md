@@ -54,6 +54,8 @@ Pre-Built Binaries
 ------------------
 
 For a full installation guide see the quick-start slide deck above, but in summary, first install Anaconda.
+Exactly Anaconda version 5.2.0 is required, not a higher or lower version (at build time, VIAME can be built
+against any version of Python, though the installers are locked into a specific version).
 Secondly, extract the binaries and place them in a directory of your choosing, for example C:\Program Files\VIAME
 on Windows or /opt/noaa/viame on Linux. Next, if Anaconda was installed to a non-default location, set the
 PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or setup_viame.bat (Windows) script in the root
