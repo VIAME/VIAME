@@ -38,32 +38,36 @@ These instructions are designed to help build VIAME on a fresh machine. They wer
 written for and tested on Ubuntu 16.04 Desktop version. Other Linux machines will
 have similar directions, but some steps (particularly the dependency install) may
 not be exactly identical. VIAME has also been built on: CentOS/RHEL 6+, Fedora 19+,
-Ubuntu 14.04+.
+Ubuntu 16.04+.
 
 Install Dependencies
 ====================
 
 Different Linux distributions may have different packages already installed, or may
 use a different package manager than apt, but on Ubuntu this should help to provide
-a starting point.
+a starting point:
 
 .. code-block:: bash
 
-   sudo apt-get install git zlib1g-dev libcurl4-openssl-dev libexpat1-dev dh-autoreconf liblapack-dev libxt-dev
-   sudo apt-get build-dep libboost-all-dev qt5-default
+   sudo apt-get install git zip git wget curl libcurl4-openssl-dev libgl1-mesa-dev libexpat1-dev \
+     libgtk2.0-dev libxt-dev libxml2-dev libssl-dev liblapack-dev openssl libssl-dev g++ zlib1g-dev 
 
-If using VIAME_ENABLE VIVIA for building GUIs, you also may need to run:
-
-.. code-block:: bash
-
-  sudo apt-get build-dep qt5-default
-
-If using VIAME_ENABLE_PYTHON, you also may need to install python2.7, python2.7-dev, and numpy (or
-alternatively whatever python distribution you want to use), e.g.:
+And on CentOS 7:
 
 .. code-block:: bash
 
-   sudo apt-get install python2.7 python2.7-dev && sudo pip install numpy
+   yum -y groupinstall 'Development Tools'
+   yum install -y zip git wget openssl openssl-devel zlib zlib-devel freeglut-devel mesa-libGLU-devel \
+     lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel curl \
+     curl-devel atlas-devel file which
+
+If using VIAME_ENABLE_PYTHON, you also may need to install python3.6, python3.6-dev, and numpy (or
+alternatively whatever python distribution you want to use, we reccomend 3.5+ or installing Anaconda3),
+e.g.:
+
+.. code-block:: bash
+
+   sudo apt-get install python3.6 python3.6-dev && sudo pip install numpy
 
 If using VIAME_ENABLE_CUDA for GPU support, you should install CUDA (version 9.0 or above
 is recommended, other versions may work depending on your build settings but are untested):
@@ -75,15 +79,15 @@ is recommended, other versions may work depending on your build settings but are
 Install CMAKE
 =============
 
-Depending on the OS, the version of cmake you get with apt/yum/dnf is often too old to
-use for VIAME (you currently need at least CMake 3.11.4) so you may need to do a manual
-install. Go to the cmake website, ``https://cmake.org/download``, and download the
-appropriate binary distribution (for Ubuntu, this would be something like 
-cmake-3.11.4-Linux-x86_64.sh, depending on version). Alternatively, download the
-source code, e.g. cmake-3.11.4.tar.gz, and build the binaries from source. To untar
-and build the source, use the following set of commands. Keep in mind that if you're
-not using version 3.11.4, you'll need to update the version number in the below to
-match your downloaded version.
+Depending on the OS, the version of cmake you get with apt/yum/dnf is sometimes too old to
+use for building VIAME (you currently need at least CMake 3.11.4) so you may need to do a
+manual install of CMake. Go to the cmake website, ``https://cmake.org/download``, and download
+the appropriate binary distribution (for Ubuntu, this would be something like 
+cmake-3.11.4-Linux-x86_64.sh, though newer versions will be out by the time you read this).
+Alternatively, download the source code, e.g. cmake-3.11.4.tar.gz, and build the binaries
+from source. To untar and build the source, use the following set of commands. Keep in
+mind that if you're not using version 3.11.4, you'll need to update the version number in
+the below to match your downloaded version.
 
 
 .. code-block:: bash
