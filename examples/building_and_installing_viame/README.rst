@@ -56,10 +56,10 @@ And on CentOS 7:
 
 .. code-block:: bash
 
-   yum -y groupinstall 'Development Tools'
-   yum install -y zip git wget openssl openssl-devel zlib zlib-devel freeglut-devel mesa-libGLU-devel \
-     lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel curl \
-     curl-devel atlas-devel file which
+   sudo yum -y groupinstall 'Development Tools'
+   sudo yum install -y zip git wget openssl openssl-devel zlib zlib-devel freeglut-devel \
+     mesa-libGLU-devel lapack-devel libXt-devel libXmu-devel libXi-devel expat-devel readline-devel \
+     curl curl-devel atlas-devel file which
 
 If using VIAME_ENABLE_PYTHON, you also may need to install python3.6, python3.6-dev, and numpy (or
 alternatively whatever python distribution you want to use, we reccomend 3.5+ or installing Anaconda3),
@@ -277,7 +277,7 @@ for sub-projects (say, for example, if one doesn't build).
 
 **Python:**
 
-The default Python used is 2.7 or 3.6, though other versions may work as well. It depends on
+The default Python used is 3.6, though other versions may work as well. It depends on
 your build settings, operating system, and which dependency projects are turned on.
 
 
