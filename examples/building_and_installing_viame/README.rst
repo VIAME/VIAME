@@ -105,8 +105,8 @@ executable into a personal system directory, and then lets the operating system
 know where that directory is so it can find cmake in the future in case
 /usr/local/bin isn't in your PATH variable by default.
 
-Prepare the Source
-==================
+Clone the Source Code
+=====================
 
 With all our dependencies installed, we need to build the environment for VIAME
 itself. VIAME uses git submodules rather than requiring the user to grab each 
