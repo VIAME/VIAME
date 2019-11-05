@@ -114,6 +114,7 @@ public:
   void format_image_from_memory(
     const cv::Mat& image,
     vital::detected_object_set_sptr groundtruth,
+    const std::string format_method,
     std::vector< std::string >& formatted_names,
     std::vector< vital::detected_object_set_sptr >& formatted_truth );
 
@@ -182,7 +183,7 @@ windowed_trainer
   config->set_value( "chip_adaptive_thresh", d->m_chip_adaptive_thresh,
     "If using adaptive selection, total pixel count at which we start to chip." );
   config->set_value( "original_to_chip_size", d->m_original_to_chip_size,
-    "Optionally enforce the input image is the specified chip size" );
+    "Optionally enforce the input image is not larger than the chip size" );
   config->set_value( "always_write_image", d->m_always_write_image,
     "Always write images to training directory even if they already exist "
     "elsewhere on disk." );
@@ -363,7 +364,7 @@ windowed_trainer
         train_images[i]->get_image(), arrows::ocv::image_container::RGB_COLOR );
 
       d->format_image_from_memory(
-        image, train_groundtruth[i],
+        image, train_groundtruth[i], d->m_mode,
         filtered_train_names, filtered_train_truth );
     }
     for( unsigned i = 0; i < test_images.size(); ++i )
@@ -372,7 +373,7 @@ windowed_trainer
         test_images[i]->get_image(), arrows::ocv::image_container::RGB_COLOR );
 
       d->format_image_from_memory(
-        image, test_groundtruth[i],
+        image, test_groundtruth[i], d->m_mode,
         filtered_test_names, filtered_test_truth );
     }
   }
@@ -449,6 +450,7 @@ windowed_trainer::priv
     // Scale and break up image according to settings
     vital::image_container_sptr vital_image;
     cv::Mat original_image;
+    std::string format_mode = m_mode;
 
     try
     {
@@ -464,23 +466,30 @@ windowed_trainer::priv
     }
 
     // Early exit don't need to read all images every iteration
-    if( m_mode == "adaptive" &&
-        ( original_image.rows * original_image.cols ) < m_chip_adaptive_thresh )
+    if( format_mode == "adaptive" )
     {
-      m_mode = "disabled";
-
-      formatted_names.push_back( image_fn );
-      formatted_truth.push_back( groundtruth[fid] );
-      continue;
-    }
-    else
-    {
-      m_mode = "chip_and_original";
+      if( ( original_image.rows * original_image.cols ) < m_chip_adaptive_thresh )
+      {
+        if( m_original_to_chip_size )
+        {
+          format_mode = "maintain_ar";
+        }
+        else
+        {
+          formatted_names.push_back( image_fn );
+          formatted_truth.push_back( groundtruth[fid] );
+          continue;
+        }
+      }
+      else
+      {
+        format_mode = "chip_and_original";
+      }
     }
 
     // Format image and write new ones to disk
     format_image_from_memory(
-      original_image, groundtruth[fid],
+      original_image, groundtruth[fid], format_mode,
       formatted_names, formatted_truth );
   }
 }
@@ -490,6 +499,7 @@ windowed_trainer::priv
 ::format_image_from_memory(
   const cv::Mat& image,
   vital::detected_object_set_sptr groundtruth,
+  const std::string format_method,
   std::vector< std::string >& formatted_names,
   std::vector< vital::detected_object_set_sptr >& formatted_truth )
 {
@@ -499,10 +509,10 @@ windowed_trainer::priv
 
   double resized_scale = 1.0;
 
-  if( m_mode != "disabled" )
+  if( format_method != "disabled" )
   {
     resized_scale = format_image( image, resized_image,
-      m_mode, m_scale, m_chip_width, m_chip_height );
+      format_method, m_scale, m_chip_width, m_chip_height );
 
     scaled_groundtruth->scale( resized_scale );
   }
@@ -512,7 +522,7 @@ windowed_trainer::priv
     scaled_groundtruth = groundtruth;
   }
 
-  if( m_mode != "chip" && m_mode != "chip_and_original" )
+  if( format_method != "chip" && format_method != "chip_and_original" )
   {
     vital::bounding_box_d roi_box( 0, 0, resized_image.cols, resized_image.rows );
 
@@ -584,7 +594,7 @@ windowed_trainer::priv
     }
 
     // Process full sized image if enabled
-    if( m_mode == "chip_and_original" )
+    if( format_method == "chip_and_original" )
     {
       cv::Mat scaled_original;
 
