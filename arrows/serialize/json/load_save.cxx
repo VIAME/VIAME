@@ -499,7 +499,7 @@ void save( ::cereal::JSONOutputArchive& archive,
 {
   archive( ::cereal::base_class< kwiver::vital::track_state >( std::addressof( obj_trk_state ) ) );
   archive( ::cereal::make_nvp( "track_time", obj_trk_state.time() ) );
-  save( archive, *obj_trk_state.detection );
+  save( archive, *obj_trk_state.detection() );
 }
 
 // ----------------------------------------------------------------------------
@@ -513,7 +513,7 @@ void load( ::cereal::JSONInputArchive& archive,
   archive( CEREAL_NVP( track_time ) );
   obj_trk_state.set_time(track_time);
   load(archive, *detection);
-  obj_trk_state.detection = detection;
+  obj_trk_state.set_detection(detection);
 }
 
 

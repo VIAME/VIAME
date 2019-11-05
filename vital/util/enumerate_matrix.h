@@ -62,6 +62,7 @@ class sparse_matrix_enumerator
     matrix_t const* m_matrix;
 };
 
+// ----------------------------------------------------------------------------
 template < typename ValueT, int Options, typename IndexT >
 class sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
 {
@@ -87,6 +88,7 @@ class sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
     std::unique_ptr<iterator_t> m_inner;
 };
 
+// ----------------------------------------------------------------------------
 template < typename ValueT, int Options, typename IndexT >
 sparse_matrix_enumerator< ValueT, Options, IndexT >
 ::sparse_matrix_enumerator(matrix_t const& mat)
@@ -94,6 +96,7 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >
 {
 }
 
+// ----------------------------------------------------------------------------
 template < typename ValueT, int Options, typename IndexT >
 typename
 sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
@@ -103,6 +106,7 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >
   return iterator(*(this->m_matrix));
 }
 
+// ----------------------------------------------------------------------------
 template < typename ValueT, int Options, typename IndexT >
 typename
 sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
@@ -112,6 +116,7 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >
   return iterator();
 }
 
+// ----------------------------------------------------------------------------
 template < typename ValueT, int Options, typename IndexT >
 sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
 ::iterator()
@@ -131,6 +136,7 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
   }
 }
 
+// ----------------------------------------------------------------------------
 template < typename ValueT, int Options, typename IndexT >
 sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
 ::iterator(iterator const& other)
@@ -139,6 +145,7 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
 {
 }
 
+  // ----------------------------------------------------------------------------
 template < typename ValueT, int Options, typename IndexT >
 bool
 sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
@@ -158,6 +165,7 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
           this->m_inner->index() == other.m_inner->index());
 }
 
+  // ----------------------------------------------------------------------------
 template < typename ValueT, int Options, typename IndexT >
 typename
 sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator&
@@ -183,6 +191,7 @@ sparse_matrix_enumerator< ValueT, Options, IndexT >::iterator
   return *this;
 }
 
+// ----------------------------------------------------------------------------
 /// Create adaptor to iterate over non-zero cells in a sparse matrix
 /**
  *  This creates an adaptor () on an Eigen::SparseMatrix that can be iterated

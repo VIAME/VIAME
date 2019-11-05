@@ -90,7 +90,7 @@ gcd( T a, T b )
   return a;
 }
 
-
+// ----------------------------------------------------------------------------
 /**
  * @brief Find least common multiple of two values
  *
@@ -110,7 +110,7 @@ lcm( T a, T b )
 
 } // end namespace
 
-
+// ============================================================================
 class pipeline::priv
 {
   public:
@@ -1960,7 +1960,7 @@ pipeline::priv
 
       procs.insert(cur_proc);
 
-      // Check for required ports.
+      // Check for required input ports.
       {
         process_t const process = q->process_by_name(cur_proc);
 
@@ -1973,6 +1973,7 @@ pipeline::priv
 
           if (port_flags.count(process::flag_required))
           {
+            // Port is marked as required and therefore, must be connected.
             if (!q->input_edge_for_port(cur_proc, port))
             {
               static std::string const reason = "The input port has the required flag";

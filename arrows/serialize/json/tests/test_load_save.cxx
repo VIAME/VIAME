@@ -425,8 +425,8 @@ TEST( load_save, object_track_state)
   }
 
 
-  auto do_sptr = obj_trk_state.detection;
-  auto do_sptr_dser = obj_dser.detection;
+  auto do_sptr = obj_trk_state.detection();
+  auto do_sptr_dser = obj_dser.detection();
 
   EXPECT_EQ( do_sptr->bounding_box(), do_sptr_dser->bounding_box() );
   EXPECT_EQ( do_sptr->index(), do_sptr_dser->index() );
@@ -578,8 +578,8 @@ TEST( load_save, object_track_set )
                                                       downcast( dser_trk_state_sptr );
 
 
-      auto ser_do_sptr = obj_trk_state_sptr->detection;
-      auto dser_do_sptr = dser_obj_trk_state_sptr->detection;
+      auto ser_do_sptr = obj_trk_state_sptr->detection();
+      auto dser_do_sptr = dser_obj_trk_state_sptr->detection();
 
       EXPECT_EQ( ser_do_sptr->bounding_box(), dser_do_sptr->bounding_box() );
       EXPECT_EQ( ser_do_sptr->index(), dser_do_sptr->index() );

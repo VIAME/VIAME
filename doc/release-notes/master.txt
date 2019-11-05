@@ -45,6 +45,12 @@ Arrows: Ceres
 
 Arrows: CUDA
 
+ * Added a new parameter for the truncated signed distance function in depth
+   map integration.  The new "Epsilon" value is used in the occluded portion
+   of the function that was previously zero.  Setting Epsilon > 0 can remove
+   a double surface artifact.  Setting Epsilon = 0 restores the previous
+   behavior.
+
 Arrows: FFmpeg
 
 Arrows: GDAL

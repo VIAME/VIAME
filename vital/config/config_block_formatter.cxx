@@ -99,7 +99,7 @@ print( std::ostream& str )
 void config_block_formatter::
 print( std::ostream& str, const std::string& fmt )
 {
-  using plugin_factory_t =  kwiver::vital::implementation_factory_by_name< kwiver::vital::format_config_block >;
+  using plugin_factory_t = kwiver::vital::implementation_factory_by_name< kwiver::vital::format_config_block >;
 
   plugin_factory_t fact;
 

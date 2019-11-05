@@ -198,8 +198,8 @@ static kwiver::vital::config_block_sptr monitor_edge_config();
 
 // ------------------------------------------------------------------
 /*
- * This is the thread that runs a process. It loops until the process
- * is complete or fails.
+ * This is the thread that runs a single process. It loops until the
+ * process is complete or fails.
  */
 void
 thread_per_process_scheduler::priv
@@ -229,11 +229,15 @@ thread_per_process_scheduler::priv
 
     process->step();
 
+    // Check the monitor edge to see if the process is still running
+    // or has completed.
     while (monitor_edge->has_data())
     {
       edge_datum_t const edat = monitor_edge->get_datum();
       datum_t const dat = edat.datum;
 
+      // If there is a "complete" packet in the monitor edge, then the
+      // process is done.
       if (dat->type() == datum::complete)
       {
         complete = true;
@@ -257,6 +261,8 @@ kwiver::vital::config_block_sptr
 monitor_edge_config()
 {
   kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
+
+  // Empty config will create a default edge.
 
   return conf;
 }

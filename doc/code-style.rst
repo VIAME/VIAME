@@ -398,6 +398,15 @@ Type Names: :a:`[types]`
     not match the naïve replacement pattern and will thus force the developer
     to consider the appropriate replacement for that case.
 
+  .. admonition:: Tip:
+
+    The regular expression ``const ([\w:]+(<[^>]+>)?)(?! *\w+ *=)`` can be used
+    to find and replace many instances of :cpp:`const T`, using the replacement
+    template ``\1 const``. Note, however, that this will not work correctly for
+    :cpp:`T` which has nested template types, nor has it been rigorously tested
+    against false positives. Use with caution and be sure to review all changes
+    that are made.
+
 - :a:`[types.auto]`
   Prefer to use :cpp:`auto`, especially for overly long type names and where
   the type is obvious from context. *Especially* prefer to use :cpp:`auto` if
@@ -444,7 +453,7 @@ Includes: :a:`[include]`
     Keeping groups separate improves readability and is necessary for other
     include rules to be applied sensibly.
 
-- :a:`[includes.group_order]`
+- :a:`[include.group_order]`
   Order groups of includes in decreasing order of dependency. The header
   corresponding to the source file (e.g. ``#include "foo.h"`` in ``foo.cpp``)
   should always be first. (Private headers, e.g. ``foo_priv.h``, should appear
@@ -462,7 +471,7 @@ Includes: :a:`[include]`
     component's source file helps to ensure that the component's header is
     "self contained".
 
-- :a:`[includes.order]`
+- :a:`[include.order]`
   Prefer to order includes within a group by lexicographical order. (Don't get
   hung up on the correct order of symbols versus letters, however, so long as
   such ordering is consistent within a group.)

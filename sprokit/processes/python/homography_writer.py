@@ -7,6 +7,7 @@
 # from sprokit.utilities import homography
 #from sprokit.utilities import timestamp
 from __future__ import print_function
+from kwiver.kwiver_process import KwiverProcess
 import sprokit.pipeline.datum
 import sprokit.pipeline.process
 import sprokit.pipeline.config
@@ -17,9 +18,9 @@ import os.path
 
 
 
-class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
+class HomographyWriterProcess(KwiverProcess):
     def __init__(self, conf):
-        sprokit.pipeline.process.PythonProcess.__init__(self, conf)
+        KwiverProcess.__init__(self, conf)
 
         # declare our configuration items
         self.declare_configuration_key(
@@ -32,12 +33,8 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
         required.add(self.flag_required)
 
         # create input ports
-        #info = process.PortInfo('s2r_homography',  # type name
-        #                        required, 'Input homographies')
-
-        #self.declare_input_port('homography', info)
-        #                        name, type, flags, descrip
-        self.declare_input_port('homography', 'kwiver:s2r_homography', required, 'Input homographies' )
+        self.add_port_trait('homography', 'homography_src_to_ref', 'Input homographies')
+        self.declare_input_port_using_trait('homography', required)
 
     # ----------------------------------------------------------------
     def _configure(self):
@@ -49,8 +46,7 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
 
     # ----------------------------------------------------------------
     def _step(self):
-        dat = self.grab_datum_from_port('homography')
-        h = dat.get_datum()
+        h = self.grab_input_using_trait('homography')
 
         for r in [ 0, 1, 2 ]:
             for c in [ 0, 1, 2 ]:
@@ -58,8 +54,8 @@ class HomographyWriterProcess(sprokit.pipeline.process.PythonProcess):
                 print(val, end=' ')
                 self.fout.write( '%.20g ' % val )
 
-        print(h.from_id(), h.to_id())
-        self.fout.write( '%d %d\n' % (h.from_id(), h.to_id()) )
+        print(h.from_id, h.to_id)
+        self.fout.write( '%d %d\n' % (h.from_id, h.to_id) )
         self.fout.flush()
         ## t = h # .transform()
 

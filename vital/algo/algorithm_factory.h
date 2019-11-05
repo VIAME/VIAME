@@ -174,7 +174,8 @@ public:
    * \return The plugin loader reference is returned.
    */
   template <typename algorithm_t>
-  kwiver::vital::plugin_factory_handle_t register_algorithm()
+  kwiver::vital::plugin_factory_handle_t
+  register_algorithm()
   {
     using kvpf = kwiver::vital::plugin_factory;
 

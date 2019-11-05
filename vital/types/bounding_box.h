@@ -96,6 +96,33 @@ public:
   }
 
   /**
+   * @brief Create default (invalid) box.
+   */
+  bounding_box()
+  {
+    // NOTE: Any initial state logic here
+    // Should be reproduced in the reset method
+  }
+
+  /**
+   * @brief Check to see if the two corner points are valid.
+   *
+   * @return true if the box is valid
+   */
+  bool is_valid() const
+  {
+    return !m_bbox.isEmpty();
+  }
+
+  /**
+   * @brief Reset the bounding box to an initial invalid state.
+   */
+  void reset()
+  {
+    m_bbox.setEmpty();
+  }
+
+  /**
    * @brief Get center coordinate of box.
    *
    * @return Center coordinate of box.

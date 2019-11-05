@@ -176,13 +176,13 @@ compute_association_matrix_from_features
           object_track_state* trk_state =
             dynamic_cast< object_track_state* >( trk->back().get() );
 
-          if( trk_state->detection )
+          if( trk_state->detection() )
           {
             double dist = d_->m_max_distance;
 
             if( d_->m_max_distance > 0.0 )
             {
-              auto center1 = trk_state->detection->bounding_box().center();
+              auto center1 = trk_state->detection()->bounding_box().center();
               auto center2 = det->bounding_box().center();
 
               dist = ( center1[0] - center2[0] ) * ( center1[0] - center2[0] );
@@ -192,7 +192,7 @@ compute_association_matrix_from_features
 
             if( d_->m_max_distance <= 0.0 || dist < d_->m_max_distance )
             {
-              trk_features = trk_state->detection->descriptor();
+              trk_features = trk_state->detection()->descriptor();
             }
           }
         }

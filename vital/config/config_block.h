@@ -184,7 +184,8 @@ public:
    * \param key The index of the configuration value to retrieve.
    * \tparam C Type of the enum converter. Must be derived from
    * enum_converter struct.
-   * \return
+   * \return Correctly typed enum value
+   * \throws std::runtime_error with message detailing valid enum strings.
    */
   template < typename C>
   typename C::enum_type get_enum_value( const config_block_key_t& key ) const;
@@ -211,9 +212,8 @@ public:
                  typename C::enum_type const& def) const noexcept;
 
 
+  /// Convert string to vector of values.
   /**
-   * \brief Convert string to vector of values.
-   *
    * Convert config string into a vector of values of the same type. This method
    * splits the config string associated with the key using the supplied delimeter
    * string. Each of these resulting strings is converted to the templated type and
@@ -468,9 +468,8 @@ private:
                     config_block_value_t const& value,
                     config_block_description_t const& descr = config_block_key_t() );
 
+  /// Copies config entry to this config block.
   /**
-   * @brief Copies config entry to this config block.
-   *
    * This function copies one config entry, as specified by the \b key
    * from the specified config block to this block.
    *

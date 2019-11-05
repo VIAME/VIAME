@@ -7,3 +7,7 @@ release.
 Bug Fixes since v1.4.0
 ----------------------
 
+Arrows - Core
+
+ * Fixed a bug in parsing the similarity_estimator configuration in
+   initialize_cameras_landmarks_keyframe

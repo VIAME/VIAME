@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,64 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "file_md5.h"
+#include <stdexcept>
 
-#include <kwiversys/MD5.h>
-#include <iostream>
-#include <cstdlib>
-#include <fstream>
-#include <sstream>
+#include <vital/vital_types.h>
+#include <vital/types/homography.h>
+#include <vital/types/homography_f2f.h>
 
-using std::string;
-using std::ifstream;
-using std::ostringstream;
+#include <Eigen/Core>
 
-namespace kwiver {
-namespace vital {
+#include <pybind11/pybind11.h>
 
-string
-file_md5( const string& fn )
+namespace kv = kwiver::vital;
+namespace py = pybind11;
+
+using f2f_homography = kv::f2f_homography;
+
+PYBIND11_MODULE(homography_f2f, m)
 {
-  ifstream is( fn.c_str(), ifstream::binary );
-  if ( !is )
-  {
-    return "";
-  }
-
-  const size_t digest_size = 16;
-  unsigned char digest[ digest_size ];
-
-  {
-    const size_t bufsize = 16384;
-    unsigned char* buf = new unsigned char [ bufsize ];
-    kwiversysMD5* md5 = kwiversysMD5_New();
-    kwiversysMD5_Initialize( md5 );
-
-    while ( is )
-    {
-      is.read( reinterpret_cast< char* >( buf ), bufsize );
-      if ( is.gcount() )
-      {
-        kwiversysMD5_Append( md5, buf, is.gcount() );
-      }
-    }
-    kwiversysMD5_Finalize( md5, digest );
-    kwiversysMD5_Delete( md5 );
-    delete[] buf;
-  }
-
-  ostringstream oss;
-  {
-    const size_t bufsize = 5;
-    char buf[ bufsize ];
-    for ( size_t i = 0; i < digest_size; ++i )
-    {
-      snprintf( buf, bufsize, "%x", digest[ i ] );
-      oss << buf;
-    }
-  }
-  return oss.str();
+  // This should wrap all of f2f_homography except for the (templated)
+  // constructor directly from an Eigen::Matrix and the copy
+  // constructor
+  py::class_<f2f_homography, std::shared_ptr<f2f_homography>>(m, "F2FHomography")
+    .def(py::init<kv::homography_sptr const&, kv::frame_id_t, kv::frame_id_t>())
+    .def(py::init<kv::frame_id_t>())
+    .def_property_readonly("homography", &f2f_homography::homography)
+    .def_property_readonly("from_id", &f2f_homography::from_id)
+    .def_property_readonly("to_id", &f2f_homography::to_id)
+    .def("inverse", &f2f_homography::inverse)
+    .def("__mul__", &f2f_homography::operator*)
+    .def("get",
+	 [] (f2f_homography const& self, int r, int c)
+	 {
+	   auto m = self.homography()->matrix();
+	   if(0 <= r && r < m.rows() && 0 <= c && c < m.cols())
+	   {
+	     return m(r, c);
+	   }
+	   throw std::out_of_range("Tried to perform get() out of bounds");
+	 },
+	 "Convenience method that returns the underlying coefficient"
+	 " at the given row and column")
+    ;
 }
-
-} // ...vital
-} // ...kwiver

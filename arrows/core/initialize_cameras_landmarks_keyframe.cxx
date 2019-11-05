@@ -57,6 +57,7 @@
 #include <arrows/core/epipolar_geometry.h>
 #include <arrows/core/metrics.h>
 #include <arrows/core/match_matrix.h>
+#include <arrows/core/necker_reverse.h>
 #include <arrows/core/triangulate.h>
 #include <arrows/core/transform.h>
 #include <vital/algo/estimate_pnp.h>
@@ -3818,7 +3819,7 @@ initialize_cameras_landmarks_keyframe
     ::get_nested_algo_configuration("estimate_pnp", config, m_priv->m_pnp);
 
   vital::algo::estimate_similarity_transform
-    ::get_nested_algo_configuration("estimate_similarity", config,
+    ::get_nested_algo_configuration("similarity_estimator", config,
                                     m_priv->m_similarity_estimator);
 
   return config;
