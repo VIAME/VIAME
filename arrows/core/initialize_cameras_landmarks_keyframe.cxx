@@ -72,8 +72,6 @@ namespace core {
 typedef std::map< frame_id_t, simple_camera_perspective_sptr >               map_cam_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::iterator       cam_map_itr_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::const_iterator const_cam_map_itr_t;
-typedef camera_map_of_<simple_camera_perspective>                            simple_camera_perspective_map;
-typedef std::shared_ptr<simple_camera_perspective_map>                       simple_camera_perspective_map_sptr;
 
 typedef vital::landmark_map::map_landmark_t map_landmark_t;
 

@@ -89,7 +89,7 @@ public:
   */
   virtual void
   optimize(
-    kwiver::vital::camera_map_of_<kwiver::vital::simple_camera_perspective> &cameras,
+    kwiver::vital::simple_camera_perspective_map &cameras,
     kwiver::vital::landmark_map::map_landmark_t &landmarks,
     vital::feature_track_set_sptr tracks,
     const std::set<vital::frame_id_t>& fixed_cameras,

@@ -43,13 +43,17 @@
 namespace kwiver {
 namespace vital {
 
-/// Typedefs that combine camera_map_of_ and camera_perspective
-typedef vital::camera_map_of_<vital::camera_perspective> camera_perspective_map;
-typedef std::shared_ptr<camera_perspective_map> camera_perspective_map_sptr;
+/// Type aliases that combine camera_map_of_ and camera_perspective
+using camera_perspective_map =
+        vital::camera_map_of_<vital::camera_perspective>;
+using camera_perspective_map_sptr =
+        std::shared_ptr<camera_perspective_map>;
 
-/// Typedefs that combine camera_map_of_ and simple_camera_perspective
-typedef vital::camera_map_of_<vital::simple_camera_perspective> simple_camera_perspective_map;
-typedef std::shared_ptr<simple_camera_perspective_map> simple_camera_perspective_map_sptr;
+/// Type aliases that combine camera_map_of_ and simple_camera_perspective
+using simple_camera_perspective_map =
+        vital::camera_map_of_<vital::simple_camera_perspective>;
+using simple_camera_perspective_map_sptr =
+        std::shared_ptr<simple_camera_perspective_map>;
 
 } // end namespace vital
 } // end namespace kwiver
