@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
-#define KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS
+#ifndef KWIVER_ARROWS_BURNOUT_PIXEL_CLASSIFICATION
+#define KWIVER_ARROWS_BURNOUT_PIXEL_CLASSIFICATION
 
 #include <arrows/burnout/kwiver_algo_burnout_export.h>
 
-#include <vital/algo/compute_track_descriptors.h>
+#include <vital/algo/image_filter.h>
 
 namespace kwiver {
 namespace arrows {
 namespace burnout {
 
-// ----------------------------------------------------------------
 /**
- * @brief burnout_track_descriptors
+ * @brief Burnout Image Filtering
  *
+ * This method contains basic methods for image filtering on top of input
+ * images via automatic white balancing and smoothing.
  */
-class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
-  : public vital::algorithm_impl< burnout_track_descriptors,
-      vital::algo::compute_track_descriptors >
+class KWIVER_ALGO_BURNOUT_EXPORT burnout_pixel_classification
+  : public vital::algorithm_impl< burnout_pixel_classification,
+      vital::algo::image_filter >
 {
 public:
 
-  burnout_track_descriptors();
-  virtual ~burnout_track_descriptors();
+  burnout_pixel_classification();
+  virtual ~burnout_pixel_classification();
 
   virtual vital::config_block_sptr get_configuration() const;
 
   virtual void set_configuration( vital::config_block_sptr config );
   virtual bool check_configuration( vital::config_block_sptr config ) const;
 
-  virtual kwiver::vital::track_descriptor_set_sptr
-  compute( kwiver::vital::timestamp ts,
-           kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks );
-
-  virtual kwiver::vital::track_descriptor_set_sptr flush();
+  virtual kwiver::vital::image_container_sptr filter(
+    kwiver::vital::image_container_sptr image_data );
 
 private:
 
@@ -73,4 +70,4 @@ private:
 
 } } }
 
-#endif /* KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS */
+#endif /* KWIVER_ARROWS_BURNOUT_PIXEL_CLASSIFICATION */
