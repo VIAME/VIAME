@@ -43,6 +43,7 @@
 #include <vil/vil_math.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_crop.h>
+#include <vil/vil_plane.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vital/types/bounding_box.h>
 
@@ -241,6 +242,10 @@ compute_depth
 #pragma omp parallel for schedule(static, 1)
     for (int i = 0; i < static_cast< int >(masks.size()); i++)
     {
+      if (!masks_in[i])
+      {
+        continue;
+      }
       auto vxl_mask = vxl::image_container::vital_to_vxl(masks_in[i]->get_image());
       if (!vxl_mask)
       {
@@ -259,6 +264,9 @@ compute_depth
         // unsupported pixel format
         continue;
       }
+      // ensure that this is a single channel image
+      // take only the first channel
+      masks[i] = vil_plane(masks[i], 0);
     }
     ref_mask = &masks[ref_frame];
   }
