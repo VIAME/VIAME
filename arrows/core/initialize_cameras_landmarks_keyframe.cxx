@@ -2127,11 +2127,16 @@ initialize_cameras_landmarks_keyframe::priv
 
     }
     int num_constraints_used;
+    ba_constraints = nullptr;
+    m_solution_was_fit_to_constraints = false;
     if (fit_reconstruction_to_constraints(cams, lms, tracks,
                                           constraints, num_constraints_used))
     {
-      ba_constraints = constraints;
-      m_solution_was_fit_to_constraints = true;
+      if (num_constraints_used > 2)
+      {
+        ba_constraints = constraints;
+        m_solution_was_fit_to_constraints = true;
+      }
     }
     else
     {
