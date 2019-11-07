@@ -1467,21 +1467,10 @@ initialize_cameras_landmarks_keyframe::priv
   int &num_constraints_used)
 {
   similarity_d sim;
+  bool estimated_sim = false;
   num_constraints_used = 0;
-  if (!constraints || constraints->get_camera_position_priors().empty())
-  {
-    // If no constraints then estimate the similarity transform to
-    // bring the solution into canonical pose
-    if (!m_canonical_estimator)
-    {
-      LOG_DEBUG(m_logger, "No canonial transform estimator defined. "
-                          "Skipping fit to constraints.");
-      return false;
-    }
-    auto landmarks = std::make_shared<simple_landmark_map>(lms);
-    sim = m_canonical_estimator->estimate_transform(cams, landmarks);
-  }
-  else
+  if (constraints && !constraints->get_camera_position_priors().empty() &&
+    m_similarity_estimator)
   {
     // Estimate a similarity transform to align the cameras
     // with the constraints
@@ -1490,13 +1479,6 @@ initialize_cameras_landmarks_keyframe::priv
     auto pos_priors = constraints->get_camera_position_priors();
 
     auto persp_cams = cams->T_cameras();
-
-    if (!m_similarity_estimator)
-    {
-      LOG_DEBUG(m_logger, "No similarity estimator defined. "
-        "Skipping fit to constraints.");
-      return false;
-    }
 
     std::vector<vector_3d> cam_positions, sensor_positions;
 
@@ -1523,39 +1505,50 @@ initialize_cameras_landmarks_keyframe::priv
       sensor_positions.push_back(closest_prior);
     }
 
-    num_constraints_used = static_cast<int>(sensor_positions.size());
-    if (cam_positions.size() < 3)
+    if (cam_positions.size() > 5)
     {
+      Eigen::Matrix<double, 3, Eigen::Dynamic> cam_mat;
+      cam_mat.resize(3, cam_positions.size());
+      for (size_t v = 0; v < cam_positions.size(); ++v)
+      {
+        cam_mat(0, v) = cam_positions[v].x();
+        cam_mat(1, v) = cam_positions[v].y();
+        cam_mat(2, v) = cam_positions[v].z();
+      }
+
+      Eigen::Vector3d cam_mean;
+      cam_mean(0) = cam_mat.row(0).mean();
+      cam_mean(1) = cam_mat.row(1).mean();
+      cam_mean(2) = cam_mat.row(2).mean();
+
+      auto cam_mat_centered = cam_mat - cam_mean.replicate(1, cam_mat.cols());
+
+      auto cov_mat = cam_mat_centered * cam_mat_centered.transpose();
+
+      Eigen::JacobiSVD<vital::matrix_3x3d> svd(cov_mat, Eigen::ComputeFullV);
+      auto sing_vals = svd.singularValues();
+      if (sing_vals(0) < 100 * sing_vals(1))
+      {
+        sim = m_similarity_estimator->estimate_transform(cam_positions,
+                                                         sensor_positions);
+        estimated_sim = true;
+        num_constraints_used = static_cast<int>(sensor_positions.size());
+      }
+    }
+  }
+
+  if (!estimated_sim)
+  {
+    // If no constraints then estimate the similarity transform to
+    // bring the solution into canonical pose
+    if (!m_canonical_estimator)
+    {
+      LOG_DEBUG(m_logger, "No canonial transform estimator defined. "
+        "Skipping fit to constraints.");
       return false;
     }
-
-    Eigen::Matrix<double, 3, Eigen::Dynamic> cam_mat;
-    cam_mat.resize(3, cam_positions.size());
-    for (size_t v = 0; v < cam_positions.size(); ++v)
-    {
-      cam_mat(0, v) = cam_positions[v].x();
-      cam_mat(1, v) = cam_positions[v].y();
-      cam_mat(2, v) = cam_positions[v].z();
-    }
-
-    Eigen::Vector3d cam_mean;
-    cam_mean(0) = cam_mat.row(0).mean();
-    cam_mean(1) = cam_mat.row(1).mean();
-    cam_mean(2) = cam_mat.row(2).mean();
-
-    auto cam_mat_centered = cam_mat - cam_mean.replicate(1, cam_mat.cols());
-
-    auto cov_mat = cam_mat_centered * cam_mat_centered.transpose();
-
-    Eigen::JacobiSVD<vital::matrix_3x3d> svd(cov_mat, Eigen::ComputeFullV);
-    auto sing_vals = svd.singularValues();
-    if (sing_vals(0) > 100 * sing_vals(1))
-    {
-      return false;
-    }
-
-    sim = m_similarity_estimator->estimate_transform(cam_positions,
-                                                     sensor_positions);
+    auto landmarks = std::make_shared<simple_landmark_map>(lms);
+    sim = m_canonical_estimator->estimate_transform(cams, landmarks);
   }
 
   // Transform all the points and cameras
