@@ -297,7 +297,14 @@ public:
         // in the valid range, so we are done
         break;
       }
-      suppression_radius = (high_radius + low_radius) / 2;
+      double new_suppression_radius = (high_radius + low_radius) / 2;
+      if (new_suppression_radius < 0.25)
+      {
+        LOG_DEBUG(m_logger, "Found " << filtered.size() << " features.  "
+                            "Suppression radius is too small to continue.");
+        break;
+      }
+      suppression_radius = new_suppression_radius;
       suppressor.set_radius(suppression_radius);
       LOG_DEBUG(m_logger, "Found " << filtered.size() << " features.  "
                           "Changing suppression radius to "
