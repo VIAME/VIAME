@@ -123,7 +123,7 @@ Quick Build Instructions
 
 These instructions are intended for developers or those interested in building the latest
 master branch. More in-depth build instructions can be found [here](examples/building_and_installing_viame),
-but VIAME itself can be built either as a super-build, which builds most of its
+but the software can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
 [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
 If using the command line, run the following commands, only replacing [source-directory] and
