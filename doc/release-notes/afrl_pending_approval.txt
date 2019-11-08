@@ -23,6 +23,9 @@ Vital - Algo
 
 Arrows - Core
 
+ * Added utility functions to estimate the ground center of landmarks and
+   to apply a translational offset to landmarks and cameras.
+
 Arrows - Ceres
 
 Arrows - CUDA
