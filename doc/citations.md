@@ -7,11 +7,17 @@ in some case using them as-is, in others having custom implementations with a
 few modifications.
 
 
-### Software Framework
+### Software Frameworks
 
 System Backend - Dawkins, Matthew, Sherill, Linus, et al. "An open-source platform for
 underwater image and video analytics." 2017 IEEE Winter Conference on
 Applications of Computer Vision (WACV). IEEE, 2017.
+
+Video Reader - Bellard, Fabrice. "Ffmpeg multimedia system." FFmpeg.
+[Last accessed: November 2015]. https://www. ffmpeg. org/about. html (2005).
+
+Deep Learning Framework - Paszke, Adam, et al. "Automatic differentiation in
+pytorch."(2017).
 
 
 ### Algorithms
