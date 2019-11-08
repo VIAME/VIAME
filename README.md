@@ -128,7 +128,7 @@ dependencies alongside itself, or standalone. To build VIAME requires, at a mini
 [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
 If using the command line, run the following commands, only replacing [source-directory] and
 [build-directory] with locations of your choice. While these directories can be the same, it's good
-practice to have a 'src' checkout then a seperate 'build' directory next to it:
+practice to have a 'src' checkout then a seperate 'build' directory:
 
 	git clone https://github.com/VIAME/VIAME.git [source-directory]
 
