@@ -127,7 +127,8 @@ but the software can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
 [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
 If using the command line, run the following commands, only replacing [source-directory] and
-[build-directory] with locations of your choice:
+[build-directory] with locations of your choice. While these directories can be the same, it's good
+practice to have a 'src' checkout then a seperate 'build' directory next to it:
 
 	git clone https://github.com/VIAME/VIAME.git [source-directory]
 
@@ -146,12 +147,12 @@ using 'ccmake' or the cmake GUI, and then build with the following command on Li
 	make -j8
 
 Or alternatively by building it in Visual Studio or your compiler of choice on
-Windows. The '-j8' tells the build to run multi-threaded using 8 threads, this is
-useful for a faster build though if you get an error it can be difficult to know
-here it was, in which case running just 'make' might be more helpful. For Windows,
+Windows. '-j8' tells the build to run multi-threaded using 8 threads, this is
+useful for a faster build though if you get an error it can be difficult to see
+it, in which case running just 'make' might be more helpful. For Windows,
 currently VS2017 is the desired compiler, though select versions of 2015 and 2019
 also work. If using CUDA, version 9.0 and above, with CUDNN 7.0 and above is desired,
-in particular we recommend CUDA 9.2 or 10.0. On both Windows and Linux it can also be
+in particular we recommend CUDA 10. On both Windows and Linux it can also be
 beneficial to use Anaconda to get multiple standard python packages. Boost Python
 (turned on by default when Python is enabled) requires Numpy and a few other dependencies.
 
@@ -159,22 +160,17 @@ There are several optional arguments to viame which control which plugins get bu
 such as those listed below. If a plugin is enabled that depends on another dependency
 such as OpenCV) then the dependency flag will be forced to on. If uncertain what to turn
 on, it's best to just leave the default enable and disable flags which will build most
-(though not all) functionalities.
+(though not all) functionalities. These are core components we recommend leaving turned on:
 
 
 <center>
 
-| Flag                         | Description                                                                           |
-|------------------------------|---------------------------------------------------------------------------------------|
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)                 |
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                     |
-| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                     |
-| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
-| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
-| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |
-| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                         |
-| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                      |
+| Flag                         | Description                                                                                |
+|------------------------------|--------------------------------------------------------------------------------------------|
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)                      |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                          |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                          |
+| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                          |
 
 </center>
 
@@ -184,18 +180,35 @@ And a number of flags which control which system utilities and optimizations are
 
 <center>
 
-| Flag                         | Description                                                                                 |
-|------------------------------|---------------------------------------------------------------------------------------------|
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, Caffe, etc...)               |
-| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
-| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)                     |
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                                 |
-| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
-| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                  |
-| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                          |
-| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models              |
+| Flag                         | Description                                                                                |
+|------------------------------|--------------------------------------------------------------------------------------------|
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, PyTorch, etc...)            |
+| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                     |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)                    |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                                |
+| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)         |
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                 |
+| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                         |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models             |
 
 </center>
+
+
+And lastly, a number of flags which perform more specialized functionality:
+
+
+<center>
+
+| Flag                         | Description                                                                                |
+|------------------------------|--------------------------------------------------------------------------------------------|
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                     |
+| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                             |
+| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                               |
+| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                              |
+| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                           |
+
+</center>
+
 
 Update Instructions
 -------------------
