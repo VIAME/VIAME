@@ -1,3 +1,6 @@
+Acknowledgement
+===============
+
 VIAME was originally developed with funding from the National
 Oceanic and Atmospheric Administration (NOAA)'s Fisheries Strategic
 Initiative on Automated Image Analysis (AIASI) committee, in addition
