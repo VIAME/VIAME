@@ -219,8 +219,8 @@ License, Citations, and Acknowledgements
 
 VIAME is released under a BSD-3 license.
 
-A non-exhaustive list of relevant papers used within VIAME, alongside code and detection model
-contributors can be found [here](doc/citations.md).
+A non-exhaustive list of relevant papers used within the project alongside contributors
+can be found [here](doc/citations.md).
 
 VIAME was developed with funding from multiple sources, with special thanks
 to those listed [here](doc/acknowledgements.md).
