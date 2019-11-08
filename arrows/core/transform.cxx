@@ -218,6 +218,54 @@ vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
 }
 
 
+/// translate landmarks in place by the provided offset vector
+void translate_inplace(vital::landmark_map& landmarks,
+                       vital::vector_3d const& offset)
+{
+  for (auto lm : landmarks.landmarks())
+  {
+    auto lmd = std::dynamic_pointer_cast<vital::landmark_d>(lm.second);
+    if (lmd)
+    {
+      lmd->set_loc(lm.second->loc() + offset);
+    }
+    else
+    {
+      auto lmf = std::dynamic_pointer_cast<vital::landmark_f>(lm.second);
+      if (lmf)
+      {
+        lmf->set_loc((lm.second->loc() + offset).cast<float>());
+      }
+    }
+  }
+}
+
+
+/// translate cameras in place by the provided offset vector
+void translate_inplace(vital::simple_camera_perspective_map& cameras,
+                       vital::vector_3d const& offset)
+{
+  for (auto cam : cameras.T_cameras())
+  {
+    auto cam_ptr = cam.second;
+    if (cam_ptr)
+    {
+      cam_ptr->set_center(cam_ptr->center() + offset);
+    }
+  }
+}
+
+
+/// translate cameras in place by the provided offset vector
+void translate_inplace(vital::camera_map& cameras,
+                       vital::vector_3d const& offset)
+{
+  vital::simple_camera_perspective_map pcameras;
+  pcameras.set_from_base_camera_map(cameras.cameras());
+  kwiver::arrows::core::translate_inplace(pcameras, offset);
+}
+
+
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRANSFORM(T) \
 template KWIVER_ALGO_CORE_EXPORT vital::covariance_<3,T> \
