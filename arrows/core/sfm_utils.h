@@ -262,6 +262,17 @@ majority_upright(
   vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
   vital::vector_3d const& up = vital::vector_3d(0,0,1));
 
+/// Compute the ground center of a collection of landmarks
+/**
+ * Compute the location of the center of the ground in a collection of
+ * landmarks.  This function assumes that the landmarks are already oriented
+ * with the ground normal vector aligned with the Z-axis.  It returns the
+ * median location in X and Y, and a small percentile (5%) of the height in Z.
+ */
+KWIVER_ALGO_CORE_EXPORT
+vital::vector_3d
+landmarks_ground_center(vital::landmark_map const& landmarks,
+                        double ground_frac = 0.05);
 }
 }
 }

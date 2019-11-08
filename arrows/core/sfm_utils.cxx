@@ -824,6 +824,38 @@ majority_upright(
   return net_cams_pointing_up > 0;
 }
 
+// Compute the ground center of a collection of landmarks
+vital::vector_3d
+landmarks_ground_center(vital::landmark_map const& landmarks,
+                        double ground_frac)
+{
+  const auto num_landmarks = landmarks.size();
+  if (num_landmarks == 0)
+  {
+    return vital::vector_3d(0.0, 0.0, 0.0);
+  }
+  std::vector<double> x, y, z;
+  x.reserve(num_landmarks);
+  y.reserve(num_landmarks);
+  z.reserve(num_landmarks);
+  for (auto lm : landmarks.landmarks())
+  {
+    auto v = lm.second->loc();
+    x.push_back(v[0]);
+    y.push_back(v[1]);
+    z.push_back(v[2]);
+  }
+  // compute the median in x and y
+  size_t mid = x.size() / 2;
+  std::nth_element(x.begin(), x.begin() + mid, x.end());
+  std::nth_element(y.begin(), y.begin() + mid, y.end());
+  // compute ground fraction index
+  size_t gidx = static_cast<size_t>(x.size() * ground_frac);
+  std::nth_element(z.begin(), z.begin() + gidx, z.end());
+
+  return vital::vector_3d(x[mid], y[mid], z[gidx]);
+}
+
 }
 }
 }
