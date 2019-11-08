@@ -2,9 +2,9 @@
 References
 ----------
 
-VIAME builds on top of a number of different algorithm and software,
-frameworks, in some case using them as-is, in others having custom
-implementations with a few modifications on top.
+VIAME builds on top of a number of different algorithm and software frameworks,
+in some case using them as-is, in others having custom implementations with a
+several modifications.
 
 
 ### Software Framework
