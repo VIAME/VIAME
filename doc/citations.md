@@ -14,7 +14,7 @@ underwater image and video analytics." 2017 IEEE Winter Conference on
 Applications of Computer Vision (WACV). IEEE, 2017.
 
 Video Reader - Bellard, Fabrice. "Ffmpeg multimedia system." FFmpeg.
-[Last accessed: November 2015]. https://www. ffmpeg. org/about. html (2005).
+[Last accessed: November 2015]. https://www.ffmpeg.org/about.html (2005).
 
 Deep Learning Framework - Paszke, Adam, et al. "Automatic differentiation in
 pytorch."(2017).
