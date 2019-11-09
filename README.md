@@ -233,7 +233,7 @@ run this command if you get a "cannot fetch hash #hashid" error.
 Source Code Layout
 ------------------
 <pre>
-    VIAME
+  VIAME
     ├── cmake               # CMake configuration files for subpackages
     ├── doc                 # Documentation files and manual (pre-compilation)
     ├── configs             # All system-runnable config files and models
