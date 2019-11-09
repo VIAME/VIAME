@@ -443,7 +443,7 @@ initialize_cameras_landmarks_keyframe::priv
   m_init_intrinsics_from_metadata(true),
   m_config_defines_base_intrinsics(false),
   m_do_final_sfm_cleaning(false),
-  m_force_common_intrinsics(false)
+  m_force_common_intrinsics(true)
 {
 
   }
@@ -3738,6 +3738,10 @@ initialize_cameras_landmarks_keyframe
                     "If true, write status messages to the terminal showing "
                     "debugging information");
 
+  config->set_value("force_common_intrinsics", m_priv->m_force_common_intrinsics,
+                    "If true, then all cameras will share a single set of camera "
+                    "intrinsic parameters");
+
   config->set_value("frac_frames_for_init", m_priv->m_frac_frames_for_init,
                     "fraction of keyframes used in relative pose initialization");
 
@@ -3881,6 +3885,10 @@ initialize_cameras_landmarks_keyframe
 
   m_priv->verbose = config->get_value<bool>("verbose",
                                         m_priv->verbose);
+
+  m_priv->m_force_common_intrinsics =
+    config->get_value<bool>("force_common_intrinsics",
+                            m_priv->m_force_common_intrinsics);
 
   m_priv->interim_reproj_thresh =
       config->get_value<double>("interim_reproj_thresh",
