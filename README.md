@@ -233,24 +233,24 @@ run this command if you get a "cannot fetch hash #hashid" error.
 Source Code Layout
 ------------------
 <pre>
-  VIAME
-    ├── cmake               # CMake configuration files for subpackages
-    ├── doc                 # Documentation files and manual (pre-compilation)
-    ├── configs             # All system-runnable config files and models
-    │   ├── pipelines       # All processing pipeline configs
-    │   │   └── models      # All models, which only get downloaded based on flags
-    │   ├── prj-linux       # Default linux project files
-    │   └── prj-windows     # Default windows project files 
-    ├── examples            # All runnable examples and example tutorials
-    ├── packages            # External projects used by the system
-    │   ├── kwiver          # Processing backend infastructure
-    │   ├── fletch          # Dependency builder for things which don't change often
-    │   ├── kwant           # Scoring and detector evaluation tools
-    │   ├── vivia           # Baseline desktop GUIs (v1.0)
-    │   └── ...             # Assorted other packages (typically for algorithms)
-    ├── plugins             # Integrated algorithms or wrappers around external projects
-    │   └── ...             # Assorted plugins (detectors, depth maps, filters, etc.)
-    └── README.md           # Project introduction page
+ VIAME
+   ├── cmake               # CMake configuration files for subpackages
+   ├── doc                 # Documentation files and manual (pre-compilation)
+   ├── configs             # All system-runnable config files and models
+   │   ├── pipelines       # All processing pipeline configs
+   │   │   └── models      # All models, which only get downloaded based on flags
+   │   ├── prj-linux       # Default linux project files
+   │   └── prj-windows     # Default windows project files 
+   ├── examples            # All runnable examples and example tutorials
+   ├── packages            # External projects used by the system
+   │   ├── kwiver          # Processing backend infastructure
+   │   ├── fletch          # Dependency builder for things which don't change often
+   │   ├── kwant           # Scoring and detector evaluation tools
+   │   ├── vivia           # Baseline desktop GUIs (v1.0)
+   │   └── ...             # Assorted other packages (typically for algorithms)
+   ├── plugins             # Integrated algorithms or wrappers around external projects
+   │   └── ...             # Assorted plugins (detectors, depth maps, filters, etc.)
+   └── README.md           # Project introduction page that you are reading
 </pre>
 
 
