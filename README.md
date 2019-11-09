@@ -116,7 +116,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom Applications
 contain a full installation, only with non-default features turned on, and should not be copied
-into existing installations because they are a full installation.
+into existing installations because they are a full installation and bad things will happen.
 
 Quick Build Instructions
 ------------------------
