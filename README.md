@@ -171,6 +171,7 @@ on, it's best to just leave the default enable and disable flags which will buil
 
 And a number of flags which control which system utilities and optimizations are built, e.g.:
 
+|[]()                           |                                                                                   |
 |-------------------------------|-----------------------------------------------------------------------------------|
 | VIAME_ENABLE_CUDA             | Enables CUDA (GPU) optimizations across all processes (PyTorch, etc...)           |
 | VIAME_ENABLE_CUDNN            | Enables CUDNN (GPU) optimizations across all processes                            |
@@ -183,6 +184,7 @@ And a number of flags which control which system utilities and optimizations are
 
 And lastly, a number of flags which perform more specialized functionality:
 
+|[]()                          |                                                                                    |
 |------------------------------|------------------------------------------------------------------------------------|
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                             |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                     |
