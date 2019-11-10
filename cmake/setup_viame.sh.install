@@ -72,3 +72,7 @@ fi
 export PATH=$this_dir/bin:$PATH
 export LD_LIBRARY_PATH=$this_dir/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$this_dir/lib64:$LD_LIBRARY_PATH
+
+# Show when VIAME is sourced in terminal without duplicates
+export PS1="${PS1//"(viame) "/}"
+export PS1="(viame) ${PS1//"(base) "/}"

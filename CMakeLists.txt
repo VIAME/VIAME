@@ -91,19 +91,19 @@ option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
 option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
 
 if( VIAME_DOWNLOAD_MODELS )
+  option( VIAME_DOWNLOAD_MODELS-PYTORCH     "Download default pytorch models"  ON )
   option( VIAME_DOWNLOAD_MODELS-HABCAM      "Download habcam detection models" OFF )
   option( VIAME_DOWNLOAD_MODELS-MOUSS       "Download mouss detection models"  OFF )
-  option( VIAME_DOWNLOAD_MODELS-PYTORCH     "Download default pytorch models"  ON )
   option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"   OFF )
 
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOUSS )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
 else()
+  set( VIAME_DOWNLOAD_MODELS-PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-HABCAM      OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-MOUSS       OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
 endif()
 
@@ -112,9 +112,13 @@ endif()
 #
 # If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
 # other superbuild projects (except for viame). This makes development builds
-# much quicker if just doing development only in viame.
+# much quicker if just doing development only in VIAME.
 option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
 mark_as_advanced( VIAME_FORCEBUILD )
+
+# Should we build a version of python within VIAME itself
+option( VIAME_ENABLE_PYTHON-INTERNAL "Build python within VIAME" OFF )
+mark_as_advanced( VIAME_ENABLE_PYTHON-INTERNAL )
 
 ###
 # Other advanced hidden flags used for disabling core features
