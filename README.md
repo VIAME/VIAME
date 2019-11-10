@@ -167,11 +167,11 @@ on, it's best to just leave the default enable and disable flags which will buil
 | VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)              |
 | VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                  |
 | VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                  |
-| VIAME_ENABLE_PYTORCH &nbsp;  | Installs all pytorch processes (detectors, trackers, classifiers)                  |
+| VIAME_ENABLE_PYTORCH &nbsp; &nbsp;  | Installs all pytorch processes (detectors, trackers, classifiers)                  |
 
 And a number of flags which control which system utilities and optimizations are built, e.g.:
 
-|[]()                           |                                                                                   |
+|                               |                                                                                   |
 |-------------------------------|-----------------------------------------------------------------------------------|
 | VIAME_ENABLE_CUDA             | Enables CUDA (GPU) optimizations across all processes (PyTorch, etc...)           |
 | VIAME_ENABLE_CUDNN            | Enables CUDNN (GPU) optimizations across all processes                            |
@@ -184,7 +184,7 @@ And a number of flags which control which system utilities and optimizations are
 
 And lastly, a number of flags which perform more specialized functionality:
 
-|[]()                          |                                                                                    |
+|                              |                                                                                    |
 |------------------------------|------------------------------------------------------------------------------------|
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                             |
 | VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                     |
