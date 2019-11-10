@@ -25,6 +25,18 @@ if( VIAME_ENABLE_CUDNN )
   FormatPassdowns( "CUDNN" VIAME_CUDNN_FLAGS )
 endif()
 
+if( VIAME_ENABLE_PYTHON-INTERNAL )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_CPython:BOOL=ON
+  )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_CPython:BOOL=OFF
+  )
+endif()
+
 if( VIAME_ENABLE_VXL OR VIAME_ENABLE_OPENCV OR VIAME_ENABLE_SEAL_TK )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
