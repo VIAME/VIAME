@@ -182,19 +182,21 @@ if( VIAME_ENABLE_PYTHON )
     option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
     mark_as_advanced( VIAME_SYMLINK_PYTHON )
   endif()
-  set( KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON} )
+  set( KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON} ) # Required for KWIVER scripts
 
-  find_package( PythonInterp REQUIRED )
-  find_package( PythonLibs REQUIRED )
+  if( NOT VIAME_ENABLE_PYTHON-INTERNAL )
+    find_package( PythonInterp REQUIRED )
+    find_package( PythonLibs REQUIRED )
 
-  if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
-      NOT EXISTS ${PYTHON_INCLUDE_DIR}/pyconfig.h )
-    message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
-      make sure the variable is set correctly and you have python-dev installed." )
+    if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
+        NOT EXISTS ${PYTHON_INCLUDE_DIR}/pyconfig.h )
+      message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
+        make sure the variable is set correctly and you have python-dev installed." )
+    endif()
+
+    set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+         CACHE STRING "Python version number" )
   endif()
-
-  set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-       CACHE STRING "Python version number" )
 endif()
 
 if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL_TK )
@@ -208,7 +210,7 @@ endif()
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL )
   find_package( PythonInterp QUIET )
-  if( NOT PYTHONINTERP_FOUND )
+  if( NOT PYTHONINTERP_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
     message( FATAL_ERROR "If VXL is enabled, there must be some python install located \
       on the system to build, even if VIAME_ENABLE_PYTHON is turned off for all other \
       packages. A python binary could not be found. Please install at least python." )
