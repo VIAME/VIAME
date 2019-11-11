@@ -46,7 +46,7 @@ if( VIAME_ENABLE_PYTORCH-MMDET )
     message( FATAL_ERROR "To use mmdetection you must have at least CUDA 9.0.\n\n"
                          "Install CUDA 9.0+ or disable VIAME_ENABLE_PYTORCH-MMDET" )
   endif()
-  if( PYTHON_VERSION VERSION_LESS "3.0" )
+  if( NOT VIAME_ENABLE_PYTHON-INTERNAL AND PYTHON_VERSION VERSION_LESS "3.0" )
     message( FATAL_ERROR "To use mmdetection you must have at least Python 3.0.\n\n"
                          "Use Python3 or disable VIAME_ENABLE_PYTORCH-MMDET" )
   endif()
