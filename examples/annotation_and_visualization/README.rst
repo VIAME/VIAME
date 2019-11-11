@@ -34,7 +34,7 @@ vpView Annotation Process Overview
 **********************************
 
 | `Manual Annotation Guide (PDF)`_
-| `Example Video Overview (Youtube)`_
+| `Example Video Overviews (Youtube)`_
 
 .. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5c6574668d777f072b47cbd6/download
 .. _Example Video Overviews (YouTube): https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
