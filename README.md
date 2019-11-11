@@ -194,7 +194,7 @@ And a number of flags which control which system utilities and optimizations are
 </center>
 
 
-And lastly, a number of flags which perform more specialized functionality:
+And lastly, a number of flags which build algorithms with more specialized functionality:
 
 
 <center>
@@ -209,6 +209,7 @@ And lastly, a number of flags which perform more specialized functionality:
 | VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                   |
 | VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                           |
 | VIAME_ENABLE_SEAL_TK         | Builds Seal Multi-Modality GUI                                                     |
+| VIAME_ENABLE_LANL            | Builds an additional (Matlab) scallop detector                                     |
 
 </center>
 
