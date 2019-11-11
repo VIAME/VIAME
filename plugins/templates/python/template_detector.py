@@ -73,10 +73,10 @@ class @template@_detector(KwiverProcess):
         in_img_c = self.grab_input_using_trait('image')
 
         # Get python image from conatiner (just for show)
-        in_img = in_img_c.get_image()
+        in_img = in_img_c.image()
 
         # Print out example_param to screen
-        print "Example parameter: " + str( self.example_param )
+        print('Example parameter: ' + str(self.example_param))
 
         # push dummy (empty) detections object to output port
         detections = DetectedObjectSet()
