@@ -48,7 +48,9 @@ class example_filter_process( KwiverProcess ):
 
         self.declare_config_using_trait( 'text' )
 
-        self.add_port_trait( 'out_image', 'image', 'Processed image' )
+        # Would be used if declaring a new output field 'out_image' instead
+        # of the default 'image' output name defined in KwiverProcess
+        #self.add_port_trait( 'out_image', 'image', 'Processed image' )
 
         # set up required flags
         optional = process.PortFlags()
