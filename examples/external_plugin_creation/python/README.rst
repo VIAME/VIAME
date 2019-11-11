@@ -10,3 +10,9 @@ Note: the included CMakeLists.txt file isn't actually required to run the
 python filter in VIAME, it simply copies the python library into the correct
 folder to run it so that VIAME's plugin manager picks up the file as an
 example.
+
+There are two ways to implement plugins, either as a derived class of a
+base algorithm class (e.g. image_filter) which has a simpler API, or
+as a custom pipelined process. The former is usually neater and easier,
+though the later allows more customization of inputs and outputs to
+a particular algorithm in case it's necessary.
