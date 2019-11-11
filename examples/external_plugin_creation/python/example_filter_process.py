@@ -28,7 +28,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from sprokit.pipeline import process
+
 from kwiver.kwiver_process import KwiverProcess
+
 from vital.types import Image
 from vital.types import ImageContainer
 
