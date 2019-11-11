@@ -44,6 +44,7 @@ queries on an image archive, including:
 A web-based GUI is provided which allows new queries based on an input query
 image, and the refinement of results via iterative query refinement (IQR),
 similarly to the VIAME example. IQR generates an SVM classifier on user-nominated
-positive and negative examples from the result set to refine results.
+positive and negative examples from the result set to refine results. This example
+is less maintained.
 
 .. _default: https://github.com/VIAME/VIAME/tree/master/examples/search_and_rapid_model_generation/viame_ingest
