@@ -57,7 +57,7 @@ class example_filter_process( KwiverProcess ):
 
         #  declare our input port ( port-name,flags)
         self.declare_input_port_using_trait( 'image', required )
-        self.declare_output_port_using_trait( 'out_image', optional )
+        self.declare_output_port_using_trait( 'image', optional )
 
     # --------------------------------------------------------------------------
     def _configure( self ):
@@ -77,7 +77,7 @@ class example_filter_process( KwiverProcess ):
         print( "Text: " + str( self.text ) )
 
         # push dummy detections object to output port
-        self.push_to_port_using_trait( 'out_image', ImageContainer( in_img ) )
+        self.push_to_port_using_trait( 'image', ImageContainer( in_img ) )
 
         self._base_step()
 
