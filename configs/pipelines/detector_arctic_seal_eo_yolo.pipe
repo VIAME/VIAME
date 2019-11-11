@@ -1,0 +1,51 @@
+# =============================================================================
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================================================================
+process input
+  :: video_input
+  :video_filename                              input_list.txt
+  :frame_time                                  1
+  :exit_on_invalid                             true
+  :video_reader:type                           image_list
+  :video_reader:image_list:image_reader:type   ocv
+
+# =============================================================================
+include common_arctic_seal_eo_yolo_detector.pipe
+
+connect from input.image
+        to   optical_detector_input.image
+
+# =============================================================================
+process detector_writer
+  :: detected_object_output
+
+  # Type of file to output
+  :file_name                                   detections_yolo_eo.csv
+  :writer:type                                 viame_csv
+
+connect from optical_detector_output.detected_object_set
+        to   detector_writer.detected_object_set
+
+# =============================================================================
+#process draw_box
+#:: draw_detected_object_set
+#  :draw_algo:type                              ocv
+#
+#process image_writer
+#  :: image_writer
+#  :file_name_template                          eo_detections%06d.jpg
+#  :image_writer:type                           ocv
+#
+#connect from input.image
+#        to   draw_box.image
+#connect from optical_detector_output.detected_object_set
+#        to   draw_box.detected_object_set
+#
+#connect from draw_box.image
+#        to   image_writer.image
+
+# -- end of file --
