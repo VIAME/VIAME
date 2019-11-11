@@ -26,15 +26,16 @@ set( PLUGIN_NAME "example_external_plugin" )
 
 set( PLUGIN_FILES
   example_filter.py
+  example_filter_process.py
   __init__.py
   )
 
 set( PLUGIN_PATH "viame/processes/external_example" )
 
-if( EXISTS "${VIAME_DIR}/lib/python2.7/site-packages" )
-  set( PYTHON_PATH "lib/python2.7/site-packages" )
+if( EXISTS "${VIAME_DIR}/lib/python3.6/site-packages" )
+  set( PYTHON_PATH "lib/python3.6/site-packages" )
 else()
-  set( PYTHON_PATH "lib/python2.7/dist-packages" )
+  set( PYTHON_PATH "lib/python3.6/dist-packages" )
 endif()
 
 foreach( PLUGIN_FILE ${PLUGIN_FILES} )
