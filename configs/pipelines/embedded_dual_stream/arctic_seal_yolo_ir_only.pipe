@@ -28,7 +28,7 @@ connect from in_adapt.file_name2
 
 # ==================================================================================
 
-include ../common_arctic_seal_ir_yolo_detector.pipe
+include ../common_arctic_seal_ir_tiny_yolo_detector.pipe
 
 connect from downsampler.output_3
         to   thermal_detector_input.image
