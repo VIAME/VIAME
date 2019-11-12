@@ -29,7 +29,7 @@ if( VIAME_ENABLE_TENSORFLOW )
   endif()
 endif()
 
-if( VIAME_ENABLE_ITK )
+if( VIAME_ENABLE_ITK_EXTRAS )
   list( APPEND VIAME_PYTHON_DEPS msgpack )
   list( APPEND VIAME_PYTHON_DEP_CMDS "msgpack" )
 

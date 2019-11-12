@@ -65,18 +65,19 @@ option( VIAME_ENABLE_SMQTK          "Enable SMQTK plugins"          ON )
 # Add secondary plugin enable flags
 ##
 option( VIAME_ENABLE_CAFFE          "Enable Caffe plugins"          OFF )
-option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
 option( VIAME_ENABLE_TENSORFLOW     "Enable TensorFlow plugins"     OFF )
 option( VIAME_ENABLE_MATLAB         "Enable Matlab plugins"         OFF )
 option( VIAME_ENABLE_SCALLOP_TK     "Enable ScallopTK plugin"       OFF )
 option( VIAME_ENABLE_UW_PREDICTOR   "Enable UW predictor plugin"    OFF )
 option( VIAME_ENABLE_BURNOUT        "Enable Burn-Out plugins"       OFF )
 option( VIAME_ENABLE_CAMTRAWL       "Enable Camtrawl plugin"        OFF )
+option( VIAME_ENABLE_ITK            "Enable ITK plugins"            OFF )
+option( VIAME_ENABLE_ITK_EXTRAS     "Enable ITK GUI and extra algs" OFF )
 
 mark_as_advanced( VIAME_ENABLE_CAFFE )
 mark_as_advanced( VIAME_ENABLE_BURNOUT )
-mark_as_advanced( VIAME_ENABLE_ITK )
 mark_as_advanced( VIAME_ENABLE_UW_PREDICTOR )
+mark_as_advanced( VIAME_ENABLE_ITK_EXTRAS )
 
 ###
 # Add assorted other enable flags
@@ -389,8 +390,8 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_pytorch )
   endif()
 
-  if( VIAME_ENABLE_ITK )
-    include( add_project_itk_modules )
+  if( VIAME_ENABLE_ITK_EXTRAS )
+    include( add_project_itk_extras )
   endif()
 
   if( WIN32 )
