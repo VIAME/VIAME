@@ -49,18 +49,24 @@ class ocv_stereo_depth_map::priv
 {
 public:
 
+  std::string algorithm;
+  int min_disparity;
   int num_disparities;
   int sad_window_size;
+  int block_size;
 
 #ifdef VIAME_OPENCV_VER_2
   cv::StereoBM algo;
 #else
-  cv::Ptr<cv::StereoBM> algo;
+  cv::Ptr< cv::StereoMatcher > algo;
 #endif
 
   priv()
-    : num_disparities( 0 ),
-      sad_window_size( 21 )
+    : algorithm( "BM" )
+    , min_disparity( 0 )
+    , num_disparities( 16 )
+    , sad_window_size( 21 )
+    , block_size( 3 )
   {}
 
   ~priv()
@@ -87,8 +93,11 @@ ocv_stereo_depth_map
   // Get base config from base class
   vital::config_block_sptr config = vital::algorithm::get_configuration();
 
+  config->set_value( "algorithm", d->algorithm, "Algorithm: BM or SGBM" );
+  config->set_value( "min_disparity", d->min_disparity, "Min Disparity" );
   config->set_value( "num_disparities", d->num_disparities, "Disparity count" );
   config->set_value( "sad_window_size", d->sad_window_size, "SAD window size" );
+  config->set_value( "block_size", d->block_size, "Block size" );
 
   return config;
 }
@@ -100,13 +109,38 @@ void ocv_stereo_depth_map
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config( config_in );
 
+  d->algorithm = config->get_value< std::string >( "algorithm" );
+  d->min_disparity = config->get_value< int >( "min_disparity" );
   d->num_disparities = config->get_value< int >( "num_disparities" );
   d->sad_window_size = config->get_value< int >( "sad_window_size" );
+  d->block_size = config->get_value< int >( "block_size" );
 
 #ifdef VIAME_OPENCV_VER_2
-  d->algo.init( 0, d->num_disparities, d->sad_window_size );
+  if( d->algorithm == "BM" )
+  {
+    d->algo.init( 0, d->num_disparities, d->sad_window_size );
+  }
+  else if( d->algorithm == "SGBM" )
+  {
+    throw std::runtime_error( "Unable to use type SGBM with OpenCV 2" );
+  }
+  else
+  {
+    throw std::runtime_error( "Invalid algorithm type " + d->algorithm );
+  }
 #else
-  d->algo = cv::StereoBM::create( d->num_disparities, d->sad_window_size );
+  if( d->algorithm == "BM" )
+  {
+    d->algo = cv::StereoBM::create( d->num_disparities, d->sad_window_size );
+  }
+  else if( d->algorithm == "SGBM" )
+  {
+    d->algo = cv::StereoSGBM::create( d->min_disparity, d->num_disparities, d->block_size );
+  }
+  else
+  {
+    throw std::runtime_error( "Invalid algorithm type " + d->algorithm );
+  }
 #endif
 }
 
@@ -131,7 +165,7 @@ kwiver::vital::image_container_sptr ocv_stereo_depth_map
   
   cv::Mat ocv1_gray, ocv2_gray;
 
-  if (ocv1.channels() > 1)
+  if( ocv1.channels() > 1 )
   {
     cvtColor(ocv1, ocv1_gray, CV_BGR2GRAY);
     cvtColor(ocv2, ocv2_gray, CV_BGR2GRAY);

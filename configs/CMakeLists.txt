@@ -140,6 +140,7 @@ set( CORE_PIPELINE_FILES
   pipelines/common_default_tracker.pipe
   pipelines/common_generic_detector.pipe
   pipelines/common_generic_detector_with_filter.pipe
+  pipelines/common_stab_track_homog.pipe
   pipelines/database_apply_svm_models.pipe
   pipelines/detector_default.pipe
   pipelines/detector_extract_chips.pipe
@@ -155,6 +156,7 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_to_kwa.pipe
   pipelines/full_frame_classifier_svm.pipe
   pipelines/index_default.pipe
+  pipelines/index_default.svm.pipe
   pipelines/index_default.trk.pipe
   pipelines/index_existing.pipe
   pipelines/index_full_frame.pipe
@@ -172,6 +174,7 @@ set( CORE_PIPELINE_FILES
   pipelines/tracker_default.sfd.pipe
   pipelines/tracker_generic.pipe
   pipelines/tracker_local.pipe
+  pipelines/tracker_stab_homog.pipe
   pipelines/tracker_svm_models.pipe
   pipelines/train_color_freq_aug.pipe
   pipelines/train_hue_shifting_only_aug.pipe

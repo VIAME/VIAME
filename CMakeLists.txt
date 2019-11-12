@@ -91,19 +91,19 @@ option( VIAME_INSTALL_EXAMPLES      "Install existing VIAME examples"     ON )
 option( VIAME_DOWNLOAD_MODELS       "Download example detection models"   ON )
 
 if( VIAME_DOWNLOAD_MODELS )
+  option( VIAME_DOWNLOAD_MODELS-PYTORCH     "Download default pytorch models"  ON )
   option( VIAME_DOWNLOAD_MODELS-HABCAM      "Download habcam detection models" OFF )
   option( VIAME_DOWNLOAD_MODELS-MOUSS       "Download mouss detection models"  OFF )
-  option( VIAME_DOWNLOAD_MODELS-PYTORCH     "Download default pytorch models"  ON )
   option( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL "Download seal detection models"   OFF )
 
+  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-HABCAM )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-MOUSS )
-  mark_as_advanced( VIAME_DOWNLOAD_MODELS-PYTORCH )
   mark_as_advanced( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
 else()
+  set( VIAME_DOWNLOAD_MODELS-PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-HABCAM      OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-MOUSS       OFF CACHE BOOL "Forced off" FORCE )
-  set( VIAME_DOWNLOAD_MODELS-PYTORCH     OFF CACHE BOOL "Forced off" FORCE )
   set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
 endif()
 
@@ -112,9 +112,13 @@ endif()
 #
 # If VIAME_FORCEBUILD is False, we will assume we dont need to rebuild any
 # other superbuild projects (except for viame). This makes development builds
-# much quicker if just doing development only in viame.
+# much quicker if just doing development only in VIAME.
 option( VIAME_FORCEBUILD "Enable force-building of all subpackages" ON )
 mark_as_advanced( VIAME_FORCEBUILD )
+
+# Should we build a version of python within VIAME itself
+option( VIAME_ENABLE_PYTHON-INTERNAL "Build python within VIAME" OFF )
+mark_as_advanced( VIAME_ENABLE_PYTHON-INTERNAL )
 
 ###
 # Other advanced hidden flags used for disabling core features
@@ -178,19 +182,21 @@ if( VIAME_ENABLE_PYTHON )
     option( VIAME_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
     mark_as_advanced( VIAME_SYMLINK_PYTHON )
   endif()
-  set( KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON} )
+  set( KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON} ) # Required for KWIVER scripts
 
-  find_package( PythonInterp REQUIRED )
-  find_package( PythonLibs REQUIRED )
+  if( NOT VIAME_ENABLE_PYTHON-INTERNAL )
+    find_package( PythonInterp REQUIRED )
+    find_package( PythonLibs REQUIRED )
 
-  if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
-      NOT EXISTS ${PYTHON_INCLUDE_DIR}/pyconfig.h )
-    message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
-      make sure the variable is set correctly and you have python-dev installed." )
+    if( NOT ${VIAME_DISABLE_PYTHON_CHECK} AND
+        NOT EXISTS ${PYTHON_INCLUDE_DIR}/pyconfig.h )
+      message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
+        make sure the variable is set correctly and you have python-dev installed." )
+    endif()
+
+    set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+         CACHE STRING "Python version number" )
   endif()
-
-  set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-       CACHE STRING "Python version number" )
 endif()
 
 if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL_TK )
@@ -204,7 +210,7 @@ endif()
 # VXL enabled triggers yasm to be built, requiring at least some python
 if( VIAME_ENABLE_VXL )
   find_package( PythonInterp QUIET )
-  if( NOT PYTHONINTERP_FOUND )
+  if( NOT PYTHONINTERP_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
     message( FATAL_ERROR "If VXL is enabled, there must be some python install located \
       on the system to build, even if VIAME_ENABLE_PYTHON is turned off for all other \
       packages. A python binary could not be found. Please install at least python." )
@@ -256,7 +262,7 @@ if( VIAME_ENABLE_CUDNN )
   set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )
   set( CUDNN_INCLUDE_FILE "${CUDNN_ROOT_DIR}/include/cudnn.h" CACHE INTERNAL "" FORCE )
 
-  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} AND WIN32 )
+  if( NOT EXISTS ${CUDNN_INCLUDE_FILE} )
     get_filename_component( CUDNN_ROOT_DIR_TMP "${CUDNN_ROOT_DIR_TMP}" DIRECTORY )
 
     set( CUDNN_ROOT_DIR "${CUDNN_ROOT_DIR_TMP}" CACHE INTERNAL "CUDNN root folder" FORCE )

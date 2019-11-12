@@ -25,6 +25,18 @@ if( VIAME_ENABLE_CUDNN )
   FormatPassdowns( "CUDNN" VIAME_CUDNN_FLAGS )
 endif()
 
+if( VIAME_ENABLE_PYTHON-INTERNAL )
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_CPython:BOOL=ON
+  )
+else()
+  set( fletch_DEP_FLAGS
+    ${fletch_DEP_FLAGS}
+    -Dfletch_ENABLE_CPython:BOOL=OFF
+  )
+endif()
+
 if( VIAME_ENABLE_VXL OR VIAME_ENABLE_OPENCV OR VIAME_ENABLE_SEAL_TK )
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
@@ -229,6 +241,7 @@ ExternalProject_Add(fletch
     -Dfletch_ENABLE_VXL:BOOL=${VIAME_ENABLE_VXL}
     -Dfletch_ENABLE_ITK:BOOL=${FLETCH_BUILD_ITK}
     -Dfletch_ENABLE_OpenCV:BOOL=${FLETCH_BUILD_OPENCV}
+    -Dfletch_ENABLE_OpenCV_contrib:BOOL=${FLETCH_BUILD_OPENCV}
     -DOpenCV_SELECT_VERSION:STRING=${VIAME_OPENCV_VERSION}
 
     -Dfletch_ENABLE_Caffe:BOOL=${VIAME_ENABLE_CAFFE}

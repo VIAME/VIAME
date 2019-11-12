@@ -13,16 +13,16 @@ annotation_and_visualization example folder in a VIAME installation.
 
 .. _this example online: https://github.com/VIAME/VIAME/blob/master/examples/annotation_and_visualization
 
-There are a number of GUIs in the system. As part of the VIVIA package, the vpView and vsPlay
-GUIs are useful for displaying detections, their respective probabilities, for running detectors,
-and for making new annotations in video. There are additionally simpler GUIs which can be
-enabled in .pipe files that are a part of KWIVER. For examples on how to run both of these GUIs
-see the "annotation_and_visualization" example folder. vpView can either be pointed directly to
-imagery, pointed to a compressed video file (see [install-dir]/configs/prj-*/for_videos) or given
+There are a number of GUIs in the system. As part of the VIVIA package the vpView GUI, the current
+default desktop annotator, is useful for displaying detections, their respective probabilities,
+for running existing automated detectors, and for making new annotations in video. There are
+additionally simpler GUIs which can be enabled in .pipe files. vpView can either be pointed directly
+to imagery, pointed to a compressed video file (see [install-dir]/configs/prj-*/for_videos) or given
 an input prj file that points to the location of input imagery and any optional settings (e.g.
 groundtruth, computed detections, and/or homographies for the input data). If you just want to
 use the tool to make annotations you don't need to specify the later three, and just need to
-set a DataSetSpecifier or use the File->New Project option to load imagery directly.
+set a DataSetSpecifier or [reccommended] use the File->New Project option to load imagery directly
+without a prj file. Also, see the below example guide and videos.
 
 There are 2 default run scripts in this folder. "launch_annotation_interface" launches the main
 vpview annotation and results display GUI while "run_display_pipe" runs the simpler in-pipeline
@@ -34,12 +34,10 @@ vpView Annotation Process Overview
 **********************************
 
 | `Manual Annotation Guide (PDF)`_
-| `Example Video Overview (MP4)`_, `VIMEO`_, `YouTube`_
+| `Example Video Overviews (Youtube)`_
 
 .. _Manual Annotation Guide (PDF): https://data.kitware.com/api/v1/item/5c6574668d777f072b47cbd6/download
-.. _Example Video Overview (MP4): https://data.kitware.com/api/v1/item/5d2f2f32877dfcc9020fcbe2/download
-.. _VIMEO: https://vimeo.com/user100902888
-.. _YouTube: https://youtu.be/o4_QX0DdOHU
+.. _Example Video Overviews (YouTube): https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw
 
 ************************************
 Notable Annotation GUI Shortcut Keys
@@ -53,8 +51,8 @@ vpView GUI Project File Overview
 ********************************
 
 Examples of the optional contents of loadable prj files are listed below for quick reference.
-For those not familiar with the tool, downloading the above manual is best. Project files
-no longer need to be used (imagery can be opened directly via the 'New Project' dropdown),
+For those not familiar with the tool, downloading the above manual is best. Project files are
+no longer required to be used (imagery can be opened directly via the 'New Project' dropdown),
 however, these are listed here for advanced users who may want to configure with multiple
 homographies.
 

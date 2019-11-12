@@ -30,7 +30,7 @@ Example Capabilities
 Documentation
 -------------
 
-The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download),
+The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5dc08673e3566bda4b57a493/download),
 [Tutorial Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
 and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
@@ -53,7 +53,9 @@ but select entries are also listed below broken down by individual functionality
 Pre-Built Binaries
 ------------------
 
-For a full installation guide see the quick-start slide deck above, but in summary, first install Anaconda.
+For a full installation guide see the quick-start slide deck above, but in summary, first install
+Anaconda3. Exactly version 5.2.0 is required, not a higher or lower version (at build time, VIAME can be built
+against any version of Anaconda or Python, though the installers are locked into a specific version).
 Secondly, extract the binaries and place them in a directory of your choosing, for example C:\Program Files\VIAME
 on Windows or /opt/noaa/viame on Linux. Next, if Anaconda was installed to a non-default location, set the
 PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or setup_viame.bat (Windows) script in the root
@@ -79,51 +81,54 @@ CentOS
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d510b0cd3cb600adb506294/download) <br>
-[VIAME v0.9.16 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1EqriqlcKj2VZ7hPzvxRvCMCs6u-QuTpG) <br>
-[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d422875877dfcc9023e3bc0/download) <br>
-[VIAME v0.9.16 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1wuw5-yekax2PWayCaZv8yF_uhqX2em34)
+[VIAME v0.9.17 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dae1062d35580e6dcb0ef2f/download) <br>
+[VIAME v0.9.17 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=134PTrNUmixp4VV9arwn6pdaVNN6rAvhw) <br>
+[VIAME v0.9.18 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dc3b6b2e3566bda4b6613bb/download) <br>
+[VIAME v0.9.18 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1QiO3uRPvfYoZn0HR4HaGCbWINet76j5y)
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5d56ed3785f25b11ff323b50/download) <br>
-[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1js74hPySv2CmDDTgFqUI8svFHELWGW6d) <br>
-[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/file/5d55cfd085f25b11ff2fc648/download) <br>
-[VIAME v0.9.16 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1c3K5-nBvGgQlUkT_iMOhe1WP2ZxmGsQi)
+[VIAME v0.9.18 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dbc6004e3566bda4b4eea11/download) <br>
+[VIAME v0.9.18 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1JwhG86iG7vUildPr3N68kMMdwXkNv3pz) <br>
+[VIAME v0.9.17 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5db09084e3566bda4b0a8bb8/download) <br>
+[VIAME v0.9.17 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1AhgLWqAb4AfrMF7NA5Fo9-a8_O6HyJ1-)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
 **Web Applications**: <br>
-[Experimental Online Annotator](https://images.slide-atlas.org/#collection/5b68666270aaa94f2e5bd975/folder/5b68667670aaa94f2e5bd976) <br>
+[VIAME Web Repository (Under Development)](https://github.com/VIAME/VIAME-Web) <br>
+[VIAME Deprecated Web Annotator](https://images.slide-atlas.org/#collection/5b68666270aaa94f2e5bd975/folder/5b68667670aaa94f2e5bd976)
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
-[Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5d3a83cf877dfcc9022fb5aa/download) <br>
-[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5d76d351d35580e6dcfbd51b/download) <br>
+[Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5d7bb82fd35580e6dc0fb5af/download) <br>
+[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5d7a6c19d35580e6dc0abb0b/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5d016fbf8d777f072b2955c9/download) <br>
-[Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5cded9828d777f072bb46eba/download) <br>
+[Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Model Set 2 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5d5d84d185f25b11ff427b4e/download)
 
 **Custom Applications:** <br>
-[Seal Dual Display GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5d6f7d23d35580e6dce05795/download) <br>
-[Seal Dual Display GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5d72c148d35580e6dcef09a5/download)
+[Seal Multi-View GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5d8c8347d35580e6dc44e7d4/download) <br>
+[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5d8d37bed35580e6dc46a3f8/download) <br>
+[Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5d8d3867d35580e6dc46aad8/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom Applications
 contain a full installation, only with non-default features turned on, and should not be copied
-into existing installations because they are a full installation.
+into existing installations because they are a full installation and bad things will happen.
 
 Quick Build Instructions
 ------------------------
 
 These instructions are intended for developers or those interested in building the latest
 master branch. More in-depth build instructions can be found [here](examples/building_and_installing_viame),
-but VIAME itself can be built either as a super-build, which builds most of its
+but the software can be built either as a super-build, which builds most of its
 dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
 [Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
 If using the command line, run the following commands, only replacing [source-directory] and
-[build-directory] with locations of your choice:
+[build-directory] with locations of your choice. While these directories can be the same, it's good
+practice to have a 'src' checkout then a seperate 'build' directory:
 
 	git clone https://github.com/VIAME/VIAME.git [source-directory]
 
@@ -142,12 +147,12 @@ using 'ccmake' or the cmake GUI, and then build with the following command on Li
 	make -j8
 
 Or alternatively by building it in Visual Studio or your compiler of choice on
-Windows. The '-j8' tells the build to run multi-threaded using 8 threads, this is
-useful for a faster build though if you get an error it can be difficult to know
-here it was, in which case running just 'make' might be more helpful. For Windows,
+Windows. '-j8' tells the build to run multi-threaded using 8 threads, this is
+useful for a faster build though if you get an error it can be difficult to see
+it, in which case running just 'make' might be more helpful. For Windows,
 currently VS2017 is the desired compiler, though select versions of 2015 and 2019
 also work. If using CUDA, version 9.0 and above, with CUDNN 7.0 and above is desired,
-in particular we recommend CUDA 9.2 or 10.0. On both Windows and Linux it can also be
+in particular we recommend CUDA 10. On both Windows and Linux it can also be
 beneficial to use Anaconda to get multiple standard python packages. Boost Python
 (turned on by default when Python is enabled) requires Numpy and a few other dependencies.
 
@@ -155,22 +160,17 @@ There are several optional arguments to viame which control which plugins get bu
 such as those listed below. If a plugin is enabled that depends on another dependency
 such as OpenCV) then the dependency flag will be forced to on. If uncertain what to turn
 on, it's best to just leave the default enable and disable flags which will build most
-(though not all) functionalities.
+(though not all) functionalities. These are core components we recommend leaving turned on:
 
 
 <center>
 
-| Flag                         | Description                                                                           |
-|------------------------------|---------------------------------------------------------------------------------------|
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)                 |
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                     |
-| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                     |
-| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
-| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
-| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |
-| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                         |
-| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                      |
+| Flag                         | Description                                                                        |
+|------------------------------|------------------------------------------------------------------------------------|
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)              |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                  |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                  |
+| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                  |
 
 </center>
 
@@ -180,18 +180,39 @@ And a number of flags which control which system utilities and optimizations are
 
 <center>
 
-| Flag                         | Description                                                                                 |
-|------------------------------|---------------------------------------------------------------------------------------------|
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, Caffe, etc...)               |
-| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
-| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)                     |
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                                 |
-| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
-| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                  |
-| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                          |
-| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models              |
+| Flag                         | Description                                                                        |
+|------------------------------|------------------------------------------------------------------------------------|
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (PyTorch, etc...)            |
+| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                             |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)            |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                        |
+| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree) |
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)         |
+| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                 |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models     |
 
 </center>
+
+
+And lastly, a number of flags which build algorithms with more specialized functionality:
+
+
+<center>
+
+| Flag                         | Description                                                                        |
+|------------------------------|------------------------------------------------------------------------------------|
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                             |
+| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                     |
+| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                       |
+| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                      |
+| VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                       |
+| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                   |
+| VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                           |
+| VIAME_ENABLE_SEAL_TK         | Builds Seal Multi-Modality GUI                                                     |
+| VIAME_ENABLE_LANL            | Builds an additional (Matlab) scallop detector                                     |
+
+</center>
+
 
 Update Instructions
 -------------------
@@ -210,9 +231,37 @@ Just in case the address of submodules has changed. You only need to
 run this command if you get a "cannot fetch hash #hashid" error.
 
 
-License and Citation
---------------------
+Source Code Layout
+------------------
+<pre>
+ VIAME
+   ├── cmake               # CMake configuration files for subpackages
+   ├── doc                 # Documentation files and manual (pre-compilation)
+   ├── configs             # All system-runnable config files and models
+   │   ├── pipelines       # All processing pipeline configs
+   │   │   └── models      # All models, which only get downloaded based on flags
+   │   ├── prj-linux       # Default linux project files
+   │   └── prj-windows     # Default windows project files 
+   ├── examples            # All runnable examples and example tutorials
+   ├── packages            # External projects used by the system
+   │   ├── kwiver          # Processing backend infastructure
+   │   ├── fletch          # Dependency builder for things which don't change often
+   │   ├── kwant           # Scoring and detector evaluation tools
+   │   ├── vivia           # Baseline desktop GUIs (v1.0)
+   │   └── ...             # Assorted other packages (typically for algorithms)
+   ├── plugins             # Integrated algorithms or wrappers around external projects
+   │   └── ...             # Assorted plugins (detectors, depth maps, filters, etc.)
+   └── README.md           # Project introduction page that you are reading
+</pre>
+
+
+License, Citations, and Acknowledgements
+----------------------------------------
 
 VIAME is released under a BSD-3 license.
 
-A non-exhaustive list of relevant papers used within VIAME can be found [here](doc/citations.md).
+A non-exhaustive list of relevant papers used within the project alongside contributors
+can be found [here](doc/citations.md).
+
+VIAME was developed with funding from multiple sources, with special thanks
+to those listed [here](doc/acknowledgements.md).

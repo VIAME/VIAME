@@ -33,6 +33,7 @@
 #include <vital/plugin_loader/plugin_loader.h>
 
 #include "align_multimodal_imagery_process.h"
+#include "extract_desc_ids_for_training_process.h"
 #include "filter_frame_process.h"
 #include "write_homography_list_process.h"
 
@@ -61,6 +62,16 @@ register_factories( kwiver::vital::plugin_loader& vpm )
                     module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Align multimodal images that may be out of sync" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    ;
+
+  fact = vpm.ADD_PROCESS( viame::core::extract_desc_ids_for_training_process );
+  fact->add_attribute(  kwiver::vital::plugin_factory::PLUGIN_NAME,
+                        "extract_desc_ids_for_training" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME,
+                    module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Extract descriptor IDs overlapping with groundtruth" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     ;
 

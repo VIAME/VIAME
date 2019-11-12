@@ -39,14 +39,6 @@ process random_hue
 connect from random_grey.image
         to   random_hue.image
 
-process image_writer
- :: image_writer
- :image_writer:type                             vxl
- :image_writer:vxl:split_channels               false
-
-connect from random_hue.image
-        to   image_writer.image
-
 # ==============================================================================
 
 process tracks_to_detections
@@ -60,7 +52,7 @@ process detector_trainer
 
   block trainer:ocv_windowed
     :train_directory                            deep_training
-    :mode                                       adaptive
+    :mode                                       chip_and_original
     :scale                                      1.25
     :chip_width                                 1333
     :chip_height                                800
@@ -80,6 +72,7 @@ process detector_trainer
     :mmdet:launcher                             none
     :mmdet:random_seed                          none
     :mmdet:validate                             false
+    :mmdet:train_in_new_process                 true
   endblock
 
 connect from in_adapt.object_track_set

@@ -3,6 +3,7 @@
 import sys
 import os
 import shutil
+import math
 import numpy as np
 import argparse
 import contextlib
@@ -38,17 +39,6 @@ track_ext = "_tracks.csv"
 
 default_pipeline = "pipelines" + div + "index_default.pipe"
 no_pipeline = "none"
-
-detector_list = [ \
-  'detector:detector:darknet', \
-  'detector1:detector:darknet', \
-  'detector2:detector:darknet', \
-  'detector:detector:scallop_tk', \
-  'detector1:detector:scallop_tk', \
-  'detector1:detector:scallop_tk', \
-  'detector:detector:tensorflow', \
-  'detector1:detector:tensorflow', \
-  'detector2:detector:tensorflow' ];
 
 # Global flag to see if any video has successfully completed processing
 any_video_complete = False
@@ -185,7 +175,7 @@ def find_file( filename ):
   else:
     exit_with_error( "Unable to find " + filename )
 
-def make_filelist_for_image_dir( input_dir, output_dir, output_name ):
+def make_filelist_for_dir( input_dir, output_dir, output_name ):
   # The most common extension in the folder is most likely images.
   # Sometimes people have small text files alongside the images
   # so just choose the most common filetype.
@@ -218,6 +208,49 @@ def make_filelist_for_image_dir( input_dir, output_dir, output_name ):
 def signal_handler( signal, frame ):
   log_info( lb1 )
   exit_with_error( 'Processing aborted, see you next time' )
+
+def file_length( filename ):
+  with open( filename, 'r' ) as f:
+    for i, l in enumerate( f ):
+      pass
+  return i + 1
+
+def split_image_list( image_list_file, n, dir ):
+  """Create and return the paths to n temp files that when appended
+  reproduce the original file.  The names are created
+  deterministically like "orig_name_part0.ext", "orig_name_part1.ext",
+  etc., but with the original name used as is when n == 1.
+
+  Existing files with the same names are overwritten without question.
+  Deleting the files is the responsibility of the caller.
+
+  """
+  input_basename = os.path.basename( image_list_file )
+  if n == 1:
+    new_file_names = [ input_basename ]
+  else:
+    prefix, suffix = os.path.splitext( input_basename )
+    num_width = len( str( n - 1 ) )
+    new_file_names = [
+      prefix + '_part{:0{}}'.format( i, num_width ) + suffix
+      for i in range( n )
+    ]
+  new_file_names = [ os.path.join( dir, fn ) for fn in new_file_names ]
+
+  try:
+    # Build manually to have the intermediate state in case of error
+    temp_files = []
+    divisor = math.floor( file_length( image_list_file ) / n ) + 1
+    for fn in new_file_names:
+      temp_files.append( open( fn, 'w' ) )
+    with open( image_list_file ) as f:
+      for i, line in enumerate( f ):
+        temp_index = int( math.floor( i / divisor ) )
+        temp_files[ temp_index ].write( line )
+  finally:
+    for f in temp_files:
+      f.close()
+  return new_file_names
 
 def fset( setting_str ):
   return ['-s', setting_str]
@@ -287,6 +320,24 @@ def video_frame_rate_settings_list( options ):
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
   return output
 
+def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id ):
+  output = []
+  if len( gt_files ) == 0:
+    exit_with_error( "Directory " + basename + " contains no GT files" )
+  elif len( gt_files ) > 1:
+    exit_with_error( "Directory " + basename + " contains multiple GT files" )
+  else:
+    if gpu_id > 0:
+      output_extension = str( gpu_id ) + '.lbl'
+    else:
+      output_extension = 'lbl'
+    output += fset( 'detection_reader:file_name=' + gt_files[0] )
+    output += fset( 'detection_reader:reader:type=' + options.auto_detect_gt )
+    output += fset( 'write_descriptor_ids:category_file=' + options.input_dir + "/labels.txt" )
+    output += fset( 'write_descriptor_ids:output_directory=' + options.output_directory )
+    output += fset( 'write_descriptor_ids:output_extension=' + output_extension )
+  return output
+
 def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
@@ -298,7 +349,10 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     gpu = 0
 
   multi_threaded = ( options.gpu_count * options.pipes > 1 )
+  auto_detect_gt = ( len( options.auto_detect_gt ) > 0 )
+
   input_basename = os.path.basename( input_name )
+  input_ext = os.path.splitext( input_name )[1]
 
   if multi_threaded:
     log_info( 'Processing: {} on GPU {}'.format( input_basename, gpu ) + lb1 )
@@ -307,19 +361,36 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
 
   # Get video name without extension and full path
   if len( base_ovrd ) > 0:
-    basename = base_ovrd
+    basename_no_ext = base_ovrd
   else:
-    basename = os.path.splitext( input_basename )[0]
+    basename_no_ext = os.path.splitext( input_basename )[0]
 
   # Formulate input setting string
-  if not os.path.exists( input_name ):
+  if auto_detect_gt:
+    if options.auto_detect_gt == 'habcam' or 'csv' in options.auto_detect_gt:
+      gt_ext = '.csv'
+    elif options.auto_detect_gt[0] != '.':
+      gt_ext = '.' + options.auto_detect_gt
+    else:
+      gt_ext = options.auto_detect_gt
+
+  if not is_image_list and \
+      ( input_ext == '.csv' or input_ext == '.txt' or input_name == "__pycache__" ):
+    if multi_threaded:
+      log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
+    else:
+      log_info( 'Skipped' + lb1 )
+    return
+  elif not os.path.exists( input_name ):
     if multi_threaded:
       log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
     else:
       log_info( 'Skipped' + lb1 )
     return
   elif os.path.isdir( input_name ):
-    input_name = make_filelist_for_image_dir( input_name, options.output_directory, basename )
+    if auto_detect_gt:
+      gt_files = list_files_in_dir_w_ext( input_name, gt_ext )
+    input_name = make_filelist_for_dir( input_name, options.output_directory, basename_no_ext )
     if len( input_name ) == 0:
       if multi_threaded:
         log_info( 'Skipped {} on GPU {}'.format( input_basename, gpu ) + lb1 )
@@ -327,6 +398,9 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
         log_info( 'Skipped' + lb1 )
       return
     is_image_list = True
+  elif auto_detect_gt:
+    input_path = os.path.dirname( os.path.abspath( input_name ) )
+    gt_files = list_files_in_dir_w_ext( input_path, gt_ext )
 
   # Formulate command
   input_settings = fset( 'input:video_filename=' + input_name )
@@ -341,10 +415,13 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
               input_settings )
 
   command += video_frame_rate_settings_list( options )
-  command += video_output_settings_list( options, basename )
+  command += video_output_settings_list( options, basename_no_ext )
   command += archive_dimension_settings_list( options )
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
+
+  if auto_detect_gt:
+    command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
@@ -364,7 +441,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   # Process command, possibly with logging
   log_base = ""
   if len( options.log_directory ) > 0 and not options.debug:
-    log_base = options.output_directory + div + options.log_directory + div + basename
+    log_base = options.output_directory + div + options.log_directory + div + basename_no_ext
     with get_log_output_files( log_base ) as kwargs:
       res = execute_command( command, gpu=gpu, **kwargs )
   else:
@@ -405,41 +482,6 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
         exit_with_error( 'Processing failed, terminating.' )
     elif len( log_base ) > 0:
       log_info( lb1 + 'Check ' + log_base + '.txt for error messages' + lb2 )
-
-def split_image_list(image_list_file, n, dir):
-  """Create and return the paths to n temp files that when interlaced
-  reproduce the original file.  The names are created
-  deterministically like "orig_name_part0.ext", "orig_name_part1.ext",
-  etc., but with the original name used as is when n == 1.
-
-  Existing files with the same names are overwritten without question.
-  Deleting the files is the responsibility of the caller.
-
-  """
-  bn = os.path.basename(image_list_file)
-  if n == 1:
-    file_names = [bn]
-  else:
-    prefix, suffix = os.path.splitext(bn)
-    num_width = len(str(n - 1))
-    file_names = [
-      prefix + '_part{:0{}}'.format(i, num_width) + suffix
-      for i in range(n)
-    ]
-  file_names = [os.path.join(dir, fn) for fn in file_names]
-
-  try:
-    # Build manually to have the intermediate state in case of error
-    tempfiles = []
-    for fn in file_names:
-      tempfiles.append(open(fn, 'w'))
-    with open(image_list_file) as f:
-      for i, line in enumerate(f):
-        tempfiles[i % n].write(line)
-  finally:
-    for f in tempfiles:
-      f.close()
-  return file_names
 
 # Main Function
 if __name__ == "__main__" :
@@ -530,6 +572,9 @@ if __name__ == "__main__" :
 
   parser.add_argument("-plot-dir-prefix", dest="plot_dir_prefix", default="plots",
                       help="Directory prefix to dump detection plots into")
+
+  parser.add_argument("-auto-detect-gt", dest="auto_detect_gt", default="",
+                      help="Automatically pass to pipes GT of this type if present")
 
   parser.add_argument("--init-db", dest="init_db", action="store_true",
                       help="Re-initialize database")

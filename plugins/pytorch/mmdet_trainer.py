@@ -68,6 +68,8 @@ class MMDetTrainer( TrainDetector ):
     self._random_seed = "none"
     self._validate = "false"
     self._tmp_annotation_file = "annotations.pickle"
+    self._train_in_new_process = ( os.name == 'nt' )
+    self._categories = []
 
   def get_configuration( self ):
     # Inherit from the base class
@@ -83,6 +85,7 @@ class MMDetTrainer( TrainDetector ):
     cfg.set_value( "launcher", str( self._launcher ) )
     cfg.set_value( "random_seed", str( self._random_seed ) )
     cfg.set_value( "validate", str( self._validate ) )
+    cfg.set_value( "train_in_new_process", str( self._train_in_new_process ) )
 
     return cfg
 
@@ -99,6 +102,7 @@ class MMDetTrainer( TrainDetector ):
     self._gpu_count = int( cfg.get_value( "gpu_count" ) )
     self._launcher = str( cfg.get_value( "launcher" ) )
     self._validate = strtobool( cfg.get_value( "validate" ) )
+    self._train_in_new_process = strtobool( cfg.get_value( "train_in_new_process" ) )
 
     self._training_data = []
 
@@ -191,7 +195,8 @@ class MMDetTrainer( TrainDetector ):
       print( "Error: train file and groundtruth count mismatch" )
       return
 
-    self._categories = categories.all_class_names()
+    if categories is not None:
+      self._categories = categories.all_class_names()
 
     for filename, groundtruth in zip( train_files, train_dets ):
       entry = dict()
@@ -209,17 +214,25 @@ class MMDetTrainer( TrainDetector ):
 
       for i, item in enumerate( groundtruth ):
 
-        obj_id = item.type().get_most_likely_class()
+        class_lbl = item.type().get_most_likely_class()
 
-        if categories.has_class_id( obj_id ):
+        if categories is not None and not categories.has_class_id( class_lbl ):
+          continue
 
-          obj_box = [ [ item.bounding_box().min_x(),
-                        item.bounding_box().min_y(),
-                        item.bounding_box().max_x(),
-                        item.bounding_box().max_y() ] ]
+        obj_box = [ [ item.bounding_box().min_x(),
+                      item.bounding_box().min_y(),
+                      item.bounding_box().max_x(),
+                      item.bounding_box().max_y() ] ]
 
-          boxes = np.append( boxes, obj_box, axis = 0 )
-          labels = np.append( labels, categories.get_class_id( obj_id ) + 1 )
+        if categories is not None:
+          class_id = categories.get_class_id( class_lbl ) + 1
+        else:
+          if class_lbl not in self._categories:
+            self._categories.append( class_lbl )
+          class_id = self._categories.index( class_lbl ) + 1
+
+        boxes = np.append( boxes, obj_box, axis = 0 )
+        labels = np.append( labels, class_id )
 
       annotations["bboxes"] = boxes.astype( np.float32 )
       annotations["labels"] = labels.astype( np.int_ )
@@ -238,10 +251,12 @@ class MMDetTrainer( TrainDetector ):
 
   def update_model( self ):
 
-    if os.name == 'nt':
+    if self._train_in_new_process:
       self.external_update()
     else:
       self.internal_update()
+
+    print( "\nModel training complete!\n" )
 
   def internal_update( self ):
     self.load_network()
@@ -255,14 +270,7 @@ class MMDetTrainer( TrainDetector ):
 
     train_dataset = CustomDataset(
       self._groundtruth_store,
-      '.',
-      self._cfg.data.train.img_scale,
-      self._cfg.data.train.img_norm_cfg,
-      size_divisor = self._cfg.data.train.size_divisor,
-      flip_ratio = self._cfg.data.train.flip_ratio,
-      with_mask = self._cfg.data.train.with_mask,
-      with_crowd = self._cfg.data.train.with_crowd,
-      with_label = self._cfg.data.train.with_label )
+      self._cfg.train_pipeline )
 
     from mmdet.apis import train_detector
 
@@ -359,11 +367,6 @@ class MMDetTrainer( TrainDetector ):
 
     average_height = int( self._training_height_sum / self._sample_count )
     average_width = int( self._training_width_sum / self._sample_count )
-
-    if average_height > 2000 or average_width > 2000:
-      images_per_gpu = "1"
-      workers_per_gpu = "2"
-      base_size = "(2000, 2000)"
 
     repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self._categories)+1) ],
                   [ "[-IMAGE_SCALE_INSERT-]", base_size ],
