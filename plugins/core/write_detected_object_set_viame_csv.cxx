@@ -166,7 +166,7 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
   if( !set )
   {
     ++d->m_frame_number;
-    return
+    return;
   }
 
   auto ie = set->cend();
