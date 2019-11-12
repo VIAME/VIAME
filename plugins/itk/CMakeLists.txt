@@ -40,12 +40,8 @@ kwiver_add_library( viame_itk
   )
 
 target_link_libraries( viame_itk
-  PUBLIC               kwiver::vital
-                       kwiver::vital_algo
-                       kwiver::vital_config
-                       kwiver::vital_exceptions
-                       kwiver::vital_logger
-                       kwiver::vital_util
+  PUBLIC               kwiver::vital kwiver::vital_algo kwiver::vital_config
+                       kwiver::vital_exceptions kwiver::vital_logger kwiver::vital_util
                        kwiver::kwiversys
                        ITKCommon
   PRIVATE              ITKLabelMap ITKPath ITKOptimizersv4 ITKOptimizers
@@ -109,13 +105,8 @@ if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
                      ${private_headers}
     PRIVATE          kwiver::sprokit_pipeline
                      viame_itk
-                     kwiver::vital
-                     kwiver::vital_vpm
-                     kwiver::vital_logger
-                     kwiver::vital_config
-                     kwiver::kwiver_algo_core
-                     kwiver::kwiver_algo_ocv
-                     kwiver::kwiversys
+                     kwiver::vital kwiver::vital_vpm kwiver::vital_logger kwiver::vital_config
+                     kwiver::kwiver_algo_core kwiver::kwiver_algo_ocv kwiver::kwiversys
                      ${OpenCV_LIBS}
                      ITKIOTransformBase ITKTransformFactory
                      ITKIOTransformInsightLegacy
