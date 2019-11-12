@@ -389,6 +389,10 @@ if( VIAME_BUILD_DEPENDENCIES )
     include( add_project_pytorch )
   endif()
 
+  if( VIAME_ENABLE_ITK )
+    include( add_project_itk_modules )
+  endif()
+
   if( WIN32 )
     include( add_project_postgres )
   endif()
@@ -514,14 +518,7 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
     if( VIAME_ENABLE_SEAL_TK )
-      set( VIAME_SEAL_SCRIPT_FILE    "${VIAME_BINARY_DIR}/launch_seal_interface.bat" )
-
-      configure_file(
-        ${VIAME_CMAKE_DIR}/launch_seal_interface.bat.in
-        ${VIAME_SEAL_SCRIPT_FILE}
-      )
-
-      install( PROGRAMS      ${VIAME_SEAL_SCRIPT_FILE}
+      install( FILES        "${VIAME_CMAKE_DIR}/launch_seal_interface.bat"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
   else()
@@ -536,16 +533,8 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
     if( VIAME_ENABLE_SEAL_TK )
-      set( VIAME_SEAL_SCRIPT_FILE    "${VIAME_BINARY_DIR}/launch_seal_interface.sh" )
-
-      configure_file(
-        ${VIAME_CMAKE_DIR}/launch_seal_interface.sh.in
-        ${VIAME_SEAL_SCRIPT_FILE}
-      )
-
-      install( PROGRAMS      ${VIAME_SEAL_SCRIPT_FILE}
+      install( FILES        "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
-
     endif()
   endif()
 

@@ -71,8 +71,10 @@ target_link_libraries( viame_itk_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
+
 # Add KWIVER plugin registration
 if( VIAME_ENABLE_VXL AND VIAME_ENABLE_OPENCV )
+
   set( process_sources
     ../core/align_multimodal_imagery_process.cxx
 
@@ -131,3 +133,6 @@ target_link_libraries( itk_3_transform_point_set_and_image ${ITK_LIBRARIES} )
 
 #kwiver_add_executable( itk_eo_ir_registration RegistrationTool.cxx )
 #target_link_libraries( itk_eo_ir_registration viame_itk )
+
+kwiver_add_executable( itk_point_set_to_transform PointSetToTransform.cxx )
+target_link_libraries( itk_point_set_to_transform ${ITK_LIBRARIES} )

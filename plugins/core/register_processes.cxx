@@ -38,7 +38,7 @@
 #include "write_homography_list_process.h"
 
 // -----------------------------------------------------------------------------
-/*! \brief Regsiter processes
+/*! \brief Registers processes
  *
  */
 extern "C"

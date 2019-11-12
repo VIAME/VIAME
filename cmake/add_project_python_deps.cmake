@@ -29,6 +29,35 @@ if( VIAME_ENABLE_TENSORFLOW )
   endif()
 endif()
 
+if( VIAME_ENABLE_ITK )
+  list( APPEND VIAME_PYTHON_DEPS msgpack )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "msgpack" )
+
+  list( APPEND VIAME_PYTHON_DEPS wxPython )
+
+  if( UNIX )
+    if( EXISTS "/etc/os-release" )
+      ParseLinuxOSField( "ID" OS_ID )
+    endif()
+
+    execute_process( COMMAND lsb_release -cs
+      OUTPUT_VARIABLE RELEASE_CODENAME
+      OUTPUT_STRIP_TRAILING_WHITESPACE )
+
+    if( "${OS_ID}" MATCHES "centos" )
+      set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/centos-7 )
+      list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython" )
+    elseif( "${RELEASE_CODENAME}" MATCHES "xenial" )
+      set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 )
+      list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython" )
+    else()
+      list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython" )
+    endif()
+  else()
+    list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython" )
+  endif()
+endif()
+
 if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_DEPS torch )
   list( APPEND VIAME_PYTHON_DEPS torchvision )

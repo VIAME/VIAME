@@ -45,7 +45,7 @@ connect from thermal_detector.detected_object_set
 #
 #connect from thermal_detector.image_norm
 #        to   draw_box.image
-#connect from detector.detected_object_set
+#connect from thermal_detector.detected_object_set
 #        to   draw_box.detected_object_set
 #
 #connect from draw_box.image

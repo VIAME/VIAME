@@ -6,6 +6,6 @@ export VIAME_INSTALL=./../..
 
 source ${VIAME_INSTALL}/setup_viame.sh
 
-# Run vpView
+# Run pipeline
 
-${VIAME_INSTALL}/vpView.app/Contents/MacOS/vpView
+python ${VIAME_INSTALL}/lib/python3.6/site-packages/keypointgui/gui.py

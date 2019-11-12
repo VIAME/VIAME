@@ -6,7 +6,7 @@ set( EXAMPLE_INSTALL_FILES
      input_image_list_habcam.txt
      input_image_list_small_set.txt )
 
-if( VIAME_ENABLE_PYTORCH )
+if( VIAME_DOWNLOAD_MODELS AND VIAME_ENABLE_PYTORCH-MMDET )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
@@ -20,7 +20,7 @@ if( VIAME_ENABLE_PYTORCH )
   endif()
 endif()
 
-if( VIAME_ENABLE_YOLO )
+if( VIAME_DOWNLOAD_MODELS-HABCAM AND VIAME_ENABLE_YOLO )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
@@ -29,6 +29,18 @@ if( VIAME_ENABLE_YOLO )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          run_habcam.sh )
+  endif()
+endif()
+
+if( VIAME_DOWNLOAD_MODELS-HABCAM AND VIAME_ENABLE_SCALLOP_TK )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_scallop_tk.bat )
+  else()
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         run_scallop_tk.sh )
   endif()
 endif()
 
@@ -44,27 +56,41 @@ if( VIAME_ENABLE_MATLAB )
   endif()
 endif()
 
-if( VIAME_ENABLE_SCALLOP_TK )
-  if( WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_tk.bat )
-  else()
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_scallop_tk.sh )
-  endif()
-endif()
+if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
 
-if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-  if( NOT WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         input_image_list_seal_eo.txt
-         input_image_list_seal_ir.txt
-         run_arctic_seal_fusion_yolo.sh
-         run_arctic_seal_eo_tf.sh
-         run_arctic_seal_ir_tf.sh )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       input_image_list_seal_eo.txt
+       input_image_list_seal_ir.txt )
+
+  if( VIAME_ENABLE_TENSORFLOW )
+    if( WIN32 )
+      set( EXAMPLE_INSTALL_FILES
+           ${EXAMPLE_INSTALL_FILES}
+           run_arctic_seal_eo_tf.bat
+           run_arctic_seal_ir_tf.bat )
+    else()
+      set( EXAMPLE_INSTALL_FILES
+           ${EXAMPLE_INSTALL_FILES}
+           run_arctic_seal_eo_tf.sh
+           run_arctic_seal_ir_tf.sh )
+    endif()
+  endif()
+
+  if( VIAME_ENABLE_YOLO )
+    if( WIN32 )
+      set( EXAMPLE_INSTALL_FILES
+           ${EXAMPLE_INSTALL_FILES}
+           run_arctic_seal_fusion_yolo.bat
+           run_arctic_seal_eo_yolo.bat
+           run_arctic_seal_ir_yolo.bat )
+    else()
+      set( EXAMPLE_INSTALL_FILES
+           ${EXAMPLE_INSTALL_FILES}
+           run_arctic_seal_fusion_yolo.sh
+           run_arctic_seal_eo_yolo.sh
+           run_arctic_seal_ir_yolo.sh )
+    endif()
   endif()
 endif()
 
