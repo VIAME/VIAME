@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,12 @@
 
 #include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
-#include <sprokit/pipeline_util/pipe_bakery.h>
-#include <sprokit/pipeline/types.h>
-
 #include <vital/vital_types.h>
 #include <vital/noncopyable.h>
+#include <vital/config/config_block_types.h>
+
+#include <sprokit/pipeline/types.h>
+#include <sprokit/pipeline_util/pipe_bakery.h>
 
 #include <istream>
 #include <string>
@@ -80,7 +81,43 @@ public:
    * from the stream. The directory portion is used when resolving
    * included files and relpath specifiers.
    */
-  void load_pipeline(std::istream& istr, std::string const& def_file = "" );
+  void load_pipeline(std::istream& istr, kwiver::vital::path_t const& def_file = "" );
+
+  /**
+   * \brief Load pipeline configuration from file name.
+   *
+   * This method loads the pipeline configuration into the
+   * builder. This can be used to add additional configuration files
+   * to the internal pipeline representation.
+   *
+   * \param def_file The name of the pipeline file to use.
+   */
+  void load_pipeline( kwiver::vital::path_t const& def_file );
+
+  /**
+   * \brief Load cluster from stream.
+   *
+   * This method loads the cluster into the builder. This can be used
+   * to add additional configuration files to the internal pipeline
+   * representation.
+   *
+   * \param istr Stream containing the textual cluster definition.
+   * \param def_file The default file name used when reporting errors
+   * from the stream. The directory portion is used when resolving
+   * included files and relpath specifiers.
+   */
+  void load_cluster( std::istream& istr, kwiver::vital::path_t const& def_file = "" );
+
+  /**
+   * \brief Load cluster from file name.
+   *
+   * This method loads the cluster into the builder. This can be used
+   * to add additional configuration files to the internal pipeline
+   * representation.
+   *
+   * \param def_file The name of the cluster file to use.
+   */
+  void load_cluster( kwiver::vital::path_t const& def_file );
 
   /**
    * \brief Load supplemental data into pipeline description.
@@ -89,7 +126,7 @@ public:
    *
    * \param path File to read.
    */
-  void load_supplement( kwiver::vital::path_t const& path);
+  void load_supplement( kwiver::vital::path_t const& path );
 
   /**
    * \brief Add single config entry
@@ -101,6 +138,20 @@ public:
    */
   void add_setting(std::string const& setting);
 
+  //@{
+  /**
+   * \brief Add directory to search path.
+   *
+   * This method adds a directory to the end of the config file search
+   * path. This search path is used to locate all referenced included
+   * files only.
+   *
+   * @param file_path Directory or list to add to end of search path.
+   */
+  void add_search_path( kwiver::vital::config_path_t const& file_path );
+  void add_search_path( kwiver::vital::config_path_list_t const& file_path );
+  //@}
+
   /**
    * \brief Create pipeline from internal representation.
    *
@@ -110,6 +161,16 @@ public:
    * \return A new pipeline object.
    */
   sprokit::pipeline_t pipeline() const;
+
+  /**
+   * \brief Create cluster and return info object.
+   *
+   * This method bakes the accumulated cluster blocks and returns the
+   * resulting info object.
+   *
+   * \return Cluster info object.
+   */
+  sprokit::cluster_info_t cluster_info() const;
 
   /**
    * \brief Extract config block from pipeline.
@@ -126,10 +187,28 @@ public:
    *
    * \return List of internal pipeline blocks.
    */
-  sprokit::pipe_blocks blocks() const;
+  sprokit::pipe_blocks pipeline_blocks() const;
+
+  /**
+   * \brief List of internal cluster blocks
+   *
+   *
+   * \return The list of internal cluster blocks.
+   */
+  sprokit::cluster_blocks cluster_blocks() const;
+
+protected:
+  void process_env(); // get default search path and env path. Add to m_search_path.
 
 private:
+  kwiver::vital::logger_handle_t m_logger;
+
+  // List of pipe blocks
   sprokit::pipe_blocks m_blocks;
+  sprokit::cluster_blocks m_cluster_blocks;
+
+  // file search path list
+  kwiver::vital::config_path_list_t m_search_path;
 };
 
 }

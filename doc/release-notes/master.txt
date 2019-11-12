@@ -80,10 +80,18 @@ Sprokit: Processes
 
 Tools
 
+ * Converting stand-alone tools to reside under the main "kwiver" top
+   level tool. Individual tools are specified as a parameter to the
+   "kwiver" tool runner.
+
+ * Moved source of tools/applets and reorganized:
+   - tools - contains executables, E.g. kwiver tool runner
+   - vital/applets - contains applet framework
+   - arrows/core/applets - general applets
+
 Unit Tests
 
 General Documentation
 
 Bug Fixes
 ---------
-

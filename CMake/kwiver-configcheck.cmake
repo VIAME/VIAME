@@ -18,7 +18,7 @@ function(vital_check_feature_run    NAME TEST)
   if(DEFINED VITAL_USE_${NAME})
     return()
   endif()
-  try_run( comp_res run_res
+  try_run( run_res comp_res
     ${CMAKE_BINARY_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/configcheck/${TEST}
     OUTPUT_VARIABLE comp_output
@@ -26,11 +26,12 @@ function(vital_check_feature_run    NAME TEST)
       -DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
       -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD})
 
-  if ( comp_output AND run_res )
-    set(VITAL_USE_${NAME} TRUE )
+  if ( comp_res AND (run_res EQUAL 0) )
+    set(VITAL_USE_${NAME} TRUE PARENT_SCOPE )
   else()
-    set(VITAL_USE_${NAME} FALSE )
+    set(VITAL_USE_${NAME} FALSE PARENT_SCOPE)
   endif()
+
 endfunction()
 
 macro(vital_check_required_feature NAME TEST MESSAGE)

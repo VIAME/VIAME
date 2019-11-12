@@ -139,8 +139,6 @@ vital_typed_port_info( sprokit::process::port_t const& port_name )
   //
   // Create message_spec for <message-name>
   // Add entry for element.
-
-  // Extract GROUP sub-string from port name
   sprokit::process::ports_t components;
   kwiver::vital::tokenize( port_name, components, "/" );
 
@@ -233,8 +231,7 @@ set_port_type( sprokit::process::port_t const&      port_name,
   {
     LOG_ERROR( m_logger, "Port \"" << port_name
                << "\" does not have the correct format. "
-               "Must be in the form \"<group>/<algorithm>/<element>\" "
-               "or \"<element>\"." );
+               "Must be in the form \"<message>/<element>\"" );
     return;
   }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,13 @@
 
 #include <test_common.h>
 
+#include <vital/config/config_block.h>
+#include <vital/vital_types.h>
+
 #include <sprokit/pipeline_util/export_dot.h>
 #include <sprokit/pipeline_util/export_dot_exception.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
-
-#include <vital/config/config_block.h>
-#include <vital/vital_types.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
 
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/process.h>
@@ -63,6 +64,16 @@ main(int argc, char* argv[])
   kwiver::vital::path_t const pipe_file = pipe_dir + "/" +  testname + pipe_ext;
 
   RUN_TEST(testname, pipe_file);
+}
+
+
+// ----------------------------------------------------------------------------
+sprokit::pipeline_t
+bake_pipe_from_file( kwiver::vital::path_t const& fname )
+{
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( fname );
+  return builder.pipeline();
 }
 
 
@@ -108,7 +119,7 @@ IMPLEMENT_TEST(simple_pipeline)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
+  sprokit::pipeline_t const pipeline = bake_pipe_from_file(pipe_file);
 
   std::ostringstream sstr;
 
@@ -121,7 +132,7 @@ IMPLEMENT_TEST(simple_pipeline_setup)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
+  sprokit::pipeline_t const pipeline = bake_pipe_from_file(pipe_file);
 
   std::ostringstream sstr;
 
@@ -134,7 +145,7 @@ IMPLEMENT_TEST(simple_pipeline_cluster)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sprokit::pipeline_t const pipeline = sprokit::bake_pipe_from_file(pipe_file);
+  sprokit::pipeline_t const pipeline = bake_pipe_from_file(pipe_file);
 
   std::ostringstream sstr;
 
@@ -162,7 +173,9 @@ IMPLEMENT_TEST(cluster_empty_name)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
+  sprokit::pipeline_builder builder;
+  builder.load_cluster( pipe_file );
+  sprokit::cluster_info_t const info = builder.cluster_info();
   const auto conf = kwiver::vital::config_block::empty_config();
 
   sprokit::process_t const proc = info->ctor(conf);
@@ -181,7 +194,9 @@ IMPLEMENT_TEST(cluster_multiplier)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sprokit::cluster_info_t const info = sprokit::bake_cluster_from_file(pipe_file);
+  sprokit::pipeline_builder builder;
+  builder.load_cluster( pipe_file );
+  sprokit::cluster_info_t const info = builder.cluster_info();
   const auto conf = kwiver::vital::config_block::empty_config();
   sprokit::process::name_t const name = sprokit::process::name_t("name");
 

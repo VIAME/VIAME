@@ -45,21 +45,21 @@ public:
   kwiversys::CommandLineArguments m_args;
 
   // Global options
-  bool opt_detail;
-  bool opt_help;
-  bool opt_path_list;
-  bool opt_brief;
-  bool opt_modules;
-  bool opt_files;
-  bool opt_all;
-  bool opt_algo;
-  bool opt_process;
-  bool opt_scheduler;
-  bool opt_summary;
-  bool opt_attrs;
-  bool opt_skip_relative;
+  bool opt_detail {false};
+  bool opt_help {false};
+  bool opt_path_list {false};
+  bool opt_brief {false};
+  bool opt_modules {false};
+  bool opt_files {false};
+  bool opt_all {false};
+  bool opt_algo {false};
+  bool opt_process {false};
+  bool opt_scheduler {false};
+  bool opt_summary {false};
+  bool opt_attrs {false};
+  bool opt_skip_relative {false};
 
-  std::ostream* m_out_stream;
+  std::ostream* m_out_stream {nullptr};
 
   std::vector< std::string > opt_path;
 
@@ -67,16 +67,16 @@ public:
   kwiver::vital::wrap_text_block m_wtb;
 
   // Fields used for filtering attributes
-  bool opt_attr_filter;
+  bool opt_attr_filter {false};
   std::string opt_filter_attr;    // attribute name
   std::string opt_filter_regex;   // regex for attr value to match.
 
   // internal option for factory filtering
-  bool opt_fact_filt;
+  bool opt_fact_filt {false};
   std::string opt_fact_regex;
 
   // internal option for instance type filtering
-  bool opt_type_filt;
+  bool opt_type_filt {false};
   std::string opt_type_regex;
 
   // Formatting type string. This is used as a suffix to the category
@@ -90,21 +90,6 @@ public:
 
   priv()
   {
-    opt_detail = false;
-    opt_help = false;
-    opt_path_list = false;
-    opt_brief = false;
-    opt_modules = false;
-    opt_files = false;
-    opt_all = false;
-    opt_summary = false;
-    opt_attrs = false;
-    opt_skip_relative = false;
-
-    opt_attr_filter = false;
-    opt_fact_filt = false;
-
-    m_out_stream = 0;
   }
 
   virtual ~priv()

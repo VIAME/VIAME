@@ -112,8 +112,11 @@ public:
   /**
    * @brief Configure provider.
    *
-   * This method sends the config block to the implementation. The
-   * derived class would use the contents of this config block.
+   * This method sends the epx config sub-block to the
+   * implementation. The derived class would use the contents of this
+   * config block to modify its behaviour. This is how the epx gets
+   * its configuration and only needs to be overridden if the epx is
+   * expecting config items.
    *
    * @param conf Configuration block.
    */
@@ -123,9 +126,11 @@ public:
    * @brief Get default configuration block.
    *
    * This method returns the default configuration block for this
-   * instrumentation implementation. The config block returned is used
-   * during introspection to provide documentation on what config
-   * parameters are needed and what they mean.
+   * pipeline extension and should contain all configuration items
+   * that are needed by this implementation. The config block returned
+   * is used during introspection to provide documentation on what
+   * config parameters are needed and what they mean. The config block
+   * should contain any default values for the config items.
    *
    * @return Pointer to config block.
    */

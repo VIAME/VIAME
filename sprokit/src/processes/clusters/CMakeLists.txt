@@ -44,7 +44,5 @@ kwiver_add_plugin(processes_clusters
   PUBLIC       vital_logger
   PRIVATE      sprokit_pipeline_util
                sprokit_pipeline
-               ${Boost_FILESYSTEM_LIBRARY}
-               ${Boost_SYSTEM_LIBRARY}
                vital_vpm vital_util kwiversys
   )

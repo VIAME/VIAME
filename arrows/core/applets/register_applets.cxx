@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,38 +34,15 @@
  */
 
 #include <arrows/core/applets/kwiver_algo_core_applets_export.h>
-#include <vital/algo/algorithm_factory.h>
+#include <vital/plugin_loader/plugin_loader.h>
+#include <vital/applets/applet_registrar.h>
 
+#include <arrows/core/applets/dump_klv.h>
 #include <arrows/core/applets/render_mesh.h>
-
 
 namespace kwiver {
 namespace arrows {
 namespace core {
-
-namespace {
-
-static auto const module_name         = std::string{ "arrows.core.applets" };
-static auto const module_version      = std::string{ "1.0" };
-static auto const module_organization = std::string{ "Kitware Inc." };
-
-
-// ----------------------------------------------------------------------------
-template <typename applet_t>
-void register_applet( kwiver::vital::plugin_loader& vpm )
-{
-  using kvpf = kwiver::vital::plugin_factory;
-
-  auto fact = vpm.ADD_APPLET( applet_t );
-  fact->add_attribute( kvpf::PLUGIN_NAME,         applet_t::name )
-       .add_attribute( kvpf::PLUGIN_DESCRIPTION,  applet_t::description )
-       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
-       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
-       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
-       ;
-}
-
-}
 
 // ----------------------------------------------------------------------------
 extern "C"
@@ -73,14 +50,18 @@ KWIVER_ALGO_CORE_APPLETS_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  if (vpm.is_module_loaded( module_name ) )
+  kwiver::applet_registrar reg( vpm, "arrows.core.applets" );
+
+  if (reg.is_module_loaded())
   {
     return;
   }
 
-  register_applet< render_mesh > (vpm);
+  // -- register applets --
+  reg.register_tool< dump_klv >();
+  reg.register_tool< render_mesh >();
 
-  vpm.mark_module_as_loaded( module_name );
+  reg.mark_module_as_loaded();
 }
 
 } // end namespace core
