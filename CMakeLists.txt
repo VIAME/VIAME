@@ -185,7 +185,9 @@ if( VIAME_ENABLE_PYTHON )
   endif()
   set( KWIVER_SYMLINK_PYTHON ${VIAME_SYMLINK_PYTHON} ) # Required for KWIVER scripts
 
-  if( NOT VIAME_ENABLE_PYTHON-INTERNAL )
+  if( VIAME_ENABLE_PYTHON-INTERNAL )
+    include( setup_internal_python )
+  else()
     find_package( PythonInterp REQUIRED )
     find_package( PythonLibs REQUIRED )
 
