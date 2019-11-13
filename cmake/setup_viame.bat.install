@@ -1,23 +1,15 @@
 
-REM Set these paths to your Anaconda and CUDA installation locations
-
-SET PYTHON_INSTALL_DIR=C:\ProgramData\Anaconda3
-
-REM Do not edit the below
+REM You no longer need to set install or set Anaconda or CUDA
+REM
+REM They are now packaged in VIAME
+REM
+REM Because people kept installing the wrong versions (not naming any names)
+REM
+REM Do not edit this or the below anymore
 
 SET VIAME_INSTALL=%~dp0
 
-IF NOT EXIST %PYTHON_INSTALL_DIR%\ (
-  ECHO -------------------------------------------------------------------
-  ECHO Error: Python directory specified in setup_viame.bat does not exist
-  ECHO  
-  ECHO Open setup_viame.sh in a text editor and set PYTHON_INSTALL_DIR
-  ECHO -------------------------------------------------------------------
-  PAUSE
-  EXIT \B
-)
-
-SET PATH=%VIAME_INSTALL%\bin;%VIAME_INSTALL%\postgres\bin;%VIAME_INSTALL%\Scripts;%PYTHON_INSTALL_DIR%;%PATH%
+SET PATH=%VIAME_INSTALL%\bin;%VIAME_INSTALL%\postgres\bin;%VIAME_INSTALL%\Scripts;%PATH%
 
 SET LD_LIBRARY_PATH=%VIAME_INSTALL%\bin;%PATH%
 
@@ -39,7 +31,7 @@ SET SPROKIT_PYTHON_MODULES=viame.arrows.core;viame.arrows.pytorch;%SPROKIT_PYTHO
 SET SPROKIT_PYTHON_MODULES=viame.arrows.tensorflow;%SPROKIT_PYTHON_MODULES%
 SET SPROKIT_PYTHON_MODULES=viame.processes;viame.processes.pytorch;%SPROKIT_PYTHON_MODULES%
 
-SET PYTHONPATH=%VIAME_INSTALL%\python;%PYTHONPATH%
+SET PYTHONPATH=%VIAME_INSTALL%\python
 SET PYTHONPATH=%VIAME_INSTALL%\Python36\site-packages;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\Python27\site-packages;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\lib\Lib\site-packages;%PYTHONPATH%
@@ -48,5 +40,3 @@ SET PYTHONPATH=%VIAME_INSTALL%\lib\python3.6\site-packages;%PYTHONPATH%
 SET PYTHONPATH=%VIAME_INSTALL%\lib\python2.7\site-packages;%PYTHONPATH%
 
 SET KWIVER_DEFAULT_LOG_LEVEL=debug
-
-CALL "%PYTHON_INSTALL_DIR%\Scripts\activate.bat"
