@@ -1,4 +1,4 @@
-/*ckwg +29
+/*ckwg +30
  * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
@@ -12,20 +12,21 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- *  * Neither name of Kitware, Inc. nor the names of any contributors may be used
- *    to endorse or promote products derived from this software without specific
- *    prior written permission.
+ *  * Neither name of Kitware, Inc. nor the names of any contributors may be
+ *    used to endorse or promote products derived from this software without
+ *    specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
  * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
  */
 
 /**
@@ -36,9 +37,10 @@
 #ifndef VITAL_DETECTED_OBJECT_H_
 #define VITAL_DETECTED_OBJECT_H_
 
-#include <vital/vital_export.h>
 #include <vital/vital_config.h>
+#include <vital/vital_export.h>
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -47,6 +49,7 @@
 #include <vital/types/detected_object_type.h>
 #include <vital/types/geo_point.h>
 #include <vital/types/image_container.h>
+#include <vital/types/point.h>
 #include <vital/types/vector.h>
 
 #include <vital/io/eigen_io.h>
@@ -54,6 +57,7 @@
 #include <Eigen/Geometry>
 
 namespace kwiver {
+
 namespace vital {
 
 // forward declaration of detected_object class
@@ -63,8 +67,7 @@ class detected_object;
 using detected_object_sptr = std::shared_ptr< detected_object >;
 using detected_object_scptr = std::shared_ptr< detected_object const >;
 
-
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
  * @brief Detected object class.
  *
@@ -73,12 +76,10 @@ using detected_object_scptr = std::shared_ptr< detected_object const >;
  * There is one object of this type for each detected object. These
  * objects are defined by a bounding box in the image space. Each
  * object has an optional classification object attached.
- *
  */
 class VITAL_EXPORT detected_object
 {
 public:
-
   using vector_t = std::vector< detected_object_sptr >;
   using descriptor_t = descriptor_dynamic< double >;
   using descriptor_scptr = std::shared_ptr< descriptor_t const >;
@@ -95,7 +96,8 @@ public:
   /**
    * @brief Create detected object with bounding box and other attributes.
    *
-   * @param bbox Bounding box surrounding detected object, in image coordinates.
+   * @param bbox Bounding box surrounding detected object, in image
+   *             coordinates.
    * @param confidence Detectors confidence in this detection.
    * @param classifications Optional object classification.
    */
@@ -142,7 +144,6 @@ public:
    * @param bbox Bounding box for this detection.
    */
   void set_bounding_box( bounding_box_d const& bbox );
-
 
   /**
    * @brief Get geo_point from this detection.
@@ -221,7 +222,7 @@ public:
    *
    * @return Name of the detector.
    */
-  const std::string& detector_name() const;
+  std::string detector_name() const;
 
   /**
    * @brief Set detector name.
@@ -292,6 +293,63 @@ public:
    */
   void set_descriptor( descriptor_scptr d );
 
+  /**
+   * @brief Get vector of notes for this detection
+   *
+   * This method returns a list of notes (arbitrary strings) associated
+   * with this detection. Notes are useful in user interfaces for making
+   * any observations about this detection which don't fit into types.
+   *
+   * @return A vector of notes.
+   */
+  std::vector< std::string > notes() const;
+
+  /**
+   * @brief Add a note for this detection.
+   *
+   * Notes are useful in user interfaces for making any observations about
+   * this detection which don't fit into types.
+   *
+   * @param note String to add as a note
+   */
+  void add_note( std::string const& note );
+
+  /**
+   * @brief Reset notes for this detection
+   *
+   * Remove any notes stored within this detection.
+   */
+  void clear_notes();
+
+  /**
+   * @brief Returns a list of keypoints associated with this detection
+   *
+   * This method returns a map of keypoints associated with this detection,
+   * which can be of arbitrary length.
+   *
+   * @return A map of keypoints and their identifiers.
+   */
+  std::map< std::string, vital::point_2d > keypoints() const;
+
+  /**
+   * @brief Add a note for this detection
+   *
+   * Notes are useful in user interfaces for making any observations about
+   * this detection which don't fit into types. If a keypoint of the given
+   * name already exists, it will be over-written.
+   *
+   * @param id String id of the keypoint
+   * @param p The location of the keypoint
+   */
+  void add_keypoint( std::string const& id, vital::point_2d const& p );
+
+  /**
+   * @brief Reset keypoints for this detection
+   *
+   * Removes any keypoints stored within this detection.
+   */
+  void clear_keypoints();
+
 private:
   kwiver::vital::geo_point m_geo_point;
   bounding_box_d m_bounding_box;
@@ -304,8 +362,13 @@ private:
 
   uint64_t m_index = 0; ///< index for this object
   std::string m_detector_name;
+
+  std::vector< std::string > m_notes;
+  std::map< std::string, vital::point_2d > m_keypoints;
 };
 
-} }
+} // namespace vital
+
+} // namespace kwiver
 
 #endif
