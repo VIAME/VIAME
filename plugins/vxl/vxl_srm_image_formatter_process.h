@@ -57,10 +57,10 @@ namespace vxl
 /**
  * @brief Format images in a way optimized for later IQR processing
  * 
- * Depending on parameters this operation could be perform image resizing,
- * large image tiling, and other operations. It exists mostly due to the way
- * the current GUI interface uses video-based KWA files for image storage, to
- * reduce disk usage and increase processing speeds.
+ * Depending on parameters this operation could be to perform image resizing,
+ * perform large image tiling, or other operations. It exists mostly due to the
+ * way the current descktop GUI interface uses video-based KWA files for image
+ * storage, to reduce disk usage and increase processing speeds.
  */
 class VIAME_PROCESSES_VXL_NO_EXPORT vxl_srm_image_formatter_process
   : public sprokit::process
