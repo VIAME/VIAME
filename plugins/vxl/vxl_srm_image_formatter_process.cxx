@@ -57,19 +57,19 @@ namespace vxl
 create_config_trait( fix_output_size, bool, "true",
   "Should the output image size always be consistent and unchanging" );
 
-create_config_trait( resize_input, bool, "false",
-  "To meet output size requirements should the image be resized or chipped" );
-
 create_config_trait( max_image_width, unsigned, "1500",
   "Maximum allowed image width of archive after a potential resize" );
 create_config_trait( max_image_height, unsigned, "1500",
   "Maximum allowed image height of archive after a potential resize" );
 
+create_config_trait( resize_option, std::string, "rescale",
+  "Option to meet output size parameter, can be: rescale, chip, or crop." );
+
 create_config_trait( chip_overlap, unsigned, "50",
   "If we're chipping a large image into smaller chips, this is the approximate "
-  "overlap between neighboring chips" );
+  "overlap between neighboring chips in terms of pixels." );
 create_config_trait( flux_factor, double, "0.05",
-  "Allowable error for resizing images to meet a more desirable size" );
+  "Allowable error for resizing images to meet a more desirable size." );
 
 
 
@@ -82,10 +82,14 @@ public:
   ~priv();
 
   bool m_fix_output_size;
-  bool m_resize_input;
+
   unsigned m_max_image_width;
   unsigned m_max_image_height;
+
+  enum{ RESCALE, CHIP, CROP } m_resize_option;
+
   unsigned m_chip_overlap;
+  double m_flux_factor;
 };
 
 // =============================================================================
@@ -111,6 +115,35 @@ void
 vxl_srm_image_formatter_process
 ::_configure()
 {
+  d->m_fix_output_size =
+    config_value_using_trait( fix_output_size );
+  d->m_max_image_width =
+    config_value_using_trait( max_image_width );
+  d->m_max_image_height =
+    config_value_using_trait( max_image_height );
+  d->m_chip_overlap =
+    config_value_using_trait( chip_overlap );
+  d->m_flux_factor =
+    config_value_using_trait( flux_factor );
+
+  std::string mode = config_value_using_trait( resize_option );
+
+  if( mode == "rescale" )
+  {
+    d->m_resize_option = priv::RESCALE;
+  }
+  else if( mode == "chip" )
+  {
+    d->m_resize_option = priv::CHIP;
+  }
+  else if( mode == "crop" )
+  {
+    d->m_resize_option = priv::CROP;
+  }
+  else
+  {
+    throw std::runtime_error( "Unable to identify resize option value: " + mode );
+  }
 }
 
 
@@ -127,6 +160,17 @@ void
 vxl_srm_image_formatter_process
 ::make_ports()
 {
+  // Set up for required ports
+  sprokit::process::port_flags_t required;
+  sprokit::process::port_flags_t optional;
+
+  required.insert( flag_required );
+
+  // -- input --
+  declare_input_port_using_trait( image, required );
+
+  // -- output --
+  declare_output_port_using_trait( image, optional );
 }
 
 
@@ -135,6 +179,12 @@ void
 vxl_srm_image_formatter_process
 ::make_config()
 {
+  declare_config_using_trait( fix_output_size );
+  declare_config_using_trait( max_image_width );
+  declare_config_using_trait( max_image_height );
+  declare_config_using_trait( resize_option );
+  declare_config_using_trait( chip_overlap );
+  declare_config_using_trait( flux_factor );
 }
 
 
