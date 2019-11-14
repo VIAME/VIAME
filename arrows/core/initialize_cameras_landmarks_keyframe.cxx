@@ -1339,29 +1339,33 @@ initialize_cameras_landmarks_keyframe::priv
   cam = std::static_pointer_cast<simple_camera_perspective>(
     pnp->estimate(pts2d, pts3d, cam->intrinsics(), inliers));
 
+  if (!cam)
+  {
+    LOG_DEBUG(m_logger, "resectioning image " << frame << " failed");
+    return;
+  }
+
   size_t num_inliers = 0;
   float coverage = 0;
-  if (cam)
-  {
-    std::map<landmark_id_t, landmark_sptr> inlier_lms;
+  std::map<landmark_id_t, landmark_sptr> inlier_lms;
 
-    for (size_t i = 0; i < inliers.size(); ++i)
+  for (size_t i = 0; i < inliers.size(); ++i)
+  {
+    if (inliers[i])
     {
-      if (inliers[i])
-      {
-        ++num_inliers;
-        inlier_lms.insert(frame_landmarks[i]);
-        frame_feats[i]->inlier = true;
-      }
-      else
-      {
-        frame_feats[i]->inlier = false;
-      }
+      ++num_inliers;
+      inlier_lms.insert(frame_landmarks[i]);
+      frame_feats[i]->inlier = true;
     }
-    auto cams = std::make_shared<simple_camera_perspective_map>();
-    cams->insert(frame, cam);
-    coverage = image_coverage(cams, tks, inlier_lms, frame);
+    else
+    {
+      frame_feats[i]->inlier = false;
+    }
   }
+  auto cams = std::make_shared<simple_camera_perspective_map>();
+  cams->insert(frame, cam);
+  coverage = image_coverage(cams, tks, inlier_lms, frame);
+
 
   LOG_DEBUG(m_logger, "for frame " << frame << " P3P found " << num_inliers <<
     " inliers out of " << inliers.size() <<
@@ -1372,6 +1376,18 @@ initialize_cameras_landmarks_keyframe::priv
     LOG_DEBUG(m_logger, "resectioning image " << frame <<
       " failed: insufficient coverage ( " << coverage << " )");
     cam = simple_camera_perspective_sptr();
+    return;
+  }
+
+  // If the camera is not upright (relative to the Z-axis) then
+  // Necker reverse about the plane fitting the inlier points
+  // Note: this assumes that the landmarks have already been oriented
+  // such that +Z is up.
+  if (!camera_upright(*cam))
+  {
+    const vector_4d plane = landmark_plane(inlier_lms);
+    necker_reverse_inplace(*cam, plane);
+    LOG_DEBUG(m_logger, "Necker reversing camera for frame " << frame);
   }
 }
 
@@ -1424,35 +1440,6 @@ initialize_cameras_landmarks_keyframe::priv
   else
   {
     cams->insert(fid_to_resection, nc);
-
-    camera_map_sptr nr_cams(new simple_camera_map(cams->cameras()));
-    landmark_map_sptr nr_lms(new simple_landmark_map(lms));
-
-    // ret reprojecion error for this camera
-    float non_rev_rmse =
-      kwiver::arrows::reprojection_rmse(nr_cams->cameras(),
-        nr_lms->landmarks(), tracks->tracks());
-
-    // get reprojection error of it's necker reversed camera
-    necker_reverse(nr_cams, nr_lms, false);
-
-    float rev_rmse =
-      kwiver::arrows::reprojection_rmse(nr_cams->cameras(),
-        nr_lms->landmarks(), tracks->tracks());
-
-    LOG_DEBUG(m_logger, "P3P init RMSE " << non_rev_rmse
-                        << " reveresed RMSE " << rev_rmse);
-
-    // if necker reversed camera is lower then switch to it
-    if (rev_rmse < non_rev_rmse)
-    {
-      LOG_DEBUG(m_logger, "Switching to necker reversed camera for frame "
-                          << fid_to_resection);
-      simple_camera_perspective_sptr reversed_cam =
-        std::static_pointer_cast<simple_camera_perspective>(
-          nr_cams->cameras()[fid_to_resection]);
-      cams->insert(fid_to_resection, reversed_cam);
-    }
     return true;
   }
 }
