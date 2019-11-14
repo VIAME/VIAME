@@ -41,11 +41,11 @@
 #include <vital/types/image_container.h>
 #include <vital/types/homography.h>
 
-#include <sstream>
-#include <iostream>
-#include <list>
-#include <limits>
-#include <cmath>
+#include <arrows/vxl/image_container.h>
+
+#include <vector>
+
+#include <vil/vil_image_view.h>
 
 
 namespace viame
@@ -57,20 +57,19 @@ namespace vxl
 create_config_trait( fix_output_size, bool, "true",
   "Should the output image size always be consistent and unchanging" );
 
-create_config_trait( max_image_width, unsigned, "1500",
-  "Maximum allowed image width of archive after a potential resize" );
-create_config_trait( max_image_height, unsigned, "1500",
-  "Maximum allowed image height of archive after a potential resize" );
-
 create_config_trait( resize_option, std::string, "rescale",
   "Option to meet output size parameter, can be: rescale, chip, or crop." );
+
+create_config_trait( max_chip_width, unsigned, "10000",
+  "Maximum allowed image width of archive after a potential resize" );
+create_config_trait( max_chip_height, unsigned, "10000",
+  "Maximum allowed image height of archive after a potential resize" );
 
 create_config_trait( chip_overlap, unsigned, "50",
   "If we're chipping a large image into smaller chips, this is the approximate "
   "overlap between neighboring chips in terms of pixels." );
 create_config_trait( flux_factor, double, "0.05",
   "Allowable error for resizing images to meet a more desirable size." );
-
 
 
 //------------------------------------------------------------------------------
@@ -81,15 +80,28 @@ public:
   priv();
   ~priv();
 
+  // Configuration parameters
   bool m_fix_output_size;
-
-  unsigned m_max_image_width;
-  unsigned m_max_image_height;
 
   enum{ RESCALE, CHIP, CROP } m_resize_option;
 
+  unsigned m_max_chip_width;
+  unsigned m_max_chip_height;
+
   unsigned m_chip_overlap;
   double m_flux_factor;
+
+  // Computed parameters
+  unsigned m_max_input_width;
+  unsigned m_max_input_height;
+
+  unsigned m_first_input_width;
+  unsigned m_first_input_height;
+
+  // Functions
+  template< typename PixType >
+  void filter( const vil_image_view< PixType >& input,
+    std::vector< vil_image_view< PixType > >& output );
 };
 
 // =============================================================================
@@ -117,10 +129,10 @@ vxl_srm_image_formatter_process
 {
   d->m_fix_output_size =
     config_value_using_trait( fix_output_size );
-  d->m_max_image_width =
-    config_value_using_trait( max_image_width );
-  d->m_max_image_height =
-    config_value_using_trait( max_image_height );
+  d->m_max_chip_width =
+    config_value_using_trait( max_chip_width );
+  d->m_max_chip_height =
+    config_value_using_trait( max_chip_height );
   d->m_chip_overlap =
     config_value_using_trait( chip_overlap );
   d->m_flux_factor =
@@ -142,8 +154,18 @@ vxl_srm_image_formatter_process
   }
   else
   {
-    throw std::runtime_error( "Unable to identify resize option value: " + mode );
+    throw std::runtime_error( "Invalid resize option: " + mode );
   }
+}
+
+
+// -----------------------------------------------------------------------------
+template< typename PixType >
+void vxl_srm_image_formatter_process::priv
+::filter( const vil_image_view< PixType >& input,
+          std::vector< vil_image_view< PixType > >& output )
+{
+  
 }
 
 
@@ -152,6 +174,45 @@ void
 vxl_srm_image_formatter_process
 ::_step()
 {
+  kwiver::vital::image_container_sptr input_image =
+    grab_from_port_using_trait( image );
+
+  vil_image_view_base_sptr view =
+    kwiver::arrows::vxl::image_container::vital_to_vxl(
+      input_image->get_image() );
+
+  // Perform different actions based on input type
+#define HANDLE_CASE(T)                                                    \
+  case T:                                                                 \
+    {                                                                     \
+      typedef vil_pixel_format_type_of<T >::component_type pix_t;         \
+      vil_image_view< pix_t > input = view;                               \
+                                                                          \
+      std::vector< vil_image_view< pix_t > > outputs;                     \
+      d->filter( input, outputs );                                        \
+                                                                          \
+      for( auto output : outputs )                                        \
+      {                                                                   \
+        push_to_port_using_trait( image,                                  \
+          std::make_shared< kwiver::arrows::vxl::image_container >(       \
+            output ) );                                                   \
+      }                                                                   \
+    }                                                                     \
+    break;                                                                \
+
+  switch( view->pixel_format() )
+  {
+    HANDLE_CASE( VIL_PIXEL_FORMAT_BOOL );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_BYTE );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_SBYTE );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_32 );
+    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_64 );
+#undef HANDLE_CASE
+
+  default:
+    throw std::runtime_error( "Invalid type received" );
+  }
 }
 
 
@@ -168,9 +229,11 @@ vxl_srm_image_formatter_process
 
   // -- input --
   declare_input_port_using_trait( image, required );
+  declare_input_port_using_trait( timestamp, optional );
 
   // -- output --
   declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( timestamp, optional );
 }
 
 
@@ -180,8 +243,8 @@ vxl_srm_image_formatter_process
 ::make_config()
 {
   declare_config_using_trait( fix_output_size );
-  declare_config_using_trait( max_image_width );
-  declare_config_using_trait( max_image_height );
+  declare_config_using_trait( max_chip_width );
+  declare_config_using_trait( max_chip_height );
   declare_config_using_trait( resize_option );
   declare_config_using_trait( chip_overlap );
   declare_config_using_trait( flux_factor );
@@ -191,6 +254,10 @@ vxl_srm_image_formatter_process
 // =============================================================================
 vxl_srm_image_formatter_process::priv
 ::priv()
+  : m_max_input_width( 0 )
+  , m_max_input_height( 0 )
+  , m_first_input_width( 0 )
+  , m_first_input_height( 0 )
 {
 }
 
