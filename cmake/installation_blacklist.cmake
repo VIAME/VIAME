@@ -81,8 +81,6 @@ set( VIAME_BLACKLISTED_BINARIES
   tjbench
   train_net
   TransverseMercatorProj
-  uic
-  uic3
   upgrade_net_proto_binary
   upgrade_net_proto_text
   upgrade_solver_proto_text
