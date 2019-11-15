@@ -1,4 +1,15 @@
 
+v0.10.0 - 11/15/2019
+====================
+
+
+-Baseline speed optimizations and bug fixes for IQR, significant database speedups
+
+
+-Begin packaging python in binaries for windows, will do this for linux soon
+
+
+
 v0.9.18 - 11/01/2019
 ===================
 
