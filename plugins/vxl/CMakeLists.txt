@@ -22,7 +22,7 @@ kwiver_add_plugin( viame_processes_vxl
   SUBDIR           ${viame_plugin_process_subdir}
   SOURCES          ${process_sources}
                    ${private_headers}
-  PRIVATE          kwiver_algo_vxl vil
+  PRIVATE          kwiver_algo_vxl vil vil_algo
                    kwiver::sprokit_pipeline kwiver::kwiver_algo_core
                    kwiver::kwiversys kwiver::kwiver_adapter
                    kwiver::vital kwiver::vital_vpm kwiver::vital_logger

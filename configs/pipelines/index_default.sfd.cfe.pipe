@@ -15,6 +15,17 @@ config _scheduler
 
 include common_default_input_with_downsampler.pipe
 
+process image_filter
+  :: srm_image_formatter_process
+
+  :fix_output_size                             true
+  :resize_option                               rescale
+  :max_output_width                            1920
+  :max_output_height                           1080
+
+connect from downsampler.output_1
+        to   image_filter.image
+
 # =================================== DETECTOR =====================================
 
 include common_generic_detector_with_filter.pipe
@@ -26,7 +37,7 @@ process detector_writer
   :file_name                                   [INSERT_ME]
   :writer:type                                 viame_csv
 
-connect from downsampler.output_1
+connect from image_filter.image
         to   detector_input.image
 
 connect from detector_filter.detected_object_set
@@ -70,7 +81,7 @@ process track_initializer
   endblock
 
 # Connect inputs to detection descriptor
-connect from downsampler.output_1
+connect from image_filter.image
         to   detection_descriptor.image
 connect from downsampler.timestamp
         to   detection_descriptor.timestamp
@@ -78,7 +89,7 @@ connect from detector_filter.detected_object_set
         to   detection_descriptor.detected_object_set
 
 # Connect inputs to tracker
-connect from downsampler.output_1
+connect from image_filter.image
         to   tracker.image
 connect from downsampler.timestamp
         to   tracker.timestamp
@@ -88,7 +99,7 @@ connect from track_initializer.object_track_set
         to   tracker.object_track_set
 
 # Connect inputs to track_associator
-connect from downsampler.output_1
+connect from image_filter.image
         to   track_associator.image
 connect from downsampler.timestamp
         to   track_associator.timestamp
@@ -100,7 +111,7 @@ connect from tracker.detected_object_set
         to   track_associator.detected_object_set
 
 # Connect inputs to track_initializer
-connect from downsampler.output_1
+connect from image_filter.image
         to   track_initializer.image
 connect from downsampler.timestamp
         to   track_initializer.timestamp
@@ -117,7 +128,7 @@ process track_descriptor
   :uid_basename                               [INSERT_ME]
   :computer:type                              average
 
-connect from downsampler.output_1
+connect from image_filter.image
         to   track_descriptor.image
 connect from downsampler.timestamp
         to   track_descriptor.timestamp
@@ -136,7 +147,7 @@ process kwa_writer
 
 connect from downsampler.timestamp
         to   kwa_writer.timestamp
-connect from downsampler.output_1
+connect from image_filter.image
         to   kwa_writer.image
 
 process track_writer

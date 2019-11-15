@@ -15,11 +15,22 @@ config _scheduler
 
 include common_default_input_with_downsampler.pipe
 
+process image_filter
+  :: srm_image_formatter_process
+
+  :fix_output_size                             true
+  :resize_option                               crop
+  :max_output_width                            10000
+  :max_output_height                           10000
+
+connect from downsampler.output_1
+        to   image_filter.image
+
 # =================================== DETECTOR =====================================
 
 include common_generic_detector.pipe
 
-connect from downsampler.output_1
+connect from image_filter.image
         to   detector_input.image
 
 process nms_refiner
@@ -64,7 +75,7 @@ connect from detector_filter.detected_object_set
 
 include common_default_descriptor.pipe
 
-connect from downsampler.output_1
+connect from image_filter.image
         to   descriptor.image
 connect from downsampler.timestamp
         to   descriptor.timestamp
@@ -73,7 +84,7 @@ connect from detector_filter.detected_object_set
 
 include common_default_initializer.pipe
 
-connect from downsampler.output_1
+connect from image_filter.image
         to   track_initializer.image
 connect from downsampler.timestamp
         to   track_initializer.timestamp
@@ -88,7 +99,7 @@ process track_descriptor
   :uid_basename                               [INSERT_ME]
   :computer:type                              average
 
-connect from downsampler.output_1
+connect from image_filter.image
         to   track_descriptor.image
 connect from downsampler.timestamp
         to   track_descriptor.timestamp
@@ -107,7 +118,7 @@ process kwa_writer
 
 connect from downsampler.timestamp
         to   kwa_writer.timestamp
-connect from downsampler.output_1
+connect from image_filter.image
         to   kwa_writer.image
 
 process track_writer_db

@@ -46,6 +46,8 @@
 #include <vector>
 
 #include <vil/vil_image_view.h>
+#include <vil/vil_crop.h>
+#include <vil/vil_resample_bilin.h>
 
 
 namespace viame
@@ -60,16 +62,22 @@ create_config_trait( fix_output_size, bool, "true",
 create_config_trait( resize_option, std::string, "rescale",
   "Option to meet output size parameter, can be: rescale, chip, or crop." );
 
-create_config_trait( max_chip_width, unsigned, "10000",
+create_config_trait( max_output_width, unsigned, "10000",
   "Maximum allowed image width of archive after a potential resize" );
-create_config_trait( max_chip_height, unsigned, "10000",
+create_config_trait( max_output_height, unsigned, "10000",
   "Maximum allowed image height of archive after a potential resize" );
 
 create_config_trait( chip_overlap, unsigned, "50",
   "If we're chipping a large image into smaller chips, this is the approximate "
   "overlap between neighboring chips in terms of pixels." );
+create_config_trait( pad_sides, bool, "false",
+  "If the computed image does not match the max output size, pad it with "
+  "black pixels to meet the size." );
 create_config_trait( flux_factor, double, "0.05",
   "Allowable error for resizing images to meet a more desirable size." );
+create_config_trait( max_images_per_index, unsigned, "-1",
+  "Maximum number of images that can be stored together in the same "
+  "database index." );
 
 
 //------------------------------------------------------------------------------
@@ -85,18 +93,20 @@ public:
 
   enum{ RESCALE, CHIP, CROP } m_resize_option;
 
-  unsigned m_max_chip_width;
-  unsigned m_max_chip_height;
+  unsigned m_max_output_width;
+  unsigned m_max_output_height;
 
   unsigned m_chip_overlap;
+  bool m_pad_sides;
   double m_flux_factor;
+  unsigned m_max_images_per_index;
 
   // Computed parameters
   unsigned m_max_input_width;
   unsigned m_max_input_height;
 
-  unsigned m_first_input_width;
-  unsigned m_first_input_height;
+  unsigned m_first_output_width;
+  unsigned m_first_output_height;
 
   // Functions
   template< typename PixType >
@@ -129,14 +139,18 @@ vxl_srm_image_formatter_process
 {
   d->m_fix_output_size =
     config_value_using_trait( fix_output_size );
-  d->m_max_chip_width =
-    config_value_using_trait( max_chip_width );
-  d->m_max_chip_height =
-    config_value_using_trait( max_chip_height );
+  d->m_max_output_width =
+    config_value_using_trait( max_output_width );
+  d->m_max_output_height =
+    config_value_using_trait( max_output_height );
   d->m_chip_overlap =
     config_value_using_trait( chip_overlap );
+  d->m_pad_sides =
+    config_value_using_trait( pad_sides );
   d->m_flux_factor =
     config_value_using_trait( flux_factor );
+  d->m_max_images_per_index =
+    config_value_using_trait( max_images_per_index );
 
   std::string mode = config_value_using_trait( resize_option );
 
@@ -165,7 +179,97 @@ void vxl_srm_image_formatter_process::priv
 ::filter( const vil_image_view< PixType >& input,
           std::vector< vil_image_view< PixType > >& output )
 {
-  
+  typedef vil_image_view< PixType > image_t;
+
+  // Verification of input
+  if( input.ni() == 0 || input.nj() == 0 )
+  {
+    output.push_back( image_t() );
+    return;
+  }
+
+  // Update recorded image properties
+  m_max_input_width = std::max( input.ni(), m_max_input_width );
+  m_max_input_height = std::max( input.nj(), m_max_input_height );
+
+  // Handle correct case
+  if( m_resize_option == RESCALE )
+  {
+    unsigned output_ni;
+    unsigned output_nj;
+
+    if( m_fix_output_size && m_first_output_width )
+    {
+      output_ni = m_first_output_width;
+      output_nj = m_first_output_height;
+    }
+    else
+    {
+      output_ni = input.ni();
+      output_nj = input.nj();
+
+      if( output_ni > m_max_output_width || output_nj > m_max_output_height )
+      {
+        double scale_factor = std::min(
+          static_cast< double >( m_max_output_width ) / output_ni,
+          static_cast< double >( m_max_output_height ) / output_nj );
+
+        output_ni = static_cast< unsigned >( scale_factor * output_ni );
+        output_nj = static_cast< unsigned >( scale_factor * output_nj );
+      }
+
+      if( !m_first_output_width )
+      {
+        m_first_output_width = output_ni;
+        m_first_output_height = output_nj;
+      }
+    }
+
+    if( input.ni() == output_ni && input.nj() == output_nj )
+    {
+      output.push_back( input );
+      return;
+    }
+
+    vil_image_view< PixType > scaled;
+    vil_resample_bilin( input, scaled, output_ni, output_nj );
+
+    output.push_back( scaled );
+  }
+  else if( m_resize_option == CROP )
+  {
+    unsigned output_ni;
+    unsigned output_nj;
+
+    if( m_fix_output_size && m_first_output_width )
+    {
+      output_ni = m_first_output_width;
+      output_nj = m_first_output_height;
+    }
+    else
+    {
+      output_ni = std::min( m_first_output_width, input.ni() );
+      output_nj = std::min( m_first_output_height, input.nj() );
+
+      if( !m_first_output_width )
+      {
+        m_first_output_width = output_ni;
+        m_first_output_height = output_nj;
+      }
+    }
+
+    if( input.ni() == output_ni && input.nj() == output_nj )
+    {
+      output.push_back( input );
+      return;
+    }
+
+    output.push_back( vil_crop( input, 0, output_ni, 0, output_nj ) );
+  }
+  else // Chip mode
+  {
+    // NOT YET IMPLEMENTATED
+  }
 }
 
 
@@ -193,21 +297,25 @@ vxl_srm_image_formatter_process
                                                                           \
       for( auto output : outputs )                                        \
       {                                                                   \
-        push_to_port_using_trait( image,                                  \
-          std::make_shared< kwiver::arrows::vxl::image_container >(       \
-            output ) );                                                   \
+        if( output )                                                      \
+        {                                                                 \
+          push_to_port_using_trait( image,                                \
+            std::make_shared< kwiver::arrows::vxl::image_container >(     \
+              output ) );                                                 \
+        }                                                                 \
+        else                                                              \
+        {                                                                 \
+          push_to_port_using_trait( image,                                \
+            kwiver::vital::image_container_sptr() );                      \
+        }                                                                 \
       }                                                                   \
     }                                                                     \
     break;                                                                \
 
   switch( view->pixel_format() )
   {
-    HANDLE_CASE( VIL_PIXEL_FORMAT_BOOL );
     HANDLE_CASE( VIL_PIXEL_FORMAT_BYTE );
-    HANDLE_CASE( VIL_PIXEL_FORMAT_SBYTE );
     HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_16 );
-    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_32 );
-    HANDLE_CASE( VIL_PIXEL_FORMAT_UINT_64 );
 #undef HANDLE_CASE
 
   default:
@@ -243,11 +351,13 @@ vxl_srm_image_formatter_process
 ::make_config()
 {
   declare_config_using_trait( fix_output_size );
-  declare_config_using_trait( max_chip_width );
-  declare_config_using_trait( max_chip_height );
+  declare_config_using_trait( max_output_width );
+  declare_config_using_trait( max_output_height );
   declare_config_using_trait( resize_option );
   declare_config_using_trait( chip_overlap );
+  declare_config_using_trait( pad_sides );
   declare_config_using_trait( flux_factor );
+  declare_config_using_trait( max_images_per_index );
 }
 
 
@@ -256,8 +366,8 @@ vxl_srm_image_formatter_process::priv
 ::priv()
   : m_max_input_width( 0 )
   , m_max_input_height( 0 )
-  , m_first_input_width( 0 )
-  , m_first_input_height( 0 )
+  , m_first_output_width( 0 )
+  , m_first_output_height( 0 )
 {
 }
 
