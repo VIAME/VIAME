@@ -63,11 +63,11 @@ def print_exc(exc_info=None):
 
     lines = [
         '',
-        '┌───────────',
-        '│ EXCEPTION:',
+        '',
+        '  EXCEPTION:',
         '',
         tbtext,
-        '└───────────',
+        '',
         ''
     ]
     text = '\n'.join(lines)

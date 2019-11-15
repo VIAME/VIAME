@@ -56,7 +56,7 @@ class Homography(_Homography):
         ones = np.ones(array.shape[:-2] + (1, array.shape[-1]), dtype=array.dtype)
         # Add z coordinate
         array = np.concatenate((array, ones), axis=-2)
-        result = self.matrix @ array
+        result = np.matmul(self.matrix, array)
         # Remove z coordinate
         return result[..., :-1, :] / result[..., -1:, :]
 
@@ -221,7 +221,7 @@ def convert_homographies():
     while True:
         curr = (yield output).homog_f2f
         if prev is not None and prev.to_id == curr.to_id:
-            homog = Homography(np.linalg.inv(prev.homog.matrix) @ curr.homog.matrix)
+            homog = Homography(np.matmul(np.linalg.inv(prev.homog.matrix), curr.homog.matrix))
         else:
             homog = None
         prev = curr
