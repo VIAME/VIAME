@@ -75,6 +75,7 @@ class NetharnDetector(ImageObjectDetector):
         >>> self = NetharnDetector()
         >>> image_data = self.demo_image()
         >>> deployed_fpath = self.demo_deployed()
+        >>> deployed_fpath = '/home/joncrall/code/VIAME/plugins/pytorch/deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix'
         >>> cfg_in = dict(
         >>>     deployed=deployed_fpath,
         >>>     xpu='0',
@@ -114,10 +115,10 @@ class NetharnDetector(ImageObjectDetector):
             str: file path to a scallop detector
         """
         import ubelt as ub
-        url = 'https://data.kitware.com/api/v1/file/5dcf199aaf2e2eed35fb0bb3/download'
+        url = 'https://data.kitware.com/api/v1/file/5dcf2e68af2e2eed35fb5b13/download'
         deployed_fpath = ub.grabdata(
-            url, fname='deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix.zip',
-            appname='viame', hash_prefix='82d6841a8bdb22d3b7c933fda3989',
+            url, fname='deploy_scallop_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix2.zip',
+            appname='viame', hash_prefix='267e20c39baacad10893bc7befcebce85',
             hasher='sha512')
         return deployed_fpath
 
