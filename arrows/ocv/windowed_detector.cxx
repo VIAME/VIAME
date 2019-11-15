@@ -31,7 +31,7 @@
 #include "windowed_detector.h"
 #include "windowed_detector_resize.h"
 
-#include <vital/util/cpu_timer.h>
+#include <vital/util/wall_timer.h>
 #include <vital/exceptions/io.h>
 #include <vital/config/config_block_formatter.h>
 
@@ -213,7 +213,7 @@ vital::detected_object_set_sptr
 windowed_detector
 ::detect( vital::image_container_sptr image_data ) const
 {
-  vital::scoped_cpu_timer t( "Time to Detect Objects" );
+  vital::scoped_wall_timer t( "Time to Detect Objects" );
 
   if( !image_data )
   {
