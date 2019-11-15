@@ -40,7 +40,7 @@ Notes:
     pip install netharn kwimage kwarray ndsampler
 
 
-    git submodule add -b release git@gitlab.kitware.com:computer-vision/kwimage.git packages
+    git submodule add -b release git@gitlab.kitware.com:computer-vision/kwimage.git packages/kwimage
 """
 
 try:
@@ -117,8 +117,8 @@ class NetharnDetector(ImageObjectDetector):
         url = 'https://data.kitware.com/api/v1/file/5dcf199aaf2e2eed35fb0bb3/download'
         deployed_fpath = ub.grabdata(
             url, fname='deploy_MM_CascadeRCNN_myovdqvi_035_MVKVVR_fix.zip',
-            appname='viame')
-        print('deployed_fpath = {!r}'.format(deployed_fpath))
+            appname='viame', hash_prefix='82d6841a8bdb22d3b7c933fda3989',
+            hasher='sha512')
         return deployed_fpath
 
     def demo_image(self):
@@ -133,7 +133,9 @@ class NetharnDetector(ImageObjectDetector):
         from kwiver.vital.types import ImageContainer
         import ubelt as ub
         url = 'https://data.kitware.com/api/v1/file/5dcf0d1faf2e2eed35fad5d1/download'
-        image_fpath = ub.grabdata(url, fname='scallop.jpg', appname='viame')
+        image_fpath = ub.grabdata(
+            url, fname='scallop.jpg', appname='viame',
+            hash_prefix='3bd290526c76453bec7', hasher='sha512')
         pil_img = PILImage.open(image_fpath)
         image_data = ImageContainer(VitalPIL.from_pil(pil_img))
         return image_data
