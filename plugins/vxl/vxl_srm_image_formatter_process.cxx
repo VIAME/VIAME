@@ -248,8 +248,8 @@ void vxl_srm_image_formatter_process::priv
     }
     else
     {
-      output_ni = std::min( m_first_output_width, input.ni() );
-      output_nj = std::min( m_first_output_height, input.nj() );
+      output_ni = std::min( m_max_output_width, input.ni() );
+      output_nj = std::min( m_max_output_height, input.nj() );
 
       if( !m_first_output_width )
       {
