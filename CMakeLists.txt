@@ -196,10 +196,12 @@ if( VIAME_ENABLE_PYTHON )
       message( FATAL_ERROR "pyconfig.h does not exist in your PYTHON_INCLUDE_DIR \
         make sure the variable is set correctly and you have python-dev installed." )
     endif()
-
-    set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
-         CACHE STRING "Python version number" )
   endif()
+
+  set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+       CACHE STRING "Python version number" )
+  set( PYTHON_VERSION_STRING "${PYTHON_VERSION}"
+       CACHE INTERNAL "Python version string" )
 endif()
 
 if( VIAME_ENABLE_VIVIA AND VIAME_ENABLE_SEAL_TK )
@@ -211,7 +213,7 @@ if( VIAME_ENABLE_VIAME_PLUGINS AND NOT VIAME_ENABLE_KWIVER )
 endif()
 
 # VXL enabled triggers yasm to be built, requiring at least some python
-if( VIAME_ENABLE_VXL )
+if( VIAME_ENABLE_VXL AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
   find_package( PythonInterp QUIET )
   if( NOT PYTHONINTERP_FOUND AND NOT VIAME_ENABLE_PYTHON-INTERNAL )
     message( FATAL_ERROR "If VXL is enabled, there must be some python install located \
@@ -234,7 +236,7 @@ if( VIAME_ENABLE_CUDA )
   option( VIAME_FORCE_CUDA_CSTD98 "Build all cuda code with C++ standard 98" FALSE )
   mark_as_advanced( VIAME_FORCE_CUDA_CSTD98 )
 else()
-  set(VIAME_FORCE_CUDA_CSTD98 CACHE INTERNAL FALSE)
+  set( VIAME_FORCE_CUDA_CSTD98 CACHE INTERNAL FALSE )
 endif()
 
 if( VIAME_ENABLE_CUDNN AND NOT VIAME_ENABLE_CUDA )

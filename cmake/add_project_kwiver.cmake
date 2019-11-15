@@ -106,7 +106,6 @@ ExternalProject_Add(kwiver
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
   )
 
-
 # Why must we force kwiver to build on every make?
 if ( VIAME_FORCEBUILD )
   ExternalProject_Add_Step(kwiver forcebuild
