@@ -12,9 +12,30 @@
 set( VIAME_PYTHON_DEPS numpy matplotlib )
 set( VIAME_PYTHON_DEP_CMDS "numpy" "matplotlib" )
 
-if( VIAME_ENABLE_CAMTRAWL )
+if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS ubelt )
   list( APPEND VIAME_PYTHON_DEP_CMDS "ubelt" )
+endif()
+
+if ( VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_DEPS scriptconfig )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "scriptconfig" )
+
+  list( APPEND VIAME_PYTHON_DEPS kwarray )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "kwarray" )
+
+  # Currently only works on linux for now
+  list( APPEND VIAME_PYTHON_DEPS kwimage )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "kwimage" )
+
+  list( APPEND VIAME_PYTHON_DEPS kwplot )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "kwplot" )
+
+  list( APPEND VIAME_PYTHON_DEPS ndsampler )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "ndsampler" )
+
+  list( APPEND VIAME_PYTHON_DEPS netharn )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "netharn" )
 endif()
 
 if( VIAME_ENABLE_TENSORFLOW )

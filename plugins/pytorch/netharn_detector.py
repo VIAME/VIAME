@@ -38,6 +38,9 @@ Notes:
     pip install ~/remote/videonas/fouo/projects/diva/kwiver-wheels/kwiver-1.4.0-cp35-cp35m-linux_x86_64.whl
 
     pip install netharn kwimage kwarray ndsampler
+
+
+    git submodule add -b release git@gitlab.kitware.com:computer-vision/kwimage.git packages
 """
 
 try:

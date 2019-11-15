@@ -2,7 +2,7 @@
 # top level build file for NOAA VIAME
 #
 
-cmake_minimum_required( VERSION 3.11.4 )
+cmake_minimum_required( VERSION 3.11.3 )
 set( CMAKE_CXX_STANDARD 11 )
 
 project( VIAME )
@@ -240,6 +240,7 @@ if( VIAME_ENABLE_CUDNN )
     HINTS ${CUDNN_ROOT_DIR}
           ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux
           ${CUDA_TOOLKIT_ROOT_DIR}
+          ${CUDA_TOOLKIT_ROOT_DIR}/lib64
     PATH_SUFFIXES lib lib64 )
 
   if( NOT CUDNN_LIBRARY )

@@ -37,9 +37,9 @@ if( VIAME_ENABLE_PYTORCH-PYSOT )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pysot )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-NETHARN )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} netharn )
-endif()
+#if( VIAME_ENABLE_PYTORCH-NETHARN )
+#  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} netharn )
+#endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
   if( VIAME_ENABLE_CUDA AND CUDA_VERSION VERSION_LESS "9.0" )
@@ -193,7 +193,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   if( VIAME_FORCEBUILD )
     ExternalProject_Add_Step( ${LIB} forcebuild
       COMMAND ${CMAKE_COMMAND}
-        -E remove ${VIAME_BUILD_PREFIX}/src/{LIB}-stamp 
+        -E remove ${VIAME_BUILD_PREFIX}/src/{LIB}-stamp
       COMMENT "Removing build stamp file for build update (forcebuild)."
       DEPENDEES configure
       DEPENDERS build
