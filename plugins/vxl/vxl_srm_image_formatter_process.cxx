@@ -46,7 +46,9 @@
 #include <vector>
 
 #include <vil/vil_image_view.h>
+#include <vil/vil_copy.h>
 #include <vil/vil_crop.h>
+#include <vil/vil_fill.h>
 #include <vil/vil_resample_bilin.h>
 
 
@@ -264,7 +266,24 @@ void vxl_srm_image_formatter_process::priv
       return;
     }
 
-    output.push_back( vil_crop( input, 0, output_ni, 0, output_nj ) );
+    if( output_ni > input.ni() || output_nj > input.nj() )
+    {
+      vil_image_view< PixType > padded_crop( output_ni, output_nj, input.nplanes() );
+      vil_fill( padded_crop, static_cast< PixType >( 0 ) );
+
+      unsigned copy_ni = std::min( output_ni, input.ni() );
+      unsigned copy_nj = std::min( output_nj, input.nj() );
+
+      vil_image_view< PixType > dest =
+        vil_crop( padded_crop, 0, copy_ni, 0, copy_nj );
+
+      vil_copy_reformat( vil_crop( input, 0, copy_ni, 0, copy_nj ), dest );
+      output.push_back( padded_crop );
+    }
+    else
+    {
+      output.push_back( vil_crop( input, 0, output_ni, 0, output_nj ) );
+    }
   }
   else // Chip mode
   {
