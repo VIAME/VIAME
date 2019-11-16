@@ -128,9 +128,14 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
-  list( APPEND VIAME_PYTHON_DEPS "pycocotools" )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
+if( VIAME_ENABLE_PYTORCH AND NOT WIN32 )
+  list( APPEND VIAME_PYTHON_DEPS "yaml" )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "yaml" )
+
+  if( VIAME_ENABLE_PYTORCH-MMDET )
+    list( APPEND VIAME_PYTHON_DEPS "pycocotools" )
+    list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
+  endif()
 endif()
 
 # ------------------------------------------------------------------------------
