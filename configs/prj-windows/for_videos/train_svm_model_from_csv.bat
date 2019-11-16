@@ -13,7 +13,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -d %INPUT_DIRECTORY% -p pipelines\index_default.svm.pipe --build-index --ball-tree -auto-detect-gt %ANNOTATION_TYPE% -install "%VIAME_INSTALL%"
+python.exe "%VIAME_INSTALL%\configs\process_video.py" --init -d %INPUT_DIRECTORY% -p pipelines\index_default.svm.pipe --build-index -auto-detect-gt %ANNOTATION_TYPE% -install "%VIAME_INSTALL%"
 
 REM Perform actual SVM model generation
 
