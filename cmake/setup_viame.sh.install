@@ -1,27 +1,16 @@
 #
 # Script to set up environment to use VIAME
 #
-
-# Paths to required dependencies, set these
-export PYTHON_INSTALL_DIR=/opt/noaa/python3
-
-# Check variable paths
-if [ ! -d "$PYTHON_INSTALL_DIR" ]; then
-  echo "------------------------------------------------------------------"
-  echo "Error: Python directory specified in setup_viame.sh does not exist"
-  echo ""
-  echo "Open setup_viame.sh in a text editor and set PYTHON_INSTALL_DIR"
-  echo "------------------------------------------------------------------"
-  return
-fi
-
-# Activate python anaconda environment, this can be removed if you already have it
-# activated within your environment.
-source $PYTHON_INSTALL_DIR/bin/activate
-
+# Note: You no longer need to set install or set Anaconda or CUDA
+#
+# They are now packaged in VIAME
+#
+# Because people kept installing the wrong versions (not naming any names)
+#
 # The below variables specify search paths for plugins and modules within the VIAME
 # framework. It is not recommended to modify any of the below paths, unless you know
 # what you're doing.
+#
 this_dir=$(readlink -f $(dirname $BASH_SOURCE[0]))
 
 # Paths for loading algorithm plugins
@@ -43,11 +32,10 @@ export VG_PLUGIN_PATH=$this_dir
 export VIDTK_MODULE_PATH=$this_dir/lib/modules
 
 # Excessive paths for loading python plugins
-export PYTHON_LIBRARY=$PYTHON_INSTALL_DIR/lib/libpython3.6m.so
-export PYTHONPATH=$this_dir/python:$PYTHONPATH
+export PYTHON_LIBRARY=$this_dir/lib/libpython3.6.so
+export PYTHONPATH=$this_dir/python:$this_dir/lib/python3.6
 export PYTHONPATH=$this_dir/lib/python3.6/site-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python3.6/dist-packages:$PYTHONPATH
-export LD_LIBRARY_PATH=$PYTHON_INSTALL_DIR/lib:$LD_LIBRARY_PATH
 export SPROKIT_PYTHON_MODULES=kwiver.arrows:kwiver.processes:kwiver.processes.pytorch
 export SPROKIT_PYTHON_MODULES=viame.arrows.core:viame.arrows.pytorch:$SPROKIT_PYTHON_MODULES
 export SPROKIT_PYTHON_MODULES=viame.arrows.tensorflow:$SPROKIT_PYTHON_MODULES
