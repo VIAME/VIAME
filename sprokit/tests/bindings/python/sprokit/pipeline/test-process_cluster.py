@@ -31,7 +31,7 @@
 
 def test_import():
     try:
-        import sprokit.pipeline.config
+        import vital.config.config
         import sprokit.pipeline.process
         import sprokit.pipeline.process_cluster
     except:

@@ -10,7 +10,7 @@ from __future__ import print_function
 from kwiver.kwiver_process import KwiverProcess
 import sprokit.pipeline.datum
 import sprokit.pipeline.process
-import sprokit.pipeline.config
+import vital.config.config
 
 # from libkwiver_python_convert_homography.homograpy import HomograpyTra
 import os.path
