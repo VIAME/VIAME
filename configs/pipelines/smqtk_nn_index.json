@@ -33,18 +33,14 @@
             }
         },
         "hash_index": {
-            "type": "SkLearnBallTreeHashIndex",
-            "SkLearnBallTreeHashIndex": {
+            "type": "LinearHashIndex",
+            "LinearHashIndex": {
                 "cache_element": {
                     "type": "DataFileElement",
                     "DataFileElement": {
-                        "explicit_mimetype": null,
-                        "filepath": "database/ITQ/balltree.hi_btree.npz",
-                        "readonly": false
+                        "filepath": "database/ITQ/linearhashindex.npy"
                     }
-                },
-                "leaf_size": 40,
-                "random_seed": 0
+                }
             }
         },
         "lsh_functor": {
