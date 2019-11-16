@@ -22,12 +22,6 @@ libssl-dev \
 g++ \
 zlib1g-dev 
 
-# Setup anaconda
-wget https://repo.continuum.io/archive/Anaconda3-5.2.0-Linux-x86_64.sh
-bash Anaconda3-5.2.0-Linux-x86_64.sh -b
-source /root/anaconda3/bin/activate
-rm -rf Anaconda3-5.2.0-Linux-x86_64.sh
-
 # Install CMAKE
 wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz
 tar zxvf cmake-3.*
@@ -67,6 +61,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_MATLAB:BOOL=OFF \
 -DVIAME_ENABLE_OPENCV:BOOL=ON \
 -DVIAME_ENABLE_PYTHON:BOOL=ON \
+-DVIAME_ENABLE_PYTHON-INTERNAL:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-INTERNAL:BOOL=ON \
 -DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
@@ -84,18 +79,9 @@ make -j$(nproc) -k || true
 # Below be krakens
 # (V) (°,,,°) (V)   (V) (°,,,°) (V)   (V) (°,,,°) (V)
 
-# HACK: Python3.6 copy so that create_package succeeds
-# Should be removed when this issue is fixed
-mkdir -p install/lib
-cp /root/anaconda3/lib/libpython3.6m.* install/lib
-
-# HACK: Double tap the build tree after adding in python
-# Should be removed when this issue is fixed
+# HACK: Double tap the build tree
+# Should be removed when non-determinism in kwiver python build fixed
 make -j$(nproc)
-
-# HACK: Remove libpython.so files necessary for create_package
-# Should be removed when this issue is fixed
-rm -r install/lib/libpython*
 
 # HACK: Copy setup_viame.sh.install over setup_viame.sh
 # Should be removed when this issue is fixed
