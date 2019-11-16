@@ -133,8 +133,8 @@ if( VIAME_ENABLE_PYTORCH AND NOT WIN32 )
   list( APPEND VIAME_PYTHON_DEP_CMDS "pyyaml" )
 
   if( VIAME_ENABLE_PYTORCH-MMDET )
-    list( APPEND VIAME_PYTHON_DEPS "pycocotools" )
-    list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
+    list( APPEND VIAME_PYTHON_DEPS "Cython" "pycocotools" )
+    list( APPEND VIAME_PYTHON_DEP_CMDS "Cython" "pycocotools" )
   endif()
 endif()
 
