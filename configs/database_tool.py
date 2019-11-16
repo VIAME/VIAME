@@ -231,10 +231,10 @@ def build_standard_index( install_dir="", log_file="" ):
   try:
     global status_log_file
     status_log_file = log_file
-    log_info( "  (1/3) Training ITQ Model... " )
+    log_info( "  (1/2) Training ITQ Model... " )
     execute_pycmd( install_dir, "train_itq",
       [ "-vc", find_config( smqtk_itq_train_config ) ] )
-    log_info( "Success" + lb1 + "  (2/3) Computing Hash Codes... " )
+    log_info( "Success" + lb1 + "  (2/2) Computing Hash Codes... " )
     execute_pycmd( install_dir, "compute_hash_codes",
       [ "-vc", find_config( smqtk_hcode_config ) ] )
     log_info( "Success" + lb1 )
