@@ -108,6 +108,21 @@ else()
   set( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL OFF CACHE BOOL "Forced off" FORCE )
 endif()
 
+###
+# Additional libraries built on pytorch
+##
+if( VIAME_ENABLE_PYTORCH )
+  option( VIAME_ENABLE_PYTORCH-INTERNAL "Enable internal PyTorch build"  OFF )
+  option( VIAME_ENABLE_PYTORCH-MMDET    "Enable mmdet PyTorch code"      ON )
+  option( VIAME_ENABLE_PYTORCH-PYSOT    "Enable pysot PyTorch code"      OFF )
+  option( VIAME_ENABLE_PYTORCH-NETHARN  "Enable netharn PyTorch code"    OFF )
+
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-INTERNAL )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-MMDET )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-PYSOT )
+  mark_as_advanced( VIAME_ENABLE_PYTORCH-NETHARN )
+endif()
+
 # ##
 # Core build settings advanced flags
 #
