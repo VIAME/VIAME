@@ -740,13 +740,11 @@ if __name__ == "__main__" :
       index_log_file = ""
 
     if args.ball_tree:
-      if not database_tool.build_balltree_index( remove_quotes( args.install_dir ),
-                                                 log_file = index_log_file ):
-        exit_with_error( "Unable to build index" )
-    else:
-      if not database_tool.build_standard_index( remove_quotes( args.install_dir ),
-                                                 log_file = index_log_file ):
-        exit_with_error( "Unable to build index" )
+      print( "Warning: building a ball tree is deprecated" )
+
+    if not database_tool.build_standard_index( remove_quotes( args.install_dir ),
+                                               log_file = index_log_file ):
+      exit_with_error( "Unable to build index" )
 
   # Output complete message
   if os.name == 'nt':

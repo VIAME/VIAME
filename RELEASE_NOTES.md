@@ -1,4 +1,15 @@
 
+v0.10.1 - 11/16/2019
+====================
+
+
+-Remove ball-tree indexing in favor of full LSH hash searches due to issues
+
+
+-Begin packaging python in binaries for linux in addition to windows
+
+
+
 v0.10.0 - 11/15/2019
 ====================
 
