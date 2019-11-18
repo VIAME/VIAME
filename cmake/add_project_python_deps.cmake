@@ -12,7 +12,7 @@
 set( VIAME_PYTHON_DEPS numpy matplotlib )
 set( VIAME_PYTHON_DEP_CMDS "numpy" "matplotlib" )
 
-if( VIAME_ENABLE_CAMTRAWL )
+if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS ubelt )
   list( APPEND VIAME_PYTHON_DEP_CMDS "ubelt" )
 endif()
@@ -73,7 +73,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
 
     if( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
       set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
-      set( ARGS_TORCHVISION "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==${TORCHVISION_VERSION} -f ${PYTORCH_ARCHIVE}" )
     elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
       if( PYTHON_VERSION VERSION_EQUAL 3.6 )
         set( ARGS_TORCH "https://download.pytorch.org/whl/cu100/torch-1.2.0-cp36-cp36m-win_amd64.whl" )
@@ -97,7 +97,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
 
     if( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
       set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
-      set( ARGS_TORCHVISION "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
+      set( ARGS_TORCHVISION "==${TORCHVISION_VERSION} -f ${PYTORCH_ARCHIVE}" )
     elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
       set( ARGS_TORCH "==${PYTORCH_VERSION}+cu100 -f ${PYTORCH_ARCHIVE}" )
       set( ARGS_TORCHVISION "==${TORCHVISION_VERSION}+cu100 -f ${PYTORCH_ARCHIVE}" )
@@ -136,6 +136,31 @@ endif()
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
   list( APPEND VIAME_PYTHON_DEPS "pycocotools" )
   list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
+endif()
+
+if ( VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_DEPS scriptconfig )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "scriptconfig" )
+
+  list( APPEND VIAME_PYTHON_DEPS kwarray )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "kwarray" )
+
+  # Currently only works on linux for now
+  list( APPEND VIAME_PYTHON_DEPS kwimage )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "kwimage" )
+
+  if (WIN32 OR APPLE)
+    message( FATAL_ERROR "pip install kwimage does not currently work on non-linux systems" )
+  endif()
+
+  list( APPEND VIAME_PYTHON_DEPS kwplot )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "kwplot" )
+
+  list( APPEND VIAME_PYTHON_DEPS ndsampler )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "ndsampler" )
+
+  list( APPEND VIAME_PYTHON_DEPS netharn )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "netharn" )
 endif()
 
 # ------------------------------------------------------------------------------
