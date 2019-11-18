@@ -57,8 +57,8 @@ For a full installation guide see the quick-start slide deck above, but in summa
 and place them in a directory of your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame
 on Linux. Next, run through some of the examples to validate the installation. It is no longer necessary
 to install any dependencies of VIAME, they are all packaged inside of it. The binaries are quite large
-(in terms of disk space) due to the inclusion of model default model files and programs, but if just
-building your desired features from source they can be relatively small.
+(in terms of disk space) due to the inclusion of multiple default model files and programs, but if just
+building your desired features from source they are much smaller.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
