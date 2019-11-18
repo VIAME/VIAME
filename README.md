@@ -53,14 +53,12 @@ but select entries are also listed below broken down by individual functionality
 Pre-Built Binaries
 ------------------
 
-For a full installation guide see the quick-start slide deck above, but in summary, first install
-Anaconda3. Exactly version 5.2.0 is required, not a higher or lower version (at build time, VIAME can be built
-against any version of Anaconda or Python, though the installers are locked into a specific version).
-Secondly, extract the binaries and place them in a directory of your choosing, for example C:\Program Files\VIAME
-on Windows or /opt/noaa/viame on Linux. Next, if Anaconda was installed to a non-default location, set the
-PYTHON_INSTALL_DIR at the top of the setup_viame.sh (Linux) or setup_viame.bat (Windows) script in the root
-install folder to point to the location of your installed Anaconda distribution. Lastly, run through some of
-the examples to validate the installation.
+For a full installation guide see the quick-start slide deck above, but in summary, extract the binaries
+and place them in a directory of your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame
+on Linux. Next, run through some of the examples to validate the installation. It is no longer necessary
+to install any dependencies of VIAME, they are all packaged inside of it. The binaries are quite large
+(in terms of disk space) due to the inclusion of model default model files and programs, but if just
+building your desired features from source they can be relatively small.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
@@ -81,16 +79,16 @@ CentOS
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.9.17 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dae1062d35580e6dcb0ef2f/download) <br>
-[VIAME v0.9.17 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=134PTrNUmixp4VV9arwn6pdaVNN6rAvhw) <br>
-[VIAME v0.10.0 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dcedfd0af2e2eed35fa4fcb/download) <br>
-[VIAME v0.10.0 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1TEKaloIWSaTurJaK9lrHOfZ2kuZbSwjt)
+[VIAME v0.10.1 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd2b306af2e2eed35043d67/download) <br>
+[VIAME v0.10.1 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1PmPrdcXmZoJM0vHMslTp_TU1MkBn1m7d) <br>
+[VIAME v0.10.1 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd2b22aaf2e2eed35043af7/download) <br>
+[VIAME v0.10.1 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1JCNr4JppWoe0cH0yHWviT3gl3c93rb6e)
 
 **Windows Desktop Binaries:** <br>
 [VIAME v0.10.0 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dcec95caf2e2eed35fa2177/download) <br>
 [VIAME v0.10.0 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1YxQT9EBP8AzAlQYNM9WBykPlvJxBfXW_) <br>
-[VIAME v0.9.17 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5db09084e3566bda4b0a8bb8/download) <br>
-[VIAME v0.9.17 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1AhgLWqAb4AfrMF7NA5Fo9-a8_O6HyJ1-)
+[VIAME v0.10.1 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd2b277af2e2eed35043be0/download) <br>
+[VIAME v0.10.1 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1R4KLFXnUXxsfi_BS6iWzSoOrac0D4b41)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
