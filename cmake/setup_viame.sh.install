@@ -32,7 +32,7 @@ export VG_PLUGIN_PATH=$this_dir
 export VIDTK_MODULE_PATH=$this_dir/lib/modules
 
 # Excessive paths for loading python plugins
-export PYTHON_LIBRARY=$this_dir/lib/libpython3.so
+export PYTHON_LIBRARY=$this_dir/lib/libpython3.6m.so
 export PYTHONPATH=$this_dir/python:$this_dir/lib/python3.6
 export PYTHONPATH=$this_dir/lib/python3.6/site-packages:$PYTHONPATH
 export PYTHONPATH=$this_dir/lib/python3.6/dist-packages:$PYTHONPATH
