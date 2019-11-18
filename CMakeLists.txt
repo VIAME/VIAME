@@ -213,6 +213,10 @@ if( VIAME_ENABLE_PYTHON )
     endif()
   endif()
 
+  if( VIAME_ENABLE_PYTHON-NETHARN AND NOT VIAME_ENABLE_PYTHON-MMDET )
+    message( FATAL_ERROR "Netharn currently also required mmdet enabled" )
+  endif()
+
   set( PYTHON_VERSION "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
        CACHE STRING "Python version number" )
   set( PYTHON_VERSION_STRING "${PYTHON_VERSION}"
