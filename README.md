@@ -15,7 +15,7 @@ Example Capabilities
 <p align="left">
 <br>
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-04.png" alt="Search Example" width="297" height="180">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2019/11/viame-gh-splash-04.png" alt="Search Example" width="297" height="180">
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/tracks.png" alt="Tracking Example" width="232" height="180">
 <img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02.png" alt="Detection Example" width="297" height="180">
 </nobr>
