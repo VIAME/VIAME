@@ -55,15 +55,16 @@ Pre-Built Binaries
 
 For a full installation guide see the quick-start slide deck above, but in summary, extract the binaries
 and place them in a directory of your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame
-on Linux. Next, run through some of the examples to validate the installation. It is no longer necessary
-to install any dependencies of VIAME, they are all packaged inside of it. The binaries are quite large
-(in terms of disk space) due to the inclusion of multiple default model files and programs, but if just
-building your desired features from source they are much smaller.
+on Linux. If you're using packages built with GPU support, make sure to have sufficient video drivers installed,
+version 410.48 or higher. The best way to install drivers depends on your operating system, see below.
+Lastly, run through some of the examples to validate the installation. It is no longer necessary
+to install any dependencies of VIAME besides drivers, they are packaged inside of it. The binaries are
+quite large (in terms of disk space) due to the inclusion of multiple default model files and programs,
+but if just building your desired features from source they are much smaller.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
-[Anaconda3 5.2.0 x86_64](https://repo.continuum.io/archive/) (Note: Anaconda**3 5.2.0 x86_64**, not Anaconda2 or x86 or 5.3.0) <br>
-5 Gb of Disk Space for the Full Installation <br>
+6 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
 NVIDIA Drivers (Version 410.48+ 
