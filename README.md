@@ -9,7 +9,7 @@ currently the KWIVER library, which can connect C/C++, python, and matlab nodes 
 architecture. Alongside the pipelined image processing system are a number of standalone utilties for model training,
 output visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring), image/video search,
 and rapid model generation. Both a desktop application and web version of VIAME exists to faciliate users who
-want to work in either environment.
+want to work in either environment, with algorithms integrated into this repository runnable in either.
 
 Example Capabilities
 --------------------
