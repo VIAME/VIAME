@@ -121,11 +121,11 @@ into existing installations because they are a full installation and bad things 
 Quick Build Instructions
 ------------------------
 
-These instructions are intended for developers or those interested in building the latest
-master branch. More in-depth build instructions can be found [here](examples/building_and_installing_viame),
-but the software can be built either as a super-build, which builds most of its
-dependencies alongside itself, or standalone. To build VIAME requires, at a minimum,
-[Git](https://git-scm.com/), [CMake](https://cmake.org/), and a C++ compiler.
+These instructions are intended for developers or those interested in building the latest master
+ ranch. More in-depth build instructions can be found [here](examples/building_and_installing_viame),
+but the software can be built either as a super-build, which builds most of its dependencies
+alongside itself, or standalone. To build VIAME requires, at a minimum, [Git](https://git-scm.com/),
+[CMake](https://cmake.org/), and a [C++ compiler](http://www.cplusplus.com/doc/tutorial/introduction/).
 If using the command line, run the following commands, only replacing [source-directory] and
 [build-directory] with locations of your choice. While these directories can be the same, it's good
 practice to have a 'src' checkout then a seperate 'build' directory:
