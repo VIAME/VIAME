@@ -287,13 +287,13 @@ def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
 
     # Register Algorithm
-    implementation_name = "netharn_detector"
+    implementation_name = "netharn"
 
     if algorithm_factory.has_algorithm_impl_name(
             NetharnDetector.static_type_name(), implementation_name):
         return
 
     algorithm_factory.add_algorithm(implementation_name,
-                                    "PyTorch Netharn detection routine", NetharnDetector)
+        "PyTorch Netharn detection routine", NetharnDetector)
 
     algorithm_factory.mark_algorithm_as_loaded(implementation_name)
