@@ -8,8 +8,8 @@ useful as a general computer vision toolkit. The core infrastructure connecting 
 currently the KWIVER library, which can connect C/C++, python, and matlab nodes together in a graph-like pipeline
 architecture. Alongside the pipelined image processing system are a number of standalone utilties for model training,
 output visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring), image/video search,
-and rapid model generation. Both a desktop application and web version of VIAME exists to faciliate users who
-want to work in either environment, with algorithms integrated into this repository runnable in either.
+and rapid model generation. Both a desktop application and web version exists to faciliate users who
+want to work in either environment.
 
 Example Capabilities
 --------------------
