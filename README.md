@@ -214,23 +214,6 @@ And lastly, a number of flags which build algorithms with more specialized funct
 </center>
 
 
-Update Instructions
--------------------
-
-If you already have a checkout of VIAME and want to switch branches or
-update your code, it is important to re-run:
-
-	git submodule update --init --recursive
-
-After switching branches to ensure that you have on the correct hashes
-of sub-packages within the build. Very rarely you may also need to run:
-
-	git submodule sync
-
-Just in case the address of submodules has changed. You only need to
-run this command if you get a "cannot fetch hash #hashid" error.
-
-
 Source Code Layout
 ------------------
 <pre>
@@ -253,6 +236,23 @@ Source Code Layout
    │   └── ...             # Assorted plugins (detectors, depth maps, filters, etc.)
    └── README.md           # Project introduction page that you are reading
 </pre>
+
+
+Update Instructions
+-------------------
+
+If you already have a checkout of VIAME and want to switch branches or
+update your code, it is important to re-run:
+
+	git submodule update --init --recursive
+
+After switching branches to ensure that you have on the correct hashes
+of sub-packages within the build. Very rarely you may also need to run:
+
+	git submodule sync
+
+Just in case the address of submodules has changed. You only need to
+run this command if you get a "cannot fetch hash #hashid" error.
 
 
 License, Citations, and Acknowledgements
