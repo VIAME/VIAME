@@ -60,7 +60,7 @@ on Linux. If you're using packages built with GPU support, make sure to have suf
 version 410.48 or higher. The best way to install drivers depends on your operating system, see below.
 Lastly, run through some of the examples to validate the installation. It is no longer necessary
 to install any dependencies of VIAME besides drivers, everything else is packaged inside of it. The binaries
-are quite large (in terms of disk space) due to the inclusion of multiple default model files and programs,
+are quite large, in terms of disk space, due to the inclusion of multiple default model files and programs,
 but if just building your desired features from source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
