@@ -90,9 +90,9 @@ if( VIAME_DOWNLOAD_MODELS )
   # Mixed Models
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     DownloadAndExtract(
-      https://data.kitware.com/api/v1/item/5cdf04218d777f072bb4fc37/download
-      5a0f1bf02ffb39100c7c7c42eaff8b8d
-      ${VIAME_DOWNLOAD_DIR}/models-habcam-v2.1.0.tar.gz
+      https://data.kitware.com/api/v1/item/5dd38b69af2e2eed35070a44/download
+      bf04804e7c181873952ecadb84f2d66b
+      ${VIAME_DOWNLOAD_DIR}/models-habcam-v2.2.0.tar.gz
       ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
   endif()
 

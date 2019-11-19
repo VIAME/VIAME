@@ -101,7 +101,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
 [Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5d7bb82fd35580e6dc0fb5af/download) <br>
 [Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5d7a6c19d35580e6dc0abb0b/download) <br>
-[HabCam Models (Scallop, Skate, Flatfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5d016fbf8d777f072b2955c9/download) <br>
+[HabCam Models (Scallop, Skate, Flatfish) Add-On, All Linux](https://data.kitware.com/api/v1/item/5dd38b69af2e2eed35070a44/download) <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Model Set 2 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
