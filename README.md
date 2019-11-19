@@ -8,7 +8,8 @@ useful as a general computer vision toolkit. The core infrastructure connecting 
 currently the KWIVER library, which can connect C/C++, python, and matlab nodes together in a graph-like pipeline
 architecture. Alongside the pipelined image processing system are a number of standalone utilties for model training,
 output visualization, groundtruth annotation, detector/tracker evaluation (a.k.a. scoring), image/video search,
-and rapid model generation.
+and rapid model generation. Both a desktop application and web version of VIAME exists to faciliate users who
+want to work in either environment.
 
 Example Capabilities
 --------------------
@@ -60,7 +61,7 @@ version 410.48 or higher. The best way to install drivers depends on your operat
 Lastly, run through some of the examples to validate the installation. It is no longer necessary
 to install any dependencies of VIAME besides drivers, everything else is packaged inside of it. The binaries
 are quite large (in terms of disk space) due to the inclusion of multiple default model files and programs,
-but if just building your desired features from source they are much smaller.
+but if just building your desired features from source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
