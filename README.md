@@ -30,7 +30,7 @@ Example Capabilities
 Documentation
 -------------
 
-The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5dc08673e3566bda4b57a493/download),
+The [User's Quick-Start Guide](https://data.kitware.com/api/v1/item/5dd345beaf2e2eed35062a73/download),
 [Tutorial Videos](https://www.youtube.com/channel/UCpfxPoR5cNyQFLmqlrxyKJw), 
 and [Developer's Manual](http://viame.readthedocs.io/en/latest/) are more comprehensive,
 but select entries are also listed below broken down by individual functionality:
@@ -80,10 +80,10 @@ CentOS
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.10.1 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd2b306af2e2eed35043d67/download) <br>
-[VIAME v0.10.1 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1PmPrdcXmZoJM0vHMslTp_TU1MkBn1m7d) <br>
-[VIAME v0.10.1 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd2f1b1af2e2eed350508c0/download) <br>
-[VIAME v0.10.1 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1Y4Q5IneObrEGVZEJfBDrShCdg_YNAUrZ)
+[VIAME v0.10.1 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd36516af2e2eed350687eb/download) <br>
+[VIAME v0.10.1 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1Z15618JeADbjfO3-9oziriSgAfP2Q5CS) <br>
+[VIAME v0.10.1 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd364b2af2e2eed350687a7/download) <br>
+[VIAME v0.10.1 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1POPni6DBE3FmxOsl6kZdJNua_R8I0Eoc)
 
 **Windows Desktop Binaries:** <br>
 [VIAME v0.10.1 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd2bc34af2e2eed350462b8/download) <br>

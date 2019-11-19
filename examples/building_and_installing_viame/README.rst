@@ -16,7 +16,7 @@ Next, use the offline quick start guide located at the below link to complete th
 
 `VIAME Offline Installation`_
 
-.. _VIAME Offline Installation: https://data.kitware.com/api/v1/item/5d0ac988676794a06e5169b2/download
+.. _VIAME Offline Installation: https://data.kitware.com/api/v1/item/5dd345beaf2e2eed35062a73/download
 
 
 ==========================
@@ -74,27 +74,27 @@ is recommended, other versions may work depending on your build settings but are
 
 .. code-block:: bash
 
-   https://developer.nvidia.com/cuda-80-ga2-download-archive
+   https://developer.nvidia.com/cuda-toolkit-archive
 
 Install CMAKE
 =============
 
 Depending on the OS, the version of cmake you get with apt/yum/dnf is sometimes too old to
-use for building VIAME (you currently need at least CMake 3.11.4) so you may need to do a
+use for building VIAME (you currently need at least CMake 3.11.3) so you may need to do a
 manual install of CMake. Go to the cmake website, ``https://cmake.org/download``, and download
 the appropriate binary distribution (for Ubuntu, this would be something like 
-cmake-3.11.4-Linux-x86_64.sh, though newer versions will be out by the time you read this).
-Alternatively, download the source code, e.g. cmake-3.11.4.tar.gz, and build the binaries
+cmake-3.11.3-Linux-x86_64.sh, though newer versions will be out by the time you read this).
+Alternatively, download the source code, e.g. cmake-3.11.3.tar.gz, and build the binaries
 from source. To untar and build the source, use the following set of commands. Keep in
-mind that if you're not using version 3.11.4, you'll need to update the version number in
+mind that if you're not using version 3.11.3, you'll need to update the version number in
 the below to match your downloaded version.
 
 
 .. code-block:: bash
 
    cd ~/Downloads
-   tar zxfv cmake-3.11.4.tar.gz
-   cd cmake-3.11.4
+   tar zxfv cmake-3.11.3.tar.gz
+   cd cmake-3.11.3
    ./bootstrap --system-curl --no-system-libs
    make
    sudo make install
