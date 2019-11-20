@@ -96,16 +96,16 @@ private:
 
   virtual Eigen::Matrix<double, 8, 3>
     backproject_bbox(const kwiver::vital::camera_perspective_sptr camera,
-                     const vector_4d box) const;
+                     const vital::bounding_box<double> bbox) const;
 
-  virtual vector_4d
+  virtual vital::bounding_box<double>
     box_around_box3d(const kwiver::vital::camera_perspective_sptr camera,
                      const Eigen::Matrix<double, 8, 3> box3d) const;
 
-  virtual vector_4d
+  virtual vital::bounding_box<double>
     view_to_view(const kwiver::vital::camera_perspective_sptr src_camera,
                  const kwiver::vital::camera_perspective_sptr dest_camera,
-                 const vector_4d bounds) const;
+                 const vital::bounding_box<double> bbox) const;
 };
 
 }}} //End namespace

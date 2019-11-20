@@ -153,19 +153,19 @@ backproject_to_plane( const kwiver::vital::camera_perspective_sptr camera,
 Eigen::Matrix<double, 8, 3>
 transform_detected_object_set::
 backproject_bbox( const kwiver::vital::camera_perspective_sptr camera,
-                  const vector_4d box ) const
+                  const vital::bounding_box<double> bbox ) const
 {
   // project base of the box to the ground
-  auto base_pt = vector_2d((box(0) + box(2)) / 2, box(3));
+  auto base_pt = vector_2d((bbox.min_x() + bbox.max_x()) / 2, bbox.max_y());
   vector_3d pc = this->backproject_to_ground( camera, base_pt );
   vector_3d ray = pc - camera->center();
   ray(2) = 0.0;
   ray.normalize();
 
-  vector_3d p1 =
-    this->backproject_to_ground( camera, vector_2d(box(0), box(3)) );
-  vector_3d p2 =
-    this->backproject_to_ground( camera, vector_2d(box(2), box(3)) );
+  vector_3d p1 = this->backproject_to_ground(
+    camera, vector_2d(bbox.min_x(), bbox.max_y()) );
+  vector_3d p2 = this->backproject_to_ground(
+    camera, vector_2d(bbox.max_x(), bbox.max_y()) );
 
   vector_3d vh = p2 - p1;
   vector_3d vd = ray * vh.norm();
@@ -182,8 +182,8 @@ backproject_bbox( const kwiver::vital::camera_perspective_sptr camera,
 
   vector_4d back_plane;
   back_plane << n, d;
-  vector_3d p5 =
-    this->backproject_to_plane( camera, vector_2d(box(0), box(1)), back_plane );
+  vector_3d p5 = this->backproject_to_plane(
+    camera, vector_2d(bbox.min_x(), bbox.min_y()), back_plane );
   double height = p5(2);
 
   Eigen::Matrix<double, 8, 3> box3d;
@@ -200,7 +200,7 @@ backproject_bbox( const kwiver::vital::camera_perspective_sptr camera,
 }
 
 // ---------------------------------------------------------------------------
-vector_4d
+vital::bounding_box<double>
 transform_detected_object_set::
 box_around_box3d( const kwiver::vital::camera_perspective_sptr camera,
                   const Eigen::Matrix<double, 8, 3> box3d ) const
@@ -213,23 +213,24 @@ box_around_box3d( const kwiver::vital::camera_perspective_sptr camera,
     projected_points.row(i) = camera->project(box3d.row(i)).transpose();
   }
 
-  vector_4d out_box;
-  out_box << (vector_2d)projected_points.colwise().minCoeff(),
-             (vector_2d)projected_points.colwise().maxCoeff();
+  auto out_box = vital::bounding_box<double>(
+    (vector_2d)projected_points.colwise().minCoeff(),
+    (vector_2d)projected_points.colwise().maxCoeff());
 
   return out_box;
 }
 
 // ---------------------------------------------------------------------------
-vector_4d
+vital::bounding_box<double>
 transform_detected_object_set::
 view_to_view( const kwiver::vital::camera_perspective_sptr src_camera,
               const kwiver::vital::camera_perspective_sptr dest_camera,
-              const vector_4d bounds ) const
+              const vital::bounding_box<double> bbox ) const
 {
   Eigen::Matrix<double, 8, 3> box3d =
-    this->backproject_bbox( src_camera, bounds );
-  vector_4d tgt_box = this->box_around_box3d( dest_camera, box3d );
+    this->backproject_bbox( src_camera, bbox );
+  vital::bounding_box<double> tgt_box =
+    this->box_around_box3d( dest_camera, box3d );
 
   return tgt_box;
 }
@@ -239,18 +240,11 @@ vital::bounding_box<double>
 transform_detected_object_set::
 transform_bounding_box( vital::bounding_box<double>& bbox ) const
 {
-  vector_4d bbox_bounds;
-  bbox_bounds << bbox.min_x(), bbox.min_y(),
-                 bbox.max_x(), bbox.max_y();
+  vital::bounding_box<double> out_bbox = this->view_to_view( this->src_camera,
+                                                             this->dest_camera,
+                                                             bbox );
 
-  vector_4d out_bounds = this->view_to_view( this->src_camera,
-                                             this->dest_camera,
-                                             bbox_bounds );
-
-  return vital::bounding_box<double>(out_bounds(0),
-                                     out_bounds(1),
-                                     out_bounds(2),
-                                     out_bounds(3));
+  return out_bbox;
 }
 
 // ---------------------------------------------------------------------------
