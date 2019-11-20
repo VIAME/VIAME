@@ -42,7 +42,7 @@ namespace kwiver {
 namespace arrows {
 namespace core {
 
-/// @brief Transforms detections based on source and destination cameras.
+/// Transforms detections based on source and destination cameras.
 class KWIVER_ALGO_CORE_EXPORT transform_detected_object_set
   : public vital::algorithm_impl<transform_detected_object_set,
                                  vital::algo::detected_object_filter>
@@ -52,26 +52,26 @@ public:
                "Transforms a detected object set based on source and "
                "destination cameras.\n\n" )
 
-  /// @brief Default constructor
+  /// Default constructor
   transform_detected_object_set();
 
-  /// @brief Constructor taking source and destination cameras directly
+  /// Constructor taking source and destination cameras directly
   transform_detected_object_set(kwiver::vital::camera_perspective_sptr src_cam,
                                 kwiver::vital::camera_perspective_sptr dest_cam);
 
-  /// @brief Default destructor
+  /// Default destructor
   virtual ~transform_detected_object_set() = default;
 
-  /// @brief Get this algorithm's configuration block
+  /// Get this algorithm's configuration block
   virtual vital::config_block_sptr get_configuration() const;
 
-  /// @brief Set this algorithm's properties via a config block
+  /// Set this algorithm's properties via a config block
   virtual void set_configuration(vital::config_block_sptr config);
 
-  /// @brief Check that the algorithm's currently configuration is valid
+  /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /// @brief Apply the transformation
+  /// Apply the transformation
   virtual vital::detected_object_set_sptr
     filter( const vital::detected_object_set_sptr input_set) const;
 
