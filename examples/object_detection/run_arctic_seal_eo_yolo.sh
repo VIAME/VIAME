@@ -8,5 +8,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_arctic_seal_eo_yolo.pipe \
-                -s input:video_filename=input_image_list_seal_eo.txt
+kwiver runner ${VIAME_INSTALL}/configs/pipelines/detector_arctic_seal_eo_yolo.pipe \
+              -s input:video_filename=input_image_list_seal_eo.txt

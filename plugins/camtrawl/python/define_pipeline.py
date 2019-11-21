@@ -341,7 +341,7 @@ class Pipeline(object):
         Executes this pipeline.
 
         Writes a temporary pipeline file to your sprokit cache directory and
-        calls the pipeline_runner.
+        calls the kwiver runner .
         """
         cache_dir = ensure_app_cache_dir('sprokit', 'temp_pipelines')
         # TODO make a name based on a hash of the text to avoid race conditions
@@ -424,19 +424,19 @@ class Pipeline(object):
         A.draw(fpath)
 
 
-def find_pipeline_runner():
+def find_kwiver_runner():
     """
-    Search for the sprokit pipeline_runner executable
+    Search for the sprokit kwiver runner executable
     """
-    # First check if pipeline_runner is specified as an environment variable
+    # First check if kwiver runner is specified as an environment variable
     runner_fpath = os.environ.get('SPROKIT_PIPELINE_RUNNER', None)
     if runner_fpath is not None:
         return runner_fpath
 
     # If not, then search for the binary in the current dir and the PATH
-    fnames = ['pipeline_runner']
+    fnames = ['kwiver']
     if sys.platform.startswith('win32'):
-        fnames.insert(0, 'pipeline_runner.exe')
+        fnames.insert(0, 'kwiver.exe')
 
     search_paths = ['.']
     search_paths = os.environ.get('PATH', '').split(os.pathsep)
@@ -450,13 +450,12 @@ def find_pipeline_runner():
 
 def run_pipe_file(pipe_fpath, dry=False):
     """
-    Executes pipeline_runner with a specific pipe file.
+    Executes kwiver runner with a specific pipe file.
     """
     import os
-    runner_fpath = find_pipeline_runner()
+    runner_fpath = find_kwiver_runner()
     if runner_fpath is None:
-        raise Exception('Cannot find pipeline_runner. Is it in your PATH?')
-    # '/home/joncrall/code/VIAME/build/install/bin/pipeline_runner'
+        raise Exception('Cannot find kwiver runner . Is it in your PATH?')
 
     print('found runner exe = {!r}'.format(runner_fpath))
 
@@ -464,9 +463,9 @@ def run_pipe_file(pipe_fpath, dry=False):
         raise IOError('Pipeline file {} does not exist'.format(pipe_fpath))
 
     if not exists(runner_fpath):
-        raise NotImplementedError('Cannot find pipeline_runner')
+        raise NotImplementedError('Cannot find kwiver runner')
 
-    command = '{} -p {}'.format(runner_fpath, pipe_fpath)
+    command = '{} runner {}'.format(runner_fpath, pipe_fpath)
     print('command = "{}"'.format(command))
     if not dry:
         os.system(command)

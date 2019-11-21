@@ -8,6 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-pipeline_runner.exe -p hello_world_detector.pipe
+kwiver.exe runner hello_world_detector.pipe
 
 pause

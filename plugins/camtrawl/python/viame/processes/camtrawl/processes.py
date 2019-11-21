@@ -58,8 +58,8 @@ CommandLine:
     python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
     python run_camtrawl.py
 
-    ~/code/VIAME/build/install/bin/pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
-    ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
+    ~/code/VIAME/build/install/bin/kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe
+    ~/code/VIAME/build/install/bin/kwiver runner camtrawl.pipe -S pythread_per_process
 
 CommandLine:
     # OPENCV 2.4 VERSION
@@ -82,8 +82,8 @@ CommandLine:
     python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
     python run_camtrawl.py
 
-    ~/code/VIAME/build/install/bin/pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe  -S pythread_per_process
-    ~/code/VIAME/build/install/bin/pipeline_runner -p camtrawl.pipe -S pythread_per_process
+    ~/code/VIAME/build/install/bin/kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe  -S pythread_per_process
+    ~/code/VIAME/build/install/bin/kwiver runner camtrawl.pipe -S pythread_per_process
 
 SeeAlso
     ~/code/VIAME/packages/kwiver/vital/bindings/python/vital/types

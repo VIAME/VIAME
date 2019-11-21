@@ -8,6 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-pipeline_runner.exe -p "%VIAME_INSTALL%/configs/pipelines/register_multimodal_unsync_ocv.pipe"
+kwiver.exe runner "%VIAME_INSTALL%/configs/pipelines/register_multimodal_unsync_ocv.pipe"
 
 pause

@@ -514,32 +514,14 @@ else()
   include( setup_viame_paths )
 
   if( WIN32 )
-    set( VIAME_PIPELINE_RUNNER_SCRIPT   "${VIAME_BINARY_DIR}/pipeline_runner.bat" )
-    set( VIAME_PROCESSOPEDIA_SCRIPT     "${VIAME_BINARY_DIR}/processopedia.bat" )
-    set( VIAME_PLUGIN_EXPLORER_SCRIPT   "${VIAME_BINARY_DIR}/plugin_explorer.bat" )
     set( VIAME_SETUP_SCRIPT             "${VIAME_BINARY_DIR}/setup_viame.bat" )
 
-    configure_file(
-      ${VIAME_CMAKE_DIR}/pipeline_runner.bat.in
-      ${VIAME_PIPELINE_RUNNER_SCRIPT}
-    )
-    configure_file(
-      ${VIAME_CMAKE_DIR}/processopedia.bat.in
-      ${VIAME_PROCESSOPEDIA_SCRIPT}
-    )
-    configure_file(
-      ${VIAME_CMAKE_DIR}/plugin_explorer.bat.in
-      ${VIAME_PLUGIN_EXPLORER_SCRIPT}
-    )
     configure_file(
       ${VIAME_CMAKE_DIR}/setup_viame.bat.in
       ${VIAME_SETUP_SCRIPT}
     )
 
-    install( PROGRAMS      ${VIAME_PIPELINE_RUNNER_SCRIPT}
-                           ${VIAME_PROCESSOPEDIA_SCRIPT}
-                           ${VIAME_PLUGIN_EXPLORER_SCRIPT}
-                           ${VIAME_SETUP_SCRIPT}
+    install( PROGRAMS      ${VIAME_SETUP_SCRIPT}
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
     if( VIAME_ENABLE_SEAL_TK )
@@ -583,9 +565,9 @@ else()
     endif()
 
     if( WIN32 )
-      set( PIPELINE_RUNNER_APP "pipeline_runner.exe" )
+      set( PIPELINE_RUNNER_APP "kwiver.exe" )
     else()
-      set( PIPELINE_RUNNER_APP "pipeline_runner" )
+      set( PIPELINE_RUNNER_APP "kwiver" )
     endif()
 
     if( VIAME_ENABLE_YOLO )

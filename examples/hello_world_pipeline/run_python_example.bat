@@ -8,6 +8,6 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-pipeline_runner.exe -p hello_world_python.pipe -S pythread_per_process 
+kwiver.exe runner hello_world_python.pipe -S pythread_per_process
 
 pause

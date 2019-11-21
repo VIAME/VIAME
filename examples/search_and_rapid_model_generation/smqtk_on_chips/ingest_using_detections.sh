@@ -20,7 +20,7 @@ IMAGE_TILES_DIR="tiles"
 echo "Generating tiles for images ($(wc -l "${IMAGE_LIST}" | cut -d' ' -f1) images)"
 mkdir -p "${IMAGE_TILES_DIR}"
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_extract_chips.pipe \
+kwiver runner ${VIAME_INSTALL}/configs/pipelines/detector_extract_chips.pipe \
                 -s input:video_filename=${IMAGE_LIST}
 
 # Perform ingest on computed chips

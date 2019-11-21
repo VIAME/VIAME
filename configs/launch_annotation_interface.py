@@ -107,14 +107,14 @@ def default_annotator_args( args ):
 def get_pipeline_cmd( debug=False ):
   if os.name == 'nt':
     if debug:
-      return ['pipeline_runner.exe']
+      return ['kwiver.exe', 'runner']
     else:
-      return ['pipeline_runner.exe']
+      return ['kwiver.exe', 'runner']
   else:
     if debug:
-      return ['gdb', '--args', 'pipeline_runner']
+      return ['gdb', '--args', 'kwiver', 'runner ']
     else:
-      return ['pipeline_runner']
+      return ['kwiver', 'runner']
 
 def generate_index_for_video( args, file_path, basename ):
 

@@ -18,7 +18,7 @@ set IMAGE_TILES_DIR=tiles
 echo "Generating tiles"
 mkdir -p "${IMAGE_TILES_DIR}"
 
-pipeline_runner -p %VIAME_INSTALL%\configs\pipelines\detector_extract_chips.pipe
+kwiver runner %VIAME_INSTALL%\configs\pipelines\detector_extract_chips.pipe
 
 :: Perform ingest on computed chips
 call ingest_image_folder.bat %IMAGE_TILES_DIR%

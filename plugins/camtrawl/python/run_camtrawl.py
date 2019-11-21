@@ -72,7 +72,7 @@ def simple_pipeline():
 
         python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py --dataset=demo
 
-        /home/joncrall/code/VIAME/build-cv3-py2/install/bin/pipeline_runner -p /home/joncrall/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe -S pythread_per_process
+        /home/joncrall/code/VIAME/build-cv3-py2/install/bin/kwiver runner /home/joncrall/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe -S pythread_per_process
     """
 
     # Setup the input files
@@ -237,7 +237,7 @@ if __name__ == '__main__':
         python ~/code/VIAME/plugins/camtrawl/python/run_camtrawl.py
 
     Ignore:
-        pipeline_runner -p ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe -S pythread_per_process
+        kwiver runner ~/.cache/sprokit/temp_pipelines/temp_pipeline_file.pipe -S pythread_per_process
 
     Testing:
         unlink $HOME/code/VIAME/build

@@ -8,4 +8,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 # Run chip pipeline
 
-pipeline_runner -p ${VIAME_INSTALL}/configs/pipelines/detector_extract_chips.pipe
+kwiver runner ${VIAME_INSTALL}/configs/pipelines/detector_extract_chips.pipe
