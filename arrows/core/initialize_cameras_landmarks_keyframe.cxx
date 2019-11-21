@@ -2016,6 +2016,15 @@ initialize_cameras_landmarks_keyframe::priv
     return false;
   }
 
+  int num_constraints_used;
+  if (fit_reconstruction_to_constraints(cams, lms, tracks,
+                                        constraints, num_constraints_used))
+  {
+    std::set<frame_id_t> fixed_cams_empty;
+    std::set<landmark_id_t> fixed_lms_empty;
+    bundle_adjuster->optimize(*cams, lms, tracks, fixed_cams_empty, fixed_lms_empty);
+  }
+
   if (callback)
   {
     auto chgs = get_feature_track_changes(tracks, *cams);
