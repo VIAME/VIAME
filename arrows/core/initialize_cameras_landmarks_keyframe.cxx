@@ -3529,7 +3529,8 @@ initialize_cameras_landmarks_keyframe::priv
 
     if (lmks.size() > 1.4 * lmks_last_down_select || frames_to_register.empty())
     {
-      merge_landmarks(lmks, cams, tracks);
+      // merging landmarks is very slow with limited benefit, so disable for now.
+      // merge_landmarks(lmks, cams, tracks);
       down_select_landmarks(lmks, cams, tracks, fids_to_triang);
       lmks_last_down_select = lmks.size();
     }
