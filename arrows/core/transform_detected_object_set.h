@@ -73,7 +73,7 @@ public:
 
   /// Apply the transformation
   virtual vital::detected_object_set_sptr
-    filter( const vital::detected_object_set_sptr input_set) const;
+    filter( vital::detected_object_set_sptr const input_set) const;
 
 private:
   std::string src_camera_krtd_file_name;
@@ -83,29 +83,29 @@ private:
   kwiver::vital::camera_perspective_sptr dest_camera;
 
   virtual vital::bounding_box<double>
-    transform_bounding_box(vital::bounding_box<double>& bbox) const;
+    transform_bounding_box(vital::bounding_box<double> const& bbox) const;
 
   virtual vector_3d
-    backproject_to_ground(const kwiver::vital::camera_perspective_sptr camera,
-                          const vector_2d img_pt) const;
+    backproject_to_ground(kwiver::vital::camera_perspective_sptr const camera,
+                          vector_2d const& img_pt) const;
 
   virtual vector_3d
-    backproject_to_plane(const kwiver::vital::camera_perspective_sptr camera,
-                         const vector_2d img_pt,
-                         const vector_4d plane) const;
+    backproject_to_plane(kwiver::vital::camera_perspective_sptr const camera,
+                         vector_2d const& img_pt,
+                         vector_4d const& plane) const;
 
   virtual Eigen::Matrix<double, 8, 3>
-    backproject_bbox(const kwiver::vital::camera_perspective_sptr camera,
-                     const vital::bounding_box<double> bbox) const;
+    backproject_bbox(kwiver::vital::camera_perspective_sptr const camera,
+                     vital::bounding_box<double> const& bbox) const;
 
   virtual vital::bounding_box<double>
-    box_around_box3d(const kwiver::vital::camera_perspective_sptr camera,
-                     const Eigen::Matrix<double, 8, 3> box3d) const;
+    box_around_box3d(kwiver::vital::camera_perspective_sptr const camera,
+                     Eigen::Matrix<double, 8, 3> const& box3d) const;
 
   virtual vital::bounding_box<double>
-    view_to_view(const kwiver::vital::camera_perspective_sptr src_camera,
-                 const kwiver::vital::camera_perspective_sptr dest_camera,
-                 const vital::bounding_box<double> bbox) const;
+    view_to_view(kwiver::vital::camera_perspective_sptr const src_camera,
+                 kwiver::vital::camera_perspective_sptr const dest_camera,
+                 vital::bounding_box<double> const& bbox) const;
 };
 
 }}} //End namespace

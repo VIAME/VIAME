@@ -120,8 +120,8 @@ check_configuration( vital::config_block_sptr config ) const
 // ---------------------------------------------------------------------------
 vector_3d
 transform_detected_object_set::
-backproject_to_ground( const kwiver::vital::camera_perspective_sptr camera,
-                       const vector_2d img_pt ) const
+backproject_to_ground( kwiver::vital::camera_perspective_sptr const camera,
+                       vector_2d const& img_pt ) const
 {
   auto ground_plane = vector_4d(0, 0, 1, 0);
   return this->backproject_to_plane( camera, img_pt, ground_plane );
@@ -130,9 +130,9 @@ backproject_to_ground( const kwiver::vital::camera_perspective_sptr camera,
 // ---------------------------------------------------------------------------
 vector_3d
 transform_detected_object_set::
-backproject_to_plane( const kwiver::vital::camera_perspective_sptr camera,
-                      const vector_2d img_pt,
-                      const vector_4d plane ) const
+backproject_to_plane( kwiver::vital::camera_perspective_sptr const camera,
+                      vector_2d const& img_pt,
+                      vector_4d const& plane ) const
 {
   // Back an image point to a specified world plane
   vector_2d npt_ = camera->intrinsics()->unmap(img_pt);
@@ -152,8 +152,8 @@ backproject_to_plane( const kwiver::vital::camera_perspective_sptr camera,
 // ---------------------------------------------------------------------------
 Eigen::Matrix<double, 8, 3>
 transform_detected_object_set::
-backproject_bbox( const kwiver::vital::camera_perspective_sptr camera,
-                  const vital::bounding_box<double> bbox ) const
+backproject_bbox( kwiver::vital::camera_perspective_sptr const camera,
+                  vital::bounding_box<double> const& bbox ) const
 {
   // project base of the box to the ground
   auto base_pt = vector_2d((bbox.min_x() + bbox.max_x()) / 2, bbox.max_y());
@@ -183,7 +183,7 @@ backproject_bbox( const kwiver::vital::camera_perspective_sptr camera,
   vector_4d back_plane;
   back_plane << n, d;
   vector_3d p5 = this->backproject_to_plane(
-    camera, vector_2d(bbox.min_x(), bbox.min_y()), back_plane );
+    camera, bbox.upper_left(), back_plane );
   double height = p5(2);
 
   Eigen::Matrix<double, 8, 3> box3d;
@@ -202,8 +202,8 @@ backproject_bbox( const kwiver::vital::camera_perspective_sptr camera,
 // ---------------------------------------------------------------------------
 vital::bounding_box<double>
 transform_detected_object_set::
-box_around_box3d( const kwiver::vital::camera_perspective_sptr camera,
-                  const Eigen::Matrix<double, 8, 3> box3d ) const
+box_around_box3d( kwiver::vital::camera_perspective_sptr const camera,
+                  Eigen::Matrix<double, 8, 3> const& box3d ) const
 {
   Eigen::Matrix<double, 8, 2> projected_points;
 
@@ -213,44 +213,38 @@ box_around_box3d( const kwiver::vital::camera_perspective_sptr camera,
     projected_points.row(i) = camera->project(box3d.row(i)).transpose();
   }
 
-  auto out_box = vital::bounding_box<double>(
+  return vital::bounding_box<double>(
     (vector_2d)projected_points.colwise().minCoeff(),
     (vector_2d)projected_points.colwise().maxCoeff());
-
-  return out_box;
 }
 
 // ---------------------------------------------------------------------------
 vital::bounding_box<double>
 transform_detected_object_set::
-view_to_view( const kwiver::vital::camera_perspective_sptr src_camera,
-              const kwiver::vital::camera_perspective_sptr dest_camera,
-              const vital::bounding_box<double> bbox ) const
+view_to_view( kwiver::vital::camera_perspective_sptr const src_camera,
+              kwiver::vital::camera_perspective_sptr const dest_camera,
+              vital::bounding_box<double> const& bbox ) const
 {
   Eigen::Matrix<double, 8, 3> box3d =
     this->backproject_bbox( src_camera, bbox );
-  vital::bounding_box<double> tgt_box =
-    this->box_around_box3d( dest_camera, box3d );
 
-  return tgt_box;
+  return this->box_around_box3d( dest_camera, box3d );
 }
 
 // ---------------------------------------------------------------------------
 vital::bounding_box<double>
 transform_detected_object_set::
-transform_bounding_box( vital::bounding_box<double>& bbox ) const
+transform_bounding_box( vital::bounding_box<double> const& bbox ) const
 {
-  vital::bounding_box<double> out_bbox = this->view_to_view( this->src_camera,
-                                                             this->dest_camera,
-                                                             bbox );
-
-  return out_bbox;
+  return this->view_to_view( this->src_camera,
+                             this->dest_camera,
+                             bbox );
 }
 
 // ---------------------------------------------------------------------------
 vital::detected_object_set_sptr
 transform_detected_object_set::
-filter( const vital::detected_object_set_sptr input_set ) const
+filter( vital::detected_object_set_sptr const input_set ) const
 {
   auto ret_set = std::make_shared<vital::detected_object_set>();
 
