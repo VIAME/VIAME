@@ -168,7 +168,7 @@ detected_object
 // ----------------------------------------------------------------------------
 detected_object_type_sptr
 detected_object
-::type()
+::type() const
 {
   return m_type;
 }
