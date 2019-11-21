@@ -32,6 +32,7 @@
 
 #include <vital/vital_types.h>
 #include <vital/algo/handle_descriptor_request.h>
+#include <vital/types/image_container_set_simple.h>
 
 #include <kwiver_type_traits.h>
 
@@ -165,13 +166,13 @@ handle_descriptor_request_process
   if( !request )
   {
     push_to_port_using_trait( track_descriptor_set, vital::track_descriptor_set_sptr() );
-    push_to_port_using_trait( image_set, vital::image_container_sptr_list() );
+    push_to_port_using_trait( image_set, vital::image_container_set_sptr() );
     return; // Normal return, no failure
   }
 
   // Get output descriptors from internal pipeline
   vital::track_descriptor_set_sptr descriptors;
-  vital::image_container_sptr_list images;
+  std::vector< vital::image_container_sptr > images;
 
   // Get filepaths
   boost::filesystem::path p( request->data_location() );
@@ -226,9 +227,12 @@ handle_descriptor_request_process
     }
   }
 
+  vital::image_container_set_sptr image_set(
+    new vital::simple_image_container_set( images ) );
+
   // Return all outputs
   push_to_port_using_trait( track_descriptor_set, descriptors );
-  push_to_port_using_trait( image_set, images );
+  push_to_port_using_trait( image_set, image_set );
 }
 
 

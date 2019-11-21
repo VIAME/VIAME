@@ -96,7 +96,7 @@ unwrap_detections_process
       auto obj_state = std::static_pointer_cast< kwiver::vital::object_track_state >( state );
       if( state->frame() == d->m_current_idx )
       {
-        detected_objects->add( obj_state->detection );
+        detected_objects->add( obj_state->detection() );
       }
     }
   }

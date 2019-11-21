@@ -132,7 +132,7 @@ convert_tracks_to_detections_process
           ( ( d->frame_ids_only && state->frame() == ts.get_frame() ) ||
             state->ts() == ts ) )
       {
-        output.push_back( state->detection );
+        output.push_back( state->detection() );
       }
     }
   }

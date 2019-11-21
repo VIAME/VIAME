@@ -140,9 +140,9 @@ average_track_descriptors
         std::shared_ptr< vital::object_track_state > ots =
           std::dynamic_pointer_cast< vital::object_track_state >( *it );
 
-        if( ots && ots->detection && ots->detection->descriptor() )
+        if( ots && ots->detection() && ots->detection()->descriptor() )
         {
-          std::vector< double > descriptor = ots->detection->descriptor()->as_double();
+          std::vector< double > descriptor = ots->detection()->descriptor()->as_double();
           std::vector< double > average;
           if( !d->m_rolling && !d->m_history.count( track->id() ) )
           {
@@ -217,7 +217,7 @@ average_track_descriptors
           td->set_descriptor( data );
 
           // Make history entry
-          vital::track_descriptor::history_entry he( ts, ots->detection->bounding_box() );
+          vital::track_descriptor::history_entry he( ts, ots->detection()->bounding_box() );
           td->add_history_entry( he );
 
           tds->push_back( td );

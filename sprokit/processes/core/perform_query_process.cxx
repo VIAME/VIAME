@@ -117,7 +117,7 @@ public:
 
   algo::query_track_descriptor_set_sptr descriptor_query;
 
-  vital::image_container_sptr_list query_images;
+  vital::image_container_set_sptr query_images;
   vital::track_descriptor_set_sptr all_descriptors;
 
   void reset_query( const vital::database_query_sptr& query );
@@ -413,7 +413,7 @@ perform_query_process
   vital::iqr_feedback_sptr feedback;
   vital::uchar_vector_sptr model;
   vital::track_descriptor_set_sptr query_descs;
-  vital::image_container_sptr_list query_images;
+  vital::image_container_set_sptr query_images;
 	
   query = grab_from_port_using_trait( database_query );
 
@@ -434,7 +434,7 @@ perform_query_process
     d->all_descriptors = query_descs;
   }
 
-  if( !query_images.empty() )
+  if( !query_images->empty() )
   {
     d->query_images = query_images;
   }
@@ -526,13 +526,13 @@ perform_query_process
 
       if( !feedback && d->augmentation_pipeline )
       {
-        if( d->query_images.empty() )
+        if( d->query_images->empty() )
         {
           throw std::runtime_error( "Must supply images for use with augmentation pipeline" );
         }
 
         // Run seperate augmentation pipeline to get more positives and negatives
-        for( auto query_image : d->query_images )
+        for( auto query_image : *d->query_images )
         {
           auto ids = adapter::adapter_data_set::create();
 
