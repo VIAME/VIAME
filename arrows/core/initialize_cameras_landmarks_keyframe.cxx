@@ -1607,8 +1607,8 @@ initialize_cameras_landmarks_keyframe::priv
     auto cam_1 = std::make_shared<vital::simple_camera_perspective>();
     if (m_force_common_intrinsics)
     {
-      cam_0->set_intrinsics(m_base_camera.intrinsics());
-      cam_1->set_intrinsics(m_base_camera.intrinsics());
+      cam_0->set_intrinsics(m_base_camera.intrinsics()->clone());
+      cam_1->set_intrinsics(cam_0->intrinsics());
     }
     else
     {
@@ -1629,6 +1629,31 @@ initialize_cameras_landmarks_keyframe::priv
                         << rp_init.well_conditioned_landmark_count
                         << " inlier_lm_ids size " << inlier_lm_ids.size());
 
+    auto rev_cams = std::make_shared<simple_camera_perspective_map>();
+    auto rev_cam_0 = std::make_shared<simple_camera_perspective>(*cam_0);
+    rev_cam_0->set_intrinsics(cam_0->intrinsics()->clone());
+    auto rev_cam_1 = std::make_shared<simple_camera_perspective>(*cam_1);
+    if (m_force_common_intrinsics)
+    {
+      rev_cam_1->set_intrinsics(rev_cam_0->intrinsics());
+    }
+    else
+    {
+      rev_cam_1->set_intrinsics(rev_cam_0->intrinsics()->clone());
+    }
+
+    std::map<landmark_id_t, landmark_sptr> inlier_lms;
+    for (auto const& inlier_id : inlier_lm_ids)
+    {
+      inlier_lms[inlier_id] = lms[inlier_id];
+    }
+    auto plane = landmark_plane(inlier_lms);
+    necker_reverse_inplace(*rev_cam_0, plane);
+    necker_reverse_inplace(*rev_cam_1, plane);
+    rev_cams->insert(rp_init.f0, rev_cam_0);
+    rev_cams->insert(rp_init.f1, rev_cam_1);
+    auto rev_lms = map_landmark_t(lms);
+
     if (bundle_adjuster)
     {
       LOG_INFO(m_logger, "Running Global Bundle Adjustment on "
@@ -1638,20 +1663,47 @@ initialize_cameras_landmarks_keyframe::priv
 
       double init_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(),
                                                            lms, trks);
-      LOG_INFO(m_logger, "initial reprojection RMSE: " << init_rmse);
+      LOG_DEBUG(m_logger, "initial reprojection RMSE: " << init_rmse);
 
-      // TODO:  Change bundle adjuster so it takes a
-      // simple_camera_perspective_map_sptr as input to avoid all this copying.
       bundle_adjuster->optimize(*cams, lms, tracks,
                                 fixed_cams_empty, fixed_lms_empty);
+      double optimized_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(),
+                                                                lms, trks);
+
+      inlier_lm_ids.clear();
+      retriangulate(rev_lms, rev_cams, trks, inlier_lm_ids, 2, 5.0);
+      LOG_DEBUG(m_logger, "reversed inlier count " << inlier_lm_ids.size());
+      double rev_optimized_rmse = std::numeric_limits<double>::infinity();
+      if (inlier_lm_ids.size() > 5)
+      {
+        bundle_adjuster->optimize(*rev_cams, rev_lms, tracks,
+                                  fixed_cams_empty, fixed_lms_empty);
+
+        inlier_lm_ids.clear();
+        retriangulate(rev_lms, rev_cams, trks, inlier_lm_ids, 2);
+        LOG_DEBUG(m_logger, "reversed inlier count " << inlier_lm_ids.size());
+        if (inlier_lm_ids.size() > 5)
+        {
+          bundle_adjuster->optimize(*rev_cams, rev_lms, tracks,
+                                    fixed_cams_empty, fixed_lms_empty);
+          rev_optimized_rmse = kwiver::arrows::reprojection_rmse(rev_cams->cameras(),
+                                                                 rev_lms, trks);
+        }
+      }
+
+
+      LOG_DEBUG(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
+      LOG_DEBUG(m_logger, "optimized reversed reprojection RMSE: " << rev_optimized_rmse);
+
+      if (rev_optimized_rmse < optimized_rmse)
+      {
+        cams = rev_cams;
+        lms = rev_lms;
+      }
 
       auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
         cams->cameras().begin()->second);
       m_base_camera.set_intrinsics(first_cam->intrinsics());
-
-      double optimized_rmse = kwiver::arrows::reprojection_rmse(cams->cameras(),
-                                                                lms, trks);
-      LOG_INFO(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
 
       inlier_lm_ids.clear();
       retriangulate(lms, cams, trks, inlier_lm_ids);
