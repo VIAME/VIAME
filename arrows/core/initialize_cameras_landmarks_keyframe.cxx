@@ -237,7 +237,8 @@ public:
     simple_camera_perspective_map_sptr cams,
     const std::vector<track_sptr>& trks,
     std::set<landmark_id_t>& inlier_lm_ids,
-    unsigned int min_inlier_observations = 2) const;
+    unsigned int min_inlier_observations = 2,
+    double inlier_threshold = 0.0) const;
 
   void triangulate_landmarks_visible_in_frames(
     landmark_map::map_landmark_t& lmks,
@@ -593,7 +594,8 @@ initialize_cameras_landmarks_keyframe::priv
   simple_camera_perspective_map_sptr cams,
   const std::vector<track_sptr>& trks,
   std::set<landmark_id_t>& inlier_lm_ids,
-  unsigned int min_inlier_observations) const
+  unsigned int min_inlier_observations,
+  double inlier_threshold) const
 {
   typedef landmark_map::map_landmark_t lm_map_t;
   lm_map_t init_lms;
@@ -613,9 +615,25 @@ initialize_cameras_landmarks_keyframe::priv
     }
   }
 
+  auto triang_config = lm_triangulator->get_configuration();
+  double triang_thresh_orig = triang_config->get_value<double>("inlier_threshold_pixels", 2.0);
+  if (inlier_threshold > 0.0)
+  {
+    triang_config->set_value<double>("inlier_threshold_pixels",
+                                     inlier_threshold);
+    lm_triangulator->set_configuration(triang_config);
+  }
+
   landmark_map_sptr lm_map = std::make_shared<simple_landmark_map>(init_lms);
   auto tracks = std::make_shared<feature_track_set>(trks);
   this->lm_triangulator->triangulate(cams, tracks, lm_map);
+
+  if (inlier_threshold > 0.0)
+  {
+    triang_config->set_value<double>("inlier_threshold_pixels",
+                                     triang_thresh_orig);
+    lm_triangulator->set_configuration(triang_config);
+  }
 
   inlier_lm_ids.clear();
   lms.clear();
@@ -2416,24 +2434,14 @@ initialize_cameras_landmarks_keyframe::priv
     double triang_thresh_orig = 10;
     if (iterations < num_permissive_triangulation_iterations)
     {
-      auto triang_config = lm_triangulator->get_configuration();
-      triang_thresh_orig =
-        triang_config->get_value<double>("inlier_threshold_pixels",
-                                         triang_thresh_orig);
-      triang_config->set_value<double>("inlier_threshold_pixels",
-                                       m_metadata_init_permissive_triang_thresh);
-      lm_triangulator->set_configuration(triang_config);
-      triang_threshold_changed = true;
+      retriangulate(lms, cams, trks, inlier_lm_ids, 3,
+                    m_metadata_init_permissive_triang_thresh);
     }
-    retriangulate(lms, cams, trks, inlier_lm_ids,3);
-
-    if (triang_threshold_changed)
+    else
     {
-      auto triang_config = lm_triangulator->get_configuration();
-      triang_config->set_value<double>("inlier_threshold_pixels",
-                                       triang_thresh_orig);
-      lm_triangulator->set_configuration(triang_config);
+      retriangulate(lms, cams, trks, inlier_lm_ids, 3);
     }
+
 
     if (iterations < num_permissive_triangulation_iterations)
     {
