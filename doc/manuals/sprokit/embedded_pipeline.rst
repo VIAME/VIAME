@@ -321,7 +321,7 @@ Embedded Pipeline Extensions
 Embedded pipeline extensions (EPX) can be dynamically loaded based on
 the pipeline configuration. One use case for EPX is to check resource
 availability before starting the pipeline, for example, to ensure that
-there are enough resources for the pipeline to start.
+there are enough GPUs for the pipeline to start.
 
 The EPX are a property of the pipeline configuration and can be
 specified as follows: ::
@@ -336,10 +336,10 @@ following command: ::
   plugin_explorer --fact embedded_pipeline_extension
 
 Usually EPX are application specific so it is unlikely you will find
-one that is useful.
+an existing one that is useful.
 
 To implement your own extension, derive a class from
-kwiver::embedded_pipeline_extension and implement the virtual methods.
+`kwiver::embedded_pipeline_extension` and implement the virtual methods.
 
 ..  doxygenclass:: kwiver::embedded_pipeline_extension
     :project: kwiver

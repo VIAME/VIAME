@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,10 +86,10 @@ TEST(geodesy, utm_ups_zones)
 TEST(geodesy, utm_ups_zone_range_error)
 {
   EXPECT_THROW(
-    kwiver::vital::utm_ups_zone( { 0.0, -100.0 } ),
+    kwiver::vital::utm_ups_zone( 0.0, -100.0 ),
     std::range_error );
   EXPECT_THROW(
-    kwiver::vital::utm_ups_zone( { 0.0, +100.0 } ),
+    kwiver::vital::utm_ups_zone( 0.0, +100.0 ),
     std::range_error );
 }
 

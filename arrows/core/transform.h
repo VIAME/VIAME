@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 /**
  * \file
- * \brief Header for kwiver::arrows::transform functions
+ * \brief Header for kwiver::arrows::core::transform functions
  */
 
 #ifndef KWIVER_ARROWS_CORE_TRANSFORM_H_
@@ -40,7 +40,7 @@
 #include <vital/vital_config.h>
 #include <arrows/core/kwiver_algo_core_export.h>
 
-#include <vital/types/camera_perspective.h>
+#include <vital/types/camera_perspective_map.h>
 #include <vital/types/similarity.h>
 #include <vital/types/covariance.h>
 #include <vital/types/camera_map.h>
@@ -49,6 +49,7 @@
 
 namespace kwiver {
 namespace arrows {
+namespace core {
 
 
 /// Transform a 3D covariance matrix with a similarity transformation
@@ -72,15 +73,33 @@ vital::covariance_<3,T> transform(const vital::covariance_<3,T>& covar,
 
 /// Transform the camera by applying a similarity transformation in place
 KWIVER_ALGO_CORE_EXPORT
-void transform_inplace(const vital::similarity_d& xform,
-                       vital::simple_camera_perspective& cam);
+void transform_inplace(vital::simple_camera_perspective& cam,
+                       const vital::similarity_d& xform);
+
+
+/// Transform the camera map by applying a similarity transformation in place
+KWIVER_ALGO_CORE_EXPORT
+void transform_inplace(vital::simple_camera_perspective_map& cameras,
+                       const vital::similarity_d& xform);
 
 
 /// Transform the landmark by applying a similarity transformation in place
 template <typename T>
 KWIVER_ALGO_CORE_EXPORT
-void transform_inplace(const vital::similarity_<T>& xform,
-                       vital::landmark_<T>& lm);
+void transform_inplace(vital::landmark_<T>& lm,
+                       const vital::similarity_<T>& xform);
+
+
+/// Transform the landmark map by applying a similarity transformation in place
+KWIVER_ALGO_CORE_EXPORT
+void transform_inplace(vital::landmark_map& landmarks,
+                       const vital::similarity_d& xform);
+
+
+/// Transform the landmark map by applying a similarity transformation in place
+KWIVER_ALGO_CORE_EXPORT
+void transform_inplace(vital::landmark_map::map_landmark_t& landmarks,
+                       const vital::similarity_d& xform);
 
 
 /// construct a transformed camera by applying a similarity transformation
@@ -95,6 +114,13 @@ vital::camera_map_sptr transform(vital::camera_map_sptr cameras,
                                  const vital::similarity_d& xform);
 
 
+/// construct a transformed map of cameras by applying a similarity transformation
+KWIVER_ALGO_CORE_EXPORT
+vital::camera_perspective_map_sptr
+transform(vital::camera_perspective_map_sptr cameras,
+          const vital::similarity_d& xform);
+
+
 /// construct a transformed landmark by applying a similarity transformation
 KWIVER_ALGO_CORE_EXPORT
 vital::landmark_sptr transform(vital::landmark_sptr lm,
@@ -106,30 +132,8 @@ KWIVER_ALGO_CORE_EXPORT
 vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
                                    const vital::similarity_d& xform);
 
-
-/// Compute an approximate Necker reversal of cameras and landmarks
-/**
- * This operation help restart bundle adjustment after falling into
- * a common local minima that with depth reversal that is illustrated
- * by the Necker cube phenomena.
- *
- * The functions finds the axis, A, connecting the mean of the camera centers
- * and mean of the landmark locations.  It then rotates each camera 180 degrees
- * about this axis and also 180 degrees about each cameras own principal axis.
- * The landmarks are mirrored about the plane passing through the
- * mean landmark location and with a normal aligning with axis A.
- * Setting reverse_landmarks to false, prevents this mirroring of the landmarks,
- * leaving them where they originally were.  Only the cameras are modified
- * in this case.
- *
- */
-KWIVER_ALGO_CORE_EXPORT
-void
-necker_reverse(vital::camera_map_sptr& cameras,
-               vital::landmark_map_sptr& landmarks,
-               bool reverse_landmarks = true);
-
+} // end namespace core
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_TRANSFORM_H_
+#endif

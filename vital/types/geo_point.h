@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,10 +68,12 @@ namespace vital {
 class VITAL_EXPORT geo_point
 {
 public:
-  using geo_raw_point_t = kwiver::vital::vector_2d;
+  using geo_3d_point_t = kwiver::vital::vector_3d;
+  using geo_2d_point_t = kwiver::vital::vector_2d;
 
   geo_point();
-  geo_point( geo_raw_point_t const&, int crs );
+  geo_point( geo_2d_point_t const&, int crs );
+  geo_point( geo_3d_point_t const&, int crs );
 
   virtual ~geo_point() = default;
 
@@ -83,7 +85,7 @@ public:
    *
    * \see crs()
    */
-  geo_raw_point_t location() const;
+  geo_3d_point_t location() const;
 
   /**
    * \brief Accessor for original CRS.
@@ -100,15 +102,18 @@ public:
    * \returns The location in the requested CRS.
    * \throws std::runtime_error if the conversion fails.
    */
-  geo_raw_point_t location( int crs ) const;
+  geo_3d_point_t location( int crs ) const;
 
+  //@{
   /**
    * \brief Set location.
    *
    * This sets the geo-coordinate to the specified location, which is defined
    * by the raw location and specified CRS.
    */
-  void set_location( geo_raw_point_t const&, int crs );
+  void set_location( geo_2d_point_t const&, int crs );
+  void set_location( geo_3d_point_t const&, int crs );
+  //@}
 
   /**
    * \brief Test if point has a specified location.
@@ -122,11 +127,11 @@ public:
 protected:
 
   int m_original_crs;
-  mutable std::unordered_map< int, geo_raw_point_t > m_loc;
+  mutable std::unordered_map< int, geo_3d_point_t > m_loc;
 };
 
 VITAL_EXPORT ::std::ostream& operator<< ( ::std::ostream& str, geo_point const& obj );
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_GEO_POINT_H_ */
+#endif

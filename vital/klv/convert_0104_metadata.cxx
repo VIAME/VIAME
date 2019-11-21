@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ namespace vital {
 namespace {
 
 // ----------------------------------------------------------------------------
-template < int N = 2 >
+template < int N >
 Eigen::Matrix< double, N, 1 >
 empty_vector()
 {
@@ -62,7 +62,7 @@ empty_vector()
 }
 
 // ----------------------------------------------------------------------------
-template < int N = 2 >
+template < int N >
 bool
 is_empty( Eigen::Matrix< double, N, 1, 0, N, 1 > const& vec )
 {
@@ -145,12 +145,12 @@ void convert_metadata
   // lat-lon points and image corner points. All geodetic points are assumed to
   // be WGS84 lat-lon.
   //
-  auto raw_sensor_location = empty_vector();
-  auto raw_frame_center = empty_vector();
-  auto raw_corner_pt1 = empty_vector(); // offsets relative to frame_center
-  auto raw_corner_pt2 = empty_vector();
-  auto raw_corner_pt3 = empty_vector();
-  auto raw_corner_pt4 = empty_vector();
+  auto raw_sensor_location = empty_vector<2>();
+  auto raw_frame_center = empty_vector<2>();
+  auto raw_corner_pt1 = empty_vector<2>(); // offsets relative to frame_center
+  auto raw_corner_pt2 = empty_vector<2>();
+  auto raw_corner_pt3 = empty_vector<2>();
+  auto raw_corner_pt4 = empty_vector<2>();
 
   //
   // Add our "origin" tag to indicate that the source of this metadata
@@ -299,7 +299,13 @@ case klv_0104::N:                                         \
     }
     else
     {
-      auto const sensor_location = geo_point{ raw_sensor_location, SRID::lat_lon_WGS84 };
+      vector_3d sensor_loc(raw_sensor_location[0], raw_sensor_location[1], 0.0);
+      // add altitude, if available, to the sensor location
+      if (auto const& alt = md.find(VITAL_META_SENSOR_ALTITUDE))
+      {
+        sensor_loc[2] = alt.as_double();
+      }
+      auto const sensor_location = geo_point{ sensor_loc, SRID::lat_lon_WGS84 };
       md.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
     }
   }

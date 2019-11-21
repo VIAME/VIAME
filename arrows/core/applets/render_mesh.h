@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
 #ifndef KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H
 #define KWIVER_ARROWS_CORE_TOOLS_RENDER_MESH_H
 
-#include <tools/kwiver_applet.h>
+#include <vital/applets/kwiver_applet.h>
 
 #include <arrows/core/applets/kwiver_algo_core_applets_export.h>
 
@@ -49,15 +49,14 @@ public:
   render_mesh(){}
   virtual ~render_mesh() = default;
 
-  static constexpr char const* name = "render-mesh";
-  static constexpr char const* description =
-    "Render a depth or height map from a mesh.\n\n"
-    "This tool reads in a mesh file and a camera and renders "
-    "various images such as depth map or height map.";
+  PLUGIN_INFO( "render-mesh",
+               "Render a depth or height map from a mesh.\n\n"
+               "This tool reads in a mesh file and a camera and renders "
+               "various images such as depth map or height map.");
 
 
-  virtual int run();
-  virtual void add_command_options();
+  virtual int run() override;
+  virtual void add_command_options() override;
 
 protected:
 

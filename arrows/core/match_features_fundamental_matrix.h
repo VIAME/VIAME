@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,4 +104,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS__MATCH_FEATURES_FUNDMENTAL_MATRIX_H_
+#endif

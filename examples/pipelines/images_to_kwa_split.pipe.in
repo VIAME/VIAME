@@ -310,7 +310,7 @@ process writer
 # Static values for input ports are specified in the process config
 # block as follows
 #  static/<port-name>  = <value>
-  static/gsd[ro]{CONF} = common:fixed_gsd
+  static/gsd[ro]$CONF{common:fixed_gsd}
   static/corner_points[ro] = 0 0 0 0 0 0 0 0
 
 

@@ -76,7 +76,7 @@ void epx_test::configure( kwiver::vital::config_block_sptr const conf )
   vital::config_block_formatter fmt( conf);
   fmt.print( str );
 
-   std::cout <<  "exp_test: configure called with config:\n" << str.str() <<std::endl;
+  std::cout <<  "exp_test: configure called with config:\n" << str.str() <<std::endl;
 }
 
 

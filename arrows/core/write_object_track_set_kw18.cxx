@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,7 +111,7 @@ void write_object_track_set_kw18
         continue;
       }
 
-      vital::detected_object_sptr det = ts->detection;
+      vital::detected_object_sptr det = ts->detection();
       const vital::bounding_box_d empty_box = vital::bounding_box_d( -1, -1, -1, -1 );
       vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
       double seconds = static_cast<double>( ts->time() ) / 1e6;

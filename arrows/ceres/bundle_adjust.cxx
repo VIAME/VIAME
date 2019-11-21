@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2018 by Kitware, Inc.
+ * Copyright 2015-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -262,7 +262,7 @@ bundle_adjust
   feature_track_set_sptr tracks,
   sfm_constraints_sptr constraints) const
 {
-  camera_map_of_<simple_camera_perspective> cams;
+  simple_camera_perspective_map cams;
   for (auto p : cameras->cameras())
   {
     auto c = std::dynamic_pointer_cast<simple_camera_perspective>(p.second);
@@ -274,7 +274,7 @@ bundle_adjust
   auto lms = landmarks->landmarks();
   this->optimize(cams, lms, tracks, {}, {}, constraints);
   landmarks = std::make_shared<simple_landmark_map>(lms);
-  cameras = std::make_shared<camera_map_of_<simple_camera_perspective>>(cams);
+  cameras = std::make_shared<simple_camera_perspective_map>(cams);
 }
 
 
@@ -282,7 +282,7 @@ bundle_adjust
 // Optimize the camera and landmark parameters given a set of tracks
 void
 bundle_adjust
-::optimize(kwiver::vital::camera_map_of_<simple_camera_perspective> &cameras,
+::optimize(kwiver::vital::simple_camera_perspective_map &cameras,
            kwiver::vital::landmark_map::map_landmark_t &landmarks,
            vital::feature_track_set_sptr tracks,
            const std::set<vital::frame_id_t>& to_fix_cameras_in,

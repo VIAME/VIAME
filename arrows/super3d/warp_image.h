@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2010-2018 by Kitware, Inc.
+ * Copyright 2010-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,4 +163,4 @@ warp_image( vil_image_view<T> const& src,
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_SUPER3D_WARP_IMAGE_H_
+#endif

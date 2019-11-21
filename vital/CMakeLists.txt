@@ -64,14 +64,16 @@ set( CMAKE_CXX_FLAGS ${save_flags} )
 #
 set( vital_public_headers
   vital_types.h
-  noncopyable.h
-  any.h
+
   algorithm_capabilities.h
+  any.h
   attribute_set.h
   exceptions.h
   iterator.h
   math_constants.h
+  noncopyable.h
   optional.h
+  set.h
 
   io/camera_from_metadata.h
   io/camera_io.h
@@ -86,6 +88,7 @@ set( vital_public_headers
   types/camera.h
   types/camera_intrinsics.h
   types/camera_perspective.h
+  types/camera_perspective_map.h
   types/camera_rpc.h
   types/camera_map.h
   types/category_hierarchy.h
@@ -106,6 +109,7 @@ set( vital_public_headers
   types/feature_set.h
   types/feature_track_set.h
   types/fundamental_matrix.h
+  types/geo_covariance.h
   types/geo_MGRS.h
   types/geo_point.h
   types/geo_polygon.h
@@ -115,9 +119,12 @@ set( vital_public_headers
   types/homography_f2w.h
   types/image.h
   types/image_container.h
+  types/image_container_set.h
+  types/image_container_set_simple.h
   types/iqr_feedback.h
   types/landmark.h
   types/landmark_map.h
+  types/local_cartesian.h
   types/local_geo_cs.h
   types/match_set.h
   types/matrix.h
@@ -137,6 +144,7 @@ set( vital_public_headers
   types/timestamp.h
   types/timestamp_config.h
   types/track.h
+  types/track_interval.h
   types/track_set.h
   types/track_descriptor.h
   types/track_descriptor_set.h
@@ -174,6 +182,7 @@ set( vital_sources
   types/feature.cxx
   types/feature_track_set.cxx
   types/fundamental_matrix.cxx
+  types/geo_covariance.cxx
   types/geo_MGRS.cxx
   types/geo_point.cxx
   types/geo_polygon.cxx
@@ -182,8 +191,10 @@ set( vital_sources
   types/homography_f2f.cxx
   types/homography_f2w.cxx
   types/image.cxx
+  types/image_container_set_simple.cxx
   types/iqr_feedback.cxx
   types/landmark.cxx
+  types/local_cartesian.cxx
   types/local_geo_cs.cxx
   types/mesh.cxx
   types/metadata.cxx
@@ -244,46 +255,6 @@ endif ()
 option(KWIVER_USE_CONFIGURATION_SUBDIRECTORY
   "Look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
 
-if (WIN32)
-  set(path_sep ";")
-else()  # Other Unix systems
-  set(path_sep ":")
-endif()
-
-# Build a default set of plugin path dirs
-# Provide that list as the default value for the path option.
-
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
-set( vital_default_module_path ${kwiver_module_path_result} )
-
-if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
-  set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
-endif()
-
-set(KWIVER_DEFAULT_MODULE_PATHS "${vital_default_module_path}"
-  CACHE STRING "The default paths for module scanning. Separate paths with ';' character." FORCE)
-mark_as_advanced( KWIVER_DEFAULT_MODULE_PATHS )
-
-# add all paths to the property
-foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
-  kwiver_add_module_path( ${p} )
-endforeach(p)
-
-# need to retrieve the GLOBAL PROPERTY kwiver_plugin_path and
-# formulate the default module path
-get_property(plugin_path GLOBAL PROPERTY kwiver_plugin_path)
-
-# convert list to path string using the system specific path separator
-# TODO: The following has a leading ':' that should not be there
-foreach( p IN LISTS plugin_path )
-  set( VITAL_MODULE_PATH "${VITAL_MODULE_PATH}${path_sep}${p}" )
-endforeach(p)
-
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/algorithm_plugin_manager_paths.h" )
-
 ###
 # configure our compiler options
 configure_file(
@@ -303,6 +274,7 @@ add_subdirectory( logger )
 add_subdirectory( plugin_loader )
 
 if (KWIVER_ENABLE_TOOLS)
+  add_subdirectory( applets )
   add_subdirectory( tools )
 endif()
 

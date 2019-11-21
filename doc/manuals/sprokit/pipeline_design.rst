@@ -162,6 +162,11 @@ If custom logic is required to manage ports or data, this control flow can be
 disabled piecemeal and handled manually. The status can check can be disabled
 on a per-process basis so that it can be managed in a special way.
 
+<Need to describe synchronization modes>
+- How do optional input ports interact with the above?
+
+
+
 Pipeline Execution
 ------------------
 

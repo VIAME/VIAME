@@ -125,9 +125,35 @@ TEST( load_save, polygon )
 }
 
 // ----------------------------------------------------------------------------
-TEST( load_save, geo_point )
+TEST( load_save, geo_point_2d )
 {
-  kwiver::vital::geo_point obj( {42.50, 73.54}, kwiver::vital::SRID::lat_lon_WGS84 );
+  kwiver::vital::geo_point::geo_2d_point_t geo( 42.50, 73.54 );
+  kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
+
+  std::stringstream msg;
+  {
+    cereal::JSONOutputArchive ar( msg );
+    cereal::save( ar, obj );
+  }
+
+#if DEBUG
+  std::cout << "geo_point as json - " << msg.str() << std::endl;
+#endif
+
+  kwiver::vital::geo_point obj_dser;
+  {
+    cereal::JSONInputArchive ar( msg );
+    cereal::load( ar, obj_dser );
+  }
+
+  EXPECT_EQ( obj.location(), obj_dser.location() );
+}
+
+// ----------------------------------------------------------------------------
+TEST( load_save, geo_point_raw )
+{
+  kwiver::vital::geo_point::geo_3d_point_t geo( 42.50, 73.54, 16.33 );
+  kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
 
   std::stringstream msg;
   {
@@ -211,7 +237,16 @@ kwiver::vital::metadata create_meta_collection()
 
   {
     const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
-    kwiver::vital::geo_point pt ( { 42.50, 73.54 }, kwiver::vital::SRID::lat_lon_WGS84 );
+    kwiver::vital::geo_point::geo_2d_point_t geo( 42.50, 73.54 );
+    kwiver::vital::geo_point pt ( geo, kwiver::vital::SRID::lat_lon_WGS84 );
+    auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
+    meta.add( item );
+  }
+
+  {
+    const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
+    kwiver::vital::geo_point::geo_3d_point_t geo( 42.50, 73.54, 16.33 );
+    kwiver::vital::geo_point pt ( geo, kwiver::vital::SRID::lat_lon_WGS84 );
     auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
     meta.add( item );
   }
@@ -390,8 +425,8 @@ TEST( load_save, object_track_state)
   }
 
 
-  auto do_sptr = obj_trk_state.detection;
-  auto do_sptr_dser = obj_dser.detection;
+  auto do_sptr = obj_trk_state.detection();
+  auto do_sptr_dser = obj_dser.detection();
 
   EXPECT_EQ( do_sptr->bounding_box(), do_sptr_dser->bounding_box() );
   EXPECT_EQ( do_sptr->index(), do_sptr_dser->index() );
@@ -543,8 +578,8 @@ TEST( load_save, object_track_set )
                                                       downcast( dser_trk_state_sptr );
 
 
-      auto ser_do_sptr = obj_trk_state_sptr->detection;
-      auto dser_do_sptr = dser_obj_trk_state_sptr->detection;
+      auto ser_do_sptr = obj_trk_state_sptr->detection();
+      auto dser_do_sptr = dser_obj_trk_state_sptr->detection();
 
       EXPECT_EQ( ser_do_sptr->bounding_box(), dser_do_sptr->bounding_box() );
       EXPECT_EQ( ser_do_sptr->index(), dser_do_sptr->index() );

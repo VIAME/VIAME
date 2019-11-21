@@ -67,8 +67,8 @@ class SimpleImageObjectDetector(ImageObjectDetector):
         >>> print(detection[0].bounding_box())
         <BoundingBox(150.0, 0.0, 250.0, 200.0)>
 
-        Using pipeline_runner from build/install directory
-        $ pipeline_runner -p examples/pipelines/example_pydetector_on_image.pipe
+        Using kwiver runner from build/install directory
+        $ kwiver runner examples/pipelines/example_pydetector_on_image.pipe
     """
     def __init__(self):
         ImageObjectDetector.__init__(self)

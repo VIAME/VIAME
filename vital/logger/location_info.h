@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,4 +146,4 @@ private:
            __KWIVER_LOGGER_FUNC__,                                       \
            __LINE__)
 
-#endif /* KWIVER_LOGGER_LOCATION_INFO_H_ */
+#endif

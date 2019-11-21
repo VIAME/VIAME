@@ -1,9 +1,5 @@
-if(fletch_ENABLED_YAMLCPP)
-  find_package( yaml-cpp REQUIRED )
-else()
-  message(STATUS "Cannot build track_oracle KPF support without YAML in Fletch")
-  return()
-endif()
+find_package( yaml-cpp REQUIRED )
+
 #
 # KPF activities
 #

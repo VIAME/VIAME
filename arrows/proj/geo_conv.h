@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,10 @@ public:
   virtual vital::vector_2d operator()( vital::vector_2d const& point,
                                        int from, int to ) override;
 
+  /// Conversion operator
+  virtual vital::vector_3d operator()( vital::vector_3d const& point,
+                                       int from, int to ) override;
+
 private:
   void* projection( int crs );
 
@@ -72,4 +76,4 @@ private:
 
 } } } // end namespace
 
-#endif // KWIVER_ARROWS_PROJ_GEO_CONV_H_
+#endif

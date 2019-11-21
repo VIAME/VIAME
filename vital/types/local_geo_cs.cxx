@@ -51,8 +51,7 @@ namespace vital {
 /// Constructor
 local_geo_cs
 ::local_geo_cs()
-: geo_origin_(),
-  origin_alt_(0.0)
+: geo_origin_()
 {
 }
 
@@ -63,8 +62,8 @@ local_geo_cs
 ::set_origin(const geo_point& origin)
 {
   // convert the origin point into WGS84 UTM for the appropriate zone
-  vector_2d lon_lat = origin.location( SRID::lat_lon_WGS84 );
-  auto zone = utm_ups_zone( lon_lat );
+  vector_3d lon_lat_alt = origin.location( SRID::lat_lon_WGS84 );
+  auto zone = utm_ups_zone( lon_lat_alt );
   int crs = (zone.north ? SRID::UTM_WGS84_north : SRID::UTM_WGS84_south) + zone.number;
   geo_origin_ = geo_point(origin.location(crs), crs);
 }
@@ -134,20 +133,16 @@ local_geo_cs
     rotation_set = true;
   }
 
-  auto& md_sensor_location =
-    md.find( vital::VITAL_META_SENSOR_LOCATION );
-  auto& md_sensor_altitude =
-    md.find( vital::VITAL_META_SENSOR_ALTITUDE );
-  if( md_sensor_location && md_sensor_altitude )
+  if (auto& mdi = md.find(vital::VITAL_META_SENSOR_LOCATION))
   {
-    double alt = md_sensor_altitude.as_double();
+
     vital::geo_point gloc;
-    md_sensor_location.data( gloc );
+    mdi.data( gloc );
 
     // get the location in the same UTM zone as the origin
-    vector_2d loc = gloc.location(geo_origin_.crs());
+    vector_3d loc = gloc.location(geo_origin_.crs());
     loc -= geo_origin_.location();
-    cam.set_center(vector_3d(loc.x(), loc.y(), alt - origin_alt_));
+    cam.set_center(vector_3d(loc.x(), loc.y(), loc.z()));
     translation_set = true;
   }
   return rotation_set || translation_set;
@@ -175,19 +170,17 @@ local_geo_cs
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ROLL_ANGLE, roll));
   }
 
-  if (md.has(vital::VITAL_META_SENSOR_LOCATION) &&
-      md.has(vital::VITAL_META_SENSOR_ALTITUDE))
+  if (md.has(vital::VITAL_META_SENSOR_LOCATION))
   {
     // we have a complete position from metadata.
     vital::vector_3d c = cam.get_center();
-    vital::geo_point gc(vector_2d(c.x(), c.y()) + geo_origin_.location(),
-      geo_origin_.crs());
+    vital::vector_3d offset = vector_3d(c.x(), c.y(), c.z()) +
+      geo_origin_.location();
+    vital::geo_point gc( offset, geo_origin_.crs() );
 
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_LOCATION, gc));
-    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ALTITUDE, c.z() + origin_alt_));
   }
 }
-
 
 /// Read a local_geo_cs from a text file
 void
@@ -197,10 +190,8 @@ read_local_geo_cs_from_file(local_geo_cs& lgcs,
   std::ifstream ifs(file_path);
   double lat, lon, alt;
   ifs >> lat >> lon >> alt;
-  lgcs.set_origin( geo_point( vector_2d(lon, lat), SRID::lat_lon_WGS84) );
-  lgcs.set_origin_altitude( alt );
+  lgcs.set_origin( geo_point( vector_3d(lon, lat, alt), SRID::lat_lon_WGS84) );
 }
-
 
 /// Write a local_geo_cs to a text file
 void
@@ -208,12 +199,13 @@ write_local_geo_cs_to_file(local_geo_cs const& lgcs,
                            vital::path_t const& file_path)
 {
   // write out the origin of the local coordinate system
-  auto lon_lat = lgcs.origin().location( SRID::lat_lon_WGS84 );
+  auto lon_lat_alt = lgcs.origin().location( SRID::lat_lon_WGS84 );
   std::ofstream ofs(file_path);
   if (ofs)
   {
-    ofs << std::setprecision(12) << lon_lat[1] << " " << lon_lat[0]
-        << " " << lgcs.origin_altitude();
+    ofs << std::setprecision(12) << lon_lat_alt[1]
+                                 << " " << lon_lat_alt[0]
+                                 << " " << lon_lat_alt[2];
   }
 }
 
@@ -291,8 +283,12 @@ initialize_cameras_with_metadata(std::map<vital::frame_id_t,
         vital::geo_point gloc;
         mdi.data(gloc);
 
+        // set the origin to the ground
+        vital::vector_3d loc = gloc.location();
+        loc[2] = 0.0;
+        gloc.set_location(loc, gloc.crs());
+
         lgcs.set_origin(gloc);
-        lgcs.set_origin_altitude(0.0);
         update_local_origin = true;
         break;
       }
@@ -319,14 +315,16 @@ initialize_cameras_with_metadata(std::map<vital::frame_id_t,
     mean[2] = 0.0;
 
     // shift the UTM origin to the mean of the cameras easting and northing
-    vector_2d mean_xy( mean.x(), mean.y() );
-    lgcs.set_origin( geo_point( lgcs.origin().location() + mean_xy, lgcs.origin().crs() ) );
+    vector_3d mean_xyz( mean.x(), mean.y(), mean.z() );
+    vital::vector_3d offset = vector_3d( lgcs.origin().location() ) + mean_xyz;
+    lgcs.set_origin( geo_point( offset, lgcs.origin().crs() ) );
 
     // shift all cameras to the new coordinate system.
     typedef std::map<frame_id_t, camera_sptr>::value_type cam_map_val_t;
     for(cam_map_val_t const &p : cam_map)
     {
-      simple_camera_perspective* cam = dynamic_cast<simple_camera_perspective*>(p.second.get());
+      simple_camera_perspective* cam =
+        dynamic_cast<simple_camera_perspective*>(p.second.get());
       cam->set_center(cam->get_center() - mean);
     }
   }

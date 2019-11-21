@@ -1,9 +1,4 @@
-if(fletch_ENABLED_YAMLCPP)
-  find_package( yaml-cpp REQUIRED )
-else()
-  message(STATUS "To enable the kpf arrow, please build or locate yaml libraries in fletch")
-  return()
-endif()
+find_package( yaml-cpp REQUIRED )
 
 add_subdirectory(yaml)
 

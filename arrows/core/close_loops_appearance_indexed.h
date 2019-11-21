@@ -122,4 +122,4 @@ protected:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_CORE_CLOSE_LOOPS_APPEARANCE_INDEXED_H_
+#endif

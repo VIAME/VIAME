@@ -57,6 +57,7 @@
 #include <arrows/core/epipolar_geometry.h>
 #include <arrows/core/metrics.h>
 #include <arrows/core/match_matrix.h>
+#include <arrows/core/necker_reverse.h>
 #include <arrows/core/triangulate.h>
 #include <arrows/core/transform.h>
 #include <vital/algo/estimate_pnp.h>
@@ -71,8 +72,6 @@ namespace core {
 typedef std::map< frame_id_t, simple_camera_perspective_sptr >               map_cam_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::iterator       cam_map_itr_t;
 typedef std::map<frame_id_t, simple_camera_perspective_sptr>::const_iterator const_cam_map_itr_t;
-typedef camera_map_of_<simple_camera_perspective>                            simple_camera_perspective_map;
-typedef std::shared_ptr<simple_camera_perspective_map>                       simple_camera_perspective_map_sptr;
 
 typedef vital::landmark_map::map_landmark_t map_landmark_t;
 
@@ -339,7 +338,7 @@ public:
     std::set<frame_id_t> &registered_frames,
     std::set<frame_id_t> &non_registered_frames) const;
 
-  bool get_next_fid_to_register_and_its_closets_registered_cam(
+  bool get_next_fid_to_register_and_its_closest_registered_cam(
     simple_camera_perspective_map_sptr cams,
     std::set<frame_id_t> &frames_to_register,
     frame_id_t &fid_to_register, frame_id_t &closest_frame) const;
@@ -2848,7 +2847,7 @@ initialize_cameras_landmarks_keyframe::priv
 
 bool
 initialize_cameras_landmarks_keyframe::priv
-::get_next_fid_to_register_and_its_closets_registered_cam(
+::get_next_fid_to_register_and_its_closest_registered_cam(
   simple_camera_perspective_map_sptr cams,
   std::set<frame_id_t> &frames_to_register,
   frame_id_t &fid_to_register, frame_id_t &closest_frame) const
@@ -2900,10 +2899,14 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<frame_id_t> &already_registred_cams)
 {
   frame_id_t closest_cam_fid;
-  get_next_fid_to_register_and_its_closets_registered_cam(cams,
-                                                          frames_to_register,
-                                                          fid_to_register,
-                                                          closest_cam_fid);
+  if (!get_next_fid_to_register_and_its_closest_registered_cam(
+        cams,
+        frames_to_register,
+        fid_to_register,
+        closest_cam_fid))
+  {
+    return false;
+  }
   frames_to_register.erase(fid_to_register);
 
   simple_camera_perspective_sptr closest_cam = cams->find(closest_cam_fid);
@@ -3816,7 +3819,7 @@ initialize_cameras_landmarks_keyframe
     ::get_nested_algo_configuration("estimate_pnp", config, m_priv->m_pnp);
 
   vital::algo::estimate_similarity_transform
-    ::get_nested_algo_configuration("estimate_similarity", config,
+    ::get_nested_algo_configuration("similarity_estimator", config,
                                     m_priv->m_similarity_estimator);
 
   return config;

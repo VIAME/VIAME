@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,4 +117,4 @@ typedef std::shared_ptr<triangulate_landmarks> triangulate_landmarks_sptr;
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_TRIANGULATE_LANDMARKS_H_
+#endif

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,4 +111,4 @@ essential_matrix_to_fundamental(kwiver::vital::essential_matrix const& E,
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_EPIPOLAR_GEOMETRY_H_
+#endif

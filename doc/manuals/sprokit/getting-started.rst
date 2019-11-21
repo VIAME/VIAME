@@ -59,7 +59,7 @@ of bounding boxes as inputs. Every bounding box is characterized by the
 coordinates for the box, the confidence score, and a class type. The VITAL type
 detected_object_sets is used to represent these bounding boxes in the pipeline.
 The plugin_explorer application can be used to help construct the pipeline.
-After the pipeline is defined it can then be executed using pipeline_runner.
+After the pipeline is defined it can then be executed using kwiver runner.
 Note that during this entire exercise no code is written or compiled.
 
 Input
@@ -134,10 +134,10 @@ To get the following, more detailed information about ``detected_object_input``:
 
 What this tells us is that
 
-#. There is a ``detected_object_input`` process that takes a	``file_name`` and a ``reader`` 
+#. There is a ``detected_object_input`` process that takes a	``file_name`` and a ``reader``
    (more on that in a moment) as a configuration parameter,
 #. That it has no input ports
-#. That it produces a ``detected_object_set`` and an ``image_file_name`` on its output 
+#. That it produces a ``detected_object_set`` and an ``image_file_name`` on its output
    ports when it runs.
 
 The *ports* in a process are the points at which one process can connect to
@@ -456,7 +456,7 @@ writer process.
 
 We can run the pipeline with the following command::
 
-	pipeline_runner --pipe sample_reader_filter_writer.pipe
+	kwiver runner sample_reader_filter_writer.pipe
 
 When the pipeline runs it will read a set of detected_objects from the file
 sample_detected_objects.csv, filter out any that have a confidence less than
@@ -504,7 +504,7 @@ pipeline.  The ``pythread_per_process`` scheduler which does essentially
 what it says: it creates a Python thread for every process in the
 pipeline::
 
-	pipeline_runner -S pythread_per_process -p </path/to/kwiver/source>/sprokit/pipelines/number_flow_python.pipe>
+	kwiver runner -S pythread_per_process </path/to/kwiver/source>/sprokit/pipelines/number_flow_python.pipe>
 
 The previous pipeline, the numbers will be written to an output file,
 this time ``numbers_from_python.txt``

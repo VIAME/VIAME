@@ -226,7 +226,8 @@ public:
    * \return The plugin loader reference is returned.
    */
   template <typename process_t>
-  kwiver::vital::plugin_factory_handle_t  register_process( option opt = none )
+  kwiver::vital::plugin_factory_handle_t
+  register_process( option opt = none )
   {
     using kvpf = kwiver::vital::plugin_factory;
 
@@ -248,7 +249,6 @@ public:
 
     return fact;
   }
-
 };
 
 } // end namespace

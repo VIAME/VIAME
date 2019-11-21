@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018 by Kitware, Inc.
+* Copyright 2018, 2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -282,12 +282,9 @@ sfm_constraints
   }
 
   kwiver::vital::geo_point gloc;
-  double alt;
-  if (m_priv->m_md->has<VITAL_META_SENSOR_LOCATION>(fid) &&
-      m_priv->m_md->has<VITAL_META_SENSOR_ALTITUDE>(fid))
+  if (m_priv->m_md->has<VITAL_META_SENSOR_LOCATION>(fid))
   {
     gloc = m_priv->m_md->get<VITAL_META_SENSOR_LOCATION>(fid);
-    alt = m_priv->m_md->get<VITAL_META_SENSOR_ALTITUDE>(fid);
   }
   else
   {
@@ -295,13 +292,12 @@ sfm_constraints
   }
 
   auto geo_origin = m_priv->m_lgcs.origin();
-  vector_2d loc = gloc.location(geo_origin.crs());
+  vector_3d loc = gloc.location(geo_origin.crs());
   loc -= geo_origin.location();
-  alt -= m_priv->m_lgcs.origin_altitude();
 
   pos_loc[0] = loc.x();
   pos_loc[1] = loc.y();
-  pos_loc[2] = alt;
+  pos_loc[2] = loc.z();
 
   return true;
 }

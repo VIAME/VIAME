@@ -356,17 +356,27 @@ process
   {
     datum_t const dat = d->check_required_input();
 
-    // If a non-data datum is in the inputs (these are empty, flush, complete, error, invalid)
-    // then propagate these controls to all output ports.
+    // If a non-data datum is in the inputs (these are empty, flush,
+    // complete, error, invalid) then propagate these controls to all
+    // output ports.
+    //
+    // This implements the "check_valid" semantics of supplying a
+    // datum if needed.
     if (dat)
     {
+      // Absorb the current input from all input ports
       d->grab_from_input_edges();
+
+      // Force this type of datum to all output ports to indicate
+      // condition to downstream processes
       d->push_to_output_edges(dat);
 
       complete = (dat->type() == datum::complete);
     }
     else
     {
+      // Null pointer returned - required data is present on ports
+      //
       // We don't want to reconfigure while the subclass is running. Since the
       // base class shouldn't be messing with while configuring, we only need to
       // lock around the base class _step method call.
@@ -382,6 +392,7 @@ process
 
   /// \todo Are there any post-_step actions?
 
+  // Send current process status to the scheduler.
   d->run_heartbeat();
 
   /// \todo Should this really be done here?
@@ -1948,6 +1959,13 @@ process::priv
 
 
 // ------------------------------------------------------------------
+/*
+ * This method puts a status packet on the hearbeat output port to
+ * indicate the status of this process to the scheduler. If a
+ * "complete" datum is encountered on this port by the scheduler, this
+ * process is considered no longer runnable and never gets stepped
+ * again.
+ */
 void
 process::priv
 ::run_heartbeat()
@@ -2025,18 +2043,25 @@ process::priv
  * level of checking required.
  *
  * @return Null datum_t if data is on the *required* input ports.
+ * Error datum is returned if error condition is fount
  */
 datum_t
 process::priv
 ::check_required_input()
 {
+  // If this is "check_none" mode, then it's the wild west.
+  // Any synchronization has to be done by the process.
   if ((check_input_level == check_none) ||
       required_inputs.empty())
   {
     return datum_t();
   }
 
+  // collection of the first datum from each required input port
   edge_data_t first_data;
+
+  // collection of all datum from all input ports for the first cycle,
+  // based on the frequency.
   edge_data_t data;
 
   // Loop over all required ports
@@ -2044,6 +2069,10 @@ process::priv
   {
     input_edge_map_t::const_iterator const i = input_edges.find(port);
 
+    // If port not found as an input edge. Port has been declared but
+    // not connected. This is unexpected since the pipeline builder
+    // requires that all "required" input ports be connected to
+    // another port.
     if (i == input_edges.end())
     {
       continue;
@@ -2066,7 +2095,8 @@ process::priv
     }
 
     // Since the top element in the edge was not flush or complete,
-    // look through the rest of the input on this edge.
+    // (it must be real data) look through the rest of the input on
+    // this edge.
     port_info_t const& port_info = q->input_port_info(port);
     port_frequency_t const& freq = port_info->frequency;
 
@@ -2079,10 +2109,13 @@ process::priv
 
       data.push_back(edat);
     }
-  } // end foreach port
+  } // end foreach required port
 
+  // Analyze the first data items on all required input ports
   data_info_t const first_info = edge_data_info(first_data);
 
+  // If just synchronization is required, throw an error if there is a
+  // synchronization problem.
   if (check_sync <= check_input_level)
   {
     if (!first_info->in_sync)
@@ -2097,15 +2130,21 @@ process::priv
     stamp_for_inputs = edat.stamp;
   }
 
+  // If we are not in "check_valid" mode, then no further checking is
+  // needed. Inputs are good.
   if (check_input_level < check_valid)
   {
     return datum_t();
   }
 
+  // Processing for "check_valid" mode
+  //
+  // Get status of all incoming packets.
   data_info_t const info = edge_data_info(data);
 
   switch (info->max_status)
   {
+    // Data is available for all ports
     case datum::data:
       break;
 
@@ -2271,6 +2310,9 @@ process::priv
 
 
 // ------------------------------------------------------------------
+/* Return tag name if flow dependent port.
+ *
+ */
 process::priv::tag_t
 process::priv
 ::port_flow_tag_name(port_type_t const& port_type) const

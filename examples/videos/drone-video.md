@@ -40,7 +40,6 @@ are the only ones you need to worry about to get started.
 Now you are ready to generate the kw_archive output by running the
 following command with the configuration/pipeline file.
 
-pipeline_runner -p ../source/kwiver/pipeline_configs/images_to_kwa.pipe
+kwiver runner ../source/kwiver/pipeline_configs/images_to_kwa.pipe
 
 The resulting output can be displayed with the vsPlay tool.
-

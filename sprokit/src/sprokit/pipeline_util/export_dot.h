@@ -60,7 +60,10 @@ namespace sprokit
  * \param graph_name The name of the graph.
  * \param link_prefix A prefix to link processes for documentation
  */
-SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name, std::string const& link_prefix);
+SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr,
+                                             pipeline_t const& pipe,
+                                             std::string const& graph_name,
+                                             std::string const& link_prefix);
 
 /**
  * \brief Exports a dot graph for a pipeline.
@@ -74,7 +77,9 @@ SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, pipeline_t cons
  * \param pipe The pipeline to export.
  * \param graph_name The name of the graph.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, pipeline_t const& pipe, std::string const& graph_name);
+SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr,
+                                             pipeline_t const& pipe,
+                                             std::string const& graph_name);
 
 /**
  * \brief Exports a dot graph for a cluster.
@@ -88,7 +93,9 @@ SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, pipeline_t cons
  * \param cluster The cluster to export.
  * \param graph_name The name of the graph.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr, process_cluster_t const& cluster, std::string const& graph_name);
+SPROKIT_PIPELINE_UTIL_EXPORT void export_dot(std::ostream& ostr,
+                                             process_cluster_t const& cluster,
+                                             std::string const& graph_name);
 
 }
 

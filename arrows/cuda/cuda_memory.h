@@ -76,4 +76,4 @@ make_cuda_mem(size_t size)
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CUDA_CUDA_MEMORY_H_
+#endif

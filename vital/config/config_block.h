@@ -179,21 +179,41 @@ public:
   T get_value( config_block_key_t const& key, T const& def ) const noexcept;
 
 
+  /// Convert string to enum value.
   /**
-   * \brief Convert string to enum value.
-   *
    * \param key The index of the configuration value to retrieve.
    * \tparam C Type of the enum converter. Must be derived from
    * enum_converter struct.
-   * \return
+   * \return Correctly typed enum value
+   * \throws std::runtime_error with message detailing valid enum strings.
    */
   template < typename C>
   typename C::enum_type get_enum_value( const config_block_key_t& key ) const;
 
 
+  /// Cast the value as an enum, returning a default value in case of an error.
   /**
-   * \brief Convert string to vector of values.
-   *
+  * Get value from config entry converted to enum type. If
+  * the config entry is not there or the value can not be
+  * converted, the specified default value is
+  * returned. Unfortunately, there is no way to tell what went
+  * wrong.
+  *
+  * \param key The index of the configuration value to retrieve.
+  * \param def The value \p key does not exist or the cast fails.
+  * \tparam C  Type of the enum converter. Must be derived from
+  *            enum_converter struct.
+  * \returns   The enum value stored within the configuration, or
+  *            \p def if something goes wrong.
+  */
+  template < typename C >
+  typename C::enum_type
+  get_enum_value(config_block_key_t const& key,
+                 typename C::enum_type const& def) const noexcept;
+
+
+  /// Convert string to vector of values.
+  /**
    * Convert config string into a vector of values of the same type. This method
    * splits the config string associated with the key using the supplied delimeter
    * string. Each of these resulting strings is converted to the templated type and
@@ -448,9 +468,8 @@ private:
                     config_block_value_t const& value,
                     config_block_description_t const& descr = config_block_key_t() );
 
+  /// Copies config entry to this config block.
   /**
-   * @brief Copies config entry to this config block.
-   *
    * This function copies one config entry, as specified by the \b key
    * from the specified config block to this block.
    *
@@ -696,6 +715,25 @@ config_block
     return def;
   }
 }
+
+
+// ------------------------------------------------------------------
+// Cast the value as an enum, returning a default value in case of an error.
+template < typename C >
+typename C::enum_type
+config_block
+::get_enum_value(config_block_key_t const& key,
+                 typename C::enum_type const& def) const noexcept
+{
+  try
+  {
+    return get_enum_value< C >(key);
+  }
+  catch (...)
+  {
+    return def;
+  }
+}
 //@}
 
 // ==================================================================
@@ -866,4 +904,4 @@ config_block
 
 } }
 
-#endif // KWIVER_CONFIG_BLOCK_H_
+#endif

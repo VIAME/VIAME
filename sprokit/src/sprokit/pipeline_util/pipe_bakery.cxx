@@ -35,7 +35,7 @@
 #include "cluster_bakery.h"
 #include "cluster_creator.h"
 
-#include "load_pipe.h"
+#include "pipeline_builder.h"
 #include "pipe_declaration_types.h"
 
 #include <vital/config/config_block.h>
@@ -60,21 +60,6 @@ namespace {
 static kwiver::vital::config_block_key_t const config_pipeline_key = kwiver::vital::config_block_key_t( "_pipeline" );
 
 } // end anonymous
-
-// ------------------------------------------------------------------
-pipeline_t
-bake_pipe_from_file( kwiver::vital::path_t const& fname )
-{
-  return bake_pipe_blocks( load_pipe_blocks_from_file( fname ) );
-}
-
-
-// ------------------------------------------------------------------
-pipeline_t
-bake_pipe( std::istream& istr )
-{
-  return bake_pipe_blocks( load_pipe_blocks( istr ) );
-}
 
 
 // ==================================================================
@@ -148,23 +133,7 @@ bake_pipe_blocks( pipe_blocks const& blocks )
 } // bake_pipe_blocks
 
 
-// ------------------------------------------------------------------
-cluster_info_t
-bake_cluster_from_file( kwiver::vital::path_t const& fname )
-{
-  return bake_cluster_blocks( load_cluster_blocks_from_file( fname ) );
-}
-
-
-// ------------------------------------------------------------------
-cluster_info_t
-bake_cluster( std::istream& istr )
-{
-  return bake_cluster_blocks( load_cluster_blocks( istr ) );
-}
-
-
-// ------------------------------------------------------------------
+// ============================================================================
 cluster_info_t
 bake_cluster_blocks( cluster_blocks const& blocks )
 {

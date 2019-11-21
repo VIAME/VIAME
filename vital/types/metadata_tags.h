@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,4 +172,4 @@ enum vital_metadata_tag {
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_METADATA_TAGS_H_ */
+#endif

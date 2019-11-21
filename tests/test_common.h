@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2015 by Kitware, Inc.
+ * Copyright 2011-2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -373,4 +373,4 @@ test_bound( char const* name, ValueType const& value,
 } //end namespace testing
 } //end namespace kwiver
 
-#endif // KWIVER_TEST_TEST_COMMON_H_
+#endif

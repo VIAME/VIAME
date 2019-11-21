@@ -17,11 +17,23 @@ Vital
    constructors of feature_track_state and object_track_state still make only
    shallow copies.)
 
+ * Added a variant of config_block::get_enum_value that accepts a default
+   value to fall back on.
+
 Vital Util
 
 Vital Tools
 
 Vital Types
+
+ * Added get_vector() member function to access the vector of all metadata on
+   a frame in metadata_map.
+
+ * Added ``kwiver::vital::set`` mixin class to define standard set methods as
+   well as iterability.
+
+ * Added iterator, const_iterator and iterable classes to support container-
+   independent iteration.
 
 Vital Bindings
 
@@ -32,6 +44,12 @@ Arrows: Core
 Arrows: Ceres
 
 Arrows: CUDA
+
+ * Added a new parameter for the truncated signed distance function in depth
+   map integration.  The new "Epsilon" value is used in the occluded portion
+   of the function that was previously zero.  Setting Epsilon > 0 can remove
+   a double surface artifact.  Setting Epsilon = 0 restores the previous
+   behavior.
 
 Arrows: FFmpeg
 
@@ -53,7 +71,23 @@ Sprokit
 
 Sprokit: Processes
 
+ * Added a core sprokit process to shift a stream of detected object
+   sets by a specified offset.  When a negative offset is specified,
+   detected object sets are initially consumed from the stream until
+   the offset is satisfied.  When a positive offset is specified,
+   empty detected object sets are prepended to the stream until the
+   offset is satisfied.
+
 Tools
+
+ * Converting stand-alone tools to reside under the main "kwiver" top
+   level tool. Individual tools are specified as a parameter to the
+   "kwiver" tool runner.
+
+ * Moved source of tools/applets and reorganized:
+   - tools - contains executables, E.g. kwiver tool runner
+   - vital/applets - contains applet framework
+   - arrows/core/applets - general applets
 
 Unit Tests
 
@@ -61,4 +95,3 @@ General Documentation
 
 Bug Fixes
 ---------
-
