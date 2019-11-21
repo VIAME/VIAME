@@ -42,6 +42,7 @@ set( plugin_core_headers
   track_features_augment_keyframes.h
   track_features_core.h
   transform.h
+  transform_detected_object_set.h
   triangle_scan_iterator.h
   triangulate_landmarks.h
   uv_unwrap_mesh.h
@@ -120,6 +121,7 @@ set( plugin_core_sources
   track_features_augment_keyframes.cxx
   track_features_core.cxx
   transform.cxx
+  transform_detected_object_set.cxx
   triangle_scan_iterator.cxx
   triangulate_landmarks.cxx
   uv_unwrap_mesh.cxx
