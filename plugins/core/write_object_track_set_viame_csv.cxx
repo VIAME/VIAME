@@ -112,16 +112,16 @@ compute_average_tot( kwiver::vital::track_sptr trk_ptr, bool weighted )
       kwiver::vital::object_track_state* ts =
         static_cast< kwiver::vital::object_track_state* >( ts_ptr.get() );
 
-      if( !ts->detection )
+      if( !ts->detection() )
       {
         continue;
       }
 
-      kwiver::vital::detected_object_type_sptr dot = ts->detection->type();
+      kwiver::vital::detected_object_type_sptr dot = ts->detection()->type();
 
       if( dot )
       {
-        double weight = ( weighted ? ts->detection->confidence() : 1.0 );
+        double weight = ( weighted ? ts->detection()->confidence() : 1.0 );
 
         for( const auto name : dot->class_names() )
         {
@@ -195,7 +195,7 @@ void write_object_track_set_viame_csv
         continue;
       }
 
-      kwiver::vital::detected_object_sptr det = ts->detection;
+      kwiver::vital::detected_object_sptr det = ts->detection();
       const kwiver::vital::bounding_box_d empty_box =
         kwiver::vital::bounding_box_d( -1, -1, -1, -1 );
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
@@ -334,7 +334,7 @@ write_object_track_set_viame_csv
         continue;
       }
 
-      kwiver::vital::detected_object_sptr det = state->detection;
+      kwiver::vital::detected_object_sptr det = state->detection();
 
       const kwiver::vital::bounding_box_d empty_box =
         kwiver::vital::bounding_box_d( -1, -1, -1, -1 );
