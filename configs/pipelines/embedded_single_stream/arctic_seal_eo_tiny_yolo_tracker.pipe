@@ -1,0 +1,39 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+include ../common_arctic_seal_eo_tiny_yolo_detector.pipe
+
+connect from in_adapt.image
+        to   optical_detector_input.image
+
+# ==================================================================================
+
+include ../common_stabilized_iou_tracker.pipe
+
+connect from in_adapt.timestamp
+        to   stabilizer.timestamp
+connect from in_adapt.image
+        to   stabilizer.image
+
+connect from in_adapt.timestamp
+	      to   tracker.timestamp
+connect from detector_filter.detected_object_set
+        to   tracker.detected_object_set
+
+connect from tracker.object_track_set
+        to   out_adapt.object_track_set
+
+
+# -- end of file --
