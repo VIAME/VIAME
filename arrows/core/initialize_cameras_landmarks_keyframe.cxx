@@ -1562,12 +1562,18 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (!majority_upright(cams->map_of_<camera_perspective>()))
   {
-    auto nr_cams_perspec =
-      std::make_shared<simple_camera_perspective_map>(cams->T_cameras());
-    auto nr_cams = std::static_pointer_cast<camera_map>(nr_cams_perspec);
-    landmark_map_sptr ba_lms2(new simple_landmark_map(lms));
-    necker_reverse(nr_cams, ba_lms2, false);
-    cams->set_from_base_cams(nr_cams);
+    const vector_4d plane = landmark_plane(lms);
+    for (auto p : cams->T_cameras())
+    {
+      necker_reverse_inplace(*(p.second), plane);
+    }
+    std::set<landmark_id_t> inlier_lms;
+    retriangulate(lms, cams, tracks->tracks(), inlier_lms, 2, 10);
+
+    std::set<frame_id_t> fixed_cams_empty;
+    std::set<landmark_id_t> fixed_lms_empty;
+    bundle_adjuster->optimize(*cams, lms, tracks,
+                              fixed_cams_empty, fixed_lms_empty);
   }
 
   std::set<landmark_id_t> inlier_lms;
