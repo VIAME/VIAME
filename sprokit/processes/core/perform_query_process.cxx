@@ -434,7 +434,7 @@ perform_query_process
     d->all_descriptors = query_descs;
   }
 
-  if( !query_images->empty() )
+  if( query_images && !query_images->empty() )
   {
     d->query_images = query_images;
   }
