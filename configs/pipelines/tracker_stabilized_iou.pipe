@@ -9,9 +9,9 @@ connect from downsampler.output_1
         to   detector_input.image
 
 connect from downsampler.timestamp
-        to   stabilize.timestamp
+        to   stabilizer.timestamp
 connect from downsampler.output_1
-        to   stabilize.image
+        to   stabilizer.image
 
 connect from detector_filter.detected_object_set
         to   tracker.detected_object_set
