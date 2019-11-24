@@ -239,6 +239,8 @@ if( VIAME_ENABLE_VIVIA )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
       pipelines/embedded_single_stream/arctic_seal_eo_tiny_yolo_detector.pipe
       pipelines/embedded_single_stream/arctic_seal_eo_tiny_yolo_tracker.pipe
+      pipelines/embedded_single_stream/arctic_seal_eo_tiny_yolo_tracker_alt2.pipe
+      pipelines/embedded_single_stream/arctic_seal_eo_tiny_yolo_tracker_alt3.pipe
       pipelines/embedded_single_stream/arctic_seal_eo_yolo_detector.pipe
       pipelines/embedded_single_stream/arctic_seal_ir_tiny_yolo_detector.pipe
       pipelines/embedded_single_stream/arctic_seal_ir_yolo_detector.pipe )
