@@ -77,7 +77,7 @@ endif()
 
 if( WIN32 )
   set( CUSTOM_PYTHONPATH
-    ${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
+    ${PYTHON_BASEPATH};${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
   if( VIAME_ENABLE_CUDA )
     set( CUSTOM_PATH
       ${VIAME_BUILD_INSTALL_PREFIX}/bin;${CUDA_TOOLKIT_ROOT_DIR}/bin;$ENV{PATH} )
@@ -89,7 +89,7 @@ if( WIN32 )
   string( REPLACE ";" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
 else()
   set( CUSTOM_PYTHONPATH
-    ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
+    ${PYTHON_BASEPATH}:${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
   if( VIAME_ENABLE_CUDA )
     set( CUSTOM_PATH
       ${VIAME_BUILD_INSTALL_PREFIX}/bin:${CUDA_TOOLKIT_ROOT_DIR}/bin:$ENV{PATH} )
