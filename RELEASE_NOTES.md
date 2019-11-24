@@ -1,4 +1,15 @@
 
+v0.10.2 - 11/25/2019
+====================
+
+
+-Updated KWIVER in VIAME causing all add-ons to break and need to be regenerated
+
+
+-Added in support for object tracking solely based on IOU and image stabilization
+
+
+
 v0.10.1 - 11/16/2019
 ====================
 
