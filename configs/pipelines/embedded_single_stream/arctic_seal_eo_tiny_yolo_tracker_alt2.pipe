@@ -45,7 +45,7 @@ process tracker
 process track_associator
   :: associate_detections_to_tracks
   :track_associator:type                       threshold
-  :track_associator:threshold:threshold        100.0
+  :track_associator:threshold:threshold        10.0
   :track_associator:threshold:higher_is_better false
 
 process track_initializer
