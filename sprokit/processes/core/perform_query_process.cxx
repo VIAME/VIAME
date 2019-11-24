@@ -532,7 +532,8 @@ perform_query_process
         }
 
         // Run seperate augmentation pipeline to get more positives and negatives
-        for( auto query_image : *d->query_images )
+        for( vital::const_iterator< vital::image_container_sptr > query_image = d->query_images->begin();
+			 query_image == d->query_images->end(); query_image++ )
         {
           auto ids = adapter::adapter_data_set::create();
 
@@ -541,7 +542,7 @@ perform_query_process
 
           vital::detected_object_set_sptr pos_dets = desc_to_det( query->descriptors() );
 
-          ids->add_value( "image", query_image );
+          ids->add_value( "image", *query_image );
           ids->add_value( "positive_descriptors", pos_descs );
           ids->add_value( "positive_detections", pos_dets );
 
