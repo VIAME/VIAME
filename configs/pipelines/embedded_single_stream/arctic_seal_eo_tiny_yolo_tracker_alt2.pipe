@@ -33,7 +33,7 @@ process detection_descriptor
 process tracker
  :: compute_association_matrix
   :matrix_generator:type                       from_features
-  :matrix_generator:from_features:max_distance 2000
+  :matrix_generator:from_features:max_distance 3500
 
   block matrix_generator:from_features:filter
     :type                                      class_probablity_filter
