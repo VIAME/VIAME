@@ -12,24 +12,20 @@ config _pipeline:_edge
 
 include common_default_input_with_downsampler.pipe
 
-# ====================================== YOLO ======================================
+# ================================== STABILIZER ====================================
 
 include common_image_stabilizer.pipe
 
-process homography_writer
-  :: detected_object_output
+process homog_writer
+  :: kw_write_homography
 
-  # Type of file to output
-  :file_name                                   computed_detections.csv
-  :writer:type                                 viame_csv
-
-connect from in_adapt.timestamp
+connect from downsampler.timestamp
         to   stabilizer.timestamp
-connect from in_adapt.image
+connect from downsampler.output_1
         to   stabilizer.image
 
 connect from stabilizer.homography_src_to_ref
-        to   tracker.homography_src_to_ref
+        to   homography_writer.homography
 
 
 # -- end of file --
