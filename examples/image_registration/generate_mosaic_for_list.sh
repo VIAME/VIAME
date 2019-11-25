@@ -3,7 +3,7 @@
 # Setup VIAME Paths (no need to run multiple times if you already ran it)
 
 export VIAME_INSTALL=./../..
-export INPUT_IMAGE_PATTERN=/home/matt/Desktop/track_experiment/images/*.png
+export INPUT_IMAGE_PATTERN=/path/to/images/*.png
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 
