@@ -18,9 +18,9 @@ if( VIAME_ENABLE_TENSORFLOW )
 
   list( APPEND VIAME_PYTHON_DEPS tensorflow )
   if( VIAME_ENABLE_CUDA )
-    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow-gpu" )
+    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow-gpu==1.14" )
   else()
-    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow" )
+    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow==1.14" )
   endif()
 endif()
 
