@@ -4,23 +4,21 @@
 #
 # Un-comment each detector in order to use it (memory usage / load will increase):
 #
-#    (a) CFRNN - High Res Cascade RNN Scallop Detector (enabled by default)
-#    (b) YOLOv2 - Mid Res YOLOv2 HabCam Fish Detector (enabled by default)
-#    (c) YOLOv2 - High Res YOLOv2 Alternative Scallop Detector (disabled by default)
-#    (d) Scallop-TK - Alternative Scallop Detector (disabled by default)
-#    (e) Scallop-Finder - Alternative Scallop Detector (disabled by default)
+#    (a) CFRNN - Mid-Res Cascade RNN Scallop Detector (enabled by default)
+#    (b) CFRNN - High-Res Cascade RNN Scallop Detector (disabled by default)
+#    (c) YOLOv2 - Mid Res YOLOv2 HabCam Fish Detector (enabled by default)
+#    (d) YOLOv2 - High Res YOLOv2 Alternative Scallop Detector (disabled by default)
+#    (e) Scallop-TK - Alternative Scallop Detector (disabled by default)
+#    (f) Scallop-Finder - Alternative matlab Scallop Detector (disabled by default)
 #
 # This pipeline assumes stereo imagery together in a composite image as input. The
 # first 'splitting' process selects either the left or right side of the image to
 # perform detection on. Replace 'split.left_image' with 'split.right_image' to
 # perform detection on the other side.
 #
-# Notes: YOLOv2, Scallop-TK, and Scallop-Finder algorithm performance still needs
-# to be compared in detail. Speed-wise YOLOv2 is fast if you have a powerful GPU,
-# though Scallop-TK is slightly more accurate. Scallop-Finder does not currently
-# do any sand dollar vs scallop classification, but it's proposal generation
-# technique could still be compared to the other two with an additional classifier
-# built on top.
+# Notes: All scallop and fish models are still in being compared with each other,
+# and these are released in a 'beta' state. In the near-future they will be
+# consolidated and only the highest-scoring ones will be kept in this file.
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
@@ -44,18 +42,10 @@ connect from input.image
 
 process scallop_cfrnn_detector
   :: image_object_detector
-  :detector:type                               mmdet
+  :detector:type                               netharn
 
-  block detector:mmdet
-    # Network config, weights, and names
-    relativepath net_config  =                 models/habcam_scallop_cfrnn.py
-    relativepath weight_file =                 models/habcam_scallop_cfrnn.pth
-    relativepath class_names =                 models/habcam_scallop_cfrnn.lbl
-
-    # Detector parameters
-    :thresh                                    0.001
-    :gpu_index                                 0
-
+  block detector:netharn
+    relativepath deployed =                    models/habcam_scallop_netharn.zip
   endblock
 
 process scallop_cfrnn_filter
@@ -66,8 +56,8 @@ process scallop_cfrnn_filter
 
     # Filter parameters
     :threshold                                 0.001
-    :keep_all_classes                          false
-    :keep_classes                              live_scallop;dead_scallop
+    :keep_all_classes                          true
+    :keep_classes                              scallop
   
   endblock
 
@@ -76,7 +66,7 @@ process scallop_cfrnn_nms_filter
   :refiner:type                                nms
 
   block refiner:nms
-    :max_overlap                               0.50
+    :max_overlap                               0.90
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
   endblock
@@ -151,6 +141,65 @@ connect from fish_yolo_v2_filter.detected_object_set
         to   fish_yolo_v2_csv_writer.detected_object_set
 connect from input.file_name
         to   fish_yolo_v2_csv_writer.image_file_name
+
+# =============================== CFRNN HD SCALLOP =================================
+
+#process scallop_cfrnn_detector
+#  :: image_object_detector
+#  :detector:type                               mmdet
+#
+#  block detector:mmdet
+#    # Network config, weights, and names
+#    relativepath net_config  =                 models/habcam_scallop_cfrnn.py
+#    relativepath weight_file =                 models/habcam_scallop_cfrnn.pth
+#    relativepath class_names =                 models/habcam_scallop_cfrnn.lbl#
+#
+#    # Detector parameters
+#    :thresh                                    0.001
+#    :gpu_index                                 0
+#
+#  endblock
+#
+#process scallop_cfrnn_filter
+#  :: detected_object_filter
+#  :filter:type                                 class_probablity_filter
+#
+#  block filter:class_probablity_filter
+#
+#    # Filter parameters
+#    :threshold                                 0.001
+#    :keep_all_classes                          false
+#    :keep_classes                              live_scallop;dead_scallop
+#  
+#  endblock
+#
+#process scallop_cfrnn_nms_filter
+#  :: refine_detections
+#  :refiner:type                                nms
+#
+#  block refiner:nms
+#    :max_overlap                               0.50
+#    :nms_scale_factor                          1.0
+#    :output_scale_factor                       1.0
+#  endblock
+#
+#process scallop_cfrnn_csv_writer
+#  :: detected_object_output
+#
+#  # Type of file to output
+#  :file_name                                   scallop_cfrnn_detections.csv
+#  :writer:type                                 viame_csv
+#
+#connect from split.left_image
+#        to   scallop_cfrnn_detector.image
+#connect from scallop_cfrnn_detector.detected_object_set
+#        to   scallop_cfrnn_filter.detected_object_set
+#connect from scallop_cfrnn_filter.detected_object_set
+#        to   scallop_cfrnn_nms_filter.detected_object_set
+#connect from scallop_cfrnn_nms_filter.detected_object_set
+#        to   scallop_cfrnn_csv_writer.detected_object_set
+#connect from input.file_name
+#        to   scallop_cfrnn_csv_writer.image_file_name
 
 # ================================ YOLO V2 SCALLOP =================================
 

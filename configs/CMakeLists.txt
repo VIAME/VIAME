@@ -322,7 +322,8 @@ endif()
 
 if( VIAME_DOWNLOAD_MODELS-HABCAM )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/detector_habcam_system.pipe )
+    pipelines/detector_scallop_and_fish_left.pipe
+    pipelines/detector_scallop_netharn_left.pipe )
 endif()
 
 if( VIAME_ENABLE_MATLAB )
@@ -333,7 +334,7 @@ endif()
 
 if( VIAME_ENABLE_SCALLOP_TK )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/detector_scallop_tk.pipe )
+    pipelines/detector_scallop_tk_left.pipe )
 endif()
 
 if( VIAME_ENABLE_CAFFE )
