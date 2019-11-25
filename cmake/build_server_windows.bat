@@ -28,16 +28,17 @@ SET MISSING_SVM_DLL=%VIAME_SOURCE_DIR%\packages\smqtk\TPL\libsvm-3.1-custom\libs
 move "%VIAME_BUILD_DIR%\install" "%VIAME_BUILD_DIR%\VIAME"
 "C:\Program Files\7-Zip\7z.exe" x -aoa %GPU_ADD_ON_PACKAGE% -o%VIAME_BUILD_DIR%
 move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
-xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages /H /R /S
-rmdir %VIAME_BUILD_DIR%\VIAME\lib\site-packages /s /q
 
-SET MMDET_OPS_SOURCE=%VIAME_SOURCE_DIR%\packages\pytorch-libs\mmdetection\mmdet\ops
-SET MMDET_OPS_INSTALL=%VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages\mmdet\ops
+REM xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages /H /R /S
+REM rmdir %VIAME_BUILD_DIR%\VIAME\lib\site-packages /s /q
 
-xcopy %MMDET_OPS_SOURCE%\nms\*.pyd %MMDET_OPS_INSTALL%\nms\ /H /R /S
-xcopy %MMDET_OPS_SOURCE%\dcn\*.pyd %MMDET_OPS_INSTALL%\dcn\ /H /R /S
-xcopy %MMDET_OPS_SOURCE%\roi_align\*.pyd %MMDET_OPS_INSTALL%\roi_align\ /H /R /S
-xcopy %MMDET_OPS_SOURCE%\roi_pool\*.pyd %MMDET_OPS_INSTALL%\roi_pool\ /H /R /S
+REM SET MMDET_OPS_SOURCE=%VIAME_SOURCE_DIR%\packages\pytorch-libs\mmdetection\mmdet\ops
+REM SET MMDET_OPS_INSTALL=%VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages\mmdet\ops
+
+REM xcopy %MMDET_OPS_SOURCE%\nms\*.pyd %MMDET_OPS_INSTALL%\nms\ /H /R /S
+REM xcopy %MMDET_OPS_SOURCE%\dcn\*.pyd %MMDET_OPS_INSTALL%\dcn\ /H /R /S
+REM xcopy %MMDET_OPS_SOURCE%\roi_align\*.pyd %MMDET_OPS_INSTALL%\roi_align\ /H /R /S
+REM xcopy %MMDET_OPS_SOURCE%\roi_pool\*.pyd %MMDET_OPS_INSTALL%\roi_pool\ /H /R /S
 
 REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
