@@ -8,7 +8,5 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\detector_habcam_system.pipe" ^
+kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\detector_scallop_and_fish_left.pipe" ^
                   -s input:video_filename=input_image_list_habcam.txt
-
-pause

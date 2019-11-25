@@ -10,5 +10,3 @@ REM Run Pipeline
 
 kwiver.exe runner "%VIAME_INSTALL%\configs\pipelines\detector_scallop_tk.pipe" ^
                   -s input:video_filename=input_image_list_habcam.txt
-
-pause
