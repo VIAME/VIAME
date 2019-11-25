@@ -107,6 +107,7 @@ cp -P /usr/local/cuda/lib64/libcusparse.so* install/lib
 cp -P /usr/local/cuda/lib64/libcufft.so* install/lib
 cp -P /usr/local/cuda/lib64/libcusolver.so* install/lib
 cp -P /usr/local/cuda/lib64/libnvrtc* install/lib
+cp -P /usr/local/cuda/lib64/libnvToolsExt.so* install/lib
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
