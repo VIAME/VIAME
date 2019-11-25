@@ -226,7 +226,8 @@ if( VIAME_ENABLE_VIVIA )
 
   if( VIAME_DOWNLOAD_MODELS-HABCAM )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/embedded_single_stream/habcam_detector.pipe )
+      pipelines/embedded_single_stream/scallop_and_fish_left.pipe )
+      pipelines/embedded_single_stream/scallop_netharn_left.pipe )
   endif()
 
   if( VIAME_ENABLE_TENSORFLOW AND VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
