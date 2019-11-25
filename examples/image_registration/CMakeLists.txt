@@ -8,7 +8,8 @@ if( VIAME_ENABLE_ITK OR VIAME_ENABLE_OPENCV )
   set( EXAMPLE_INSTALL_FILES
     ${EXAMPLE_INSTALL_FILES}
     input_optical_images.txt
-    input_thermal_images.txt )
+    input_thermal_images.txt
+    create_mosaic.py )
 endif()
 
 if( VIAME_ENABLE_ITK )
