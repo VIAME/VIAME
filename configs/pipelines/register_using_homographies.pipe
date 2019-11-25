@@ -6,7 +6,10 @@
 # global pipeline config
 #
 config _pipeline:_edge
-       :capacity                               5
+   :capacity                                   10
+
+config _scheduler
+   :type                                       pythread_per_process
 
 # =============================== INPUT FRAME LIST =================================
 
@@ -16,7 +19,7 @@ include common_default_input_with_downsampler.pipe
 
 include common_image_stabilizer.pipe
 
-process homog_writer
+process homography_writer
   :: kw_write_homography
 
 connect from downsampler.timestamp
