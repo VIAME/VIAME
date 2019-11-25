@@ -60,7 +60,11 @@ def get_gui_cmd( debug=False ):
       return ['vpView']
 
 def execute_command( cmd, stdout=None, stderr=None ):
-  return subprocess.call(cmd, stdout=stdout, stderr=stderr)
+  if os.name == 'nt' and stdout == None:
+    fnull = open( os.devnull, "w" )
+    return subprocess.call( cmd, stdout=fnull, stderr=subprocess.STDOUT )
+
+  return subprocess.call( cmd, stdout=stdout, stderr=stderr )
 
 def get_script_path():
   return os.path.dirname( os.path.realpath( sys.argv[0] ) )
