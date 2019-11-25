@@ -81,16 +81,16 @@ CentOS
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Linux Desktop Binaries:** <br>
-[VIAME v0.10.1 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd36516af2e2eed350687eb/download) <br>
-[VIAME v0.10.1 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1Z15618JeADbjfO3-9oziriSgAfP2Q5CS) <br>
-[VIAME v0.10.1 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd364b2af2e2eed350687a7/download) <br>
-[VIAME v0.10.1 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1POPni6DBE3FmxOsl6kZdJNua_R8I0Eoc)
+[VIAME v0.10.2 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ddc5469af2e2eed352e5dfb/download) <br>
+[VIAME v0.10.2 Ubuntu 16.04/18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=11mb4Ixcamb5jFFbcIGsfU7uTadTe3SpN) <br>
+[VIAME v0.10.2 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ddc5c54af2e2eed352e7fc0/download) <br>
+[VIAME v0.10.2 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1BvVPC3Vi-1ORz_EoMge82ejRiz6zJfiQ)
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.10.1 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd479a6af2e2eed350e2547/download) <br>
-[VIAME v0.10.1 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1PO8XO4B7_Io44woOT36w-QZqJfWg1NED) <br>
-[VIAME v0.10.1 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dd479ceaf2e2eed350e2657/download) <br>
-[VIAME v0.10.1 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=188Mkzjy4q-BhdjgFOj-jjx-MZkeYjPxq)
+[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ddc5e26af2e2eed352e8744/download) <br>
+[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1XZjfYXDXNeIdLF18mPzuVETybXaLTTsi) <br>
+[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ddc4851af2e2eed352e3e93/download) <br>
+[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1XnU-GKfhMWL29qAhTIvf9-cVFxHHox06)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
@@ -100,9 +100,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
-[Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5d7bb82fd35580e6dc0fb5af/download) <br>
-[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5d7a6c19d35580e6dc0abb0b/download) <br>
-[HabCam Models (Scallop, Skate, Flatfish) Add-On, All Linux](https://data.kitware.com/api/v1/item/5dd41000af2e2eed350a38e7/download) <br>
+[Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5ddc5e8daf2e2eed352e87f4/download) <br>
+[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5ddc5ea9af2e2eed352e8816/download) <br>
+[HabCam Models (Scallop, Skate, Flatfish) Add-On, Linux](https://data.kitware.com/api/v1/item/5ddc5ee1af2e2eed352e8851/download) <br>
+[HabCam Models (Scallop, Skate, Flatfish) Add-On, Windows](https://data.kitware.com/api/v1/item/5ddc5f20af2e2eed352e8d54/download) <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
 [MOUSS Model Set 1 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5cdec8ac8d777f072bb4457f/download) <br>
 [MOUSS Model Set 2 (Deep 7 Bottomfish) Add-On, All OS](https://data.kitware.com/api/v1/item/5ce5af728d777f072bd5836d/download) <br>
