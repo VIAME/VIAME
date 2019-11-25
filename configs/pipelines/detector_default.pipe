@@ -1,6 +1,6 @@
-# Default YOLO v2 Detector Pipeline
+# Default Detector Pipeline
 #
-# Runs pre-trained YOLO v2 object detector
+# Runs pre-trained default object detector targeting vertebrate and invertebrates
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config
