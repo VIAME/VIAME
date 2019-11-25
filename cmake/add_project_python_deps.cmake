@@ -143,7 +143,7 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
   list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
 endif()
 
-if ( VIAME_ENABLE_PYTORCH-NETHARN )
+if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS scriptconfig )
   list( APPEND VIAME_PYTHON_DEP_CMDS "scriptconfig" )
 
@@ -154,7 +154,7 @@ if ( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS kwimage )
   list( APPEND VIAME_PYTHON_DEP_CMDS "kwimage" )
 
-  if (WIN32 OR APPLE)
+  if( WIN32 OR APPLE )
     message( FATAL_ERROR "pip install kwimage does not currently work on non-linux systems" )
   endif()
 
