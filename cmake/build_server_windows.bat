@@ -32,7 +32,7 @@ xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\pyth
 rmdir %VIAME_BUILD_DIR%\VIAME\lib\site-packages /s /q
 
 SET MMDET_OPS_SOURCE=%VIAME_SOURCE_DIR%\packages\pytorch-libs\mmdetection\mmdet\ops
-SET MMDET_OPS_INSTALL=%VIAME_BUILD_DIR%\VIAME\Python36\site-packages\mmdet\ops
+SET MMDET_OPS_INSTALL=%VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages\mmdet\ops
 
 xcopy %MMDET_OPS_SOURCE%\nms\*.pyd %MMDET_OPS_INSTALL%\nms\ /H /R /S
 xcopy %MMDET_OPS_SOURCE%\dcn\*.pyd %MMDET_OPS_INSTALL%\dcn\ /H /R /S
