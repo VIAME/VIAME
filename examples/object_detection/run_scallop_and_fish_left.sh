@@ -9,4 +9,4 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # Run pipeline
 
 kwiver runner ${VIAME_INSTALL}/configs/pipelines/detector_scallop_and_fish_left.pipe \
-              -s input:video_filename=input_list.txt
+              -s input:video_filename=input_image_list_habcam.txt
