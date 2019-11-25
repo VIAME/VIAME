@@ -5,7 +5,7 @@ include common_image_stabilizer.pipe
 
 process tracker
   :: simple_homog_tracker
-  min_iou = 0.2
+  min_iou = 0.01
 
 # ================================================================
 # connections
