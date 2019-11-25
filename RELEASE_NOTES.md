@@ -9,6 +9,9 @@ v0.10.2 - 11/25/2019
 -Added in support for object tracking solely based on IOU and image stabilization
 
 
+-Fixed issue in installers with measurement code after upgrading numpy versions
+
+
 
 v0.10.1 - 11/16/2019
 ====================
