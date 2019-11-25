@@ -31,7 +31,7 @@ connect from in_adapt.image
         to   stabilizer.image
 
 connect from in_adapt.timestamp
-	      to   tracker.timestamp
+        to   tracker.timestamp
 connect from optical_detector_output.detected_object_set
         to   tracker.detected_object_set
 
