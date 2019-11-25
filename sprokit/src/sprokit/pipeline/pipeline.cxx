@@ -1351,7 +1351,7 @@ pipeline::priv
   {
     process::port_addr_t const& up_addr = connection.first;
 
-    const shared_port_map_t::const_iterator i = connected_shared_ports.find(up_addr);
+    shared_port_map_t::const_iterator const i = connected_shared_ports.find(up_addr);
 
     if (i == connected_shared_ports.end())
     {

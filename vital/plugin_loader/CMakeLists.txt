@@ -9,12 +9,17 @@ set(vital_vpm_headers
   plugin_manager.h
   plugin_info.h
   plugin_registrar.h
+  plugin_loader_filter.h
+  plugin_filter_default.h
+  plugin_filter_category.h
   )
 
 set(vital_vpm_sources
   plugin_loader.cxx
   plugin_factory.cxx
   plugin_manager.cxx
+  plugin_filter_default.cxx
+  plugin_filter_category.cxx
   )
 
 set(vital_vpm_headers_private
