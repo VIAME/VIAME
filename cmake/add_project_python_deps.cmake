@@ -12,11 +12,6 @@
 set( VIAME_PYTHON_DEPS numpy matplotlib )
 set( VIAME_PYTHON_DEP_CMDS "numpy" "matplotlib" )
 
-if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_DEPS ubelt )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "ubelt" )
-endif()
-
 if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_DEPS humanfriendly )
   list( APPEND VIAME_PYTHON_DEP_CMDS "humanfriendly" )
@@ -27,6 +22,16 @@ if( VIAME_ENABLE_TENSORFLOW )
   else()
     list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow" )
   endif()
+endif()
+
+if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_DEPS ubelt )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "ubelt" )
+endif()
+
+if( VIAME_ENABLE_CAMTRAWL )
+  list( APPEND VIAME_PYTHON_DEPS ubelt )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "tqdm" )
 endif()
 
 if( VIAME_ENABLE_ITK_EXTRAS )
