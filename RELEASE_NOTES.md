@@ -12,6 +12,12 @@ v0.10.2 - 11/25/2019
 -Fixed issue in installers with measurement code after upgrading numpy versions
 
 
+-Add simple mosaic generation script and related pipelines
+
+
+-Add multiple seal tracking example pipelines
+
+
 
 v0.10.1 - 11/16/2019
 ====================
