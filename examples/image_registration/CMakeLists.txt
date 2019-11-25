@@ -8,8 +8,21 @@ if( VIAME_ENABLE_ITK OR VIAME_ENABLE_OPENCV )
   set( EXAMPLE_INSTALL_FILES
     ${EXAMPLE_INSTALL_FILES}
     input_optical_images.txt
-    input_thermal_images.txt
-    create_mosaic.py )
+    input_thermal_images.txt )
+endif()
+
+if( VIAME_ENABLE_OPENCV )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+      ${EXAMPLE_INSTALL_FILES}
+      generate_mosaic_for_list.bat
+      register_eo_ir_per_frame_ocv.bat )
+  else()
+    set( EXAMPLE_INSTALL_FILES
+      ${EXAMPLE_INSTALL_FILES}
+      generate_mosaic_for_list.sh
+      register_eo_ir_per_frame_ocv.sh )
+  endif()
 endif()
 
 if( VIAME_ENABLE_ITK )
@@ -25,18 +38,6 @@ if( VIAME_ENABLE_ITK )
       register_eo_ir_per_frame_itk.sh
       launch_point_alignment_interface.sh
       generate_transform_from_points.sh )
-  endif()
-endif()
-
-if( VIAME_ENABLE_OPENCV )
-  if( WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-      ${EXAMPLE_INSTALL_FILES}
-      register_eo_ir_per_frame_ocv.bat )
-  else()
-    set( EXAMPLE_INSTALL_FILES
-      ${EXAMPLE_INSTALL_FILES}
-      register_eo_ir_per_frame_ocv.sh )
   endif()
 endif()
 
