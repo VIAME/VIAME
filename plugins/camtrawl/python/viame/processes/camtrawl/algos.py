@@ -156,6 +156,8 @@ class DetectedObject(ub.NiceRepr):
             >>> print(self.hull().tolist())
             [[[6, 4]], [[2, 4]], [[2, 3]], [[6, 3]]]
         """
+        if self.mask.ndim > 2:
+            self.mask = np.squeeze(self.mask, axis=2)
         cc_y, cc_x = np.where(self.mask)
         points = np.vstack([cc_x, cc_y]).T
         # Find a minimum oriented bounding box around the points
