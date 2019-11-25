@@ -18,6 +18,9 @@ v0.10.2 - 11/25/2019
 -Add multiple seal tracking example pipelines
 
 
+-Fix issues in prior v0.10.* releases on systems with no CUDA 10s installed
+
+
 
 v0.10.1 - 11/16/2019
 ====================
