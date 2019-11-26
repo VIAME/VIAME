@@ -79,23 +79,20 @@ def format_cmd( cmd ):
 
 def format_pycmd( install_dir, cmd ): # special use case for SMQTK tools
   if len( install_dir ) > 0:
-    python_prefix = "Python" if is_windows() else "lib/python"
+    python_postfix = str( sys.version_info[0] ) + "." + str( sys.version_info[1] )
 
-    python_postfix = str( sys.version_info[0] )
-    if is_windows():
-      python_postfix = python_postfix + str( sys.version_info[1] )
-    else:
-      python_postfix = python_postfix + "." + str( sys.version_info[1] )
+    script_path = os.path.join(
+      install_dir, "lib/python" + python_postfix,
+      "site-packages", "smqtk", "bin", cmd + ".py" )
 
-    output = [ sys.executable, os.path.join(
-        install_dir,
-        python_prefix + python_postfix,
-        "site-packages",
-        "smqtk",
-        "bin",
-        cmd + ".py" )
-    ]
-    return output
+    if not os.path.exists( script_path ):
+      python_postfix = str( sys.version_info[0] ) + str( sys.version_info[1] )
+
+      script_path = os.path.join(
+        install_dir, "Python" + python_postfix,
+        "site-packages", "smqtk", "bin", cmd + ".py" )
+
+    return [ sys.executable, script_path ]
   elif is_windows():
     return [ cmd + ".exe" ]
   else:
