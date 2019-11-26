@@ -411,7 +411,7 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
     input_settings += fset( 'input:video_reader:type=add_timestamp_from_filename' )
 
   command = ( get_pipeline_cmd( options.debug ) +
-              ['-p', find_file( options.pipeline ) ] +
+              [ find_file( options.pipeline ) ] +
               input_settings )
 
   command += video_frame_rate_settings_list( options )
