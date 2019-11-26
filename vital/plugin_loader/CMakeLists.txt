@@ -48,6 +48,7 @@ target_link_libraries(vital_vpm
                       kwiversys
   PRIVATE             vital_logger
                       vital_exceptions
+                      ${VITAL_BOOST_REGEX}
   )
 
 ###
