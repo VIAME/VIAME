@@ -87,10 +87,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.10.2 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1BvVPC3Vi-1ORz_EoMge82ejRiz6zJfiQ)
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ddc5e26af2e2eed352e8744/download) <br>
-[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1XZjfYXDXNeIdLF18mPzuVETybXaLTTsi) <br>
-[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5ddc4851af2e2eed352e3e93/download) <br>
-[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1XnU-GKfhMWL29qAhTIvf9-cVFxHHox06)
+[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dddbdeeaf2e2eed35340060/download) <br>
+[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1___fZqpTgE9V3mtQq-hDc7l9ffY5znqK) <br>
+[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dddbd8baf2e2eed3533feff/download) <br>
+[VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=16Gne0TgKvR37xPfquxcOZdS6ygKe48W2)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
