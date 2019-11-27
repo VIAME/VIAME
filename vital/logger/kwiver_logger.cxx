@@ -74,7 +74,7 @@ kwiver_logger
 
 // ----------------------------------------------------------------
 char const* kwiver_logger
-::get_level_string(kwiver_logger::log_level_t lev) const
+::get_level_string(kwiver_logger::log_level_t lev)
 {
   switch (lev)
   {

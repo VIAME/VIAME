@@ -300,7 +300,7 @@ public:
    *
    * @param lev level value to convert
   */
-  char const* get_level_string(kwiver_logger::log_level_t lev) const;
+  static char const* get_level_string(kwiver_logger::log_level_t lev);
 
   /**
    * @brief Get name of logger factory / back-end provider
