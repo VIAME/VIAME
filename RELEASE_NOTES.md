@@ -1,4 +1,11 @@
 
+v0.10.2 - 12/1/2019
+===================
+
+
+-Fix CentOS issues with unable to run pipelines (Ubuntu and Windows fine)
+
+
 v0.10.2 - 11/25/2019
 ====================
 
