@@ -70,24 +70,24 @@ public:
 
 
 // ================================================================================
-write_detected_object_set_viame_csv::
-write_detected_object_set_viame_csv()
+write_detected_object_set_viame_csv
+::write_detected_object_set_viame_csv()
   : d( new write_detected_object_set_viame_csv::priv( this ) )
 {
   attach_logger( "viame.core.write_detected_object_set_viame_csv" );
 }
 
 
-write_detected_object_set_viame_csv::
-~write_detected_object_set_viame_csv()
+write_detected_object_set_viame_csv
+::~write_detected_object_set_viame_csv()
 {
 }
 
 
 // --------------------------------------------------------------------------------
 void
-write_detected_object_set_viame_csv::
-set_configuration( kwiver::vital::config_block_sptr config_in )
+write_detected_object_set_viame_csv
+::set_configuration( kwiver::vital::config_block_sptr config_in )
 {
   kwiver::vital::config_block_sptr config = this->get_configuration();
 
@@ -102,8 +102,8 @@ set_configuration( kwiver::vital::config_block_sptr config_in )
 
 // --------------------------------------------------------------------------------
 kwiver::vital::config_block_sptr
-write_detected_object_set_viame_csv::
-get_configuration() const
+write_detected_object_set_viame_csv
+::get_configuration() const
 {
   // get base config from base class
   kwiver::vital::config_block_sptr config = algorithm::get_configuration();
@@ -121,8 +121,8 @@ get_configuration() const
 
 // --------------------------------------------------------------------------------
 bool
-write_detected_object_set_viame_csv::
-check_configuration( kwiver::vital::config_block_sptr config ) const
+write_detected_object_set_viame_csv
+::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -130,8 +130,8 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 
 // --------------------------------------------------------------------------------
 void
-write_detected_object_set_viame_csv::
-write_set( const kwiver::vital::detected_object_set_sptr set,
+write_detected_object_set_viame_csv
+::write_set( const kwiver::vital::detected_object_set_sptr set,
            std::string const& image_name )
 {
   if( d->m_first )
@@ -150,9 +150,9 @@ write_set( const kwiver::vital::detected_object_set_sptr set,
              << "  2: Video or Image Identifier,"
              << "  3: Unique Frame Identifier,"
              << "  4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y),"
-             << "  8: Detection confidence,"
+             << "  8: Detection or Length Confidence,"
              << "  9: Fish Length (0 or -1 if invalid),"
-             << "  10-11+: Repeated Species, Confidence Pairs"
+             << "  10-11+: Repeated Species, Confidence Pairs or Attributes"
              << std::endl;
 
     stream() << "# Written on: " << atime

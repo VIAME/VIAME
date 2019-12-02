@@ -282,9 +282,9 @@ write_object_track_set_viame_csv
              << "  2: Video or Image Identifier,"
              << "  3: Unique Frame Identifier,"
              << "  4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y),"
-             << "  8: Detection confidence,"
+             << "  8: Detection or Length Confidence,"
              << "  9: Fish Length (0 or -1 if invalid),"
-             << "  10-11+: Repeated Species, Confidence Pairs"
+             << "  10-11+: Repeated Species, Confidence Pairs or Attributes"
              << std::endl;
 
     stream() << "# Written on: " << atime
@@ -367,6 +367,7 @@ write_object_track_set_viame_csv
             stream() << d->m_delim << name << d->m_delim << dot->score( name );
           }
         }
+
         stream() << std::endl;
       }
     }

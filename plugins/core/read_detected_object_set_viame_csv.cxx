@@ -93,32 +93,32 @@ public:
 
 
 // ===================================================================================
-read_detected_object_set_viame_csv::
-read_detected_object_set_viame_csv()
+read_detected_object_set_viame_csv
+::read_detected_object_set_viame_csv()
   : d( new read_detected_object_set_viame_csv::priv( this ) )
 {
   attach_logger( "viame.core.read_detected_object_set_viame_csv" );
 }
 
 
-read_detected_object_set_viame_csv::
-~read_detected_object_set_viame_csv()
+read_detected_object_set_viame_csv
+::~read_detected_object_set_viame_csv()
 {
 }
 
 
 // -----------------------------------------------------------------------------------
 void
-read_detected_object_set_viame_csv::
-set_configuration( kwiver::vital::config_block_sptr config )
+read_detected_object_set_viame_csv
+::set_configuration( kwiver::vital::config_block_sptr config )
 {
 }
 
 
 // -----------------------------------------------------------------------------------
 bool
-read_detected_object_set_viame_csv::
-check_configuration( kwiver::vital::config_block_sptr config ) const
+read_detected_object_set_viame_csv
+::check_configuration( kwiver::vital::config_block_sptr config ) const
 {
   return true;
 }
@@ -126,8 +126,8 @@ check_configuration( kwiver::vital::config_block_sptr config ) const
 
 // -----------------------------------------------------------------------------------
 bool
-read_detected_object_set_viame_csv::
-read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
+read_detected_object_set_viame_csv
+::read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name )
 {
   if( d->m_first )
   {
@@ -191,8 +191,8 @@ read_set( kwiver::vital::detected_object_set_sptr& set, std::string& image_name 
 
 // -----------------------------------------------------------------------------------
 void
-read_detected_object_set_viame_csv::
-new_stream()
+read_detected_object_set_viame_csv
+::new_stream()
 {
   d->m_first = true;
 }
@@ -200,8 +200,8 @@ new_stream()
 
 // ===================================================================================
 void
-read_detected_object_set_viame_csv::priv::
-read_all()
+read_detected_object_set_viame_csv::priv
+::read_all()
 {
   std::string line;
   kwiver::vital::data_stream_reader stream_reader( m_parent->stream() );
