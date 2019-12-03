@@ -45,14 +45,14 @@ if( VIAME_ENABLE_PYTHON )
 
   if( WIN32 )
     set( CUSTOM_PYTHONPATH
-      ${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
+      ${PYTHON_BASEPATH};${PYTHON_BASEPATH}/site-packages;${PYTHON_BASEPATH}/dist-packages )
     set( CUSTOM_PATH
       ${VIAME_BUILD_INSTALL_PREFIX}/bin;$ENV{PATH} )
     string( REPLACE ";" "----" CUSTOM_PYTHONPATH "${CUSTOM_PYTHONPATH}" )
     string( REPLACE ";" "----" CUSTOM_PATH "${CUSTOM_PATH}" )
   else()
     set( CUSTOM_PYTHONPATH
-      ${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
+      ${PYTHON_BASEPATH}:${PYTHON_BASEPATH}/site-packages:${PYTHON_BASEPATH}/dist-packages )
     set( CUSTOM_PATH
       ${VIAME_BUILD_INSTALL_PREFIX}/bin:$ENV{PATH} )
   endif()
