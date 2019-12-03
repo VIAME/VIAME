@@ -32,6 +32,7 @@
 
 #include <kwiversys/SystemTools.hxx>
 
+#include <cctype>
 #include <locale>
 #include <exception>
 #include <sstream>
