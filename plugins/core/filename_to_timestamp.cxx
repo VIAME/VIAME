@@ -213,7 +213,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
         // Okay we have not seen this timestamp type before. Can we autodetect
         // a new timestamp variant given a couple heuristics.
         std::vector< std::string > parsed_digits( 1 );
-        std::string joint_number;
+        std::string full_joint_number, after_group_number, unused_number;
 
         bool new_break = false;
         bool any_numbers = false;
@@ -223,7 +223,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
           if( std::isdigit( filename[i] ) )
           {
             parsed_digits.back() += filename[i];
-            joint_number += filename[i];
+            full_joint_number += filename[i];
 
             new_break = true;
             any_numbers = true;
@@ -250,25 +250,67 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
             {
               six_position = i;
             }
+            else
+            {
+              if( six_position >= 0 && eight_position >= 0 )
+              {
+                after_group_number += parsed_digits[i];
+              }
+              unused_number += parsed_digits[i];
+            }
           }
 
           // Top choice, maybe we have a date code or seconds string
-          /*if( eight_position > 0 )
+          if( eight_position > 0 )
           {
+            const std::string& digit8 = parsed_digits[ eight_position ];
+
+            tm t;
+
+            t.tm_year = std::stoi( digit8.substr( 0, 4 ) ) - ( digit8[0] == '2' ? 1900 : 0 );
+            t.tm_mon = std::stoi( digit8.substr( 4, 2 ) ) - 1;
+            t.tm_mday = std::stoi( digit8.substr( 6, 2 ) );
+
+            kwiver::vital::time_usec_t usec = 0;
+
             if( six_position > 0 )
             {
-              // This is likely an actual timestamp
-              //
+              // This might actually be a legit timestamp and not a crapshoot
+              const std::string& digit6 = parsed_digits[ six_position ];
+
+              t.tm_hour = std::stoi( digit6.substr( 0, 2 ) );
+              t.tm_min = std::stoi( digit6.substr( 2, 2 ) );
+              t.tm_sec = std::stoi( digit6.substr( 4, 2 ) );
+
+              if( after_group_number.size() >= 3 )
+              {
+                usec = std::stoi( after_group_number.substr( 0, 3 ) ) * 1e3;
+              }
+              else if( !unused_number.empty() )
+              {
+                usec = std::stoi( unused_number );
+              }
             }
-            else
+            else if( after_group_number.size() >= 9 )
             {
-              // This is just a random guess
+              t.tm_hour = std::stoi( after_group_number.substr( 0, 2 ) );
+              t.tm_min = std::stoi( after_group_number.substr( 2, 2 ) );
+              t.tm_sec = std::stoi( after_group_number.substr( 4, 2 ) );
+
+              usec = std::stoi( after_group_number.substr( 6, 3 ) ) * 1e3;
             }
+            else if( !unused_number.empty() )
+            {
+              usec = std::stoi( unused_number );
+            }
+
+            utc_time_usec =
+              static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
           }
-          else*/
+          else
           {
             // Last choice, use all numbers, likely incorrect but likely unique
-            utc_time_usec = std::stoi( joint_number );
+            utc_time_usec = std::stoi( full_joint_number );
           }
         }
       }
