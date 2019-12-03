@@ -351,6 +351,9 @@ if( VIAME_ENABLE_SEAK_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
     pipelines/embedded_dual_stream/arctic_seal_tf_ir_only.pipe
     pipelines/embedded_dual_stream/arctic_seal_tf_ir_to_eo_frame_trigger.pipe
     pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_only.pipe
+    pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker.pipe
+    pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker_alt2.pipe
+    pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker_alt3.pipe
     pipelines/embedded_dual_stream/arctic_seal_yolo_eo_ir_early_fusion.pipe
     pipelines/embedded_dual_stream/arctic_seal_yolo_eo_only.pipe
     pipelines/embedded_dual_stream/arctic_seal_yolo_ir_only.pipe
