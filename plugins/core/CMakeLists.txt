@@ -4,6 +4,7 @@ set( plugin_headers
   add_timestamp_from_filename.h
   auto_detect_transform.h
   filename_to_timestamp.h
+  notes_to_attributes.h
   read_detected_object_set_fishnet.h
   read_detected_object_set_habcam.h
   read_detected_object_set_viame_csv.h
@@ -16,6 +17,7 @@ set( plugin_sources
   add_timestamp_from_filename.cxx
   auto_detect_transform.cxx
   filename_to_timestamp.cxx
+  notes_to_attributes.cxx
   read_detected_object_set_fishnet.cxx
   read_detected_object_set_habcam.cxx
   read_detected_object_set_viame_csv.cxx

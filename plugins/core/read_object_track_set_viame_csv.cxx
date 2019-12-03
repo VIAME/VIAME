@@ -35,6 +35,7 @@
 
 #include "read_object_track_set_viame_csv.h"
 #include "filename_to_timestamp.h"
+#include "notes_to_attributes.h"
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
@@ -255,8 +256,16 @@ read_object_track_set_viame_csv::priv
     kwiver::vital::detected_object_type_sptr dot =
       std::make_shared<kwiver::vital::detected_object_type>();
 
+    bool found_attribute = false;
+
     for( unsigned i = COL_TOT; i < col.size(); i+=2 )
     {
+      if( col[i].empty() || col[i][0] == '+' )
+      {
+        found_attribute = true;
+        break;
+      }
+
       if( col.size() < i + 2 )
       {
         std::stringstream str;
@@ -287,6 +296,11 @@ read_object_track_set_viame_csv::priv
     catch( ... )
     {
       frame_time = frame_id;
+    }
+
+    if( found_attribute )
+    {
+      add_attributes_to_detection( *dob, col );
     }
 
     // Create new object track state

@@ -30,6 +30,8 @@
 
 #include "write_detected_object_set_viame_csv.h"
 
+#include "notes_to_attributes.h"
+
 #include <vital/util/tokenize.h>
 
 #include <memory>
@@ -211,7 +213,21 @@ write_detected_object_set_viame_csv
       {
         // Write out the <name> <score> pair
         stream() << "," << name << "," << dot->score( name );
-      } // end foreach
+      }
+    }
+
+    if( !(*det)->keypoints().empty() )
+    {
+      for( const auto& kp : (*det)->keypoints() )
+      {
+        stream() << "," << "+kp " << kp.first;
+        stream() << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+      }
+    }
+
+    if( !(*det)->notes().empty() )
+    {
+      stream() << notes_to_attributes( (*det)->notes(), "," );
     }
 
     stream() << std::endl;

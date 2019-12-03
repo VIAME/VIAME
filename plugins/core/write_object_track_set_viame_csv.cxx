@@ -35,6 +35,8 @@
 
 #include "write_object_track_set_viame_csv.h"
 
+#include "notes_to_attributes.h"
+
 #include <ctime>
 #include <sstream>
 #include <iomanip>
@@ -366,6 +368,20 @@ write_object_track_set_viame_csv
           {
             stream() << d->m_delim << name << d->m_delim << dot->score( name );
           }
+        }
+
+        if( !det->keypoints().empty() )
+        {
+          for( const auto& kp : det->keypoints() )
+          {
+            stream() << d->m_delim << "+kp " << kp.first;
+            stream() << " " << kp.second.value()[0] << " " << kp.second.value()[1];
+          }
+        }
+
+        if( !det->notes().empty() )
+        {
+          stream() << notes_to_attributes( det->notes(), d->m_delim );
         }
 
         stream() << std::endl;

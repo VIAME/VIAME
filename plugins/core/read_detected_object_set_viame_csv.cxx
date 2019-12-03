@@ -34,6 +34,7 @@
  */
 
 #include "read_detected_object_set_viame_csv.h"
+#include "notes_to_attributes.h"
 
 #include <vital/util/tokenize.h>
 #include <vital/util/data_stream_reader.h>
@@ -274,8 +275,16 @@ read_detected_object_set_viame_csv::priv
     kwiver::vital::detected_object_type_sptr dot =
       std::make_shared<kwiver::vital::detected_object_type>();
 
+    bool found_attribute = false;
+
     for( unsigned i = COL_TOT; i < col.size(); i+=2 )
     {
+      if( col[i].empty() || col[i][0] == '+' )
+      {
+        found_attribute = true;
+        break;
+      }
+
       if( col.size() < i + 2 )
       {
         std::stringstream str;
@@ -298,6 +307,11 @@ read_detected_object_set_viame_csv::priv
     else
     {
       dob = std::make_shared< kwiver::vital::detected_object>( bbox, conf );
+    }
+
+    if( found_attribute )
+    {
+      add_attributes_to_detection( *dob, col );
     }
 
     // Add detection to set for the frame
