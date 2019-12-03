@@ -252,7 +252,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
           }
 
           // Top choice, maybe we have a date code or seconds string
-          if( eight_position > 0 )
+          /*if( eight_position > 0 )
           {
             if( six_position > 0 )
             {
@@ -264,7 +264,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
               // This is just a random guess
             }
           }
-          else
+          else*/
           {
             // Last choice, use all numbers, likely incorrect but likely unique
             utc_time_usec = std::stoi( joint_number );
