@@ -40,11 +40,15 @@ namespace viame
 
 /// Convert a filename in many different common formats to a kwiver timestamp
 ///
+/// @param filename input filename
+/// @param auto_discover attempt to automatically detect never-seen formats
+///
 /// @throws runtime_error on invalid or unable to parse filename format
 ///
 VIAME_CORE_EXPORT
 kwiver::vital::time_usec_t
-convert_to_timestamp( const std::string& filename );
+convert_to_timestamp( const std::string& filename,
+                      const bool auto_discover = false );
 
 } // end namespace viame
 

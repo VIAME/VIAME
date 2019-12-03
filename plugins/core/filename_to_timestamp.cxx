@@ -32,6 +32,7 @@
 
 #include <kwiversys/SystemTools.hxx>
 
+#include <locale>
 #include <exception>
 #include <sstream>
 #include <string>
@@ -61,7 +62,7 @@ std::vector< std::string > split( const std::string &s, char delim )
 
 // ----------------------------------------------------------------------------
 kwiver::vital::time_usec_t
-convert_to_timestamp( const std::string& filename )
+convert_to_timestamp( const std::string& filename, const bool auto_discover )
 {
   kwiver::vital::time_usec_t utc_time_usec = 0;
 
@@ -205,6 +206,70 @@ convert_to_timestamp( const std::string& filename )
           std::stoi( parts[2].substr( 6, 3 ) ) * 1e3;
         utc_time_usec =
           static_cast< kwiver::vital::time_usec_t >( timegm( &t ) ) * 1e6 + usec;
+      }
+      else if( auto_discover ) // Match known formats first then rely on auto
+      {
+        // Okay we have not seen this timestamp type before. Can we autodetect
+        // a new timestamp variant given a couple heuristics.
+        std::vector< std::string > parsed_digits( 1 );
+        std::string joint_number;
+
+        bool new_break = false;
+        bool any_numbers = false;
+
+        for( unsigned i = 0; i < filename.size(); ++i )
+        {
+          if( std::isdigit( filename[i] ) )
+          {
+            parsed_digits.back() += filename[i];
+            joint_number += filename[i];
+
+            new_break = true;
+            any_numbers = true;
+          }
+          else if( new_break )
+          {
+            parsed_digits.push_back( std::string() );
+            new_break = false;
+          }
+        }
+
+        if( any_numbers )
+        {
+          int eight_position = -1;
+          int six_position = -1;
+
+          for( int i = 0; i < static_cast< int >( parsed_digits.size() ); ++i )
+          {
+            if( parsed_digits[i].size() == 8 && eight_position < 0 )
+            {
+              eight_position = i;
+            }
+            else if( parsed_digits[i].size() == 6 && six_position < 0 )
+            {
+              six_position = i;
+            }
+          }
+
+          // Top choice, maybe we have a date code or seconds string
+          if( eight_position > 0 )
+          {
+            if( six_position > 0 )
+            {
+              // This is likely an actual timestamp
+              //
+            }
+            else
+            {
+              // This is just a random guess
+            }
+          }
+          else
+          {
+            // Last choice, use all numbers, likely incorrect but likely unique
+            utc_time_usec = std::stoi( joint_number );
+          }
+        }
       }
     }
   }
