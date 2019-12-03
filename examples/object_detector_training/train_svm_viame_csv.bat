@@ -2,7 +2,7 @@
 
 REM Input locations and types
 
-SET INPUT_DIRECTORY=training_data
+SET INPUT_DIRECTORY=training_data_mouss
 SET ANNOTATION_TYPE=viame_csv
 
 REM Setup VIAME Paths (no need to set if installed to registry or already set up)

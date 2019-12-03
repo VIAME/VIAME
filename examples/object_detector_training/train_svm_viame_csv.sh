@@ -2,7 +2,7 @@
 
 # Input locations and types
 
-export INPUT_DIRECTORY=training_data
+export INPUT_DIRECTORY=training_data_mouss
 export ANNOTATION_TYPE=viame_csv
 
 # Setup VIAME Paths (no need to run multiple times if you already ran it)
