@@ -219,17 +219,17 @@ process track_initializer
   endblock
 
 # Connect inputs to detection descriptor
-connect from in_adapt.image
+connect from optical_detector_input.image
         to   detection_descriptor.image
-connect from in_adapt.timestamp
+connect from downsampler.timestamp
         to   detection_descriptor.timestamp
 connect from optical_detector_output.detected_object_set
         to   detection_descriptor.detected_object_set
 
 # Connect inputs to tracker
-connect from in_adapt.image
+connect from optical_detector_input.image
         to   tracker.image
-connect from in_adapt.timestamp
+connect from downsampler.timestamp
         to   tracker.timestamp
 connect from detection_descriptor.detected_object_set
         to   tracker.detected_object_set
@@ -237,9 +237,9 @@ connect from track_initializer.object_track_set
         to   tracker.object_track_set
 
 # Connect inputs to track_associator
-connect from in_adapt.image
+connect from optical_detector_input.image
         to   track_associator.image
-connect from in_adapt.timestamp
+connect from downsampler.timestamp
         to   track_associator.timestamp
 connect from tracker.matrix_d
         to   track_associator.matrix_d
@@ -249,9 +249,9 @@ connect from tracker.detected_object_set
         to   track_associator.detected_object_set
 
 # Connect inputs to track_initializer
-connect from in_adapt.image
+connect from optical_detector_input.image
         to   track_initializer.image
-connect from in_adapt.timestamp
+connect from downsampler.timestamp
         to   track_initializer.timestamp
 connect from track_associator.object_track_set
         to   track_initializer.object_track_set
@@ -260,8 +260,8 @@ connect from track_associator.unused_detections
 
 # ==================================================================================
 
-connect from optical_detector_output.detected_object_set
-        to   out_adapt.detected_object_set
+connect from track_initializer.object_track_set
+        to   out_adapt.object_track_set
 connect from downsampler.output_2
         to   out_adapt.file_name
 connect from downsampler.timestamp
@@ -270,29 +270,19 @@ connect from downsampler.timestamp
 # ==================================================================================
 
 process optical_writer_csv
-  :: detected_object_output
+  :: write_object_track_set
 
   # Type of file to output
   :file_name                                   [CURRENT_TIME]_EO.csv
   :frame_list_output                           [CURRENT_TIME]_EO_images.txt
   :writer:type                                 viame_csv
 
-connect from optical_detector_output.detected_object_set
-        to   optical_writer_csv.detected_object_set
+connect from track_initializer.object_track_set
+        to   optical_writer_csv.object_track_set
 connect from downsampler.output_2
         to   optical_writer_csv.image_file_name
 
 # ==================================================================================
-
-#process optical_filter_db
-#  :: initialize_object_tracks
-#  :track_initializer:type                      threshold
-#
-#  block track_initializer:threshold:filter
-#    :type                                      class_probablity_filter
-#    :class_probablity_filter:threshold         0.010
-#    :class_probablity_filter:keep_all_classes  true
-#  endblock
 
 #process optical_writer_db
 #  :: write_object_track
@@ -305,13 +295,8 @@ connect from downsampler.output_2
 #        to   downsampler.timestamp
 
 #connect from downsampler.timestamp
-#        to   optical_filter_db.timestamp
-#connect from optical_detector_output.detected_object_set
-#        to   optical_filter_db.detected_object_set
-
-#connect from downsampler.timestamp
 #        to   optical_writer_db.timestamp
-#connect from optical_filter_db.object_track_set
+#connect from track_initializer.object_track_set
 #        to   optical_writer_db.object_track_set
 
 # -- end of file --
