@@ -4,6 +4,9 @@
 config _pipeline:_edge
    :capacity                                   5
 
+config _scheduler
+   :type                                       pythread_per_process
+
 # ==================================================================================
 process in_adapt
  :: input_adapter
@@ -206,7 +209,7 @@ connect from downsampler.timestamp
 # ==================================================================================
 
 process optical_writer_csv
-  :: write_object_track_set
+  :: write_object_track
 
   # Type of file to output
   :file_name                                   [CURRENT_TIME]_EO.csv
