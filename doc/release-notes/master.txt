@@ -20,6 +20,9 @@ Vital
  * Added a variant of config_block::get_enum_value that accepts a default
    value to fall back on.
 
+ * Added support for registering callbacks to the KWIVER logger.  Callbacks
+   receive any message that is logged with the KWIVER logging framework.
+
 Vital Util
 
 Vital Tools

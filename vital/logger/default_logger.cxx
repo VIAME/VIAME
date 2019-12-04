@@ -214,6 +214,7 @@ private:
                             std::string const&  msg )
   {
     log_message_i( level, msg, "" );
+    do_callback(level, msg, location_info());
   }
 
 
@@ -270,6 +271,7 @@ private:
     loc << location.get_file_name() << "(" << location.get_line_number() << "): ";
 
     log_message_i( level, msg, loc.str() );
+    do_callback(level, msg, location);
   }
 
 
