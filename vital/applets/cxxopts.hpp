@@ -690,16 +690,14 @@ namespace cxxopts
     parse_value(const std::string& text, bool& value)
     {
       REGEX_NS::smatch result;
-      REGEX_NS::regex_match(text, result, truthy_pattern);
 
-      if (!result.empty())
+      if (REGEX_NS::regex_match(text, result, truthy_pattern))
       {
         value = true;
         return;
       }
 
-      REGEX_NS::regex_match(text, result, falsy_pattern);
-      if (!result.empty())
+      if (REGEX_NS::regex_match(text, result, falsy_pattern))
       {
         value = false;
         return;

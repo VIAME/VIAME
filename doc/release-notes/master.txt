@@ -20,6 +20,9 @@ Vital
  * Added a variant of config_block::get_enum_value that accepts a default
    value to fall back on.
 
+ * Added support for registering callbacks to the KWIVER logger.  Callbacks
+   receive any message that is logged with the KWIVER logging framework.
+
 Vital Util
 
 Vital Tools
@@ -39,9 +42,16 @@ Vital Bindings
 
  * Remove ctypes python bindings
 
+ * Moved python bindings associated with config from sprokit.pipeline to
+   vital.config.
+
 Arrows
 
 Arrows: Core
+
+ * Added an algorithm implementation (transform_detected_object_set) for
+   transforming detected object sets from one camera perspective to another.
+   Implements vital::algo::detected_object_filter.
 
 Arrows: Ceres
 
