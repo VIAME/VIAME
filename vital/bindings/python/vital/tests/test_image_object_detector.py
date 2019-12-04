@@ -38,9 +38,8 @@ from vital.algo import ImageObjectDetector
 from vital.types import Image
 from vital.types import ImageContainer
 from vital.types import DetectedObjectSet
-
 from vital.modules import modules
-from sprokit.pipeline import config
+from vital.config import config
 
 def _dummy_detector_cfg():
     test_cfg = config.empty_config()

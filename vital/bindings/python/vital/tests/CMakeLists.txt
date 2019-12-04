@@ -8,6 +8,7 @@ set(__testable_modnames
   test_algorithm_factory
   test_camera
   test_camera_intrinsics
+  test_config
   test_camera_map
   test_color
   test_covariance
