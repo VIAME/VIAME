@@ -135,6 +135,7 @@ virtual void log_fatal (std::string const & msg)
     ::log4cplus::FATAL_LOG_LEVEL,
     msg,
     0, 0, 0);
+  do_callback(LEVEL_FATAL, msg, location_info());
 }
 
 
@@ -147,6 +148,7 @@ virtual void log_fatal (std::string const & msg)
     msg,
     location.get_file_name_ptr(), location.get_line_number(),
     location.get_method_name_ptr());
+  do_callback(LEVEL_FATAL, msg, location);
 }
 
 
@@ -157,6 +159,7 @@ virtual void log_error (std::string const & msg)
     ::log4cplus::ERROR_LOG_LEVEL,
     msg,
     0, 0, 0);
+  do_callback(LEVEL_ERROR, msg, location_info());
 }
 
 
@@ -169,6 +172,7 @@ virtual void log_error (std::string const & msg,
     msg,
     location.get_file_name_ptr(), location.get_line_number(),
     location.get_method_name_ptr());
+  do_callback(LEVEL_ERROR, msg, location);
 }
 
 
@@ -179,6 +183,7 @@ virtual void log_warn (std::string const & msg)
     ::log4cplus::WARN_LOG_LEVEL,
     msg,
     0, 0, 0);
+  do_callback(LEVEL_WARN, msg, location_info());
 }
 
 
@@ -191,6 +196,7 @@ virtual void log_warn (std::string const & msg,
     msg,
     location.get_file_name_ptr(), location.get_line_number(),
     location.get_method_name_ptr());
+  do_callback(LEVEL_WARN, msg, location);
 }
 
 
@@ -201,6 +207,7 @@ virtual void log_info (std::string const & msg)
     ::log4cplus::INFO_LOG_LEVEL,
     msg,
     0, 0, 0);
+  do_callback(LEVEL_INFO, msg, location_info());
 }
 
 
@@ -213,6 +220,7 @@ virtual void log_info (std::string const & msg,
     msg,
     location.get_file_name_ptr(), location.get_line_number(),
     location.get_method_name_ptr());
+  do_callback(LEVEL_INFO, msg, location);
 }
 
 
@@ -223,6 +231,7 @@ virtual void log_debug (std::string const & msg)
     ::log4cplus::DEBUG_LOG_LEVEL,
     msg,
     0, 0, 0);
+  do_callback(LEVEL_DEBUG, msg, location_info());
 }
 
 
@@ -235,6 +244,7 @@ virtual void log_debug (std::string const & msg,
     msg,
     location.get_file_name_ptr(), location.get_line_number(),
     location.get_method_name_ptr());
+  do_callback(LEVEL_DEBUG, msg, location);
 }
 
 
@@ -245,6 +255,7 @@ virtual void log_trace (std::string const & msg)
     log4cplus::TRACE_LOG_LEVEL,
     msg,
     0, 0, 0);
+  do_callback(LEVEL_TRACE, msg, location_info());
 }
 
 
@@ -257,6 +268,7 @@ virtual void log_trace (std::string const & msg,
     msg,
     location.get_file_name_ptr(), location.get_line_number(),
     location.get_method_name_ptr());
+  do_callback(LEVEL_TRACE, msg, location);
 }
 
 
