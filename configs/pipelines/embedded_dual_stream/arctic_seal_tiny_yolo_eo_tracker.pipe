@@ -184,19 +184,19 @@ connect from optical_detector_merger.detected_object_set
 
 include ../common_stabilized_iou_tracker.pipe
 
-connect from in_adapt.timestamp
+connect from downsampler.timestamp
         to   stabilizer.timestamp
-connect from in_adapt.image
+connect from optical_detector_input.image
         to   stabilizer.image
 
-connect from in_adapt.timestamp
+connect from downsampler.timestamp
         to   tracker.timestamp
 connect from optical_detector_output.detected_object_set
         to   tracker.detected_object_set
 
 # ==================================================================================
 
-connect from tracker.detected_object_set
+connect from tracker.object_track_set
         to   out_adapt.object_track_set
 connect from downsampler.output_2
         to   out_adapt.file_name
@@ -206,29 +206,19 @@ connect from downsampler.timestamp
 # ==================================================================================
 
 process optical_writer_csv
-  :: detected_object_output
+  :: write_object_track_set
 
   # Type of file to output
   :file_name                                   [CURRENT_TIME]_EO.csv
   :frame_list_output                           [CURRENT_TIME]_EO_images.txt
   :writer:type                                 viame_csv
 
-connect from optical_detector_output.detected_object_set
-        to   optical_writer_csv.detected_object_set
+connect from tracker.object_track_set
+        to   optical_writer_csv.object_track_set
 connect from downsampler.output_2
         to   optical_writer_csv.image_file_name
 
 # ==================================================================================
-
-#process optical_filter_db
-#  :: initialize_object_tracks
-#  :track_initializer:type                      threshold
-#
-#  block track_initializer:threshold:filter
-#    :type                                      class_probablity_filter
-#    :class_probablity_filter:threshold         0.010
-#    :class_probablity_filter:keep_all_classes  true
-#  endblock
 
 #process optical_writer_db
 #  :: write_object_track
@@ -241,13 +231,8 @@ connect from downsampler.output_2
 #        to   downsampler.timestamp
 
 #connect from downsampler.timestamp
-#        to   optical_filter_db.timestamp
-#connect from optical_detector_output.detected_object_set
-#        to   optical_filter_db.detected_object_set
-
-#connect from downsampler.timestamp
 #        to   optical_writer_db.timestamp
-#connect from optical_filter_db.object_track_set
+#connect from tracker.object_track_set
 #        to   optical_writer_db.object_track_set
 
 # -- end of file --
