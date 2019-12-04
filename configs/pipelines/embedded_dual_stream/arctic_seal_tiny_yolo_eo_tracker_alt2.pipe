@@ -155,19 +155,19 @@ process optical_detector4
 connect from optical_detector_input.image
         to   optical_detector4.image
 
-process optical_detector_output
+process optical_detector_merger
   :: merge_detection_sets
 
 connect from optical_detector1.detected_object_set
-        to   optical_detector_output.detected_object_set1
+        to   optical_detector_merger.detected_object_set1
 connect from optical_detector2.detected_object_set
-        to   optical_detector_output.detected_object_set2
+        to   optical_detector_merger.detected_object_set2
 connect from optical_detector3.detected_object_set
-        to   optical_detector_output.detected_object_set3
+        to   optical_detector_merger.detected_object_set3
 connect from optical_detector4.detected_object_set
-        to   optical_detector_output.detected_object_set4
+        to   optical_detector_merger.detected_object_set4
 
-process optical_detector_nms
+process optical_detector_output
   :: refine_detections
   :refiner:type                                nms
 
@@ -177,8 +177,86 @@ process optical_detector_nms
     :output_scale_factor                       1.0
   endblock
 
+connect from optical_detector_merger.detected_object_set
+        to   optical_detector_output.detected_object_set
+
+# ==================================================================================
+
+process detection_descriptor
+  :: resnet_descriptors
+  :resnet_model_input_size                     224
+  :resnet_batch_size                           16
+  :gpu_list                                    0
+  relativepath resnet_model_path =             ../models/pytorch-resnet50.pt
+
+process tracker
+ :: compute_association_matrix
+  :matrix_generator:type                       from_features
+  :matrix_generator:from_features:max_distance 3500
+
+  block matrix_generator:from_features:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.100
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+  endblock
+
+process track_associator
+  :: associate_detections_to_tracks
+  :track_associator:type                       threshold
+  :track_associator:threshold:threshold        10.0
+  :track_associator:threshold:higher_is_better false
+
+process track_initializer
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+  endblock
+
+# Connect inputs to detection descriptor
+connect from in_adapt.image
+        to   detection_descriptor.image
+connect from in_adapt.timestamp
+        to   detection_descriptor.timestamp
 connect from optical_detector_output.detected_object_set
-        to   optical_detector_nms.detected_object_set
+        to   detection_descriptor.detected_object_set
+
+# Connect inputs to tracker
+connect from in_adapt.image
+        to   tracker.image
+connect from in_adapt.timestamp
+        to   tracker.timestamp
+connect from detection_descriptor.detected_object_set
+        to   tracker.detected_object_set
+connect from track_initializer.object_track_set
+        to   tracker.object_track_set
+
+# Connect inputs to track_associator
+connect from in_adapt.image
+        to   track_associator.image
+connect from in_adapt.timestamp
+        to   track_associator.timestamp
+connect from tracker.matrix_d
+        to   track_associator.matrix_d
+connect from tracker.object_track_set
+        to   track_associator.object_track_set
+connect from tracker.detected_object_set
+        to   track_associator.detected_object_set
+
+# Connect inputs to track_initializer
+connect from in_adapt.image
+        to   track_initializer.image
+connect from in_adapt.timestamp
+        to   track_initializer.timestamp
+connect from track_associator.object_track_set
+        to   track_initializer.object_track_set
+connect from track_associator.unused_detections
+        to   track_initializer.detected_object_set
 
 # ==================================================================================
 

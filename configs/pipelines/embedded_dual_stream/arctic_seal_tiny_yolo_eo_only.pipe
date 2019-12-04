@@ -155,19 +155,19 @@ process optical_detector4
 connect from optical_detector_input.image
         to   optical_detector4.image
 
-process optical_detector_output
+process optical_detector_merger
   :: merge_detection_sets
 
 connect from optical_detector1.detected_object_set
-        to   optical_detector_output.detected_object_set1
+        to   optical_detector_merger.detected_object_set1
 connect from optical_detector2.detected_object_set
-        to   optical_detector_output.detected_object_set2
+        to   optical_detector_merger.detected_object_set2
 connect from optical_detector3.detected_object_set
-        to   optical_detector_output.detected_object_set3
+        to   optical_detector_merger.detected_object_set3
 connect from optical_detector4.detected_object_set
-        to   optical_detector_output.detected_object_set4
+        to   optical_detector_merger.detected_object_set4
 
-process optical_detector_nms
+process optical_detector_output
   :: refine_detections
   :refiner:type                                nms
 
@@ -177,8 +177,8 @@ process optical_detector_nms
     :output_scale_factor                       1.0
   endblock
 
-connect from optical_detector_output.detected_object_set
-        to   optical_detector_nms.detected_object_set
+connect from optical_detector_merger.detected_object_set
+        to   optical_detector_output.detected_object_set
 
 # ==================================================================================
 
