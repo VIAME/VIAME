@@ -1,6 +1,6 @@
-# Default YOLO v2 Detector Pipeline
+# Default local detector pipeline
 #
-# Runs pre-trained YOLO v2 object detector
+# Runs a local detector, as specified in the file 'category_models/detector.pipe'
 
 # ============================== GLOBAL PROPERTIES =================================
 # global pipeline config

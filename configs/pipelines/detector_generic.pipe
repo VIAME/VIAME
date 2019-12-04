@@ -12,7 +12,7 @@ config _pipeline:_edge
 
 include common_default_input_with_downsampler.pipe
 
-# ====================================== YOLO ======================================
+# =================================== DETECTOR =====================================
 
 include common_generic_detector_with_filter.pipe
 
