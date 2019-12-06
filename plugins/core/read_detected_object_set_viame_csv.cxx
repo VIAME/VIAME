@@ -279,7 +279,7 @@ read_detected_object_set_viame_csv::priv
 
     for( unsigned i = COL_TOT; i < col.size(); i+=2 )
     {
-      if( col[i].empty() || col[i][0] == '+' )
+      if( col[i].empty() || col[i][0] == '(' )
       {
         found_attribute = true;
         break;

@@ -42,17 +42,17 @@ format_note( const std::string& str, const std::string delim )
   {
     return "";
   }
-  else if( str[0] == '+' )
+  else if( str[0] == '(' )
   {
     return delim + str;
   }
   else if( str.find_first_of( ',' ) != std::string::npos )
   {
-    return delim + "+note \"" + str + "\"";
+    return delim + "(note) \"" + str + "\"";
   }
   else
   {
-    return delim + "+note " + str;
+    return delim + "(note) " + str;
   }
 }
 
@@ -102,7 +102,7 @@ notes_to_attributes( const std::vector< std::string >& notes,
         std::string category = note.substr( 0, pos2 );
         std::string value = note.substr( pos2 + 1, value_len );
 
-        output += delim + "+atr " + category + " " + value;
+        output += delim + "(atr) " + category + " " + value;
 
         if( pos == std::string::npos )
         {
@@ -127,7 +127,7 @@ add_attributes_to_detection( kwiver::vital::detected_object& detection,
   {
     const std::string& attr = attrs[i];
 
-    if( attr.empty() || attr[0] != '+' )
+    if( attr.empty() || attr[0] != '(' )
     {
       continue;
     }
@@ -141,7 +141,7 @@ add_attributes_to_detection( kwiver::vital::detected_object& detection,
       continue;
     }
 
-    if( col[0] == "+kp" )
+    if( col[0] == "(kp)" )
     {
       if( col.size() != 4 )
       {
@@ -151,11 +151,11 @@ add_attributes_to_detection( kwiver::vital::detected_object& detection,
       detection.add_keypoint( col[1], { std::stod( col[2] ),
                                         std::stod( col[3] ) } );
     }
-    else if( col[0] == "+note" )
+    else if( col[0] == "(note)" )
     {
-      std::string full_note = attr.substr( 6 );
+      std::string full_note = attr.substr( 7 );
 
-      if( attr.size() > 6 && attr[6] == '\"' && attr.back() != '\"' )
+      if( attr.size() > 7 && attr[7] == '\"' && attr.back() != '\"' )
       {
         for( unsigned j = i + 1; j < attrs.size(); j++ )
         {
@@ -172,18 +172,27 @@ add_attributes_to_detection( kwiver::vital::detected_object& detection,
 
       detection.add_note( full_note );
     }
-    else if( col[0] == "+atr" )
+    else if( col[0] == "(atr)" )
     {
-      if( col.size() < 3 )
+      if( col.size() < 2 )
       {
         continue; // throw error
       }
 
-      std::string formatted_note = ":" + col[1] + "=" + col[2];
+      std::string formatted_note = ":" + col[1];
 
-      for( unsigned i = 3; i < col.size(); ++i )
+      if( col.size() == 2 )
       {
-        formatted_note += " " + col[i];
+        formatted_note += "=true";
+      }
+      else if( col.size() > 2 )
+      {
+        formatted_note += "=" + col[2];
+
+        for( unsigned i = 3; i < col.size(); ++i )
+        {
+          formatted_note += " " + col[i];
+        }
       }
 
       detection.add_note( formatted_note );

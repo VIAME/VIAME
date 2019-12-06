@@ -220,7 +220,7 @@ write_detected_object_set_viame_csv
     {
       for( const auto& kp : (*det)->keypoints() )
       {
-        stream() << "," << "+kp " << kp.first;
+        stream() << "," << "(kp) " << kp.first;
         stream() << " " << kp.second.value()[0] << " " << kp.second.value()[1];
       }
     }

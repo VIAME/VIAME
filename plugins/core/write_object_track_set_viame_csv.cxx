@@ -374,7 +374,7 @@ write_object_track_set_viame_csv
         {
           for( const auto& kp : det->keypoints() )
           {
-            stream() << d->m_delim << "+kp " << kp.first;
+            stream() << d->m_delim << "(kp) " << kp.first;
             stream() << " " << kp.second.value()[0] << " " << kp.second.value()[1];
           }
         }
