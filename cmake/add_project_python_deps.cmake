@@ -30,8 +30,8 @@ if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
 endif()
 
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_OPENCV )
-  list( APPEND VIAME_PYTHON_DEPS tqdm cv2 )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "tqdm" "opencv-python" )
+  list( APPEND VIAME_PYTHON_DEPS tqdm cv2 scipy )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "tqdm" "opencv-python" "scipy" )
 endif()
 
 if( VIAME_ENABLE_ITK_EXTRAS )
