@@ -37,6 +37,7 @@
 
 #include <vital/vital_types.h>
 #include <vital/exceptions.h>
+#include <vital/util/string.h>
 #include <vital/algo/detected_object_set_output.h>
 
 #include <kwiver_type_traits.h>
@@ -47,6 +48,7 @@
 #include <memory>
 #include <ctime>
 
+namespace util = kwiver::vital;
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver {
@@ -120,24 +122,6 @@ detected_object_output_process
 }
 
 
-namespace
-{
-
-bool replace(std::string& str, const std::string& from, const std::string& to)
-{
-  size_t start_pos = str.find( from );
-
-  if( start_pos == std::string::npos )
-  {
-    return false;
-  }
-
-  str.replace( start_pos, from.length(), to );
-  return true;
-}
-
-}
-
 // ----------------------------------------------------------------
 void detected_object_output_process
 ::_configure()
@@ -163,12 +147,12 @@ void detected_object_output_process
     t = localtime( &raw );
 
     strftime( buffer, sizeof( buffer ), "%Y%m%d_%H%M%S", t );
-    replace( d->m_file_name, "[CURRENT_TIME]", buffer );
+    util::replace_first( d->m_file_name, "[CURRENT_TIME]", buffer );
 
     if( !d->m_frame_list_output.empty() &&
         d->m_frame_list_output.find( "[CURRENT_TIME]" ) != std::string::npos )
     {
-      replace( d->m_frame_list_output, "[CURRENT_TIME]", buffer );
+      util::replace_first( d->m_frame_list_output, "[CURRENT_TIME]", buffer );
     }
   }
 
@@ -181,14 +165,14 @@ void detected_object_output_process
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if ( ! algo::detected_object_set_output::check_nested_algo_configuration( "writer", algo_config ) )
+  if( !algo::detected_object_set_output::check_nested_algo_configuration( "writer", algo_config ) )
   {
     throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
   algo::detected_object_set_output::set_nested_algo_configuration( "writer", algo_config, d->m_writer);
-  if ( ! d->m_writer )
+  if( ! d->m_writer )
   {
     throw sprokit::invalid_configuration_exception( name(),
              "Unable to create writer." );
@@ -223,7 +207,8 @@ void detected_object_output_process
     *d->m_frame_list_writer << file_name << std::endl;
   }
 
-  kwiver::vital::detected_object_set_sptr input = grab_from_port_using_trait( detected_object_set );
+  kwiver::vital::detected_object_set_sptr input =
+    grab_from_port_using_trait( detected_object_set );
 
   {
     scoped_step_instrumentation();

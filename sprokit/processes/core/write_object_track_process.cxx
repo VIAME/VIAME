@@ -37,12 +37,14 @@
 
 #include <vital/vital_types.h>
 #include <vital/exceptions.h>
+#include <vital/util/string.h>
 #include <vital/algo/write_object_track_set.h>
 
 #include <kwiver_type_traits.h>
 
 #include <sprokit/pipeline/process_exception.h>
 
+namespace util = kwiver::vital;
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver {
