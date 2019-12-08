@@ -146,6 +146,29 @@ string_trim( std::string& s )
   return s;
 }
 
+
+/**
+ * @brief Replace first occurence of substring with another.
+ *
+ * @param[in,out] str Input string
+ * @param[in] from Input substring to find
+ * @param[in] to Input substring to replace with
+ * @return True if any replacement occured
+ */
+inline bool replace_first( std::string& str,
+  const std::string& from, const std::string& to )
+{
+  size_t start_pos = str.find( from );
+
+  if( start_pos == std::string::npos )
+  {
+    return false;
+  }
+
+  str.replace( start_pos, from.length(), to );
+  return true;
+}
+
 } } // end namespace
 
 #endif /* KWIVER_VITAL_UTIL_STRING_FORMAT_H */
