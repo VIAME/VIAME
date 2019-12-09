@@ -68,8 +68,9 @@ public:
   virtual void set_configuration( kwiver::vital::config_block_sptr config );
   virtual bool check_configuration( kwiver::vital::config_block_sptr config ) const;
 
-  virtual void write_set( const kwiver::vital::timestamp& ts,
-                          const kwiver::vital::object_track_set_sptr set );
+  virtual void write_set( const kwiver::vital::object_track_set_sptr set,
+                          const kwiver::vital::timestamp& ts,
+                          const std::string& file_id );
 
   virtual void close();
 
