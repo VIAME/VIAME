@@ -60,7 +60,11 @@ public:
 
   virtual void open( std::string const& filename );
   virtual void close();
-  virtual void write_set( const kwiver::vital::timestamp& ts, const kwiver::vital::object_track_set_sptr set );
+
+  virtual void write_set(
+    const kwiver::vital::object_track_set_sptr set,
+    const kwiver::vital::timestamp& ts,
+    const std::string& file_id );
 
 private:
   class priv;
