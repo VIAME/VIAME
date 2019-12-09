@@ -209,7 +209,7 @@ void write_object_track_process
   {
     scoped_step_instrumentation();
 
-    d->m_writer->write_set( ts, input );
+    d->m_writer->write_set( input, ts, file_name );
   }
 }
 

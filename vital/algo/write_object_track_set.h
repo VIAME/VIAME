@@ -101,11 +101,14 @@ public:
    * This method writes the specified object track set and image
    * name to the currently open file.
    *
-   * \param ts Timestamp for the current frame
    * \param set Track object set
+   * \param ts Timestamp for the current frame
+   * \param frame_identifier current frame ID (e.g. filename)
    */
-  virtual void write_set( const kwiver::vital::timestamp& ts,
-                          const kwiver::vital::object_track_set_sptr set ) = 0;
+  virtual void write_set(
+    const kwiver::vital::object_track_set_sptr set,
+    const kwiver::vital::timestamp& ts = kwiver::vital::timestamp(),
+    const std::string& frame_identifier = std::string() ) = 0;
 
 
 protected:
