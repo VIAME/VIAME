@@ -282,6 +282,8 @@ process optical_writer_csv
 
 connect from track_initializer.object_track_set
         to   optical_writer_csv.object_track_set
+connect from downsampler.timestamp
+        to   optical_writer_csv.timestamp
 connect from downsampler.output_2
         to   optical_writer_csv.image_file_name
 
