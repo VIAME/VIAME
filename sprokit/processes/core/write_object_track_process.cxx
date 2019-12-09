@@ -44,6 +44,10 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
+#include <fstream>
+#include <memory>
+#include <ctime>
+
 namespace util = kwiver::vital;
 namespace algo = kwiver::vital::algo;
 
@@ -52,6 +56,8 @@ namespace kwiver {
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "",
   "Name of the track descriptor set file to write." );
+create_config_trait( frame_list_output, std::string, "",
+  "Optional frame list output to also write." );
 create_config_trait( writer, std::string , "",
   "Block name for algorithm parameters. "
   "e.g. writer:type would be used to specify the algorithm type." );
@@ -66,8 +72,10 @@ public:
 
   // Configuration values
   std::string m_file_name;
+  std::string m_frame_list_output;
 
   algo::write_object_track_set_sptr m_writer;
+  std::unique_ptr< std::ofstream > m_frame_list_writer;
 }; // end priv class
 
 
@@ -102,10 +110,35 @@ void write_object_track_process
 
   // Get process config entries
   d->m_file_name = config_value_using_trait( file_name );
+  d->m_frame_list_output = config_value_using_trait( frame_list_output );
+
   if ( d->m_file_name.empty() )
   {
     throw sprokit::invalid_configuration_exception( name(),
              "Required file name not specified." );
+  }
+
+  if( d->m_file_name.find( "[CURRENT_TIME]" ) != std::string::npos )
+  {
+    char buffer[256];
+    time_t raw;
+    struct tm *t;
+    time( &raw );
+    t = localtime( &raw );
+
+    strftime( buffer, sizeof( buffer ), "%Y%m%d_%H%M%S", t );
+    util::replace_first( d->m_file_name, "[CURRENT_TIME]", buffer );
+
+    if( !d->m_frame_list_output.empty() &&
+        d->m_frame_list_output.find( "[CURRENT_TIME]" ) != std::string::npos )
+    {
+      util::replace_first( d->m_frame_list_output, "[CURRENT_TIME]", buffer );
+    }
+  }
+
+  if( !d->m_frame_list_output.empty() )
+  {
+    d->m_frame_list_writer.reset( new std::ofstream( d->m_frame_list_output ) );
   }
 
   // Get algo conrig entries
@@ -158,6 +191,11 @@ void write_object_track_process
     file_name = grab_from_port_using_trait( image_file_name );
   }
 
+  if ( d->m_frame_list_writer )
+  {
+    *d->m_frame_list_writer << file_name << std::endl;
+  }
+
   kwiver::vital::object_track_set_sptr input
     = grab_from_port_using_trait( object_track_set );
 
@@ -196,6 +234,7 @@ void write_object_track_process
 ::make_config()
 {
   declare_config_using_trait( file_name );
+  declare_config_using_trait( frame_list_output );
   declare_config_using_trait( writer );
 }
 
@@ -210,6 +249,10 @@ write_object_track_process::priv
 write_object_track_process::priv
 ::~priv()
 {
+  if( m_frame_list_writer )
+  {
+    m_frame_list_writer->close();
+  }
 }
 
 } // end namespace
