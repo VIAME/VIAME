@@ -18,7 +18,7 @@ libxml2-dev \
 libssl-dev \
 liblapack-dev \
 openssl \
-openssl-devel \
+openssl-dev \
 libssl-dev \
 g++ \
 zlib1g-dev 
