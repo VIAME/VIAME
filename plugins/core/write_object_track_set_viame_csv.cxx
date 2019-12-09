@@ -70,11 +70,13 @@ public:
   bool m_active_writing;
   bool m_write_time_as_uid;
   std::string m_tot_option;
+  std::map< unsigned, std::string > m_frame_uids;
 
   std::string format_image_id( const kwiver::vital::object_track_state* ts );
 };
 
-std::string write_object_track_set_viame_csv::priv
+std::string
+write_object_track_set_viame_csv::priv
 ::format_image_id( const kwiver::vital::object_track_state* ts )
 {
   if( m_write_time_as_uid )
@@ -90,6 +92,10 @@ std::string write_object_track_set_viame_csv::priv
     struct tm* tmp = gmtime( &rawtime );
     strftime( output, sizeof( output ), "%H:%M:%S", tmp );
     return std::string( output ) + "." + msec_str + " UTC";
+  }
+  else if( !m_frame_uids.empty() )
+  {
+    return m_frame_uids[ ts->frame() ];
   }
   else
   {
@@ -295,6 +301,11 @@ write_object_track_set_viame_csv
              << std::endl;
 
     d->m_first = false;
+  }
+
+  if( !file_id.empty() && ts.has_valid_frame() )
+  {
+    d->m_frame_uids[ ts.get_frame() ] = file_id;
   }
 
   if( !set )
