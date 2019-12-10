@@ -15,10 +15,8 @@ libexpat1-dev \
 libgtk2.0-dev \
 libxt-dev \
 libxml2-dev \
-libssl-dev \
 liblapack-dev \
 openssl \
-openssl-dev \
 libssl-dev \
 g++ \
 zlib1g-dev 
