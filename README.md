@@ -111,8 +111,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Custom Applications:** <br>
 [Seal Multi-View GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5df06759af2e2eed3577ed62/download) <br>
-[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5dea82d2af2e2eed3562bcaf/download) <br>
-[Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5dea8211af2e2eed3562b623/download)
+[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5df14adfaf2e2eed357a90a9/download) <br>
+[Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5df14b30af2e2eed357a9182/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom Applications
