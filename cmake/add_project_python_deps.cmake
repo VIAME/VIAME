@@ -32,11 +32,6 @@ endif()
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_OPENCV )
   list( APPEND VIAME_PYTHON_DEPS tqdm scipy )
   list( APPEND VIAME_PYTHON_DEP_CMDS "tqdm" "scipy" )
-
-  if( WIN32 )
-    list( APPEND VIAME_PYTHON_DEPS cv2 )
-    list( APPEND VIAME_PYTHON_DEP_CMDS "opencv-python" )
-  endif()
 endif()
 
 if( VIAME_ENABLE_ITK_EXTRAS )
