@@ -84,7 +84,7 @@ if (KWIVER_ENABLE_LOG4CPLUS)
   kwiver_add_plugin( vital_log4cplus_logger
     SOURCES          log4cplus_factory.cxx
     PRIVATE          ${log4cplus_lib}
-                     kwiversys vital_logger
+                     kwiversys vital_logger vital_util
                      log4cplus::log4cplus
     SUBDIR           ${kwiver_plugin_logger_subdir}
     )
