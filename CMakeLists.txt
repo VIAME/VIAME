@@ -525,7 +525,7 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
     if( VIAME_ENABLE_SEAL_TK )
-      install( PROGRAM      "${VIAME_CMAKE_DIR}/launch_seal_interface.bat"
+      install( PROGRAMS     "${VIAME_CMAKE_DIR}/launch_seal_interface.bat"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
   else()
@@ -540,7 +540,7 @@ else()
              DESTINATION   ${CMAKE_INSTALL_PREFIX} )
 
     if( VIAME_ENABLE_SEAL_TK )
-      install( PROGRAM       "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
+      install( PROGRAMS      "${VIAME_CMAKE_DIR}/launch_seal_interface.sh"
                DESTINATION   ${CMAKE_INSTALL_PREFIX} )
     endif()
   endif()
