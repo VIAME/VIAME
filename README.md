@@ -151,8 +151,8 @@ using 'ccmake' or the cmake GUI, and then build with the following command on Li
 	make -j8
 
 Or alternatively by building it in Visual Studio or your compiler of choice on
-Windows. '-j8' tells the build to run multi-threaded using 8 threads, this is
-useful for a faster build though if you get an error it can be difficult to see
+Windows. On Linux, '-j8' tells the build to run multi-threaded using 8 threads, this
+is useful for a faster build though if you get an error it can be difficult to see
 it, in which case running just 'make' might be more helpful. For Windows,
 currently VS2017 is the desired compiler, though select versions of 2015 and 2019
 also work. If using CUDA, version 9.0 and above, with CUDNN 7.0 and above is desired,
