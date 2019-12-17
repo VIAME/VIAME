@@ -24,7 +24,7 @@ zlib1g-dev
 # Install CMAKE
 wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz
 tar zxvf cmake-3.*
-cd cmake-3.*
+cd cmake-3.14.0
 ./bootstrap --prefix=/usr/local --system-curl
 make -j$(nproc)
 make install
