@@ -470,10 +470,6 @@ else()
     include( viame-flags )
 
     ##
-    # Build system hack for visual system, will be removed
-    include( windows-ksys-hack )
-
-    ##
     # check compiler support
     include( kwiver-configcheck )
 
@@ -496,6 +492,11 @@ else()
       kwiver_create_python_init( viame )
       kwiver_create_python_init( viame/processes )
     endif()
+
+    ##
+    # Build system hacks which should eventually be fixed better
+    include( windows-ksys-hack )
+    include( linux-remove-duplicate-cvs )
   endif()
 
   ###
