@@ -72,12 +72,12 @@ NVIDIA Drivers (Version 410.48+
 Windows 
 [\[1\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
 [\[2\]](https://developer.nvidia.com/cuda-downloads)
-Ubuntu 
-[\[1\]](https://linuxhint.com/ubuntu_nvidia_ppa/)
-[\[2\]](https://developer.nvidia.com/cuda-downloads)
 CentOS 
 [\[1\]](https://developer.nvidia.com/cuda-downloads)
-[\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)) <br>
+[\[2\]](https://www.nvidia.com/Download/index.aspx?lang=en-us)
+Ubuntu 
+[\[1\]](https://linuxhint.com/ubuntu_nvidia_ppa/)
+[\[2\]](https://developer.nvidia.com/cuda-downloads)) <br>
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
