@@ -116,3 +116,5 @@ cp /usr/lib64/libreadline.so.6 install/lib || true
 cp /usr/lib64/libdc1394.so.22 install/lib || true
 cp /usr/lib64/libcrypto.so.10 install/lib || true
 cp /usr/lib64/libpcre.so.1 install/lib || true
+cp /usr/lib64/libgomp.so.1 install/lib || true
+cp /usr/lib64/libSM.so.6 install/lib || true
