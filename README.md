@@ -87,13 +87,17 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5dddbd8baf2e2eed3533feff/download) <br>
 [VIAME v0.10.2 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=16Gne0TgKvR37xPfquxcOZdS6ygKe48W2)
 
-**Linux Desktop Binaries:** <br>
-[VIAME v0.10.2 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5df14c72af2e2eed357a930c/download) <br>
-[VIAME v0.10.2 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1AB32XFybRN4-AMVA1w_WoPBZm9KpyI4A) <br>
+**Ubuntu Desktop Binaries:** <br>
 [VIAME v0.10.2 Ubuntu 18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5df14c72af2e2eed357a930c/download) <br>
 [VIAME v0.10.2 Ubuntu 18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1AB32XFybRN4-AMVA1w_WoPBZm9KpyI4A) <br>
 [VIAME v0.10.2 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5df14cefaf2e2eed357a936b/download) <br>
 [VIAME v0.10.2 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1qcxj6kKhogc172hJYD-xOcP1wo7ivDp_)
+
+**CentOS or other Linux Desktop Binaries:** <br>
+[VIAME v0.10.2 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5df14c72af2e2eed357a930c/download) <br>
+[VIAME v0.10.2 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1AB32XFybRN4-AMVA1w_WoPBZm9KpyI4A) <br>
+[VIAME v0.10.2 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5df14c72af2e2eed357a930c/download) <br>
+[VIAME v0.10.2 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1AB32XFybRN4-AMVA1w_WoPBZm9KpyI4A)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
