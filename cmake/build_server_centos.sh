@@ -118,3 +118,8 @@ cp /usr/lib64/libcrypto.so.10 install/lib || true
 cp /usr/lib64/libpcre.so.1 install/lib || true
 cp /usr/lib64/libgomp.so.1 install/lib || true
 cp /usr/lib64/libSM.so.6 install/lib || true
+cp /usr/lib64/libICE.so.6 install/lib || true
+cp /usr/lib64/libblas.so.3 install/lib || true
+cp /usr/lib64/liblapack.so.3 install/lib || true
+cp /usr/lib64/libgfortran.so.3 install/lib || true
+cp /usr/lib64/libquadmath.so.0 install/lib || true
