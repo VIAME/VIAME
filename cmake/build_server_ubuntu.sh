@@ -112,10 +112,17 @@ ln -s libcudnn.so.7 install/lib/libcudnn.so
 
 # HACK: Copy in other possible library requirements if present
 # Should be removed when this issue is fixed
-cp /usr/lib64/libva.so.1 install/lib || true
-cp /usr/lib64/libreadline.so.6 install/lib || true
-cp /usr/lib64/libdc1394.so.22 install/lib || true
-cp /usr/lib64/libcrypto.so.10 install/lib || true
-cp /usr/lib64/libpcre.so.1 install/lib || true
+cp /lib/x86_64-linux-gnu/libreadline.so.6 install/lib || true
+cp /lib/x86_64-linux-gnu/libreadline.so.7 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libcrypto.so install/lib || true
+cp /lib/x86_64-linux-gnu/libpcre.so.3 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libgomp.so.1 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libSM.so.6 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libICE.so.6 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libblas.so.3 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/liblapack.so.3 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libgfortran.so.3 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libgfortran.so.4 install/lib || true
+cp /usr/lib/x86_64-linux-gnu/libquadmath.so.0 install/lib || true
 
 cp -P /usr/lib/x86_64-linux-gnu/libnccl.so* install/lib || true
