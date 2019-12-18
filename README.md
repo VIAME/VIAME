@@ -61,8 +61,7 @@ version 410.48 or higher. The best way to install drivers depends on your operat
 Lastly, run through some of the examples to validate the installation. It is no longer necessary
 to install any dependencies of VIAME besides drivers, everything else is packaged inside of it. The binaries
 are quite large, in terms of disk space, due to the inclusion of multiple default model files and programs,
-but if just building your desired features from source (e.g. for embedded apps) they are much smaller. If using
-alternative versions of Linux than those listed below, using the CentOS binaries is best and are the most stable.
+but if just building your desired features from source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
