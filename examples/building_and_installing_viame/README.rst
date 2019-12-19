@@ -27,18 +27,17 @@ See the platform-specific guides below, though the process is similar for each.
 This document corresponds to the example `located online here`_ and also to the
 building_and_installing_viame example folder in a VIAME installation.
 
-.. _located online here: https://github.com/VIAME/VIAME/tree/master/examples/building_viame
+.. _located online here: https://github.com/VIAME/VIAME/tree/master/examples/building_and_installing_viame
 
 
 *****************
 Building on Linux
 *****************
 
-These instructions are designed to help build VIAME on a fresh machine. They were
-written for and tested on Ubuntu 16.04 Desktop version. Other Linux machines will
-have similar directions, but some steps (particularly the dependency install) may
-not be exactly identical. VIAME has also been built on: CentOS/RHEL 6+, Fedora 19+,
-Ubuntu 16.04+.
+These instructions are designed to help build VIAME on a fresh machine. They were written for
+and tested on Ubuntu 16.04. Other Linux machines will have similar directions, but some steps
+(particularly the dependency install) may not be exactly identical. VIAME has also been built
+on: CentOS/RHEL 6+, Fedora 19+, and Ubuntu 16.04+ at a minimum.
 
 Install Dependencies
 ====================
@@ -129,54 +128,59 @@ in all caps. For each plugin to install, you need a cmake build flag setting the
 option. The flag looks like ``-DVIAME_ENABLE_OPENCV:BOOL=ON``, of course changing
 OPENCV to match the plugin. Multiple plugins may be used, or none. If uncertain what
 to turn on, it's best to just leave the default enable and disable flags which will
-build most (though not all) functionalities. They are listed below:
+build most (though not all) functionalities. These are core components we recommend leaving turned on:
 
 
+<center>
 
-+------------------------------+---------------------------------------------------------------------------------------+
-| Flag                         | Description                                                                           |
-+==============================+=======================================================================================+
-| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)                 |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                     |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                     |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                     |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                                |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                        |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                          |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                         |
-+------------------------------+---------------------------------------------------------------------------------------+
-| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                      |
-+------------------------------+---------------------------------------------------------------------------------------+
+| Flag                         | Description                                                                        |
+|------------------------------|------------------------------------------------------------------------------------|
+| VIAME_ENABLE_OPENCV          | Builds OpenCV and basic OpenCV processes (video readers, simple GUIs)              |
+| VIAME_ENABLE_VXL             | Builds VXL and basic VXL processes (video readers, image filters)                  |
+| VIAME_ENABLE_PYTHON          | Turns on support for using python processes (multiple algorithms)                  |
+| VIAME_ENABLE_PYTORCH         | Installs all pytorch processes (detectors, trackers, classifiers)                  |
 
-There are also a number of flags which control which system utilities and
-optimizations are built in, e.g.:
+</center>
 
-+------------------------------+---------------------------------------------------------------------------------------------+
-| Flag                         | Description                                                                                 |
-+==============================+=============================================================================================+
-| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (OpenCV, Caffe, etc...)               |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                                      |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)                     |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                                 |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree)          |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)                  |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                          |
-+------------------------------+---------------------------------------------------------------------------------------------+
-| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models              |
-+------------------------------+---------------------------------------------------------------------------------------------+
+
+And a number of flags which control which system utilities and optimizations are built, e.g.:
+
+
+<center>
+
+| Flag                         | Description                                                                        |
+|------------------------------|------------------------------------------------------------------------------------|
+| VIAME_ENABLE_CUDA            | Enables CUDA (GPU) optimizations across all processes (PyTorch, etc...)            |
+| VIAME_ENABLE_CUDNN           | Enables CUDNN (GPU) optimizations across all processes                             |
+| VIAME_ENABLE_VIVIA           | Builds VIVIA GUIs (tools for making annotations and viewing detections)            |
+| VIAME_ENABLE_KWANT           | Builds KWANT detection and track evaluation (scoring) tools                        |
+| VIAME_ENABLE_DOCS            | Builds Doxygen class-level documentation for projects (puts in install share tree) |
+| VIAME_BUILD_DEPENDENCIES     | Build VIAME as a super-build, building all dependencies (default behavior)         |
+| VIAME_INSTALL_EXAMPLES       | Installs examples for the above modules into install/examples tree                 |
+| VIAME_DOWNLOAD_MODELS        | Downloads pre-trained models for use with the examples and training new models     |
+
+</center>
+
+
+And lastly, a number of flags which build algorithms with more specialized functionality:
+
+
+<center>
+
+| Flag                         | Description                                                                        |
+|------------------------------|------------------------------------------------------------------------------------|
+| VIAME_ENABLE_SMQTK           | Builds SMQTK plugins for image/video search                                        |
+| VIAME_ENABLE_SCALLOP_TK      | Builds Scallop-TK based object detector plugin                                     |
+| VIAME_ENABLE_YOLO            | Builds YOLO (Darknet) object detector plugin                                       |
+| VIAME_ENABLE_BURNOUT         | Builds Burn-Out based pixel classifier plugin                                      |
+| VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                       |
+| VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                   |
+| VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                           |
+| VIAME_ENABLE_SEAL_TK         | Builds Seal Multi-Modality GUI                                                     |
+| VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                             |
+| VIAME_ENABLE_LANL            | Builds an additional (Matlab) scallop detector                                     |
+
+</center>
 
 VIAME can be built either in the source directory tree or in a seperate build
 directory (recommended). Replace "[build-directory]" with your location of choice,
