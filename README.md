@@ -46,10 +46,10 @@ but select entries are also listed below broken down by individual functionality
 [Detector Training API](examples/object_detector_training) <>
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <br />
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <>
-[Stereo Measurement Examples](examples/measurement_using_stereo) <> 
+[Detection File Formats and Conversions](examples/detection_file_conversions) <>
 [KWIVER Overview](https://github.com/Kitware/kwiver) <br />
 [Image Registration and Mosaicing](examples/image_registration) <>
-[Detection File Formats and Conversions](examples/detection_file_conversions) <>
+[Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <> 
 [Image Enhancement](examples/image_enhancement) <br />
 [How to Integrate Your Own Plugin](examples/hello_world_pipeline) <>
 [Example Plugin Templates](plugins/templates) <>
