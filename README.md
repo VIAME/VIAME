@@ -39,21 +39,21 @@ but select entries are also listed below broken down by individual functionality
 
 [Build and Install Guide](examples/building_and_installing_viame) <> 
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
-[Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
+[Core Class and Pipelining Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
 [Object Detectors](examples/object_detection) <>
 [Object Trackers](examples/object_tracking) <br />
 [GUIs for Visualization and Annotation](examples/annotation_and_visualization) <> 
 [Detector Training API](examples/object_detector_training) <>
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <br />
-[Example Plugin Templates](plugins/templates) <>
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <>
-[KWIVER Overview](https://github.com/Kitware/kwiver) <br />
 [Stereo Measurement Examples](examples/measurement_using_stereo) <> 
-[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
-[How to Integrate Your Own Plugin](examples/hello_world_pipeline) <br />
+[KWIVER Overview](https://github.com/Kitware/kwiver) <br />
 [Image Registration and Mosaicing](examples/image_registration) <>
 [Detection File Formats and Conversions](examples/detection_file_conversions) <>
-[Image Enhancement](examples/image_enhancement)
+[Image Enhancement](examples/image_enhancement) <br />
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline) <>
+[Example Plugin Templates](plugins/templates) <>
+[Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code)
 
 Pre-Built Binaries
 ------------------
