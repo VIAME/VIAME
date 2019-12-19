@@ -45,8 +45,10 @@
 #include <vital/types/track_set.h>
 #include <vital/types/object_track_set.h>
 #include <vital/vital_types.h>
-#include <vital/util/hex_dump.h>
+#include <vital/types/activity_type.h>
+#include <vital/types/activity.h>
 
+#include <vital/util/hex_dump.h>
 #include <vital/logger/logger.h>
 
 #include <vital/internal/cereal/cereal.hpp>
@@ -615,6 +617,69 @@ void load( ::cereal::JSONInputArchive& archive,
     object_tracks.push_back(object_trk_item.get_track());
   }
   obj_trk_set.set_tracks(object_tracks);
+}
+
+void save( cereal::JSONOutputArchive& archive,
+         const kwiver::vital::activity_type& atype )
+{
+  std::map< kwiver::vital::activity_label_t, kwiver::vital::activity_confidence_t > class_map;
+  for ( auto entry : atype )
+  {
+    class_map[entry.first] = entry.second;
+  }
+
+  archive( CEREAL_NVP( class_map ) );
+}
+
+void load( cereal::JSONInputArchive& archive,
+         kwiver::vital::activity_type& atype )
+{
+  std::map< kwiver::vital::activity_label_t, kwiver::vital::activity_confidence_t > class_map;
+  archive( CEREAL_NVP( class_map ) );
+
+  for ( auto entry : class_map )
+  {
+    atype.set_score( entry.first, entry.second );
+  }
+}
+
+void save( cereal::JSONOutputArchive& archive,
+         const kwiver::vital::activity& activity )
+{
+    archive( ::cereal::make_nvp( "id", activity.id() ),
+             ::cereal::make_nvp( "label", activity.label() ),
+             ::cereal::make_nvp( "confidence", activity.confidence() ) );
+    save( archive, *activity.activity_type());
+    save( archive, activity.start());
+    save( archive, activity.end());
+    save( archive, *activity.participants() );
+}
+
+void load( cereal::JSONInputArchive& archive,
+         kwiver::vital::activity& activity )
+{
+  kwiver::vital::activity_id_t id;
+  kwiver::vital::activity_label_t label;
+  kwiver::vital::activity_confidence_t confidence;
+  kwiver::vital::activity_type_sptr activity_type =
+                           std::make_shared< kwiver::vital::activity_type >();
+  kwiver::vital::object_track_set_sptr participants =
+                           std::make_shared< kwiver::vital::object_track_set >();
+  kwiver::vital::timestamp start_frame, end_frame;
+  archive( CEREAL_NVP( id ),
+           CEREAL_NVP( label ),
+           CEREAL_NVP( confidence ) );
+  load( archive, start_frame );
+  load( archive, end_frame );
+  load( archive, *activity_type );
+  load( archive, *participants );
+  activity.set_id( id );
+  activity.set_label( label );
+  activity.set_confidence( confidence );
+  activity.set_activity_type( activity_type );
+  activity.set_start( start_frame );
+  activity.set_end( end_frame );
+  activity.set_participants( participants );
 }
 
 } // end namespace

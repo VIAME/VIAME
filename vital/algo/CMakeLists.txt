@@ -8,6 +8,7 @@
 #
 set( public_headers
 
+  activity_detector.h
   algorithm.h
   algorithm_factory.h
   analyze_tracks.h
@@ -69,6 +70,7 @@ set( public_headers
 
 set( sources
 
+  activity_detector.cxx
   algorithm.cxx
   algorithm_factory.cxx
   analyze_tracks.cxx

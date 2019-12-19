@@ -39,6 +39,8 @@
 
 namespace kwiver {
 namespace vital {
+  class activity;
+  class activity_type;
   class detected_object;
   class detected_object_set;
   class detected_object_type;
@@ -108,6 +110,21 @@ void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::polygon&
 KWIVER_SERIALIZE_JSON_EXPORT
 void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::polygon& poly );
 
+KWIVER_SERIALIZE_JSON_EXPORT
+void save( cereal::JSONOutputArchive& archive,
+           const kwiver::vital::activity_type& atype );
+
+KWIVER_SERIALIZE_JSON_EXPORT
+void load( cereal::JSONInputArchive& archive,
+           kwiver::vital::activity_type& atype );
+
+KWIVER_SERIALIZE_JSON_EXPORT
+void save( cereal::JSONOutputArchive& archive,
+           const kwiver::vital::activity& activity );
+
+KWIVER_SERIALIZE_JSON_EXPORT
+void load( cereal::JSONInputArchive& archive,
+           kwiver::vital::activity& activity );
 }
 
 #endif // ARROWS_SERIALIZATION_JSON_LOAD_SAVE_H

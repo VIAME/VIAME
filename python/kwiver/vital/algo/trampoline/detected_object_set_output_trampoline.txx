@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019-2020 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,27 +31,27 @@
 /**
  * \file detected_object_set_output_trampoline.txx
  *
- * \brief trampoline for overriding virtual functions of algorithm_def<detected_object_set_output> and detected_object_set_output
+ * \brief trampoline for overriding virtual functions for
+ *        \link kwiver::vital::algo::detected_object_set_output \endlink
  */
 
 #ifndef DETECTED_OBJECT_SET_OUTPUT_TRAMPOLINE_TXX
 #define DETECTED_OBJECT_SET_OUTPUT_TRAMPOLINE_TXX
 
-
-#include <vital/bindings/python/vital/util/pybind11.h>
 #include <vital/algo/detected_object_set_output.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
-#include <vital/bindings/python/vital/algo/trampoline/algorithm_trampoline.txx>
+#include <python/kwiver/vital/util/pybind11.h>
+#include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 
 
-
-template <class algorithm_def_doso_base=kwiver::vital::algorithm_def<kwiver::vital::algo::detected_object_set_output>>
+template< class algorithm_def_doso_base=
+           kwiver::vital::algorithm_def< kwiver::vital::algo::detected_object_set_output > >
 class algorithm_def_doso_trampoline :
-      public algorithm_trampoline<algorithm_def_doso_base>
+      public algorithm_trampoline< algorithm_def_doso_base>
 {
   public:
-    using algorithm_trampoline<algorithm_def_doso_base>::algorithm_trampoline;
+    using algorithm_trampoline< algorithm_def_doso_base >::algorithm_trampoline;
 
     std::string type_name() const override
     {
@@ -64,38 +64,29 @@ class algorithm_def_doso_trampoline :
 };
 
 
-template <class detected_object_set_output_base=kwiver::vital::algo::detected_object_set_output>
+template< class detected_object_set_output_base=kwiver::vital::algo::detected_object_set_output >
 class detected_object_set_output_trampoline :
-      public algorithm_def_doso_trampoline<detected_object_set_output_base>
+      public algorithm_def_doso_trampoline< detected_object_set_output_base >
 {
   public:
-    using algorithm_def_doso_trampoline<detected_object_set_output_base>::
+    using algorithm_def_doso_trampoline< detected_object_set_output_base >::
               algorithm_def_doso_trampoline;
 
-    void write_set(kwiver::vital::detected_object_set_sptr set, std::string const& image_path) override
-    {
-      VITAL_PYBIND11_OVERLOAD_PURE(
-        void,
-        kwiver::vital::algo::detected_object_set_output,
-        write_set,
-        set,
-	image_path
-      );
-    }
-
-    void open(std::string const& filename) override
+    void
+    open( std::string const& filename ) override
     {
       VITAL_PYBIND11_OVERLOAD(
         void,
         kwiver::vital::algo::detected_object_set_output,
         open,
-	filename
+        filename
       );
     }
 
-    void close() override
+    void
+    close() override
     {
-      VITAL_PYBIND11_OVERLOAD(
+      VITAL_PYBIND11_OVERLOAD_PURE(
         void,
         kwiver::vital::algo::detected_object_set_output,
         close,
@@ -105,11 +96,23 @@ class detected_object_set_output_trampoline :
     void complete() override
     {
       VITAL_PYBIND11_OVERLOAD(
+          void,
+          kwiver::vital::algo::detected_object_set_output,
+          complete,
+          );
+    }
+
+    void
+    write_set( kwiver::vital::detected_object_set_sptr const set,
+               std::string const& image_name ) override
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
         void,
-	kwiver::vital::algo::detected_object_set_output,
-	complete,
+        kwiver::vital::algo::detected_object_set_output,
+        write_set,
+        set,
+        image_name
       );
     }
 };
-
 #endif

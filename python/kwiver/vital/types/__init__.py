@@ -22,3 +22,4 @@ from kwiver.vital.types.timestamp import *
 from kwiver.vital.types.track import *
 from kwiver.vital.types.track_set import *
 from kwiver.vital.types.object_track_set import *
+from kwiver.vital.types.activity_types import *

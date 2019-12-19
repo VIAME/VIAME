@@ -36,6 +36,8 @@
 #include <arrows/serialize/json/kwiver_serialize_json_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
+#include "activity.h"
+#include "activity_type.h"
 #include "bounding_box.h"
 #include "detected_object.h"
 #include "detected_object_type.h"
@@ -70,6 +72,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   using namespace kwiver::arrows::serialize::json;
 
+  reg.register_algorithm< activity >();
+  reg.register_algorithm< activity_type >();
   reg.register_algorithm< bounding_box >();
   reg.register_algorithm< detected_object >();
   reg.register_algorithm< detected_object_type >();
