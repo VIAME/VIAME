@@ -36,12 +36,14 @@ if __name__ == "__main__" :
 
     for input_file in input_files:
 
-        print( "Processing " + input_file )
+        print( "Processing " + input_file + "\n" )
 
         fin = open( input_file, "r" )
         output = []
 
         for line in fin:
+            if len( line ) > 0 and line[0] == '#' or line[0:9] == 'target_id':
+                continue
             parsed_line = line.rstrip().split(',')
             if len( parsed_line ) < 2:
                 continue
