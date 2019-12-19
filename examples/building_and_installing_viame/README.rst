@@ -257,7 +257,9 @@ setup and build flags you want.
 The biggest build issues on Windows arise from building VIAME in super-build and
 exceeded the windows maximum folder path length. This will typically manifest as build
 errors in the kwiver python libraries. To bypass these errors you have 2 options:
+
 (1) Build VIAME in as high level as possible (e.g. C:\VIAME) or alternatively
+
 (2) Set the VIAME_KWIVER_BUILD_DIR path to be something small outside of your
 superbuild location, e.g. C:\tmp\kwiver to bypass path length limits. This is performed,
 for example, in the nightly build server cmake script as an example:
