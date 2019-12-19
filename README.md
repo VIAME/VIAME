@@ -42,6 +42,7 @@ but select entries are also listed below broken down by individual functionality
 [Core Class and Pipeline Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
 [Object Detector Examples](examples/object_detection) <br />
 [GUIs for Visualization and Annotation](examples/annotation_and_visualization) <> 
+ [Object Tracking](examples/object_tracking) <>
 [Detector Training API](examples/object_detector_training) <>
 [Example Plugin Templates](plugins/templates) <br />
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <> 
@@ -49,7 +50,10 @@ but select entries are also listed below broken down by individual functionality
 [KWIVER Overview](https://github.com/Kitware/kwiver) <br />
 [Stereo Measurement Examples](examples/measurement_using_stereo) <> 
 [Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code) <>
-[How to Integrate Your Own Plugin](examples/hello_world_pipeline)
+[How to Integrate Your Own Plugin](examples/hello_world_pipeline) <br />
+[Registration and Mosaicing](examples/image_registration) <>
+[Detection File Formats and Conversions](examples/detection_file_conversions) <>
+[Image Enhancement](examples/image_enhancement) <>
 
 Pre-Built Binaries
 ------------------
