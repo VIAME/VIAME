@@ -48,9 +48,9 @@ but select entries are also listed below broken down by individual functionality
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <>
 [Detection File Formats and Conversions](examples/detection_file_conversions) <>
 [KWIVER Overview](https://github.com/Kitware/kwiver) <br />
+[Image Enhancement](examples/image_enhancement) <>
 [Image Registration and Mosaicing](examples/image_registration) <>
-[Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <> 
-[Image Enhancement](examples/image_enhancement) <br />
+[Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <br />
 [How to Integrate Your Own Plugin](examples/hello_world_pipeline) <>
 [Example Plugin Templates](plugins/templates) <>
 [Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code)
