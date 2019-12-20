@@ -13,12 +13,11 @@ process input
   image_reader:type = ocv
 
 # ================================================================
-process disp
-  :: image_viewer
-:annotate_image         true
-:pause_time             2.0
-:footer                 footer_footer
-:header                 header-header
+process disp :: image_viewer
+annotate_image     =    true
+pause_time         =    2.0
+footer             =    footer_footer
+header             =    header-header
 
 # ================================================================
 # global pipeline config
