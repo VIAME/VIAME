@@ -304,7 +304,7 @@ if( VIAME_ENABLE_PYTORCH )
     pipelines/train_mmdet_cascade_ihm.viame_csv.conf )
 endif()
 
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYSOT )
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
     pipelines/common_pysot_tracker.pipe
     pipelines/tracker_pysot.pipe )
