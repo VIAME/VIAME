@@ -106,7 +106,6 @@ public:
   std::string m_header;
   std::string m_footer;
 
-
   // ------------------------------------------------------------------
   cv::Mat
   annotate_image( cv::Mat cv_img, kwiver::vital::frame_id_t frame)
@@ -219,6 +218,10 @@ void
 image_viewer_process
 ::_configure()
 {
+  // check for extra config keys
+  auto cd = this->config_diff();
+  cd.warn_extra_keys( logger() );
+
   d->m_pause_ms = static_cast< int >( config_value_using_trait( pause_time ) * 1000.0 ); // convert to msec
   d->m_annotate_image = config_value_using_trait( annotate_image );
   d->m_title          = config_value_using_trait( title );

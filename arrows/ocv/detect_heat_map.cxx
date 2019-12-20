@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017.2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/util/wall_timer.h>
+#include <vital/config/config_difference.h>
 
 #include <arrows/ocv/image_container.h>
 
@@ -742,6 +743,10 @@ detect_heat_map
   // Starting with our generated config_block to ensure that assumed values are present
   // An alternative is to check for key presence before performing a get_value() call.
   vital::config_block_sptr config = this->get_configuration();
+
+  kwiver::vital::config_difference cd( config, in_config );
+  cd.warn_extra_keys( logger() );
+
   config->merge_config(in_config);
 
   d_->m_threshold          = config->get_value<int>( "threshold" );
@@ -837,9 +842,12 @@ detect_heat_map
 
 bool
 detect_heat_map
-::check_configuration(vital::config_block_sptr config) const
+::check_configuration(vital::config_block_sptr config_in) const
 {
-  return true;
+  vital::config_block_sptr config = this->get_configuration();
+
+  kwiver::vital::config_difference cd( config, config_in );
+  return ! cd.warn_extra_keys( logger() );
 }
 
 
