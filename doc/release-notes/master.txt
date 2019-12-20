@@ -90,6 +90,10 @@ Sprokit: Processes
    empty detected object sets are prepended to the stream until the
    offset is satisfied.
 
+ * Added method to comapre the config declared by the process against
+   the config supplied by the pipeline. Any differences can be written
+   to the log. This is useful for identifying misspelled config items.
+
 Tools
 
  * Converting stand-alone tools to reside under the main "kwiver" top
