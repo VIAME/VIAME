@@ -14,6 +14,8 @@ if( VIAME_DOWNLOAD_MODELS )
 
   # PyTorch Detection, Tracking And Rapid Model Generation Models
   if( VIAME_ENABLE_PYTORCH AND VIAME_DOWNLOAD_MODELS-PYTORCH )
+
+    # Default default and generic detection models
     if( VIAME_ENABLE_PYTORCH-MMDET )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/5cdda0b78d777f072bb09919/download
@@ -22,7 +24,7 @@ if( VIAME_DOWNLOAD_MODELS )
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
 
-    # PySOT Tracking Models
+    # Default annotation assist tracking models
     if( VIAME_ENABLE_PYTORCH-PYSOT )
       DownloadAndExtract(
         https://data.kitware.com/api/v1/item/5d2f87ac877dfcc90212d12c/download
