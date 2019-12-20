@@ -90,7 +90,7 @@ add_command_options()
     ( "T,cluster-type", "Cluster type to export", cxxopts::value<std::string>());
 
   m_cmd_options->add_options("output")
-    ( "n,name", "Name of the graph", cxxopts::value<std::string>())
+    ( "n,name", "Name of the graph", cxxopts::value<std::string>()->default_value( "unnamed" )  )
     ( "o,output", "Name of output file or '-' for stdout.",
       cxxopts::value<std::string>()->default_value("-"))
     ( "P,link-prefix", "Prefix for links when formatting for sphinx",
@@ -126,8 +126,8 @@ run()
   sprokit::process_cluster_t cluster;
   sprokit::pipeline_t pipe;
 
-  bool const have_cluster = cmd_args["cluster"].as<bool>();
-  bool const have_cluster_type = cmd_args["cluster-type"].as<bool>();
+  bool const have_cluster = ( cmd_args["cluster"].count() > 0 );
+  bool const have_cluster_type = ( cmd_args["cluster-type"].count() > 0 );
   bool const have_pipeline = ( cmd_args.count("pipe-file") > 0 );
   bool const have_setup = cmd_args["setup"].as<bool>();
   bool const have_link = ( cmd_args.count("link-prefix") > 0 );
@@ -150,7 +150,7 @@ run()
     return EXIT_FAILURE;
   }
 
-  std::string const graph_name = cmd_args["name"].as<std::string>();
+  const std::string graph_name = cmd_args["name"].as<std::string>();
 
   sprokit::pipeline_builder builder;
 

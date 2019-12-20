@@ -552,9 +552,7 @@ namespace cxxopts
     integer_parser(const std::string& text, T& value)
     {
       REGEX_NS::smatch match;
-      REGEX_NS::regex_match(text, match, integer_pattern);
-
-      if (match.length() == 0)
+      if (!REGEX_NS::regex_match(text, match, integer_pattern))
       {
         throw argument_incorrect_type(text);
       }
@@ -1521,9 +1519,7 @@ OptionAdder::operator()
 )
 {
   REGEX_NS::match_results<const char*> result;
-  REGEX_NS::regex_match(opts.c_str(), result, option_specifier);
-
-  if (result.empty())
+  if (!REGEX_NS::regex_match(opts.c_str(), result, option_specifier))
   {
     throw invalid_option_format_error(opts);
   }
@@ -1728,9 +1724,7 @@ ParseResult::parse(int& argc, char**& argv)
     }
 
     REGEX_NS::match_results<const char*> result;
-    REGEX_NS::regex_match(argv[current], result, option_matcher);
-
-    if (result.empty())
+    if (!REGEX_NS::regex_match(argv[current], result, option_matcher))
     {
       //not a flag
 
