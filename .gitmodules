@@ -36,7 +36,7 @@
 	url = https://github.com/VIAME/mmcv.git
 [submodule "packages/pytorch-libs/netharn"]
 	path = packages/pytorch-libs/netharn
-	url = https://github.com/Erotemic/netharn.git
+	url = https://github.com/VIAME/netharn.git
 [submodule "packages/pytorch-libs/pysot"]
 	path = packages/pytorch-libs/pysot
 	url = https://github.com/VIAME/pysot
