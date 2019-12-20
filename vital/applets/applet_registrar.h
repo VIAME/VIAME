@@ -70,18 +70,17 @@ public:
   {
     using kvpf = kwiver::vital::plugin_factory;
 
-    auto fact = plugin_loader().
-      add_factory( new kwiver::vital::plugin_factory_0< tool_t >(
-                     typeid( kwiver::tools::kwiver_applet ).name() ) );
+    kwiver::vital::plugin_factory* fact = new kwiver::vital::plugin_factory_0< tool_t >(
+      typeid( kwiver::tools::kwiver_applet ).name() );
 
     fact->add_attribute( kvpf::PLUGIN_NAME,      tool_t::_plugin_name )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,  tool_t::_plugin_description )
       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  this->module_name() )
       .add_attribute( kvpf::PLUGIN_ORGANIZATION, this->organization() )
-      .add_attribute( kvpf::PLUGIN_CATEGORY,     "kwiver-applet" )
+      .add_attribute( kvpf::PLUGIN_CATEGORY,     kvpf::APPLET_CATEGORY )
       ;
 
-    return fact;
+    return plugin_loader().add_factory( fact );
   }
 };
 

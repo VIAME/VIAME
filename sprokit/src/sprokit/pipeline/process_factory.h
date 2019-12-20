@@ -231,10 +231,10 @@ public:
   {
     using kvpf = kwiver::vital::plugin_factory;
 
-    auto fact = plugin_loader()
-      .add_factory( new sprokit::cpp_process_factory( typeid( process_t ).name(),
-                                                      typeid( sprokit::process ).name(),
-                                                      sprokit::create_new_process< process_t > ) );
+    kwiver::vital::plugin_factory* fact =  new sprokit::cpp_process_factory(
+      typeid( process_t ).name(),
+      typeid( sprokit::process ).name(),
+      sprokit::create_new_process< process_t > );
 
     fact->add_attribute( kvpf::PLUGIN_NAME,      process_t::_plugin_name )
       .add_attribute( kvpf::PLUGIN_DESCRIPTION,  process_t::_plugin_description )
@@ -247,7 +247,7 @@ public:
       fact->add_attribute( "no-test", "introspect" ); // do not include in introspection test
     }
 
-    return fact;
+    return plugin_loader().add_factory( fact );
   }
 };
 
