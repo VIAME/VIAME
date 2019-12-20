@@ -256,7 +256,7 @@ class KwiverProcess(process.PythonProcess):
         :param descr: description of port
 
         """
-        # check to see if tn is in set below
+        # check to see if it is in set below
         tt = self._type_trait_set.get(ttn)
         if tt is None:
             raise ValueError('type trait name \"%s\" not registered' % ttn)

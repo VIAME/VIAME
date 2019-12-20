@@ -86,7 +86,7 @@ namespace kwiver {
 create_config_trait( pause_time, float, "0", "Interval to pause between frames. 0 means wait for keystroke, "
                      "Otherwise interval is in seconds (float)" );
 create_config_trait( annotate_image, bool, "false", "Add frame number and other text to display." );
-create_config_trait( title, std::string, "Display window", "Display window title text.." );
+create_config_trait( title, std::string, "Display window", "Display window title text." );
 create_config_trait( header, std::string, "", "Header text for image display." );
 create_config_trait( footer, std::string, "", "Footer text for image display. Displayed centered at bottom of image." );
 

@@ -30,7 +30,7 @@ expecting. This can be done as follows::
     }
 
 
-Detecting Extra of Misspelled Parameters
+Detecting Extra or Misspelled Parameters
 ----------------------------------------
 
 A very common problem when configuring arrows is misspelling the
