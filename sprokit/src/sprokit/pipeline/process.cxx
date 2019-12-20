@@ -615,6 +615,17 @@ process
 
 
 // ------------------------------------------------------------------
+kwiver::vital::config_difference
+process
+::config_diff() const
+{
+  auto avail_conf = available_config();
+  //                                       ref-config  supplied-conf
+  return kwiver::vital::config_difference( avail_conf, d->conf );
+}
+
+
+// ------------------------------------------------------------------
 process::name_t
 process
 ::name() const

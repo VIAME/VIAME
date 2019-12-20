@@ -38,6 +38,7 @@
 #include "types.h"
 
 #include <vital/config/config_block.h>
+#include <vital/config/config_difference.h>
 #include <vital/logger/logger.h>
 #include <vital/plugin_loader/plugin_info.h>
 
@@ -514,6 +515,21 @@ class SPROKIT_PIPELINE_EXPORT process
      * \returns Information about the parameter.
      */
     conf_info_t config_info(kwiver::vital::config_block_key_t const& key);
+
+    /**
+     * \brief Determine difference between process config and pipe config
+     *
+     * This method returns the differences between the configuration
+     * declared by the process and the actual configuration provided
+     * by the pipe file. These differences can be queried from the
+     * returned object. Extra config items are those that are supplied
+     * by the pipe file but not declared by the process. Unspecified
+     * config items are those that are declared by the process but not
+     * specified in the pipe file.
+     *
+     * \return Object with the config differences
+     */
+    kwiver::vital::config_difference config_diff() const;
 
     /**
      * \brief The name of the process.
