@@ -4,10 +4,10 @@
 
 # Define modules with tests in them
 set(__testable_modnames
-  test_algo_convert_image
   test_algorithm_factory
   test_camera
   test_camera_intrinsics
+  test_config
   test_camera_map
   test_color
   test_covariance
@@ -15,7 +15,6 @@ set(__testable_modnames
   test_descriptor_set
   test_eigen_numpy
   test_feature
-  test_find_vital_library
   test_homography
   test_image
   test_image_container
