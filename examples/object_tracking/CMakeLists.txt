@@ -12,6 +12,7 @@ if( WIN32 )
        run_default_tracker.bat
        run_generic_tracker.bat
        run_mouss_tracker.bat
+       run_pysot_tracker.bat
        run_simple_tracker.bat
        run_track_viewer.bat )
 elseif( APPLE )
@@ -20,6 +21,7 @@ elseif( APPLE )
        run_default_tracker.sh
        run_generic_tracker.sh
        run_mouss_tracker.sh
+       run_pysot_tracker.sh
        run_simple_tracker.sh
        run_track_viewer.mac.sh )
 else()
@@ -28,6 +30,7 @@ else()
        run_default_tracker.sh
        run_generic_tracker.sh
        run_mouss_tracker.sh
+       run_pysot_tracker.sh
        run_simple_tracker.sh
        run_track_viewer.sh )
 endif()

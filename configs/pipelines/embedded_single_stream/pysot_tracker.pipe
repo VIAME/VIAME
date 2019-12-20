@@ -1,0 +1,35 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+
+config _pipeline:_edge
+   :capacity                                   1
+
+config _scheduler
+   :type                                       pythread_per_process
+
+# ==================================================================================
+
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+include ../common_pysot_tracker.pipe
+
+# Connect inputs to tracker
+connect from in_adapt.image
+        to   tracker.image
+connect from in_adapt.timestamp
+        to   tracker.timestamp
+connect from in_adapt.object_track_set
+        to   tracker.object_track_set
+
+connect from tracker.object_track_set
+        to   out_adapt.object_track_set
+
+# -- end of file --
+
