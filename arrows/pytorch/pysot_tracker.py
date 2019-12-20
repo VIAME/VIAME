@@ -238,7 +238,7 @@ class PYSOTTracker(KwiverProcess):
                 starting_frame_id = [t.first_frame for t in input_ots.tracks()][-1]
                 last_track_id = [t.id for t in input_ots.tracks()][-1]
                 input_track = input_ots.get_track(last_track_id)[starting_frame_id]
-                temp_bbox = input_track.detection.bounding_box()
+                temp_bbox = input_track.detection().bounding_box()
                 self._seed_bbox = [temp_bbox.min_x(), temp_bbox.min_y(),
                                    temp_bbox.width(), temp_bbox.height()]
                 self._init_track_flag = True
