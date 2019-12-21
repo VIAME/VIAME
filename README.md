@@ -164,7 +164,8 @@ it, in which case running just 'make' might be more helpful. For Windows,
 currently VS2017 is the desired compiler, though select versions of 2015 and 2019
 also work. If using CUDA, version 9.0 and above, with CUDNN 7.0 and above is desired,
 in particular we recommend CUDA 10. On both Windows and Linux it can also be
-beneficial to use Anaconda to get multiple standard python packages.
+beneficial to use Anaconda to get multiple standard python packages. Having numpy
+installed, at a minimum, is necessary for python.
 
 There are several optional arguments to viame which control which plugins get built,
 such as those listed below. If a plugin is enabled that depends on another dependency
