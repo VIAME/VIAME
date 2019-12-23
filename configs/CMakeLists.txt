@@ -130,6 +130,7 @@ install( DIRECTORY prj-windows
 # All files manually-included based on options
 ##
 set( RUN_SCRIPT_FILES
+  check_formatting.py
   database_tool.py
   extract_video_frames.py
   process_video.py
