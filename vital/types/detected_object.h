@@ -242,7 +242,7 @@ public:
    *
    * @return Pointer to classification object or NULL.
    */
-  detected_object_type_sptr type();
+  detected_object_type_sptr type() const;
 
   /**
    * @brief Set new classifications for this detection.
