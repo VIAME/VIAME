@@ -267,14 +267,13 @@ bounding_box<T> & translate( bounding_box<T>& bbox,
 /**
  * @brief Scale a box by some scale factor.
  *
- * This operator scales bounding_box by the specified
- * amount.
+ * This operator scales bounding_box by the specified factor. A new
+ * box is returned that has been scaled from the input box.
  *
- * @param[in,out] bbox Box to translate
- * @param[in] scale_factor Scale factor to use
+ * @param bbox Box to scale
+ * @param scale_factor Scale factor to use
  *
- * @return The specified parameter box, updated with the new
- * coordinates, is returned.
+ * @return A new bounding box that has been scaled.
  */
 template < typename T >
 bounding_box<T> scale( bounding_box<T> const& bbox,

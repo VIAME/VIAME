@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,67 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Implementation of source_location class.
- */
-
-#include "source_location.h"
+#include "detected_object_set_util.h"
 
 namespace kwiver {
 namespace vital {
 
 // ------------------------------------------------------------------
-source_location::
-source_location()
-  : m_line_num(0)
-{ }
-
-
-// ------------------------------------------------------------------
-source_location::
-source_location( std::shared_ptr< std::string > f, int l)
-  : m_file_name(f)
-  , m_line_num(l)
-{ }
-
-
-// ------------------------------------------------------------------
-source_location::
-source_location( const source_location& other )
-  : m_file_name(other.m_file_name)
-  , m_line_num( other.m_line_num )
-{ }
-
-
-// ------------------------------------------------------------------
-source_location::
-~source_location()
-{ }
-
-
-// ------------------------------------------------------------------
-std::ostream &
-source_location::
-format (std::ostream & str) const
+void
+scale_detections( detected_object_set_sptr dos,
+       double scale_factor )
 {
-  if (m_line_num > 0)
+  if( scale_factor == 1.0 )
   {
-    str << *m_file_name << ":" << m_line_num;
+    return;
   }
 
-  return str;
+  for( auto detection : *dos )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::scale( bbox, scale_factor );
+    detection->set_bounding_box( bbox );
+  }
 }
 
-
 // ------------------------------------------------------------------
-bool
-source_location::
-valid() const
+void
+shift_detections( detected_object_set_sptr dos,
+       double col_shift, double row_shift )
 {
-  return (  m_line_num > 0) &&
-    ( m_file_name ) &&
-    ( ! m_file_name->empty() );
+  if( col_shift == 0.0 && row_shift == 0.0 )
+  {
+    return;
+  }
+
+  for( auto detection : *dos )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::translate( bbox,
+      bounding_box_d::vector_type( col_shift, row_shift ) );
+    detection->set_bounding_box( bbox );
+  }
 }
 
 } } // end namespace

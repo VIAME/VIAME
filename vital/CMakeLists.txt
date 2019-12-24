@@ -91,29 +91,28 @@ set( vital_public_headers
   types/bounding_box.h
   types/camera.h
   types/camera_intrinsics.h
+  types/camera_map.h
   types/camera_perspective.h
   types/camera_perspective_map.h
   types/camera_rpc.h
-  types/camera_map.h
   types/category_hierarchy.h
   types/color.h
   types/covariance.h
   types/database_query.h
   types/descriptor.h
-  types/descriptor_set.h
   types/descriptor_request.h
+  types/descriptor_set.h
   types/detected_object.h
   types/detected_object_set.h
+  types/detected_object_set_util.h
   types/detected_object_type.h
   types/essential_matrix.h
-  types/detected_object.h
-  types/detected_object_set.h
   types/feature.h
   types/feature_set.h
   types/feature_track_set.h
   types/fundamental_matrix.h
-  types/geo_covariance.h
   types/geo_MGRS.h
+  types/geo_covariance.h
   types/geo_point.h
   types/geo_polygon.h
   types/geodesy.h
@@ -134,8 +133,8 @@ set( vital_public_headers
   types/mesh.h
   types/metadata.h
   types/metadata_map.h
-  types/metadata_traits.h
   types/metadata_tags.h
+  types/metadata_traits.h
   types/object_track_set.h
   types/point.h
   types/polygon.h
@@ -147,13 +146,13 @@ set( vital_public_headers
   types/timestamp.h
   types/timestamp_config.h
   types/track.h
-  types/track_interval.h
-  types/track_set.h
   types/track_descriptor.h
   types/track_descriptor_set.h
+  types/track_interval.h
+  types/track_set.h
   types/transform_2d.h
-  types/vector.h
   types/uid.h
+  types/vector.h
 )
 
 # ----------------------
@@ -179,13 +178,14 @@ set( vital_sources
   types/descriptor_request.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx
+  types/detected_object_set_util.cxx
   types/detected_object_type.cxx
   types/essential_matrix.cxx
   types/feature.cxx
   types/feature_track_set.cxx
   types/fundamental_matrix.cxx
-  types/geo_covariance.cxx
   types/geo_MGRS.cxx
+  types/geo_covariance.cxx
   types/geo_point.cxx
   types/geo_polygon.cxx
   types/geodesy.cxx

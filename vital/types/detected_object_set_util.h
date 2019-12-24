@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,67 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Implementation of source_location class.
- */
+#ifndef VITAL_DETECTED_OBJECT_SET_UTIL_H
+#define VITAL_DETECTED_OBJECT_SET_UTIL_H
 
-#include "source_location.h"
+#include <vital/vital_export.h>
+#include "detected_object_set.h"
 
 namespace kwiver {
 namespace vital {
 
-// ------------------------------------------------------------------
-source_location::
-source_location()
-  : m_line_num(0)
-{ }
+/**
+ * @brief Scale all detection locations by some scale factor.
+ *
+ * This method changes the bounding boxes within all stored detections
+ * by scaling them by some scale factor.
+ *
+ * @param scale Scale factor
+ */
+void VITAL_EXPORT
+scale_detections( detected_object_set_sptr dos,
+                  double scale_factor );
 
-
-// ------------------------------------------------------------------
-source_location::
-source_location( std::shared_ptr< std::string > f, int l)
-  : m_file_name(f)
-  , m_line_num(l)
-{ }
-
-
-// ------------------------------------------------------------------
-source_location::
-source_location( const source_location& other )
-  : m_file_name(other.m_file_name)
-  , m_line_num( other.m_line_num )
-{ }
-
-
-// ------------------------------------------------------------------
-source_location::
-~source_location()
-{ }
-
-
-// ------------------------------------------------------------------
-std::ostream &
-source_location::
-format (std::ostream & str) const
-{
-  if (m_line_num > 0)
-  {
-    str << *m_file_name << ":" << m_line_num;
-  }
-
-  return str;
-}
-
-
-// ------------------------------------------------------------------
-bool
-source_location::
-valid() const
-{
-  return (  m_line_num > 0) &&
-    ( m_file_name ) &&
-    ( ! m_file_name->empty() );
-}
+/**
+ * @brief Shift all detection locations by some translation offset.
+ *
+ * This method shifts the bounding boxes within all stored detections
+ * by a supplied column and row shift.
+ *
+ * Note: Detections in this set can be shared by multiple sets, so
+ * shifting the detections in this set will also shift the detection
+ * in other sets that share this detection. If this is going to be a
+ * problem, clone() this set before shifting.
+ *
+ * @param col_shift Column  (a.k.a. x, i, width) translation factor
+ * @param row_shift Row (a.k.a. y, j, height) translation factor
+ */
+void VITAL_EXPORT
+shift_detections( detected_object_set_sptr dos,
+                  double col_shift, double row_shift );
 
 } } // end namespace
+
+#endif // VITAL_DETECTED_OBJECT_SET_UTIL_H

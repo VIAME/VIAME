@@ -217,9 +217,25 @@ metadata
 
 metadata::const_iterator_t
 metadata
+::cbegin() const
+{
+  return m_metadata_map.cbegin();
+}
+
+
+metadata::const_iterator_t
+metadata
 ::end() const
 {
   return m_metadata_map.end();
+}
+
+
+metadata::const_iterator_t
+metadata
+::cend() const
+{
+  return m_metadata_map.cend();
 }
 
 
