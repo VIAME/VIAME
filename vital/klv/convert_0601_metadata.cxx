@@ -184,7 +184,7 @@ convert_metadata
   auto raw_corner_pt2 = empty_vector<2>();
   auto raw_corner_pt3 = empty_vector<2>();
   auto raw_corner_pt4 = empty_vector<2>();
-  auto raw_target_location = empty_vector<2>();
+  auto raw_target_location = empty_vector<3>();
 
   for ( auto itr = lds.begin(); itr != lds.end(); ++itr )
   {
@@ -249,7 +249,6 @@ convert_metadata
       CASE( STATIC_PRESSURE );
       CASE( DENSITY_ALTITUDE );
       CASE( OUTSIDE_AIR_TEMPERATURE );
-      CASE( TARGET_LOCATION_ELEV );
       CASE( TARGET_TRK_GATE_WIDTH );
       CASE( TARGET_TRK_GATE_HEIGHT );
       CASE_COPY( SECURITY_LOCAL_MD_SET );
@@ -388,16 +387,16 @@ convert_metadata
     }
       break;
 
+    case KLV_0601_TARGET_LOCATION_ELEV:
+      raw_target_location[2] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LAT, data );
+      break;
+
     case KLV_0601_TARGET_LOCATION_LAT:
-    {
       raw_target_location[1] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LAT, data );
-    }
       break;
 
     case KLV_0601_TARGET_LOCATION_LONG:
-    {
       raw_target_location[0] = klv_0601_value_double( KLV_0601_TARGET_LOCATION_LONG, data );
-    }
       break;
 
     default:
