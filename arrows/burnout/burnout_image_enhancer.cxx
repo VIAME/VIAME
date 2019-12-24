@@ -112,7 +112,7 @@ burnout_image_enhancer::priv
     {
       throw std::runtime_error(  "Failed to set pipeline parameters" );
     }
-  
+
     if( !process->initialize() )
     {
       throw std::runtime_error( "Failed to initialize pipeline" );
@@ -128,7 +128,7 @@ burnout_image_enhancer::priv
     {
       throw std::runtime_error(  "Failed to set pipeline parameters" );
     }
-  
+
     if( !process->initialize() )
     {
       throw std::runtime_error( "Failed to initialize pipeline" );

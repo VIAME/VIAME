@@ -187,7 +187,7 @@ burnout_pixel_classification
   }
 
   return kwiver::vital::image_container_sptr(
-    new arrows::vxl::image_container( d->m_process.inpainted_image() ) ); 
+    new arrows::vxl::image_container( d->m_process.inpainted_image() ) );
 }
 
 
