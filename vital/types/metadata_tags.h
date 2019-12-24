@@ -48,94 +48,94 @@
 //      tag                          string name                        type
 //      ---                          -----------                        ----
 #define KWIVER_VITAL_METADATA_TAGS(CALL)                                \
-CALL( UNKNOWN,                     "Unknown / Undefined entry",       int) \
-CALL( METADATA_ORIGIN,             "Origin of metadata",              std::string ) \
-CALL( UNIX_TIMESTAMP,              "Unix Time Stamp",                 uint64_t) \
-CALL( MISSION_ID,                  "Mission ID",                      std::string) \
-CALL( MISSION_NUMBER,              "Episode Number",                  std::string) \
-CALL( PLATFORM_TAIL_NUMBER,        "Platform Tail Number",            std::string) \
-CALL( PLATFORM_HEADING_ANGLE,      "Platform Heading Angle",          double) \
-CALL( PLATFORM_PITCH_ANGLE,        "Platform Pitch Angle",            double) \
-CALL( PLATFORM_ROLL_ANGLE,         "Platform Roll Angle",             double) \
-CALL( PLATFORM_TRUE_AIRSPEED,      "Platform True Airspeed",          double) \
-CALL( PLATFORM_INDICATED_AIRSPEED, "Platform Indicated Airspeed",     double) \
-CALL( PLATFORM_DESIGNATION,        "Platform Designation",            std::string) \
-CALL( IMAGE_SOURCE_SENSOR,         "Image Source Sensor",             std::string) \
-CALL( IMAGE_COORDINATE_SYSTEM,     "Image Coordinate System",         std::string) \
-CALL( IMAGE_URI,                   "Image URI",                       std::string) \
-CALL( VIDEO_URI,                   "Video URI",                       std::string) \
-CALL( VIDEO_KEY_FRAME,             "Is frame a key frame",            bool) \
-CALL( SENSOR_LOCATION,             "Sensor Geodetic Location, L/L/A", geo_point) \
-CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View", double) \
-CALL( SENSOR_VERTICAL_FOV,         "Sensor Vertical Field of View",   double) \
-CALL( SENSOR_REL_AZ_ANGLE,         "Sensor Relative Azimuth Angle",   double) \
-CALL( SENSOR_REL_EL_ANGLE,         "Sensor Relative Elevation Angle", double) \
-CALL( SENSOR_REL_ROLL_ANGLE,       "Sensor Relative Roll Angle",      double) \
-CALL( SENSOR_YAW_ANGLE,            "Sensor yaw angle",                double ) \
-CALL( SENSOR_PITCH_ANGLE,          "Sensor pitch angle",              double ) \
-CALL( SENSOR_ROLL_ANGLE,           "Sensor Roll Angle",               double) \
-CALL( SENSOR_TYPE,                 "Sensor Type",                     std::string) \
-CALL( SLANT_RANGE,                 "Slant Range",                     double) \
-CALL( TARGET_WIDTH,                "Target Width",                    double) \
-CALL( FRAME_CENTER,                "Geodetic Frame Center",           geo_point) \
-CALL( FRAME_CENTER_ELEV,           "Frame Center Elevation",          double) /* TODO: merge with previous? */ \
-CALL( CORNER_POINTS,               "Corner points",                   geo_polygon) \
-CALL( ICING_DETECTED,              "Icing Detected",                  uint64_t) \
-CALL( WIND_DIRECTION,              "Wind Direction",                  double) \
-CALL( WIND_SPEED,                  "Wind Speed",                      double) \
-CALL( STATIC_PRESSURE,             "Static Pressure",                 double) \
-CALL( DENSITY_ALTITUDE,            "Density Altitude",                double) \
-CALL( OUTSIDE_AIR_TEMPERATURE,     "Outside Air Temperature",         double) \
-CALL( TARGET_LOCATION,             "Target Geodetic Location",        geo_point) \
-CALL( TARGET_LOCATION_ELEV,        "Target Location Elevation",       double) /* TODO: merge with previous? */ \
-CALL( TARGET_TRK_GATE_WIDTH,       "Target Track Gate Width",         double) \
-CALL( TARGET_TRK_GATE_HEIGHT,      "Target Track Gate Height",        double) \
-CALL( TARGET_ERROR_EST_CE90,       "Target Error Estimate - CE90",    double) \
-CALL( TARGET_ERROR_EST_LE90,       "Target Error Estimate - LE90",    double) \
-CALL( DIFFERENTIAL_PRESSURE,       "Differential Pressure",           double) \
-CALL( PLATFORM_ANG_OF_ATTACK,      "Platform Angle of Attack",        double) \
-CALL( PLATFORM_VERTICAL_SPEED,     "Platform Vertical Speed",         double) \
-CALL( PLATFORM_SIDESLIP_ANGLE,     "Platform Sideslip Angle",         double) \
-CALL( AIRFIELD_BAROMET_PRESS,      "Airfield Barometric Pressure",    double) \
-CALL( AIRFIELD_ELEVATION,          "Airfield Elevation",              double) \
-CALL( RELATIVE_HUMIDITY,           "Relative Humidity",               double) \
-CALL( PLATFORM_GROUND_SPEED,       "Platform Ground Speed",           double) \
-CALL( GROUND_RANGE,                "Ground Range",                    double) \
-CALL( PLATFORM_FUEL_REMAINING,     "Platform Fuel Remaining",         double) \
-CALL( PLATFORM_CALL_SIGN,          "Platform Call Sign",              std::string) \
-CALL( LASER_PRF_CODE,              "Laser PRF Code",                  uint64_t) \
-CALL( SENSOR_FOV_NAME,             "Sensor Field of View Name",       uint64_t) \
-CALL( PLATFORM_MAGNET_HEADING,     "Platform Magnetic Heading",       double) \
-CALL( UAS_LDS_VERSION_NUMBER,      "UAS LDS Version Number",          uint64_t) \
-CALL( ANGLE_TO_NORTH,              "Angle to North",                  double) \
-CALL( OBLIQUITY_ANGLE,             "Sensor Elevation Angle",          double) \
-CALL( START_DATE_TIME_UTC,         "Start Date Time - UTC",           std::string ) \
-CALL( EVENT_START_DATE_TIME_UTC,   "Event Start Date Time - UTC",     std::string ) \
-CALL( MISSION_START_TIME_UTC,      "Mission Start Date Time - UTC",   std::string ) \
-CALL( SECURITY_CLASSIFICATION,     "Security Classification",         std::string ) \
-CALL( CLASSIFICATION,              "Classification (0102 lds)",       std::string ) \
-CALL( SECURITY_LOCAL_MD_SET,       "Security Local Metadata Set",     std::string ) /* really std_0102_lds */ \
-CALL( 0601_WEAPON_LOAD,            "Weapon Load",                     uint64_t) \
-CALL( 0601_WEAPON_FIRED,           "Weapon Fired",                    uint64_t) \
-CALL( AVERAGE_GSD,                 "Average GSD value",               double) \
-CALL( GPS_SEC,                     "GPS seconds",                     double ) \
-CALL( GPS_WEEK,                    "GPS week",                        int ) \
-CALL( NORTHING_VEL,                "Northing velocity",               double ) \
-CALL( EASTING_VEL,                 "Easting velocity",                double ) \
-CALL( UP_VEL,                      "UP velocity",                     double ) \
-CALL( IMU_STATUS,                  "IMU status",                      int ) \
-CALL( LOCAL_ADJ,                   "Local adj",                       int ) \
-CALL( DST_FLAGS,                   "Dst flags",                       int ) \
-CALL( RPC_HEIGHT_OFFSET,           "RPC height offset",               double ) \
-CALL( RPC_HEIGHT_SCALE,            "RPC height scale",                double ) \
-CALL( RPC_LONG_OFFSET,             "RPC longitude offset",            double ) \
-CALL( RPC_LONG_SCALE,              "RPC longitude scale",             double ) \
-CALL( RPC_LAT_OFFSET,              "RPC latitude offset",             double ) \
-CALL( RPC_LAT_SCALE,               "RPC latitude scale",              double ) \
-CALL( RPC_ROW_OFFSET,              "RPC row offset",                  double ) \
-CALL( RPC_ROW_SCALE,               "RPC row scale",                   double ) \
-CALL( RPC_COL_OFFSET,              "RPC column offset",               double ) \
-CALL( RPC_COL_SCALE ,              "RPC column scale",                double ) \
+CALL( UNKNOWN,                     "Unknown / Undefined entry",            int ) \
+CALL( METADATA_ORIGIN,             "Origin of metadata",                   std::string ) \
+CALL( UNIX_TIMESTAMP,              "Unix Time Stamp",                      uint64_t ) \
+CALL( MISSION_ID,                  "Mission ID",                           std::string ) \
+CALL( MISSION_NUMBER,              "Episode Number",                       std::string ) \
+CALL( PLATFORM_TAIL_NUMBER,        "Platform Tail Number",                 std::string ) \
+CALL( PLATFORM_HEADING_ANGLE,      "Platform Heading Angle",               double ) \
+CALL( PLATFORM_PITCH_ANGLE,        "Platform Pitch Angle",                 double ) \
+CALL( PLATFORM_ROLL_ANGLE,         "Platform Roll Angle",                  double ) \
+CALL( PLATFORM_TRUE_AIRSPEED,      "Platform True Airspeed",               double ) \
+CALL( PLATFORM_INDICATED_AIRSPEED, "Platform Indicated Airspeed",          double ) \
+CALL( PLATFORM_DESIGNATION,        "Platform Designation",                 std::string ) \
+CALL( IMAGE_SOURCE_SENSOR,         "Image Source Sensor",                  std::string ) \
+CALL( IMAGE_COORDINATE_SYSTEM,     "Image Coordinate System",              std::string ) \
+CALL( IMAGE_URI,                   "Image URI",                            std::string ) \
+CALL( VIDEO_URI,                   "Video URI",                            std::string ) \
+CALL( VIDEO_KEY_FRAME,             "Is frame a key frame",                 bool ) \
+CALL( SENSOR_LOCATION,             "Sensor Geodetic Location, Lat/Lon/Alt", geo_point ) \
+CALL( SENSOR_HORIZONTAL_FOV,       "Sensor Horizontal Field of View",      double ) \
+CALL( SENSOR_VERTICAL_FOV,         "Sensor Vertical Field of View",        double ) \
+CALL( SENSOR_REL_AZ_ANGLE,         "Sensor Relative Azimuth Angle",        double ) \
+CALL( SENSOR_REL_EL_ANGLE,         "Sensor Relative Elevation Angle",      double ) \
+CALL( SENSOR_REL_ROLL_ANGLE,       "Sensor Relative Roll Angle",           double ) \
+CALL( SENSOR_YAW_ANGLE,            "Sensor yaw angle",                     double ) \
+CALL( SENSOR_PITCH_ANGLE,          "Sensor pitch angle",                   double ) \
+CALL( SENSOR_ROLL_ANGLE,           "Sensor Roll Angle",                    double ) \
+CALL( SENSOR_TYPE,                 "Sensor Type",                          std::string ) \
+CALL( SLANT_RANGE,                 "Slant Range",                          double ) \
+CALL( TARGET_WIDTH,                "Target Width",                         double ) \
+CALL( FRAME_CENTER,                "Geodetic Frame Center",                geo_point ) \
+CALL( FRAME_CENTER_ELEV,           "Frame Center Elevation",               double ) /* TODO: merge with previous? */ \
+CALL( CORNER_POINTS,               "Corner points",                        geo_polygon ) \
+CALL( ICING_DETECTED,              "Icing Detected",                       uint64_t ) \
+CALL( WIND_DIRECTION,              "Wind Direction",                       double ) \
+CALL( WIND_SPEED,                  "Wind Speed",                           double ) \
+CALL( STATIC_PRESSURE,             "Static Pressure",                      double ) \
+CALL( DENSITY_ALTITUDE,            "Density Altitude",                     double ) \
+CALL( OUTSIDE_AIR_TEMPERATURE,     "Outside Air Temperature",              double ) \
+CALL( TARGET_LOCATION,             "Target Geodetic Location",             geo_point ) \
+CALL( TARGET_LOCATION_ELEV,        "Target Location Elevation",            double ) /* TODO: merge with previous? */ \
+CALL( TARGET_TRK_GATE_WIDTH,       "Target Track Gate Width",              double ) \
+CALL( TARGET_TRK_GATE_HEIGHT,      "Target Track Gate Height",             double ) \
+CALL( TARGET_ERROR_EST_CE90,       "Target Error Estimate - CE90",         double ) \
+CALL( TARGET_ERROR_EST_LE90,       "Target Error Estimate - LE90",         double ) \
+CALL( DIFFERENTIAL_PRESSURE,       "Differential Pressure",                double ) \
+CALL( PLATFORM_ANG_OF_ATTACK,      "Platform Angle of Attack",             double ) \
+CALL( PLATFORM_VERTICAL_SPEED,     "Platform Vertical Speed",              double ) \
+CALL( PLATFORM_SIDESLIP_ANGLE,     "Platform Sideslip Angle",              double ) \
+CALL( AIRFIELD_BAROMET_PRESS,      "Airfield Barometric Pressure",         double ) \
+CALL( AIRFIELD_ELEVATION,          "Airfield Elevation",                   double ) \
+CALL( RELATIVE_HUMIDITY,           "Relative Humidity",                    double ) \
+CALL( PLATFORM_GROUND_SPEED,       "Platform Ground Speed",                double ) \
+CALL( GROUND_RANGE,                "Ground Range",                         double ) \
+CALL( PLATFORM_FUEL_REMAINING,     "Platform Fuel Remaining",              double ) \
+CALL( PLATFORM_CALL_SIGN,          "Platform Call Sign",                   std::string ) \
+CALL( LASER_PRF_CODE,              "Laser PRF Code",                       uint64_t ) \
+CALL( SENSOR_FOV_NAME,             "Sensor Field of View Name",            uint64_t ) \
+CALL( PLATFORM_MAGNET_HEADING,     "Platform Magnetic Heading",            double ) \
+CALL( UAS_LDS_VERSION_NUMBER,      "UAS LDS Version Number",               uint64_t ) \
+CALL( ANGLE_TO_NORTH,              "Angle to North",                       double ) \
+CALL( OBLIQUITY_ANGLE,             "Sensor Elevation Angle",               double ) \
+CALL( START_DATE_TIME_UTC,         "Start Date Time - UTC",                std::string ) \
+CALL( EVENT_START_DATE_TIME_UTC,   "Event Start Date Time - UTC",          std::string ) \
+CALL( MISSION_START_TIME_UTC,      "Mission Start Date Time - UTC",        std::string ) \
+CALL( SECURITY_CLASSIFICATION,     "Security Classification",              std::string ) \
+CALL( CLASSIFICATION,              "Classification (0102 lds )",           std::string ) \
+CALL( SECURITY_LOCAL_MD_SET,       "Security Local Metadata Set",          std::string ) /* really std_0102_lds */ \
+CALL( 0601_WEAPON_LOAD,            "Weapon Load",                          uint64_t ) \
+CALL( 0601_WEAPON_FIRED,           "Weapon Fired",                         uint64_t ) \
+CALL( AVERAGE_GSD,                 "Average GSD value",                    double ) \
+CALL( GPS_SEC,                     "GPS seconds",                          double ) \
+CALL( GPS_WEEK,                    "GPS week",                             int ) \
+CALL( NORTHING_VEL,                "Northing velocity",                    double ) \
+CALL( EASTING_VEL,                 "Easting velocity",                     double ) \
+CALL( UP_VEL,                      "UP velocity",                          double ) \
+CALL( IMU_STATUS,                  "IMU status",                           int ) \
+CALL( LOCAL_ADJ,                   "Local adj",                            int ) \
+CALL( DST_FLAGS,                   "Dst flags",                            int ) \
+CALL( RPC_HEIGHT_OFFSET,           "RPC height offset",                    double ) \
+CALL( RPC_HEIGHT_SCALE,            "RPC height scale",                     double ) \
+CALL( RPC_LONG_OFFSET,             "RPC longitude offset",                 double ) \
+CALL( RPC_LONG_SCALE,              "RPC longitude scale",                  double ) \
+CALL( RPC_LAT_OFFSET,              "RPC latitude offset",                  double ) \
+CALL( RPC_LAT_SCALE,               "RPC latitude scale",                   double ) \
+CALL( RPC_ROW_OFFSET,              "RPC row offset",                       double ) \
+CALL( RPC_ROW_SCALE,               "RPC row scale",                        double ) \
+CALL( RPC_COL_OFFSET,              "RPC column offset",                    double ) \
+CALL( RPC_COL_SCALE ,              "RPC column scale",                     double ) \
 CALL( RPC_ROW_NUM_COEFF,           "RPC row numerator coefficients",       std::string ) \
 CALL( RPC_ROW_DEN_COEFF,           "RPC row denominator coefficients",     std::string ) \
 CALL( RPC_COL_NUM_COEFF,           "RPC column numerator coefficients",    std::string ) \
@@ -157,7 +157,7 @@ namespace vital {
 
 enum vital_metadata_tag {
 
-#define ENUM_ITEM( TAG, NAME, T) VITAL_META_ ## TAG,
+#define ENUM_ITEM(TAG, NAME, T) VITAL_META_ ## TAG,
 
   // Generate enum items
   KWIVER_VITAL_METADATA_TAGS( ENUM_ITEM )
