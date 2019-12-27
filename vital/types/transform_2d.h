@@ -73,6 +73,13 @@ public:
    * \return New point in the projected coordinate system.
    */
   virtual vector_2d map( vector_2d const& p ) const = 0;
+
+  /// Return an inverse of this transform object
+  /**
+   * \return A new transform object that is the inverse of this transformation,
+   *         or a null pointer if the transformation is not invertible.
+   */
+  virtual transform_2d_sptr inverse() const = 0;
 };
 
 } // namespace vital
