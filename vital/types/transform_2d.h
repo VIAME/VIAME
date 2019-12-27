@@ -79,7 +79,10 @@ public:
    * \return A new transform object that is the inverse of this transformation,
    *         or a null pointer if the transformation is not invertible.
    */
-  virtual transform_2d_sptr inverse() const = 0;
+  transform_2d_sptr inverse() const { return this->inverse_(); }
+
+protected:
+  virtual transform_2d_sptr inverse_() const = 0;
 };
 
 } // namespace vital

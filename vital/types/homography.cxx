@@ -162,7 +162,7 @@ homography_< T >
   {
     norm /= norm( 2, 2 );
   }
-  return homography_sptr( new homography_< T > ( norm ) );
+  return std::make_shared< homography_< T > >( norm );
 }
 
 
@@ -180,7 +180,7 @@ homography_< T >
   {
     throw non_invertible_matrix();
   }
-  return homography_sptr( new homography_< T > ( inv ) );
+  return std::make_shared< homography_< T > >( inv );
 }
 
 
