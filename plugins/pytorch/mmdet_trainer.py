@@ -284,8 +284,7 @@ class MMDetTrainer( TrainDetector ):
             train_dataset,
             self._cfg,
             distributed = self._distributed,
-            validate = self._validate,
-            logger = self._logger )
+            validate = self._validate )
 
         self.save_model_files( is_final=True )
 
@@ -302,7 +301,9 @@ class MMDetTrainer( TrainDetector ):
 
         cmd = [ str( sys.executable ) ]
 
-        if self._distributed and self._launcher == "pytorch":
+        multi_gpu = self._gpu_count != 1 and torch.cuda.device_count() > 1
+
+        if multi_gpu and self._launcher == "pytorch":
             cmd += [ "-m", "torch.distributed.launch" ]
 
         cmd += [ "-c",
