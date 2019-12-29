@@ -45,136 +45,136 @@ import mmcv
 
 
 class MMDetDetector( ImageObjectDetector ):
-  """
-  Implementation of ImageObjectDetector class
-  """
-  def __init__( self ):
-    ImageObjectDetector.__init__(self)
-    self._net_config = ""
-    self._weight_file = ""
-    self._class_names = ""
-    self._thresh = 0.01
-    self._gpu_index = "0"
-    self._display_detections = False
+    """
+    Implementation of ImageObjectDetector class
+    """
+    def __init__( self ):
+        ImageObjectDetector.__init__(self)
+        self._net_config = ""
+        self._weight_file = ""
+        self._class_names = ""
+        self._thresh = 0.01
+        self._gpu_index = "0"
+        self._display_detections = False
 
-  def get_configuration(self):
-    # Inherit from the base class
-    cfg = super(ImageObjectDetector, self).get_configuration()
-    cfg.set_value( "net_config", self._net_config )
-    cfg.set_value( "weight_file", self._weight_file )
-    cfg.set_value( "class_names", self._class_names )
-    cfg.set_value( "thresh", str( self._thresh ) )
-    cfg.set_value( "gpu_index", self._gpu_index )
-    cfg.set_value( "display_detections", str( self._display_detections ) )
-    return cfg
+    def get_configuration(self):
+        # Inherit from the base class
+        cfg = super(ImageObjectDetector, self).get_configuration()
+        cfg.set_value( "net_config", self._net_config )
+        cfg.set_value( "weight_file", self._weight_file )
+        cfg.set_value( "class_names", self._class_names )
+        cfg.set_value( "thresh", str( self._thresh ) )
+        cfg.set_value( "gpu_index", self._gpu_index )
+        cfg.set_value( "display_detections", str( self._display_detections ) )
+        return cfg
 
-  def set_configuration( self, cfg_in ):
-    cfg = self.get_configuration()
-    cfg.merge_config( cfg_in )
+    def set_configuration( self, cfg_in ):
+        cfg = self.get_configuration()
+        cfg.merge_config( cfg_in )
 
-    self._net_config = str( cfg.get_value( "net_config" ) )
-    self._weight_file = str( cfg.get_value( "weight_file" ) )
-    self._class_names = str( cfg.get_value( "class_names" ) )
-    self._thresh = float( cfg.get_value( "thresh" ) )
-    self._gpu_index = str( cfg.get_value( "gpu_index" ) )
-    self._display_detections = strtobool( cfg.get_value( "display_detections" ) )
+        self._net_config = str( cfg.get_value( "net_config" ) )
+        self._weight_file = str( cfg.get_value( "weight_file" ) )
+        self._class_names = str( cfg.get_value( "class_names" ) )
+        self._thresh = float( cfg.get_value( "thresh" ) )
+        self._gpu_index = str( cfg.get_value( "gpu_index" ) )
+        self._display_detections = strtobool( cfg.get_value( "display_detections" ) )
 
-    from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
-    check_config_compatibility( self._net_config )
+        from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
+        check_config_compatibility( self._net_config )
 
-    import matplotlib
-    matplotlib.use( 'PS' ) # bypass multiple Qt load issues
-    from mmdet.apis import init_detector
+        import matplotlib
+        matplotlib.use( 'PS' ) # bypass multiple Qt load issues
+        from mmdet.apis import init_detector
 
-    gpu_string = 'cuda:' + str( self._gpu_index )
-    self._model = init_detector( self._net_config, self._weight_file, device=gpu_string )
-    self._labels = open( self._class_names, "r" ).read().splitlines()
+        gpu_string = 'cuda:' + str( self._gpu_index )
+        self._model = init_detector( self._net_config, self._weight_file, device=gpu_string )
+        self._labels = open( self._class_names, "r" ).read().splitlines()
 
-  def check_configuration( self, cfg ):
-    if not cfg.has_value( "net_config" ):
-      print( "A network config file must be specified!" )
-      return False
-    if not cfg.has_value( "class_names" ):
-      print( "A class file must be specified!" )
-      return False
-    if not cfg.has_value( "weight_file" ):
-      print("No weight file specified")
-      return False
-    return True
+    def check_configuration( self, cfg ):
+        if not cfg.has_value( "net_config" ):
+            print( "A network config file must be specified!" )
+            return False
+        if not cfg.has_value( "class_names" ):
+            print( "A class file must be specified!" )
+            return False
+        if not cfg.has_value( "weight_file" ):
+            print("No weight file specified")
+            return False
+        return True
 
-  def detect( self, image_data ):
-    input_image = image_data.asarray().astype( 'uint8' )
+    def detect( self, image_data ):
+        input_image = image_data.asarray().astype( 'uint8' )
 
-    from mmdet.apis import inference_detector
-    detections = inference_detector( self._model, input_image )
+        from mmdet.apis import inference_detector
+        detections = inference_detector( self._model, input_image )
 
-    if isinstance( detections, tuple ):
-      bbox_result, segm_result = detections
-    else:
-      bbox_result, segm_result = detections, None
+        if isinstance( detections, tuple ):
+            bbox_result, segm_result = detections
+        else:
+            bbox_result, segm_result = detections, None
 
-    if np.size( bbox_result ) > 0:
-      bboxes = np.vstack( bbox_result )
-    else:
-      bboxes = []
+        if np.size( bbox_result ) > 0:
+            bboxes = np.vstack( bbox_result )
+        else:
+            bboxes = []
 
-    # convert segmentation masks
-    masks = []
-    if segm_result is not None:
-      segms = mmcv.concat_list( segm_result )
-      inds = np.where( bboxes[:, -1] > score_thr )[0]
-      for i in inds:
-        masks.append( maskUtils.decode( segms[i] ).astype( np.bool ) )
+        # convert segmentation masks
+        masks = []
+        if segm_result is not None:
+            segms = mmcv.concat_list( segm_result )
+            inds = np.where( bboxes[:, -1] > score_thr )[0]
+            for i in inds:
+                masks.append( maskUtils.decode( segms[i] ).astype( np.bool ) )
 
-    # collect labels
-    labels = [
-      np.full( bbox.shape[0], i, dtype=np.int32 )
-      for i, bbox in enumerate( bbox_result )
-    ]
+        # collect labels
+        labels = [
+            np.full( bbox.shape[0], i, dtype=np.int32 )
+            for i, bbox in enumerate( bbox_result )
+        ]
 
-    if np.size( labels ) > 0:
-      labels = np.concatenate( labels )
-    else:
-      labels = []
+        if np.size( labels ) > 0:
+            labels = np.concatenate( labels )
+        else:
+            labels = []
 
-    # convert to kwiver format, apply threshold
-    output = DetectedObjectSet()
+        # convert to kwiver format, apply threshold
+        output = DetectedObjectSet()
 
-    for bbox, label in zip( bboxes, labels ):
-      class_confidence = float( bbox[-1] )
-      if class_confidence < self._thresh:
-        continue
+        for bbox, label in zip( bboxes, labels ):
+            class_confidence = float( bbox[-1] )
+            if class_confidence < self._thresh:
+                continue
 
-      bbox_int = bbox.astype( np.int32 )
-      bounding_box = BoundingBox( bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3] )
-      class_name = self._labels[ label ]
+            bbox_int = bbox.astype( np.int32 )
+            bounding_box = BoundingBox( bbox_int[0], bbox_int[1], bbox_int[2], bbox_int[3] )
+            class_name = self._labels[ label ]
 
-      detected_object_type = DetectedObjectType( class_name, class_confidence )
-      detected_object = DetectedObject( bounding_box, np.max( class_confidence ), detected_object_type)
-      output.add( detected_object )
+            detected_object_type = DetectedObjectType( class_name, class_confidence )
+            detected_object = DetectedObject( bounding_box, np.max( class_confidence ), detected_object_type)
+            output.add( detected_object )
 
-    if np.size( labels ) > 0 and self._display_detections:
-      mmcv.imshow_det_bboxes(
-        input_image,
-        bboxes,
-        labels,
-        class_names=self._labels,
-        score_thr=self._thresh,
-        show=True )
+        if np.size( labels ) > 0 and self._display_detections:
+            mmcv.imshow_det_bboxes(
+                input_image,
+                bboxes,
+                labels,
+                class_names=self._labels,
+                score_thr=self._thresh,
+                show=True )
 
-    return output
+        return output
 
 def __vital_algorithm_register__():
-  from vital.algo import algorithm_factory
+    from vital.algo import algorithm_factory
 
-  # Register Algorithm
-  implementation_name  = "mmdet"
+    # Register Algorithm
+    implementation_name = "mmdet"
 
-  if algorithm_factory.has_algorithm_impl_name(
+    if algorithm_factory.has_algorithm_impl_name(
       MMDetDetector.static_type_name(), implementation_name ):
-    return
+        return
 
-  algorithm_factory.add_algorithm( implementation_name,
-    "PyTorch MMDetection testing routine", MMDetDetector )
+    algorithm_factory.add_algorithm( implementation_name,
+      "PyTorch MMDetection inference routine", MMDetDetector )
 
-  algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+    algorithm_factory.mark_algorithm_as_loaded( implementation_name )
