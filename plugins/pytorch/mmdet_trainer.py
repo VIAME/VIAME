@@ -64,11 +64,11 @@ class MMDetTrainer( TrainDetector ):
         self._output_prefix = "custom_cfrnn"
         self._pipeline_template = ""
         self._gpu_count = -1
-        self._launcher = "none"        # "none, pytorch, slurm, or mpi" 
         self._random_seed = "none"
-        self._validate = "false"
         self._tmp_annotation_file = "annotations.pickle"
-        self._train_in_new_process = ( os.name == 'nt' )
+        self._validate = True
+        self._launcher = "pytorch"  # "none, pytorch, slurm, or mpi" 
+        self._train_in_new_process = True
         self._categories = []
 
     def get_configuration( self ):
@@ -82,9 +82,9 @@ class MMDetTrainer( TrainDetector ):
         cfg.set_value( "output_prefix", self._output_prefix )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
-        cfg.set_value( "launcher", str( self._launcher ) )
         cfg.set_value( "random_seed", str( self._random_seed ) )
         cfg.set_value( "validate", str( self._validate ) )
+        cfg.set_value( "launcher", str( self._launcher ) )
         cfg.set_value( "train_in_new_process", str( self._train_in_new_process ) )
 
         return cfg
@@ -100,8 +100,8 @@ class MMDetTrainer( TrainDetector ):
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
-        self._launcher = str( cfg.get_value( "launcher" ) )
         self._validate = strtobool( cfg.get_value( "validate" ) )
+        self._launcher = str( cfg.get_value( "launcher" ) )
         self._train_in_new_process = strtobool( cfg.get_value( "train_in_new_process" ) )
 
         self._training_data = []
@@ -156,6 +156,9 @@ class MMDetTrainer( TrainDetector ):
         else:
             self._cfg.gpus = torch.cuda.device_count()
 
+        if self._cfg.gpus == 1:
+            self._launcher = "none"
+
         if self._cfg.checkpoint_config is not None:
             from mmdet import __version__
             self._cfg.checkpoint_config.meta = dict(
@@ -180,12 +183,12 @@ class MMDetTrainer( TrainDetector ):
 
         from mmdet.models import build_detector
 
-        if self._cfg.model['pretrained'] is not None:
-            if not os.path.exists( self._cfg.model['pretrained'] ):
+        if self._cfg.model[ 'pretrained' ] is not None:
+            if not os.path.exists( self._cfg.model[ 'pretrained' ] ):
                 dirname = os.path.dirname( self._config_file )
-                relpath = os.path.join( dirname, self._cfg.model['pretrained'] )
+                relpath = os.path.join( dirname, self._cfg.model[ 'pretrained' ] )
                 if os.path.exists( relpath ):
-                    self._cfg.model['pretrained'] = relpath
+                    self._cfg.model[ 'pretrained' ] = relpath
 
         self._model = build_detector(
             self._cfg.model, train_cfg=self._cfg.train_cfg, test_cfg=self._cfg.test_cfg )
@@ -220,9 +223,9 @@ class MMDetTrainer( TrainDetector ):
                     continue
 
                 obj_box = [ [ item.bounding_box().min_x(),
-                                            item.bounding_box().min_y(),
-                                            item.bounding_box().max_x(),
-                                            item.bounding_box().max_y() ] ]
+                              item.bounding_box().min_y(),
+                              item.bounding_box().max_x(),
+                              item.bounding_box().max_y() ] ]
 
                 if categories is not None:
                     class_id = categories.get_class_id( class_lbl ) + 1
@@ -297,19 +300,18 @@ class MMDetTrainer( TrainDetector ):
 
         state_file = state_file.replace( "\\", "\\\\" )
 
-        cmd = []
+        cmd = [ str( sys.executable ) ]
 
-        if os.name == 'nt':
-            cmd += [ "python.exe", "-c" ]
-        else:
-            cmd += [ "python", "-c" ]
+        if self._distributed and self._launcher == "pytorch":
+            cmd += [ "-m", "torch.distributed.launch" ]
 
-        cmd += [ "\""
-                         "import pickle;"
-                         "infile=open('" + state_file + "','rb');"
-                         "trainer=pickle.load(infile);"
-                         "trainer.internal_update();"
-                         "\"" ]
+        cmd += [ "-c",
+                 "\""
+                 "import pickle;"
+                 "infile=open('" + state_file + "','rb');"
+                 "trainer=pickle.load(infile);"
+                 "trainer.internal_update();"
+                 "\"" ]
 
         os.system( ' '.join( cmd ) )
 
