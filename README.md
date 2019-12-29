@@ -219,7 +219,7 @@ And lastly, a number of flags which build algorithms with more specialized funct
 | VIAME_ENABLE_ITK             | Builds ITK cross-modality image registration                                       |
 | VIAME_ENABLE_UW_CLASSIFIER   | Builds UW fish classifier plugin                                                   |
 | VIAME_ENABLE_TENSORFLOW      | Builds TensorFlow object detector plugin                                           |
-| VIAME_ENABLE_SEAL_TK         | Builds Seal Multi-Modality GUI                                                     |
+| VIAME_ENABLE_SEAL_TK         | Builds Seal multi-modality GUI                                                     |
 | VIAME_ENABLE_MATLAB          | Turns on support for and installs all matlab processes                             |
 | VIAME_ENABLE_LANL            | Builds an additional (Matlab) scallop detector                                     |
 
