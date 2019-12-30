@@ -237,13 +237,13 @@ class MMDetTrainer( TrainDetector ):
                 boxes = np.append( boxes, obj_box, axis = 0 )
                 labels = np.append( labels, class_id )
 
-            annotations["bboxes"] = boxes.astype( np.float32 )
-            annotations["labels"] = labels.astype( np.int_ )
+            annotations[ "bboxes" ] = boxes.astype( np.float32 )
+            annotations[ "labels" ] = labels.astype( np.int_ )
 
-            entry["filename"] = filename
-            entry["width"] = width
-            entry["height"] = height
-            entry["ann"] = annotations
+            entry[ "filename" ] = filename
+            entry[ "width" ] = width
+            entry[ "height" ] = height
+            entry[ "ann" ] = annotations
 
             self._sample_count = self._sample_count + 1
 
@@ -301,7 +301,10 @@ class MMDetTrainer( TrainDetector ):
 
         cmd = [ str( sys.executable ) ]
 
-        multi_gpu = self._gpu_count != 1 and torch.cuda.device_count() > 1
+        if self._gpu_count != 1 and torch.cuda.is_available():
+            multi_gpu = torch.cuda.device_count() > 1
+        else:
+            multi_gpu = False
 
         if multi_gpu and self._launcher == "pytorch":
             cmd += [ "-m", "torch.distributed.launch" ]
@@ -367,6 +370,12 @@ class MMDetTrainer( TrainDetector ):
         images_per_gpu = "2"
         workers_per_gpu = "2"
         base_size = "(1333, 800)"
+
+        if torch.cuda.is_available() and torch.cuda.device_count() > 0:
+            total_mem = torch.cuda.get_device_properties( 0 ).total_memory
+            if total_mem < 9e9:
+                images_per_gpu = "1"
+                workers_per_gpu = "1"
 
         average_height = int( self._training_height_sum / self._sample_count )
         average_width = int( self._training_width_sum / self._sample_count )

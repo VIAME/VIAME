@@ -226,7 +226,7 @@ log_config = dict(
 # runtime settings
 total_epochs = 50
 dist_params = dict(backend='nccl')
-log_level = 'INFO'
+log_level = './deep_training/LOG'
 work_dir = './deep_training/'
 load_from = None
 resume_from = None
