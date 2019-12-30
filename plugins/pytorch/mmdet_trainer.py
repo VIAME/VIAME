@@ -104,10 +104,16 @@ class MMDetTrainer( TrainDetector ):
         self._launcher = str( cfg.get_value( "launcher" ) )
         self._train_in_new_process = strtobool( cfg.get_value( "train_in_new_process" ) )
 
+        if self._launcher != "none" and self._validate:
+            print( "Warning: defaulting to distributed train due to validation enable" )
+            self._launcher = "pytorch"
+
+        if self._launcher != "none" and not self._train_in_new_process:
+            print( "Warning: defaulting to external train in spawned process" )
+            self._train_in_new_process = True
+
         self._training_data = []
-
         self._sample_count = 0
-
         self._training_width_sum = 0
         self._training_height_sum = 0
 
@@ -156,7 +162,8 @@ class MMDetTrainer( TrainDetector ):
         else:
             self._cfg.gpus = torch.cuda.device_count()
 
-        if self._cfg.gpus == 1:
+        if self._cfg.gpus == 1 and not self._validate:
+            print( "Defaulting to non-distributed training procedure" )
             self._launcher = "none"
 
         if self._cfg.checkpoint_config is not None:
