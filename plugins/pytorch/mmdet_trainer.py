@@ -151,6 +151,16 @@ class MMDetTrainer( TrainDetector ):
         self._training_width_sum = 0
         self._training_height_sum = 0
 
+        self._images_per_gpu = 2
+        self._workers_per_gpu = 2
+        self._base_size = "(1333, 800)"
+
+        if torch.cuda.is_available() and torch.cuda.device_count() > 0:
+            total_mem = torch.cuda.get_device_properties( 0 ).total_memory
+            if total_mem < 9e9:
+                self._images_per_gpu = 1
+                self._workers_per_gpu = 1
+
     def check_configuration( self, cfg ):
         if not cfg.has_value( "config_file" ) or len( cfg.get_value( "config_file") ) == 0:
             print( "A config file must be specified!" )
@@ -178,7 +188,8 @@ class MMDetTrainer( TrainDetector ):
 
         if self._gpu_count is not None and self._gpu_count > 0:
             self._cfg.gpus = self._gpu_count
-            self._cfg.optimizer['lr'] = cfg.optimizer['lr'] * self._gpu_count
+            flux_factor = self._images_per_gpu * self._gpu_count
+            self._cfg.optimizer['lr'] = cfg.optimizer['lr'] * flux_factor
 
         if self._cfg.checkpoint_config is not None:
             from mmdet import __version__
@@ -410,23 +421,13 @@ class MMDetTrainer( TrainDetector ):
 
     def insert_training_params( self, input_cfg, output_cfg ):
 
-        images_per_gpu = "2"
-        workers_per_gpu = "2"
-        base_size = "(1333, 800)"
-
-        if torch.cuda.is_available() and torch.cuda.device_count() > 0:
-            total_mem = torch.cuda.get_device_properties( 0 ).total_memory
-            if total_mem < 9e9:
-                images_per_gpu = "1"
-                workers_per_gpu = "1"
-
         average_height = int( self._training_height_sum / self._sample_count )
         average_width = int( self._training_width_sum / self._sample_count )
 
         repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self._categories)+1) ],
                       [ "[-IMAGE_SCALE_INSERT-]", base_size ],
-                      [ "[-IMAGES_PER_GPU_INSERT-]", images_per_gpu ],
-                      [ "[-WORKERS_PER_GPU_INSERT-]", workers_per_gpu ] ]
+                      [ "[-IMAGES_PER_GPU_INSERT-]", str(images_per_gpu) ],
+                      [ "[-WORKERS_PER_GPU_INSERT-]", str(workers_per_gpu) ] ]
 
         self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
 
