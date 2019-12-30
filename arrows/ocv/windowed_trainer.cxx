@@ -74,6 +74,7 @@ public:
     , m_chip_step_height( 500 )
     , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
+    , m_chip_random_factor( -1.0 )
     , m_original_to_chip_size( false )
     , m_always_write_image( false )
     , m_overlap_required( 0.05 )
@@ -100,6 +101,7 @@ public:
   int m_chip_step_height;
   int m_chip_edge_filter;
   int m_chip_adaptive_thresh;
+  double m_chip_random_factor;
   bool m_original_to_chip_size;
   bool m_always_write_image;
   double m_overlap_required;
@@ -186,6 +188,8 @@ windowed_trainer
     "If using chipping, filter out detections this pixel count near borders." );
   config->set_value( "chip_adaptive_thresh", d->m_chip_adaptive_thresh,
     "If using adaptive selection, total pixel count at which we start to chip." );
+  config->set_value( "chip_random_factor", d->m_chip_random_factor,
+    "A percentage [0.0, 1.0] of chips to randomly use in training" );
   config->set_value( "original_to_chip_size", d->m_original_to_chip_size,
     "Optionally enforce the input image is not larger than the chip size" );
   config->set_value( "always_write_image", d->m_always_write_image,
@@ -236,6 +240,7 @@ windowed_trainer
   this->d->m_chip_step_height = config->get_value< int >( "chip_step_height" );
   this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
   this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
+  this->d->m_chip_random_factor = config->get_value< double >( "chip_random_factor" );
   this->d->m_original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
   this->d->m_always_write_image = config->get_value< bool >( "always_write_image" );
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
@@ -568,6 +573,14 @@ windowed_trainer::priv
            j < resized_image.rows - m_chip_height + m_chip_step_height;
            j += m_chip_step_height )
       {
+        // random downsampling
+        if( m_chip_random_factor > 0.0 &&
+              static_cast< double >( rand() ) / static_cast<double>( RAND_MAX )
+                > m_chip_random_factor )
+        {
+          continue;
+        }
+
         int ch = j + m_chip_height;
 
         if( ch > resized_image.rows )
