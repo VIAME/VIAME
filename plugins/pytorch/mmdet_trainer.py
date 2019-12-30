@@ -176,8 +176,9 @@ class MMDetTrainer( TrainDetector ):
         if self._seed_weights is not None:
             self._cfg.resume_from = self._seed_weights
 
-        if self._gpu_count is not None:
+        if self._gpu_count is not None and self._gpu_count > 0:
             self._cfg.gpus = self._gpu_count
+            self._cfg.optimizer['lr'] = cfg.optimizer['lr'] * self._gpu_count
 
         if self._cfg.checkpoint_config is not None:
             from mmdet import __version__
