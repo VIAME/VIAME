@@ -189,7 +189,7 @@ class MMDetTrainer( TrainDetector ):
         if self._gpu_count is not None and self._gpu_count > 0:
             self._cfg.gpus = self._gpu_count
             flux_factor = self._images_per_gpu * self._gpu_count
-            self._cfg.optimizer['lr'] = cfg.optimizer['lr'] * flux_factor
+            self._cfg.optimizer['lr'] = self._cfg.optimizer['lr'] * flux_factor
 
         if self._cfg.checkpoint_config is not None:
             from mmdet import __version__
@@ -425,9 +425,9 @@ class MMDetTrainer( TrainDetector ):
         average_width = int( self._training_width_sum / self._sample_count )
 
         repl_strs = [ [ "[-CLASS_COUNT_INSERT-]", str(len(self._categories)+1) ],
-                      [ "[-IMAGE_SCALE_INSERT-]", base_size ],
-                      [ "[-IMAGES_PER_GPU_INSERT-]", str(images_per_gpu) ],
-                      [ "[-WORKERS_PER_GPU_INSERT-]", str(workers_per_gpu) ] ]
+                      [ "[-IMAGE_SCALE_INSERT-]", self._base_size ],
+                      [ "[-IMAGES_PER_GPU_INSERT-]", str(self._images_per_gpu) ],
+                      [ "[-WORKERS_PER_GPU_INSERT-]", str(self._workers_per_gpu) ] ]
 
         self.replace_strs_in_file( input_cfg, output_cfg, repl_strs )
 
