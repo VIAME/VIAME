@@ -297,10 +297,14 @@ class MMDetTrainer( TrainDetector ):
 
         self.insert_training_params( self._config_file, self._train_config )
 
+        self.save_model_files( is_final=False )
+
         if self._train_in_new_process:
             self.external_update()
         else:
             self.internal_update()
+
+        self.save_model_files( is_final=True )
 
         print( "\nModel training complete!\n" )
 
@@ -324,16 +328,12 @@ class MMDetTrainer( TrainDetector ):
 
         from mmdet.apis import train_detector
 
-        self.save_model_files( is_final=False )
-
         train_detector(
             self._model,
             train_dataset,
             self._cfg,
             distributed = self._distributed,
             validate = self._validate )
-
-        self.save_model_files( is_final=True )
 
     def external_update( self ):
         state_file = os.path.join( self._train_directory, "trainer_state.pickle" )
