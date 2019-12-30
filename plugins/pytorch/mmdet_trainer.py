@@ -147,12 +147,6 @@ class MMDetTrainer( TrainDetector ):
 
         if self._train_directory is not None:
             self._cfg.work_dir = self._train_directory
-            self._groundtruth_store = os.path.join(
-                self._train_directory, self._tmp_annotation_file )
-            if not os.path.exists( self._train_directory ):
-                os.mkdir( self._train_directory )
-        else:
-            self._groundtruth_store = self._tmp_annotation_file
 
         if self._seed_weights is not None:
             self._cfg.resume_from = self._seed_weights
@@ -260,6 +254,14 @@ class MMDetTrainer( TrainDetector ):
             self._training_data.append( entry )
 
     def update_model( self ):
+
+        if self._train_directory is not None:
+            self._groundtruth_store = os.path.join(
+                self._train_directory, self._tmp_annotation_file )
+            if not os.path.exists( self._train_directory ):
+                os.mkdir( self._train_directory )
+        else:
+            self._groundtruth_store = self._tmp_annotation_file
 
         with open( self._groundtruth_store, 'wb' ) as fp:
             pickle.dump( self._training_data, fp )
