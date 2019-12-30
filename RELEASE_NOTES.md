@@ -12,6 +12,12 @@ v0.10.3 - 1/2/2020
 -Add tracker-assisted annotation for video
 
 
+-Fix split track option in default annotator
+
+
+-New seal multi-view GUI release
+
+
 v0.10.2 - 12/1/2019
 ===================
 
