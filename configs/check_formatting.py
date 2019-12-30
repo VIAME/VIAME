@@ -21,11 +21,17 @@ if __name__ == "__main__" :
     parser.add_argument("--decrease-fid", dest="decrease_fid", action="store_true",
                       help="Use a ball tree for the searchable index")
 
+    parser.add_argument("--increase-fid", dest="increase_fid", action="store_true",
+                      help="Use a ball tree for the searchable index")
+
     parser.add_argument("--assign-uid", dest="assign_uid", action="store_true",
                       help="Assign unique detection ids to all entries in volume")
 
     parser.add_argument("--filter-single", dest="filter_single", action="store_true",
                       help="Filter single state tracks")
+
+    parser.add_argument("--print-types", dest="print_types", action="store_true",
+                      help="Print unique list of target types")
 
     args = parser.parse_args()
 
@@ -41,6 +47,7 @@ if __name__ == "__main__" :
         input_files.append( args.input_file )
 
     id_counter = 1
+    type_counts = dict()
 
     for input_file in input_files:
 
@@ -63,6 +70,8 @@ if __name__ == "__main__" :
                 parsed_line[0] = str( 100 * int( int( parsed_line[0] ) / 100 ) )
             if args.decrease_fid:
                 parsed_line[2] = str( int( parsed_line[2] ) - 1 )
+            if args.increase_fid:
+                parsed_line[2] = str( int( parsed_line[2] ) + 1 )
             if args.assign_uid:
                 if parsed_line[0] in id_mappings:
                     parsed_line[0] = id_mappings[ parsed_line[0] ]
@@ -77,6 +86,11 @@ if __name__ == "__main__" :
                 else:
                     id_states[ parsed_line[0] ] = id_states[ parsed_line[0] ] + 1
                     has_non_single = True
+            if args.print_types and len( parsed_line ) > 9:
+                if parsed_line[9] in type_counts:
+                    type_counts[ parsed_line[9] ] += 1
+                else:
+                    type_counts[ parsed_line[9] ] = 1
             output.append( ','.join( parsed_line ) + '\n' )
         fin.close()
 
@@ -90,4 +104,8 @@ if __name__ == "__main__" :
         for line in output:
             fout.write( line )
         fout.close()
+
+    if args.print_types:
+        print( ','.join( type_counts.keys() ) )
+
   
