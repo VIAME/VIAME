@@ -62,7 +62,9 @@ class windowed_trainer::priv
 {
 public:
   priv()
-    : m_train_directory( "deep_training" + div + "chipped_images" )
+    : m_train_directory( "deep_training" )
+    , m_chip_subdirectory( "windowed_chips" )
+    , m_chip_format( "jpg" )
     , m_skip_format( false )
     , m_mode( "disabled" )
     , m_scale( 1.0 )
@@ -87,6 +89,8 @@ public:
 
   // Items from the config
   std::string m_train_directory;
+  std::string m_chip_subdirectory;
+  std::string m_chip_format;
   bool m_skip_format;
   std::string m_mode;
   double m_scale;
@@ -264,6 +268,12 @@ windowed_trainer
     }
 
     kwiversys::SystemTools::MakeDirectory( d->m_train_directory );
+
+    if( !d->m_chip_subdirectory.empty() )
+    {
+      std::string folder = d->m_train_directory + div + d->m_chip_subdirectory;
+      kwiversys::SystemTools::MakeDirectory( folder );
+    }
   }
 }
 
@@ -708,7 +718,9 @@ windowed_trainer::priv
   ss << std::setw( len ) << std::setfill( '0' ) << sample_counter;
   std::string s = ss.str();
 
-  return m_train_directory + div + s + ".png";
+  return m_train_directory + div +
+         m_chip_subdirectory + div +
+         s + "." + m_chip_format;
 }
 
 
