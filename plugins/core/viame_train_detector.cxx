@@ -338,8 +338,8 @@ static kwiver::vital::config_block_sptr default_config()
   kwiver::vital::config_block_sptr config
     = kwiver::vital::config_block::empty_config( "detector_trainer_tool" );
 
-  config->set_value( "groundtruth_extensions", ".txt",
-                     "Groundtruth file extensions (txt, kw18, etc...). Note: this is "
+  config->set_value( "groundtruth_extensions", ".csv",
+                     "Groundtruth file extensions (csv, kw18, txt, etc...). Note: this is "
                      "independent of the format that's stored in the file" );
   config->set_value( "groundtruth_style", "one_per_folder",
                      "Can be either: \"one_per_file\" or \"one_per_folder\"" );
@@ -356,6 +356,9 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "default_percent_test", "0.05",
                      "Percent [0.0, 1.0] of test samples to use if no manual files "
                      "specified." );
+  config->set_value( "test_burst_frame_count", "100",
+                     "Number of sequential frames to use in test set to avoid it "
+                     "being too similar to train." );
   config->set_value( "image_extensions",
                      ".jpg;.jpeg;.JPG;.JPEG;.tif;.tiff;.TIF;.TIFF;.png;.PNG;.bmp;.BMP",
                      "Semicolon list of seperated image extensions to use in training, "
@@ -805,6 +808,8 @@ main( int argc, char* argv[] )
   // Read setup configs
   double percent_test =
     config->get_value< double >( "default_percent_test" );
+  unsigned test_burst_frame_count =
+    config->get_value< double >( "test_burst_frame_count" );
   std::string groundtruth_extensions_str =
     config->get_value< std::string >( "groundtruth_extensions" );
   std::string image_extensions_str =
