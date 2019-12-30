@@ -318,14 +318,15 @@ class MMDetTrainer( TrainDetector ):
         if use_dist and self._launcher == "pytorch":
             cmd += [ "-m", "torch.distributed.launch" ]
             cmd += [ "--nproc_per_node=" + str( gpu_count ) ]
+            cmd += [ os.path.join( os.path.dirname(os.path.realpath( __file__) ), "mmdet_launcher.py" ) ]
+            cmd += [ state_file ]
 
-        cmd += [ "-c",
-                 "\""
-                 "import pickle;"
-                 "infile=open('" + state_file + "','rb');"
-                 "trainer=pickle.load(infile);"
-                 "trainer.internal_update();"
-                 "\"" ]
+        else:
+            cmd += [ "-c", "\""
+                     "import pickle;"
+                     "infile=open('" + state_file + "','rb');"
+                     "trainer=pickle.load(infile);"
+                     "trainer.internal_update();\"" ]
 
         os.system( ' '.join( cmd ) )
 

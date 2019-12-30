@@ -18,6 +18,11 @@ if( VIAME_ENABLE_PYTORCH-MMDET )
     viame/arrows/pytorch
     mmdet_trainer )
 
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/mmdet_launcher.py
+    viame/arrows/pytorch
+    mmdet_launcher )
+
 endif()
 
 
