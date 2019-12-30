@@ -470,7 +470,8 @@ windowed_trainer::priv
     {
       if( ( original_image.rows * original_image.cols ) < m_chip_adaptive_thresh )
       {
-        if( m_original_to_chip_size )
+        if( m_original_to_chip_size && ( original_image.cols > m_chip_width ||
+                                         original_image.rows > m_chip_height ) )
         {
           format_mode = "maintain_ar";
         }
