@@ -261,6 +261,9 @@ class MMDetTrainer( TrainDetector ):
 
     def update_model( self ):
 
+        with open( self._groundtruth_store, 'wb' ) as fp:
+            pickle.dump( self._training_data, fp )
+
         if self._train_in_new_process:
             self.external_update()
         else:
@@ -270,9 +273,6 @@ class MMDetTrainer( TrainDetector ):
 
     def internal_update( self ):
         self.load_network()
-
-        with open( self._groundtruth_store, 'wb' ) as fp:
-            pickle.dump( self._training_data, fp )
 
         from mmdet.datasets.custom import CustomDataset
 
