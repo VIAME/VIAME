@@ -184,7 +184,7 @@ class MMDetTrainer( TrainDetector ):
             self._cfg.work_dir = self._train_directory
 
         if self._seed_weights is not None:
-            self._cfg.resume_from = self._seed_weights
+            self._cfg.load_from = self._seed_weights
 
         if self._gpu_count is not None and self._gpu_count > 0:
             self._cfg.gpus = self._gpu_count

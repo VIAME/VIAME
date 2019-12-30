@@ -215,18 +215,18 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[22, 30])
+    step=[9, 18])
 checkpoint_config = dict(interval=4)
 # yapf:disable
 log_config = dict(
-    interval=36,
+    interval=25,
     hooks=[
         dict(type='TextLoggerHook'),
         # dict(type='TensorboardLoggerHook')
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 36
+total_epochs = 25
 dist_params = dict(backend='nccl')
 log_level = './deep_training/training_log.txt'
 work_dir = './deep_training/'
