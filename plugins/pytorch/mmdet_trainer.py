@@ -65,7 +65,8 @@ class MMDetTrainer( TrainDetector ):
         self._pipeline_template = ""
         self._gpu_count = -1
         self._random_seed = "none"
-        self._tmp_annotation_file = "annotations.pickle"
+        self._tmp_training_file = "training_truth.pickle"
+        self._tmp_validation_file = "validation_truth.pickle"
         self._validate = True
         self._launcher = "pytorch"  # "none, pytorch, slurm, or mpi" 
         self._train_in_new_process = True
@@ -93,6 +94,7 @@ class MMDetTrainer( TrainDetector ):
         cfg = self.get_configuration()
         cfg.merge_config( cfg_in )
 
+        # Read configs from file
         self._config_file = str( cfg.get_value( "config_file" ) )
         self._seed_weights = str( cfg.get_value( "seed_weights" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
@@ -104,15 +106,47 @@ class MMDetTrainer( TrainDetector ):
         self._launcher = str( cfg.get_value( "launcher" ) )
         self._train_in_new_process = strtobool( cfg.get_value( "train_in_new_process" ) )
 
+        # Check variables
         if self._launcher != "none" and self._validate:
             print( "Warning: defaulting to distributed train due to validation enable" )
             self._launcher = "pytorch"
 
-        if self._launcher != "none" and not self._train_in_new_process:
-            print( "Warning: defaulting to external train in spawned process" )
-            self._train_in_new_process = True
+        if ( self._validate or self._gpu_count != 1 ) and torch.cuda.is_available():
+            if self._gpu_count < 0:
+                self._gpu_count = torch.cuda.device_count()
+        else:
+            print( "Multiple GPUs not available for distributed training, disabling" )
+            self._validate = False
+            self._launcher = "none"
 
+        if self._launcher != "none":
+            if self._gpu_count == 1 and not self._validate:
+                print( "Warning: defaulting to non-distributed training procedure" )
+                self._launcher = "none"
+            if not self._train_in_new_process:
+                print( "Warning: defaulting to external train in spawned process" )
+                self._train_in_new_process = True
+
+        # Make required directories
+        self._train_config = "train_config.py"
+
+        if self._train_directory is not None:
+            self._train_config = os.path.join( self._train_directory,
+                self._train_config )
+            self._training_store = os.path.join(
+                self._train_directory, self._tmp_training_file )
+            self._validation_store = os.path.join(
+                self._train_directory, self._tmp_validation_file )
+            if not os.path.exists( self._train_directory ):
+                os.mkdir( self._train_directory )
+        else:
+            self._training_store = self._tmp_training_file
+            self._validation_store = self._tmp_validation_file
+
+        # Initialize persistent variables
         self._training_data = []
+        self._validation_data = []
+
         self._sample_count = 0
         self._training_width_sum = 0
         self._training_height_sum = 0
@@ -130,17 +164,8 @@ class MMDetTrainer( TrainDetector ):
         self.__dict__ = dict
 
     def load_network( self ):
-        train_config = "train_config.py"
-
-        if len( self._train_directory ) > 0:
-            if not os.path.exists( self._train_directory ):
-                os.mkdir( self._train_directory )
-            train_config = os.path.join( self._train_directory, train_config )
-
-        self.insert_training_params( self._config_file, train_config )
-
         from mmcv import Config
-        self._cfg = Config.fromfile( train_config )
+        self._cfg = Config.fromfile( self._train_config )
 
         if self._cfg.get( 'cudnn_benchmark', False ):
             torch.backends.cudnn.benchmark = True
@@ -151,14 +176,8 @@ class MMDetTrainer( TrainDetector ):
         if self._seed_weights is not None:
             self._cfg.resume_from = self._seed_weights
 
-        if self._gpu_count > 0:
+        if self._gpu_count is not None:
             self._cfg.gpus = self._gpu_count
-        else:
-            self._cfg.gpus = torch.cuda.device_count()
-
-        if self._cfg.gpus == 1 and not self._validate:
-            print( "Defaulting to non-distributed training procedure" )
-            self._launcher = "none"
 
         if self._cfg.checkpoint_config is not None:
             from mmdet import __version__
@@ -202,8 +221,17 @@ class MMDetTrainer( TrainDetector ):
         if categories is not None:
             self._categories = categories.all_class_names()
 
-        for filename, groundtruth in zip( train_files, train_dets ):
+        for i in range( len( train_files ) + len( test_files ) ):
             entry = dict()
+
+            is_train = ( i < len( train_files ) )
+
+            if is_train:
+                filename = train_files[ i ]
+                groundtruth = train_dets[ i ]
+            else:
+                filename = test_files[ i-len( train_files ) ]
+                groundtruth = test_dets[ i-len( train_files ) ]
 
             im = Image.open( filename, 'r' )
             width, height = im.size
@@ -251,20 +279,23 @@ class MMDetTrainer( TrainDetector ):
             self._training_width_sum = self._training_width_sum + width
             self._training_height_sum = self._training_height_sum + height
 
-            self._training_data.append( entry )
+            if is_train or not self._validate:
+                self._training_data.append( entry )
+            else:
+                self._validation_data.append( entry )
 
     def update_model( self ):
 
-        if self._train_directory is not None:
-            self._groundtruth_store = os.path.join(
-                self._train_directory, self._tmp_annotation_file )
-            if not os.path.exists( self._train_directory ):
-                os.mkdir( self._train_directory )
-        else:
-            self._groundtruth_store = self._tmp_annotation_file
-
-        with open( self._groundtruth_store, 'wb' ) as fp:
+        with open( self._training_store, 'wb' ) as fp:
             pickle.dump( self._training_data, fp )
+
+        if len( self._validation_store ) > 0:
+            with open( self._validation_store, 'wb' ) as fp:
+                pickle.dump( self._validation_data, fp )
+        else:
+            self._validate = False
+
+        self.insert_training_params( self._config_file, self._train_config )
 
         if self._train_in_new_process:
             self.external_update()
@@ -281,8 +312,15 @@ class MMDetTrainer( TrainDetector ):
         signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
 
         train_dataset = CustomDataset(
-            self._groundtruth_store,
+            self._training_store,
             self._cfg.train_pipeline )
+
+        if self._validate:
+            validation_dataset = CustomDataset(
+                self._validation_store,
+                self._cfg.test_pipeline )
+            self._cfg.data.val = validation_dataset
+            self._cfg.data.val.type = "CustomDataset"
 
         from mmdet.apis import train_detector
 
@@ -298,9 +336,6 @@ class MMDetTrainer( TrainDetector ):
         self.save_model_files( is_final=True )
 
     def external_update( self ):
-        if not os.path.exists( self._train_directory ):
-            os.mkdir( self._train_directory )
- 
         state_file = os.path.join( self._train_directory, "trainer_state.pickle" )
 
         with open( state_file, 'wb' ) as fp:
@@ -310,22 +345,16 @@ class MMDetTrainer( TrainDetector ):
 
         cmd = [ str( sys.executable ) ]
 
-        if ( self._validate or self._gpu_count != 1 ) and torch.cuda.is_available():
-            use_dist = torch.cuda.device_count() > 1
-            gpu_count = self._gpu_count if self._gpu_count > 0 else torch.cuda.device_count()
-        else:
-            use_dist = False
-            self._validate = False
+        if self._launcher == "pytorch":
+            current_folder = os.path.dirname( os.path.realpath( __file__) )
+            launcher_script = os.path.join( current_folder, "mmdet_launcher.py" )
+            launcher_script.replace( "\\", "\\\\" )
 
-        if use_dist and self._launcher == "pytorch":
             cmd += [ "-m", "torch.distributed.launch" ]
-            cmd += [ "--nproc_per_node=" + str( gpu_count ) ]
-            cmd += [ os.path.join( os.path.dirname(os.path.realpath( __file__) ), "mmdet_launcher.py" ) ]
-            cmd += [ state_file ]
-
+            cmd += [ "--nproc_per_node=" + str( self._gpu_count ) ]
+            cmd += [ launcher_script, state_file ]
         else:
-            cmd += [ "-c", "\""
-                     "import pickle;"
+            cmd += [ "-c", "\"import pickle;"
                      "infile=open('" + state_file + "','rb');"
                      "trainer=pickle.load(infile);"
                      "trainer.internal_update();\"" ]
