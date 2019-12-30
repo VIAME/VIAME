@@ -1177,13 +1177,13 @@ main( int argc, char* argv[] )
     {
       if( i % total_segment >= train_segment )
       {
-        adj_train_image_fn.push_back( train_image_fn[i] );
-        adj_train_gt.push_back( train_gt[i] );
+        test_image_fn.push_back( train_image_fn[i] );
+        test_gt.push_back( train_gt[i] );
       }
       else
       {
-        test_image_fn.push_back( train_image_fn[i] );
-        test_gt.push_back( train_gt[i] );
+        adj_train_image_fn.push_back( train_image_fn[i] );
+        adj_train_gt.push_back( train_gt[i] );
       }
     }
 
