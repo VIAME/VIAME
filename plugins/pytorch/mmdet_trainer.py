@@ -175,7 +175,7 @@ class MMDetTrainer( TrainDetector ):
             self._distributed = False
         else:
             self._distributed = True
-            from mmdet.apis import init_dist
+            from mmcv.runner import init_dist
             init_dist( self._launcher, **self._cfg.dist_params )
 
         from mmdet.apis import get_root_logger
@@ -308,13 +308,16 @@ class MMDetTrainer( TrainDetector ):
 
         cmd = [ str( sys.executable ) ]
 
-        if self._gpu_count != 1 and torch.cuda.is_available():
-            multi_gpu = torch.cuda.device_count() > 1
+        if ( self._validate or self._gpu_count != 1 ) and torch.cuda.is_available():
+            use_dist = torch.cuda.device_count() > 1
+            gpu_count = self._gpu_count if self._gpu_count > 0 else torch.cuda.device_count()
         else:
-            multi_gpu = False
+            use_dist = False
+            self._validate = False
 
-        if multi_gpu and self._launcher == "pytorch":
+        if use_dist and self._launcher == "pytorch":
             cmd += [ "-m", "torch.distributed.launch" ]
+            cmd += [ "--nproc_per_node=" + str( gpu_count ) ]
 
         cmd += [ "-c",
                  "\""
