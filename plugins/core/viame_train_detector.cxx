@@ -356,7 +356,7 @@ static kwiver::vital::config_block_sptr default_config()
   config->set_value( "default_percent_test", "0.05",
                      "Percent [0.0, 1.0] of test samples to use if no manual files "
                      "specified." );
-  config->set_value( "test_burst_frame_count", "100",
+  config->set_value( "test_burst_frame_count", "500",
                      "Number of sequential frames to use in test set to avoid it "
                      "being too similar to train." );
   config->set_value( "image_extensions",
@@ -1072,7 +1072,6 @@ main( int argc, char* argv[] )
           }
         }
 
-        // TODO: Is this a train or test image?
         train_image_fn.push_back( filtered_image_file );
         train_gt.push_back( filtered_dets );
       }
@@ -1152,10 +1151,53 @@ main( int argc, char* argv[] )
     }
   }
 
+  // Generate a testing and validation set automatically if enabled
+  if( percent_test > 0.0 && test_image_fn.empty() )
+  {
+    unsigned total_images = train_image_fn.size();
+
+    unsigned total_segment = static_cast< unsigned >( test_burst_frame_count / percent_test );
+    unsigned train_segment = total_segment - test_burst_frame_count;
+
+    if( total_images < total_segment )
+    {
+      total_segment = total_images;
+      train_segment = total_images - static_cast< unsigned >( percent_test * total_images );
+
+      if( total_segment > 1 && train_segment == total_segment )
+      {
+        train_segment = total_segment - 1;
+      }
+    }
+
+    std::vector< std::string > adj_train_image_fn;
+    std::vector< kwiver::vital::detected_object_set_sptr > adj_train_gt;
+
+    for( unsigned i = 0; i < train_image_fn.size(); ++i )
+    {
+      if( i % total_segment >= train_segment )
+      {
+        adj_train_image_fn.push_back( train_image_fn[i] );
+        adj_train_gt.push_back( train_gt[i] );
+      }
+      else
+      {
+        test_image_fn.push_back( train_image_fn[i] );
+        test_gt.push_back( train_gt[i] );
+      }
+    }
+
+    train_image_fn = adj_train_image_fn;
+    train_gt = adj_train_gt;
+  }
+
   // Run training algorithm
   std::cout << "Beginning Training Process" << std::endl;
 
-  detector_trainer->add_data_from_disk( classes, train_image_fn, train_gt, test_image_fn, test_gt );
+  detector_trainer->add_data_from_disk( classes,
+                                        train_image_fn, train_gt,
+                                        test_image_fn, test_gt );
+
   detector_trainer->update_model();
   return 0;
 }
