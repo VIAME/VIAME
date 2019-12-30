@@ -76,6 +76,7 @@ public:
     , m_chip_adaptive_thresh( 2000000 )
     , m_chip_random_factor( -1.0 )
     , m_original_to_chip_size( false )
+    , m_black_pad( false )
     , m_always_write_image( false )
     , m_overlap_required( 0.05 )
     , m_chips_w_gt_only( false )
@@ -103,6 +104,7 @@ public:
   int m_chip_adaptive_thresh;
   double m_chip_random_factor;
   bool m_original_to_chip_size;
+  bool m_black_pad;
   bool m_always_write_image;
   double m_overlap_required;
   bool m_chips_w_gt_only;
@@ -192,6 +194,8 @@ windowed_trainer
     "A percentage [0.0, 1.0] of chips to randomly use in training" );
   config->set_value( "original_to_chip_size", d->m_original_to_chip_size,
     "Optionally enforce the input image is not larger than the chip size" );
+  config->set_value( "black_pad", d->m_black_pad,
+    "Black pad the edges of resized chips to ensure consistent dimensions" );
   config->set_value( "always_write_image", d->m_always_write_image,
     "Always write images to training directory even if they already exist "
     "elsewhere on disk." );
@@ -242,6 +246,7 @@ windowed_trainer
   this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
   this->d->m_chip_random_factor = config->get_value< double >( "chip_random_factor" );
   this->d->m_original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
+  this->d->m_black_pad = config->get_value< bool >( "black_pad" );
   this->d->m_always_write_image = config->get_value< bool >( "always_write_image" );
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
@@ -528,7 +533,7 @@ windowed_trainer::priv
   if( format_method != "disabled" )
   {
     resized_scale = format_image( image, resized_image,
-      format_method, m_scale, m_chip_width, m_chip_height );
+      format_method, m_scale, m_chip_width, m_chip_height, m_black_pad );
 
     scaled_groundtruth->scale( resized_scale );
   }
@@ -602,7 +607,7 @@ windowed_trainer::priv
         cv::Mat resized_crop;
 
         scale_image_maintaining_ar( cropped_image,
-          resized_crop, m_chip_width, m_chip_height );
+          resized_crop, m_chip_width, m_chip_height, m_black_pad );
 
         vital::bounding_box_d roi_box( i, j, i + m_chip_width, j + m_chip_height );
 
@@ -623,7 +628,7 @@ windowed_trainer::priv
       cv::Mat scaled_original;
 
       double scaled_original_scale = scale_image_maintaining_ar( image,
-        scaled_original, m_chip_width, m_chip_height );
+        scaled_original, m_chip_width, m_chip_height, m_black_pad );
 
       vital::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
       scaled_original_dets_ptr->scale( scaled_original_scale );

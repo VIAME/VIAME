@@ -44,11 +44,11 @@ namespace ocv {
 
 double
 scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst,
-                            int width, int height );
+                            int width, int height, bool pad = false );
 
 double
 format_image( const cv::Mat& src, cv::Mat& dst, std::string option,
-              double scale_factor, int width, int height );
+              double scale_factor, int width, int height, bool pad = false );
 
 } } }
 

@@ -42,7 +42,7 @@ namespace ocv {
 
 double
 scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst,
-                            int width, int height )
+                            int width, int height, bool pad )
 {
   double scale = 1.0;
 
@@ -67,25 +67,33 @@ scale_image_maintaining_ar( const cv::Mat& src, cv::Mat& dst,
   cv::Mat resized;
   cv::resize( src, resized, cv::Size(), scale, scale );
 
-  dst.create( height, width, src.type() );
-  dst.setTo( 0 );
+  if( pad )
+  {
+    dst.create( height, width, src.type() );
+    dst.setTo( 0 );
 
-  cv::Rect roi( 0, 0, resized.cols, resized.rows );
-  cv::Mat aoi( dst, roi );
+    cv::Rect roi( 0, 0, resized.cols, resized.rows );
+    cv::Mat aoi( dst, roi );
 
-  resized.copyTo( aoi );
+    resized.copyTo( aoi );
+  }
+  else
+  {
+    dst = resized;
+  }
+
   return scale;
 }
 
 double
 format_image( const cv::Mat& src, cv::Mat& dst, std::string option,
-              double scale_factor, int width, int height )
+              double scale_factor, int width, int height, bool pad )
 {
   double scale = 1.0;
 
   if( option == "maintain_ar" )
   {
-    scale = scale_image_maintaining_ar( src, dst, width, height );
+    scale = scale_image_maintaining_ar( src, dst, width, height, pad );
   }
   else if( option == "chip" || option == "scale" ||
            option == "chip_and_original" )
