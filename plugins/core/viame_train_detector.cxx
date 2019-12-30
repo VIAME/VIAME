@@ -340,7 +340,7 @@ static kwiver::vital::config_block_sptr default_config()
 
   config->set_value( "groundtruth_extensions", ".txt",
                      "Groundtruth file extensions (txt, kw18, etc...). Note: this is "
-                     "indepedent of the format that's stored in the file" );
+                     "independent of the format that's stored in the file" );
   config->set_value( "groundtruth_style", "one_per_folder",
                      "Can be either: \"one_per_file\" or \"one_per_folder\"" );
   config->set_value( "augmentation_pipeline", "",
