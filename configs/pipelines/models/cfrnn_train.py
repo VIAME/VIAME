@@ -37,7 +37,7 @@ model = dict(
     bbox_head=[
         dict(
             type='SharedFCBBoxHead',
-            num_fcs=3,
+            num_fcs=2,
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
@@ -50,7 +50,7 @@ model = dict(
             loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)),
         dict(
             type='SharedFCBBoxHead',
-            num_fcs=3,
+            num_fcs=2,
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
@@ -63,14 +63,17 @@ model = dict(
             loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0)),
         dict(
             type='SharedFCBBoxHead',
-            num_fcs=3,
+            num_fcs=2,
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
             num_classes=[-CLASS_COUNT_INSERT-],
             target_means=[0., 0., 0., 0.],
             target_stds=[0.033, 0.033, 0.067, 0.067],
-            reg_class_agnostic=True)
+            reg_class_agnostic=True,
+            loss_cls=dict(
+                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+            loss_bbox=dict(type='SmoothL1Loss', beta=1.0, loss_weight=1.0))
     ])
 # model training and testing settings
 train_cfg = dict(
@@ -89,7 +92,7 @@ train_cfg = dict(
             add_gt_as_proposals=False),
         allowed_border=0,
         pos_weight=-1,
-         debug=False),
+        debug=False),
     rpn_proposal=dict(
         nms_across_levels=False,
         nms_pre=2000,
@@ -154,8 +157,7 @@ test_cfg = dict(
         nms_thr=0.7,
         min_bbox_size=0),
     rcnn=dict(
-        score_thr=0.05, nms=dict(type='nms', iou_thr=0.5), max_per_img=100),
-    keep_all_stages=False)
+        score_thr=0.05, nms=dict(type='nms', iou_thr=0.5), max_per_img=100))
 # dataset settings
 dataset_type = 'DeepDataset'
 data_root = 'augmented_images/'
@@ -196,7 +198,7 @@ data = dict(
         pipeline=train_pipeline),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'test_annotations.json',
+        ann_file=data_root + 'val_annotations.json',
         img_prefix=data_root + 'test/',
         pipeline=test_pipeline),
     test=dict(
@@ -213,8 +215,8 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=1.0 / 3,
-    step=[26, 38])
-checkpoint_config = dict(interval=5)
+    step=[22, 30])
+checkpoint_config = dict(interval=4)
 # yapf:disable
 log_config = dict(
     interval=50,
@@ -224,9 +226,9 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 50
+total_epochs = 36
 dist_params = dict(backend='nccl')
-log_level = './deep_training/LOG'
+log_level = './deep_training/training_log.txt'
 work_dir = './deep_training/'
 load_from = None
 resume_from = None
