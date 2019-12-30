@@ -29,9 +29,17 @@
 
 import sys
 import pickle
+import os
+import argparse
 
 def main():
-    infile=open( sys.argv[1],'rb' );
+    parser = argparse.ArgumentParser( description='Train a detector' )
+    parser.add_argument( 'config', help='train config file path' )
+    parser.add_argument('--local_rank', type=int, default=0 )
+    args = parser.parse_args()
+    if 'LOCAL_RANK' not in os.environ:
+        os.environ['LOCAL_RANK'] = str( args.local_rank )
+    infile=open( args.config,'rb' );
     trainer=pickle.load( infile );
     trainer.internal_update();
 
