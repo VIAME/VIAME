@@ -35,11 +35,6 @@ kwiver_add_python_module(
   prepro_data )
 
 kwiver_add_python_module(
-  ${CMAKE_CURRENT_SOURCE_DIR}/prepro_data_imagenet.py
-  viame/arrows/pytorch/mdnet
-  prepro_data_imagenet )
-
-kwiver_add_python_module(
   ${CMAKE_CURRENT_SOURCE_DIR}/pretrain_options.py
   viame/arrows/pytorch/mdnet
   pretrain_options )
