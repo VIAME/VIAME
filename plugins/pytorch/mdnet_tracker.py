@@ -2,34 +2,29 @@ import argparse
 import sys
 import time
 
-## for drawing package
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-
 import torch.optim as optim
+
 from torch.autograd import Variable
 from random import randint
 
-sys.path.insert(0,'./modules')
+sys.path.insert(0,'./mdnet')
 from sample_generator import *
 from data_prov import *
 from model import *
 from bbreg import *
 from options import *
 from img_cropper import *
-from roi_align.modules.roi_align import RoIAlignAvg,RoIAlignMax,RoIAlignAdaMax,RoIAlignDenseAdaMax
 
-#np.random.seed(123)
-#torch.manual_seed(456)
-#torch.cuda.manual_seed(789)
+from roi_align.modules.roi_align import RoIAlignAvg
+from roi_align.modules.roi_align import RoIAlignMax
+from roi_align.modules.roi_align import RoIAlignAdaMax
+from roi_align.modules.roi_align import RoIAlignDenseAdaMax
 
+def set_optimizer(model, lr_base,
+                  lr_mult=opts['lr_mult'],
+                  momentum=opts['momentum'],
+                  w_decay=opts['w_decay']):
 
-##################################################################################
-############################Do not modify opts anymore.###########################
-######################Becuase of synchronization of options#######################
-##################################################################################
-
-def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['momentum'], w_decay=opts['w_decay']):
     params = model.get_learnable_params()
     param_list = []
     for k, p in params.iteritems():
@@ -38,12 +33,18 @@ def set_optimizer(model, lr_base, lr_mult=opts['lr_mult'], momentum=opts['moment
             if k.startswith(l):
                 lr = lr_base * m
         param_list.append({'params': [p], 'lr':lr})
-    optimizer = optim.SGD(param_list, lr = lr, momentum=momentum, weight_decay=w_decay)
-    # optimizer = optim.SGD(param_list, lr = 1., momentum=momentum, weight_decay=w_decay)
+
+    optimizer = optim.SGD(param_list,
+                          lr = lr,
+                          momentum=momentum,
+                          weight_decay=w_decay)
+
     return optimizer
 
 
-def train(model, criterion, optimizer, pos_feats, neg_feats, maxiter, in_layer='fc4'):
+def train(model, criterion, optimizer, pos_feats,
+          neg_feats, maxiter, in_layer='fc4'):
+
     model.train()
 
     batch_pos = opts['batch_pos']
@@ -53,10 +54,14 @@ def train(model, criterion, optimizer, pos_feats, neg_feats, maxiter, in_layer='
 
     pos_idx = np.random.permutation(pos_feats.size(0))
     neg_idx = np.random.permutation(neg_feats.size(0))
+
     while(len(pos_idx) < batch_pos*maxiter):
-        pos_idx = np.concatenate([pos_idx, np.random.permutation(pos_feats.size(0))])
+        pos_idx = np.concatenate([pos_idx,
+          np.random.permutation(pos_feats.size(0))])
     while(len(neg_idx) < batch_neg_cand*maxiter):
-        neg_idx = np.concatenate([neg_idx, np.random.permutation(neg_feats.size(0))])
+        neg_idx = np.concatenate([neg_idx,
+          np.random.permutation(neg_feats.size(0))])
+
     pos_pointer = 0
     neg_pointer = 0
 
@@ -105,12 +110,12 @@ def train(model, criterion, optimizer, pos_feats, neg_feats, maxiter, in_layer='
         optimizer.step()
 
         if opts['visual_log']:
-            print "Iter %d, Loss %.4f" % (iter, loss.data[0])
+            print("Iter %d, Loss %.4f" % (iter, loss.data[0]))
 
 
-
-
-def run_mdnet(img_list, init_bbox, gt=None, seq='seq_name ex)Basketball', savefig_dir='', display=False):
+def run_mdnet(img_list, init_bbox,
+              gt=None, seq='seq_name ex)Basketball',
+              savefig_dir='', display=False):
 
     ############################################
     ############################################
@@ -156,21 +161,26 @@ def run_mdnet(img_list, init_bbox, gt=None, seq='seq_name ex)Basketball', savefi
 
     # Draw pos/neg samples
     ishape = cur_image.shape
-    pos_examples = gen_samples(SampleGenerator('gaussian', (ishape[1],ishape[0]), 0.1, 1.2),
-                               target_bbox, opts['n_pos_init'], opts['overlap_pos_init'])
-    neg_examples = gen_samples(SampleGenerator('uniform', (ishape[1],ishape[0]), 1, 2, 1.1),
-                                target_bbox, opts['n_neg_init'], opts['overlap_neg_init'])
+    pos_examples = gen_samples(SampleGenerator('gaussian',
+      (ishape[1],ishape[0]), 0.1, 1.2),
+      target_bbox, opts['n_pos_init'], opts['overlap_pos_init'])
+    neg_examples = gen_samples(SampleGenerator('uniform',
+      (ishape[1],ishape[0]), 1, 2, 1.1),
+      target_bbox, opts['n_neg_init'], opts['overlap_neg_init'])
     neg_examples = np.random.permutation(neg_examples)
 
-    cur_bbreg_examples = gen_samples(SampleGenerator('uniform', (ishape[1],ishape[0]), 0.3, 1.5, 1.1),
-                                 target_bbox, opts['n_bbreg'], opts['overlap_bbreg'], opts['scale_bbreg'])
+    cur_bbreg_examples = gen_samples(SampleGenerator('uniform',
+      (ishape[1],ishape[0]), 0.3, 1.5, 1.1),
+      target_bbox, opts['n_bbreg'], opts['overlap_bbreg'], opts['scale_bbreg'])
 
     # compute padded sample
     padded_x1 = (neg_examples[:,0]-neg_examples[:,2]*(opts['padding']-1.)/2.).min()
     padded_y1 = (neg_examples[:,1]-neg_examples[:,3]*(opts['padding']-1.)/2.).min()
     padded_x2 = (neg_examples[:,0]+neg_examples[:,2]*(opts['padding']+1.)/2.).max()
     padded_y2 = (neg_examples[:,1]+neg_examples[:,3]*(opts['padding']+1.)/2.).max()
-    padded_scene_box = np.reshape(np.asarray((padded_x1,padded_y1,padded_x2-padded_x1,padded_y2-padded_y1)),(1,4))
+
+    padded_scene_box = np.reshape(np.asarray(
+      (padded_x1,padded_y1,padded_x2-padded_x1,padded_y2-padded_y1)),(1,4))
 
     scene_boxes = np.reshape(np.copy(padded_scene_box), (1,4))
     if opts['jitter']:
@@ -198,8 +208,15 @@ def run_mdnet(img_list, init_bbox, gt=None, seq='seq_name ex)Basketball', savefi
         jittered_scene_box_enlarge2 = np.copy(padded_scene_box)
         jitter_scale_enlarge2 = 1.1 ** (2)
 
-        scene_boxes = np.concatenate([scene_boxes, jittered_scene_box_horizon, jittered_scene_box_vertical,jittered_scene_box_reduce1,jittered_scene_box_enlarge1,jittered_scene_box_reduce2,jittered_scene_box_enlarge2],axis=0)
-        jitter_scale = [1.,jitter_scale_horizon,jitter_scale_vertical,jitter_scale_reduce1,jitter_scale_enlarge1,jitter_scale_reduce2,jitter_scale_enlarge2]
+        scene_boxes = np.concatenate([scene_boxes, jittered_scene_box_horizon,
+          jittered_scene_box_vertical,jittered_scene_box_reduce1,
+          jittered_scene_box_enlarge1,jittered_scene_box_reduce2,
+          jittered_scene_box_enlarge2],axis=0)
+
+        jitter_scale = [1.,jitter_scale_horizon,jitter_scale_vertical,
+          jitter_scale_reduce1,jitter_scale_enlarge1,
+          jitter_scale_reduce2,jitter_scale_enlarge2]
+
     else:
         jitter_scale = [1.]
 
@@ -276,7 +293,6 @@ def run_mdnet(img_list, init_bbox, gt=None, seq='seq_name ex)Basketball', savefi
         np.random.shuffle(bbreg_idx)
         bbreg_feats = bbreg_feats[bbreg_idx[0:opts['n_bbreg']], :]
         bbreg_examples = bbreg_examples[bbreg_idx[0:opts['n_bbreg']],:]
-        #print bbreg_examples.shape
 
 
     ## open images and crop patch from obj
@@ -631,11 +647,11 @@ def run_mdnet(img_list, init_bbox, gt=None, seq='seq_name ex)Basketball', savefi
 
         if opts['visual_log']:
             if gt is None:
-                print "Frame %d/%d, Score %.3f, Time %.3f" % \
-                    (i, len(img_list), target_score, spf)
+                print("Frame %d/%d, Score %.3f, Time %.3f" % \
+                    (i, len(img_list), target_score, spf))
             else:
-                print "Frame %d/%d, Overlap %.3f, Score %.3f, Time %.3f" % \
-                    (i, len(img_list), overlap_ratio(gt[i],result_bb[i])[0], target_score, spf)
+                print("Frame %d/%d, Overlap %.3f, Score %.3f, Time %.3f" % \
+                    (i, len(img_list), overlap_ratio(gt[i],result_bb[i])[0], target_score, spf))
         iou_result[i]= overlap_ratio(gt[i],result_bb[i])[0]
 
 
