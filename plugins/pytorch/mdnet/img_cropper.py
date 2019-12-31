@@ -61,7 +61,7 @@ class imgCropper(nn.Module):
         start_time = time.time()
         cur_images = torch.squeeze(torch.stack(img_list, 0))
         torch.cuda.synchronize()
-        print '10 image stacking time:{}'.format(time.time() - start_time)
+        print('10 image stacking time:{}'.format(time.time() - start_time))
 
         ishape = cur_images.size()
 

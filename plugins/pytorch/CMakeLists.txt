@@ -39,3 +39,22 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     _netharn_detect_predict )
 
 endif()
+
+if( VIAME_ENABLE_PYTORCH-MDNET )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/mdnet
+    viame/arrows/pytorch
+    mdnet )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/mdnet_tracker.py
+    viame/arrows/pytorch
+    mdnet_tracker )
+
+  kwiver_add_python_module(
+    ${CMAKE_CURRENT_SOURCE_DIR}/mdnet_tracker_process.py
+    viame/processes/pytorch
+    mdnet_tracker_process )
+
+endif()

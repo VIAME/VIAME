@@ -82,9 +82,9 @@ for i,seqname in enumerate(seq_list):
         assert len(enable_img_list) == len(enable_gt), "Lengths do not match!!"
         data[seqname] = {'images':enable_img_list, 'gt':np.asarray(enable_gt)}
         completeNum += 1
-        print 'Complete!'
+        print('Complete!')
 
 with open(output_path, 'wb') as fp:
     pickle.dump(data, fp, -1)
 
-print 'complete {} videos'.format(completeNum)
+print('complete {} videos'.format(completeNum))
