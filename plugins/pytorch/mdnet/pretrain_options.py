@@ -13,7 +13,7 @@ pretrain_opts['batch_neg'] = 196
 pretrain_opts['overlap_pos'] = [0.7, 1]
 pretrain_opts['overlap_neg'] = [0, 0.5]
 
-pretrain_opts['img_size'] = 107
+pretrain_opts['crop_size'] = 107
 
 
 pretrain_opts['lr'] = 0.0001
@@ -28,5 +28,5 @@ pretrain_opts['n_cycles'] = 1000
 ##################################### from RCNN #############################################
 pretrain_opts['padding'] = 1.2
 pretrain_opts['padding_ratio']=5.
-pretrain_opts['padded_img_size'] = pretrain_opts['img_size']*int(pretrain_opts['padding_ratio'])
+pretrain_opts['padded_img_size'] = pretrain_opts['crop_size']*int(pretrain_opts['padding_ratio'])
 pretrain_opts['frame_interval'] = 2
