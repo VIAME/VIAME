@@ -1,23 +1,18 @@
 import sys
+import os
 import numpy as np
 from PIL import Image
 
 import torch
 import torch.utils.data as data
-import matplotlib.pyplot as plt
-from utils import *
 
+import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-import os
-from sample_generator import *
-
-import sys
-from pretrain_options import *
-
-from img_cropper import *
-
-
+from viame.arrows.pytorch.mdnet.utils import *
+from viame.arrows.pytorch.mdnet.sample_generator import *
+from viame.arrows.pytorch.mdnet.pretrain_options import *
+from viame.arrows.pytorch.mdnet.img_cropper import *
 
 class RegionDataset(data.Dataset):
     def __init__(self, img_dir, img_list, gt, receptive_field, opts):
