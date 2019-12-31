@@ -371,6 +371,8 @@ class MMDetTrainer( TrainDetector ):
                      "trainer=pickle.load(infile);"
                      "trainer.internal_update();\"" ]
 
+        print( "Executing external command: " + ' '.join( cmd ) )
+
         os.system( ' '.join( cmd ) )
 
     def interupt_handler( self ):
