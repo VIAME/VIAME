@@ -64,7 +64,7 @@ public:
   priv()
     : m_train_directory( "deep_training" )
     , m_chip_subdirectory( "windowed_chips" )
-    , m_chip_format( "jpg" )
+    , m_chip_format( "png" )
     , m_skip_format( false )
     , m_mode( "disabled" )
     , m_scale( 1.0 )
