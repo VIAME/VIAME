@@ -49,6 +49,3 @@
 [submodule "packages/itk-modules/keypointgui"]
 	path = packages/itk-modules/keypointgui
 	url = https://github.com/Kitware/keypointgui.git
-[submodule "packages/pytorch-libs/roi-align"]
-	path = packages/pytorch-libs/roi-align
-	url = https://github.com/longcw/RoIAlign.pytorch.git
