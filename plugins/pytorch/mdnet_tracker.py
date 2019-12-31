@@ -27,6 +27,7 @@ def set_optimizer(model, lr_base,
 
     params = model.get_learnable_params()
     param_list = []
+
     for k, p in params.iteritems():
         lr = lr_base
         for l, m in lr_mult.iteritems():
@@ -113,9 +114,9 @@ def train(model, criterion, optimizer, pos_feats,
             print("Iter %d, Loss %.4f" % (iter, loss.data[0]))
 
 
-def run_mdnet(img_list, init_bbox,
-              gt=None, seq='seq_name ex)Basketball',
-              savefig_dir='', display=False):
+class MDNetTracker
+
+def run_mdnet(img_list, init_bbox, savefig_dir='', display=False):
 
     ############################################
     ############################################
@@ -222,9 +223,11 @@ def run_mdnet(img_list, init_bbox,
 
     model.eval()
     for bidx in range(0,scene_boxes.shape[0]):
-        crop_img_size = (scene_boxes[bidx,2:4] * ((opts['img_size'],opts['img_size'])/target_bbox[2:4])).astype('int64')*jitter_scale[bidx]
-        cropped_image, cur_image_var = img_crop_model.crop_image(cur_image, np.reshape(scene_boxes[bidx],(1,4)), crop_img_size)
-        cropped_image = cropped_image - 128.
+        crop_img_size = (scene_boxes[bidx,2:4] * ((opts['img_size'],opts['img_size']) \
+          / target_bbox[2:4])).astype('int64')*jitter_scale[bidx]
+        cropped_image, cur_image_var = img_crop_model.crop_image(
+          cur_image, np.reshape(scene_boxes[bidx],(1,4)), crop_img_size)
+        cropped_image = cropped_image - 128.0
 
         feat_map = model(cropped_image, out_layer='conv3')
 
@@ -233,9 +236,11 @@ def run_mdnet(img_list, init_bbox,
 
         batch_num = np.zeros((pos_examples.shape[0], 1))
         cur_pos_rois = np.copy(pos_examples)
-        cur_pos_rois[:,0:2] -= np.repeat(np.reshape(scene_boxes[bidx,0:2],(1,2)),cur_pos_rois.shape[0],axis=0)
+        cur_pos_rois[:,0:2] -= np.repeat(np.reshape(
+          scene_boxes[bidx,0:2],(1,2)),cur_pos_rois.shape[0],axis=0)
         scaled_obj_size = float(opts['img_size'])*jitter_scale[bidx]
-        cur_pos_rois = samples2maskroi(cur_pos_rois, model.receptive_field,(scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
+        cur_pos_rois = samples2maskroi(cur_pos_rois, model.receptive_field,
+          (scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
         cur_pos_rois = np.concatenate((batch_num, cur_pos_rois), axis=1)
         cur_pos_rois = Variable(torch.from_numpy(cur_pos_rois.astype('float32'))).cuda()
         cur_pos_feats = model.roi_align_model(feat_map, cur_pos_rois)
@@ -243,8 +248,10 @@ def run_mdnet(img_list, init_bbox,
 
         batch_num = np.zeros((neg_examples.shape[0], 1))
         cur_neg_rois = np.copy(neg_examples)
-        cur_neg_rois[:,0:2] -= np.repeat(np.reshape(scene_boxes[bidx,0:2],(1,2)),cur_neg_rois.shape[0],axis=0)
-        cur_neg_rois = samples2maskroi(cur_neg_rois, model.receptive_field, (scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
+        cur_neg_rois[:,0:2] -= np.repeat(np.reshape(scene_boxes[bidx,0:2],(1,2)),
+          cur_neg_rois.shape[0],axis=0)
+        cur_neg_rois = samples2maskroi(cur_neg_rois, model.receptive_field,
+          (scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
         cur_neg_rois = np.concatenate((batch_num, cur_neg_rois), axis=1)
         cur_neg_rois = Variable(torch.from_numpy(cur_neg_rois.astype('float32'))).cuda()
         cur_neg_feats = model.roi_align_model(feat_map, cur_neg_rois)
@@ -254,9 +261,11 @@ def run_mdnet(img_list, init_bbox,
         ## bbreg rois
         batch_num = np.zeros((cur_bbreg_examples.shape[0], 1))
         cur_bbreg_rois = np.copy(cur_bbreg_examples)
-        cur_bbreg_rois[:,0:2] -= np.repeat(np.reshape(scene_boxes[bidx,0:2],(1,2)),cur_bbreg_rois.shape[0],axis=0)
+        cur_bbreg_rois[:,0:2] -= np.repeat(np.reshape(
+          scene_boxes[bidx,0:2],(1,2)),cur_bbreg_rois.shape[0],axis=0)
         scaled_obj_size = float(opts['img_size'])*jitter_scale[bidx]
-        cur_bbreg_rois = samples2maskroi(cur_bbreg_rois, model.receptive_field,(scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
+        cur_bbreg_rois = samples2maskroi(cur_bbreg_rois, model.receptive_field,
+          (scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
         cur_bbreg_rois = np.concatenate((batch_num, cur_bbreg_rois), axis=1)
         cur_bbreg_rois = Variable(torch.from_numpy(cur_bbreg_rois.astype('float32'))).cuda()
         cur_bbreg_feats = model.roi_align_model(feat_map, cur_bbreg_rois)
@@ -318,36 +327,52 @@ def run_mdnet(img_list, init_bbox,
 
         scaled_obj_size = float(opts['img_size']) / cur_extra_scale[0]
 
-        cur_extra_cropped_image, _ = img_crop_model.crop_image(cur_image, np.reshape(extra_scene_box,(1,4)),extra_crop_img_size)
+        cur_extra_cropped_image, _ = img_crop_model.crop_image(cur_image,
+          np.reshape(extra_scene_box,(1,4)),extra_crop_img_size)
         cur_extra_cropped_image = cur_extra_cropped_image.detach()
 
-        cur_extra_pos_examples = gen_samples(SampleGenerator('gaussian', (ishape[1], ishape[0]), 0.1, 1.2),extra_target_bbox, opts['n_pos_init']/replicateNum, opts['overlap_pos_init'])
-        cur_extra_neg_examples = gen_samples(SampleGenerator('uniform', (ishape[1], ishape[0]), 0.3, 2, 1.1),extra_target_bbox, opts['n_neg_init']/replicateNum/4, opts['overlap_neg_init'])
+        cur_extra_pos_examples = gen_samples(SampleGenerator('gaussian',
+          (ishape[1], ishape[0]), 0.1, 1.2),extra_target_bbox,
+          opts['n_pos_init']/replicateNum, opts['overlap_pos_init'])
+        cur_extra_neg_examples = gen_samples(SampleGenerator('uniform',
+          (ishape[1], ishape[0]), 0.3, 2, 1.1),extra_target_bbox,
+          opts['n_neg_init']/replicateNum/4, opts['overlap_neg_init'])
 
         ##bbreg sample
-        cur_extra_bbreg_examples = gen_samples(SampleGenerator('uniform', (ishape[1], ishape[0]), 0.3, 1.5, 1.1),extra_target_bbox, opts['n_bbreg']/replicateNum/4, opts['overlap_bbreg'], opts['scale_bbreg'])
+        cur_extra_bbreg_examples = gen_samples(SampleGenerator('uniform',
+          (ishape[1], ishape[0]), 0.3, 1.5, 1.1),
+          extra_target_bbox, opts['n_bbreg']/replicateNum/4,
+          opts['overlap_bbreg'], opts['scale_bbreg'])
 
         batch_num = iidx*np.ones((cur_extra_pos_examples.shape[0], 1))
         cur_extra_pos_rois = np.copy(cur_extra_pos_examples)
-        cur_extra_pos_rois[:, 0:2] -= np.repeat(np.reshape(extra_scene_box[0:2], (1, 2)),
-                                                    cur_extra_pos_rois.shape[0], axis=0)
-        cur_extra_pos_rois = samples2maskroi(cur_extra_pos_rois, model.receptive_field,(scaled_obj_size, scaled_obj_size), extra_target_bbox[2:4], opts['padding'])
-        cur_extra_pos_rois = np.concatenate((batch_num, cur_extra_pos_rois), axis=1)
+        cur_extra_pos_rois[:, 0:2] -= np.repeat(np.reshape(
+          extra_scene_box[0:2], (1, 2)),
+          cur_extra_pos_rois.shape[0], axis=0)
+        cur_extra_pos_rois = samples2maskroi(cur_extra_pos_rois,
+          model.receptive_field,(scaled_obj_size, scaled_obj_size),
+          extra_target_bbox[2:4], opts['padding'])
+        cur_extra_pos_rois = np.concatenate((batch_num,
+          cur_extra_pos_rois), axis=1)
 
         batch_num = iidx * np.ones((cur_extra_neg_examples.shape[0], 1))
         cur_extra_neg_rois = np.copy(cur_extra_neg_examples)
-        cur_extra_neg_rois[:, 0:2] -= np.repeat(np.reshape(extra_scene_box[0:2], (1, 2)),cur_extra_neg_rois.shape[0], axis=0)
-        cur_extra_neg_rois = samples2maskroi(cur_extra_neg_rois, model.receptive_field,(scaled_obj_size, scaled_obj_size), extra_target_bbox[2:4], opts['padding'])
+        cur_extra_neg_rois[:, 0:2] -= np.repeat(np.reshape(extra_scene_box[0:2],
+          (1, 2)),cur_extra_neg_rois.shape[0], axis=0)
+        cur_extra_neg_rois = samples2maskroi(cur_extra_neg_rois,
+          model.receptive_field,(scaled_obj_size, scaled_obj_size),
+          extra_target_bbox[2:4], opts['padding'])
         cur_extra_neg_rois = np.concatenate((batch_num, cur_extra_neg_rois), axis=1)
 
         ## bbreg rois
         batch_num = iidx * np.ones((cur_extra_bbreg_examples.shape[0], 1))
         cur_extra_bbreg_rois = np.copy(cur_extra_bbreg_examples)
-        cur_extra_bbreg_rois[:,0:2] -= np.repeat(np.reshape(extra_scene_box[0:2],(1,2)),cur_extra_bbreg_rois.shape[0],axis=0)
-        cur_extra_bbreg_rois = samples2maskroi(cur_extra_bbreg_rois, model.receptive_field,(scaled_obj_size,scaled_obj_size), extra_target_bbox[2:4], opts['padding'])
+        cur_extra_bbreg_rois[:,0:2] -= np.repeat(np.reshape(extra_scene_box[0:2],
+          (1,2)),cur_extra_bbreg_rois.shape[0],axis=0)
+        cur_extra_bbreg_rois = samples2maskroi(cur_extra_bbreg_rois,
+          model.receptive_field,(scaled_obj_size,scaled_obj_size),
+          extra_target_bbox[2:4], opts['padding'])
         cur_extra_bbreg_rois = np.concatenate((batch_num, cur_extra_bbreg_rois), axis=1)
-
-
 
         if iidx==0:
             extra_cropped_image = cur_extra_cropped_image
@@ -358,13 +383,18 @@ def run_mdnet(img_list, init_bbox,
             extra_bbreg_rois = np.copy(cur_extra_bbreg_rois)
             extra_bbreg_examples = np.copy(cur_extra_bbreg_examples)
         else:
-            extra_cropped_image = torch.cat((extra_cropped_image,cur_extra_cropped_image),dim=0)
+            extra_cropped_image = torch.cat((extra_cropped_image,
+              cur_extra_cropped_image),dim=0)
 
-            extra_pos_rois = np.concatenate( (extra_pos_rois, np.copy(cur_extra_pos_rois)), axis=0)
-            extra_neg_rois = np.concatenate( (extra_neg_rois, np.copy(cur_extra_neg_rois)), axis=0)
+            extra_pos_rois = np.concatenate( (extra_pos_rois,
+              np.copy(cur_extra_pos_rois)), axis=0)
+            extra_neg_rois = np.concatenate( (extra_neg_rois,
+              np.copy(cur_extra_neg_rois)), axis=0)
             ##bbreg rois
-            extra_bbreg_rois = np.concatenate( (extra_bbreg_rois, np.copy(cur_extra_bbreg_rois)), axis=0 )
-            extra_bbreg_examples = np.concatenate( (extra_bbreg_examples, np.copy(cur_extra_bbreg_examples)), axis=0 )
+            extra_bbreg_rois = np.concatenate( (extra_bbreg_rois,
+              np.copy(cur_extra_bbreg_rois)), axis=0 )
+            extra_bbreg_examples = np.concatenate( (extra_bbreg_examples,
+              np.copy(cur_extra_bbreg_examples)), axis=0 )
 
 
     extra_pos_rois = Variable(torch.from_numpy(extra_pos_rois.astype('float32'))).cuda()
@@ -415,11 +445,13 @@ def run_mdnet(img_list, init_bbox,
     if pos_feats.size(0) > opts['n_pos_update']:
         pos_idx = np.asarray(range(pos_feats.size(0)))
         np.random.shuffle(pos_idx)
-        pos_feats_all = [pos_feats.index_select(0, torch.from_numpy(pos_idx[0:opts['n_pos_update']]).cuda())]
+        pos_feats_all = [pos_feats.index_select(0,
+          torch.from_numpy(pos_idx[0:opts['n_pos_update']]).cuda())]
     if neg_feats.size(0) > opts['n_neg_update']:
         neg_idx = np.asarray(range(neg_feats.size(0)))
         np.random.shuffle(neg_idx)
-        neg_feats_all = [neg_feats.index_select(0, torch.from_numpy(neg_idx[0:opts['n_neg_update']]).cuda())]
+        neg_feats_all = [neg_feats.index_select(0,
+          torch.from_numpy(neg_idx[0:opts['n_neg_update']]).cuda())]
 
 
     spf_total = time.time()-tic
@@ -463,13 +495,15 @@ def run_mdnet(img_list, init_bbox,
 
         # Estimate target bbox
         ishape = cur_image.shape
-        samples = gen_samples(SampleGenerator('gaussian', (ishape[1], ishape[0]), trans_f, opts['scale_f'],valid=True), target_bbox, opts['n_samples'])
+        samples = gen_samples(SampleGenerator('gaussian', (ishape[1], ishape[0]),
+          trans_f, opts['scale_f'],valid=True), target_bbox, opts['n_samples'])
 
         padded_x1 = (samples[:, 0] - samples[:, 2]*(opts['padding']-1.)/2.).min()
         padded_y1 = (samples[:, 1] - samples[:,3]*(opts['padding']-1.)/2.).min()
         padded_x2 = (samples[:, 0] + samples[:, 2]*(opts['padding']+1.)/2.).max()
         padded_y2 = (samples[:, 1] + samples[:, 3]*(opts['padding']+1.)/2.).max()
-        padded_scene_box = np.asarray((padded_x1, padded_y1, padded_x2 - padded_x1, padded_y2 - padded_y1))
+        padded_scene_box = np.asarray((padded_x1, padded_y1,
+          padded_x2 - padded_x1, padded_y2 - padded_y1))
 
         if padded_scene_box[0] > cur_image.shape[1]:
             padded_scene_box[0] = cur_image.shape[1]-1
@@ -481,9 +515,10 @@ def run_mdnet(img_list, init_bbox,
             padded_scene_box[3] = -padded_scene_box[1]+1
 
 
-        crop_img_size = (padded_scene_box[2:4] * ((opts['img_size'], opts['img_size']) / target_bbox[2:4])).astype(
-            'int64')
-        cropped_image,cur_image_var = img_crop_model.crop_image(cur_image, np.reshape(padded_scene_box,(1,4)),crop_img_size)
+        crop_img_size = (padded_scene_box[2:4] * ((opts['img_size'], \
+          opts['img_size']) / target_bbox[2:4])).astype('int64')
+        cropped_image,cur_image_var = img_crop_model.crop_image(cur_image,
+          np.reshape(padded_scene_box,(1,4)),crop_img_size)
         cropped_image = cropped_image - 128.
 
         model.eval()
@@ -497,8 +532,10 @@ def run_mdnet(img_list, init_bbox,
         # Extract sample features and get target location
         batch_num = np.zeros((samples.shape[0], 1))
         sample_rois = np.copy(samples)
-        sample_rois[:, 0:2] -= np.repeat(np.reshape(padded_scene_box[0:2], (1, 2)), sample_rois.shape[0], axis=0)
-        sample_rois = samples2maskroi(sample_rois,model.receptive_field, (opts['img_size'],opts['img_size']), target_bbox[2:4],opts['padding'])
+        sample_rois[:, 0:2] -= np.repeat(np.reshape(padded_scene_box[0:2],
+          (1, 2)), sample_rois.shape[0], axis=0)
+        sample_rois = samples2maskroi(sample_rois,model.receptive_field,
+          (opts['img_size'],opts['img_size']), target_bbox[2:4],opts['padding'])
         sample_rois = np.concatenate((batch_num, sample_rois), axis=1)
         sample_rois = Variable(torch.from_numpy(sample_rois.astype('float32'))).cuda()
         sample_feats = model.roi_align_model(feat_map, sample_rois)
@@ -548,14 +585,18 @@ def run_mdnet(img_list, init_bbox,
             padded_y1 = (neg_examples[:, 1] - neg_examples[:, 3] * (opts['padding'] - 1.) / 2.).min()
             padded_x2 = (neg_examples[:, 0] + neg_examples[:, 2] * (opts['padding'] + 1.) / 2.).max()
             padded_y2 = (neg_examples[:, 1] + neg_examples[:, 3] * (opts['padding'] + 1.) / 2.).max()
-            padded_scene_box = np.reshape(np.asarray((padded_x1, padded_y1, padded_x2 - padded_x1, padded_y2 - padded_y1)),(1,4))
+
+            padded_scene_box = np.reshape(np.asarray((padded_x1, padded_y1,
+              padded_x2 - padded_x1, padded_y2 - padded_y1)),(1,4))
 
             scene_boxes = np.reshape(np.copy(padded_scene_box), (1, 4))
             jitter_scale = [1.]
 
             for bidx in range(0, scene_boxes.shape[0]):
-                crop_img_size = (scene_boxes[bidx, 2:4] * ((opts['img_size'], opts['img_size']) / target_bbox[2:4])).astype('int64') * jitter_scale[bidx]
-                cropped_image, cur_image_var = img_crop_model.crop_image(cur_image,np.reshape(scene_boxes[bidx], (1, 4)),crop_img_size)
+                crop_img_size = (scene_boxes[bidx, 2:4] * ((opts['img_size'],
+                  opts['img_size']) / target_bbox[2:4])).astype('int64') * jitter_scale[bidx]
+                cropped_image, cur_image_var = img_crop_model.crop_image(cur_image,
+                  np.reshape(scene_boxes[bidx], (1, 4)),crop_img_size)
                 cropped_image = cropped_image - 128.
 
                 feat_map = model(cropped_image, out_layer='conv3')
@@ -565,9 +606,11 @@ def run_mdnet(img_list, init_bbox,
 
                 batch_num = np.zeros((pos_examples.shape[0], 1))
                 cur_pos_rois = np.copy(pos_examples)
-                cur_pos_rois[:, 0:2] -= np.repeat(np.reshape(scene_boxes[bidx, 0:2], (1, 2)), cur_pos_rois.shape[0],axis=0)
+                cur_pos_rois[:, 0:2] -= np.repeat(np.reshape(scene_boxes[bidx, 0:2],
+                  (1, 2)), cur_pos_rois.shape[0],axis=0)
                 scaled_obj_size = float(opts['img_size']) * jitter_scale[bidx]
-                cur_pos_rois = samples2maskroi(cur_pos_rois, model.receptive_field, (scaled_obj_size, scaled_obj_size),target_bbox[2:4], opts['padding'])
+                cur_pos_rois = samples2maskroi(cur_pos_rois, model.receptive_field,
+                  (scaled_obj_size, scaled_obj_size),target_bbox[2:4], opts['padding'])
                 cur_pos_rois = np.concatenate((batch_num, cur_pos_rois), axis=1)
                 cur_pos_rois = Variable(torch.from_numpy(cur_pos_rois.astype('float32'))).cuda()
                 cur_pos_feats = model.roi_align_model(feat_map, cur_pos_rois)
@@ -575,10 +618,12 @@ def run_mdnet(img_list, init_bbox,
 
                 batch_num = np.zeros((neg_examples.shape[0], 1))
                 cur_neg_rois = np.copy(neg_examples)
-                cur_neg_rois[:, 0:2] -= np.repeat(np.reshape(scene_boxes[bidx, 0:2], (1, 2)), cur_neg_rois.shape[0],
+                cur_neg_rois[:, 0:2] -= np.repeat(np.reshape(scene_boxes[bidx, 0:2],
+                  (1, 2)), cur_neg_rois.shape[0],
                                                   axis=0)
-                cur_neg_rois = samples2maskroi(cur_neg_rois, model.receptive_field, (scaled_obj_size, scaled_obj_size),
-                                               target_bbox[2:4], opts['padding'])
+                cur_neg_rois = samples2maskroi(cur_neg_rois, model.receptive_field,
+                  (scaled_obj_size, scaled_obj_size),
+                  target_bbox[2:4], opts['padding'])
                 cur_neg_rois = np.concatenate((batch_num, cur_neg_rois), axis=1)
                 cur_neg_rois = Variable(torch.from_numpy(cur_neg_rois.astype('float32'))).cuda()
                 cur_neg_feats = model.roi_align_model(feat_map, cur_neg_rois)
@@ -596,11 +641,13 @@ def run_mdnet(img_list, init_bbox,
             if pos_feats.size(0) > opts['n_pos_update']:
                 pos_idx = np.asarray(range(pos_feats.size(0)))
                 np.random.shuffle(pos_idx)
-                pos_feats = pos_feats.index_select(0, torch.from_numpy(pos_idx[0:opts['n_pos_update']]).cuda())
+                pos_feats = pos_feats.index_select(0,
+                  torch.from_numpy(pos_idx[0:opts['n_pos_update']]).cuda())
             if neg_feats.size(0) > opts['n_neg_update']:
                 neg_idx = np.asarray(range(neg_feats.size(0)))
                 np.random.shuffle(neg_idx)
-                neg_feats = neg_feats.index_select(0,torch.from_numpy(neg_idx[0:opts['n_neg_update']]).cuda())
+                neg_feats = neg_feats.index_select(0,
+                  torch.from_numpy(neg_idx[0:opts['n_neg_update']]).cuda())
 
             pos_feats_all.append(pos_feats)
             neg_feats_all.append(neg_feats)
