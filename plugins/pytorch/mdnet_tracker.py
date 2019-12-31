@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 import time
 
 import torch.optim as optim
@@ -7,13 +8,12 @@ import torch.optim as optim
 from torch.autograd import Variable
 from random import randint
 
-sys.path.insert(0,'./mdnet')
-from sample_generator import *
-from data_prov import *
-from model import *
-from bbreg import *
-from options import *
-from img_cropper import *
+from viame.arrows.pytorch.mdnet.sample_generator import *
+from viame.arrows.pytorch.mdnet.data_prov import *
+from viame.arrows.pytorch.mdnet.model import *
+from viame.arrows.pytorch.mdnet.bbreg import *
+from viame.arrows.pytorch.mdnet.options import *
+from viame.arrows.pytorch.mdnet.img_cropper import *
 
 from roi_align.modules.roi_align import RoIAlignAvg
 from roi_align.modules.roi_align import RoIAlignMax
@@ -112,9 +112,6 @@ def train(model, criterion, optimizer, pos_feats,
 
         if opts['visual_log']:
             print("Iter %d, Loss %.4f" % (iter, loss.data[0]))
-
-
-class MDNetTracker
 
 def run_mdnet(img_list, init_bbox, savefig_dir='', display=False):
 
@@ -697,8 +694,9 @@ def run_mdnet(img_list, init_bbox, savefig_dir='', display=False):
                 print("Frame %d/%d, Score %.3f, Time %.3f" % \
                     (i, len(img_list), target_score, spf))
             else:
-                print("Frame %d/%d, Overlap %.3f, Score %.3f, Time %.3f" % \
-                    (i, len(img_list), overlap_ratio(gt[i],result_bb[i])[0], target_score, spf))
+                print("Frame %d/%d, Overlap %.3f, Score %.3f, Time %.3f" %   \
+                    (i, len(img_list), overlap_ratio(gt[i],result_bb[i])[0], \
+                    target_score, spf))
         iou_result[i]= overlap_ratio(gt[i],result_bb[i])[0]
 
 

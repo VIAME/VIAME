@@ -42,10 +42,7 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH-MDNET )
 
-  kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/mdnet
-    viame/arrows/pytorch
-    mdnet )
+  add_subdirectory( mdnet )
 
   kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/mdnet_tracker.py

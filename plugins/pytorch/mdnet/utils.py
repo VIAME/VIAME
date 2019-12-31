@@ -1,4 +1,6 @@
-from scipy.misc import imresize
+
+from PIL import Image
+
 import numpy as np
 
 
@@ -68,7 +70,8 @@ def crop_image(img, bbox, img_size=[107,107], padding=16, valid=False):
         cropped[min_y_val-min_y:max_y_val-min_y, min_x_val-min_x:max_x_val-min_x, :] \
             = img[min_y_val:max_y_val, min_x_val:max_x_val, :]
 
-    scaled = imresize(cropped, (img_size[1],img_size[0]))
+    pil_im = Image.fromarray(cropped)
+    scaled = np.array(pil_im.resize((img_size[1],img_size[0])))
     return scaled
 
 def samples2maskroi(samples,receptive_field, cshape,padded_scene_size,padding_ratio):

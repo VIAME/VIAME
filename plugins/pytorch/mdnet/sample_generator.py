@@ -1,7 +1,9 @@
+
 import numpy as np
+
 from PIL import Image
 
-from utils import *
+from viame.arrows.pytorch.mdnet.utils import *
 
 def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
 
@@ -36,7 +38,8 @@ def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
 
 
 class SampleGenerator():
-    def __init__(self, type, img_size, trans_f=1, scale_f=1, aspect_f=None, valid=False):
+    def __init__(self, type, img_size, trans_f=1,
+                 scale_f=1, aspect_f=None, valid=False):
         self.type = type
         self.img_size = np.array(img_size) # (w, h)
         self.trans_f = trans_f
