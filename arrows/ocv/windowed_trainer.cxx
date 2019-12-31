@@ -76,7 +76,7 @@ public:
     , m_chip_adaptive_thresh( 2000000 )
     , m_chip_random_factor( -1.0 )
     , m_original_to_chip_size( false )
-    , m_black_pad( false )
+    , m_black_pad( true )
     , m_always_write_image( false )
     , m_overlap_required( 0.05 )
     , m_chips_w_gt_only( false )
