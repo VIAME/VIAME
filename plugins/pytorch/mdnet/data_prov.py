@@ -26,7 +26,7 @@ class RegionDataset(data.Dataset):
         self.overlap_neg = pretrain_opts['overlap_neg']
 
 
-        self.crop_size = pretrain_opts['img_size']
+        self.crop_size = pretrain_opts['crop_size']
         self.padding = pretrain_opts['padding']
 
         self.index = np.random.permutation(len(self.img_list))
@@ -79,7 +79,7 @@ class RegionDataset(data.Dataset):
             padded_scene_box = np.asarray((padded_x1, padded_y1, padded_x2 - padded_x1, padded_y2 - padded_y1))
 
             jitter_scale = 1.1 ** np.clip(3.*np.random.randn(1,1),-2,2)
-            crop_img_size = (padded_scene_box[2:4] * ((pretrain_opts['img_size'], pretrain_opts['img_size']) / bbox[2:4])).astype('int64') * jitter_scale[0][0]
+            crop_img_size = (padded_scene_box[2:4] * ((pretrain_opts['crop_size'], pretrain_opts['crop_size']) / bbox[2:4])).astype('int64') * jitter_scale[0][0]
             cropped_image, cur_image_var = self.img_crop_model.crop_image(image, np.reshape(padded_scene_box, (1, 4)), crop_img_size)
             cropped_image = cropped_image - 128.
             if pretrain_opts['use_gpu']:
@@ -91,7 +91,7 @@ class RegionDataset(data.Dataset):
             rel_bbox = np.copy(bbox)
             rel_bbox[0:2] -= padded_scene_box[0:2]
 
-            jittered_obj_size = jitter_scale[0][0]*float(pretrain_opts['img_size'])
+            jittered_obj_size = jitter_scale[0][0]*float(pretrain_opts['crop_size'])
 
             batch_num = np.zeros((pos_examples.shape[0], 1))
             pos_rois = np.copy(pos_examples)

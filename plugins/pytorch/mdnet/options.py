@@ -1,12 +1,13 @@
 from collections import OrderedDict
 
 opts = OrderedDict()
+
 opts['use_gpu'] = True
-
-
 opts['model_path'] = './models/model_imagenet_seqbatch50_final.pth'
+opts['savefig_dir'] =''
+opts['display']=False
 
-opts['img_size'] = 107
+opts['crop_size'] = 107
 opts['padding'] = 1.2
 opts['jitter'] = True
 opts['result_path']='./result.npy'
