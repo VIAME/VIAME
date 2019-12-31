@@ -1,19 +1,19 @@
 import os
 import numpy as np
 import pickle
-from collections import OrderedDict
+import time
 
 import xml.etree.ElementTree
 import xmltodict
 import numpy as np
 
-import  matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+
 from PIL import Image
-import time
+from collections import OrderedDict
 
 output_path = './imagenet_refine.pkl'
-
 
 
 seq_home = '/home/ilchae/dataset/ILSVRC/'

@@ -460,6 +460,7 @@ def run_mdnet(img_list, init_bbox, savefig_dir='', display=False):
         dpi = 80.0
         figsize = (cur_image.shape[1]/dpi, cur_image.shape[0]/dpi)
 
+        import matplotlib.pyplot as plt
         fig = plt.figure(frameon=False, figsize=figsize, dpi=dpi)
         ax = plt.Axes(fig, [0., 0., 1., 1.])
         ax.set_axis_off()
@@ -684,6 +685,7 @@ def run_mdnet(img_list, init_bbox, savefig_dir='', display=False):
             rect.set_height(result_bb[i,3])
 
             if display:
+                import matplotlib.pyplot as plt
                 plt.pause(.01)
                 plt.draw()
             if savefig:

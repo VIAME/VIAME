@@ -1,18 +1,18 @@
 import os
+import time
+import sys
 import scipy.io
 import numpy as np
-from collections import OrderedDict
 
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch
 
-import time
+from collections import OrderedDict
 
-import sys
-
-from roi_align.modules.roi_align import RoIAlignAvg,RoIAlignMax
+from roi_align.modules.roi_align import RoIAlignAvg
+from roi_align.modules.roi_align import RoIAlignMax
 
 def append_params(params, module, prefix):
     for child in module.children():
