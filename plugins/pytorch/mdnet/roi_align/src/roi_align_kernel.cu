@@ -12,7 +12,10 @@ extern "C" {
             i += blockDim.x * gridDim.x)
 
 
-    __global__ void ROIAlignForward(const int nthreads, const float* bottom_data, const float spatial_scale, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* top_data) {
+    __global__ void ROIAlignForward(const int nthreads, const float* bottom_data,
+      const float spatial_scale, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, const float* bottom_rois,
+      float* top_data) {
         CUDA_1D_KERNEL_LOOP(index, nthreads) {
             // (n, c, ph, pw) is an element in the aligned output
             int n = index;
@@ -79,13 +82,18 @@ extern "C" {
     }
 
 
-    int ROIAlignForwardLaucher(const float* bottom_data, const float spatial_scale, const int num_rois, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* top_data, cudaStream_t stream) {
+    int ROIAlignForwardLaucher(const float* bottom_data, const float spatial_scale,
+      const int num_rois, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, const float* bottom_rois,
+      float* top_data, cudaStream_t stream) {
         const int kThreadsPerBlock = 1024;
         const int output_size = num_rois * aligned_height * aligned_width * channels;
         cudaError_t err;
 
 
-        ROIAlignForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(output_size, bottom_data, spatial_scale, height, width, channels, aligned_height, aligned_width, bottom_rois, top_data);
+        ROIAlignForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock,
+          kThreadsPerBlock, 0, stream>>>(output_size, bottom_data, spatial_scale,
+          height, width, channels, aligned_height, aligned_width, bottom_rois, top_data);
 
         err = cudaGetLastError();
         if(cudaSuccess != err) {
@@ -97,7 +105,10 @@ extern "C" {
     }
 
 
-    __global__ void ROIAlignBackward(const int nthreads, const float* top_diff, const float spatial_scale, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, float* bottom_diff, const float* bottom_rois) {
+    __global__ void ROIAlignBackward(const int nthreads, const float* top_diff,
+      const float spatial_scale, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, float* bottom_diff,
+      const float* bottom_rois) {
         CUDA_1D_KERNEL_LOOP(index, nthreads) {
 
             // (n, c, ph, pw) is an element in the aligned output
@@ -165,12 +176,17 @@ extern "C" {
         }
     }
 
-    int ROIAlignBackwardLaucher(const float* top_diff, const float spatial_scale, const int batch_size, const int num_rois, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* bottom_diff, cudaStream_t stream) {
+    int ROIAlignBackwardLaucher(const float* top_diff, const float spatial_scale,
+      const int batch_size, const int num_rois, const int height, const int width,
+      const int channels, const int aligned_height, const int aligned_width,
+      const float* bottom_rois, float* bottom_diff, cudaStream_t stream) {
         const int kThreadsPerBlock = 1024;
         const int output_size = num_rois * aligned_height * aligned_width * channels;
         cudaError_t err;
 
-        ROIAlignBackward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(output_size, top_diff, spatial_scale, height, width, channels, aligned_height, aligned_width, bottom_diff, bottom_rois);
+        ROIAlignBackward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock,
+          kThreadsPerBlock, 0, stream>>>(output_size, top_diff, spatial_scale,
+          height, width, channels, aligned_height, aligned_width, bottom_diff, bottom_rois);
 
         err = cudaGetLastError();
         if(cudaSuccess != err) {
@@ -181,7 +197,10 @@ extern "C" {
         return 1;
     }
 
-    __global__ void ROIAlignAdaForward(const int nthreads, const float* bottom_data, const float spatial_scale, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* top_data) {
+    __global__ void ROIAlignAdaForward(const int nthreads, const float* bottom_data,
+      const float spatial_scale, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, const float* bottom_rois,
+      float* top_data) {
         CUDA_1D_KERNEL_LOOP(index, nthreads) {
             // (n, c, ph, pw) is an element in the aligned output
             int n = index;
@@ -211,12 +230,8 @@ extern "C" {
             int stride_w = fmaxf(1,round(bin_size_w));
             int stride_h = fmaxf(1,round(bin_size_h));
 
-
             float h = (float)(ph) * bin_size_h + roi_start_h; // this is right in geometically
             float w = (float)(pw) * bin_size_w + roi_start_w; // this is right in geometically
-
-
-
 
             int hstart = fminf(floor((float)(ph) * bin_size_h + roi_start_h), height - 2);
             int wstart = fminf(floor((float)(pw) * bin_size_w + roi_start_w), width - 2);
@@ -230,11 +245,11 @@ extern "C" {
                 for(int hidx=0; hidx<=stride_h; hidx+=stride_h){
                     for(int widx=0; widx<=stride_w; widx+=stride_w){
                         if( ((widx+wstart)>=0) && ((widx+wstart)<width) && ((hidx+hstart)>=0) && ((hidx+hstart)<height) ){
-                        int cur_loc = img_start + (c * height + hstart) * width + wstart + hidx*width + widx;
-                        float h_ratio = 1. - (float)fabsf(h-hstart-hidx)/(float)stride_h;
-                        float w_ratio = 1. - (float)fabsf(w-wstart-widx)/(float)stride_w;
+                            int cur_loc = img_start + (c * height + hstart) * width + wstart + hidx*width + widx;
+                            float h_ratio = 1. - (float)fabsf(h-hstart-hidx)/(float)stride_h;
+                            float w_ratio = 1. - (float)fabsf(w-wstart-widx)/(float)stride_w;
 
-                        top_data[index]+=bottom_data[cur_loc]*h_ratio*w_ratio;
+                            top_data[index]+=bottom_data[cur_loc]*h_ratio*w_ratio;
                         }
                     }
                 }
@@ -243,13 +258,18 @@ extern "C" {
     }
 
 
-    int ROIAlignAdaForwardLaucher(const float* bottom_data, const float spatial_scale, const int num_rois, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* top_data, cudaStream_t stream) {
+    int ROIAlignAdaForwardLaucher(const float* bottom_data, const float spatial_scale,
+      const int num_rois, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, const float* bottom_rois,
+      float* top_data, cudaStream_t stream) {
         const int kThreadsPerBlock = 1024;
         const int output_size = num_rois * aligned_height * aligned_width * channels;
         cudaError_t err;
 
 
-        ROIAlignAdaForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(output_size, bottom_data, spatial_scale, height, width, channels, aligned_height, aligned_width, bottom_rois, top_data);
+        ROIAlignAdaForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock,
+          kThreadsPerBlock, 0, stream>>>(output_size, bottom_data, spatial_scale,
+          height, width, channels, aligned_height, aligned_width, bottom_rois, top_data);
 
         err = cudaGetLastError();
         if(cudaSuccess != err) {
@@ -261,7 +281,10 @@ extern "C" {
     }
 
 
-    __global__ void ROIAlignAdaBackward(const int nthreads, const float* top_diff, const float spatial_scale, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, float* bottom_diff, const float* bottom_rois) {
+    __global__ void ROIAlignAdaBackward(const int nthreads, const float* top_diff,
+      const float spatial_scale, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, float* bottom_diff,
+      const float* bottom_rois) {
         CUDA_1D_KERNEL_LOOP(index, nthreads) {
 
             // (n, c, ph, pw) is an element in the aligned output
@@ -304,11 +327,11 @@ extern "C" {
                 for(int hidx=0; hidx<=stride_h; hidx+=stride_h){
                     for(int widx=0; widx<=stride_w; widx+=stride_w){
                         if( ((hstart+hidx)>=0) && ((hstart+hidx)<height) && ((wstart+widx)>=0) && ((wstart+widx)<width) ){
-                        int cur_loc = img_start + (c * height + hstart) * width + wstart + hidx*width + widx;
-                        float h_ratio = 1. - (float)fabsf(h-hstart-hidx)/(float)(stride_h);
-                        float w_ratio = 1. - (float)fabsf(w-wstart-widx)/(float)(stride_w);
+                            int cur_loc = img_start + (c * height + hstart) * width + wstart + hidx*width + widx;
+                            float h_ratio = 1. - (float)fabsf(h-hstart-hidx)/(float)(stride_h);
+                            float w_ratio = 1. - (float)fabsf(w-wstart-widx)/(float)(stride_w);
 
-                        atomicAdd(bottom_diff + cur_loc, top_diff[index]*h_ratio*w_ratio);
+                            atomicAdd(bottom_diff + cur_loc, top_diff[index]*h_ratio*w_ratio);
                         }
                     }
                 }
@@ -316,12 +339,17 @@ extern "C" {
         }
     }
 
-    int ROIAlignAdaBackwardLaucher(const float* top_diff, const float spatial_scale, const int batch_size, const int num_rois, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* bottom_diff, cudaStream_t stream) {
+    int ROIAlignAdaBackwardLaucher(const float* top_diff, const float spatial_scale,
+      const int batch_size, const int num_rois, const int height, const int width,
+      const int channels, const int aligned_height, const int aligned_width,
+      const float* bottom_rois, float* bottom_diff, cudaStream_t stream) {
         const int kThreadsPerBlock = 1024;
         const int output_size = num_rois * aligned_height * aligned_width * channels;
         cudaError_t err;
 
-        ROIAlignAdaBackward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(output_size, top_diff, spatial_scale, height, width, channels, aligned_height, aligned_width, bottom_diff, bottom_rois);
+        ROIAlignAdaBackward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock,
+          kThreadsPerBlock, 0, stream>>>(output_size, top_diff, spatial_scale,
+          height, width, channels, aligned_height, aligned_width, bottom_diff, bottom_rois);
 
         err = cudaGetLastError();
         if(cudaSuccess != err) {
@@ -334,21 +362,10 @@ extern "C" {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    __global__ void ROIAlignDenseAdaForward(const int nthreads, const float* bottom_data, const float spatial_scale, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* top_data) {
+    __global__ void ROIAlignDenseAdaForward(const int nthreads, const float* bottom_data,
+      const float spatial_scale, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, const float* bottom_rois,
+      float* top_data) {
         CUDA_1D_KERNEL_LOOP(index, nthreads) {
             // (n, c, ph, pw) is an element in the aligned output
             int n = index;
@@ -413,13 +430,18 @@ extern "C" {
     }
 
 
-    int ROIAlignDenseAdaForwardLaucher(const float* bottom_data, const float spatial_scale, const int num_rois, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* top_data, cudaStream_t stream) {
+    int ROIAlignDenseAdaForwardLaucher(const float* bottom_data, const float spatial_scale,
+      const int num_rois, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, const float* bottom_rois,
+      float* top_data, cudaStream_t stream) {
         const int kThreadsPerBlock = 1024;
         const int output_size = num_rois * aligned_height * aligned_width * channels;
         cudaError_t err;
 
 
-        ROIAlignDenseAdaForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(output_size, bottom_data, spatial_scale, height, width, channels, aligned_height, aligned_width, bottom_rois, top_data);
+        ROIAlignDenseAdaForward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock,
+          kThreadsPerBlock, 0, stream>>>(output_size, bottom_data, spatial_scale,
+          height, width, channels, aligned_height, aligned_width, bottom_rois, top_data);
 
         err = cudaGetLastError();
         if(cudaSuccess != err) {
@@ -431,7 +453,10 @@ extern "C" {
     }
 
 
-    __global__ void ROIAlignDenseAdaBackward(const int nthreads, const float* top_diff, const float spatial_scale, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, float* bottom_diff, const float* bottom_rois) {
+    __global__ void ROIAlignDenseAdaBackward(const int nthreads, const float* top_diff,
+      const float spatial_scale, const int height, const int width, const int channels,
+      const int aligned_height, const int aligned_width, float* bottom_diff,
+      const float* bottom_rois) {
         CUDA_1D_KERNEL_LOOP(index, nthreads) {
 
             // (n, c, ph, pw) is an element in the aligned output
@@ -478,7 +503,9 @@ extern "C" {
                         //float h_ratio = 1. - (float)fabsf(h-hstart-hidx)/(float)(stride_h);
                         //float w_ratio = 1. - (float)fabsf(w-wstart-widx)/(float)(stride_w);
 
-                        float ratio = 1. / (2.505*(stride_h+1.)*(stride_w+1.)) * expf( -0.5*(powf((h-hstart-hidx)/(float)stride_h,2.) + powf( (w-wstart-widx)/(float)stride_w, 2.)) ) ;
+                        float ratio = 1. / (2.505*(stride_h+1.)*(stride_w+1.)) *
+                              expf( -0.5*(powf((h-hstart-hidx)/(float)stride_h,2.) +
+                              powf( (w-wstart-widx)/(float)stride_w, 2.)) ) ;
 
                         atomicAdd(bottom_diff + cur_loc, top_diff[index]*ratio);
                     }
@@ -487,12 +514,17 @@ extern "C" {
         }
     }
 
-    int ROIAlignDenseAdaBackwardLaucher(const float* top_diff, const float spatial_scale, const int batch_size, const int num_rois, const int height, const int width, const int channels, const int aligned_height, const int aligned_width, const float* bottom_rois, float* bottom_diff, cudaStream_t stream) {
+    int ROIAlignDenseAdaBackwardLaucher(const float* top_diff, const float spatial_scale,
+      const int batch_size, const int num_rois, const int height, const int width,
+      const int channels, const int aligned_height, const int aligned_width,
+      const float* bottom_rois, float* bottom_diff, cudaStream_t stream) {
         const int kThreadsPerBlock = 1024;
         const int output_size = num_rois * aligned_height * aligned_width * channels;
         cudaError_t err;
 
-        ROIAlignDenseAdaBackward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock, kThreadsPerBlock, 0, stream>>>(output_size, top_diff, spatial_scale, height, width, channels, aligned_height, aligned_width, bottom_diff, bottom_rois);
+        ROIAlignDenseAdaBackward<<<(output_size + kThreadsPerBlock - 1) / kThreadsPerBlock,
+          kThreadsPerBlock, 0, stream>>>(output_size, top_diff, spatial_scale, height, width,
+          channels, aligned_height, aligned_width, bottom_diff, bottom_rois);
 
         err = cudaGetLastError();
         if(cudaSuccess != err) {
