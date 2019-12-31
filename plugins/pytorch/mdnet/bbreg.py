@@ -2,7 +2,7 @@ import sys
 from sklearn.linear_model import Ridge
 import numpy as np
 
-from utils import *
+from viame.arrows.pytorch.mdnet.utils import *
 
 class BBRegressor():
     def __init__(self, img_size, alpha=1000, overlap=[0.6, 1], scale=[1, 2]):
