@@ -1,7 +1,7 @@
 import sys
-from sklearn.linear_model import Ridge
 import numpy as np
 
+from sklearn.linear_model import Ridge
 from viame.arrows.pytorch.mdnet.utils import *
 
 class BBRegressor():

@@ -1,16 +1,13 @@
 import sys
-
-from roi_align.modules.roi_align import RoIAlign
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
-import torch
+import time
 import numpy as np
 
-import time
+import torch.nn as nn
+import torch.nn.functional as F
+import torch
 
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from roi_align.modules.roi_align import RoIAlign
+from torch.autograd import Variable
 
 class imgCropper(nn.Module):
     def __init__(self, img_size):

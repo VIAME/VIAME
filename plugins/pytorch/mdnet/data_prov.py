@@ -1,13 +1,11 @@
 import sys
 import os
 import numpy as np
+
 from PIL import Image
 
 import torch
 import torch.utils.data as data
-
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 from viame.arrows.pytorch.mdnet.utils import *
 from viame.arrows.pytorch.mdnet.sample_generator import *
