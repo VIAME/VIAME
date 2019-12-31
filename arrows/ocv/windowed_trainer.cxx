@@ -170,6 +170,8 @@ windowed_trainer
 
   config->set_value( "train_directory", d->m_train_directory,
     "Directory for all files used in training." );
+  config->set_value( "chip_format", d->m_chip_format,
+    "Image format for output chips." );
   config->set_value( "skip_format", d->m_skip_format,
     "Skip file formatting, assume that the train_directory is pre-populated "
     "with all files required for model training." );
@@ -235,6 +237,7 @@ windowed_trainer
   config->merge_config( config_in );
 
   this->d->m_train_directory = config->get_value< std::string >( "train_directory" );
+  this->d->m_chip_format = config->get_value< std::string >( "chip_format" );
   this->d->m_skip_format = config->get_value< bool >( "skip_format" );
   this->d->m_mode = config->get_value< std::string >( "mode" );
   this->d->m_scale = config->get_value< double >( "scale" );
