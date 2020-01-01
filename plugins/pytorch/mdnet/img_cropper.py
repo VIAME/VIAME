@@ -32,7 +32,6 @@ class ImageCropper(nn.Module):
         cur_image_var = cur_image_var.astype('float32')
         cur_image_var = Variable(torch.from_numpy(cur_image_var).float())
 
-
         roi = np.copy(box)
         roi[:,2:4] += roi[:,0:2]
         roi = np.concatenate((np.zeros((roi.shape[0], 1)), roi), axis=1)
