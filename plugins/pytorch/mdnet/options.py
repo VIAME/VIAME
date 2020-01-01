@@ -1,11 +1,19 @@
+
+import os
+
 from collections import OrderedDict
+
+viame_dir = os.environ['VIAME_INSTALL']
+models_dir = os.path.join( 'configs', 'pipelines', 'models' )
+model_file = os.path.join( viame_dir, models_dir, 'mdnet_seed.pth' )
 
 opts = OrderedDict()
 
 opts['use_gpu'] = True
-opts['model_path'] = './models/model_imagenet_seqbatch50_final.pth'
+opts['model_path'] = model_file
 opts['savefig_dir'] =''
 opts['display']=False
+opts['visual_log']=True
 
 opts['crop_size'] = 107
 opts['padding'] = 1.2
