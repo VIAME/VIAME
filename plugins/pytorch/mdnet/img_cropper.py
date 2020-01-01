@@ -9,9 +9,9 @@ import torch
 from roi_align.modules.roi_align import RoIAlign
 from torch.autograd import Variable
 
-class imgCropper(nn.Module):
+class ImageCropper(nn.Module):
     def __init__(self, img_size):
-        super(imgCropper, self).__init__()
+        super(ImageCropper, self).__init__()
         self.isCuda = False
         self.img_size = img_size
         self.roi_align_model = RoIAlign(img_size,img_size, 1. )

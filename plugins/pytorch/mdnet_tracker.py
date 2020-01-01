@@ -120,33 +120,32 @@ class MDNetTracker:
         # Init bbox
         target_bbox = np.array(init_bbox)
 
-        # execution time for tracking
+        # Track execution times for update planning
         self._exec_times = []
 
-        # Init model
-        model = MDNet(opts['model_path'])
+        # Initialize model
+        self._model = MDNet(opts['model_path'])
         if opts['adaptive_align']:
-            align_h = model.roi_align_model.aligned_height
-            align_w = model.roi_align_model.aligned_width
-            spatial_s = model.roi_align_model.spatial_scale
-            model.roi_align_model = RoIAlignAdaMax(align_h, align_w, spatial_s)
+            align_h = self._model.roi_align_model.aligned_height
+            align_w = self._model.roi_align_model.aligned_width
+            spatial_s = self._model.roi_align_model.spatial_scale
+            self._model.roi_align_model = RoIAlignAdaMax(align_h, align_w, spatial_s)
         if opts['use_gpu']:
-            model = model.cuda()
+            self._model = self._model.cuda()
+        self._model.set_learnable_params(opts['ft_layers'])
 
-        model.set_learnable_params(opts['ft_layers'])
-
-        # Init image crop model
-        img_crop_model = imgCropper(1.)
+        # Init image cropper
+        self._image_cropper = ImageCropper(1.)
         if opts['use_gpu']:
-            img_crop_model.gpuEnable()
+            self._image_cropper.gpuEnable()
 
         # Init criterion and optimizer
         criterion = BinaryLoss()
-        init_optimizer = set_optimizer(model, opts['lr_init'])
-        update_optimizer = set_optimizer(model, opts['lr_update'])
+        init_optimizer = set_optimizer(self._model, opts['lr_init'])
+        update_optimizer = set_optimizer(self._model, opts['lr_update'])
         tic = time.time()
 
-        # Draw pos/neg samples
+        # Extract initial positive and negative samples
         ishape = first_image.shape
         pos_examples = gen_samples(SampleGenerator('gaussian',
           (ishape[1],ishape[0]), 0.1, 1.2),
@@ -160,7 +159,7 @@ class MDNetTracker:
           (ishape[1],ishape[0]), 0.3, 1.5, 1.1),
           target_bbox, opts['n_bbreg'], opts['overlap_bbreg'], opts['scale_bbreg'])
 
-        # compute padded sample
+        # Compute padded sample
         padded_x1 = (neg_examples[:,0]-neg_examples[:,2]*(opts['padding']-1.)/2.).min()
         padded_y1 = (neg_examples[:,1]-neg_examples[:,3]*(opts['padding']-1.)/2.).min()
         padded_x2 = (neg_examples[:,0]+neg_examples[:,2]*(opts['padding']+1.)/2.).max()
@@ -170,6 +169,7 @@ class MDNetTracker:
           (padded_x1,padded_y1,padded_x2-padded_x1,padded_y2-padded_y1)),(1,4))
 
         scene_boxes = np.reshape(np.copy(padded_scene_box), (1,4))
+
         if opts['jitter']:
             ## horizontal shift
             jittered_scene_box_horizon = np.copy(padded_scene_box)
@@ -191,6 +191,7 @@ class MDNetTracker:
             ## scale reduction
             jittered_scene_box_reduce2 = np.copy(padded_scene_box)
             jitter_scale_reduce2 = 1.1**(-2)
+
             ## scale enlarge
             jittered_scene_box_enlarge2 = np.copy(padded_scene_box)
             jitter_scale_enlarge2 = 1.1 ** (2)
@@ -207,15 +208,15 @@ class MDNetTracker:
         else:
             jitter_scale = [1.]
 
-        model.eval()
+        self._model.eval()
         for bidx in range(0,scene_boxes.shape[0]):
             crop_img_size = (scene_boxes[bidx,2:4] * ((opts['crop_size'],opts['crop_size']) \
               / target_bbox[2:4])).astype('int64')*jitter_scale[bidx]
-            cropped_image, first_image_var = img_crop_model.crop_image(
+            cropped_image, first_image_var = self._image_cropper.crop_image(
               first_image, np.reshape(scene_boxes[bidx],(1,4)), crop_img_size)
             cropped_image = cropped_image - 128.0
 
-            feat_map = model(cropped_image, out_layer='conv3')
+            feat_map = self._model(cropped_image, out_layer='conv3')
 
             rel_target_bbox = np.copy(target_bbox)
             rel_target_bbox[0:2] -= scene_boxes[bidx,0:2]
@@ -225,22 +226,22 @@ class MDNetTracker:
             cur_pos_rois[:,0:2] -= np.repeat(np.reshape(
               scene_boxes[bidx,0:2],(1,2)),cur_pos_rois.shape[0],axis=0)
             scaled_obj_size = float(opts['crop_size'])*jitter_scale[bidx]
-            cur_pos_rois = samples2maskroi(cur_pos_rois, model.receptive_field,
+            cur_pos_rois = samples2maskroi(cur_pos_rois, self._model.receptive_field,
               (scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
             cur_pos_rois = np.concatenate((batch_num, cur_pos_rois), axis=1)
             cur_pos_rois = Variable(torch.from_numpy(cur_pos_rois.astype('float32'))).cuda()
-            cur_pos_feats = model.roi_align_model(feat_map, cur_pos_rois)
+            cur_pos_feats = self._model.roi_align_model(feat_map, cur_pos_rois)
             cur_pos_feats = cur_pos_feats.view(cur_pos_feats.size(0), -1).data.clone()
 
             batch_num = np.zeros((neg_examples.shape[0], 1))
             cur_neg_rois = np.copy(neg_examples)
             cur_neg_rois[:,0:2] -= np.repeat(np.reshape(scene_boxes[bidx,0:2],(1,2)),
               cur_neg_rois.shape[0],axis=0)
-            cur_neg_rois = samples2maskroi(cur_neg_rois, model.receptive_field,
+            cur_neg_rois = samples2maskroi(cur_neg_rois, self._model.receptive_field,
               (scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
             cur_neg_rois = np.concatenate((batch_num, cur_neg_rois), axis=1)
             cur_neg_rois = Variable(torch.from_numpy(cur_neg_rois.astype('float32'))).cuda()
-            cur_neg_feats = model.roi_align_model(feat_map, cur_neg_rois)
+            cur_neg_feats = self._model.roi_align_model(feat_map, cur_neg_rois)
             cur_neg_feats = cur_neg_feats.view(cur_neg_feats.size(0), -1).data.clone()
 
             ## bbreg rois
@@ -249,11 +250,11 @@ class MDNetTracker:
             cur_bbreg_rois[:,0:2] -= np.repeat(np.reshape(
               scene_boxes[bidx,0:2],(1,2)),cur_bbreg_rois.shape[0],axis=0)
             scaled_obj_size = float(opts['crop_size'])*jitter_scale[bidx]
-            cur_bbreg_rois = samples2maskroi(cur_bbreg_rois, model.receptive_field,
+            cur_bbreg_rois = samples2maskroi(cur_bbreg_rois, self._model.receptive_field,
               (scaled_obj_size,scaled_obj_size), target_bbox[2:4], opts['padding'])
             cur_bbreg_rois = np.concatenate((batch_num, cur_bbreg_rois), axis=1)
             cur_bbreg_rois = Variable(torch.from_numpy(cur_bbreg_rois.astype('float32'))).cuda()
-            cur_bbreg_feats = model.roi_align_model(feat_map, cur_bbreg_rois)
+            cur_bbreg_feats = self._model.roi_align_model(feat_map, cur_bbreg_rois)
             cur_bbreg_feats = cur_bbreg_feats.view(cur_bbreg_feats.size(0), -1).data.clone()
 
             feat_dim = cur_pos_feats.size(-1)
@@ -261,13 +262,15 @@ class MDNetTracker:
             if bidx==0:
                 pos_feats = cur_pos_feats
                 neg_feats = cur_neg_feats
-                ##bbreg feature
+
+                ## bbreg feature
                 bbreg_feats = cur_bbreg_feats
                 bbreg_examples = cur_bbreg_examples
             else:
                 pos_feats = torch.cat((pos_feats,cur_pos_feats),dim=0)
                 neg_feats = torch.cat((neg_feats,cur_neg_feats),dim=0)
-                ##bbreg feature
+
+                ## bbreg feature
                 bbreg_feats = torch.cat((bbreg_feats, cur_bbreg_feats),dim=0)
                 bbreg_examples = np.concatenate((bbreg_examples, cur_bbreg_examples),axis=0)
 
@@ -280,7 +283,7 @@ class MDNetTracker:
             np.random.shuffle(neg_idx)
             neg_feats = neg_feats[neg_idx[0:opts['n_neg_init']], :]
 
-        ##bbreg
+        ## bbreg
         if bbreg_feats.size(0) > opts['n_bbreg']:
             bbreg_idx = np.asarray(range(bbreg_feats.size(0)))
             np.random.shuffle(bbreg_idx)
@@ -310,7 +313,7 @@ class MDNetTracker:
 
             scaled_obj_size = float(opts['crop_size']) / cur_extra_scale[0]
 
-            cur_extra_cropped_image, _ = img_crop_model.crop_image(first_image,
+            cur_extra_cropped_image, _ = self._image_cropper.crop_image(first_image,
               np.reshape(extra_scene_box,(1,4)),extra_crop_img_size)
             cur_extra_cropped_image = cur_extra_cropped_image.detach()
 
@@ -321,7 +324,7 @@ class MDNetTracker:
               (ishape[1], ishape[0]), 0.3, 2, 1.1),extra_target_bbox,
               opts['n_neg_init']/replicateNum/4, opts['overlap_neg_init'])
 
-            ##bbreg sample
+            ## bbreg sample
             cur_extra_bbreg_examples = gen_samples(SampleGenerator('uniform',
               (ishape[1], ishape[0]), 0.3, 1.5, 1.1),
               extra_target_bbox, opts['n_bbreg']/replicateNum/4,
@@ -333,7 +336,7 @@ class MDNetTracker:
               extra_scene_box[0:2], (1, 2)),
               cur_extra_pos_rois.shape[0], axis=0)
             cur_extra_pos_rois = samples2maskroi(cur_extra_pos_rois,
-              model.receptive_field,(scaled_obj_size, scaled_obj_size),
+              self._model.receptive_field,(scaled_obj_size, scaled_obj_size),
               extra_target_bbox[2:4], opts['padding'])
             cur_extra_pos_rois = np.concatenate((batch_num,
               cur_extra_pos_rois), axis=1)
@@ -343,7 +346,7 @@ class MDNetTracker:
             cur_extra_neg_rois[:, 0:2] -= np.repeat(np.reshape(extra_scene_box[0:2],
               (1, 2)),cur_extra_neg_rois.shape[0], axis=0)
             cur_extra_neg_rois = samples2maskroi(cur_extra_neg_rois,
-              model.receptive_field,(scaled_obj_size, scaled_obj_size),
+              self._model.receptive_field,(scaled_obj_size, scaled_obj_size),
               extra_target_bbox[2:4], opts['padding'])
             cur_extra_neg_rois = np.concatenate((batch_num, cur_extra_neg_rois), axis=1)
 
@@ -353,7 +356,7 @@ class MDNetTracker:
             cur_extra_bbreg_rois[:,0:2] -= np.repeat(np.reshape(extra_scene_box[0:2],
               (1,2)),cur_extra_bbreg_rois.shape[0],axis=0)
             cur_extra_bbreg_rois = samples2maskroi(cur_extra_bbreg_rois,
-              model.receptive_field,(scaled_obj_size,scaled_obj_size),
+              self._model.receptive_field,(scaled_obj_size,scaled_obj_size),
               extra_target_bbox[2:4], opts['padding'])
             cur_extra_bbreg_rois = np.concatenate((batch_num, cur_extra_bbreg_rois), axis=1)
 
@@ -363,7 +366,7 @@ class MDNetTracker:
                 extra_pos_rois = np.copy(cur_extra_pos_rois)
                 extra_neg_rois = np.copy(cur_extra_neg_rois)
 
-                ##bbreg rois
+                ## bbreg rois
                 extra_bbreg_rois = np.copy(cur_extra_bbreg_rois)
                 extra_bbreg_examples = np.copy(cur_extra_bbreg_examples)
             else:
@@ -375,7 +378,7 @@ class MDNetTracker:
                 extra_neg_rois = np.concatenate( (extra_neg_rois,
                   np.copy(cur_extra_neg_rois)), axis=0)
 
-                ##bbreg rois
+                ## bbreg rois
                 extra_bbreg_rois = np.concatenate( (extra_bbreg_rois,
                   np.copy(cur_extra_bbreg_rois)), axis=0 )
                 extra_bbreg_examples = np.concatenate( (extra_bbreg_examples,
@@ -384,23 +387,23 @@ class MDNetTracker:
         extra_pos_rois = Variable(torch.from_numpy(extra_pos_rois.astype('float32'))).cuda()
         extra_neg_rois = Variable(torch.from_numpy(extra_neg_rois.astype('float32'))).cuda()
 
-        ##bbreg rois
+        ## bbreg rois
         extra_bbreg_rois = Variable(torch.from_numpy(extra_bbreg_rois.astype('float32'))).cuda()
         extra_cropped_image -= 128.
 
-        extra_feat_maps = model(extra_cropped_image, out_layer='conv3')
+        extra_feat_maps = self._model(extra_cropped_image, out_layer='conv3')
 
         # Draw pos/neg samples
         ishape = first_image.shape
 
-        extra_pos_feats = model.roi_align_model(extra_feat_maps, extra_pos_rois)
+        extra_pos_feats = self._model.roi_align_model(extra_feat_maps, extra_pos_rois)
         extra_pos_feats = extra_pos_feats.view(extra_pos_feats.size(0), -1).data.clone()
 
-        extra_neg_feats = model.roi_align_model(extra_feat_maps, extra_neg_rois)
+        extra_neg_feats = self._model.roi_align_model(extra_feat_maps, extra_neg_rois)
         extra_neg_feats = extra_neg_feats.view(extra_neg_feats.size(0), -1).data.clone()
 
         ## BBreg feat
-        extra_bbreg_feats = model.roi_align_model(extra_feat_maps, extra_bbreg_rois)
+        extra_bbreg_feats = self._model.roi_align_model(extra_feat_maps, extra_bbreg_rois)
         extra_bbreg_feats = extra_bbreg_feats.view(extra_bbreg_feats.size(0), -1).data.clone()
 
         ## concatenate extra features to original_features
@@ -412,10 +415,10 @@ class MDNetTracker:
         bbreg_examples = np.concatenate((bbreg_examples, extra_bbreg_examples), axis=0)
 
         torch.cuda.empty_cache()
-        model.zero_grad()
+        self._model.zero_grad()
 
         # Initial training
-        train(model, criterion, init_optimizer, pos_feats, neg_feats, opts['maxiter_init'])
+        train(self._model, criterion, init_optimizer, pos_feats, neg_feats, opts['maxiter_init'])
 
         ## BBReg train
         if bbreg_feats.size(0) > opts['n_bbreg']:
@@ -495,12 +498,12 @@ class MDNetTracker:
 
         crop_img_size = (padded_scene_box[2:4] * ((opts['crop_size'], \
           opts['crop_size']) / target_bbox[2:4])).astype('int64')
-        cropped_image,image_var = img_crop_model.crop_image(image,
+        cropped_image,image_var = self._image_cropper.crop_image(image,
           np.reshape(padded_scene_box,(1,4)),crop_img_size)
         cropped_image = cropped_image - 128.
 
-        model.eval()
-        feat_map = model(cropped_image, out_layer='conv3')
+        self._model.eval()
+        feat_map = self._model(cropped_image, out_layer='conv3')
 
         # relative target bbox with padded_scene_box
         rel_target_bbox = np.copy(target_bbox)
@@ -511,13 +514,13 @@ class MDNetTracker:
         sample_rois = np.copy(samples)
         sample_rois[:, 0:2] -= np.repeat(np.reshape(padded_scene_box[0:2],
           (1, 2)), sample_rois.shape[0], axis=0)
-        sample_rois = samples2maskroi(sample_rois,model.receptive_field,
+        sample_rois = samples2maskroi(sample_rois,self._model.receptive_field,
           (opts['crop_size'],opts['crop_size']), target_bbox[2:4],opts['padding'])
         sample_rois = np.concatenate((batch_num, sample_rois), axis=1)
         sample_rois = Variable(torch.from_numpy(sample_rois.astype('float32'))).cuda()
-        sample_feats = model.roi_align_model(feat_map, sample_rois)
+        sample_feats = self._model.roi_align_model(feat_map, sample_rois)
         sample_feats = sample_feats.view(sample_feats.size(0), -1).clone()
-        sample_scores = model(sample_feats, in_layer='fc4')
+        sample_scores = self._model(sample_feats, in_layer='fc4')
         top_scores, top_idx = sample_scores[:,1].topk(5)
         top_idx = top_idx.data.cpu().numpy()
         target_score = top_scores.data.mean()
@@ -572,11 +575,11 @@ class MDNetTracker:
             for bidx in range(0, scene_boxes.shape[0]):
                 crop_img_size = (scene_boxes[bidx, 2:4] * ((opts['crop_size'],
                   opts['crop_size']) / target_bbox[2:4])).astype('int64') * jitter_scale[bidx]
-                cropped_image, image_var = img_crop_model.crop_image(image,
+                cropped_image, image_var = self._image_cropper.crop_image(image,
                   np.reshape(scene_boxes[bidx], (1, 4)),crop_img_size)
                 cropped_image = cropped_image - 128.
 
-                feat_map = model(cropped_image, out_layer='conv3')
+                feat_map = self._model(cropped_image, out_layer='conv3')
 
                 rel_target_bbox = np.copy(target_bbox)
                 rel_target_bbox[0:2] -= scene_boxes[bidx, 0:2]
@@ -586,11 +589,11 @@ class MDNetTracker:
                 cur_pos_rois[:, 0:2] -= np.repeat(np.reshape(scene_boxes[bidx, 0:2],
                   (1, 2)), cur_pos_rois.shape[0],axis=0)
                 scaled_obj_size = float(opts['crop_size']) * jitter_scale[bidx]
-                cur_pos_rois = samples2maskroi(cur_pos_rois, model.receptive_field,
+                cur_pos_rois = samples2maskroi(cur_pos_rois, self._model.receptive_field,
                   (scaled_obj_size, scaled_obj_size),target_bbox[2:4], opts['padding'])
                 cur_pos_rois = np.concatenate((batch_num, cur_pos_rois), axis=1)
                 cur_pos_rois = Variable(torch.from_numpy(cur_pos_rois.astype('float32'))).cuda()
-                cur_pos_feats = model.roi_align_model(feat_map, cur_pos_rois)
+                cur_pos_feats = self._model.roi_align_model(feat_map, cur_pos_rois)
                 cur_pos_feats = cur_pos_feats.view(cur_pos_feats.size(0), -1).data.clone()
 
                 batch_num = np.zeros((neg_examples.shape[0], 1))
@@ -598,12 +601,12 @@ class MDNetTracker:
                 cur_neg_rois[:, 0:2] -= np.repeat(np.reshape(scene_boxes[bidx, 0:2],
                   (1, 2)), cur_neg_rois.shape[0],
                                                   axis=0)
-                cur_neg_rois = samples2maskroi(cur_neg_rois, model.receptive_field,
+                cur_neg_rois = samples2maskroi(cur_neg_rois, self._model.receptive_field,
                   (scaled_obj_size, scaled_obj_size),
                   target_bbox[2:4], opts['padding'])
                 cur_neg_rois = np.concatenate((batch_num, cur_neg_rois), axis=1)
                 cur_neg_rois = Variable(torch.from_numpy(cur_neg_rois.astype('float32'))).cuda()
-                cur_neg_feats = model.roi_align_model(feat_map, cur_neg_rois)
+                cur_neg_feats = self._model.roi_align_model(feat_map, cur_neg_rois)
                 cur_neg_feats = cur_neg_feats.view(cur_neg_feats.size(0), -1).data.clone()
 
                 feat_dim = cur_pos_feats.size(-1)
@@ -639,13 +642,15 @@ class MDNetTracker:
             nframes = min(opts['n_frames_short'],len(pos_feats_all))
             pos_data = torch.stack(pos_feats_all[-nframes:],0).view(-1,feat_dim)
             neg_data = torch.stack(neg_feats_all,0).view(-1,feat_dim)
-            train(model, criterion, update_optimizer, pos_data, neg_data, opts['maxiter_update'])
+            train(self._model, criterion, update_optimizer,
+              pos_data, neg_data, opts['maxiter_update'])
 
         # Long term update
         elif i % opts['long_interval'] == 0:
             pos_data = torch.stack(pos_feats_all,0).view(-1,feat_dim)
             neg_data = torch.stack(neg_feats_all,0).view(-1,feat_dim)
-            train(model, criterion, update_optimizer, pos_data, neg_data, opts['maxiter_update'])
+            train(self._model, criterion, update_optimizer,
+              pos_data, neg_data, opts['maxiter_update'])
 
         spf = time.time()-tic
         spf_total += spf
@@ -682,5 +687,5 @@ class MDNetTracker:
         iou_result[i]= overlap_ratio(gt[i],result_bb[i])[0]
 
         fps = len(img_list) / spf_total
-        return iou_result, result_bb, fps, result
+        return result_bb
   
