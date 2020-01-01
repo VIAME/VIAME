@@ -15,10 +15,10 @@ from viame.arrows.pytorch.mdnet.bbreg import *
 from viame.arrows.pytorch.mdnet.options import *
 from viame.arrows.pytorch.mdnet.img_cropper import *
 
-from roi_align.modules.roi_align import RoIAlignAvg
-from roi_align.modules.roi_align import RoIAlignMax
-from roi_align.modules.roi_align import RoIAlignAdaMax
-from roi_align.modules.roi_align import RoIAlignDenseAdaMax
+from roi_align import RoIAlignAvg
+from roi_align import RoIAlignMax
+from roi_align import RoIAlignAdaMax
+from roi_align import RoIAlignDenseAdaMax
 
 def set_optimizer(model, lr_base,
                   lr_mult=opts['lr_mult'],
@@ -28,9 +28,9 @@ def set_optimizer(model, lr_base,
     params = model.get_learnable_params()
     param_list = []
 
-    for k, p in params.iteritems():
+    for k, p in params.items():
         lr = lr_base
-        for l, m in lr_mult.iteritems():
+        for l, m in lr_mult.items():
             if k.startswith(l):
                 lr = lr_base * m
         param_list.append({'params': [p], 'lr':lr})
@@ -317,12 +317,13 @@ class MDNetTracker:
               np.reshape(extra_scene_box,(1,4)),extra_crop_img_size)
             cur_extra_cropped_image = cur_extra_cropped_image.detach()
 
-            cur_extra_pos_examples = gen_samples(SampleGenerator('gaussian',
++           # extra_target_bbox = np.array(list(map(int, extra_target_bbox)))
++           cur_extra_pos_examples = gen_samples(SampleGenerator('gaussian',
               (ishape[1], ishape[0]), 0.1, 1.2),extra_target_bbox,
-              opts['n_pos_init']/replicateNum, opts['overlap_pos_init'])
-            cur_extra_neg_examples = gen_samples(SampleGenerator('uniform',
+              opts['n_pos_init']//replicateNum, opts['overlap_pos_init'])
++           cur_extra_neg_examples = gen_samples(SampleGenerator('uniform',
               (ishape[1], ishape[0]), 0.3, 2, 1.1),extra_target_bbox,
-              opts['n_neg_init']/replicateNum/4, opts['overlap_neg_init'])
+              opts['n_neg_init']/replicateNum//4, opts['overlap_neg_init'])
 
             ## bbreg sample
             cur_extra_bbreg_examples = gen_samples(SampleGenerator('uniform',

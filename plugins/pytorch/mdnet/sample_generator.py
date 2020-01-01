@@ -6,6 +6,7 @@ from viame.arrows.pytorch.mdnet.utils import *
 
 def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
 
+    n = int(n)
     if overlap_range is None and scale_range is None:
         return generator(bbox, n)
 
@@ -47,6 +48,7 @@ class SampleGenerator():
         self.valid = valid
 
     def __call__(self, bb, n):
+        n = int(n)
         #
         # bb: target bbox (min_x,min_y,w,h)
         bb = np.array(bb, dtype='float32')

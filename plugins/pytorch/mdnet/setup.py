@@ -10,7 +10,7 @@ modules = []
 if torch.cuda.is_available():
     modules.append(
         CUDAExtension(
-            'roi_align_cuda',
+            'roi_align.roi_align_cuda',
             ['roi_align/src/roi_align_cuda.cpp',
              'roi_align/src/roi_align_kernel.cu'],
             extra_compile_args={'cxx': ['-g'],

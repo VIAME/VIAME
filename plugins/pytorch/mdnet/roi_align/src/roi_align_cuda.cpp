@@ -1,256 +1,156 @@
-#include <THC/THC.h>
-#include <math.h>
-#include "roi_align_kernel.h"
+#include <torch/extension.h>
 
-extern THCState *state;
+#include <cmath>
+#include <vector>
 
-int roi_align_forward_cuda(int aligned_height, int aligned_width, float spatial_scale,
-                        THCudaTensor * features, THCudaTensor * rois, THCudaTensor * output)
-{
-    // Grab the input tensor
-    float * data_flat = THCudaTensor_data(state, features);
-    float * rois_flat = THCudaTensor_data(state, rois);
+int ROIAlignForwardLaucher(const at::Tensor features, const at::Tensor rois,
+                           const float spatial_scale, const int sample_num,
+                           const int channels, const int height,
+                           const int width, const int num_rois,
+                           const int pooled_height, const int pooled_width,
+                           at::Tensor output);
 
-    float * output_flat = THCudaTensor_data(state, output);
+int ROIAlignBackwardLaucher(const at::Tensor top_grad, const at::Tensor rois,
+                            const float spatial_scale, const int sample_num,
+                            const int channels, const int height,
+                            const int width, const int num_rois,
+                            const int pooled_height, const int pooled_width,
+                            at::Tensor bottom_grad);
 
-    // Number of ROIs
-    int num_rois = THCudaTensor_size(state, rois, 0);
-    int size_rois = THCudaTensor_size(state, rois, 1);
-    if (size_rois != 5)
-    {
-        return 0;
-    }
+int ROIAlignAdaForwardLaucher(const at::Tensor features, const at::Tensor rois,
+                           const float spatial_scale, const int sample_num,
+                           const int channels, const int height,
+                           const int width, const int num_rois,
+                           const int pooled_height, const int pooled_width,
+                           at::Tensor output);
 
-    // batch size
-    //int batch_size = THCudaTensor_size(state, features, 0);
-    //if (batch_size != 1)
-    //{
-    //    return 0;
-    //}
+int ROIAlignAdaBackwardLaucher(const at::Tensor top_grad, const at::Tensor rois,
+                            const float spatial_scale, const int sample_num,
+                            const int channels, const int height,
+                            const int width, const int num_rois,
+                            const int pooled_height, const int pooled_width,
+                            at::Tensor bottom_grad);
 
+#define CHECK_CUDA(x) AT_CHECK(x.type().is_cuda(), #x, " must be a CUDAtensor ")
+#define CHECK_CONTIGUOUS(x) \
+  AT_CHECK(x.is_contiguous(), #x, " must be contiguous ")
+#define CHECK_INPUT(x) \
+  CHECK_CUDA(x);       \
+  CHECK_CONTIGUOUS(x)
 
-    // data height
-    int data_height = THCudaTensor_size(state, features, 2);
-    // data width
-    int data_width = THCudaTensor_size(state, features, 3);
-    // Number of channels
-    int num_channels = THCudaTensor_size(state, features, 1);
+int roi_align_forward_cuda(at::Tensor features, at::Tensor rois,
+                           int pooled_height, int pooled_width,
+                           float spatial_scale, int sample_num,
+                           at::Tensor output) {
+  CHECK_INPUT(features);
+  CHECK_INPUT(rois);
+  CHECK_INPUT(output);
 
-    cudaStream_t stream = THCState_getCurrentStream(state);
+  // Number of ROIs
+  int num_rois = rois.size(0);
+  int size_rois = rois.size(1);
 
-    ROIAlignForwardLaucher(
-        data_flat, spatial_scale, num_rois, data_height,
-        data_width, num_channels, aligned_height,
-        aligned_width, rois_flat,
-        output_flat, stream);
+  if (size_rois != 5) {
+    printf("wrong roi size\n");
+    return 0;
+  }
 
-    return 1;
+  int num_channels = features.size(1);
+  int data_height = features.size(2);
+  int data_width = features.size(3);
+
+  ROIAlignForwardLaucher(features, rois, spatial_scale, sample_num,
+                         num_channels, data_height, data_width, num_rois,
+                         pooled_height, pooled_width, output);
+
+  return 1;
 }
 
-int roi_align_backward_cuda(int aligned_height, int aligned_width, float spatial_scale,
-                        THCudaTensor * top_grad, THCudaTensor * rois, THCudaTensor * bottom_grad)
-{
-    // Grab the input tensor
-    float * top_grad_flat = THCudaTensor_data(state, top_grad);
-    float * rois_flat = THCudaTensor_data(state, rois);
+int roi_align_backward_cuda(at::Tensor top_grad, at::Tensor rois,
+                            int pooled_height, int pooled_width,
+                            float spatial_scale, int sample_num,
+                            at::Tensor bottom_grad) {
+  CHECK_INPUT(top_grad);
+  CHECK_INPUT(rois);
+  CHECK_INPUT(bottom_grad);
 
-    float * bottom_grad_flat = THCudaTensor_data(state, bottom_grad);
+  // Number of ROIs
+  int num_rois = rois.size(0);
+  int size_rois = rois.size(1);
+  if (size_rois != 5) {
+    printf("wrong roi size\n");
+    return 0;
+  }
 
-    // Number of ROIs
-    int num_rois = THCudaTensor_size(state, rois, 0);
-    int size_rois = THCudaTensor_size(state, rois, 1);
-    if (size_rois != 5)
-    {
-        return 0;
-    }
+  int num_channels = bottom_grad.size(1);
+  int data_height = bottom_grad.size(2);
+  int data_width = bottom_grad.size(3);
 
-    // batch size
-    int batch_size = THCudaTensor_size(state, bottom_grad, 0);
-    //if (batch_size != 1)
-    //{
-     //   return 0;
-    //}
-    // data height
-    int data_height = THCudaTensor_size(state, bottom_grad, 2);
-    // data width
-    int data_width = THCudaTensor_size(state, bottom_grad, 3);
-    // Number of channels
-    int num_channels = THCudaTensor_size(state, bottom_grad, 1);
+  ROIAlignBackwardLaucher(top_grad, rois, spatial_scale, sample_num,
+                          num_channels, data_height, data_width, num_rois,
+                          pooled_height, pooled_width, bottom_grad);
 
-    cudaStream_t stream = THCState_getCurrentStream(state);
-    ROIAlignBackwardLaucher(
-        top_grad_flat, spatial_scale, batch_size, num_rois, data_height,
-        data_width, num_channels, aligned_height,
-        aligned_width, rois_flat,
-        bottom_grad_flat, stream);
-
-    return 1;
+  return 1;
 }
 
+int roi_align_ada_forward_cuda(at::Tensor features, at::Tensor rois,
+                           int pooled_height, int pooled_width,
+                           float spatial_scale, int sample_num,
+                           at::Tensor output) {
+  CHECK_INPUT(features);
+  CHECK_INPUT(rois);
+  CHECK_INPUT(output);
 
-int roi_align_ada_forward_cuda(int aligned_height, int aligned_width, float spatial_scale,
-                        THCudaTensor * features, THCudaTensor * rois, THCudaTensor * output)
-{
-    // Grab the input tensor
-    float * data_flat = THCudaTensor_data(state, features);
-    float * rois_flat = THCudaTensor_data(state, rois);
+  // Number of ROIs
+  int num_rois = rois.size(0);
+  int size_rois = rois.size(1);
 
-    float * output_flat = THCudaTensor_data(state, output);
+  if (size_rois != 5) {
+    printf("wrong roi size\n");
+    return 0;
+  }
 
-    // Number of ROIs
-    int num_rois = THCudaTensor_size(state, rois, 0);
-    int size_rois = THCudaTensor_size(state, rois, 1);
-    if (size_rois != 5)
-    {
-        return 0;
-    }
+  int num_channels = features.size(1);
+  int data_height = features.size(2);
+  int data_width = features.size(3);
 
-    // batch size
-    //int batch_size = THCudaTensor_size(state, features, 0);
-    //if (batch_size != 1)
-    //{
-    //    return 0;
-    //}
+  ROIAlignAdaForwardLaucher(features, rois, spatial_scale, sample_num,
+                         num_channels, data_height, data_width, num_rois,
+                         pooled_height, pooled_width, output);
 
-
-    // data height
-    int data_height = THCudaTensor_size(state, features, 2);
-    // data width
-    int data_width = THCudaTensor_size(state, features, 3);
-    // Number of channels
-    int num_channels = THCudaTensor_size(state, features, 1);
-
-    cudaStream_t stream = THCState_getCurrentStream(state);
-
-    ROIAlignAdaForwardLaucher(
-        data_flat, spatial_scale, num_rois, data_height,
-        data_width, num_channels, aligned_height,
-        aligned_width, rois_flat,
-        output_flat, stream);
-
-    return 1;
+  return 1;
 }
 
-int roi_align_ada_backward_cuda(int aligned_height, int aligned_width, float spatial_scale,
-                        THCudaTensor * top_grad, THCudaTensor * rois, THCudaTensor * bottom_grad)
-{
-    // Grab the input tensor
-    float * top_grad_flat = THCudaTensor_data(state, top_grad);
-    float * rois_flat = THCudaTensor_data(state, rois);
+int roi_align_ada_backward_cuda(at::Tensor top_grad, at::Tensor rois,
+                            int pooled_height, int pooled_width,
+                            float spatial_scale, int sample_num,
+                            at::Tensor bottom_grad) {
+  CHECK_INPUT(top_grad);
+  CHECK_INPUT(rois);
+  CHECK_INPUT(bottom_grad);
 
-    float * bottom_grad_flat = THCudaTensor_data(state, bottom_grad);
+  // Number of ROIs
+  int num_rois = rois.size(0);
+  int size_rois = rois.size(1);
+  if (size_rois != 5) {
+    printf("wrong roi size\n");
+    return 0;
+  }
 
-    // Number of ROIs
-    int num_rois = THCudaTensor_size(state, rois, 0);
-    int size_rois = THCudaTensor_size(state, rois, 1);
-    if (size_rois != 5)
-    {
-        return 0;
-    }
+  int num_channels = bottom_grad.size(1);
+  int data_height = bottom_grad.size(2);
+  int data_width = bottom_grad.size(3);
 
-    // batch size
-    int batch_size = THCudaTensor_size(state, bottom_grad, 0);
-    //if (batch_size != 1)
-    //{
-     //   return 0;
-    //}
-    // data height
-    int data_height = THCudaTensor_size(state, bottom_grad, 2);
-    // data width
-    int data_width = THCudaTensor_size(state, bottom_grad, 3);
-    // Number of channels
-    int num_channels = THCudaTensor_size(state, bottom_grad, 1);
+  ROIAlignAdaBackwardLaucher(top_grad, rois, spatial_scale, sample_num,
+                          num_channels, data_height, data_width, num_rois,
+                          pooled_height, pooled_width, bottom_grad);
 
-    cudaStream_t stream = THCState_getCurrentStream(state);
-    ROIAlignAdaBackwardLaucher(
-        top_grad_flat, spatial_scale, batch_size, num_rois, data_height,
-        data_width, num_channels, aligned_height,
-        aligned_width, rois_flat,
-        bottom_grad_flat, stream);
-
-    return 1;
+  return 1;
 }
 
-
-int roi_align_dense_ada_forward_cuda(int aligned_height, int aligned_width, float spatial_scale,
-                        THCudaTensor * features, THCudaTensor * rois, THCudaTensor * output)
-{
-    // Grab the input tensor
-    float * data_flat = THCudaTensor_data(state, features);
-    float * rois_flat = THCudaTensor_data(state, rois);
-
-    float * output_flat = THCudaTensor_data(state, output);
-
-    // Number of ROIs
-    int num_rois = THCudaTensor_size(state, rois, 0);
-    int size_rois = THCudaTensor_size(state, rois, 1);
-    if (size_rois != 5)
-    {
-        return 0;
-    }
-
-    // batch size
-    //int batch_size = THCudaTensor_size(state, features, 0);
-    //if (batch_size != 1)
-    //{
-    //    return 0;
-    //}
-
-
-    // data height
-    int data_height = THCudaTensor_size(state, features, 2);
-    // data width
-    int data_width = THCudaTensor_size(state, features, 3);
-    // Number of channels
-    int num_channels = THCudaTensor_size(state, features, 1);
-
-    cudaStream_t stream = THCState_getCurrentStream(state);
-
-    ROIAlignDenseAdaForwardLaucher(
-        data_flat, spatial_scale, num_rois, data_height,
-        data_width, num_channels, aligned_height,
-        aligned_width, rois_flat,
-        output_flat, stream);
-
-    return 1;
-}
-
-int roi_align_dense_ada_backward_cuda(int aligned_height, int aligned_width, float spatial_scale,
-                        THCudaTensor * top_grad, THCudaTensor * rois, THCudaTensor * bottom_grad)
-{
-    // Grab the input tensor
-    float * top_grad_flat = THCudaTensor_data(state, top_grad);
-    float * rois_flat = THCudaTensor_data(state, rois);
-
-    float * bottom_grad_flat = THCudaTensor_data(state, bottom_grad);
-
-    // Number of ROIs
-    int num_rois = THCudaTensor_size(state, rois, 0);
-    int size_rois = THCudaTensor_size(state, rois, 1);
-    if (size_rois != 5)
-    {
-        return 0;
-    }
-
-    // batch size
-    int batch_size = THCudaTensor_size(state, bottom_grad, 0);
-    //if (batch_size != 1)
-    //{
-     //   return 0;
-    //}
-    // data height
-    int data_height = THCudaTensor_size(state, bottom_grad, 2);
-    // data width
-    int data_width = THCudaTensor_size(state, bottom_grad, 3);
-    // Number of channels
-    int num_channels = THCudaTensor_size(state, bottom_grad, 1);
-
-    cudaStream_t stream = THCState_getCurrentStream(state);
-    ROIAlignDenseAdaBackwardLaucher(
-        top_grad_flat, spatial_scale, batch_size, num_rois, data_height,
-        data_width, num_channels, aligned_height,
-        aligned_width, rois_flat,
-        bottom_grad_flat, stream);
-
-    return 1;
+PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+  m.def("forward", &roi_align_forward_cuda, "Roi_Align forward (CUDA)");
+  m.def("backward", &roi_align_backward_cuda, "Roi_Align backward (CUDA)");
+  m.def("ada_forward", &roi_align_ada_forward_cuda, "Roi_Align_ada forward (CUDA)");
+  m.def("ada_backward", &roi_align_ada_backward_cuda, "Roi_Align_ada backward (CUDA)");
 }
