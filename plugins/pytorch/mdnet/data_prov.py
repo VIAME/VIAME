@@ -40,7 +40,7 @@ class RegionDataset(data.Dataset):
         self.receptive_field = receptive_field
 
         self.interval = pretrain_opts['frame_interval']
-        self.img_crop_model = imgCropper(pretrain_opts['padded_img_size'])
+        self.img_crop_model = ImageCropper(pretrain_opts['padded_img_size'])
         self.img_crop_model.eval()
         if pretrain_opts['use_gpu']:
             self.img_crop_model.gpuEnable()
