@@ -10,7 +10,7 @@ model_file = os.path.join( viame_dir, models_dir, 'mdnet_seed.pth' )
 opts = OrderedDict()
 
 opts['use_gpu'] = True
-opts['model_path'] = model_file
+opts['model_seed'] = model_file
 opts['savefig_dir'] =''
 opts['display']=False
 opts['visual_log']=True

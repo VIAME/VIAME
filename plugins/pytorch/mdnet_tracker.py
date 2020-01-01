@@ -116,15 +116,20 @@ def train(model, criterion, optimizer, pos_feats,
 class MDNetTracker:
     def __init__(self, first_image, init_bbox):
 
-        # Init bbox
+        # Init last bbox
         self._target_bbox = np.array(init_bbox)
 
-        # Track execution times for update planning
+        # Track execution times and counters for update planning
         self._exec_times = []
         self._frame_counter = 0
 
         # Initialize model
-        self._model = MDNet(opts['model_path'])
+        if isinstance(opts['model_seed'], str):
+            self._model = MDNet(opts['model_seed'])
+        else:
+            self._model = type(opts['model_seed'])()
+            self._model.load_state_dict(opts['model_seed'].state_dict())
+
         if opts['adaptive_align']:
             align_h = self._model.roi_align_model.aligned_height
             align_w = self._model.roi_align_model.aligned_width
@@ -132,6 +137,7 @@ class MDNetTracker:
             self._model.roi_align_model = RoIAlignAdaMax(align_h, align_w, spatial_s)
         if opts['use_gpu']:
             self._model = self._model.cuda()
+
         self._model.set_learnable_params(opts['ft_layers'])
 
         # Init image cropper
