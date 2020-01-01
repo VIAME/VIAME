@@ -1,6 +1,6 @@
 import torch
 from torch.autograd import Function
-from .. import roi_align
+from .. import roi_align_cuda
 
 
 # TODO use save_for_backward instead
@@ -19,12 +19,12 @@ class RoIAlignFunction(Function):
         batch_size, num_channels, data_height, data_width = features.size()
         num_rois = rois.size(0)
 
-        output = features.new(num_rois, num_channels, self.aligned_height, self.aligned_width).zero_()
+        output = features.new(num_rois, num_channels, self.aligned_height,
+          self.aligned_width).zero_()
+  
         if features.is_cuda:
-            success = roi_align.roi_align_forward_cuda(self.aligned_height,
-                                             self.aligned_width,
-                                             self.spatial_scale, features,
-                                             rois, output)
+            success = roi_align_cuda.roi_align_forward_cuda(self.aligned_height,
+              self.aligned_width, self.spatial_scale, features, rois, output)
         else:
             raise NotImplementedError
 
@@ -37,10 +37,8 @@ class RoIAlignFunction(Function):
 
         grad_input = self.rois.new(batch_size, num_channels, data_height,
                                   data_width).zero_()
-        roi_align.roi_align_backward_cuda(self.aligned_height,
-                                          self.aligned_width,
-                                          self.spatial_scale, grad_output,
-                                          self.rois, grad_input)
+        roi_align_cuda.roi_align_backward_cuda(self.aligned_height,
+          self.aligned_width, self.spatial_scale, grad_output, self.rois, grad_input)
 
         # print grad_input
 
@@ -65,10 +63,8 @@ class RoIAlignAdaFunction(Function):
 
         output = features.new(num_rois, num_channels, self.aligned_height, self.aligned_width).zero_()
         if features.is_cuda:
-            success = roi_align.roi_align_ada_forward_cuda(self.aligned_height,
-                                             self.aligned_width,
-                                             self.spatial_scale, features,
-                                             rois, output)
+            success = roi_align_cuda.roi_align_ada_forward_cuda(self.aligned_height,
+              self.aligned_width, self.spatial_scale, features, rois, output)
         else:
             raise NotImplementedError
 
@@ -81,10 +77,8 @@ class RoIAlignAdaFunction(Function):
 
         grad_input = self.rois.new(batch_size, num_channels, data_height,
                                   data_width).zero_()
-        roi_align.roi_align_ada_backward_cuda(self.aligned_height,
-                                          self.aligned_width,
-                                          self.spatial_scale, grad_output,
-                                          self.rois, grad_input)
+        roi_align_cuda.roi_align_ada_backward_cuda(self.aligned_height,
+          self.aligned_width, self.spatial_scale, grad_output, self.rois, grad_input)
 
         # print grad_input
 
@@ -109,10 +103,8 @@ class RoIAlignDenseAdaFunction(Function):
 
         output = features.new(num_rois, num_channels, self.aligned_height, self.aligned_width).zero_()
         if features.is_cuda:
-            success = roi_align.roi_align_dense_ada_forward_cuda(self.aligned_height,
-                                             self.aligned_width,
-                                             self.spatial_scale, features,
-                                             rois, output)
+            success = roi_align_cuda.roi_align_dense_ada_forward_cuda(self.aligned_height,
+              self.aligned_width, self.spatial_scale, features, rois, output)
         else:
             raise NotImplementedError
 
@@ -125,11 +117,8 @@ class RoIAlignDenseAdaFunction(Function):
 
         grad_input = self.rois.new(batch_size, num_channels, data_height,
                                   data_width).zero_()
-        roi_align.roi_align_dense_ada_backward_cuda(self.aligned_height,
-                                          self.aligned_width,
-                                          self.spatial_scale, grad_output,
-                                          self.rois, grad_input)
+        roi_align_cuda.roi_align_dense_ada_backward_cuda(self.aligned_height,
+          self.aligned_width, self.spatial_scale, grad_output, self.rois, grad_input)
 
         # print grad_input
-
         return grad_input, None
