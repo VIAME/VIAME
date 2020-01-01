@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
-from roi_align.modules.roi_align import RoIAlign
+from roi_align import RoIAlign
 from torch.autograd import Variable
 
 class ImageCropper(nn.Module):
