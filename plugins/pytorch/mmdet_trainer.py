@@ -68,6 +68,7 @@ class MMDetTrainer( TrainDetector ):
         self._tmp_training_file = "training_truth.pickle"
         self._tmp_validation_file = "validation_truth.pickle"
         self._validate = True
+        self._gt_frames_only = False
         self._launcher = "pytorch"  # "none, pytorch, slurm, or mpi" 
         self._train_in_new_process = True
         self._categories = []
@@ -85,6 +86,7 @@ class MMDetTrainer( TrainDetector ):
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "random_seed", str( self._random_seed ) )
         cfg.set_value( "validate", str( self._validate ) )
+        cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
         cfg.set_value( "launcher", str( self._launcher ) )
         cfg.set_value( "train_in_new_process", str( self._train_in_new_process ) )
 
@@ -103,6 +105,7 @@ class MMDetTrainer( TrainDetector ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._validate = strtobool( cfg.get_value( "validate" ) )
+        self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
         self._launcher = str( cfg.get_value( "launcher" ) )
         self._train_in_new_process = strtobool( cfg.get_value( "train_in_new_process" ) )
 
@@ -126,6 +129,10 @@ class MMDetTrainer( TrainDetector ):
             if not self._train_in_new_process:
                 print( "Warning: defaulting to external train in spawned process" )
                 self._train_in_new_process = True
+
+        if self._gpu_count > 1:
+            print( "Warning: multi-GPU only supports frames with GT, disabling others" )
+            self._gt_frames_only = True
 
         # Make required directories
         self._train_config = "train_config.py"
@@ -277,6 +284,9 @@ class MMDetTrainer( TrainDetector ):
 
                 boxes = np.append( boxes, obj_box, axis = 0 )
                 labels = np.append( labels, class_id )
+
+            if self._gt_frames_only and len( labels ) == 0:
+                continue
 
             annotations[ "bboxes" ] = boxes.astype( np.float32 )
             annotations[ "labels" ] = labels.astype( np.int_ )
