@@ -51,7 +51,7 @@ connect from debayer.image
 
 process output
   :: image_writer
-  :file_name_template                          frame%06d.png
+  :file_name_template                          .png
   :image_writer:type                           vxl
 
 connect from filter.image
