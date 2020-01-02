@@ -96,6 +96,7 @@ process fusion_detector1_nms
 
   block refiner:nms
     :max_overlap                               0.80
+    :max_scale_difference                      0    # 0 means disabled
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
   endblock
@@ -138,6 +139,7 @@ process fusion_detector2_nms
 
   block refiner:nms
     :max_overlap                               0.80
+    :max_scale_difference                      0    # 0 means disabled
     :nms_scale_factor                          1.0
     :output_scale_factor                       1.0
   endblock
