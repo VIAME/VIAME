@@ -11,7 +11,7 @@ namespace itk
 {
 
 ITKTransform
-::ITKTransform( viame::itk::NetTransformType::Pointer transform )
+::ITKTransform( viame::itk::BaseTransformType::Pointer transform )
 {
   m_transform = transform;
 }
@@ -25,7 +25,18 @@ kwiver::vital::transform_2d_sptr
 ITKTransform
 ::clone() const
 {
-  return kwiver::vital::transform_2d_sptr( new ITKTransform( m_transform ) );
+  return kwiver::vital::transform_2d_sptr(
+    new ITKTransform( m_transform ) );
+}
+
+kwiver::vital::transform_2d_sptr
+ITKTransform
+::inverse() const
+{
+  return kwiver::vital::transform_2d_sptr(
+    new ITKTransform(
+      static_cast< BaseTransformType* >(
+        m_transform->GetInverseTransform() ) ) );
 }
 
 kwiver::vital::vector_2d
@@ -34,9 +45,9 @@ ITKTransform
 {
   TransformFloatType input[2] = { p[0], p[1] };
 
-  NetTransformType::OutputPointType output =
+  BaseTransformType::OutputPointType output =
     m_transform->TransformPoint(
-      NetTransformType::InputPointType( input ) );
+      BaseTransformType::InputPointType( input ) );
 
   return kwiver::vital::vector_2d( output[0], output[1] );
 }
@@ -90,7 +101,7 @@ ITKTransformIO
 
   return kwiver::vital::transform_2d_sptr(
     new viame::itk::ITKTransform(
-      static_cast< NetTransformType* >(
+      static_cast< BaseTransformType* >(
         reader->GetTransformList()->begin()->GetPointer() ) ) );
 }
 

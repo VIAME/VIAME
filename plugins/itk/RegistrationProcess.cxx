@@ -147,7 +147,8 @@ itk_eo_ir_registration_process
     if( count_output_port_edges_using_trait( thermal_to_optical_homog ) > 0 )
     {
       push_to_port_using_trait( thermal_to_optical_homog,
-        optical_to_thermal->inverse() );
+        std::static_pointer_cast< kwiver::vital::homography >(
+          optical_to_thermal->inverse() ) );
     }
 
     // Warp image if required

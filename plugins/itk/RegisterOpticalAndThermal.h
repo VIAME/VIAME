@@ -57,6 +57,7 @@ using ThermalImageType = ::itk::Image< ThermalPixelType, Dimension >;
 using WarpedOpticalImageType = ::itk::Image< WarpedOpticalPixelType, Dimension >;
 using WarpedThermalImageType = ::itk::Image< WarpedThermalPixelType, Dimension >;
 
+using BaseTransformType = ::itk::Transform< TransformFloatType, Dimension, Dimension >;
 using AffineTransformType = ::itk::AffineTransform< TransformFloatType, Dimension >;
 using NetTransformType = ::itk::CompositeTransform< TransformFloatType, Dimension >;
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ class VIAME_ITK_EXPORT ITKTransform : public kwiver::vital::transform_2d
 {
 public:
 
-  ITKTransform( NetTransformType::Pointer transform );
+  ITKTransform( BaseTransformType::Pointer transform );
   virtual ~ITKTransform();
 
   /// Create a clone of this transform object, returning as smart pointer
@@ -57,6 +57,13 @@ public:
    * \return A new deep clone of this transformation.
    */
   virtual kwiver::vital::transform_2d_sptr clone() const;
+
+  /// Return an inverse of this transform object
+  /**
+   * \throws non_invertible_transform when the transformation is non-invertible.
+   * \return A new transform object that is the inverse of this transformation.
+   */
+  virtual kwiver::vital::transform_2d_sptr inverse() const;
 
   /// Map a 2D double-type point using this transform
   /**
@@ -67,7 +74,7 @@ public:
 
 private:
 
-  NetTransformType::Pointer m_transform;
+  BaseTransformType::Pointer m_transform;
 };
 
 
