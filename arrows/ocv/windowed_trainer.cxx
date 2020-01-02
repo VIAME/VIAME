@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,12 +72,12 @@ public:
     , m_chip_height( 1000 )
     , m_chip_step_width( 500 )
     , m_chip_step_height( 500 )
-    , m_chip_edge_filter( 0 )
     , m_chip_adaptive_thresh( 2000000 )
     , m_chip_random_factor( -1.0 )
-    , m_original_to_chip_size( false )
+    , m_original_to_chip_size( true )
     , m_black_pad( false )
-    , m_always_write_image( true )
+    , m_always_write_image( false )
+    , m_ensure_standard( false )
     , m_overlap_required( 0.05 )
     , m_chips_w_gt_only( false )
     , m_max_neg_ratio( 0.0 )
@@ -100,12 +100,12 @@ public:
   int m_chip_height;
   int m_chip_step_width;
   int m_chip_step_height;
-  int m_chip_edge_filter;
   int m_chip_adaptive_thresh;
   double m_chip_random_factor;
   bool m_original_to_chip_size;
   bool m_black_pad;
   bool m_always_write_image;
+  bool m_ensure_standard;
   double m_overlap_required;
   bool m_chips_w_gt_only;
   double m_max_neg_ratio;
@@ -188,8 +188,6 @@ windowed_trainer
     "When in chip mode, the chip step size between chips." );
   config->set_value( "chip_step_width", d->m_chip_step_width,
     "When in chip mode, the chip step size between chips." );
-  config->set_value( "chip_edge_filter", d->m_chip_edge_filter,
-    "If using chipping, filter out detections this pixel count near borders." );
   config->set_value( "chip_adaptive_thresh", d->m_chip_adaptive_thresh,
     "If using adaptive selection, total pixel count at which we start to chip." );
   config->set_value( "chip_random_factor", d->m_chip_random_factor,
@@ -199,8 +197,11 @@ windowed_trainer
   config->set_value( "black_pad", d->m_black_pad,
     "Black pad the edges of resized chips to ensure consistent dimensions" );
   config->set_value( "always_write_image", d->m_always_write_image,
-    "Always write images to training directory even if they already exist "
+    "Always re-write images to training directory even if they already exist "
     "elsewhere on disk." );
+  config->set_value( "ensure_standard", d->m_ensure_standard,
+    "If images are not one of 3 common formats (jpg, jpeg, png) or 3 channel "
+    "write them to the training directory even if they are elsewhere already" );
   config->set_value( "overlap_required", d->m_overlap_required,
     "Percentage of which a target must appear on a chip for it to be included "
     "as a training sample for said chip." );
@@ -245,12 +246,12 @@ windowed_trainer
   this->d->m_chip_height = config->get_value< int >( "chip_height" );
   this->d->m_chip_step_width = config->get_value< int >( "chip_step_width" );
   this->d->m_chip_step_height = config->get_value< int >( "chip_step_height" );
-  this->d->m_chip_edge_filter = config->get_value< int >( "chip_edge_filter" );
   this->d->m_chip_adaptive_thresh = config->get_value< int >( "chip_adaptive_thresh" );
   this->d->m_chip_random_factor = config->get_value< double >( "chip_random_factor" );
   this->d->m_original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
   this->d->m_black_pad = config->get_value< bool >( "black_pad" );
   this->d->m_always_write_image = config->get_value< bool >( "always_write_image" );
+  this->d->m_ensure_standard = config->get_value< bool >( "ensure_standard" );
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
   this->d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
@@ -463,7 +464,7 @@ windowed_trainer::priv
 
     const std::string image_fn = image_names[fid];
 
-    if( m_mode == "disabled" && !m_always_write_image )
+    if( m_mode == "disabled" && !m_always_write_image && !m_ensure_standard )
     {
       formatted_names.push_back( image_fn );
       formatted_truth.push_back( groundtruth[fid] );
@@ -474,6 +475,7 @@ windowed_trainer::priv
     vital::image_container_sptr vital_image;
     cv::Mat original_image;
     std::string format_mode = m_mode;
+    std::string ext = image_fn.substr( image_fn.find_last_of( "." ) + 1 );
 
     try
     {
@@ -496,7 +498,10 @@ windowed_trainer::priv
         if( m_always_write_image ||
             ( m_original_to_chip_size &&
               ( original_image.cols > m_chip_width ||
-                original_image.rows > m_chip_height ) ) )
+                original_image.rows > m_chip_height ) ) ||
+            ( m_ensure_standard &&
+              ( original_image.channels() != 3 ||
+               !( ext == "jpg" || ext == "png" || ext == "jpeg" ) ) ) )
         {
           format_mode = "maintain_ar";
         }
