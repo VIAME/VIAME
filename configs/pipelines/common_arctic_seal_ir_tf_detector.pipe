@@ -9,6 +9,6 @@ process thermal_detector
     relativepath model_file =                  models/arctic_seal_ir.pb
     :norm_image_type                           adaptive_min_fixed_range
     :fixed_range                               7000
-    :confidence_thresh                         0.25
+    :confidence_thresh                         0.10
     :category_name                             hotspot
   endblock
