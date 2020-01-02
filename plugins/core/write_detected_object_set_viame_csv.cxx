@@ -153,7 +153,7 @@ write_detected_object_set_viame_csv
              << "  3: Unique Frame Identifier,"
              << "  4-7: Img-bbox(TL_x,TL_y,BR_x,BR_y),"
              << "  8: Detection or Length Confidence,"
-             << "  9: Fish Length (0 or -1 if invalid),"
+             << "  9: Target Length (0 or -1 if invalid),"
              << "  10-11+: Repeated Species, Confidence Pairs or Attributes"
              << std::endl;
 
