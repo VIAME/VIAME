@@ -34,13 +34,13 @@ from __future__ import absolute_import
 import sys
 import numpy as np
 
-from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
+from sprokit.pipeline import process
 
 from vital.types import Image
+from vital.types import BoundingBox
 from vital.types import DetectedObject, DetectedObjectSet
 from vital.types import ObjectTrackState, Track, ObjectTrackSet
-from vital.types import BoundingBox
 
 import viame.arrows.pytorch.mdnet_tracker as mdnet
 
@@ -51,9 +51,24 @@ class MDNetTrackerProcess(KwiverProcess):
 
         # Config file
         self.add_config_trait("weights_file", "weights_file",
-                              'models/mdnet_seed.pth',
-                              'MDNet initial weight file for each track.')
+          'models/mdnet_seed.pth',
+          'MDNet initial weight file for each object track.')
         self.declare_config_using_trait("weights_file")
+        self.add_config_trait("init_threshold", "init_threshold",
+          '0.20',
+          'If tracking multiple targets, the initialization threshold over '
+          'detected object classifications for new tracks')
+        self.declare_config_using_trait("init_threshold")
+        self.add_config_trait("iou_threshold", "iou_threshold",
+          '0.50',
+          'If tracking multiple targets, the initialization threshold over '
+          'box intersections in order to generate new tracks')
+        self.declare_config_using_trait("iou_threshold")
+        self.add_config_trait("evaluation_str", "evaluation_str",
+          'mdnet',
+          'If evaluating detections for an external tracker, the type '
+          'to put in the output classifications' )
+        self.declare_config_using_trait("evaluation_str")
 
         # set up required flags
         optional = process.PortFlags()
@@ -63,6 +78,7 @@ class MDNetTrackerProcess(KwiverProcess):
         #  input port ( port-name,flags)
         self.declare_input_port_using_trait('image', required)
         self.declare_input_port_using_trait('timestamp', required)
+        self.declare_input_port_using_trait('detected_object_set', optional)
         self.declare_input_port_using_trait('initializations', required)
         self.declare_input_port_using_trait('recommendations', optional)
         self.declare_input_port_using_trait('evaluation_requests', optional)
@@ -70,24 +86,30 @@ class MDNetTrackerProcess(KwiverProcess):
         #  output port ( port-name,flags)
         self.declare_output_port_using_trait('timestamp', optional)
         self.declare_output_port_using_trait('object_track_set', optional)
-
-        self._track_set = track_set()
+        self.declare_output_port_using_trait('evaluations', optional)
 
     # --------------------------------------------------------------------------
     def _configure(self):
         # Configuration parameters
-        self._weights_file = self.config_value('weights_file')
+        self._weights_file = str(self.config_value('weights_file'))
+        self._init_threshold = float(self.config_value('init_threshold'))
+        self._iou_threshold = float(self.config_value('iou_threshold'))
+        self._evaluation_str = str(self.config_value('evaluation_str'))
+
+        # Load model only once across all tracks for speed
+        mdnet.opts['model_path'] = mdnet.MDNet(self._weights_file)
 
         # Persistent state variables
         self._trackers = dict()
-        self._prior_tracks = ObjectTrackState()
+        self._prior_tracks = ObjectTrackSet()
         self._base_configure()
 
     # --------------------------------------------------------------------------
     def _step(self):
-
+        # Get all inputs even ones we don't use
         in_img_c = self.grab_input_using_trait('image')
         timestamp = self.grab_input_using_trait('timestamp')
+        detections = self.grab_input_using_trait('detected_object_set')
         initializations = self.grab_input_using_trait('initializations')
         recommendations = self.grab_input_using_trait('recommendations')
         requests = self.grab_input_using_trait('evaluation_requests')
@@ -99,9 +121,9 @@ class MDNetTrackerProcess(KwiverProcess):
 
         # Handle new track initialization
         init_tracks = initializations.tracks()
-        init_track_ids = [ t.id for t in init_tracks ]
+        init_track_ids = [t.id for t in init_tracks]
     
-        if len( init_tracks ) != 0 or len( self._trackers ) != 0:
+        if len(init_tracks) != 0 or len(self._trackers) != 0:
             img_npy = 
 
         for t in init_tracks:
