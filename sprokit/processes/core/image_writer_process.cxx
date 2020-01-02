@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,16 +62,17 @@ namespace kwiver
 {
 
 // (config-key, value-type, default-value, description )
-create_config_trait( file_name_template, std::string, "image%04d.png",
+create_config_trait( file_name_template, std::string, "",
   "Template for generating output file names. The template is interpreted "
   "as a printf format with one format specifier to convert an integer "
   "increasing image number. The image file type is determined by the file "
-  "extension and the concrete writer selected." );
+  "extension and the concrete writer selected. If an image name over-ride "
+  "is provided over a pipeline, only the extension in the name is used.");
 
 create_config_trait( image_writer, std::string , "", "Config block name "
   "to configure algorithm. The algorithm type is selected with "
   "\"image_writer:type\". Specific writer parameters depend on writer type "
-  "selected.");
+  "selected." );
 
 create_config_trait( replace_filename_strings, std::string , "",
   "An optional comma-seperated list of pairs, corresponding to filename "
@@ -221,6 +222,11 @@ void image_writer_process
   if( has_input_port_edge_using_trait( image_file_name ) )
   {
     a_file = grab_from_port_using_trait( image_file_name );
+
+    if( !d->m_file_template.empty() && d->m_file_template[0] == '.' )
+    {
+      a_file = a_file.substr( 0, a_file.find_last_of( "." ) ) + d->m_file_template;
+    }
   }
   else
   {
