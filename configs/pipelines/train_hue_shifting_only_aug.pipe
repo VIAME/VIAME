@@ -26,7 +26,7 @@ process random_grey
 
   block filter:vxl_convert_image
     :format                                    byte
-    :random_greyscale                          0.25
+    :random_greyscale                          0.20
     :force_three_channel                       true
   endblock
 
@@ -38,7 +38,7 @@ process random_hue
   :filter:type                                 ocv_random_hue_shift
 
   block filter:ocv_random_hue_shift
-    :trigger_percent                           0.40
+    :trigger_percent                           0.33
     :hue_range                                 10.0
     :rgb_shift_range                           25.0
   endblock
