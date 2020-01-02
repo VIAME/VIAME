@@ -264,7 +264,7 @@ if( VIAME_ENABLE_VIVIA )
 
   if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/embedded_single_stream/pysot_tracker.pipe )
+      pipelines/embedded_single_stream/track_user_selections.pipe )
   endif()
 
   install( FILES       ${GUI_PIPELINE_FILES}
@@ -307,8 +307,8 @@ endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
   set( CORE_PIPELINE_FILES ${CORE_PIPELINE_FILES}
-    pipelines/common_pysot_tracker.pipe
-    pipelines/tracker_pysot.pipe )
+    pipelines/common_short_term_tracker.pipe
+    pipelines/tracker_short_term.pipe )
 endif()
 
 if( VIAME_ENABLE_ITK )

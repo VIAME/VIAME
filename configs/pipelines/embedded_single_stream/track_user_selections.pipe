@@ -18,7 +18,7 @@ process out_adapt
 
 # ==================================================================================
 
-include ../common_pysot_tracker.pipe
+include ../common_short_term_tracker.pipe
 
 # Connect inputs to tracker
 connect from in_adapt.image
