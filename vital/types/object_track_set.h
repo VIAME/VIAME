@@ -96,6 +96,15 @@ public:
     , detection_( std::move( d ) )
     , time_( ts.get_time_usec() )
   {}
+
+  object_track_state( timestamp const& ts,
+                      bounding_box_d const& bbox,
+                      double confidence = 1.0,
+                      detected_object_type_sptr cls = nullptr )
+    : track_state( ts.get_frame() )
+    , detection_( std::make_shared<detected_object>( bbox, confidence, cls ) )
+    , time_( ts.get_time_usec() )
+  {}
   //@}
 
   /// Copy constructor

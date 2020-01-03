@@ -37,8 +37,9 @@ typedef kwiver::vital::object_track_state obj_track_state;
 typedef kwiver::vital::object_track_set obj_track_set;
 
 namespace py = pybind11;
+namespace kv = kwiver::vital;
 
-std::shared_ptr<kwiver::vital::track>
+std::shared_ptr<kv::track>
 get_track(std::shared_ptr<obj_track_set> &self, uint64_t id)
 {
   auto track = self->get_track(id);
@@ -52,18 +53,38 @@ get_track(std::shared_ptr<obj_track_set> &self, uint64_t id)
 
 PYBIND11_MODULE(object_track_set, m)
 {
-  py::class_<obj_track_state, kwiver::vital::track_state, std::shared_ptr<obj_track_state>>(m, "ObjectTrackState")
-  .def(py::init<int64_t, int64_t, std::shared_ptr<kwiver::vital::detected_object>>())
-  .def_property_readonly("frame_id", &kwiver::vital::track_state::frame)
-  .def_property_readonly("time_usec", &kwiver::vital::object_track_state::time)
-  .def("detection", (kwiver::vital::detected_object_sptr(obj_track_state::*)())&obj_track_state::detection)
+  py::class_<obj_track_state,
+             kv::track_state,
+             std::shared_ptr<obj_track_state>>(m, "ObjectTrackState")
+  .def(py::init<int64_t,
+                int64_t,
+                std::shared_ptr<kv::detected_object>>())
+  .def(py::init<kv::timestamp,
+                std::shared_ptr<kv::detected_object>>())
+  .def(py::init<kv::timestamp,
+                kv::bounding_box_d>())
+  .def(py::init<kv::timestamp,
+                kv::bounding_box_d,
+                double,
+                kwiver::vital::detected_object_type_sptr>())
+  .def(py::init<kv::timestamp,
+                kv::bounding_box_d,
+                double>())
+  .def_property_readonly("frame_id", &kv::track_state::frame)
+  .def_property_readonly("time_usec", &kv::object_track_state::time)
+  .def_property_readonly("timestamp", &kv::object_track_state::ts)
+  .def_property_readonly("ts", &kv::object_track_state::ts)
+  .def("detection", (kv::detected_object_sptr(obj_track_state::*)())
+                    &obj_track_state::detection)
   .def("image_point", &obj_track_state::image_point)
   .def("track_point", &obj_track_state::track_point)
   ;
 
-  py::class_<obj_track_set, kwiver::vital::track_set, std::shared_ptr<obj_track_set>>(m, "ObjectTrackSet")
+  py::class_<obj_track_set,
+             kv::track_set,
+             std::shared_ptr<obj_track_set>>(m, "ObjectTrackSet")
   .def(py::init<>())
-  .def(py::init<std::vector<std::shared_ptr<kwiver::vital::track>>>())
+  .def(py::init<std::vector<std::shared_ptr<kv::track>>>())
   .def("all_frame_ids", &obj_track_set::all_frame_ids)
   .def("get_track", &get_track,
     py::arg("id"))

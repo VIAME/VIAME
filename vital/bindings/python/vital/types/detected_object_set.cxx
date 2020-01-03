@@ -35,8 +35,9 @@
 #include <pybind11/embed.h>
 
 namespace py = pybind11;
+namespace kv = kwiver::vital;
 
-typedef kwiver::vital::detected_object_set det_obj_set;
+typedef kv::detected_object_set det_obj_set;
 
 PYBIND11_MODULE(detected_object_set, m)
 {
@@ -70,12 +71,12 @@ PYBIND11_MODULE(detected_object_set, m)
           <DetectedObjectSet(size=4)>
     )")
   .def(py::init<>())
-  .def(py::init<std::vector<std::shared_ptr<kwiver::vital::detected_object>>>())
+  .def(py::init<std::vector<std::shared_ptr<kv::detected_object>>>())
   .def("add", [](det_obj_set &self, py::object object)
     {
       try
       {
-        auto det_obj = object.cast<std::shared_ptr<kwiver::vital::detected_object>>();
+        auto det_obj = object.cast<std::shared_ptr<kv::detected_object>>();
         return self.add(det_obj);
       }
       catch(...){};
@@ -92,15 +93,18 @@ PYBIND11_MODULE(detected_object_set, m)
       }
       return self.select(class_name.cast<std::string>(), threshold);
     },
-    py::arg("threshold")=kwiver::vital::detected_object_type::INVALID_SCORE, py::arg("class_name")=py::none())
+    py::arg("threshold")=kv::detected_object_type::INVALID_SCORE,
+    py::arg("class_name")=py::none())
   .def("__getitem__", [](det_obj_set &self, size_t idx)
     {
       return self.at(idx);
     })
 
-  .def("__iter__", [](det_obj_set &self) { return py::make_iterator(self.begin(), self.end()); },
-          py::keep_alive<0, 1>())
-
+  .def("__iter__", [](det_obj_set &self)
+    {
+      return py::make_iterator(self.begin(), self.end());
+    },
+    py::keep_alive<0, 1>())
   .def("__nice__", [](det_obj_set& self) -> std::string {
     auto locals = py::dict(py::arg("self")=self);
     py::exec(R"(
