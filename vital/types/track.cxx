@@ -134,7 +134,6 @@ track
 ::append( track_state_sptr state )
 {
   if ( ! state ||
-       ! state->track_.expired() ||
        ( ! this->history_.empty() &&
        ( this->last_frame() >= state->frame() ) ) )
   {
