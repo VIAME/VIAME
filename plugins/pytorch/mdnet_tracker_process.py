@@ -90,7 +90,7 @@ class MDNetTrackerProcess(KwiverProcess):
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        #  input port ( port-name,flags)
+        # input port (port-name,flags)
         self.declare_input_port_using_trait('image', required)
         self.declare_input_port_using_trait('timestamp', required)
         self.declare_input_port_using_trait('detected_object_set', optional)
@@ -98,7 +98,7 @@ class MDNetTrackerProcess(KwiverProcess):
         self.declare_input_port_using_trait('recommendations', optional)
         self.declare_input_port_using_trait('evaluation_requests', optional)
 
-        #  output port ( port-name,flags)
+        # output port (port-name,flags)
         self.declare_output_port_using_trait('timestamp', optional)
         self.declare_output_port_using_trait('object_track_set', optional)
         self.declare_output_port_using_trait('evaluations', optional)
@@ -126,38 +126,65 @@ class MDNetTrackerProcess(KwiverProcess):
         # Get all inputs even ones we don't use
         in_img_c = self.grab_input_using_trait('image')
         timestamp = self.grab_input_using_trait('timestamp')
-        detections = self.grab_input_using_trait('detected_object_set')
-        initializations = self.grab_input_using_trait('initializations')
-        recommendations = self.grab_input_using_trait('recommendations')
-        requests = self.grab_input_using_trait('evaluation_requests')
+
+        if not timestamp.has_valid_frame():
+            raise RuntimeError("Frame timestamps must contain frame IDs")
+
+        frame_id = timestamp.get_frame()
+
+        if self.has_input_port_edge_using_trait('detected_object_set'):
+            detections = self.grab_input_using_trait('detected_object_set')
+        else:
+            detections = DetectedObjectSet()
+        if self.has_input_port_edge_using_trait('initializations'):
+            initializations = self.grab_input_using_trait('initializations')
+        else:
+            initializations = ObjectTrackSet()
+        if self.has_input_port_edge_using_trait('recommendations'):
+            recommendations = self.grab_input_using_trait('recommendations')
+        else:
+            recommendations = ObjectTrackSet()
+        if self.has_input_port_edge_using_trait('evaluation_requests'):
+            requests = self.grab_input_using_trait('evaluation_requests')
+        else:
+            requests = DetectedObjectSet()
 
         print('mdnet tracker timestamp = {!r}'.format(timestamp))
 
         # Handle new track external initialization
-        init_tracks = initializations.tracks()
-        init_track_ids = [t.id() for t in init_tracks]
-    
-        if len(init_tracks) != 0 or len(self._trackers) != 0:
-            img_npy = in_img_c.image().asarray().astype('uint8')
+        init_track_pool = initializations.tracks()
+        init_track_ids = []
 
-        for t in init_tracks:
-            if t.last_frame().timestamp() is not timestamp:
+        if len(init_track_pool) != 0 or len(self._trackers) != 0:
+            img_npy = in_img_c.image().asarray().astype('uint8')
+            # Greyscale to color image if necessary
+            if len(np.shape(img_npy)) == 2:
+                img_npy = np.stack((img_npy,)*3, axis=-1)
+            elif np.shape(img_npy)[2] == 1:
+                img_npy = np.stack((img_npy,)*3, axis=2)
+
+        for trk in init_track_pool:
+            if trk[trk.last_frame].frame_id is not frame_id:
                 continue
-            tid = t.id()
-            cbox = t.last_frame().detection().bounding_box()
+            tid = trk.id
+            cbox = trk[trk.last_frame].detection().bounding_box()
             bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
-            self._trackers[tid] = MDNetTracker(img_npy, bbox)
-            self._tracks[tid] = t
+            self._trackers[tid] = mdnet.MDNetTracker(img_npy, bbox)
+            self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
+            init_track_ids.append(tid)
 
         # Update existing tracks
         for tid in self._trackers.keys():
+            print( frame_id )
+            print( tid )
             if tid in init_track_ids:
                 continue # Already processed (initialized) on frame
             bbox, score = self._trackers[tid].update(img_npy)
-            if score > opts['link_score_required']:
-                bbox = [bbox[0],bbox[1],bbox[0]+bbox[2],bbox[1]+bbox[3]]
-                cbox = BoundingBox(bbox)
-                self._tracks[tid].append(ObjectTrackState(timestamp, cbox))
+            if score > mdnet.opts['success_thr']:
+                cbox = BoundingBox(
+                  bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
+                new_state = ObjectTrackState(timestamp, cbox, score)
+                self._tracks[tid].append(new_state)
 
         # Handle track termination
         # TODO: Remove old or dead tracks
@@ -168,7 +195,7 @@ class MDNetTrackerProcess(KwiverProcess):
 
         # Output results
         output_tracks = ObjectTrackSet(
-          [Track(tid, trks) for tid, trk in self._tracks.items()])
+          [Track(tid, trk) for tid, trk in self._tracks.items()])
 
         self.push_to_port_using_trait('timestamp', timestamp)
         self.push_to_port_using_trait('object_track_set', output_tracks)
