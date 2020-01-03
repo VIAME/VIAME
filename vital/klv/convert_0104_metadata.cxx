@@ -151,7 +151,7 @@ void convert_metadata
 ::convert_0104_metadata( klv_uds_vector_t const& uds, metadata& md )
 {
   //
-  // Data items that are used to collect multi-value metadataa items such as
+  // Data items that are used to collect multi-value metadata items such as
   // lat-lon points and image corner points. All geodetic points are assumed to
   // be WGS84 lat-lon.
   //
