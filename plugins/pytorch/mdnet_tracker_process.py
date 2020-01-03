@@ -175,8 +175,6 @@ class MDNetTrackerProcess(KwiverProcess):
 
         # Update existing tracks
         for tid in self._trackers.keys():
-            print( frame_id )
-            print( tid )
             if tid in init_track_ids:
                 continue # Already processed (initialized) on frame
             bbox, score = self._trackers[tid].update(img_npy)
