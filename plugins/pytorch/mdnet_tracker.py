@@ -146,9 +146,9 @@ class MDNetTracker:
             self._image_cropper.gpuEnable()
 
         # Init criterion and optimizer
-        criterion = BinaryLoss()
+        self._criterion = BinaryLoss()
         init_optimizer = set_optimizer(self._model, opts['lr_init'])
-        update_optimizer = set_optimizer(self._model, opts['lr_update'])
+        self._update_optimizer = set_optimizer(self._model, opts['lr_update'])
         tic = time.time()
 
         # Extract initial positive and negative samples
@@ -263,7 +263,7 @@ class MDNetTracker:
             cur_bbreg_feats = self._model.roi_align_model(feat_map, cur_bbreg_rois)
             cur_bbreg_feats = cur_bbreg_feats.view(cur_bbreg_feats.size(0), -1).data.clone()
 
-            feat_dim = cur_pos_feats.size(-1)
+            self._feat_dim = cur_pos_feats.size(-1)
 
             if bidx==0:
                 pos_feats = cur_pos_feats
@@ -425,7 +425,7 @@ class MDNetTracker:
         self._model.zero_grad()
 
         # Initial training
-        train(self._model, criterion, init_optimizer, pos_feats, neg_feats, opts['maxiter_init'])
+        train(self._model, self._criterion, init_optimizer, pos_feats, neg_feats, opts['maxiter_init'])
 
         ## BBReg train
         if bbreg_feats.size(0) > opts['n_bbreg']:
@@ -617,7 +617,7 @@ class MDNetTracker:
                 cur_neg_feats = self._model.roi_align_model(feat_map, cur_neg_rois)
                 cur_neg_feats = cur_neg_feats.view(cur_neg_feats.size(0), -1).data.clone()
 
-                feat_dim = cur_pos_feats.size(-1)
+                self._feat_dim = cur_pos_feats.size(-1)
 
                 if bidx == 0:
                     pos_feats = cur_pos_feats ##index select
@@ -648,16 +648,16 @@ class MDNetTracker:
         # Short term update
         if not success:
             nframes = min(opts['n_frames_short'],len(self._pos_feats_all))
-            pos_data = torch.stack(self._pos_feats_all[-nframes:],0).view(-1,feat_dim)
-            neg_data = torch.stack(self._neg_feats_all,0).view(-1,feat_dim)
-            train(self._model, criterion, update_optimizer,
+            pos_data = torch.stack(self._pos_feats_all[-nframes:],0).view(-1,self._feat_dim)
+            neg_data = torch.stack(self._neg_feats_all,0).view(-1,self._feat_dim)
+            train(self._model, self._criterion, self._update_optimizer,
               pos_data, neg_data, opts['maxiter_update'])
 
         # Long term update
         elif self._frame_counter % opts['long_interval'] == 0:
-            pos_data = torch.stack(self._pos_feats_all,0).view(-1,feat_dim)
-            neg_data = torch.stack(self._neg_feats_all,0).view(-1,feat_dim)
-            train(self._model, criterion, update_optimizer,
+            pos_data = torch.stack(self._pos_feats_all,0).view(-1,self._feat_dim)
+            neg_data = torch.stack(self._neg_feats_all,0).view(-1,self._feat_dim)
+            train(self._model, self._criterion, self._update_optimizer,
               pos_data, neg_data, opts['maxiter_update'])
 
         spf = time.time()-tic
