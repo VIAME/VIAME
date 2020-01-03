@@ -73,6 +73,14 @@ PYBIND11_MODULE(track, m)
       return track;
     }))
   .def("all_frame_ids", &kv::track::all_frame_ids)
+  .def("front", [](kv::track &self)
+    {
+      return *self.front();
+    })
+  .def("back", [](kv::track &self)
+    {
+      return *self.back();
+    })
   .def("append", [](kv::track &self, std::shared_ptr<kv::track_state> track_state)
     {
       return self.append(track_state);
