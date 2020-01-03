@@ -264,7 +264,7 @@ metadata
 
   switch (tag)
   {
-#define VITAL_META_TRAIT_CASE(TAG, NAME, T) case VITAL_META_ ## TAG: return typeid(T);
+#define VITAL_META_TRAIT_CASE(TAG, NAME, T, ...) case VITAL_META_ ## TAG: return typeid(T);
 
     KWIVER_VITAL_METADATA_TAGS( VITAL_META_TRAIT_CASE )
 
