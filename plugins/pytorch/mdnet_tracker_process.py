@@ -135,7 +135,7 @@ class MDNetTrackerProcess(KwiverProcess):
 
         # Handle new track external initialization
         init_tracks = initializations.tracks()
-        init_track_ids = [t.id for t in init_tracks]
+        init_track_ids = [t.id() for t in init_tracks]
     
         if len(init_tracks) != 0 or len(self._trackers) != 0:
             img_npy = in_img_c.image().asarray().astype('uint8')
@@ -143,11 +143,11 @@ class MDNetTrackerProcess(KwiverProcess):
         for t in init_tracks:
             if t.last_frame().timestamp() is not timestamp:
                 continue
-            tid = t.id
+            tid = t.id()
             cbox = t.last_frame().detection().bounding_box()
             bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
             self._trackers[tid] = MDNetTracker(img_npy, bbox)
-            self._tracks[tid] = [ObjectTrackState(timestamp, cbox)]
+            self._tracks[tid] = t
 
         # Update existing tracks
         for tid in self._trackers.keys():
@@ -168,7 +168,7 @@ class MDNetTrackerProcess(KwiverProcess):
 
         # Output results
         output_tracks = ObjectTrackSet(
-          [Track(trks, id=tid) for tid, trk in self._tracks.items()])
+          [Track(tid, trks) for tid, trk in self._tracks.items()])
 
         self.push_to_port_using_trait('timestamp', timestamp)
         self.push_to_port_using_trait('object_track_set', output_tracks)
