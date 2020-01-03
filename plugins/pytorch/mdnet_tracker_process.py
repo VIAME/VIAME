@@ -54,6 +54,11 @@ class MDNetTrackerProcess(KwiverProcess):
           'models/mdnet_seed.pth',
           'MDNet initial weight file for each object track.')
         self.declare_config_using_trait("weights_file")
+        self.add_config_trait("init_method", "init_method",
+          'external_only',
+          'Method for initializing new tracks, can be: external_only or '
+          'using_detections.')
+        self.declare_config_using_trait("init_method")
         self.add_config_trait("init_threshold", "init_threshold",
           '0.20',
           'If tracking multiple targets, the initialization threshold over '
@@ -64,11 +69,21 @@ class MDNetTrackerProcess(KwiverProcess):
           'If tracking multiple targets, the initialization threshold over '
           'box intersections in order to generate new tracks')
         self.declare_config_using_trait("iou_threshold")
-        self.add_config_trait("evaluation_str", "evaluation_str",
-          'mdnet',
-          'If evaluating detections for an external tracker, the type '
-          'to put in the output classifications' )
-        self.declare_config_using_trait("evaluation_str")
+        self.add_config_trait("type_string", "type_string",
+          '',
+          'If non-empty set the output track to be a track of this '
+          'object category.')
+        self.declare_config_using_trait("type_string")
+
+        # add non-standard input and output elements
+        self.add_port_trait( "initializations",
+          "object_track_set", "Input external track initializations" )
+        self.add_port_trait( "recommendations",
+          "object_track_set", "Input external track recommendations" )
+        self.add_port_trait( "evaluation_requests",
+          "detected_object_set", "External detections to test if target" )
+        self.add_port_trait( "evaluations",
+          "detected_object_set", "Completed evaluations with scores" )
 
         # set up required flags
         optional = process.PortFlags()
@@ -92,20 +107,22 @@ class MDNetTrackerProcess(KwiverProcess):
     def _configure(self):
         # Configuration parameters
         self._weights_file = str(self.config_value('weights_file'))
+        self._init_threshold = str(self.config_value('init_method'))
         self._init_threshold = float(self.config_value('init_threshold'))
         self._iou_threshold = float(self.config_value('iou_threshold'))
-        self._evaluation_str = str(self.config_value('evaluation_str'))
+        self._type_string = str(self.config_value('type_string'))
 
         # Load model only once across all tracks for speed
         mdnet.opts['model_path'] = mdnet.MDNet(self._weights_file)
 
         # Persistent state variables
         self._trackers = dict()
-        self._prior_tracks = ObjectTrackSet()
+        self._tracks = dict()
         self._base_configure()
 
     # --------------------------------------------------------------------------
     def _step(self):
+
         # Get all inputs even ones we don't use
         in_img_c = self.grab_input_using_trait('image')
         timestamp = self.grab_input_using_trait('timestamp')
@@ -116,35 +133,46 @@ class MDNetTrackerProcess(KwiverProcess):
 
         print('mdnet tracker timestamp = {!r}'.format(timestamp))
 
-        # Generate empty output
-        output = ObjectTrackSet()
-
-        # Handle new track initialization
+        # Handle new track external initialization
         init_tracks = initializations.tracks()
         init_track_ids = [t.id for t in init_tracks]
     
         if len(init_tracks) != 0 or len(self._trackers) != 0:
-            img_npy = 
+            img_npy = in_img_c.image().asarray().astype('uint8')
 
         for t in init_tracks:
+            if t.last_frame().timestamp() is not timestamp:
+                continue
             tid = t.id
-            bbox = t.det.box
-            self._trackers[tid] = MDNetTracker(img_npy,bbox)
+            cbox = t.last_frame().detection().bounding_box()
+            bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+            self._trackers[tid] = MDNetTracker(img_npy, bbox)
+            self._tracks[tid] = [ObjectTrackState(timestamp, cbox)]
 
         # Update existing tracks
-        for track_id in self._trackers.keys():
-            if track_id in init_track_ids:
-                continue
-            result = self._trackers[ track_id ].update( img_npy )
+        for tid in self._trackers.keys():
+            if tid in init_track_ids:
+                continue # Already processed (initialized) on frame
+            bbox, score = self._trackers[tid].update(img_npy)
+            if score > opts['link_score_required']:
+                bbox = [bbox[0],bbox[1],bbox[0]+bbox[2],bbox[1]+bbox[3]]
+                cbox = BoundingBox(bbox)
+                self._tracks[tid].append(ObjectTrackState(timestamp, cbox))
 
         # Handle track termination
         # TODO: Remove old or dead tracks
 
-        # Output results
-        self.push_to_port_using_trait('timestamp', timestamp)
-        self.push_to_port_using_trait('object_track_set', output)
+        # Classify requested evaluations
+        # TODO: Evaluate input detections
+        output_evaluations = DetectedObjectSet()
 
-        self._prior_tracks = output
+        # Output results
+        output_tracks = ObjectTrackSet(
+          [Track(trks, id=tid) for tid, trk in self._tracks.items()])
+
+        self.push_to_port_using_trait('timestamp', timestamp)
+        self.push_to_port_using_trait('object_track_set', output_tracks)
+        self.push_to_port_using_trait('evaluations', output_evaluations)
         self._base_step()
 
 # ==============================================================================
