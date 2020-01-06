@@ -8,7 +8,7 @@ process tracker
   :track_th                                    0.90		# comment out if not in vpView
   :ots_input_flag                              True 	# comment out if not in vpView
 
-  #relativepath pysot_config_path =            models/pysot_siamrpn_r50_l234_dwxcorr_config.yaml
-  #relativepath pysot_model_path =             models/pysot_siamrpn_r50_l234_dwxcorr_model.pth
-  relativepath pysot_config_path =            models/pysot_siammask_r50_l3_config.yaml
-  relativepath pysot_model_path =             models/pysot_siammask_r50_l3_model.pth
+  #relativepath config_file =                  models/pysot_siamrpn_r50_l234_dwxcorr_config.yaml
+  #relativepath model_file =                   models/pysot_siamrpn_r50_l234_dwxcorr_model.pth
+  relativepath config_file =                   models/pysot_siammask_r50_l3_config.yaml
+  relativepath model_file =                    models/pysot_siammask_r50_l3_model.pth
