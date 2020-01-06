@@ -33,6 +33,14 @@ if( VIAME_DOWNLOAD_MODELS )
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     endif()
 
+    if( VIAME_ENABLE_PYTORCH-MDNET )
+      DownloadAndExtract(
+        https://data.kitware.com/api/v1/item/5e12b04aaf2e2eed35d42979/download
+        8f6a709478bbd69e4d97fc34ac9b6003
+        ${VIAME_DOWNLOAD_DIR}/models-mdnet_tracking_models-v1.0.0.tar.gz
+        ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
+    endif()
+
     DownloadAndExtract(
       https://data.kitware.com/api/v1/item/5b6890a38d777f06857c1f22/download
       51b979d61df667b4751000192426f106
