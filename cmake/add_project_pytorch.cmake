@@ -135,7 +135,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${PYTHON_EXECUTABLE} -m pip install --user -e . )
   else()
-    if( "${LIB}" STREQUAL "pysot" )  
+    if( "${LIB}" STREQUAL "pysot" OR "${LIB}" STREQUAL "roi-align" )
       set( LIBRARY_PIP_BUILD_CMD
         ${PYTHON_EXECUTABLE} setup.py build_ext
           --include-dirs="${VIAME_BUILD_INSTALL_PREFIX}/include"
