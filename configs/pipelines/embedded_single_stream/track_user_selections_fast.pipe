@@ -22,13 +22,13 @@ include ../common_short_term_tracker.pipe
 
 # Connect inputs to tracker
 connect from in_adapt.image
-        to   tracker.image
+        to   short_term_tracker.image
 connect from in_adapt.timestamp
-        to   tracker.timestamp
+        to   short_term_tracker.timestamp
 connect from in_adapt.object_track_set
-        to   tracker.initializations
+        to   short_term_tracker.initializations
 
-connect from tracker.object_track_set
+connect from short_term_tracker.object_track_set
         to   out_adapt.object_track_set
 
 # -- end of file --
