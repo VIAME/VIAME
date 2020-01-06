@@ -61,6 +61,8 @@ connect from in_adapt.timestamp
         to   mid_term_tracker.timestamp
 connect from track_conductor.mid_term_initializations
         to   mid_term_tracker.initializations
+connect from short_term_tracker.object_track_set
+        to   mid_term_tracker.recommendations
 
 # Connect outputs back to conductor
 connect from mid_term_tracker.timestamp

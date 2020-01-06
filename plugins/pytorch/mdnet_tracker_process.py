@@ -167,6 +167,7 @@ class MDNetTrackerProcess(KwiverProcess):
 
         # Handle new track external initialization
         init_track_pool = initializations.tracks()
+        recc_track_pool = recommendations.tracks()
         init_track_ids = []
         img_used = False
 
@@ -200,7 +201,14 @@ class MDNetTrackerProcess(KwiverProcess):
         for tid in self._trackers.keys():
             if tid in init_track_ids:
                 continue # Already processed (initialized) on frame
-            bbox, score = self._trackers[tid].update(img_npy)
+            # Check if there's a recommendation for the update
+            recc_bbox = []
+            for trk in recc_track_pool:
+                if trk.id == tid and trk[trk.last_frame].frame_id == frame_id:
+                    cbox = trk[trk.last_frame].detection().bounding_box()
+                    recc_bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+                    break
+            bbox, score = self._trackers[tid].update(img_npy, likely_bbox=recc_bbox)
             if score > mdnet.opts['success_thr']:
                 cbox = BoundingBox(
                   bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])

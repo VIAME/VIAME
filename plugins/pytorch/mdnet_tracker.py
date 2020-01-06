@@ -478,7 +478,7 @@ class MDNetTracker:
             if len(opts['savefig_dir']) > 0:
                 fig.savefig(os.path.join(opts['savefig_dir'],'0000.jpg'),dpi=dpi)
 
-    def update(self, image, bbox=[]):
+    def update(self, image, likely_bbox=[]):
         trans_f = opts['trans_f']
         tic = time.time()
         self._frame_counter = self._frame_counter + 1
@@ -555,6 +555,10 @@ class MDNetTracker:
         result = self._target_bbox
         result_bb = bbreg_bbox
         iou_result = 1.
+
+        # Report computed, but use recommended box in training
+        if len(likely_bbox) > 0:
+            self._target_bbox = np.array(likely_bbox)
 
         # Data collect
         if success:
