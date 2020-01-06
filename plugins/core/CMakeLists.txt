@@ -96,6 +96,7 @@ set( process_headers
   align_multimodal_imagery_process.h
   extract_desc_ids_for_training_process.h
   filter_frame_process.h
+  track_conductor_process.h
   write_homography_list_process.h
 )
 
@@ -104,6 +105,7 @@ set( process_sources
   align_multimodal_imagery_process.cxx
   extract_desc_ids_for_training_process.cxx
   filter_frame_process.cxx
+  track_conductor_process.cxx
   write_homography_list_process.cxx
 )
 
