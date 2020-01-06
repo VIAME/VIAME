@@ -25,24 +25,7 @@ connect from downsampler.output_1
 connect from downsampler.timestamp
         to   tracker.timestamp
 
-# ================================= OUTPUT DET DATA ====================================
-
-process detector_writer
-  :: detected_object_output
-
-  # Type of file to output
-#  :file_name                                   siamrpn_computed_detections.csv
-  :file_name                                   siammask_computed_detections.csv
-  :writer:type                                 viame_csv
-
-
-connect from tracker.detected_object_set
-        to   detector_writer.detected_object_set
-connect from downsampler.output_2
-        to   detector_writer.image_file_name
-
-
-# ================================= OUTPUT TRK DATA ====================================
+# ================================= OUTPUT TRK DATA ================================
 
 process track_writer
   :: write_object_track
