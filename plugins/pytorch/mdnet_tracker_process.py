@@ -127,10 +127,10 @@ class MDNetTrackerProcess(KwiverProcess):
         if not isinstance(image, np.ndarray):
             img_npy = image.image().asarray().astype('uint8')
             # Greyscale to color image if necessary
+            if len(np.shape(img_npy)) > 2 and np.shape(img_npy)[2] == 1:
+                img_npy = img_npy[:,:,0]
             if len(np.shape(img_npy)) == 2:
                 img_npy = np.stack((img_npy,)*3, axis=-1)
-            elif np.shape(img_npy)[2] == 1:
-                img_npy = np.stack((img_npy,)*3, axis=2)
             return img_npy
         return image
 
