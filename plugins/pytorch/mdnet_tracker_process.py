@@ -118,7 +118,21 @@ class MDNetTrackerProcess(KwiverProcess):
         # Persistent state variables
         self._trackers = dict()
         self._tracks = dict()
+        self._track_init_frames = dict()
+        self._last_frame_id = -1
         self._base_configure()
+
+    # --------------------------------------------------------------------------
+    def format_image(self, image):
+        if not isinstance(image, np.ndarray):
+            img_npy = image.image().asarray().astype('uint8')
+            # Greyscale to color image if necessary
+            if len(np.shape(img_npy)) == 2:
+                img_npy = np.stack((img_npy,)*3, axis=-1)
+            elif np.shape(img_npy)[2] == 1:
+                img_npy = np.stack((img_npy,)*3, axis=2)
+            return img_npy
+        return image
 
     # --------------------------------------------------------------------------
     def _step(self):
@@ -154,24 +168,33 @@ class MDNetTrackerProcess(KwiverProcess):
         # Handle new track external initialization
         init_track_pool = initializations.tracks()
         init_track_ids = []
+        img_used = False
 
         if len(init_track_pool) != 0 or len(self._trackers) != 0:
-            img_npy = in_img_c.image().asarray().astype('uint8')
-            # Greyscale to color image if necessary
-            if len(np.shape(img_npy)) == 2:
-                img_npy = np.stack((img_npy,)*3, axis=-1)
-            elif np.shape(img_npy)[2] == 1:
-                img_npy = np.stack((img_npy,)*3, axis=2)
+            img_npy = self.format_image(in_img_c)
+            img_used = True
 
         for trk in init_track_pool:
-            if trk[trk.last_frame].frame_id is not frame_id:
-                continue
-            tid = trk.id
-            cbox = trk[trk.last_frame].detection().bounding_box()
-            bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
-            self._trackers[tid] = mdnet.MDNetTracker(img_npy, bbox)
-            self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
-            init_track_ids.append(tid)
+            # Special case, initialize a track on a previous frame
+            if trk[trk.last_frame].frame_id == self._last_frame_id and \
+              ( not trk.id in self._track_init_frames or \
+              self._track_init_frames[ trk.id ] < self._last_frame_id ):
+                tid = trk.id
+                cbox = trk[trk.last_frame].detection().bounding_box()
+                bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+                self._last_frame = self.format_image(self._last_frame)
+                self._trackers[tid] = mdnet.MDNetTracker(self._last_frame, bbox)
+                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
+                self._track_init_frames[tid] = self._last_frame_id
+            # This track has an initialization signal for the current frame
+            elif trk[trk.last_frame].frame_id == frame_id:
+                tid = trk.id
+                cbox = trk[trk.last_frame].detection().bounding_box()
+                bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+                self._trackers[tid] = mdnet.MDNetTracker(img_npy, bbox)
+                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
+                init_track_ids.append(tid)
+                self._track_init_frames[tid] = frame_id
 
         # Update existing tracks
         for tid in self._trackers.keys():
@@ -198,6 +221,12 @@ class MDNetTrackerProcess(KwiverProcess):
         self.push_to_port_using_trait('timestamp', timestamp)
         self.push_to_port_using_trait('object_track_set', output_tracks)
         self.push_to_port_using_trait('evaluations', output_evaluations)
+
+        self._last_frame_id = timestamp.get_frame()
+        if img_used:
+            self._last_frame = img_npy
+        else:
+            self._last_frame = in_img_c
         self._base_step()
 
 # ==============================================================================
