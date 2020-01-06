@@ -2104,7 +2104,7 @@ pipeline::priv
   }
   catch (boost::not_a_dag const&)
   {
-    VITAL_THROW( not_a_dag_exception );
+    LOG_WARN( m_logger, "Pipeline contains cycles." );
   }
 }
 
