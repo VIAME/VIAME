@@ -891,8 +891,10 @@ initialize_cameras_landmarks_keyframe::priv
   // extract coresponding image points and landmarks
   std::vector<vector_2d> pts_right, pts_left;
 
-  const camera_intrinsics_sptr cal_left = m_base_camera.get_intrinsics();
-  const camera_intrinsics_sptr cal_right = m_base_camera.get_intrinsics();
+  auto base_intrinsics = m_base_camera.get_intrinsics()->clone();
+
+  const camera_intrinsics_sptr cal_left = base_intrinsics;
+  const camera_intrinsics_sptr cal_right = base_intrinsics;
 
   auto cal_left_no_dist = std::static_pointer_cast<simple_camera_intrinsics>(
     cal_left->clone());
@@ -942,17 +944,23 @@ initialize_cameras_landmarks_keyframe::priv
   // compute the corresponding camera rotation and translation (up to scale)
   vital::simple_camera_perspective cam =
     kwiver::arrows::extract_valid_left_camera(E, left_pt, right_pt);
-  cam.set_intrinsics(m_base_camera.intrinsics());
+  cam.set_intrinsics(base_intrinsics);
 
   map_landmark_t lms;
 
   simple_camera_perspective_map::frame_to_T_sptr_map cams;
-  cams[frame_1] = std::static_pointer_cast<simple_camera_perspective>(
-    cam.clone());
-  cams[frame_0] = std::static_pointer_cast<simple_camera_perspective>(
-    m_base_camera.clone());
+  cams[frame_1] = std::make_shared<simple_camera_perspective>(cam);
+  cams[frame_0] = std::make_shared<simple_camera_perspective>();
+  if (m_force_common_intrinsics)
+  {
+    cams[frame_0]->set_intrinsics(cams[frame_1]->get_intrinsics());
+  }
+  else
+  {
+    cams[frame_0]->set_intrinsics(cam.get_intrinsics()->clone());
+  }
 
-  auto cam_map = std::make_shared < simple_camera_perspective_map>(cams);
+  auto cam_map = std::make_shared <simple_camera_perspective_map>(cams);
 
   auto trk_set = std::make_shared<feature_track_set>(trks);
 
@@ -1433,17 +1441,13 @@ initialize_cameras_landmarks_keyframe::priv
       model_intrinsics = cam_p->intrinsics();
     }
   }
-  std::shared_ptr<vital::simple_camera_perspective>
-    nc(std::static_pointer_cast<simple_camera_perspective>(m_base_camera.clone()));
+  if (!m_force_common_intrinsics)
+  {
+    model_intrinsics = model_intrinsics->clone();
+  }
+  auto nc = std::make_shared<vital::simple_camera_perspective>();
+  nc->set_intrinsics(model_intrinsics);
 
-  if (m_force_common_intrinsics)
-  {
-    nc->set_intrinsics(model_intrinsics);
-  }
-  else
-  {
-    nc->set_intrinsics(model_intrinsics->clone());
-  }
 
   // do 3PT algorithm here
   three_point_pose(fid_to_resection, nc, tracks, lms,
@@ -1706,10 +1710,6 @@ initialize_cameras_landmarks_keyframe::priv
         cams = rev_cams;
         lms = rev_lms;
       }
-
-      auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
-        cams->cameras().begin()->second);
-      m_base_camera.set_intrinsics(first_cam->intrinsics());
 
       inlier_lm_ids.clear();
       retriangulate(lms, cams, trks, inlier_lm_ids);
@@ -2188,10 +2188,6 @@ initialize_cameras_landmarks_keyframe::priv
       ba_config->set_value<bool>("optimize_focal_length", opt_focal_was_set);
       bundle_adjuster->set_configuration(ba_config);
 
-      auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
-        cams->cameras().begin()->second);
-      m_base_camera.set_intrinsics(first_cam->intrinsics());
-
       double after_new_cam_rmse =
         kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
       LOG_INFO(m_logger, "after new camera reprojection RMSE: "
@@ -2281,13 +2277,6 @@ initialize_cameras_landmarks_keyframe::priv
         bundle_adjuster->optimize(*cams, lms, tracks,
                                   fixed_cameras, fixed_landmarks,
                                   ba_constraints);
-        if (cams->size() > 0)
-        {
-          auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
-            cams->cameras().begin()->second);
-          m_base_camera.set_intrinsics(first_cam->intrinsics());
-        }
-
 
         double optimized_rmse =
           kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
@@ -2301,13 +2290,6 @@ initialize_cameras_landmarks_keyframe::priv
         bundle_adjuster->optimize(*cams, lms, tracks,
                                   fixed_cameras, fixed_landmarks,
                                   ba_constraints);
-
-        if (cams->size() > 0)
-        {
-          auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
-            cams->cameras().begin()->second);
-          m_base_camera.set_intrinsics(first_cam->intrinsics());
-        }
 
         clean_cameras_and_landmarks(*cams, lms, tracks,
                                     m_thresh_triang_cos_ang, removed_cams,
@@ -2435,6 +2417,7 @@ initialize_cameras_landmarks_keyframe::priv
   std::set<vital::frame_id_t> &keyframes,
   callback_t callback)
 {
+  auto intrinsics = m_base_camera.get_intrinsics()->clone();
   if (!use_existing_cams)
   {
     // initialize the cameras from metadata
@@ -2454,11 +2437,11 @@ initialize_cameras_landmarks_keyframe::priv
         cam->set_rotation(R_loc);
         if (m_force_common_intrinsics)
         {
-          cam->set_intrinsics(m_base_camera.get_intrinsics());
+          cam->set_intrinsics(intrinsics);
         }
         else
         {
-          cam->set_intrinsics(m_base_camera.get_intrinsics()->clone());
+          cam->set_intrinsics(intrinsics->clone());
         }
         cams->insert(fid, cam);
       }
@@ -2474,7 +2457,7 @@ initialize_cameras_landmarks_keyframe::priv
       auto sp_cams = cams->T_cameras();
       for (auto cam : sp_cams)
       {
-        cam.second->set_intrinsics(m_base_camera.get_intrinsics());
+        cam.second->set_intrinsics(intrinsics);
       }
     }
   }
@@ -2552,13 +2535,6 @@ initialize_cameras_landmarks_keyframe::priv
     global_bundle_adjuster->optimize(*cams, lms, tracks,
                                      fixed_cameras, fixed_landmarks,
                                      constraints);
-
-    if (cams->size() > 0)
-    {
-      auto first_cam = std::static_pointer_cast<simple_camera_perspective>(
-        cams->cameras().begin()->second);
-      m_base_camera.set_intrinsics(first_cam->intrinsics());
-    }
 
     double optimized_rmse =
       kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
