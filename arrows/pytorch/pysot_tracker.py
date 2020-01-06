@@ -39,23 +39,16 @@ import numpy as np
 
 from timeit import default_timer as timer
 
-from PIL import Image as pilImage
-from vital.util.VitalPIL import get_pil_image
-
 from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 
 from vital.types import Image
+from vital.types import BoundingBox
 from vital.types import DetectedObject, DetectedObjectSet
 from vital.types import ObjectTrackState, Track, ObjectTrackSet
-from vital.types import new_descriptor
-from vital.types import BoundingBox
 
-from kwiver.arrows.pytorch.track import track_state, track, track_set
 from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc
 from kwiver.arrows.pytorch.parse_gpu_list import parse_gpu_list
-from kwiver.arrows.pytorch.gt_bbox import GTBBox, GTFileType
-from kwiver.arrows.pytorch.models import get_config
 
 from pysot.core.config import cfg
 from pysot.models.model_builder import ModelBuilder
@@ -63,233 +56,177 @@ from pysot.tracker.tracker_builder import build_tracker
 from pysot.utils.bbox import get_axis_aligned_bbox
 from pysot.utils.model_load import load_pretrain
 
-def pysot_step(img, idx, gt_bbox, the_model, the_config, tracker=None):
-    cfg.merge_from_file(the_config)
-    # build tracker
-    pred_bboxes = []
-    scores = []
-    #if idx == 0:
-    if tracker is None:
-        model = ModelBuilder()
-        model = load_pretrain(model, the_model).cuda().eval()
-        tracker = build_tracker(model)
-
-        cx, cy, w, h = get_axis_aligned_bbox(np.array(gt_bbox))
-        gt_bbox_ = [cx-(w-1)/2, cy-(h-1)/2, w, h]
-        tracker.init(img, gt_bbox_)
-        pred_bbox = gt_bbox_
-        scores.append(None)
-        pred_bboxes.append(pred_bbox)
-        best_score = 1.0
-    else:
-        outputs = tracker.track(img)
-        pred_bbox = outputs['bbox']
-        pred_bboxes.append(pred_bbox)
-        scores.append(outputs['best_score'])
-        best_score = outputs['best_score']
-    gt_bbox = list(map(int, gt_bbox))
-    pred_bbox = list(map(int, pred_bbox))
-    return pred_bbox, tracker, best_score
-
-
-def st2ot_list(track_set):
-    ot_list = [Track(id=t.track_id) for t in track_set]
-    for idx, t in enumerate(track_set):
-        ot = ot_list[idx]
-        for ti in t:
-            ot_state = ObjectTrackState(ti.sys_frame_id,
-              ti.sys_frame_time, ti.detected_object)
-            if not ot.append(ot_state):
-                print('Error: Cannot add ObjectTrackState')
-    return ot_list
-
 
 # ------------------------------------------------------------------------------
 class PYSOTTracker(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        #GPU list
-        # ----------------------------------------------------------------------
+        # GPU list
         self.add_config_trait("gpu_list", "gpu_list", 'all',
-                              gpu_list_desc(use_for='Siamese PYSOT tracking'))
+          gpu_list_desc(use_for='Siamese short-term trackers'))
         self.declare_config_using_trait('gpu_list')
 
         # Config file
-        # ----------------------------------------------------------------------
-        self.add_config_trait("pysot_config_path", "pysot_config_path",
-                              'models/pysot_config.yaml',
-                              'PYSOT config file.')
-        self.declare_config_using_trait("pysot_config_path")
+        self.add_config_trait("config_file", "config_file",
+          'models/pysot_config.yaml', 'Path to configuration file.')
+        self.declare_config_using_trait("config_file")
 
         # Model file
-        # ----------------------------------------------------------------------
-        self.add_config_trait("pysot_model_path", "pysot_model_path",
-                              'models/pysot_model.pth',
-                              'Trained PYSOT model file.')
-        self.declare_config_using_trait("pysot_model_path")
+        self.add_config_trait("model_file", "model_file",
+          'models/pysot_model.pth', 'Path to trained model file.')
+        self.declare_config_using_trait("model_file")
 
-        # Other parameters
-        # ----------------------------------------------------------------------
-
-        self.add_config_trait("seed_track", "seed_track",
-                              '[100, 100, 100, 100]',
-                              'Location of starting GT bounding box.')
-        self.declare_config_using_trait("seed_track")
+        # General parameters
+        self.add_config_trait("seed_bbox", "seed_bbox",
+          '[100, 100, 100, 100]', 'Start bounding box for debug mode only')
+        self.declare_config_using_trait("seed_bbox")
         
-        self.add_config_trait("track_th", "track_th",
-                              '0.0',
-                              'Minimum confidence to keep track.')
-        self.declare_config_using_trait("track_th")        
+        self.add_config_trait("threshold", "threshold",
+          '0.0', 'Minimum confidence to keep track.')
+        self.declare_config_using_trait("threshold")
 
-        self.add_config_trait("ots_input_flag", "ots_input_flag",
-                              'False',
-                              'Flag determining if object_track_set is an input.')
-        self.declare_config_using_trait("ots_input_flag")   
-
-        # # PYSOT Tracker (based on siamrpn_r50_l234_dwxcorr/config.yaml)
-        # #---------------------------------------------------------------------
-        # self.add_config_trait("pysot_model_exemplar_size",
-        #                       "pysot_model_exemplar_size", '127',
-        #                       'Model exemplar image size')
-        # self.declare_config_using_trait('pysot_model_exemplar_size')
+        # # PYSOT Configs
+        #self.add_config_trait("pysot_model_exemplar_size",
+        #  "pysot_model_exemplar_size", '127', 'Model exemplar image size')
+        #self.declare_config_using_trait('pysot_model_exemplar_size')
         #
-        # self.add_config_trait("pysot_model_instance_size",
-        #                       "pysot_model_instance_size", '255',
-        #                       'Model input instance size')
-        # self.declare_config_using_trait('pysot_model_instance_size')
+        #self.add_config_trait("pysot_model_instance_size",
+        #  "pysot_model_instance_size", '255', 'Model input instance size')
+        #self.declare_config_using_trait('pysot_model_instance_size')
         #
-        # self.add_config_trait("pysot_batch_size",
-        #                       "pysot_batch_size", '28',
-        #                       'pysot model processing batch size')
+        #self.add_config_trait("pysot_batch_size",
+        #  "pysot_batch_size", '28', 'pysot model processing batch size')
         # self.declare_config_using_trait('pysot_batch_size')
-        # # --------------------------------------------------------------------
 
-        self.tracker = None
-        self._track_flag = False
-
-        self._step_id = 0
-
-        # set up required flags
+        # Port Flags
         optional = process.PortFlags()
         required = process.PortFlags()
         required.add(self.flag_required)
 
-        # input port (port-name,flags)
+        self.add_port_trait("initializations", "object_track_set",
+          "Input external object track initializations")
+
+        # Input Ports (Port Name, Flag)
         self.declare_input_port_using_trait('image', required)
         self.declare_input_port_using_trait('timestamp', required)
-        self.declare_input_port_using_trait('object_track_set', optional)
+        self.declare_input_port_using_trait('initializations', optional)
 
-        # output port (port-name,flags)
+        # Output Ports (Port Name, Flag)
+        self.declare_output_port_using_trait('timestamp', optional)
         self.declare_output_port_using_trait('object_track_set', optional)
-        self.declare_output_port_using_trait('detected_object_set', optional)
 
-        self._track_set = track_set()
-        
-        self._track_flag = False
-        self._init_track_flag = False
-        self._gt_bbox_flag = False
-        self._first_frame_found_flag = False
+        # Class persistent state variables
+        self._trackers = dict()
+        self._tracks = dict()
+        self._track_init_frames = dict()
+        self._last_frame_id = -1
 
     # --------------------------------------------------------------------------
     def _configure(self):
         self._gpu_list = parse_gpu_list(self.config_value('gpu_list'))
 
-        self._model_path = self.config_value('pysot_model_path')
-        self._config_path = self.config_value('pysot_config_path')
-        self._track_th = float(self.config_value('track_th'))
-        self._seed_bbox = ast.literal_eval(self.config_value("seed_track"))
-        self._ots_input_flag = (self.config_value('ots_input_flag') == 'True')
+        self._model_path = self.config_value('model_file')
+        self._config_file = self.config_value('config_file')
+        self._threshold = float(self.config_value('threshold'))
+        self._seed_bbox = ast.literal_eval(self.config_value("seed_bbox"))
+
+        cfg.merge_from_file(self._config_file)
+
+        self._model = ModelBuilder()
+        self._model = load_pretrain(self._model, self._model_path).cuda().eval()
+        self._is_first = True
 
         self._base_configure()
 
     # --------------------------------------------------------------------------
     def _step(self):
-        print('step {}'.format(self._step_id))
 
+        # Retrieval all inputs for this step
         in_img_c = self.grab_input_using_trait('image')
         timestamp = self.grab_input_using_trait('timestamp')
-        if self._ots_input_flag:
-            input_ots = self.grab_input_using_trait('object_track_set')
-        
-        print('timestamp = {!r}'.format(timestamp))
 
-        im = get_pil_image(in_img_c.image()).convert('RGB')
-        im = np.array(im)[:, :, ::-1].copy()
-        
-        if not self._ots_input_flag:
-            starting_frame_id = 0
+        if not timestamp.has_valid_frame():
+            raise RuntimeError("Frame timestamps must contain frame IDs")
+
+        print('PYSOT tracker stepping, timestamp = {!r}'.format(timestamp))
+
+        frame_id = timestamp.get_frame()
+        img = in_img_c.image().asarray().astype('uint8')
+
+        if len(np.shape(img)) > 2 and np.shape(img)[2] == 1:
+            img = img[:,:,0]
+        if len(np.shape(img)) == 2:
+            img = np.stack((img,)*3, axis=-1)
         else:
-            starting_frame_id = [t.first_frame for t in input_ots.tracks()][-1]
-            last_track_id = [t.id for t in input_ots.tracks()][-1]               
+            img = img[:, :, ::-1].copy() # RGB vs BGR
 
-        if self._ots_input_flag and not self._init_track_flag \
-          and self._step_id == (starting_frame_id):
-            starting_frame_id = [t.first_frame for t in input_ots.tracks()][-1]
-            last_track_id = [t.id for t in input_ots.tracks()][-1]
-            input_track = input_ots.get_track(last_track_id)[starting_frame_id]
-            temp_bbox = input_track.detection().bounding_box()
-            self._seed_bbox = [temp_bbox.min_x(), temp_bbox.min_y(),
-                               temp_bbox.width(), temp_bbox.height()]
-            self._init_track_flag = True
-        elif not self._ots_input_flag and not self._init_track_flag \
-          and self._step_id == (starting_frame_id):
-            self._init_track_flag = True
+        # Handle track initialization
+        if self.has_input_port_edge_using_trait('initializations'):
+            initializations = self.grab_input_using_trait('initializations')
+            self._has_init_signals = True
+            init_track_pool = initializations.tracks()
+            init_track_ids = []
+        elif self._is_first:
+            init_track_pool = []
+            cbox = BoundingBox(self._seed_bbox)
+            cx, cy, w, h = get_axis_aligned_bbox(np.array(self._seed_bbox))
+            start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
+            self._trackers[0] = build_tracker(self._model)
+            self._trackers[0].init(img, start_box)
+            self._tracks[0] = [ObjectTrackState(timestamp, cbox, 1.0)]
+            self._is_first = False
+            init_track_ids = [0]
 
-        test_fcn_begin = timer()
-        if self._init_track_flag:
-            bbox, self.tracker, score = pysot_step(im, self._step_id,
-              self._seed_bbox, self._model_path, self._config_path,
-              self.tracker)
+        for trk in init_track_pool:
+            # Special case, initialize a track on a previous frame
+            if trk[trk.last_frame].frame_id == self._last_frame_id and \
+              ( not trk.id in self._track_init_frames or \
+              self._track_init_frames[ trk.id ] < self._last_frame_id ):
+                tid = trk.id
+                cbox = trk[trk.last_frame].detection().bounding_box()
+                bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+                cx, cy, w, h = get_axis_aligned_bbox(np.array(bbox))
+                start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
+                self._trackers[tid] = build_tracker(self._model)
+                self._trackers[tid].init(self._last_frame, start_box)
+                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
+                self._track_init_frames[tid] = self._last_frame_id
+            # This track has an initialization signal for the current frame
+            elif trk[trk.last_frame].frame_id == frame_id:
+                tid = trk.id
+                cbox = trk[trk.last_frame].detection().bounding_box()
+                bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+                cx, cy, w, h = get_axis_aligned_bbox(np.array(bbox))
+                start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
+                self._trackers[tid] = build_tracker(self._model)
+                self._trackers[tid].init(img, start_box)
+                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
+                init_track_ids.append(tid)
+                self._track_init_frames[tid] = frame_id
 
-            test_fcn_end = timer()
-            elapsed = test_fcn_end - test_fcn_begin
-            print('%%%test_fcn feature elapsed time: {}'.format(elapsed))
+        # Update existing tracks
+        for tid in self._trackers.keys():
+            if tid in init_track_ids:
+                continue # Already processed (initialized) on frame
+            tracker_output = self._trackers[tid].track(img)
+            bbox = tracker_output['bbox']
+            score = tracker_output['best_score']
+            if score > self._threshold:
+                cbox = BoundingBox(
+                  bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
+                new_state = ObjectTrackState(timestamp, cbox, score)
+                self._tracks[tid].append(new_state)
 
-            fid = timestamp.get_frame()
-            ts = timestamp.get_time_usec()
+        # Output tracks
+        output_tracks = ObjectTrackSet(
+          [Track(tid, trk) for tid, trk in self._tracks.items()])
 
-            do_bbox = BoundingBox(bbox[0],
-                                  bbox[1],
-                                  bbox[0]+bbox[2],
-                                  bbox[1]+bbox[3])
+        self.push_to_port_using_trait('timestamp', timestamp)
+        self.push_to_port_using_trait('object_track_set', output_tracks)
 
-            det_obj_set = DetectedObjectSet()
-            d_obj = DetectedObject(do_bbox, confidence=score)
-            det_obj_set.add(d_obj)
-
-            bbox_center = [bbox[0]+0.5*bbox[2], bbox[1]+0.5*bbox[3]]
-
-            track_state_list = [track_state(frame_id=self._step_id,
-                    bbox_center=bbox_center,
-                    interaction_feature=None,
-                    app_feature=None,
-                    bbox=[int(t) for t in bbox],
-                    detected_object=d_obj,
-                    sys_frame_id=fid, sys_frame_time=ts)]
-            next_track_id = int(self._track_set.get_max_track_id()) + 1
-
-            track_idx_list = [track.track_id for track in self._track_set.iter_active()]
-
-            # if there are no tracks, generate new tracks from the track_state_list
-            if not self._track_flag:
-                next_track_id = self._track_set.add_new_track_state_list(
-                  next_track_id, track_state_list)
-                self._track_flag = True
-            else:
-                self._track_set.update_track(track_idx_list[0], \
-                        track_state_list[0])
-                self._track_set.reset_updated_flag()
-            
-            ot_list = st2ot_list(self._track_set)
-            ots = ObjectTrackSet(ot_list)
-        
-            if score > self._track_th and self._init_track_flag:
-                self.push_to_port_using_trait('object_track_set', ots)
-
-            self.push_to_port_using_trait('detected_object_set', det_obj_set)
-
-        self._step_id += 1
+        self._last_frame_id = timestamp.get_frame()
+        self._last_frame = img
         self._base_step()
 
 # ==============================================================================
