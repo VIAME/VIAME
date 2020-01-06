@@ -87,13 +87,13 @@ typedef std::list< timestamp_track_pair_t > track_buffer_t;
 
 typedef kv::track_id_t track_id_t;
 
-enum track_status{ ALL_TRACKING = 0, ALL_GAP, ONLY_SHORT_TERM };
+enum track_status{ ALL_TRACKING = 0, SUBSET_TRACKING, NONE_TRACKING };
 
 struct track_info_t
 {
   std::vector< kv::track_state_sptr > states;
   track_status status;
-  unsigned counter;
+  unsigned frames_since_last[3];
 };
 
 create_config_trait( synchronize, bool, "true",
@@ -548,13 +548,37 @@ track_conductor_process
     const bool has_lt = ( received_any && computed.lt &&
       computed.lt->last_frame() == timestamp.get_frame() );
 
+    // Update counter states to help with transitions
+    track_info.frames_since_last[0] = ( has_st ?
+      0 : track_info.frames_since_last[0] + 1 );
+    track_info.frames_since_last[1] = ( has_mt ?
+      0 : track_info.frames_since_last[1] + 1 );
+    track_info.frames_since_last[2] = ( has_lt ?
+      0 : track_info.frames_since_last[2] + 1 );
+
+    if( has_st && has_mt && has_lt )
+    {
+      track_info.status = ALL_TRACKING;
+    }
+    else if( !has_st && !has_mt && !has_lt )
+    {
+      track_info.status = NONE_TRACKING;
+    }
+    else
+    {
+      track_info.status = SUBSET_TRACKING;
+    }
+
+    // Update track states for current frame
     if( has_st && has_mt && has_lt )
     {
       track_info.states.push_back( computed.st->back() );
     }
     else if( has_mt && has_lt )
     {
-      track_info.states.push_back( computed.st->back() );
+      track_info.states.push_back( computed.lt->back() );
+
+      st_corrections.push_back( computed.lt );
     }
     else if( has_mt && has_st )
     {
@@ -582,32 +606,13 @@ track_conductor_process
     {
       track_info.states.push_back( computed.st->back() );
 
-      if( track_info.status != ONLY_SHORT_TERM )
+      if( track_info.frames_since_last[1] > 10 )
       {
-        track_info.status = ONLY_SHORT_TERM;
-        track_info.counter = 1;
+        mt_corrections.push_back( computed.st );
       }
-      else
+      if( track_info.frames_since_last[2] > 10 )
       {
-        track_info.counter++;
-      }
-
-      if( track_info.counter > 10 )
-      {
-        st_corrections.push_back( computed.st );
         lt_corrections.push_back( computed.st );
-      }
-    }
-    else
-    {
-      if( track_info.status != ALL_GAP )
-      {
-        track_info.status = ALL_GAP;
-        track_info.counter = 1;
-      }
-      else
-      {
-        track_info.counter++;
       }
     }
   }
@@ -623,7 +628,8 @@ track_conductor_process
         tri_itr.second.st->back() : tri_itr.second.mt->back() );
  
       new_track_info.status = ALL_TRACKING;
-      new_track_info.counter = 0;
+      std::fill( std::begin(new_track_info.frames_since_last),
+                 std::end(new_track_info.frames_since_last), 0 );
 
       d->m_active_tracks[ tri_itr.first ] = new_track_info;
     }
