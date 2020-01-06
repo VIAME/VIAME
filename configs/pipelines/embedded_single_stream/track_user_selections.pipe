@@ -26,7 +26,7 @@ connect from in_adapt.image
 connect from in_adapt.timestamp
         to   tracker.timestamp
 connect from in_adapt.object_track_set
-        to   tracker.initializations
+        to   tracker.object_track_set
 
 connect from tracker.object_track_set
         to   out_adapt.object_track_set
