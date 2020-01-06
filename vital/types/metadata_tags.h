@@ -183,14 +183,11 @@
         double,                                                         \
         "Target Width within sensor field of view." )                   \
   CALL( FRAME_CENTER,                                                   \
-        "Geodetic Frame Center, (lon/lat)",                             \
+        "Geodetic Frame Center, (lon/lat/meters)",                      \
         geo_point,                                                      \
-        "Contains the 2D coordinate of the frame center. "              \
-        "The location is ordered lon, lat." )                           \
-  CALL( FRAME_CENTER_ELEV,                                              \
-        "Frame Center Elevation (meters)",                              \
-        double,                                                         \
-        "" ) /* TODO: merge with previous? */                           \
+        "Contains the 3D coordinate of the frame center. "              \
+        "The location is ordered lon, lat, and altitude in meters. "    \
+        "Altitude is not always set." )                                 \
   CALL( CORNER_POINTS,                                                  \
         "Corner points (lon/lat)",                                      \
         geo_polygon,                                                    \

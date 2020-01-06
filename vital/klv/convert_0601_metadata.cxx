@@ -242,7 +242,6 @@ convert_metadata
       CASE( SENSOR_REL_ROLL_ANGLE );
       CASE( SLANT_RANGE );
       CASE( TARGET_WIDTH );
-      CASE( FRAME_CENTER_ELEV );
       CASE( ICING_DETECTED);
       CASE( WIND_DIRECTION );
       CASE( WIND_SPEED );
@@ -299,6 +298,10 @@ convert_metadata
 
     case KLV_0601_FRAME_CENTER_LONG:
       raw_frame_center[0] = klv_0601_value_double( KLV_0601_FRAME_CENTER_LONG, data );
+      break;
+
+    case KLV_0601_FRAME_CENTER_ELEV:
+      raw_frame_center[2] = klv_0601_value_double( KLV_0601_FRAME_CENTER_ELEV, data );
       break;
 
       // Sometimes these offsets are set to zero. Even if the image is
