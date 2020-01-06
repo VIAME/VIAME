@@ -1434,12 +1434,14 @@ initialize_cameras_landmarks_keyframe::priv
   if (!all_cameras.empty())
   {
     auto closest_cam = all_cameras.lower_bound(fid_to_resection);
-    if (closest_cam != all_cameras.end())
+    if (closest_cam == all_cameras.end())
     {
-      auto const cam_p = std::static_pointer_cast<camera_perspective>(
-        closest_cam->second);
-      model_intrinsics = cam_p->intrinsics();
+      // use the last camera
+      --closest_cam;
     }
+    auto const cam_p = std::static_pointer_cast<camera_perspective>(
+      closest_cam->second);
+    model_intrinsics = cam_p->intrinsics();
   }
   if (!m_force_common_intrinsics)
   {
