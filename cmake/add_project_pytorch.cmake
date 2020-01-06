@@ -137,7 +137,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   else()
     if( "${LIB}" STREQUAL "pysot" )  
       set( LIBRARY_PIP_BUILD_CMD
-        ${PYTHON_EXECUTABLE} setup.py build_ext --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
+        ${PYTHON_EXECUTABLE} setup.py build_ext
+          --include-dirs="${VIAME_BUILD_INSTALL_PREFIX}/install"
+          --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     else()  
       set( LIBRARY_PIP_BUILD_CMD
         ${PYTHON_EXECUTABLE} setup.py bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} ) 
