@@ -139,6 +139,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       set( LIBRARY_PIP_BUILD_CMD
         ${PYTHON_EXECUTABLE} setup.py build_ext
           --include-dirs="${VIAME_BUILD_INSTALL_PREFIX}/include"
+          --library-dirs="${VIAME_BUILD_INSTALL_PREFIX}/lib"
           --inplace bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     else()  
       set( LIBRARY_PIP_BUILD_CMD
