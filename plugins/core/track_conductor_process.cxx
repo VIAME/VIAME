@@ -116,6 +116,8 @@ public:
   // Configuration settings
   bool m_synchronize;
   track_id_t m_auto_track_id_start;
+  unsigned m_mid_term_reinit_thresh;
+  unsigned m_long_term_reinit_thresh;
 
   // Internal thread system
   std::vector< std::thread > threads;
@@ -154,6 +156,8 @@ track_conductor_process::priv
 ::priv( track_conductor_process* ptr )
   : m_synchronize( true )
   , m_auto_track_id_start( 10000 )
+  , m_mid_term_reinit_thresh( 5 )
+  , m_long_term_reinit_thresh( 10 )
   , m_has_short_term_tracker( false )
   , m_has_mid_term_tracker( false )
   , m_has_long_term_tracker( false )
@@ -601,16 +605,21 @@ track_conductor_process
       track_info.states.push_back( computed.mt->back() );
 
       st_corrections.push_back( computed.mt );
+
+      if( track_info.frames_since_last[2] > d->m_long_term_reinit_thresh )
+      {
+        lt_corrections.push_back( computed.st );
+      }
     }
     else if( has_st )
     {
       track_info.states.push_back( computed.st->back() );
 
-      if( track_info.frames_since_last[1] > 10 )
+      if( track_info.frames_since_last[1] > d->m_mid_term_reinit_thresh )
       {
         mt_corrections.push_back( computed.st );
       }
-      if( track_info.frames_since_last[2] > 10 )
+      if( track_info.frames_since_last[2] > d->m_long_term_reinit_thresh )
       {
         lt_corrections.push_back( computed.st );
       }
