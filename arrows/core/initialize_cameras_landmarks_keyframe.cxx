@@ -3562,6 +3562,7 @@ initialize_cameras_landmarks_keyframe::priv
   int max_constraints_used = 0;
 
   bool done_registering_keyframes = false;
+  bool disable_windowing = true;
 
   int frames_since_last_ba = 0;
 
@@ -3641,7 +3642,6 @@ initialize_cameras_landmarks_keyframe::priv
       }
     }
 
-    bool disable_windowing = false;
     ++frames_since_last_ba;
     if (bundle_because_of_reproj ||
         frames_to_register.empty() ||
@@ -3691,8 +3691,10 @@ initialize_cameras_landmarks_keyframe::priv
          !keyframes_to_register.empty())
     {
       done_registering_keyframes = true;
-      frames_since_last_local_ba.clear();
+      disable_windowing = false;
       frames_to_register = non_keyframes_to_register;
+      LOG_INFO(m_logger, "Finished processing key frames, "
+                         "start filling intermediate frames ");
     }
   }
 
