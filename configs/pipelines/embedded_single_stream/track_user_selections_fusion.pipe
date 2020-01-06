@@ -3,12 +3,12 @@
 #
 
 config _pipeline:_edge
-   :capacity                                   1
+   :capacity                                   5
 
 config _scheduler
    :type                                       pythread_per_process
 
-# ==================================================================================
+# ================================= IO NODES =======================================
 
 process in_adapt
  :: input_adapter
@@ -16,19 +16,61 @@ process in_adapt
 process out_adapt
  :: output_adapter
 
-# ==================================================================================
+# ================================= CONDUCTOR ======================================
+
+process track_conductor
+  :: track_conductor
+
+# Connect inputs to conductor
+connect from in_adapt.image
+        to   track_conductor.image
+connect from in_adapt.timestamp
+        to   track_conductor.timestamp
+connect from in_adapt.object_track_set
+        to   track_conductor.initializations
+
+# ============================== SHORT-TERM TRACKER ================================
 
 include ../common_short_term_tracker.pipe
 
-# Connect inputs to tracker
+# Connect inputs to short-term tracker
 connect from in_adapt.image
-        to   tracker.image
+        to   short_term_tracker.image
 connect from in_adapt.timestamp
-        to   tracker.timestamp
-connect from in_adapt.object_track_set
-        to   tracker.initializations
+        to   short_term_tracker.timestamp
+connect from track_conductor.short_term_initializations
+        to   short_term_tracker.initializations
 
-connect from tracker.object_track_set
+# Connect outputs back to conductor
+connect from short_term_tracker.timestamp
+        to   track_conductor.short_term_timestamp
+connect from short_term_tracker.object_track_set
+        to   track_conductor.short_term_tracks
+
+# ================================ MID-TERM TRACKER ================================
+
+process mid_term_tracker
+ :: mdnet_tracker
+
+  relativepath weights_file =                  ../models/mdnet_seed.pth
+
+# Connect inputs to mid-term tracker
+connect from in_adapt.image
+        to   mid_term_tracker.image
+connect from in_adapt.timestamp
+        to   mid_term_tracker.timestamp
+connect from track_conductor.mid_term_initializations
+        to   mid_term_tracker.initializations
+
+# Connect outputs back to conductor
+connect from mid_term_tracker.timestamp
+        to   track_conductor.mid_term_timestamp
+connect from mid_term_tracker.object_track_set
+        to   track_conductor.mid_term_tracks
+
+# ================================= FINAL OUTPUT ===================================
+
+connect from track_conductor.object_track_set
         to   out_adapt.object_track_set
 
 # -- end of file --

@@ -1,14 +1,12 @@
 # =======================================================================================
 # This is a version of SiamRPN++ implemented in pytorch with the pysot library.
 
-process tracker
+process short_term_tracker
   :: pysot_tracker
-  
-  :seed_track                                  [1545,709,54,55]
-  :track_th                                    0.90		# comment out if not in vpView
-  :ots_input_flag                              True 	# comment out if not in vpView
 
-  #relativepath config_file =                  models/pysot_siamrpn_r50_l234_dwxcorr_config.yaml
-  #relativepath model_file =                   models/pysot_siamrpn_r50_l234_dwxcorr_model.pth
   relativepath config_file =                   models/pysot_siammask_r50_l3_config.yaml
   relativepath model_file =                    models/pysot_siammask_r50_l3_model.pth
+  #relativepath config_file =                  models/pysot_siamrpn_r50_l234_dwxcorr_config.yaml
+  #relativepath model_file =                   models/pysot_siamrpn_r50_l234_dwxcorr_model.pth
+
+  :threshold                                   0.90

@@ -21,9 +21,9 @@ include common_short_term_tracker.pipe
 
 # Connect inputs to tracker
 connect from downsampler.output_1
-        to   tracker.image
+        to   short_term_tracker.image
 connect from downsampler.timestamp
-        to   tracker.timestamp
+        to   short_term_tracker.timestamp
 
 # ================================= OUTPUT TRK DATA ================================
 
@@ -35,7 +35,7 @@ process track_writer
   :writer:viame_csv:stream_identifier          input_list.txt
 
 # Connect inputs to track writer
-connect from tracker.object_track_set
+connect from short_term_tracker.object_track_set
         to   track_writer.object_track_set
 connect from downsampler.timestamp
         to   track_writer.timestamp
