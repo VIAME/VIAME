@@ -48,7 +48,7 @@
   CALL( UNKNOWN,                                                        \
         "Unknown / Undefined entry",                                    \
         int,                                                            \
-        "" )                                                            \
+        "Undefined entry" )                                             \
   CALL( METADATA_ORIGIN,                                                \
         "Origin of metadata",                                           \
         std::string,                                                    \

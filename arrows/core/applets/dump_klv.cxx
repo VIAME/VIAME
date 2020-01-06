@@ -42,10 +42,12 @@
 #include <vital/config/config_block_formatter.h>
 #include <vital/exceptions.h>
 #include <vital/util/get_paths.h>
+#include <vital/util/wrap_text_block.h>
 
 #include <vital/algo/video_input.h>
 
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_traits.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 namespace kwiver {
@@ -61,7 +63,7 @@ static kwiver::vital::config_block_sptr default_config()
   kwiver::vital::config_block_sptr config =
     kwiver::vital::config_block::empty_config( "dump_klv_tool" );
 
-  config->set_value( "video_reader:type", "vidl_ffmpeg",
+  config->set_value( "video_reader:type", "ffmpeg",
                      "Implementation for video reader." );
   config->set_value( "video_reader:vidl_ffmpeg:time_source",  "misp",
                      "Time source for reader." );
@@ -91,6 +93,7 @@ add_command_options()
     ( "h,help", "Display applet usage" )
     ( "c,config", "Configuration file for tool", cxxopts::value<std::string>() )
     ( "o,output", "Dump configuration to file and exit", cxxopts::value<std::string>() )
+    ( "d,detail", "Display a detailed description of the metadata" )
 
     // positional parameters
     ( "video-file", "Video input file", cxxopts::value<std::string>())
@@ -113,6 +116,7 @@ run()
 {
   const std::string opt_app_name = applet_name();
   std::string video_file;
+  kwiver::vital::metadata_traits md_traits;
 
   auto& cmd_args = command_args();
 
@@ -200,6 +204,8 @@ run()
   int count(1);
   kwiver::vital::image_container_sptr frame;
   kwiver::vital::timestamp ts;
+  kwiver::vital::wrap_text_block wtb;
+  wtb.set_indent_string( "    " );
 
   while ( video_reader->next_frame( ts ) )
   {
@@ -210,11 +216,34 @@ run()
     for( auto meta : metadata )
     {
       std::cout << "\n\n---------------- Metadata from: " << meta->timestamp() << std::endl;
-      print_metadata( std::cout, *meta );
-      ++count;
-    }
 
-  } // end while
+      if ( cmd_args["detail"].as<bool>() )
+      {
+        for (const auto ix : *meta)
+        {
+          // process metada items
+          const std::string name = ix.second->name();
+          const kwiver::vital::any data = ix.second->data();
+          const auto tag = ix.second->tag();
+          const auto descrip = md_traits.tag_to_description( tag );
+
+          std::cout
+              << "Metadata item: " << name << std::endl
+              << wtb.wrap_text( descrip )
+              << "Data: <" << ix.second->type().name() << ">: "
+              << kwiver::vital::metadata::format_string(ix.second->as_string())
+              << std::endl;
+        } // end for
+      }
+      else
+      {
+        print_metadata( std::cout, *meta );
+      }
+
+      ++count;
+    } // end for over metadata collection vector
+
+  } // end while over video
 
   std::cout << "-- End of video --\n";
 

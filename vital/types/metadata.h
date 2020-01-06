@@ -71,7 +71,7 @@ namespace vital {
 class VITAL_EXPORT metadata_item
 {
 public:
-  virtual ~metadata_item();
+  virtual ~metadata_item() = default;
 
   /// Test if metadata item is valid.
   /**

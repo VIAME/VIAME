@@ -40,7 +40,6 @@
 #include <vital/types/geo_point.h>
 #include <vital/types/geo_polygon.h>
 #include <vital/types/matrix.h>
-#include <vital/types/metadata_tags.h>
 #include <vital/types/metadata.h>
 
 #include <vital/logger/logger.h>
@@ -58,9 +57,9 @@ namespace vital {
  */
 struct vital_meta_trait_base
 {
-  virtual ~vital_meta_trait_base() {}
+  virtual ~vital_meta_trait_base() = default;
   virtual std::string name() const = 0;
-  virtual const std::string& description() const = 0;
+  virtual std::string description() const = 0;
   virtual std::type_info const& tag_type() const = 0;
   virtual bool is_integral() const = 0;
   virtual bool is_floating_point() const = 0;
@@ -82,8 +81,8 @@ template <vital_metadata_tag tag> struct vital_meta_trait;
   template <>                                                           \
   struct vital_meta_trait<TAG>                                          \
   {                                                                     \
-    static std::string name() { return NAME; }                          \
-    static std::string  description() { return LD; }                    \
+    static std::string name() { return std::string(NAME); }             \
+    static std::string  description() { return std::string(LD); }       \
     static std::type_info const& tag_type() { return typeid(T); }       \
     static bool is_integral() { return std::is_integral<T>::value; }    \
     static bool is_floating_point() { return std::is_floating_point<T>::value; } \
@@ -168,7 +167,7 @@ public:
    *
    * @return Long description for this tag.
    */
-  std::string const& tag_to_description( vital_metadata_tag tag ) const;
+  std::string tag_to_description( vital_metadata_tag tag ) const;
 
 
 private:

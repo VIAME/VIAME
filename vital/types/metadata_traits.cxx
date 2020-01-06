@@ -42,9 +42,8 @@ template <vital_metadata_tag tag>
 struct vital_meta_trait_object
   : public vital_meta_trait_base
 {
-  virtual ~vital_meta_trait_object() {}
   virtual std::string name() const override { return vital_meta_trait<tag>::name(); }
-  virtual const std::string& description() const { return vital_meta_trait<tag>::description(); }
+  virtual std::string description() const { return vital_meta_trait<tag>::description(); }
   virtual std::type_info const& tag_type() const override { return vital_meta_trait<tag>::tag_type(); }
   virtual bool is_integral() const override { return vital_meta_trait<tag>::is_integral(); }
   virtual bool is_floating_point() const override { return vital_meta_trait<tag>::is_floating_point(); }
@@ -64,9 +63,8 @@ struct vital_meta_trait_object
   struct vital_meta_trait_object<VITAL_META_ ## TAG>                    \
     : public vital_meta_trait_base                                      \
   {                                                                     \
-    virtual ~vital_meta_trait_object() override {}                      \
-    virtual std::string name() const override { return NAME; }          \
-    virtual std::string const& description() const override { return TD; } \
+    virtual std::string name() const override { return std::string(NAME); } \
+    virtual std::string description() const override { return std::string(TD); } \
     virtual std::type_info const& tag_type() const override { return typeid(T); } \
     virtual bool is_integral() const override { return std::is_integral<T>::value; } \
     virtual bool is_floating_point() const override { return std::is_floating_point<T>::value; } \
@@ -162,7 +160,7 @@ metadata_traits
 
 
 // ------------------------------------------------------------------
-std::string const&
+std::string
 metadata_traits
 ::tag_to_description( vital_metadata_tag tag ) const
 {
