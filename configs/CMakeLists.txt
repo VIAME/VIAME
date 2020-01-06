@@ -264,8 +264,12 @@ if( VIAME_ENABLE_VIVIA )
 
   if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )
     set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
-      pipelines/embedded_single_stream/track_user_selections_fast.pipe
-      pipelines/embedded_single_stream/track_user_selections_fusion.pipe )
+      pipelines/embedded_single_stream/track_user_selections_fast.pipe )
+
+    if( VIAME_ENABLE_PYTORCH-MDNET )
+      set( GUI_PIPELINE_FILES ${GUI_PIPELINE_FILES}
+        pipelines/embedded_single_stream/track_user_selections_fusion.pipe )
+    endif()
   endif()
 
   install( FILES       ${GUI_PIPELINE_FILES}
