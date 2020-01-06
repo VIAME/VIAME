@@ -407,7 +407,7 @@ merge_init_signals( const kv::object_track_set_sptr priority,
     if( it == to_output.end() ||
         track->last_frame() >= it->second->last_frame() )
     {
-      to_output[ track->id() ] == track;
+      to_output[ track->id() ] = track;
     }
   }
 
@@ -418,7 +418,7 @@ merge_init_signals( const kv::object_track_set_sptr priority,
     if( it == to_output.end() ||
         track->last_frame() > it->second->last_frame() )
     {
-      to_output[ track->id() ] == track;
+      to_output[ track->id() ] = track;
     }
   }
 
@@ -534,7 +534,7 @@ track_conductor_process
     const track_id_t id = track_it.first;
 
     auto computed_itr = computed_tracks.find( id );
-    track_info_t& track_info = track_it.second;
+    track_info_t& track_info = d->m_active_tracks[id];
 
     const bool received_any = ( computed_itr != computed_tracks.end() );
 
