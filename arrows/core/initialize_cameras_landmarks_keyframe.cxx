@@ -1566,13 +1566,20 @@ initialize_cameras_landmarks_keyframe::priv
   transform_inplace(lms, sim);
   transform_inplace(*cams, sim);
 
-  if (!majority_upright(cams->map_of_<camera_perspective>()))
+  // Test that the cameras are upright and necker reverse if not
+  const vector_4d plane = landmark_plane(lms);
+  bool reversed_cameras = false;
+  for (auto const& cam : cams->T_cameras())
   {
-    const vector_4d plane = landmark_plane(lms);
-    for (auto p : cams->T_cameras())
+    if (!camera_upright(*cam.second))
     {
-      necker_reverse_inplace(*(p.second), plane);
+      necker_reverse_inplace(*(cam.second), plane);
+      reversed_cameras = true;
+      LOG_DEBUG(m_logger, "Necker revsersed camera " << cam.first);
     }
+  }
+  if (reversed_cameras)
+  {
     std::set<landmark_id_t> inlier_lms;
     retriangulate(lms, cams, tracks->tracks(), inlier_lms, 2, 10);
 
