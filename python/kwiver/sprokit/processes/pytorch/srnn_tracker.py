@@ -387,16 +387,14 @@ class SRNNTracker(KwiverProcess):
         # Get detection bbox
         if self._gtbbox_flag:
             dos = self._m_bbox[self._step_id]
-            bbox_num = len(dos)
         else:
             dos = dos_ptr.select(self._select_threshold)
-            bbox_num = dos.size()
         #print('bbox list len is', dos.size())
 
         homog_src_to_base = self._step_homog_state(homog_f2f)
 
         det_obj_set = DetectedObjectSet()
-        if bbox_num == 0:
+        if len(dos) == 0:
             print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
             return det_obj_set
 
