@@ -929,7 +929,7 @@ initialize_cameras_landmarks_keyframe::priv
   unsigned num_inliers = static_cast<unsigned>(std::count(inliers.begin(),
     inliers.end(), true));
 
-  LOG_INFO(m_logger, "E matrix num inliers = " << num_inliers
+  LOG_DEBUG(m_logger, "E matrix num inliers = " << num_inliers
     << "/" << inliers.size());
 
   // get the first inlier index
@@ -1658,6 +1658,7 @@ initialize_cameras_landmarks_keyframe::priv
     lms.clear();
     auto cam_0 = std::make_shared<vital::simple_camera_perspective>();
     auto cam_1 = std::make_shared<vital::simple_camera_perspective>();
+    LOG_DEBUG(m_logger, "Base focal length: " << m_base_camera.intrinsics()->focal_length());
     if (m_force_common_intrinsics)
     {
       cam_0->set_intrinsics(m_base_camera.intrinsics()->clone());
@@ -1745,11 +1746,16 @@ initialize_cameras_landmarks_keyframe::priv
       }
 
 
-      LOG_DEBUG(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
-      LOG_DEBUG(m_logger, "optimized reversed reprojection RMSE: " << rev_optimized_rmse);
+      LOG_DEBUG(m_logger, "optimized reprojection RMSE: " << optimized_rmse
+                          << " focal len: "
+                          << cams->find(rp_init.f0)->get_intrinsics()->focal_length());
+      LOG_DEBUG(m_logger, "optimized reversed reprojection RMSE: " << rev_optimized_rmse
+                          << " focal len: "
+                          << rev_cams->find(rp_init.f0)->get_intrinsics()->focal_length());
 
       if (rev_optimized_rmse < optimized_rmse)
       {
+        LOG_DEBUG(m_logger, "Using reversed initial cameras");
         cams = rev_cams;
         lms = rev_lms;
       }
@@ -2123,6 +2129,9 @@ initialize_cameras_landmarks_keyframe::priv
   {
     std::set<frame_id_t> fixed_cams_empty;
     std::set<landmark_id_t> fixed_lms_empty;
+    LOG_INFO(m_logger, "Running Global Bundle Adjustment on "
+                       << cams->size() << " cameras and "
+                       << lms.size() << " landmarks");
     bundle_adjuster->optimize(*cams, lms, tracks, fixed_cams_empty, fixed_lms_empty);
   }
 
@@ -2183,6 +2192,7 @@ initialize_cameras_landmarks_keyframe::priv
       frames_that_failed_resection.insert(next_frame_id);
       continue;
     }
+    LOG_INFO(m_logger, "Resectioned frame " << next_frame_id);
 
     frames_that_were_in_sfm_solution.insert(next_frame_id);
     for (auto fid : frames_that_failed_resection)
@@ -2208,7 +2218,7 @@ initialize_cameras_landmarks_keyframe::priv
 
       double before_new_cam_rmse =
         kwiver::arrows::reprojection_rmse(cameras, lms, trks);
-      LOG_INFO(m_logger, "before new camera reprojection RMSE: "
+      LOG_DEBUG(m_logger, "before new camera reprojection RMSE: "
                          << before_new_cam_rmse);
 
       std::set<frame_id_t> fixed_cameras;
@@ -2221,6 +2231,9 @@ initialize_cameras_landmarks_keyframe::priv
         }
       }
 
+      LOG_DEBUG(m_logger, "Optimizing frame " << next_frame_id
+                          << cams->size()-1 << " fixed cameras and "
+                          << lms.size() << " landmarks");
       auto ba_config = bundle_adjuster->get_configuration();
       bool opt_focal_was_set = ba_config->get_value<bool>("optimize_focal_length");
       ba_config->set_value<bool>("optimize_focal_length", false);
@@ -2233,7 +2246,7 @@ initialize_cameras_landmarks_keyframe::priv
 
       double after_new_cam_rmse =
         kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
-      LOG_INFO(m_logger, "after new camera reprojection RMSE: "
+      LOG_DEBUG(m_logger, "after new camera reprojection RMSE: "
                          << after_new_cam_rmse);
 
     }
@@ -2284,14 +2297,10 @@ initialize_cameras_landmarks_keyframe::priv
       // bundle adjust result because number of inliers has changed significantly
       if (bundle_adjuster)
       {
-        LOG_INFO(m_logger, "Running Global Bundle Adjustment on "
-          << cams->size() << " cameras and "
-          << lms.size() << " landmarks");
-
         double before_clean_rmse =
           kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
-        LOG_INFO(m_logger, "before clean reprojection RMSE: "
-                           << before_clean_rmse);
+        LOG_DEBUG(m_logger, "before clean reprojection RMSE: "
+                            << before_clean_rmse);
 
         std::vector<frame_id_t> removed_cams;
         std::set<frame_id_t> variable_cams;
@@ -2308,7 +2317,7 @@ initialize_cameras_landmarks_keyframe::priv
 
         double init_rmse =
           kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
-        LOG_INFO(m_logger, "initial reprojection RMSE: " << init_rmse);
+        LOG_DEBUG(m_logger, "initial reprojection RMSE: " << init_rmse);
 
         // first a BA fixing all landmarks to correct the cameras
         std::set<frame_id_t> fixed_cameras;
@@ -2317,18 +2326,25 @@ initialize_cameras_landmarks_keyframe::priv
         {
           fixed_landmarks.insert(l.first);
         }
+        // now an overall ba
+        LOG_INFO(m_logger, "Running optimization on "
+                           << cams->size() << " cameras with "
+                           << lms.size() << " fixed landmarks");
         bundle_adjuster->optimize(*cams, lms, tracks,
                                   fixed_cameras, fixed_landmarks,
                                   ba_constraints);
 
         double optimized_rmse =
           kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
-        LOG_INFO(m_logger, "optimized reprojection RMSE: "
-                           << optimized_rmse);
+        LOG_DEBUG(m_logger, "optimized reprojection RMSE: "
+                            << optimized_rmse);
         std::set<landmark_id_t> inlier_lm_ids;
         retriangulate(lms, cams, trks, inlier_lm_ids);
 
         // now an overall ba
+        LOG_INFO(m_logger, "Running Global Bundle Adjustment on "
+                           << cams->size() << " cameras and "
+                           << lms.size() << " landmarks");
         fixed_landmarks.clear();
         bundle_adjuster->optimize(*cams, lms, tracks,
                                   fixed_cameras, fixed_landmarks,
@@ -2427,7 +2443,9 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (continue_processing)
   {
-    LOG_DEBUG(m_logger, "Final bundle adjustment of initial keyframes");
+    LOG_INFO(m_logger, "Running Final Bundle Adjustment of initial keyframes "
+                       << "with " << cams->size() << " cameras and "
+                       << lms.size() << " landmarks");
     std::set<frame_id_t> fixed_cameras;
     std::set<landmark_id_t> fixed_landmarks;
     bundle_adjuster->optimize(*cams, lms, tracks,
@@ -2571,7 +2589,7 @@ initialize_cameras_landmarks_keyframe::priv
 
     double init_rmse =
       kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
-    LOG_INFO(m_logger, "initial reprojection RMSE: " << init_rmse);
+    LOG_DEBUG(m_logger, "initial reprojection RMSE: " << init_rmse);
 
     std::set<frame_id_t> fixed_cameras;
     std::set<landmark_id_t> fixed_landmarks;
@@ -2581,7 +2599,7 @@ initialize_cameras_landmarks_keyframe::priv
 
     double optimized_rmse =
       kwiver::arrows::reprojection_rmse(cams->cameras(), lms, trks);
-    LOG_INFO(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
+    LOG_DEBUG(m_logger, "optimized reprojection RMSE: " << optimized_rmse);
 
     std::vector<frame_id_t> removed_cams;
     std::set<frame_id_t> empty_cam_set;
@@ -2659,7 +2677,7 @@ initialize_cameras_landmarks_keyframe::priv
   sfm_constraints_sptr constraints,
   callback_t callback)
 {
-  LOG_DEBUG(m_logger, "initialize_keyframes");
+  LOG_DEBUG(m_logger, "Start initialize_keyframes");
 
   m_solution_was_fit_to_constraints = false;
 
@@ -2676,8 +2694,8 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (keyframes.empty())
   {
-  LOG_DEBUG(m_logger, "no keyframes, cannot initilize reconstruction");
-  return false;
+    LOG_DEBUG(m_logger, "No keyframes, cannot initilize reconstruction");
+    return false;
   }
 
   // now try a vision only approach
@@ -2688,6 +2706,7 @@ initialize_cameras_landmarks_keyframe::priv
     return true;
   }
 
+  LOG_DEBUG(m_logger, "Vision centric initialization failed");
   return false;
 }
 
@@ -3189,6 +3208,9 @@ initialize_cameras_landmarks_keyframe::priv
   {
     ba = global_bundle_adjuster;
   }
+  LOG_DEBUG(m_logger, "Bundle adjusting " << cams->size() << " cameras ("
+                      << frames_to_fix.size() << " fixed) and "
+                      << variable_landmarks.size() << " landmarks");
   ba->optimize(*cams, variable_landmarks, tracks,
                frames_to_fix, empty_landmark_id_set,
                constraints);
@@ -3614,6 +3636,7 @@ initialize_cameras_landmarks_keyframe::priv
     {
       continue;
     }
+    LOG_DEBUG(m_logger, "Resectioned frame " << fid_to_register);
 
     // Triangulate only landmarks visible in latest cameras
     std::set<frame_id_t> fids_to_triang;
