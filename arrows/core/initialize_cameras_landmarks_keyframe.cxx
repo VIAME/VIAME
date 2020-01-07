@@ -1566,8 +1566,33 @@ initialize_cameras_landmarks_keyframe::priv
   transform_inplace(lms, sim);
   transform_inplace(*cams, sim);
 
+  // Find a set of stable landmarks to estimate a scene plane
+  map_landmark_t stable_lms;
+  if (cams->size() > 2)
+  {
+    for (auto const& lm : lms)
+    {
+      if (lm.second->observations() > 2)
+      {
+        stable_lms.insert(lm);
+      }
+    }
+    if (stable_lms.size() < 8)
+    {
+      std::set<landmark_id_t> inlier_lms;
+      retriangulate(lms, cams, tracks->tracks(), inlier_lms);
+      return true;
+    }
+  }
+  else
+  {
+    std::set<landmark_id_t> inlier_lms;
+    retriangulate(lms, cams, tracks->tracks(), inlier_lms);
+    return true;
+  }
+
   // Test that the cameras are upright and necker reverse if not
-  const vector_4d plane = landmark_plane(lms);
+  const vector_4d plane = landmark_plane(stable_lms);
   bool reversed_cameras = false;
   for (auto const& cam : cams->T_cameras())
   {
