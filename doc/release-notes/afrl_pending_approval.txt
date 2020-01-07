@@ -26,6 +26,10 @@ Arrows - Core
  * Added utility functions to estimate the ground center of landmarks and
    to apply a translational offset to landmarks and cameras.
 
+ * In the keyframe camera and landmark initializer, only use windowed bundle
+   adjustment for filling in cameras after the entire initial sequence is
+   complete.
+
 Arrows - Ceres
 
 Arrows - CUDA
