@@ -338,7 +338,7 @@ class SRNNTracker(KwiverProcess):
     # ----------------------------------------------
     def _step(self):
         try:
-            ots, det_obj_set = self._step_unwrapped()
+            det_obj_set = self._step_unwrapped()
         except BaseException as e:
             print( repr( e ) )
             import traceback
@@ -346,6 +346,8 @@ class SRNNTracker(KwiverProcess):
             sys.stdout.flush()
             raise
 
+        # push track set to output port
+        ots = ts2ots(self._track_set)
         self.push_to_port_using_trait('object_track_set', ots)
         self.push_to_port_using_trait('detected_object_set', det_obj_set)
 
@@ -355,8 +357,8 @@ class SRNNTracker(KwiverProcess):
 
     def _step_unwrapped(self):
         """Perform _step, but don't handle errors or increment self._step_id
-        and return the output ObjectTrackSet and DetectedObjectSet.
-        Mutates this object.
+        and return the output DetectedObjectSet.  Mutates this object,
+        in particular self._track_set.
 
         """
         def timing(desc, f):
@@ -516,10 +518,7 @@ class SRNNTracker(KwiverProcess):
 
             print('total tracks', len(self._track_set))
 
-        # push track set to output port
-        ots = ts2ots(self._track_set)
-
-        return ots, det_obj_set
+        return det_obj_set
 
 
 # ==================================================================
