@@ -1,5 +1,5 @@
 /*ckwg +30
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,8 +76,9 @@ public:
 
   /// Return an inverse of this transform object
   /**
-   * \return A new transform object that is the inverse of this transformation,
-   *         or a null pointer if the transformation is not invertible.
+   * \throws non_invertible
+   *   When the transformation is non-invertible.
+   * \return A new transform object that is the inverse of this transformation.
    */
   transform_2d_sptr inverse() const { return this->inverse_(); }
 

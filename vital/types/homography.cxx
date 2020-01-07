@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015, 2019 by Kitware, Inc.
+ * Copyright 2015, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -178,7 +178,7 @@ homography_< T >
   this->h_.computeInverseWithCheck( inv, isvalid );
   if ( ! isvalid )
   {
-    throw non_invertible_matrix();
+    throw non_invertible();
   }
   return std::make_shared< homography_< T > >( inv );
 }

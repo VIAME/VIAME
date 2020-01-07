@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015, 2019 by Kitware, Inc.
+ * Copyright 2014-2015, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -167,7 +167,8 @@ public:
 
   /// Get a new \p homography that has been inverted.
   /**
-   * \throws non_invertible_matrix When the homography matrix is non-invertible.
+   * \throws non_invertible
+   *   When the homography matrix is non-invertible.
    * \return New homography transformation instance.
    */
   homography_sptr inverse() const;
