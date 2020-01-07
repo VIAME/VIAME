@@ -66,7 +66,7 @@ from .utils.models import get_config
 
 g_config = get_config()
 
-def ts2ot_list(track_set):
+def ts2ots(track_set):
     ot_list = [Track(id=t.track_id) for t in track_set]
 
     for idx, t in enumerate(track_set):
@@ -76,7 +76,7 @@ def ts2ot_list(track_set):
                                         ti.detected_object)
             if not ot.append(ot_state):
                 print('Error: Cannot add ObjectTrackState')
-    return ot_list
+    return ObjectTrackSet(ot_list)
 
 def from_homog_f2f(homog_f2f):
     """Take a F2FHomography and return a triple of a 3x3 numpy.ndarray and
@@ -517,8 +517,7 @@ class SRNNTracker(KwiverProcess):
             print('total tracks', len(self._track_set))
 
         # push track set to output port
-        ot_list = ts2ot_list(self._track_set)
-        ots = ObjectTrackSet(ot_list)
+        ots = ts2ots(self._track_set)
 
         return ots, det_obj_set
 
