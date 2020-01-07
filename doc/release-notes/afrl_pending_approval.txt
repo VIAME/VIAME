@@ -35,6 +35,13 @@ Arrows - Core
    These should remain fixed to their configured settings.  Instead we now
    use nearby established cameras to initialize similar or shared intrinsics.
 
+ * Added a utitily to compute the subset of cameras located on the positive
+   side of a specified plane.
+
+ * Improved Necker reversal correction in the keyframe camera and landmark
+   initializer by allowing reversal of individual cameras that are upside down
+   provided that all cameras are above the estimated ground plane.
+
 Arrows - Ceres
 
 Arrows - CUDA
