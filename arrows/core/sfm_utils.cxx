@@ -824,6 +824,23 @@ majority_upright(
   return net_cams_pointing_up > 0;
 }
 
+/// Return a subset of cameras on the positive side of a plane
+vital::camera_perspective_map::frame_to_T_sptr_map
+cameras_above_plane(
+  vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
+  vital::vector_4d const& plane)
+{
+  vital::camera_perspective_map::frame_to_T_sptr_map out_cams;
+  for (auto const& cam : cameras)
+  {
+    if (cam.second->center().dot(plane.head(3)) + plane[3] > 0.0)
+    {
+      out_cams.insert(cam);
+    }
+  }
+  return out_cams;
+}
+
 // Compute the ground center of a collection of landmarks
 vital::vector_3d
 landmarks_ground_center(vital::landmark_map const& landmarks,

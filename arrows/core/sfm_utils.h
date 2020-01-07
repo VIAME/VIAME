@@ -262,6 +262,12 @@ majority_upright(
   vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
   vital::vector_3d const& up = vital::vector_3d(0,0,1));
 
+/// Return a subset of cameras on the positive side of a plane
+vital::camera_perspective_map::frame_to_T_sptr_map
+cameras_above_plane(
+  vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
+  vital::vector_4d const& plane);
+
 /// Compute the ground center of a collection of landmarks
 /**
  * Compute the location of the center of the ground in a collection of
