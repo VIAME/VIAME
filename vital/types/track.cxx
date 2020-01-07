@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014, 2019 by Kitware, Inc.
+ * Copyright 2014, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -133,8 +133,12 @@ bool
 track
 ::append( track_state_sptr state )
 {
+  if ( state && ! state->track_.expired() )
+  {
+    throw std::logic_error( "track states may not be reparented" );
+  }
+
   if ( ! state ||
-       ! state->track_.expired() ||
        ( ! this->history_.empty() &&
        ( this->last_frame() >= state->frame() ) ) )
   {
@@ -174,16 +178,23 @@ bool
 track
 ::insert( track_state_sptr state )
 {
-  if ( ! state || ! state->track_.expired() )
+  if ( ! state )
   {
     return false;
   }
+
+  if ( ! state->track_.expired() )
+  {
+    throw std::logic_error( "track states may not be reparented" );
+  }
+
   auto pos = std::lower_bound( this->history_.begin(), this->history_.end(),
                                state->frame(), compare_state_frame() );
   if( pos != this->history_.end() && (*pos)->frame() == state->frame() )
   {
     return false;
   }
+
   this->history_.insert(pos, state);
   state->track_ = this->shared_from_this();
   return true;
