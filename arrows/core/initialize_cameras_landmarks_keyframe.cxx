@@ -1593,6 +1593,15 @@ initialize_cameras_landmarks_keyframe::priv
 
   // Test that the cameras are upright and necker reverse if not
   const vector_4d plane = landmark_plane(stable_lms);
+  auto cams_above = cameras_above_plane(cams->map_of_<camera_perspective>(),
+                                        plane);
+  if (cams_above.size() > 0 && cams_above.size() < cams->size())
+  {
+    // cameras are on both sides of the plane
+    std::set<landmark_id_t> inlier_lms;
+    retriangulate(lms, cams, tracks->tracks(), inlier_lms);
+    return true;
+  }
   bool reversed_cameras = false;
   for (auto const& cam : cams->T_cameras())
   {
