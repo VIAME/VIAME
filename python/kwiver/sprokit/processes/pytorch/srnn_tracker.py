@@ -393,27 +393,7 @@ class SRNNTracker(KwiverProcess):
             bbox_num = dos.size()
         #print('bbox list len is', dos.size())
 
-        # Update homography
-        if homog_f2f is not None:
-            homog_f2f_arr, homog_f2f_from, homog_f2f_to = from_homog_f2f(homog_f2f)
-        if homog_f2f is None or homog_f2f_to != self._homog_ref_id:
-            # We have a new reference frame
-            # Update self._homog_ref_to_base (assume curr->prev is identity)
-            if self._homog_src_to_ref is not None:
-                self._homog_ref_to_base = np.matmul(self._homog_ref_to_base, self._homog_src_to_ref)
-                self._homog_src_to_ref = None
-            # Update self._homog_ref_id
-            if homog_f2f is None:
-                self._homog_ref_id = None
-            else:
-                assert homog_f2f_from == homog_f2f_to, "After break homog should map to self"
-                self._homog_ref_id = homog_f2f_to
-            # This is a reference frame, so src->base is just ref->base
-            homog_src_to_base = self._homog_ref_to_base
-        else:
-            # We use the same reference frame
-            self._homog_src_to_ref = homog_f2f_arr
-            homog_src_to_base = np.matmul(self._homog_ref_to_base, self._homog_src_to_ref)
+        homog_src_to_base = self._step_homog_state(homog_f2f)
 
         det_obj_set = DetectedObjectSet()
         if bbox_num == 0:
@@ -520,6 +500,36 @@ class SRNNTracker(KwiverProcess):
         print('total tracks', len(self._track_set))
 
         return det_obj_set
+
+
+    def _step_homog_state(self, homog_f2f):
+        """Step stabilization state (self._homog_* instance variables) using
+        the provided HomographyF2F (or None), returning a
+        transformation from current coordinates to "base" coordinates.
+
+        """
+        # Update homography
+        if homog_f2f is not None:
+            homog_f2f_arr, homog_f2f_from, homog_f2f_to = from_homog_f2f(homog_f2f)
+        if homog_f2f is None or homog_f2f_to != self._homog_ref_id:
+            # We have a new reference frame
+            # Update self._homog_ref_to_base (assume curr->prev is identity)
+            if self._homog_src_to_ref is not None:
+                self._homog_ref_to_base = np.matmul(self._homog_ref_to_base, self._homog_src_to_ref)
+                self._homog_src_to_ref = None
+            # Update self._homog_ref_id
+            if homog_f2f is None:
+                self._homog_ref_id = None
+            else:
+                assert homog_f2f_from == homog_f2f_to, "After break homog should map to self"
+                self._homog_ref_id = homog_f2f_to
+            # This is a reference frame, so src->base is just ref->base
+            homog_src_to_base = self._homog_ref_to_base
+        else:
+            # We use the same reference frame
+            self._homog_src_to_ref = homog_f2f_arr
+            homog_src_to_base = np.matmul(self._homog_ref_to_base, self._homog_src_to_ref)
+        return homog_src_to_base
 
 
 # ==================================================================
