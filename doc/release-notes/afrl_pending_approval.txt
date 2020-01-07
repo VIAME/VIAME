@@ -30,6 +30,11 @@ Arrows - Core
    adjustment for filling in cameras after the entire initial sequence is
    complete.
 
+ * In the keyframe camera and landmark initializer, we no longer update
+   the base_camera intrinsics configuration value with estimated values.
+   These should remain fixed to their configured settings.  Instead we now
+   use nearby established cameras to initialize similar or shared intrinsics.
+
 Arrows - Ceres
 
 Arrows - CUDA
