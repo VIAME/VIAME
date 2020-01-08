@@ -96,7 +96,6 @@ class SiameseFeatureExtractor(object):
         ])
         self._img_size = img_size
         self._b_size = batch_size
-        self.frame = None
 
     def _strip_prefix(string, prefix):
         if not string.startswith(prefix):
@@ -104,14 +103,14 @@ class SiameseFeatureExtractor(object):
                     format(string, prefix))
         return string[len(prefix):]
     
-    def __call__(self, bbox_list, mot_flag):
-        return self._obtain_feature(bbox_list, mot_flag)
+    def __call__(self, frame, bbox_list, mot_flag):
+        return self._obtain_features(frame, bbox_list, mot_flag)
 
-    def _obtain_feature(self, bbox_list, mot_flag):
+    def _obtain_features(self, frame, bbox_list, mot_flag):
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        if self.frame is not None:
+        if frame is not None:
             bbox_loader_class = SiameseDataLoader(bbox_list, self._transform, 
-                                    self.frame, self._img_size, mot_flag)
+                                    frame, self._img_size, mot_flag)
         else:
             raise ValueError("Trying to create SiameseDataLoader without providing frame")
 

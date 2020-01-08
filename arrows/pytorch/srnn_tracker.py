@@ -291,9 +291,8 @@ class SRNNTracker(KwiverProcess):
             dos_ptr = self.grab_input_using_trait('detected_object_set')
             print('timestamp =', repr(timestamp))
 
-            # Get current frame and give it to app feature extractor
+            # Get current frame
             im = get_pil_image(in_img_c.image()).convert('RGB')
-            self._app_feature_extractor.frame = im
 
             # Get detection bbox
             if self._gtbbox_flag:
@@ -314,7 +313,7 @@ class SRNNTracker(KwiverProcess):
 
                 # appearance features (format: pytorch tensor)
                 pt_app_features = timing('app feature', lambda:
-                                         self._app_feature_extractor(dos, self._gtbbox_flag))
+                                         self._app_feature_extractor(im, dos, self._gtbbox_flag))
 
                 track_state_list = []
                 next_track_id = int(self._track_set.get_max_track_id()) + 1
