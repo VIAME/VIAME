@@ -495,8 +495,11 @@ bundle_adjust
     }
   }
 
+  // add costs for priors
   int num_position_priors_applied =
     d_->add_position_prior_cost(problem, d_->camera_params, constraints);
+
+  d_->add_intrinsic_priors_cost(problem, d_->camera_intr_params);
 
   if (num_position_priors_applied < 3)
   {

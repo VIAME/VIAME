@@ -37,6 +37,9 @@
 
 #include <arrows/ceres/camera_smoothness.h>
 #include <arrows/ceres/camera_position.h>
+#include <arrows/ceres/camera_intrinsic_prior.h>
+
+#include <vital/math_constants.h>
 
 using namespace kwiver::vital;
 
@@ -140,7 +143,8 @@ camera_options
     optimize_dist_k4_k5_k6(false),
     camera_intrinsic_share_type(AUTO_SHARE_INTRINSICS),
     camera_path_smoothness(0.0),
-    camera_forward_motion_damping(0.0)
+    camera_forward_motion_damping(0.0),
+    minimum_hfov(0.0)
 {
 }
 
@@ -159,7 +163,8 @@ camera_options
     optimize_dist_k4_k5_k6(other.optimize_dist_k4_k5_k6),
     camera_intrinsic_share_type(other.camera_intrinsic_share_type),
     camera_path_smoothness(other.camera_path_smoothness),
-    camera_forward_motion_damping(other.camera_forward_motion_damping)
+    camera_forward_motion_damping(other.camera_forward_motion_damping),
+    minimum_hfov(other.minimum_hfov)
 {
 }
 
@@ -210,6 +215,12 @@ camera_options
                     "distances.  It causes the algorithm to prefer focal length change "
                     "over fast motion along the principal ray. "
                     "If set to zero the regularization is disabled.");
+  config->set_value("minimum_hfov", this->minimum_hfov,
+                    "A soft lower bound on the minimum horizontal field of "
+                    "view in degrees. This generates a soft upper bound on "
+                    "focal length if set greater than zero. If the focal "
+                    "length exceeds this limit it will incur a quadratic "
+                    "penalty.");
 }
 
 
@@ -234,6 +245,7 @@ camera_options
   GET_VALUE(ceres::CameraIntrinsicShareType, camera_intrinsic_share_type);
   GET_VALUE(double, camera_path_smoothness);
   GET_VALUE(double, camera_forward_motion_damping);
+  GET_VALUE(double, minimum_hfov);
 #undef GET_VALUE
 }
 
@@ -538,6 +550,41 @@ camera_options
     ++num_priors_applied;
   }
   return num_priors_applied;
+}
+
+/// Add the camera intrinsic priors costs to the Ceres problem
+void
+camera_options
+::add_intrinsic_priors_cost(
+  ::ceres::Problem& problem,
+  std::vector<std::vector<double> >& int_params) const
+{
+  if (this->minimum_hfov <= 0.0)
+  {
+    return;
+  }
+  // scaling balances the response based on the number of other residuals.
+  double scale = static_cast<double>(std::max(1, problem.NumResiduals()));
+  auto scaled_loss = new ::ceres::ScaledLoss(NULL, scale,
+                           ::ceres::Ownership::TAKE_OWNERSHIP);
+  for (auto& int_par : int_params)
+  {
+    // assume image width is twice the principal point X coordinate
+    double width = 2.0 * int_par[1];
+    if (width <= 0.0)
+    {
+      width = 1280.0;
+    }
+    double max_focal_len = width / (2.0 * std::tan(this->minimum_hfov * kwiver::vital::deg_to_rad / 2.0));
+    auto cam_intrin_prior_cost =
+      camera_intrinsic_prior::create(max_focal_len, int_par.size());
+
+    double* foc_len = &int_par[0];
+    // add the loss with squared error
+    problem.AddResidualBlock(cam_intrin_prior_cost,
+                             scaled_loss,
+                             foc_len);
+  }
 }
 
 /// Add the camera path smoothness costs to the Ceres problem

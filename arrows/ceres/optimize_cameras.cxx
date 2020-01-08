@@ -301,6 +301,12 @@ optimize_cameras
     d_->add_forward_motion_damping_cost(problem, ordered_params, frame_to_intr_map);
   }
 
+  // add costs for priors
+  int num_position_priors_applied =
+    d_->add_position_prior_cost(problem, camera_params, constraints);
+
+  d_->add_intrinsic_priors_cost(problem, camera_intr_params);
+
   // If the loss function was added to a residual block, ownership was
   // transfered.  If not then we need to delete it.
   if(loss_func && !loss_func_used)
