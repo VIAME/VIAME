@@ -37,10 +37,10 @@ class Grid(object):
         self._target_neighborhood_w = target_neighborhood_w
         self._half_cell_w = int(self._target_neighborhood_w // 2)
 
-    def __call__(self, im_size, bbox_list, mot_flag=False):
-        return self.obtain_grid_feature_list(im_size, bbox_list, mot_flag)
+    def __call__(self, im_size, bbox_list):
+        return self.obtain_grid_feature_list(im_size, bbox_list)
 
-    def obtain_grid_feature_list(self, im_size, bbox_list, mot_flag):
+    def obtain_grid_feature_list(self, im_size, bbox_list):
         r"""
             The output of the function is a grid feature list for
             each corresponding bbox of current frame/image
@@ -59,9 +59,7 @@ class Grid(object):
 
         bbox_id_centerIDX = []
         # build the grid for current image
-        for item in bbox_list:
-            bb = item if mot_flag else item.bounding_box()
-
+        for bb in bbox_list:
             x = int(bb.min_x())
             y = int(bb.min_y())
             w = int(bb.width())

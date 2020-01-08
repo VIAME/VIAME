@@ -386,9 +386,10 @@ class SRNNTracker(KwiverProcess):
 
         # Get detection bbox
         if self._gtbbox_flag:
-            dos = self._m_bbox[self._step_id]
+            dos = bbox_list = self._m_bbox[self._step_id]
         else:
             dos = dos_ptr.select(self._select_threshold)
+            bbox_list = [item.bounding_box() for item in dos]
         #print('bbox list len is', dos.size())
 
         homog_src_to_base = self._step_homog_state(homog_f2f)
@@ -400,11 +401,11 @@ class SRNNTracker(KwiverProcess):
 
         # interaction features
         grid_feature_list = timing('grid feature', lambda: (
-            self._grid(im.size, dos, self._gtbbox_flag)))
+            self._grid(im.size, bbox_list)))
 
         # appearance features (format: pytorch tensor)
         pt_app_features = timing('app feature', lambda: (
-            self._app_feature_extractor(im, dos, self._gtbbox_flag)))
+            self._app_feature_extractor(im, bbox_list)))
 
         track_state_list = []
         next_track_id = int(self._track_set.get_max_track_id()) + 1
