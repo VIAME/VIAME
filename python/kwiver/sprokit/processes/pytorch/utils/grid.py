@@ -46,7 +46,7 @@ class Grid(object):
             each corresponding bbox of current frame/image
 
             A grid feature records which cells in the configured
-            neighborhood have at least one bonuding box in them.
+            neighborhood have at least one bounding box in them.
         """
         self.img_w, self.img_h = im_size
 
