@@ -95,7 +95,6 @@ class SiameseFeatureExtractor(object):
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
         self._img_size = img_size
-        self._frame = pilImage.new('RGB', (img_size, img_size))
         self._b_size = batch_size
         self.frame = None
 
@@ -112,7 +111,7 @@ class SiameseFeatureExtractor(object):
         kwargs = {'num_workers': 0, 'pin_memory': True}
         if self.frame is not None:
             bbox_loader_class = SiameseDataLoader(bbox_list, self._transform, 
-                                    self._frame, self._img_size, mot_flag)
+                                    self.frame, self._img_size, mot_flag)
         else:
             raise ValueError("Trying to create SiameseDataLoader without providing frame")
 
