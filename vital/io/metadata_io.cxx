@@ -80,7 +80,7 @@ basename_from_metadata(metadata_sptr md,
 }
 
 // ----------------------------------------------------------------------------
-// Read in a POS file, producing a metadata object
+/// Read in a POS file, producing a metadata object
 metadata_sptr
 read_pos_file( path_t const& file_path )
 {

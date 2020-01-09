@@ -91,10 +91,7 @@ is_valid_lon_lat( vector_2d const& vec )
 bool
 is_valid_lon_lat( vector_3d const& vec )
 {
-  auto const lat = vec[1];
-  auto const lon = vec[0];
-  return ( lat >= -90.0 && lat <= 90.0 ) &&
-         ( lon >= -180.0 && lon <= 360.0 );
+  return is_valid_lon_lat( static_cast< vector_2d >(vec.head(2)) );
 }
 
 } // end namespace

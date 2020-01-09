@@ -150,7 +150,7 @@ TEST( load_save, geo_point_2d )
 }
 
 // ----------------------------------------------------------------------------
-TEST( load_save, geo_point_raw )
+TEST( load_save, geo_point_3d )
 {
   kwiver::vital::geo_point::geo_3d_point_t geo( 42.50, 73.54, 16.33 );
   kwiver::vital::geo_point obj( geo, kwiver::vital::SRID::lat_lon_WGS84 );
@@ -460,11 +460,11 @@ TEST( load_save, track_set )
   {
     auto trk = kwiver::vital::track::create();
     trk->set_id( trk_id );
-   
+
     for ( int i=trk_id*10; i < ( trk_id+1 )*10; i++ )
     {
       auto trk_state_sptr = std::make_shared< kwiver::vital::track_state>( i );
-      bool insert_success = trk->insert( trk_state_sptr );  
+      bool insert_success = trk->insert( trk_state_sptr );
       if ( !insert_success )
       {
         std::cerr << "Failed to insert track state" << std::endl;
@@ -495,16 +495,16 @@ TEST( load_save, track_set )
   for ( kwiver::vital::track_id_t trk_id=1; trk_id<5; ++trk_id )
   {
     auto trk = trk_set_sptr->get_track( trk_id );
-    auto trk_dser = trk_set_sptr_dser->get_track( trk_id );  
+    auto trk_dser = trk_set_sptr_dser->get_track( trk_id );
     EXPECT_EQ( trk->id(), trk_dser->id() );
     for ( int i=trk_id*10; i < ( trk_id+1 )*10; i++ )
     {
       auto obj_trk_state_sptr = *trk->find( i );
       auto dser_trk_state_sptr = *trk_dser->find( i );
 
-      EXPECT_EQ( obj_trk_state_sptr->frame(), dser_trk_state_sptr->frame() );    
+      EXPECT_EQ( obj_trk_state_sptr->frame(), dser_trk_state_sptr->frame() );
     }
-  }  
+  }
 
 }
 
@@ -526,15 +526,15 @@ TEST( load_save, object_track_set )
       dot->set_score( "third", 101 );
       dot->set_score( "last", 121 );
 
-      auto dobj_sptr = std::make_shared< kwiver::vital::detected_object>( 
-                              kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 
+      auto dobj_sptr = std::make_shared< kwiver::vital::detected_object>(
+                              kwiver::vital::bounding_box_d{ 1, 2, 3, 4 },
                                   3.14159265, dot );
       dobj_sptr->set_detector_name( "test_detector" );
       dobj_sptr->set_index( 1234 );
-      auto obj_trk_state_sptr = std::make_shared< kwiver::vital::object_track_state > 
+      auto obj_trk_state_sptr = std::make_shared< kwiver::vital::object_track_state >
                                   ( i, i, dobj_sptr );
 
-      bool insert_success = trk->insert( obj_trk_state_sptr );  
+      bool insert_success = trk->insert( obj_trk_state_sptr );
       if ( !insert_success )
       {
         std::cerr << "Failed to insert object track state" << std::endl;
@@ -561,19 +561,19 @@ TEST( load_save, object_track_set )
     cereal::JSONInputArchive ar( msg );
     cereal::load( ar, *obj_trk_set_sptr_dser );
   }
-  
+
   for ( kwiver::vital::track_id_t trk_id=1; trk_id<3; ++trk_id )
   {
     auto trk = obj_trk_set_sptr->get_track( trk_id );
-    auto trk_dser = obj_trk_set_sptr_dser->get_track( trk_id );  
+    auto trk_dser = obj_trk_set_sptr_dser->get_track( trk_id );
     EXPECT_EQ( trk->id(), trk_dser->id() );
     for ( int i=trk_id*2; i < ( trk_id+1 )*2; i++ )
     {
       auto trk_state_sptr = *trk->find( i );
       auto dser_trk_state_sptr = *trk_dser->find( i );
-      
+
       EXPECT_EQ( trk_state_sptr->frame(), dser_trk_state_sptr->frame() );
-      auto obj_trk_state_sptr = kwiver::vital::object_track_state::downcast( trk_state_sptr );   
+      auto obj_trk_state_sptr = kwiver::vital::object_track_state::downcast( trk_state_sptr );
       auto dser_obj_trk_state_sptr = kwiver::vital::object_track_state::
                                                       downcast( dser_trk_state_sptr );
 
@@ -602,6 +602,6 @@ TEST( load_save, object_track_set )
           EXPECT_EQ( dser_it->second, dser_it->second );
         }
       }
-    }    
-  }  
+    }
+  }
 }
