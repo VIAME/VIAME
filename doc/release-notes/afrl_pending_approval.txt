@@ -44,6 +44,13 @@ Arrows - Core
 
 Arrows - Ceres
 
+ * Add a new option for minimum horizontal field of view (hfov) in bundle
+   adjustment and camera optimization.  This is mostly for telescopic lenses
+   when the hfov is very small (e.g. less than 5 degrees).  There is a
+   tendency for small FOVs to drift toward zero due to lack of perspective.
+   This new parameter introduces a large cost if the HFOV drops below the
+   set threshold.
+
 Arrows - CUDA
 
  * CUDA depth map integration now uses optional weight maps to down-weight
