@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -3199,21 +3199,12 @@ initialize_cameras_landmarks_keyframe::priv
     get_sub_landmark_map(lmks, variable_landmark_ids);
   std::set<landmark_id_t> empty_landmark_id_set;
 
-  auto cam_frames = cams->get_frame_ids();
-  auto first_cam = *cam_frames.begin();
-  auto last_cam = *cam_frames.rbegin();
-  double video_coverage = static_cast<double>(last_cam - first_cam) / (tracks->last_frame() - tracks->first_frame());
-  auto ba = bundle_adjuster;
-  if (cams->size() > 50 && video_coverage > 0.8)
-  {
-    ba = global_bundle_adjuster;
-  }
   LOG_DEBUG(m_logger, "Bundle adjusting " << cams->size() << " cameras ("
                       << frames_to_fix.size() << " fixed) and "
                       << variable_landmarks.size() << " landmarks");
-  ba->optimize(*cams, variable_landmarks, tracks,
-               frames_to_fix, empty_landmark_id_set,
-               constraints);
+  bundle_adjuster->optimize(*cams, variable_landmarks, tracks,
+                            frames_to_fix, empty_landmark_id_set,
+                            constraints);
 
   clean_cameras_and_landmarks(*cams, lmks, tracks,
                               m_thresh_triang_cos_ang, removed_cams,
