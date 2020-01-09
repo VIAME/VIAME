@@ -48,7 +48,7 @@ namespace {
 
 using ST =  kwiversys::SystemTools;
 using DL =  kwiversys::DynamicLoader;
-  using library_t =  DL::LibraryHandle;
+using library_t =  DL::LibraryHandle;
 using function_t = DL::SymbolPointer;
 
 } // end anon namespace

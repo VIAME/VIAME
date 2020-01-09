@@ -9,9 +9,6 @@ set(vital_vpm_headers
   plugin_manager.h
   plugin_info.h
   plugin_registrar.h
-  plugin_loader_filter.h
-  plugin_filter_default.h
-  plugin_filter_category.h
   )
 
 set(vital_vpm_sources
@@ -23,6 +20,9 @@ set(vital_vpm_sources
   )
 
 set(vital_vpm_headers_private
+  plugin_loader_filter.h
+  plugin_filter_default.h
+  plugin_filter_category.h
   ${CMAKE_CURRENT_BINARY_DIR}/vital_vpm_export.h
   )
 
@@ -48,6 +48,7 @@ target_link_libraries(vital_vpm
                       kwiversys
   PRIVATE             vital_logger
                       vital_exceptions
+                      ${VITAL_BOOST_REGEX}
   )
 
 ###
