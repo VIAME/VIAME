@@ -45,7 +45,7 @@
 
 namespace py = pybind11;
 
-static void add_algorithm( const std::string& impl_name, std::string const& description, 
+static void add_algorithm( const std::string& impl_name, std::string const& description,
                             py::object conc_t );
 
 void mark_algorithm_as_loaded( const std::string& module_name );
@@ -111,6 +111,8 @@ kwiver::vital::algorithm_sptr python_algorithm_factory::create_object_a()
 static void add_algorithm( std::string const& impl_name, std::string const& description,
                             py::object conc_f)
 {
+  using kvpf = kwiver::vital::plugin_factory;
+
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
@@ -120,7 +122,9 @@ static void add_algorithm( std::string const& impl_name, std::string const& desc
                                                               conc_f ));
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, impl_name)
-      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description );
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, description )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, kvpf::ALGORITHM_CATEGORY )
+    ;
 }
 
 void mark_algorithm_as_loaded( const std::string& name )
@@ -154,4 +158,3 @@ static std::vector< std::string > implementation_names(const std::string& algori
 
   return all_implementations;
 }
-

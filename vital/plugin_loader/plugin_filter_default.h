@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,57 +28,34 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Interface to input adapter process.
- */
+#ifndef KWIVER_FITAL_PLUGIN_FILTER_DEFAULT_H
+#define KWIVER_FITAL_PLUGIN_FILTER_DEFAULT_H
 
-#ifndef PROCESS_INPUT_ADAPTER_PROCESS_H
-#define PROCESS_INPUT_ADAPTER_PROCESS_H
+#include <vital/plugin_loader/vital_vpm_export.h>
 
-#include <sprokit/processes/adapters/kwiver_adapter_export.h>
-
-#include <sprokit/pipeline/process.h>
-
-#include "adapter_base.h"
+#include <vital/plugin_loader/plugin_loader_filter.h>
 
 namespace kwiver {
+namespace vital {
 
-// ----------------------------------------------------------------
-class KWIVER_ADAPTER_EXPORT input_adapter_process
-  : public sprokit::process,
-    public adapter::adapter_base
+// -----------------------------------------------------------------
+/** Default plugin loader filter.
+ *
+ * This filter excludes duplicate plugins. An exception is thrown if a
+ * duplicate is found.
+ */
+class VITAL_VPM_EXPORT plugin_filter_default
+  : public plugin_loader_filter
 {
 public:
-  PLUGIN_INFO( "input_adapter",
-               "Source process for embedded pipeline.\n\n"
-               "Pushes data items into pipeline ports. "
-               "Ports are dynamically created as needed based on connections specified in the pipeline file." )
-
   // -- CONSTRUCTORS --
-  input_adapter_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~input_adapter_process();
+  plugin_filter_default() = default;
+  virtual ~plugin_filter_default() = default;
 
-  // Process interface
-  virtual void _step();
+  virtual bool add_factory( plugin_factory_handle_t fact ) const;
 
-  /**
-   * @brief Return list of active ports.
-   *
-   * This method returns the list of currently active ports and
-   * associated port info items.
-   *
-   * @return List of port names and info.
-   */
-  adapter::ports_info_t get_ports();
+}; // end class plugin_filter_default
 
-private:
+} } // end namespace
 
-  // This is used to intercept connections and make ports JIT
-  virtual void output_port_undefined( sprokit::process::port_t const& port) override;
-
-}; // end class input_adapter_process
-
-} // end namespace
-
-#endif /* PROCESS_INPUT_ADAPTER_PROCESS_H */
+#endif // KWIVER_FITAL_PLUGIN_FILTER_DEFAULT_H

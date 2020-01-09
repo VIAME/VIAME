@@ -23,6 +23,12 @@ Vital
  * Added support for registering callbacks to the KWIVER logger.  Callbacks
    receive any message that is logged with the KWIVER logging framework.
 
+Vital Plugin-loader
+
+ * Added support for filtering plugins when they are loaded. Filter
+   objects can be added to the plugin loader at run time to select or
+   exclude specific plugins.
+
 Vital Util
 
 Vital Logger

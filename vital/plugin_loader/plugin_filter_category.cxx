@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,57 +28,58 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * \file
- * \brief Interface to input adapter process.
- */
+#include "plugin_filter_category.h"
+#include "plugin_factory.h"
+#include "plugin_loader.h"
 
-#ifndef PROCESS_INPUT_ADAPTER_PROCESS_H
-#define PROCESS_INPUT_ADAPTER_PROCESS_H
-
-#include <sprokit/processes/adapters/kwiver_adapter_export.h>
-
-#include <sprokit/pipeline/process.h>
-
-#include "adapter_base.h"
+#include <iostream>
 
 namespace kwiver {
+namespace vital {
 
-// ----------------------------------------------------------------
-class KWIVER_ADAPTER_EXPORT input_adapter_process
-  : public sprokit::process,
-    public adapter::adapter_base
+// ----------------------------------------------------------------------------
+plugin_filter_category
+::plugin_filter_category( plugin_filter_category::condition cond,
+                          const std::string& cat)
+  : m_condition( cond ),
+    m_category( cat )
+{ }
+
+
+// ------------------------------------------------------------------
+/**
+ * @brief Filter select or reject plugins by category.
+ *
+ * This method compares the factory against the supplied category and,
+ * depending on whether the category is included or excluded, returns
+ * that indication.
+ *
+ * @param fact Factory object handle
+ *
+ * @return \b true if factory is to be added; \b false if factory
+ * should not be added.
+ *
+ */
+bool
+plugin_filter_category
+::add_factory( plugin_factory_handle_t fact ) const
 {
-public:
-  PLUGIN_INFO( "input_adapter",
-               "Source process for embedded pipeline.\n\n"
-               "Pushes data items into pipeline ports. "
-               "Ports are dynamically created as needed based on connections specified in the pipeline file." )
+  std::string cat;
+  if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, cat ) )
+  {
+    if ( m_condition == condition::EQUAL )
+    {
+      return (cat == m_category );
+    }
+    else
+    {
+      return (cat != m_category );
+    }
+  }
 
-  // -- CONSTRUCTORS --
-  input_adapter_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~input_adapter_process();
+  // Select if category not available
+  return true;
 
-  // Process interface
-  virtual void _step();
+}
 
-  /**
-   * @brief Return list of active ports.
-   *
-   * This method returns the list of currently active ports and
-   * associated port info items.
-   *
-   * @return List of port names and info.
-   */
-  adapter::ports_info_t get_ports();
-
-private:
-
-  // This is used to intercept connections and make ports JIT
-  virtual void output_port_undefined( sprokit::process::port_t const& port) override;
-
-}; // end class input_adapter_process
-
-} // end namespace
-
-#endif /* PROCESS_INPUT_ADAPTER_PROCESS_H */
+} } // end namespace

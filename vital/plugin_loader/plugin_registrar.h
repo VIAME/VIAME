@@ -32,6 +32,7 @@
 #define PLUGIN_LOADER_PLUGIN_REGISTRAR_H
 
 #include <vital/plugin_loader/plugin_factory.h>
+#include <vital/plugin_loader/plugin_loader.h>
 
 #if ! defined( KWIVER_DEFAULT_PLUGIN_ORGANIZATION )
 #define KWIVER_DEFAULT_PLUGIN_ORGANIZATION "undefined"

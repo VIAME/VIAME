@@ -284,8 +284,9 @@ public:
    */
   kwiver::vital::logger_handle_t logger();
 
-protected:
   kwiver::vital::plugin_loader* get_loader();
+
+protected:
 
   plugin_manager();
   ~plugin_manager();
