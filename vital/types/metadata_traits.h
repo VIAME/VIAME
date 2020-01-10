@@ -40,7 +40,6 @@
 #include <vital/types/geo_point.h>
 #include <vital/types/geo_polygon.h>
 #include <vital/types/matrix.h>
-#include <vital/types/metadata_tags.h>
 #include <vital/types/metadata.h>
 
 #include <vital/logger/logger.h>
@@ -58,8 +57,9 @@ namespace vital {
  */
 struct vital_meta_trait_base
 {
-  virtual ~vital_meta_trait_base() {}
+  virtual ~vital_meta_trait_base() = default;
   virtual std::string name() const = 0;
+  virtual std::string description() const = 0;
   virtual std::type_info const& tag_type() const = 0;
   virtual bool is_integral() const = 0;
   virtual bool is_floating_point() const = 0;
@@ -77,11 +77,12 @@ template <vital_metadata_tag tag> struct vital_meta_trait;
 
 // Macro to define basic metadata trait
 // This macro is available for others to create separate sets of traits.
-#define DEFINE_VITAL_METADATA_TRAIT(TAG, NAME, T)                       \
+#define DEFINE_VITAL_METADATA_TRAIT(TAG, NAME, T, LD)                   \
   template <>                                                           \
   struct vital_meta_trait<TAG>                                          \
   {                                                                     \
-    static std::string name() { return NAME; }                          \
+    static std::string name() { return std::string(NAME); }             \
+    static std::string  description() { return std::string(LD); }       \
     static std::type_info const& tag_type() { return typeid(T); }       \
     static bool is_integral() { return std::is_integral<T>::value; }    \
     static bool is_floating_point() { return std::is_floating_point<T>::value; } \
@@ -90,7 +91,7 @@ template <vital_metadata_tag tag> struct vital_meta_trait;
   };
 
 // Macro to define build-in traits.
-#define DEFINE_VITAL_META_TRAIT(TAG, NAME, T)   DEFINE_VITAL_METADATA_TRAIT( VITAL_META_ ## TAG, NAME, T )
+#define DEFINE_VITAL_META_TRAIT(TAG, NAME, T, LD)   DEFINE_VITAL_METADATA_TRAIT( VITAL_META_ ## TAG, NAME, T, LD )
 
 //
 // Define all compile time metadata traits
@@ -156,6 +157,17 @@ public:
    */
   std::string tag_to_name( vital_metadata_tag tag ) const;
 
+
+  // Get metadata tag description
+  /**
+   * This method returns the long description string for the specified
+   * tag.
+   *
+   * @param tag Metadata tag value.
+   *
+   * @return Long description for this tag.
+   */
+  std::string tag_to_description( vital_metadata_tag tag ) const;
 
 
 private:

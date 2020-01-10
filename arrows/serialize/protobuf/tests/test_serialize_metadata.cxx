@@ -90,8 +90,8 @@ TEST( serialize_metadata, metadata )
   {
     const auto& info = traits.find( kwiver::vital::VITAL_META_FRAME_CENTER );
 
-    kwiver::vital::geo_point::geo_2d_point_t geo_2d( 42.50, 73.54 );
-    kwiver::vital::geo_point pt (  geo_2d, kwiver::vital::SRID::lat_lon_WGS84 );
+    kwiver::vital::geo_point::geo_3d_point_t geo_3d( 42.50, 73.54, 100 );
+    kwiver::vital::geo_point pt (  geo_3d, kwiver::vital::SRID::lat_lon_WGS84 );
     auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
     meta_sptr->add( item );
   }

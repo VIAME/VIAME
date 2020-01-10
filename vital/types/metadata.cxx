@@ -56,7 +56,6 @@ namespace vital {
       : metadata_item( "Requested metadata item is not in collection", 0, VITAL_META_UNKNOWN )
     { }
 
-    virtual ~unknown_metadata_item() {}
     virtual bool is_valid() const { return false; }
     virtual vital_metadata_tag tag() const { return static_cast< vital_metadata_tag >(0); }
     virtual std::type_info const& type() const { return typeid( void ); }
@@ -80,11 +79,6 @@ metadata_item
     : m_name( name )
     , m_data( data )
     , m_tag( tag )
-{ }
-
-
-metadata_item
-::~metadata_item()
 { }
 
 
@@ -280,7 +274,7 @@ metadata
 
   switch (tag)
   {
-#define VITAL_META_TRAIT_CASE(TAG, NAME, T) case VITAL_META_ ## TAG: return typeid(T);
+#define VITAL_META_TRAIT_CASE(TAG, NAME, T, ...) case VITAL_META_ ## TAG: return typeid(T);
 
     KWIVER_VITAL_METADATA_TAGS( VITAL_META_TRAIT_CASE )
 
