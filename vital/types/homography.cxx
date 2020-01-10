@@ -56,7 +56,7 @@ h_map_point( Eigen::Matrix< T, 3, 3 > const& h, Eigen::Matrix< T, 2, 1 > const& 
 
   if ( fabs( out_pt[2] ) <= Eigen::NumTraits< T >::dummy_precision() )
   {
-    throw point_maps_to_infinity();
+    VITAL_THROW(point_maps_to_infinity);
   }
   return Eigen::Matrix< T, 2, 1 > ( out_pt[0] / out_pt[2], out_pt[1] / out_pt[2] );
 }
@@ -178,7 +178,7 @@ homography_< T >
   this->h_.computeInverseWithCheck( inv, isvalid );
   if ( ! isvalid )
   {
-    throw non_invertible();
+    VITAL_THROW(non_invertible);
   }
   return std::make_shared< homography_< T > >( inv );
 }
