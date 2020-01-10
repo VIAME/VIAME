@@ -445,8 +445,10 @@ class SRNNTracker(KwiverProcess):
 
         # if there are no tracks, generate new tracks from the track_state_list
         if not self._track_flag:
-            next_track_id = self._track_set.add_new_track_state_list(next_track_id,
-                            track_state_list, self._track_initialization_threshold)
+            for ts in track_state_list:
+                if ts.detected_object.confidence() >= self._track_initialization_threshold:
+                    self._track_set.add_new_track_state(next_track_id, ts)
+                    next_track_id += 1
             self._track_flag = True
         else:
             # check whether we need to terminate a track
