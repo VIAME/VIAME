@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@
 #include <arrows/burnout/kwiver_algo_burnout_plugin_export.h>
 #include <vital/algo/algorithm_factory.h>
 
+#include <arrows/burnout/burnout_image_enhancer.h>
+#include <arrows/burnout/burnout_pixel_classification.h>
 #include <arrows/burnout/burnout_track_descriptors.h>
 
 namespace kwiver {
@@ -49,9 +51,28 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   }
 
   // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "burnout", kwiver::arrows::burnout::burnout_track_descriptors );
+  auto fact = vpm.ADD_ALGORITHM( "burnout",
+    kwiver::arrows::burnout::burnout_track_descriptors );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
                     "Track descriptors using burnout" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "burnout_enhancer",
+    kwiver::arrows::burnout::burnout_image_enhancer );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Image filtering using burnout" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
+    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
+    ;
+
+  fact = vpm.ADD_ALGORITHM( "burnout_classifier",
+    kwiver::arrows::burnout::burnout_pixel_classification );
+  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
+                    "Pixel classification using burnout" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )

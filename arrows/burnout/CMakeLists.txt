@@ -2,20 +2,16 @@
 #
 
 set( headers
+  burnout_image_enhancer.h
+  burnout_pixel_classification.h
   burnout_track_descriptors.h
 )
 
 set( sources
+  burnout_image_enhancer.cxx
+  burnout_pixel_classification.cxx
   burnout_track_descriptors.cxx
   )
-
-set( burnout_linked_libs
-  ${VIDTK_LIBRARIES}
-  kwiversys
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
-  kwiver_algo_ocv
-  kwiver_algo_vxl )
 
 include_directories( SYSTEM ${VIDTK_INCLUDE_DIRS} )
 
@@ -35,8 +31,12 @@ kwiver_add_library( kwiver_algo_burnout
 
 target_link_libraries( kwiver_algo_burnout
   PUBLIC               vital_algo
-  PRIVATE              ${burnout_linked_libs}
-                       vil vidtk_descriptor
+  PRIVATE              vidtk_descriptor vidtk_utilities_no_process vidtk_pipelines
+                       kwiversys
+                       ${Boost_SYSTEM_LIBRARY}
+                       ${Boost_FILESYSTEM_LIBRARY}
+                       kwiver_algo_ocv
+                       kwiver_algo_vxl
   )
 
 algorithms_create_plugin( kwiver_algo_burnout
