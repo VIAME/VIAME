@@ -31,6 +31,7 @@ from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
+import itertools
 import sys
 from timeit import default_timer as timer
 
@@ -167,6 +168,7 @@ class SRNNTracker(KwiverProcess):
         self.declare_input_port_using_trait('image', required)
         self.declare_input_port_using_trait('detected_object_set', required)
         self.declare_input_port_using_trait('timestamp', required)
+        # Initializations
         self.declare_input_port_using_trait('object_track_set', optional)
         self.declare_input_port_using_trait('homography_src_to_ref', optional)
 
@@ -273,6 +275,16 @@ class SRNNTracker(KwiverProcess):
                                  'Should we add internally computed features to detections?')
         #-------------------------------------------------------------------
 
+        # Track initialization
+        # -------------------------------------------------------------------
+        # XXX Otherwise keep IDs consistent input-to-output and
+        # prevent overlapping tracks.
+        add_declare_config_trait('explicit_initialization', 'False',
+                                 'The string "True" (no quotes, same capitalization) '
+                                 'if only tracks derived from the most recently provided '
+                                 'nonempty object track set should be output')
+        #-------------------------------------------------------------------
+
     # ----------------------------------------------
     def _configure(self):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
@@ -337,6 +349,8 @@ class SRNNTracker(KwiverProcess):
         # add features to detections?
         self._add_features_to_detections = \
                 (self.config_value('add_features_to_detections') == 'True')
+        self._explicit_initialization = \
+            self.config_value('explicit_initialization') == 'True'
         self._base_configure()
 
     # ----------------------------------------------
@@ -371,6 +385,12 @@ class SRNNTracker(KwiverProcess):
         in_img_c = self.grab_input_using_trait('image')
         timestamp = self.grab_input_using_trait('timestamp')
         dos_ptr = self.grab_input_using_trait('detected_object_set')
+        if self.has_input_port_edge('object_track_set'):
+            # Initializations
+            inits = self.grab_input_using_trait('object_track_set').tracks()
+        else:
+            # An empty value is treated the same as no value
+            inits = []
         if self.has_input_port_edge('homography_src_to_ref'):
             homog_f2f = self.grab_input_using_trait('homography_src_to_ref')
         else:
@@ -390,7 +410,22 @@ class SRNNTracker(KwiverProcess):
 
         homog_src_to_base = self._step_homog_state(homog_f2f)
 
-        if len(dos) == 0:
+        # XXX This apparently won't always work because sometimes the
+        # timestamp is for the previous frame
+        inits = {t.id: t[timestamp.get_frame()].detection() for t in inits}
+        if self._explicit_initialization:
+            if inits:
+                # Deactivate all tracks
+                for track in list(self._track_set.iter_active()):
+                    self._track_set.deactivate_track(track)
+        else:
+            if inits:
+                # XXX Need to perform some sort of NMS
+                raise NotImplementedError
+
+        all_dos = list(itertools.chain(dos, inits.values()))
+
+        if not all_dos:
             print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
             return DetectedObjectSet()
 
@@ -400,11 +435,13 @@ class SRNNTracker(KwiverProcess):
             fid = timestamp.get_frame()
             ts = timestamp.get_time_usec()
 
-        det_obj_set, track_state_list = self._convert_detected_objects(
-            dos, fid, ts, im, homog_src_to_base,
+        det_obj_set, all_track_state_list = self._convert_detected_objects(
+            all_dos, fid, ts, im, homog_src_to_base,
         )
+        track_state_list = all_track_state_list[:len(dos)]
+        init_track_state_list = all_track_state_list[len(dos):]
 
-        self._step_track_set(fid, track_state_list)
+        self._step_track_set(fid, track_state_list, zip(inits, init_track_state_list))
 
         return det_obj_set
 
@@ -467,9 +504,10 @@ class SRNNTracker(KwiverProcess):
         return det_obj_set, track_state_list
 
 
-    def _step_track_set(self, frame_id, track_state_list):
-        """Step self._track_set using the current frame id and the list of
-        track states.
+    def _step_track_set(self, frame_id, track_state_list, init_track_states):
+        """Step self._track_set using the current frame id, the list of track
+        states, and an iterable of (track_id, track_state) pairs to
+        directly initialize.
 
         This deactivates old tracks, extends existing ones, and
         creates new ones according to this object's configuration.
@@ -482,8 +520,14 @@ class SRNNTracker(KwiverProcess):
                 or frame_id - track[-1].sys_frame_id > self._sys_terminate_track_threshold):
                 self._track_set.deactivate_track(track)
 
-        # Get a list of the active tracks
+        # Get a list of the active tracks before directly adding the
+        # explicitly initialized ones.
         tracks = list(self._track_set.iter_active())
+
+        # Directly add explicit init tracks
+        for tid, ts in init_track_states:
+            # XXX This throws an error should a new ID overlap with an existing one
+            self._track_set.add_new_track_state(tid, ts)
 
         next_track_id = int(self._track_set.get_max_track_id()) + 1
 
@@ -514,8 +558,10 @@ class SRNNTracker(KwiverProcess):
         for c, r in enumerate(hung_idx_list):
             if r is None or -similarity_mat[r, c] < self._similarity_threshold:
                 # Conditionally initialize a new track
-                if (track_state_list[c].detected_object.confidence()
-                       >= self._track_initialization_threshold):
+                if not self._explicit_initialization and (
+                        track_state_list[c].detected_object.confidence()
+                        >= self._track_initialization_threshold
+                ):
                     self._track_set.add_new_track_state(next_track_id,
                             track_state_list[c])
                     next_track_id += 1
