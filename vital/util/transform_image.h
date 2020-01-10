@@ -47,7 +47,7 @@ namespace vital {
 
 /// Transform a given image in place given a unary function
 /**
- * Apply a given unary function to all pixels in the image. This is guareteed
+ * Apply a given unary function to all pixels in the image. This is guarateed
  * to traverse the pixels in an optimal order, i.e. in-memory-order traversal.
  *
  * Example:
@@ -223,7 +223,7 @@ void cast_image( image const& img_in, image_of<T>& img_out )
 
 /// Call a unary function on every pixel in a const image
 /**
- * Apply a given unary function to all pixels in the image. This is guareteed
+ * Apply a given unary function to all pixels in the image. This is guarateed
  * to traverse the pixels in an optimal order, i.e. in-memory-order traversal.
  *
  * Example:
@@ -283,8 +283,6 @@ void foreach_pixel( image_of<T> const& img, OP op )
   }
 }
 
-
 } }   // end namespace vital
-
 
 #endif // VITAL_TRANSFORM_IMAGE_H_

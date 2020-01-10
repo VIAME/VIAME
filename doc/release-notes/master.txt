@@ -51,6 +51,9 @@ Vital Types
  * Added iterator, const_iterator and iterable classes to support container-
    independent iteration.
 
+ * Refactored detected_object_set to convert some methods to external
+   functions since they were not properties of the class.
+
 Vital Bindings
 
  * Remove ctypes python bindings

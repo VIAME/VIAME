@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017,2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,8 @@ namespace vital {
 class detected_object_set;
 
 // typedef for a detected_object shared pointer
-typedef std::shared_ptr< detected_object_set > detected_object_set_sptr;
+using detected_object_set_sptr = std::shared_ptr< detected_object_set >;
+using detected_object_set_scptr = std::shared_ptr< detected_object_set const >;
 
 // ----------------------------------------------------------------
 /**
@@ -70,8 +71,8 @@ class VITAL_EXPORT detected_object_set
   : private noncopyable
 {
 public:
-  typedef std::vector< detected_object_sptr >::iterator iterator;
-  typedef std::vector< detected_object_sptr >::const_iterator const_iterator;
+  using iterator = std::vector< detected_object_sptr >::iterator;
+  using  const_iterator = std::vector< detected_object_sptr >::const_iterator;
 
   /**
    * @brief Create an empty detection set.
@@ -228,7 +229,9 @@ public:
    *
    * @param scale Scale factor
    */
-  void scale( double scale_factor );
+  void
+  VITAL_DEPRECATED
+  scale( double scale_factor );
 
   /**
    * @brief Shift all detection locations by some translation offset.
@@ -244,7 +247,9 @@ public:
    * @param col_shift Column  (a.k.a. x, i, width) translation factor
    * @param row_shift Row (a.k.a. y, j, height) translation factor
    */
-  void shift( double col_shift, double row_shift );
+  void
+  VITAL_DEPRECATED
+  shift( double col_shift, double row_shift );
 
   /**
    * @brief Get attributes set.
