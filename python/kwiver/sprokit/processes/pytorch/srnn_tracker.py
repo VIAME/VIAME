@@ -32,16 +32,14 @@ from __future__ import division
 from __future__ import absolute_import
 
 import sys
-import torch
-
-from torchvision import models, transforms
-from torch.autograd import Variable
+from timeit import default_timer as timer
 
 import numpy as np
 import scipy as sp
 import scipy.optimize
+import torch
+from torchvision import models, transforms
 
-from timeit import default_timer as timer
 from PIL import Image as pilImage
 
 from kwiver.sprokit.pipeline import process
