@@ -411,7 +411,7 @@ class SRNNTracker(KwiverProcess):
         next_track_id = int(self._track_set.get_max_track_id()) + 1
 
         # get new track state from new frame and detections
-        for idx, item in enumerate(dos):
+        for item, grid_feature, app_feature in zip(dos, grid_feature_list, pt_app_features):
             if self._gtbbox_flag:
                 bbox = item
                 fid = self._step_id
@@ -426,7 +426,7 @@ class SRNNTracker(KwiverProcess):
             if self._add_features_to_detections:
                 # store app feature to detected_object
                 app_f = new_descriptor(g_config.A_F_num)
-                app_f[:] = pt_app_features[idx].numpy()
+                app_f[:] = app_feature.numpy()
                 d_obj.set_descriptor(app_f)
             det_obj_set.add(d_obj)
 
@@ -435,8 +435,8 @@ class SRNNTracker(KwiverProcess):
             cur_ts = track_state(frame_id=self._step_id,
                                 bbox_center=bbox.center(),
                                 ref_point=transform_homog(homog_src_to_base, bbox.center()),
-                                interaction_feature=grid_feature_list[idx],
-                                app_feature=pt_app_features[idx],
+                                interaction_feature=grid_feature,
+                                app_feature=app_feature,
                                 bbox=[int(x) for x in bbox_as_list],
                                 ref_bbox=transform_homog_bbox(homog_src_to_base, bbox_as_list),
                                 detected_object=d_obj,
