@@ -459,7 +459,7 @@ class SRNNTracker(KwiverProcess):
 
             # call IOU tracker
             if self._IOU_flag:
-                self._track_set, track_state_list = timing('IOU tracking', lambda: (
+                track_state_list = timing('IOU tracking', lambda: (
                     self._iou_tracker(self._track_set, track_state_list)
                 ))
 
