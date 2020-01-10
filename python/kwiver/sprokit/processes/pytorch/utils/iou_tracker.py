@@ -48,6 +48,8 @@ class IOUTracker(object):
         track_state_list = track_state_list[:]
 
         for track in track_set.iter_active():
+            if track.updated_flag:
+                continue
             # If there is exactly one detection at or above the
             # reject threshold, and it's additionally at or above
             # the accept threshold, add it to the track.
