@@ -12,11 +12,15 @@ CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 set( PYTORCH_LIBS_TO_BUILD )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch torchvision )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 
   set( COMMON_PYTORCH_PROJECT_DEP fletch pytorch )
 else()
   set( COMMON_PYTORCH_PROJECT_DEP fletch torch )
+endif()
+
+if( VIAME_ENABLE_PYTORCH )
+  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
