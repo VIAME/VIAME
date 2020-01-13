@@ -1,8 +1,11 @@
-v0.10.4 - 1/16/2020
+v0.10.4 - 1/17/2020
 ===================
 
 
 -Add continue training model script to project(s)
+
+
+-Added new default motion detection pipelines
 
 
 v0.10.3 - 1/13/2020
