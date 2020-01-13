@@ -456,11 +456,12 @@ class SRNNTracker(KwiverProcess):
                     or fid - track[-1].sys_frame_id > self._sys_terminate_track_threshold):
                     self._track_set.deactivate_track(track)
 
+            tracks = list(self._track_set.iter_active())
 
             # call IOU tracker
             if self._IOU_flag:
-                track_state_list = timing('IOU tracking', lambda: (
-                    self._iou_tracker(self._track_set, track_state_list)
+                tracks, track_state_list = timing('IOU tracking', lambda: (
+                    self._iou_tracker(tracks, track_state_list)
                 ))
 
             #print('***track_set len', len(self._track_set))
@@ -468,11 +469,8 @@ class SRNNTracker(KwiverProcess):
 
             # estimate similarity matrix
             similarity_mat, track_idx_list = timing('SRNN association', lambda: (
-                self._srnn_matching(self._track_set, track_state_list, self._ts_threshold)
+                self._srnn_matching(tracks, track_state_list, self._ts_threshold)
             ))
-
-            # reset update_flag
-            self._track_set.reset_updated_flag()
 
             # Hungarian algorithm
             row_idx_list, col_idx_list = timing('Hungarian algorithm', lambda: (
@@ -494,7 +492,7 @@ class SRNNTracker(KwiverProcess):
                         next_track_id += 1
                 else:
                     # add to existing track
-                    self._track_set.update_track(track_idx_list[r], track_state_list[c])
+                    self._track_set[track_idx_list[r]].append(track_state_list[c])
 
         print('total tracks', len(self._track_set))
 

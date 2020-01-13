@@ -110,8 +110,7 @@ class SRNNMatching(object):
         V_model_list = (RnnType.Appearance, RnnType.Motion, RnnType.Interaction)
         self._targetRNN_AIM_V_model = load_model(V_model_list, targetRNN_AIM_V_model_path)
 
-    def __call__(self, track_set, track_state_list, track_search_threshold):
-        track_list = [track for track in track_set.iter_active() if not track.updated_flag]
+    def __call__(self, track_list, track_state_list, track_search_threshold):
         tracks_num = len(track_list)
         track_states_num = len(track_state_list)
 

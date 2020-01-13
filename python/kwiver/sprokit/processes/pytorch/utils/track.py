@@ -67,7 +67,6 @@ class track(object):
         self.track_id = track_id
         self.track_state_list = []
         self.max_conf = 0.0
-        self.updated_flag = False
 
     def __len__(self):
         return len(self.track_state_list)
@@ -93,7 +92,6 @@ class track(object):
     def duplicate_track_state(self, timestep_len = 6):
         du_track = track(self.track_id)
         du_track.track_state_list = list(self.track_state_list)
-        du_track.updated_flag = self.updated_flag
         du_track.max_conf = self.max_conf
 
         for _ in range(timestep_len - len(du_track)):
@@ -147,13 +145,6 @@ class track_set(object):
         new_track = track(track_id)
         new_track.append(track_state)
         self.add_new_track(new_track)
-
-    def update_track(self, track_id, new_track_state):
-        self[track_id].append(new_track_state)
-
-    def reset_updated_flag(self):
-        for track in self:
-            track.updated_flag = False
 
 
 if __name__ == '__main__':
