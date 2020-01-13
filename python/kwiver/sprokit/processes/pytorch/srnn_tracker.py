@@ -415,9 +415,7 @@ class SRNNTracker(KwiverProcess):
         inits = {t.id: t[timestamp.get_frame()].detection() for t in inits}
         if self._explicit_initialization:
             if inits:
-                # Deactivate all tracks
-                for track in list(self._track_set.iter_active()):
-                    self._track_set.deactivate_track(track)
+                self._track_set.deactivate_all_tracks()
         else:
             if inits:
                 # XXX Need to perform some sort of NMS

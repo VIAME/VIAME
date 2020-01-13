@@ -130,6 +130,9 @@ class track_set(object):
     def deactivate_track(self, track):
         del self.active_id_set[track.track_id]
 
+    def deactivate_all_tracks(self):
+        self.active_id_set.clear()
+
     def active_count(self):
         return len(self.active_id_set)
 
