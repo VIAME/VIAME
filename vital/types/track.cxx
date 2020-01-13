@@ -131,7 +131,7 @@ track
 /// Append a track state.
 bool
 track
-::append( track_state_sptr state )
+::append( track_state_sptr&& state )
 {
   if ( state && ! state->track_.expired() )
   {
@@ -144,8 +144,8 @@ track
   {
     return false;
   }
-  this->history_.push_back( state );
   state->track_ = this->shared_from_this();
+  this->history_.emplace_back( std::move( state ) );
   return true;
 }
 
@@ -176,7 +176,7 @@ track
 /// Insert a track state.
 bool
 track
-::insert( track_state_sptr state )
+::insert( track_state_sptr&& state )
 {
   if ( ! state )
   {
@@ -195,16 +195,21 @@ track
     return false;
   }
 
-  this->history_.insert(pos, state);
   state->track_ = this->shared_from_this();
+  this->history_.emplace( pos, std::move( state ) );
   return true;
 }
 
 /// Remove a track state
 bool
 track
-::remove(track_state_sptr state)
+::remove( track_state_sptr const& state )
 {
+  if ( !state )
+  {
+    return false;
+  }
+
   auto pos = std::lower_bound(this->history_.begin(), this->history_.end(),
     state->frame(), compare_state_frame());
 

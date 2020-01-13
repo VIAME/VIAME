@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017, 2019 by Kitware, Inc.
+ * Copyright 2013-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -217,7 +217,10 @@ public:
    * \returns true if successful, false not correctly ordered
    * \param state track state to add to this track.
    */
-  bool append( track_state_sptr state );
+  bool append( track_state_sptr&& state );
+
+  bool append( track_state_sptr const& state )
+  { auto copy = state; return this->append( std::move( copy ) ); }
 
   /// Append the history contents of another track.
   /**
@@ -239,14 +242,17 @@ public:
    * \returns true if successful, false if already a state on this frame
    * \param state track state to add to this track.
    */
-  bool insert( track_state_sptr state );
+  bool insert( track_state_sptr&& state );
+
+  bool insert( track_state_sptr const& state )
+  { auto copy = state; return this->insert( std::move( copy ) ); }
 
   /// Remove track state
   /**
    * Removes the track state
    * Returns true if the state was found and removed
   */
-  bool remove(track_state_sptr state);
+  bool remove( track_state_sptr const& state );
 
   /// Access a const iterator to the start of the history
   history_const_itr begin() const { return history_.begin(); }
