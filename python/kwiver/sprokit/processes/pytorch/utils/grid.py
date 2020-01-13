@@ -48,11 +48,11 @@ class Grid(object):
             A grid feature records which cells in the configured
             neighborhood have at least one bounding box in them.
         """
-        self.img_w, self.img_h = im_size
+        img_w, img_h = im_size
 
         # calculate grid cell height and width
-        cell_h = self.img_h / self._grid_rows
-        cell_w = self.img_w / self._grid_cols
+        cell_h = img_h / self._grid_rows
+        cell_w = img_w / self._grid_cols
 
         # initial all gridcell to 0
         grid = torch.FloatTensor(self._grid_rows, self._grid_cols).zero_()
@@ -66,8 +66,8 @@ class Grid(object):
             h = int(bb.height())
 
             # bbox center
-            c_w = min(x + w / 2, self.img_w - 1)
-            c_h = min(y + h / 2, self.img_h - 1)
+            c_w = min(x + w / 2, img_w - 1)
+            c_h = min(y + h / 2, img_h - 1)
 
             # cell idxs
             row_idx = int(c_h // cell_h)
