@@ -1,12 +1,15 @@
-
-v0.10.3 - 1/9/2020
-==================
-
-
--Refine cascade faster rcnn training proceedure first pass
+v0.10.4 - 1/16/2020
+===================
 
 
 -Add continue training model script to project(s)
+
+
+v0.10.3 - 1/13/2020
+===================
+
+
+-Refine cascade faster rcnn training proceedure first pass
 
 
 -Add tracker-assisted annotation for video
