@@ -197,10 +197,13 @@ class PYSOTTracker(KwiverProcess):
             self._has_init_signals = True
             init_track_pool = initializations.tracks()
             init_track_ids = []
-        elif self._is_first and \
-          not self.has_input_port_edge_using_trait('detected_object_set'):
+        elif self.has_input_port_edge_using_trait('detected_object_set'):
             init_track_pool = []
-            cbox = BoundingBox(self._seed_bbox)
+            init_track_ids = []
+        elif self._is_first:
+            init_track_pool = []
+            cbox = BoundingBox(self._seed_bbox[0],
+              self._seed_bbox[1], self._seed_bbox[2], self._seed_bbox[3])
             initialize_track(0, cbox, frame_id, img)
             init_track_ids = [0]
 
@@ -251,11 +254,12 @@ class PYSOTTracker(KwiverProcess):
         if self.has_input_port_edge_using_trait('detected_object_set'):
             detections = self.grab_input_using_trait('detected_object_set')
             detections = detections.select(self._init_threshold)
-            for idx, cbox in enumerate(detections):
+            for det in detections:
                 # Check for overlap
+                cbox = det.bounding_box()
                 overlaps = False
                 for obox in frame_boxes:
-                    if intersect(cbox, obox) > self._init_intersect:
+                    if box_intersect(cbox, obox) > self._init_intersect:
                         overlaps = True
                         break
                 if overlaps:
