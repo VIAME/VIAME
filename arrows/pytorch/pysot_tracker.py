@@ -83,8 +83,17 @@ class PYSOTTracker(KwiverProcess):
         self.declare_config_using_trait("seed_bbox")
         
         self.add_config_trait("threshold", "threshold",
-          '0.0', 'Minimum confidence to keep track.')
+          '0.00', 'Minimum confidence to keep track.')
         self.declare_config_using_trait("threshold")
+
+        self.add_config_trait("init_threshold", "init_threshold",
+          '0.10', 'Minimum detection confidence to initialize tracks.')
+        self.declare_config_using_trait("init_threshold")
+
+        self.add_config_trait("init_intersect", "init_intersect",
+          '0.10', 'Do not initialize on any detections with this percent '
+          'overlap with any existing other tracks or detection')
+        self.declare_config_using_trait("init_intersect")
 
         self.add_config_trait("terminate_after_n", "terminate_after_n",
           '50', 'Terminate trackers after no hits for N frames')
@@ -115,6 +124,7 @@ class PYSOTTracker(KwiverProcess):
         self.declare_input_port_using_trait('image', required)
         self.declare_input_port_using_trait('timestamp', required)
         self.declare_input_port_using_trait('initializations', optional)
+        self.declare_input_port_using_trait('detected_object_set', optional)
 
         # Output Ports (Port Name, Flag)
         self.declare_output_port_using_trait('timestamp', optional)
@@ -125,7 +135,6 @@ class PYSOTTracker(KwiverProcess):
         self._tracks = dict()
         self._track_init_frames = dict()
         self._track_last_frames = dict()
-        self._last_frame_id = -1
 
     # --------------------------------------------------------------------------
     def _configure(self):
@@ -135,6 +144,8 @@ class PYSOTTracker(KwiverProcess):
         self._config_file = self.config_value('config_file')
         self._threshold = float(self.config_value('threshold'))
         self._seed_bbox = ast.literal_eval(self.config_value("seed_bbox"))
+        self._init_threshold = float(self.config_value("init_threshold"))
+        self._init_intersect = float(self.config_value("init_intersect"))
         self._terminate_after_n = int(self.config_value("terminate_after_n"))
 
         cfg.merge_from_file(self._config_file)
@@ -142,6 +153,7 @@ class PYSOTTracker(KwiverProcess):
         self._model = ModelBuilder()
         self._model = load_pretrain(self._model, self._model_path).cuda().eval()
         self._is_first = True
+        self._track_counter = 0
 
         self._base_configure()
 
@@ -150,14 +162,14 @@ class PYSOTTracker(KwiverProcess):
 
         # Retrieval all inputs for this step
         in_img_c = self.grab_input_using_trait('image')
-        timestamp = self.grab_input_using_trait('timestamp')
+        ts = self.grab_input_using_trait('timestamp')
 
-        if not timestamp.has_valid_frame():
+        if not ts.has_valid_frame():
             raise RuntimeError("Frame timestamps must contain frame IDs")
 
-        print('PYSOT tracker stepping, timestamp = {!r}'.format(timestamp))
+        print('PYSOT tracker stepping, timestamp = {!r}'.format(ts))
 
-        frame_id = timestamp.get_frame()
+        frame_id = ts.get_frame()
         img = in_img_c.image().asarray().astype('uint8')
 
         if len(np.shape(img)) > 2 and np.shape(img)[2] == 1:
@@ -168,50 +180,44 @@ class PYSOTTracker(KwiverProcess):
             img = img[:, :, ::-1].copy() # RGB vs BGR
 
         # Handle track initialization
+        def initialize_track(tid, cbox, ts, image):
+            bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
+            cx, cy, w, h = get_axis_aligned_bbox(np.array(bbox))
+            start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
+            self._trackers[tid] = build_tracker(self._model)
+            self._trackers[tid].init(image, start_box)
+            self._tracks[tid] = [ObjectTrackState(ts, cbox, 1.0)]
+            self._track_init_frames[tid] = ts.get_frame()
+            self._track_last_frames[tid] = ts.get_frame()
+
+        frame_boxes = []
+
         if self.has_input_port_edge_using_trait('initializations'):
             initializations = self.grab_input_using_trait('initializations')
             self._has_init_signals = True
             init_track_pool = initializations.tracks()
             init_track_ids = []
-        elif self._is_first:
+        elif self._is_first and \
+          not self.has_input_port_edge_using_trait('detected_object_set'):
             init_track_pool = []
             cbox = BoundingBox(self._seed_bbox)
-            cx, cy, w, h = get_axis_aligned_bbox(np.array(self._seed_bbox))
-            start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
-            self._trackers[0] = build_tracker(self._model)
-            self._trackers[0].init(img, start_box)
-            self._tracks[0] = [ObjectTrackState(timestamp, cbox, 1.0)]
-            self._is_first = False
+            initialize_track(0, cbox, frame_id, img)
             init_track_ids = [0]
 
         for trk in init_track_pool:
             # Special case, initialize a track on a previous frame
-            if trk[trk.last_frame].frame_id == self._last_frame_id and \
+            if not self._is_first and \
+              trk[trk.last_frame].frame_id == self._last_ts.get_frame() and \
               ( not trk.id in self._track_init_frames or \
-              self._track_init_frames[ trk.id ] < self._last_frame_id ):
-                tid = trk.id
-                cbox = trk[trk.last_frame].detection().bounding_box()
-                bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
-                cx, cy, w, h = get_axis_aligned_bbox(np.array(bbox))
-                start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
-                self._trackers[tid] = build_tracker(self._model)
-                self._trackers[tid].init(self._last_frame, start_box)
-                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
-                self._track_init_frames[tid] = self._last_frame_id
-                self._track_last_frames[tid] = self._last_frame_id
+              self._track_init_frames[ trk.id ] < self._last_ts.get_frame() ):
+                initialize_track(trk.id,
+                  trk[trk.last_frame].detection().bounding_box(),
+                  self._last_ts, self._last_img)
             # This track has an initialization signal for the current frame
             elif trk[trk.last_frame].frame_id == frame_id:
-                tid = trk.id
-                cbox = trk[trk.last_frame].detection().bounding_box()
-                bbox = [cbox.min_x(), cbox.min_y(), cbox.width(), cbox.height()]
-                cx, cy, w, h = get_axis_aligned_bbox(np.array(bbox))
-                start_box = [cx-(w-1)/2, cy-(h-1)/2, w, h]
-                self._trackers[tid] = build_tracker(self._model)
-                self._trackers[tid].init(img, start_box)
-                self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
-                init_track_ids.append(tid)
-                self._track_init_frames[tid] = frame_id
-                self._track_last_frames[tid] = frame_id
+                bbox = trk[trk.last_frame].detection().bounding_box()
+                initialize_track(trk.id, bbox, ts, img)
+                frame_boxes.append(bbox)
 
         # Update existing tracks
         for tid in self._trackers.keys():
@@ -223,24 +229,51 @@ class PYSOTTracker(KwiverProcess):
             if score > self._threshold:
                 cbox = BoundingBox(
                   bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
-                new_state = ObjectTrackState(timestamp, cbox, score)
+                new_state = ObjectTrackState(ts, cbox, score)
                 self._tracks[tid].append(new_state)
                 self._track_last_frames[tid] = frame_id
+                frame_boxes.append(cbox)
             if frame_id > self._track_last_frames[tid] + self._terminate_after_n:
                 del self._trackers[tid]
                 del self._tracks[tid]
                 del self._track_init_frames[tid]
                 del self._track_last_frames[tid]
 
+        # Detection-based initialization
+        def box_intersect(cbox1, cbox2):
+            x1 = max(cbox1.min_x(), cbox2.min_x())
+            x2 = min(cbox1.max_x(), cbox2.max_x())
+            y1 = max(cbox1.min_y(), cbox2.min_y())
+            y2 = min(cbox1.max_y(), cbox2.max_y())
+            intsct_area = max(0, x2-x1) * max(0, y2-y1)
+            return intsct_area/(max(cbox1.area(), cbox2.area()))
+
+        if self.has_input_port_edge_using_trait('detected_object_set'):
+            detections = self.grab_input_using_trait('detected_object_set')
+            detections = detections.select(self._init_threshold)
+            for idx, cbox in enumerate(detections):
+                # Check for overlap
+                overlaps = False
+                for obox in frame_boxes:
+                    if intersect(cbox, obox) > self._init_intersect:
+                        overlaps = True
+                        break
+                if overlaps:
+                    continue
+                # Initialize new track if necessary
+                self._track_counter = self._track_counter + 1
+                initialize_track(self._track_counter, cbox, ts, img)
+
         # Output tracks
         output_tracks = ObjectTrackSet(
           [Track(tid, trk) for tid, trk in self._tracks.items()])
 
-        self.push_to_port_using_trait('timestamp', timestamp)
+        self.push_to_port_using_trait('timestamp', ts)
         self.push_to_port_using_trait('object_track_set', output_tracks)
 
-        self._last_frame_id = timestamp.get_frame()
-        self._last_frame = img
+        self._last_ts = ts
+        self._last_img = img
+        self._is_first = False
         self._base_step()
 
 # ==============================================================================
