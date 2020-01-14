@@ -223,6 +223,8 @@ class PYSOTTracker(KwiverProcess):
                 frame_boxes.append(bbox)
 
         # Update existing tracks
+        tids_to_delete = []
+
         for tid in self._trackers.keys():
             if tid in init_track_ids:
                 continue # Already processed (initialized) on frame
@@ -237,10 +239,13 @@ class PYSOTTracker(KwiverProcess):
                 self._track_last_frames[tid] = frame_id
                 frame_boxes.append(cbox)
             if frame_id > self._track_last_frames[tid] + self._terminate_after_n:
-                del self._trackers[tid]
-                del self._tracks[tid]
-                del self._track_init_frames[tid]
-                del self._track_last_frames[tid]
+                tids_to_delete.append(tid)
+
+        for tid in tids_to_delete:
+            del self._trackers[tid]
+            del self._tracks[tid]
+            del self._track_init_frames[tid]
+            del self._track_last_frames[tid]
 
         # Detection-based initialization
         def box_intersect(cbox1, cbox2):
