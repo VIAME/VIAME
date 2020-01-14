@@ -86,6 +86,10 @@ class PYSOTTracker(KwiverProcess):
           '0.0', 'Minimum confidence to keep track.')
         self.declare_config_using_trait("threshold")
 
+        self.add_config_trait("terminate_after_n", "terminate_after_n",
+          '50', 'Terminate trackers after no hits for N frames')
+        self.declare_config_using_trait("terminate_after_n")
+
         # # PYSOT Configs
         #self.add_config_trait("pysot_model_exemplar_size",
         #  "pysot_model_exemplar_size", '127', 'Model exemplar image size')
@@ -120,6 +124,7 @@ class PYSOTTracker(KwiverProcess):
         self._trackers = dict()
         self._tracks = dict()
         self._track_init_frames = dict()
+        self._track_last_frames = dict()
         self._last_frame_id = -1
 
     # --------------------------------------------------------------------------
@@ -130,6 +135,7 @@ class PYSOTTracker(KwiverProcess):
         self._config_file = self.config_value('config_file')
         self._threshold = float(self.config_value('threshold'))
         self._seed_bbox = ast.literal_eval(self.config_value("seed_bbox"))
+        self._terminate_after_n = int(self.config_value("terminate_after_n"))
 
         cfg.merge_from_file(self._config_file)
 
@@ -192,6 +198,7 @@ class PYSOTTracker(KwiverProcess):
                 self._trackers[tid].init(self._last_frame, start_box)
                 self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
                 self._track_init_frames[tid] = self._last_frame_id
+                self._track_last_frames[tid] = self._last_frame_id
             # This track has an initialization signal for the current frame
             elif trk[trk.last_frame].frame_id == frame_id:
                 tid = trk.id
@@ -204,6 +211,7 @@ class PYSOTTracker(KwiverProcess):
                 self._tracks[tid] = [ObjectTrackState(timestamp, cbox, 1.0)]
                 init_track_ids.append(tid)
                 self._track_init_frames[tid] = frame_id
+                self._track_last_frames[tid] = frame_id
 
         # Update existing tracks
         for tid in self._trackers.keys():
@@ -217,6 +225,12 @@ class PYSOTTracker(KwiverProcess):
                   bbox[0], bbox[1], bbox[0]+bbox[2], bbox[1]+bbox[3])
                 new_state = ObjectTrackState(timestamp, cbox, score)
                 self._tracks[tid].append(new_state)
+                self._track_last_frames[tid] = frame_id
+            if frame_id > self._track_last_frames[tid] + self._terminate_after_n:
+                del self._trackers[tid]
+                del self._tracks[tid]
+                del self._track_init_frames[tid]
+                del self._track_last_frames[tid]
 
         # Output tracks
         output_tracks = ObjectTrackSet(
