@@ -40,6 +40,11 @@ set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
+# Default library dir
+set(KWIVER_DEFAULT_LIBRARY_DIR "lib" CACHE STRING
+    "Default library directory for kwiver")
+mark_as_advanced(KWIVER_DEFAULT_LIBRARY_DIR)
+
 #
 # kwiver module config file.
 set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
