@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -133,21 +133,21 @@ void write_object_track_process
 void write_object_track_process
 ::_step()
 {
-  std::string file_name;
 
-  // image name is optional
+  auto const& input = grab_from_port_using_trait( object_track_set );
+  auto const& ts = grab_from_port_using_trait( timestamp );
+
+  // Image name is optional
+  auto file_name = std::string{};
   if ( has_input_port_edge_using_trait( image_file_name ) )
   {
     file_name = grab_from_port_using_trait( image_file_name );
   }
 
-  kwiver::vital::object_track_set_sptr input
-    = grab_from_port_using_trait( object_track_set );
-
   {
     scoped_step_instrumentation();
 
-    d->m_writer->write_set( input );
+    d->m_writer->write_set( input, ts, file_name );
   }
 }
 
@@ -163,6 +163,7 @@ void write_object_track_process
 
   declare_input_port_using_trait( image_file_name, optional );
   declare_input_port_using_trait( object_track_set, required );
+  declare_input_port_using_trait( timestamp, required );
 }
 
 
