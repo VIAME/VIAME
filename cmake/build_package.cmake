@@ -45,6 +45,10 @@ file( GLOB VIAME_VIAME_PLUGINS_FILES "${VIAME_INSTALL_DIR}/lib/modules/*" )
 list( APPEND FIXUP_DIRS ${VIAME_INSTALL_DIR}/lib/modules )
 add_to_fixup_libs( ${VIAME_INSTALL_DIR}/lib/modules )
 
+file( GLOB VIAME_VIAME_PLUGINS_FILES "${VIAME_INSTALL_DIR}/lib/kwiver/modules/*" )
+list( APPEND FIXUP_DIRS ${VIAME_INSTALL_DIR}/lib/kwiver/modules )
+add_to_fixup_libs( ${VIAME_INSTALL_DIR}/lib/kwiver/modules )
+
 file( GLOB VIAME_PLUGIN_PLUGINS_FILES "${VIAME_INSTALL_DIR}/lib/modules/plugin_explorer/*" )
 list( APPEND FIXUP_DIRS ${VIAME_INSTALL_DIR}/lib/modules/plugin_explorer )
 
