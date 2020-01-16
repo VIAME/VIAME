@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,6 +109,12 @@ public:
    */
   virtual void write_set( const kwiver::vital::detected_object_set_sptr set,
                           std::string const& image_path ) = 0;
+
+  /// Perform end-of-stream actions.
+  /**
+   * This method writes any necessary final data to the currently open file.
+   */
+  virtual void complete() {}
 
 
 protected:

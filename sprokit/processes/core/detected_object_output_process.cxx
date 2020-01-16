@@ -167,6 +167,8 @@ void detected_object_output_process
     grab_edge_datum_using_trait( detected_object_set );
     mark_process_as_complete();
 
+    d->m_writer->complete();
+
     return;
   }
 
