@@ -124,3 +124,8 @@ cp /usr/lib64/libblas.so.3 install/lib || true
 cp /usr/lib64/liblapack.so.3 install/lib || true
 cp /usr/lib64/libgfortran.so.3 install/lib || true
 cp /usr/lib64/libquadmath.so.0 install/lib || true
+
+cp /usr/lib64/libX11.so.6 install/lib || true
+cp /usr/lib64/libXau.so.6 install/lib || true
+cp /usr/lib64/libxcb.so.1 install/lib || true
+cp /usr/lib64/libXext.so.6 install/lib || true
