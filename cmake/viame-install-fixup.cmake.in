@@ -49,6 +49,8 @@ list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/plugins )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/sprokit )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/modules )
 add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/modules )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules )
+add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/modules/plugin_explorer )
 
 if( "@VIAME_ENABLE_MATLAB@" )
