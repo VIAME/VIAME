@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,6 +99,9 @@ detected_object_output_process
   : process( config ),
     d( new detected_object_output_process::priv )
 {
+  // Required so that we can do 1 step past the end
+  set_data_checking_level( check_none );
+
   make_ports();
   make_config();
 }
@@ -157,6 +160,16 @@ void detected_object_output_process
 void detected_object_output_process
 ::_step()
 {
+  auto datum = peek_at_datum_using_trait( detected_object_set );
+
+  if ( datum->type() == sprokit::datum::complete )
+  {
+    grab_edge_datum_using_trait( detected_object_set );
+    mark_process_as_complete();
+
+    return;
+  }
+
   std::string file_name;
 
   // image name is optional
