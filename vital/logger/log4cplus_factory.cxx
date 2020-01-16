@@ -31,6 +31,7 @@
 #include "kwiver_logger_factory.h"
 #include <kwiversys/SystemTools.hxx>
 #include <vital/logger/vital_log4cplus_logger_export.h>
+#include <vital/util/get_paths.h>
 
 #include <log4cplus/configurator.h>
 #include <log4cplus/logger.h>
@@ -356,14 +357,25 @@ public:
   log4cplus_factory()
     : kwiver_logger_factory( "log4cplus factory" )
   {
+    using ST = kwiversys::SystemTools;
     std::string config_file;
 
     // Try the environemnt variable if no config file yet
-    if ( ! kwiversys::SystemTools::GetEnv( "LOG4CPLUS_CONFIGURATION", config_file ) )
+    if ( ! ST::GetEnv( "LOG4CPLUS_CONFIGURATION", config_file ) )
     {
-      if (kwiversys::SystemTools::FileExists( "./log4cplus.properties") )
+      auto const exe_path = kwiver::vital::get_executable_path();
+      const std::string prop_file = "log4cplus.properties";
+      if (ST::FileExists( "./" + prop_file) )
       {
-        config_file = "./log4cplus.properties";
+        config_file = "./" + prop_file;
+      }
+      else if (ST::FileExists(exe_path + "/" + prop_file))
+      {
+        config_file = exe_path + "/" + prop_file;
+      }
+      else if (ST::FileExists(exe_path + "/../lib/kwiver/" + prop_file))
+      {
+        config_file = exe_path + "/../lib/kwiver/" + prop_file;
       }
     }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,13 +103,12 @@ public:
    *
    * \param set Track object set
    * \param ts Timestamp for the current frame
-   * \param frame_identifier current frame ID (e.g. filename)
+   * \param frame_identifier Identifier for the current frame (e.g. file name)
    */
   virtual void write_set(
-    const kwiver::vital::object_track_set_sptr set,
-    const kwiver::vital::timestamp& ts = kwiver::vital::timestamp(),
-    const std::string& frame_identifier = std::string() ) = 0;
-
+    kwiver::vital::object_track_set_sptr const& set,
+    kwiver::vital::timestamp const& ts = {},
+    std::string const& frame_identifier = {} ) = 0;
 
 protected:
   write_object_track_set();

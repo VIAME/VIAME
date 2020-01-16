@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -164,9 +164,10 @@ write_object_track_set_kw18
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_kw18
-::write_set( const kwiver::vital::object_track_set_sptr set,
-    const kwiver::vital::timestamp& ts,
-    const std::string& file_id )
+::write_set(
+  kwiver::vital::object_track_set_sptr const& set,
+  kwiver::vital::timestamp const& /*ts*/,
+  std::string const& /*frame_identifier*/ )
 {
   if( d->m_first )
   {

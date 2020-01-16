@@ -31,6 +31,13 @@ Vital Plugin-loader
 
 Vital Util
 
+Vital Logger
+
+ * Log4cplus now searches in more locations to find the log4cplus.properties
+   file during start up.  If not found with the environment variable or in the
+   current working directory it will now search in the location of the
+   executable and also in "../lib/kwiver" relative to the executable.
+
 Vital Tools
 
 Vital Types

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,10 +89,10 @@ write_object_track_process
   // Attach our logger name to process logger
   attach_logger( kwiver::vital::get_logger( name() ) );
 
-  set_data_checking_level( check_sync );
-
   make_ports();
   make_config();
+
+  set_data_checking_level( check_sync );
 }
 
 
@@ -173,7 +173,7 @@ void write_object_track_process
 void write_object_track_process
 ::_step()
 {
-  auto port_info = peek_at_port_using_trait( object_track_set );
+  auto const& port_info = peek_at_port_using_trait( object_track_set );
 
   if( port_info.datum->type() == sprokit::datum::complete )
   {
@@ -183,10 +183,12 @@ void write_object_track_process
     return;
   }
 
-  std::string file_name;
+  auto const& input = grab_from_port_using_trait( object_track_set );
+  auto const& ts = grab_from_port_using_trait( timestamp );
 
-  // image name is optional
-  if( has_input_port_edge_using_trait( image_file_name ) )
+  // Image name is optional
+  auto file_name = std::string{};
+  if ( has_input_port_edge_using_trait( image_file_name ) )
   {
     file_name = grab_from_port_using_trait( image_file_name );
   }
@@ -194,16 +196,6 @@ void write_object_track_process
   if ( d->m_frame_list_writer )
   {
     *d->m_frame_list_writer << file_name << std::endl;
-  }
-
-  kwiver::vital::object_track_set_sptr input
-    = grab_from_port_using_trait( object_track_set );
-
-  kwiver::vital::timestamp ts;
-
-  if ( has_input_port_edge_using_trait( timestamp ) )
-  {
-    ts = grab_from_port_using_trait( timestamp );
   }
 
   {
@@ -225,7 +217,7 @@ void write_object_track_process
 
   declare_input_port_using_trait( image_file_name, optional );
   declare_input_port_using_trait( object_track_set, required );
-  declare_input_port_using_trait( timestamp, optional );
+  declare_input_port_using_trait( timestamp, required );
 }
 
 
