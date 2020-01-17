@@ -56,21 +56,21 @@ public:
   /**
    * \return A new deep clone of this transformation.
    */
-  virtual kwiver::vital::transform_2d_sptr clone() const;
+  kwiver::vital::transform_2d_sptr clone() const override;
 
   /// Return an inverse of this transform object
   /**
    * \throws non_invertible_transform when the transformation is non-invertible.
    * \return A new transform object that is the inverse of this transformation.
    */
-  virtual kwiver::vital::transform_2d_sptr inverse() const;
+  kwiver::vital::transform_2d_sptr inverse_() const override;
 
   /// Map a 2D double-type point using this transform
   /**
    * \param p Point to map against this transform
    * \return New point in the projected coordinate system.
    */
-  virtual kwiver::vital::vector_2d map( kwiver::vital::vector_2d const& p ) const;
+  kwiver::vital::vector_2d map( kwiver::vital::vector_2d const& p ) const override;
 
 private:
 

@@ -31,7 +31,7 @@ ITKTransform
 
 kwiver::vital::transform_2d_sptr
 ITKTransform
-::inverse() const
+::inverse_() const
 {
   return kwiver::vital::transform_2d_sptr(
     new ITKTransform(

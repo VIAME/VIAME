@@ -271,7 +271,7 @@ write_object_track_set_viame_csv
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_viame_csv
-::write_set( const kwiver::vital::object_track_set_sptr set,
+::write_set( const kwiver::vital::object_track_set_sptr& set,
              const kwiver::vital::timestamp& ts,
              const std::string& file_id )
 {
