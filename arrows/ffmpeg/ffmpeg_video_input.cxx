@@ -300,7 +300,6 @@ public:
     }
     this->frame_advanced = 0;
     this->f_frame->data[0] = NULL;
-
     return true;
   }
 
@@ -331,7 +330,7 @@ public:
 
     if (this->f_video_stream)
     {
-      avcodec_close(this->f_video_stream ->codec);
+      avcodec_close(this->f_video_stream->codec);
       this->f_video_stream = nullptr;
     }
     if (this->f_format_context)
@@ -339,8 +338,12 @@ public:
       avformat_close_input(&this->f_format_context);
       this->f_format_context = nullptr;
     }
-
-    this->f_video_encoding = nullptr;
+    if (this->f_video_encoding)
+    {
+      avcodec_close(this->f_video_encoding);
+      avcodec_free_context(&this->f_video_encoding);
+      this->f_video_encoding = nullptr;
+    }
   }
 
   // ==================================================================
