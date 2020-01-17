@@ -42,6 +42,12 @@ Vital Tools
 
 Vital Types
 
+ * Added functions to camera_intrinsics to test if a point is in the valid
+   domain of the mapping function.  In the radial distortion case of
+   simple_camera_intrinsics, this computes a maximum radius for which
+   distortion is valid.  This feature is to help avoid invalid projections
+   of points into images due to the distortion being non-injective.
+
  * Added get_vector() member function to access the vector of all metadata on
    a frame in metadata_map.
 
