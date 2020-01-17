@@ -27,35 +27,20 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/**
- * \file algorithm_implementation.cxx
- *
- * \brief python bindings for algorithm
- */
-
-
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-#include <vital/algo/algorithm.h>
-#include <vital/algo/image_object_detector.h>
 #include <vital/bindings/python/vital/algo/trampoline/detected_object_set_output_trampoline.txx>
-#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
-#include <vital/bindings/python/vital/algo/algorithm.h>
 #include <vital/bindings/python/vital/algo/detected_object_set_output.h>
-#include <vital/bindings/python/vital/algo/image_object_detector.h>
-#include <sstream>
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(algorithm, m)
+void detected_object_set_output(py::module &m)
 {
-  algorithm(m);
-  register_algorithm<kwiver::vital::algo::detected_object_set_output,
-	    algorithm_def_doso_trampoline<>>(m, "detected_object_set_output");
-  detected_object_set_output(m);
-  register_algorithm<kwiver::vital::algo::image_object_detector,
-            algorithm_def_iod_trampoline<>>(m, "image_object_detector");
-  image_object_detector(m);
+  py::class_< kwiver::vital::algo::detected_object_set_output,
+              std::shared_ptr<kwiver::vital::algo::detected_object_set_output>,
+              kwiver::vital::algorithm_def<kwiver::vital::algo::detected_object_set_output>,
+              detected_object_set_output_trampoline<> >(m, "DetectedObjectSetOutput")
+    .def(py::init())
+    .def_static("static_type_name", &kwiver::vital::algo::detected_object_set_output::static_type_name)
+    .def("write_set", &kwiver::vital::algo::detected_object_set_output::write_set)
+    .def("complete", &kwiver::vital::algo::detected_object_set_output::complete);
 }
