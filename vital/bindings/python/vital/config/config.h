@@ -32,6 +32,7 @@
 #define KWIVER_VITAL_PYTHON_CONFIG_H
 
 #include <vital/config/config_block.h>
+#include <vital/config/config_difference.h>
 
 #include <pybind11/pybind11.h>
 

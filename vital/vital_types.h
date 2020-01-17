@@ -41,6 +41,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -75,6 +76,10 @@ enum class clone_type
   SHALLOW,
   DEEP,
 };
+
+// Logger handle
+class kwiver_logger;
+using logger_handle_t = std::shared_ptr< kwiver_logger >;
 
 } } // end namespace
 
