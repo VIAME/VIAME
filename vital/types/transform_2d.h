@@ -1,5 +1,5 @@
 /*ckwg +30
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,17 @@ public:
    * \return New point in the projected coordinate system.
    */
   virtual vector_2d map( vector_2d const& p ) const = 0;
+
+  /// Return an inverse of this transform object
+  /**
+   * \throws non_invertible
+   *   When the transformation is non-invertible.
+   * \return A new transform object that is the inverse of this transformation.
+   */
+  transform_2d_sptr inverse() const { return this->inverse_(); }
+
+protected:
+  virtual transform_2d_sptr inverse_() const = 0;
 };
 
 } // namespace vital
