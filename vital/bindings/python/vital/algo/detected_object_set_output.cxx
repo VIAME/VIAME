@@ -33,14 +33,17 @@
 
 namespace py = pybind11;
 
+using doso = kwiver::vital::algo::detected_object_set_output;
+
 void detected_object_set_output(py::module &m)
 {
-  py::class_< kwiver::vital::algo::detected_object_set_output,
-              std::shared_ptr<kwiver::vital::algo::detected_object_set_output>,
-              kwiver::vital::algorithm_def<kwiver::vital::algo::detected_object_set_output>,
+  py::class_< doso,
+              std::shared_ptr<doso>,
+              kwiver::vital::algorithm_def<doso>,
               detected_object_set_output_trampoline<> >(m, "DetectedObjectSetOutput")
     .def(py::init())
-    .def_static("static_type_name", &kwiver::vital::algo::detected_object_set_output::static_type_name)
-    .def("write_set", &kwiver::vital::algo::detected_object_set_output::write_set)
-    .def("complete", &kwiver::vital::algo::detected_object_set_output::complete);
+    .def_static("static_type_name", &doso::static_type_name)
+    .def("write_set", &doso::write_set)
+    .def("complete", &doso::complete)
+    ;
 }
