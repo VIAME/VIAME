@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_SIFT
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_SIFT",
+               "OpenCV feature detection via the SIFT algorithm" )
+
   /// Constructor
   detect_features_SIFT();
 
@@ -80,7 +83,10 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_SIFT
                                   vital::algo::extract_descriptors >
 {
 public:
-  /// Constructor
+  PLUGIN_INFO( "ocv_SIFT",
+               "OpenCV feature-point descriptor extraction via the SIFT algorithm" )
+
+    /// Constructor
   extract_descriptors_SIFT();
 
   /// Destructor
@@ -108,4 +114,4 @@ private:
 
 #endif //defined(HAVE_OPENCV_NONFREE) || defined(HAVE_OPENCV_XFEATURES2D)
 
-#endif // KWIVER_ARROWS_FEATURE_DETECT_EXTRACT_SIFT_H_
+#endif

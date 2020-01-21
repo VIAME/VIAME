@@ -129,6 +129,7 @@ public:
   virtual void log_fatal( std::string const& msg )
   {
     this->m_loggerImpl->fatal( msg );
+    do_callback(LEVEL_FATAL, msg, location_info());
   }
 
 
@@ -140,6 +141,7 @@ public:
                                              location.get_line_number() );
 
     this->m_loggerImpl->fatal( msg, cxx_location );
+    do_callback(LEVEL_FATAL, msg, location));
   }
 
 
@@ -147,6 +149,7 @@ public:
   virtual void log_error( std::string const& msg )
   {
     this->m_loggerImpl->error( msg );
+    do_callback(LEVEL_ERROR, msg, location_info());
   }
 
 
@@ -158,6 +161,7 @@ public:
                                              location.get_line_number() );
 
     this->m_loggerImpl->error( msg, cxx_location );
+    do_callback(LEVEL_ERROR, msg, location);
   }
 
 
@@ -165,6 +169,7 @@ public:
   virtual void log_warn( std::string const& msg )
   {
     this->m_loggerImpl->warn( msg );
+    do_callback(LEVEL_WARN, msg, location_info());
   }
 
   virtual void log_warn( std::string const&                       msg,
@@ -175,12 +180,14 @@ public:
                                              location.get_line_number() );
 
     this->m_loggerImpl->warn( msg, cxx_location );
+    do_callback(LEVEL_WARN, msg, location);
   }
 
   // ------------------------------------------------------------------
   virtual void log_info( std::string const& msg )
   {
     this->m_loggerImpl->info( msg );
+    do_callback(LEVEL_INFO, msg, location_info());
   }
 
 
@@ -192,6 +199,7 @@ public:
                                              location.get_line_number() );
 
     this->m_loggerImpl->info( msg, cxx_location );
+    do_callback(LEVEL_INFO, msg, location);
   }
 
 
@@ -199,6 +207,7 @@ public:
   virtual void log_debug( std::string const& msg )
   {
     this->m_loggerImpl->debug( msg );
+    do_callback(LEVEL_DEBUG, msg, location_info());
   }
 
 
@@ -210,6 +219,7 @@ public:
                                              location.get_line_number() );
 
     this->m_loggerImpl->debug( msg, cxx_location );
+    do_callback(LEVEL_DEBUG, msg, location);
   }
 
 
@@ -217,6 +227,7 @@ public:
   virtual void log_trace( std::string const& msg )
   {
     this->m_loggerImpl->trace( msg );
+    do_callback(LEVEL_TRACE, msg, location_info());
   }
 
 
@@ -228,6 +239,7 @@ public:
                                              location.get_line_number() );
 
     this->m_loggerImpl->trace( msg, cxx_location );
+    do_callback(LEVEL_TRACE, msg, location);
   }
 
 

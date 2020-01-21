@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,45 +48,53 @@
 namespace kwiver {
 namespace vital {
 
-
-/// Forward declaration of track object
 class track;
 class track_state;
+using track_sptr = std::shared_ptr< track >;
+using track_state_sptr = std::shared_ptr< track_state >;
 
 constexpr track_id_t invalid_track_id = -1;
 
+// ----------------------------------------------------------------------------
+class VITAL_EXPORT track_ref : public std::weak_ptr< track >
+{
+public:
+  track_ref() = default;
+  track_ref( track_ref const& other ) {}
+  track_ref( track_ref&& other ) {}
 
-/// Shared pointers for general track type
-typedef std::shared_ptr< track > track_sptr;
-typedef std::weak_ptr< track > track_wptr;
-typedef std::shared_ptr<track_state> track_state_sptr;
+  track_ref& operator= ( track_ref const& rhs ) = delete;
+  track_ref& operator= ( track_ref&& rhs ) = delete;
 
+  track_ref& operator= ( track_sptr const& rhs )
+  {
+    this->std::weak_ptr< track >::operator= ( rhs );
+    return *this;
+  }
+};
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// Empty base class for data associated with a track state
 class VITAL_EXPORT track_state
 {
 public:
   friend class track;
-  
-  track_state( )
-    : frame_id_( 0 )
-  { } 
-  //  Constructor
+
+  track_state() = default;
+
+  /// Constructor
   track_state( frame_id_t frame )
     : frame_id_( frame )
-  { }
+  {}
 
-  /// Copy Constructor
-  track_state( track_state const& other )
-    : frame_id_( other.frame_id_ )
-  { }
+  /// Copy constructor
+  track_state( track_state const& other ) = default;
 
-  /// Assignment Operator
-  track_state& operator= ( track_state const& rhs ) = delete;
+  /// Move constructor
+  track_state( track_state&& other ) = default;
 
   /// Clone the track state (polymorphic copy constructor)
-  virtual track_state_sptr clone() const
+  virtual track_state_sptr clone( clone_type = clone_type::DEEP ) const
   {
     return std::make_shared<track_state>( *this );
   }
@@ -96,24 +104,24 @@ public:
 
   /// Access the track containing this state
   track_sptr track() const { return track_.lock(); }
-  
-  /// Set the frame identifier 
-  void set_frame(frame_id_t frame_id) { frame_id_ = frame_id; }
+
+  /// Set the frame identifier
+  void set_frame( frame_id_t frame_id ) { frame_id_ = frame_id; }
 
   virtual ~track_state() = default;
 
-  bool operator==(track_state other) const { return frame_id_ == other.frame(); }
+  bool operator==( track_state other ) const { return frame_id_ == other.frame(); }
 
 private:
   /// The frame identifier for this state
-  frame_id_t frame_id_;
+  frame_id_t frame_id_ = 0;
 
   /// A weak reference back to the parent track
-  track_wptr track_;
+  track_ref track_;
 };
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// Empty base class for data associated with a whole track.
 class VITAL_EXPORT track_data
 {
@@ -121,10 +129,10 @@ protected:
   virtual ~track_data() = default;
 };
 
-typedef std::shared_ptr<track_data> track_data_sptr;
+typedef std::shared_ptr< track_data > track_data_sptr;
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// A special type of track data that redirects to another track
 /**
  * The primary use case for this class is to aid bookkeeping for track merging.
@@ -145,9 +153,9 @@ class VITAL_EXPORT track_data_redirect : public track_data
 {
 public:
   // Constructor
-  track_data_redirect(track_sptr t, track_data_sptr d)
-    : redirect_track(t)
-    , old_track_data(d)
+  track_data_redirect( track_sptr t, track_data_sptr d )
+    : redirect_track( t )
+    , old_track_data( d )
   {
   }
 
@@ -158,7 +166,7 @@ public:
 };
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /// A representation of a track.
 /**
  * A track is a sequence of corresponding identifiers associated with each
@@ -181,7 +189,7 @@ public:
   static track_sptr create( track_data_sptr data = nullptr );
 
   /// Clone
-  track_sptr clone() const;
+  track_sptr clone( clone_type = clone_type::DEEP ) const;
 
   /// Access the track identification number
   track_id_t id() const { return id_; }
@@ -233,11 +241,21 @@ public:
    */
   bool insert( track_state_sptr state );
 
+  /// Remove track state
+  /**
+   * Removes the track state
+   * Returns true if the state was found and removed
+  */
+  bool remove(track_state_sptr state);
+
   /// Access a const iterator to the start of the history
   history_const_itr begin() const { return history_.begin(); }
 
   /// Access a const iterator to the end of the history
   history_const_itr end() const { return history_.end(); }
+
+  /// Access the first entry of the history
+  track_state_sptr front() const { return history_.front(); }
 
   /// Access the last entry of the history
   track_state_sptr back() const { return history_.back(); }

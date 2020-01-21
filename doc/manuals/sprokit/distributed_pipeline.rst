@@ -248,14 +248,14 @@ The actual `.pipe` file looks like this::
 
 	connect from dser.dos to sink.detected_object_set
 
-We'll use `pipeline_runner` to start these pipelines.  First, we'll start the
+We'll use `kwiver runner` to start these pipelines.  First, we'll start the
 send pipeline::
 
-	pipeline_runner --pipe test_zmq_send.pipe
+	kwiver runner test_zmq_send.pipe
 
 In a second terminal, we'll start the reciever::
 
-	pipeline_runner --pipe test_zmq_receive.pipe
+	kwiver runner test_zmq_receive.pipe
 
 When the receiver is started, the data flow will start immediately.  At the end of execution
 the file `recevied_dos.csv` should contain the transmitted, synthesized `detected_object_set`
@@ -274,24 +274,24 @@ Here is a diagram of such a topology:
    :align: center
 
 We can use the same `.pipe` files by reconfiguring the pipeline on the command line using
-`pipeline_runner`.  Here's how we'll start the first sender.  In this case we're simply
+`kwiver runner`.  Here's how we'll start the first sender.  In this case we're simply
 changing the `detection_class` configuration for the simulator so that we can identify
 this sender's output in the resulting CSV file::
 
-	pipeline_runner --pipe test_zmq_send.pipe --set sim:reader:simulator:detection_class=detector_one
+	kwiver runner test_zmq_send.pipe --set sim:reader:simulator:detection_class=detector_one
 
 In another terminal we can start a second sender.  In this case we also change the `detection_class`
 configuration and we change the ZeroMQ `port` to be two above the default port of `5560`.  This leaves
 room for the synchronization port of the first sender and sets up the two senders in the configuration
 expected by a multi-publisher receiver::
 
-	pipeline_runner --pipe test_zmq_send.pipe --set sim:reader:simulator:detection_class=detector_two --set zmq:port=5562
+	kwiver runner test_zmq_send.pipe --set sim:reader:simulator:detection_class=detector_two --set zmq:port=5562
 
 Finally, we'll start the receiver.  We'll simply change the `num_publishers` parameter to `2`
 so that it connects to both publishers, starting at port `5560` for the first and automatically
 adding two to get to `5562` for the second::
 
-	pipeline_runner --pipe test_zmq_recv.pipe --set zmq:num_publishers=2
+	kwiver runner test_zmq_recv.pipe --set zmq:num_publishers=2
 
 
 Multiple Subscribers
@@ -306,15 +306,15 @@ to a single publisher.  Here is a diagram of this topology:
 
 First we'll start our publisher, reconfiguring it to expect `2` subscribers before starting::
 
-	pipeline_runner --pipe test_zmq_send.pipe  --set zmq:expected_subscribers=2
+	kwiver runner test_zmq_send.pipe  --set zmq:expected_subscribers=2
 
 Then, we'll start our first subscriber, changing the output file name to `received_dos_one.csv`::
 
-	pipeline_runner --pipe test_zmq_recv.pipe --set sink::file_name=received_dos_one.csv
+	kwiver runner test_zmq_recv.pipe --set sink::file_name=received_dos_one.csv
 
 Finally, we'll start out second subscriber, this time changing the output file name to `received_dos_two.csv`::
 
-	pipeline_runner --pipe test_zmq_recv.pipe --set sink::file_name=received_dos_two.csv
+	kwiver runner test_zmq_recv.pipe --set sink::file_name=received_dos_two.csv
 
 Worked examples of these pipelines using the `TMUX <https://github.com/tmux/tmux>`_ terminal multiplexor can
 be found in `test_zmq_multi_pub_tmux.sh` and `test_zmq_multi_sub_tmus.sh` in the `sprokit/tests/pipelines`

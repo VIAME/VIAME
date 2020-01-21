@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 
 #include <sstream>
 #include <cstdlib>
+#include <functional>
 #include <memory>
 
 #include <vital/noncopyable.h>
@@ -87,10 +88,22 @@ public:
   virtual void set_level( log_level_t lev) = 0;
   virtual log_level_t get_level() const = 0;
 
+  /// Type alias for the callback function signature
+  using callback_t =
+    std::function<void(log_level_t, std::string const& name,
+                       std::string const& msg,
+                       logger_ns::location_info const& loc)>;
+
+  /// Set a callback to be called on logging events for this logger instance
+  void set_local_callback(callback_t cb);
+
+  /// Set a callback to be called on logging events for all logger instances
+  static void set_global_callback(callback_t cb);
+
   /**
    * @brief Get logger name.
    */
-  std::string get_name();
+  std::string get_name() const;
 
   /**
    * @brief Log a message string with the FATAL level.
@@ -287,7 +300,7 @@ public:
    *
    * @param lev level value to convert
   */
-  char const* get_level_string(kwiver_logger::log_level_t lev) const;
+  static char const* get_level_string(kwiver_logger::log_level_t lev);
 
   /**
    * @brief Get name of logger factory / back-end provider
@@ -311,6 +324,12 @@ protected:
    */
   kwiver_logger( logger_ns::kwiver_logger_factory* fact, std::string const& name );
 
+ /**
+  * @brief Call the registered callback functions, if any
+  */
+  void do_callback(log_level_t level, std::string const& msg,
+                   logger_ns::location_info const & location) const;
+
 private:
 
   class impl;
@@ -326,4 +345,4 @@ typedef std::shared_ptr< kwiver_logger > logger_handle_t;
 
 } } // end namespace
 
-#endif /* KWIVER_KWIVER_LOGGER_H_ */
+#endif

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,8 +84,9 @@ public:
     */
   virtual size_t depth() const { return data_.depth(); }
 
-  /// Get and in-memory image class to access the data
+  /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return viscl_to_vital(data_); }
+  using vital::image_container::get_image;
 
   /// Access the underlying VisCL data structure
   viscl::image get_viscl_image() const { return data_; }
@@ -115,4 +116,4 @@ KWIVER_ALGO_VISCL_EXPORT viscl::image image_container_to_viscl(const vital::imag
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VISCL_IMAGE_CONTAINER_H_
+#endif

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,6 +123,9 @@ PYBIND11_MODULE(detected_object, m)
   .def("bounding_box", &det_obj::bounding_box)
   .def("set_bounding_box", &det_obj::set_bounding_box,
     py::arg("bbox"))
+  .def("geo_point", &det_obj::geo_point)
+  .def("set_geo_point", &det_obj::set_geo_point,
+    py::arg("gp"))
   .def("confidence", &det_obj::confidence)
   .def("set_confidence", &det_obj::set_confidence,
     py::arg("d"))

@@ -175,8 +175,8 @@ public:
   algo_explorer_pipe();
   virtual ~algo_explorer_pipe();
 
-  virtual bool initialize( explorer_context* context );
-  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact );
+  virtual bool initialize( explorer_context* context ) override;
+  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact ) override;
 
 
   // instance data

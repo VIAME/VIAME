@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2019 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@ from vital.types import (
     EigenArray,
     Feature,
     Landmark,
-    LandmarkMap,
     Rotation,
     Track,
     TrackSet,
@@ -60,56 +59,6 @@ def random_point_3d(stddev):
           [numpy.random.normal(0., stddev)]]
     return EigenArray.from_iterable(pt, target_shape=(3, 1))
 
-
-def cube_corners(s, c=None):
-    """
-    Construct map of landmarks at the corners of a cube centered on ``c`` with a
-    side length of ``s``.
-    :rtype: LandmarkMap
-    """
-    if c is None:
-        c = EigenArray.from_iterable([0, 0, 0])
-    s /= 2.
-    # Can add lists to numpy.ndarray types
-    d = {
-        0: Landmark(c + EigenArray.from_iterable([-s, -s, -s])),
-        1: Landmark(c + EigenArray.from_iterable([-s, -s,  s])),
-        2: Landmark(c + EigenArray.from_iterable([-s,  s, -s])),
-        3: Landmark(c + EigenArray.from_iterable([-s,  s,  s])),
-        4: Landmark(c + EigenArray.from_iterable([ s, -s, -s])),
-        5: Landmark(c + EigenArray.from_iterable([ s, -s,  s])),
-        6: Landmark(c + EigenArray.from_iterable([ s,  s, -s])),
-        7: Landmark(c + EigenArray.from_iterable([ s,  s,  s])),
-    }
-    return LandmarkMap.from_dict(d)
-
-
-def init_landmarks(num_lm, c=None):
-    """
-    construct map of landmarks will all locations at ``c`` with IDs in range
-    ``[0, num_lm]``.
-    """
-    if c is None:
-        c = EigenArray.from_iterable([0, 0, 0])
-    d = {}
-    for i in range(num_lm):
-        d[i] = Landmark(loc=c)
-    return LandmarkMap.from_dict(d)
-
-
-def noisy_landmarks(landmark_map, stdev=1.0):
-    """
-    Add gausian noise to the landmark positions, returning a new landmark map.
-    :type landmark_map: LandmarkMap
-    :type stdev: float
-    """
-    d = landmark_map.as_dict()
-    d_new = {}
-    for i, l in d.iteritems():
-        l2 = l.clone()
-        l2.loc += random_point_3d(stdev)
-        d_new[i] = l2
-    return LandmarkMap.from_dict(d_new)
 
 
 def camera_seq(num_cams=20, k=None):
@@ -174,31 +123,6 @@ def noisy_cameras(cam_map, pos_stddev=1., rot_stddev=1.):
     return CameraMap(cmap)
 
 
-def projected_tracks(lmap, cmap):
-    """
-    Use the cameras to project the landmarks back into their images.
-    :type lmap: LandmarkMap
-    :type cmap: CameraMap
-    """
-    tracks = []
-
-    cam_d = cmap.as_dict()
-    landmark_d = lmap.as_dict()
-
-    for lid, l in landmark_d.iteritems():
-        t = Track(lid)
-        tracks.append(t)
-
-        # Sort camera iteration to make sure that we go in order of frame IDs
-        for fid in sorted(cam_d):
-            cam = cam_d[fid]
-            f = Feature(cam.project(l.loc))
-            t.append(TrackState(fid, f))
-
-        assert t.size == len(cam_d)
-
-    return TrackSet(tracks)
-
 
 def subset_tracks(trackset, keep_fraction=0.75):
     """
@@ -251,41 +175,39 @@ def reprojection_error_sqr(cam, lm, feat):
     return (reprojection_error_vec(cam, lm, feat) ** 2).sum()
 
 
-def reprojection_rmse(cmap, lmap, tset):
-    """
-    Compute the Root-Mean-Square-Error (RMSE) of the re-projection.
+def create_numpy_image(dtype_name, nchannels, order='c'):
+    if nchannels is None:
+        shape = (5, 4)
+    else:
+        shape = (5, 4, nchannels)
+    size = numpy.prod(shape)
 
-    Implemented in Map-TK metrics.
+    dtype = numpy.dtype(dtype_name)
 
-    :type cmap: CameraMap
-    :type lmap: LandmarkMap
-    :type tset: TrackSet
+    if dtype_name == 'bool':
+        np_img = numpy.zeros(size, dtype=dtype).reshape(shape)
+        np_img[0::2] = 1
+    else:
+        np_img = numpy.arange(size, dtype=dtype).reshape(shape)
 
-    :return: Double error value
-    :rtype float:
+    if order.startswith('c'):
+        np_img = numpy.ascontiguousarray(np_img)
+    elif order.startswith('fortran'):
+        np_img = numpy.asfortranarray(np_img)
+    else:
+        raise KeyError(order)
+    if order.endswith('-reverse'):
+        np_img = np_img[::-1, ::-1]
 
-    """
-    error_sum = 0.
-    num_obs = 0
+    return np_img
 
-    for t in tset.tracks():
-        lm = lmap.as_dict().get(t.id, None)
-        if lm is None:
-            # No landmark corresponding to this track, skip
-            continue
-
-        for ts in t:
-            feat = ts.feature
-            if feat is None:
-                # No feature for this state
-                continue
-
-            cam = cmap.as_dict().get(ts.frame_id, None)
-            if cam is None:
-                # No camera corresponding to this track state
-                continue
-
-            error_sum += reprojection_error_sqr(cam, lm, feat)
-            num_obs += 1
-
-    return numpy.sqrt(error_sum / num_obs)
+def map_dtype_name_to_pixel_type(dtype_name):
+    if dtype_name == 'float16':
+        want = 'float16'
+    if dtype_name == 'float32':
+        want = 'float'
+    elif dtype_name == 'float64':
+        want = 'double'
+    else:
+        want = dtype_name
+    return want

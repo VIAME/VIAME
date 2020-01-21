@@ -51,6 +51,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_GFTT
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_GFTT",
+               "OpenCV feature detection via the GFTT algorithm" )
+
   /// Constructor
   detect_features_GFTT();
 

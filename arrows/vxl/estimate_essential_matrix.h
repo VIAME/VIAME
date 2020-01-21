@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,9 @@ class KWIVER_ALGO_VXL_EXPORT estimate_essential_matrix
   : public vital::algorithm_impl<estimate_essential_matrix, vital::algo::estimate_essential_matrix>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to estimate an essential matrix." )
+
   /// Constructor
   estimate_essential_matrix();
 
@@ -95,4 +98,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_ESTIMATE_ESSENTIAL_MATRIX_H_
+#endif

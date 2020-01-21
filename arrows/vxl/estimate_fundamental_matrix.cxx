@@ -127,7 +127,8 @@ estimate_fundamental_matrix
   d_->precondition = config->get_value<bool>("precondition",
                                              d_->precondition);
 
-  d_->method = config->get_enum_value< method_converter >( "method" );
+  d_->method = config->get_enum_value< method_converter >( "method",
+                                                           d_->method );
 }
 
 

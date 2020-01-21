@@ -42,12 +42,27 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
+#include <arrows/core/track_set_impl.h>
+
 namespace algo = kwiver::vital::algo;
 
 namespace kwiver
 {
 
-  create_config_trait( keyframe_selection, std::string, "", "Algorithm configuration subblock." )
+create_config_trait( keyframe_selection, std::string, "", "Algorithm configuration subblock." )
+
+create_port_trait( next_tracks, feature_track_set,
+                   "feature track set for the next frame.");
+
+create_port_trait( loop_back_tracks, feature_track_set,
+                   "feature track set from last call to keyframe_selection_process.");
+
+create_port_trait( only_frame_data_tracks, feature_track_set,
+                   "output track set with only frame data, no klt tracks.");
+
+create_port_trait( to_loop_back_tracks, feature_track_set,
+                   "accumulated klt tracks");
+
 
 /**
  * \class keyframe_selection_process
@@ -88,6 +103,11 @@ public:
     vital::frame_id_t next_tracks_frame_num,
     vital::feature_track_set_sptr loop_back_tracks);
 
+  vital::feature_track_set_sptr
+  remove_non_keyframes_between_keyframes(
+      vital::feature_track_set_sptr input_tracks,
+      vital::frame_id_t current_frame_number);
+
   // Configuration values
 
   // There are many config items for the tracking and stabilization that go directly to
@@ -95,6 +115,7 @@ public:
 
   algo::keyframe_selection_sptr m_keyframe_selection;
   bool first_frame;
+  vital::frame_id_t m_earliest_checked_frame_id;
 
 }; // end priv class
 
@@ -131,7 +152,7 @@ void keyframe_selection_process
   algo::keyframe_selection::set_nested_algo_configuration(algo_name, algo_config, d->m_keyframe_selection );
   if ( ! d->m_keyframe_selection )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create keyframe_selection" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create keyframe_selection" );
   }
 
   algo::keyframe_selection::get_nested_algo_configuration(algo_name, algo_config, d->m_keyframe_selection);
@@ -139,7 +160,7 @@ void keyframe_selection_process
   //// Check config so it will give run-time diagnostic if any config problems are found
   if ( ! algo::keyframe_selection::check_nested_algo_configuration(algo_name, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -151,14 +172,16 @@ keyframe_selection_process
 {
   // timestamp
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
-  vital::feature_track_set_sptr next_tracks =
-    grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
+  vital::feature_track_set_sptr next_tracks = grab_from_port_using_trait( next_tracks );
+
+  next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
 
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first_frame)
   {
-    vital::feature_track_set_sptr loop_back_tracks =
-      grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
+    vital::feature_track_set_sptr loop_back_tracks = grab_from_port_using_trait( loop_back_tracks );
+
+    loop_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
 
     //merging does the clone of next tracks
     curr_tracks = d->merge_next_tracks_into_loop_back_track(
@@ -166,8 +189,7 @@ keyframe_selection_process
   }
   else
   {
-    curr_tracks =
-      std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+    curr_tracks = next_tracks;
   }
 
 
@@ -184,10 +206,22 @@ keyframe_selection_process
     kwiver::vital::track_set_sptr new_kf_tracks_track_set;
     new_kf_tracks_track_set = d->m_keyframe_selection->select(curr_tracks);
     new_kf_tracks = std::dynamic_pointer_cast<kwiver::vital::feature_track_set>(new_kf_tracks_track_set);
+
+    new_kf_tracks = d->remove_non_keyframes_between_keyframes(new_kf_tracks, frame_time.get_frame());
+
   }
 
   // return by value
-  push_to_port_using_trait(feature_track_set, new_kf_tracks );
+  push_to_port_using_trait(to_loop_back_tracks, new_kf_tracks);
+
+  typedef std::unique_ptr<vital::track_set_implementation> tsi_uptr;
+
+  vital::feature_track_set_sptr continuing_tracks = std::make_shared<vital::feature_track_set>(
+    tsi_uptr(new kwiver::arrows::core::frame_index_track_set_impl()));
+
+  continuing_tracks->set_frame_data(new_kf_tracks->all_frame_data());
+
+  push_to_port_using_trait(only_frame_data_tracks, continuing_tracks);
 }
 
 
@@ -197,21 +231,18 @@ void keyframe_selection_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t no_dep;
   required.insert( flag_required );
-  optional.insert( flag_input_nodep );
+  no_dep.insert( flag_input_nodep );
 
   // -- input --
   declare_input_port_using_trait( timestamp, required );
-
-  declare_input_port("next_tracks", "kwiver:feature_track_set", required,
-    "feature track set for the next frame.");
-
-  declare_input_port("loop_back_tracks", "kwiver:feature_track_set", optional,
-    "feature track set from last call to keyframe_selection_process.");
+  declare_input_port_using_trait( next_tracks, required );
+  declare_input_port_using_trait( loop_back_tracks, no_dep );
 
   // -- output --
-  declare_output_port_using_trait(feature_track_set, required );
+  declare_input_port_using_trait( only_frame_data_tracks, required );
+  declare_input_port_using_trait( to_loop_back_tracks, required );
 }
 
 
@@ -226,15 +257,84 @@ void keyframe_selection_process
 // ================================================================
 keyframe_selection_process::priv
 ::priv()
-  :first_frame(true)
+  :first_frame(true),
+   m_earliest_checked_frame_id(-1)
 {
 }
 
+//----------------------------------------------------------------
 
 keyframe_selection_process::priv
 ::~priv()
 {
 }
+
+//----------------------------------------------------------------
+
+vital::feature_track_set_sptr
+keyframe_selection_process::priv
+::remove_non_keyframes_between_keyframes(
+  vital::feature_track_set_sptr input_tracks,
+  vital::frame_id_t current_frame_number)
+{
+  bool passed_a_keyframe = false;
+  auto afd = input_tracks->all_frame_data();
+  std::vector<vital::frame_id_t> removed_frames;
+
+  vital::frame_id_t latest_keyframe = m_earliest_checked_frame_id;
+
+  for (auto it = afd.rbegin(); it != afd.rend(); ++it)
+  {
+    vital::frame_id_t fn = it->first;
+    if (fn <= m_earliest_checked_frame_id)
+    {
+      //no need to check before this frame
+      break;
+    }
+    auto fd_cur =
+      std::dynamic_pointer_cast<
+         kwiver::vital::feature_track_set_frame_data>(it->second);
+    if (fd_cur && fd_cur->is_keyframe)
+    {
+      if (fn > latest_keyframe)
+      {
+        latest_keyframe = fn;
+      }
+      passed_a_keyframe = true;
+    }
+    else
+    {
+      if (passed_a_keyframe)
+      {
+        // we have passed a keyframe going backwards in time and the current
+        // frame is not a keyframe.  So we remove this one.
+        auto fn_states = input_tracks->frame_states(fn);
+        for (auto &fn_state : fn_states)
+        {
+          auto t = fn_state->track();
+          t->remove(fn_state);
+          input_tracks->notify_removed_state(fn_state);
+          if (t->empty())
+          {
+            input_tracks->remove(t);
+          }
+        }
+        removed_frames.push_back(fn);
+      }
+    }
+  }
+  for (auto f : removed_frames)
+  {
+    input_tracks->remove_frame_data(f);
+  }
+
+  m_earliest_checked_frame_id = latest_keyframe;
+
+  return input_tracks;
+
+}
+
+//----------------------------------------------------------------
 
 vital::feature_track_set_sptr
 keyframe_selection_process::priv
@@ -243,12 +343,9 @@ keyframe_selection_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  //clone next tracks tracks so we can change it.
-  vital::feature_track_set_sptr curr_tracks =
-    std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+  vital::feature_track_set_sptr curr_tracks = loop_back_tracks;
 
-  //copy loop back frame data into curr_tracks
-  curr_tracks->set_frame_data(loop_back_tracks->all_frame_data());
+  curr_tracks->merge_in_other_track_set(next_tracks);
 
   return curr_tracks;
 }

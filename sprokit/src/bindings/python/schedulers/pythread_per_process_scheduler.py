@@ -28,7 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from sprokit.pipeline import config
+from vital.config import config
 from sprokit.pipeline import datum
 from sprokit.pipeline import edge
 from sprokit.pipeline import pipeline

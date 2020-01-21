@@ -114,13 +114,13 @@ burnout_track_descriptors
   if( !d->m_process.set_params( vidtk_config ) )
   {
     std::string reason = "Failed to set pipeline parameters";
-    throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
+    VITAL_THROW( vital::algorithm_configuration_exception, type_name(), impl_name(), reason );
   }
 
   if( !d->m_process.initialize() )
   {
     std::string reason = "Failed to initialize pipeline";
-    throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
+    VITAL_THROW( vital::algorithm_configuration_exception, type_name(), impl_name(), reason );
   }
 #endif
 }
@@ -146,22 +146,20 @@ burnout_track_descriptors
 vidtk::timestamp
 vital_to_vidtk( vital::timestamp ts )
 {
-  return vidtk::timestamp( ts.get_frame(), ts.get_time_usec() );
+  return vidtk::timestamp( ts.get_time_usec(), ts.get_frame() );
 }
 
 vidtk::timestamp
-vital_to_vidtk( unsigned fid )
+vital_to_vidtk( unsigned fid, time_t tm )
 {
-  vidtk::timestamp output;
-  output.set_frame_number( fid );
-  return output;
+  return vidtk::timestamp( tm, fid );
 }
 
 vidtk::track_state_sptr
 vital_to_vidtk( const vital::object_track_state* ots )
 {
   vidtk::track_state_sptr output( new vidtk::track_state() );
-  output->set_timestamp( vital_to_vidtk( ots->frame() ) );
+  output->set_timestamp( vital_to_vidtk( ots->frame(), ots->time() ) );
 
   if( ots->detection )
   {
@@ -191,7 +189,7 @@ vidtk_to_vital( vgl_box_2d< double > box )
 vital::timestamp
 vidtk_to_vital( vidtk::timestamp ts )
 {
-  return vital::timestamp( ts.frame_number(), ts.time() );
+  return vital::timestamp( ts.time(), ts.frame_number() );
 }
 
 

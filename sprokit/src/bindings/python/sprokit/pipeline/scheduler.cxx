@@ -31,8 +31,8 @@
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline/scheduler.h>
 
-#include <sprokit/python/util/pybind11.h>
-#include <sprokit/python/util/python_exceptions.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
+#include <vital/bindings/python/vital/util/python_exceptions.h>
 
 #include "python_wrappers.cxx"
 
@@ -79,28 +79,28 @@ PYBIND11_MODULE(scheduler, m)
 {
   class_<sprokit::scheduler, scheduler_trampoline, sprokit::scheduler_t>(m, "PythonScheduler"
     , "The base class for Python schedulers.")
-    .def(init<sprokit::pipeline_t, kwiver::vital::config_block_sptr>(), call_guard<sprokit::python::gil_scoped_release>())
-    .def("start", &sprokit::scheduler::start, call_guard<sprokit::python::gil_scoped_release>()
+    .def(init<sprokit::pipeline_t, kwiver::vital::config_block_sptr>(), call_guard<kwiver::vital::python::gil_scoped_release>())
+    .def("start", &sprokit::scheduler::start, call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Start the execution of the pipeline.")
-    .def("wait", &sprokit::scheduler::wait, call_guard<sprokit::python::gil_scoped_release>()
+    .def("wait", &sprokit::scheduler::wait, call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Wait until the pipeline execution is complete.")
-    .def("pause", &sprokit::scheduler::pause, call_guard<sprokit::python::gil_scoped_release>()
+    .def("pause", &sprokit::scheduler::pause, call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Pause execution.")
-    .def("resume", &sprokit::scheduler::resume, call_guard<sprokit::python::gil_scoped_release>()
+    .def("resume", &sprokit::scheduler::resume, call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Resume execution.")
-    .def("stop", &sprokit::scheduler::stop, call_guard<sprokit::python::gil_scoped_release>()
+    .def("stop", &sprokit::scheduler::stop, call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Stop the execution of the pipeline.")
-    .def("_start", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_start), call_guard<sprokit::python::gil_scoped_release>()
+    .def("_start", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_start), call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Implementation of starting the pipeline.")
-    .def("_wait", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_wait), call_guard<sprokit::python::gil_scoped_release>()
+    .def("_wait", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_wait), call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Implementation of waiting until execution is complete.")
-    .def("_pause", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_pause), call_guard<sprokit::python::gil_scoped_release>()
+    .def("_pause", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_pause), call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Implementation of pausing execution.")
-    .def("_resume", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_resume), call_guard<sprokit::python::gil_scoped_release>()
+    .def("_resume", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_resume), call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Implementation of resuming execution.")
-    .def("_stop", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_stop), call_guard<sprokit::python::gil_scoped_release>()
+    .def("_stop", static_cast<void (sprokit::scheduler::*)()>(&wrap_scheduler::_stop), call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Implementation of stopping the pipeline.")
-    .def("pipeline", static_cast<sprokit::pipeline_t (sprokit::scheduler::*)() const>(&wrap_scheduler::pipeline), call_guard<sprokit::python::gil_scoped_release>()
+    .def("pipeline", static_cast<sprokit::pipeline_t (sprokit::scheduler::*)() const>(&wrap_scheduler::pipeline), call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Scheduler pipeline.")
 	.def("shutdown", &scheduler_shutdown, call_guard<gil_scoped_release>()
       , "Shut down the scheduler.")
@@ -120,7 +120,7 @@ void
 scheduler_trampoline
 ::_start()
 {
-  SPROKIT_PYBIND11_OVERLOAD_PURE(
+  VITAL_PYBIND11_OVERLOAD_PURE(
     void,
     scheduler,
     _start,
@@ -131,7 +131,7 @@ void
 scheduler_trampoline
 ::_wait()
 {
-  SPROKIT_PYBIND11_OVERLOAD_PURE(
+  VITAL_PYBIND11_OVERLOAD_PURE(
     void,
     scheduler,
     _wait,
@@ -142,7 +142,7 @@ void
 scheduler_trampoline
 ::_pause()
 {
-  SPROKIT_PYBIND11_OVERLOAD_PURE(
+  VITAL_PYBIND11_OVERLOAD_PURE(
     void,
     scheduler,
     _pause,
@@ -153,7 +153,7 @@ void
 scheduler_trampoline
 ::_resume()
 {
-  SPROKIT_PYBIND11_OVERLOAD_PURE(
+  VITAL_PYBIND11_OVERLOAD_PURE(
     void,
     scheduler,
     _resume,
@@ -164,7 +164,7 @@ void
 scheduler_trampoline
 ::_stop()
 {
-  SPROKIT_PYBIND11_OVERLOAD_PURE(
+  VITAL_PYBIND11_OVERLOAD_PURE(
     void,
     scheduler,
     _stop,

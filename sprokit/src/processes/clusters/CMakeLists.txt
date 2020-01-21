@@ -21,7 +21,7 @@ endif ()
 
 if (KWIVER_USE_BUILD_TREE)
   set(sprokit_default_cluster_paths
-    "${sprokit_default_cluster_paths}${path_sep}${sprokit_source_dir}/src/tools/pipelines/clusters")
+    "${sprokit_default_cluster_paths}")
 endif ()
 
 set(SPROKIT_DEFAULT_CLUSTER_PATHS "${sprokit_default_cluster_paths}"
@@ -44,7 +44,5 @@ kwiver_add_plugin(processes_clusters
   PUBLIC       vital_logger
   PRIVATE      sprokit_pipeline_util
                sprokit_pipeline
-               ${Boost_FILESYSTEM_LIBRARY}
-               ${Boost_SYSTEM_LIBRARY}
                vital_vpm vital_util kwiversys
   )

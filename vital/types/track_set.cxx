@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,61 @@
 namespace kwiver {
 namespace vital {
 
+void
+track_set
+::merge_in_other_track_set(
+  track_set_sptr const& other, clone_type clone_method,
+  bool do_not_append_tracks)
+{
+  auto const& ot = other->tracks();
+
+  if (this->empty())
+  {
+    this->set_tracks(ot);
+  }
+
+  track_id_t next_track_id = (*this->all_track_ids().crbegin()) + 1;
+
+  for (auto const& t : ot)
+  {
+    auto ct = this->get_track(t->id());
+    if (!ct)
+    {
+      this->insert(t->clone( clone_method ));
+    }
+    else
+    {
+      if (do_not_append_tracks)
+      {
+        auto tc = t->clone( clone_method );
+        tc->set_id(next_track_id++);
+        this->insert(tc);
+      }
+      else
+      {
+        for (auto const& ts : *t)
+        {
+          auto ts_clone = ts->clone( clone_method );
+          if (ct->back()->frame() < ts_clone->frame())
+          {
+            if (ct->append(ts_clone))
+            {
+              this->notify_new_state(ts_clone);
+            }
+          }
+          else
+          {
+            if (ct->insert(ts_clone))
+            {
+              this->notify_new_state(ts_clone);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 /// Return the number of tracks in the set
 size_t
 track_set_implementation
@@ -69,6 +124,13 @@ track_set_implementation
   // by default, notification does nothing
 }
 
+/// Notify the container that a state has been removed from an existing track
+void
+track_set_implementation
+::notify_removed_state(track_state_sptr ts)
+{
+  //by default, notification does nothing
+}
 
 /// merge the pair of tracks \p t1 and \p t2, if possible
 bool
@@ -224,6 +286,20 @@ track_set_implementation
   }
 
   return active_tracks;
+}
+
+/// Returns all the active track ids on a frame
+std::set<track_id_t>
+track_set_implementation
+::active_track_ids(frame_id_t offset) const
+{
+  std::set<track_id_t> track_ids;
+  std::vector<track_state_sptr> ts = this->frame_states(offset);
+  for (auto const data : ts)
+  {
+    track_ids.insert(data->track()->id());
+  }
+  return track_ids;
 }
 
 /// Return all tracks active on a frame.
@@ -406,9 +482,9 @@ track_set
 
 track_set_sptr
 track_set
-::clone() const {
+::clone( clone_type ct ) const {
 
-  track_set_implementation_uptr my_impl = impl_->clone();
+  track_set_implementation_uptr my_impl = impl_->clone( ct );
 
   track_set_sptr ts = std::make_shared<track_set>(std::move(my_impl));
 
@@ -466,6 +542,21 @@ simple_track_set_implementation
   return nullptr;
 }
 
+/// Removes the frame data for the frame offset
+bool
+simple_track_set_implementation
+::remove_frame_data(frame_id_t offset)
+{
+  frame_id_t frame_number = offset_to_frame(offset);
+  auto itr = frame_data_.find(frame_number);
+  if (itr != frame_data_.end())
+  {
+    frame_data_.erase(itr);
+    return true;
+  }
+  return false;
+}
+
 
 /// Set additional data associated with all tracks on the given frame
 bool
@@ -494,21 +585,18 @@ simple_track_set_implementation
 
 track_set_implementation_uptr
 simple_track_set_implementation
-::clone() const
+::clone( clone_type ct ) const
 {
   std::unique_ptr<simple_track_set_implementation> new_stsi =
     std::unique_ptr<simple_track_set_implementation>(new simple_track_set_implementation());
 
-  for (auto trk : data_)
+  for ( auto const& trk : data_ )
   {
-    new_stsi->data_.push_back(trk->clone());
+    new_stsi->data_.emplace_back( trk->clone( ct ) );
   }
-  for (auto fd : frame_data_)
+  for ( auto const& fd : frame_data_ )
   {
-    if ( fd.second )
-    {
-      new_stsi->frame_data_[fd.first] = fd.second->clone();
-    }
+    new_stsi->frame_data_.emplace( fd.first, fd.second->clone() );
   }
 
   std::unique_ptr<track_set_implementation> new_tsi(new_stsi.get());

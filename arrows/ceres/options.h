@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,11 @@
 #include <vital/config/config_block.h>
 #include <vital/types/camera_perspective.h>
 #include <vital/types/camera_map.h>
+#include <vital/types/sfm_constraints.h>
 #include <arrows/ceres/types.h>
+
+#include <unordered_map>
+
 
 namespace kwiver {
 namespace arrows {
@@ -81,8 +85,8 @@ class camera_options
 {
 public:
   /// typedef for camera parameter map
-  typedef std::map<vital::frame_id_t, std::vector<double> > cam_param_map_t;
-  typedef std::map<vital::frame_id_t, unsigned int> cam_intrinsic_id_map_t;
+  typedef std::unordered_map<vital::frame_id_t, std::vector<double> > cam_param_map_t;
+  typedef std::unordered_map<vital::frame_id_t, unsigned int> cam_intrinsic_id_map_t;
 
   /// Constructor
   camera_options();
@@ -177,6 +181,12 @@ public:
                            std::vector<std::vector<double> > const& int_params,
                            cam_intrinsic_id_map_t const& int_map) const;
 
+
+  int
+  add_position_prior_cost(::ceres::Problem& problem,
+                          cam_param_map_t& ext_params,
+                          vital::sfm_constraints_sptr constraints);
+
   /// Add the camera path smoothness costs to the Ceres problem
   void add_camera_path_smoothness_cost(::ceres::Problem& problem,
                                        cam_param_map_t& ext_params) const;
@@ -240,4 +250,4 @@ public:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CERES_CAMERA_OPTIONS_H_
+#endif

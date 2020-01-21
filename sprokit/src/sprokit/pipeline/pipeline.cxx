@@ -90,7 +90,7 @@ gcd( T a, T b )
   return a;
 }
 
-
+// ----------------------------------------------------------------------------
 /**
  * @brief Find least common multiple of two values
  *
@@ -110,7 +110,7 @@ lcm( T a, T b )
 
 } // end namespace
 
-
+// ============================================================================
 class pipeline::priv
 {
   public:
@@ -1325,16 +1325,23 @@ pipeline::priv
 
 
 // ------------------------------------------------------------------
+/// Check connection flags to see if they are consistent.
+/**
+ * This method checks the flags for a proposed connection to see if
+ * they are consistent and the connection should be allowed.
+ */
 bool
 pipeline::priv
 ::check_connection_flags(process::connection_t const& connection,
                          process::port_flags_t const& up_flags,
                          process::port_flags_t const& down_flags)
 {
+  // Test the port flags to see what has been specified at port creation time.
   bool const is_const = (0 != up_flags.count(process::flag_output_const));
   bool const is_shared = (0 != up_flags.count(process::flag_output_shared));
   bool const is_mutable = (0 != down_flags.count(process::flag_input_mutable));
 
+  // If "up" is const and "down" is mutable, then connection is not allowed
   if (is_const && is_mutable)
   {
     return false;
@@ -1349,11 +1356,12 @@ pipeline::priv
     if (i == connected_shared_ports.end())
     {
       // Nothing is connected yet.
+      // Since the port is shared, then mark as mutable.
       connected_shared_ports[up_addr] = is_mutable;
     }
     else
     {
-      bool const& has_mutable = i->second;
+      const bool has_mutable = i->second;
 
       // Only one input can listen to a shared port if any are mutable.
       if (is_mutable || has_mutable)
@@ -1363,6 +1371,7 @@ pipeline::priv
     }
   }
 
+  // All other combinations are allowable
   return true;
 }
 
@@ -1960,7 +1969,7 @@ pipeline::priv
 
       procs.insert(cur_proc);
 
-      // Check for required ports.
+      // Check for required input ports.
       {
         process_t const process = q->process_by_name(cur_proc);
 
@@ -1973,6 +1982,7 @@ pipeline::priv
 
           if (port_flags.count(process::flag_required))
           {
+            // Port is marked as required and therefore, must be connected.
             if (!q->input_edge_for_port(cur_proc, port))
             {
               static std::string const reason = "The input port has the required flag";

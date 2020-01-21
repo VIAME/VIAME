@@ -51,6 +51,7 @@ namespace kpf {
 
 enum class schema_style {
   INVALID,     // invalid
+  META,        // metadata
   GEOM,        // geometry
   ACT,         // activity
   TYPES,       // object types

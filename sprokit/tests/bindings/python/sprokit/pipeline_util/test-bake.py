@@ -37,9 +37,9 @@ def test_import(path_unused):
 
 
 def test_simple_pipeline(path):
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import pipeline
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline_util import bake
     from sprokit.pipeline_util import load
 
@@ -55,9 +55,9 @@ def test_simple_pipeline(path):
 
 
 def test_cluster_multiplier(path):
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import pipeline
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline_util import bake
     from sprokit.pipeline_util import load
 

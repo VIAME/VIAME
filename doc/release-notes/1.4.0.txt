@@ -1,0 +1,298 @@
+KWIVER v1.4.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and fixes
+over the previous v1.3.0 release.
+
+Updates since v1.3.0
+--------------------
+
+Vital
+
+ * Added constructors taking initializer lists to mesh types for easier
+initialization. * Added a new abstract algorithm, uv_unwrap_mesh, which unwraps
+a mesh and generates normalized texture coordinates.
+
+ * Added a foreach_pixel helper function to apply an operation at every pixel of
+a const image.
+
+ * Added the data_serializer base algorithm to support serialization of Vital
+types for distributed processing and other uses.
+
+ * Applied a new approach to adding metadata to plugins. The plugin name and
+description are now specified in the plugin header. Added new plugin registrar
+class framework to simplify the registration process.
+
+ * Promoted version.h from Sprokit to vital for use across all of KWIVER.
+
+ * Change the return type of the as_bytes() function on vital::descriptor to
+return a raw pointer to the bytes instead of a vector of bytes. This API change
+avoids many memory copies when comparing descriptors at the byte level.
+
+ * Added a sfm_constraints class and pass this to the structure-from-motion
+algorithms (initialize_cameras_landmark, bundle_adjust, optimize_cameras)
+instead of passing the raw metadata.
+
+ * Added additional range helpers indirect and valid. The former provides access
+to iterators while still allowing a range-based for to be used. The latter
+filters iteration so that only "valid" items are visited.
+
+ * Changes to track_set_impl to facilitate passing track changes between Sprokit
+processes rather than full track sets for efficiency.
+
+ * Moved python module loader and registration from Sprokit to vital
+
+ * Added metadata tag, VITAL_META_VIDEO_KEY_FRAME, which is a bool that marks if
+a video frame is a key frame.
+
+Vital Util
+
+ * Added simple statistic class for accumulating values. Computes average and
+std-deviation
+
+Vital Tools
+
+ * Converted tools to use applet plugin approach.
+
+ * Converted stand-alone tools to reside under the main "kwiver" top level tool.
+Individual tools are specified as a parameter to the "kwiver" tool runner.
+
+Vital Types
+
+ * Added crop method to vital::image to get a cropped view of the image.
+
+ * Added version of the get_image method to vital::image_container to get a
+cropped view of the underlying image.
+
+Vital Bindings
+
+ * Added python bindings for image_object_detector
+
+Arrows
+
+ * Converted arrows to use new plugin registrar implementation.
+
+Arrows: Core
+
+ * Created a new plugin for core applets
+
+ * Added video_input_image_list function which enables all images contained
+inside a directory to be read in.
+
+ * Converted Arrows core to use new PLUGIN_INFO and registrar approach.
+
+ * Added an applet to render meshes into depth or height maps
+
+ * Added mesh_operations.h, initially with a function to triangulate a mesh.
+That is, subdivide mesh faces into triangles.
+
+ * Added an implementation for triangular mesh unwrapping. The method transforms
+each face independently to 2D and packs them in an almost square texture.
+
+ * Improved triangulate_landmarks implementation with an option to use RANSAC
+for robustness to outliers and additional checks to reject poorly constrained
+landmarks with minimal view angle variation.
+
+ * Switched track_set_impl from using a vector to store track_sptr to using an
+unordered map. This allows for more efficient search for tracks.
+
+ * Set inlier flag for track states during triangulation. Stored max
+intersection angle of rays in landmark, a quality metric.
+
+ * Extracts ORB descriptors at KLT feature locations. No longer runs ORB
+detector.
+
+ * When triangulating switch to using squared re-projection error for
+efficiency. Optionally pass initial guess for landmark position to RANSAC
+triangulation. If location is already known or a good guess is available this
+can cut down the RANSAC loops considerably.
+
+ * Optionally estimates a fundamental matrix before loop closure. Accepts a loop
+only if the number of inlier matches is above a threshold.
+
+ * Improved the efficiency of loop closing and descriptor comparison.
+
+ * Added triangulate_landmarks method that takes a map of tracks rather than a
+track_set_sptr as input. This is done for efficiency. Using the track map we can
+directly access the track corresponding to a landmark that needs to be
+triangulated, rather than looping over all tracks.
+
+ * Added an alternative triangulation method based on "Triangulation Made Easy"
+Lindstrom CVPR 2010.
+
+ * Added a new video_input implementation, video_input_splice, that splices
+multiple video sources together into a single video source.
+
+ * Added depth utilities to compute depth ranges based on landmarks
+
+ * Added a convenience class for storing maps of arbitrary cameras and adapted
+SfM utils to use it.
+
+ * Added metrics for rms error by camera and a check that the rays meeting at a
+point have some minimum angle.
+
+ * Added functions to clip meshes with a plane or a camera frustum.
+
+ * Added a temporal down sampling option to video_input_filter where only every
+nth frame of the video source will be provided.
+
+ * Added a utility function to compute the average world distance per pixel in a
+provided world region of interest.
+
+ * Updated the keyframe loop closure algorithm to store keyframes in the track
+set data structure rather than internally. This change exposes the list of
+selected keyframes outside of this algorithm.
+
+Arrows: Ceres
+
+ * Added ability to fix either cameras or landmarks in bundle adjustment.
+
+ * Automatically fixes the gauge if there are not enough fixed cameras or
+landmarks.
+
+ * Added option to necker reverse only the cameras but not the landmarks.
+
+ * Improved speed of klt/ORB feature tracking by choosing which features to
+track and match with visual vocabulary node ID. Made klt feature tracker in
+Sprokit return just the most recent tracked features, not the entire history at
+each step. Made keyframe selector remove non keyframes temporally between
+keyframes to improve speed. That way matcher process needs only get keyframes.
+After Sprokit klt tracks and keyframe orb feature tracks are merged into a
+single final track set.
+
+ * Added feature detection that adaptively changes thresholds to detect close to
+a target number of features in each frame. Also improves the distribution of
+features across the image with a gridded approach.
+
+ * Added functions that detect issues in the structure from motion solution and
+correct them. Issues could be disconnected components of cameras, cameras with
+too little coverage, landmarks without enough measurements to constrain them
+etc. The corrections typically remove offending items. Only the largest
+connected map component is kept. Under-constrained landmarks are removed etc.
+
+Arrows: CUDA
+
+ * Added CUDA arrow
+
+ * Added depth map integration using CUDA. The algorithm takes a set of depth
+maps and associated cameras to produce a volume that a surface can be extracted
+from using an algorithm like marching cubes.
+
+ * Switch from std::map to std::unordered_map for internal bookkeeping for
+efficiency.
+
+ * Updated depth map integration to adjust the voxel size relative to the
+average world distance per pixel. This allows fusion to work on scenes of
+various scales without manually tuning the configuration parameters.
+
+ * Added utilities for checking CUDA functions for error codes and then logging
+the error and throwing an exception.
+
+ * Added utilities for CUDA memory management with unique_ptr. This is required
+to prevent memory leak when exceptions are thrown.
+
+Arrows: FFmpeg
+
+ * Translated log messages from FFMPEG into KWIVER log messages so we can
+control the verbosity.
+
+ * Added metadata handling to FFMPEG implementation of video_input
+
+ * Improved the seek_frame call to seek to a nearby keyframe first before
+advancing to the precise frame requested. This is much faster than running
+through the entire video until hitting the requested frame.
+
+ * Using the new metadata tag, VITAL_META_VIDEO_KEY_FRAME, mark each frame of
+the video whether it is or isn't a key frame.
+
+Arrows: GDAL
+
+Arrows: KPF
+
+ * Updated the KPF YAML parser to allow for embedded YAML in metadata.
+
+Arrows: OpenCV
+
+Arrows: Serialization
+
+Arrows: Super3d
+
+ * Added region of interest specification for depth maps
+
+ * Used OpenMP to accelerate various operations with parallel loops.
+
+Arrows: VXL
+
+Arrows: Python
+
+ * Added python arrow
+
+ * Added simple_image_object_detector.py that serves as a use-case for python
+bindings of image_object_detector and replicates the functionality of
+example_detector in python
+
+Sprokit
+
+ * Changed KLT tracking pipeline to pass track change information between
+processes rather than full track sets for efficiency.
+
+Sprokit: Processes
+
+ * Added an extension plugin capability to embedded_pipeline that provides a
+hook just before the pipeline is set up and a hook after pipeline has reached
+end of data.
+
+ * Converted processes to use the new process registrar approach.
+
+ * Improved process timing instrumentation to provide simple stats for step
+entry.
+
+Tools
+
+Unit Tests
+
+General Documentation
+
+ * Re-factored and improved documentation for video_input algo in vital.
+
+ * Greatly improved documentation of 'image' and 'image_of' classes in vital.
+
+Bug Fixes
+---------
+
+Arrows: Core
+
+ * Added gradual reprojection error threshold reduction in metadata based SfM to
+keep solutions from falling apart.
+
+Arrows: CUDA
+
+ * In integrate_depth_maps.cu depthMapKernel a test was included for depth
+values equal to -1 which should be excluded. Testing for equality in a float is
+generally bad practice because of machine precision issues. Changed to testing
+if the depth value is less than or equal to zero. If it is, then the depth value
+is skipped. This can be used to mask out bad measurements in the depth map, e.g.
+
+Arrows: DBOW2
+
+ * In match_descriptor_sets, set the number of levels in the vocabulary tree
+based on the total number of features rather than a fixed value.
+
+Arrows: VXL
+
+ * Fixed issue with FFMPEG video source where the frame metadata was not getting
+set correctly.
+
+ * Fixed bug in vidl_ffmpeg_video_input that occurs when both the
+start_after_frame and output_nth_frame are used. In this situation the first
+frame would always be the one right after start_after_frame even if it didn't
+satisfy the output_nth_frame condition.
+
+Arrows: OpenCV
+
+ * feature detector masks were not working as expected when values were not
+exactly 0 and 255, due to lossy compression. A threshold at 128 is now applied
+to force mask values to 0 and 255.
+
+ * Fixed an issue in the FAST detector where too many features were initially
+detected.

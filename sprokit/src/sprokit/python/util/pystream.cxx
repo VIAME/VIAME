@@ -32,7 +32,7 @@
 
 #include <pybind11/pybind11.h>
 
-#include <sprokit/python/util/pybind11.h>
+#include <vital/bindings/python/vital/util/pybind11.h>
 
 #include <algorithm>
 #include <string>
@@ -61,7 +61,7 @@ std::streamsize
 pyistream_device
 ::read(char_type* s, std::streamsize n)
 {
-  sprokit::python::gil_scoped_acquire acquire;
+  kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
 
   pybind11::str const bytes = pybind11::str(m_obj.attr("read")(n));
@@ -98,7 +98,7 @@ std::streamsize
 pyostream_device
 ::write(char_type const* s, std::streamsize n)
 {
-  sprokit::python::gil_scoped_acquire acquire;
+  kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
 
   pybind11::str const bytes(s, static_cast<size_t>(n));

@@ -52,11 +52,8 @@ class KWIVER_ALGO_CORE_EXPORT uv_unwrap_mesh
     : public vital::algorithm_impl<uv_unwrap_mesh, vital::algo::uv_unwrap_mesh>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core";
-
-  /// Description of the algorithm
-  static constexpr char const* description = "Unwrap a mesh and generate texture coordinates";
+  PLUGIN_INFO( "core",
+               "Unwrap a mesh and generate texture coordinates" )
 
   /// Get configuration
   virtual vital::config_block_sptr get_configuration() const;

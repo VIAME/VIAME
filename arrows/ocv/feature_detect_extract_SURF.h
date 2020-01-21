@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_SURF
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_SURF",
+               "OpenCV feature detection via the SURF algorithm" )
+
   /// Constructor
   detect_features_SURF();
 
@@ -81,6 +84,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_SURF
                                   vital::algo::extract_descriptors >
 {
 public:
+  PLUGIN_INFO( "ocv_SURF",
+               "OpenCV feature-point descriptor extraction via the SURF algorithm" )
+
   /// Constructor
   extract_descriptors_SURF();
 
@@ -109,4 +115,4 @@ private:
 
 #endif //defined(HAVE_OPENCV_NONFREE) || defined(HAVE_OPENCV_XFEATURES2D)
 
-#endif // KWIVER_ARROWS_FEATURE_DETECT_EXTRACT_SURF_H_
+#endif

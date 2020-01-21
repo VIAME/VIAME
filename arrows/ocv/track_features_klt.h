@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,8 @@ class KWIVER_ALGO_OCV_EXPORT track_features_klt
   : public vital::algorithm_impl<track_features_klt, vital::algo::track_features>
 {
 public:
+  PLUGIN_INFO( "ocv_KLT",
+               "OpenCV Lucas Kanade feature tracker" )
 
   /// Default Constructor
   track_features_klt();
@@ -127,4 +129,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_OCV_TRACK_FEATURES_KLT_H_
+#endif

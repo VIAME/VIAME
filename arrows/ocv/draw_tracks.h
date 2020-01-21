@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,8 @@ class KWIVER_ALGO_OCV_EXPORT draw_tracks
 : public vital::algorithm_impl<draw_tracks, vital::algo::draw_tracks>
 {
 public:
+  PLUGIN_INFO( "ocv",
+               "Use OpenCV to draw tracked features on the images." )
 
   /// Constructor
   draw_tracks();
@@ -93,4 +95,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_OCV_DRAW_TRACKS_H_
+#endif

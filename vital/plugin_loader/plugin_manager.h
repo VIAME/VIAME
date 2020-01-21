@@ -151,13 +151,18 @@ public:
    * registration function in the loadable module to self-register all
    * plugins in a module.
    *
+   * The plugin_manager takes ownership of the factory object supplied
+   * and deletes it when the program terminates. Therefore the factory
+   * object must be allocated from the heap and never allocated on the
+   * stack.
+   *
    * Plugin factory objects are grouped under the interface type name,
    * so all factories that create the same interface are together.
    *
    * @param fact Plugin factory object to register
    *
-   * @return A pointer is returned to the added factory in case
-   * attributes need to be added to the factory.
+   * @return A pointer is returned to the added factory so attributes
+   * can to be added to the factory.
    *
    * Example:
    \code
@@ -261,7 +266,7 @@ public:
   /**
    * @brief Add path from environment variable name.
    *
-   * This method ads the path from the environment variable to the end
+   * This method adds the path from the environment variable to the end
    * of the current search path.
    *
    * @param env_var Name of environment variable.
@@ -279,8 +284,9 @@ public:
    */
   kwiver::vital::logger_handle_t logger();
 
-protected:
   kwiver::vital::plugin_loader* get_loader();
+
+protected:
 
   plugin_manager();
   ~plugin_manager();
@@ -404,7 +410,7 @@ private:
 // create name for factory to create specific interface object.
 typedef kwiver::vital::implementation_factory_by_name< sprokit::process_instrumentation > instrumentation_factory;
 
-// instantiate factory when needed.
+// instantiate factory class when needed.
 instrumentation_factory ifact;
 auto instr = ifact.create( provider );
 \endcode

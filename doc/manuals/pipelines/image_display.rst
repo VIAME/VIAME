@@ -1,7 +1,7 @@
 Simple Image
 ============
 
-The following pipeline will take in a set of images and display them in a window. 
+The following pipeline will take in a set of images and display them in a window.
 
 Setup
 -----
@@ -16,11 +16,11 @@ Execution
 
 Run the following command from the kwiver build\bin directory (bin/release on windows)
 Relativly point to the darknet_image.pipe or darknet_video.pipe file like this::
-  
-  # Windows Example : 
-  pipeline_runner -p ..\..\examples\pipelines\image_display.pipe
-  # Linux Example : 
-  ./pipeline_runner -p ../examples/pipelines/image_display.pipe
+
+  # Windows Example :
+  kwiver runner ..\..\examples\pipelines\image_display.pipe
+  # Linux Example :
+  ./kwiver runner ../examples/pipelines/image_display.pipe
 
 Process Graph
 -------------

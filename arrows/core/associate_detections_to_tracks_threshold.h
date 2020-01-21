@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,10 +48,8 @@ class KWIVER_ALGO_CORE_EXPORT associate_detections_to_tracks_threshold
 {
 public:
 
-  static constexpr char const* name = "threshold";
-
-  static constexpr char const* description =
-    "Associate detections to tracks via simple thresholding on the input matrix.";
+  PLUGIN_INFO( "threshold",
+               "Associate detections to tracks via simple thresholding on the input matrix." )
 
   /// Default Constructor
   associate_detections_to_tracks_threshold();
@@ -123,4 +121,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_ASSOCIATE_DETECTIONS_TO_TRACKS_THRESHOLD_H_
+#endif

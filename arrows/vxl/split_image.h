@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,8 @@ class KWIVER_ALGO_VXL_EXPORT split_image
 : public vital::algorithm_impl<split_image, vital::algo::split_image>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Split a larger image into multiple smaller images" )
 
   /// Constructor
   split_image();
@@ -68,4 +70,4 @@ public:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_SPLIT_IMAGE_H_
+#endif

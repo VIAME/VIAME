@@ -2,10 +2,8 @@ project(sprokit_test_python_sprokit_pipeline)
 
 # Simple testables require no pytest paramatarization
 set(__simple_testable_modnames
-  config
   datum
   edge
-  modules
   pipeline
   process
   process_cluster

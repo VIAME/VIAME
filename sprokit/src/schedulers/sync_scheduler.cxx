@@ -212,6 +212,9 @@ sync_scheduler::priv
 
   kwiver::vital::config_block_sptr const edge_conf = monitor_edge_config();
 
+  // Loop over all processes and make a connection to the heartbeat output port.
+  // This port is connected to an edge that is monitored while running the pipeline.
+
   for (process::name_t const& name : names)
   {
     process_t const proc = pipe->process_by_name(name);
@@ -221,8 +224,9 @@ sync_scheduler::priv
     monitor_edges[name] = monitor_edge;
 
     processes.push(proc);
-  }
+  } // end for
 
+  // Run the pipeline
   while (!processes.empty())
   {
     shared_lock_t const lock(mut);
@@ -240,6 +244,8 @@ sync_scheduler::priv
 
     bool proc_complete = false;
 
+    // Check the monitor edge to see how the processes is doing.  If a
+    // "complete" packet is found, then this process has terminated.
     while (monitor_edge->has_data())
     {
       edge_datum_t const edat = monitor_edge->get_datum();
@@ -251,12 +257,15 @@ sync_scheduler::priv
       }
     }
 
+    // If the process is complete, remove the monitor edge and don't
+    // put the process back on the active list.
     if (proc_complete)
     {
       monitor_edges.erase(proc->name());
     }
     else
     {
+      // Still active, goes back on list.
       processes.push(proc);
     }
   }
@@ -365,6 +374,8 @@ kwiver::vital::config_block_sptr
 monitor_edge_config()
 {
   kwiver::vital::config_block_sptr conf = kwiver::vital::config_block::empty_config();
+
+  // empty config created a default edge.
 
   return conf;
 }

@@ -19,11 +19,11 @@ set( public_headers
   enumerate_matrix.h
   bounded_buffer.h
   source_location.h
-
   data_stream_reader.h
   hex_dump.h
   string.h
   string_editor.h
+  simple_stats.h
   thread_pool.h
   token_expander.h
   token_expand_editor.h
@@ -34,6 +34,7 @@ set( public_headers
   tokenize.h
   transform_image.h
   wrap_text_block.h
+  file_md5.h
   )
 
 # ----------------------
@@ -61,6 +62,7 @@ set( sources
   token_type_symtab.cxx
   token_type_sysenv.cxx
   wrap_text_block.cxx
+  file_md5.cxx
   )
 
 kwiver_install_headers(

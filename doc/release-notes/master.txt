@@ -1,51 +1,125 @@
-KWIVER v1.4.0 Release Notes
+KWIVER v1.5.0 Release Notes
 ===========================
 
-This is a minor release of KWIVER that provides both new functionality and
-fixes over the previous v1.3.0 release.
+This is a minor release of KWIVER that provides both new functionality and fixes
+over the previous v1.4.0 release.
 
-Updates since v1.3.0
+Updates since v1.4.0
 --------------------
 
 Vital
 
- * Added constructors taking initalizer lists to mesh types for easier
-   initialization.
- * Added a new abstract algorithm, uv_unwrap_mesh, which unwraps a mesh and generates normalized texture coordinates.
+ * Added a parameter to the clone() methods of the track_state, track and
+   track_set types controlling whether to make an actual deep copy (default) or
+   to make a shallow copy (previous behavior) where elements of the derived
+   feature_track_state or object_track_state would still be shared. (This
+   change also affects track_set::merge_in_other_track_set(). However, the copy
+   constructors of feature_track_state and object_track_state still make only
+   shallow copies.)
+
+ * Added a variant of config_block::get_enum_value that accepts a default
+   value to fall back on.
+
+ * Added support for registering callbacks to the KWIVER logger.  Callbacks
+   receive any message that is logged with the KWIVER logging framework.
+
+Vital Plugin-loader
+
+ * Added support for filtering plugins when they are loaded. Filter
+   objects can be added to the plugin loader at run time to select or
+   exclude specific plugins.
+
+Vital Util
+
+Vital Logger
+
+ * Log4cplus now searches in more locations to find the log4cplus.properties
+   file during start up.  If not found with the environment variable or in the
+   current working directory it will now search in the location of the
+   executable and also in "../lib/kwiver" relative to the executable.
+
+Vital Tools
+
+Vital Types
+
+ * Added get_vector() member function to access the vector of all metadata on
+   a frame in metadata_map.
+
+ * Added ``kwiver::vital::set`` mixin class to define standard set methods as
+   well as iterability.
+
+ * Added iterator, const_iterator and iterable classes to support container-
+   independent iteration.
+
+ * Refactored detected_object_set to convert some methods to external
+   functions since they were not properties of the class.
 
 Vital Bindings
 
+ * Remove ctypes python bindings
+
+ * Moved python bindings associated with config from sprokit.pipeline to
+   vital.config.
+
+Arrows
+
 Arrows: Core
 
- * Added mesh_operations.h, initially with a function to triangulate a mesh.
-   That is, subdivide mesh faces into triangles.
- * Added an implementation for triangular mesh unwrapping. The method transforms each face independently to 2D and packs them in an almost square texture.
+ * Added an algorithm implementation (transform_detected_object_set) for
+   transforming detected object sets from one camera perspective to another.
+   Implements vital::algo::detected_object_filter.
+
+Arrows: Ceres
+
+Arrows: CUDA
+
+ * Added a new parameter for the truncated signed distance function in depth
+   map integration.  The new "Epsilon" value is used in the occluded portion
+   of the function that was previously zero.  Setting Epsilon > 0 can remove
+   a double surface artifact.  Setting Epsilon = 0 restores the previous
+   behavior.
 
 Arrows: FFmpeg
 
 Arrows: GDAL
 
+Arrows: KPF
+
 Arrows: OpenCV
 
 Arrows: Serialization
 
+Arrows: Super3d
+
 Arrows: VXL
+
+Arrows: Python
 
 Sprokit
 
 Sprokit: Processes
 
-  * Added new methods which are called when a requested port is
-    missing. This can be used to dynamically create ports. Previously
-    this was done by overriding the _{input,output}_port_info()
-    method.  The new approach is an optimization because the
-    _*_port_info() methods are also called to locate ports for data
-    transfer. The process specific override can add a lot of overhead
-    to the port info calls.
+ * Added a core sprokit process to shift a stream of detected object
+   sets by a specified offset.  When a negative offset is specified,
+   detected object sets are initially consumed from the stream until
+   the offset is satisfied.  When a positive offset is specified,
+   empty detected object sets are prepended to the stream until the
+   offset is satisfied.
 
 Tools
 
+ * Converting stand-alone tools to reside under the main "kwiver" top
+   level tool. Individual tools are specified as a parameter to the
+   "kwiver" tool runner.
+
+ * Moved source of tools/applets and reorganized:
+   - tools - contains executables, E.g. kwiver tool runner
+   - vital/applets - contains applet framework
+   - arrows/core/applets - general applets
+
 Unit Tests
 
+General Documentation
+
 Bug Fixes
---------
+---------

@@ -44,6 +44,9 @@ class KWIVER_PROCESSES_NO_EXPORT downsample_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "downsample",
+               "Downsample an input stream." )
+
   downsample_process( vital::config_block_sptr const& config );
   virtual ~downsample_process();
 

@@ -73,4 +73,4 @@ private:
 
 } } }
 
-#endif /* KWIVER_ARROWS_BURNOUT_DETECTOR */
+#endif /* KWIVER_ARROWS_BURNOUT_TRACK_DESCRIPTORS */

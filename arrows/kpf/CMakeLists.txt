@@ -1,9 +1,4 @@
-if(fletch_ENABLED_YAMLCPP)
-  find_package( yaml-cpp REQUIRED )
-else()
-  message(STATUS "To enable the kpf arrow, please build or locate yaml libraries in fletch")
-  return()
-endif()
+find_package( yaml-cpp REQUIRED )
 
 add_subdirectory(yaml)
 
@@ -51,7 +46,7 @@ algorithms_create_plugin( kwiver_algo_kpf
 
 # Python Support?
 #if( KWIVER_ENABLE_PYTHON )
-#  kwiver_create_python_plugin_init( kwiver/arrows/kpf )
+#  kwiver_create_python_init( kwiver/arrows/kpf )
 #
 #  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/generate_headers.py
 #    kwiver/arrows/kpf

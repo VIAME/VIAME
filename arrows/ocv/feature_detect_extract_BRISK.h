@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_BRISK
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_BRISK",
+               "OpenCV feature detection via the BRISK algorithm" )
+
   /// Constructor
   detect_features_BRISK();
 
@@ -77,6 +80,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_BRISK
                                   vital::algo::extract_descriptors >
 {
 public:
+  PLUGIN_INFO( "ocv_BRISK",
+               "OpenCV feature-point descriptor extraction via the BRISK algorithm" )
+
   /// Constructor
   extract_descriptors_BRISK();
 
@@ -100,4 +106,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_FEATURE_DETECT_EXTRACT_BRISK_H_
+#endif

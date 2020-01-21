@@ -55,6 +55,7 @@ class KPF_YAML_EXPORT record_yaml_writer
 public:
   explicit record_yaml_writer( std::ostream& os ) : s( os ), line_started(false), schema( schema_style::UNSPECIFIED ), has_meta( false ) {}
 
+  friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const packet_t& p );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::id_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::bbox_t >& io );
   friend KPF_YAML_EXPORT record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::timestamp_t >& io );
@@ -81,6 +82,9 @@ private:
   schema_style schema;
   bool has_meta;
 };
+
+KPF_YAML_EXPORT
+record_yaml_writer& operator<<( record_yaml_writer& w, const packet_t& p );
 
 KPF_YAML_EXPORT
 record_yaml_writer& operator<<( record_yaml_writer& w, const writer< canonical::id_t >& io );

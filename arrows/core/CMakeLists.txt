@@ -12,6 +12,7 @@ set( plugin_core_headers
   compute_ref_homography_core.h
   convert_image_bypass.h
   create_detection_grid.h
+  depth_utils.h
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   detected_object_set_input_csv.h
@@ -27,24 +28,28 @@ set( plugin_core_headers
   handle_descriptor_request_core.h
   hierarchical_bundle_adjust.h
   initialize_cameras_landmarks.h
+  initialize_cameras_landmarks_keyframe.h
   initialize_object_tracks_threshold.h
   keyframe_selector_basic.h
   match_features_fundamental_matrix.h
   match_features_homography.h
   match_tracks.h
   mesh_operations.h
+  necker_reverse.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
   render_mesh_depth_map.h
   track_features_augment_keyframes.h
   track_features_core.h
   transform.h
+  transform_detected_object_set.h
   triangle_scan_iterator.h
   triangulate_landmarks.h
   uv_unwrap_mesh.h
   video_input_filter.h
   video_input_image_list.h
   video_input_pos.h
+  video_input_splice.h
   video_input_split.h
   write_object_track_set_kw18.h
   write_track_descriptor_set_csv.h
@@ -56,6 +61,7 @@ set( plugin_core_headers
   match_matrix.h
   metrics.h
   projected_track_set.h
+  sfm_utils.h
   track_features_core.h
   track_set_impl.h
   transform.h
@@ -85,6 +91,7 @@ set( plugin_core_sources
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
   create_detection_grid.cxx
+  depth_utils.cxx
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
   detected_object_set_input_csv.cxx
@@ -100,11 +107,13 @@ set( plugin_core_sources
   handle_descriptor_request_core.cxx
   hierarchical_bundle_adjust.cxx
   initialize_cameras_landmarks.cxx
+  initialize_cameras_landmarks_keyframe.cxx
   initialize_object_tracks_threshold.cxx
   keyframe_selector_basic.cxx
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   match_tracks.cxx
+  necker_reverse.cxx
   mesh_operations.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
@@ -112,12 +121,14 @@ set( plugin_core_sources
   track_features_augment_keyframes.cxx
   track_features_core.cxx
   transform.cxx
+  transform_detected_object_set.cxx
   triangle_scan_iterator.cxx
   triangulate_landmarks.cxx
   uv_unwrap_mesh.cxx
   video_input_filter.cxx
   video_input_image_list.cxx
   video_input_pos.cxx
+  video_input_splice.cxx
   video_input_split.cxx
   write_object_track_set_kw18.cxx
   write_track_descriptor_set_csv.cxx
@@ -129,6 +140,7 @@ set( plugin_core_sources
   match_matrix.cxx
   metrics.cxx
   projected_track_set.cxx
+  sfm_utils.cxx
   track_features_core.cxx
   track_set_impl.cxx
   transform.cxx
@@ -162,4 +174,8 @@ algorithms_create_plugin( kwiver_algo_core
 
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)
+endif()
+
+if (KWIVER_ENABLE_TOOLS)
+  add_subdirectory(applets)
 endif()

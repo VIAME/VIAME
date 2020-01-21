@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,9 @@
 #include <test_gtest.h>
 
 #include <arrows/gdal/image_io.h>
+#include <arrows/tests/test_image.h>
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/types/metadata.h>
 #include <vital/types/metadata_traits.h>
 
 kwiver::vital::path_t g_data_dir;
@@ -47,6 +49,7 @@ static int expected_size = 32;
 static std::string geotiff_file_name = "test.tif";
 static std::string nitf_file_name = "test.ntf";
 static std::string jpeg_file_name = "test.jpg";
+static std::string png_file_name = "test.png";
 static std::vector<int> test_x_pixels = {0, 3, 11, 21, 31};
 static std::vector<int> test_y_pixels = {0, 5, 8, 13, 31};
 
@@ -66,6 +69,16 @@ static std::vector< kwiver::vital::vital_metadata_tag > rpc_tags =
   kwiver::vital::VITAL_META_RPC_ROW_DEN_COEFF,
   kwiver::vital::VITAL_META_RPC_COL_NUM_COEFF,
   kwiver::vital::VITAL_META_RPC_COL_DEN_COEFF,
+};
+
+static std::vector< kwiver::vital::vital_metadata_tag > nitf_tags =
+{
+  kwiver::vital::VITAL_META_NITF_IDATIM,
+  kwiver::vital::VITAL_META_NITF_BLOCKA_FRFC_LOC_01,
+  kwiver::vital::VITAL_META_NITF_BLOCKA_FRLC_LOC_01,
+  kwiver::vital::VITAL_META_NITF_BLOCKA_LRLC_LOC_01,
+  kwiver::vital::VITAL_META_NITF_BLOCKA_LRFC_LOC_01,
+  kwiver::vital::VITAL_META_NITF_IMAGE_COMMENTS,
 };
 
 // ----------------------------------------------------------------------------
@@ -92,6 +105,23 @@ void test_rpc_metadata(kwiver::vital::metadata_sptr md)
   if (md->size() > 0)
   {
     std::cout << "-----------------------------------\n" << std::endl;
+    kwiver::vital::print_metadata( std::cout, *md );
+  }
+}
+
+// ----------------------------------------------------------------------------
+void test_nitf_metadata(kwiver::vital::metadata_sptr md)
+{
+
+  kwiver::vital::metadata_traits md_traits;
+  for ( auto const& tag : nitf_tags )
+  {
+    EXPECT_TRUE( md->has( tag ) )
+      << "Image metadata should include " << md_traits.tag_to_name( tag );
+  }
+
+  if (md->size() > 0)
+  {
     kwiver::vital::print_metadata( std::cout, *md );
   }
 }
@@ -138,19 +168,16 @@ TEST_F(image_io, load_geotiff)
   test_rpc_metadata(md);
 
   // Test corner points
-  EXPECT_TRUE( md->has( kwiver::vital::VITAL_META_CORNER_POINTS ) )
+  ASSERT_TRUE( md->has( kwiver::vital::VITAL_META_CORNER_POINTS ) )
     << "Metadata should include corner points.";
 
-  if ( md->has( kwiver::vital::VITAL_META_CORNER_POINTS ) )
-  {
-    kwiver::vital::geo_polygon corner_pts;
-    md->find( kwiver::vital::VITAL_META_CORNER_POINTS ).data( corner_pts );
-    EXPECT_EQ( corner_pts.crs(), 4326);
-    EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( -16.0, 0.0) );
-    EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 0.0, 32.0) );
-    EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 0.0, -32.0) );
-    EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 16.0, 0.0) );
-  }
+  kwiver::vital::geo_polygon corner_pts;
+  md->find( kwiver::vital::VITAL_META_CORNER_POINTS ).data( corner_pts );
+  EXPECT_EQ( corner_pts.crs(), 4326);
+  EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( -16.0, 0.0) );
+  EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 0.0, 32.0) );
+  EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 0.0, -32.0) );
+  EXPECT_TRUE( corner_pts.polygon( 4326 ).contains( 16.0, 0.0) );
 }
 
 TEST_F(image_io, load_nitf)
@@ -178,6 +205,20 @@ TEST_F(image_io, load_nitf)
   auto md = img_ptr->get_metadata();
 
   test_rpc_metadata(md);
+}
+
+TEST_F(image_io, load_nitf_2)
+{
+  kwiver::arrows::gdal::image_io img_io;
+  kwiver::vital::path_t file_path = data_dir + "/" + nitf_file_name;
+  auto img_ptr = img_io.load(file_path);
+
+  EXPECT_EQ( img_ptr->width(), 32);
+  EXPECT_EQ( img_ptr->height(), 32);
+  EXPECT_EQ( img_ptr->depth(), 1 );
+
+  auto md = img_ptr->get_metadata();
+  test_nitf_metadata(md);
 }
 
 TEST_F(image_io, load_jpeg)
@@ -214,5 +255,23 @@ TEST_F(image_io, load_jpeg)
         << "Incorrect green value at pixel (" << x_px << "," << y_px << ")";
     }
   }
+}
+
+// ----------------------------------------------------------------------------
+class get_image : public ::testing::Test
+{
+  TEST_ARG(data_dir);
+};
+
+// ----------------------------------------------------------------------------
+TEST_F(get_image, crop)
+{
+  kwiver::arrows::gdal::image_io img_io;
+
+  kwiver::vital::path_t file_path = data_dir + "/" + png_file_name;
+
+  auto img_cont = img_io.load(file_path);
+
+  test_get_image_crop<uint8_t>( img_cont );
 }
 

@@ -5,8 +5,10 @@
 set( public_headers
   algorithm.h
   base.h
+  gpu.h
   image.h
   io.h
+  iteration.h
   math.h
   metadata.h
   video.h
@@ -17,8 +19,10 @@ set( public_headers
 set( sources
   algorithm.cxx
   base.cxx
+  gpu.cxx
   image.cxx
   io.cxx
+  iteration.cxx
   math.cxx
   metadata.cxx
   video.cxx

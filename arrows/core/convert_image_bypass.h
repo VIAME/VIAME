@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,12 +49,8 @@ class KWIVER_ALGO_CORE_EXPORT convert_image_bypass
   : public vital::algorithm_impl<convert_image_bypass, vital::algo::convert_image>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "bypass";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Performs no conversion and returns the given image container.";
+  PLUGIN_INFO( "bypass",
+               "Performs no conversion and returns the given image container." )
 
    /// Default Constructor
   convert_image_bypass();
@@ -71,4 +67,4 @@ public:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_CONVERT_IMAGE_BYPASS_H_
+#endif

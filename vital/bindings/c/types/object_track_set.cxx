@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,11 +77,11 @@ vital_object_track_state_detection( vital_track_state_t *td,
     "vital_object_track_state_detection", eh,
     REINTERP_TYPE( vital::object_track_state, td, td_ptr );
     // increase cross-boundary reference count if non-null
-    if( td_ptr->detection )
+    if( td_ptr->detection() )
     {
-      vital_c::DOBJ_SPTR_CACHE.store( td_ptr->detection );
+      vital_c::DOBJ_SPTR_CACHE.store( td_ptr->detection() );
     }
-    return reinterpret_cast< vital_detected_object_t* >( td_ptr->detection.get() );
+    return reinterpret_cast< vital_detected_object_t* >( td_ptr->detection().get() );
   );
   return 0;
 }

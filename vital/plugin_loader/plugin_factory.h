@@ -86,6 +86,10 @@ public:
   static const std::string PLUGIN_ORGANIZATION;
   static const std::string PLUGIN_LICENSE;
 
+  // plugin categories
+  static const std::string APPLET_CATEGORY;
+  static const std::string PROCESS_CATEGORY;
+  static const std::string ALGORITHM_CATEGORY;
 
   /**
    * @brief Get attribute from factory

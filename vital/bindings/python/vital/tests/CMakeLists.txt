@@ -4,9 +4,10 @@
 
 # Define modules with tests in them
 set(__testable_modnames
-  test_algo_convert_image
+  test_algorithm_factory
   test_camera
   test_camera_intrinsics
+  test_config
   test_camera_map
   test_color
   test_covariance
@@ -14,7 +15,6 @@ set(__testable_modnames
   test_descriptor_set
   test_eigen_numpy
   test_feature
-  test_find_vital_library
   test_homography
   test_image
   test_image_container
@@ -29,6 +29,14 @@ set(__testable_modnames
   test_track_state
   )
 
+if(KWIVER_ENABLE_SPROKIT AND KWIVER_ENABLE_ARROWS)
+  # ImageObjectDetector test requires config bindings in sprokit
+  list(APPEND
+      __testable_modnames
+      test_image_object_detector
+    )
+endif()
+
 # All python filenames_we in the vital.tests module
 set(__all_modnames
   __init__
@@ -42,3 +50,4 @@ foreach (modname IN LISTS __all_modnames)
     vital/tests
     ${modname})
 endforeach()
+

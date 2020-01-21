@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,12 +52,8 @@ class KWIVER_ALGO_CORE_EXPORT close_loops_keyframe
   : public vital::algorithm_impl<close_loops_keyframe, vital::algo::close_loops>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "keyframe";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Establishes keyframes matches to all keyframes.";
+  PLUGIN_INFO( "keyframe",
+               "Establishes keyframes matches to all keyframes." )
 
   /// Default Constructor
   close_loops_keyframe();
@@ -127,4 +123,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_CLOSE_LOOPS_KEYFRAME_H_
+#endif

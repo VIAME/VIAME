@@ -12,9 +12,12 @@
 set( public_headers
   defs.h
   filter.h
+  indirect.h
   integer_sequence.h
+  iota.h
   sliding.h
   transform.h
+  valid.h
   )
 
 kwiver_install_headers(

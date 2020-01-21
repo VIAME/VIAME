@@ -48,7 +48,7 @@ namespace kwiver
  *
  *  On optional input track port will union the input track set and newly
  *  initialized tracks.
- * 
+ *
  * \iports
  * \iport{timestamp}
  * \iport{image}
@@ -61,22 +61,25 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT initialize_object_tracks_process
   : public sprokit::process
 {
-  public:
+public:
+  PLUGIN_INFO( "initialize_object_tracks",
+               "Initialize new object tracks given detections for the current frame." )
+
   initialize_object_tracks_process( vital::config_block_sptr const& config );
   virtual ~initialize_object_tracks_process();
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
-    virtual void _init();
+protected:
+  virtual void _configure();
+  virtual void _step();
+  virtual void _init();
 
-  private:
-    void make_ports();
-    void make_config();
+private:
+  void make_ports();
+  void make_config();
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class initialize_object_tracks_process
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class initialize_object_tracks_process
 
 
 } // end namespace

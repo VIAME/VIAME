@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2018 by Kitware, Inc.
+ * Copyright 2015-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,13 +65,9 @@ class KWIVER_ALGO_CORE_EXPORT estimate_canonical_transform
                                  vital::algo::estimate_canonical_transform>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core_pca";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Uses PCA to estimate a canonical similarity transform"
-    " that aligns the best fit plane to Z=0";
+  PLUGIN_INFO( "core_pca",
+               "Uses PCA to estimate a canonical similarity transform"
+               " that aligns the best fit plane to Z=0" )
 
   /// Constructor
   estimate_canonical_transform();
@@ -113,4 +109,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS__ESTIMATE_CANONICAL_TRANSFORM_H_
+#endif

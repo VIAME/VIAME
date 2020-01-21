@@ -48,8 +48,16 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver
 {
 
-  create_config_trait( detect_loops, std::string, "",
-    "Algorithm configuration subblock." )
+create_config_trait( detect_loops, std::string, "",
+                     "Algorithm configuration subblock." );
+
+create_port_trait( next_tracks, feature_track_set,
+                   "feature track set for the next frame.  Features are not yet matched for "
+                   "any frames.");
+
+create_port_trait( loop_back_tracks, feature_track_set,
+                   "feature track set from last call to detect loops.  May include loops "
+                   "(joined track sets, split track sets).");
 
 /**
  * \class track_features_process
@@ -151,7 +159,7 @@ void close_loops_process
 
   if ( ! d->m_loop_closer )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Unable to create close_loops" );
   }
 
@@ -163,7 +171,7 @@ void close_loops_process
   if ( ! algo::close_loops::check_nested_algo_configuration(
       algo_name, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Configuration check failed." );
   }
 
@@ -177,23 +185,23 @@ close_loops_process
 {
   // timestamp
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
+  vital::feature_track_set_sptr next_tracks = grab_from_port_using_trait(next_tracks);
 
-  vital::feature_track_set_sptr next_tracks =
-    grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
+  next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
 
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first)
   {
-    vital::feature_track_set_sptr loob_back_tracks =
-      grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
+    vital::feature_track_set_sptr loop_back_tracks = grab_from_port_using_trait(loop_back_tracks);
+
+    loop_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
 
     curr_tracks = d->merge_next_tracks_into_loop_back_track(
-                   next_tracks, frame_time.get_frame(), loob_back_tracks);
+                   next_tracks, frame_time.get_frame(), loop_back_tracks);
   }
   else
   {
-    curr_tracks =
-      std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
+    curr_tracks = next_tracks;
   }
   d->first = false;
 
@@ -225,14 +233,8 @@ void close_loops_process
 
   // -- input --
   declare_input_port_using_trait( timestamp, required );
-
-  declare_input_port("next_tracks", "kwiver:feature_track_set", required,
-    "feature track set for the next frame.  Features are not yet matched for "
-    "any frames.");
-
-  declare_input_port("loop_back_tracks", "kwiver:feature_track_set", input_nodep,
-    "feature track set from last call to detect loops.  May include loops "
-    "(joined track sets, split track sets.");
+  declare_input_port_using_trait( next_tracks, required );
+  declare_input_port_using_trait( loop_back_tracks, required );
 
   // -- output --
   declare_output_port_using_trait(feature_track_set, optional );
@@ -266,9 +268,7 @@ close_loops_process::priv
   vital::frame_id_t next_tracks_frame_num,
   vital::feature_track_set_sptr loop_back_tracks)
 {
-  //clone loop back tracks so we can change it.
-  vital::feature_track_set_sptr curr_tracks =
-    std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
+  vital::feature_track_set_sptr curr_tracks = loop_back_tracks;
 
   //need to pull the key-frame data from next_tracks
   curr_tracks->set_frame_data(next_tracks->all_frame_data());
@@ -277,9 +277,13 @@ close_loops_process::priv
   // loop_back_tracks.
   std::vector< vital::track_sptr> next_active_tracks =
     next_tracks->active_tracks(next_tracks_frame_num);
+
+
   //get the active tracks for the last frame in loop_back tracks.
+
+  vital::frame_id_t loop_back_last_frame_num = loop_back_tracks->last_frame();
   std::vector< vital::track_sptr> curr_active_tracks =
-    curr_tracks->active_tracks(next_tracks_frame_num - 1);
+    curr_tracks->active_tracks(loop_back_last_frame_num);
 
   // Note, track ids from next_tracks and loop_back_tracks do not correspond.
   // KLT tracker never sees detected feature tracks and so it won't increment

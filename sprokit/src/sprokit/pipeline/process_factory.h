@@ -29,8 +29,8 @@
  */
 
 /**
- * @file   process_factory.h
- * @brief  Interface to sprokit process factory
+ * \file   process_factory.h
+ * \brief  Interface to sprokit process factory
  */
 
 #ifndef SPROKIT_PIPELINE_PROCESS_FACTORY_H
@@ -41,6 +41,7 @@
 #include <vital/vital_config.h>
 #include <vital/config/config_block.h>
 #include <vital/plugin_loader/plugin_manager.h>
+#include <vital/plugin_loader/plugin_registrar.h>
 
 #include <sprokit/pipeline/process.h>
 
@@ -75,7 +76,7 @@ create_new_process(kwiver::vital::config_block_sptr const& conf)
 
 // ----------------------------------------------------------------
 /**
- * @brief Factory class for sprokit processes
+ * \brief Factory class for sprokit processes
  *
  * This class represents a factory class for sprokit processes and
  * clusters.  This specialized factory creates a specific process and
@@ -91,13 +92,13 @@ class SPROKIT_PIPELINE_EXPORT process_factory
 {
 public:
   /**
-   * @brief CTOR for factory object
+   * \brief CTOR for factory object
    *
    * This CTOR also takes a factory function so it can support
    * creating processes and clusters.
    *
-   * @param type Type name of the process
-   * @param itype Type name of interface type.
+   * \param type Type name of the process
+   * \param itype Type name of interface type.
    */
   process_factory( const std::string& type,
                    const std::string& itype );
@@ -116,14 +117,14 @@ class SPROKIT_PIPELINE_EXPORT cpp_process_factory
 {
 public:
   /**
-   * @brief CTOR for factory object
+   * \brief CTOR for factory object
    *
    * This CTOR also takes a factory function so it can support
    * creating processes and clusters.
    *
-   * @param type Type name of the process
-   * @param itype Type name of interface type.
-   * @param factory The Factory function
+   * \param type Type name of the process
+   * \param itype Type name of interface type.
+   * \param factory The Factory function
    */
   cpp_process_factory( const std::string& type,
                        const std::string& itype,
@@ -178,9 +179,9 @@ SPROKIT_PIPELINE_EXPORT
                                  module_t const& module );
 
 /**
- * @brief Get list of all processes.
+ * \brief Get list of all processes.
  *
- * @return List of all process implementation factories.
+ * \return List of all process implementation factories.
  */
 SPROKIT_PIPELINE_EXPORT
 kwiver::vital::plugin_factory_vector_t const& get_process_list();
@@ -192,6 +193,63 @@ kwiver::vital::plugin_factory_vector_t const& get_process_list();
   add_factory( new sprokit::cpp_process_factory( typeid( proc_type ).name(), \
                                                  typeid( sprokit::process ).name(), \
                                                  sprokit::create_new_process< proc_type > ) )
+
+// ============================================================================
+/// Derived class to register processes
+/**
+ * This derived class contains the specific procedure for registering
+ * processes with the plugin loader.
+ */
+class process_registrar
+  : public kwiver::plugin_registrar
+{
+public:
+  enum option {
+    none = 0,
+    no_test = 1
+  };
+
+  process_registrar( kwiver::vital::plugin_loader& vpl,
+                       const std::string& mod_name )
+    : plugin_registrar( vpl, mod_name )
+  {
+  }
+
+  // ----------------------------------------------------------------------------
+  /// Register a process plugin.
+  /**
+   * A process of the specified type is registered with the plugin
+   * manager.
+   *
+   * \tparam tool_t Type of the process being registered.
+   *
+   * \return The plugin loader reference is returned.
+   */
+  template <typename process_t>
+  kwiver::vital::plugin_factory_handle_t
+  register_process( option opt = none )
+  {
+    using kvpf = kwiver::vital::plugin_factory;
+
+    kwiver::vital::plugin_factory* fact =  new sprokit::cpp_process_factory(
+      typeid( process_t ).name(),
+      typeid( sprokit::process ).name(),
+      sprokit::create_new_process< process_t > );
+
+    fact->add_attribute( kvpf::PLUGIN_NAME,      process_t::_plugin_name )
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION,  process_t::_plugin_description )
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME,  this->module_name() )
+      .add_attribute( kvpf::PLUGIN_ORGANIZATION, this->organization() )
+      ;
+
+    if (opt == no_test)
+    {
+      fact->add_attribute( "no-test", "introspect" ); // do not include in introspection test
+    }
+
+    return plugin_loader().add_factory( fact );
+  }
+};
 
 } // end namespace
 

@@ -37,7 +37,7 @@ def test_import():
 
 
 def test_create():
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import pipeline
 
     c = config.empty_config()
@@ -47,9 +47,9 @@ def test_create():
 
 
 def test_api_calls():
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import edge
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import process
     from sprokit.pipeline import process_cluster

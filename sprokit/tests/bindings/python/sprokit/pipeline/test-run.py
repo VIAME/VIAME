@@ -112,7 +112,7 @@ def make_sink(conf):
 
 
 def create_process(type, name, conf):
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import process_factory
 
     modules.load_known_modules()
@@ -123,8 +123,8 @@ def create_process(type, name, conf):
 
 
 def run_pipeline(sched_type, pipe, conf):
-    from sprokit.pipeline import config
-    from sprokit.pipeline import modules
+    from vital.config import config
+    from vital.modules import modules
     from sprokit.pipeline import scheduler_factory
     import sys
 
@@ -166,7 +166,7 @@ def check_file(fname, expect):
 
 
 def test_python_to_python(sched_type):
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import process
 
@@ -211,7 +211,7 @@ def test_python_to_python(sched_type):
 
 
 def test_cpp_to_python(sched_type):
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import process
 
@@ -255,7 +255,7 @@ def test_cpp_to_python(sched_type):
 
 
 def test_python_to_cpp(sched_type):
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import process
 
@@ -299,7 +299,7 @@ def test_python_to_cpp(sched_type):
 
 
 def test_python_via_cpp(sched_type):
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import process
 

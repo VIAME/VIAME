@@ -40,7 +40,7 @@ INSTRUMENTATION_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kpi-logger" );
+  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver.process_instrumentation" );
 
   if ( vpm.is_module_loaded( module_name ) )
   {
@@ -59,7 +59,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     ;
 
 
-      fact = vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::timing_process_instrumentation );
+  fact = vpm.ADD_FACTORY( sprokit::process_instrumentation, sprokit::timing_process_instrumentation );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "timing")
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,

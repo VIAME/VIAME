@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,9 @@ class KWIVER_ALGO_VXL_EXPORT estimate_fundamental_matrix
   : public vital::algorithm_impl<estimate_fundamental_matrix, vital::algo::estimate_fundamental_matrix>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to estimate a fundamental matrix." )
+
   /// Constructor
   estimate_fundamental_matrix();
 
@@ -106,4 +109,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_ESTIMATE_FUNDAMENTAL_MATRIX_H_
+#endif

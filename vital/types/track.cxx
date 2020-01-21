@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,13 +88,15 @@ track
 /// Clone
 track_sptr
 track
-::clone() const
+::clone( clone_type ct ) const
 {
   track_sptr t( new track( *this ) );
+  t->history_.reserve( this->history_.size() );
   for( auto const& ts : this->history_ )
   {
-    t->history_.push_back( ts->clone() );
-    t->history_.back()->track_ = t->shared_from_this();
+    auto new_state = ts->clone( ct );
+    new_state->track_ = t;
+    t->history_.emplace_back( std::move( new_state ) );
   }
   return t;
 }
@@ -184,6 +186,23 @@ track
   }
   this->history_.insert(pos, state);
   state->track_ = this->shared_from_this();
+  return true;
+}
+
+/// Remove a track state
+bool
+track
+::remove(track_state_sptr state)
+{
+  auto pos = std::lower_bound(this->history_.begin(), this->history_.end(),
+    state->frame(), compare_state_frame());
+
+  if (pos == this->history_.end() || (*pos)->frame() != state->frame())
+  {
+    return false;
+  }
+
+  this->history_.erase(pos);
   return true;
 }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,9 +154,18 @@ public:
   template <typename T>
   void add_value( sprokit::process::port_t const& port, T const& val )
   {
-    m_port_datum_set.insert(
-      std::pair<std::string, sprokit::datum_t> (port, sprokit::datum::new_datum<T>( val ) ) );
+    m_port_datum_set.emplace( port, sprokit::datum::new_datum<T>( val ) );
   }
+
+  /**
+   * @brief Query if data set is empty.
+   *
+   * This method tests if the data set is empty.
+   *
+   * @return \c true if the data set is empty (contains no values), otherwise
+   * \c false.
+   */
+  bool empty() const;
 
   //@{
   /**

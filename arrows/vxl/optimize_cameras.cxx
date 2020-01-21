@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,12 +96,12 @@ optimize_cameras
 ::optimize(vital::camera_perspective_sptr& camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
-           kwiver::vital::metadata_vector metadata) const
+           kwiver::vital::sfm_constraints_sptr constraints) const
 {
-  if( !metadata.empty() )
+  if( constraints && constraints->get_metadata()->size() != 0 )
   {
     LOG_WARN( vital::get_logger( "arrows.vxl.optimize_cameras" ),
-              "metadata is provided but will be ignored by this algorithm");
+              "constraints are provided but will be ignored by this algorithm");
   }
 
   // remove camera intrinsics from the camera and work in normalized coordinates

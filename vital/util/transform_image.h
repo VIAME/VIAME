@@ -47,7 +47,7 @@ namespace vital {
 
 /// Transform a given image in place given a unary function
 /**
- * Apply a given unary function to all pixels in the image. This is guareteed
+ * Apply a given unary function to all pixels in the image. This is guarateed
  * to traverse the pixels in an optimal order, i.e. in-memory-order traversal.
  *
  * Example:
@@ -221,7 +221,68 @@ void cast_image( image const& img_in, image_of<T>& img_out )
 }
 
 
-} }   // end namespace vital
+/// Call a unary function on every pixel in a const image
+/**
+ * Apply a given unary function to all pixels in the image. This is guarateed
+ * to traverse the pixels in an optimal order, i.e. in-memory-order traversal.
+ *
+ * Example:
+\code
+kwiver::vital::image_of<uint_8>my_image( img->get_image() );
+uint8_t max_v = 0;
+// using a lambda function to get the maximum pixel value
+kwiver::vital::foreach_pixel( my_image, [&max_v](uint8_t p)
+{
+  max_v = std::max(max_v, p)
+});
 
+\endcode
+ *
+ * \param img Input image reference
+ * \param op Unary function which takes the pixel type
+ */
+template <typename T, typename OP>
+void foreach_pixel( image_of<T> const& img, OP op )
+{
+  // determine which order to traverse dimensions
+  // [0] -> smalled distance between values
+  // [2] -> greatest distance between values
+  size_t side_len[3];
+  ptrdiff_t step_size[3];
+  bool wBh = std::abs(img.w_step()) < std::abs(img.h_step()),
+       dBh = std::abs(img.d_step()) < std::abs(img.h_step()),
+       dBw = std::abs(img.d_step()) < std::abs(img.w_step());
+  size_t w_idx = ( ! wBh ) + dBw,
+         h_idx = wBh + dBh,
+         d_idx = ( ! dBw ) + ( ! dBh );
+
+  side_len[w_idx] = img.width();
+  side_len[h_idx] = img.height();
+  side_len[d_idx] = img.depth();
+  step_size[w_idx] = img.w_step();
+  step_size[h_idx] = img.h_step();
+  step_size[d_idx] = img.d_step();
+
+  // position index with a dimension
+  unsigned i0, i1, i2;
+  // Pointers to the first pixel of the current dimension iteration
+  T const* d0_s, * d1_s, * d2_s;
+
+  d2_s = img.first_pixel();
+  for ( i2 = 0; i2 < side_len[2]; ++i2, d2_s += step_size[2] )
+  {
+    d1_s = d2_s;
+    for ( i1 = 0; i1 < side_len[1]; ++i1, d1_s += step_size[1] )
+    {
+      d0_s = d1_s;
+      for ( i0 = 0; i0 < side_len[0]; ++i0, d0_s += step_size[0] )
+      {
+        op( *d0_s );
+      }
+    }
+  }
+}
+
+} }   // end namespace vital
 
 #endif // VITAL_TRANSFORM_IMAGE_H_

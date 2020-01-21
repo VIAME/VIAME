@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,11 +49,8 @@ class KWIVER_ALGO_CORE_EXPORT create_detection_grid
       vital::algo::image_object_detector>
 {
 public:
-
-  static constexpr char const* name = "create_detection_grid";
-
-  static constexpr char const* description =
-    "Create a grid of detections across the input image.";
+  PLUGIN_INFO( "create_detection_grid",
+               "Create a grid of detections across the input image." )
 
   /// Default Constructor
   create_detection_grid();
@@ -116,4 +113,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_CREATE_DETECTION_GRID_H_
+#endif

@@ -31,14 +31,13 @@
 
 def test_import():
     try:
-        import sprokit.modules.modules
+        import vital.modules.modules
     except:
         test_error("Failed to import the modules module")
 
 
 def test_load():
-    from sprokit.pipeline import config
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import process_factory
 
     modules.load_known_modules()
@@ -51,8 +50,7 @@ def test_load():
 
 # TEST_PROPERTY(ENVIRONMENT, SPROKIT_NO_PYTHON_MODULES=)
 def test_masking():
-    from sprokit.pipeline import config
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import process_factory
 
     modules.load_known_modules()
@@ -65,8 +63,7 @@ def test_masking():
 
 # TEST_PROPERTY(ENVIRONMENT, SPROKIT_PYTHON_MODULES=sprokit.test.python.modules)
 def test_extra_modules():
-    from sprokit.pipeline import config
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import process_factory
 
     modules.load_known_modules()
@@ -79,8 +76,7 @@ def test_extra_modules():
 
 # TEST_PROPERTY(ENVIRONMENT, PYTHONPATH=@CMAKE_CURRENT_SOURCE_DIR@)
 def test_pythonpath():
-    from sprokit.pipeline import config
-    from sprokit.pipeline import modules
+    from vital.modules import modules
     from sprokit.pipeline import process_factory
     from sprokit.pipeline import scheduler_factory
 

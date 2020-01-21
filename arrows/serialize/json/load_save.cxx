@@ -229,16 +229,33 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::detected_object_t
 void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::image_container_sptr ctr )
 {
   kwiver::vital::image vital_image = ctr->get_image();
+  kwiver::vital::image local_image;
+
+  if ( vital_image.memory() == nullptr || ! vital_image.is_contiguous() )
+  {
+    // Either we do not own the memory or it is not contiguous.  We
+    // need to consolidate the input image into a contiguous memory
+    // block before it can be serialized.
+    local_image.copy_from( vital_image );
+  }
+  else
+  {
+    local_image = vital_image;
+  }
 
   // Compress raw pixel data
   const uLongf size = compressBound( vital_image.size() );
   uLongf out_size(size);
   std::vector<uint8_t> image_data( size );
   Bytef* out_buf = reinterpret_cast< Bytef* >( &image_data[0] );
-  Bytef const* in_buf = reinterpret_cast< Bytef * >(vital_image.memory()->data());
+  Bytef const* in_buf = reinterpret_cast< Bytef * >( local_image.first_pixel() );
+
+  // Since the image is contiguous, we can calculate the size
+  size_t local_size = local_image.width() * local_image.height()
+    * local_image.depth() * local_image.pixel_traits().num_bytes;
 
   int z_rc = compress( out_buf, &out_size, // outputs
-                       in_buf, vital_image.size() ); // inputs
+                       in_buf, local_size ); // inputs
   if (Z_OK != z_rc )
   {
     switch (z_rc)
@@ -267,22 +284,21 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::image_cont
   image_data.assign( cp, cpe );
 
   // Get pixel trait
-  auto pixel_trait = vital_image.pixel_traits();
+  auto pixel_trait = local_image.pixel_traits();
 
-  archive( ::cereal::make_nvp( "width",  vital_image.width() ),
-           ::cereal::make_nvp( "height", vital_image.height() ),
-           ::cereal::make_nvp( "depth",  vital_image.depth() ),
+  archive( ::cereal::make_nvp( "width",  local_image.width() ),
+           ::cereal::make_nvp( "height", local_image.height() ),
+           ::cereal::make_nvp( "depth",  local_image.depth() ),
 
-           ::cereal::make_nvp( "w_step", vital_image.w_step() ),
-           ::cereal::make_nvp( "h_step", vital_image.h_step() ),
-           ::cereal::make_nvp( "d_step", vital_image.d_step() ),
+           ::cereal::make_nvp( "w_step", local_image.w_step() ),
+           ::cereal::make_nvp( "h_step", local_image.h_step() ),
+           ::cereal::make_nvp( "d_step", local_image.d_step() ),
 
            ::cereal::make_nvp( "trait_type", static_cast<int> (pixel_trait.type) ),
            ::cereal::make_nvp( "trait_num_bytes", pixel_trait.num_bytes ),
 
-           ::cereal::make_nvp( "img_size", vital_image.size() ), // uncompressed size
-           ::cereal::make_nvp( "img_data", image_data ) // compressed image
-    );
+           ::cereal::make_nvp( "img_size", local_image.size() ), // uncompressed size
+           ::cereal::make_nvp( "img_data", image_data ) );       // compressed image
 
 }
 
@@ -417,7 +433,8 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::geo_point&
 
     archive( ::cereal::make_nvp( "crs", point.crs() ),
              ::cereal::make_nvp( "x", loc[0] ),
-             ::cereal::make_nvp( "y", loc[1] )
+             ::cereal::make_nvp( "y", loc[1] ),
+             ::cereal::make_nvp( "z", loc[2] )
       );
   }
 }
@@ -430,13 +447,14 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::geo_point& point 
 
   if ( crs != -1 ) // empty marker
   {
-    double x, y;
+    double x, y, z;
     archive( CEREAL_NVP( crs ),
              CEREAL_NVP( x ),
-             CEREAL_NVP( y )
+             CEREAL_NVP( y ),
+             CEREAL_NVP( z )
       );
 
-    const kwiver::vital::geo_point::geo_raw_point_t raw( x, y );
+    const kwiver::vital::geo_point::geo_3d_point_t raw( x, y, z );
     point.set_location( raw, crs );
   }
 }
@@ -481,7 +499,7 @@ void save( ::cereal::JSONOutputArchive& archive,
 {
   archive( ::cereal::base_class< kwiver::vital::track_state >( std::addressof( obj_trk_state ) ) );
   archive( ::cereal::make_nvp( "track_time", obj_trk_state.time() ) );
-  save( archive, *obj_trk_state.detection );
+  save( archive, *obj_trk_state.detection() );
 }
 
 // ----------------------------------------------------------------------------
@@ -495,7 +513,7 @@ void load( ::cereal::JSONInputArchive& archive,
   archive( CEREAL_NVP( track_time ) );
   obj_trk_state.set_time(track_time);
   load(archive, *detection);
-  obj_trk_state.detection = detection;
+  obj_trk_state.set_detection(detection);
 }
 
 

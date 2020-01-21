@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,9 @@ vital_homography_clone( vital_homography_t const *h, vital_error_handle_t *eh )
 {
   STANDARD_CATCH(
     "vital_homography_clone", eh,
-    auto h_clone_sptr = vital_c::HOMOGRAPHY_SPTR_CACHE.get( h )->clone();
+    auto h_clone_sptr =
+      std::static_pointer_cast< kwiver::vital::homography >(
+        vital_c::HOMOGRAPHY_SPTR_CACHE.get( h )->clone() );
     vital_c::HOMOGRAPHY_SPTR_CACHE.store( h_clone_sptr );
     return reinterpret_cast< vital_homography_t* >( h_clone_sptr.get() );
   );

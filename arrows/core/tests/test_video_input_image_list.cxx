@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #include <test_gtest.h>
 
 #include <arrows/core/video_input_image_list.h>
+#include <arrows/tests/test_video_input.h>
 #include <vital/algo/algorithm_factory.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
@@ -44,14 +45,10 @@
 #include <iostream>
 #include <fstream>
 
-#include "barcode_decode.h"
-#include "seek_frame_common.h"
-
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
-static int num_expected_frames = 50;
 static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
@@ -146,6 +143,51 @@ TEST_F(video_input_image_list, read_list)
 }
 
 // ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, read_directory)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/images";
+  viil.open( list_file );
+
+  kwiver::vital::timestamp ts;
+
+  int num_frames = 0;
+  while ( viil.next_frame( ts ) )
+  {
+    auto img = viil.frame_image();
+    auto md = viil.frame_metadata();
+
+    if (md.size() > 0)
+    {
+      std::cout << "-----------------------------------\n" << std::endl;
+      kwiver::vital::print_metadata( std::cout, *md[0] );
+    }
+
+    ++num_frames;
+    EXPECT_EQ( num_frames, ts.get_frame() )
+      << "Frame numbers should be sequential";
+    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
+      << "Frame number should match barcode in frame image";
+    EXPECT_EQ( ts.get_time_usec(), viil.frame_timestamp().get_time_usec() );
+    EXPECT_EQ( ts.get_frame(), viil.frame_timestamp().get_frame() );
+  }
+  EXPECT_EQ( num_expected_frames, num_frames );
+  EXPECT_EQ( num_expected_frames, viil.num_frames() );
+}
+
+// ----------------------------------------------------------------------------
 TEST_F(video_input_image_list, is_good)
 {
   // make config block
@@ -195,6 +237,7 @@ TEST_F(video_input_image_list, is_good)
   EXPECT_EQ( num_expected_frames, num_frames );
 }
 
+// ----------------------------------------------------------------------------
 TEST_F(video_input_image_list, seek_frame)
 {
   // make config block
@@ -220,6 +263,85 @@ TEST_F(video_input_image_list, seek_frame)
   viil.close();
 }
 
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, seek_then_next_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  viil.open( list_file );
+
+  test_seek_then_next( viil );
+
+  viil.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, next_then_seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  viil.open( list_file );
+
+  test_next_then_seek( viil );
+
+  viil.close();
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(video_input_image_list, next_then_seek_then_next)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_image_list viil;
+
+  EXPECT_TRUE( viil.check_configuration( config ) );
+  viil.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  viil.open( list_file );
+
+  test_next_then_seek_then_next( viil );
+
+  viil.close();
+}
+
+// ----------------------------------------------------------------------------
 TEST_F(video_input_image_list, metadata_map)
 {
   // make config block

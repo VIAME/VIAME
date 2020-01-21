@@ -44,6 +44,13 @@ class KWIVER_PROCESSES_NO_EXPORT merge_detection_sets_process
 {
 
 public:
+  PLUGIN_INFO( "merge_detection_sets",
+               "Merge multiple input detection sets into one output set.\n\n"
+               "This process will accept one or more input ports of detected_object_set "
+               "type. They will all be added to the output detection set. "
+               "The input port names do not matter since they will be connected "
+               "upon connection.")
+
   merge_detection_sets_process( vital::config_block_sptr const& config );
   virtual ~merge_detection_sets_process();
 

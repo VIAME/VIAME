@@ -52,17 +52,13 @@ class KWIVER_ALGO_CORE_EXPORT video_input_pos
   : public vital::algorithm_impl < video_input_pos, vital::algo::video_input >
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "pos";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Read video metadata in AFRL POS format."
-    " The algorithm takes configuration for a directory full of images"
-    " and an associated directory name for the metadata files."
-    " These metadata files have the same base name as the image files."
-    " Each metadata file is associated with the image file"
-    " of the same base name.";
+  PLUGIN_INFO(  "pos",
+                "Read video metadata in AFRL POS format."
+                " The algorithm takes configuration for a directory full of images"
+                " and an associated directory name for the metadata files."
+                " These metadata files have the same base name as the image files."
+                " Each metadata file is associated with the image file"
+                " of the same base name." )
 
   /// Constructor
   video_input_pos();
@@ -114,4 +110,4 @@ private:
 
 } } } // end namespace
 
-#endif /* ARROWS_CORE_VIDEO_INPUT_POS_H */
+#endif // ARROWS_CORE_VIDEO_INPUT_POS_H

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -168,21 +168,21 @@ compute_association_matrix_from_features
         track_sptr trk = filtered_tracks[t];
         detected_object_sptr det = filtered_dets->begin()[d];
 
-        detected_object::descriptor_sptr det_features = det->descriptor();
-        detected_object::descriptor_sptr trk_features;
+        auto det_features = det->descriptor();
+        auto trk_features = decltype(det_features){};
 
         if( !trk->empty() )
         {
           object_track_state* trk_state =
             dynamic_cast< object_track_state* >( trk->back().get() );
 
-          if( trk_state->detection )
+          if( trk_state->detection() )
           {
             double dist = d_->m_max_distance;
 
             if( d_->m_max_distance > 0.0 )
             {
-              auto center1 = trk_state->detection->bounding_box().center();
+              auto center1 = trk_state->detection()->bounding_box().center();
               auto center2 = det->bounding_box().center();
 
               dist = ( center1[0] - center2[0] ) * ( center1[0] - center2[0] );
@@ -192,7 +192,7 @@ compute_association_matrix_from_features
 
             if( d_->m_max_distance <= 0.0 || dist < d_->m_max_distance )
             {
-              trk_features = trk_state->detection->descriptor();
+              trk_features = trk_state->detection()->descriptor();
             }
           }
         }
@@ -206,9 +206,9 @@ compute_association_matrix_from_features
 
           double sum_sqr = 0.0;
 
-          for( double *pos1 = det_features->raw_data(),
-                      *pos2 = trk_features->raw_data(),
-                      *end = pos1 + det_features->size();
+          for( auto pos1 = det_features->raw_data(),
+                    pos2 = trk_features->raw_data(),
+                    end = pos1 + det_features->size();
                pos1 != end; ++pos1, ++pos2 )
           {
             sum_sqr += ( ( *pos1 - *pos2 ) * ( *pos1 - *pos2 ) );

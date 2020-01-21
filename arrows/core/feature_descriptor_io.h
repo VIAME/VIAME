@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,13 +50,9 @@ class KWIVER_ALGO_CORE_EXPORT feature_descriptor_io
                                  vital::algo::feature_descriptor_io>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Read and write features and descriptor"
-    " to binary files using Cereal serialization.";
+  PLUGIN_INFO( "core",
+               "Read and write features and descriptor"
+               " to binary files using Cereal serialization." )
 
   /// Constructor
   feature_descriptor_io();
@@ -107,4 +103,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_FEATURE_DESCRIPTOR_IO_H_
+#endif

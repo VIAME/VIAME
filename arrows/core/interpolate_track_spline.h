@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,12 +56,8 @@ class KWIVER_ALGO_CORE_EXPORT interpolate_track_spline
                                  vital::algo::interpolate_track>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "spline";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Fill in missing object track intervals using spline-based interpolation.";
+  PLUGIN_INFO( "spline",
+               "Fill in missing object track intervals using spline-based interpolation." )
 
   /// Default Constructor
   interpolate_track_spline();
@@ -89,4 +85,4 @@ protected:
 
 } } } // end namespace
 
-#endif /* KWIVER_ARROWS_CORE_INTERPOLATE_TRACK_SPLINE_H_ */
+#endif

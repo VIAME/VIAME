@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -137,4 +137,4 @@ track_pairs_t match_tracks( vital::algo::match_features_sptr matcher,
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_CORE_MATCH_TRACKS_H_
+#endif

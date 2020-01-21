@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,10 +70,10 @@ feature_track_set
 
 track_set_sptr
 feature_track_set
-::clone() const
+::clone( clone_type ct ) const
 {
   track_set_implementation_uptr new_imp =
-    this->impl_->clone();
+    this->impl_->clone( ct );
   feature_track_set_sptr new_fts =
     std::make_shared<feature_track_set>(std::move(new_imp));
   return std::dynamic_pointer_cast<track_set>(new_fts);
@@ -138,6 +138,24 @@ feature_track_set
   }
 
   return descriptor_set_sptr(new simple_descriptor_set(descriptors));
+}
+
+/// Return the vector of feature track states for all tracks for the given frame.
+std::vector<feature_track_state_sptr>
+feature_track_set
+::frame_feature_track_states(frame_id_t offset) const
+{
+  std::vector<feature_track_state_sptr>  feat_states;
+  std::vector<track_state_sptr> fsd = this->frame_states(offset);
+  for (auto const data : fsd)
+  {
+    auto fdata = std::dynamic_pointer_cast<feature_track_state>(data);
+    if (fdata)
+    {
+      feat_states.push_back(fdata);
+    }
+  }
+  return feat_states;
 }
 
 
@@ -228,6 +246,5 @@ feature_track_set
 {
   return std::dynamic_pointer_cast<feature_track_set_frame_data>(impl_->frame_data(offset));
 }
-
 
 } } // end namespace vital

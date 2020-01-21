@@ -1,28 +1,38 @@
-#
-# Python support
-#
+project(vital_python_util)
 
-# Add python modules
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/array_wrapping.py
-  vital/util
-  array_wrapping )
+include_directories(${pybind11_INCLUDE_DIR})
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/find_vital_library.py
-  vital/util
-  find_vital_library )
+set(python_util_srcs
+  python_exceptions.cxx)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/string.py
-  vital/util
-  string )
+set(python_util_headers
+  pybind11.h
+  python_exceptions.h
+  python.h)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/VitalObject.py
-  vital/util
-  VitalObject )
+include_directories(${pybind11_INCLUDE_DIR})
 
+kwiver_add_library(vital_python_util
+  ${python_util_srcs}
+  ${python_util_headers})
+
+target_link_libraries(vital_python_util
+  PUBLIC     ${PYTHON_LIBRARIES}
+  )
+
+kwiver_install_headers(
+    SUBDIR     vital/bindings/python/vital/util
+    ${python_util_headers}
+)
+
+kwiver_install_headers(
+  ${CMAKE_CURRENT_BINARY_DIR}/vital_python_util_export.h
+  SUBDIR vital/bindings/vital/python/util
+  NOPATH
+)
+
+
+kwiver_create_python_init( vital/util )
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/VitalPIL.py
   vital/util
   VitalPIL )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-  vital/util
-  __init__ )

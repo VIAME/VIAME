@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,4 +83,4 @@ std::ostream & operator<< (std::ostream & str, const kwiver::vital::geo_MGRS & o
 
 } } // end namespace
 
-#endif // KWIVER_VITAL_GEO_MGRS_H_
+#endif

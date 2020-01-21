@@ -8,7 +8,7 @@ project(KWIVER)
 ###
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 1)
-set(KWIVER_VERSION_MINOR 3)
+set(KWIVER_VERSION_MINOR 4)
 set(KWIVER_VERSION_PATCH 0)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
@@ -40,6 +40,11 @@ set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
+# Default library dir
+set(KWIVER_DEFAULT_LIBRARY_DIR "lib" CACHE STRING
+    "Default library directory for kwiver")
+mark_as_advanced(KWIVER_DEFAULT_LIBRARY_DIR)
+
 #
 # kwiver module config file.
 set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
@@ -64,6 +69,7 @@ include(kwiver-cmake-future)
 include_directories("${KWIVER_SOURCE_DIR}")
 include_directories("${KWIVER_SOURCE_DIR}/sprokit/src")
 include_directories("${KWIVER_BINARY_DIR}")
+include_directories("${KWIVER_BINARY_DIR}/sprokit/src")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 # include vital internal headers for private use only
@@ -123,7 +129,14 @@ if (KWIVER_ENABLE_SERIALIZE_PROTOBUF)
   endif()
 endif()
 
+# =========================================================================================
+###
+# KWIVER CMake config
+#
+include( kwiver-utils )
+
 if (KWIVER_ENABLE_PYTHON)
+  kwiver_create_python_init(kwiver)
 
   if (NOT WIN32)
     OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
@@ -136,12 +149,6 @@ if (KWIVER_ENABLE_PYTHON)
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
-
-# ===========================================================================================
-###
-# KWIVER CMake config
-#
-include( kwiver-utils )
 
 # Set directories where loadable modules are stored.
 # These subdirs are under .../lib/
@@ -180,6 +187,15 @@ else()
   set(BOOST_ROOT_ARG ${Boost_LIBRARY_DIR}/..)
 endif()
 
+add_definitions(-DKWIVER_DEFAULT_PLUGIN_ORGANIZATION="Kitware Inc.")
+
+# This regex stuff is to support CentOS with broken std::regex
+if ( NOT VITAL_USE_STD_REGEX )
+  set( VITAL_BOOST_REGEX ${Boost_REGEX_LIBRARY})
+  add_definitions( -DKWIVER_USE_BOOST_REGEX )
+endif()
+
+
 # ===========================================================================================
 link_directories( ${KWIVER_BINARY_DIR}/lib )
 
@@ -202,6 +218,25 @@ if (NOT IS_ABSOLUTE "${CMAKE_INSTALL_PREFIX}")
 endif ()
 
 # =============================================================================================
+
+###
+# Generate vital/version.h. This file is needed by sprokit so must be generated here, before sprokit is included
+#---------------------------------------------------------------------
+#
+
+# Use Git (if available) to add Git hash info to the version header
+set(kwiver_configure_with_git on)
+kwiver_configure_file(version.h
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/version.h"
+  KWIVER_VERSION_MAJOR
+  KWIVER_VERSION_MINOR
+  KWIVER_VERSION_PATCH
+  KWIVER_VERSION
+  KWIVER_SOURCE_DIR
+  )
+set(kwiver_configure_with_git)
+
 
 set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
@@ -310,6 +345,65 @@ if ( CMAKE_EXPORT_COMPILE_COMMANDS )
   kwiver_make_symlink( ${CMAKE_BINARY_DIR}/compile_commands.json
                        ${CMAKE_SOURCE_DIR}/compile_commands.json )
 endif()
+
+# --------------------------------------------------------------------------------------
+# Build a default set of plugin path dirs
+# Provide that list as the default value for the path option.
+#
+# By this point, all eligible paths should have been added to the kwiver_plugin_path
+# property
+if (WIN32)
+  set(path_sep "\\073")
+else()  # Other Unix systems
+  set(path_sep "\\072")
+endif()
+
+# add all user supplied paths to the property
+foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
+  kwiver_add_module_path( ${p} )
+endforeach(p)
+
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_process_subdir} )
+kwiver_add_module_path(  "${kwiver_module_path_result}" )
+
+if (KWIVER_USE_BUILD_TREE)
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_process_subdir} )
+  kwiver_add_module_path(  "${kwiver_module_path_result}" )
+endif()
+
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
+kwiver_add_module_path(  "${kwiver_module_path_result}" )
+
+if (KWIVER_USE_BUILD_TREE)
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
+  kwiver_add_module_path(  "${kwiver_module_path_result}" )
+endif()
+
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_applets} )
+kwiver_add_module_path( "${kwiver_module_path_result}" )
+
+if (KWIVER_USE_BUILD_TREE)
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_applets} )
+  kwiver_add_module_path( "${kwiver_module_path_result}" )
+endif()
+
+# need to retrieve the GLOBAL PROPERTY kwiver_plugin_path and
+# formulate the default module path
+get_property(plugin_path GLOBAL PROPERTY kwiver_plugin_path)
+
+# add all user configured paths to our list
+foreach( p IN LISTS plugin_path )
+  if ( VITAL_MODULE_PATH )
+    set( VITAL_MODULE_PATH "${VITAL_MODULE_PATH}${path_sep}${p}" )
+  else()
+    set( VITAL_MODULE_PATH "${p}" )
+  endif()
+endforeach(p)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/algorithm_plugin_manager_paths.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/algorithm_plugin_manager_paths.h" )
+
 
 # ===========================================================================================
 # CPack Packaging

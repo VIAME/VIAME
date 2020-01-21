@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,12 +49,8 @@ class KWIVER_ALGO_CORE_EXPORT filter_features_scale
   : public vital::algorithm_impl<filter_features_scale, vital::algo::filter_features>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "scale";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Filter features using a threshold on the scale of the detected features.";
+  PLUGIN_INFO( "scale",
+               "Filter features using a threshold on the scale of the detected features." )
 
   /// Constructor
   filter_features_scale();
@@ -91,4 +87,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_FILTER_FEATURES_SCALE_H_
+#endif

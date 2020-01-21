@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -354,56 +354,10 @@ get_next_token()
   if ( m_priv->m_cur_char == m_priv->m_input_line.end() )
   {
     // get new line
-    while ( ! m_priv->get_line() )
+    if ( ! get_next_line() )
     {
-      // EOF encountered
-      m_priv->m_include_stack.pop_back();
-
-      // check for the real end of input
-      if ( m_priv->m_include_stack.empty() )
-      {
-        // return EOF token
-        return std::make_shared< token > ( TK_EOF, "E-O-F" );
-      }
-    } // end while
-
-    // get new line could check for "include" keyword and handle that operation.
-    // Check for include directive - starts with "include " or "!include"
-    if ( *m_priv->m_cur_char == '!' )
-    {
-      m_priv->m_cur_char++;
-    }
-
-    if ( kwiver::vital::starts_with(std::string (m_priv->m_cur_char, m_priv->m_input_line.end() ),
-                                    "include " ) )
-    {
-      // process include directive
-      m_priv->m_cur_char += 8;
-
-      std::string file_name( m_priv->m_cur_char, m_priv->m_input_line.end() );
-      kwiver::vital::string_trim( file_name );
-
-      // Perform macro substitutions first
-      file_name = m_priv->m_token_expander.expand_token( file_name );
-
-      kwiver::vital::config_path_t resolv_filename = m_priv->resolve_file_name( file_name );
-      if ( "" == resolv_filename ) // could not resolve
-      {
-        std::ostringstream sstr;
-        sstr << file_name << " included from " << current_location()
-             << " could not be found in search path.";
-
-        VITAL_THROW( sprokit::file_no_exist_exception, sstr.str() );
-      }
-
-      LOG_TRACE( m_logger, "Including file: \"" << resolv_filename << "\"" );
-      m_priv->flush_line();
-
-      // Push the current location onto the include stack
-      m_priv->m_include_stack.push_back( std::make_shared< include_context >( resolv_filename ) );
-
-      // Get first line from included file.
-      m_priv->get_line();
+      // return EOF token
+      return std::make_shared< token > ( TK_EOF, "E-O-F" );
     }
 
     if ( ! m_priv->m_absorb_eol )
@@ -529,6 +483,74 @@ get_next_token()
   // Although, including empty files will get us here.
   return get_next_token();
 } // lex_processor::get_next_token
+
+
+// ----------------------------------------------------------------------------
+bool
+lex_processor::
+get_next_line()
+{
+  // get new line
+  while ( !m_priv->get_line() )
+  {
+    // EOF encountered
+    LOG_TRACE( m_logger, "End of file on \""
+               << m_priv->m_include_stack.back()->file()
+               << "\"" );
+    m_priv->m_include_stack.pop_back();
+
+    // check for the real end of input
+    if ( m_priv->m_include_stack.empty() )
+    {
+      // return EOF
+      return false;
+    }
+  }   // end while
+
+  // get new line could check for "include" keyword and handle that operation.
+  // Check for include directive - starts with "include " or "!include"
+  if ( *m_priv->m_cur_char == '!' )
+  {
+    m_priv->m_cur_char++;
+  }
+
+  if ( kwiver::vital::starts_with( std::string( m_priv->m_cur_char,
+                                                   m_priv->m_input_line.end() ),
+                                      "include " ) )
+  {
+    // process include directive
+    m_priv->m_cur_char += 8;
+
+    std::string file_name( m_priv->m_cur_char, m_priv->m_input_line.end() );
+    kwiver::vital::string_trim( file_name );
+
+    // Perform macro substitutions first
+    file_name = m_priv->m_token_expander.expand_token( file_name );
+
+    kwiver::vital::config_path_t resolv_filename = m_priv->resolve_file_name(
+      file_name );
+    if ( "" == resolv_filename )   // could not resolve
+    {
+      std::ostringstream sstr;
+      sstr << file_name << " included from " << current_location() <<
+        " could not be found in search path.";
+
+      VITAL_THROW( sprokit::file_no_exist_exception, sstr.str() );
+    }
+
+    LOG_TRACE( m_logger, "Including file: \"" << resolv_filename << "\"" );
+    m_priv->flush_line();
+
+    // Push the current location onto the include stack
+    m_priv->m_include_stack.push_back( std::make_shared< include_context >(
+                                         resolv_filename ) );
+
+    // Get first line from included file.
+    return get_next_line();
+  } // end include
+
+  return true;
+}
 
 
 // ------------------------------------------------------------------
@@ -660,6 +682,7 @@ get_line()
 
   if ( status )
   {
+    kwiver::vital::string_trim( m_input_line );
     m_cur_char = m_input_line.begin();
   }
   return status;
@@ -712,6 +735,7 @@ resolve_file_name( kwiver::vital::config_path_t const& file_name )
   // See if file can be found in the search path.
   std::string res_file =
     kwiversys::SystemTools::FindFile( file_name, this->m_search_path, true );
+
   if ( "" != res_file )
   {
     return res_file;
@@ -736,9 +760,18 @@ resolve_file_name( kwiver::vital::config_path_t const& file_name )
       dir_set.insert( config_file_dir );
       include_paths.push_back( config_file_dir );
     }
-  }     // end for
+  }
 
-  return kwiversys::SystemTools::FindFile( file_name, include_paths, true );
+  res_file = kwiversys::SystemTools::FindFile( file_name, include_paths, true );
+
+  if ( "" != res_file )
+  {
+    return res_file;
+  }
+
+  // Lastly, as a last resort, see if file can be found in a local directory.
+  std::vector< std::string > relative_path( 1, "." );
+  return kwiversys::SystemTools::FindFile( file_name, relative_path, true );
 }
 
 } // end namespace

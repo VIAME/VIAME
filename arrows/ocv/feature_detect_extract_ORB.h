@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,9 @@ class KWIVER_ALGO_OCV_EXPORT detect_features_ORB
                                   vital::algo::detect_features >
 {
 public:
+  PLUGIN_INFO( "ocv_ORB",
+               "OpenCV feature detection via the ORB algorithm" )
+
   /// Constructor
   detect_features_ORB();
 
@@ -78,6 +81,9 @@ class KWIVER_ALGO_OCV_EXPORT extract_descriptors_ORB
                                   vital::algo::extract_descriptors >
 {
 public:
+  PLUGIN_INFO( "ocv_ORB",
+               "OpenCV feature-point descriptor extraction via the ORB algorithm" )
+
   /// Constructor
   extract_descriptors_ORB();
 
@@ -101,4 +107,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_FEATURE_DETECT_EXTRACT_ORB_H_
+#endif

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 #include "version.h"
 
-#include <sprokit/version.h>
+#include <vital/version.h>
 
 /**
  * \file version.cxx
@@ -41,21 +41,21 @@
 namespace sprokit
 {
 
-version::version_t const version::major = SPROKIT_VERSION_MAJOR;
-version::version_t const version::minor = SPROKIT_VERSION_MINOR;
-version::version_t const version::patch = SPROKIT_VERSION_PATCH;
-std::string const version::version_string = SPROKIT_VERSION;
+version::version_t const version::major = KWIVER_VERSION_MAJOR;
+version::version_t const version::minor = KWIVER_VERSION_MINOR;
+version::version_t const version::patch = KWIVER_VERSION_PATCH;
+std::string const version::version_string = KWIVER_VERSION;
 
 bool const version::git_build =
-#ifdef SPROKIT_BUILT_FROM_GIT
+#ifdef KWIVER_BUILT_FROM_GIT
   true
 #else
   false
 #endif
   ;
-std::string const version::git_hash = SPROKIT_GIT_HASH;
-std::string const version::git_hash_short = SPROKIT_GIT_HASH_SHORT;
-std::string const version::git_dirty = SPROKIT_GIT_DIRTY;
+std::string const version::git_hash = KWIVER_GIT_HASH;
+std::string const version::git_hash_short = KWIVER_GIT_HASH_SHORT;
+std::string const version::git_dirty = KWIVER_GIT_DIRTY;
 
 // If any of the version components are 0, we get compare warnings. Turn
 // them off here.
@@ -68,7 +68,7 @@ bool
 version
 ::check(version_t major_, version_t minor_, version_t patch_)
 {
-  return SPROKIT_VERSION_CHECK(major_, minor_, patch_);
+  return KWIVER_VERSION_CHECK(major_, minor_, patch_);
 }
 
 #ifdef __GNUC__

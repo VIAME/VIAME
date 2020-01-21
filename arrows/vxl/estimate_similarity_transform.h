@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,10 @@ class KWIVER_ALGO_VXL_EXPORT estimate_similarity_transform
                                          vital::algo::estimate_similarity_transform>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to estimate a 3D similarity transformation "
+               "between corresponding landmarks." )
+
   // No custom configuration at this time
   /// \cond Doxygen Suppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) { };
@@ -79,4 +83,4 @@ public:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_ESTIMATE_SIMILARITY_TRANSFORM_H_
+#endif

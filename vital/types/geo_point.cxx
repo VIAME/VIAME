@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@
 namespace kwiver {
 namespace vital {
 
-using geo_raw_point_t = geo_point::geo_raw_point_t;
+using geo_3d_point_t = geo_point::geo_3d_point_t;
 
 // ----------------------------------------------------------------------------
 geo_point::
@@ -52,7 +52,17 @@ geo_point()
 
 // ----------------------------------------------------------------------------
 geo_point::
-geo_point( geo_raw_point_t const& point, int crs )
+geo_point( geo_2d_point_t const& point, int crs )
+  : m_original_crs( crs )
+{
+  m_loc.insert( std::make_pair( crs, geo_3d_point_t{ point[0],
+                                                      point[1],
+                                                      0 } ));
+}
+
+// ----------------------------------------------------------------------------
+geo_point::
+geo_point( geo_3d_point_t const& point, int crs )
   : m_original_crs( crs )
 {
   m_loc.insert( std::make_pair( crs, point ) );
@@ -66,7 +76,7 @@ bool geo_point
 }
 
 // ----------------------------------------------------------------------------
-geo_raw_point_t geo_point
+geo_3d_point_t geo_point
 ::location() const
 {
   return m_loc.at( m_original_crs );
@@ -80,7 +90,7 @@ int geo_point
 }
 
 // ----------------------------------------------------------------------------
-geo_raw_point_t geo_point
+geo_3d_point_t geo_point
 ::location( int crs ) const
 {
   auto const i = m_loc.find( crs );
@@ -96,7 +106,16 @@ geo_raw_point_t geo_point
 
 // ----------------------------------------------------------------------------
 void geo_point
-::set_location( geo_raw_point_t const& loc, int crs )
+::set_location( geo_2d_point_t const& loc, int crs )
+{
+  m_original_crs = crs;
+  m_loc.clear();
+  m_loc.insert( std::make_pair( crs, geo_3d_point_t { loc[0], loc[1], 0 } ) );
+}
+
+// ----------------------------------------------------------------------------
+void geo_point
+::set_location( geo_3d_point_t const& loc, int crs )
 {
   m_original_crs = crs;
   m_loc.clear();
@@ -107,6 +126,7 @@ void geo_point
 std::ostream&
 operator<<( std::ostream& str, vital::geo_point const& obj )
 {
+  str << "geo_point\n";
   if ( obj.is_empty() )
   {
     str << "[ empty ]";
@@ -118,7 +138,8 @@ operator<<( std::ostream& str, vital::geo_point const& obj )
 
     str << std::setprecision(22)
         << "[ " << loc[0]
-        << " / " << loc[1]
+        << ", " << loc[1]
+        << ", " << loc[2]
         << " ] @ " << obj.crs();
 
     str.precision( old_prec );

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,12 +65,8 @@ class KWIVER_ALGO_CORE_EXPORT compute_ref_homography_core
   : public vital::algorithm_impl<compute_ref_homography_core, vital::algo::compute_ref_homography>
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "core";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "Default online sequential-frame reference homography estimator.";
+  PLUGIN_INFO( "core",
+               "Default online sequential-frame reference homography estimator." )
 
   /// Default Constructor
   compute_ref_homography_core();
@@ -139,4 +135,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_CORE_COMPUTE_REF_HOMOGRAPHY_CORE_H_
+#endif

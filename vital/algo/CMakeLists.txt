@@ -22,6 +22,7 @@ set( public_headers
   convert_image.h
   data_serializer.h
   detect_features.h
+  detect_motion.h
   detected_object_filter.h
   detected_object_set_input.h
   detected_object_set_output.h
@@ -57,6 +58,7 @@ set( public_headers
   split_image.h
   track_features.h
   train_detector.h
+  transform_2d_io.h
   triangulate_landmarks.h
   uuid_factory.h
   uv_unwrap_mesh.h
@@ -81,6 +83,7 @@ set( sources
   convert_image.cxx
   data_serializer.cxx
   detect_features.cxx
+  detect_motion.cxx
   detected_object_filter.cxx
   detected_object_set_input.cxx
   detected_object_set_output.cxx
@@ -116,6 +119,7 @@ set( sources
   split_image.cxx
   track_features.cxx
   train_detector.cxx
+  transform_2d_io.cxx
   triangulate_landmarks.cxx
   uuid_factory.cxx
   uv_unwrap_mesh.cxx

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,6 +95,7 @@ public:
 
   /// Get an in-memory image class to access the data
   virtual vital::image get_image() const { return vxl_to_vital(*data_); }
+  using vital::image_container::get_image;
 
   /// Get image data in this container.
   vil_image_view_base_sptr get_vil_image_view() const { return data_; }
@@ -115,4 +116,4 @@ protected:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_IMAGE_CONTAINER_H_
+#endif

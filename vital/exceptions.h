@@ -40,6 +40,7 @@
 
 #include "exceptions/base.h"
 #include "exceptions/algorithm.h"
+#include "exceptions/gpu.h"
 #include "exceptions/image.h"
 #include "exceptions/io.h"
 #include "exceptions/math.h"

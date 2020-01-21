@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #include <test_gtest.h>
 
 #include <arrows/core/video_input_split.h>
+#include <arrows/tests/test_video_input.h>
 #include <vital/algo/algorithm_factory.h>
 #include <vital/io/metadata_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
@@ -45,14 +46,10 @@
 #include <fstream>
 #include <iostream>
 
-#include "barcode_decode.h"
-#include "seek_frame_common.h"
-
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
-static int num_expected_frames = 50;
 static std::string list_file_name = "frame_list.txt";
 
 // ----------------------------------------------------------------------------
@@ -171,6 +168,56 @@ TEST_F(video_input_split, seek_frame)
   vis.open( list_file );
 
   test_seek_frame( vis );
+
+  vis.close();
+}
+
+TEST_F(video_input_split, seek_then_next_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_split vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vis.open( list_file );
+
+  test_seek_then_next( vis );
+
+  vis.close();
+}
+
+TEST_F(video_input_split, next_then_seek_frame)
+{
+  // make config block
+  auto config = kwiver::vital::config_block::empty_config();
+
+  if( !set_config(config, data_dir) )
+  {
+    return;
+  }
+
+  kwiver::arrows::core::video_input_split vis;
+
+  EXPECT_TRUE( vis.check_configuration( config ) );
+  vis.set_configuration( config );
+
+  kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
+
+  // Open the video
+  vis.open( list_file );
+
+  test_next_then_seek( vis );
 
   vis.close();
 }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,9 @@ class KWIVER_ALGO_VXL_EXPORT estimate_homography
   : public vital::algorithm_impl<estimate_homography, vital::algo::estimate_homography>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (rrel) to robustly estimate a homography from matched features." )
+
   // No configuration yet for this class.
   /// \cond DoxygenSuppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) {}
@@ -80,4 +83,4 @@ public:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_VXL_ESTIMATE_HOMOGRAPHY_H_
+#endif

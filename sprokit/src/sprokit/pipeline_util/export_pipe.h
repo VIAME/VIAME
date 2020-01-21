@@ -34,11 +34,12 @@
 #include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include <sprokit/pipeline/types.h>
-#include <sprokit/pipeline_util/pipeline_builder.h>
 
 #include <iostream>
 
 namespace sprokit {
+
+class pipeline_builder;
 
 // ==================================================================
 /**

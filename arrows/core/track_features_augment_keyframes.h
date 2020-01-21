@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,13 +59,9 @@ class KWIVER_ALGO_CORE_EXPORT track_features_augment_keyframes
   : public vital::algo::track_features
 {
 public:
-  /// Name of the algorithm
-  static constexpr char const* name = "augment_keyframes";
-
-  /// Description of the algorithm
-  static constexpr char const* description =
-    "If the current frame is a keyframe, detect and describe "
-    "additional features and create new tracks on this frame.";
+  PLUGIN_INFO( "augment_keyframes",
+               "If the current frame is a keyframe, detect and describe "
+               "additional features and create new tracks on this frame." )
 
   /// Default constructor
   track_features_augment_keyframes();
@@ -151,4 +147,4 @@ protected:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CORE_TRACK_FEATURES_AUGMENT_KEYFRAMES_H_
+#endif

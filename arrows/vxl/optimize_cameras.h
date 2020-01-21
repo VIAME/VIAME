@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,10 @@ class KWIVER_ALGO_VXL_EXPORT optimize_cameras
   : public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
 {
 public:
+  PLUGIN_INFO( "vxl",
+               "Use VXL (vpgl) to optimize camera parameters for fixed "
+               "landmarks and tracks." )
+
   /// \cond DoxygenSuppress
   virtual void set_configuration(vital::config_block_sptr /*config*/) { }
   virtual bool check_configuration(vital::config_block_sptr /*config*/) const { return true; }
@@ -77,8 +81,7 @@ public:
   optimize(kwiver::vital::camera_perspective_sptr & camera,
            const std::vector<vital::feature_sptr>& features,
            const std::vector<vital::landmark_sptr>& landmarks,
-           kwiver::vital::metadata_vector metadata
-             = kwiver::vital::metadata_vector()) const;
+           kwiver::vital::sfm_constraints_sptr constraints = nullptr) const;
 };
 
 
@@ -86,4 +89,4 @@ public:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_OPTIMIZE_CAMERAS_H_
+#endif

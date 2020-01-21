@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -184,7 +184,7 @@ TEST( iterator, it_equality )
     if( i == 4 )
     {
       cout << "Raising stop iteration" << endl;
-      throw vital::stop_iteration_exception();
+      VITAL_THROW( vital::stop_iteration_exception, "test" );
     }
     cout << "returning a[" << i << "]" << endl;
     return a[i++];
@@ -194,7 +194,7 @@ TEST( iterator, it_equality )
     if( i == 4 )
     {
       cout << "Raising stop iteration" << endl;
-      throw vital::stop_iteration_exception();
+      VITAL_THROW( vital::stop_iteration_exception, "test" );
     }
     cout << "returning a[" << i << "]" << endl;
     return a[i++];
@@ -254,7 +254,7 @@ TEST( iterator, immediate_stop_iteration )
 
   // Next value function that immediately throws stop iteration.
   test_iterator::next_value_func_t stop_iter_func = []()->test_iterator::reference{
-    throw vital::stop_iteration_exception();
+    VITAL_THROW( vital::stop_iteration_exception, "test" );
   };
 
   test_iterator it_empty( stop_iter_func );
@@ -278,7 +278,7 @@ TEST( iterator, swap )
     if( i == 4 )
     {
       cout << "Raising stop iteration" << endl;
-      throw vital::stop_iteration_exception();
+      VITAL_THROW( vital::stop_iteration_exception, "test" );
     }
     cout << "returning a[" << i << "]" << endl;
     return a[i++];
@@ -290,7 +290,7 @@ TEST( iterator, swap )
     if( i == 4 )
     {
       cout << "Raising stop iteration" << endl;
-      throw vital::stop_iteration_exception();
+      VITAL_THROW( vital::stop_iteration_exception, "test" );
     }
     cout << "returning a[" << i << "]" << endl;
     return a[i++];
@@ -338,7 +338,7 @@ TEST( iterator, copy_during_iteration )
     if( i == 4 )
     {
       cout << "Raising stop iteration" << endl;
-      throw vital::stop_iteration_exception();
+      VITAL_THROW( vital::stop_iteration_exception, "test" );
     }
     cout << "returning a[" << i << "]" << endl;
     return a[i++];
@@ -397,7 +397,7 @@ private:
       static vec_t::iterator it = m_vec.begin();
       if( it == m_vec.end() )
       {
-        throw vital::stop_iteration_exception();
+        VITAL_THROW( vital::stop_iteration_exception, "test" );
       }
       return *(it++);
     };

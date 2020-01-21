@@ -47,6 +47,11 @@ class KWIVER_PROCESSES_NO_EXPORT detected_object_input_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "detected_object_input",
+               "Reads detected object sets from an input file.\n\n"
+               "Detections read from the input file are grouped into sets for each "
+               "image and individually returned." )
+
   detected_object_input_process( kwiver::vital::config_block_sptr const& config );
   virtual ~detected_object_input_process();
 

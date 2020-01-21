@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,27 +71,31 @@ template < size_t Size, typename Range >
 class sliding_view : public generic_view
 {
 protected:
-  using range_iterator_t = typename range_ref< Range >::iterator_t;
+  using range_iterator_t = typename range_ref< Range const >::iterator_t;
+  using single_value_t = typename range_ref< Range const >::value_t;
 
 public:
-  using value_t = std::array< typename range_ref< Range >::value_t, Size >;
+  using value_t = std::array< single_value_t, Size >;
 
-  class const_iterator
+  sliding_view( sliding_view const& ) = default;
+  sliding_view( sliding_view&& ) = default;
+
+  class iterator
   {
   public:
-    const_iterator() = default;
-    const_iterator( const_iterator const& ) = default;
-    const_iterator& operator=( const_iterator const& ) = default;
+    iterator() = default;
+    iterator( iterator const& ) = default;
+    iterator& operator=( iterator const& ) = default;
 
-    bool operator!=( const_iterator const& other ) const;
+    bool operator!=( iterator const& other ) const;
 
     value_t operator*() const;
 
-    const_iterator& operator++();
+    iterator& operator++();
 
   protected:
     friend class sliding_view;
-    const_iterator( range_iterator_t iter, range_iterator_t const& end );
+    iterator( range_iterator_t iter, range_iterator_t const& end );
 
     struct dereference_helper
     {
@@ -107,22 +111,22 @@ public:
     std::array< range_iterator_t, Size > m_iter;
   };
 
-  sliding_view( Range const& range ) : m_range{ range } {}
+  sliding_view( Range&& range ) : m_range( std::forward< Range >( range ) ) {}
 
-  const_iterator begin() const
+  iterator begin() const
   { return { m_range.begin(), m_range.end() }; }
 
-  const_iterator end() const
+  iterator end() const
   { return { m_range.end(), m_range.end() }; }
 
 protected:
-  range_ref< Range > m_range;
+  range_ref< Range const > m_range;
 };
 
 // ----------------------------------------------------------------------------
 template < size_t Size, typename Range >
-sliding_view< Size, Range >::const_iterator
-::const_iterator( range_iterator_t iter, range_iterator_t const& end )
+sliding_view< Size, Range >::iterator
+::iterator( range_iterator_t iter, range_iterator_t const& end )
 {
   for ( size_t i = 0; i < Size; ++i )
   {
@@ -134,7 +138,7 @@ sliding_view< Size, Range >::const_iterator
 // ----------------------------------------------------------------------------
 template < size_t Size, typename Range >
 typename sliding_view< Size, Range >::value_t
-sliding_view< Size, Range >::const_iterator
+sliding_view< Size, Range >::iterator
 ::operator*() const
 {
   auto const indices = make_integer_sequence< size_t, Size >();
@@ -144,16 +148,16 @@ sliding_view< Size, Range >::const_iterator
 // ----------------------------------------------------------------------------
 template < size_t Size, typename Range >
 bool
-sliding_view< Size, Range >::const_iterator
-::operator!=( const_iterator const& other ) const
+sliding_view< Size, Range >::iterator
+::operator!=( iterator const& other ) const
 {
   return m_iter.back() != other.m_iter.back();
 }
 
 // ----------------------------------------------------------------------------
 template < size_t Size, typename Range >
-typename sliding_view< Size, Range >::const_iterator&
-sliding_view< Size, Range >::const_iterator
+typename sliding_view< Size, Range >::iterator&
+sliding_view< Size, Range >::iterator
 ::operator++()
 {
   for ( size_t i = 0; i < Size - 1; ++i )

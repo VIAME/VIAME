@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2016 by Kitware, Inc.
+ * Copyright 2012-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@
 #include <vital/util/tokenize.h>
 
 #include <sprokit/pipeline_util/load_pipe_exception.h>
-#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline_util/pipe_bakery_exception.h>
 
@@ -133,7 +133,10 @@ register_factories( kwiver::vital::plugin_loader& vpm )
       try
       {
         // Compile cluster specification
-        info = bake_cluster_from_file(pstr);
+        pipeline_builder builder;
+
+        builder.load_cluster( pstr );
+        info = builder.cluster_info();
       }
       catch (load_pipe_exception const& e)
       {

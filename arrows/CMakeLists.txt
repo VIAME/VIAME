@@ -24,6 +24,11 @@ if( KWIVER_ENABLE_PROJ )
   add_subdirectory( proj )
 endif()
 
+# Add Qt plugin if enabled
+if( KWIVER_ENABLE_QT )
+  add_subdirectory( qt )
+endif()
+
 # Add VXL plugin if enabled
 if( KWIVER_ENABLE_VXL )
   add_subdirectory( vxl )
@@ -38,6 +43,10 @@ if( KWIVER_ENABLE_VXL )
   if( KWIVER_ENABLE_SUPER3D )
     add_subdirectory( super3d )
   endif()
+endif()
+
+if ( KWIVER_ENABLE_CUDA )
+  add_subdirectory( cuda )
 endif()
 
 # Add VisCL plugin if enabled
@@ -78,7 +87,8 @@ endif()
 
 # if python is enabled
 if( KWIVER_ENABLE_PYTHON )
-  kwiver_create_python_plugin_init( kwiver/arrows )
+  kwiver_create_python_init( kwiver/arrows )
+  add_subdirectory( python )
 endif()
 
 # if FFMPEG is enabled

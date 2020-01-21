@@ -28,7 +28,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 import sprokit.pipeline.process
-import sprokit.pipeline.config
+import vital.config.config
 
 import os.path
 

@@ -60,7 +60,8 @@ extract_descriptors
   std::vector<cv::KeyPoint> kpts = features_to_ocv_keypoints(*features);
 
   cv::Mat desc;
-  extractor->compute( img, kpts, desc );
+  cv::Mat mask;
+  extractor->detectAndCompute( img, mask, kpts, desc, true);
 
   //keypoint order may have changed.  We must output keypoints.
   features = std::make_shared<feature_set>(kpts);

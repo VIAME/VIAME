@@ -12,7 +12,6 @@ set(pipeline_util_srcs
   export_dot_exception.cxx
   export_pipe.cxx
   lex_processor.cxx
-  load_pipe.cxx
   load_pipe_exception.cxx
   loaded_cluster.cxx
   pipe_bakery.cxx
@@ -29,7 +28,6 @@ set(pipeline_util_headers
   export_dot_exception.h
   export_pipe.h
   literal_pipeline.h
-  load_pipe.h
   load_pipe_exception.h
   path.h
   pipe_bakery.h
@@ -85,7 +83,7 @@ else ()
     ${sprokit_pipe_include_options})
 endif ()
 
-set_source_files_properties(load_pipe.cxx
+set_source_files_properties(pipeline_builder.cxx
   PROPERTIES
     COMPILE_DEFINITIONS "${load_pipe_build_options}")
 
@@ -99,7 +97,6 @@ kwiver_add_library(sprokit_pipeline_util
 
 target_link_libraries(sprokit_pipeline_util
   PUBLIC      sprokit_pipeline
-            ${Boost_FILESYSTEM_LIBRARY}
             ${Boost_SYSTEM_LIBRARY}
   PRIVATE     vital_config
               vital_util

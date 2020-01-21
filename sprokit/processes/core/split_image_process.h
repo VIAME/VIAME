@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,23 +57,26 @@ namespace kwiver
 class KWIVER_PROCESSES_NO_EXPORT split_image_process
   : public sprokit::process
 {
-  public:
-    split_image_process( kwiver::vital::config_block_sptr const& config );
-    virtual ~split_image_process();
+public:
+  PLUGIN_INFO( "split_image",
+               "Split a image into multiple smaller images." )
 
-  protected:
-    virtual void _configure();
-    virtual void _step();
+  split_image_process( kwiver::vital::config_block_sptr const& config );
+  virtual ~split_image_process();
 
-  private:
-    void make_ports();
-    void make_config();
+protected:
+  virtual void _configure();
+  virtual void _step();
 
-    class priv;
-    const std::unique_ptr<priv> d;
- }; // end class split_image_process
+private:
+  void make_ports();
+  void make_config();
+
+  class priv;
+  const std::unique_ptr<priv> d;
+}; // end class split_image_process
 
 
 } // end namespace
 
-#endif /* KWIVER_SPLIT_IMAGE_PROCESS_H_ */
+#endif

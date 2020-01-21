@@ -52,7 +52,7 @@ public:
   format_config_block_markdown();
   virtual ~format_config_block_markdown() = default;
 
-  void print( std::ostream& str );
+  virtual void print( std::ostream& str ) override;
 
 }; // end class format_config_block_markdown
 
@@ -114,7 +114,7 @@ public:
   format_config_block_tree();
   virtual ~format_config_block_tree() = default;
 
-  void print( std::ostream& str );
+  virtual void print( std::ostream& str ) override;
 
 protected:
   void format_block( std::ostream& str,

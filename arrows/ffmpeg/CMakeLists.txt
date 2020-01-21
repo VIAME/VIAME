@@ -36,7 +36,7 @@ kwiver_add_library( kwiver_algo_ffmpeg
   )
 target_link_libraries( kwiver_algo_ffmpeg
   PUBLIC               kwiver_algo_core
-  PRIVATE              kwiversys
+  PRIVATE              vital_klv kwiversys
                        ${FFMPEG_LIBRARIES}
   )
 

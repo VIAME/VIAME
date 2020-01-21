@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,4 +61,4 @@ dist_coeffs_to_ocv(std::vector<double> const& vital_dist_coeffs);
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_OCV_CAMERA_INTRINSICS_H_
+#endif

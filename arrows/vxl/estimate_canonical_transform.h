@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,9 @@ class KWIVER_ALGO_VXL_EXPORT estimate_canonical_transform
                                  vital::algo::estimate_canonical_transform>
 {
 public:
+  PLUGIN_INFO( "vxl_plane",
+               "Use VXL (rrel) to robustly estimate a ground plane for a canonical transform." )
+
   /// Constructor
   estimate_canonical_transform();
 
@@ -99,4 +102,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_ESTIMATE_CANONICAL_TRANSFORM_H_
+#endif

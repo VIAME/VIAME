@@ -1,51 +1,39 @@
-#
-# Python supporot
-#
+project(vital_python_algo)
 
-# Add python modules
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/algorithm.py
+include_directories(${pybind11_INCLUDE_DIR})
+
+kwiver_add_python_library(algorithm
   vital/algo
-  algorithm )
+  algorithm.h
+  image_object_detector.h
+  algorithm.cxx
+  image_object_detector.cxx
+  algorithm_module.cxx
+  trampoline/algorithm_trampoline.txx
+  trampoline/image_object_detector_trampoline.txx
+)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/bundle_adjust.py
+
+target_link_libraries(python-vital.algo-algorithm
+  PUBLIC ${PYTHON_LIBRARIES}
+          vital
+          vital_config
+          vital_algo
+          vital_python_util
+)
+
+kwiver_add_python_library(algorithm_factory
   vital/algo
-  bundle_adjust )
+  algorithm_factory.cxx
+)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/convert_image.py
-  vital/algo
-  convert_image )
+target_link_libraries(python-vital.algo-algorithm_factory
+  PUBLIC ${PYTHON_LIBRARIES}
+          vital
+          vital_algo
+)
 
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/estimate_canonical_transform.py
-  vital/algo
-  estimate_canonical_transform )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/estimate_similarity_transform.py
-  vital/algo
-  estimate_similarity_transform )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/image_io.py
-  vital/algo
-  image_io )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/initialize_cameras_landmarks.py
-  vital/algo
-  initialize_cameras_landmarks )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/track_features.py
-  vital/algo
-  track_features )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/triangulate_landmarks.py
-  vital/algo
-  triangulate_landmarks )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
-  vital/algo
-  __init__ )
-
-#kwiver_create_python_init( vital/algo
-#  algorithm
-#  convert_image
-#  image
-#  track_features
-#  )
+kwiver_create_python_init(vital/algo
+  algorithm
+  algorithm_factory
+)

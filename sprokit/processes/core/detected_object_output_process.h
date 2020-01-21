@@ -48,7 +48,11 @@ class KWIVER_PROCESSES_NO_EXPORT detected_object_output_process
   : public sprokit::process
 {
 public:
-  detected_object_output_process( kwiver::vital::config_block_sptr const& config );
+  PLUGIN_INFO( "detected_object_output",
+               "Writes detected object sets to an output file.\n\n"
+               "All detections are written to the same file." )
+
+    detected_object_output_process( kwiver::vital::config_block_sptr const& config );
   virtual ~detected_object_output_process();
 
 protected:

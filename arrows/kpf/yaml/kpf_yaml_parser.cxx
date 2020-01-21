@@ -217,8 +217,23 @@ parse_packet( const YAML::const_iterator& it, KPF::packet_t& p )
       break;
 
     case KPF::packet_style::META:
-      new (&p.meta) KPFC::meta_t( it->second.as<string>() );
-      p.header.domain = KPF::packet_header_t::NO_DOMAIN;
+      {
+        string metadata_line = "";
+        // first try it as a simple string
+        try
+        {
+          metadata_line = it->second.as<string>();
+        }
+        catch (const YAML::Exception& e )
+        {
+          // hmm, it may have embedded yaml, try that
+          YAML::Emitter meta_rewrite;
+          meta_rewrite << it->second;
+          metadata_line = string( meta_rewrite.c_str() );
+        }
+        new (&p.meta) KPFC::meta_t( metadata_line );
+        p.header.domain = KPF::packet_header_t::NO_DOMAIN;
+      }
       break;
 
     case KPF::packet_style::POLY:
@@ -504,6 +519,7 @@ namespace kpf {
 
 kpf_yaml_parser_t
 ::kpf_yaml_parser_t( istream& is )
+  : current_record_schema( schema_style::INVALID )
 {
   try
   {
@@ -531,6 +547,13 @@ kpf_yaml_parser_t
 ::eof() const
 {
   return this->current_record == this->root.end();
+}
+
+schema_style
+kpf_yaml_parser_t
+::get_current_record_schema() const
+{
+  return this->current_record_schema;
 }
 
 /**
@@ -597,6 +620,8 @@ kpf_yaml_parser_t
   bool okay = false;
   auto check = kpf_v3_check( n );
   auto n_sub = n.begin();
+
+  this->current_record_schema = check;
 
   // special case for meta
   if ((check == schema_style::INVALID) && ( str2style( n_sub->first.as<string>()) == packet_style::META ))

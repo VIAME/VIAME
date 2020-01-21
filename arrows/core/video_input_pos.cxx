@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,9 +100,9 @@ public:
     ts.set_frame( frame );
     if ( metadata )
     {
-      if ( metadata->has( vital::VITAL_META_GPS_SEC ) )
+      if ( auto& item = metadata->find( vital::VITAL_META_GPS_SEC ) )
       {
-        double gps_sec = metadata->find( vital::VITAL_META_GPS_SEC ).as_double();
+        double gps_sec = item.as_double();
         // TODO: also use gps_week and convert to UTC to get abosolute time
         // or subtract off first frame time to get time relative to start
         ts.set_time_seconds( gps_sec );
@@ -198,7 +198,7 @@ video_input_pos
   std::ifstream ifs( image_list_name.c_str() );
   if ( ! ifs )
   {
-    throw kwiver::vital::invalid_file( image_list_name, "Could not open file" );
+    VITAL_THROW( kwiver::vital::invalid_file, image_list_name, "Could not open file" );
   }
 
   kwiver::vital::data_stream_reader stream_reader( ifs );
@@ -386,9 +386,9 @@ video_input_pos
   ts.set_frame( d->d_frame_number );
   if ( d->d_metadata )
   {
-    if ( d->d_metadata->has( vital::VITAL_META_GPS_SEC ) )
+    if ( auto& item = d->d_metadata->find( vital::VITAL_META_GPS_SEC ) )
     {
-      double gps_sec = d->d_metadata->find( vital::VITAL_META_GPS_SEC ).as_double();
+      double gps_sec = item.as_double();
       // TODO: also use gps_week and convert to UTC to get abosolute time
       // or subtract off first frame time to get time relative to start
       ts.set_time_seconds( gps_sec );

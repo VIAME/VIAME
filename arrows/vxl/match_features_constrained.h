@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016 by Kitware, Inc.
+ * Copyright 2015-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,10 @@ class KWIVER_ALGO_VXL_EXPORT match_features_constrained
   : public vital::algorithm_impl<match_features_constrained, vital::algo::match_features>
 {
 public:
+  PLUGIN_INFO( "vxl_constrained",
+               "Use VXL to match descriptors under the constraints of similar geometry "
+               "(rotation, scale, position)." )
+
   /// Constructor
   match_features_constrained();
 
@@ -96,4 +100,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_VXL_MATCH_FEATURES_CONSTRAINED_H_
+#endif
