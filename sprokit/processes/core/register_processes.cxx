@@ -146,7 +146,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< perform_query_process >();
   reg.register_process< detect_motion_process >();
   reg.register_process< shift_detected_object_set_frames_process >();
-  reg.register_process< downsample_process >();
   reg.register_process< unwrap_detections_process >();
 
   mark_process_module_as_loaded( vpm, reg.module_name() );
