@@ -1,11 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 # Setup VIAME Paths (set path if script moved to another directory)
+export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)"
 
-export VIAME_INSTALL=.
-
-source ${VIAME_INSTALL}/setup_viame.sh
+source ${VIAME_INSTALL}/setup_viame.sh || exit $?
 
 # Launch the GUI
-sealtk --pipeline-directory ${VIAME_INSTALL}/configs/pipelines/embedded_dual_stream
+exec sealtk --pipeline-directory ${VIAME_INSTALL}/configs/pipelines/embedded_dual_stream
 
