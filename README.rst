@@ -1,6 +1,13 @@
 .. image:: doc/kwiver_Logo-300x78.png
    :alt: KWIVER
-   
+
+|master|   |release|   |version|   |docker|
+
+.. |master| image:: https://img.shields.io/travis/Kitware/kwiver/master?label=master
+.. |release| image:: https://img.shields.io/travis/Kitware/kwiver/release?label=release
+.. |version| image:: https://img.shields.io/github/release/kitware/kwiver
+.. |docker| image:: https://img.shields.io/docker/pulls/kitware/kwiver
+
 Kitware Image and Video Exploitation and Retrieval
 ==================================================
 
@@ -16,7 +23,7 @@ and uses an permissive `BSD License <LICENSE>`_.
 One of the primary design goals of KWIVER is to make it easier to pull
 together algorithms from a wide variety of third-party, open source
 image and video processing projects and integrate them into highly
-modular, run-time configurable systems. 
+modular, run-time configurable systems.
 
 For more information on how KWIVER achieves this goal,
 and how to use KWIVER visit our `documentation site <http://kwiver.readthedocs.io/en/latest/>`_
@@ -39,6 +46,26 @@ the content they contain.
 `<vital>`_       Core libraries source and headers
 ================ ===========================================================
 
+KWIVER Docker Image
+=============================
+
+Kitware maintains a `Docker <https://www.docker.com/>`_ image with KWIVER prebuilt.
+The Dockerfile used to build the image can be found `here <dockerfile>`_.
+
+Pull the image from Dockerhub::
+
+ "docker pull kitware/kwiver:master" (latest master)
+
+ "docker pull kitware/kwiver:release" (latest release)
+
+ "docker pull kitware/kwiver:1.4.0" (static release)
+
+(`https://hub.docker.com/r/kitware/kwiver <https://hub.docker.com/r/kitware/kwiver>`_)
+
+or build the KWIVER image using the dockerfile::
+
+ "docker build -t kwiver:tagname ."
+
 Building KWIVER
 ===============
 
@@ -48,7 +75,7 @@ Fletch
 KWIVER, especially Arrows, has a number of dependencies on 3rd party
 open source libraries.  Most of these dependencies are optional
 but useful in practice, and the number of dependencies is expected to
-grow as we expand Arrows.  
+grow as we expand Arrows.
 
 Vital has minimal required dependencies (only Eigen_).
 Sprokit additionally relies on Boost_.
@@ -71,7 +98,7 @@ Running CMake
 -------------
 
 You may run cmake directly from a shell or cmd window.
-On unix systems, the ccmake tool allows for interactive selection of CMake options.  
+On unix systems, the ccmake tool allows for interactive selection of CMake options.
 Available for all platforms, the CMake GUI can set the source and build directories, options,
 "Configure" and "Generate" the build files all with the click of a few button.
 
@@ -118,7 +145,7 @@ Note, This assumes your fletch was built with python support (Turn OFF if not)
 You will also need to replace the fletch path with your own::
 
     $ cmake </path/to/kwiver/source> -DCMAKE_BUILD_TYPE=Release \
-            -Dfletch_DIR:PATH=<path/to/fletch/build/dir> 
+            -Dfletch_DIR:PATH=<path/to/fletch/build/dir> \
             -DKWIVER_ENABLE_ARROWS:BOOL=ON -DKWIVER_ENABLE_C_BINDINGS:BOOL=ON \
             -DKWIVER_ENABLE_EXTRAS:BOOL=ON -DKWIVER_ENABLE_LOG4CPLUS:BOOL=ON \
             -DKWIVER_ENABLE_PROCESSES:BOOL=ON -DKWIVER_ENABLE_PYTHON:BOOL=ON \
@@ -134,7 +161,7 @@ configuration and ``fletch_DIR`` on the command line like this::
   $ ccmake /path/to/kwiver/source -DCMAKE_BUILD_TYPE=Release -Dfletch_DIR=/path/to/fletch/install
 
 Other CMake options can also be passed on the command line in this way if desired.
-Follow the recommended option setup using the cmake GUI. 
+Follow the recommended option setup using the cmake GUI.
 
 Basic CMake generation using the CMake GUI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,15 +174,15 @@ configuration button, new options will be highlighted in the red sections.
    button and select your compiler.
 
    a. Configuration will fail, but now we can set option values
-  
+
 2. Set the fletch_DIR, the CMAKE_BUILD_TYPE, and these KWIVER options,
    and press the 'Configuration' button
 
    a. Note, if compiling with MSVC, you will not have a CMAKE_BUILD_TYPE option
-  
+
 .. image:: doc/manuals/_images/cmake/cmake_step_2.png
    :alt: KWIVER CMake Configuration Step 2
-  
+
 3. Select these new options, and click 'Generate'
 
    a. This assumes your fletch was build with python support,
@@ -211,13 +238,13 @@ to allow KWIVER to work conveniently within in the shell/cmd window.
 
 You can run this simple pipeline to ensure your system is configured properly::
 
-  # via a bash shell  
+  # via a bash shell
   $ cd bin
-  $ pipeline_runner -p ../examples/pipelines/number_flow.pipe
+  $ kwiver runner ../examples/pipelines/number_flow.pipe
   #
   # on windows, you will need to also be in the configuration folder
   > cd bin\release
-  > pipeline_runner -p ..\..\examples\pipelines\number_flow.pipe
+  > kwiver runner ..\..\examples\pipelines\number_flow.pipe
 
 This will generate a 'numbers.txt' file in the </path/to/kwiver/build>/examples/pipelines/output directory.
 
@@ -248,16 +275,6 @@ Windows, Mac, and Linux.
 Anyone can contribute a build to this dashboard using the
 `dashboard script <CMake/dashboard-scripts/KWIVER_common.cmake>`_
 provided.  Follow the instructions in the comments.
-
-
-`Travis CI`_ is also used for continued integration testing.
-Travis CI is limited to a single platform (Ubuntu Linux), but provides
-automated testing of all topic branches and pull requests whenever they are created.
-
-============================= =============
-Travis CI **master** branch:  |CI:master|_
-Travis CI **release** branch: |CI:release|_
-============================= =============
 
 
 Contributing
@@ -323,9 +340,3 @@ NOAA Fisheries Strategic Initiative on Automated Image Analysis.
 .. |cmake_link| replace:: CMake
 
 .. |>=| unicode:: U+02265 .. greater or equal sign
-
-.. |CI:master| image:: https://travis-ci.org/Kitware/kwiver.svg?branch=master
-.. |CI:release| image:: https://travis-ci.org/Kitware/kwiver.svg?branch=release
-
-.. _CI:master: https://travis-ci.org/Kitware/kwiver
-.. _CI:release: https://travis-ci.org/Kitware/kwiver

@@ -304,7 +304,7 @@ void convert_protobuf( const kwiver::vital::image_container_sptr img,
   const uLongf size = compressBound( local_image.size() );
   uLongf out_size(size);
   std::vector<uint8_t> image_data( size );
-  Bytef out_buf[size];
+  Bytef *out_buf = new Bytef[size];
   Bytef const* in_buf = reinterpret_cast< Bytef * >(local_image.memory()->data());
 
   // Since the image is contiguous, we can calculate the size
@@ -332,32 +332,35 @@ void convert_protobuf( const kwiver::vital::image_container_sptr img,
                  "Error compressing image data." );
       break;
     } // end switch
-    return;
   }
-
-  proto_img.set_width( static_cast< int64_t > ( local_image.width() ) );
-  proto_img.set_height( static_cast< int64_t > ( local_image.height() ) );
-  proto_img.set_depth( static_cast< int64_t > ( local_image.depth() ) );
-
-  proto_img.set_w_step( static_cast< int64_t > ( local_image.w_step() ) );
-  proto_img.set_h_step( static_cast< int64_t > ( local_image.h_step() ) );
-  proto_img.set_d_step( static_cast< int64_t > ( local_image.d_step() ) );
-
-  // Get pixel trait
-  auto pixel_trait = local_image.pixel_traits();
-  proto_img.set_trait_type( pixel_trait.type );
-  proto_img.set_trait_num_bytes( pixel_trait.num_bytes );
-
-  proto_img.set_size( local_image.size() ); // uncompressed size
-  proto_img.set_data( out_buf, size );
-
-  // serialize the metadata if there is any.
-  if ( img->get_metadata() )
+  else
   {
-    auto* proto_meta = new kwiver::protobuf::metadata();
-    convert_protobuf( *img->get_metadata(), *proto_meta );
-    proto_img.set_allocated_image_metadata( proto_meta );
+
+    proto_img.set_width( static_cast< int64_t > ( local_image.width() ) );
+    proto_img.set_height( static_cast< int64_t > ( local_image.height() ) );
+    proto_img.set_depth( static_cast< int64_t > ( local_image.depth() ) );
+
+    proto_img.set_w_step( static_cast< int64_t > ( local_image.w_step() ) );
+    proto_img.set_h_step( static_cast< int64_t > ( local_image.h_step() ) );
+    proto_img.set_d_step( static_cast< int64_t > ( local_image.d_step() ) );
+
+    // Get pixel trait
+    auto pixel_trait = local_image.pixel_traits();
+    proto_img.set_trait_type( pixel_trait.type );
+    proto_img.set_trait_num_bytes( pixel_trait.num_bytes );
+
+    proto_img.set_size( local_image.size() ); // uncompressed size
+    proto_img.set_data( out_buf, size );
+
+    // serialize the metadata if there is any.
+    if ( img->get_metadata() )
+    {
+      auto* proto_meta = new kwiver::protobuf::metadata();
+      convert_protobuf( *img->get_metadata(), *proto_meta );
+      proto_img.set_allocated_image_metadata( proto_meta );
+    }
   }
+  delete []out_buf;
 }
 
 // ----------------------------------------------------------------------------
@@ -550,9 +553,10 @@ void convert_protobuf( const kwiver::protobuf::geo_point&  proto_point,
 {
   if ( proto_point.has_crs() )
   {
-    kwiver::vital::geo_point::geo_raw_point_t pt;
+    kwiver::vital::geo_point::geo_3d_point_t pt;
     pt[0] = proto_point.x();
     pt[1] = proto_point.y();
+    pt[2] = proto_point.z();
     point.set_location( pt, proto_point.crs() );
   }
 }
@@ -568,6 +572,7 @@ void convert_protobuf( const kwiver::vital::geo_point& point,
     const auto loc = point.location( point.crs() );
     proto_point.set_x( loc[0] );
     proto_point.set_y( loc[1] );
+    proto_point.set_z( loc[2] );
   }
 }
 
@@ -718,12 +723,12 @@ void convert_protobuf( const kwiver::protobuf::object_track_state& proto_obj_trk
   kwiver::vital::time_usec_t time =  static_cast< kwiver::vital::time_usec_t >(
                         proto_obj_trk_state.time() );
   // object track state detection might be nullptr
-  if ( !obj_trk_state.detection )
+  if ( !obj_trk_state.detection() )
   {
-    obj_trk_state.detection = std::make_shared<kwiver::vital::detected_object>(
-                      kwiver::vital::bounding_box_d{0, 0, 0, 0} );
+    obj_trk_state.set_detection( std::make_shared<kwiver::vital::detected_object>(
+                      kwiver::vital::bounding_box_d{0, 0, 0, 0} ) );
   }
-  convert_protobuf( proto_obj_trk_state.detection(), *obj_trk_state.detection );
+  convert_protobuf( proto_obj_trk_state.detection(), *obj_trk_state.detection() );
 
   obj_trk_state.set_frame( frame_id );
   obj_trk_state.set_time( time );
@@ -742,7 +747,7 @@ void convert_protobuf( const kwiver::vital::object_track_state& obj_trk_state,
   convert_protobuf( trk_state, *proto_trk_state );
 
   kwiver::protobuf::detected_object *proto_det_obj= new kwiver::protobuf::detected_object();
-  convert_protobuf( *obj_trk_state.detection, *proto_det_obj );
+  convert_protobuf( *obj_trk_state.detection(), *proto_det_obj );
 
   proto_obj_trk_state.set_allocated_track_state( proto_trk_state );
   proto_obj_trk_state.set_allocated_detection( proto_det_obj );

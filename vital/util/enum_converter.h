@@ -140,9 +140,8 @@ struct enum_converter
   typedef T enum_type;
   typedef std::vector< std::pair< std::string, T > > table_t;
 
+  /// Create converter table.
   /**
-   * @brief Create converter table.
-   *
    * @param table Conversion table to use.
    *
    */
@@ -151,10 +150,9 @@ struct enum_converter
   { }
 
 
+  /// Convert from element name to value.
   /**
-   * @brief Convert from element name to value.
-   *
-   * this method converts the supplied name into the associated value.
+   * This method converts the supplied name into the associated value.
    *
    * @param name Name of the enum element.
    *
@@ -175,10 +173,8 @@ struct enum_converter
     throw std::runtime_error( str.str() );
   }
 
-
+  /// Convert from enum code to name string.
   /**
-   * @brief Convert from enum code to name string.
-   *
    * This method converts the supplied value to the associated string.
    *
    * @param val Enum value to convert
@@ -196,10 +192,8 @@ struct enum_converter
     throw std::runtime_error( "Could not convert enum value to string" );
   }
 
-
+  /// Get list of available names for enum.
   /**
-   * @brief Get list of available names for enum.
-   *
    * This method returns a single string with all available names for
    * the enum elements. Each element is surrounded with double quotes
    * and commas are added as appropriate.
@@ -235,10 +229,8 @@ private:
 
 } } // end namespace
 
-
+/// Shorthand method of creating enum converter classes.
 /**
- * @brief Shorthand method of creating enum converter classes.
- *
  * This macro creates a enum converter class that is derived from the
  * base class and is initialized with the supplied conversion pairs.
  *

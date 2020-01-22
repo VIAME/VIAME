@@ -99,6 +99,7 @@ class process_trampoline
 {
   public:
     using process::process;
+
     void _configure() override;
     void _init() override;
     void _reset() override;
@@ -115,6 +116,7 @@ class process_trampoline
     bool _set_output_port_type(port_t const& port, port_type_t const& new_type) override;
     kwiver::vital::config_block_keys_t _available_config() const override;
     sprokit::process::conf_info_t _config_info(kwiver::vital::config_block_key_t const& key) override;
+
 };
 
 void declare_input_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info);
@@ -149,6 +151,9 @@ void declare_configuration_key_4(sprokit::process &self,
 wrap_edge_datum peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, std::size_t idx);
 wrap_edge_datum grab_from_port(sprokit::process &self, sprokit::process::port_t const& port);
 sprokit::datum grab_datum_from_port(sprokit::process &self, sprokit::process::port_t const& port);
+sprokit::datum peek_at_datum_on_port(sprokit::process &self,
+                                     sprokit::process::port_t const& port,
+                                     std::size_t idx);
 object grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port);
 
 void push_value_to_port(sprokit::process &self, sprokit::process::port_t const& port, object const& obj);
@@ -399,10 +404,15 @@ PYBIND11_MODULE(process, m)
     .def("config_info", &sprokit::process::config_info, call_guard<kwiver::vital::python::gil_scoped_release>()
       , (arg("config"))
       , "Returns information about the given configuration key.")
+
+    .def("config_diff", &sprokit::process::config_diff, call_guard<kwiver::vital::python::gil_scoped_release>()
+         , "Returns config difference information.")
+
     .def("name", &sprokit::process::name, call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Returns the name of the process.")
     .def("type", &sprokit::process::type, call_guard<kwiver::vital::python::gil_scoped_release>()
       , "Returns the type of the process.")
+
     .def_readonly_static("property_no_threads", &sprokit::process::property_no_threads)
     .def_readonly_static("property_no_reentrancy", &sprokit::process::property_no_reentrancy)
     .def_readonly_static("property_unsync_input", &sprokit::process::property_unsync_input)
@@ -494,7 +504,8 @@ PYBIND11_MODULE(process, m)
     .def("peek_at_port", &peek_at_port, call_guard<kwiver::vital::python::gil_scoped_release>()
       , arg("port"), arg("idx") = 0
       , "Peek at a port.")
-    .def("peek_at_datum_on_port", static_cast<sprokit::datum_t (sprokit::process::*)(sprokit::process::port_t const&, pybind11::size_t) const>(&wrap_process::peek_at_datum_on_port), call_guard<kwiver::vital::python::gil_scoped_release>()
+    .def("peek_at_datum_on_port", &peek_at_datum_on_port
+      , call_guard<kwiver::vital::python::gil_scoped_release>()
       , arg("port"), arg("idx") = 0
       , "Peek at a datum on a port.")
     .def("grab_from_port", &grab_from_port, call_guard<kwiver::vital::python::gil_scoped_release>()
@@ -827,6 +838,15 @@ grab_datum_from_port(sprokit::process &self, sprokit::process::port_t const& por
   sprokit::process* self_ptr = &self;
   auto const edat = ((wrap_process*) self_ptr)->grab_from_port(port);
   sprokit::datum dat = *edat.datum;
+  return dat;
+}
+
+sprokit::datum
+peek_at_datum_on_port(sprokit::process &self, sprokit::process::port_t const& port,
+                      std::size_t idx)
+{
+  sprokit::process* self_ptr = &self;
+  sprokit::datum dat = *((wrap_process*) self_ptr)->peek_at_datum_on_port(port, idx);
   return dat;
 }
 

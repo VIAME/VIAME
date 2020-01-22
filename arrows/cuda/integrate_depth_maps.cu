@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2016 by Kitware SAS, 2018 Kitware, Inc.
+* Copyright 2016 by Kitware SAS, 2018-2019 Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <vector>
+#include "cuda_error_check.h"
 
 #define size4x4 16
 
@@ -48,22 +49,46 @@ __constant__ int2 c_depthMapDims;         // Dimensions of all depths map
 __constant__ double c_rayPotentialThick;  // Thickness threshold for the ray potential function
 __constant__ double c_rayPotentialRho;    // Rho at the Y axis for the ray potential function
 __constant__ double c_rayPotentialEta;
+__constant__ double c_rayPotentialEpsilon;
 __constant__ double c_rayPotentialDelta;
 int grid_dims[3];
 
+
 //*****************************************************************************
-
-// Macro called to catch cuda error when cuda functions are called
-#define CudaErrorCheck(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
-{
-  if (code != cudaSuccess)
-  {
-    fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-    if (abort) exit(code);
-  }
-}
-
+//     Truncated Signed Distance Function (TSDF) Parameter Description
+//*****************************************************************************
+//** Eta is a percentage of rho ( 0 < Eta < 1)
+//** Epsilon is a percentage of rho ( 0 < Epsilon < 1)
+//** Delta has to be superior to Thick
+//
+//                     'real distance' - 'depth value'
+//                                     |
+//                                     |
+//                                     |         ---------------  Rho
+//                                     |        /|             |
+//                                     |       /               |
+//                                     |      /  |             |
+//                                     |     /                 |
+//                                     |    /    |             |
+//                                     |   /                   |
+//                                     |  /      |             |
+//                                     | /         Epsilon*Rho |______________
+//                                     |/        |
+//----------------------------------------------------------------------------
+//                                    /
+//                                   /
+//                                  /
+//--------------  Eta*rho          /
+//             |                  /
+//             |                 /
+//             |                /
+//             |               /
+//             |              /
+//             ---------------
+//                            <--------->
+//                               Thick
+//             <----------------------->
+//                        Delta
 //*****************************************************************************
 
 __device__ void computeVoxelCenter(int voxelCoordinate[3], double output[3])
@@ -103,7 +128,8 @@ __device__ void rayPotential(double realDistance, double depthMapDistance, doubl
   int sign = diff != 0 ? diff / absoluteDiff : 0;
 
   if (absoluteDiff > c_rayPotentialDelta)
-    res = diff > 0 ? 0 : - c_rayPotentialEta * c_rayPotentialRho;
+    res = diff > 0 ? c_rayPotentialEpsilon * c_rayPotentialRho
+                   : - c_rayPotentialEta * c_rayPotentialRho;
   else if (absoluteDiff > c_rayPotentialThick)
     res = c_rayPotentialRho * sign;
   else
@@ -175,7 +201,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   // Compute the ID on depthmap values according to pixel position and depth map dimensions
   int depthMapId = computeVoxelIDDepth(pixel);
   double depth = depths[depthMapId];
-  if (depth == -1)
+  if (depth <= 0)
     return;
 
   int gridId = computeVoxelIDGrid(voxelIndex);  // Get the distance between voxel and camera
@@ -195,15 +221,17 @@ void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
           double h_rayPThick,
           double h_rayPRho,
           double h_rayPEta,
+          double h_rayPEpsilon,
           double h_rayPDelta)
 {
-  cudaMemcpyToSymbol(c_gridDims, h_gridDims, 3 * sizeof(int));
-  cudaMemcpyToSymbol(c_gridOrig, h_gridOrig, 3 * sizeof(double));
-  cudaMemcpyToSymbol(c_gridSpacing, h_gridSpacing, 3 * sizeof(double));
-  cudaMemcpyToSymbol(c_rayPotentialThick, &h_rayPThick, sizeof(double));
-  cudaMemcpyToSymbol(c_rayPotentialRho, &h_rayPRho, sizeof(double));
-  cudaMemcpyToSymbol(c_rayPotentialEta, &h_rayPEta, sizeof(double));
-  cudaMemcpyToSymbol(c_rayPotentialDelta, &h_rayPDelta, sizeof(double));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_gridDims, h_gridDims, 3 * sizeof(int)));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_gridOrig, h_gridOrig, 3 * sizeof(double)));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_gridSpacing, h_gridSpacing, 3 * sizeof(double)));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialThick, &h_rayPThick, sizeof(double)));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialRho, &h_rayPRho, sizeof(double)));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialEta, &h_rayPEta, sizeof(double)));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialEpsilon, &h_rayPEpsilon, sizeof(double)));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_rayPotentialDelta, &h_rayPDelta, sizeof(double)));
 
   grid_dims[0] = h_gridDims[0];
   grid_dims[1] = h_gridDims[1];
@@ -217,9 +245,11 @@ void launch_depth_kernel(double * d_depth, int h_depthMapDims[2], double d_K[siz
   // Organize threads into blocks and grids
   dim3 dimBlock(grid_dims[0], 1, 1); // nb threads on each block
   dim3 dimGrid(1, grid_dims[1], grid_dims[2]); // nb blocks on a grid
-  cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int));
+  CudaErrorCheck(cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int)));
   CudaErrorCheck(cudaDeviceSynchronize());
   depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_K, d_RT, d_volume);
+  CudaErrorCheck(cudaPeekAtLastError());
+  CudaErrorCheck(cudaDeviceSynchronize());
 }
 
 

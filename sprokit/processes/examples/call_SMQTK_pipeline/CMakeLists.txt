@@ -9,7 +9,7 @@ kwiver_add_library( SMQTK_Descriptor
   )
 
 target_link_libraries( SMQTK_Descriptor
-  PRIVATE         sprokit_pipeline sprokit_tools
+  PRIVATE         sprokit_pipeline sprokit_pipeline_util
                   vital vital_vpm vital_logger vital_config
                   kwiver_adapter
                   kwiver_algo_ocv
@@ -23,7 +23,7 @@ add_executable( SMQTK_Descriptor_test
   )
 
 target_link_libraries( SMQTK_Descriptor_test
-  PRIVATE         sprokit_pipeline sprokit_tools
+  PRIVATE         sprokit_pipeline sprokit_pipeline_util
                   vital vital_vpm vital_logger vital_config
                   kwiver_adapter
                   kwiver_algo_ocv

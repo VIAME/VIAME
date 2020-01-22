@@ -540,27 +540,28 @@ frame_index_track_set_impl
 
 track_set_implementation_uptr
 frame_index_track_set_impl
-::clone() const
+::clone( vital::clone_type ct ) const
 {
   std::unique_ptr<frame_index_track_set_impl> the_clone =
     std::unique_ptr<frame_index_track_set_impl>(new frame_index_track_set_impl());
 
   // clone the track data
-  for (auto trk : all_tracks_)
+  for ( auto const& trk : all_tracks_ )
   {
-    the_clone->all_tracks_.insert(std::make_pair(trk.first,trk.second->clone()));
+    the_clone->all_tracks_.emplace( trk.first, trk.second->clone( ct ) );
   }
 
   // clone the frame data
-  for (auto fd : frame_data_)
+  for ( auto const& fd : frame_data_ )
   {
-    if (fd.second)
-    {
-      the_clone->frame_data_[fd.first] = fd.second->clone();
-    }
+    the_clone->frame_data_.emplace( fd.first, fd.second->clone() );
   }
 
-  return std::unique_ptr<track_set_implementation>(static_cast<track_set_implementation*>(the_clone.release()));
+#if __GNUC__ > 4 || __clang_major__ > 3
+  return the_clone;
+#else
+  return std::move( the_clone );
+#endif
 }
 
 

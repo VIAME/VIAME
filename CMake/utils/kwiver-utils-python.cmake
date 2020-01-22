@@ -211,7 +211,7 @@ function (kwiver_create_python_init    modpath)
     file(WRITE "${init_path}"      "${copyright_header}\n\n")
   endif()
   # Abolute import is generated only when ARGN is used
-  if (${ARGC} GREATER 2)
+  if (${ARGC} GREATER 1)
     file(READ "${init_path}" init_file)
     # Check for the string before appending
     set (abs_import "from __future__ import absolute_import")

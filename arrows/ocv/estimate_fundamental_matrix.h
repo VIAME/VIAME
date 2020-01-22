@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,4 +96,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_OCV_ESTIMATE_FUNDAMENTAL_MATRIX_H_
+#endif

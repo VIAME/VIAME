@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline_util/path.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline_util/pipe_bakery_exception.h>
 
@@ -170,7 +170,9 @@ register_cluster(sprokit::cluster_info_t const& info)
 sprokit::pipeline_t
 bake_pipe_file(std::string const& path)
 {
-  return sprokit::bake_pipe_from_file(path);
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( path );
+  return builder.pipeline();
 }
 
 
@@ -179,8 +181,9 @@ sprokit::pipeline_t
 bake_pipe(object stream)
 {
   sprokit::python::pyistream istr(stream);
-
-  return sprokit::bake_pipe(istr);
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( istr );
+  return builder.pipeline();
 }
 
 
@@ -188,7 +191,9 @@ bake_pipe(object stream)
 sprokit::cluster_info_t
 bake_cluster_file(std::string const& path)
 {
-  return sprokit::bake_cluster_from_file(path);
+  sprokit::pipeline_builder builder;
+  builder.load_cluster( path );
+  return builder.cluster_info();
 }
 
 
@@ -197,6 +202,7 @@ sprokit::cluster_info_t
 bake_cluster(object stream)
 {
   sprokit::python::pyistream istr(stream);
-
-  return sprokit::bake_cluster(istr);
+  sprokit::pipeline_builder builder;
+  builder.load_cluster( istr );
+  return builder.cluster_info();
 }

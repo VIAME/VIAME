@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ namespace vital {
       : metadata_item( "Requested metadata item is not in collection", 0, VITAL_META_UNKNOWN )
     { }
 
-    virtual ~unknown_metadata_item() {}
+    virtual bool is_valid() const { return false; }
     virtual vital_metadata_tag tag() const { return static_cast< vital_metadata_tag >(0); }
     virtual std::type_info const& type() const { return typeid( void ); }
     virtual std::string as_string() const { return "--Unknown metadata item--"; }
@@ -82,9 +82,12 @@ metadata_item
 { }
 
 
+bool
 metadata_item
-::~metadata_item()
-{ }
+::is_valid() const
+{
+  return true;
+}
 
 
 std::string const&
@@ -208,9 +211,25 @@ metadata
 
 metadata::const_iterator_t
 metadata
+::cbegin() const
+{
+  return m_metadata_map.cbegin();
+}
+
+
+metadata::const_iterator_t
+metadata
 ::end() const
 {
   return m_metadata_map.end();
+}
+
+
+metadata::const_iterator_t
+metadata
+::cend() const
+{
+  return m_metadata_map.cend();
 }
 
 
@@ -255,7 +274,7 @@ metadata
 
   switch (tag)
   {
-#define VITAL_META_TRAIT_CASE(TAG, NAME, T) case VITAL_META_ ## TAG: return typeid(T);
+#define VITAL_META_TRAIT_CASE(TAG, NAME, T, ...) case VITAL_META_ ## TAG: return typeid(T);
 
     KWIVER_VITAL_METADATA_TAGS( VITAL_META_TRAIT_CASE )
 
@@ -345,9 +364,8 @@ bool test_equal_content( const kwiver::vital::metadata& one,
     const auto tag = mi.first;
     const auto metap = mi.second;
 
-    if ( ! other.has( tag ) ) { return false; }
-
-    const auto& omi = other.find( tag );
+    auto& omi = other.find( tag );
+    if ( ! omi ) { return false; }
 
     // It is simpler to just do a string comparison than to try to do
     // a type specific comparison.

@@ -503,7 +503,7 @@ camera_options
     return num_priors_applied;
   }
 
-  ::ceres::LossFunction *loss = LossFunctionFactory(SOFT_L_ONE_LOSS, 10.0);
+  ::ceres::LossFunction *loss = LossFunctionFactory(SOFT_L_ONE_LOSS, 100.0);
 
   for (auto& ext_par : ext_params)
   {

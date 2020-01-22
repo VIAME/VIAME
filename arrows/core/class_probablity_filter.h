@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,4 +92,4 @@ private:
 }}} //End namespace
 
 
-#endif // KWIVER_ARROWS_CLASS_PROBABLITY_FILTER_H_
+#endif

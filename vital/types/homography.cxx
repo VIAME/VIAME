@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ h_map_point( Eigen::Matrix< T, 3, 3 > const& h, Eigen::Matrix< T, 2, 1 > const& 
 
   if ( fabs( out_pt[2] ) <= Eigen::NumTraits< T >::dummy_precision() )
   {
-    throw point_maps_to_infinity();
+    VITAL_THROW(point_maps_to_infinity);
   }
   return Eigen::Matrix< T, 2, 1 > ( out_pt[0] / out_pt[2], out_pt[1] / out_pt[2] );
 }
@@ -122,11 +122,11 @@ homography_< double >
 
 /// Create a clone of outself as a shared pointer
 template < typename T >
-homography_sptr
+transform_2d_sptr
 homography_< T >
 ::clone() const
 {
-  return homography_sptr( new homography_< T > ( *this ) );
+  return std::make_shared< homography_< T > >( *this );
 }
 
 
@@ -162,7 +162,7 @@ homography_< T >
   {
     norm /= norm( 2, 2 );
   }
-  return homography_sptr( new homography_< T > ( norm ) );
+  return std::make_shared< homography_< T > >( norm );
 }
 
 
@@ -178,9 +178,9 @@ homography_< T >
   this->h_.computeInverseWithCheck( inv, isvalid );
   if ( ! isvalid )
   {
-    throw non_invertible_matrix();
+    VITAL_THROW(non_invertible);
   }
-  return homography_sptr( new homography_< T > ( inv ) );
+  return std::make_shared< homography_< T > >( inv );
 }
 
 

@@ -48,8 +48,16 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver
 {
 
-  create_config_trait( detect_loops, std::string, "",
-    "Algorithm configuration subblock." )
+create_config_trait( detect_loops, std::string, "",
+                     "Algorithm configuration subblock." );
+
+create_port_trait( next_tracks, feature_track_set,
+                   "feature track set for the next frame.  Features are not yet matched for "
+                   "any frames.");
+
+create_port_trait( loop_back_tracks, feature_track_set,
+                   "feature track set from last call to detect loops.  May include loops "
+                   "(joined track sets, split track sets).");
 
 /**
  * \class track_features_process
@@ -151,7 +159,7 @@ void close_loops_process
 
   if ( ! d->m_loop_closer )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Unable to create close_loops" );
   }
 
@@ -163,7 +171,7 @@ void close_loops_process
   if ( ! algo::close_loops::check_nested_algo_configuration(
       algo_name, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Configuration check failed." );
   }
 
@@ -177,17 +185,14 @@ close_loops_process
 {
   // timestamp
   kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
-
-  vital::feature_track_set_sptr next_tracks =
-    grab_from_port_as<vital::feature_track_set_sptr>("next_tracks");
+  vital::feature_track_set_sptr next_tracks = grab_from_port_using_trait(next_tracks);
 
   next_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(next_tracks->clone());
 
   vital::feature_track_set_sptr curr_tracks;
   if (!d->first)
   {
-    vital::feature_track_set_sptr loop_back_tracks =
-      grab_from_port_as<vital::feature_track_set_sptr>("loop_back_tracks");
+    vital::feature_track_set_sptr loop_back_tracks = grab_from_port_using_trait(loop_back_tracks);
 
     loop_back_tracks = std::dynamic_pointer_cast<vital::feature_track_set>(loop_back_tracks->clone());
 
@@ -228,14 +233,8 @@ void close_loops_process
 
   // -- input --
   declare_input_port_using_trait( timestamp, required );
-
-  declare_input_port("next_tracks", "kwiver:feature_track_set", required,
-    "feature track set for the next frame.  Features are not yet matched for "
-    "any frames.");
-
-  declare_input_port("loop_back_tracks", "kwiver:feature_track_set", input_nodep,
-    "feature track set from last call to detect loops.  May include loops "
-    "(joined track sets, split track sets.");
+  declare_input_port_using_trait( next_tracks, required );
+  declare_input_port_using_trait( loop_back_tracks, required );
 
   // -- output --
   declare_output_port_using_trait(feature_track_set, optional );

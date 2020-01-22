@@ -166,7 +166,7 @@ compute_offset_range(std::vector<vector_3d> const& landmarks,
 /**
 * \param  landmarks is the set of 3D landmark points
 * \param  cam is the perspective camera to compute the range from
-* \param depth_min is the minimum of the depth range
+* \param  depth_min is the minimum of the depth range
 * \param  depth_max is the maximum of the depth range
 * \param  outlier_thresh is the threshold for fraction of outlier offsets to
 *         reject at both the top and bottom
@@ -180,6 +180,17 @@ compute_depth_range(std::vector<vector_3d> const& landmarks,
                     const double outlier_thresh = 0.1,
                     const double safety_margin_factor = 0.5);
 
+/// Estimate the pixel to world scale over a set of cameras
+/**
+* \param  minpt Minimum point of 3d box
+  \param  maxpt Maximum point of 3d box
+* \param  cameras Vector of perspective cameras to compute the average scale from
+*/
+KWIVER_ALGO_CORE_EXPORT
+double
+compute_pixel_to_world_scale(kwiver::vital::vector_3d const& minpt,
+                             kwiver::vital::vector_3d const& maxpt,
+                             std::vector<camera_perspective_sptr> const& cameras);
 } //end namespace core
 } //end namespace arrows
 } //end namespace kwiver

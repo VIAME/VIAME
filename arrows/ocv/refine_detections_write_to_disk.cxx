@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,10 +154,13 @@ refine_detections_write_to_disk
   // Get input filename if it's in the vital_metadata
   std::string filename;
   auto md = image_data->get_metadata();
-  if( md && md->has(VITAL_META_IMAGE_URI) )
+  if( md )
   {
-    // Get the full path, and then extract just the filename proper
-    filename = ST::GetFilenameName( md->find(VITAL_META_IMAGE_URI).as_string() );
+    if ( auto& mdi = md->find( VITAL_META_IMAGE_URI ) )
+    {
+      // Get the full path, and then extract just the filename proper
+      filename = ST::GetFilenameName( mdi.as_string() );
+    }
   }
 
   for( auto det : *detections )

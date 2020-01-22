@@ -52,7 +52,7 @@ class KWIVER_PROCESSES_NO_EXPORT frame_list_process
   : public sprokit::process
 {
 public:
-  PLUGIN_INFO( "frame_list_process",
+  PLUGIN_INFO( "frame_list_input",
                "Reads a list of image file names and generates stream of "
                "images and associated time stamps." )
 

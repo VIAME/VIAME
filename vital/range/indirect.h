@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ public:
   using value_t = range_iterator_t;
 
   indirect_view( indirect_view const& ) = default;
+  indirect_view( indirect_view&& ) = default;
 
   class iterator
   {
@@ -77,13 +78,13 @@ public:
     range_iterator_t m_iter;
   };
 
-  indirect_view( Range& range ) : m_range{ range } {}
+  indirect_view( Range&& range ) : m_range( std::forward< Range >( range ) ) {}
 
   iterator begin() const { return { m_range.begin() }; }
   iterator end() const { return { m_range.end() }; }
 
 protected:
-  range_ref< Range > m_range;
+  range_ref< Range const > m_range;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

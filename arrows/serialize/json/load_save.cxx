@@ -433,7 +433,8 @@ void save( ::cereal::JSONOutputArchive& archive, const kwiver::vital::geo_point&
 
     archive( ::cereal::make_nvp( "crs", point.crs() ),
              ::cereal::make_nvp( "x", loc[0] ),
-             ::cereal::make_nvp( "y", loc[1] )
+             ::cereal::make_nvp( "y", loc[1] ),
+             ::cereal::make_nvp( "z", loc[2] )
       );
   }
 }
@@ -446,13 +447,14 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::geo_point& point 
 
   if ( crs != -1 ) // empty marker
   {
-    double x, y;
+    double x, y, z;
     archive( CEREAL_NVP( crs ),
              CEREAL_NVP( x ),
-             CEREAL_NVP( y )
+             CEREAL_NVP( y ),
+             CEREAL_NVP( z )
       );
 
-    const kwiver::vital::geo_point::geo_raw_point_t raw( x, y );
+    const kwiver::vital::geo_point::geo_3d_point_t raw( x, y, z );
     point.set_location( raw, crs );
   }
 }
@@ -497,7 +499,7 @@ void save( ::cereal::JSONOutputArchive& archive,
 {
   archive( ::cereal::base_class< kwiver::vital::track_state >( std::addressof( obj_trk_state ) ) );
   archive( ::cereal::make_nvp( "track_time", obj_trk_state.time() ) );
-  save( archive, *obj_trk_state.detection );
+  save( archive, *obj_trk_state.detection() );
 }
 
 // ----------------------------------------------------------------------------
@@ -511,7 +513,7 @@ void load( ::cereal::JSONInputArchive& archive,
   archive( CEREAL_NVP( track_time ) );
   obj_trk_state.set_time(track_time);
   load(archive, *detection);
-  obj_trk_state.detection = detection;
+  obj_trk_state.set_detection(detection);
 }
 
 

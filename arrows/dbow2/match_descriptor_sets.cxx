@@ -313,8 +313,18 @@ match_descriptor_sets::priv
   std::string voc_file_path)
 {
   const int k = 10;  //branching factor
-  const int L = 4;   //number of levels
+
+  size_t total_features = 0;
+  for (auto &feat : features)
+  {
+    total_features += feat.size();
+  }
+
+  //number of levels
+  int L = std::min(std::max(1,(static_cast<int>(log(total_features) / log(k)))-1),4);
+
   const DBoW2::WeightingType weight = DBoW2::TF_IDF;
+
   const DBoW2::ScoringType score = DBoW2::L1_NORM;
 
   m_voc = std::make_shared<OrbVocabulary>(k, L, weight, score);
@@ -361,13 +371,13 @@ match_descriptor_sets::priv
   std::ifstream im_list;
   im_list.open(training_image_list);
 
-  std::cout << "Extracting ORB features..." << std::endl;
+  std::cout << "Extracting features..." << std::endl;
 
   std::string line;
   if (!im_list.is_open())
   {
     LOG_ERROR(m_logger, "error while opening file " + training_image_list);
-    throw vital::invalid_file(training_image_list,
+    VITAL_THROW( vital::invalid_file, training_image_list,
       "unable to open training image file");
   }
 
@@ -387,7 +397,7 @@ match_descriptor_sets::priv
   if (im_list.bad())
   {
     LOG_ERROR(m_logger, "error while reading " + training_image_list);
-    throw vital::invalid_file(training_image_list, "training image list bad");
+    VITAL_THROW( vital::invalid_file, training_image_list, "training image list bad");
   }
 }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,7 @@ public:
   using value_ref_t = typename range_ref< Range >::value_ref_t;
 
   valid_view( valid_view const& ) = default;
+  valid_view( valid_view&& ) = default;
 
   class iterator
   {
@@ -91,8 +92,7 @@ public:
     range_iterator_t m_iter, m_end;
   };
 
-  valid_view( Range& range )
-    : m_range{ range } {}
+  valid_view( Range&& range ) : m_range( std::forward< Range >( range ) ) {}
 
   iterator begin() const;
 

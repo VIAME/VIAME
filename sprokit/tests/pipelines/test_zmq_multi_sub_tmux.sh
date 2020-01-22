@@ -31,7 +31,7 @@ tmux select-window -t $SESSION:0
 tmux rename-window -t $SESSION:0 'Sender0'
 tmux send-keys -t $SESSION:0 "cd ${SCRIPT_DIR}" C-m
 tmux send-keys -t $SESSION:0 "source ${START_SCRIPT}" C-m
-tmux send-keys -t $SESSION:0 "pipeline_runner --pipe ${SCRIPT_DIR}/test_zmq_send.pipe --set sim:reader:simulator:detection_class=simulated --set zmq:expected_subscribers=2" C-m
+tmux send-keys -t $SESSION:0 "kwiver runner ${SCRIPT_DIR}/test_zmq_send.pipe --setting sim:reader:simulator:detection_class=simulated --setting zmq:expected_subscribers=2" C-m
 
 sleep 1
 tmux split-window -t $SESSION:0
@@ -43,12 +43,12 @@ echo "$(date) First Receiver..."
 tmux select-pane -t 1
 tmux send-keys -t 1 "cd ${SCRIPT_DIR}" C-m
 tmux send-keys -t 1 "source ${START_SCRIPT}" C-m
-tmux send-keys -t 1 "pipeline_runner --pipe ${SCRIPT_DIR}/test_zmq_recv.pipe --set sink::file_name=received_dos_one.csv" C-m
+tmux send-keys -t 1 "kwiver runner ${SCRIPT_DIR}/test_zmq_recv.pipe --setting sink::file_name=received_dos_one.csv" C-m
 
 sleep 1
 echo "$(date) Preparing Second Receiver..."
 tmux send-keys -t 2 "cd ${SCRIPT_DIR}" C-m
 tmux send-keys -t 2 "source ${START_SCRIPT}" C-m
-tmux send-keys -t 2 "pipeline_runner --pipe ${SCRIPT_DIR}/test_zmq_recv.pipe --set sink::file_name=received_dos_two.csv"
+tmux send-keys -t 2 "kwiver runner  ${SCRIPT_DIR}/test_zmq_recv.pipe --setting sink::file_name=received_dos_two.csv"
 
 echo "$(date) Test prepared!"

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,8 +71,20 @@ namespace vital {
 class VITAL_EXPORT metadata_item
 {
 public:
-  virtual ~metadata_item();
+  virtual ~metadata_item() = default;
 
+  /// Test if metadata item is valid.
+  /**
+   * This method tests if this metadata item is valid.
+   *
+   * @return \c true if the item is valid, otherwise \c false.
+   *
+   * @sa metadata::find
+   */
+  virtual bool is_valid() const;
+
+  /// @copydoc is_valid
+  operator bool() const { return this->is_valid(); }
 
   /// Get name of metadata item.
   /**
@@ -370,9 +382,10 @@ public:
 
   /// Find metadata entry for specified tag.
   /**
-   * This method looks for the metadata entrty corresponding to the
-   * supplied tag. If the tag is not present in the collection, the
-   * results are undefined.
+   * This method looks for the metadata entrty corresponding to the supplied
+   * tag. If the tag is not present in the collection, the result will be a
+   * instance for which metadata_item::is_valid returns \c false and whose
+   * behavior otherwise is unspecified.
    *
    * @param tag Look for this tag in collection of metadata.
    *
@@ -381,6 +394,7 @@ public:
   metadata_item const& find( vital_metadata_tag tag ) const;
 
 
+  //@{
   /// Get starting iterator for collection of metadata items.
   /**
    * This method returns the const iterator to the first element in
@@ -397,8 +411,10 @@ public:
    * @return Iterator pointing to the first element in the collection.
    */
   const_iterator_t begin() const;
+  const_iterator_t cbegin() const;
+  //@}
 
-
+  //@{
   /// Get ending iterator for collection of metadata.
   /**
    * This method returns the ending iterator for the collection of
@@ -415,7 +431,8 @@ public:
    * @return Ending iterator for collection
    */
   const_iterator_t end() const;
-
+  const_iterator_t cend() const;
+  //@}
 
   /// Get the number of metadata items in the collection.
   /**
@@ -492,4 +509,4 @@ VITAL_EXPORT bool test_equal_content( const kwiver::vital::metadata& one,
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_METADATA_H_ */
+#endif

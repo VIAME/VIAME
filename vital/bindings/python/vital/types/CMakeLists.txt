@@ -1,7 +1,27 @@
 project(vital_python_types)
 
-include_directories(${PYBIND11_INCLUDE_DIR})
+include_directories(${pybind11_INCLUDE_DIR})
 
+set( vital_python_headers
+     image.h
+     image_container.h
+  )
+
+set( vital_python_sources
+     image.cxx
+     image_container.cxx
+     types_module.cxx
+   )
+
+kwiver_add_python_library(types
+  vital/types
+  ${vital_python_headers}
+  ${vital_python_sources}
+  )
+
+target_link_libraries(python-vital.types-types
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
 kwiver_add_python_library(bounding_box
   vital/types
   bounding_box.cxx)
@@ -100,17 +120,10 @@ target_link_libraries(python-vital.types-homography
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
-kwiver_add_python_library(image
+kwiver_add_python_library(homography_f2f
   vital/types
-  image.cxx)
-target_link_libraries(python-vital.types-image
-  PUBLIC ${PYTHON_LIBRARIES}
-         vital)
-
-kwiver_add_python_library(image_container
-  vital/types
-  image_container.cxx)
-target_link_libraries(python-vital.types-image_container
+  homography_f2f.cxx)
+target_link_libraries(python-vital.types-homography_f2f
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -164,6 +177,7 @@ target_link_libraries(python-vital.types-object_track_set
          vital)
 
 kwiver_create_python_init(vital/types
+  types
   bounding_box
   camera
   camera_intrinsics
@@ -172,14 +186,13 @@ kwiver_create_python_init(vital/types
   covariance
   descriptor
   descriptor_set
-  image
-  image_container
   detected_object_type
   detected_object
   detected_object_set
   eigen
   feature
   homography
+  homography_f2f
   landmark
   rotation
   similarity

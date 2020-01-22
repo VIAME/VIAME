@@ -86,7 +86,7 @@ namespace kwiver {
 create_config_trait( pause_time, float, "0", "Interval to pause between frames. 0 means wait for keystroke, "
                      "Otherwise interval is in seconds (float)" );
 create_config_trait( annotate_image, bool, "false", "Add frame number and other text to display." );
-create_config_trait( title, std::string, "Display window", "Display window title text.." );
+create_config_trait( title, std::string, "Display window", "Display window title text." );
 create_config_trait( header, std::string, "", "Header text for image display." );
 create_config_trait( footer, std::string, "", "Footer text for image display. Displayed centered at bottom of image." );
 
@@ -105,7 +105,6 @@ public:
   std::string m_title;
   std::string m_header;
   std::string m_footer;
-
 
   // ------------------------------------------------------------------
   cv::Mat
@@ -219,6 +218,10 @@ void
 image_viewer_process
 ::_configure()
 {
+  // check for extra config keys
+  auto cd = this->config_diff();
+  cd.warn_extra_keys( logger() );
+
   d->m_pause_ms = static_cast< int >( config_value_using_trait( pause_time ) * 1000.0 ); // convert to msec
   d->m_annotate_image = config_value_using_trait( annotate_image );
   d->m_title          = config_value_using_trait( title );

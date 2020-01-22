@@ -9,7 +9,7 @@ set(kwiver_examples_libraries vital_algo
                               kwiver_algo_vxl
                               kwiversys )
 
-if(fletch_ENABLED_YAMLCPP)
+if(KWIVER_ENABLE_KPF)
   add_subdirectory( kpf )
 
   list(APPEND kwiver_examples_libraries kwiver_algo_kpf kpf_yaml ${YAML_CPP_LIBRARIES})

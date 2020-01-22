@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -288,4 +288,4 @@ test_track_set_modifiers( track_set_sptr test_set )
 } // end namespace vital
 } // end namespace kwiver
 
-#endif // KWIVER_VITAL_TEST_TEST_TRACK_SET_H_
+#endif

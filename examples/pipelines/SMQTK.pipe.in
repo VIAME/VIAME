@@ -2,7 +2,7 @@
 # Pipeline for running images through an SMQTK descriptor
 #
 # Run with the following command
-# pipeline_runner -p SMQTK.pipe -S pythread_per_process
+# kwiver runner SMQTK.pipe -S pythread_per_process
 #
 # ================================================================
 process input

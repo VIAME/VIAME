@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,23 +30,23 @@
 
 /**
  * \file
- * \brief Implementation of kwiver::arrows::transform functions to apply
+ * \brief Implementation of kwiver::arrows::core::transform functions to apply
  * similarity transformations
  */
 
 #include "transform.h"
 #include <Eigen/Geometry>
-#include <Eigen/SVD>
 
 
 namespace kwiver {
 namespace arrows {
+namespace core {
 
 
 /// Transform the camera by applying a similarity transformation in place
 void
-transform_inplace(const vital::similarity_d& xform,
-                  vital::simple_camera_perspective& cam)
+transform_inplace(vital::simple_camera_perspective& cam,
+                  const vital::similarity_d& xform)
 {
   cam.set_center( xform * cam.get_center() );
   cam.set_rotation( cam.get_rotation() * xform.rotation().inverse() );
@@ -54,15 +54,54 @@ transform_inplace(const vital::similarity_d& xform,
 }
 
 
+/// Transform the camera map by applying a similarity transformation in place
+void transform_inplace(vital::simple_camera_perspective_map& cameras,
+                       const vital::similarity_d& xform)
+{
+  auto cam_map = cameras.T_cameras();
+  for (auto& p : cam_map)
+  {
+    transform_inplace(*p.second, xform);
+  }
+}
+
+
 /// Transform the landmark by applying a similarity transformation in place
 template <typename T>
 void
-transform_inplace(const vital::similarity_<T>& xform,
-                  vital::landmark_<T>& lm)
+transform_inplace(vital::landmark_<T>& lm,
+                  const vital::similarity_<T>& xform)
 {
   lm.set_loc( xform * lm.get_loc() );
   lm.set_scale( lm.get_scale() * xform.scale() );
   lm.set_covar( transform(lm.get_covar(), xform) );
+}
+
+
+/// Transform the landmark map by applying a similarity transformation in place
+void transform_inplace(vital::landmark_map& landmarks,
+                       const vital::similarity_d& xform)
+{
+  vital::landmark_map::map_landmark_t lm_map = landmarks.landmarks();
+  transform_inplace(lm_map, xform);
+}
+
+
+/// Transform the landmark map by applying a similarity transformation in place
+void transform_inplace(vital::landmark_map::map_landmark_t& landmarks,
+                       const vital::similarity_d& xform)
+{
+  for (vital::landmark_map::map_landmark_t::value_type& p : landmarks)
+  {
+    if (vital::landmark_d* vlm = dynamic_cast<vital::landmark_d*>(p.second.get()))
+    {
+      transform_inplace(*vlm, xform);
+    }
+    else if (vital::landmark_f* vlm = dynamic_cast<vital::landmark_f*>(p.second.get()))
+    {
+      transform_inplace(*vlm, vital::similarity_f(xform));
+    }
+  }
 }
 
 
@@ -89,7 +128,7 @@ vital::camera_perspective_sptr transform(vital::camera_perspective_sptr cam,
   if( vital::simple_camera_perspective* vcam =
       dynamic_cast<vital::simple_camera_perspective*>(cam.get()) )
   {
-    transform_inplace(xform, *vcam);
+    transform_inplace(*vcam, xform);
   }
   else
   {
@@ -112,9 +151,28 @@ vital::camera_map_sptr transform(vital::camera_map_sptr cameras,
   for(vital::camera_map::map_camera_t::value_type& p : cam_map)
   {
     auto cam_ptr = std::dynamic_pointer_cast<vital::camera_perspective>(p.second);
+    if (!cam_ptr)
+    {
+      p.second = nullptr;
+      continue;
+    }
     p.second = transform(cam_ptr, xform);
   }
   return vital::camera_map_sptr(new vital::simple_camera_map(cam_map));
+}
+
+
+/// construct a transformed map of cameras by applying a similarity transformation
+vital::camera_perspective_map_sptr
+transform(vital::camera_perspective_map_sptr cameras,
+          const vital::similarity_d& xform)
+{
+  auto cam_map = cameras->T_cameras();
+  for (auto& p : cam_map)
+  {
+    p.second = transform(p.second, xform);
+  }
+  return std::make_shared<vital::camera_perspective_map>(cam_map);
 }
 
 
@@ -129,11 +187,11 @@ vital::landmark_sptr transform(vital::landmark_sptr lm,
   lm = lm->clone();
   if( vital::landmark_d* vlm = dynamic_cast<vital::landmark_d*>(lm.get()) )
   {
-    transform_inplace(xform, *vlm);
+    transform_inplace(*vlm, xform);
   }
   else if( vital::landmark_f* vlm = dynamic_cast<vital::landmark_f*>(lm.get()) )
   {
-    transform_inplace(vital::similarity_f(xform), *vlm);
+    transform_inplace(*vlm, vital::similarity_f(xform));
   }
   else
   {
@@ -160,87 +218,14 @@ vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
 }
 
 
-/// Compute an approximate Necker reversal of cameras and landmarks
-void
-necker_reverse(vital::camera_map_sptr& cameras,
-               vital::landmark_map_sptr& landmarks,
-               bool reverse_landmarks)
-{
-  typedef vital::landmark_map::map_landmark_t lm_map_t;
-  typedef vital::camera_map::map_camera_t cam_map_t;
-
-  cam_map_t cams = cameras->cameras();
-  lm_map_t lms = landmarks->landmarks();
-
-  // compute the landmark location mean and covariance
-  vital::vector_3d lc(0.0, 0.0, 0.0);
-  vital::matrix_3x3d covar = vital::matrix_3x3d::Zero();
-  for (const lm_map_t::value_type& p : lms)
-  {
-    vital::vector_3d pt = p.second->loc();
-    lc += pt;
-    covar += pt * pt.transpose();
-  }
-  const double num_lm = static_cast<double>(lms.size());
-  lc /= num_lm;
-  covar /= num_lm;
-  covar -= lc * lc.transpose();
-
-  // the mirroring plane will pass through the landmark centeroid (lc)
-  // and have a normal vector aligned with the smallest eigenvector of covar
-  Eigen::JacobiSVD<vital::matrix_3x3d> svd(covar, Eigen::ComputeFullV);
-  vital::vector_3d axis = svd.matrixV().col(2);
-
-  // flip cameras around
-  vital::rotation_d Ra180(vital::vector_4d(axis.x(), axis.y(), axis.z(), 0.0));
-  vital::rotation_d Rz180(vital::vector_4d(0.0, 0.0, 1.0, 0.0));
-  for (cam_map_t::value_type& p : cams)
-  {
-    auto flipped = std::make_shared<vital::simple_camera_perspective>(
-      dynamic_cast<vital::simple_camera_perspective&>(*p.second));
-    // extract the camera center
-    const vital::vector_3d cc = flipped->center();
-    // extract the camera principal axis
-    vital::vector_3d pa = flipped->rotation().matrix().row(2);
-    // compute the distance from cc along pa until intersection with
-    // the mirroring plane of the points
-    const double dist = (lc - cc).dot(axis) / pa.dot(axis);
-    // compute the ground point where the principal axis
-    // intersects the mirroring plane
-    vital::vector_3d gp = cc + dist * pa;
-    // rotate the camera center 180 degrees about the mirroring plane normal
-    // axis centered at gp, also rotate the camera 180 about its principal axis
-    flipped->set_center(Ra180 * (flipped->center() - gp) + gp);
-    flipped->set_rotation(Rz180 * flipped->rotation() * Ra180);
-    p.second = vital::camera_perspective_sptr(flipped);
-  }
-
-  if (reverse_landmarks)
-  {
-    // mirror landmark locations about the mirroring plane
-    for (lm_map_t::value_type& p : lms)
-    {
-      vital::vector_3d v = p.second->loc();
-      v -= 2.0 * (v - lc).dot(axis) * axis;
-      auto new_lm = std::make_shared<vital::landmark_d>(*p.second);
-      new_lm->set_loc(v);
-      p.second = new_lm;
-    }
-  }
-
-  cameras = vital::camera_map_sptr(new vital::simple_camera_map(cams));
-  landmarks = vital::landmark_map_sptr(new vital::simple_landmark_map(lms));
-}
-
-
 /// \cond DoxygenSuppress
 #define INSTANTIATE_TRANSFORM(T) \
 template KWIVER_ALGO_CORE_EXPORT vital::covariance_<3,T> \
 transform(const vital::covariance_<3,T>& covar, \
           const vital::similarity_<T>& xform); \
 template KWIVER_ALGO_CORE_EXPORT void \
-transform_inplace(const vital::similarity_<T>& xform, \
-                  vital::landmark_<T>& cam);
+transform_inplace(vital::landmark_<T>& cam, \
+                  const vital::similarity_<T>& xform);
 
 INSTANTIATE_TRANSFORM(double);
 INSTANTIATE_TRANSFORM(float);
@@ -249,5 +234,6 @@ INSTANTIATE_TRANSFORM(float);
 /// \endcond
 
 
+} // end namespace core
 } // end namespace arrows
 } // end namespace kwiver

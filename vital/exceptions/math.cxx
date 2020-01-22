@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,14 +51,14 @@ math_exception
 }
 
 
-non_invertible_matrix
-::non_invertible_matrix() noexcept
+non_invertible
+::non_invertible() noexcept
 {
-  m_what = "A matrix was found to be non-invertible";
+  m_what = "A transformation was found to be non-invertible";
 }
 
-non_invertible_matrix
-::~non_invertible_matrix() noexcept
+non_invertible
+::~non_invertible() noexcept
 {
 }
 

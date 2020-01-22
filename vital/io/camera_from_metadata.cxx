@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,9 +51,9 @@ tags_to_vector( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
 
   for (unsigned int i=0; i<vec_length; ++i)
   {
-   if (md->has(tags[i]))
+   if (auto& mdi = md->find(tags[i]))
     {
-      rslt[i] = md->find(tags[i]).as_double();
+      rslt[i] = mdi.as_double();
     }
     else
     {
@@ -79,9 +79,9 @@ tags_to_matrix( metadata_sptr const& md, std::vector<vital_metadata_tag> tags )
 
   for (int i=0; i<4; ++i)
   {
-   if (md->has(tags[i]))
+   if (auto& mdi = md->find(tags[i]))
     {
-      rslt.row(i) = string_to_vector(md->find(tags[i]).as_string());
+      rslt.row(i) = string_to_vector(mdi.as_string());
     }
     else
     {

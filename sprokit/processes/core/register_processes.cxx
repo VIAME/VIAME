@@ -45,6 +45,7 @@
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
+#include "downsample_process.h"
 #include "draw_detected_object_set_process.h"
 #include "draw_tracks_process.h"
 #include "extract_descriptors_process.h"
@@ -61,12 +62,14 @@
 #include "perform_query_process.h"
 #include "merge_images_process.h"
 #include "print_config_process.h"
+#include "detect_motion_process.h"
 #include "read_descriptor_process.h"
 #include "read_object_track_process.h"
 #include "read_track_descriptor_process.h"
 #include "refine_detections_process.h"
 #include "serializer_process.h"
 #include "deserializer_process.h"
+#include "shift_detected_object_set_frames_process.h"
 #include "split_image_process.h"
 #include "stabilize_image_process.h"
 #include "track_features_process.h"
@@ -111,6 +114,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< detected_object_input_process >();
   reg.register_process< detected_object_output_process >();
   reg.register_process< detected_object_filter_process >();
+  reg.register_process< downsample_process >();
   reg.register_process< video_input_process >();
   reg.register_process< draw_detected_object_set_process >();
   reg.register_process< split_image_process >();
@@ -133,6 +137,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< handle_descriptor_request_process >();
   reg.register_process< compute_track_descriptors_process >();
   reg.register_process< perform_query_process >();
+  reg.register_process< detect_motion_process >();
+  reg.register_process< shift_detected_object_set_frames_process >();
 
   mark_process_module_as_loaded( vpm, reg.module_name() );
 } // register_process

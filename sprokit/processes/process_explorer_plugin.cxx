@@ -313,8 +313,8 @@ public:
   process_explorer_rst();
   virtual ~process_explorer_rst();
 
-  virtual bool initialize( explorer_context* context );
-  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact );
+  virtual bool initialize( explorer_context* context ) override;
+  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact ) override;
 
   std::ostream& out_stream();
   std::string wrap_rst_text( const std::string& txt );
@@ -674,8 +674,8 @@ public:
   process_explorer_pipe();
   virtual ~process_explorer_pipe();
 
-  virtual bool initialize( explorer_context* context );
-  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact );
+  virtual bool initialize( explorer_context* context ) override;
+  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact ) override;
 
   std::ostream& out_stream() { return m_context->output_stream(); }
 

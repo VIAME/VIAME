@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018 by Kitware, Inc.
+* Copyright 2018-2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,7 @@ public:
   * \param [in]     depth_maps  the set of floating point depth map images
   * \param [in]     cameras     the set of cameras, one for each depth map
   * \param [in,out] volume      the fused volumetric data
+  * \param [out]    spacing     the spacing between voxels in each dimension
   *
   * \note the volume data is stored as a 3D image.  Metadata fields on the
   * image specify the origin and scale of the volume in world coordinates.
@@ -83,7 +84,8 @@ public:
               kwiver::vital::vector_3d const& maxpt_bound,
               std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
               std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
-              kwiver::vital::image_container_sptr& volume) const;
+              kwiver::vital::image_container_sptr& volume,
+              kwiver::vital::vector_3d &spacing) const;
 
 private:
   /// private implementation class
@@ -95,4 +97,4 @@ private:
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CUDA_INTEGRATE_DEPTH_MAPS_H_
+#endif

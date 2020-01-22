@@ -46,6 +46,7 @@ public:
   priv()
     : c_start_at_frame( 1 )
     , c_stop_after_frame( 0 )
+    , c_frame_skip( 1 )
     , c_frame_rate( 30.0 )
     , d_at_eov( false )
   { }
@@ -53,6 +54,7 @@ public:
   // Configuration values
   vital::frame_id_t c_start_at_frame;
   vital::frame_id_t c_stop_after_frame;
+  vital::frame_id_t c_frame_skip;
   double c_frame_rate;
 
   // local state
@@ -95,6 +97,13 @@ video_input_filter
                      "End the video after passing this frame number. "
                      "Set this value to 0 to disable filter.");
 
+  config->set_value( "output_nth_frame", d->c_frame_skip,
+                     "Only outputs every nth frame of the video starting at the "
+                     "first frame. The output of num_frames still reports the total "
+                     "frames in the video but skip_frame is valid every nth frame "
+                     "only and there are metadata_map entries for only every nth "
+                     "frame.");
+
   config->set_value( "frame_rate", d->c_frame_rate, "Number of frames per second. "
                      "If the video does not provide a valid time, use this rate "
                      "to compute frame time.  Set 0 to disable.");
@@ -120,6 +129,9 @@ video_input_filter
   d->c_stop_after_frame = config->get_value<vital::frame_id_t>(
     "stop_after_frame", d->c_stop_after_frame );
 
+  d->c_frame_skip = config->get_value<vital::frame_id_t>(
+    "output_nth_frame", d->c_frame_skip );
+
   // get frame time
   d->c_frame_rate = config->get_value<double>(
     "frame_rate", d->c_frame_rate );
@@ -135,8 +147,58 @@ bool
 video_input_filter
 ::check_configuration( vital::config_block_sptr config ) const
 {
+  bool retcode = true;
+
+  // Validate start frame
+  if ( config->has_value("start_at_frame") )
+  {
+    //  zero indicates not set, otherwise must be 1 or greater
+    if ( config->get_value<vital::frame_id_t>("start_at_frame") < 0 )
+    {
+      LOG_ERROR(logger(), "start_at_frame must be non-negative");
+      retcode = false;
+    }
+  }
+
+  // Validate stop frame
+  if ( config->has_value("stop_after_frame") )
+  {
+    //  zero indicates not set, otherwise must be 1 or greater
+    if ( config->get_value<vital::frame_id_t>("stop_after_frame") < 0 )
+    {
+      LOG_ERROR(logger(), "stop_after_frame must be non-negative");
+      retcode = false;
+    }
+  }
+
+  // Make sure start frame is not after stop frame
+  if ( config->has_value("start_at_frame") &&
+       config->has_value("stop_after_frame") )
+  {
+    if ( config->get_value<vital::frame_id_t>("stop_after_frame") > 0 &&
+         config->get_value<vital::frame_id_t>("stop_after_frame") > 0 &&
+         config->get_value<vital::frame_id_t>("stop_after_frame") <
+         config->get_value<vital::frame_id_t>("start_at_frame") )
+    {
+      LOG_ERROR(logger(), "stop_after_frame must not be before start_at_frame");
+      retcode = false;
+    }
+  }
+
+  // Validate skip frames
+  if ( config->has_value("output_nth_frame") )
+  {
+    // Must be a positve integer
+    if ( config->get_value<vital::frame_id_t>("output_nth_frame") <= 0 )
+    {
+      LOG_ERROR(logger(), "output_nth_frame must be greater than 0");
+      retcode = false;
+    }
+  }
+
   // Check the video input configuration.
-  return vital::algo::video_input::check_nested_algo_configuration( "video_input", config );
+  return retcode &&
+         vital::algo::video_input::check_nested_algo_configuration( "video_input", config );
 }
 
 
@@ -147,7 +209,7 @@ video_input_filter
 {
   if ( ! d->d_video_input )
   {
-    throw kwiver::vital::algorithm_configuration_exception( type_name(), impl_name(),
+    VITAL_THROW( kwiver::vital::algorithm_configuration_exception, type_name(), impl_name(),
           "invalid video_input." );
   }
   d->d_video_input->open( name );
@@ -258,19 +320,26 @@ video_input_filter
     return false;
   }
 
-  bool status = d->d_video_input->next_frame( ts, timeout );
-  // step through additional frames to reach the start frame
-  while( status && ts.get_frame() < d->c_start_at_frame)
+  bool status = false;
+
+  do
   {
     status = d->d_video_input->next_frame( ts, timeout );
-  }
 
-  if( d->c_stop_after_frame > 0 &&
-      ts.get_frame() > d->c_stop_after_frame )
-  {
-    d->d_at_eov = true;
-    return false;
+    if ( ! status )
+    {
+      return false;
+    }
+
+    if( d->c_stop_after_frame > 0 &&
+        ts.get_frame() > d->c_stop_after_frame )
+    {
+      d->d_at_eov = true;
+      return false;
+    }
   }
+  while ( ( ts.get_frame() - 1 ) % d->c_frame_skip != 0 ||
+          ts.get_frame() < d->c_start_at_frame );
 
   // set the frame time base on rate if missing
   if( d->c_frame_rate > 0 && !ts.has_valid_time() )
@@ -290,7 +359,8 @@ video_input_filter
 {
   // Check if requested frame is valid
   if ( (d->c_stop_after_frame != 0 && d->c_stop_after_frame < frame_number )
-        || frame_number < d->c_start_at_frame )
+        || frame_number < d->c_start_at_frame
+        || ( frame_number - 1 ) % d->c_frame_skip != 0 )
   {
     return false;
   }
@@ -368,13 +438,26 @@ video_input_filter
     stop++; // stop frame should be included
   }
 
-  if (d->c_stop_after_frame > 0)
+  if (d->c_frame_skip == 1)
   {
-    output_map.insert(start, stop);
+    if (d->c_stop_after_frame > 0)
+    {
+      output_map.insert(start, stop);
+    }
+    else
+    {
+      output_map.insert(start, internal_map.end());
+    }
   }
   else
   {
-    output_map.insert(start, internal_map.end());
+    for ( auto it = start; it != stop; ++it )
+    {
+      if ( ( it->first - 1 ) % d->c_frame_skip == 0 )
+      {
+        output_map.insert( *it );
+      }
+    }
   }
 
   return std::make_shared<kwiver::vital::simple_metadata_map>(output_map);

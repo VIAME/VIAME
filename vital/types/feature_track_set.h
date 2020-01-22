@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,20 +63,52 @@ using feature_track_set_frame_data_sptr =
 class VITAL_EXPORT feature_track_state : public track_state
 {
 public:
+  //@{
   /// Constructor
   explicit feature_track_state( frame_id_t frame,
-                                feature_sptr f = nullptr,
-                                descriptor_sptr d = nullptr)
-    : track_state( frame )
-    , feature(f)
-    , descriptor(d)
-    , inlier(false)
-  { }
+                                feature_sptr const& feature = nullptr,
+                                descriptor_sptr const& descriptor = nullptr,
+                                bool inlier = false )
+    : track_state{ frame }
+    , feature{ feature }
+    , descriptor{ descriptor }
+    , inlier{ inlier }
+  {}
+
+  explicit feature_track_state( frame_id_t frame,
+                                feature_sptr&& feature,
+                                descriptor_sptr&& descriptor,
+                                bool inlier = false )
+    : track_state{ frame }
+    , feature{ std::move( feature ) }
+    , descriptor{ std::move( descriptor ) }
+    , inlier{ inlier }
+  {}
+  //@}
+
+  /// Copy constructor
+  feature_track_state( feature_track_state const& other ) = default;
+
+  /// Move constructor
+  feature_track_state( feature_track_state&& ) = default;
 
   /// Clone the track state (polymorphic copy constructor)
-  virtual track_state_sptr clone() const
+  track_state_sptr clone( clone_type ct = clone_type::DEEP ) const override
   {
-    return std::make_shared<feature_track_state>(*this);
+    if ( ct == clone_type::DEEP )
+    {
+      auto new_feature =
+        ( this->feature ? this->feature->clone() : nullptr );
+      auto new_descriptor =
+        ( this->descriptor ? this->descriptor->clone() : nullptr );
+      return std::make_shared< feature_track_state >(
+        this->frame(), std::move( new_feature ),
+        std::move( new_descriptor ), this->inlier );
+    }
+    else
+    {
+      return std::make_shared< feature_track_state >( *this );
+    }
   }
 
   static std::shared_ptr< feature_track_state > downcast(
@@ -102,7 +134,7 @@ class VITAL_EXPORT feature_track_set_frame_data
 {
 public:
   // Dynamic copy constructor
-  virtual track_set_frame_data_sptr clone() const
+  track_set_frame_data_sptr clone() const override
   {
     return std::make_shared<feature_track_set_frame_data>(*this);
   }
@@ -145,7 +177,7 @@ public:
   /**
   * \note returns a deep copy of the feature_track_set
   */
-  virtual track_set_sptr clone() const;
+  track_set_sptr clone( clone_type = clone_type::DEEP ) const override;
 
   /// Return the set of features in tracks on the last frame
   virtual feature_set_sptr last_frame_features() const;

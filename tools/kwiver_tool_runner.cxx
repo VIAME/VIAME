@@ -29,15 +29,16 @@
  */
 
 
-#include "kwiver_applet.h"
-#include "applet_context.h"
+#include <vital/applets/kwiver_applet.h>
+#include <vital/applets/applet_context.h>
 
-#include <vital/plugin_loader/plugin_manager.h>
-#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/applets/applet_registrar.h>
 #include <vital/exceptions/base.h>
+#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/plugin_loader/plugin_filter_category.h>
+#include <vital/plugin_loader/plugin_filter_default.h>
+#include <vital/plugin_loader/plugin_manager.h>
 #include <vital/util/get_paths.h>
-
-#include <kwiversys/SystemTools.hxx>
 
 #include <cstdlib>
 #include <iostream>
@@ -49,6 +50,11 @@ using applet_factory = kwiver::vital::implementation_factory_by_name< kwiver::to
 using applet_context_t = std::shared_ptr< kwiver::tools::applet_context >;
 
 // ============================================================================
+/**
+ * This class processes the incoming list of command line options.
+ * They are separated into oprtions for the tool runner and options
+ * for the applet.
+ */
 class command_line_parser
 {
 public:
@@ -58,7 +64,7 @@ public:
 
     // Parse the command line
     // Command line format:
-    // arg0 [runner-flags] <applet> [applet-flags]
+    // arg0 [runner-flags] <applet> [applet-args]
 
     // The first applet args is the program name.
     m_applet_args.push_back( "kwiver" );
@@ -100,6 +106,9 @@ public:
 
 
 // ----------------------------------------------------------------------------
+/**
+ * Generate list of all applets that have been discovered.
+ */
 void tool_runner_usage( applet_context_t ctxt,
                         kwiver::vital::plugin_manager& vpm )
 {
@@ -125,7 +134,7 @@ void tool_runner_usage( applet_context_t ctxt,
     if ( pos != 0 )
     {
       // Take all but the ending newline
-      buf = buf.substr( 0, pos-1 );
+      buf = buf.substr( 0, pos );
     }
 
     std::cout << ctxt->m_wtb.wrap_text( buf );
@@ -134,6 +143,14 @@ void tool_runner_usage( applet_context_t ctxt,
 
 
 // ----------------------------------------------------------------------------
+/**
+ * This function handles the "help" operation. If there is an arg
+ * after the help, then that arg is taken to be the applet name and
+ * help is displayed for it.
+ *
+ * If the only arg is "help", then call the function to generate short
+ * help for all known applets.
+ */
 void help_applet( const command_line_parser& options,
                   applet_context_t tool_context,
                   kwiver::vital::plugin_manager& vpm )
@@ -146,10 +163,17 @@ void help_applet( const command_line_parser& options,
 
   // Create applet based on the name provided
   applet_factory app_fact;
+  std::string buf = "-- Not Set --";
+  auto fact = app_fact.find_factory( options.m_applet_args[1] );
+  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+
   kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_args[1] ) );
   tool_context->m_applet_name = options.m_applet_args[1];
   applet->initialize( tool_context.get() );
-  applet->usage( std::cout );
+  applet->add_command_options();
+
+  // display help text
+  std::cout << applet->m_cmd_options->help();
 }
 
 
@@ -160,6 +184,8 @@ int main(int argc, char *argv[])
   // Global shared context
   // Allocated on the stack so it will automatically clean up
   //
+  using kvpf = kwiver::vital::plugin_factory;
+
   applet_context_t tool_context = std::make_shared< kwiver::tools::applet_context >();
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
@@ -167,8 +193,15 @@ int main(int argc, char *argv[])
   vpm.add_search_path(exec_path + "/../lib/kwiver/modules");
   vpm.add_search_path(exec_path + "/../lib/kwiver/modules/applets");
   vpm.add_search_path(exec_path + "/../lib/kwiver/processes");
-  vpm.load_all_plugins();
 
+  // remove all default plugin filters
+  vpm.get_loader()->clear_filters();
+
+  // Add filter to select all plugins
+  kwiver::vital::plugin_filter_handle_t filt = std::make_shared<kwiver::vital::plugin_filter_default>();
+  vpm.get_loader()->add_filter( filt );
+
+  vpm.load_all_plugins();
 
   // initialize the global context
   tool_context->m_wtb.set_indent_string( "      " );
@@ -187,11 +220,59 @@ int main(int argc, char *argv[])
     // Create applet based on the name provided
     applet_factory app_fact;
     kwiver::tools::kwiver_applet_sptr applet( app_fact.create( options.m_applet_name ) );
+
     tool_context->m_applet_name = options.m_applet_name;
+    tool_context->m_argv = options.m_applet_args; // save a copy of the args
+
+    // Pass the context to the applet. This is done as a separate call
+    // because the default factory for applets does not take any
+    // parameters.
     applet->initialize( tool_context.get() );
 
+    // Call the applet so it can add the commands that it is looking
+    // for.
+    applet->add_command_options();
+
+    int local_argc = 0;
+    char** local_argv = 0;
+    std::vector<char *> argv_vect;
+
+    // There are some cases where the applet wants to do its own
+    // command line parsing (e.g. QT apps). If this flag is not set,
+    // then we will parse our standard arg set
+    if ( ! tool_context->m_skip_command_args_parsing )
+    {
+      // Convert args list back to argv style. :-(
+      // This is needed for the command options support package.
+      argv_vect.resize( options.m_applet_args.size() +1, nullptr );
+      for (std::size_t i = 0; i != options.m_applet_args.size(); ++i)
+      {
+        argv_vect[i] = &options.m_applet_args[i][0];
+      }
+    }
+    else
+    {
+      argv_vect.resize( 2, nullptr );
+      argv_vect[0] = &options.m_applet_args[0][0];
+    }
+
+    local_argc = argv_vect.size()-1;
+    local_argv = &argv_vect[0];
+
+    // The parse result has to be created locally due to class design.
+    // No default CTOR, copy CTOR or operation.
+    cxxopts::ParseResult local_result = applet->m_cmd_options->parse( local_argc, local_argv );
+
+    // Make results available in the context,
+    tool_context->m_result = &local_result; // in this case the address of a stack variable is o.k.
+
     // Run the specified tool
-    return applet->run( options.m_applet_args );
+    return applet->run();
+  }
+  catch ( cxxopts::OptionException& e)
+  {
+    std::cerr << "Command argument error: " << e.what() << std::endl;
+    exit( -1 );
   }
   catch ( kwiver::vital::plugin_factory_not_found& )
   {

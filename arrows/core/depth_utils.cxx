@@ -34,6 +34,8 @@
 */
 
 #include <arrows/core/depth_utils.h>
+#include <iostream>
+#include <cmath>
 
 using namespace kwiver::vital;
 
@@ -201,9 +203,9 @@ compute_offset_range(std::vector<vector_3d> const& landmarks,
   }
   std::sort(offsets.begin(), offsets.end());
 
-  const unsigned int min_index =
-    static_cast<unsigned int>((offsets.size() - 1) * outlier_thresh);
-  const unsigned int max_index = offsets.size() - 1 - min_index;
+  const size_t min_index =
+    static_cast<size_t>((offsets.size() - 1) * outlier_thresh);
+  const size_t max_index = offsets.size() - 1 - min_index;
   min_offset = offsets[min_index];
   max_offset = offsets[max_index];
 
@@ -233,15 +235,67 @@ compute_depth_range(std::vector<vector_3d> const& landmarks,
   }
   std::sort(depths.begin(), depths.end());
 
-  const unsigned int min_index =
-    static_cast<unsigned int>((depths.size() - 1) * outlier_thresh);
-  const unsigned int max_index = depths.size() - 1 - min_index;
+  const size_t min_index =
+    static_cast<size_t>((depths.size() - 1) * outlier_thresh);
+  const size_t max_index = depths.size() - 1 - min_index;
   depth_min = depths[min_index];
   depth_max = depths[max_index];
 
   const double safety_margin = safety_margin_factor * (depth_max - depth_min);
   depth_max += safety_margin;
   depth_min -= safety_margin;
+}
+
+//*****************************************************************************
+
+/// Estimate the pixel to world scale over a set of cameras
+double
+compute_pixel_to_world_scale(kwiver::vital::vector_3d const& minpt,
+                             kwiver::vital::vector_3d const& maxpt,
+                             std::vector<camera_perspective_sptr> const& cameras)
+{
+  std::vector<vector_3d> pts = points_of_box(minpt, maxpt);
+
+  double scale = 0.0;
+  unsigned int count = 0;
+  for (unsigned int c = 0; c < cameras.size(); c++)
+  {
+    //iterate thru different cameras
+    camera_perspective const& cam = *cameras[c];
+    matrix_3x4d P = cam.as_matrix();
+    vector_3d cam_axis(P(2, 0), P(2, 1), P(2, 2));
+    cam_axis.normalize();
+
+    for (unsigned int i = 0; i < pts.size(); i++)
+    {
+      for (unsigned int j = i + 1; j < pts.size(); j++)
+      {
+        vector_3d const& pt1 = pts[i];
+        vector_3d const& pt2 = pts[j];
+
+        vector_3d vec = pt2 - pt1;
+        vector_3d proj = vec.dot(cam_axis) * cam_axis;
+        vector_3d pt2p = pt2 - proj;
+
+        double world_dist = (pt2p - pt1).norm();
+
+        vector_2d ppt1 = cam.project(pt1);
+        vector_2d ppt2p = cam.project(pt2p);
+
+        double pixel_dist = (ppt2p - ppt1).norm();
+
+        double val = world_dist / pixel_dist;
+
+        if (std::isfinite(val))
+        {
+          scale += val;
+          count++;
+        }
+      }
+    }
+  }
+
+  return scale / count;
 }
 
 } //end namespace core

@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018 by Kitware, Inc.
+* Copyright 2018-2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,7 @@
 #include <vital/types/landmark_map.h>
 #include <vital/types/camera_map.h>
 #include <vital/types/camera_perspective.h>
+#include <vital/types/camera_perspective_map.h>
 #include <vital/types/feature_track_set.h>
 
 namespace kwiver {
@@ -72,8 +73,8 @@ KWIVER_ALGO_CORE_EXPORT
 frame_coverage_vec
 image_coverages(
   std::vector<vital::track_sptr> const& trks,
-  vital::landmark_map::map_landmark_t const& lms,  
-  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams);
+  vital::landmark_map::map_landmark_t const& lms,
+  vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams);
 
 typedef std::vector<std::unordered_set<vital::frame_id_t>> camera_components;
 
@@ -90,7 +91,7 @@ typedef std::vector<std::unordered_set<vital::frame_id_t>> camera_components;
 KWIVER_ALGO_CORE_EXPORT
 camera_components
 connected_camera_components(
-  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
+  vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
   vital::landmark_map::map_landmark_t const& lms,
   vital::feature_track_set_sptr tracks);
 
@@ -105,17 +106,17 @@ connected_camera_components(
 * \param [in] triang_cos_ang_thresh features must have one pair of rays that
 *             meet this minimum intersection angle to keep
 * \param [in] error_tol reprojection error threshold
-* \param [in] min_landmark_inliers minimum number of inlier measurements to keep a landmark.  
+* \param [in] min_landmark_inliers minimum number of inlier measurements to keep a landmark.
               Set to -1 to ignore.
-* \param [in] median_distance_multiple remove landmarks more than the median 
-*             landmark to camera distance * median_distance_multiple.  Set to 0 
+* \param [in] median_distance_multiple remove landmarks more than the median
+*             landmark to camera distance * median_distance_multiple.  Set to 0
               to disable
 * \return set of landmark ids (track_ids) that were bad and should be removed
 */
 KWIVER_ALGO_CORE_EXPORT
 std::set<vital::landmark_id_t>
 detect_bad_landmarks(
-  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
+  vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
   vital::landmark_map::map_landmark_t const& lms,
   vital::feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,
@@ -147,7 +148,7 @@ remove_landmarks(const std::set<vital::track_id_t>& to_remove,
 KWIVER_ALGO_CORE_EXPORT
 std::set<vital::frame_id_t>
 detect_bad_cameras(
-  vital::camera_map_of_<vital::simple_camera_perspective>::frame_to_T_sptr_map const& cams,
+  vital::simple_camera_perspective_map::frame_to_T_sptr_map const& cams,
   vital::landmark_map::map_landmark_t const& lms,
   vital::feature_track_set_sptr tracks,
   float coverage_thresh);
@@ -175,7 +176,7 @@ detect_bad_cameras(
 KWIVER_ALGO_CORE_EXPORT
 void
 clean_cameras_and_landmarks(
-  vital::camera_map_of_<vital::simple_camera_perspective>& cams,
+  vital::simple_camera_perspective_map& cams,
   vital::landmark_map::map_landmark_t& lms,
   vital::feature_track_set_sptr tracks,
   double triang_cos_ang_thresh,

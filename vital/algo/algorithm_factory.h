@@ -66,7 +66,7 @@ public:
     : plugin_factory( algo ) // interface type
   {
     this->add_attribute( PLUGIN_NAME, impl )
-      .add_attribute( PLUGIN_CATEGORY, "algorithm" );
+      .add_attribute( PLUGIN_CATEGORY, ALGORITHM_CATEGORY );
   }
 
   virtual ~algorithm_factory() = default;
@@ -174,21 +174,21 @@ public:
    * \return The plugin loader reference is returned.
    */
   template <typename algorithm_t>
-  kwiver::vital::plugin_factory_handle_t register_algorithm()
+  kwiver::vital::plugin_factory_handle_t
+  register_algorithm()
   {
     using kvpf = kwiver::vital::plugin_factory;
 
-    auto fact = plugin_loader().
-      add_factory( new kwiver::vital::algorithm_factory_0<algorithm_t>(
-                     algorithm_t::static_type_name(),
-                     algorithm_t::_plugin_name ));
+    kwiver::vital::plugin_factory* fact = new kwiver::vital::algorithm_factory_0<algorithm_t>(
+      algorithm_t::static_type_name(),
+      algorithm_t::_plugin_name );
 
     fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::_plugin_description)
       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  this->module_name() )
       .add_attribute( kvpf::PLUGIN_ORGANIZATION, this->organization() )
       ;
 
-    return fact;
+    return plugin_loader().add_factory( fact );
   }
 };
 

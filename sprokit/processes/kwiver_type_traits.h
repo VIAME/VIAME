@@ -49,6 +49,7 @@
 #include <vital/types/iqr_feedback.h>
 #include <vital/types/matrix.h>
 #include <vital/types/metadata.h>
+#include <vital/types/image_container_set.h>
 #include <vital/types/object_track_set.h>
 #include <vital/types/query_result_set.h>
 #include <vital/types/track_descriptor_set.h>
@@ -86,6 +87,7 @@ create_type_trait( timestamp, "kwiver:timestamp", kwiver::vital::timestamp );
 create_type_trait( gsd, "kwiver:gsd", double );
 create_type_trait( corner_points, "kwiver:corner_points", kwiver::vital::geo_polygon );
 create_type_trait( image, "kwiver:image", kwiver::vital::image_container_sptr );
+create_type_trait( image_set, "kwiver:image_set", kwiver::vital::image_container_set_sptr );
 create_type_trait( mask, "kwiver:mask", kwiver::vital::image_container_sptr );
 create_type_trait( bool, "kwiver:bool", bool );
 create_type_trait( feature_set, "kwiver:feature_set", kwiver::vital::feature_set_sptr );
@@ -110,6 +112,7 @@ create_type_trait( file_name, "kwiver:file_name", kwiver::vital::path_t );
 create_type_trait( metadata, "kwiver:metadata", kwiver::vital::metadata_vector );
 create_type_trait( video_uid, "kwiver:video_uuid", kwiver::vital::uid );
 create_type_trait( frame_rate, "kwiver:frame_rate", double );
+create_type_trait( kwiver_logical, "kwiver:logical", bool );
 
 create_type_trait( serialized_message, "kwiver:serialized_message", kwiver::vital::string_sptr );
 
@@ -126,6 +129,7 @@ create_port_trait( image, image, "Single frame image." );
 create_port_trait( left_image, image, "Single frame left image." );
 create_port_trait( right_image, image, "Single frame right image." );
 create_port_trait( depth_map, image, "Depth map stored in image form." );
+create_port_trait( image_set, image_set, "A collection of images, typically sub images." );
 create_port_trait( feature_set, feature_set, "Set of detected image features." );
 create_port_trait( database_query, database_query, "A database query." );
 create_port_trait( descriptor_set, descriptor_set, "Set of descriptors." );
@@ -149,5 +153,8 @@ create_port_trait( video_uid, video_uid, "Video UID value." );
 create_port_trait( frame_rate, frame_rate, "Video frame rate." );
 
 create_port_trait( serialized_message, serialized_message, "serialized data type" );
+
+create_port_trait( coordinate_system_updated, kwiver_logical, "Set to true if new reference frame is established." );
+create_port_trait( motion_heat_map, image, "Motion heat map." );
 
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

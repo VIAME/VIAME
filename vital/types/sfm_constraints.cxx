@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018 by Kitware, Inc.
+* Copyright 2018, 2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -181,13 +181,15 @@ sfm_constraints
     frame_ids_to_try = md.frames();
   }
 
+  std::vector<double> focal_lengths;
   for (auto test_fid : frame_ids_to_try)
   {
     if ( md.has<VITAL_META_SENSOR_HORIZONTAL_FOV>(test_fid) )
     {
       double hfov = md.get<VITAL_META_SENSOR_HORIZONTAL_FOV>(test_fid);
-      focal_length = static_cast<float>((image_width*0.5) / tan(0.5*hfov*deg_to_rad));
-      return true;
+      focal_lengths.push_back(static_cast<float>(
+        (image_width*0.5) / tan(0.5*hfov*deg_to_rad)));
+      continue;
     }
 
     if ( md.has<VITAL_META_TARGET_WIDTH>(test_fid) &&
@@ -196,12 +198,21 @@ sfm_constraints
       focal_length = static_cast<float>(image_width *
         md.get<VITAL_META_SLANT_RANGE>(test_fid) /
         md.get<VITAL_META_TARGET_WIDTH>(test_fid) );
-
-      return true;
+      focal_lengths.push_back(focal_length);
+      continue;
     }
   }
+  if (focal_lengths.empty())
+  {
+    return false;
+  }
+  // compute the median focal length
+  std::nth_element(focal_lengths.begin(),
+                   focal_lengths.begin() + focal_lengths.size() / 2,
+                   focal_lengths.end());
+  focal_length = focal_lengths[focal_lengths.size() / 2];
 
-  return false;
+  return true;
 }
 
 bool
@@ -271,12 +282,9 @@ sfm_constraints
   }
 
   kwiver::vital::geo_point gloc;
-  double alt;
-  if (m_priv->m_md->has<VITAL_META_SENSOR_LOCATION>(fid) &&
-      m_priv->m_md->has<VITAL_META_SENSOR_ALTITUDE>(fid))
+  if (m_priv->m_md->has<VITAL_META_SENSOR_LOCATION>(fid))
   {
     gloc = m_priv->m_md->get<VITAL_META_SENSOR_LOCATION>(fid);
-    alt = m_priv->m_md->get<VITAL_META_SENSOR_ALTITUDE>(fid);
   }
   else
   {
@@ -284,13 +292,12 @@ sfm_constraints
   }
 
   auto geo_origin = m_priv->m_lgcs.origin();
-  vector_2d loc = gloc.location(geo_origin.crs());
+  vector_3d loc = gloc.location(geo_origin.crs());
   loc -= geo_origin.location();
-  alt -= m_priv->m_lgcs.origin_altitude();
 
   pos_loc[0] = loc.x();
   pos_loc[1] = loc.y();
-  pos_loc[2] = alt;
+  pos_loc[2] = loc.z();
 
   return true;
 }

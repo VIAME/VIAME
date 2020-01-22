@@ -56,22 +56,6 @@ set(pipeline_headers
 
 set(pipeline_private_headers)
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_process_subdir} )
-set( sprokit_default_module_paths ${kwiver_module_path_result} )
-
-if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${sprokit_output_dir} ${kwiver_plugin_process_subdir} )
-  list( INSERT sprokit_default_module_paths 0 "${kwiver_module_path_result}" )
-endif ()
-
-set(SPROKIT_DEFAULT_MODULE_PATHS "${sprokit_default_module_paths}"
-  CACHE STRING "The default paths to search for modules in" FORCE)
-
-# add all paths to the property
-foreach( p IN LISTS   SPROKIT_DEFAULT_MODULE_PATHS )
-  kwiver_add_module_path( ${p} )
-endforeach(p)
-
 ##
 set(utils_build_options)
 
@@ -111,6 +95,11 @@ kwiver_add_library(sprokit_pipeline
   ${pipeline_headers}
   ${pipeline_private_headers}
   ${VITAL_VERSION_H}
+  )
+
+target_include_directories(sprokit_pipeline INTERFACE
+  $<BUILD_INTERFACE:${sprokit_SOURCE_DIR}/src>
+  $<BUILD_INTERFACE:${sprokit_BINARY_DIR}/src>
   )
 
 add_dependencies(sprokit_pipeline configure-version.h)

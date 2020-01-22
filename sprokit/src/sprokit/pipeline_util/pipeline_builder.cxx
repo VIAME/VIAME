@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,43 +30,113 @@
 
 #include "pipeline_builder.h"
 
-#include <sprokit/pipeline_util/load_pipe.h>
-#include <sprokit/pipeline_util/pipe_bakery.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <sprokit/pipeline_util/include-paths.h>
+#endif
+
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
+#include <sprokit/pipeline_util/pipe_parser.h>
+#include <sprokit/pipeline_util/load_pipe_exception.h>
 #include <sprokit/pipeline/pipeline.h>
 
 #include <vital/config/config_block.h>
 #include <vital/util/tokenize.h>
+#include <vital/util/string.h>
 
+#include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
+
+#include <kwiversys/SystemTools.hxx>
+
+#include <fstream>
 #include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
-namespace sprokit
-{
+namespace sprokit {
 
-namespace
-{
+typedef kwiversys::SystemTools ST;
 
+namespace {
+
+static std::string const default_include_dirs = std::string( DEFAULT_PIPE_INCLUDE_PATHS );
+static std::string const sprokit_include_envvar = std::string( "SPROKIT_PIPE_INCLUDE_PATH" );
 static std::string const split_str = "=";
 
 }
 
+
 // ==================================================================
 pipeline_builder
 ::pipeline_builder()
-  : m_blocks()
+  : m_logger( kwiver::vital::get_logger( "sprokit.pipeline_builder" ) )
+  , m_blocks()
 {
+  // extract search paths from env and default
+  process_env();
 }
 
 
 // ------------------------------------------------------------------
 void
 pipeline_builder
-::load_pipeline(std::istream& istr, std::string const& def_file )
+::load_pipeline( std::istream& istr, kwiver::vital::path_t const& def_file )
 {
-  m_blocks = sprokit::load_pipe_blocks(istr, def_file);
+  sprokit::pipe_parser the_parser;
+  the_parser.add_search_path( m_search_path );
+
+  // process the input stream
+  m_blocks = the_parser.parse_pipeline( istr, def_file );
+}
+
+
+// ------------------------------------------------------------------
+void
+pipeline_builder
+::load_pipeline( kwiver::vital::path_t const& def_file )
+{
+  sprokit::pipe_parser the_parser;
+  the_parser.add_search_path( m_search_path );
+
+  std::ifstream input( def_file );
+  if ( ! input )
+  {
+    throw sprokit::file_no_exist_exception( def_file );
+  }
+
+  // process the input stream
+  m_blocks = the_parser.parse_pipeline( input, def_file );
+}
+
+// ----------------------------------------------------------------------------
+void
+pipeline_builder
+::load_cluster(std::istream& istr, kwiver::vital::path_t const& def_file)
+{
+  sprokit::pipe_parser the_parser;
+  the_parser.add_search_path( m_search_path );
+
+  // process the input stream
+  m_cluster_blocks = the_parser.parse_cluster( istr, def_file );
+}
+
+
+// ----------------------------------------------------------------------------
+void
+pipeline_builder
+::load_cluster( kwiver::vital::path_t const& def_file )
+{
+  sprokit::pipe_parser the_parser;
+  the_parser.add_search_path( m_search_path );
+
+  std::ifstream input( def_file );
+  if ( ! input )
+  {
+    throw sprokit::file_no_exist_exception( def_file );
+  }
+
+  // process the input stream
+  m_cluster_blocks = the_parser.parse_cluster( input, def_file );
 }
 
 
@@ -75,7 +145,17 @@ void
 pipeline_builder
 ::load_supplement( kwiver::vital::path_t const& path)
 {
-  sprokit::pipe_blocks const supplement = sprokit::load_pipe_blocks_from_file(path);
+  sprokit::pipe_parser the_parser;
+  the_parser.add_search_path( m_search_path );
+
+  std::ifstream input( path );
+  if ( ! input )
+  {
+    throw sprokit::file_no_exist_exception( path );
+  }
+
+  // process the input stream
+  sprokit::pipe_blocks const supplement = the_parser.parse_pipeline( input, path );
 
   m_blocks.insert(m_blocks.end(), supplement.begin(), supplement.end());
 }
@@ -84,20 +164,14 @@ pipeline_builder
 // ------------------------------------------------------------------
 void
 pipeline_builder
-::add_setting(std::string const& setting)
+::add_setting( std::string const& setting )
 {
-  sprokit::config_pipe_block block;
-
-  sprokit::config_value_t value;
-
   size_t const split_pos = setting.find(split_str);
 
   if (split_pos == std::string::npos)
   {
-    std::string const reason = "Error: The setting on the command line "
-                               "\'" + setting + "\' does not contain "
-                               "the \'" + split_str + "\' string which "
-                               "separates the key from the value";
+    std::string const reason = "Error: The setting on the command line \'" + setting + "\' does not contain "
+                               "the \'" + split_str + "\' string which separates the key from the value";
 
     throw std::runtime_error(reason);
   }
@@ -111,23 +185,49 @@ pipeline_builder
 
   if (keys.size() < 2)
   {
-    std::string const reason = "Error: The key portion of setting "
-                               "\'" + setting + "\' does not contain "
-                               "at least two keys in its keypath which is "
-                               "invalid. (e.g. must be at least a:b)";
+    std::string const reason = "Error: The key portion of setting \'" + setting + "\' does not contain "
+                               "at least two keys in its keypath which is invalid. (e.g. must be at least a:b)";
 
     throw std::runtime_error(reason);
   }
 
+  sprokit::config_value_t value;
   value.key_path.push_back(keys.back());
   value.value = setting_value;
 
   keys.pop_back();
 
+  sprokit::config_pipe_block block;
   block.key = keys;
   block.values.push_back(value);
 
   m_blocks.push_back(block);
+}
+
+
+// ------------------------------------------------------------------
+void
+pipeline_builder
+::add_search_path( kwiver::vital::config_path_t const& file_path )
+{
+  m_search_path.push_back( file_path );
+  LOG_DEBUG( m_logger, "Adding \"" << file_path << "\" to search path" );
+}
+
+
+// ------------------------------------------------------------------
+void
+pipeline_builder
+::add_search_path( kwiver::vital::config_path_list_t const& file_path )
+{
+  if ( file_path.size() > 0 )
+  {
+    m_search_path.insert( m_search_path.end(),
+                          file_path.begin(), file_path.end() );
+
+    LOG_DEBUG( m_logger, "Adding \"" << kwiver::vital::join( file_path, ", " )
+               << "\" to search path" );
+  }
 }
 
 
@@ -137,6 +237,15 @@ pipeline_builder
 ::pipeline() const
 {
   return sprokit::bake_pipe_blocks(m_blocks);
+}
+
+
+// ----------------------------------------------------------------------------
+sprokit::cluster_info_t
+pipeline_builder
+::cluster_info() const
+{
+  return sprokit::bake_cluster_blocks( m_cluster_blocks );
 }
 
 
@@ -152,9 +261,38 @@ pipeline_builder
 // ------------------------------------------------------------------
 sprokit::pipe_blocks
 pipeline_builder
-::blocks() const
+::pipeline_blocks() const
 {
   return m_blocks;
 }
 
+
+// ------------------------------------------------------------------
+sprokit::cluster_blocks
+pipeline_builder
+::cluster_blocks() const
+{
+  return m_cluster_blocks;
 }
+
+
+// ----------------------------------------------------------------------------
+void
+pipeline_builder
+::process_env()
+{
+  // Add path from the environment
+  kwiver::vital::path_list_t path_list;
+  kwiversys::SystemTools::GetPath( path_list, sprokit_include_envvar.c_str() );
+
+  // Add the default search path
+  ST::Split( default_include_dirs, path_list, PATH_SEPARATOR_CHAR );
+
+  if ( ! path_list.empty() )
+  {
+    add_search_path( path_list );
+  }
+}
+
+
+} // end namespace

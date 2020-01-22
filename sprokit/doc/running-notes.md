@@ -1,10 +1,5 @@
 # general notes on running a pipeline
 
-## Building boost for Python support
-
-Boost can not be built with debug mode because it activates asserts
-that prevent modules from loading.
-
 ## General module loading
 
 ### Modules/Processes
@@ -123,6 +118,3 @@ Improvement: Make any converters a class, not just two unbound
 functions. The class provides a more functor like environment where
 there can be state and better debugging. Specifically each converter
 can make its target type visible.
-
-A major problem with this conversion stuff is (in addition to the
-boost::python magic) that it is opaque.

@@ -1,5 +1,9 @@
 # Central location for KWIVER external dependency declaration and resolution
 
+# On macOS, prefer unix-style packages (e.g. from Fletch) over Frameworks
+# when looking for dependencies
+set(CMAKE_FIND_FRAMEWORK LAST)
+
 # Required for Vital
 include( kwiver-depends-Eigen )
 
@@ -25,6 +29,7 @@ if(KWIVER_ENABLE_ARROWS)
   include( kwiver-depends-PROJ )
   include( kwiver-depends-VisCL )
   include( kwiver-depends-Ceres )
+  include( kwiver-depends-Qt )
   include( kwiver-depends-VXL )
   include( kwiver-depends-Matlab )
   include( kwiver-depends-darknet )

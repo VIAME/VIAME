@@ -242,7 +242,7 @@ track_features_core
   if( !d_->detector || !d_->extractor || !d_->matcher )
   {
     // Something did not initialize
-    throw vital::algorithm_configuration_exception(this->type_name(), this->impl_name(),
+    VITAL_THROW( vital::algorithm_configuration_exception, this->type_name(), this->impl_name(),
         "not all sub-algorithms have been initialized");
   }
 

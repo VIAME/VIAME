@@ -1,0 +1,51 @@
+# ================================================================
+#
+# Using a pedestrian data set from Kaggle:
+#
+#   https://www.kaggle.com/smeschke/pedestrian-dataset
+#
+# Video is 30fps
+#
+process input
+  :: video_input
+  video_filename      = /Data/Kaggle/smeschke/pedestrian-dataset/crosswalk.avi
+  frame_time         = .3333
+  video_reader:type  = vidl_ffmpeg
+
+# ================================================================
+#
+# We can add a config block for two types of motion detectors
+# Only the one we select gets used
+#
+process motion
+  :: detect_motion
+
+  block algo
+    type =  ocv_mog2
+    #type =  ocv_3frame_differencing
+
+    block ocv_mog2
+      var_threshold = 16
+      history = 1000
+      learning_rate = 0.005
+      blur_kernel_size = 20
+      min_frames = 7
+      max_foreground_fract = 0.3
+    endblock
+    block ocv_3frame_differencing
+      frame_separation = 5
+      jitter_radius = 0
+      max_foreground_fract = .1
+      max_foreground_fract_thresh = 10
+    endblock
+  endblock
+
+connect from input.image to motion.image
+
+process output
+  :: image_writer
+  file_name_template = OUTPUT/mask%04d.png
+  image_writer:type  = ocv
+
+connect from motion.motion_heat_map to output.image
+

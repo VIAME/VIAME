@@ -37,6 +37,7 @@
 
 #include <vital/config/vital_config_export.h>
 #include <vital/config/config_block.h>
+#include <vital/vital_types.h>
 
 namespace kwiver {
 namespace vital {
@@ -88,6 +89,7 @@ class VITAL_CONFIG_EXPORT config_difference
 {
 public:
   config_difference( const config_block_sptr reference, const config_block_sptr other );
+  config_difference( config_block_keys_t const& reference, const config_block_sptr other );
   virtual ~config_difference();
 
   /**
@@ -128,6 +130,29 @@ public:
    */
   config_block_keys_t unspecified_keys() const;
 
+  /**
+   * @brief Issue log warnings for extra config keys.
+   *
+   * this method will issue a single log warning with a list of config
+   * keys that are unexpected.
+   *
+   * @param logger - A logger handle
+   *
+   * @return True if warning was generated
+   */
+  bool warn_extra_keys(kwiver::vital::logger_handle_t logger) const;
+
+  /**
+   * @brief Issue log warning for unspecified keys
+   *
+   * this methos will issue a single log warning with a list of config
+   * keys that are unspecified.
+   *
+   * @param logger - A logger handle
+   *
+   * @return True if warning was generated
+   */
+  bool warn_unspecified_keys(kwiver::vital::logger_handle_t logger) const;
 
 private:
   config_block_keys_t m_extra_keys;

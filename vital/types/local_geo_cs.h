@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,14 +68,8 @@ public:
    */
   void set_origin(const vital::geo_point& origin);
 
-  /// Set the altitude of the origin (in meters)
-  void set_origin_altitude(double alt) { origin_alt_ = alt; }
-
   /// Access the geographic coordinate of the origin
   const vital::geo_point& origin() const { return geo_origin_; }
-
-  /// Access the geographic coordinate altituded (in meters)
-  double origin_altitude() const { return origin_alt_; }
 
   /// Use the pose data provided by metadata to update camera pose
   /**
@@ -97,8 +91,6 @@ private:
   /// The local coordinates origin
   vital::geo_point geo_origin_;
 
-  /// altitude of the local coordinate origin
-  double origin_alt_;
 };
 
 

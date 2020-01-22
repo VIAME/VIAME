@@ -43,6 +43,8 @@ namespace vital {
 
 // Source: http://www.geom.uiuc.edu/~huberty/math5337/groupe/digits.html
 constexpr double pi = 3.14159265358979323;
+constexpr double two_pi = pi*2;
+constexpr double pi_over_2 = pi/2;
 
 constexpr double deg_to_rad = pi/180.0;
 

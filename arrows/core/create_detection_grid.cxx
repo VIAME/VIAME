@@ -148,7 +148,7 @@ detect( vital::image_container_sptr image_data) const
 
   if(d_->width > img_width || d_->height > img_height)
   {
-    throw vital::algorithm_configuration_exception(
+    VITAL_THROW( vital::algorithm_configuration_exception,
       type_name(), impl_name(), "Detection width and height must be no more than image width and height");
   }
 

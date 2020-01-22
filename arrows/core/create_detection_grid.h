@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,4 +113,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_CREATE_DETECTION_GRID_H_
+#endif

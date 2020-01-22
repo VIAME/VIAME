@@ -42,7 +42,7 @@ target_link_libraries( kwiver_adapter
                    vital_vpm
                    vital_logger
   PRIVATE          sprokit_pipeline
-                   sprokit_tools
+                   sprokit_pipeline_util
                    kwiversys
 
   )

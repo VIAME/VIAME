@@ -71,6 +71,9 @@
 #include <arrows/ocv/refine_detections_write_to_disk.h>
 #include <arrows/ocv/split_image.h>
 #include <arrows/ocv/track_features_klt.h>
+#include <arrows/ocv/detect_motion_3frame_differencing.h>
+#include <arrows/ocv/detect_motion_mog2.h>
+#include <arrows/ocv/detect_heat_map.h>
 
 namespace kwiver {
 namespace arrows {
@@ -113,6 +116,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< match_features_flannbased >();
 
   reg.register_algorithm< hough_circle_detector >();
+  reg.register_algorithm< detect_motion_3frame_differencing >();
+  reg.register_algorithm< detect_motion_mog2 >();
 
   // Conditional algorithms
   // Source ``KWIVER_OCV_HAS_*`` symbol definitions can be found in the header
@@ -158,6 +163,8 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< detect_features_SURF >();
   reg.register_algorithm< extract_descriptors_SURF >();
 #endif
+
+  reg.register_algorithm< detect_heat_map >();
 
   reg.register_algorithm< refine_detections_write_to_disk >();
   reg.register_algorithm< split_image >();

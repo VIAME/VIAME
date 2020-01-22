@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,24 +53,6 @@ namespace sprokit
 {
 
 /**
- * \brief Convert a pipeline description file into a pipeline.
- *
- * \param fname The file to load the pipeline from.
- *
- * \returns A new pipeline baked from the given file.
- */
-SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_from_file( kwiver::vital::path_t const& fname);
-
-/**
- * \brief Bake a pipeline from a stream.
- *
- * \param istr The stream to load the pipeline from.
- *
- * \returns A pipeline baked from the given stream.
- */
-SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr );
-
-/**
  * \brief Extract a configuration from a collection of blocks.
  *
  * \param blocks The blocks to use for baking the pipeline.
@@ -78,24 +60,6 @@ SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe(std::istream& istr );
  * \returns A pipeline baked from \p blocks.
  */
 SPROKIT_PIPELINE_UTIL_EXPORT pipeline_t bake_pipe_blocks(pipe_blocks const& blocks);
-
-/**
- * \brief Convert a cluster description file into a cluster.
- *
- * \param fname The file to load the cluster from.
- *
- * \returns Information about the cluster in the file.
- */
-SPROKIT_PIPELINE_UTIL_EXPORT cluster_info_t bake_cluster_from_file( kwiver::vital::path_t const& fname);
-
-/**
- * \brief Bake a cluster from a stream.
- *
- * \param istr The stream to load the cluster from.
- *
- * \returns Information about the cluster in the stream.
- */
-SPROKIT_PIPELINE_UTIL_EXPORT cluster_info_t bake_cluster(std::istream& istr );
 
 /**
  * \brief Extract a configuration from a collection of blocks.
@@ -113,7 +77,8 @@ SPROKIT_PIPELINE_UTIL_EXPORT cluster_info_t bake_cluster_blocks(cluster_blocks c
  *
  * \returns A configuration extracted from \p blocks.
  */
-SPROKIT_PIPELINE_UTIL_EXPORT kwiver::vital::config_block_sptr extract_configuration(pipe_blocks const& blocks);
+SPROKIT_PIPELINE_UTIL_EXPORT kwiver::vital::config_block_sptr
+  extract_configuration(pipe_blocks const& blocks);
 
 }
 

@@ -31,14 +31,14 @@
 
 def test_import():
     try:
-        from sprokit.pipeline import config
+        from vital.config import config
         import sprokit.pipeline.process_factory
     except:
         test_error("Failed to import the process_factory module")
 
 
 def test_api_calls():
-    from sprokit.pipeline import config
+    from vital.config import config
     from vital.modules import modules
     from sprokit.pipeline import process
     from sprokit.pipeline import process_factory
@@ -225,7 +225,7 @@ def base_example_process_cluster():
 
 
 def test_register():
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import process
     from sprokit.pipeline import process_factory
 
@@ -246,7 +246,7 @@ def test_register():
 
 
 def test_register_cluster():
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import process
     from sprokit.pipeline import process_cluster
     from sprokit.pipeline import process_factory
@@ -277,7 +277,7 @@ def test_register_cluster():
 
 
 def test_wrapper_api():
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import edge
     from sprokit.pipeline import process
     from sprokit.pipeline import process_factory

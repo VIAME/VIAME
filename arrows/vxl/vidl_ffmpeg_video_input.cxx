@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -273,7 +273,7 @@ public:
   {
     bool retval( true );
 
-    meta_ts = 0.0;
+    meta_ts = 0;
     if ( ! this->d_video_stream.advance() )
     {
       return false;
@@ -311,7 +311,7 @@ public:
     {
       std::stringstream str;
       str <<  "Unknown time source specified \"" << time_source << "\".";
-      throw kwiver::vital::video_config_exception( str.str() );
+      VITAL_THROW( kwiver::vital::video_config_exception, str.str() );
     }
 
     // If we have located a start time in the video, save the PTS for
@@ -413,20 +413,17 @@ public:
       {
         // A metadata collection was created
         // check to see if it is of the desired type.
-        std::string collection_type;
         for( auto meta : klv_metadata )
         {
           // Test to see if the collection is from the specified standard (0104/0601)
-          if (meta->has( VITAL_META_METADATA_ORIGIN ) )
+          if ( auto& origin = meta->find( VITAL_META_METADATA_ORIGIN ) )
           {
-            collection_type = meta->find( VITAL_META_METADATA_ORIGIN ).as_string();
-
-            if (type == collection_type)
+            if (type == origin.as_string())
             {
-              if (meta->has( VITAL_META_UNIX_TIMESTAMP ) )
+              if ( auto& ts = meta->find( VITAL_META_UNIX_TIMESTAMP ) )
               {
                 // Get unix timestamp as usec
-                meta_ts = meta->find( VITAL_META_UNIX_TIMESTAMP ).as_uint64();
+                meta_ts = static_cast< time_usec_t >( ts.as_uint64() );
 
                 LOG_DEBUG( this->d_logger, "Found initial " << type <<
                            " timestamp: " << meta_ts );
@@ -470,7 +467,7 @@ public:
     // is stream open?
     if ( ! d_video_stream.is_open() )
     {
-      throw vital::file_not_read_exception( video_path, "Video not open" );
+      VITAL_THROW( vital::file_not_read_exception, video_path, "Video not open" );
     }
 
     if ( !d_have_loop_vars )
@@ -677,7 +674,7 @@ vidl_ffmpeg_video_input
 ::open( std::string video_name )
 {
 #if ! VIDL_HAS_FFMPEG
-  throw kwiver::vital::video_config_exception( "vidl ffmpeg support is not available from VXL. "
+  VITAL_THROW( kwiver::vital::video_config_exception, "vidl ffmpeg support is not available from VXL. "
                                                "Rebuild VXL with ffmpeg support." );
 #endif
 
@@ -693,12 +690,12 @@ vidl_ffmpeg_video_input
     if ( ! kwiversys::SystemTools::FileExists( video_name ) )
     {
       // Throw exception
-      throw kwiver::vital::file_not_found_exception( video_name, "File not found" );
+      VITAL_THROW( kwiver::vital::file_not_found_exception, video_name, "File not found" );
     }
 
     if( ! d->d_video_stream.open( video_name ) )
     {
-      throw kwiver::vital::video_runtime_exception( "Video stream open failed for unknown reasons");
+      VITAL_THROW( kwiver::vital::video_runtime_exception, "Video stream open failed for unknown reasons");
     }
   }
 
@@ -730,7 +727,7 @@ vidl_ffmpeg_video_input
   if ( ! time_found )
   {
     LOG_ERROR( logger(), "Failed to initialize the timestamp for: " << d->video_path );
-    throw kwiver::vital::video_stream_exception( "could not initialize timestamp" );
+    VITAL_THROW( kwiver::vital::video_stream_exception, "could not initialize timestamp" );
   }
 
   // Move stream to starting frame if needed
@@ -739,7 +736,8 @@ vidl_ffmpeg_video_input
     // move stream to specified frame number
     unsigned int frame_num = 1;
 
-    while (frame_num < d->c_start_at_frame)
+    while ( frame_num < d->c_start_at_frame ||
+            (frame_num - 1) % d->c_frame_skip != 0 )
     {
       if( ! d->d_video_stream.advance() )
       {
@@ -802,7 +800,7 @@ vidl_ffmpeg_video_input
   // is stream open?
   if ( ! d->d_video_stream.is_open() )
   {
-    throw vital::file_not_read_exception( d->video_path, "Video not open" );
+    VITAL_THROW( vital::file_not_read_exception, d->video_path, "Video not open" );
   }
 
   // Sometimes we already have the frame available.
@@ -852,7 +850,7 @@ vidl_ffmpeg_video_input
   // is stream open?
   if ( ! d->d_video_stream.is_open() )
   {
-    throw vital::file_not_read_exception( d->video_path, "Video not open" );
+    VITAL_THROW( vital::file_not_read_exception, d->video_path, "Video not open" );
   }
 
   // negative or zero frame number not allowed
@@ -962,7 +960,7 @@ vidl_ffmpeg_video_input
 
   if ( ! result )
   {
-    throw kwiver::vital::video_stream_exception( "could not convert image to vidl format" );
+    VITAL_THROW( kwiver::vital::video_stream_exception, "could not convert image to vidl format" );
   }
 
   // make an image container and add the first metadata object, if there is one

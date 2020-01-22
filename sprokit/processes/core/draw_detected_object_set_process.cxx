@@ -39,8 +39,8 @@
 namespace kwiver {
 
 // (config-key, value-type, default-value, description )
-  create_config_trait( draw_algo, std::string, "", "Name of drawing algorithm config block./n/n"
-                       "Specify an implementation of the draw_detected_object_set algorithm "
+  create_config_trait( draw_algo, std::string, "", "Name of drawing algorithm config block.\n\n"
+                       "Specify an implementation of the `draw_detected_object_set` algorithm "
                        "as draw_algo:type = <type>");
 
 // ----------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #include <test_gtest.h>
 
 #include <arrows/core/video_input_splice.h>
+#include <arrows/tests/test_video_input.h>
 #include <vital/algo/algorithm_factory.h>
 #include <vital/io/metadata_io.h>
 #include <vital/plugin_loader/plugin_manager.h>
@@ -45,15 +46,10 @@
 #include <fstream>
 #include <iostream>
 
-#include "barcode_decode.h"
-#include "seek_frame_common.h"
-
 kwiver::vital::path_t g_data_dir;
 
 namespace algo = kwiver::vital::algo;
 namespace kac = kwiver::arrows::core;
-static int num_expected_frames = 50;
-static int nth_frame_output = 3;
 static std::string list_file_name = "source_list.txt";
 
 // ----------------------------------------------------------------------------
@@ -373,32 +369,9 @@ TEST_F(video_input_splice, next_frame_nth_frame_output)
   kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vis.open( list_file );
 
-  kwiver::vital::timestamp ts;
+  test_read_video_nth_frame( vis );
 
-  EXPECT_EQ( num_expected_frames, vis.num_frames() )
-    << "Number of frames before extracting frames should be "
-    << num_expected_frames;
-
-  int num_frames = 0;
-  int expected_frame_num = 1;
-  while ( vis.next_frame( ts ) )
-  {
-    auto img = vis.frame_image();
-    auto md = vis.frame_metadata();
-
-    if (md.size() > 0)
-    {
-      std::cout << "-----------------------------------\n" << std::endl;
-      kwiver::vital::print_metadata( std::cout, *md[0] );
-    }
-
-    ++num_frames;
-    EXPECT_EQ( expected_frame_num, ts.get_frame() )
-      << "Frame numbers should be sequential";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
-      << "Frame number should match barcode in frame image";
-    expected_frame_num += 3;
-  }
+  vis.close();
 }
 
 // ----------------------------------------------------------------------------
@@ -422,34 +395,7 @@ TEST_F(video_input_splice, seek_frame_nth_frame_output)
   kwiver::vital::path_t list_file = data_dir + "/" + list_file_name;
   vis.open( list_file );
 
-  kwiver::vital::timestamp ts;
-
-  // Video should be seekable
-  EXPECT_TRUE( vis.seekable() );
-
-  // Test various valid seeks
-  std::vector<kwiver::vital::timestamp::frame_t> valid_seeks =
-    {4, 10, 13, 22, 49};
-  for (auto requested_frame : valid_seeks)
-  {
-    ASSERT_TRUE( vis.seek_frame( ts, requested_frame) );
-
-    auto img = vis.frame_image();
-
-    EXPECT_EQ( requested_frame, ts.get_frame() )
-      << "Frame number should match seek request";
-    EXPECT_EQ( ts.get_frame(), decode_barcode(*img) )
-      << "Frame number should match barcode in frame image";
-  }
-
-  // Test various invalid seeks past end of visdeo
-  std::vector<kwiver::vital::timestamp::frame_t> in_valid_seeks =
-    {-3, -1, 0, 2, 12, 11, 21, 24, 51, 55};
-  for (auto requested_frame : in_valid_seeks)
-  {
-    EXPECT_FALSE( vis.seek_frame( ts, requested_frame) );
-    EXPECT_NE( requested_frame, ts.get_frame() );
-  }
+  test_seek_nth_frame( vis );
 
   vis.close();
 }

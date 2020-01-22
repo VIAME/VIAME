@@ -1798,8 +1798,9 @@ int SystemInformationImplementation::GetFullyQualifiedDomainName(
 
   for(p = info; p != NULL; p = p->ai_next)
     {
-    std::string candidate = p->ai_canonname;
-    if ((candidate.find(base)!=std::string::npos) && baseSize<candidate.size())
+      if ( ! p->ai_canonname ) continue;
+      const std::string candidate{ p->ai_canonname };
+      if ((candidate.find(base) != std::string::npos) && baseSize < candidate.size())
       {
       // success, stop now.
       fqdn=candidate;

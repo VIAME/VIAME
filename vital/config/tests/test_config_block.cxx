@@ -541,6 +541,10 @@ TEST(config_block, enum_conversion)
   EXPECT_THROW(
     config->get_enum_value< my_ec >( config_block_key_t{ "not_a_key" } ),
     no_such_configuration_value_exception );
+
+  EXPECT_EQ(3, config->get_enum_value < my_ec >(keya, 2));
+
+  EXPECT_EQ(2, config->get_enum_value < my_ec >(keyb, 2));
 }
 
 

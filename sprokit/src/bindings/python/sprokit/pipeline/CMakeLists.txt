@@ -1,13 +1,5 @@
 project(sprokit_python_sprokit_pipeline)
 
-kwiver_add_python_library(config
-  sprokit/pipeline
-  config.cxx)
-target_link_libraries(python-sprokit.pipeline-config
-  PRIVATE             sprokit_pipeline
-                      vital_python_util
-                      vital_exceptions)
-
 kwiver_add_python_library(datum
   sprokit/pipeline
   datum.cxx)
@@ -91,15 +83,18 @@ target_link_libraries(python-sprokit.pipeline-version
   PRIVATE             sprokit_pipeline
                       vital_python_util)
 
-kwiver_create_python_init(sprokit/pipeline
-  config
-  datum
-  edge
-  pipeline
-  process
-  process_factory
-  scheduler
-  scheduler_factory
-  stamp
-  utils
-  version)
+kwiver_add_python_module(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+                         sprokit/pipeline
+                         __init__)
+
+#kwiver_create_python_init(sprokit/pipeline
+#  datum
+#  edge
+#  pipeline
+#  process
+#  process_factory
+#  scheduler
+#  scheduler_factory
+#  stamp
+#  utils
+#  version)

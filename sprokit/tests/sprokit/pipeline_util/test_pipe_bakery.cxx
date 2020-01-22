@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2017 by Kitware, Inc.
+ * Copyright 2012-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline_util/load_pipe.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline_util/pipe_bakery.h>
 #include <sprokit/pipeline_util/pipe_bakery_exception.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
@@ -73,10 +73,28 @@ main( int argc, char* argv[] )
 }
 
 
+// ----------------------------------------------------------------------------
+sprokit::pipe_blocks load_pipe_blocks_from_file( kwiver::vital::path_t const& pipe_file )
+{
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( pipe_file );
+  return builder.pipeline_blocks();
+}
+
+
+// ----------------------------------------------------------------------------
+sprokit::cluster_blocks load_cluster_blocks_from_file( kwiver::vital::path_t const& pipe_file )
+{
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( pipe_file );
+  return builder.cluster_blocks();
+}
+
+
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_block )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -95,7 +113,7 @@ IMPLEMENT_TEST( config_block )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_block_block )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -128,7 +146,7 @@ IMPLEMENT_TEST( config_block_block )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_block_relativepath )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -148,7 +166,7 @@ IMPLEMENT_TEST( config_block_relativepath )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_block_long_block )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -167,7 +185,7 @@ IMPLEMENT_TEST( config_block_long_block )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_block_nested_block )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -186,7 +204,7 @@ IMPLEMENT_TEST( config_block_nested_block )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_block_notalnum )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -215,7 +233,7 @@ IMPLEMENT_TEST( config_block_notalnum )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_value_spaces )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -244,7 +262,7 @@ IMPLEMENT_TEST( config_value_spaces )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_overrides )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -263,7 +281,7 @@ IMPLEMENT_TEST( config_overrides )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_read_only )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const config = sprokit::extract_configuration( blocks );
 
@@ -279,7 +297,7 @@ IMPLEMENT_TEST( config_read_only )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_not_a_flag )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   EXPECT_EXCEPTION( sprokit::unrecognized_config_flag_exception,
                     sprokit::extract_configuration( blocks ),
@@ -290,7 +308,7 @@ IMPLEMENT_TEST( config_not_a_flag )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_read_only_override )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   EXPECT_EXCEPTION( kwiver::vital::set_on_read_only_value_exception,
                     sprokit::extract_configuration( blocks ),
@@ -301,7 +319,7 @@ IMPLEMENT_TEST( config_read_only_override )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_append_ro )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -325,7 +343,7 @@ IMPLEMENT_TEST( config_append_ro )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_append_provided )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -344,7 +362,7 @@ IMPLEMENT_TEST( config_append_provided )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_append_provided_ro )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -368,7 +386,7 @@ IMPLEMENT_TEST( config_append_provided_ro )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_append_comma )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -387,7 +405,7 @@ IMPLEMENT_TEST( config_append_comma )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_append_space_empty )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -406,7 +424,7 @@ IMPLEMENT_TEST( config_append_space_empty )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_append_path )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -425,7 +443,7 @@ IMPLEMENT_TEST( config_append_path )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_dotted_key )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -444,7 +462,7 @@ IMPLEMENT_TEST( config_dotted_key )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_dotted_nested_key )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -463,7 +481,7 @@ IMPLEMENT_TEST( config_dotted_nested_key )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_provider_conf )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const conf = sprokit::extract_configuration( blocks );
 
@@ -482,7 +500,7 @@ IMPLEMENT_TEST( config_provider_conf )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_provider_conf_dep )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   EXPECT_EXCEPTION( sprokit::provider_error_exception,
                     sprokit::extract_configuration( blocks ),
@@ -494,7 +512,7 @@ IMPLEMENT_TEST( config_provider_conf_dep )
 TEST_PROPERTY( ENVIRONMENT, TEST_ENV = expected )
 IMPLEMENT_TEST( config_provider_env )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const config = sprokit::extract_configuration( blocks );
 
@@ -513,7 +531,7 @@ IMPLEMENT_TEST( config_provider_env )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_provider_read_only )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   kwiver::vital::config_block_sptr const config = sprokit::extract_configuration( blocks );
 
@@ -529,7 +547,7 @@ IMPLEMENT_TEST( config_provider_read_only )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( config_provider_read_only_override )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file( pipe_file );
 
   EXPECT_EXCEPTION( kwiver::vital::set_on_read_only_value_exception,
                     sprokit::extract_configuration( blocks ),
@@ -540,11 +558,10 @@ IMPLEMENT_TEST( config_provider_read_only_override )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( pipeline_multiplier )
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file( pipe_file );
-
   kwiver::vital::plugin_manager::instance().load_all_plugins();
-
-  sprokit::pipeline_t const pipeline = sprokit::bake_pipe_blocks( blocks );
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( pipe_file );
+  sprokit::pipeline_t const pipeline = builder.pipeline();
 
   if ( ! pipeline )
   {
@@ -565,11 +582,11 @@ IMPLEMENT_TEST( pipeline_multiplier )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( cluster_multiplier )
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
-
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
-  sprokit::cluster_info_t const info = sprokit::bake_cluster_blocks( blocks );
+  sprokit::pipeline_builder builder;
+  builder.load_cluster( pipe_file );
+  sprokit::cluster_info_t const info = builder.cluster_info();
   const auto ctor = info->ctor;
   const auto config = kwiver::vital::config_block::empty_config();
 
@@ -614,7 +631,7 @@ IMPLEMENT_TEST( cluster_missing_cluster )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( cluster_missing_processes )
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file( pipe_file );
 
   EXPECT_EXCEPTION( sprokit::cluster_without_processes_exception,
                     sprokit::bake_cluster_blocks( blocks ),
@@ -624,7 +641,7 @@ IMPLEMENT_TEST( cluster_missing_processes )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( cluster_missing_ports )
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file( pipe_file );
 
   EXPECT_EXCEPTION( sprokit::cluster_without_ports_exception,
                     sprokit::bake_cluster_blocks( blocks ),
@@ -652,7 +669,7 @@ IMPLEMENT_TEST( cluster_multiple_cluster )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( cluster_duplicate_input )
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file( pipe_file );
 
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
@@ -664,7 +681,7 @@ IMPLEMENT_TEST( cluster_duplicate_input )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( cluster_duplicate_output )
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file( pipe_file );
 
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
@@ -678,7 +695,7 @@ static void test_cluster( sprokit::process_t const& cluster, std::string const& 
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( cluster_configuration_default )
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file( pipe_file );
 
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
@@ -696,7 +713,7 @@ IMPLEMENT_TEST( cluster_configuration_default )
 // ------------------------------------------------------------------
 IMPLEMENT_TEST( cluster_configuration_provide )
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file( pipe_file );
 
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
@@ -1051,7 +1068,7 @@ IMPLEMENT_TEST( cluster_override_mapped )
   // variable.
   conf->set_value( full_key, value );
 
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file( pipe_file );
 
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
@@ -1194,7 +1211,7 @@ create_pipeline()
 sprokit::process_cluster_t
 setup_map_config_cluster( sprokit::process::name_t const& name, kwiver::vital::path_t const& pipe_file )
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file( pipe_file );
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file( pipe_file );
 
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 

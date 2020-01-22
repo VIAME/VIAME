@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,4 +123,4 @@ VITAL_EXPORT ::std::ostream& operator<< ( ::std::ostream& str, geo_polygon const
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_GEO_POLYGON_H_ */
+#endif

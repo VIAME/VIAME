@@ -416,13 +416,7 @@ set_configuration(vital::config_block_sptr config_in)
   vital::config_block_sptr config = this->get_configuration();
 
   kwiver::vital::config_difference cd( config, config_in );
-  const auto key_list = cd.extra_keys();
-  if ( ! key_list.empty() )
-  {
-    // This may be considered an error in some cases
-    LOG_WARN( logger(), "Additional parameters found in config block that are not required or desired: "
-              << kwiver::vital::join( key_list, ", " ) );
-  }
+  cd.warn_extra_keys( logger() );
 
   config->merge_config( config_in );
 

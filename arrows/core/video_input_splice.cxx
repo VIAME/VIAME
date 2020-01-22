@@ -225,7 +225,7 @@ video_input_splice
   std::ifstream ifs( list_name.c_str() );
   if ( ! ifs )
   {
-    throw kwiver::vital::invalid_file( list_name, "Could not open file" );
+    VITAL_THROW( kwiver::vital::invalid_file, list_name, "Could not open file" );
   }
 
   // Add directory that contains the list file to the path
@@ -241,7 +241,10 @@ video_input_splice
 
   while ( stream_reader.getline( filepath ) && vs_iter != d->d_video_sources.end() )
   {
-    filepath = kwiversys::SystemTools::FindFile( filepath, d->d_search_path, true );
+    if (!kwiversys::SystemTools::FileExists(filepath, true))
+    {
+      filepath = kwiversys::SystemTools::FindFile(filepath, d->d_search_path, true);
+    }
     (*vs_iter)->open( filepath );
     ++vs_iter;
   }

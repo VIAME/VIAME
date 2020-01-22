@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,6 +227,7 @@ public:
    */
   size_t size() const;
 
+  //@{
   /**
    * @brief Get start iterator to all class/score pairs.
    *
@@ -239,7 +240,10 @@ public:
    * @sa end
    */
   class_const_iterator_t begin() const;
+  class_const_iterator_t cbegin() const;
+  //@}
 
+  //@{
   /**
    * @brief Get end iterator to all class/score pairs.
    *
@@ -251,6 +255,8 @@ public:
    * @sa begin
    */
   class_const_iterator_t end() const;
+  class_const_iterator_t cend() const;
+  //@}
 
   /**
    * @brief Get list of all class_names in use.
@@ -290,7 +296,8 @@ private:
 };
 
 // typedef for a object_type shared pointer
-typedef std::shared_ptr< detected_object_type > detected_object_type_sptr;
+using detected_object_type_sptr = std::shared_ptr< detected_object_type >;
+using detected_object_type_scptr = std::shared_ptr< detected_object_type const >;
 
 } }
 

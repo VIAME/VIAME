@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,7 +89,7 @@ public:
   */
   virtual void
   optimize(
-    kwiver::vital::camera_map_of_<kwiver::vital::simple_camera_perspective> &cameras,
+    kwiver::vital::simple_camera_perspective_map &cameras,
     kwiver::vital::landmark_map::map_landmark_t &landmarks,
     vital::feature_track_set_sptr tracks,
     const std::set<vital::frame_id_t>& fixed_cameras,
@@ -112,4 +112,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CERES_BUNDLE_ADJUST_H_
+#endif

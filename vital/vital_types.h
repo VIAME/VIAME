@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2015, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
@@ -69,6 +70,16 @@ typedef double gsd_t;
 
 // a short name for unsigned char
 typedef unsigned char byte;
+
+enum class clone_type
+{
+  SHALLOW,
+  DEEP,
+};
+
+// Logger handle
+class kwiver_logger;
+using logger_handle_t = std::shared_ptr< kwiver_logger >;
 
 } } // end namespace
 

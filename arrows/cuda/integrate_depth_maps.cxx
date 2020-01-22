@@ -34,16 +34,22 @@
 */
 
 #include <arrows/cuda/integrate_depth_maps.h>
+#include <arrows/cuda/cuda_error_check.h>
+#include <arrows/cuda/cuda_memory.h>
+#include <arrows/core/depth_utils.h>
 #include <sstream>
 #include <cuda_runtime.h>
 #include <cuda.h>
 
 using namespace kwiver::vital;
 
-void cuda_initalize(int h_gridDims[3], double h_gridOrig[3], double h_gridSpacing[3],
-                    double h_rayPThick, double h_rayPRho, double h_rayPEta, double h_rayPDelta);
+void cuda_initalize(int h_gridDims[3], double h_gridOrig[3],
+                    double h_gridSpacing[3], double h_rayPThick,
+                    double h_rayPRho, double h_rayPEta, double h_rayPEpsilon,
+                    double h_rayPDelta);
 
-void launch_depth_kernel(double * d_depth, int depthmap_dims[2], double d_K[16], double d_RT[16], double* output);
+void launch_depth_kernel(double * d_depth, int depthmap_dims[2],
+                         double d_K[16], double d_RT[16], double* output);
 
 namespace kwiver {
 namespace arrows {
@@ -53,13 +59,15 @@ namespace cuda {
 class integrate_depth_maps::priv
 {
 public:
-  /// Constructor
+  // Constructor
   priv()
     : ray_potential_rho(1.0),
-      ray_potential_thickness(1.65),
-      ray_potential_eta(0.03),
-      ray_potential_delta(16.5),
+      ray_potential_thickness(20.0),
+      ray_potential_eta(1.0),
+      ray_potential_epsilon(0.01),
+      ray_potential_delta(200.0),
       grid_spacing {1.0, 1.0, 1.0},
+      voxel_spacing_factor(1.0),
       m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
   {
   }
@@ -67,12 +75,20 @@ public:
   double ray_potential_rho;
   double ray_potential_thickness;
   double ray_potential_eta;
+  double ray_potential_epsilon;
   double ray_potential_delta;
 
   int grid_dims[3];
+
+  // Actual spacing is computed as
+  //   voxel_scale_factor * pixel_to_world_scale * grid_spacing
+  // relative spacings per dimension
   double grid_spacing[3];
 
-  /// Logger handle
+  // multiplier on all dimensions of grid spacing
+  double voxel_spacing_factor;
+
+  // Logger handle
   vital::logger_handle_t m_logger;
 };
 
@@ -98,18 +114,32 @@ vital::config_block_sptr
 integrate_depth_maps::get_configuration() const
 {
   // get base config from base class
-  vital::config_block_sptr config = vital::algo::integrate_depth_maps::get_configuration();
+  auto config = vital::algo::integrate_depth_maps::get_configuration();
 
-  config->set_value("ray_potential_thickness", d_->ray_potential_thickness, "ray potential thickness");
-  config->set_value("ray_potential_rho", d_->ray_potential_rho, "ray potential rho");
+  config->set_value("ray_potential_thickness", d_->ray_potential_thickness,
+                    "Distance that the TSDF covers sloping from Rho to zero. "
+                    "Units are in voxels.");
+  config->set_value("ray_potential_rho", d_->ray_potential_rho,
+                    "Maximum magnitude of the TDSF");
   config->set_value("ray_potential_eta", d_->ray_potential_eta,
-                     "0 < Eta < 1 : will be applied as a percentage of rho ");
+                    "Fraction of rho to use for free space constraint. "
+                    "Requires 0 <= Eta <= 1.");
+  config->set_value("ray_potential_epsilon", d_->ray_potential_epsilon,
+                    "Fraction of rho to use in occluded space. "
+                    "Requires 0 <= Epsilon <= 1.");
   config->set_value("ray_potential_delta", d_->ray_potential_delta,
-                    "delta has to be superior to Thick ");
+                    "Distance from the surface before the TSDF is truncate. "
+                    "Units are in voxels");
+  config->set_value("voxel_spacing_factor", d_->voxel_spacing_factor,
+                    "Multiplier on voxel spacing.  Set to 1.0 for voxel "
+                    "sizes that project to 1 pixel on average.");
 
   std::ostringstream stream;
-  stream << d_->grid_spacing[0] << " " << d_->grid_spacing[1] << " " << d_->grid_spacing[2];
-  config->set_value("grid_spacing", stream.str(), "spacing for each dimension of the grid");
+  stream << d_->grid_spacing[0] << " "
+         << d_->grid_spacing[1] << " "
+         << d_->grid_spacing[2];
+  config->set_value("grid_spacing", stream.str(),
+                    "Relative spacing for each dimension of the grid");
 
   return config;
 }
@@ -126,14 +156,26 @@ integrate_depth_maps::set_configuration(vital::config_block_sptr in_config)
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
 
-  d_->ray_potential_rho = config->get_value<double>("ray_potential_rho", d_->ray_potential_rho);
-  d_->ray_potential_thickness = config->get_value<double>("ray_potential_thickness", d_->ray_potential_thickness);
-  d_->ray_potential_eta = config->get_value<double>("ray_potential_eta", d_->ray_potential_eta);
-  d_->ray_potential_delta = config->get_value<double>("ray_potential_delta", d_->ray_potential_delta);
+  d_->ray_potential_rho =
+    config->get_value<double>("ray_potential_rho", d_->ray_potential_rho);
+  d_->ray_potential_thickness =
+    config->get_value<double>("ray_potential_thickness",
+                              d_->ray_potential_thickness);
+  d_->ray_potential_eta =
+    config->get_value<double>("ray_potential_eta", d_->ray_potential_eta);
+  d_->ray_potential_epsilon =
+    config->get_value<double>("ray_potential_epsilon", d_->ray_potential_epsilon);
+  d_->ray_potential_delta =
+    config->get_value<double>("ray_potential_delta", d_->ray_potential_delta);
+  d_->voxel_spacing_factor =
+    config->get_value<double>("voxel_spacing_factor", d_->voxel_spacing_factor);
 
   std::ostringstream ostream;
-  ostream << d_->grid_spacing[0] << " " << d_->grid_spacing[1] << " " << d_->grid_spacing[2];
-  std::string spacing = config->get_value<std::string>("grid_spacing", ostream.str());
+  ostream << d_->grid_spacing[0] << " "
+          << d_->grid_spacing[1] << " "
+          << d_->grid_spacing[2];
+  std::string spacing =
+    config->get_value<std::string>("grid_spacing", ostream.str());
   std::istringstream istream(spacing);
   istream >> d_->grid_spacing[0] >> d_->grid_spacing[1] >> d_->grid_spacing[2];
 }
@@ -149,10 +191,11 @@ integrate_depth_maps::check_configuration(vital::config_block_sptr config) const
 
 //*****************************************************************************
 
-double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
+cuda_ptr<double>
+copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
 {
   size_t size = h_depth->height() * h_depth->width();
-  double* temp = new double[size];
+  std::unique_ptr<double[]> temp(new double[size]);
 
   //copy to cuda format
   kwiver::vital::image img = h_depth->get_image();
@@ -164,27 +207,26 @@ double *copy_depth_map_to_gpu(kwiver::vital::image_container_sptr h_depth)
     }
   }
 
-  double *d_depth;
-  cudaMalloc((void**)&d_depth, size * sizeof(double));
-  cudaMemcpy(d_depth, temp, size * sizeof(double), cudaMemcpyHostToDevice);
-  delete [] temp;
+  auto d_depth = make_cuda_mem<double>(size);
+  CudaErrorCheck(cudaMemcpy(d_depth.get(), temp.get(), size * sizeof(double),
+                            cudaMemcpyHostToDevice));
 
   return d_depth;
 }
 
 //*****************************************************************************
 
-double *init_volume_on_gpu(unsigned int vsize)
+cuda_ptr<double> init_volume_on_gpu(size_t vsize)
 {
-  double *output;
-  cudaMalloc((void**)&output, vsize * sizeof(double));
-  cudaMemset(output, 0, vsize * sizeof(double));
+  auto output = make_cuda_mem<double>(vsize);
+  CudaErrorCheck(cudaMemset(output.get(), 0, vsize * sizeof(double)));
   return output;
 }
 
 //*****************************************************************************
 
-void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera, double* d_K, double *d_RT)
+void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera,
+                        double* d_K, double *d_RT)
 {
   Eigen::Matrix<double, 4, 4, Eigen::RowMajor> K4x4;
   K4x4.setIdentity();
@@ -198,8 +240,10 @@ void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera, double* d
   RT.block< 3, 3 >(0, 0) = R;
   RT.block< 3, 1 >(0, 3) = t;
 
-  cudaMemcpy(d_K, K4x4.data(), 16 * sizeof(double), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_RT, RT.data(), 16 * sizeof(double), cudaMemcpyHostToDevice);
+  CudaErrorCheck(cudaMemcpy(d_K, K4x4.data(), 16 * sizeof(double),
+                            cudaMemcpyHostToDevice));
+  CudaErrorCheck(cudaMemcpy(d_RT, RT.data(), 16 * sizeof(double),
+                            cudaMemcpyHostToDevice));
 }
 
 
@@ -207,60 +251,75 @@ void copy_camera_to_gpu(kwiver::vital::camera_perspective_sptr camera, double* d
 
 void
 integrate_depth_maps::integrate(
-  vector_3d const& minpt_bound, vector_3d const& maxpt_bound,
+  vector_3d const& minpt_bound,
+  vector_3d const& maxpt_bound,
   std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
   std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
-  kwiver::vital::image_container_sptr& volume) const
+  kwiver::vital::image_container_sptr& volume,
+  kwiver::vital::vector_3d &spacing) const
 {
+  double pixel_to_world_scale;
+  pixel_to_world_scale =
+    kwiver::arrows::core::
+      compute_pixel_to_world_scale(minpt_bound, maxpt_bound, cameras);
+
   vector_3d diff = maxpt_bound - minpt_bound;
   vector_3d orig = minpt_bound;
 
+  spacing = vector_3d(d_->grid_spacing);
+  spacing *= pixel_to_world_scale * d_->voxel_spacing_factor;
+  double max_spacing = spacing.maxCoeff();
+
   for (int i = 0; i < 3; i++)
   {
-    d_->grid_dims[i] = static_cast<int>((diff[i] / d_->grid_spacing[i]));
+    d_->grid_dims[i] = static_cast<int>((diff[i] / spacing[i]));
   }
 
+  LOG_DEBUG( logger(), "voxel size: " << spacing[0]
+                       << " "         << spacing[1]
+                       << " "         << spacing[2] );
   LOG_DEBUG( logger(), "grid: " << d_->grid_dims[0]
                        << " "   << d_->grid_dims[1]
                        << " "   << d_->grid_dims[2] );
 
   LOG_INFO( logger(), "initialize" );
-  cuda_initalize(d_->grid_dims, orig.data(), d_->grid_spacing,
-    d_->ray_potential_thickness, d_->ray_potential_rho, d_->ray_potential_eta, d_->ray_potential_delta);
-  const int vsize = d_->grid_dims[0] * d_->grid_dims[1] * d_->grid_dims[2];
+  cuda_initalize(d_->grid_dims, orig.data(), spacing.data(),
+                 d_->ray_potential_thickness * max_spacing,
+                 d_->ray_potential_rho,
+                 d_->ray_potential_eta,
+                 d_->ray_potential_epsilon,
+                 d_->ray_potential_delta * max_spacing);
+  const size_t vsize = static_cast<size_t>(d_->grid_dims[0]) *
+                       static_cast<size_t>(d_->grid_dims[1]) *
+                       static_cast<size_t>(d_->grid_dims[2]);
 
-  double *d_volume = init_volume_on_gpu(vsize);
-  double *d_K, *d_RT;
+  cuda_ptr<double> d_volume = init_volume_on_gpu(vsize);
+  cuda_ptr<double> d_K = make_cuda_mem<double>(16);
+  cuda_ptr<double> d_RT = make_cuda_mem<double>(16);
 
-  cudaMalloc((void**)&d_K, 16 * sizeof(double));
-  cudaMalloc((void**)&d_RT, 16 * sizeof(double));
-
-  for (int i = 0; i < depth_maps.size(); i++)
+  for (size_t i = 0; i < depth_maps.size(); i++)
   {
     int depthmap_dims[2];
     depthmap_dims[0] = static_cast<int>(depth_maps[i]->width());
     depthmap_dims[1] = static_cast<int>(depth_maps[i]->height());
-    double *d_depth = copy_depth_map_to_gpu(depth_maps[i]);
-    copy_camera_to_gpu(cameras[i], d_K, d_RT);
+    cuda_ptr<double> d_depth = copy_depth_map_to_gpu(depth_maps[i]);
+    copy_camera_to_gpu(cameras[i], d_K.get(), d_RT.get());
 
     // run code on device
     LOG_INFO( logger(), "depth map " << i );
-    launch_depth_kernel(d_depth, depthmap_dims, d_K, d_RT, d_volume);
-    cudaFree(d_depth);
+    launch_depth_kernel(d_depth.get(), depthmap_dims,
+                        d_K.get(), d_RT.get(), d_volume.get());
   }
 
   // Transfer data from device to host
-  double *h_volume = new double[vsize];
-  cudaMemcpy(h_volume, d_volume, vsize * sizeof(double), cudaMemcpyDeviceToHost);
+  auto h_volume = std::make_shared<image_memory>(vsize * sizeof(double));
+  CudaErrorCheck(cudaMemcpy(h_volume->data(), d_volume.get(), vsize * sizeof(double),
+                 cudaMemcpyDeviceToHost));
 
-  volume = std::shared_ptr<image_container>(new simple_image_container(
-    image(h_volume, d_->grid_dims[0], d_->grid_dims[1], d_->grid_dims[2],
-      1, d_->grid_dims[0], d_->grid_dims[0] * d_->grid_dims[1],
-      image_pixel_traits(kwiver::vital::image_pixel_traits::FLOAT, 8))));
-
-  cudaFree(d_volume);
-  cudaFree(d_K);
-  cudaFree(d_RT);
+  volume = std::make_shared<simple_image_container>(
+    image_of<double>(h_volume, reinterpret_cast<const double*>(h_volume->data()),
+                    d_->grid_dims[0], d_->grid_dims[1], d_->grid_dims[2],
+                    1, d_->grid_dims[0], d_->grid_dims[0] * d_->grid_dims[1]));
 }
 
 } // end namespace cuda

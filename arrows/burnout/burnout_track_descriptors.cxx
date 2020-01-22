@@ -114,13 +114,13 @@ burnout_track_descriptors
   if( !d->m_process.set_params( vidtk_config ) )
   {
     std::string reason = "Failed to set pipeline parameters";
-    throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
+    VITAL_THROW( vital::algorithm_configuration_exception, type_name(), impl_name(), reason );
   }
 
   if( !d->m_process.initialize() )
   {
     std::string reason = "Failed to initialize pipeline";
-    throw vital::algorithm_configuration_exception( type_name(), impl_name(), reason );
+    VITAL_THROW( vital::algorithm_configuration_exception, type_name(), impl_name(), reason );
   }
 #endif
 }
