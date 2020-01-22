@@ -39,11 +39,14 @@ class Grid(object):
 
     def __call__(self, im_size, bbox_list, mot_flag=False):
         return self.obtain_grid_feature_list(im_size, bbox_list, mot_flag)
-    
+
     def obtain_grid_feature_list(self, im_size, bbox_list, mot_flag):
         r"""
-            The output of the function is a grid feature list for 
+            The output of the function is a grid feature list for
             each corresponding bbox of current frame/image
+
+            A grid feature records which cells in the configured
+            neighborhood have at least one bonuding box in them.
         """
         self.img_w, self.img_h = im_size
 
@@ -54,9 +57,9 @@ class Grid(object):
         # initial all gridcell to 0
         grid = torch.FloatTensor(self._grid_rows, self._grid_cols).zero_()
 
-        bbox_id_centerIDX = {}
+        bbox_id_centerIDX = []
         # build the grid for current image
-        for idx, item in enumerate(bbox_list):
+        for item in bbox_list:
             bb = item if mot_flag else item.bounding_box()
 
             x = int(bb.min_x())
@@ -72,8 +75,8 @@ class Grid(object):
             row_idx = int(c_h // cell_h)
             col_idx = int(c_w // cell_w)
 
-            bbox_id_centerIDX[idx] = row_idx, col_idx
-            
+            bbox_id_centerIDX.append((row_idx, col_idx))
+
             # Assertion for corner cases
             assert row_idx < grid.shape[0]
             assert col_idx < grid.shape[1]
@@ -81,22 +84,21 @@ class Grid(object):
 
         grid_feature_list = []
         # obtain grid feature for each bbox
-        for idx in range(len(bbox_id_centerIDX)):
+        for row_idx, col_idx in bbox_id_centerIDX:
             # top left corner's the neighborhood grid
-            neighborhood_grid_top = bbox_id_centerIDX[idx][0] - self._half_cell_w
-            neighborhood_grid_left = bbox_id_centerIDX[idx][1] - self._half_cell_w
+            neighborhood_grid_top = row_idx - self._half_cell_w
+            neighborhood_grid_left = col_idx - self._half_cell_w
 
-            neighborhood_grid = torch.FloatTensor(self._target_neighborhood_w, 
+            neighborhood_grid = torch.FloatTensor(self._target_neighborhood_w,
                                             self._target_neighborhood_w).zero_()
 
             for r in range(self._target_neighborhood_w):
                 for c in range(self._target_neighborhood_w):
-                    if 0 <= neighborhood_grid_top + r < grid.size(0) and \
-                            0 <= neighborhood_grid_left + c < grid.size(1):
-                        neighborhood_grid[r, c] = grid[neighborhood_grid_top + r, \
+                    if (0 <= neighborhood_grid_top + r < grid.size(0)
+                        and 0 <= neighborhood_grid_left + c < grid.size(1)):
+                        neighborhood_grid[r, c] = grid[neighborhood_grid_top + r,
                                                     neighborhood_grid_left + c]
 
             grid_feature_list.append(neighborhood_grid.view(neighborhood_grid.numel()))
 
         return grid_feature_list
-

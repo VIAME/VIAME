@@ -168,6 +168,7 @@ config( py::module& m)
 
   py::class_<kwiver::vital::config_block, kwiver::vital::config_block_sptr>(m, "Config"
     , R"pbdoc("A key-value store of configuration values)pbdoc")
+
     .def("subblock", &kwiver::vital::config_block::subblock
       , py::arg("name")
       , R"pbdoc(Returns a :class:`kwiver.vital.config.Config`
@@ -252,4 +253,22 @@ config( py::module& m)
         R"pbdoc(Magic function to assign a new value to a key)pbdoc")
     .def("__delitem__", &kwiver::vital::python::config_delitem,
         R"pbdoc(Magic function to remove a key)pbdoc");
+
+
+// ----------------------------------------------------------------------------"
+    py::class_<kwiver::vital::config_difference, std::shared_ptr<kwiver::vital::config_difference>>(m, "ConfigDifference"
+        , "Represents difference between two config blocks" )
+
+    .def(py::init<kwiver::vital::config_block_sptr, kwiver::vital::config_block_sptr>()
+         , py::doc("Determine difference between config blocks"))
+    .def(py::init<kwiver::vital::config_block_keys_t, kwiver::vital::config_block_sptr>()
+         , py::doc("Determine difference between config blocks"))
+
+    .def("extra_keys", &kwiver::vital::config_difference::extra_keys
+         , "Return list of config keys that are not in the ref config")
+
+    .def("unspecified_keys", &kwiver::vital::config_difference::unspecified_keys
+         , "Return list of config keys that are in reference config but not in the other config")
+;
+
 }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
+#ifndef VITAL_DETECTED_OBJECT_SET_UTIL_H
+#define VITAL_DETECTED_OBJECT_SET_UTIL_H
 
-#include <memory>
+#include <vital/vital_export.h>
+#include "detected_object_set.h"
 
 namespace kwiver {
+namespace vital {
 
-// ----------------------------------------------------------------
 /**
- * \class  draw_detected_object_set
+ * @brief Scale all detection locations by some scale factor.
  *
- * \brief Instantiate and run draw_detected_object_set algorithm
+ * This method changes the bounding boxes within all stored detections
+ * by scaling them by some scale factor.
  *
- * \iports
- * \iport{image}
- * \iport{detected_object_set}
- *
- * \oports
- * \oport{image}
- *
+ * @param scale Scale factor
  */
-class KWIVER_PROCESSES_NO_EXPORT draw_detected_object_set_process
-  : public sprokit::process
-{
-public:
-  PLUGIN_INFO( "draw_detected_object_set",
-               "Draws border around detected objects in the set using the selected algorithm.\n\n"
-               "This process is a wrapper around a `draw_detected_object_set` algorithm.")
+void VITAL_EXPORT
+scale_detections( detected_object_set_sptr dos,
+                  double scale_factor );
 
-  draw_detected_object_set_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~draw_detected_object_set_process();
+/**
+ * @brief Shift all detection locations by some translation offset.
+ *
+ * This method shifts the bounding boxes within all stored detections
+ * by a supplied column and row shift.
+ *
+ * Note: Detections in this set can be shared by multiple sets, so
+ * shifting the detections in this set will also shift the detection
+ * in other sets that share this detection. If this is going to be a
+ * problem, clone() this set before shifting.
+ *
+ * @param col_shift Column  (a.k.a. x, i, width) translation factor
+ * @param row_shift Row (a.k.a. y, j, height) translation factor
+ */
+void VITAL_EXPORT
+shift_detections( detected_object_set_sptr dos,
+                  double col_shift, double row_shift );
 
-protected:
-  void _configure(); // preconnection
-  void _step();
+} } // end namespace
 
-private:
-  void make_ports();
-  void make_config();
-
-  class priv;
-  std::unique_ptr< priv > d;
-};   // end class
-
-} // end namespace
+#endif // VITAL_DETECTED_OBJECT_SET_UTIL_H

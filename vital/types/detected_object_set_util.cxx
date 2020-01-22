@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +28,46 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/pipeline/process.h>
-#include "kwiver_processes_export.h"
-
-#include <memory>
+#include "detected_object_set_util.h"
 
 namespace kwiver {
+namespace vital {
 
-// ----------------------------------------------------------------
-/**
- * \class  draw_detected_object_set
- *
- * \brief Instantiate and run draw_detected_object_set algorithm
- *
- * \iports
- * \iport{image}
- * \iport{detected_object_set}
- *
- * \oports
- * \oport{image}
- *
- */
-class KWIVER_PROCESSES_NO_EXPORT draw_detected_object_set_process
-  : public sprokit::process
+// ------------------------------------------------------------------
+void
+scale_detections( detected_object_set_sptr dos,
+       double scale_factor )
 {
-public:
-  PLUGIN_INFO( "draw_detected_object_set",
-               "Draws border around detected objects in the set using the selected algorithm.\n\n"
-               "This process is a wrapper around a `draw_detected_object_set` algorithm.")
+  if( scale_factor == 1.0 )
+  {
+    return;
+  }
 
-  draw_detected_object_set_process( kwiver::vital::config_block_sptr const& config );
-  virtual ~draw_detected_object_set_process();
+  for( auto detection : *dos )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::scale( bbox, scale_factor );
+    detection->set_bounding_box( bbox );
+  }
+}
 
-protected:
-  void _configure(); // preconnection
-  void _step();
+// ------------------------------------------------------------------
+void
+shift_detections( detected_object_set_sptr dos,
+       double col_shift, double row_shift )
+{
+  if( col_shift == 0.0 && row_shift == 0.0 )
+  {
+    return;
+  }
 
-private:
-  void make_ports();
-  void make_config();
+  for( auto detection : *dos )
+  {
+    auto bbox = detection->bounding_box();
+    bbox = kwiver::vital::translate( bbox,
+      bounding_box_d::vector_type( col_shift, row_shift ) );
+    detection->set_bounding_box( bbox );
+  }
+}
 
-  class priv;
-  std::unique_ptr< priv > d;
-};   // end class
-
-} // end namespace
+} } // end namespace

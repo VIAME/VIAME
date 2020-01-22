@@ -72,7 +72,7 @@ def ts2ot_list(track_set):
     for idx, t in enumerate(track_set):
         ot = ot_list[idx]
         for ti in t:
-            ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time, 
+            ot_state = ObjectTrackState(ti.sys_frame_id, ti.sys_frame_time,
                                         ti.detected_object)
             if not ot.append(ot_state):
                 print('Error: Cannot add ObjectTrackState')
@@ -83,121 +83,7 @@ class SRNNTracker(KwiverProcess):
     def __init__(self, conf):
         KwiverProcess.__init__(self, conf)
 
-        #GPU list
-        self.add_config_trait("gpu_list", "gpu_list", 'all',
-                              gpu_list_desc(use_for='SRNN tracking'))
-        self.declare_config_using_trait('gpu_list')
-
-        # siamese
-        #----------------------------------------------------------------------------------
-        self.add_config_trait("siamese_model_path", "siamese_model_path",
-                              'siamese/snapshot_epoch_6.pt',
-                              'Trained PyTorch model.')
-        self.declare_config_using_trait('siamese_model_path')
-
-        self.add_config_trait("siamese_model_input_size", "siamese_model_input_size", '224',
-                              'Model input image size')
-        self.declare_config_using_trait('siamese_model_input_size')
-
-        self.add_config_trait("siamese_batch_size", "siamese_batch_size", '128',
-                              'siamese model processing batch size')
-        self.declare_config_using_trait('siamese_batch_size')
-        #----------------------------------------------------------------------------------
-
-        # detection select threshold
-        self.add_config_trait("detection_select_threshold", "detection_select_threshold", '0.0',
-                              'detection select threshold')
-        self.declare_config_using_trait('detection_select_threshold')
-        self.add_config_trait("track_initialization_threshold", "track_initialization_threshold", '0.0',
-                              'track_initialization_threshold')
-        self.declare_config_using_trait('track_initialization_threshold')
-
-        # SRNN
-        #----------------------------------------------------------------------------------
-        # target RNN full model
-        self.add_config_trait("targetRNN_AIM_model_path", "targetRNN_AIM_model_path",
-                              'targetRNN_snapshot/App_LSTM_epoch_51.pt',
-                              'Trained targetRNN PyTorch model.')
-        self.declare_config_using_trait('targetRNN_AIM_model_path')
-
-        # target RNN AI model
-        self.add_config_trait("targetRNN_AIM_V_model_path", "targetRNN_AIM_V_model_path",
-                              'targetRNN_AI/App_LSTM_epoch_51.pt',
-                              'Trained targetRNN AIM with variable input size PyTorch model.')
-        self.declare_config_using_trait('targetRNN_AIM_V_model_path')
-
-        # target RNN batch size
-        self.add_config_trait("targetRNN_batch_size", "targetRNN_batch_size", '256',
-                              'targetRNN model processing batch size')
-        self.declare_config_using_trait('targetRNN_batch_size')
-
-        # matching similarity threshold
-        self.add_config_trait("similarity_threshold", "similarity_threshold", '0.5',
-                              'similarity threshold.')
-        self.declare_config_using_trait('similarity_threshold')
-        #----------------------------------------------------------------------------------
-
-        # IOU
-        #----------------------------------------------------------------------------------
-        # IOU tracker flag
-        self.add_config_trait("IOU_tracker_flag", "IOU_tracker_flag", 'True', 'IOU tracker flag.')
-        self.declare_config_using_trait('IOU_tracker_flag')
-
-        # IOU accept threshold
-        self.add_config_trait("IOU_accept_threshold", "IOU_accept_threshold", '0.5',
-                              'IOU accept threshold.')
-        self.declare_config_using_trait('IOU_accept_threshold')
-
-        # IOU reject threshold
-        self.add_config_trait("IOU_reject_threshold", "IOU_reject_threshold", '0.1',
-                              'IOU reject threshold.')
-        self.declare_config_using_trait('IOU_reject_threshold')
-        #----------------------------------------------------------------------------------
-
-        # search threshold
-        self.add_config_trait("track_search_threshold", "track_search_threshold", '0.1',
-                              'track search threshold.')
-        self.declare_config_using_trait('track_search_threshold')
-
-        # matching active track threshold
-        self.add_config_trait("terminate_track_threshold", "terminate_track_threshold", '15',
-                              'terminate the tracking if the target has been lost for more than '
-                              'terminate_track_threshold read-in frames.')
-        self.declare_config_using_trait('terminate_track_threshold')
-
-        # matching active track threshold
-        self.add_config_trait("sys_terminate_track_threshold", "sys_terminate_track_threshold", '50',
-                              'terminate the tracking if the target has been lost for more than '
-                              'terminate_track_threshold system (original) frames.')
-        self.declare_config_using_trait('sys_terminate_track_threshold')
-
-        # MOT gt detection
-        #-------------------------------------------------------------------
-        self.add_config_trait("MOT_GTbbox_flag", "MOT_GTbbox_flag", 'False', 'MOT GT bbox flag')
-        self.declare_config_using_trait('MOT_GTbbox_flag')
-        #-------------------------------------------------------------------
-
-        # AFRL gt detection
-        #-------------------------------------------------------------------
-        self.add_config_trait("AFRL_GTbbox_flag", "AFRL_GTbbox_flag", 'False', 'AFRL GT bbox flag')
-        self.declare_config_using_trait('AFRL_GTbbox_flag')
-
-        #-------------------------------------------------------------------
-
-        # GT bbox file
-        #-------------------------------------------------------------------
-        self.add_config_trait("GT_bbox_file_path", "GT_bbox_file_path",
-                             '', 'ground truth detection file for testing')
-        self.declare_config_using_trait('GT_bbox_file_path')
-        #-------------------------------------------------------------------
-
-        # Add features to detections
-        #-------------------------------------------------------------------
-        self.add_config_trait("add_features_to_detections",
-                              "add_features_to_detections", 'True',
-                              'Should we add internally computed features to detections?')
-        self.declare_config_using_trait('add_features_to_detections')
-        #-------------------------------------------------------------------
+        self.__declare_config_traits()
 
         self._track_flag = False
 
@@ -221,6 +107,105 @@ class SRNNTracker(KwiverProcess):
         self.declare_output_port_using_trait('object_track_set', optional)
         self.declare_output_port_using_trait('detected_object_set', optional)
 
+    def __declare_config_traits(self):
+        def add_declare_config_trait(name, default, desc):
+            self.add_config_trait(name, name, default, desc)
+            self.declare_config_using_trait(name)
+
+        #GPU list
+        add_declare_config_trait('gpu_list', 'all',
+                                 gpu_list_desc(use_for='SRNN tracking'))
+
+        # siamese
+        #----------------------------------------------------------------------------------
+        add_declare_config_trait('siamese_model_path',
+                                 'siamese/snapshot_epoch_6.pt',
+                                 'Trained PyTorch model.')
+
+        add_declare_config_trait('siamese_model_input_size', '224',
+                                 'Model input image size')
+
+        add_declare_config_trait('siamese_batch_size', '128',
+                                 'siamese model processing batch size')
+        #----------------------------------------------------------------------------------
+
+        # detection select threshold
+        add_declare_config_trait('detection_select_threshold', '0.0',
+                                 'detection select threshold')
+        add_declare_config_trait('track_initialization_threshold', '0.0',
+                                 'track initialization threshold')
+
+        # SRNN
+        #----------------------------------------------------------------------------------
+        # target RNN full model
+        add_declare_config_trait("targetRNN_AIM_model_path",
+                                 'targetRNN_snapshot/App_LSTM_epoch_51.pt',
+                                 'Trained targetRNN PyTorch model.')
+
+        # target RNN AI model
+        add_declare_config_trait("targetRNN_AIM_V_model_path",
+                                 'targetRNN_AI/App_LSTM_epoch_51.pt',
+                                 'Trained targetRNN AIM with variable input size PyTorch model.')
+
+        # target RNN batch size
+        add_declare_config_trait("targetRNN_batch_size", '256',
+                                 'targetRNN model processing batch size')
+
+        # matching similarity threshold
+        add_declare_config_trait("similarity_threshold", '0.5',
+                                 'similarity threshold.')
+        #----------------------------------------------------------------------------------
+
+        # IOU
+        #----------------------------------------------------------------------------------
+        # IOU tracker flag
+        add_declare_config_trait("IOU_tracker_flag", 'True', 'IOU tracker flag.')
+
+        # IOU accept threshold
+        add_declare_config_trait("IOU_accept_threshold", '0.5',
+                                 'IOU accept threshold.')
+
+        # IOU reject threshold
+        add_declare_config_trait("IOU_reject_threshold", '0.1',
+                                 'IOU reject threshold.')
+        #----------------------------------------------------------------------------------
+
+        # search threshold
+        add_declare_config_trait("track_search_threshold", '0.1',
+                                 'track search threshold.')
+
+        # matching active track threshold
+        add_declare_config_trait("terminate_track_threshold", '15',
+                                 'terminate the tracking if the target has been lost for more than '
+                                 'terminate_track_threshold read-in frames.')
+
+        # matching active track threshold
+        add_declare_config_trait("sys_terminate_track_threshold", '50',
+                                 'terminate the tracking if the target has been lost for more than '
+                                 'terminate_track_threshold system (original) frames.')
+
+        # MOT gt detection
+        #-------------------------------------------------------------------
+        add_declare_config_trait("MOT_GTbbox_flag", 'False', 'MOT GT bbox flag')
+        #-------------------------------------------------------------------
+
+        # AFRL gt detection
+        #-------------------------------------------------------------------
+        add_declare_config_trait("AFRL_GTbbox_flag", 'False', 'AFRL GT bbox flag')
+        #-------------------------------------------------------------------
+
+        # GT bbox file
+        #-------------------------------------------------------------------
+        add_declare_config_trait("GT_bbox_file_path", '',
+                                 'ground truth detection file for testing')
+        #-------------------------------------------------------------------
+
+        # Add features to detections
+        #-------------------------------------------------------------------
+        add_declare_config_trait("add_features_to_detections", 'True',
+                                 'Should we add internally computed features to detections?')
+        #-------------------------------------------------------------------
+
     # ----------------------------------------------
     def _configure(self):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
@@ -233,14 +218,14 @@ class SRNNTracker(KwiverProcess):
         siamese_img_size = int(self.config_value('siamese_model_input_size'))
         siamese_batch_size = int(self.config_value('siamese_batch_size'))
         siamese_model_path = self.config_value('siamese_model_path')
-        self._app_feature_extractor = SiameseFeatureExtractor(siamese_model_path, 
+        self._app_feature_extractor = SiameseFeatureExtractor(siamese_model_path,
                 siamese_img_size, siamese_batch_size, self._gpu_list)
 
         # targetRNN_full model config
         targetRNN_batch_size = int(self.config_value('targetRNN_batch_size'))
         targetRNN_AIM_model_path = self.config_value('targetRNN_AIM_model_path')
         targetRNN_AIM_V_model_path = self.config_value('targetRNN_AIM_V_model_path')
-        self._srnn_matching = SRNNMatching(targetRNN_AIM_model_path, 
+        self._srnn_matching = SRNNMatching(targetRNN_AIM_model_path,
                 targetRNN_AIM_V_model_path, targetRNN_batch_size, self._gpu_list)
 
         self._gtbbox_flag = False
@@ -290,13 +275,21 @@ class SRNNTracker(KwiverProcess):
     # ----------------------------------------------
     def _step(self):
         try:
-            print('step {}'.format(self._step_id))
+            def timing(desc, f):
+                """Return f(), printing a message about how long it took"""
+                start = timer()
+                result = f()
+                end = timer()
+                print('%%%', desc, ' elapsed time: ', end - start, sep='')
+                return result
+
+            print('step', self._step_id)
 
             # grab image container from port using traits
             in_img_c = self.grab_input_using_trait('image')
             timestamp = self.grab_input_using_trait('timestamp')
             dos_ptr = self.grab_input_using_trait('detected_object_set')
-            print('timestamp = {!r}'.format(timestamp))
+            print('timestamp =', repr(timestamp))
 
             # Get current frame
             im = get_pil_image(in_img_c.image()).convert('RGB')
@@ -308,61 +301,57 @@ class SRNNTracker(KwiverProcess):
             else:
                 dos = dos_ptr.select(self._select_threshold)
                 bbox_num = dos.size()
-            #print('bbox list len is {}'.format(dos.size()))
+            #print('bbox list len is', dos.size())
 
             det_obj_set = DetectedObjectSet()
             if bbox_num == 0:
                 print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
             else:
                 # interaction features
-                grid_f_begin = timer()
-                grid_feature_list = self._grid(im.size, dos, self._gtbbox_flag)
-                grid_f_end = timer()
-                print('%%%grid feature elapsed time: {}'.format(grid_f_end - grid_f_begin))
+                grid_feature_list = timing('grid feature', lambda:
+                    self._grid(im.size, dos, self._gtbbox_flag))
 
                 # appearance features (format: pytorch tensor)
-                app_f_begin = timer()
-                pt_app_features = self._app_feature_extractor(im, dos, self._gtbbox_flag)
-                app_f_end = timer()
-                print('%%%app feature elapsed time: {}'.format(app_f_end - app_f_begin))
+                pt_app_features = timing('app feature', lambda:
+                    self._app_feature_extractor(im, dos, self._gtbbox_flag))
 
                 track_state_list = []
                 next_track_id = int(self._track_set.get_max_track_id()) + 1
 
                 # get new track state from new frame and detections
                 for idx, item in enumerate(dos):
-                    if self._gtbbox_flag is True:
+                    if self._gtbbox_flag:
                         bbox = item
                         fid = self._step_id
                         ts = self._step_id
-                        d_obj = DetectedObject(bbox=item , confidence=1.0)
+                        d_obj = DetectedObject(bbox=item, confidence=1.0)
                     else:
                         bbox = item.bounding_box()
                         fid = timestamp.get_frame()
                         ts = timestamp.get_time_usec()
                         d_obj = item
 
-                    # store app feature to detected_object
-                    app_f = new_descriptor(g_config.A_F_num)
-                    app_f[:] = pt_app_features[idx].numpy()
                     if self._add_features_to_detections:
+                        # store app feature to detected_object
+                        app_f = new_descriptor(g_config.A_F_num)
+                        app_f[:] = pt_app_features[idx].numpy()
                         d_obj.set_descriptor(app_f)
                     det_obj_set.add(d_obj)
 
                     # build track state for current bbox for matching
-                    cur_ts = track_state(frame_id=self._step_id, 
+                    cur_ts = track_state(frame_id=self._step_id,
                                         bbox_center=bbox.center(),
                                         interaction_feature=grid_feature_list[idx],
-                                        app_feature=pt_app_features[idx], 
+                                        app_feature=pt_app_features[idx],
                                         bbox=[int(bbox.min_x()), int(bbox.min_y()),
-                                            int(bbox.width()), int(bbox.height())],
-                                        detected_object=d_obj, 
+                                              int(bbox.width()), int(bbox.height())],
+                                        detected_object=d_obj,
                                         sys_frame_id=fid, sys_frame_time=ts)
                     track_state_list.append(cur_ts)
 
                 # if there are no tracks, generate new tracks from the track_state_list
                 if not self._track_flag:
-                    next_track_id = self._track_set.add_new_track_state_list(next_track_id, 
+                    next_track_id = self._track_set.add_new_track_state_list(next_track_id,
                                     track_state_list, self._track_initialization_threshold)
                     self._track_flag = True
                 else:
@@ -376,32 +365,25 @@ class SRNNTracker(KwiverProcess):
 
                     # call IOU tracker
                     if self._IOU_flag:
-                        IOU_begin = timer()
-                        self._track_set, track_state_list = self._iou_tracker(self._track_set,
-                                                                        track_state_list)
-                        IOU_end = timer()
-                        print('%%%IOU tracking elapsed time: {}'.format(IOU_end - IOU_begin))
+                        self._track_set, track_state_list = timing('IOU tracking', lambda: (
+                            self._iou_tracker(self._track_set, track_state_list)
+                        ))
 
-                    #print('***track_set len {}'.format(len(self._track_set)))
-                    #print('***track_state_list len {}'.format(len(track_state_list)))
+                    #print('***track_set len', len(self._track_set))
+                    #print('***track_state_list len', len(track_state_list))
 
                     # estimate similarity matrix
-                    ttu_begin = timer()
-                    similarity_mat, track_idx_list = self._srnn_matching(self._track_set, 
-                                                        track_state_list, self._ts_threshold)
-                    ttu_end = timer()
-                    print('%%%SRNN assication elapsed time: {}'.format(ttu_end - ttu_begin))
+                    similarity_mat, track_idx_list = timing('SRNN association', lambda: (
+                        self._srnn_matching(self._track_set, track_state_list, self._ts_threshold)
+                    ))
 
                     # reset update_flag
                     self._track_set.reset_updated_flag()
 
                     # Hungarian algorithm
-                    hung_begin = timer()
-                    row_idx_list, col_idx_list = sp.optimize.linear_sum_assignment(
-                                                                        similarity_mat)
-                    hung_end = timer()
-                    print('%%%Hungarian algorithm elapsed time: {}'.\
-                                            format(hung_end - hung_begin))
+                    row_idx_list, col_idx_list = timing('Hungarian algorithm', lambda: (
+                        sp.optimize.linear_sum_assignment(similarity_mat)
+                    ))
 
                     for i in range(len(row_idx_list)):
                         r = row_idx_list[i]
@@ -409,9 +391,9 @@ class SRNNTracker(KwiverProcess):
 
                         if -similarity_mat[r, c] < self._similarity_threshold:
                             # initialize a new track
-                            if track_state_list[c].detected_object.confidence() >= \
-                                    self._track_initialization_threshold:
-                                self._track_set.add_new_track_state(next_track_id, 
+                            if (track_state_list[c].detected_object.confidence()
+                                   >= self._track_initialization_threshold):
+                                self._track_set.add_new_track_state(next_track_id,
                                         track_state_list[c])
                                 next_track_id += 1
                         else:
@@ -421,14 +403,14 @@ class SRNNTracker(KwiverProcess):
                     # for the remaining unmatched track states, we initialize new tracks
                     if len(track_state_list) - len(col_idx_list) > 0:
                         for i in range(len(track_state_list)):
-                            if i not in col_idx_list and \
-                                 track_state_list[i].detected_object.confidence() >= \
-                                 self._track_initialization_threshold:
-                                self._track_set.add_new_track_state(next_track_id, \
+                            if (i not in col_idx_list
+                                and (track_state_list[i].detected_object.confidence()
+                                     >= self._track_initialization_threshold)):
+                                self._track_set.add_new_track_state(next_track_id,
                                         track_state_list[i])
                                 next_track_id += 1
 
-                print('total tracks {}'.format(len(self._track_set)))
+                print('total tracks', len(self._track_set))
 
             # push track set to output port
             ot_list = ts2ot_list(self._track_set)

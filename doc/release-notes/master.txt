@@ -42,6 +42,12 @@ Vital Tools
 
 Vital Types
 
+ * Added functions to camera_intrinsics to test if a point is in the valid
+   domain of the mapping function.  In the radial distortion case of
+   simple_camera_intrinsics, this computes a maximum radius for which
+   distortion is valid.  This feature is to help avoid invalid projections
+   of points into images due to the distortion being non-injective.
+
  * Added get_vector() member function to access the vector of all metadata on
    a frame in metadata_map.
 
@@ -50,6 +56,9 @@ Vital Types
 
  * Added iterator, const_iterator and iterable classes to support container-
    independent iteration.
+
+ * Refactored detected_object_set to convert some methods to external
+   functions since they were not properties of the class.
 
 Vital Bindings
 
@@ -102,6 +111,10 @@ Sprokit: Processes
    the offset is satisfied.  When a positive offset is specified,
    empty detected object sets are prepended to the stream until the
    offset is satisfied.
+
+ * Added method to comapre the config declared by the process against
+   the config supplied by the pipeline. Any differences can be written
+   to the log. This is useful for identifying misspelled config items.
 
 Tools
 

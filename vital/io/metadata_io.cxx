@@ -79,7 +79,7 @@ basename_from_metadata(metadata_sptr md,
   return basename;
 }
 
-
+// ----------------------------------------------------------------------------
 /// Read in a POS file, producing a metadata object
 metadata_sptr
 read_pos_file( path_t const& file_path )
@@ -166,8 +166,8 @@ read_pos_file( path_t const& file_path )
   return md;
 }
 
-
-/// Output the given \c metadata object to the specified POS file path
+// ----------------------------------------------------------------------------
+// Output the given \c metadata object to the specified POS file path
 void
 write_pos_file( metadata const& md,
                 path_t const& file_path )
@@ -224,11 +224,6 @@ write_pos_file( metadata const& md,
     auto const& raw_loc = geo_pt.location( SRID::lat_lon_WGS84 );
     // altitude is in feet in a POS file and needs to be converted to feet
     constexpr double feet2meters = 0.3048;
-    double altitude = 0.0;
-    if (auto& mdi = md.find(VITAL_META_SENSOR_ALTITUDE))
-    {
-      altitude = mdi.as_double() / feet2meters;
-    }
     ofile << raw_loc[1] << ", "
           << raw_loc[0] << ", "
           << raw_loc[2] / feet2meters << ", ";

@@ -532,7 +532,11 @@ the name of the cluster. A documentation section must follow the
 cluster name definition. Here is where you describe the purpose and
 function of the cluster in addition to any other important
 information about limitations or assumptions. Comments start
-with ``--`` and continue to the end of the line.
+with ``--`` and continue to the end of the line. These comments
+are included with the cluster definition and are displayed by the
+plugin explorer as part of the cluster documentation. The '#' style
+comments can still be used to annotate the file but are not included
+as part of the cluster documnetation.
 
 The body of the cluster definition is made up of three types of
 declarations that may appear multiple times and in any order. These
