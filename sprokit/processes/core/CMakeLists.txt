@@ -18,6 +18,7 @@ set( sources
   detected_object_output_process.cxx
   detected_object_input_process.cxx
   detected_object_filter_process.cxx
+  downsample_process.cxx
   draw_detected_object_set_process.cxx
   draw_tracks_process.cxx
   extract_descriptors_process.cxx
@@ -63,6 +64,7 @@ set( private_headers
   detected_object_input_process.h
   detected_object_filter_process.h
   detect_motion_process.h
+  downsample_process.h
   draw_detected_object_set_process.h
   draw_tracks_process.h
   extract_descriptors_process.h

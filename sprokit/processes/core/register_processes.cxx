@@ -45,6 +45,7 @@
 #include "detected_object_filter_process.h"
 #include "detected_object_input_process.h"
 #include "detected_object_output_process.h"
+#include "downsample_process.h"
 #include "draw_detected_object_set_process.h"
 #include "draw_tracks_process.h"
 #include "extract_descriptors_process.h"
@@ -113,6 +114,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< detected_object_input_process >();
   reg.register_process< detected_object_output_process >();
   reg.register_process< detected_object_filter_process >();
+  reg.register_process< downsample_process >();
   reg.register_process< video_input_process >();
   reg.register_process< draw_detected_object_set_process >();
   reg.register_process< split_image_process >();
