@@ -133,6 +133,13 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
   list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_CUDA AND WIN32 )
+  set( TV_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
+
+  list( APPEND VIAME_PYTHON_DEPS "torchvision" )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "torchvision==0.4.1+cpu -f ${TV_ARCHIVE}" )
+endif()
+
 if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS scriptconfig )
   list( APPEND VIAME_PYTHON_DEP_CMDS "scriptconfig" )

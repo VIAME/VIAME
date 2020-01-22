@@ -19,7 +19,7 @@ else()
   set( COMMON_PYTORCH_PROJECT_DEP fletch torch )
 endif()
 
-if( VIAME_ENABLE_PYTORCH )
+if( VIAME_ENABLE_PYTORCH AND ( NOT WIN32 OR VIAME_ENABLE_CUDA ) )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} torchvision )
 endif()
 
