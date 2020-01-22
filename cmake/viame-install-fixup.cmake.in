@@ -110,8 +110,8 @@ endif()
 
 if( EXISTS "${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules/kwiver_algo_gdal_plugin.so" )
   fixup_bundle(
-    "${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules/kwiver_algo_gdal_plugin.so"
     ""
+    "${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules/kwiver_algo_gdal_plugin.so"
     "${FIXUP_DIRS}"
     IGNORE_ITEM "libpython3.6m.so.1.0"
     )
@@ -119,8 +119,8 @@ endif()
 
 if( EXISTS "${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes/kwiver_processes_ocv.so" )
   fixup_bundle(
-    "${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes/kwiver_processes_ocv.so"
     ""
+    "${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes/kwiver_processes_ocv.so"
     "${FIXUP_DIRS}"
     IGNORE_ITEM "libpython3.6m.so.1.0"
     )
