@@ -65,25 +65,61 @@ if( "@VIAME_ENABLE_CUDNN@" )
   list( APPEND FIXUP_DIRS ${CUDNN_LIB_PATH} )
 endif()
 
+if( WIN32 )
+  set( PIPELINE_RUNNER_APP "kwiver.exe" )
+else()
+  set( PIPELINE_RUNNER_APP "kwiver" )
+endif()
+
+if( WIN32 )
+  set( DARKNET_APP "darknet.exe" )
+else()
+  set( DARKNET_APP "darknet" )
+endif()
+
+if( WIN32 )
+  set( SEAL_TK_APP "sealtk.exe" )
+else()
+  set( SEAL_TK_APP "sealtk" )
+endif()
+
 fixup_bundle(
-  "${CMAKE_INSTALL_PREFIX}/bin/@PIPELINE_RUNNER_APP@"
+  "${CMAKE_INSTALL_PREFIX}/bin/${PIPELINE_RUNNER_APP}"
   "${FIXUP_LIBS}"
   "${FIXUP_DIRS}"
   IGNORE_ITEM "libpython3.6m.so.1.0"
   )
 
-if( "@DARKNET_APP@" )
+if( EXISTS "${CMAKE_INSTALL_PREFIX}/bin/${DARKNET_APP}" )
   fixup_bundle(
-    "${CMAKE_INSTALL_PREFIX}/bin/@DARKNET_APP@"
+    "${CMAKE_INSTALL_PREFIX}/bin/${DARKNET_APP}"
     ""
     "${FIXUP_DIRS}"
     IGNORE_ITEM "libpython3.6m.so.1.0"
     )
 endif()
 
-if( "@SEAL_TK_APP@" )
+if( EXISTS "${CMAKE_INSTALL_PREFIX}/bin/${SEAL_TK_APP}" )
   fixup_bundle(
-    "${CMAKE_INSTALL_PREFIX}/bin/@SEAL_TK_APP@"
+    "${CMAKE_INSTALL_PREFIX}/bin/${SEAL_TK_APP}"
+    ""
+    "${FIXUP_DIRS}"
+    IGNORE_ITEM "libpython3.6m.so.1.0"
+    )
+endif()
+
+if( EXISTS "${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules/kwiver_algo_gdal_plugin.so" )
+  fixup_bundle(
+    "${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules/kwiver_algo_gdal_plugin.so"
+    ""
+    "${FIXUP_DIRS}"
+    IGNORE_ITEM "libpython3.6m.so.1.0"
+    )
+endif()
+
+if( EXISTS "${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes/kwiver_processes_ocv.so" )
+  fixup_bundle(
+    "${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes/kwiver_processes_ocv.so"
     ""
     "${FIXUP_DIRS}"
     IGNORE_ITEM "libpython3.6m.so.1.0"

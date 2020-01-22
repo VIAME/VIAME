@@ -568,32 +568,6 @@ else()
       install( FILES ${CUDNN_LIBRARY} DESTINATION lib )
     endif()
 
-    if( WIN32 )
-      set( PIPELINE_RUNNER_APP "kwiver.exe" )
-    else()
-      set( PIPELINE_RUNNER_APP "kwiver" )
-    endif()
-
-    if( VIAME_ENABLE_YOLO )
-      if( WIN32 )
-        set( DARKNET_APP "darknet.exe" )
-      else()
-        set( DARKNET_APP "darknet" )
-      endif()
-    else()
-      set( DARKNET_APP )
-    endif()
-
-    if( VIAME_ENABLE_SEAL_TK )
-      if( WIN32 )
-        set( SEAL_TK_APP "sealtk.exe" )
-      else()
-        set( SEAL_TK_APP "sealtk" )
-      endif()
-    else()
-      set( SEAL_TK_APP )
-    endif()
-
     configure_file(
       ${VIAME_CMAKE_DIR}/viame-install-fixup.cmake.in
       ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake
