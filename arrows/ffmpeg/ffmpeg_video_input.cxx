@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -286,7 +286,7 @@ public:
         return false;
     }
 
-    auto seek_timestamp = av_rescale_q( 0, AV_TIME_BASE_Q,
+    auto seek_timestamp = av_rescale_q( 0, av_get_time_base_q(),
                                         this->f_video_stream->time_base );
     // Now seek back to the start of the video
     auto seek_rslt = av_seek_frame( this->f_format_context,
@@ -455,7 +455,7 @@ public:
     bool advance_successful = false;
     do
     {
-      auto rescaled_frame_ts = av_rescale_q( frame_ts, AV_TIME_BASE_Q,
+      auto rescaled_frame_ts = av_rescale_q( frame_ts, av_get_time_base_q(),
                                           this->f_video_stream->time_base );
       auto seek_rslt = av_seek_frame( this->f_format_context,
                                       this->f_video_index, rescaled_frame_ts,
