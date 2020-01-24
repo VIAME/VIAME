@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1199,6 +1199,25 @@ class SPROKIT_PIPELINE_EXPORT process
     T grab_from_port_as(port_t const& port) const;
 
     /**
+     * \brief Grab a datum from a port as a certain type.
+     *
+     * This method grabs an input value directly from the port with no handling
+     * for static ports, iff the port is connected. This call will block until
+     * a datum is available.
+     *
+     * \sa process::has_input_port_edge
+     *
+     * \param port The port to get data from.
+     *
+     * \throws no_such_port_exception if the named port does not exist.
+     *
+     * \returns The datum from the port, or a default-constructed value if the
+     *          port is not connected.
+     */
+    template <typename T>
+    T try_grab_from_port_as(port_t const& port) const;
+
+    /**
      * \brief Grab an input as a specific type.
      *
      * This method returns a data value form a port or the configured
@@ -1455,6 +1474,16 @@ process
   return grab_datum_from_port(port)->get_datum<T>();
 }
 
+// ----------------------------------------------------------------------------
+template <typename T>
+T
+process
+::try_grab_from_port_as(port_t const& port) const
+{
+  return (has_input_port_edge(port)
+          ? grab_datum_from_port(port)->get_datum<T>()
+          : T{} );
+}
 
 // ----------------------------------------------------------------------------
 template <typename T>
