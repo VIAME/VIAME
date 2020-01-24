@@ -48,10 +48,13 @@ list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/include )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/plugins )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/sprokit )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/modules )
-add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/modules )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules )
-add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules )
+list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes )
 list( APPEND FIXUP_DIRS ${CMAKE_INSTALL_PREFIX}/lib/modules/plugin_explorer )
+
+add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/modules )
+add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules )
+add_to_fixup_libs( ${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes )
 
 if( "@VIAME_ENABLE_MATLAB@" )
   get_filename_component( MATLAB_LIB_PATH "@Matlab_MEX_LIBRARY@" DIRECTORY )
@@ -87,7 +90,6 @@ fixup_bundle(
   "${CMAKE_INSTALL_PREFIX}/bin/${PIPELINE_RUNNER_APP}"
   "${FIXUP_LIBS}"
   "${FIXUP_DIRS}"
-  IGNORE_ITEM "libpython3.6m.so.1.0"
   )
 
 if( EXISTS "${CMAKE_INSTALL_PREFIX}/bin/${DARKNET_APP}" )
@@ -95,7 +97,6 @@ if( EXISTS "${CMAKE_INSTALL_PREFIX}/bin/${DARKNET_APP}" )
     "${CMAKE_INSTALL_PREFIX}/bin/${DARKNET_APP}"
     ""
     "${FIXUP_DIRS}"
-    IGNORE_ITEM "libpython3.6m.so.1.0"
     )
 endif()
 
@@ -104,24 +105,5 @@ if( EXISTS "${CMAKE_INSTALL_PREFIX}/bin/${SEAL_TK_APP}" )
     "${CMAKE_INSTALL_PREFIX}/bin/${SEAL_TK_APP}"
     ""
     "${FIXUP_DIRS}"
-    IGNORE_ITEM "libpython3.6m.so.1.0"
-    )
-endif()
-
-if( EXISTS "${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules/kwiver_algo_gdal_plugin.so" )
-  fixup_bundle(
-    ""
-    "${CMAKE_INSTALL_PREFIX}/lib/kwiver/modules/kwiver_algo_gdal_plugin.so"
-    "${FIXUP_DIRS}"
-    IGNORE_ITEM "libpython3.6m.so.1.0"
-    )
-endif()
-
-if( EXISTS "${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes/kwiver_processes_ocv.so" )
-  fixup_bundle(
-    ""
-    "${CMAKE_INSTALL_PREFIX}/lib/kwiver/processes/kwiver_processes_ocv.so"
-    "${FIXUP_DIRS}"
-    IGNORE_ITEM "libpython3.6m.so.1.0"
     )
 endif()
