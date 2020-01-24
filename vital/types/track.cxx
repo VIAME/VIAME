@@ -133,10 +133,10 @@ bool
 track
 ::append( track_state_sptr&& state )
 {
-  if ( state && ! state->track_.expired() )
+  /*if ( state && ! state->track_.expired() )
   {
     throw std::logic_error( "track states may not be reparented" );
-  }
+  }*/
 
   if ( ! state ||
        ( ! this->history_.empty() &&
