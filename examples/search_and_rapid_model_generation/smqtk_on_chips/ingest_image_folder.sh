@@ -5,7 +5,7 @@
 #
 # This assumes the use of the LSH nearest-neighbor index as it builds ITQ model.
 #
-export VIAME_INSTALL=./../../..
+export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../../.."
 
 source ${VIAME_INSTALL}/setup_viame.sh 
 

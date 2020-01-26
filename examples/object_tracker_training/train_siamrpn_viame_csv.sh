@@ -2,7 +2,7 @@
 
 # Setup VIAME path (no need to run multiple times if you already ran it)
 
-export VIAME_INSTALL=./../..
+export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 # Setup input paths (note: these must be absolute paths currently)
 
