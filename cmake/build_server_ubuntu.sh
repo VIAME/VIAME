@@ -127,3 +127,13 @@ cp /usr/lib/x86_64-linux-gnu/libgfortran.so.4 install/lib || true
 cp /usr/lib/x86_64-linux-gnu/libquadmath.so.0 install/lib || true
 
 cp -P /usr/lib/x86_64-linux-gnu/libnccl.so* install/lib || true
+
+# HACK: Copy in ubuntu 18.04 specific libraries
+source /etc/lsb-release
+
+if [ "${DISTRIB_DESCRIPTION}" == "Ubuntu 18.04.3 LTS" ]; then
+    wget https://data.kitware.com/api/v1/item/5e2cdcbbaf2e2eed353a323e/download
+    mv download download.tar.gz
+    tar -xvf download.tar.gz
+    rm download.tar.gz
+fi
