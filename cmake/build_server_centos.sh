@@ -103,6 +103,7 @@ cp install/lib/libsvm.so.2 install/lib/libsvm.so
 
 # HACK: Copy in CUDA dlls missed by create_package
 # Should be removed when this issue is fixed
+cp -P /usr/lib64/libcuda.so.1 install/lib
 cp -P /usr/local/cuda/lib64/libcudart.so* install/lib
 cp -P /usr/local/cuda/lib64/libcusparse.so* install/lib
 cp -P /usr/local/cuda/lib64/libcufft.so* install/lib
