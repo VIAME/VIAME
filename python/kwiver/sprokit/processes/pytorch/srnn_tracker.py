@@ -308,12 +308,12 @@ class SRNNTracker(KwiverProcess):
                 print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
             else:
                 # interaction features
-                grid_feature_list = timing('grid feature', lambda:
-                                           self._grid(im.size, dos, self._gtbbox_flag))
+                grid_feature_list = timing('grid feature', lambda: (
+                    self._grid(im.size, dos, self._gtbbox_flag)))
 
                 # appearance features (format: pytorch tensor)
-                pt_app_features = timing('app feature', lambda:
-                                         self._app_feature_extractor(im, dos, self._gtbbox_flag))
+                pt_app_features = timing('app feature', lambda: (
+                    self._app_feature_extractor(im, dos, self._gtbbox_flag)))
 
                 track_state_list = []
                 next_track_id = int(self._track_set.get_max_track_id()) + 1
