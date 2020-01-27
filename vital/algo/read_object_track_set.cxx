@@ -97,7 +97,7 @@ read_object_track_set
   // try to open the file
   std::istream* file( new std::ifstream( filename ) );
 
-  if( ! file )
+  if( ! *file )
   {
     kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }

@@ -73,7 +73,7 @@ write_track_descriptor_set
   // try to open the file
   std::ostream* file( new std::ofstream( filename ) );
 
-  if( ! file )
+  if( ! *file )
   {
     throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }

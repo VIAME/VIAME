@@ -96,7 +96,7 @@ read_track_descriptor_set
 
   // try to open the file
   std::istream* file( new std::ifstream( filename ) );
-  if( ! file )
+  if( ! *file )
   {
     VITAL_THROW( file_not_found_exception, filename, "open failed" );
   }

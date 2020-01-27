@@ -89,7 +89,7 @@ detected_object_set_input
 
   // try to open the file
   std::istream* file( new std::ifstream( filename ) );
-  if ( ! file )
+  if ( ! *file )
   {
     throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
   }
