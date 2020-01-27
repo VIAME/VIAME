@@ -99,7 +99,7 @@ setup(
                 'resnet_augmentation=kwiver.sprokit.processes.pytorch.resnet_augmentation',
                 'resnet_descriptors=kwiver.sprokit.processes.pytorch.resnet_descriptors',
                 'srnn_tracker=kwiver.sprokit.processes.pytorch.srnn_tracker',
-		'simple_image_object_detector=kwiver.arrows.simple_image_object_detector',
+                'simple_object_detector=kwiver.vital.tests.algorithms.simple_image_object_detector'
                 ],
             'kwiver.cpp_search_paths': [
                 'sprokit_process=kwiver.vital.util.entrypoint:sprokit_process_path',

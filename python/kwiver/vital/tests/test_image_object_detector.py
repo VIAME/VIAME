@@ -79,20 +79,13 @@ class TestVitalImageObjectDetector(object):
     @nose.tools.raises(TypeError)
     def test_empty_detect(self):
         modules.load_known_modules()
-        detector = ImageObjectDetector.create("example_detector")
+        detector = ImageObjectDetector.create("SimpleImageObjectDetector")
         detector.detect()
-
-    # When a data type that is not an image container is passed it raises TypeError
-    @nose.tools.raises(TypeError)
-    def test_bad_detect(self):
-        modules.load_known_modules()
-        detector = ImageObjectDetector.create("example_detector")
-        detector.detect("Image")
 
     # For an image container it returns a detected object set of size 1
     def test_detect(self):
         modules.load_known_modules()
-        detector = ImageObjectDetector.create("example_detector")
+        detector = ImageObjectDetector.create("SimpleImageObjectDetector")
         image = Image()
         image_container = ImageContainer(image)
         detections = detector.detect(image_container)
@@ -103,12 +96,12 @@ class TestVitalImageObjectDetector(object):
     # Test configuration
     def test_config(self):
         modules.load_known_modules()
-        detector = ImageObjectDetector.create("example_detector")
+        detector = ImageObjectDetector.create("SimpleImageObjectDetector")
         # Verify that 6 config values are present in example_detector
         nose.tools.assert_equal(len(detector.get_configuration()), 6)
         test_cfg = _dummy_detector_cfg()
         # Verify that the detector has different configuration before setting to test
-        nose.tools.assert_not_equal(detector.check_configuration(test_cfg), False)
+        nose.tools.assert_equal(detector.check_configuration(test_cfg), False)
         detector.set_configuration(test_cfg)
         # Verify that the config value is being set properly
         nose.tools.assert_equal(detector.check_configuration(test_cfg), True)
@@ -117,7 +110,7 @@ class TestVitalImageObjectDetector(object):
     # Test nested configuration
     def test_nested_config(self):
         modules.load_known_modules()
-        detector = ImageObjectDetector.create("example_detector")
+        detector = ImageObjectDetector.create("SimpleImageObjectDetector")
         nested_cfg = config.empty_config()
         ImageObjectDetector.get_nested_algo_configuration( "detector",
                                                             nested_cfg,

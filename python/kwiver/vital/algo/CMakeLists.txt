@@ -22,10 +22,40 @@ kwiver_add_python_library(algorithm
   detected_object_set_input.h
   detected_object_set_output.h
   draw_detected_object_set.h
+  draw_tracks.h
+  estimate_canonical_transform.h
+  estimate_essential_matrix.h
+  estimate_fundamental_matrix.h
+  estimate_homography.h
+  estimate_pnp.h
+  estimate_similarity_transform.h
+  extract_descriptors.h
+  feature_descriptor_io.h
+  filter_features.h
+  filter_tracks.h
+  image_io.h
   image_object_detector.h
-  activity_detector.cxx
+  initialize_cameras_landmarks.h
+  initialize_object_tracks.h
+  integrate_depth_maps.h
+  interpolate_track.h
+  keyframe_selection.h
+  match_descriptor_sets.h
+  match_features.h
+  merge_images.h
+  optimize_cameras.h
+  read_object_track_set.h
+  read_track_descriptor_set.h
+  refine_detections.h
+  split_image.h
+  track_features.h
+  train_detector.h
+  transform_2d_io.h
+  triangulate_landmarks.h
+  uuid_factory.h
+  uv_unwrap_mesh.h
   algorithm.cxx
-  algorithm_module.cxx
+  activity_detector.cxx
   analyze_tracks.cxx
   associate_detections_to_tracks.cxx
   bundle_adjust.cxx
@@ -42,9 +72,41 @@ kwiver_add_python_library(algorithm
   detected_object_set_input.cxx
   detected_object_set_output.cxx
   draw_detected_object_set.cxx
+  draw_tracks.cxx
+  estimate_canonical_transform.cxx
+  estimate_essential_matrix.cxx
+  estimate_fundamental_matrix.cxx
+  estimate_homography.cxx
+  estimate_pnp.cxx
+  estimate_similarity_transform.cxx
+  extract_descriptors.cxx
+  feature_descriptor_io.cxx
+  filter_features.cxx
+  filter_tracks.cxx
+  image_io.cxx
   image_object_detector.cxx
-  trampoline/activity_detector_trampoline.txx
+  initialize_cameras_landmarks.cxx
+  initialize_object_tracks.cxx
+  integrate_depth_maps.cxx
+  interpolate_track.cxx
+  keyframe_selection.cxx
+  match_descriptor_sets.cxx
+  match_features.cxx
+  merge_images.cxx
+  optimize_cameras.cxx
+  read_object_track_set.cxx
+  read_track_descriptor_set.cxx
+  refine_detections.cxx
+  split_image.cxx
+  track_features.cxx
+  train_detector.cxx
+  transform_2d_io.cxx
+  triangulate_landmarks.cxx
+  uuid_factory.cxx
+  uv_unwrap_mesh.cxx
+  algorithm_module.cxx
   trampoline/algorithm_trampoline.txx
+  trampoline/activity_detector_trampoline.txx
   trampoline/analyze_tracks_trampoline.txx
   trampoline/bundle_adjust_trampoline.txx
   trampoline/close_loops_trampoline.txx
@@ -60,7 +122,38 @@ kwiver_add_python_library(algorithm
   trampoline/detected_object_set_input_trampoline.txx
   trampoline/detected_object_set_output_trampoline.txx
   trampoline/draw_detected_object_set_trampoline.txx
+  trampoline/draw_tracks_trampoline.txx
+  trampoline/estimate_canonical_transform_trampoline.txx
+  trampoline/estimate_essential_matrix_trampoline.txx
+  trampoline/estimate_fundamental_matrix_trampoline.txx
+  trampoline/estimate_homography_trampoline.txx
+  trampoline/estimate_pnp_trampoline.txx
+  trampoline/estimate_similarity_transform_trampoline.txx
+  trampoline/extract_descriptors_trampoline.txx
+  trampoline/feature_descriptor_io_trampoline.txx
+  trampoline/filter_features_trampoline.txx
+  trampoline/filter_tracks_trampoline.txx
+  trampoline/image_io_trampoline.txx
   trampoline/image_object_detector_trampoline.txx
+  trampoline/initialize_cameras_landmarks_trampoline.txx
+  trampoline/initialize_object_tracks_trampoline.txx
+  trampoline/integrate_depth_maps_trampoline.txx
+  trampoline/interpolate_track_trampoline.txx
+  trampoline/keyframe_selection_trampoline.txx
+  trampoline/match_descriptor_sets_trampoline.txx
+  trampoline/match_features_trampoline.txx
+  trampoline/merge_images_trampoline.txx
+  trampoline/optimize_cameras_trampoline.txx
+  trampoline/read_object_track_set_trampoline.txx
+  trampoline/read_track_descriptor_set_trampoline.txx
+  trampoline/refine_detections_trampoline.txx
+  trampoline/split_image_trampoline.txx
+  trampoline/track_features_trampoline.txx
+  trampoline/train_detector_trampoline.txx
+  trampoline/transform_2d_io_trampoline.txx
+  trampoline/triangulate_landmarks_trampoline.txx
+  trampoline/uuid_factory_trampoline.txx
+  trampoline/uv_unwrap_mesh_trampoline.txx
 )
 
 

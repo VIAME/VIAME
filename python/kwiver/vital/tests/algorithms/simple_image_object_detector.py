@@ -30,6 +30,7 @@ from __future__ import print_function
 
 from kwiver.vital.algo import ImageObjectDetector
 from kwiver.vital.types import DetectedObjectSet, DetectedObject, BoundingBox
+from kwiver.vital.types import ImageContainer
 
 class SimpleImageObjectDetector(ImageObjectDetector):
     """
@@ -110,9 +111,9 @@ class SimpleImageObjectDetector(ImageObjectDetector):
             return False
         if cfg.has_value("width") and not float(cfg.get_value( "width" ))==self.m_width:
             return False
-        if cfg.has_value("dx") and not float(cfg.get_value( "dx" ))==self.m_dx:
+        if cfg.has_value("dx") and not int(float(cfg.get_value( "dx" )))==self.m_dx:
             return False
-        if cfg.has_value("dy") and not float(cfg.get_value( "dy" ))==self.m_dy:
+        if cfg.has_value("dy") and not int(float(cfg.get_value( "dy" )))==self.m_dy:
             return False
         return True
 
@@ -126,7 +127,7 @@ class SimpleImageObjectDetector(ImageObjectDetector):
         return dot
 
 def __vital_algorithm_register__():
-    from vital.algo import algorithm_factory
+    from kwiver.vital.algo import algorithm_factory
     # Register Algorithm
     implementation_name  = "SimpleImageObjectDetector"
     if algorithm_factory.has_algorithm_impl_name(

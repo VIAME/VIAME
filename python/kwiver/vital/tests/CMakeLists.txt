@@ -43,6 +43,7 @@ set(__testable_modnames
   test_image
   test_image_container
   test_iqr_feedback
+  test_image_object_detector
   test_landmark
   test_landmark_map
   test_local_cartesian
@@ -70,15 +71,6 @@ set(__testable_modnames
   test_transform_2d
   test_uid
   )
-
-if(KWIVER_ENABLE_SPROKIT AND KWIVER_ENABLE_ARROWS)
-  # ImageObjectDetector test requires config bindings in sprokit
-  list(APPEND
-      __testable_modnames
-      test_detected_object_set_input
-      test_image_object_detector
-    )
-endif()
 
 # All python filenames_we in the vital.tests module
 set(__all_modnames
@@ -112,3 +104,5 @@ if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
   endforeach()
 
 endif()
+
+add_subdirectory(algorithms)
