@@ -27,40 +27,33 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/**
- * \file algorithm_implementation.cxx
- *
- * \brief python bindings for algorithm
- */
-
+#include <utility>
 
 #include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-
-#include <vital/algo/algorithm.h>
-#include <vital/algo/image_object_detector.h>
 #include <vital/bindings/python/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
-#include <vital/bindings/python/vital/algo/trampoline/detected_object_set_output_trampoline.txx>
-#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
-#include <vital/bindings/python/vital/algo/algorithm.h>
 #include <vital/bindings/python/vital/algo/detected_object_set_input.h>
-#include <vital/bindings/python/vital/algo/detected_object_set_output.h>
-#include <vital/bindings/python/vital/algo/image_object_detector.h>
-#include <sstream>
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(algorithm, m)
+using dosi = kwiver::vital::algo::detected_object_set_input;
+
+void detected_object_set_input(py::module &m)
 {
-  algorithm(m);
-  register_algorithm<kwiver::vital::algo::detected_object_set_input,
-	    algorithm_def_dosi_trampoline<>>(m, "detected_object_set_input");
-  detected_object_set_input(m);
-  register_algorithm<kwiver::vital::algo::detected_object_set_output,
-	    algorithm_def_doso_trampoline<>>(m, "detected_object_set_output");
-  detected_object_set_output(m);
-  register_algorithm<kwiver::vital::algo::image_object_detector,
-            algorithm_def_iod_trampoline<>>(m, "image_object_detector");
-  image_object_detector(m);
+  py::class_< dosi,
+              std::shared_ptr<dosi>,
+              kwiver::vital::algorithm_def<dosi>,
+              detected_object_set_input_trampoline<> >(m, "DetectedObjectSetInput")
+    .def(py::init())
+    .def_static("static_type_name", &dosi::static_type_name)
+    .def("read_set",
+	 [](dosi& self) {
+	   std::pair<kwiver::vital::detected_object_set_sptr, std::string> result;
+	   bool has_result = self.read_set(result.first, result.second);
+	   return has_result ? py::cast(result) : py::cast(nullptr);
+	 },
+	 R"(Return a pair of the next DetectedObjectSet and the corresponding
+file name, or None if the input is exhausted)")
+    .def("open", &dosi::open)
+    .def("close", &dosi::close)
+    ;
 }
