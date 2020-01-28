@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2020 by Kitware, Inc.
+ * Copyright 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,33 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include <utility>
 
 #include <pybind11/pybind11.h>
-#include <python/kwiver/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
-#include <python/kwiver/vital/algo/detected_object_set_input.h>
+#include <vital/bindings/python/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
+#include <vital/bindings/python/vital/algo/detected_object_set_input.h>
 
 namespace py = pybind11;
-namespace kwiver {
-namespace vital  {
-namespace python {
+
+using dosi = kwiver::vital::algo::detected_object_set_input;
+
 void detected_object_set_input(py::module &m)
 {
-  py::class_< kwiver::vital::algo::detected_object_set_input,
-              std::shared_ptr<kwiver::vital::algo::detected_object_set_input>,
-              kwiver::vital::algorithm_def<kwiver::vital::algo::detected_object_set_input>,
-              detected_object_set_input_trampoline<> >( m, "DetectedObjectSetInput" )
+  py::class_< dosi,
+              std::shared_ptr<dosi>,
+              kwiver::vital::algorithm_def<dosi>,
+              detected_object_set_input_trampoline<> >(m, "DetectedObjectSetInput")
     .def(py::init())
-    .def_static("static_type_name",
-                &kwiver::vital::algo::detected_object_set_input::static_type_name)
-    .def("open",
-         &kwiver::vital::algo::detected_object_set_input::open)
-    .def("close",
-         &kwiver::vital::algo::detected_object_set_input::close)
+    .def_static("static_type_name", &dosi::static_type_name)
     .def("read_set",
-         &kwiver::vital::algo::detected_object_set_input::read_set);
-}
-}
-}
+	 [](dosi& self) {
+	   std::pair<kwiver::vital::detected_object_set_sptr, std::string> result;
+	   bool has_result = self.read_set(result.first, result.second);
+	   return has_result ? py::cast(result) : py::cast(nullptr);
+	 },
+	 R"(Return a pair of the next DetectedObjectSet and the corresponding
+file name, or None if the input is exhausted)")
+    .def("open", &dosi::open)
+    .def("close", &dosi::close)
+    ;
 }
