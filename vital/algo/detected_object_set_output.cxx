@@ -76,7 +76,7 @@ detected_object_set_output
   std::unique_ptr< std::ostream > file( new std::ofstream( filename ) );
   if ( ! *file )
   {
-    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    VITAL_THROW( file_not_found_exception, filename, "open failed" );
   }
 
   m_stream = file.release();

@@ -77,7 +77,7 @@ write_object_track_set
 
   if( ! *file )
   {
-    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    VITAL_THROW( file_not_found_exception, filename, "open failed" );
   }
 
   m_stream = file.release();

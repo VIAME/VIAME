@@ -88,12 +88,12 @@ read_object_track_set
   // Make sure that the given file path exists and is a file.
   if( ! kwiversys::SystemTools::FileExists( filename ) )
   {
-    throw path_not_exists( filename );
+    VITAL_THROW( path_not_exists, filename );
   }
 
   if( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw path_not_a_file( filename );
+    VITAL_THROW( path_not_a_file, filename );
   }
 
   // try to open the file
@@ -101,7 +101,7 @@ read_object_track_set
 
   if( ! *file )
   {
-    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    VITAL_THROW( file_not_found_exception, filename, "open failed" );
   }
 
   m_stream = file.release();

@@ -93,7 +93,7 @@ detected_object_set_input
   std::unique_ptr< std::istream > file( new std::ifstream( filename ) );
   if ( ! *file )
   {
-    throw kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    VITAL_THROW( file_not_found_exception, filename, "open failed" );
   }
 
   m_stream = file.release();
