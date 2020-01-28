@@ -35,29 +35,6 @@ namespace py = pybind11;
 
 using doso = kwiver::vital::algo::detected_object_set_output;
 
-class file_wrapper
-{
-  doso* obj;
-  std::ostream& stream()
-  {
-    // Use a subclass to expose and access a protected member.
-    // See also https://github.com/pybind/pybind11/issues/991#issuecomment-321266887
-    struct doso_pub : doso { using doso::stream; };
-    return (obj->*&doso_pub::stream)();
-  }
-public:
-  file_wrapper(doso& obj)
-    : obj(&obj) {}
-  void write(std::string const& s)
-  {
-    stream().write(s.data(), s.size());
-  }
-  void flush()
-  {
-    stream().flush();
-  }
-};
-
 void detected_object_set_output(py::module &m)
 {
   py::class_< doso,
@@ -70,10 +47,5 @@ void detected_object_set_output(py::module &m)
     .def("complete", &doso::complete)
     .def("open", &doso::open)
     .def("close", &doso::close)
-    .def_property_readonly("_stream", [](doso& self) { return new file_wrapper(self); });
-
-  py::class_<file_wrapper>(m, "DetectedObjectSetOutputFileWrapper")
-    .def("write", &file_wrapper::write)
-    .def("flush", &file_wrapper::flush)
     ;
 }
