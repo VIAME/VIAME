@@ -40,6 +40,7 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
         self.detections = []
         self.images = []
         self.categories = {}
+        self.file = None
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetOutput, self).get_configuration()
@@ -51,6 +52,13 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
 
     def check_configuration(self, cfg):
         return True
+
+    def open(self, file_name):
+        self.file = open(file_name, 'w')
+
+    def close(self):
+        if self.file:
+            self.file.close()
 
     def write_set(self, detected_object_set, file_name):
         for det in detected_object_set:
@@ -87,8 +95,8 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
             categories=[dict(id=i, name=c) for c, i in self.categories.items()],
             images=[dict(id=i, file_name=im)
                     for i, im in enumerate(self.images)],
-        ), self._stream)
-        self._stream.flush()
+        ), self.file)
+        self.file.flush()
 
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
