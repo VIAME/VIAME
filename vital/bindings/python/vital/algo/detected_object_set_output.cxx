@@ -68,6 +68,8 @@ void detected_object_set_output(py::module &m)
     .def_static("static_type_name", &doso::static_type_name)
     .def("write_set", &doso::write_set)
     .def("complete", &doso::complete)
+    .def("open", &doso::open)
+    .def("close", &doso::close)
     .def_property_readonly("_stream", [](doso& self) { return new file_wrapper(self); });
 
   py::class_<file_wrapper>(m, "DetectedObjectSetOutputFileWrapper")
