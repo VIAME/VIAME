@@ -110,8 +110,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
-[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5ddc5ea9af2e2eed352e8816/download) <br>
-[Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5ddc5e8daf2e2eed352e87f4/download) <br>
+[Arctic Seals Models Add-On, Windows](https://data.kitware.com/api/v1/item/5e30b8ffaf2e2eed3545bff6/download) <br>
+[Arctic Seals Models Add-On, Linux](https://data.kitware.com/api/v1/item/5e30b283af2e2eed3545a888/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, Windows](https://data.kitware.com/api/v1/item/5dfb08a2af2e2eed359b822b/download) <br>
 [HabCam Models (Scallop, Skate, Flatfish) Add-On, Linux](https://data.kitware.com/api/v1/item/5dfb054faf2e2eed359b6f17/download) <br>
 [Low Memory GPU (For 4+ Gb Cards) Add-On, All OS](https://data.kitware.com/api/v1/item/5d7edbadd35580e6dc170c78/download) <br>
@@ -120,9 +120,12 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [MOUSS Sample Project, All Linux](https://data.kitware.com/api/v1/item/5d5d84d185f25b11ff427b4e/download)
 
 **Custom Applications:** <br>
-[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5e0f7f73af2e2eed35cd8fd3/download) <br>
-[Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5e0f7932af2e2eed35cd870b/download) <br>
-[Seal Multi-View GUI, Linux, GPU Enabled](https://data.kitware.com/api/v1/item/5e2f2451af2e2eed353f017b/download)
+[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled, Mirror 1](https://data.kitware.com/api/v1/item/5e0f7f73af2e2eed35cd8fd3/download) <br>
+[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled, Mirror 2](https://drive.google.com/open?id=1N48mvxnUuk0aHp8Bc03g3od8bgpKGzWA) <br>
+[Seal Multi-View GUI, Windows 7/8/10, CPU Only, Mirror 1](https://data.kitware.com/api/v1/item/5e0f7932af2e2eed35cd870b/download) <br>
+[Seal Multi-View GUI, Windows 7/8/10, CPU Only, Mirror 2](https://drive.google.com/open?id=1CRBanDefdOdDK87usP0XdPIjUvZHESdG) <br>
+[Seal Multi-View GUI, Linux, GPU Enabled, Mirror 1](https://data.kitware.com/api/v1/item/5e2f2451af2e2eed353f017b/download) <br>
+[Seal Multi-View GUI, Linux, GPU Enabled, Mirror 2](https://drive.google.com/open?id=1L8cfeLl9hVu5aZnzOa1j6A7nSriPzUS8)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom Applications
