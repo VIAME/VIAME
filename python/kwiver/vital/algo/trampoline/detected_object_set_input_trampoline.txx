@@ -99,6 +99,15 @@ class detected_object_set_input_trampoline :
 	filename
       );
     }
+
+    void close() override
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        void,
+        dosi,
+        close,
+      );
+    }
 };
 
 #endif
