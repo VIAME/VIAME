@@ -83,6 +83,25 @@ class detected_object_set_output_trampoline :
       );
     }
 
+    void open(std::string const& filename) override
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        void,
+        kwiver::vital::algo::detected_object_set_output,
+        open,
+	filename
+      );
+    }
+
+    void close() override
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        void,
+        kwiver::vital::algo::detected_object_set_output,
+        close,
+      );
+    }
+
     void complete() override
     {
       VITAL_PYBIND11_OVERLOAD(
