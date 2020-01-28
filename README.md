@@ -55,8 +55,8 @@ but select entries are also listed below broken down by individual functionality
 [Example Plugin Templates](plugins/templates) <>
 [Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code)
 
-Pre-Built Binaries
-------------------
+Installations
+-------------
 
 For a full installation guide see the quick-start slide deck above, but in summary, extract the binaries
 and place them in a directory of your choosing, for example C:\Program Files\VIAME on Windows or /opt/noaa/viame
