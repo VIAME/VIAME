@@ -222,6 +222,14 @@ track
   return true;
 }
 
+/// Remove all track states
+void
+track
+::clear()
+{
+  this->history_.clear();
+}
+
 /// Find the track state iterator matching \a frame
 track::history_const_itr
 track
