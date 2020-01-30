@@ -97,12 +97,12 @@ connect from downsampler.output_2
 connect from downsampler.timestamp
         to   out_adapt.timestamp
 
-connect from thermal_detector_output.detected_object_set
-        to   out_adapt.detected_object_set2
-connect from downsampler.output_4
-        to   out_adapt.file_name2
-connect from downsampler.timestamp
-        to   out_adapt.timestamp2
+#connect from thermal_detector_output.detected_object_set
+#        to   out_adapt.detected_object_set2
+#connect from downsampler.output_4
+#        to   out_adapt.file_name2
+#connect from downsampler.timestamp
+#        to   out_adapt.timestamp2
 
 # ================================== CSV WRITERS ===================================
 
