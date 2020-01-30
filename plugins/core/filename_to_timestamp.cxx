@@ -122,7 +122,7 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
       {
         if( parts[i].size() == 8 &&
             parts[i][0] == '2' && // Invalid in year 3000, lol, I'll be dead. Maybe O_o.
-            parts[i+1].size() > 10 && parts[i+1][6] == '.' )
+            parts[i+1].size() >= 10 && parts[i+1][6] == '.' )
         {
           tm t;
 
@@ -150,7 +150,8 @@ convert_to_timestamp( const std::string& filename, const bool auto_discover )
         }
       }
     }
-    else
+
+    if( !utc_time_usec )
     {
       parts = split( name_only, '.' );
 
