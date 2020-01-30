@@ -218,6 +218,7 @@ track
     return false;
   }
 
+  (*pos)->track_.reset();
   this->history_.erase(pos);
   return true;
 }
@@ -227,6 +228,10 @@ void
 track
 ::clear()
 {
+  for (auto& s : this->history_)
+  {
+    s->track_.reset();
+  }
   this->history_.clear();
 }
 
