@@ -124,8 +124,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [Seal Multi-View GUI, Windows 7/8/10, GPU Enabled, Mirror 2](https://drive.google.com/open?id=1N48mvxnUuk0aHp8Bc03g3od8bgpKGzWA) <br>
 [Seal Multi-View GUI, Windows 7/8/10, CPU Only, Mirror 1](https://data.kitware.com/api/v1/item/5e0f7932af2e2eed35cd870b/download) <br>
 [Seal Multi-View GUI, Windows 7/8/10, CPU Only, Mirror 2](https://drive.google.com/open?id=1CRBanDefdOdDK87usP0XdPIjUvZHESdG) <br>
-[Seal Multi-View GUI, Linux, GPU Enabled, Mirror 1](https://data.kitware.com/api/v1/item/5e2f2451af2e2eed353f017b/download) <br>
-[Seal Multi-View GUI, Linux, GPU Enabled, Mirror 2](https://drive.google.com/open?id=1L8cfeLl9hVu5aZnzOa1j6A7nSriPzUS8)
+[Seal Multi-View GUI, Linux, GPU Enabled, Mirror 1](https://data.kitware.com/api/v1/item/5e345558af2e2eed3554d25b/download) <br>
+[Seal Multi-View GUI, Linux, GPU Enabled, Mirror 2](https://drive.google.com/open?id=1759fzeAzcOi3BG6vBGzp2mr4zmg0GAo3)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom Applications
