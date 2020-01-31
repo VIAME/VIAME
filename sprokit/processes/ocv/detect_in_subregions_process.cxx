@@ -156,8 +156,8 @@ public:
 
       if( m_method == FIXED_SIZE )
       {
-        int cx = ( x + w ) / 2;
-        int cy = ( y + h ) / 2;
+        int cx = x + w / 2;
+        int cy = y + h / 2;
 
         bool intersect_found = false;
 
