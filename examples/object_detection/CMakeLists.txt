@@ -6,18 +6,16 @@ set( EXAMPLE_INSTALL_FILES
      input_image_list_habcam.txt
      input_image_list_small_set.txt )
 
-if( VIAME_DOWNLOAD_MODELS AND VIAME_ENABLE_PYTORCH-MMDET )
-  if( WIN32 )
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_default.bat
-         run_generic.bat )
-  else()
-    set( EXAMPLE_INSTALL_FILES
-         ${EXAMPLE_INSTALL_FILES}
-         run_default.sh
-         run_generic.sh )
-  endif()
+if( WIN32 )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_default.bat
+       run_generic.bat )
+else()
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_default.sh
+       run_generic.sh )
 endif()
 
 if( VIAME_DOWNLOAD_MODELS-HABCAM AND VIAME_ENABLE_YOLO )
