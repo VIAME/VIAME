@@ -1,4 +1,4 @@
-v0.10.4 - 1/17/2020
+v0.10.5 - 2/05/2020
 ===================
 
 
@@ -6,6 +6,13 @@ v0.10.4 - 1/17/2020
 
 
 -Added new default motion detection pipelines
+
+
+v0.10.4 - 1/31/2020
+===================
+
+
+-Fix issue in centos binaries backing X11 library
 
 
 v0.10.3 - 1/13/2020
