@@ -173,7 +173,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
       ${LIBRARY_PIP_INSTALL_CMD} )
 
   if( "${LIB}" STREQUAL "mmdetection" )
-    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} mmcv )
+    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} mmcv torchvision )
   elseif( "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS fletch pyyaml )
   else()
