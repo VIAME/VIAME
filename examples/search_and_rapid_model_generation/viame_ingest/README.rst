@@ -29,13 +29,14 @@ Initial Setup
 |
 First, you should decide where you want to run this example from. Doing it in the example folder
 tree is fine as a first pass, but if it is something you plan on running a few times or on multiple
-datasets, you probably want to select a different place in your user space to store databases and
-model files. This can be accomplished by making a new folder in your directory and either copying
-the scripts (.sh, .bat) from this example into this new directory, or via copying the scripts
-from [viame-install]/configs/prj-linux (or prj-windows) to this new directory which features
-these example scripts alongside others. After copying these scripts to the directory you want
-to run them from, make sure the first line in the top, "VIAME_INSTALL", points to the location
-of your VIAME installation (as shown below). If using windows, all '.sh' scripts in the below will
+datasets, you probably want to select a different place in your user space to store generated
+databases and model files. This can be accomplished by making a new folder in your directory
+and either copying the scripts (.sh, .bat) from this example into this new directory, or via
+copying the project files located in [VIAME-INSTALL]/configs/prj-linux (or prj-windows) to this
+new directory. After copying these scripts to the directory you want to run them from, you may need
+to make sure the first line in the top, "VIAME_INSTALL", points to the location
+of your VIAME installation (as shown below) if your installation is in a non-default directory, or
+you copied the example files elsewhere. If using windows, all '.sh' scripts in the below will
 be '.bat' scripts that you should be able to just double-click to run.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_0_new_project.png
@@ -46,15 +47,16 @@ be '.bat' scripts that you should be able to just double-click to run.
 Ingest Image or Video Data
 ==========================
 
-First, create_index.[source].sh should be called to initialize a new database, and populate it
-with descriptors generated around generic objects to be queried upon. Here, [source] can either
-be 'video_folder' or 'input_list', depending on if your input is an image list of a folder of
-videos. If you want to run it on a custom selection of images, make a file list of images
-called 'input_list.txt' containing your images, one per line. For example, if you have a folder
-containing png images, run 'ls [folder]/*.png > input_list.txt' on the command line to make this
-list. Alternatively, if ingesting videos, make a directory called 'videos' which contains all of
-your .mpg, .avi, .etc videos. If you look in the ingest scripts, you can see links to these sources
-if you wish to change them. Next run the ingest script, as below.
+First, create_index.[type].sh should be called to initialize a new database, and populate it
+with descriptors generated around generic objects to be queried upon. Here, [type] can either
+be 'around_detections', 'detection_and_tracking', or 'full_frame_only', depending on if you want
+to run matching on spatio-temporal object tracks, object detections, or full frames respectively
+(see VIAME quick start guide). If you want to run it on a custom selection of images, make a file
+list of images called 'input_list.txt' containing your images, one per line. For example, if you
+have a folder containing png images, run 'ls [folder]/*.png > input_list.txt' on the command line
+to make this list. Alternatively, if ingesting videos, make a directory called 'videos' which contains
+all of your .mpg, .avi, .etc videos. If you look in the ingest scripts, you can see links to these
+sources if you wish to change them. Next run the ingest script, as below.
 
 .. image:: http://www.viametoolkit.org/wp-content/uploads/2018/07/iqr_1_ingest.png
    :scale: 30
