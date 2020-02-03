@@ -38,18 +38,18 @@ but select entries are also listed below broken down by individual functionality
 
 [Build and Install Guide](examples/building_and_installing_viame) <> 
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
-[Core Class and Pipelining Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <> 
 [Object Detectors](examples/object_detection) <>
-[Object Trackers](examples/object_tracking) <br />
-[GUIs for Visualization and Annotation](examples/annotation_and_visualization) <> 
+[Object Trackers](examples/object_tracking) <>
+[GUIs for Visualization and Annotation](examples/annotation_and_visualization) <br />
 [Detector Training API](examples/object_detector_training) <>
-[Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <br />
-[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <>
+[Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
+[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <br />
 [Detection File Formats and Conversions](examples/detection_file_conversions) <>
-[KWIVER Overview](https://github.com/Kitware/kwiver) <br />
-[Image Enhancement](examples/image_enhancement) <>
+[KWIVER Overview](https://github.com/Kitware/kwiver) <>
+[Image Enhancement](examples/image_enhancement) <br />
 [Image Registration and Mosaicing](examples/image_registration) <>
-[Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <br />
+[Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <>
+[Core Class and Pipelining Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <br />
 [How to Integrate Your Own Plugin](examples/hello_world_pipeline) <>
 [Example Plugin Templates](plugins/templates) <>
 [Embedding Detectors in C++ Code](examples/using_detectors_in_cxx_code)
