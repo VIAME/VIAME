@@ -8,7 +8,8 @@ now contains many common libraries and compiles several other popular repositori
 build process, and is therefore also useful as a generic computer vision library. The core infrastructure
 connecting different system components is currently the KWIVER library, which can connect C/C++, python,
 and matlab nodes together in a graph-like pipeline architecture. Alongside the pipelined image processing
-system are a number of standalone tools for accomplishing the above.
+system are a number of standalone tools for accomplishing the above. Both a desktop and web application
+version exists to cater to different user's needs.
 
 Example Capabilities
 --------------------
