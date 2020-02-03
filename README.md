@@ -38,7 +38,7 @@ but select entries are also listed below broken down by individual functionality
 
 [Build and Install Guide](examples/building_and_installing_viame) <> 
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
-[GUIs for Annotation](examples/annotation_and_visualization) <>
+[GUIs for Annotation and Visualization](examples/annotation_and_visualization) <>
 [Object Detectors](examples/object_detection) <>
 [Object Trackers](examples/object_tracking) <br />
 [Detector Training API](examples/object_detector_training) <>
