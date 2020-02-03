@@ -218,8 +218,21 @@ track
     return false;
   }
 
+  (*pos)->track_.reset();
   this->history_.erase(pos);
   return true;
+}
+
+/// Remove all track states
+void
+track
+::clear()
+{
+  for (auto& s : this->history_)
+  {
+    s->track_.reset();
+  }
+  this->history_.clear();
 }
 
 /// Find the track state iterator matching \a frame
