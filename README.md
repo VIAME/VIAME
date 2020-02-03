@@ -15,15 +15,15 @@ Example Capabilities
 <p align="left">
 <br>
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2019/11/viame-gh-splash-04.png" alt="Search Example" width="297" height="180">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/tracks.png" alt="Tracking Example" width="232" height="180">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02.png" alt="Detection Example" width="297" height="180">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2019/11/viame-gh-splash-04.png" alt="Search Example" width="300" height="182">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/tracks.png" alt="Tracking Example" width="235" height="182">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02.png" alt="Detection Example" width="300" height="182">
 </nobr>
 </p>
 <p align="left">
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-03.png" alt="Measurement Example" width="408" height="146">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-01.png" alt="Query Example" width="421" height="146">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-03.png" alt="Measurement Example" width="418" height="150">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-01.png" alt="Query Example" width="431" height="150">
 </nobr>
 </p>
 
@@ -38,17 +38,17 @@ but select entries are also listed below broken down by individual functionality
 
 [Build and Install Guide](examples/building_and_installing_viame) <> 
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
-[GUIs for Annotation](examples/annotation_and_visualization) <>
+[GUIs for Annotation and Visualization](examples/annotation_and_visualization) <>
 [Object Detectors](examples/object_detection) <>
 [Object Trackers](examples/object_tracking) <br />
 [Detector Training API](examples/object_detector_training) <>
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <br />
 [Detection File Formats and Conversions](examples/detection_file_conversions) <>
-[KWIVER Overview](https://github.com/Kitware/kwiver) <>
-[Calibration and Image Enhancement](examples/image_enhancement) <br />
-[Image Registration and Mosaicing](examples/image_registration) <>
+[Image Enhancement](examples/image_enhancement) <>
+[Image Registration and Mosaicing](examples/image_registration)  <br />
 [Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <>
+[KWIVER Overview](https://github.com/Kitware/kwiver) <>
 [Core Class and Pipelining Info](http://kwiver.readthedocs.io/en/latest/architecture.html) <br />
 [How to Integrate Your Own Plugin](examples/hello_world_pipeline) <>
 [Example Plugin Templates](plugins/templates) <>
