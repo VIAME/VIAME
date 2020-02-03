@@ -15,9 +15,9 @@ Example Capabilities
 <p align="left">
 <br>
 <nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2019/11/viame-gh-splash-04.png" alt="Search Example" width="300" height="182">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/tracks.png" alt="Tracking Example" width="235" height="182">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02.png" alt="Detection Example" width="300" height="182">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2019/11/viame-gh-splash-04.png" alt="Search Example" width="301" height="182">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/tracks.png" alt="Tracking Example" width="236" height="182">
+<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02.png" alt="Detection Example" width="301" height="182">
 </nobr>
 </p>
 <p align="left">
@@ -45,7 +45,7 @@ but select entries are also listed below broken down by individual functionality
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
 [Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <br />
 [Detection File Formats and Conversions](examples/detection_file_conversions) <>
-[Image Enhancement](examples/image_enhancement) <>
+[Calibration and Image Enhancement](examples/image_enhancement) <>
 [Image Registration and Mosaicing](examples/image_registration)  <br />
 [Stereo Measurement and Depth Maps](examples/measurement_using_stereo) <>
 [KWIVER Overview](https://github.com/Kitware/kwiver) <>
