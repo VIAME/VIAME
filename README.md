@@ -9,7 +9,7 @@ build process, and is therefore also useful as a generic computer vision library
 connecting different system components is currently the KWIVER library, which can connect C/C++, python,
 and matlab nodes together in a graph-like pipeline architecture. Alongside the pipelined image processing
 system are a number of standalone tools for accomplishing the above. Both a desktop and web application
-version exists to cater to different user's needs.
+version exist for deployments in different types of environments.
 
 Example Capabilities
 --------------------
