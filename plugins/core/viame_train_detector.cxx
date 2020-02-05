@@ -1089,18 +1089,21 @@ main( int argc, char* argv[] )
     }
   }
 
-  for( auto det_set : train_gt )
+  if( class_count.empty() )
   {
-    for( auto det : *det_set )
+    for( auto det_set : train_gt )
     {
-      if( det->type() )
+      for( auto det : *det_set )
       {
-        std::string gt_class;
-        det->type()->get_most_likely( gt_class );
-
-        if( classes->has_class_name( gt_class ) )
+        if( det->type() )
         {
-          class_count[ classes->get_class_name( gt_class ) ]++;
+          std::string gt_class;
+          det->type()->get_most_likely( gt_class );
+
+          if( classes->has_class_name( gt_class ) )
+          {
+            class_count[ classes->get_class_name( gt_class ) ]++;
+          }
         }
       }
     }
