@@ -77,8 +77,14 @@ public:
   void start_reconfigure_processing( std::string const& data ) override;
   void stop_reconfigure_processing() override;
 
+  void configure( kwiver::vital::config_block_sptr const conf ) override;
+  kwiver::vital::config_block_sptr get_configuration() const override;
+
 private:
+  void log_message( const std::string& data );
+
   kwiver::vital::logger_handle_t m_logger;
+  kwiver::vital::kwiver_logger::log_level_t m_log_level;
 
 }; // end class logger_process_instrumentation
 
