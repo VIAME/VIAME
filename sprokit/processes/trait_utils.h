@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -423,15 +423,7 @@ grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
  \endcode
  *
- * Optional ports can be handled as follows:
- *
-\code
-  // See if optional input port has been connected.
-  if ( has_input_port_edge_using_trait( timestamp ) )
-  {
-    frame_time = grab_input_using_trait( timestamp );
-  }
-\endcode
+ * Optional ports can be handled using #try_grab_from_port_using_trait.
  *
  * \sa sprokit::process::grab_from_port_as()
  *
@@ -442,6 +434,24 @@ grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 #define grab_from_port_using_trait(PN)                                  \
 grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 
+
+/**
+ * \brief Get input from port using port trait name.
+ *
+ * This method grabs an input value directly from the port specified by the
+ * port trait with \b no handling for static ports, iff that port is connected.
+ * This call will block until a datum is available.
+ *
+ * \sa grab_from_port_using_trait, sprokit::process::grab_from_port_as()
+ *
+ * \param PN Port trait name.
+ *
+ * \return Data value from port, or a default-constructed value of the port's
+ *         type if the port is not connected.
+ */
+#define try_grab_from_port_using_trait(PN) \
+  try_grab_from_port_as< PN ## _port_trait::type >( \
+    PN ## _port_trait::port_name )
 
 
 /**

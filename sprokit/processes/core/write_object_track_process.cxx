@@ -184,14 +184,8 @@ void write_object_track_process
   }
 
   auto const& input = grab_from_port_using_trait( object_track_set );
-  auto const& ts = grab_from_port_using_trait( timestamp );
-
-  // Image name is optional
-  auto file_name = std::string{};
-  if ( has_input_port_edge_using_trait( image_file_name ) )
-  {
-    file_name = grab_from_port_using_trait( image_file_name );
-  }
+  auto const& ts = try_grab_from_port_using_trait( timestamp );
+  auto const& file_name = try_grab_from_port_using_trait( image_file_name );
 
   if ( d->m_frame_list_writer )
   {
@@ -217,7 +211,7 @@ void write_object_track_process
 
   declare_input_port_using_trait( image_file_name, optional );
   declare_input_port_using_trait( object_track_set, required );
-  declare_input_port_using_trait( timestamp, required );
+  declare_input_port_using_trait( timestamp, optional );
 }
 
 
