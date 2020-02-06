@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,25 +54,28 @@ class INSTRUMENTATION_PLUGIN_NO_EXPORT logger_process_instrumentation
 {
 public:
   logger_process_instrumentation();
-  virtual ~logger_process_instrumentation();
+  virtual ~logger_process_instrumentation() = default;
 
-  virtual void start_init_processing( std::string const& data );
-  virtual void stop_init_processing();
+  void start_init_processing( std::string const& data ) override;
+  void stop_init_processing() override;
 
-  virtual void start_reset_processing( std::string const& data );
-  virtual void stop_reset_processing();
+  void start_finalize_processing( std::string const& data ) override;
+  void stop_finalize_processing() override;
 
-  virtual void start_flush_processing( std::string const& data );
-  virtual void stop_flush_processing();
+  void start_reset_processing( std::string const& data ) override;
+  void stop_reset_processing() override;
 
-  virtual void start_step_processing( std::string const& data );
-  virtual void stop_step_processing();
+  void start_flush_processing( std::string const& data ) override;
+  void stop_flush_processing() override;
 
-  virtual void start_configure_processing( std::string const& data );
-  virtual void stop_configure_processing();
+  void start_step_processing( std::string const& data ) override;
+  void stop_step_processing() override;
 
-  virtual void start_reconfigure_processing( std::string const& data );
-  virtual void stop_reconfigure_processing();
+  void start_configure_processing( std::string const& data ) override;
+  void stop_configure_processing() override;
+
+  void start_reconfigure_processing( std::string const& data ) override;
+  void stop_reconfigure_processing() override;
 
 private:
   kwiver::vital::logger_handle_t m_logger;

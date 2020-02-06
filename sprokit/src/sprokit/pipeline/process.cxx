@@ -398,6 +398,8 @@ process
   /// \todo Should this really be done here?
   if (complete || d->required_outputs_done())
   {
+    _finalize();
+
     mark_process_as_complete();
   }
 }
@@ -749,6 +751,14 @@ process
 void
 process
 ::_step()
+{
+}
+
+
+// ------------------------------------------------------------------
+void
+process
+::_finalize()
 {
 }
 
@@ -1925,6 +1935,7 @@ void process::stop_ ## N ## _processing()                               \
 }
 
 INSTR( init )
+INSTR( finalize )
 INSTR( reset )
 INSTR( flush )
 INSTR( step )
@@ -2275,6 +2286,11 @@ process::priv
 
 
 // ------------------------------------------------------------------
+/*
+ * This method checks to make sure that all required output ports mave
+ * been marked as complete. They are marked complete by the receiving
+ * process (i.e. downstream process)
+ */
 bool
 process::priv
 ::required_outputs_done() const
@@ -2292,6 +2308,7 @@ process::priv
   {
     output_edge_map_t::const_iterator const i = output_edges.find(port);
 
+    // Output port not found.
     if (i == output_edges.end())
     {
       continue;
@@ -2306,6 +2323,7 @@ process::priv
     output_port_info_t const& info = *i->second;
     edges_t const& edges = info.edges;
 
+    // check all connections to this output port.
     for (edge_t const& edge : edges)
     {
       // If any required edge is not complete, then return false.
@@ -2313,8 +2331,8 @@ process::priv
       {
         return false;
       }
-    }
-  }
+    } // end for
+  } // end for
 
   return true;
 }

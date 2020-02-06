@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,6 @@ logger_process_instrumentation()
 { }
 
 
-logger_process_instrumentation::
-~logger_process_instrumentation()
-{ }
-
-
 // ------------------------------------------------------------------
 void
 logger_process_instrumentation::
@@ -61,6 +56,24 @@ logger_process_instrumentation::
 stop_init_processing()
 {
   LOG_INFO( m_logger, process()->name() << ": stop_init_processing" );
+}
+
+
+// ------------------------------------------------------------------
+void
+logger_process_instrumentation::
+  start_finalize_processing( std::string const& data )
+{
+  LOG_INFO( m_logger, process()->name() << ": start_finalize_processing" );
+}
+
+
+// ------------------------------------------------------------------
+void
+logger_process_instrumentation::
+stop_finalize_processing()
+{
+  LOG_INFO( m_logger, process()->name() << ": stop_finalize_processing" );
 }
 
 
