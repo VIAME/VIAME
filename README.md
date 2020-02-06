@@ -97,10 +97,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.10.3 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1U8ujavDPWvjyteZMBJyS8ALp3ejTz4k2)
 
 **CentOS or Other Linux Desktop Binaries:** <br>
-[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e345abbaf2e2eed3554d845/download) <br>
-[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=12EgyIKcZyCBPP1A4NyCNT2m1uoY-lHJ2) <br>
-[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e345abbaf2e2eed3554d845/download) <br>
-[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=12EgyIKcZyCBPP1A4NyCNT2m1uoY-lHJ2)
+[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e3c8b64af2e2eed35775081/download) <br>
+[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1hc7X93TbVquIJTAA9Y2udmT4RBECElth) <br>
+[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e3c8b64af2e2eed35775081/download) <br>
+[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1hc7X93TbVquIJTAA9Y2udmT4RBECElth)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
@@ -121,11 +121,9 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Custom Applications:** <br>
 [Seal Multi-View GUI, Windows 7/8/10, GPU Enabled, Mirror 1](https://data.kitware.com/api/v1/item/5e0f7f73af2e2eed35cd8fd3/download) <br>
-[Seal Multi-View GUI, Windows 7/8/10, GPU Enabled, Mirror 2](https://drive.google.com/open?id=1N48mvxnUuk0aHp8Bc03g3od8bgpKGzWA) <br>
 [Seal Multi-View GUI, Windows 7/8/10, CPU Only, Mirror 1](https://data.kitware.com/api/v1/item/5e3458e6af2e2eed3554d42b/download) <br>
-[Seal Multi-View GUI, Windows 7/8/10, CPU Only, Mirror 2](https://drive.google.com/open?id=10Xu6SRNm43p6Cu7X8m-YIjXzh3oEA5Sj) <br>
-[Seal Multi-View GUI, Linux, GPU Enabled, Mirror 1](https://data.kitware.com/api/v1/item/5e345558af2e2eed3554d25b/download) <br>
-[Seal Multi-View GUI, Linux, GPU Enabled, Mirror 2](https://drive.google.com/open?id=1759fzeAzcOi3BG6vBGzp2mr4zmg0GAo3)
+[Seal Multi-View GUI, CentOS 7, GPU Enabled, Mirror 1](https://data.kitware.com/api/v1/item/5e3c8a42af2e2eed35774f16/download) <br>
+[Seal Multi-View GUI, Generic Linux, GPU Enabled, Mirror 1](https://data.kitware.com/api/v1/item/5e3c8987af2e2eed35774e99/download)
 
 Note: To install Add-Ons and Patches, copy them into an existing VIAME installation folder.
 To use project files extract them into your working directory of choice. Custom Applications
