@@ -205,7 +205,7 @@ get_configuration() const
   auto conf = kwiver::vital::config_block::empty_config();
 
   conf->set_value( "level", level_converter().to_string( m_log_level ),
-                   "Logger level top use when generating log messages. "
+                   "Logger level to use when generating log messages. "
                    "Allowable values are: " + level_converter().element_name_string()
     );
 

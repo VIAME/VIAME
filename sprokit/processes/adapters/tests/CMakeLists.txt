@@ -1,4 +1,4 @@
-project(arrows_adapters_tests)
+project(sprokit_adapters_tests)
 
 include(kwiver-test-setup)
 

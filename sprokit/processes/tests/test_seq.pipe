@@ -1,0 +1,21 @@
+#
+# Pipeline to test process lifecycle sequence
+#
+
+process num :: numbers
+  end = 10
+
+process seq :: test_proc_seq
+  block _instrumentation
+    type = logger
+
+    block logger
+       level = error
+    endblock
+  endblock
+connect from num.number to seq.number
+
+process print :: print_number
+  output = numbers.txt
+
+connect from num.number to print.number
