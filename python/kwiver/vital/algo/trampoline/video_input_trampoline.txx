@@ -28,6 +28,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+/**
+ * \file video_input_trampoline.txx
+ *
+ * \brief trampoline for overriding virtual functions of
+ *        algorithm_def<video_input> and video_input
+ */
+
+
 #ifndef VIDEO_INPUT_TRAMPOLINE_TXX
 #define VIDEO_INPUT_TRAMPOLINE_TXX
 
