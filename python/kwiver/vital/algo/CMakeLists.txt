@@ -54,6 +54,7 @@ kwiver_add_python_library(algorithm
   triangulate_landmarks.h
   uuid_factory.h
   uv_unwrap_mesh.h
+  video_input.h
   algorithm.cxx
   activity_detector.cxx
   analyze_tracks.cxx
@@ -104,6 +105,7 @@ kwiver_add_python_library(algorithm
   triangulate_landmarks.cxx
   uuid_factory.cxx
   uv_unwrap_mesh.cxx
+  video_input.cxx
   algorithm_module.cxx
   trampoline/algorithm_trampoline.txx
   trampoline/activity_detector_trampoline.txx
@@ -154,6 +156,7 @@ kwiver_add_python_library(algorithm
   trampoline/triangulate_landmarks_trampoline.txx
   trampoline/uuid_factory_trampoline.txx
   trampoline/uv_unwrap_mesh_trampoline.txx
+  trampoline/video_input_trampoline.txx
 )
 
 
