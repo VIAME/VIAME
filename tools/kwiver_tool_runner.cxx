@@ -188,9 +188,7 @@ int main(int argc, char *argv[])
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   const std::string exec_path = kwiver::vital::get_executable_path();
-  vpm.add_search_path(exec_path + "/../lib/kwiver/modules");
-  vpm.add_search_path(exec_path + "/../lib/kwiver/modules/applets");
-  vpm.add_search_path(exec_path + "/../lib/kwiver/processes");
+  vpm.add_search_path(exec_path + "/../lib/kwiver/plugins");
 
   // remove all default plugin filters
   vpm.get_loader()->clear_filters();

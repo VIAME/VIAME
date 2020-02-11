@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,19 @@ class VITAL_VPM_EXPORT plugin_manager
 public:
   typedef std::string module_t; // module name type
 
+  enum class plugin_type
+  {
+    PROCESSES               = 0x0001,
+    ALGORITHMS              = 0x0002,
+    APPLETS                 = 0x0004,
+    EXPLORER                = 0x0008,
+    PROCESS_INSTRUMENTATION = 0x0010,
+    OTHERS                  = 0x0020,
+    LEGACY                  = 0x0040,
+    ALL                     = 0xffff
+  };
+
+
   static plugin_manager& instance();  // singleton interface
 
   /**
@@ -83,7 +96,7 @@ public:
    *
    * @throws plugin_already_exists - if a duplicate plugin is detected
    */
-  void load_all_plugins();
+  void load_all_plugins( plugin_type type = plugin_type::ALL );
 
   /**
    * @brief Load plugins from list of directories.
@@ -133,15 +146,6 @@ public:
    * \param dirpath Path to the directories to add to the plugin search path.
    */
   void add_search_path( path_list_t const& dirpath );
-
-  /**
-   * @brief Get plugin manager search path
-   *
-   *  This method returns the search path used to load algorithms.
-   *
-   * @return vector of paths that are searched
-   */
-  path_list_t const& search_path() const;
 
   /**
    * @brief Add factory to manager.
@@ -204,25 +208,6 @@ public:
   }
 
   /**
-   * @brief Get map of known plugins.
-   *
-   * Get the map of all known registered plugins.
-   *
-   * @return Map of plugins
-   */
-  plugin_map_t const& plugin_map();
-
-  /**
-   * @brief Get list of files loaded.
-   *
-   * This method returns the list of shared object file names that
-   * successfully loaded.
-   *
-   * @return List of file names.
-   */
-  std::vector< std::string > file_list();
-
-  /**
    * @brief Reload all plugins.
    *
    * The current list of factories is deleted, all currently open
@@ -254,6 +239,39 @@ public:
   void mark_module_as_loaded( module_t const& name );
 
   /**
+   * @brief Add path from environment variable name.
+   *
+   * This method adds the path from the environment variable to the end
+   * of the current search path.
+   *
+   * @param env_var Name of environment variable.
+   */
+  void add_path_from_environment( std::string env_var);
+
+protected:
+
+  plugin_loader* get_loader();
+
+  /**
+   * @brief Get list of files loaded.
+   *
+   * This method returns the list of shared object file names that
+   * successfully loaded.
+   *
+   * @return List of file names.
+   */
+  std::vector< std::string > file_list();
+
+  /**
+   * @brief Get map of known plugins.
+   *
+   * Get the map of all known registered plugins.
+   *
+   * @return Map of plugins
+   */
+  plugin_map_t const& plugin_map();
+
+  /**
    * @brief Get list of loaded modules
    *
    * This call returns a map of loaded modules with the files they
@@ -264,14 +282,19 @@ public:
   std::map< std::string, std::string > const& module_map() const;
 
   /**
-   * @brief Add path from environment variable name.
+   * @brief Get plugin manager search path
    *
-   * This method adds the path from the environment variable to the end
-   * of the current search path.
+   *  This method returns the search path used to load algorithms.
    *
-   * @param env_var Name of environment variable.
+   * @return vector of paths that are searched
    */
-  void add_path_from_environment( std::string env_var);
+  path_list_t const& search_path() const;
+
+
+  plugin_manager();
+  ~plugin_manager();
+
+private:
 
   /**
    * @brief Get logger handle.
@@ -282,19 +305,13 @@ public:
    *
    * @return Handle to plugin_manager logger
    */
-  kwiver::vital::logger_handle_t logger();
-
-  kwiver::vital::plugin_loader* get_loader();
-
-protected:
-
-  plugin_manager();
-  ~plugin_manager();
+  logger_handle_t logger();
 
   class priv;
   const std::unique_ptr< priv > m_priv;
 
   static plugin_manager* s_instance;
+
 }; // end class plugin_manager
 
 

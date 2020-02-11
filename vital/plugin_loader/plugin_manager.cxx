@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ static std::string const shared_library_suffix = std::string( SHARED_LIB_SUFFIX 
 
 
 // ---- Static ----
-  plugin_manager* plugin_manager::s_instance( 0 );
+plugin_manager* plugin_manager::s_instance( 0 );
 
 
 // ==================================================================
@@ -92,7 +92,6 @@ public:
   kwiver::vital::logger_handle_t m_logger;
 
   path_list_t m_search_paths;
-
 };
 
 
@@ -145,19 +144,84 @@ plugin_manager()
   m_priv->m_loader->add_search_path( m_priv->m_search_paths );
 }
 
-
-plugin_manager::
-~plugin_manager()
+plugin_manager
+::~plugin_manager()
 { }
 
 
 // ------------------------------------------------------------------
-void plugin_manager::
-load_all_plugins()
+void
+plugin_manager
+::load_all_plugins( plugin_type type )
 {
-  if ( ! m_priv->m_all_loaded )
+  if ( !m_priv->m_all_loaded )
   {
-    m_priv->m_loader->load_plugins();
+    path_list_t dirpath;
+    auto search_path = this->search_path();
+
+#define SELECT( B ) static_cast< unsigned >( type ) & \
+  static_cast< unsigned  >( plugin_type::B )
+
+    // Process each directory in the path and add the directories for
+    // the selected plugins.
+    for ( auto const p : search_path )
+    {
+      // Load plugins from directories based on the options specified.
+      if ( SELECT( PROCESSES ) )
+      {
+        // load processes
+        std::string dir_name = p + "/processes";
+        dirpath.push_back( dir_name );
+      }
+
+      if ( SELECT( ALGORITHMS ) )
+      {
+        // load arrows
+        std::string dir_name = p + "/algorithms";
+        dirpath.push_back( dir_name );
+      }
+
+      if ( SELECT( APPLETS ) )
+      {
+        // load applets
+        std::string dir_name = p + "/applets";
+        dirpath.push_back( dir_name );
+      }
+
+      if ( SELECT( EXPLORER ) )
+      {
+        // load plugin explorer stuff
+        std::string dir_name = p + "/plugin_explorer";
+        dirpath.push_back( dir_name );
+      }
+
+      if ( SELECT( PROCESS_INSTRUMENTATION ) )
+      {
+        // load process instrumentation providers (or should this be
+        // grouped with processes?)
+        std::string dir_name = p + "/proc_instr";
+        dirpath.push_back( dir_name );
+      }
+
+      if ( SELECT( OTHERS ) )
+      {
+        // load everything else
+        std::string dir_name = p + "/modules";
+        dirpath.push_back( dir_name );
+      }
+
+      if ( SELECT( LEGACY ) )
+      {
+        // just use the raw directory form the list
+        std::string dir_name = p;
+        dirpath.push_back( dir_name );
+      }
+    } // end for
+
+#undef SELECT
+
+    // Load modules from path list
+    m_priv->m_loader->load_plugins( dirpath );
     m_priv->m_all_loaded = true;
   }
 }
@@ -199,7 +263,7 @@ add_path_from_environment( std::string env_var)
   const char * env_ptr = kwiversys::SystemTools::GetEnv( env_var );
   if ( 0 != env_ptr )
   {
-    LOG_DEBUG( m_priv->m_logger, "Adding path(s) \"" << env_ptr << "\" from environment" );
+    LOG_DEBUG( logger(), "Adding path(s) \"" << env_ptr << "\" from environment" );
     std::string const extra_module_dirs(env_ptr);
 
     // Split supplied path into separate items using PATH_SEPARATOR_CHAR as delimiter
@@ -207,14 +271,13 @@ add_path_from_environment( std::string env_var)
   }
   else
   {
-    LOG_DEBUG( m_priv->m_logger,
-              "No additional paths on " << env_var );
+    LOG_DEBUG( logger(), "No additional paths on " << env_var );
   }
 }
 
 
 // ------------------------------------------------------------------
-std::vector< path_t > const& plugin_manager::
+path_list_t const& plugin_manager::
 search_path() const
 {
   return m_priv->m_loader->get_search_path();

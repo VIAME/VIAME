@@ -152,14 +152,15 @@ set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 
 # Set directories where loadable modules are stored.
 # These subdirs are under .../lib/
-set( kwiver_plugin_subdir                         kwiver )
+set( kwiver_plugin_subdir                         kwiver/plugins )
 set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
-set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/modules )
+set( kwiver_plugin_algorithm_subdir               ${kwiver_plugin_subdir}/algorithms )
+set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/proc_instr )
 set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
 set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
-set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/modules/plugin_explorer )
-set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules )
-set( kwiver_plugin_applets                        ${kwiver_plugin_subdir}/modules/applets )
+set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/plugin_explorer )
+set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules/logger )
+set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
 
 ##
 # System specific compiler flags
@@ -369,28 +370,12 @@ foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
   kwiver_add_module_path( ${p} )
 endforeach(p)
 
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_process_subdir} )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_subdir} )
 kwiver_add_module_path(  "${kwiver_module_path_result}" )
 
 if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_process_subdir} )
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_subdir} )
   kwiver_add_module_path(  "${kwiver_module_path_result}" )
-endif()
-
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
-kwiver_add_module_path(  "${kwiver_module_path_result}" )
-
-if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
-  kwiver_add_module_path(  "${kwiver_module_path_result}" )
-endif()
-
-kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_applets} )
-kwiver_add_module_path( "${kwiver_module_path_result}" )
-
-if (KWIVER_USE_BUILD_TREE)
-  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_applets} )
-  kwiver_add_module_path( "${kwiver_module_path_result}" )
 endif()
 
 # need to retrieve the GLOBAL PROPERTY kwiver_plugin_path and

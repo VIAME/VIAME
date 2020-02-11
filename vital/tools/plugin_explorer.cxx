@@ -663,8 +663,7 @@ main( int argc, char* argv[] )
   if (!G_context.opt_skip_relative)
   {
     // It is somewhat problematic to keep these in sync with the CMake values
-    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/modules");
-    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/sprokit");
+    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/plugins");
   }
 
   // Look for plugin file name from command line
