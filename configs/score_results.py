@@ -140,15 +140,13 @@ def generate_rocs( args, categories ):
   if ',' in args.computed:
     input_files = [ i.lstrip() for i in args.computed.split(',') ]
   else:
-    input_files = args.computed
+    input_files = [ args.computed ]
 
   for filename in input_files:
     for cat in categories:
       roc_file = base + "." + cat + ".txt"
       if len( input_files ) > 1:
         roc_file = filename + '.' + roc_file
-      print( roc_file )
-      sys.exit(0)
       _, filtered_computed = filter_by_category( filename, cat )
       _, filtered_truth = filter_by_category( args.truth, cat )
       cmd = base_cmd + [ '--roc-dump', roc_file ]
