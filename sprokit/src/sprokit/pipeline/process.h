@@ -727,8 +727,8 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Post-connection initialization for subclasses.
      *
      * Initialization is the final step before a process is
-     * stepped. This is where processes should have a chance to get a
-     * first look at the edges that are connected to a port and change
+     * stepped. This is where processes have a chance to get a first
+     * look at the edges that are connected to a port and change
      * behavior based on them. After this is called, the process will
      * be stepped until it is either complete or the scheduler is
      * stopped.
@@ -760,9 +760,21 @@ class SPROKIT_PIPELINE_EXPORT process
      * \li Obtaining data from the input edges.
      * \li Running the algorithm.
      * \li Pushing data out via the output edges.
-     *
      */
     virtual void _step();
+
+    /**
+     * \brief Termination processing for subclasses.
+     *
+     * This method is called when the all upstream processes have
+     * terminated and a \c complete datum is present on all \b
+     * required input ports. The _step() method will never be called
+     * after this method is called.
+     *
+     * If a process self terminates by calling
+     * mark_process_as_complete(), this method will not be called.
+     */
+    virtual void _finalize();
 
     /**
      * \brief Runtime configuration for subclasses.
@@ -1367,6 +1379,10 @@ class SPROKIT_PIPELINE_EXPORT process
     void start_init_processing();
     void stop_init_processing();
 
+    void start_finalize_processing( std::string const& data );
+    void start_finalize_processing();
+    void stop_finalize_processing();
+
     void start_reset_processing( std::string const& data );
     void start_reset_processing();
     void stop_reset_processing( );
@@ -1411,6 +1427,7 @@ private:                                                                \
 }
 
 SCOPED_INSTRUMENTATION(init);
+SCOPED_INSTRUMENTATION(finalize);
 SCOPED_INSTRUMENTATION(reset);
 SCOPED_INSTRUMENTATION(flush);
 SCOPED_INSTRUMENTATION(step);
@@ -1427,6 +1444,7 @@ SCOPED_INSTRUMENTATION(reconfigure);
  * when the scope is exited.
  */
 #define scoped_init_instrumentation()        scoped_init_instrumentation_( this )
+#define scoped_finalize_instrumentation()    scoped_finalize_instrumentation_( this )
 #define scoped_reset_instrumentation()       scoped_reset_instrumentation_( this )
 #define scoped_flush_instrumentation()       scoped_flush_instrumentation_( this )
 #define scoped_step_instrumentation()        scoped_step_instrumentation_( this )

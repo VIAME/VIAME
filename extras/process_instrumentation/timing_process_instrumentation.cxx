@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2019, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ timing_process_instrumentation::
 // ------------------------------------------------------------------
 void
 timing_process_instrumentation::
-  start_init_processing( std::string const& data )
+start_init_processing( std::string const& data )
 {
   m_timer->start();
 }
@@ -95,6 +95,28 @@ stop_init_processing()
 
   // write elapsed time
   write_interval( "init", m_timer->elapsed() );
+}
+
+
+// ------------------------------------------------------------------
+void
+timing_process_instrumentation::
+start_finalize_processing( std::string const& data )
+{
+  m_timer->start();
+}
+
+
+// ------------------------------------------------------------------
+void
+timing_process_instrumentation::
+stop_finalize_processing()
+{
+  // stop timer
+  m_timer->stop();
+
+  // write elapsed time
+  write_interval( "finalize", m_timer->elapsed() );
 }
 
 

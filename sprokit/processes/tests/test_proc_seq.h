@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,73 +28,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "take_number_process.h"
+#ifndef SPROKIT_PROCESSES_TEST_PROC_SEQ_H
+#define SPROKIT_PROCESSES_TEST_PROC_SEQ_H
 
-#include <vital/config/config_block.h>
-#include <sprokit/pipeline/process_exception.h>
+#include <sprokit/pipeline/process.h>
+#include "kwiver_processes_test_export.h"
 
-#include <string>
+namespace kwiver {
 
-/**
- * \file take_number_process.cxx
- *
- * \brief Implementation of the number taking process.
- */
-
-namespace sprokit
+class KWIVER_PROCESSES_TEST_NO_EXPORT test_proc_seq
+  : public sprokit::process
 {
+public:
+  PLUGIN_INFO( "test_proc_seq",
+               "Test method sequence in processes" )
 
-class take_number_process::priv
-{
-  public:
-    typedef int32_t number_t;
+  test_proc_seq( kwiver::vital::config_block_sptr const& config );
 
-    priv();
-    ~priv();
+  /**
+   * \brief Destructor.
+   */
+  virtual ~test_proc_seq() = default;
 
-    static port_t const port_input;
+protected:
+  void _configure() override;
+  void _init() override;
+  void _step() override;
+  void _finalize() override;
 };
 
-process::port_t const take_number_process::priv::port_input = port_t("number");
-
-take_number_process
-::take_number_process(kwiver::vital::config_block_sptr const& config)
-  : process(config)
-  , d()
-{
-  port_flags_t required;
-
-  required.insert(flag_required);
-
-  declare_input_port(
-    priv::port_input,
-    "integer",
-    required,
-    port_description_t("Where numbers are read from."));
 }
 
-take_number_process
-::~take_number_process()
-{
-}
-
-void
-take_number_process
-::_step()
-{
-  (void)grab_from_port_as<priv::number_t>(priv::port_input);
-
-  process::_step();
-}
-
-take_number_process::priv
-::priv()
-{
-}
-
-take_number_process::priv
-::~priv()
-{
-}
-
-}
+#endif // SPROKIT_PROCESSES_TEST_PROC_SEQ_H

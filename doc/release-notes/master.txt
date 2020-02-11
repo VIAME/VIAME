@@ -116,6 +116,11 @@ Sprokit: Processes
    the config supplied by the pipeline. Any differences can be written
    to the log. This is useful for identifying misspelled config items.
 
+ * Add finalize method to process base class which allows derived
+   processes to be optionally called when the all upstream processes
+   have terminated and a complete datum is present on all required
+   input ports.
+
 Tools
 
  * Converting stand-alone tools to reside under the main "kwiver" top

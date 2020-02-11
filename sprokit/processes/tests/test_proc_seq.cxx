@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,73 +28,58 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "take_number_process.h"
+#include "test_proc_seq.h"
+#include <sprokit/processes/kwiver_type_traits.h>
 
-#include <vital/config/config_block.h>
-#include <sprokit/pipeline/process_exception.h>
+create_type_trait( number, "integer", int32_t );
 
-#include <string>
+create_port_trait( number, number, "number uint 32" );
 
-/**
- * \file take_number_process.cxx
- *
- * \brief Implementation of the number taking process.
- */
 
-namespace sprokit
+namespace kwiver {
+
+test_proc_seq
+::test_proc_seq( kwiver::vital::config_block_sptr const& config )
+  : process (config )
 {
+  sprokit::process::port_flags_t required;
+  required.insert( flag_required );
 
-class take_number_process::priv
-{
-  public:
-    typedef int32_t number_t;
-
-    priv();
-    ~priv();
-
-    static port_t const port_input;
-};
-
-process::port_t const take_number_process::priv::port_input = port_t("number");
-
-take_number_process
-::take_number_process(kwiver::vital::config_block_sptr const& config)
-  : process(config)
-  , d()
-{
-  port_flags_t required;
-
-  required.insert(flag_required);
-
-  declare_input_port(
-    priv::port_input,
-    "integer",
-    required,
-    port_description_t("Where numbers are read from."));
+  declare_input_port_using_trait( number, required );
 }
 
-take_number_process
-::~take_number_process()
+
+void test_proc_seq
+::_configure()
 {
+  scoped_configure_instrumentation();
+
 }
 
-void
-take_number_process
+void test_proc_seq
+::_init()
+{
+  scoped_init_instrumentation();
+
+}
+
+
+void test_proc_seq
 ::_step()
 {
-  (void)grab_from_port_as<priv::number_t>(priv::port_input);
+  scoped_step_instrumentation();
 
-  process::_step();
+  auto input = grab_from_port_using_trait( number );
+  LOG_INFO( logger(),  "Number: " << input );
 }
 
-take_number_process::priv
-::priv()
+
+void test_proc_seq
+::_finalize()
 {
-}
-
-take_number_process::priv
-::~priv()
-{
-}
+  scoped_finalize_instrumentation();
 
 }
+
+
+} // end namespace

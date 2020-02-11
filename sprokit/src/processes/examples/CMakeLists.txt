@@ -40,6 +40,7 @@ set(examples_private_headers
   orphan_cluster.h
   orphan_process.h
   print_number_process.h
+  process_traits.h
   shared_process.h
   skip_process.h
   tagged_flow_dependent_process.h
