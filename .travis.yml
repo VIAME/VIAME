@@ -59,4 +59,5 @@ script:
           ../
   - make -j2
   - make install
+  - . ./setup_KWIVER.sh
   - ctest
