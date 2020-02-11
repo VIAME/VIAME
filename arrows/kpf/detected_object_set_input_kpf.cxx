@@ -120,7 +120,7 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
     d->m_first = false;
 
     // set up iterators for returning sets.
-    d->m_current_idx = d->m_detected_sets.begin()->first;
+    d->m_current_idx = 1;
     d->m_last_idx = d->m_detected_sets.rbegin()->first;
   } // end first
 
@@ -140,7 +140,6 @@ read_set( kwiver::vital::detected_object_set_sptr & set, std::string& image_name
   }
 
   ++d->m_current_idx;
-
   return true;
 }
 
