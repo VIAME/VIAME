@@ -60,6 +60,8 @@ Vital Types
  * Refactored detected_object_set to convert some methods to external
    functions since they were not properties of the class.
 
+ * Vital types protobuf support now requires protobuf version 3 or greater.
+
 Vital Bindings
 
  * Remove ctypes python bindings

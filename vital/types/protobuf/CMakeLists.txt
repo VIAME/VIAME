@@ -2,7 +2,7 @@
 # CMake file for building protobuf libraries.
 #
 
-find_package( Protobuf REQUIRED )
+find_package( Protobuf REQUIRED 3 )
 
 set( proto_files
   bounding_box.proto
