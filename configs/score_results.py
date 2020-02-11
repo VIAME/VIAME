@@ -137,21 +137,33 @@ def generate_rocs( args, categories ):
   base_cmd += [ '--computed-format', args.input_format, '--truth-format', args.input_format ]
   base_cmd += [ '--fn2ts', '--gt-prefiltered', '--ct-prefiltered' ]
 
-  for cat in categories:
-    roc_file = base + "." + cat + ".txt"
-    _, filtered_computed = filter_by_category( args.computed, cat )
-    _, filtered_truth = filter_by_category( args.truth, cat )
-    cmd = base_cmd + [ '--roc-dump', roc_file ]
-    cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
-    subprocess.call( cmd )
-    roc_files.append( roc_file )
+  if ',' in args.computed:
+    input_files = [ i.lstrip() for i in args.computed.split(',') ]
+  else:
+    input_files = args.computed
 
-  if len( categories ) != 1:
-    net_roc_file = base + ".txt"
-    cmd = base_cmd + [ '--roc-dump', net_roc_file ]
-    cmd += [ '--computed-tracks', args.computed, '--truth-tracks', args.truth ]
-    subprocess.call( cmd )
-    roc_files.append( net_roc_file )
+  for filename in input_files:
+    for cat in categories:
+      roc_file = base + "." + cat + ".txt"
+      if len( input_files ) > 1:
+        roc_file = filename + '.' + roc_file
+      print( roc_file )
+      sys.exit(0)
+      _, filtered_computed = filter_by_category( filename, cat )
+      _, filtered_truth = filter_by_category( args.truth, cat )
+      cmd = base_cmd + [ '--roc-dump', roc_file ]
+      cmd += [ '--computed-tracks', filtered_computed, '--truth-tracks', filtered_truth ]
+      subprocess.call( cmd )
+      roc_files.append( roc_file )
+
+    if len( categories ) != 1:
+      net_roc_file = base + ".txt"
+      if len( input_files ) > 1:
+        net_roc_file = filename + '.' + net_roc_file
+      cmd = base_cmd + [ '--roc-dump', net_roc_file ]
+      cmd += [ '--computed-tracks', filename, '--truth-tracks', args.truth ]
+      subprocess.call( cmd )
+      roc_files.append( net_roc_file )
 
   # Generate plot
   fig = plt.figure()
@@ -175,15 +187,20 @@ def generate_rocs( args, categories ):
     if user_titles and i < len( user_titles ):
       display_label = user_titles[i]
     else:
-      display_label = fn.replace( ".txt", "" ).replace( base + ".","" ).replace( base, "" )
+      display_label = fn.replace( ".txt", "" )
+      display_label = display_label.replace( ".csv", "" )
+      display_label = display_label.replace( base + ".", "" )
+      display_label = display_label.replace( base, "" )
       if len( display_label ) == 0:
         display_label = "aggregate"
+      if display_label.endswith("."):
+        display_label = display_label[:-1]
     sys.stderr.write("Info: %d: loading %s as '%s'...\n" % (i, fn, display_label) )
     stl = linestyles[ i % len(linestyles) ]
-    if i < len(linecolors) * len(linestyles):
-      cl = linecolors[ int( i / len(linestyles) ) % len(linecolors) ]
+    if i < len(linecolors):
+      cl = linecolors[ i ]
     else:
-      cl = np.random.rand(3,1)
+      cl = np.random.rand(3)
     if len( display_label ) > 0:
       rocplot.plot( x, y, linestyle=stl, color=cl, linewidth=args.lw, label=display_label )
     else:
