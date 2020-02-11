@@ -96,10 +96,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.10.3 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1U8ujavDPWvjyteZMBJyS8ALp3ejTz4k2)
 
 **CentOS or Other Linux Desktop Binaries:** <br>
-[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e3c8b64af2e2eed35775081/download) <br>
-[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1hc7X93TbVquIJTAA9Y2udmT4RBECElth) <br>
-[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e3c8b64af2e2eed35775081/download) <br>
-[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1hc7X93TbVquIJTAA9Y2udmT4RBECElth)
+[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e42cbaeaf2e2eed358ce3b8/download) <br>
+[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1pzP-dh8xSYHWCk_XKwE4khqMdCxQypD6) <br>
+[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e42cbaeaf2e2eed358ce3b8/download) <br>
+[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1pzP-dh8xSYHWCk_XKwE4khqMdCxQypD6)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
