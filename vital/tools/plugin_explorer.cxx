@@ -40,7 +40,7 @@
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/plugin_loader/plugin_filter_category.h>
 #include <vital/plugin_loader/plugin_filter_default.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/plugin_loader/plugin_manager_internal.h>
 #include <vital/util/demangle.h>
 #include <vital/util/get_paths.h>
 #include <vital/util/wrap_text_block.h>
@@ -651,7 +651,7 @@ main( int argc, char* argv[] )
   }
 
   // ========
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  kwiver::vital::plugin_manager_internal& vpm = kwiver::vital::plugin_manager_internal::instance();
 
   // remove all default plugin filters
   vpm.get_loader()->clear_filters();

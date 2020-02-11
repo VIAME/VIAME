@@ -37,7 +37,7 @@
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/plugin_loader/plugin_filter_category.h>
 #include <vital/plugin_loader/plugin_filter_default.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/plugin_loader/plugin_manager_internal.h>
 #include <vital/util/get_paths.h>
 
 #include <cstdlib>
@@ -186,7 +186,8 @@ int main(int argc, char *argv[])
   //
   applet_context_t tool_context = std::make_shared< kwiver::tools::applet_context >();
 
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+  kwiver::vital::plugin_manager_internal& vpm = kwiver::vital::plugin_manager_internal::instance();
+
   const std::string exec_path = kwiver::vital::get_executable_path();
   vpm.add_search_path(exec_path + "/../lib/kwiver/plugins");
 
