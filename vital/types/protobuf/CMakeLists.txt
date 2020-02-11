@@ -38,6 +38,5 @@ kwiver_add_library( vital_types_protobuf
   ${cpp_hdrs} ${cpp_srcs} )
 
 target_link_libraries( vital_types_protobuf
-  PUBLIC       vital
-               ${PROTOBUF_LIBRARIES}
+  PUBLIC       ${PROTOBUF_LIBRARIES}
   )
