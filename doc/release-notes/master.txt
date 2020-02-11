@@ -95,6 +95,9 @@ Arrows: OpenCV
 
 Arrows: Serialization
 
+ * Updated serialization algorithms to use PLUGIN_INFO macro and added
+   serializer specific plugin registrar.
+
 Arrows: Super3d
 
 Arrows: VXL
