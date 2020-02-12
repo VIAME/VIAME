@@ -148,13 +148,16 @@ class NetHarnTrainer( TrainDetector ):
             if i < len( train_files ):
                 filename = train_files[ i ]
                 groundtruth = train_dets[ i ]
-                self._training_writer.write( filename, groundtruth )
+                self._training_writer.write( groundtruth, filename )
             else:
                 filename = test_files[ i-len( train_files ) ]
                 groundtruth = test_dets[ i-len( train_files ) ]
-                self._validation_writer.write( filename, groundtruth )
+                self._validation_writer.write( groundtruth, filename )
 
     def update_model( self ):
+        self._training_writer.complete()
+        self._validation_writer.complete()
+
         cmd = [ "python",
                 "-m",
                 "bioharn.detect_fit",
