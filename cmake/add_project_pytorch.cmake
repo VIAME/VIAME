@@ -175,7 +175,9 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
                             "${CUDNN_ENV}"
       ${LIBRARY_PIP_INSTALL_CMD} )
 
-  if( "${LIB}" STREQUAL "mmdetection" )
+  if( "${LIB}" STREQUAL "bioharn" )
+    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} mmdetection )
+  elseif( "${LIB}" STREQUAL "mmdetection" )
     set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} mmcv torchvision )
   elseif( "${LIB}" STREQUAL "pytorch" )
     set( PROJECT_DEPS fletch pyyaml )
