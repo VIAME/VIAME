@@ -31,6 +31,7 @@ from __future__ import print_function
 from __future__ import division
 
 from vital.algo import TrainDetector
+from vital.algo import DetectedObjectSetOutput
 
 from vital.types import BoundingBox
 from vital.types import CategoryHierarchy
