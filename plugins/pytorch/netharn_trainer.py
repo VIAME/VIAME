@@ -115,6 +115,9 @@ class NetHarnTrainer( TrainDetector ):
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
 
+        from vital.modules.modules import load_known_modules
+        load_known_modules()
+
         self._training_writer = \
           DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
         self._validation_writer = \
