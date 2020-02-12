@@ -40,15 +40,18 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
         self.detections = []
         self.images = []
         self.categories = {}
+        self.category_id_adj = 1
         self.file = None
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetOutput, self).get_configuration()
+        cfg.set_value( "category_id_adj", self.category_id_adj )
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
+        self.category_id_adj = int( cfg.get_value( "category_id_adj" ) )
 
     def check_configuration(self, cfg):
         return True
@@ -76,7 +79,7 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
             if det.type() is not None:
                 d['category_id'] = self.categories.setdefault(
                     det.type().get_most_likely_class(),
-                    len(self.categories),
+                    len(self.categories)+self.category_id_adj,
                 )
             self.detections.append(d)
         self.images.append(file_name)
