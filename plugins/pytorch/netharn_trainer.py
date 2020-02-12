@@ -175,6 +175,7 @@ class NetHarnTrainer( TrainDetector ):
                 "--bstep=4" ]
 
         os.system( cmd )
+
         print( "\nModel training complete!\n" )
 
     def inter
