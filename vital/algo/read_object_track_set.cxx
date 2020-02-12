@@ -35,6 +35,8 @@
 
 #include "read_object_track_set.h"
 
+#include <memory>
+
 #include <vital/algo/algorithm.txx>
 #include <vital/exceptions/io.h>
 #include <vital/vital_types.h>
@@ -86,23 +88,23 @@ read_object_track_set
   // Make sure that the given file path exists and is a file.
   if( ! kwiversys::SystemTools::FileExists( filename ) )
   {
-    throw path_not_exists( filename );
+    VITAL_THROW( path_not_exists, filename );
   }
 
   if( kwiversys::SystemTools::FileIsDirectory( filename ) )
   {
-    throw path_not_a_file( filename );
+    VITAL_THROW( path_not_a_file, filename );
   }
 
   // try to open the file
-  std::istream* file( new std::ifstream( filename ) );
+  std::unique_ptr< std::istream > file( new std::ifstream( filename ) );
 
-  if( ! file )
+  if( ! *file )
   {
-    kwiver::vital::file_not_found_exception( filename, "open failed"  );
+    VITAL_THROW( file_not_found_exception, filename, "open failed" );
   }
 
-  m_stream = file;
+  m_stream = file.release();
   m_stream_owned = true;
 
   new_stream();
