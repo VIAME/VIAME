@@ -50,6 +50,7 @@ import pickle
 import os
 import signal
 import sys
+import subprocess
 
 class NetHarnTrainer( TrainDetector ):
     """
@@ -148,22 +149,23 @@ class NetHarnTrainer( TrainDetector ):
             if i < len( train_files ):
                 filename = train_files[ i ]
                 groundtruth = train_dets[ i ]
-                self._training_writer.write( groundtruth, filename )
+                self._training_writer.write_set( groundtruth, os.path.abspath( filename ) )
             else:
                 filename = test_files[ i-len( train_files ) ]
                 groundtruth = test_dets[ i-len( train_files ) ]
-                self._validation_writer.write( groundtruth, filename )
+                self._validation_writer.write_set( groundtruth, os.path.abspath( filename ) )
 
     def update_model( self ):
         self._training_writer.complete()
         self._validation_writer.complete()
 
-        cmd = [ "python",
+        cmd = [ "python.exe" if os.name == 'nt' else "python",
                 "-m",
                 "bioharn.detect_fit",
                 "--nice=" + self._config_file,
                 "--train_dataset=" + self._training_file,
                 "--vali_dataset=" + self._validation_file,
+                "--workdir=" + self._train_directory,
                 "--schedule=ReduceLROnPlateau-p2-c2",
                 "--augment=complex",
                 "--init=noop",
@@ -180,7 +182,7 @@ class NetHarnTrainer( TrainDetector ):
                 "--batch_size=8",
                 "--bstep=4" ]
 
-        os.system( cmd )
+        subprocess.call( cmd )
 
         print( "\nModel training complete!\n" )
 
