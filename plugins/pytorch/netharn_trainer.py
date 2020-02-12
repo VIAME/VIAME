@@ -166,7 +166,7 @@ class NetHarnTrainer( TrainDetector ):
                 "bioharn.detect_fit",
                 "--nice=" + self._config_file,
                 "--train_dataset=" + self._training_file,
-                "--vali_dataset=" + self._training_file,
+                "--vali_dataset=" + self._validation_file,
                 "--workdir=" + self._train_directory,
                 "--schedule=ReduceLROnPlateau-p2-c2",
                 "--augment=complex",
