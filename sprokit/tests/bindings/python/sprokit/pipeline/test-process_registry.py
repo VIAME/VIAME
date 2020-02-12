@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #ckwg +28
-# Copyright 2011-2013 by Kitware, Inc.
+# Copyright 2011-2013, 2020 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -82,6 +82,7 @@ def example_process(check_init):
             self.ran_init = check_init
             self.ran_reset = check_init
             self.ran_step = check_init
+            self.ran_finalize = check_init
             self.ran_reconfigure = check_init
             self.ran_properties = check_init
             self.ran_input_ports = check_init
@@ -112,6 +113,11 @@ def example_process(check_init):
             self.ran_step = True
 
             self._base_step()
+
+        def _finalize(self):
+            self.ran_finalize = True
+
+            self._base_finalize()
 
         def _reconfigure(self, conf):
             self.ran_reconfigure = True
