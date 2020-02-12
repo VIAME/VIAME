@@ -159,12 +159,14 @@ class NetHarnTrainer( TrainDetector ):
         self._training_writer.complete()
         self._validation_writer.complete()
 
+        gpu_string = ','.join([ str(i) for i in range(0,self._gpu_count) ])
+
         cmd = [ "python.exe" if os.name == 'nt' else "python",
                 "-m",
                 "bioharn.detect_fit",
                 "--nice=" + self._config_file,
                 "--train_dataset=" + self._training_file,
-                "--vali_dataset=" + self._validation_file,
+                "--vali_dataset=" + self._training_file,
                 "--workdir=" + self._train_directory,
                 "--schedule=ReduceLROnPlateau-p2-c2",
                 "--augment=complex",
@@ -178,7 +180,7 @@ class NetHarnTrainer( TrainDetector ):
                 "--multiscale=True",
                 "--normalize_inputs=True",
                 "--workers=4",
-                "--xpu=1",
+                "--xpu=" + gpu_string,
                 "--batch_size=8",
                 "--bstep=4" ]
 
