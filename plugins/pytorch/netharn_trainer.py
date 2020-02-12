@@ -31,7 +31,7 @@ from __future__ import print_function
 from __future__ import division
 
 from vital.algo import TrainDetector
-from vital.algo import OutputDetectedObjectSet
+from vital.algo import DetectedObjectSetOutput
 
 from vital.types import BoundingBox
 from vital.types import CategoryHierarchy
@@ -177,8 +177,6 @@ class NetHarnTrainer( TrainDetector ):
         os.system( cmd )
 
         print( "\nModel training complete!\n" )
-
-    def inter
 
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
