@@ -192,6 +192,98 @@ public:
   }
 };
 
+// ============================================================================
+/// Derived class to register serializer algorithms.
+/**
+ * This class contains the specific procedure for registering
+ * serializer algorithms with the plugin loader. Serializers are
+ * different in that they use the interface name to specify the
+ * serialization method.
+ */
+class serializer_registrar
+  : public kwiver::plugin_registrar
+{
+public:
+  /**
+   * \brief Constructor for serializer registrar
+   *
+   * \param vpl Plugin loader reference.
+   * \param mod_name  name of module to register.
+   * \param ser_method short serialization method. This specifies the
+   * string that is used in the pipe config file to select the
+   * serializer method. Typical entries could be "protobuf" or "json".
+   */
+  serializer_registrar( kwiver::vital::plugin_loader& vpl,
+                       const std::string& mod_name,
+                       const std::string& ser_method)
+    : plugin_registrar( vpl, mod_name ),
+      m_serialize_method( "serialize-" + ser_method )
+  { }
+
+private:
+  std::string m_serialize_method;
+
+public:
+  // ----------------------------------------------------------------------------
+  /// Register a serializer algorithm plugin.
+  /**
+   * An algorithm of the specified type is registered with the plugin
+   * manager.
+   *
+   * \tparam tool_t Type of the algorithm being registered.
+   * \param name Override type static name with this name if specified.
+   *
+   * \return The plugin loader reference is returned.
+   */
+  template <typename algorithm_t>
+  kwiver::vital::plugin_factory_handle_t
+  register_algorithm( const std::string& name )
+  {
+    using kvpf = kwiver::vital::plugin_factory;
+
+    // Allow specified name to override type name
+    std::string local_name;
+    if ( name.empty() )
+    {
+      local_name = algorithm_t::_plugin_name;
+    }
+    else
+    {
+      local_name = name;
+    }
+
+    kwiver::vital::plugin_factory* fact = new kwiver::vital::algorithm_factory_0<algorithm_t>(
+      m_serialize_method, // group name
+      local_name );
+
+    fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::_plugin_description)
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME,  this->module_name() )
+      .add_attribute( kvpf::PLUGIN_ORGANIZATION, this->organization() )
+      ;
+
+    return plugin_loader().add_factory( fact );
+  }
+
+
+  // ----------------------------------------------------------------------------
+  /// Register an algorithm plugin.
+  /**
+   * An algorithm of the specified type is registered with the plugin
+   * manager.
+   *
+   * \tparam tool_t Type of the algorithm being registered.
+   *
+   * \return The plugin loader reference is returned.
+   */
+  template <typename algorithm_t>
+  kwiver::vital::plugin_factory_handle_t
+  register_algorithm()
+  {
+    const std::string no_name;
+    return register_algorithm<algorithm_t>( no_name );
+  }
+};
+
 } } // end namespace
 
 #endif // VITAL_ALGO_ALGORITHM_FACTORY_H
