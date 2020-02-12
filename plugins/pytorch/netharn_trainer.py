@@ -116,9 +116,9 @@ class NetHarnTrainer( TrainDetector ):
             self._validation_file = self._tmp_validation_file
 
         self._training_writer = \
-          DetectedObjectSetOutput( "DetectedObjectSetOutputCoco" )
+          DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
         self._validation_writer = \
-          DetectedObjectSetOutput( "DetectedObjectSetOutputCoco" )
+          DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
 
         self._training_writer.open( self._training_file )
         self._validation_writer.open( self._validation_file )
