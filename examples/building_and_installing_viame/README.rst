@@ -16,7 +16,7 @@ Next, use the offline quick start guide located at the below link to complete th
 
 `VIAME Offline Installation`_
 
-.. _VIAME Offline Installation: https://data.kitware.com/api/v1/item/5e3884ffaf2e2eed35625692/download
+.. _VIAME Offline Installation: https://data.kitware.com/api/v1/item/5e433c67af2e2eed358fc82b/download
 
 
 ==========================
