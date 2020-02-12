@@ -180,6 +180,7 @@ class NetHarnTrainer( TrainDetector ):
                 "--multiscale=True",
                 "--normalize_inputs=True",
                 "--workers=4",
+                "--sampler_backend=none",
                 "--xpu=" + gpu_string,
                 "--batch_size=8",
                 "--bstep=4" ]
