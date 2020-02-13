@@ -140,26 +140,6 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_CUDA AND WIN32 )
   list( APPEND VIAME_PYTHON_DEP_CMDS "torchvision==0.4.1+cpu -f ${TV_ARCHIVE}" )
 endif()
 
-if( VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_DEPS scriptconfig )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "scriptconfig" )
-
-  list( APPEND VIAME_PYTHON_DEPS kwarray )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "kwarray" )
-
-  list( APPEND VIAME_PYTHON_DEPS kwimage )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "kwimage" )
-
-  list( APPEND VIAME_PYTHON_DEPS kwplot )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "kwplot" )
-
-  list( APPEND VIAME_PYTHON_DEPS ndsampler )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "ndsampler" )
-
-  list( APPEND VIAME_PYTHON_DEPS netharn )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "netharn" )
-endif()
-
 # ------------------------------------------------------------------------------
 
 set( PYTHON_BASEPATH
