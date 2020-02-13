@@ -260,7 +260,7 @@ def _kwimage_to_kwiver_detections(detections):
 
     # convert segmentation masks
     if 'segmentations' in detections.data:
-        raise NotImplementedError
+        print( "Warning: segmentations not implemented" )
 
     boxes = detections.boxes.to_tlbr()
     scores = detections.scores
