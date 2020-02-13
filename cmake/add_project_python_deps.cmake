@@ -151,10 +151,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS kwimage )
   list( APPEND VIAME_PYTHON_DEP_CMDS "kwimage" )
 
-  if( WIN32 OR APPLE )
-    message( FATAL_ERROR "pip install kwimage does not currently work on non-linux systems" )
-  endif()
-
   list( APPEND VIAME_PYTHON_DEPS kwplot )
   list( APPEND VIAME_PYTHON_DEP_CMDS "kwplot" )
 
