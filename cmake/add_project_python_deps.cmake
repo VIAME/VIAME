@@ -147,7 +147,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS kwarray )
   list( APPEND VIAME_PYTHON_DEP_CMDS "kwarray" )
 
-  # Currently only works on linux for now
   list( APPEND VIAME_PYTHON_DEPS kwimage )
   list( APPEND VIAME_PYTHON_DEP_CMDS "kwimage" )
 
