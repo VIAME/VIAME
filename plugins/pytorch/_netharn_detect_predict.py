@@ -410,7 +410,7 @@ class SingleImageDataset(torch_data.Dataset):
         chip_hwc = self.full_image[slice_]
 
         # Resize the image patch if necessary
-        if self.input_dims is not None:
+        if self.input_dims is not None and self.input_dims != 'window':
             letterbox = nh.data.transforms.Resize(None, mode='letterbox')
             letterbox.target_size = self.input_dims[::-1]
             # Record the inverse transformation
