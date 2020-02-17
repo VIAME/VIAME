@@ -413,6 +413,20 @@ class SRNNTracker(KwiverProcess):
     def _convert_detected_objects(
             self, bboxes, dos, sys_frame_id, sys_frame_time, image, homog_src_to_base,
     ):
+        """Turn a list of DetectedObjects into a feature-enhanced
+        DetectedObjectSet and list of track_states.
+
+        Parameters:
+        - bboxes: List of BoundingBoxes corresponding to the
+          DetectedObjects
+        - dos: The list of DetectedObjects
+        - sys_frame_id: The externally provided frame ID
+        - sys_frame_time: The externally provided time
+        - image: PIL image for the current frame
+        - homog_src_to_base: 3x3 ndarray transforming current to
+          "base" coordinates
+
+        """
         # interaction features
         grid_feature_list = timing('grid feature', lambda: (
             self._grid(image.size, bboxes)))
