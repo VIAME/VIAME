@@ -147,7 +147,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
   else()
     if( "${LIB}" STREQUAL "mmcv" )
       set( LIBRARY_PIP_BUILD_CMD
--       ${PYTHON_EXECUTABLE} setup.py
+        ${PYTHON_EXECUTABLE} setup.py
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
     else()
       set( LIBRARY_PIP_BUILD_CMD
