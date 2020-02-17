@@ -64,6 +64,14 @@ from .utils.models import get_config
 
 g_config = get_config()
 
+def timing(desc, f):
+    """Return f(), printing a message about how long it took"""
+    start = timer()
+    result = f()
+    end = timer()
+    print('%%%', desc, ' elapsed time: ', end - start, sep='')
+    return result
+
 def ts2ots(track_set):
     ot_list = [Track(id=t.track_id) for t in track_set]
 
@@ -357,14 +365,6 @@ class SRNNTracker(KwiverProcess):
         in particular self._track_set.
 
         """
-        def timing(desc, f):
-            """Return f(), printing a message about how long it took"""
-            start = timer()
-            result = f()
-            end = timer()
-            print('%%%', desc, ' elapsed time: ', end - start, sep='')
-            return result
-
         print('step', self._step_id)
 
         # grab image container from port using traits
