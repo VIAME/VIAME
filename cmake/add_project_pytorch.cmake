@@ -36,7 +36,11 @@ if( VIAME_ENABLE_PYTORCH-MDNET )
 endif()
 
 if( VIAME_ENABLE_PYTORCH-NETHARN )
-  set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} netharn bioharn )
+  if( WIN32 )
+    set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} netharn bioharn )
+  else()
+    set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} bioharn )
+  endif()
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
@@ -184,7 +188,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
                             "${CUDNN_ENV}"
       ${LIBRARY_PIP_INSTALL_CMD} )
 
-  if( "${LIB}" STREQUAL "bioharn" )
+  if( "${LIB}" STREQUAL "bioharn" AND WIN32 )
     set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} netharn )
   elseif( "${LIB}" STREQUAL "netharn" )
     set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} mmdetection )
