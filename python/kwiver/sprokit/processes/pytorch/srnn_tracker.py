@@ -403,6 +403,12 @@ class SRNNTracker(KwiverProcess):
         pt_app_features = timing('app feature', lambda: (
             self._app_feature_extractor(im, bbox_list)))
 
+        if self._gtbbox_flag:
+            fid = ts = self._step_id
+        else:
+            fid = timestamp.get_frame()
+            ts = timestamp.get_time_usec()
+
         track_state_list = []
         next_track_id = int(self._track_set.get_max_track_id()) + 1
 
@@ -410,13 +416,9 @@ class SRNNTracker(KwiverProcess):
         for item, grid_feature, app_feature in zip(dos, grid_feature_list, pt_app_features):
             if self._gtbbox_flag:
                 bbox = item
-                fid = self._step_id
-                ts = self._step_id
                 d_obj = DetectedObject(bbox=item, confidence=1.0)
             else:
                 bbox = item.bounding_box()
-                fid = timestamp.get_frame()
-                ts = timestamp.get_time_usec()
                 d_obj = item
 
             if self._add_features_to_detections:
