@@ -450,16 +450,18 @@ class SRNNTracker(KwiverProcess):
 
             # build track state for current bbox for matching
             bbox_as_list = [bbox.min_x(), bbox.min_y(), bbox.width(), bbox.height()]
-            cur_ts = track_state(frame_id=self._step_id,
-                                bbox_center=bbox.center(),
-                                ref_point=transform_homog(homog_src_to_base, bbox.center()),
-                                interaction_feature=grid_feature,
-                                app_feature=app_feature,
-                                bbox=[int(x) for x in bbox_as_list],
-                                ref_bbox=transform_homog_bbox(homog_src_to_base, bbox_as_list),
-                                detected_object=d_obj,
-                                sys_frame_id=sys_frame_id,
-                                sys_frame_time=sys_frame_time)
+            cur_ts = track_state(
+                frame_id=self._step_id,
+                bbox_center=bbox.center(),
+                ref_point=transform_homog(homog_src_to_base, bbox.center()),
+                interaction_feature=grid_feature,
+                app_feature=app_feature,
+                bbox=[int(x) for x in bbox_as_list],
+                ref_bbox=transform_homog_bbox(homog_src_to_base, bbox_as_list),
+                detected_object=d_obj,
+                sys_frame_id=sys_frame_id,
+                sys_frame_time=sys_frame_time,
+            )
             track_state_list.append(cur_ts)
 
         return det_obj_set, track_state_list
