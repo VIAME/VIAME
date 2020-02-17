@@ -47,16 +47,21 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
         self.images = []
         # Dict mapping category names to numerical IDs
         self.categories = {}
+        # The first ID to be assigned to a category (and then counting
+        # up from there)
+        self.category_start_id = 1
         # The current file object or None
         self.file = None
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetOutput, self).get_configuration()
+        cfg.set_value("category_start_id", str(self.category_start_id))
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
+        self.category_start_id = int(cfg.get_value("category_start_id"))
 
     def check_configuration(self, cfg):
         return True
@@ -84,7 +89,7 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
             if det.type() is not None:
                 d['category_id'] = self.categories.setdefault(
                     det.type().get_most_likely_class(),
-                    len(self.categories),
+                    len(self.categories) + self.category_start_id,
                 )
             self.detections.append(d)
         self.images.append(file_name)
