@@ -9,6 +9,15 @@ Updates since v1.4.0
 
 Vital
 
+
+Vital Types
+
+ * Added ``kwiver::vital::set`` mixin class to define standard set methods as
+   well as iterability.
+
+ * Added iterator, const_iterator and iterable classes to support container-
+   independent iteration.
+
  * Added a parameter to the clone() methods of the track_state, track and
    track_set types controlling whether to make an actual deep copy (default) or
    to make a shallow copy (previous behavior) where elements of the derived

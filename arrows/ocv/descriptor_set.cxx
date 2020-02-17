@@ -202,6 +202,114 @@ descriptors_to_ocv_matrix(const vital::descriptor_set& desc_set)
   return cv::Mat();
 }
 
+/// Return the descriptor at the specified index
+vital::descriptor_sptr
+descriptor_set
+::at( size_t index )
+{
+
+  /// \cond DoxygenSuppress
+#define CONVERT_CASE(T) \
+  case cv::DataType<T>::type:                   \
+  return ocv_to_vital_descriptor<T>( data_.row(index) );
+
+  switch(data_.type())
+  {
+    APPLY_TO_TYPES(CONVERT_CASE);
+  default:
+    VITAL_THROW( vital::invalid_value, "No case to handle OpenCV descriptors of type "
+                               + cv_type_to_string(data_.type()));
+  }
+#undef CONVERT_CASE
+}
+
+/// Return the descriptor at the specified index (const)
+vital::descriptor_sptr const
+descriptor_set
+::at( size_t index ) const
+{
+
+  /// \cond DoxygenSuppress
+#define CONVERT_CASE(T)                         \
+  case cv::DataType<T>::type:                   \
+    return ocv_to_vital_descriptor<T>( data_.row(index) );
+
+  switch(data_.type())
+  {
+    APPLY_TO_TYPES(CONVERT_CASE);
+  default:
+    VITAL_THROW( vital::invalid_value, "No case to handle OpenCV descriptors of type "
+                               + cv_type_to_string(data_.type()));
+  }
+#undef CONVERT_CASE
+}
+
+/// Next-descriptor generation function.
+descriptor_set::iterator::next_value_func_t
+descriptor_set
+::get_iter_next_func()
+{
+  size_t row_counter = 0;
+  // Variable for copy into the lambda instance to hold the current row
+  // descriptor reference.
+  vital::descriptor_sptr d_sptr;
+  return [row_counter,d_sptr,this] () mutable ->iterator::reference {
+    if( row_counter >= size() )
+    {
+      VITAL_THROW( vital::stop_iteration_exception, "descriptor_set" );
+    }
+
+  /// \cond DoxygenSuppress
+#define CONVERT_CASE(T) \
+    case cv::DataType<T>::type:                                         \
+      d_sptr = ocv_to_vital_descriptor<T>( data_.row(row_counter++) ); \
+      break;
+
+  switch(data_.type())
+  {
+    APPLY_TO_TYPES(CONVERT_CASE);
+  default:
+    VITAL_THROW( vital::invalid_value, "No case to handle OpenCV descriptors of type "
+                               + cv_type_to_string(data_.type()));
+  }
+#undef CONVERT_CASE
+    return d_sptr;
+  };
+}
+
+/// Next-descriptor generation function. (const)
+descriptor_set::const_iterator::next_value_func_t
+descriptor_set
+::get_const_iter_next_func() const
+{
+  size_t row_counter = 0;
+  // Variable for copy into the lambda instance to hold the current row
+  // descriptor reference.
+  vital::descriptor_sptr d_sptr;
+  return [row_counter,d_sptr,this] () mutable ->const_iterator::reference {
+    if( row_counter >= size() )
+    {
+      VITAL_THROW( vital::stop_iteration_exception, "descriptor_set" );
+    }
+
+  /// \cond DoxygenSuppress
+#define CONVERT_CASE(T)                         \
+  case cv::DataType<T>::type:                   \
+    d_sptr = ocv_to_vital_descriptor<T>( data_.row(row_counter++) ); \
+    break;
+
+  switch(data_.type())
+  {
+    APPLY_TO_TYPES(CONVERT_CASE);
+  default:
+    VITAL_THROW( vital::invalid_value, "No case to handle OpenCV descriptors of type "
+                               + cv_type_to_string(data_.type()));
+  }
+#undef CONVERT_CASE
+    return d_sptr;
+  };
+}
+
 } // end namespace ocv
 } // end namespace arrows
 } // end namespace kwiver

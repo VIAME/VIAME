@@ -212,17 +212,20 @@ TEST( serialize, detected_object_set )
 
   EXPECT_EQ( 3, obj_dser_set->size() );
 
-  for ( auto obj_dser : *obj_dser_set )
+  kwiver::vital::detected_object_set::const_iterator ei = obj_dser_set->cend();
+  kwiver::vital::detected_object_set::const_iterator obj_dser;
+
+  for ( obj_dser = obj_dser_set->cbegin(); obj_dser != ei; ++obj_dser )
   {
-    EXPECT_EQ( det_obj->bounding_box(), obj_dser->bounding_box() );
-    EXPECT_EQ( det_obj->index(), obj_dser->index() );
-    EXPECT_EQ( det_obj->confidence(), obj_dser->confidence() );
-    EXPECT_EQ( det_obj->detector_name(), obj_dser->detector_name() );
+    EXPECT_EQ( det_obj->bounding_box(), (*obj_dser)->bounding_box() );
+    EXPECT_EQ( det_obj->index(), (*obj_dser)->index() );
+    EXPECT_EQ( det_obj->confidence(), (*obj_dser)->confidence() );
+    EXPECT_EQ( det_obj->detector_name(), (*obj_dser)->detector_name() );
 
     dot = det_obj->type();
     if (dot)
     {
-      auto dot_dser = obj_dser->type();
+      auto dot_dser = (*obj_dser)->type();
 
       EXPECT_EQ( dot->size(), dot_dser->size() );
 

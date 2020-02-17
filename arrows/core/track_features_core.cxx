@@ -308,13 +308,12 @@ track_features_core
           auto track_states = prev_tracks->frame_states(frame_number);
           if( curr_desc->size() == track_states.size() )
           {
-            auto vdesc = curr_desc->descriptors();
             for( size_t i=0; i<track_states.size(); ++i )
             {
               auto fts = std::dynamic_pointer_cast<feature_track_state>(track_states[i]);
               if (fts)
               {
-                fts->descriptor = vdesc[i];
+                fts->descriptor = curr_desc->at(i);
               }
             }
           }
@@ -367,7 +366,6 @@ track_features_core
   }
 
   std::vector<feature_sptr> vf = curr_feat->features();
-  std::vector<descriptor_sptr> df = curr_desc->descriptors();
 
   track_id_t next_track_id = 0;
 
@@ -375,11 +373,11 @@ track_features_core
   if( !prev_tracks )
   {
     typedef std::vector<feature_sptr>::const_iterator feat_itr;
-    typedef std::vector<descriptor_sptr>::const_iterator desc_itr;
+    typedef descriptor_set::const_iterator desc_itr;
     feat_itr fit = vf.begin();
-    desc_itr dit = df.begin();
+    desc_itr dit = curr_desc->begin();
     std::vector<vital::track_sptr> new_tracks;
-    for(; fit != vf.end() && dit != df.end(); ++fit, ++dit)
+    for(; fit != vf.end() && dit != curr_desc->end(); ++fit, ++dit)
     {
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = *fit;
@@ -476,7 +474,7 @@ track_features_core
       track_sptr t = active_tracks[m.first];
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = vf[m.second];
-      fts->descriptor = df[m.second];
+      fts->descriptor = curr_desc->at(m.second);
       if( t->append(fts) || t->insert(fts) )
       {
         matched.insert(m.second);
@@ -504,7 +502,7 @@ track_features_core
     {
       auto fts = std::make_shared<feature_track_state>(frame_number);
       fts->feature = vf[i];
-      fts->descriptor = df[i];
+      fts->descriptor = curr_desc->at(i);
       auto t = vital::track::create();
       t->append(fts);
       t->set_id(next_track_id++);

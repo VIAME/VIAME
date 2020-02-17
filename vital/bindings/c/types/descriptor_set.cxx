@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,23 +134,22 @@ vital_descriptor_set_get_descriptors( vital_descriptor_set_t const *ds,
     "vital_descriptor_set_get_descriptors", eh,
     // Get vector of descriptor sptrs from c++ set instance.
     vital::descriptor_set_sptr ds_sptr = vital_c::DESCRIPTOR_SET_SPTR_CACHE.get( ds );
-    std::vector< vital::descriptor_sptr > descriptor_sptr_vec = ds_sptr->descriptors();
     // Store descriptor sptrs in cache structure and store pointers in
     // malloc'd array.
     vital_descriptor_t **d_array = (vital_descriptor_t**)malloc(
-      sizeof(vital_descriptor_t*) * descriptor_sptr_vec.size()
+      sizeof(vital_descriptor_t*) * ds_sptr->size()
     );
     if ( d_array == NULL )
     {
       throw "Failed to allocate memory for descriptor handle array.";
     }
-    for( size_t i = 0; i < descriptor_sptr_vec.size(); ++i )
+    for( size_t i = 0; i < ds_sptr->size(); ++i )
     {
-      vital_c::DESCRIPTOR_SPTR_CACHE.store( descriptor_sptr_vec[i] );
-      d_array[i] = reinterpret_cast< vital_descriptor_t* >( descriptor_sptr_vec[i].get() );
+      vital_c::DESCRIPTOR_SPTR_CACHE.store( ds_sptr->at(i) );
+      d_array[i] = reinterpret_cast< vital_descriptor_t* >( ds_sptr->at(i).get());
     }
     *out_d_array = d_array;
-    *out_d_array_length = descriptor_sptr_vec.size();
+    *out_d_array_length = ds_sptr->size();
   );
 }
 

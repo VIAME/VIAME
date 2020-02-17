@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -181,7 +181,7 @@ associate_detections_to_tracks_threshold
     {
       vital::track_state_sptr new_track_state(
         new vital::object_track_state( ts,
-          all_detections->begin()[best_index] ) );
+                all_detections->at(best_index) ) );
 
       vital::track_sptr adj_track( all_tracks[t]->clone() );
       adj_track->append( new_track_state );
@@ -201,7 +201,7 @@ associate_detections_to_tracks_threshold
   {
     if( !detections_used[i] )
     {
-      unused_dets.push_back( all_detections->begin()[i] );
+      unused_dets.push_back( all_detections->at(i) );
     }
   }
 

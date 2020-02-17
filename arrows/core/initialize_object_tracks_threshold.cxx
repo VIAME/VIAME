@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,7 +162,7 @@ initialize_object_tracks_threshold
     new_track->set_id( new_id );
 
     vital::track_state_sptr first_track_state(
-      new vital::object_track_state( ts, filtered->begin()[i] ) );
+      new vital::object_track_state( ts, filtered->at(i) ) );
 
     new_track->append( first_track_state );
 

@@ -168,12 +168,12 @@ read_features(Archive & ar, size_t num_feat)
 // Helper function to serialized a vector of descriptors of known type
 template <typename Archive, typename T>
 void
-save_descriptors(Archive & ar, std::vector<descriptor_sptr> const& descriptors)
+save_descriptors(Archive & ar, descriptor_set_sptr const& descriptors)
 {
   // dimensionality of each descriptor
-  cereal::size_type dim = descriptors[0]->size();
+  cereal::size_type dim = descriptors->at(0)->size();
   ar( cereal::make_size_tag( dim ) );
-  for( const descriptor_sptr d : descriptors )
+  for( descriptor_sptr const d : *descriptors )
   {
     if( !d )
     {
@@ -439,16 +439,14 @@ feature_descriptor_io
 
   if( desc && desc->size() > 0 )
   {
-    std::vector<descriptor_sptr> descriptors = desc->descriptors();
-
-    ar( cereal::make_size_tag( static_cast<cereal::size_type>(descriptors.size()) ) ); // number of elements
-    uint8_t type_code = code_from_typeid(descriptors[0]->data_type());
+    ar( cereal::make_size_tag( static_cast<cereal::size_type>(desc->size()) ) ); // number of elements
+    uint8_t type_code = code_from_typeid(desc->at(0)->data_type());
     ar( type_code );
     switch( type_code )
     {
 #define DO_CASE(T)                                       \
       case type_traits<T>::code:                         \
-        save_descriptors<Archive_t, T>(ar, descriptors); \
+        save_descriptors<Archive_t, T>(ar, desc); \
         break
 
       DO_CASE(uint8_t);
@@ -465,7 +463,7 @@ feature_descriptor_io
 
       default:
         VITAL_THROW( vital::invalid_data, std::string("descriptor type not supported: ")
-                                  + descriptors[0]->data_type().name());
+                     + desc->at(0)->data_type().name());
     }
   }
   else

@@ -91,8 +91,8 @@ public:
     std::vector<rsdl_point> fixedpts;
     const std::vector<feature_sptr> &feat1_vec = feat1->features();
     const std::vector<feature_sptr> &feat2_vec = feat2->features();
-    const std::vector<descriptor_sptr> &desc1_vec = desc1->descriptors();
-    const std::vector<descriptor_sptr> &desc2_vec = desc2->descriptors();
+    const std::vector<descriptor_sptr> desc1_vec( desc1->cbegin(), desc1->cend() );
+    const std::vector<descriptor_sptr> desc2_vec( desc2->cbegin(), desc2->cend() );
 
     for (unsigned int i = 0; i < feat2_vec.size(); i++)
     {

@@ -138,9 +138,14 @@ void save( ::cereal::JSONOutputArchive&                archive,
 {
   archive( ::cereal::make_nvp( "size", obj.size() ) );
 
-  for ( const auto& element : const_cast< kwiver::vital::detected_object_set& >(obj) )
+  using dos = kwiver::vital::detected_object_set;
+
+  dos::const_iterator ie = obj.cend();
+  dos::const_iterator element;
+
+  for ( element = obj.cbegin(); element != ie; ++element )
   {
-    save( archive, *element );
+    save( archive, **element );
   }
 
   // currently not handling atributes
