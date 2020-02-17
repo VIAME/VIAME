@@ -122,8 +122,6 @@ class SRNNTracker(KwiverProcess):
 
         self.__declare_config_traits()
 
-        self._track_flag = False
-
         # AFRL start id : 0
         # MOT start id : 1
         self._step_id = 0
@@ -441,58 +439,51 @@ class SRNNTracker(KwiverProcess):
                                 sys_frame_id=fid, sys_frame_time=ts)
             track_state_list.append(cur_ts)
 
-        # if there are no tracks, generate new tracks from the track_state_list
-        if not self._track_flag:
-            for ts in track_state_list:
-                if ts.detected_object.confidence() >= self._track_initialization_threshold:
-                    self._track_set.add_new_track_state(next_track_id, ts)
+        # check whether we need to terminate a track
+        for track in list(self._track_set.iter_active()):
+            # terminating a track based on readin_frame_id or original_frame_id gap
+            if (self._step_id - track[-1].frame_id > self._terminate_track_threshold
+                or fid - track[-1].sys_frame_id > self._sys_terminate_track_threshold):
+                self._track_set.deactivate_track(track)
+
+        # Get a list of the active tracks
+        tracks = list(self._track_set.iter_active())
+
+        # call IOU tracker
+        if self._IOU_flag:
+            tracks, track_state_list = timing('IOU tracking', lambda: (
+                self._iou_tracker(tracks, track_state_list)
+            ))
+
+        #print('***track_set len', len(self._track_set))
+        #print('***track_state_list len', len(track_state_list))
+
+        # estimate similarity matrix
+        similarity_mat = timing('SRNN association', lambda: (
+            self._srnn_matching(tracks, track_state_list, self._ts_threshold)
+        ))
+
+        # Hungarian algorithm
+        row_idx_list, col_idx_list = timing('Hungarian algorithm', lambda: (
+            sp.optimize.linear_sum_assignment(similarity_mat)
+        ))
+
+        # Contains the row associated with each column, or None
+        hung_idx_list = [None] * len(track_state_list)
+        for r, c in zip(row_idx_list, col_idx_list):
+            hung_idx_list[c] = r
+
+        for c, r in enumerate(hung_idx_list):
+            if r is None or -similarity_mat[r, c] < self._similarity_threshold:
+                # Conditionally initialize a new track
+                if (track_state_list[c].detected_object.confidence()
+                       >= self._track_initialization_threshold):
+                    self._track_set.add_new_track_state(next_track_id,
+                            track_state_list[c])
                     next_track_id += 1
-            self._track_flag = True
-        else:
-            # check whether we need to terminate a track
-            for track in list(self._track_set.iter_active()):
-                # terminating a track based on readin_frame_id or original_frame_id gap
-                if (self._step_id - track[-1].frame_id > self._terminate_track_threshold
-                    or fid - track[-1].sys_frame_id > self._sys_terminate_track_threshold):
-                    self._track_set.deactivate_track(track)
-
-            tracks = list(self._track_set.iter_active())
-
-            # call IOU tracker
-            if self._IOU_flag:
-                tracks, track_state_list = timing('IOU tracking', lambda: (
-                    self._iou_tracker(tracks, track_state_list)
-                ))
-
-            #print('***track_set len', len(self._track_set))
-            #print('***track_state_list len', len(track_state_list))
-
-            # estimate similarity matrix
-            similarity_mat = timing('SRNN association', lambda: (
-                self._srnn_matching(tracks, track_state_list, self._ts_threshold)
-            ))
-
-            # Hungarian algorithm
-            row_idx_list, col_idx_list = timing('Hungarian algorithm', lambda: (
-                sp.optimize.linear_sum_assignment(similarity_mat)
-            ))
-
-            # Contains the row associated with each column, or None
-            hung_idx_list = [None] * len(track_state_list)
-            for r, c in zip(row_idx_list, col_idx_list):
-                hung_idx_list[c] = r
-
-            for c, r in enumerate(hung_idx_list):
-                if r is None or -similarity_mat[r, c] < self._similarity_threshold:
-                    # Conditionally initialize a new track
-                    if (track_state_list[c].detected_object.confidence()
-                           >= self._track_initialization_threshold):
-                        self._track_set.add_new_track_state(next_track_id,
-                                track_state_list[c])
-                        next_track_id += 1
-                else:
-                    # add to existing track
-                    tracks[r].append(track_state_list[c])
+            else:
+                # add to existing track
+                tracks[r].append(track_state_list[c])
 
         print('total tracks', len(self._track_set))
 
