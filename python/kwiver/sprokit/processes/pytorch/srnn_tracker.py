@@ -410,7 +410,6 @@ class SRNNTracker(KwiverProcess):
             ts = timestamp.get_time_usec()
 
         track_state_list = []
-        next_track_id = int(self._track_set.get_max_track_id()) + 1
 
         # get new track state from new frame and detections
         for item, grid_feature, app_feature in zip(dos, grid_feature_list, pt_app_features):
@@ -441,15 +440,30 @@ class SRNNTracker(KwiverProcess):
                                 sys_frame_id=fid, sys_frame_time=ts)
             track_state_list.append(cur_ts)
 
+        self._step_track_set(fid, track_state_list)
+
+        return det_obj_set
+
+
+    def _step_track_set(self, frame_id, track_state_list):
+        """Step self._track_set using the current frame id and the list of
+        track states.
+
+        This deactivates old tracks, extends existing ones, and
+        creates new ones according to this object's configuration.
+
+        """
         # check whether we need to terminate a track
         for track in list(self._track_set.iter_active()):
             # terminating a track based on readin_frame_id or original_frame_id gap
             if (self._step_id - track[-1].frame_id > self._terminate_track_threshold
-                or fid - track[-1].sys_frame_id > self._sys_terminate_track_threshold):
+                or frame_id - track[-1].sys_frame_id > self._sys_terminate_track_threshold):
                 self._track_set.deactivate_track(track)
 
         # Get a list of the active tracks
         tracks = list(self._track_set.iter_active())
+
+        next_track_id = int(self._track_set.get_max_track_id()) + 1
 
         # call IOU tracker
         if self._IOU_flag:
@@ -488,8 +502,6 @@ class SRNNTracker(KwiverProcess):
                 tracks[r].append(track_state_list[c])
 
         print('total tracks', len(self._track_set))
-
-        return det_obj_set
 
 
     def _step_homog_state(self, homog_f2f):
