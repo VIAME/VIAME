@@ -382,7 +382,8 @@ class SRNNTracker(KwiverProcess):
 
         # Get detection bbox
         if self._gtbbox_flag:
-            dos = bbox_list = self._m_bbox[self._step_id]
+            bbox_list = self._m_bbox[self._step_id]
+            dos = [DetectedObject(bbox=bbox, confidence=1.) for bbox in bbox_list]
         else:
             dos = dos_ptr.select(self._select_threshold)
             bbox_list = [item.bounding_box() for item in dos]
@@ -412,14 +413,9 @@ class SRNNTracker(KwiverProcess):
         track_state_list = []
 
         # get new track state from new frame and detections
-        for item, grid_feature, app_feature in zip(dos, grid_feature_list, pt_app_features):
-            if self._gtbbox_flag:
-                bbox = item
-                d_obj = DetectedObject(bbox=item, confidence=1.0)
-            else:
-                bbox = item.bounding_box()
-                d_obj = item
-
+        for bbox, d_obj, grid_feature, app_feature in zip(
+                bbox_list, dos, grid_feature_list, pt_app_features,
+        ):
             if self._add_features_to_detections:
                 # store app feature to detected_object
                 app_f = new_descriptor(g_config.A_F_num)
