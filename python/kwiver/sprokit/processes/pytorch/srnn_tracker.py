@@ -391,11 +391,28 @@ class SRNNTracker(KwiverProcess):
 
         homog_src_to_base = self._step_homog_state(homog_f2f)
 
-        det_obj_set = DetectedObjectSet()
         if len(dos) == 0:
             print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
-            return det_obj_set
+            return DetectedObjectSet()
 
+        if self._gtbbox_flag:
+            fid = ts = self._step_id
+        else:
+            fid = timestamp.get_frame()
+            ts = timestamp.get_time_usec()
+
+        det_obj_set, track_state_list = self._convert_detected_objects(
+            bbox_list, dos, fid, ts, im, homog_src_to_base,
+        )
+
+        self._step_track_set(fid, track_state_list)
+
+        return det_obj_set
+
+
+    def _convert_detected_objects(
+            self, bbox_list, dos, fid, ts, im, homog_src_to_base,
+    ):
         # interaction features
         grid_feature_list = timing('grid feature', lambda: (
             self._grid(im.size, bbox_list)))
@@ -404,12 +421,7 @@ class SRNNTracker(KwiverProcess):
         pt_app_features = timing('app feature', lambda: (
             self._app_feature_extractor(im, bbox_list)))
 
-        if self._gtbbox_flag:
-            fid = ts = self._step_id
-        else:
-            fid = timestamp.get_frame()
-            ts = timestamp.get_time_usec()
-
+        det_obj_set = DetectedObjectSet()
         track_state_list = []
 
         # get new track state from new frame and detections
@@ -436,9 +448,7 @@ class SRNNTracker(KwiverProcess):
                                 sys_frame_id=fid, sys_frame_time=ts)
             track_state_list.append(cur_ts)
 
-        self._step_track_set(fid, track_state_list)
-
-        return det_obj_set
+        return det_obj_set, track_state_list
 
 
     def _step_track_set(self, frame_id, track_state_list):
