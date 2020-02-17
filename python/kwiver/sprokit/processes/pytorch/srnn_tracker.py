@@ -382,11 +382,10 @@ class SRNNTracker(KwiverProcess):
 
         # Get detection bbox
         if self._gtbbox_flag:
-            bbox_list = self._m_bbox[self._step_id]
-            dos = [DetectedObject(bbox=bbox, confidence=1.) for bbox in bbox_list]
+            dos = [DetectedObject(bbox=bbox, confidence=1.)
+                   for bbox in self._m_bbox[self._step_id]]
         else:
             dos = dos_ptr.select(self._select_threshold)
-            bbox_list = [item.bounding_box() for item in dos]
         #print('bbox list len is', dos.size())
 
         homog_src_to_base = self._step_homog_state(homog_f2f)
@@ -402,7 +401,7 @@ class SRNNTracker(KwiverProcess):
             ts = timestamp.get_time_usec()
 
         det_obj_set, track_state_list = self._convert_detected_objects(
-            bbox_list, dos, fid, ts, im, homog_src_to_base,
+            dos, fid, ts, im, homog_src_to_base,
         )
 
         self._step_track_set(fid, track_state_list)
@@ -411,14 +410,12 @@ class SRNNTracker(KwiverProcess):
 
 
     def _convert_detected_objects(
-            self, bboxes, dos, sys_frame_id, sys_frame_time, image, homog_src_to_base,
+            self, dos, sys_frame_id, sys_frame_time, image, homog_src_to_base,
     ):
         """Turn a list of DetectedObjects into a feature-enhanced
         DetectedObjectSet and list of track_states.
 
         Parameters:
-        - bboxes: List of BoundingBoxes corresponding to the
-          DetectedObjects
         - dos: The list of DetectedObjects
         - sys_frame_id: The externally provided frame ID
         - sys_frame_time: The externally provided time
@@ -427,6 +424,8 @@ class SRNNTracker(KwiverProcess):
           "base" coordinates
 
         """
+        bboxes = [d_obj.bounding_box() for d_obj in dos]
+
         # interaction features
         grid_feature_list = timing('grid feature', lambda: (
             self._grid(image.size, bboxes)))
