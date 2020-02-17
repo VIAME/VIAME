@@ -411,22 +411,22 @@ class SRNNTracker(KwiverProcess):
 
 
     def _convert_detected_objects(
-            self, bbox_list, dos, fid, ts, im, homog_src_to_base,
+            self, bboxes, dos, sys_frame_id, sys_frame_time, image, homog_src_to_base,
     ):
         # interaction features
         grid_feature_list = timing('grid feature', lambda: (
-            self._grid(im.size, bbox_list)))
+            self._grid(image.size, bboxes)))
 
         # appearance features (format: pytorch tensor)
         pt_app_features = timing('app feature', lambda: (
-            self._app_feature_extractor(im, bbox_list)))
+            self._app_feature_extractor(image, bboxes)))
 
         det_obj_set = DetectedObjectSet()
         track_state_list = []
 
         # get new track state from new frame and detections
         for bbox, d_obj, grid_feature, app_feature in zip(
-                bbox_list, dos, grid_feature_list, pt_app_features,
+                bboxes, dos, grid_feature_list, pt_app_features,
         ):
             if self._add_features_to_detections:
                 # store app feature to detected_object
@@ -445,7 +445,8 @@ class SRNNTracker(KwiverProcess):
                                 bbox=[int(x) for x in bbox_as_list],
                                 ref_bbox=transform_homog_bbox(homog_src_to_base, bbox_as_list),
                                 detected_object=d_obj,
-                                sys_frame_id=fid, sys_frame_time=ts)
+                                sys_frame_id=sys_frame_id,
+                                sys_frame_time=sys_frame_time)
             track_state_list.append(cur_ts)
 
         return det_obj_set, track_state_list
