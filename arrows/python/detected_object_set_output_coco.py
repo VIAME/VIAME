@@ -90,12 +90,12 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
         self.images.append(file_name)
 
     def complete(self):
-        now = datetime.datetime.now().astimezone()
+        now = datetime.datetime.now(datetime.timezone.utc).astimezone()
         json.dump(dict(
             info=dict(
                 year=now.year,
                 description="Created by DetectedObjectSetOutputCoco",
-                date_created=now.isoformat(' ', 'seconds'),
+                date_created=now.replace(microsecond=0).isoformat(' '),
             ),
             annotations=[dict(d, id=i)
                          for i, d in enumerate(self.detections)],
