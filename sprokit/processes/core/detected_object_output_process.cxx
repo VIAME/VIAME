@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,6 +172,14 @@ void detected_object_output_process
 
     d->m_writer->write_set( input, file_name );
   }
+}
+
+
+// ----------------------------------------------------------------
+void detected_object_output_process
+::_finalize()
+{
+  d->m_writer->complete();
 }
 
 
