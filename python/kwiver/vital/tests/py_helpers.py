@@ -57,6 +57,8 @@ from kwiver.vital.types import (
     TrackState,
 )
 
+from kwiver.vital.config import config
+
 
 def random_point_3d(stddev):
     """
@@ -235,7 +237,6 @@ def map_dtype_name_to_pixel_type(dtype_name):
         want = dtype_name
     return want
 
-
 # Just gets a list of num_desc track_descriptors, each with td_size random entries
 # Returns a track_descriptor_set and a copy of the lists used to set each track_descriptor
 def create_track_descriptor_set(td_size=5, num_desc=3):
@@ -293,3 +294,18 @@ def no_call_pure_virtual_method(mthd, *args, **kwargs):
                 RuntimeError, "Tried to call pure virtual function",
             ):
                 mthd(*args, **kwargs)
+
+def generate_dummy_config(**kwargs):
+    """
+    Create an instance of kwiver.vital.config based on the named arguments
+    provided to the function
+    :param kwargs: Named arguments provided to the function
+    :return An instance of config with named arguments as attributes
+    """
+    test_cfg = config.empty_config()
+    for var_name in kwargs:
+        if isinstance(type(kwargs[var_name]), type(config)):
+            test_config.merge_config(kwargs[var_name])
+        else:
+            test_cfg.set_value(str(var_name), str(kwargs[var_name]))
+    return test_cfg
