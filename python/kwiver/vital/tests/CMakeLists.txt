@@ -7,12 +7,14 @@ add_subdirectory(cpp_helpers)
 # Define modules with tests in them
 set(__testable_modnames
   test_activity
+  test_algorithms_common
   test_algorithm_factory
   test_activity_type
   test_bounding_box
   test_camera
   test_camera_intrinsics
   test_category_hierarchy
+  test_close_loops
   test_config
   test_camera_map
   test_camera_perspective
@@ -70,6 +72,7 @@ set(__testable_modnames
   test_track_state
   test_transform_2d
   test_uid
+  test_transform_2d_io
   )
 
 # All python filenames_we in the vital.tests module

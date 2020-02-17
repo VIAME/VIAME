@@ -72,6 +72,29 @@ class write_track_descriptor_set_trampoline :
   public:
     using algorithm_def_wtds_trampoline< write_track_descriptor_set_base>::
               algorithm_def_wtds_trampoline;
+
+    void open( std::string const& filename ) override
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        void,
+        kwiver::vital::algo::write_track_descriptor_set,
+        open,
+        filename
+      );
+    }
+
+
+    void close() override
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        void,
+        kwiver::vital::algo::write_track_descriptor_set,
+        close,
+      );
+    }
+
+
+
     void
     write_set( const kwiver::vital::track_descriptor_set_sptr set ) override
     {

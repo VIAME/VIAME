@@ -1,6 +1,4 @@
-import pkg_resources
-from pkg_resources import iter_entry_points
-
+from pkg_resources import iter_entry_points, DistributionNotFound
 from kwiver.vital import vital_logging
 from kwiver import PYTHON_PLUGIN_ENTRYPOINT, CPP_SEARCH_PATHS_ENTRYPOINT
 import kwiver
@@ -22,9 +20,8 @@ def get_python_plugins_from_entrypoint():
             try:
                 py_modules.append(entry_point.load())
             except ImportError:
-                logger.warn('unable to import {0}'.format(entry_point.name))
-                continue
-    except pkg_resources.DistributionNotFound:
+                logger.warn("Failed to load entry point: {0}".format(entry_point))
+    except DistributionNotFound:
         pass
     return py_modules
 
@@ -40,17 +37,17 @@ def get_cpp_paths_from_entrypoint():
             try:
                 search_path = entry_point.load()()
             except ImportError:
-                logger.warn('Search path associated with {0} does not exist'\
-                                .format(entry_point.name))
+                logger.warn("Failed to load entry point: {0}".format(entry_point))
                 continue
+
             if os.path.exists(search_path):
                 additional_search_paths.append(search_path)
             else:
-                logger.warn('Invalid search path {0} specified by {1}'\
-                            .format(search_path,
-                            entry_point.name))
-    except pkg_resources.DistributionNotFound:
+                logger.warn('Invalid search path {0} specified by {1}'.format(search_path,
+                            entry_point))
+    except DistributionNotFound:
         pass
+
     return additional_search_paths
 
 def add_entrypoint_paths_to_env():

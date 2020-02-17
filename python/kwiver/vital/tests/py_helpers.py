@@ -309,3 +309,55 @@ def generate_dummy_config(**kwargs):
         else:
             test_cfg.set_value(str(var_name), str(kwargs[var_name]))
     return test_cfg
+
+class CommonConfigurationMixin(object):
+    """
+    A mixin used by algorithm implementations that were created for testing. It
+    provides a configuration with threshold key when it is used by the algorithm
+
+    Note: This mixin is intended only for simple algorithms that were written
+          for testing kwiver.vital.algo bindings
+    """
+    threshold = 0.0
+
+    def __init__(self):
+        """
+        Constructor for the mixin
+        :return None
+        """
+        super(CommonConfigurationMixin, self).__init__()
+
+    def get_configuration(self):
+        """
+        The mixin gets the configuration from super, creates a configuration
+        with threshold and merges the two
+        :return A kwiver.vital.config.Config object with threshold key
+        """
+        base_cfg = super(CommonConfigurationMixin, self).get_configuration()
+        cfg = config.empty_config()
+        cfg.set_value("threshold", str(self.threshold))
+        cfg.merge_config(base_cfg)
+        return cfg
+
+    def set_configuration(self, cfg_in):
+        """
+        Alter attributes based on configuration
+        :param cfg_in: A kwiver.vital.config.Config object that can be used to
+                       alter algorithm attributes
+        :return None
+        """
+        cfg = self.get_configuration()
+        cfg.merge_config(cfg_in)
+        self.threshold = float(cfg.get_value("threshold"))
+
+    def check_configuration(self, cfg):
+        """
+        Check configuration based on member attributes
+        :param cfg_in: A kwiver.vital.config.Config object that must be verified
+        :return A boolean value representing the succeess of check
+        """
+        current_check = False
+        if cfg.has_value("threshold") and \
+           float(cfg.get_value("threshold"))==self.threshold:
+            current_check = True
+        return current_check

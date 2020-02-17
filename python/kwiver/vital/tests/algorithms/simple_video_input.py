@@ -27,41 +27,29 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-Tests for image object detector interface class
 """
-from __future__ import print_function, absolute_import
-
-import nose.tools
-
-from kwiver.vital.algo import ImageObjectDetector
-from kwiver.vital.types import Image
-from kwiver.vital.types import ImageContainer
-from kwiver.vital.types import DetectedObjectSet
-from kwiver.vital.modules import modules
-from kwiver.vital.tests.helpers import generate_dummy_config
-from kwiver.vital.config import config
 
 
-def _dummy_detector_cfg():
-    return generate_dummy_config(threshold=0.4)
+from kwiver.vital.algo import VideoInput
+from kwiver.vital.tests.helpers import CommonConfigurationMixin
 
 
-class TestVitalImageObjectDetector(object):
-    # Test detect function with an instance of example_detector
-    # When an image container is not passed it raises TypeError
-    @nose.tools.raises(TypeError)
-    def test_empty_detect(self):
-        modules.load_known_modules()
-        detector = ImageObjectDetector.create("SimpleImageObjectDetector")
-        detector.detect()
+class SimpleVideoInput(CommonConfigurationMixin, VideoInput):
+    def __init__(self):
+        VideoInput.__init__(self)
 
-    # For an image container it returns a detected object set of size 1
-    def test_detect(self):
-        modules.load_known_modules()
-        detector = ImageObjectDetector.create("SimpleImageObjectDetector")
-        image = Image()
-        image_container = ImageContainer(image)
-        detections = detector.detect(image_container)
-        nose.tools.ok_(detections is not None, "Unexpected empty detections")
-        nose.tools.assert_equal(len(detections), 0)
+
+def __vital_algorithm_register__():
+    from kwiver.vital.algo import algorithm_factory
+
+    # Register Algorithm
+    implementation_name = "SimpleVideoInput"
+    if algorithm_factory.has_algorithm_impl_name(
+        SimpleVideoInput.static_type_name(), implementation_name
+    ):
+        return
+
+    algorithm_factory.add_algorithm(
+        implementation_name, "test simple video input", SimpleVideoInput,
+    )
+    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

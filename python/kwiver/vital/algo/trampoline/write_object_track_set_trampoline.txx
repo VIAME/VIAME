@@ -72,6 +72,30 @@ class write_object_track_set_trampoline :
   public:
     using algorithm_def_wots_trampoline< write_object_track_set_base>::
               algorithm_def_wots_trampoline;
+
+
+    void open( std::string const& filename ) override
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        void,
+        kwiver::vital::algo::write_object_track_set,
+        open,
+        filename
+      );
+    }
+
+
+    void close() override
+    {
+      VITAL_PYBIND11_OVERLOAD(
+        void,
+        kwiver::vital::algo::write_object_track_set,
+        close,
+      );
+    }
+
+
+
     void
     write_set(const kwiver::vital::object_track_set_sptr set) override
     {
