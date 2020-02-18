@@ -26,6 +26,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import itertools
+
 import numpy as np
 import torch
 
@@ -37,16 +39,19 @@ class Grid(object):
         self._target_neighborhood_w = target_neighborhood_w
         self._half_cell_w = int(self._target_neighborhood_w // 2)
 
-    def __call__(self, im_size, bbox_list):
-        return self.obtain_grid_feature_list(im_size, bbox_list)
+    def __call__(self, im_size, bbox_list, extra_bbox_list=None):
+        return self.obtain_grid_feature_list(im_size, bbox_list, extra_bbox_list)
 
-    def obtain_grid_feature_list(self, im_size, bbox_list):
+    def obtain_grid_feature_list(self, im_size, bbox_list, extra_bbox_list=None):
         r"""
             The output of the function is a grid feature list for
             each corresponding bbox of current frame/image
 
             A grid feature records which cells in the configured
             neighborhood have at least one bounding box in them.
+
+            extra_bbox_list, if provided, fills in grid cells but
+            doesn't have features returned for it in the output.
         """
         img_w, img_h = im_size
 
@@ -58,8 +63,9 @@ class Grid(object):
         grid = torch.FloatTensor(self._grid_rows, self._grid_cols).zero_()
 
         bbox_id_centerIDX = []
+        all_bboxes = itertools.chain(bbox_list, extra_bbox_list or ())
         # build the grid for current image
-        for bb in bbox_list:
+        for i, bb in enumerate(all_bboxes):
             x = int(bb.min_x())
             y = int(bb.min_y())
             w = int(bb.width())
@@ -73,7 +79,8 @@ class Grid(object):
             row_idx = int(c_h // cell_h)
             col_idx = int(c_w // cell_w)
 
-            bbox_id_centerIDX.append((row_idx, col_idx))
+            if i < len(bbox_list):
+                bbox_id_centerIDX.append((row_idx, col_idx))
 
             # Assertion for corner cases
             assert row_idx < grid.shape[0]
