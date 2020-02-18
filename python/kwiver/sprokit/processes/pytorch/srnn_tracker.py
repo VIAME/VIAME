@@ -431,11 +431,7 @@ class SRNNTracker(KwiverProcess):
 
         prev_inits = inits.get(self._prev_frame)
         if prev_inits:
-            if self._explicit_initialization:
-                # XXX This has a delayed effect compared to with
-                # normal inits
-                self._track_set.deactivate_all_tracks()
-            else:
+            if not self._explicit_initialization:
                 # XXX Need to perform some sort of NMS (with the
                 # previous frame)
                 raise NotImplementedError
@@ -447,6 +443,11 @@ class SRNNTracker(KwiverProcess):
                 extra_dos=self._prev_all_dos,
             )
 
+            if self._explicit_initialization:
+                # XXX This has a delayed effect compared to with
+                # normal inits
+                self._track_set.deactivate_all_tracks()
+
             # This is the only relevant part of _step_track_set
             # Directly add explicit init tracks
             for tid, ts in zip(prev_inits, prev_track_state_list):
@@ -454,10 +455,7 @@ class SRNNTracker(KwiverProcess):
                 self._track_set.add_new_track_state(tid, ts)
 
         inits = inits.get(timestamp.get_frame(), {})
-        if self._explicit_initialization:
-            if inits:
-                self._track_set.deactivate_all_tracks()
-        else:
+        if not self._explicit_initialization:
             if inits:
                 # XXX Need to perform some sort of NMS
                 raise NotImplementedError
@@ -475,6 +473,9 @@ class SRNNTracker(KwiverProcess):
         )
         track_state_list = all_track_state_list[:len(dos)]
         init_track_state_list = all_track_state_list[len(dos):]
+
+        if self._explicit_initialization and inits:
+            self._track_set.deactivate_all_tracks()
 
         self._step_track_set(fid, track_state_list, zip(inits, init_track_state_list))
 
