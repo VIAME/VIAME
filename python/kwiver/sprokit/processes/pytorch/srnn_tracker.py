@@ -434,7 +434,7 @@ class SRNNTracker(KwiverProcess):
             ts = timestamp.get_time_usec()
 
         det_obj_set, all_track_state_list = self._convert_detected_objects(
-            all_dos, fid, ts, im, homog_src_to_base,
+            all_dos, self._step_id, fid, ts, im, homog_src_to_base,
         )
         track_state_list = all_track_state_list[:len(dos)]
         init_track_state_list = all_track_state_list[len(dos):]
@@ -445,14 +445,15 @@ class SRNNTracker(KwiverProcess):
 
 
     def _convert_detected_objects(
-            self, dos, sys_frame_id, sys_frame_time, image, homog_src_to_base,
-            extra_dos=None, frame_id=None,
+            self, dos, frame_id, sys_frame_id, sys_frame_time,
+            image, homog_src_to_base, extra_dos=None,
     ):
         """Turn a list of DetectedObjects into a feature-enhanced
         DetectedObjectSet and list of track_states.
 
         Parameters:
         - dos: The list of DetectedObjects
+        - frame_id: The current frame ID
         - sys_frame_id: The externally provided frame ID
         - sys_frame_time: The externally provided time
         - image: PIL image for the current frame
@@ -460,12 +461,8 @@ class SRNNTracker(KwiverProcess):
           "base" coordinates
         - extra_dos: (optional) A list of DetectedObjects not
           represented in the output
-        - frame_id: (optional) The current frame ID (default:
-          self._step_id)
 
         """
-        if frame_id is None: frame_id = self._step_id
-
         bboxes = [d_obj.bounding_box() for d_obj in dos]
         extra_bboxes = None if extra_dos is None else [
             d_obj.bounding_box() for d_obj in extra_dos
