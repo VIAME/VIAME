@@ -267,8 +267,8 @@ read_detected_object_set_habcam::priv
 bool
 read_detected_object_set_habcam::priv
 ::parse_box( const std::vector< std::string >& parsed_line,
-           unsigned index,
-           kwiver::vital::bounding_box_d& bbox )
+             unsigned index,
+             kwiver::vital::bounding_box_d& bbox )
 {
   // Generate bbox based on annotation type
   if ( "boundingBox" == parsed_line[ index ] )
