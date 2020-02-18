@@ -73,6 +73,12 @@ def timing(desc, f):
     print('%%%', desc, ' elapsed time: ', end - start, sep='')
     return result
 
+def groupby(it, key):
+    result = {}
+    for x in it:
+        result.setdefault(key(x), []).append(x)
+    return result
+
 def ts2ots(track_set):
     ot_list = [Track(id=t.track_id) for t in track_set]
 
@@ -157,6 +163,13 @@ class SRNNTracker(KwiverProcess):
         self._homog_ref_id = None
         # Mapping from current frame to reference (or None for identity)
         self._homog_src_to_ref = None
+
+        # Old state maintained to allow (limited) use of
+        # initializations from the previous frame
+        #
+        # Other variables of the form self._prev_* are used as well,
+        # but they don't need to be set ahead of time as here.
+        self._prev_frame = None  # Previous frame ID or None
 
         # set up required flags
         optional = process.PortFlags()
@@ -410,9 +423,37 @@ class SRNNTracker(KwiverProcess):
 
         homog_src_to_base = self._step_homog_state(homog_f2f)
 
-        # XXX This apparently won't always work because sometimes the
-        # timestamp is for the previous frame
-        inits = {t.id: t[timestamp.get_frame()].detection() for t in inits}
+        inits = {
+            lf: {t.id: t[lf].detection() for t in tracks} for lf, tracks
+            in groupby(inits, lambda t: t.last_frame).items()
+        }
+        assert inits.keys() <= {self._prev_frame, timestamp.get_frame()}
+
+        prev_inits = inits.get(self._prev_frame)
+        if prev_inits:
+            if self._explicit_initialization:
+                # XXX This has a delayed effect compared to with
+                # normal inits
+                self._track_set.deactivate_all_tracks()
+            else:
+                # XXX Need to perform some sort of NMS (with the
+                # previous frame)
+                raise NotImplementedError
+
+            _, prev_track_state_list = self._convert_detected_objects(
+                list(prev_inits.values()),
+                self._step_id - 1, self._prev_fid, self._prev_ts,
+                self._prev_im, self._prev_homog_src_to_base,
+                extra_dos=self._prev_all_dos,
+            )
+
+            # This is the only relevant part of _step_track_set
+            # Directly add explicit init tracks
+            for tid, ts in zip(prev_inits, prev_track_state_list):
+                # XXX This throws an error should a new ID overlap with an existing one
+                self._track_set.add_new_track_state(tid, ts)
+
+        inits = inits.get(timestamp.get_frame(), {})
         if self._explicit_initialization:
             if inits:
                 self._track_set.deactivate_all_tracks()
@@ -436,6 +477,12 @@ class SRNNTracker(KwiverProcess):
         init_track_state_list = all_track_state_list[len(dos):]
 
         self._step_track_set(fid, track_state_list, zip(inits, init_track_state_list))
+
+        self._prev_frame = timestamp.get_frame()
+        self._prev_fid, self._prev_ts = fid, ts
+        self._prev_im = im
+        self._prev_homog_src_to_base = homog_src_to_base
+        self._prev_all_dos = all_dos
 
         return det_obj_set
 
