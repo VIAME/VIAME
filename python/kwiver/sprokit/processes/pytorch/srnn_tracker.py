@@ -446,6 +446,7 @@ class SRNNTracker(KwiverProcess):
 
     def _convert_detected_objects(
             self, dos, sys_frame_id, sys_frame_time, image, homog_src_to_base,
+            extra_dos=None, frame_id=None,
     ):
         """Turn a list of DetectedObjects into a feature-enhanced
         DetectedObjectSet and list of track_states.
@@ -457,13 +458,22 @@ class SRNNTracker(KwiverProcess):
         - image: PIL image for the current frame
         - homog_src_to_base: 3x3 ndarray transforming current to
           "base" coordinates
+        - extra_dos: (optional) A list of DetectedObjects not
+          represented in the output
+        - frame_id: (optional) The current frame ID (default:
+          self._step_id)
 
         """
+        if frame_id is None: frame_id = self._step_id
+
         bboxes = [d_obj.bounding_box() for d_obj in dos]
+        extra_bboxes = None if extra_dos is None else [
+            d_obj.bounding_box() for d_obj in extra_dos
+        ]
 
         # interaction features
         grid_feature_list = timing('grid feature', lambda: (
-            self._grid(image.size, bboxes)))
+            self._grid(image.size, bboxes, extra_bboxes)))
 
         # appearance features (format: pytorch tensor)
         pt_app_features = timing('app feature', lambda: (
@@ -486,7 +496,7 @@ class SRNNTracker(KwiverProcess):
             # build track state for current bbox for matching
             bbox_as_list = [bbox.min_x(), bbox.min_y(), bbox.width(), bbox.height()]
             cur_ts = track_state(
-                frame_id=self._step_id,
+                frame_id=frame_id,
                 bbox_center=bbox.center(),
                 ref_point=transform_homog(homog_src_to_base, bbox.center()),
                 interaction_feature=grid_feature,
