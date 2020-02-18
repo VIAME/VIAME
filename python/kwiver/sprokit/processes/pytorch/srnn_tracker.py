@@ -423,10 +423,6 @@ class SRNNTracker(KwiverProcess):
 
         all_dos = list(itertools.chain(dos, inits.values()))
 
-        if not all_dos:
-            print('!!! No bbox is provided on this frame.  Skipping this frame !!!')
-            return DetectedObjectSet()
-
         if self._gtbbox_flag:
             fid = ts = self._step_id
         else:
