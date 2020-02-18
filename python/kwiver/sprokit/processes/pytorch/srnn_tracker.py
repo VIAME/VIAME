@@ -296,6 +296,11 @@ class SRNNTracker(KwiverProcess):
                                  'The string "True" (no quotes, same capitalization) '
                                  'if only tracks derived from the most recently provided '
                                  'nonempty object track set should be output')
+
+        add_declare_config_trait('initialization_overlap_threshold', '0.7',
+                                 'When initializations are present, any additional '
+                                 'incoming detection is only considered when its IOU '
+                                 'with each of the initializations is at most this value')
         #-------------------------------------------------------------------
 
     # ----------------------------------------------
@@ -364,6 +369,7 @@ class SRNNTracker(KwiverProcess):
                 (self.config_value('add_features_to_detections') == 'True')
         self._explicit_initialization = \
             self.config_value('explicit_initialization') == 'True'
+        self._init_max_iou = float(self.config_value('initialization_overlap_threshold'))
         self._base_configure()
 
     # ----------------------------------------------
@@ -429,12 +435,33 @@ class SRNNTracker(KwiverProcess):
         }
         assert inits.keys() <= {self._prev_frame, timestamp.get_frame()}
 
+        def max_iou_filter(det_dict, max_iou):
+            """Return a function that takes a DetectedObject and returns true when
+            the overlap of its bounding box with each of the provided
+            detections is at most the provided maximum IOU.
+
+            """
+            # XXX ious should be defined in a more generic place
+            from kwiver.processes.simple_homog_tracker import ious
+            bboxes = []
+            for det in det_dict.values():
+                bb = det.bounding_box()
+                bboxes.append((bb.min_x(), bb.max_x(), bb.min_y(), bb.max_y()))
+            # dims: Nx{x,y}x{min,max}
+            bboxes = np.stack(bboxes).reshape((-1, 2, 2))
+            def run(det):
+                bb = det.bounding_box()
+                bb = np.array(((bb.min_x(), bb.max_x()), (bb.min_y(), bb.max_y())))
+                return (ious(bb, bboxes) <= max_iou).all()
+            return run
+
         prev_inits = inits.get(self._prev_frame)
         if prev_inits:
             if not self._explicit_initialization:
-                # XXX Need to perform some sort of NMS (with the
-                # previous frame)
-                raise NotImplementedError
+                is_overlap_free = max_iou_filter(prev_inits, self._init_max_iou)
+                for track in list(self._track_set.iter_active()):
+                    if not is_overlap_free(track[-1].detected_object):
+                        self._track_set.deactivate_track(track)
 
             _, prev_track_state_list = self._convert_detected_objects(
                 list(prev_inits.values()),
@@ -455,10 +482,9 @@ class SRNNTracker(KwiverProcess):
                 self._track_set.add_new_track_state(tid, ts)
 
         inits = inits.get(timestamp.get_frame(), {})
-        if not self._explicit_initialization:
-            if inits:
-                # XXX Need to perform some sort of NMS
-                raise NotImplementedError
+        if not self._explicit_initialization and inits:
+            is_overlap_free = max_iou_filter(inits, self._init_max_iou)
+            dos = list(filter(is_overlap_free, dos))
 
         all_dos = list(itertools.chain(dos, inits.values()))
 
