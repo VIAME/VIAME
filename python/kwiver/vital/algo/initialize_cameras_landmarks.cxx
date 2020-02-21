@@ -33,6 +33,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void initialize_cameras_landmarks(py::module &m)
@@ -48,4 +51,7 @@ void initialize_cameras_landmarks(py::module &m)
         &kwiver::vital::algo::initialize_cameras_landmarks::initialize)
     .def("set_callback",
         &kwiver::vital::algo::initialize_cameras_landmarks::set_callback);
+}
+}
+}
 }

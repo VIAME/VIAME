@@ -39,6 +39,7 @@ set(__testable_modnames
   test_geo_point
   test_geo_polygon
   test_geodesy
+  test_feature_descriptor_io
   test_homography
   test_homography_f2f
   test_homography_f2w
@@ -46,6 +47,7 @@ set(__testable_modnames
   test_image_container
   test_iqr_feedback
   test_image_object_detector
+  test_image_io
   test_landmark
   test_landmark_map
   test_local_cartesian
@@ -108,4 +110,4 @@ if (KWIVER_ENABLE_TESTS AND NOSE_RUNNER)
 
 endif()
 
-add_subdirectory(algorithms)
+add_subdirectory(alg)

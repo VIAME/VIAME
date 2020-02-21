@@ -45,6 +45,9 @@
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_iio_base=
             kwiver::vital::algorithm_def<
@@ -109,5 +112,9 @@ class image_io_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

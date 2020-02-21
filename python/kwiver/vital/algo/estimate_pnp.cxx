@@ -33,6 +33,9 @@
 #include <python/kwiver/vital/algo/trampoline/estimate_pnp_trampoline.txx>
 #include <python/kwiver/vital/algo/estimate_pnp.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void estimate_pnp(py::module &m)
@@ -46,4 +49,7 @@ void estimate_pnp(py::module &m)
                 &kwiver::vital::algo::estimate_pnp::static_type_name)
     .def("estimate",
          &kwiver::vital::algo::estimate_pnp::estimate);
+}
+}
+}
 }

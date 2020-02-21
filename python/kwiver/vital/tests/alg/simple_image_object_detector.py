@@ -28,37 +28,28 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 
-from kwiver.vital.algo import CloseLoops
-from kwiver.vital.types import CameraMap
+from kwiver.vital.algo import ImageObjectDetector
+from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.tests.helpers import CommonConfigurationMixin
 
 
-class SimpleCloseLoops(CommonConfigurationMixin, CloseLoops):
-    """
-    Implementation of CloseLoops to test it
-
-    Examples:
-    """
+class SimpleImageObjectDetector(CommonConfigurationMixin, ImageObjectDetector):
     def __init__(self):
-        CloseLoops.__init__(self)
-
-    def stich(self, frame_id, feature_track_set, image, mask):
-        frame_id.method()
-        feature_track_set.method()
-        image.method()
-        mask.method()
-        return feature_track_set
-
+        ImageObjectDetector.__init__(self)
+        self.threshold = 0.0
 
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
+
     # Register Algorithm
-    implementation_name  = "SimpleCloseLoops"
+    implementation_name = "SimpleImageObjectDetector"
     if algorithm_factory.has_algorithm_impl_name(
-                            SimpleCloseLoops.static_type_name(),
-                            implementation_name):
+        SimpleImageObjectDetector.static_type_name(), implementation_name
+    ):
         return
-    algorithm_factory.add_algorithm( implementation_name,
-                                "Test kwiver.vital.algo.CloseLoops",
-                                 SimpleCloseLoops )
-    algorithm_factory.mark_algorithm_as_loaded( implementation_name )
+    algorithm_factory.add_algorithm(
+        implementation_name,
+        "Test kwiver.vital.algo.ImageObjectDetector",
+        SimpleImageObjectDetector,
+    )
+    algorithm_factory.mark_algorithm_as_loaded(implementation_name)

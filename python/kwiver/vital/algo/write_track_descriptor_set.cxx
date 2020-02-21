@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void write_track_descriptor_set(py::module &m)
@@ -49,4 +52,7 @@ void write_track_descriptor_set(py::module &m)
         &kwiver::vital::algo::write_track_descriptor_set::close)
     .def("write_set",
         &kwiver::vital::algo::write_track_descriptor_set::write_set);
+}
+}
+}
 }

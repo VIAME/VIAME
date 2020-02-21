@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/uv_unwrap_mesh.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_uvum_base=
             kwiver::vital::algorithm_def<
@@ -84,5 +87,9 @@ class uv_unwrap_mesh_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

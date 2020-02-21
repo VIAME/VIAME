@@ -33,6 +33,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void match_features(py::module &m)
@@ -46,4 +49,7 @@ void match_features(py::module &m)
         &kwiver::vital::algo::match_features::static_type_name)
     .def("match",
         &kwiver::vital::algo::match_features::match);
+}
+}
+}
 }

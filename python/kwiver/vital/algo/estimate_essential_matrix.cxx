@@ -33,6 +33,9 @@
 #include <pybind11/eigen.h>
 #include <python/kwiver/vital/algo/trampoline/estimate_essential_matrix_trampoline.txx>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void estimate_essential_matrix(py::module &m)
@@ -84,4 +87,7 @@ void estimate_essential_matrix(py::module &m)
              std::vector< bool >&,
              double ) const )
          &kwiver::vital::algo::estimate_essential_matrix::estimate );
+}
+}
+}
 }

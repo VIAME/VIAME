@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/initialize_object_tracks.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_iot_base=
             kwiver::vital::algorithm_def<
@@ -89,5 +92,9 @@ class initialize_object_tracks_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void uuid_factory(py::module &m)
@@ -45,4 +48,7 @@ void uuid_factory(py::module &m)
         &kwiver::vital::algo::uuid_factory::static_type_name)
     .def("create_uuid",
          &kwiver::vital::algo::uuid_factory::create_uuid);
+}
+}
+}
 }

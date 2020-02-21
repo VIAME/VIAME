@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void refine_detections(py::module &m)
@@ -44,4 +47,7 @@ void refine_detections(py::module &m)
     .def_static("static_type_name",
         &kwiver::vital::algo::refine_detections::static_type_name)
     .def("refine", &kwiver::vital::algo::refine_detections::refine);
+}
+}
+}
 }

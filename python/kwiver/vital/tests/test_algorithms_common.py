@@ -38,7 +38,7 @@ from kwiver.vital.config import config
 from unittest import TestCase
 from kwiver.vital.tests.helpers import generate_dummy_config
 import kwiver.vital.algo
-import kwiver.vital.algo.algorithm
+import kwiver.vital.algo.algos
 
 
 def _dummy_algorithm_cfg():
@@ -51,7 +51,7 @@ class TestVitalAlgorithmsCommon(object):
         algo_list = []
         for v in kwiver.vital.algo.__dict__.values():
             if isinstance(v, type) and issubclass(
-                v, kwiver.vital.algo.algorithm._algorithm
+                v, kwiver.vital.algo.algos._algorithm
             ):
                 simple_impl_name = "Simple" + v.__name__
                 all_impl_names = [sc.__name__ for sc in v.__subclasses__()]
@@ -77,6 +77,11 @@ class TestVitalAlgorithmsCommon(object):
         algo_list = self.get_algo_list()
         for abstract_algo, simple_impl_name in algo_list:
             yield self.create_helper, abstract_algo, simple_impl_name
+
+    def test_impl_name(self):
+        algo_list = self.get_algo_list()
+        for abstract_algo, simple_impl_name in algo_list:
+            yield self.impl_helper, abstract_algo
 
     def test_config(self):
         algo_list = self.get_algo_list()
@@ -136,8 +141,39 @@ class TestVitalAlgorithmsCommon(object):
 
     def nested_config_helper(self, instance, abstract_algo):
         nested_cfg = config.empty_config()
-        abstract_algo.get_nested_algo_configuration("algorithm", nested_cfg, instance)
+        instance.get_nested_algo_configuration("algorithm", nested_cfg, instance)
 
         nose.tools.ok_(
-            abstract_algo.check_nested_algo_configuration("algorithm", nested_cfg)
+            instance.check_nested_algo_configuration("algorithm", nested_cfg)
         )
+
+        nested_algo = instance.set_nested_algo_configuration("algorithm", nested_cfg)
+
+        # Should have created a concrete algorithm instance
+        nose.tools.ok_(type(instance) is type(nested_algo))
+
+        # Verify that the value for key "threshold" is 0.0
+        threshold_value = nested_algo.get_configuration().get_value("threshold")
+        nose.tools.ok_(
+            threshold_value == "0.0",
+            "threshold config value {}, expected 0.0".format(threshold_value),
+        )
+
+        # Check case where the value for key "type" doesn't match
+        # any implementation
+        nested_cfg.subblock_view("algorithm").set_value("type", "foo")
+
+        # Check should fail
+        nose.tools.assert_false(
+            instance.check_nested_algo_configuration("algorithm", nested_cfg)
+        )
+
+        # Should get back nullptr
+        nose.tools.ok_(
+            instance.set_nested_algo_configuration("algorithm", nested_cfg) is None
+        )
+
+    def impl_helper(self, instance):
+        a = instance.impl_name
+        instance.impl_name = "example_impl_name"
+        nose.tools.assert_equals(instance.impl_name, "example_impl_name")

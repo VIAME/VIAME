@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/write_track_descriptor_set.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_wtds_base=
             kwiver::vital::algorithm_def<
@@ -106,5 +109,9 @@ class write_track_descriptor_set_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

@@ -43,6 +43,9 @@
 #include <vital/algo/estimate_pnp.h>
 #include <vital/types/vector.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_epnp_base=
            kwiver::vital::algorithm_def<
                kwiver::vital::algo::estimate_pnp > >
@@ -91,4 +94,8 @@ class estimate_pnp_trampoline :
       );
     }
 };
+}
+}
+}
+
 #endif

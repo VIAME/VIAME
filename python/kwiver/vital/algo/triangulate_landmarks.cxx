@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void triangulate_landmarks(py::module &m)
@@ -59,4 +62,7 @@ void triangulate_landmarks(py::module &m)
            ) const
          )
          &kwiver::vital::algo::triangulate_landmarks::triangulate);
+}
+}
+}
 }

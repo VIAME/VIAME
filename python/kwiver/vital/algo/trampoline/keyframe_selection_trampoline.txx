@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/keyframe_selection.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_kf_base=
             kwiver::vital::algorithm_def<
@@ -85,5 +88,9 @@ class keyframe_selection_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

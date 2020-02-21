@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/optimize_cameras.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_oc_base=
             kwiver::vital::algorithm_def<
@@ -108,5 +111,9 @@ class optimize_cameras_trampoline :
     }
 
 };
+
+}
+}
+}
 
 #endif

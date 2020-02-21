@@ -32,6 +32,9 @@
 #include <python/kwiver/vital/algo/trampoline/extract_descriptors_trampoline.txx>
 #include <python/kwiver/vital/algo/extract_descriptors.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void extract_descriptors(py::module &m)
@@ -45,4 +48,7 @@ void extract_descriptors(py::module &m)
                 &kwiver::vital::algo::extract_descriptors::static_type_name)
     .def("extract",
          &kwiver::vital::algo::extract_descriptors::extract);
+}
+}
+}
 }

@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void split_image(py::module &m)
@@ -44,4 +47,7 @@ void split_image(py::module &m)
     .def_static("static_type_name",
         &kwiver::vital::algo::split_image::static_type_name)
     .def("split", &kwiver::vital::algo::split_image::split);
+}
+}
+}
 }

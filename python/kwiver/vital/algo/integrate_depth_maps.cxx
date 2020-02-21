@@ -33,6 +33,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void integrate_depth_maps(py::module &m)
@@ -45,5 +48,17 @@ void integrate_depth_maps(py::module &m)
     .def_static("static_type_name",
         &kwiver::vital::algo::integrate_depth_maps::static_type_name)
     .def("integrate",
+        (void (kwiver::vital::algo::integrate_depth_maps::*)
+          (vector_3d const&, vector_3d const&, std::vector<image_container_sptr> const&,
+           std::vector<image_container_sptr> const&, std::vector<camera_perspective_sptr> const&,
+           image_container_sptr&, vector_3d&) const)
+        &kwiver::vital::algo::integrate_depth_maps::integrate)
+    .def("integrate",
+        (void (kwiver::vital::algo::integrate_depth_maps::*)
+          (vector_3d const&, vector_3d const&, std::vector<image_container_sptr> const&,
+           std::vector<camera_perspective_sptr> const&, image_container_sptr&, vector_3d&) const)
         &kwiver::vital::algo::integrate_depth_maps::integrate);
+}
+}
+}
 }

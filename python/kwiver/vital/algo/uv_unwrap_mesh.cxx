@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void uv_unwrap_mesh(py::module &m)
@@ -45,4 +48,7 @@ void uv_unwrap_mesh(py::module &m)
         &kwiver::vital::algo::uv_unwrap_mesh::static_type_name)
     .def("unwrap",
          &kwiver::vital::algo::uv_unwrap_mesh::unwrap);
+}
+}
+}
 }

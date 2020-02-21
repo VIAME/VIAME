@@ -33,6 +33,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void feature_descriptor_io(py::module &m)
@@ -48,4 +51,7 @@ void feature_descriptor_io(py::module &m)
          &kwiver::vital::algo::feature_descriptor_io::load)
     .def("save",
          &kwiver::vital::algo::feature_descriptor_io::save);
+}
+}
+}
 }

@@ -43,6 +43,9 @@
 #include <vital/algo/estimate_fundamental_matrix.h>
 #include <vital/types/vector.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_efm_base=
            kwiver::vital::algorithm_def<
                kwiver::vital::algo::estimate_fundamental_matrix > >
@@ -111,4 +114,8 @@ class estimate_fundamental_matrix_trampoline :
     }
 
 };
+}
+}
+}
+
 #endif

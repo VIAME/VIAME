@@ -43,6 +43,9 @@
 
 #include <python/kwiver/vital/util/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_fdio_base=
            kwiver::vital::algorithm_def<
                kwiver::vital::algo::feature_descriptor_io > >
@@ -100,5 +103,9 @@ class feature_descriptor_io_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 class py_image_io : public kwiver::vital::algo::image_io
@@ -56,4 +59,7 @@ void image_io(py::module &m)
     .def_readonly_static("HAS_TIME",
                           &kwiver::vital::algo::image_io::HAS_TIME)
     .def("set_implementation_capabilities", &py_image_io::set_capability);
+}
+}
+}
 }

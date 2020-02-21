@@ -3,7 +3,14 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void integrate_depth_maps(py::module &m);
+}
+}
+}
+
 #endif

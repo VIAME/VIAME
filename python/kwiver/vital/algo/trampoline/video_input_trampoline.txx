@@ -45,6 +45,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/video_input.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_vi_base=
             kwiver::vital::algorithm_def<
@@ -216,5 +219,9 @@ class video_input_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

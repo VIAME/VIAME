@@ -35,6 +35,9 @@
 #include <pybind11/stl.h>
 #include <pybind11/eigen.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void estimate_similarity_transform(py::module &m)
@@ -77,4 +80,7 @@ void estimate_similarity_transform(py::module &m)
              kwiver::vital::landmark_map_sptr const ) const )
        &kwiver::vital::algo::estimate_similarity_transform::estimate_transform );
 
+}
+}
+}
 }

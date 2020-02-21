@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void transform_2d_io(py::module &m)
@@ -47,4 +50,7 @@ void transform_2d_io(py::module &m)
          &kwiver::vital::algo::transform_2d_io::save)
     .def("load",
          &kwiver::vital::algo::transform_2d_io::load);
+}
+}
+}
 }

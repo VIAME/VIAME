@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/read_track_descriptor_set.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_rtds_base=
             kwiver::vital::algorithm_def<
@@ -104,5 +107,9 @@ class read_track_descriptor_set_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

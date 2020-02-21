@@ -33,6 +33,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void filter_features(py::module &m)
@@ -56,4 +59,7 @@ void filter_features(py::module &m)
            ( kwiver::vital::feature_set_sptr,
              kwiver::vital::descriptor_set_sptr ) const )
          &kwiver::vital::algo::filter_features::filter);
+}
+}
+}
 }

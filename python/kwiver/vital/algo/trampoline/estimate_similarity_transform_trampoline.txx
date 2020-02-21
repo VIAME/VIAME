@@ -42,6 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/estimate_similarity_transform.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_est_base=
            kwiver::vital::algorithm_def<
                kwiver::vital::algo::estimate_similarity_transform > >
@@ -146,4 +149,8 @@ class estimate_similarity_transform_trampoline :
       );
     }
 };
+}
+}
+}
+
 #endif

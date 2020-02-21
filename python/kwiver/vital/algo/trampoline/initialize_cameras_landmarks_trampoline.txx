@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/initialize_cameras_landmarks.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_icl_base=
             kwiver::vital::algorithm_def<
@@ -91,5 +94,9 @@ class initialize_cameras_landmarks_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

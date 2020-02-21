@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/transform_2d_io.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_t2dio_base=
             kwiver::vital::algorithm_def<
@@ -97,5 +100,9 @@ class transform_2d_io_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

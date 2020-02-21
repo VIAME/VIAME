@@ -32,6 +32,9 @@
 #include <python/kwiver/vital/algo/trampoline/draw_tracks_trampoline.txx>
 #include <python/kwiver/vital/algo/draw_tracks.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void draw_tracks(py::module &m)
@@ -45,4 +48,7 @@ void draw_tracks(py::module &m)
                 &kwiver::vital::algo::draw_tracks::static_type_name)
     .def("draw",
          &kwiver::vital::algo::draw_tracks::draw);
+}
+}
+}
 }

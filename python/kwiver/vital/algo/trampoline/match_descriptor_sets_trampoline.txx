@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/match_descriptor_sets.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_mds_base=
             kwiver::vital::algorithm_def<
@@ -110,5 +113,9 @@ class match_descriptor_sets_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

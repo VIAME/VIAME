@@ -33,6 +33,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void match_descriptor_sets(py::module &m)
@@ -50,4 +53,7 @@ void match_descriptor_sets(py::module &m)
         &kwiver::vital::algo::match_descriptor_sets::append_to_index)
     .def("query_and_append",
         &kwiver::vital::algo::match_descriptor_sets::query_and_append);
+}
+}
+}
 }

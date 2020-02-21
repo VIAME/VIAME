@@ -33,6 +33,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void keyframe_selection(py::module &m)
@@ -46,4 +49,7 @@ void keyframe_selection(py::module &m)
         &kwiver::vital::algo::keyframe_selection::static_type_name)
     .def("select",
         &kwiver::vital::algo::keyframe_selection::select);
+}
+}
+}
 }

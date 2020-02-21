@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/interpolate_track.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_it_base=
             kwiver::vital::algorithm_def<
@@ -85,5 +88,9 @@ class interpolate_track_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

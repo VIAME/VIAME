@@ -43,6 +43,9 @@
 #include <vital/algo/estimate_essential_matrix.h>
 #include <vital/types/vector.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_eem_base=
            kwiver::vital::algorithm_def<
                kwiver::vital::algo::estimate_essential_matrix > >
@@ -157,4 +160,8 @@ class estimate_essential_matrix_trampoline :
       );
     }
 };
+}
+}
+}
+
 #endif

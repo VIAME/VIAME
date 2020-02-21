@@ -43,6 +43,9 @@
 #include <vital/algo/estimate_homography.h>
 #include <vital/types/vector.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_eh_base=
            kwiver::vital::algorithm_def<
                kwiver::vital::algo::estimate_homography > >
@@ -111,4 +114,8 @@ class estimate_homography_trampoline :
     }
 
 };
+}
+}
+}
+
 #endif

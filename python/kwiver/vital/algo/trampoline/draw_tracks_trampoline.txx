@@ -42,6 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/draw_tracks.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template< class algorithm_def_dt_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::draw_tracks > >
@@ -85,4 +88,8 @@ class draw_tracks_trampoline :
       );
     }
 };
+}
+}
+}
+
 #endif

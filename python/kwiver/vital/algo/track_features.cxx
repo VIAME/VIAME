@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void track_features(py::module &m)
@@ -44,4 +47,7 @@ void track_features(py::module &m)
     .def_static("static_type_name",
         &kwiver::vital::algo::track_features::static_type_name)
     .def("track", &kwiver::vital::algo::track_features::track);
+}
+}
+}
 }

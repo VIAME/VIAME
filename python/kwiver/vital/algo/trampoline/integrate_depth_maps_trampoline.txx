@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/integrate_depth_maps.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_idm_base=
             kwiver::vital::algorithm_def<
@@ -94,6 +97,33 @@ class integrate_depth_maps_trampoline :
         spacing
       );
     }
+
+    void
+    integrate( kwiver::vital::vector_3d const& minpt_bound,
+               kwiver::vital::vector_3d const& maxpt_bound,
+               std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
+               std::vector<kwiver::vital::image_container_sptr> const& weight_maps,
+               std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
+               kwiver::vital::image_container_sptr& volume,
+               kwiver::vital::vector_3d& spacing ) const override
+    {
+      VITAL_PYBIND11_OVERLOAD_PURE(
+        void,
+        kwiver::vital::algo::integrate_depth_maps,
+        integrate,
+        minpt_bound,
+        maxpt_bound,
+        depth_maps,
+        weight_maps,
+        cameras,
+        volume,
+        spacing
+      );
+    }
 };
+
+}
+}
+}
 
 #endif

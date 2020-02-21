@@ -33,6 +33,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/functional.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void interpolate_track(py::module &m)
@@ -50,4 +53,7 @@ void interpolate_track(py::module &m)
         &kwiver::vital::algo::interpolate_track::set_video_input)
     .def("set_progress_callback",
         &kwiver::vital::algo::interpolate_track::set_progress_callback);
+}
+}
+}
 }

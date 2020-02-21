@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void train_detector(py::module &m)
@@ -47,4 +50,7 @@ void train_detector(py::module &m)
          &kwiver::vital::algo::train_detector::train_from_disk)
     .def("train_from_memory",
          &kwiver::vital::algo::train_detector::train_from_memory);
+}
+}
+}
 }

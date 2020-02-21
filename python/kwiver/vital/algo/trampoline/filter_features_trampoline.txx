@@ -44,6 +44,9 @@
 #include <python/kwiver/vital/util/pybind11.h>
 #include <pybind11/stl.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_ff_base=
            kwiver::vital::algorithm_def<
                kwiver::vital::algo::filter_features > >
@@ -114,5 +117,9 @@ class filter_features_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

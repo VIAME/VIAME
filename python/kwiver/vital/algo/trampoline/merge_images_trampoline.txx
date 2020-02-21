@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/merge_images.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_mi_base=
             kwiver::vital::algorithm_def<
@@ -86,5 +89,9 @@ class merge_images_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

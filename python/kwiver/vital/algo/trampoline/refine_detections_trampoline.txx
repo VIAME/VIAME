@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/refine_detections.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_rd_base=
             kwiver::vital::algorithm_def<
@@ -86,5 +89,9 @@ class refine_detections_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

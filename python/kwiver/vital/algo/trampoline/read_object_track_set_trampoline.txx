@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/read_object_track_set.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_rots_base=
             kwiver::vital::algorithm_def<
@@ -104,5 +107,9 @@ class read_object_track_set_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

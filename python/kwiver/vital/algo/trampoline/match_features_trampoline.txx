@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/match_features.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_mf_base=
             kwiver::vital::algorithm_def<
@@ -90,5 +93,9 @@ class match_features_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

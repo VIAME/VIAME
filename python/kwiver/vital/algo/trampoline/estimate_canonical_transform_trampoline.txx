@@ -42,6 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/estimate_canonical_transform.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template< class algorithm_def_ect_base=
            kwiver::vital::algorithm_def<
@@ -87,4 +90,8 @@ class estimate_canonical_transform_trampoline :
       );
     }
 };
+}
+}
+}
+
 #endif

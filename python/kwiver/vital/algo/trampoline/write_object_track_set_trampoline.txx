@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/write_object_track_set.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_wots_base=
             kwiver::vital::algorithm_def<
@@ -97,15 +100,23 @@ class write_object_track_set_trampoline :
 
 
     void
-    write_set(const kwiver::vital::object_track_set_sptr set) override
+    write_set(const kwiver::vital::object_track_set_sptr& set,
+              kwiver::vital::timestamp const& ts = {},
+              std::string const& frame_identifier = {}) override
     {
       VITAL_PYBIND11_OVERLOAD_PURE(
         void,
         kwiver::vital::algo::write_object_track_set,
         write_set,
-        set
-			);
+        set,
+        ts,
+        frame_identifier
+      );
     }
 };
+
+}
+}
+}
 
 #endif

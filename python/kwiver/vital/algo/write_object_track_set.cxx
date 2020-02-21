@@ -31,6 +31,9 @@
 #include <python/kwiver/vital/algo/write_object_track_set.h>
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void write_object_track_set(py::module &m)
@@ -48,4 +51,8 @@ void write_object_track_set(py::module &m)
 				&kwiver::vital::algo::write_object_track_set::close)
 	.def("write_set",
 				&kwiver::vital::algo::write_object_track_set::write_set);
+}
+
+}
+}
 }

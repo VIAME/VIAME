@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void read_track_descriptor_set(py::module &m)
@@ -46,4 +49,7 @@ void read_track_descriptor_set(py::module &m)
     .def("open", &kwiver::vital::algo::read_track_descriptor_set::open)
     .def("close", &kwiver::vital::algo::read_track_descriptor_set::close)
     .def("read_set", &kwiver::vital::algo::read_track_descriptor_set::read_set);
+}
+}
+}
 }

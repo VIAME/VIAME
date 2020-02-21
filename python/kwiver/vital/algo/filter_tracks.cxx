@@ -33,6 +33,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void filter_tracks(py::module &m)
@@ -46,4 +49,7 @@ void filter_tracks(py::module &m)
                 &kwiver::vital::algo::filter_tracks::static_type_name)
     .def("filter",
          &kwiver::vital::algo::filter_tracks::filter);
+}
+}
+}
 }

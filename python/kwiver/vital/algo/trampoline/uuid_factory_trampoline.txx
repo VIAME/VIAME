@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/uuid_factory.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_uf_base=
             kwiver::vital::algorithm_def<
@@ -84,5 +87,9 @@ class uuid_factory_trampoline :
     }
 
 };
+
+}
+}
+}
 
 #endif

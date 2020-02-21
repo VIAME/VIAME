@@ -43,6 +43,9 @@
 
 #include <python/kwiver/vital/util/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_ft_base=
            kwiver::vital::algorithm_def<
                kwiver::vital::algo::filter_tracks > >
@@ -83,5 +86,9 @@ class filter_tracks_trampoline :
       );
     }
 };
+
+}
+}
+}
 
 #endif

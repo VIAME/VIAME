@@ -32,6 +32,9 @@
 
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void optimize_cameras(py::module &m)
@@ -61,4 +64,7 @@ void optimize_cameras(py::module &m)
             kwiver::vital::sfm_constraints_sptr ) const
         )
         &kwiver::vital::algo::optimize_cameras::optimize);
+}
+}
+}
 }

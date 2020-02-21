@@ -32,6 +32,9 @@
 #include <python/kwiver/vital/algo/trampoline/estimate_canonical_transform_trampoline.txx>
 #include <python/kwiver/vital/algo/estimate_canonical_transform.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 namespace py = pybind11;
 
 void estimate_canonical_transform(py::module &m)
@@ -45,4 +48,7 @@ void estimate_canonical_transform(py::module &m)
                 &kwiver::vital::algo::estimate_canonical_transform::static_type_name)
     .def("estimate_transform",
          &kwiver::vital::algo::estimate_canonical_transform::estimate_transform);
+}
+}
+}
 }

@@ -28,63 +28,30 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 
-from kwiver.vital.algo import ImageObjectDetector
-from kwiver.vital.types import DetectedObjectSet
+from kwiver.vital.algo import ComputeTrackDescriptors
 from kwiver.vital.tests.helpers import CommonConfigurationMixin
 
-
-class SimpleImageObjectDetector(CommonConfigurationMixin, ImageObjectDetector):
+class SimpleComputeTrackDescriptors(CommonConfigurationMixin,
+                                  ComputeTrackDescriptors):
     """
-    Implementation of ImageObjectDetector to test it
+    Implementation of ComputeTrackDescriptors to test it
 
     Examples:
-        >>> from kwiver.vital.modules import modules
-        >>> modules.load_known_modules()
-        >>> from kwiver.vital.algo import ImageObjectDetector
-        >>> image_detector = ImageObjectDetector.create("SimpleImageObjectDetector")
-        >>> from kwiver.vital.types import Image, ImageContainer
-        >>> image = ImageContainer(Image())
-        >>> detections = image_detector.detect(image)
-        >>> print(len(detections)
-        0
-
-        With configuration that changes the threshold
-
-        >>> modules.load_known_modules()
-        >>> from kwiver.vital.algo import ImageObjectDetector
-        >>> image_detector = ImageObjectDetector.create("SimpleImageObjectDetector")
-        >>> from kwiver.vital.types import Image, ImageContainer
-        >>> image = ImageContainer(Image())
-        >>> from kwiver.vital.config import config
-        >>> tc = config.empty_config()
-        >>> tc.set_value("threshold", "0.5")
-        >>> image_detector.check_configuration(tc)
-        False
-        >>> image_detector.set_configuration(tc)
-        >>> image_detector.check_configuration(tc)
-        True
     """
-
     def __init__(self):
-        super(SimpleImageObjectDetector, self).__init__()
+        ComputeTrackDescriptors.__init__(self)
 
-    def detect(self, image_data):
-        dot = DetectedObjectSet()
-        return dot
 
 
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
-
     # Register Algorithm
-    implementation_name = "SimpleImageObjectDetector"
+    implementation_name  = "SimpleComputeTrackDescriptors"
     if algorithm_factory.has_algorithm_impl_name(
-        SimpleImageObjectDetector.static_type_name(), implementation_name
-    ):
+                            SimpleComputeTrackDescriptors.static_type_name(),
+                            implementation_name):
         return
-    algorithm_factory.add_algorithm(
-        implementation_name,
-        "Test kwiver.vital.algo.ImageObjectDetector",
-        SimpleImageObjectDetector,
-    )
-    algorithm_factory.mark_algorithm_as_loaded(implementation_name)
+    algorithm_factory.add_algorithm( implementation_name,
+                                "Test kwiver.vital.algo.ComputeTrackDescriptors",
+                                 SimpleComputeTrackDescriptors )
+    algorithm_factory.mark_algorithm_as_loaded( implementation_name )

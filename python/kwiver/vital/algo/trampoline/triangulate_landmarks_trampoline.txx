@@ -43,6 +43,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/triangulate_landmarks.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template < class algorithm_def_tl_base=
             kwiver::vital::algorithm_def<
@@ -104,5 +107,9 @@ class triangulate_landmarks_trampoline :
     }
 
 };
+
+}
+}
+}
 
 #endif

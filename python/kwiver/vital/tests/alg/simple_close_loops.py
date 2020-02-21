@@ -28,54 +28,30 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 
-from kwiver.vital.algo import BundleAdjust
+from kwiver.vital.algo import CloseLoops
 from kwiver.vital.types import CameraMap
 from kwiver.vital.tests.helpers import CommonConfigurationMixin
 
-import numpy as np
-from multimethod import multimethod
-from unittest.mock import Mock
 
-class SimpleBundleAdjust(CommonConfigurationMixin, BundleAdjust):
+class SimpleCloseLoops(CommonConfigurationMixin, CloseLoops):
     """
-    Implementation of BundleAdjust to test it
+    Implementation of CloseLoops to test it
 
+    Examples:
     """
     def __init__(self):
-        BundleAdjust.__init__(self)
+        CloseLoops.__init__(self)
 
-    @multimethod
-    def optimize(self,
-                 cameras: CameraMap,
-                 landmarks: Mock,
-                 tracks: Mock,
-                 constraints: Mock):
-        landmarks.method()
-        tracks.method()
-        constraints.method()
-
-    @multimethod
-    def optimize(self,
-                cameras: CameraMap,
-                landmarks: Mock,
-                tracks: Mock,
-                fixed_cameras: list,
-                fixed_landmarks: Mock,
-                constraints: Mock,):
-        landmarks.method()
-        tracks.method()
-        fixed_landmarks.method()
-        constraints.method()
 
 def __vital_algorithm_register__():
     from kwiver.vital.algo import algorithm_factory
     # Register Algorithm
-    implementation_name  = "SimpleBundleAdjust"
+    implementation_name  = "SimpleCloseLoops"
     if algorithm_factory.has_algorithm_impl_name(
-                            SimpleBundleAdjust.static_type_name(),
+                            SimpleCloseLoops.static_type_name(),
                             implementation_name):
         return
     algorithm_factory.add_algorithm( implementation_name,
-                                "test simple bundle adjust",
-                                 SimpleBundleAdjust )
+                                "Test kwiver.vital.algo.CloseLoops",
+                                 SimpleCloseLoops )
     algorithm_factory.mark_algorithm_as_loaded( implementation_name )
