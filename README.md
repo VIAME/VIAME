@@ -104,8 +104,8 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
 **Web Applications**: <br>
-[VIAME Web Repository (Under Development)](https://github.com/VIAME/VIAME-Web) <br>
-[VIAME Deprecated Web Annotator](https://images.slide-atlas.org/#collection/5b68666270aaa94f2e5bd975/folder/5b68667670aaa94f2e5bd976)
+[VIAME Web Data Server](https://viame.kitware.com/) <br>
+[VIAME Web Source Repository](https://github.com/VIAME/VIAME-Web)
 
 **Optional Patches:** <br>
 [Alternative Generic Detector for IQR Add-On, All OS](https://data.kitware.com/api/v1/item/5ceda2d28d777f072bef0c0d/download) <br>
