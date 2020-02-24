@@ -44,11 +44,10 @@ PYBIND11_MODULE(timestamp, m)
      timestamp for video image.
 
     Example:
-        >>> from vital.types import *
-        >>> ts = TimeStamp(13245, 10)
+        >>> from kwiver.vital.types import *
+        >>> ts = Timestamp(13245, 10)
         >>> print(str(ts))
-        <ts(13245, 10)
-
+        ts(f: 10, t: 13245 (Thu Jan  1 00:00:00 1970), d: 0)
     )")
 
     .def(py::init<>())

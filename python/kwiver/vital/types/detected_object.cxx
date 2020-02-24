@@ -69,9 +69,9 @@ PYBIND11_MODULE(detected_object, m)
     Represents a detected object within an image
 
     Example:
-        >>> from vital.types import *
+        >>> from kwiver.vital.types import *
         >>> from PIL import Image as PILImage
-        >>> from vital.util import VitalPIL
+        >>> from kwiver.vital.util import VitalPIL
         >>> import numpy as np
         >>> bbox = BoundingBox(0, 10, 100, 50)
         >>> # Construct an object without a mask

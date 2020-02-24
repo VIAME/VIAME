@@ -54,9 +54,9 @@ void image_container(py::module& m)
   /*
    *
     Developer:
-        python -c "import vital.types; help(vital.types.ImageContainer)"
-        python -m xdoctest vital.types ImageContainer --xdoc-dynamic
-        python -m xdoctest vital.types ImageContainer.asarray --xdoc-dynamic  # fix xdoctest to execute this
+        python -c "import kwiver.vital.types; help(kwiver.vital.types.ImageContainer)"
+        python -m xdoctest kwiver.vital.types ImageContainer --xdoc-force-dynamic
+        python -m xdoctest kwiver.vital.types ImageContainer.asarray --xdoc-force-dynamic  # fix xdoctest to execute this
    *
    */
   py::class_<image_cont_t, std::shared_ptr<image_cont_t>>(m, "BaseImageContainer")
@@ -107,9 +107,9 @@ void image_container(py::module& m)
   py::class_<s_image_cont_t, image_cont_t, std::shared_ptr<s_image_cont_t>>(m, "ImageContainer", R"(
     Example:
         >>> # Example using PIL utility
-        >>> from vital.types import ImageContainer
+        >>> from kwiver.vital.types import ImageContainer
         >>> from PIL import Image as PILImage
-        >>> from vital.util import VitalPIL
+        >>> from kwiver.vital.util import VitalPIL
         >>> import numpy as np
         >>> np_img = (np.random.rand(10, 20, 3) * 255).astype(np.uint8)
         >>> pil_img = PILImage.fromarray(np_img)
@@ -124,7 +124,7 @@ void image_container(py::module& m)
 
     Example:
         >>> # Example using numpy conversion methdos
-        >>> from vital.types import ImageContainer
+        >>> from kwiver.vital.types import ImageContainer
         >>> import numpy as np
         >>> np_img = (np.random.rand(10, 20, 3) * 255).astype(np.uint8)
         >>> self = ImageContainer.fromarray(np_img)

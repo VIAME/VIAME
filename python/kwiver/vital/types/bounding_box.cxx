@@ -48,9 +48,10 @@ PYBIND11_MODULE(bounding_box, m)
    *
 
     Developer:
-      python -c "import vital.types; help(vital.types.BoundingBox)"
-      python -c "import vital.types; help(vital.types.BoundingBox)"
-      python -m xdoctest vital.types BoundingBox --xdoc-dynamic
+      python -c "from kwiver.vital.types import types"
+      python -c "import kwiver.vital.types; help(kwiver.vital.types.BoundingBox)"
+      python -c "import kwiver.vital.types; help(kwiver.vital.types.BoundingBox)"
+      python -m xdoctest kwiver.vital.types BoundingBox --xdoc-dynamic
 
    *
    */
@@ -59,7 +60,7 @@ PYBIND11_MODULE(bounding_box, m)
     Coordinate aligned bounding box.
 
     Example:
-        >>> from vital.types import *
+        >>> from kwiver.vital.types import *
         >>> bbox = BoundingBox(0, 10, 100, 50)
         >>> print(str(bbox))
         <BoundingBox(0.0, 10.0, 100.0, 50.0)>
