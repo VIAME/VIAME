@@ -39,6 +39,7 @@ passes data from the input to the output. The following paragraphs
 will describe sections of this example in detail.
 
 .. code-block:: c++
+   :linenos:
 
   #include <sprokit/processes/adapters/embedded_pipeline.h>
 
@@ -302,7 +303,7 @@ adapter requirement.
     virtual ~no_src_embedded_pipeline() { }
 
   protected:
-    virtual bool connect_input_adapter() override { return true; }
+    bool connect_input_adapter() override { return true; }
    };
 
 
@@ -321,15 +322,23 @@ Embedded Pipeline Extensions
 
 Embedded pipeline extensions (EPX) can be dynamically loaded based on
 the pipeline configuration. One use case for EPX is to check resource
-availability before starting the pipeline, for example, to ensure that
+availability before starting the pipeline. For example, to ensure that
 there are enough GPUs for the pipeline to start.
 
 The EPX are a property of the pipeline configuration and can be
 specified as follows: ::
 
-    config _pipeline:embedded_pipeline_extension
-        type = foo # specify the name of extension to load
+  config _pipeline
+    block embedded_pipeline_extension
+      type = foo # specify the name of extension to load
+      block foo # optional configuration for extension
         param = value  # optional parameters
+      endblock
+  endblock
+
+The `embedded_pipeline_extension` config block is only used for
+mebedded pipelines and has no effect on pipelines run with the
+command line kwiver pipeline runner.
 
 The list of available extensions can be found by entering the
 following command: ::

@@ -123,6 +123,7 @@ output_adapter_process
   if ( m_active_ports.count( port ) == 0 )
   {
     port_flags_t p_flags;
+    p_flags.insert( flag_required );
 
     LOG_TRACE( logger(), "Creating input port: \"" << port << "\" on process \"" << name() << "\"" );
 
@@ -146,23 +147,6 @@ output_adapter_process
 {
   LOG_TRACE( logger(), "Processing data set" );
 
-  // Take a peek at the first port to see if it is the end of data
-  // marker.  If so, push end marker into our output interface queue.
-  // The assumption is that if the first port is at end, then they all
-  // are.
-  auto edat = this->peek_at_port( *m_active_ports.begin() );
-  if ( edat.datum->type() == sprokit::datum::complete )
-  {
-    LOG_DEBUG( logger(), "End of data detected." );
-
-    // Send end of input into interface queue indicating no more data will be sent.
-    auto ds = kwiver::adapter::adapter_data_set::create( kwiver::adapter::adapter_data_set::end_of_input );
-    this->get_interface_queue()->Send( ds );
-    mark_process_as_complete();
-
-    return;
-  }
-
   auto data_set = kwiver::adapter::adapter_data_set::create();
 
   // The grab call is blocking, so it will wait until data is there.
@@ -181,8 +165,19 @@ output_adapter_process
     // Send received data to consumer thread
     this->get_interface_queue()->Send( data_set );
   }
+}
 
-  return;
+
+// ----------------------------------------------------------------
+void
+output_adapter_process
+::_finalize()
+{
+  LOG_DEBUG( logger(), "End of data detected." );
+
+  // Send end of input into interface queue indicating no more data will be sent.
+  auto ds = kwiver::adapter::adapter_data_set::create( kwiver::adapter::adapter_data_set::end_of_input );
+  this->get_interface_queue()->Send( ds );
 }
 
 

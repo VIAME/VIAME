@@ -60,7 +60,7 @@ public:
   virtual ~input_adapter_process();
 
   // Process interface
-  virtual void _step();
+  void _step() override;
 
   /**
    * @brief Return list of active ports.
@@ -75,7 +75,7 @@ public:
 private:
 
   // This is used to intercept connections and make ports JIT
-  virtual void output_port_undefined( sprokit::process::port_t const& port) override;
+  void output_port_undefined( sprokit::process::port_t const& port) override;
 
 }; // end class input_adapter_process
 
