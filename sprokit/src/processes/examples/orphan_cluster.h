@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012 by Kitware, Inc.
+ * Copyright 2012, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,17 +56,20 @@ namespace sprokit
 class PROCESSES_EXAMPLES_NO_EXPORT orphan_cluster
   : public process_cluster
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    orphan_cluster(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~orphan_cluster();
+public:
+  PLUGIN_INFO( "orphan_cluster",
+               "A dummy cluster" );
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+  orphan_cluster(kwiver::vital::config_block_sptr const& config);
+
+  /**
+   * \brief Destructor.
+   */
+  ~orphan_cluster();
 };
 
 }

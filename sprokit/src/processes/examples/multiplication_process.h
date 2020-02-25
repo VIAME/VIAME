@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,25 +68,30 @@ namespace sprokit {
 class PROCESSES_EXAMPLES_NO_EXPORT multiplication_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    multiplication_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~multiplication_process();
-  protected:
-    /**
-     * \brief Step the process.
-     */
-    void _step();
-  private:
-    class priv;
-    std::unique_ptr<priv> d;
+public:
+  PLUGIN_INFO( "multiplication",
+               "Multiplies numbers" );
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+
+  multiplication_process(kwiver::vital::config_block_sptr const& config);
+  /**
+   * \brief Destructor.
+   */
+  ~multiplication_process();
+
+protected:
+  /**
+   * \brief Step the process.
+   */
+  void _step() override;
+
+private:
+  class priv;
+  std::unique_ptr<priv> d;
 };
 
 }
