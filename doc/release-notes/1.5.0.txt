@@ -7,9 +7,6 @@ over the previous v1.4.0 release.
 Updates since v1.4.0
 --------------------
 
-Vital
-
-
 Vital Types
 
  * Added ``kwiver::vital::set`` mixin class to define standard set methods as
@@ -38,16 +35,12 @@ Vital Plugin-loader
    objects can be added to the plugin loader at run time to select or
    exclude specific plugins.
 
-Vital Util
-
 Vital Logger
 
  * Log4cplus now searches in more locations to find the log4cplus.properties
    file during start up.  If not found with the environment variable or in the
    current working directory it will now search in the location of the
    executable and also in "../lib/kwiver" relative to the executable.
-
-Vital Tools
 
 Vital Types
 
@@ -78,15 +71,11 @@ Vital Bindings
  * Moved python bindings associated with config from sprokit.pipeline to
    vital.config.
 
-Arrows
-
 Arrows: Core
 
  * Added an algorithm implementation (transform_detected_object_set) for
    transforming detected object sets from one camera perspective to another.
    Implements vital::algo::detected_object_filter.
-
-Arrows: Ceres
 
 Arrows: CUDA
 
@@ -96,26 +85,10 @@ Arrows: CUDA
    a double surface artifact.  Setting Epsilon = 0 restores the previous
    behavior.
 
-Arrows: FFmpeg
-
-Arrows: GDAL
-
-Arrows: KPF
-
-Arrows: OpenCV
-
 Arrows: Serialization
 
  * Updated serialization algorithms to use PLUGIN_INFO macro and added
    serializer specific plugin registrar.
-
-Arrows: Super3d
-
-Arrows: VXL
-
-Arrows: Python
-
-Sprokit
 
 Sprokit: Processes
 
@@ -126,7 +99,7 @@ Sprokit: Processes
    empty detected object sets are prepended to the stream until the
    offset is satisfied.
 
- * Added method to comapre the config declared by the process against
+ * Added method to compare the config declared by the process against
    the config supplied by the pipeline. Any differences can be written
    to the log. This is useful for identifying misspelled config items.
 
@@ -146,9 +119,14 @@ Tools
    - vital/applets - contains applet framework
    - arrows/core/applets - general applets
 
-Unit Tests
-
-General Documentation
-
 Bug Fixes
 ---------
+
+Arrows - Core
+
+ * Fixed a bug in parsing the similarity_estimator configuration in
+   initialize_cameras_landmarks_keyframe
+
+Arrows: ffmpeg
+
+ * Fixed the memory leak that occurred when a video was opened and closed.

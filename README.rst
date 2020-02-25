@@ -58,7 +58,7 @@ Pull the image from Dockerhub::
 
  "docker pull kitware/kwiver:release" (latest release)
 
- "docker pull kitware/kwiver:1.4.0" (static release)
+ "docker pull kitware/kwiver:1.5.0" (static release)
 
 (`https://hub.docker.com/r/kitware/kwiver <https://hub.docker.com/r/kitware/kwiver>`_)
 
