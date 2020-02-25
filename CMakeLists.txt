@@ -40,6 +40,11 @@ set(KWIVER_CMAKE_DIR            "${CMAKE_SOURCE_DIR}/CMake")
 set(KWIVER_SOURCE_DIR           "${CMAKE_SOURCE_DIR}")
 set(KWIVER_BINARY_DIR           "${CMAKE_BINARY_DIR}")
 
+# Default library dir
+set(KWIVER_DEFAULT_LIBRARY_DIR "lib" CACHE STRING
+    "Default library directory for kwiver")
+mark_as_advanced(KWIVER_DEFAULT_LIBRARY_DIR)
+
 #
 # kwiver module config file.
 set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
@@ -144,7 +149,6 @@ if (KWIVER_ENABLE_PYTHON)
 endif()
 
 set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
-
 
 # Set directories where loadable modules are stored.
 # These subdirs are under .../lib/
@@ -341,6 +345,65 @@ if ( CMAKE_EXPORT_COMPILE_COMMANDS )
   kwiver_make_symlink( ${CMAKE_BINARY_DIR}/compile_commands.json
                        ${CMAKE_SOURCE_DIR}/compile_commands.json )
 endif()
+
+# --------------------------------------------------------------------------------------
+# Build a default set of plugin path dirs
+# Provide that list as the default value for the path option.
+#
+# By this point, all eligible paths should have been added to the kwiver_plugin_path
+# property
+if (WIN32)
+  set(path_sep "\\073")
+else()  # Other Unix systems
+  set(path_sep "\\072")
+endif()
+
+# add all user supplied paths to the property
+foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
+  kwiver_add_module_path( ${p} )
+endforeach(p)
+
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_process_subdir} )
+kwiver_add_module_path(  "${kwiver_module_path_result}" )
+
+if (KWIVER_USE_BUILD_TREE)
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_process_subdir} )
+  kwiver_add_module_path(  "${kwiver_module_path_result}" )
+endif()
+
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
+kwiver_add_module_path(  "${kwiver_module_path_result}" )
+
+if (KWIVER_USE_BUILD_TREE)
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
+  kwiver_add_module_path(  "${kwiver_module_path_result}" )
+endif()
+
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_applets} )
+kwiver_add_module_path( "${kwiver_module_path_result}" )
+
+if (KWIVER_USE_BUILD_TREE)
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_applets} )
+  kwiver_add_module_path( "${kwiver_module_path_result}" )
+endif()
+
+# need to retrieve the GLOBAL PROPERTY kwiver_plugin_path and
+# formulate the default module path
+get_property(plugin_path GLOBAL PROPERTY kwiver_plugin_path)
+
+# add all user configured paths to our list
+foreach( p IN LISTS plugin_path )
+  if ( VITAL_MODULE_PATH )
+    set( VITAL_MODULE_PATH "${VITAL_MODULE_PATH}${path_sep}${p}" )
+  else()
+    set( VITAL_MODULE_PATH "${p}" )
+  endif()
+endforeach(p)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/algorithm_plugin_manager_paths.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/algorithm_plugin_manager_paths.h" )
+
 
 # ===========================================================================================
 # CPack Packaging

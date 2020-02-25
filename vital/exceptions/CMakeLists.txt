@@ -8,6 +8,7 @@ set( public_headers
   gpu.h
   image.h
   io.h
+  iteration.h
   math.h
   metadata.h
   video.h
@@ -21,6 +22,7 @@ set( sources
   gpu.cxx
   image.cxx
   io.cxx
+  iteration.cxx
   math.cxx
   metadata.cxx
   video.cxx

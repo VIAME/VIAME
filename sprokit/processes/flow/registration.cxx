@@ -38,6 +38,7 @@
 #include "distribute_process.h"
 #include "pass_process.h"
 #include "sink_process.h"
+#include "mux_process.h"
 
 /**
  * \file flow/registration.cxx
@@ -61,6 +62,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< sprokit::distribute_process>();
   reg.register_process< sprokit::pass_process>();
   reg.register_process< sprokit::sink_process>();
+  reg.register_process< sprokit::mux_process>();
 
   // - - - - - - - - - - - - - - - - - - - - - - -
   sprokit::mark_process_module_as_loaded( vpm, reg.module_name() );

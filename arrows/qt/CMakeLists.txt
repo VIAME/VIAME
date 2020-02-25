@@ -45,7 +45,6 @@ if( KWIVER_ENABLE_PROCESSES )
   target_link_libraries( kwiver_algo_qt
     PUBLIC  kwiver_adapter
             sprokit_pipeline
-    PRIVATE sprokit_tools
     )
 endif()
 
@@ -55,4 +54,8 @@ algorithms_create_plugin( kwiver_algo_qt
 
 if( KWIVER_ENABLE_TESTS )
   add_subdirectory( tests )
+endif()
+
+if (KWIVER_ENABLE_TOOLS)
+  add_subdirectory(applets)
 endif()

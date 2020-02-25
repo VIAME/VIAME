@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,12 +56,17 @@ public:
                "Object track set kw18 writer." )
 
   write_object_track_set_kw18();
-  virtual ~write_object_track_set_kw18();
+  ~write_object_track_set_kw18();
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  void set_configuration( vital::config_block_sptr config ) override;
+  bool check_configuration( vital::config_block_sptr config ) const override;
 
-  virtual void write_set( const kwiver::vital::object_track_set_sptr set );
+  void write_set(
+    kwiver::vital::object_track_set_sptr const& set,
+    kwiver::vital::timestamp const& ts = {},
+    std::string const& frame_identifier = {} ) override;
+
+  void close() override;
 
 private:
   class priv;

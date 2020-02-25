@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,7 @@ public:
   using filter_function_t = Functor;
 
   filter_view( filter_view const& ) = default;
+  filter_view( filter_view&& ) = default;
 
   class iterator
   {
@@ -100,8 +101,8 @@ public:
     filter_function_t m_func;
   };
 
-  filter_view( Range const& range, filter_function_t func )
-    : m_range{ range }, m_func{ func } {}
+  filter_view( Range&& range, filter_function_t func )
+    : m_range( std::forward< Range >( range ) ), m_func( func ) {}
 
   iterator begin() const;
 

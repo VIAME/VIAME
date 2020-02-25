@@ -89,6 +89,10 @@ public:
   virtual metadata_item const&
   get_item(vital_metadata_tag tag, frame_id_t fid) const = 0;
 
+  /// Get a vector of all metadata available at a given frame id
+  virtual metadata_vector
+  get_vector(frame_id_t fid) const = 0;
+
   /// Templated version of has_item to match get method.
   /**
    * \param tag the metadata tag
@@ -182,6 +186,18 @@ public:
     VITAL_THROW( metadata_exception, msg.str() );
   }
 
+  /// Get a vector of all metadata available at a given frame id
+  virtual metadata_vector
+  get_vector(frame_id_t fid) const
+  {
+    auto const d_it = data_.find(fid);
+    if (d_it == data_.end())
+    {
+      return {};
+    }
+    return d_it->second;
+  }
+
   /// check if metadata item is in map for given tag and frame id
   virtual bool has_item(vital_metadata_tag tag, frame_id_t fid) const
   {
@@ -212,4 +228,4 @@ protected:
 } // end namespace vital
 } // end namespace kwiver
 
-#endif // KWIVER_VITAL_METADATA_MAP_H_
+#endif

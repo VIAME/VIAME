@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -176,4 +176,4 @@ auto thread_pool::enqueue(F&& f, Args&&... args)
 
 } }   // end namespace
 
-#endif // KWIVER_VITAL_THREAD_POOL_H_
+#endif

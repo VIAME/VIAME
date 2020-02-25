@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 
 #include <test_common.h>
 
-#include <sprokit/pipeline_util/load_pipe.h>
+#include <sprokit/pipeline_util/pipeline_builder.h>
 #include <sprokit/pipeline_util/load_pipe_exception.h>
 #include <sprokit/pipeline_util/pipe_declaration_types.h>
 
@@ -102,10 +102,28 @@ class test_visitor
 };
 
 
+// ----------------------------------------------------------------------------
+sprokit::pipe_blocks load_pipe_blocks_from_file( const std::string& file )
+{
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( file );
+  return builder.pipeline_blocks();
+}
+
+
+// ----------------------------------------------------------------------------
+sprokit::cluster_blocks load_cluster_blocks_from_file( const std::string& file )
+{
+  sprokit::pipeline_builder builder;
+  builder.load_cluster( file );
+  return builder.cluster_blocks();
+}
+
+
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(empty)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -118,7 +136,7 @@ IMPLEMENT_TEST(empty)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(comments)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -131,7 +149,7 @@ IMPLEMENT_TEST(comments)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(empty_config)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -144,7 +162,7 @@ IMPLEMENT_TEST(empty_config)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -157,7 +175,7 @@ IMPLEMENT_TEST(config_block)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_block)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -170,7 +188,7 @@ IMPLEMENT_TEST(config_block_block)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_relativepath)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -183,7 +201,7 @@ IMPLEMENT_TEST(config_block_relativepath)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_long_block)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -196,7 +214,7 @@ IMPLEMENT_TEST(config_block_long_block)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_nested_block)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -210,7 +228,7 @@ IMPLEMENT_TEST(config_block_nested_block)
 IMPLEMENT_TEST(config_block_unclosed_block)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -219,7 +237,7 @@ IMPLEMENT_TEST(config_block_unclosed_block)
 IMPLEMENT_TEST(config_block_unopened_block)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -227,7 +245,7 @@ IMPLEMENT_TEST(config_block_unopened_block)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(config_block_notalnum)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -240,7 +258,7 @@ IMPLEMENT_TEST(config_block_notalnum)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(config_value_spaces)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -253,7 +271,7 @@ IMPLEMENT_TEST(config_value_spaces)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(one_process)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -266,7 +284,7 @@ IMPLEMENT_TEST(one_process)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(connected_processes)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -279,7 +297,7 @@ IMPLEMENT_TEST(connected_processes)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(connected_processes_notalnum)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -292,7 +310,7 @@ IMPLEMENT_TEST(connected_processes_notalnum)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(include)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -308,7 +326,7 @@ IMPLEMENT_TEST(include_env)
   // Supply part of file name
   kwiversys::SystemTools::PutEnv( "FoO=config" );
 
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -322,7 +340,7 @@ IMPLEMENT_TEST(include_env)
 IMPLEMENT_TEST(no_exist)
 {
   EXPECT_EXCEPTION(sprokit::file_no_exist_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   load_pipe_blocks_from_file(pipe_file),
                    "loading a non-existent file");
 }
 
@@ -331,7 +349,7 @@ IMPLEMENT_TEST(no_exist)
 IMPLEMENT_TEST(include_no_exist)
 {
   EXPECT_EXCEPTION(sprokit::file_no_exist_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   load_pipe_blocks_from_file(pipe_file),
                    "including a non-existent file");
 }
 
@@ -340,7 +358,7 @@ IMPLEMENT_TEST(include_no_exist)
 IMPLEMENT_TEST(no_parse)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   load_pipe_blocks_from_file(pipe_file),
                    "loading an invalid file");
 }
 
@@ -349,7 +367,7 @@ IMPLEMENT_TEST(no_parse)
 IMPLEMENT_TEST(parse_error)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -364,7 +382,9 @@ IMPLEMENT_TEST(envvar)
 
   sstr << "!include include_test.pipe" << std::endl;
 
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks(sstr);
+  sprokit::pipeline_builder builder;
+  builder.load_pipeline( sstr );
+  sprokit::pipe_blocks const blocks = builder.pipeline_blocks();
 
   test_visitor v;
 
@@ -377,7 +397,7 @@ IMPLEMENT_TEST(envvar)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_declare)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -390,7 +410,7 @@ IMPLEMENT_TEST(cluster_declare)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_config)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -403,7 +423,7 @@ IMPLEMENT_TEST(cluster_config)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_input_map)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -416,7 +436,7 @@ IMPLEMENT_TEST(cluster_input_map)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_input_multi_map)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -429,7 +449,7 @@ IMPLEMENT_TEST(cluster_input_multi_map)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_output_map)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -442,7 +462,7 @@ IMPLEMENT_TEST(cluster_output_map)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_mappings)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -455,7 +475,7 @@ IMPLEMENT_TEST(cluster_mappings)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_all)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -469,7 +489,7 @@ IMPLEMENT_TEST(cluster_all)
 IMPLEMENT_TEST(cluster_missing_config_description)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_cluster_blocks_from_file(pipe_file),
+                   load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -478,7 +498,7 @@ IMPLEMENT_TEST(cluster_missing_config_description)
 IMPLEMENT_TEST(cluster_missing_input_description)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_cluster_blocks_from_file(pipe_file),
+                   load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -487,7 +507,7 @@ IMPLEMENT_TEST(cluster_missing_input_description)
 IMPLEMENT_TEST(cluster_missing_output_description)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_cluster_blocks_from_file(pipe_file),
+                   load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -496,7 +516,7 @@ IMPLEMENT_TEST(cluster_missing_output_description)
 IMPLEMENT_TEST(cluster_missing_type)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_cluster_blocks_from_file(pipe_file),
+                   load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -505,7 +525,7 @@ IMPLEMENT_TEST(cluster_missing_type)
 IMPLEMENT_TEST(cluster_missing_type_description)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_cluster_blocks_from_file(pipe_file),
+                   load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -514,7 +534,7 @@ IMPLEMENT_TEST(cluster_missing_type_description)
 IMPLEMENT_TEST(cluster_multiple_clusters)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_cluster_blocks_from_file(pipe_file),
+                   load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -523,7 +543,7 @@ IMPLEMENT_TEST(cluster_multiple_clusters)
 IMPLEMENT_TEST(cluster_not_first)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_cluster_blocks_from_file(pipe_file),
+                   load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -532,7 +552,7 @@ IMPLEMENT_TEST(cluster_not_first)
 IMPLEMENT_TEST(cluster_with_slash)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_cluster_blocks_from_file(pipe_file),
+                   load_cluster_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -540,7 +560,7 @@ IMPLEMENT_TEST(cluster_with_slash)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_input_map_with_slash)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -553,7 +573,7 @@ IMPLEMENT_TEST(cluster_input_map_with_slash)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(cluster_output_map_with_slash)
 {
-  sprokit::cluster_blocks const blocks = sprokit::load_cluster_blocks_from_file(pipe_file);
+  sprokit::cluster_blocks const blocks = load_cluster_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -567,7 +587,7 @@ IMPLEMENT_TEST(cluster_output_map_with_slash)
 IMPLEMENT_TEST(process_with_slash)
 {
   EXPECT_EXCEPTION(sprokit::parsing_exception,
-                   sprokit::load_pipe_blocks_from_file(pipe_file),
+                   load_pipe_blocks_from_file(pipe_file),
                    "with an expect error");
 }
 
@@ -575,7 +595,7 @@ IMPLEMENT_TEST(process_with_slash)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(connect_input_with_slash)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 
@@ -588,7 +608,7 @@ IMPLEMENT_TEST(connect_input_with_slash)
 // ------------------------------------------------------------------
 IMPLEMENT_TEST(connect_output_with_slash)
 {
-  sprokit::pipe_blocks const blocks = sprokit::load_pipe_blocks_from_file(pipe_file);
+  sprokit::pipe_blocks const blocks = load_pipe_blocks_from_file(pipe_file);
 
   test_visitor v;
 

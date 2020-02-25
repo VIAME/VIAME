@@ -33,14 +33,16 @@
 
 #include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
 
-#include <vital/plugin_loader/plugin_manager.h>
-#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/algo/algorithm_factory.h>
 #include <vital/config/config_block.h>
+#include <vital/logger/logger.h>
+#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/plugin_loader/plugin_filter_category.h>
+#include <vital/plugin_loader/plugin_filter_default.h>
+#include <vital/plugin_loader/plugin_manager.h>
 #include <vital/util/demangle.h>
 #include <vital/util/get_paths.h>
 #include <vital/util/wrap_text_block.h>
-#include <vital/logger/logger.h>
-#include <vital/algo/algorithm_factory.h>
 
 #include <kwiversys/RegularExpression.hxx>
 #include <kwiversys/SystemTools.hxx>
@@ -70,21 +72,6 @@ TODO
  */
 
 typedef kwiversys::SystemTools ST;
-
-// -----------------------------------------------------------------
-/**
- *
- *
- */
-class local_manager
-  : public kwiver::vital::plugin_manager
-{
-public:
-  local_manager() { }
-
-  kwiver::vital::plugin_loader* loader() { return get_loader(); }
-
-}; // end class local_manager
 
 // -- forward definitions --
 static void display_attributes( kwiver::vital::plugin_factory_handle_t const fact );
@@ -718,6 +705,14 @@ main( int argc, char* argv[] )
 
   // ========
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
+
+  // remove all default plugin filters
+  vpm.get_loader()->clear_filters();
+
+  // Add the default filter which checks for duplicate plugins
+  kwiver::vital::plugin_filter_handle_t filt = std::make_shared<kwiver::vital::plugin_filter_default>();
+  vpm.get_loader()->add_filter( filt );
+
   if (!G_context.opt_skip_relative)
   {
     // It is somewhat problematic to keep these in sync with the CMake values
@@ -734,9 +729,7 @@ main( int argc, char* argv[] )
   if ( ! G_context.opt_load_module.empty() )
   {
     // Load file on command line
-    local_manager* ll = new(&vpm) local_manager;
-    auto loader = ll->loader();
-
+    auto loader = vpm.get_loader();
     loader->load_plugin( G_context.opt_load_module );
   }
   else

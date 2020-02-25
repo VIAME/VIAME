@@ -73,6 +73,7 @@
 #include <arrows/core/read_track_descriptor_set_csv.h>
 #include <arrows/core/track_features_augment_keyframes.h>
 #include <arrows/core/track_features_core.h>
+#include <arrows/core/transform_detected_object_set.h>
 #include <arrows/core/triangulate_landmarks.h>
 #include <arrows/core/uv_unwrap_mesh.h>
 #include <arrows/core/video_input_filter.h>
@@ -138,6 +139,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< read_track_descriptor_set_csv >();
   reg.register_algorithm< track_features_augment_keyframes >();
   reg.register_algorithm< track_features_core >();
+  reg.register_algorithm< transform_detected_object_set >();
   reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< uv_unwrap_mesh >();
   reg.register_algorithm< video_input_filter >();

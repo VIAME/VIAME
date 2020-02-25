@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,6 +87,7 @@ public:
   virtual char const* id() const = 0;
   virtual geo_crs_description_t describe( int crs ) = 0;
   virtual vector_2d operator()( vector_2d const& point, int from, int to ) = 0;
+  virtual vector_3d operator()( vector_3d const& point, int from, int to)  = 0;
 
 protected:
   virtual ~geo_conversion() = default;
@@ -101,6 +102,7 @@ VITAL_EXPORT void set_geo_conv( geo_conversion* );
 /// Get the description of a geodetic CRS.
 VITAL_EXPORT geo_crs_description_t geo_crs_description( int crs );
 
+//@{
 /**
  * \brief Convert geo-coordinate.
  *
@@ -118,6 +120,8 @@ VITAL_EXPORT geo_crs_description_t geo_crs_description( int crs );
  *   registered.
  */
 VITAL_EXPORT vector_2d geo_conv( vector_2d const& point, int from, int to );
+VITAL_EXPORT vector_3d geo_conv( vector_3d const& point, int from, int to );
+//@}
 
 /// UTM/UPS zone specification.
 struct utm_ups_zone_t
@@ -126,6 +130,7 @@ struct utm_ups_zone_t
   bool north; /// Indicates if zone if north or south.
 };
 
+//@{
 /**
  * \brief Determine UTM/UPS zone of lat/lon geo-coordinate.
  *
@@ -148,8 +153,11 @@ struct utm_ups_zone_t
  *   Thrown if the latitude (northing) value is outside of the range
  *   <code>[-90, 90]</code>.
  */
-VITAL_EXPORT utm_ups_zone_t utm_ups_zone( vector_2d const& lat_lon );
+VITAL_EXPORT utm_ups_zone_t utm_ups_zone( double lon, double lat );
+VITAL_EXPORT utm_ups_zone_t utm_ups_zone( vector_2d const& lon_lat );
+VITAL_EXPORT utm_ups_zone_t utm_ups_zone( vector_3d const& lon_lat_alt );
+//@}
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_GEODESY_H_ */
+#endif

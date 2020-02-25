@@ -71,7 +71,7 @@ namespace vital {
 class VITAL_EXPORT metadata_item
 {
 public:
-  virtual ~metadata_item();
+  virtual ~metadata_item() = default;
 
   /// Test if metadata item is valid.
   /**
@@ -394,6 +394,7 @@ public:
   metadata_item const& find( vital_metadata_tag tag ) const;
 
 
+  //@{
   /// Get starting iterator for collection of metadata items.
   /**
    * This method returns the const iterator to the first element in
@@ -410,8 +411,10 @@ public:
    * @return Iterator pointing to the first element in the collection.
    */
   const_iterator_t begin() const;
+  const_iterator_t cbegin() const;
+  //@}
 
-
+  //@{
   /// Get ending iterator for collection of metadata.
   /**
    * This method returns the ending iterator for the collection of
@@ -428,7 +431,8 @@ public:
    * @return Ending iterator for collection
    */
   const_iterator_t end() const;
-
+  const_iterator_t cend() const;
+  //@}
 
   /// Get the number of metadata items in the collection.
   /**
@@ -505,4 +509,4 @@ VITAL_EXPORT bool test_equal_content( const kwiver::vital::metadata& one,
 
 } } // end namespace
 
-#endif /* KWIVER_VITAL_METADATA_H_ */
+#endif

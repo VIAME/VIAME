@@ -377,7 +377,7 @@ match_descriptor_sets::priv
   if (!im_list.is_open())
   {
     LOG_ERROR(m_logger, "error while opening file " + training_image_list);
-    throw vital::invalid_file(training_image_list,
+    VITAL_THROW( vital::invalid_file, training_image_list,
       "unable to open training image file");
   }
 
@@ -397,7 +397,7 @@ match_descriptor_sets::priv
   if (im_list.bad())
   {
     LOG_ERROR(m_logger, "error while reading " + training_image_list);
-    throw vital::invalid_file(training_image_list, "training image list bad");
+    VITAL_THROW( vital::invalid_file, training_image_list, "training image list bad");
   }
 }
 

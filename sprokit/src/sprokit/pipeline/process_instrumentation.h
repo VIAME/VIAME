@@ -66,6 +66,9 @@ public:
   virtual void start_init_processing( std::string const& data ) = 0;
   virtual void stop_init_processing() = 0;
 
+  virtual void start_finalize_processing( std::string const& data ) = 0;
+  virtual void stop_finalize_processing() = 0;
+
   virtual void start_reset_processing( std::string const& data ) = 0;
   virtual void stop_reset_processing() = 0;
 

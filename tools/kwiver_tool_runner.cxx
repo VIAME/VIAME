@@ -29,12 +29,15 @@
  */
 
 
-#include "kwiver_applet.h"
-#include "applet_context.h"
+#include <vital/applets/kwiver_applet.h>
+#include <vital/applets/applet_context.h>
 
-#include <vital/plugin_loader/plugin_manager.h>
-#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/applets/applet_registrar.h>
 #include <vital/exceptions/base.h>
+#include <vital/plugin_loader/plugin_factory.h>
+#include <vital/plugin_loader/plugin_filter_category.h>
+#include <vital/plugin_loader/plugin_filter_default.h>
+#include <vital/plugin_loader/plugin_manager.h>
 #include <vital/util/get_paths.h>
 
 #include <cstdlib>
@@ -181,14 +184,23 @@ int main(int argc, char *argv[])
   // Global shared context
   // Allocated on the stack so it will automatically clean up
   //
+  using kvpf = kwiver::vital::plugin_factory;
+
   applet_context_t tool_context = std::make_shared< kwiver::tools::applet_context >();
-  tool_context->m_result = nullptr;
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   const std::string exec_path = kwiver::vital::get_executable_path();
   vpm.add_search_path(exec_path + "/../lib/kwiver/modules");
   vpm.add_search_path(exec_path + "/../lib/kwiver/modules/applets");
   vpm.add_search_path(exec_path + "/../lib/kwiver/processes");
+
+  // remove all default plugin filters
+  vpm.get_loader()->clear_filters();
+
+  // Add filter to select all plugins
+  kwiver::vital::plugin_filter_handle_t filt = std::make_shared<kwiver::vital::plugin_filter_default>();
+  vpm.get_loader()->add_filter( filt );
+
   vpm.load_all_plugins();
 
   // initialize the global context
@@ -225,6 +237,9 @@ int main(int argc, char *argv[])
     char** local_argv = 0;
     std::vector<char *> argv_vect;
 
+    // There are some cases where the applet wants to do its own
+    // command line parsing (e.g. QT apps). If this flag is not set,
+    // then we will parse our standard arg set
     if ( ! tool_context->m_skip_command_args_parsing )
     {
       // Convert args list back to argv style. :-(

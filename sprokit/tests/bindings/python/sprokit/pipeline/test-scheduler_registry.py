@@ -31,14 +31,14 @@
 
 def test_import():
     try:
-        from sprokit.pipeline import config
+        from vital.config import config
         import sprokit.pipeline.scheduler_factory
     except:
         test_error("Failed to import the scheduler_factory module")
 
 
 def test_api_calls():
-    from sprokit.pipeline import config
+    from vital.config import config
     from vital.modules import modules
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import scheduler_factory
@@ -100,7 +100,7 @@ def example_scheduler(check_init):
 
 
 def test_register():
-    from sprokit.pipeline import config
+    from vital.config import config
     from vital.modules import modules
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import scheduler_factory
@@ -126,7 +126,7 @@ def test_register():
 
 
 def test_wrapper_api():
-    from sprokit.pipeline import config
+    from vital.config import config
     from vital.modules import modules
     from sprokit.pipeline import pipeline
     from sprokit.pipeline import process_factory

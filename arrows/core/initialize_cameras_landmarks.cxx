@@ -51,6 +51,7 @@
 #include <arrows/core/epipolar_geometry.h>
 #include <arrows/core/metrics.h>
 #include <arrows/core/match_matrix.h>
+#include <arrows/core/necker_reverse.h>
 #include <arrows/core/triangulate.h>
 #include <arrows/core/transform.h>
 

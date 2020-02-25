@@ -79,7 +79,7 @@ basename_from_metadata(metadata_sptr md,
   return basename;
 }
 
-
+// ----------------------------------------------------------------------------
 /// Read in a POS file, producing a metadata object
 metadata_sptr
 read_pos_file( path_t const& file_path )
@@ -145,14 +145,15 @@ read_pos_file( path_t const& file_path )
   md->add( NEW_METADATA_ITEM( VITAL_META_SENSOR_PITCH_ANGLE, std::stod( tokens[ base + 1] ) ) );
   md->add( NEW_METADATA_ITEM( VITAL_META_SENSOR_ROLL_ANGLE, std::stod( tokens[base + 2] ) ) );
 
-  kwiver::vital::vector_2d raw_latlon{ std::stod( tokens[ base + 4 ]), std::stod( tokens[ base + 3 ] ) };
-  kwiver::vital::geo_point latlon{ raw_latlon, SRID::lat_lon_WGS84 };
-  md->add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, latlon ) );
-
   // altitude is in feet in a POS file and needs to be converted to meters
   constexpr double feet2meters = 0.3048;
-  const double altitude = std::stod( tokens[base + 5] ) * feet2meters;
-  md->add( NEW_METADATA_ITEM( VITAL_META_SENSOR_ALTITUDE, altitude ) );
+  const double altitude = std::stod(tokens[base + 5]) * feet2meters;
+  kwiver::vital::vector_3d raw_geo{ std::stod( tokens[ base + 4 ]),
+                                    std::stod( tokens[ base + 3 ] ),
+                                    altitude };
+  kwiver::vital::geo_point geo_pt{ raw_geo, SRID::lat_lon_WGS84 };
+  md->add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, geo_pt) );
+
   md->add( NEW_METADATA_ITEM( VITAL_META_GPS_SEC, std::stod( tokens[base + 6] ) ) );
   md->add( NEW_METADATA_ITEM( VITAL_META_GPS_WEEK, std::stoi( tokens[base + 7] ) ) );
   md->add( NEW_METADATA_ITEM( VITAL_META_NORTHING_VEL, std::stod( tokens[base + 8] ) ) );
@@ -165,8 +166,8 @@ read_pos_file( path_t const& file_path )
   return md;
 }
 
-
-/// Output the given \c metadata object to the specified POS file path
+// ----------------------------------------------------------------------------
+// Output the given \c metadata object to the specified POS file path
 void
 write_pos_file( metadata const& md,
                 path_t const& file_path )
@@ -218,24 +219,20 @@ write_pos_file( metadata const& md,
 
   if ( auto& mdi = md.find( VITAL_META_SENSOR_LOCATION ) )
   {
-    kwiver::vital::geo_point latlon;
-    mdi.data( latlon );
-    auto const& raw_latlon = latlon.location( SRID::lat_lon_WGS84 );
-    ofile << raw_latlon[1] << ", " << raw_latlon[0] << ", ";
+    kwiver::vital::geo_point geo_pt;
+    mdi.data( geo_pt );
+    auto const& raw_loc = geo_pt.location( SRID::lat_lon_WGS84 );
+    // altitude is in feet in a POS file and needs to be converted to feet
+    constexpr double feet2meters = 0.3048;
+    ofile << raw_loc[1] << ", "
+          << raw_loc[0] << ", "
+          << raw_loc[2] / feet2meters << ", ";
   }
   else
   {
-    ofile << "0, 0, ";
+    ofile << "0, 0, 0, ";
   }
 
-  // altitude is in feet in a POS file and needs to be converted to feet
-  constexpr double feet2meters = 0.3048;
-  double altitude = 0.0;
-  if ( auto& mdi = md.find( VITAL_META_SENSOR_ALTITUDE ) )
-  {
-    altitude = mdi.as_double() / feet2meters;
-  }
-  ofile << altitude << ", ";
   print_default( ofile, VITAL_META_GPS_SEC,       "0" ) << ", ";
   print_default( ofile, VITAL_META_GPS_WEEK,      "0" ) << ", ";
   print_default( ofile, VITAL_META_NORTHING_VEL,  "0" ) << ", ";

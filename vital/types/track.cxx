@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014 by Kitware, Inc.
+ * Copyright 2014, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,15 +88,15 @@ track
 /// Clone
 track_sptr
 track
-::clone() const
+::clone( clone_type ct ) const
 {
   track_sptr t( new track( *this ) );
-  t->history_.resize(this->history_.size());
-  size_t i = 0;
+  t->history_.reserve( this->history_.size() );
   for( auto const& ts : this->history_ )
   {
-    t->history_[i] =  ts->clone();
-    t->history_[i++]->track_ = t->shared_from_this();
+    auto new_state = ts->clone( ct );
+    new_state->track_ = t;
+    t->history_.emplace_back( std::move( new_state ) );
   }
   return t;
 }
@@ -131,17 +131,21 @@ track
 /// Append a track state.
 bool
 track
-::append( track_state_sptr state )
+::append( track_state_sptr&& state )
 {
+  if ( state && ! state->track_.expired() )
+  {
+    throw std::logic_error( "track states may not be reparented" );
+  }
+
   if ( ! state ||
-       ! state->track_.expired() ||
        ( ! this->history_.empty() &&
        ( this->last_frame() >= state->frame() ) ) )
   {
     return false;
   }
-  this->history_.push_back( state );
   state->track_ = this->shared_from_this();
+  this->history_.emplace_back( std::move( state ) );
   return true;
 }
 
@@ -172,28 +176,40 @@ track
 /// Insert a track state.
 bool
 track
-::insert( track_state_sptr state )
+::insert( track_state_sptr&& state )
 {
-  if ( ! state || ! state->track_.expired() )
+  if ( ! state )
   {
     return false;
   }
+
+  if ( ! state->track_.expired() )
+  {
+    throw std::logic_error( "track states may not be reparented" );
+  }
+
   auto pos = std::lower_bound( this->history_.begin(), this->history_.end(),
                                state->frame(), compare_state_frame() );
   if( pos != this->history_.end() && (*pos)->frame() == state->frame() )
   {
     return false;
   }
-  this->history_.insert(pos, state);
+
   state->track_ = this->shared_from_this();
+  this->history_.emplace( pos, std::move( state ) );
   return true;
 }
 
 /// Remove a track state
 bool
 track
-::remove(track_state_sptr state)
+::remove( track_state_sptr const& state )
 {
+  if ( !state )
+  {
+    return false;
+  }
+
   auto pos = std::lower_bound(this->history_.begin(), this->history_.end(),
     state->frame(), compare_state_frame());
 
@@ -202,8 +218,21 @@ track
     return false;
   }
 
+  (*pos)->track_.reset();
   this->history_.erase(pos);
   return true;
+}
+
+/// Remove all track states
+void
+track
+::clear()
+{
+  for (auto& s : this->history_)
+  {
+    s->track_.reset();
+  }
+  this->history_.clear();
 }
 
 /// Find the track state iterator matching \a frame

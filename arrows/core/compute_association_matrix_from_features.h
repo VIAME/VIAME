@@ -118,4 +118,4 @@ private:
 } // end namespace kwiver
 
 
-#endif // KWIVER_ARROWS_COMPUTE_ASSOCIATION_MATRIX_FROM_FEATURES_H_
+#endif

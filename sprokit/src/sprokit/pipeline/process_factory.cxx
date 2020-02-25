@@ -46,7 +46,7 @@ process_factory( const std::string& type,
 {
   this->add_attribute( CONCRETE_TYPE, type)
     .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
-    .add_attribute( PLUGIN_CATEGORY, "process" );
+    .add_attribute( PLUGIN_CATEGORY, PROCESS_CATEGORY );
 }
 
 
@@ -80,7 +80,7 @@ cpp_process_factory( const std::string& type,
 {
   this->add_attribute( CONCRETE_TYPE, type)
     .add_attribute( PLUGIN_FACTORY_TYPE, typeid(* this ).name() )
-    .add_attribute( PLUGIN_CATEGORY, "process" );
+    .add_attribute( PLUGIN_CATEGORY, PROCESS_CATEGORY );
 }
 
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2018, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -271,9 +271,27 @@ detected_object_type
 // ------------------------------------------------------------------
 detected_object_type::class_const_iterator_t
 detected_object_type
+::cbegin() const
+{
+  return m_classes.cbegin();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_type::class_const_iterator_t
+detected_object_type
 ::end() const
 {
   return m_classes.end();
+}
+
+
+// ------------------------------------------------------------------
+detected_object_type::class_const_iterator_t
+detected_object_type
+::cend() const
+{
+  return m_classes.cend();
 }
 
 

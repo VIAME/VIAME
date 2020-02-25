@@ -65,13 +65,12 @@ if (WIN32)
          ${CUDNN_LIBRARIES} )
   endif()
 endif()
-message(STATUS "Darkent Arrow using these libraries : ${Darknet_linked_libs}")
-
 
 kwiver_install_headers(
   SUBDIR     arrows/darknet
   ${headers}
   )
+
 kwiver_install_headers(
   ${CMAKE_CURRENT_BINARY_DIR}/kwiver_algo_darknet_export.h
   NOPATH   SUBDIR     arrows/darknet

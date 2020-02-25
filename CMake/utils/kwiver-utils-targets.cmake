@@ -16,6 +16,12 @@
 #     If set, the target will not be installed under this component (the
 #     default is 'runtime').
 #
+#   library_dir
+#     If set, it would replace lib folder within build and install directories.
+#     ( the default is ${KWIVER_DEFAULT_LIBRARY_DIR ). library_dir should not
+#     have leading or trailing slashes. These slashes would be removed if they
+#     are passed in the library_dir
+#
 #   library_subdir
 #     If set, library targets will be placed into the directory within the install
 #     directory. This is necessary due to the way some systems use
@@ -76,21 +82,69 @@ function(_kwiver_export name)
   set_property(GLOBAL APPEND PROPERTY kwiver_export_targets ${name})
 endfunction()
 
+#+
+# Check if library_dir is undefined and set it to default ( lib )
+#-
+function(_kwiver_check_and_set_library_dir)
+  if(NOT DEFINED library_dir)
+    set(library_dir ${KWIVER_DEFAULT_LIBRARY_DIR} PARENT_SCOPE)
+  endif()
+endfunction()
+
+#+
+# Helper function to check and replace leading and trailing slashes in a path
+#
+# _kwiver_validate_path_value( op_path ip_path )
+#
+# The first argument is the path returned from the function without leading or
+# trailing slashes, the second argument is the input path which may or may not
+# have leading and trailing slashes
+#-
+function(_kwiver_validate_path_value op_path ip_path)
+  if(NOT DEFINED ip_path)
+    message(FATAL_ERROR, "Cannot validate undefined path ${ip_path}")
+  endif()
+  string(REGEX REPLACE "^/" "" ip_path "${ip_path}")
+  string(REGEX REPLACE "/$" "" ip_path "${ip_path}")
+  set(${op_path} "${ip_path}" PARENT_SCOPE)
+endfunction()
+
+#+
+# Helper function to compute relative path of the root of a path
+#
+# _kwiver_path_to_root_from_lib_dir( path_to_root lib_dir )
+#
+# The first argument is a string that represents the relative path from a path
+# to root of the path. The second argument is a path
+#-
+function(_kwiver_path_to_root_from_lib_dir path_to_root lib_dir)
+  set(_path_to_root "")
+  if(NOT DEFINED lib_dir)
+    message(WARNING "Trying to determine root path for undefined variable ${lib_dir}")
+  else()
+    string(LENGTH "${lib_dir}" len_lib_dir)
+    if(${len_lib_dir} GREATER 0)
+        string(REPLACE "/" ";" library_dir_list ${lib_dir})
+        list(LENGTH library_dir_list len_library_dir_list)
+        if(CMAKE_VERSION VERSION_GREATER "3.15")
+          string(REPEAT "../" ${len_library_dir_list} path_to_root)
+        else()
+          foreach(_ RANGE 1 ${len_library_dir_list})
+            string(CONCAT _path_to_root "${_path_to_root}" "../")
+          endforeach()
+        endif()
+    endif()
+  endif()
+  set(${path_to_root} ${_path_to_root} PARENT_SCOPE)
+endfunction()
 
 # ------------------------------
 function(_kwiver_compile_pic name)
   message(STATUS "Adding PIC flag to target: ${name}")
-  if (CMAKE_VERSION VERSION_GREATER "2.8.12")
-    set_target_properties("${name}"
-      PROPERTIES
-        POSITION_INDEPENDENT_CODE TRUE
-      )
-  elseif(NOT MSVC)
-    set_target_properties("${name}"
-      PROPERTIES
-        COMPILE_FLAGS "-fPIC"
-      )
-  endif()
+  set_target_properties("${name}"
+    PROPERTIES
+      POSITION_INDEPENDENT_CODE TRUE
+    )
 endfunction()
 
 
@@ -126,10 +180,11 @@ endfunction()
 #-
 function(kwiver_add_executable name)
   add_executable(${name} ${ARGN})
+
   set_target_properties(${name}
     PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-      INSTALL_RPATH "\$ORIGIN/../lib:\$ORIGIN/"
+      INSTALL_RPATH "\$ORIGIN/../${KWIVER_DEFAULT_LIBRARY_DIR}:\$ORIGIN/"
     )
 
   if(NOT component)
@@ -174,10 +229,16 @@ function(kwiver_add_library     name)
 
   add_library("${name}" ${ARGN})
 
+  _kwiver_check_and_set_library_dir()
+  _kwiver_validate_path_value(library_dir "${library_dir}")
+  _kwiver_path_to_root_from_lib_dir(lib_dir_path_to_root "${library_dir}")
+  _kwiver_validate_path_value(library_subdir "${library_subdir}")
+  _kwiver_path_to_root_from_lib_dir(lib_subdir_path_to_root "${library_subdir}")
+
   if ( APPLE )
     set( props
       MACOSX_RPATH         TRUE
-      INSTALL_NAME_DIR     "@executable_path/../lib"
+      INSTALL_NAME_DIR     "@executable_path/${lib_subdir_path_to_root}${lib_dir_path_to_root}/${KWIVER_DEFAULT_LIBRARY_DIR}"
       )
   else()
     if ( NOT no_version ) # optional versioning
@@ -192,10 +253,10 @@ function(kwiver_add_library     name)
 
   set_target_properties("${name}"
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}${library_subdir}${library_subdir_suffix}"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin${library_subdir}${library_subdir_suffix}"
-    INSTALL_RPATH            "\$ORIGIN/../lib:\$ORIGIN/"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${library_dir}${LIB_SUFFIX}/${library_subdir}${library_subdir_suffix}"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${library_dir}${LIB_SUFFIX}/${library_subdir}${library_subdir_suffix}"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${library_subdir}${library_subdir_suffix}"
+    INSTALL_RPATH            "\$ORIGIN/${lib_subdir_path_to_root}${lib_dir_path_to_root}/${KWIVER_DEFAULT_LIBRARY_DIR}:\$ORIGIN/"
     INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR};${CMAKE_BINARY_DIR}>$<INSTALL_INTERFACE:include>"
     ${props}
     )
@@ -210,9 +271,9 @@ function(kwiver_add_library     name)
     string(TOUPPER "${config}" upper_config)
     set_target_properties("${name}"
       PROPERTIES
-      "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}/${config}${library_subdir}"
-      "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/lib${LIB_SUFFIX}/${config}${library_subdir}"
-      "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/bin/${config}${library_subdir}"
+      "ARCHIVE_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/${library_dir}${LIB_SUFFIX}/${config}/${library_subdir}"
+      "LIBRARY_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/${library_dir}${LIB_SUFFIX}/${config}/${library_subdir}"
+      "RUNTIME_OUTPUT_DIRECTORY_${upper_config}" "${CMAKE_BINARY_DIR}/bin/${config}/${library_subdir}"
       )
   endforeach()
 
@@ -231,9 +292,9 @@ function(kwiver_add_library     name)
   kwiver_install(
     TARGETS             "${name}"
     ${exports}
-    ARCHIVE DESTINATION lib${LIB_SUFFIX}${library_subdir}
-    LIBRARY DESTINATION lib${LIB_SUFFIX}${library_subdir}
-    RUNTIME DESTINATION bin${library_subdir}
+    ARCHIVE DESTINATION "${library_dir}${LIB_SUFFIX}/${library_subdir}"
+    LIBRARY DESTINATION "${library_dir}${LIB_SUFFIX}/${library_subdir}"
+    RUNTIME DESTINATION "bin/${library_subdir}"
     COMPONENT           ${component}
     )
 
@@ -348,9 +409,17 @@ function( kwiver_add_plugin        name )
   set(multiValueArgs SOURCES PUBLIC PRIVATE)
   cmake_parse_arguments(PLUGIN "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
+  _kwiver_check_and_set_library_dir()
+  _kwiver_validate_path_value(library_dir "${library_dir}")
+  _kwiver_path_to_root_from_lib_dir(lib_dir_path_to_root "${library_dir}")
+
   if ( PLUGIN_SUBDIR )
     set(library_subdir "/${PLUGIN_SUBDIR}") # put plugins in this subdir
   endif()
+
+  _kwiver_validate_path_value(library_subdir "${library_subdir}")
+  _kwiver_path_to_root_from_lib_dir(lib_subdir_path_to_root "${library_subdir}")
+
 
   set( no_export ON ) # do not export this product
   set( no_version ON ) # do not version plugins
@@ -366,7 +435,7 @@ function( kwiver_add_plugin        name )
     PROPERTIES
       PREFIX           ""
       SUFFIX           ${CMAKE_SHARED_MODULE_SUFFIX}
-      INSTALL_RPATH    "\$ORIGIN/../../lib:\$ORIGIN/"
+      INSTALL_RPATH    "\$ORIGIN/${lib_subdir_path_to_root}${lib_dir_path_to_root}/${KWIVER_DEFAULT_LIBRARY_DIR}:\$ORIGIN/"
       )
 
   # Add to global collection variable
@@ -390,7 +459,6 @@ endfunction()
 function( kwiver_add_module_path    dir )
     set_property(GLOBAL APPEND PROPERTY kwiver_plugin_path  "${dir}" )
 endfunction()
-
 
 
 ####

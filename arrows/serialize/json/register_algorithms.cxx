@@ -54,77 +54,40 @@ namespace arrows {
 namespace serialize {
 namespace json {
 
-namespace {
-
-static auto const module_name         = std::string{ "arrows.serialize.json" };
-static auto const module_version      = std::string{ "1.0" };
-static auto const module_organization = std::string{ "Kitware Inc." };
-
-// ----------------------------------------------------------------------------
-/**
- * @brief Helper function for registering algorithms
- *
- * This function registers the specified algorithm with the plugin
- * manager. The optional plugin name can be used in cases where an
- * algorithm needs to be registered under two names. This can happen
- * when the same vital data type is used top represent multiple
- * different semantic data types.
- *
- * @param vpm Reference to the plugin manager
- * @param name Optional plugin name
- */
-template < typename algorithm_t >
-void
-register_algorithm( kwiver::vital::plugin_loader& vpm, const std::string& name = std::string("") )
-{
-  using kvpf = kwiver::vital::plugin_factory;
-  std::string algo_name = algorithm_t::name;
-  if ( ! name.empty() )
-  {
-    algo_name = name;
-  }
-  auto fact = vpm.add_factory( new kwiver::vital::algorithm_factory_0< algorithm_t > (
-                                 "serialize-json", // group name
-                                 algo_name ) ); // instance name
-
-  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
-    .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
-    .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
-    .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
-  ;
-}
-
-} // end namespace
-
 // ----------------------------------------------------------------------------
 extern "C"
 KWIVER_SERIALIZE_JSON_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  if (vpm.is_module_loaded( module_name ) )
+  kwiver::vital::serializer_registrar reg( vpm, "arrows.serialize.json",
+                                           "json" );
+
+  if (reg.is_module_loaded())
   {
     return;
   }
 
-  register_algorithm< kwiver::arrows::serialize::json::bounding_box >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::detected_object >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::detected_object_type >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::detected_object_set >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::timestamp >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::image >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::image >( vpm, "kwiver:mask" );
-  register_algorithm< kwiver::arrows::serialize::json::string >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::track_state >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::object_track_state >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::track >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::track_set >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::object_track_set >( vpm );
-  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:file_name" );
-  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:image_name" );
-  register_algorithm< kwiver::arrows::serialize::json::string > ( vpm, "kwiver:video_name" );
+  using namespace kwiver::arrows::serialize::json;
 
-  vpm.mark_module_as_loaded( module_name );
+  reg.register_algorithm< bounding_box >();
+  reg.register_algorithm< detected_object >();
+  reg.register_algorithm< detected_object_type >();
+  reg.register_algorithm< detected_object_set >();
+  reg.register_algorithm< timestamp >();
+  reg.register_algorithm< image >();
+  reg.register_algorithm< image >( "kwiver:mask" );
+  reg.register_algorithm< string >();
+  reg.register_algorithm< track_state >();
+  reg.register_algorithm< object_track_state >();
+  reg.register_algorithm< track >();
+  reg.register_algorithm< track_set >();
+  reg.register_algorithm< object_track_set >();
+  reg.register_algorithm< string >( "kwiver:file_name" );
+  reg.register_algorithm< string >( "kwiver:image_name" );
+  reg.register_algorithm< string >( "kwiver:video_name" );
+
+  reg.mark_module_as_loaded();
 }
 
 } // end namespace json

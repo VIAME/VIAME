@@ -44,29 +44,29 @@ class TestRGBColor (unittest.TestCase):
 
   def test_new(self):
     Timestamp()
-    Timestamp(1234000000L, 1)
+    Timestamp(1234000000, 1)
 
   def test_time(self):
     t1 = Timestamp()
     t1.set_time_seconds(1234)
     nose.tools.assert_equal(t1.get_time_seconds(), 1234)
-    nose.tools.assert_equal(t1.get_time_usec(), 1234000000L)
+    nose.tools.assert_equal(t1.get_time_usec(), 1234000000)
 
-    t1.set_time_usec(4321000000L)
+    t1.set_time_usec(4321000000)
     nose.tools.assert_equal(t1.get_time_seconds(), 4321)
-    nose.tools.assert_equal(t1.get_time_usec(), 4321000000L)
+    nose.tools.assert_equal(t1.get_time_usec(), 4321000000)
 
 
-    t2 = Timestamp(1234000000L, 1)
+    t2 = Timestamp(1234000000, 1)
     nose.tools.assert_equal(t2.get_time_seconds(), 1234)
-    nose.tools.assert_equal(t2.get_time_usec(), 1234000000L)
+    nose.tools.assert_equal(t2.get_time_usec(), 1234000000)
 
   def test_frame(self):
     t1 = Timestamp()
     t1.set_frame(1)
     nose.tools.assert_equal(t1.get_frame(), 1)
 
-    t2 = Timestamp(1234000000L, 1)
+    t2 = Timestamp(1234000000, 1)
     nose.tools.assert_equal(t2.get_frame(), 1)
 
   def test_valid(self):

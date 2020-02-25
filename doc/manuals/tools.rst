@@ -11,3 +11,5 @@ way to dynacially configure them.
 
   tools/plugin_explorer
   tools/pipeline_runner
+  tools/pipe-to-dot
+  tools/pipe-config

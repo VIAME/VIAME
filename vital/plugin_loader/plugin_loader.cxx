@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "plugin_loader.h"
 #include "plugin_factory.h"
+#include "plugin_loader.h"
+#include "plugin_loader_filter.h"
 
 #include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
@@ -46,10 +47,10 @@ namespace vital {
 
 namespace {
 
-typedef kwiversys::SystemTools     ST;
-typedef kwiversys::DynamicLoader   DL;
-typedef DL::LibraryHandle          library_t;
-typedef DL::SymbolPointer          function_t;
+using ST =  kwiversys::SystemTools;
+using DL =  kwiversys::DynamicLoader;
+using library_t =  DL::LibraryHandle;
+using function_t = DL::SymbolPointer;
 
 } // end anon namespace
 
@@ -104,6 +105,9 @@ public:
 
   // Name of current module file we are processing
   std::string m_current_filename;
+
+  std::vector< plugin_filter_handle_t > m_filters;
+
 }; // end class plugin_loader_impl
 
 
@@ -113,7 +117,6 @@ plugin_loader
                  std::string const& shared_lib_suffix )
   : m_logger( kwiver::vital::get_logger( "vital.plugin_loader" ) )
   , m_impl( new plugin_loader_impl( this, init_function, shared_lib_suffix ) )
-
 { }
 
 
@@ -156,14 +159,17 @@ plugin_loader
   fact->get_attribute( plugin_factory::CONCRETE_TYPE, concrete_type );
 
   // If the hook has declined to register the factory, just return.
-  if ( ! this->add_factory_hook( fact_handle ) )
+  for ( auto filt : m_impl->m_filters )
   {
-    LOG_TRACE( m_logger, "add_factory_hook() declined to have this factory registered"
-               << " from file \"" << m_impl->m_current_filename << "\""
-               << " for interface: \"" << demangle( interface_type )
-               << "\" for derived type: \"" << demangle( concrete_type ) << "\""
-      );
-    return fact_handle;
+    if ( ! filt->add_factory( fact_handle ) )
+    {
+      LOG_TRACE( m_logger, "Factory filter() declined to have this factory registered"
+                 << " from file \"" << m_impl->m_current_filename << "\""
+                 << "\"" << demangle( interface_type )
+                 << "\" for derived type: \"" << demangle( concrete_type ) << "\""
+        );
+      return fact_handle;
+    }
   }
 
   // Add factory to rest of its family
@@ -400,10 +406,13 @@ plugin_loader_impl
 
   // Check with the load hook to see if there are any last minute
   // objections to loading this plugin.
-  if ( ! m_parent->load_plugin_hook( path, lib_handle ) )
+  for ( auto filter : m_filters )
   {
-    DL::CloseLibrary( lib_handle );
-    return;
+    if ( ! filter->load_plugin( path, lib_handle ) )
+    {
+      DL::CloseLibrary( lib_handle );
+      return;
+    }
   }
 
   // Save currently opened library in map
@@ -416,87 +425,20 @@ plugin_loader_impl
   ( *reg_fp )( m_parent ); // register plugins
 }
 
-
-// ------------------------------------------------------------------
-bool
-plugin_loader
-::load_plugin_hook( path_t const& path, DL::LibraryHandle lib_handle ) const
+// ----------------------------------------------------------------------------
+void plugin_loader
+::clear_filters()
 {
-  return true; // default is to always load
+  m_impl->m_filters.clear();
 }
 
-
-// ------------------------------------------------------------------
-/**
- * @brief Detault add_factory hook
- *
- * This is the default implementation for the add_factory hook. This
- * checks to see if the plugin is already registered. If it is, then
- * an exception is thrown.
- *
- * The signature of a plugin consists of interface-type,
- * concrete-type, and plugin-name.
- *
- * Note that derived classes can override this hook to give different
- * behaviour.
- *
- * @param fact Factory object handle
- *
- * @return \b true if factory is to be added; \b false if factory
- * should not be added.
- *
- * @throws plugin_already_exists if plugin is already registered
- */
-bool
-plugin_loader
-::add_factory_hook( plugin_factory_handle_t fact ) const
+// ----------------------------------------------------------------------------
+void plugin_loader
+::add_filter( plugin_filter_handle_t f )
 {
-  // Add the current file name as an attribute.
-  fact->add_attribute( plugin_factory::PLUGIN_FILE_NAME, m_impl->m_current_filename );
-
-  std::string interface_type;
-  fact->get_attribute( plugin_factory::INTERFACE_TYPE, interface_type );
-
-  std::string concrete_type;
-  fact->get_attribute( plugin_factory::CONCRETE_TYPE, concrete_type );
-
-  std::string new_name;
-  fact->get_attribute( plugin_factory::PLUGIN_NAME, new_name );
-
-  // Make sure factory is not already in the list.
-  // Check the two types and name as a signature.
-  if ( m_impl->m_plugin_map.count( interface_type ) != 0)
-  {
-    for( auto const fact : m_impl->m_plugin_map[interface_type] )
-    {
-      std::string interf;
-      fact->get_attribute( plugin_factory::INTERFACE_TYPE, interf );
-
-      std::string inst;
-      fact->get_attribute( plugin_factory::CONCRETE_TYPE, inst );
-
-      std::string name;
-      fact->get_attribute( plugin_factory::PLUGIN_NAME, name );
-
-      if ( (interface_type == interf) &&
-           (concrete_type == inst) &&
-           (new_name == name) )
-      {
-        std::string old_file;
-        fact->get_attribute( plugin_factory::PLUGIN_FILE_NAME, old_file );
-
-        std::stringstream str;
-        str << "Factory for \"" << demangle( interface_type ) << "\" : \""
-            << demangle( concrete_type ) << "\" already has been registered by "
-            << old_file << ".  This factory from "
-            << m_impl->m_current_filename << " will not be registered.";
-
-        VITAL_THROW( plugin_already_exists, str.str() );
-      }
-    } // end foreach
-  }
-
-  return true;
+  f->m_loader = this;
+  m_impl->m_filters.push_back( f );
 }
+
 
 } } // end namespace

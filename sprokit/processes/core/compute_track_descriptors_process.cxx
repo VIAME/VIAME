@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -226,7 +226,7 @@ compute_track_descriptors_process
         new_track->set_id( i + d->detection_offset );
 
         vital::track_state_sptr first_track_state(
-          new vital::object_track_state( ts, detections->begin()[i] ) );
+          new vital::object_track_state( ts, detections->at(i) ) );
 
         new_track->append( first_track_state );
 
@@ -241,9 +241,11 @@ compute_track_descriptors_process
       if( d->inject_to_detections )
       {
         // Reset all descriptors stored in detections
-        for( vital::detected_object_sptr det : *detections )
+        for( auto det = detections->cbegin(),
+             dsie = detections->cend();
+             det != dsie; ++det )
         {
-          det->set_descriptor( vital::detected_object::descriptor_sptr() );
+            (*det)->set_descriptor( nullptr );
         }
 
         // Inject computed descriptors
@@ -253,7 +255,7 @@ compute_track_descriptors_process
 
           for( auto id : ids )
           {
-            detections->begin()[ id - d->detection_offset ]->set_descriptor(
+            detections->at( id - d->detection_offset )->set_descriptor(
               desc->get_descriptor() );
           }
         }

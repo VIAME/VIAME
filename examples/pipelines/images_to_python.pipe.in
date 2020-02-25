@@ -1,6 +1,6 @@
 # ================================================================
 process input
-  :: frame_list_input
+  :: frame_list_process
 # Input file containing new-line separated paths to sequential image
 # files.
   image_list_file = @EXAMPLE_DIR@/pipelines/image_list.txt
@@ -14,7 +14,7 @@ process input
 
 # ================================================================
 # Python process to accept an image.
-process process
+process p
   :: ProcessImage
 
 # ================================================================
@@ -37,16 +37,18 @@ process writer
 #
 config _pipeline:_edge
        capacity = 10
+config _scheduler
+       type = pythread_per_process
 
 # ================================================================
 # connections
 connect from input.image
-        to   process.image
+        to   p.image
 
-connect from process.out_image
+connect from p.out_image
         to disp.image
 
-connect from process.out_image
+connect from p.out_image
         to writer.image
 
 # -- end of file --

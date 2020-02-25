@@ -86,7 +86,9 @@ bool
 source_location::
 valid() const
 {
-  return (  m_line_num > 0) && ( ! m_file_name->empty() );
+  return (  m_line_num > 0) &&
+    ( m_file_name ) &&
+    ( ! m_file_name->empty() );
 }
 
 } } // end namespace

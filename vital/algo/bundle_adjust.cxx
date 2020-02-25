@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ bundle_adjust
 void
 bundle_adjust
 ::optimize(
-  kwiver::vital::camera_map_of_<kwiver::vital::simple_camera_perspective> &cameras,
+  kwiver::vital::simple_camera_perspective_map &cameras,
   kwiver::vital::landmark_map::map_landmark_t &landmarks,
   vital::feature_track_set_sptr tracks,
   const std::set<vital::frame_id_t>& fixed_cameras,

@@ -196,7 +196,7 @@ read_all()
       std::stringstream str;
       str << "This is not a kw18 kw19 or kw20 file; found " << col.size()
           << " columns in\n\"" << line << "\"";
-      throw kwiver::vital::invalid_data( str.str() );
+      VITAL_THROW( kwiver::vital::invalid_data, str.str() );
     }
 
     /*

@@ -129,7 +129,7 @@ handle_descriptor_request_core
   if( !reader_ || !extractor_ )
   {
     // Something did not initialize
-    throw vital::algorithm_configuration_exception( this->type_name(), this->impl_name(),
+    VITAL_THROW( vital::algorithm_configuration_exception, this->type_name(), this->impl_name(),
         "not all sub-algorithms have been initialized" );
   }
 

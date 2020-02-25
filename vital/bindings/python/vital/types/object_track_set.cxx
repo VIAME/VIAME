@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,9 @@ PYBIND11_MODULE(object_track_set, m)
   .def(py::init<int64_t, int64_t, std::shared_ptr<kwiver::vital::detected_object>>())
   .def_property_readonly("frame_id", &kwiver::vital::track_state::frame)
   .def_property_readonly("time_usec", &kwiver::vital::object_track_state::time)
-  .def_readwrite("detection", &obj_track_state::detection)
+  .def("detection", (kwiver::vital::detected_object_sptr(obj_track_state::*)())&obj_track_state::detection)
+  .def("image_point", &obj_track_state::image_point)
+  .def("track_point", &obj_track_state::track_point)
   ;
 
   py::class_<obj_track_set, kwiver::vital::track_set, std::shared_ptr<obj_track_set>>(m, "ObjectTrackSet")

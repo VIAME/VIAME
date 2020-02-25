@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,4 +107,4 @@ private:
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif /* KWIVER_ARROWS_OCV_DETECT_MOTION_MOG2_H_ */
+#endif

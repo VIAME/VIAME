@@ -106,12 +106,12 @@ public:
 protected:
   sprokit::process& m_proc; // associated process
 
-  // The canonical name string defining the data type we are converting.
+  // The canonical name string defining the serialization method (JSON, PROTO, ...)
   std::string m_serialization_type;
 
   /*
-   * A port group defines a set of ports that provide data to a single
-   * serializer algo.
+   * A port group defines a set of ports that provide data for a
+   * single message.
    */
   struct message_spec
   {

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,7 @@ write_object_track_process
 {
   make_ports();
   make_config();
+  set_data_checking_level( check_sync );
 }
 
 
@@ -133,21 +134,23 @@ void write_object_track_process
 void write_object_track_process
 ::_step()
 {
-  std::string file_name;
-
-  // image name is optional
-  if ( has_input_port_edge_using_trait( image_file_name ) )
+  auto const& port_info = peek_at_port_using_trait( object_track_set );
+  if( port_info.datum->type() == sprokit::datum::complete )
   {
-    file_name = grab_from_port_using_trait( image_file_name );
+    grab_edge_datum_using_trait( object_track_set );
+    d->m_writer->close();
+    mark_process_as_complete();
+    return;
   }
 
-  kwiver::vital::object_track_set_sptr input
-    = grab_from_port_using_trait( object_track_set );
+  auto const& input = grab_from_port_using_trait( object_track_set );
+  auto const& ts = try_grab_from_port_using_trait( timestamp );
+  auto const& file_name = try_grab_from_port_using_trait( image_file_name );
 
   {
     scoped_step_instrumentation();
 
-    d->m_writer->write_set( input );
+    d->m_writer->write_set( input, ts, file_name );
   }
 }
 
@@ -163,6 +166,7 @@ void write_object_track_process
 
   declare_input_port_using_trait( image_file_name, optional );
   declare_input_port_using_trait( object_track_set, required );
+  declare_input_port_using_trait( timestamp, optional );
 }
 
 

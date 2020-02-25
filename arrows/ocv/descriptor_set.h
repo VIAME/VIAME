@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016 by Kitware, Inc.
+ * Copyright 2013-2016, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,8 @@ public:
   : data_(descriptor_matrix) {}
 
   /// Return the number of descriptor in the set
-  virtual size_t size() const { return data_.rows; }
+  virtual size_t size() const override { return data_.rows; }
+  virtual bool empty() const override { return size() == 0; }
 
   /// Return a vector of descriptor shared pointers
   virtual std::vector<vital::descriptor_sptr> descriptors() const;
@@ -69,7 +70,12 @@ public:
   /// Return the native OpenCV descriptors as a matrix
   const cv::Mat& ocv_desc_matrix() const { return data_; }
 
+  virtual vital::descriptor_sptr at( size_t index ) override;
+  virtual vital::descriptor_sptr const at( size_t index ) const override;
+
 protected:
+  iterator::next_value_func_t get_iter_next_func() override;
+  const_iterator::next_value_func_t get_const_iter_next_func() const override;
 
   /// The OpenCV matrix of featrues
   cv::Mat data_;
@@ -87,4 +93,4 @@ descriptors_to_ocv_matrix(const vital::descriptor_set& desc_set);
 } // end namespace arrows
 } // end namespace kwiver
 
-#endif // KWIVER_ARROWS_OCV_DESCRIPTOR_SET_H_
+#endif

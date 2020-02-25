@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2015-2016 by Kitware, Inc.
+Copyright 2015-2019 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,8 @@ from vital.types import (
 )
 
 import nose.tools
+import numpy as np
+from vital.tests.helpers import create_numpy_image, map_dtype_name_to_pixel_type
 
 
 class TestVitalImageContainer (object):
@@ -66,3 +68,77 @@ class TestVitalImageContainer (object):
         i = Image(720, 480)
         ic = ImageContainer(i)
         nose.tools.assert_equal(ic.height(), 480)
+
+    def test_fromarray(self):
+        dtype_names = ['bool',
+                       'int8', 'int16', 'int32',
+                       'uint8', 'uint16', 'uint32',
+                       # 'float16',  # currently not supported
+                       'float32',
+                       'float64']
+
+        def _test_numpy(dtype_name, nchannels, order='c'):
+            np_img = create_numpy_image(dtype_name, nchannels, order)
+            img_container = ImageContainer.fromarray(np_img)
+            recast = img_container.asarray()
+
+            # asarray always returns 3 channels
+            np_img = np.atleast_3d(np_img)
+
+            vital_img = img_container.image()
+            pixel_type_name = vital_img.pixel_type_name()
+
+            pixel_type_name = vital_img.pixel_type_name()
+            want = map_dtype_name_to_pixel_type(dtype_name)
+
+            assert pixel_type_name == want, 'want={} but got={}'.format(
+                want, pixel_type_name)
+
+            if not np.all(np_img == recast):
+                raise AssertionError(
+                    'Failed dtype={}, nchannels={}, order={}'.format(
+                        dtype_name, nchannels, order))
+
+        n_pass = 0
+        for order in ['c', 'fortran', 'c-reverse', 'fortran-reverse']:
+            for nchannels in [None, 1, 3, 4]:
+                for dtype_name in dtype_names:
+                    _test_numpy(dtype_name, nchannels)
+                    n_pass += 1
+
+    def test_asarray(self):
+        dtype_names = ['bool',
+                       'int8', 'int16', 'int32',
+                       'uint8', 'uint16', 'uint32',
+                       # 'float16',  # currently not supported
+                       'float32',
+                       'float64']
+
+        def _test_numpy(dtype_name, nchannels, order='c'):
+            np_img = create_numpy_image(dtype_name, nchannels, order)
+            img_container = ImageContainer(Image(np_img))
+            recast = img_container.asarray()
+
+            # asarray always returns 3 channels
+            np_img = np.atleast_3d(np_img)
+
+            vital_img = img_container.image()
+            pixel_type_name = vital_img.pixel_type_name()
+
+            pixel_type_name = vital_img.pixel_type_name()
+            want = map_dtype_name_to_pixel_type(dtype_name)
+
+            assert pixel_type_name == want, 'want={} but got={}'.format(
+                want, pixel_type_name)
+
+            if not np.all(np_img == recast):
+                raise AssertionError(
+                    'Failed dtype={}, nchannels={}, order={}'.format(
+                        dtype_name, nchannels, order))
+
+        n_pass = 0
+        for order in ['c', 'fortran', 'c-reverse', 'fortran-reverse']:
+            for nchannels in [None, 1, 3, 4]:
+                for dtype_name in dtype_names:
+                    _test_numpy(dtype_name, nchannels)
+                    n_pass += 1

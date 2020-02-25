@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,17 +37,19 @@
 #define KWIVER_VITAL_EXCEPTIONS_ITERATION_H_
 
 #include <vital/exceptions/base.h>
+#include <string>
 
 namespace kwiver {
 namespace vital {
 
 /// Exception thrown from next value function to signify the end of iteration.
-class stop_iteration_exception
+class VITAL_EXCEPTIONS_EXPORT stop_iteration_exception
   : public vital_exception
 {
 public:
   /// Constructor
-  stop_iteration_exception() noexcept = default;
+  stop_iteration_exception( std::string const& container) noexcept;
+
   /// Destructor
   virtual ~stop_iteration_exception() noexcept = default;
 };

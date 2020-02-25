@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -286,10 +286,12 @@ public:
         return false;
     }
 
+    auto seek_timestamp = av_rescale_q( 0, av_get_time_base_q(),
+                                        this->f_video_stream->time_base );
     // Now seek back to the start of the video
     auto seek_rslt = av_seek_frame( this->f_format_context,
                                     this->f_video_index,
-                                    INT64_MIN,
+                                    seek_timestamp,
                                     AVSEEK_FLAG_BACKWARD );
     avcodec_flush_buffers( this->f_video_encoding );
     if (seek_rslt < 0 )
@@ -456,8 +458,10 @@ public:
     bool advance_successful = false;
     do
     {
+      auto rescaled_frame_ts = av_rescale_q( frame_ts, av_get_time_base_q(),
+                                          this->f_video_stream->time_base );
       auto seek_rslt = av_seek_frame( this->f_format_context,
-                                      this->f_video_index, frame_ts,
+                                      this->f_video_index, rescaled_frame_ts,
                                       AVSEEK_FLAG_BACKWARD );
       avcodec_flush_buffers( this->f_video_encoding );
 
@@ -621,7 +625,7 @@ public:
     // is stream open?
     if ( ! this->is_opened() )
     {
-      throw vital::file_not_read_exception( video_path, "Video not open" );
+      VITAL_THROW( vital::file_not_read_exception, video_path, "Video not open" );
     }
 
     if ( !have_loop_vars )
@@ -758,12 +762,12 @@ ffmpeg_video_input
     if (!kwiversys::SystemTools::FileExists(d->video_path))
     {
       // Throw exception
-      throw kwiver::vital::file_not_found_exception(video_name, "File not found");
+      VITAL_THROW( kwiver::vital::file_not_found_exception, video_name, "File not found");
     }
 
     if (!d->open(video_name))
     {
-      throw kwiver::vital::video_runtime_exception("Video stream open failed for unknown reasons");
+      VITAL_THROW( kwiver::vital::video_runtime_exception, "Video stream open failed for unknown reasons");
     }
     this->set_capability(vital::algo::video_input::HAS_METADATA,
                          d->f_data_index >= 0);
@@ -795,7 +799,7 @@ ffmpeg_video_input
 {
   if (!d->is_opened())
   {
-    throw vital::file_not_read_exception(d->video_path, "Video not open");
+    VITAL_THROW( vital::file_not_read_exception, d->video_path, "Video not open");
   }
 
   bool ret = d->advance();
@@ -816,7 +820,7 @@ bool ffmpeg_video_input::seek_frame(kwiver::vital::timestamp& ts,
   // Quick return if the stream isn't open.
   if (!d->is_opened())
   {
-    throw vital::file_not_read_exception(d->video_path, "Video not open");
+    VITAL_THROW( vital::file_not_read_exception, d->video_path, "Video not open");
     return false;
   }
   if (frame_number <= 0)

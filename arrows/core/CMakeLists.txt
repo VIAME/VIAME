@@ -35,12 +35,14 @@ set( plugin_core_headers
   match_features_homography.h
   match_tracks.h
   mesh_operations.h
+  necker_reverse.h
   read_object_track_set_kw18.h
   read_track_descriptor_set_csv.h
   render_mesh_depth_map.h
   track_features_augment_keyframes.h
   track_features_core.h
   transform.h
+  transform_detected_object_set.h
   triangle_scan_iterator.h
   triangulate_landmarks.h
   uv_unwrap_mesh.h
@@ -111,6 +113,7 @@ set( plugin_core_sources
   match_features_fundamental_matrix.cxx
   match_features_homography.cxx
   match_tracks.cxx
+  necker_reverse.cxx
   mesh_operations.cxx
   read_object_track_set_kw18.cxx
   read_track_descriptor_set_csv.cxx
@@ -118,6 +121,7 @@ set( plugin_core_sources
   track_features_augment_keyframes.cxx
   track_features_core.cxx
   transform.cxx
+  transform_detected_object_set.cxx
   triangle_scan_iterator.cxx
   triangulate_landmarks.cxx
   uv_unwrap_mesh.cxx

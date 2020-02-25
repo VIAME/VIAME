@@ -31,7 +31,7 @@
 
 def test_import():
     try:
-        import sprokit.pipeline.config
+        import vital.config.config
         import sprokit.pipeline.process
         import sprokit.pipeline.process_cluster
     except:
@@ -39,7 +39,7 @@ def test_import():
 
 
 def test_api_calls():
-    from sprokit.pipeline import config
+    from vital.config import config
     from sprokit.pipeline import process
     from sprokit.pipeline import process_cluster
 

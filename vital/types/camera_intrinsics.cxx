@@ -37,8 +37,10 @@
 
 #include <vital/types/camera_intrinsics.h>
 #include <vital/io/eigen_io.h>
+#include <vital/math_constants.h>
 #include <Eigen/Dense>
 
+#include <cmath>
 #include <iomanip>
 
 namespace kwiver {
@@ -98,6 +100,15 @@ camera_intrinsics
   return this->undistort( vector_2d( x, y ) );
 }
 
+
+/// Check if a 3D point in camera coordinates can map into image coordinates
+bool
+camera_intrinsics
+::is_map_valid(const vector_3d& norm_hpt) const
+{
+  return this->is_map_valid(vector_2d(norm_hpt[0] / norm_hpt[2],
+                                      norm_hpt[1] / norm_hpt[2]));
+}
 
 
 namespace // anonymous namespace
@@ -240,7 +251,8 @@ simple_camera_intrinsics
   principal_point_( K( 0, 2 ), K( 1, 2 ) ),
   aspect_ratio_( K( 0, 0 ) / K( 1, 1 ) ),
   skew_( K( 0, 1 ) ),
-  dist_coeffs_( d )
+  dist_coeffs_( d ),
+  max_distort_radius_sq_(compute_max_distort_radius_sq())
 {
 }
 
@@ -285,6 +297,131 @@ simple_camera_intrinsics
     norm_pt -= J.ldlt().solve( residual );
   }
   return norm_pt;
+}
+
+/// Check if a normalized image coordinate can map into image coordinates
+bool
+simple_camera_intrinsics
+::is_map_valid(const vector_2d& norm_pt) const
+{
+  return norm_pt.squaredNorm() < this->max_distort_radius_sq_;
+}
+
+
+/// Compute the maximum distortion radius from dist_coeffs_
+double
+simple_camera_intrinsics
+::compute_max_distort_radius_sq() const
+{
+  double a = 0.0;
+  double b = 0.0;
+  double c = 0.0;
+  if (dist_coeffs_.rows() > 0)
+  {
+    a = dist_coeffs_[0];
+    if (dist_coeffs_.rows() > 1)
+    {
+      b = dist_coeffs_[1];
+      if (dist_coeffs_.rows() > 4)
+      {
+        c = dist_coeffs_[4];
+        if (dist_coeffs_.rows() > 5)
+        {
+          // the rational polynomial case is not yet handled
+          // TODO: implement something or throw a warning
+        }
+      }
+    }
+  }
+  return max_distort_radius_sq(a, b, c);
+}
+
+
+/// Compute the maximum radius for radial distortion given coefficients
+double
+simple_camera_intrinsics
+::max_distort_radius_sq(double a, double b, double c)
+{
+  constexpr double inf = std::numeric_limits<double>::infinity();
+  using kwiver::vital::pi;
+  // this function finds the smallest positive root of
+  //   (1 + a r^2 + b r^4 + c r^6) r
+  // the derivative with respect to r is
+  //   1 + 3 a r^2 + 5 b r^4 + 7 c r^6
+  // substituting x = r^2 we can solve this cubic polynomial
+  //   1 + 3 a x + 5 b x^2 + 7 c r^3
+  // taking the square root of the smallest positive x gives r
+
+  // fold the constants from the derivative into a, b, and c
+  a *= 3;
+  b *= 5;
+  c *= 7;
+
+  // if all non-negative there is no root
+  if (a >= 0.0 && b >= 0.0 && c >= 0.0)
+  {
+    return inf;
+  }
+  // general solution for non-zero cubic term
+  if (c != 0.0)
+  {
+    // an array for the three possible solutions
+    double solns[3] = { inf, inf, inf };
+    // precompute commonly used terms (boc is "b over c")
+    double boc = b / c;
+    double boc2 = boc * boc;
+    double t1 = (9 * a * boc - 2 * b * boc2 - 27) / c;
+    double t2 = 3 * a / c - boc2;
+    double discrim = t1 * t1 + 4 * t2 * t2 * t2;
+    if (discrim > 0.0)
+    {
+      discrim = std::cbrt((std::sqrt(discrim) + t1) / 2.0);
+      solns[0] = (discrim - (t2 / discrim) - boc) / 3;
+    }
+    else
+    {
+      double theta = (std::atan2(std::sqrt(-discrim), t1)) / 3;
+      constexpr double twothirdpi = 2.0 * pi / 3.0;
+      // by construction, if discrim < 0 then t2 < 0, so the sqrt is safe
+      double t3 = 2 * std::sqrt(-t2);
+      solns[0] = (t3 * std::cos(theta) - boc) / 3;
+      solns[1] = (t3 * std::cos(theta + twothirdpi) - boc) / 3;
+      solns[2] = (t3 * std::cos(theta - twothirdpi) - boc) / 3;
+    }
+    // find the minimum positive solution
+    double min_soln = inf;
+    for (auto const& s : solns)
+    {
+      if (s > 0.0 && s < min_soln)
+      {
+        min_soln = s;
+      }
+    }
+    return min_soln;
+  }
+  // simplified solution for the quadratic case
+  else if (b != 0.0)
+  {
+    double discrim = a * a - 4 * b;
+    // if less than zero both solutions are not real
+    if (discrim >= 0.0)
+    {
+      // we only need the smaller of the two possible solutions
+      // solutions must be either both positive or both negative
+      discrim = std::sqrt(discrim) - a;
+      // if less than zero both solutions are negative
+      if (discrim > 0.0)
+      {
+        return 2.0 / discrim;
+      }
+    }
+  }
+  // simple linear case for b = c = 0
+  else if (a < 0.0)
+  {
+    return 1.0 / -a;
+  }
+  return inf;
 }
 
 

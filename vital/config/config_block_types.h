@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014 by Kitware, Inc.
+ * Copyright 2013-2014, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,4 +67,4 @@ typedef std::vector< std::string > config_path_list_t;
 
 } }
 
-#endif /* KWIVER_CONFIG_BLOCK_TYPES_H_ */
+#endif

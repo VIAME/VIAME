@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,10 @@
 #ifndef VITAL_OBJECT_TRACK_SET_H_
 #define VITAL_OBJECT_TRACK_SET_H_
 
-#include "timestamp.h"
-#include "track_set.h"
-#include "detected_object.h"
+#include <vital/types/detected_object.h>
+#include <vital/types/point.h>
+#include <vital/types/timestamp.h>
+#include <vital/types/track_set.h>
 
 #include <vital/vital_export.h>
 #include <vital/vital_config.h>
@@ -59,42 +60,52 @@ namespace vital {
 class VITAL_EXPORT object_track_state : public track_state
 {
 public:
+  object_track_state() = default;
 
-  object_track_state()
-    : track_state( 0 )
-      , detection( nullptr ) 
-      , time_( 0 )
-  {}
-  
+  //@{
   /// Default constructor
   object_track_state( frame_id_t frame,
                       time_usec_t time,
-                      detected_object_sptr d = nullptr )
+                      detected_object_sptr const& d = nullptr )
     : track_state( frame )
-    , detection( d )
+    , detection_( d )
     , time_( time )
   {}
 
+  object_track_state( frame_id_t frame,
+                      time_usec_t time,
+                      detected_object_sptr&& d )
+    : track_state( frame )
+    , detection_( std::move( d ) )
+    , time_( time )
+  {}
+  //@}
+
+  //@{
   /// Alternative constructor
-  object_track_state( const timestamp& ts,
-                      detected_object_sptr d = nullptr )
+  object_track_state( timestamp const& ts,
+                      detected_object_sptr const& d = nullptr )
     : track_state( ts.get_frame() )
-    , detection( d )
+    , detection_( d )
     , time_( ts.get_time_usec() )
   {}
 
-  /// Copy constructor
-  object_track_state( object_track_state const& ot )
-    : track_state( ot.frame() )
-    , detection( ot.detection )
-    , time_( ot.time() )
+  object_track_state( timestamp const& ts,
+                      detected_object_sptr&& d )
+    : track_state( ts.get_frame() )
+    , detection_( std::move( d ) )
+    , time_( ts.get_time_usec() )
   {}
+  //@}
+
+  /// Copy constructor
+  object_track_state( object_track_state const& other ) = default;
+
+  /// Move constructor
+  object_track_state( object_track_state&& other ) = default;
 
   /// Clone the track state (polymorphic copy constructor)
-  virtual track_state_sptr clone() const
-  {
-    return std::make_shared< object_track_state >( *this );
-  }
+  track_state_sptr clone( clone_type ct = clone_type::DEEP ) const override;
 
   void set_time( time_usec_t time )
   {
@@ -106,8 +117,40 @@ public:
     return time_;
   }
 
-  detected_object_sptr detection;
+  void set_detection( detected_object_sptr const& d )
+  {
+    detection_ = d;
+  }
 
+  detected_object_sptr detection()
+  {
+    return detection_;
+  }
+
+  detected_object_scptr detection() const
+  {
+    return detection_;
+  }
+
+  void set_image_point( point_2d const& p )
+  {
+    image_point_ = p;
+  }
+
+  point_2d image_point() const
+  {
+    return image_point_;
+  }
+
+  void set_track_point( point_3d const& p )
+  {
+    track_point_ = p;
+  }
+
+  point_3d track_point() const
+  {
+    return track_point_;
+  }
 
   static std::shared_ptr< object_track_state > downcast(
     track_state_sptr const& sp )
@@ -118,7 +161,10 @@ public:
   static constexpr auto downcast_transform = range::transform( downcast );
 
 private:
-  time_usec_t time_;
+  detected_object_sptr detection_;
+  point_2d image_point_;
+  point_3d track_point_;
+  time_usec_t time_ = 0;
 };
 
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,11 +96,23 @@ geo_conv( vector_2d const& point, int from, int to )
 }
 
 // ----------------------------------------------------------------------------
-utm_ups_zone_t
-utm_ups_zone( vector_2d const& lat_lon )
+vector_3d
+geo_conv( vector_3d const& point, int from, int to )
 {
-  // Get latitude and check for range error
-  auto const lat = lat_lon[1];
+  auto const c = s_geo_conv.load();
+  if ( !c )
+  {
+    throw std::runtime_error( "No geo-conversion functor is registered" );
+  }
+
+  return ( *c )( point, from, to );
+}
+
+// ----------------------------------------------------------------------------
+utm_ups_zone_t
+utm_ups_zone( double lon, double lat )
+{
+  // Check latitude for range error
   if ( lat > 90.0 || lat < -90.0 )
   {
     throw std::range_error( "Input latitude is out of range" );
@@ -117,9 +129,23 @@ utm_ups_zone( vector_2d const& lat_lon )
   }
 
   // Get normalized longitude and return UTM zone
-  auto const lon = fmod( lat_lon[0], 360.0 );
+  lon = fmod( lon, 360.0 );
   auto const zone = 1 + ( ( 30 + static_cast<int>( lon / 6.0 ) ) % 60 );
   return { zone, lat >= 0.0 };
+}
+
+// ----------------------------------------------------------------------------
+utm_ups_zone_t
+utm_ups_zone( vector_2d const& lon_lat)
+{
+  return utm_ups_zone(lon_lat[0], lon_lat[1]);
+}
+
+// ----------------------------------------------------------------------------
+utm_ups_zone_t
+utm_ups_zone( vector_3d const& lon_lat_alt)
+{
+  return utm_ups_zone(lon_lat_alt[0], lon_lat_alt[1]);
 }
 
 } } // end namespace

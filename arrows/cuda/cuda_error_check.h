@@ -54,4 +54,4 @@ void cuda_throw(cudaError_t code, const char *file, int line);
 }  // end namespace arrows
 }  // end namespace kwiver
 
-#endif // KWIVER_ARROWS_CUDA_CUDA_ERROR_CHECK_H_
+#endif

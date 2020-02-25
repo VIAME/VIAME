@@ -51,7 +51,7 @@ class KWIVER_ADAPTER_EXPORT input_adapter_process
 {
 public:
   PLUGIN_INFO( "input_adapter",
-               "Source process for pipeline.\n\n"
+               "Source process for embedded pipeline.\n\n"
                "Pushes data items into pipeline ports. "
                "Ports are dynamically created as needed based on connections specified in the pipeline file." )
 

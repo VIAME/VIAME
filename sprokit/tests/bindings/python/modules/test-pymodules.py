@@ -37,7 +37,6 @@ def test_import():
 
 
 def test_load():
-    from sprokit.pipeline import config
     from vital.modules import modules
     from sprokit.pipeline import process_factory
 
@@ -51,7 +50,6 @@ def test_load():
 
 # TEST_PROPERTY(ENVIRONMENT, SPROKIT_NO_PYTHON_MODULES=)
 def test_masking():
-    from sprokit.pipeline import config
     from vital.modules import modules
     from sprokit.pipeline import process_factory
 
@@ -65,7 +63,6 @@ def test_masking():
 
 # TEST_PROPERTY(ENVIRONMENT, SPROKIT_PYTHON_MODULES=sprokit.test.python.modules)
 def test_extra_modules():
-    from sprokit.pipeline import config
     from vital.modules import modules
     from sprokit.pipeline import process_factory
 
@@ -79,7 +76,6 @@ def test_extra_modules():
 
 # TEST_PROPERTY(ENVIRONMENT, PYTHONPATH=@CMAKE_CURRENT_SOURCE_DIR@)
 def test_pythonpath():
-    from sprokit.pipeline import config
     from vital.modules import modules
     from sprokit.pipeline import process_factory
     from sprokit.pipeline import scheduler_factory

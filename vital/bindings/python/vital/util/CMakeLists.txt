@@ -1,5 +1,6 @@
 project(vital_python_util)
 
+include_directories(${pybind11_INCLUDE_DIR})
 
 set(python_util_srcs
   python_exceptions.cxx)
@@ -8,6 +9,8 @@ set(python_util_headers
   pybind11.h
   python_exceptions.h
   python.h)
+
+include_directories(${pybind11_INCLUDE_DIR})
 
 kwiver_add_library(vital_python_util
   ${python_util_srcs}
@@ -29,4 +32,7 @@ kwiver_install_headers(
 )
 
 
-add_subdirectory(py)
+kwiver_create_python_init( vital/util )
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/VitalPIL.py
+  vital/util
+  VitalPIL )

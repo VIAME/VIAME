@@ -1,8 +1,8 @@
-project(arrows_adapters_tests)
+project(sprokit_adapters_tests)
 
 include(kwiver-test-setup)
 
-set( test_libraries       vital sprokit_pipeline sprokit_tools kwiver_adapter )
+set( test_libraries       vital sprokit_pipeline sprokit_pipeline_util kwiver_adapter )
 
 #############################
 # adapter process tests
