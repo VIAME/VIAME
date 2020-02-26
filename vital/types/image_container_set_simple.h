@@ -55,10 +55,10 @@ public:
   explicit simple_image_container_set( std::vector< image_container_sptr > const& images );
 
   /// Return the number of items
-  virtual size_t size() const override;
-  virtual bool empty() const override;
-  virtual image_container_sptr at( size_t index ) override;
-  virtual image_container_sptr const at( size_t index ) const override;
+  size_t size() const override;
+  bool empty() const override;
+  image_container_sptr at( size_t index ) override;
+  image_container_sptr const at( size_t index ) const override;
 
 protected:
   using vec_t = std::vector< image_container_sptr >;

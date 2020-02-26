@@ -50,8 +50,8 @@ public:
                "This program assists in debugging config loading problems. It loads a "
                "configuration and displays the contents or displays the search path.");
 
-  virtual int run() override;
-  virtual void add_command_options() override;
+  int run() override;
+  void add_command_options() override;
 
 }; // end of class
 

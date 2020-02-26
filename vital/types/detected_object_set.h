@@ -127,7 +127,7 @@ public:
    *
    * @return Number of detections.
    */
-  virtual size_t size() const override;
+  size_t size() const override;
 
   /**
    * @brief Returns whether or not this set is empty.
@@ -136,7 +136,7 @@ public:
    *
    * @return Whether or not the set is empty.
    */
-  virtual bool empty() const override;
+  bool empty() const override;
 
   //@{
   /**
@@ -155,8 +155,8 @@ public:
    * @throws std::range if position is now within the range of objects
    * in container.
    */
-  virtual detected_object_sptr at( size_t pos ) override;
-  virtual const detected_object_sptr at( size_t pos ) const override;
+  detected_object_sptr at( size_t pos ) override;
+  const detected_object_sptr at( size_t pos ) const override;
   //@}
 
   /**

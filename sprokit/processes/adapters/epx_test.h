@@ -50,10 +50,10 @@ public:
   epx_test();
   virtual ~epx_test() = default;
 
-  virtual void pre_setup( context& ctxt ) override;
-  virtual void end_of_output( context& ctxt ) override;
-  virtual void configure( kwiver::vital::config_block_sptr const conf ) override;
-  virtual kwiver::vital::config_block_sptr get_configuration() const override;
+  void pre_setup( context& ctxt ) override;
+  void end_of_output( context& ctxt ) override;
+  void configure( kwiver::vital::config_block_sptr const conf ) override;
+  kwiver::vital::config_block_sptr get_configuration() const override;
 
 }; // end class epx_test
 

@@ -67,8 +67,8 @@ public:
   bool hasOutput() const { return this->outputConnected_; }
 
 protected:
-  virtual bool connect_input_adapter() override;
-  virtual bool connect_output_adapter() override;
+  bool connect_input_adapter() override;
+  bool connect_output_adapter() override;
 
   RequiredEndcaps const endcaps_;
   bool inputConnected_ = false;
@@ -111,7 +111,7 @@ public:
 protected:
   KQ_DECLARE_PUBLIC_PTR( EmbeddedPipelineWorkerPrivate )
 
-  virtual void run() override;
+  void run() override;
 
 private:
   KQ_DECLARE_PUBLIC( EmbeddedPipelineWorkerPrivate )
@@ -135,7 +135,7 @@ public:
 protected:
   KQ_DECLARE_PUBLIC_PTR( EmbeddedPipelineWorker )
 
-  virtual void run() override;
+  void run() override;
 
 private:
   KQ_DECLARE_PUBLIC( EmbeddedPipelineWorker )

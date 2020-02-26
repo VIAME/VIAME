@@ -45,8 +45,8 @@ class pipe_to_dot
 public:
   pipe_to_dot();
 
-  virtual int run() override;
-  virtual void add_command_options() override;
+  int run() override;
+  void add_command_options() override;
 
   PLUGIN_INFO( "pipe-to-dot",
                "Create DOT output of pipe topology")

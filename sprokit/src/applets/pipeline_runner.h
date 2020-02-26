@@ -48,8 +48,8 @@ public:
   PLUGIN_INFO( "runner",
                "Runs a pipeline");
 
-  virtual int run() override;
-  virtual void add_command_options() override;
+  int run() override;
+  void add_command_options() override;
 
 }; // end of class
 

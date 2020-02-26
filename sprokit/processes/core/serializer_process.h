@@ -62,8 +62,8 @@ protected:
   virtual void _init();
   virtual void _step();
 
-  virtual void input_port_undefined( port_t const& port ) override;
-  virtual void output_port_undefined( port_t const& port )override;
+  void input_port_undefined( port_t const& port ) override;
+  void output_port_undefined( port_t const& port ) override;
 
   virtual bool _set_input_port_type( port_t const&      port_name,
                                      port_type_t const& port_type ) override;

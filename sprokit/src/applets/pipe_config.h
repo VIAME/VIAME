@@ -45,8 +45,8 @@ class pipe_config
 public:
   pipe_config();
 
-  virtual int run() override;
-  virtual void add_command_options() override;
+  int run() override;
+  void add_command_options() override;
 
   PLUGIN_INFO( "pipe-config",
     "Configures a pipeline\n\n"

@@ -64,9 +64,9 @@ public:
   virtual ~merge_images_process();
 
 protected:
-  virtual void _configure() override;
-  virtual void _step() override;
-  virtual void input_port_undefined(port_t const& port) override;
+  void _configure() override;
+  void _step() override;
+  void input_port_undefined(port_t const& port) override;
 
 private:
   void make_ports();
