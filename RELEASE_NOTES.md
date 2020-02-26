@@ -1,11 +1,8 @@
-v0.10.5 - 2/05/2020
+v0.10.5 - 2/26/2020
 ===================
 
 
--Add continue training model script to project(s)
-
-
--Added new default motion detection pipelines
+-Add improved CFRNN training proceedure using netharn
 
 
 v0.10.4 - 1/31/2020
