@@ -60,6 +60,7 @@ setup(
                         'mock',
                         'coverage',
                         'external_arrow',
+                        'pytest'
                       ],
         cmake_args=[
                     '-DCMAKE_BUILD_TYPE=Release',

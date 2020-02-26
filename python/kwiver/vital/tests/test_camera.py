@@ -38,6 +38,7 @@ import math
 import unittest
 from numpy.random import rand
 import nose.tools
+import pytest
 import numpy
 import os
 
@@ -48,7 +49,7 @@ from kwiver.vital.types import (
     Rotation,
 )
 
-
+@pytest.mark.skip(reason="Old binding based tests that are being updated")
 class TestVitalCamera (unittest.TestCase):
 
     def test_new(self):

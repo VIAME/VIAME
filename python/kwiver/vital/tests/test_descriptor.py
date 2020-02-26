@@ -38,12 +38,13 @@ import random
 import unittest
 
 import nose.tools
+import pytest
 from six.moves import range
 import numpy
 
 from kwiver.vital.types import new_descriptor
 
-
+@pytest.mark.skip(reason="Old bindings based tests that are being updated")
 class TestDescriptor (unittest.TestCase):
 
     def test_new(self):

@@ -36,7 +36,7 @@ class TestVitalConfig(object):
         config.ConfigKeys()
 
     def test_api_calls(self):
-        config.Config.block_sep
+        config.Config.block_sep()
         config.Config.global_value
 
     def test_has_value(self):
@@ -61,7 +61,7 @@ class TestVitalConfig(object):
         keya = 'keya'
         keyb = 'keyb'
         valuea = 'valuea'
-        c.set_value(keya + config.Config.block_sep + keyb, valuea)
+        c.set_value(keya + config.Config.block_sep() + keyb, valuea)
         nc = c.subblock(keya)
         get_valuea = nc.get_value(keyb)
         nose.tools.assert_equal(valuea, get_valuea)
@@ -139,9 +139,9 @@ class TestVitalConfig(object):
         valueb = 'valueb'
         valuec = 'valuec'
 
-        c.set_value(block1 + config.Config.block_sep + keya, valuea)
-        c.set_value(block1 + config.Config.block_sep + keyb, valueb)
-        c.set_value(block2 + config.Config.block_sep + keyc, valuec)
+        c.set_value(block1 + config.Config.block_sep() + keya, valuea)
+        c.set_value(block1 + config.Config.block_sep() + keyb, valueb)
+        c.set_value(block2 + config.Config.block_sep() + keyc, valuec)
 
         d = c.subblock(block1)
         get_valuea = d.get_value(keya)
@@ -166,8 +166,8 @@ class TestVitalConfig(object):
         valuea = 'valuea'
         valueb = 'valueb'
 
-        c.set_value(block1 + config.Config.block_sep + keya, valuea)
-        c.set_value(block2 + config.Config.block_sep + keyb, valueb)
+        c.set_value(block1 + config.Config.block_sep() + keya, valuea)
+        c.set_value(block2 + config.Config.block_sep() + keyb, valueb)
 
         d = c.subblock_view(block1)
 
@@ -177,7 +177,7 @@ class TestVitalConfig(object):
         nose.tools.assert_equal(d.has_value(keyb), False,
                                "Subblock inherited unrelated key")
 
-        c.set_value(block1 + config.Config.block_sep + keya, valueb)
+        c.set_value(block1 + config.Config.block_sep() + keya, valueb)
 
         get_valuea1 = d.get_value(keya)
 

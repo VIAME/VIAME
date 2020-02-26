@@ -88,4 +88,4 @@ class TestObjectTrackState (unittest.TestCase):
         """
         do = self._create_detected_object()
         ts = ObjectTrackState(0, 0, do)
-        nose.tools.assert_equal(ts.detection, do)
+        nose.tools.assert_equal(ts.detection(), do)
