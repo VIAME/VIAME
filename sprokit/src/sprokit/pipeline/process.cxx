@@ -82,7 +82,7 @@ kwiver::vital::config_block_key_t const process::config_type = kwiver::vital::co
 process::port_type_t const process::type_any = port_type_t("_any");
 process::port_type_t const process::type_none = port_type_t("_none");
 process::port_type_t const process::type_data_dependent = port_type_t("_data_dependent");
-process::port_type_t const process::type_flow_dependent = port_type_t("_flow_dependent/");
+process::port_type_t const process::type_flow_dependent = port_type_t("_flow_dependent/"); // Trailing '/' is important
 process::port_flag_t const process::flag_output_const = port_flag_t("_const");
 process::port_flag_t const process::flag_output_shared = port_flag_t("_shared");
 process::port_flag_t const process::flag_input_static = port_flag_t("_static");
@@ -898,6 +898,8 @@ process
 
     if (!tag.empty())
     {
+      // Scan all ports and force this data type on those with the
+      // current tag.
       ports_t const& iports = d->input_flow_tag_ports[tag];
 
       for (port_t const& iport : iports)
@@ -926,6 +928,7 @@ process
           oport_info->frequency);
       }
 
+      // Save the data type assigned to this tag
       d->flow_tag_port_types[tag] = new_type;
 
       return true;
@@ -966,12 +969,17 @@ process
                  name(), port, old_type, new_type);
   }
 
+  // If data type is flow dependent, set the port type now based on
+  // the data type we have been passed.
   if (is_flow_dependent)
   {
+    // Check to see if there is a tag supplied
     priv::tag_t const tag = d->port_flow_tag_name(old_type);
 
     if (!tag.empty())
     {
+      // Since there are other ports with the same tag, force the data
+      // type for all these ports at this time.
       ports_t const& iports = d->input_flow_tag_ports[tag];
 
       for (port_t const& iport : iports)
@@ -980,12 +988,13 @@ process
 
         declare_input_port(
           iport,
-          new_type,
+          new_type, // <- new type
           iport_info->flags,
           iport_info->description,
           iport_info->frequency);
       }
 
+      // Output ports can share a tag with the input ports.
       ports_t const& oports = d->output_flow_tag_ports[tag];
 
       for (port_t const& oport : oports)
@@ -994,18 +1003,20 @@ process
 
         declare_output_port(
           oport,
-          new_type,
+          new_type, // <- new type
           oport_info->flags,
           oport_info->description,
           oport_info->frequency);
       }
 
+      // Save the data type that corresponds to this tag
       d->flow_tag_port_types[tag] = new_type;
 
       return true;
     }
-  }
+  } // end flow dependent
 
+  // Not flow dependent. use type as supplied for this port only
   declare_output_port(
     port,
     new_type,
@@ -2340,7 +2351,7 @@ process::priv
 
 // ------------------------------------------------------------------
 /* Return tag name if flow dependent port.
- *
+ * Return empty string if there is no tag.
  */
 process::priv::tag_t
 process::priv
@@ -2356,6 +2367,10 @@ process::priv
 
 
 // ------------------------------------------------------------------
+/*
+ * If there are no ports that are associated with the supplied tag,
+ * then erase the entry.
+ */
 void
 process::priv
 ::check_tag(tag_t const& tag)
