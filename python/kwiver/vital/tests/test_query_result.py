@@ -37,7 +37,7 @@ import nose.tools as nt
 import numpy as np
 
 from kwiver.vital.types import (
-    BoundingBox,
+    BoundingBoxD as BoundingBox,
     DetectedObject,
     ClassMap,
     geodesy as g,

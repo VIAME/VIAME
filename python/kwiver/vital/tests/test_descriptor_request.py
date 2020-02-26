@@ -37,7 +37,7 @@ import nose.tools as nt
 import numpy.testing as npt
 
 from kwiver.vital.types import (
-    BoundingBox,
+    BoundingBoxD as BoundingBox,
     Image,
     ImageContainer,
     DescriptorRequest,

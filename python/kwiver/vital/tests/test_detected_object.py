@@ -39,7 +39,7 @@ import pytest
 import unittest
 
 from kwiver.vital.types import (
-    BoundingBox,
+    BoundingBoxD as BoundingBox,
     descriptor,
     DetectedObject,
     ClassMap,

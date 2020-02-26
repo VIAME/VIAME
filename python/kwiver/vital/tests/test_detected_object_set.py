@@ -39,7 +39,7 @@ import numpy as np
 from kwiver.vital.tests.cpp_helpers import det_obj_set_helpers as dos_helper
 from kwiver.vital.types import (
     DetectedObjectSet as dos,
-    BoundingBox as bb,
+    BoundingBoxD as bb,
     descriptor,
     DetectedObject as do,
     ClassMap as cm,

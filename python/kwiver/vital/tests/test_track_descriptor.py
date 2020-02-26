@@ -45,26 +45,26 @@ class TestVitalTrackDescriptorAndHistoryEntry(object):
     def _create_history_entries(self):
         h1 = track_descriptor.HistoryEntry(
             timestamp.Timestamp(),
-            bounding_box.BoundingBox(5, 10, 15, 20),
-            bounding_box.BoundingBox(25, 30, 35, 40)
+            bounding_box.BoundingBoxD(5, 10, 15, 20),
+            bounding_box.BoundingBoxD(25, 30, 35, 40)
         )
 
         h2 = track_descriptor.HistoryEntry(
             timestamp.Timestamp(123, 1),
-            bounding_box.BoundingBox(45, 50, 55, 60),
+            bounding_box.BoundingBoxD(45, 50, 55, 60),
         )
         return (h1, h2)
 
     def test_create_history_entry(self):
         track_descriptor.HistoryEntry(
             timestamp.Timestamp(),
-            bounding_box.BoundingBox(5, 10, 15, 20),
-            bounding_box.BoundingBox(25, 30, 35, 40)
+            bounding_box.BoundingBoxD(5, 10, 15, 20),
+            bounding_box.BoundingBoxD(25, 30, 35, 40)
         )
 
         track_descriptor.HistoryEntry(
             timestamp.Timestamp(123, 1),
-            bounding_box.BoundingBox(45, 50, 55, 60),
+            bounding_box.BoundingBoxD(45, 50, 55, 60),
         )
 
     def test_get_timestamp(self):
@@ -81,13 +81,13 @@ class TestVitalTrackDescriptorAndHistoryEntry(object):
     def test_get_image_location(self):
         (h1, h2) = self._create_history_entries()
 
-        nt.assert_equals(h1.get_image_location(), bounding_box.BoundingBox(5, 10, 15, 20))
-        nt.assert_equals(h2.get_image_location(), bounding_box.BoundingBox(45, 50, 55, 60))
+        nt.assert_equals(h1.get_image_location(), bounding_box.BoundingBoxD(5, 10, 15, 20))
+        nt.assert_equals(h2.get_image_location(), bounding_box.BoundingBoxD(45, 50, 55, 60))
     def test_get_world_location(self):
         (h1, h2) = self._create_history_entries()
 
-        nt.assert_equals(h1.get_world_location(), bounding_box.BoundingBox(25, 30, 35, 40))
-        nt.assert_equals(h2.get_world_location(), bounding_box.BoundingBox(0, 0, 0, 0))
+        nt.assert_equals(h1.get_world_location(), bounding_box.BoundingBoxD(25, 30, 35, 40))
+        nt.assert_equals(h2.get_world_location(), bounding_box.BoundingBoxD(0, 0, 0, 0))
 
     ##################### Tests on track_descriptor #####################
 

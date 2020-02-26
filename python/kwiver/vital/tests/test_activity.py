@@ -40,7 +40,7 @@ import numpy as np
 from kwiver.vital.types import ( Activity,
             ClassMap,
             Timestamp,
-            BoundingBox,
+            BoundingBoxD as BoundingBox,
             DetectedObject,
             ObjectTrackState,
             ObjectTrackSet,
