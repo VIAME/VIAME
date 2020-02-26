@@ -195,13 +195,12 @@ class DetectPredictor(object):
     def _prepare_image(self, full_rgb):
         full_dims = tuple(full_rgb.shape[0:2])
 
-        if self.config['window_dims'] == 'full':
-            window_dims = full_dims
-        else:
-            # could do this more efficiently
+        if self.config['window_dims'] == 'native':
             native = self._infer_native(self.config)
             window_dims = native['window_dims']
-            # window_dims = self.config['window_dims']
+
+        if window_dims == 'full':
+            window_dims = full_dims
 
         # Pad small images to be at least the minimum window_dims size
         dims_delta = np.array(full_dims) - np.array(window_dims)
