@@ -41,6 +41,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <string>
+
+#include <boost/algorithm/string.hpp>
 
 namespace viame {
 
@@ -78,6 +81,7 @@ public:
     , m_last_idx( 0 )
     , m_delim( "" )
     , m_point_dilation( 50 )
+    , m_use_number_labels( false )
     , m_use_internal_table( false )
     , m_detected_version( 1 )
   {
@@ -105,6 +109,7 @@ public:
   // -- config data --
   std::string m_delim;
   double m_point_dilation;      // in pixels
+  bool m_use_number_labels;
   bool m_use_internal_table;
   int m_detected_version;
 
@@ -237,7 +242,15 @@ read_detected_object_set_habcam::priv
 
   std::string class_name;
 
-  if( m_use_internal_table )
+  if( !m_use_number_labels )
+  {
+    class_name = parsed_line[2];
+
+    boost::replace_all( class_name , " ", "_" );
+    boost::replace_all( class_name , "(", "" );
+    boost::replace_all( class_name , ")", "" );
+  }
+  else if( m_use_internal_table )
   {
     class_name = decode_species( atoi( parsed_line[1].c_str() ) );
   }
