@@ -11,7 +11,7 @@ image processing system are a number of standalone tools for accomplishing the a
 version exists for deployments in different types of environments.
 <br>
 <br>
-<img src="https://www.viametoolkit.org/wp-content/uploads/2020/02/viame_summary_no_text.png" alt="Capabilities">
+<img src="https://www.viametoolkit.org/wp-content/uploads/2020/02/viame_summary_no_label.png" alt="Capabilities">
 
 Documentation
 -------------
