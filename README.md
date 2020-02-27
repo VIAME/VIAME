@@ -12,20 +12,8 @@ version exists for deployments in different types of environments.
 
 Example Capabilities
 --------------------
-<p align="left">
-<br>
-<nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2019/11/viame-gh-splash-04.png" alt="Search Example" width="301" height="182">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/tracks.png" alt="Tracking Example" width="236" height="182">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-02.png" alt="Detection Example" width="301" height="182">
-</nobr>
-</p>
-<p align="left">
-<nobr>
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-03.png" alt="Measurement Example" width="418" height="150">
-<img src="http://www.viametoolkit.org/wp-content/uploads/2018/06/viame-gh-splash-01.png" alt="Query Example" width="431" height="150">
-</nobr>
-</p>
+
+<img src="https://www.viametoolkit.org/wp-content/uploads/2020/02/viame_summary_no_text.png" alt="Capabilities">
 
 Documentation
 -------------
