@@ -381,7 +381,7 @@ video_input_image_list
 {
   if ( !d->m_image && this->good() )
   {
-    LOG_DEBUG( logger(), "reading image from file \"" << *d->m_current_file << "\"" );
+    LOG_INFO( logger(), "reading image from file \"" << *d->m_current_file << "\"" );
 
     // read image file
     //
