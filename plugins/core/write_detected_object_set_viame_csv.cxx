@@ -233,6 +233,9 @@ write_detected_object_set_viame_csv
     stream() << std::endl;
   }
 
+  // Flush stream to prevent buffer issues
+  stream().flush();
+
   // Put each set on a new frame
   ++d->m_frame_number;
 }

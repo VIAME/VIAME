@@ -235,6 +235,9 @@ void write_object_track_set_viame_csv
         stream() << std::endl;
       }
     }
+
+    // Flush stream to prevent buffer issues
+    stream().flush();
   }
 
   write_object_track_set::close();
@@ -399,6 +402,9 @@ write_object_track_set_viame_csv
         stream() << std::endl;
       }
     }
+
+    // Flush stream to prevent buffer issues
+    stream().flush();
   }
 }
 
