@@ -67,12 +67,14 @@ boilerplate. Where special logic is required, a subclass can implement a
 
 For example, when information about a port is requested, the
 ``sprokit::process::input_port_info`` method is called which delegates logic to the
-``sprokit::process::_input_port_info`` method which can be overwritten. By
+``sprokit::process::_input_port_info`` method which can be overridden. By
 default, it returns information about the port if it has been declared,
-otherwise it throws an exception that the port does not exist. To create
-ports on the fly, a process can reimplement
-``sprokit::process::_input_port_info`` to create the port so that it exists and an
-exception is not thrown.
+otherwise it calls ``sprokit::process::input_port_undefined``.
+To create ports on the fly, a process can reimplement
+``sprokit::process::input_port_undefined`` to dynamically create the port
+so that it exists and an exception is not thrown.
+
+The same applies to ``sprokit::process::output_port_undefined``.
 
 The rationale for not making ``sprokit::process::input_port_info`` ``virtual``
 is to enforce that API specifications are met. For example, when connecting
@@ -102,7 +104,9 @@ when connecting incompatible ports with each other. These types are
 *double* can represent a distance or a time interval (or even a
 distance is a different unit!), but a port which uses a *double* to
 a distance would have a type of *distance_in_meters*, *not*
-*double*. There are two special types, one of which indicates that
+*double*.
+In addition to comcrete port types, there are two special types,
+one of which indicates that
 any type is accepted on the port and another which indicates that no
 data is ever expected on the port.
 

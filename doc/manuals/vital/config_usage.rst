@@ -50,7 +50,9 @@ description. This is done for both algorithms and processes.
 Don't be shy with the entry description. This description serves as
 the design specification for the entry. The expected format is a short
 description followed by a longer detailed description separated by two
-new-lines, as shown below.::
+new-lines, as shown below.
+
+.. code-block:: c++
 
   config->set_value( "config_name", <default_value>,
                      "Short description.\n\n"
@@ -86,7 +88,9 @@ attempting to get a value that is not present generates an exception.
 The recommended way to avoid this problem is to use the expected
 configuration, as created by the ``get_configuration()`` method to
 supply any missing entries. The following code snippet shows how this
-is done.::
+is done.
+
+.. code-block:: c++
 
     // Set this algorithm's properties via a config block
     void
@@ -118,7 +122,9 @@ Lets first look at the code that will instantiate the configured
 algorithm and then look at the contents of the configuration file.
 
 The following code snippet instantiates a ``draw_detected_object_set``
-algorithm.::
+algorithm.
+
+.. code-block:: c++
 
   // this pointer will be used to reference the algorithm after it is created.
   vital::algo::draw_detected_object_set_sptr m_algo;
@@ -182,7 +188,9 @@ differently than for algorithms, but underneath, they both use the
 same structure.
 
 Configuration items for a process are defined using
-``create_config_trait()`` macro as shown below.::
+``create_config_trait()`` macro as shown below.
+
+.. code-block:: c++
 
   //                    name,      type,  default,        description
   create_config_trait( threshold, float, "-1", "min threshold for output (float).\n\n"
@@ -234,7 +242,9 @@ keys that are in the supplied config but not in the expected
 config. These items are supplied but not expected.
 
 The following code snippet shows how to report the difference between
-two config blocks.::
+two config blocks.
+
+.. code-block:: c++
 
   //                                    ref-config                received-config
   kwiver::vital::config_difference cd( this->get_configuration(), config );
@@ -273,13 +283,12 @@ portions of a config.
 Starting with the example config section that selects an algorithm and
 configures it::
 
-
     algorithm_instance_name:type = type_name
     algorithm_instance_name:type_name:algo_param = value
     algorithm_instance_name:type_name:threshold = 234
 
- The block construct can be used to simplify the configuration and
- make it easier to navigate.::
+The block construct can be used to simplify the configuration and
+make it easier to navigate.::
 
   block algorithm_instance_name
     type = type_name
@@ -288,7 +297,6 @@ configures it::
       threshold = 234
     endblock
   endblock
-
 
 In cases where the configuration block is extensive or used in
 multiple applications, that part of the configuration can exist as a
@@ -306,12 +314,10 @@ where ``type_name.conf`` contains::
       threshold = 234
     endblock
 
-
 Environment variables and config macros can be combined to provide a
 level of adaptability to config files. Using the environment macro in
 an include directive can provide run time agility without requiring
 the file to be edited. The following is an example of selecting a
 different include file based on mode.::
-
 
   include $ENV{MODE}/config.file.conf

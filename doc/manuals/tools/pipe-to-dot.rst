@@ -8,46 +8,47 @@ This graphical output is useful for visualizing and documenting a specific pipel
 kwiver pipe-to-dot  [options]
 -----------------------------
 
-Options are:
+**Options are:**
 
   ``-h, --help``
-  
-   Display applet usage
+
+    Display applet usage
 
 **input options:**
+
   ``-p, --pipe-file arg``
-  
+
     Selects a pipeline file to render as a DOT file.
 
   ``-C, --cluster <arg>``
-  
+
     Selects a cluster file to render as a DOT file.
-  
+
   ``-T, --cluster-type <arg>``
-  
+
     Selects a cluster type to render as a DOT file. This is the name of the cluster
     in the cluster definition file.
 
   Note: Only one input option is allowed.
 
 **output options:**
- 
+
   ``-n, --name <arg>``
-  
+
     Specifies the name of the output graph.
-  
+
   ``-o, --output <file>``
-  
+
     Name of output file or '-' for stdout. (default: -)
-  
-  
+
+
   ``-P, --link-prefix <arg>``
-  
+
     Prefix for links when formatting for sphinx.
- 
+
 
 **pipe options:**
- 
+
   ``-c, --config <file>``
 
     Specifies a file containing supplemental configuration entries.

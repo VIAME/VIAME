@@ -1173,12 +1173,19 @@ process
 
   priv::tag_t const tag = d->port_flow_tag_name(port_type);
 
+  // This may look like an infinite loop, but when the port is
+  // declared below, there is no tag specification
   if (!tag.empty())
   {
+    // Add to list of ports that are using the tag
     d->output_flow_tag_ports[tag].push_back(port);
 
+    // Add to list for lookup of tag by port name
     d->output_port_tags[port] = tag;
 
+    // If there is a type already assigned to this tag, then create
+    // the port now. The tags are assigned a type during the later
+    // connect phase.
     if (d->flow_tag_port_types[tag])
     {
       port_type_t const& tag_type = *d->flow_tag_port_types[tag];
@@ -2298,9 +2305,10 @@ process::priv
 
 // ------------------------------------------------------------------
 /*
- * This method checks to make sure that all required output ports mave
+ * This method checks to make sure that all required output ports have
  * been marked as complete. They are marked complete by the receiving
- * process (i.e. downstream process)
+ * process (i.e. downstream process) when the process has compleated
+ * and is no longer running.
  */
 bool
 process::priv

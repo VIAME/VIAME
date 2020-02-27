@@ -66,7 +66,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'KWIVER'
-copyright = u'2018, Kitware, Inc.'
+copyright = u'2020, Kitware, Inc.'
 author = u'Kitware, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
