@@ -49,7 +49,7 @@ def _load_python_module(mod):
                 logger.warn(('Python module "{}" defined {} but '
                              'it is not callable').format(mod, registrar))
 
-    logger.warn(('Python module "{}" does not have registrar method').format(mod))
+    logger.debug(('Python module "{}" does not have registrar method').format(mod))
 
 
 @vital_logging.exc_report
