@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,15 +122,18 @@ make_ports()
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
-  sprokit::process::port_flags_t optional;
-
   required.insert( flag_required );
+
+  // We are outputting a shared ref to the output image, therefore we
+  // should mark it as shared.
+  sprokit::process::port_flags_t output;
+  output.insert( flag_output_shared );
 
   // -- input --
   declare_input_port_using_trait( image, required );
 
   // -- output --
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image, output );
 }
 
 

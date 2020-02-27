@@ -242,6 +242,9 @@ void image_file_reader_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t shared;
+  shared.insert( flag_output_shared );
+
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
@@ -252,7 +255,7 @@ void image_file_reader_process
 
   // -- outputs --
   declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image, shared );
   declare_output_port_using_trait( image_file_name, optional );
 
 }
