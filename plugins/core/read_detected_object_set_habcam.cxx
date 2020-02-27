@@ -81,7 +81,7 @@ public:
     , m_last_idx( 0 )
     , m_delim( "" )
     , m_point_dilation( 50 )
-    , m_use_number_labels( false )
+    , m_use_number_labels( true )
     , m_use_internal_table( false )
     , m_detected_version( 1 )
   {
