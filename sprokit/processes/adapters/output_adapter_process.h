@@ -77,7 +77,7 @@ private:
   void _configure();
 
   // This is used to intercept connections and make ports JIT
-  virtual void input_port_undefined(port_t const& port) override;
+  void input_port_undefined(port_t const& port) override;
 
   class priv;
   const std::unique_ptr<priv> d;

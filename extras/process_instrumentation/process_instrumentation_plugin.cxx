@@ -59,8 +59,8 @@ public:
   process_instrumentation_explorer();
   virtual ~process_instrumentation_explorer();
 
-  virtual bool initialize( explorer_context* context ) override;
-  virtual void explore( const kwiver::vital::plugin_factory_handle_t fact ) override;
+  bool initialize( explorer_context* context ) override;
+  void explore( const kwiver::vital::plugin_factory_handle_t fact ) override;
 
   std::ostream& out_stream() { return m_context->output_stream(); }
 
