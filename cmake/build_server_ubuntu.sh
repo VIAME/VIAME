@@ -19,7 +19,10 @@ liblapack-dev \
 openssl \
 libssl-dev \
 g++ \
-zlib1g-dev 
+zlib1g-dev \
+bzip2 \
+bzip2-dev
+
 
 # Install CMAKE
 wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz

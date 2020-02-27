@@ -25,7 +25,10 @@ curl \
 curl-devel \
 atlas-devel \
 file \
-which
+which \
+bzip2 \
+bzip2-devel
+
 
 # Install CMAKE
 wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz
