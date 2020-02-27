@@ -174,6 +174,7 @@ class NetHarnTrainer( TrainDetector ):
                 "--arch=cascade",
                 "--optim=sgd",
                 "--lr=1e-3",
+                "--max_epoch=50",
                 "--input_dims=window",
                 "--window_dims=512,512",
                 "--window_overlap=0.3",
