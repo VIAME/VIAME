@@ -192,7 +192,7 @@ And a number of flags which control which system utilities and optimizations are
 </center>
 
 
-And lastly, a number of flags which build algorithms with more specialized functionality:
+And lastly, a number of flags which build algorithms or interfaces with more specialized functionality:
 
 
 <center>
