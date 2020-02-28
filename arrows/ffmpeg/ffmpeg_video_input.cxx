@@ -74,6 +74,9 @@ public:
     estimated_num_frames(false)
   {
     f_packet.data = nullptr;
+
+    // Allocate data for AVFormatContext
+    f_format_context = avformat_alloc_context();
   }
 
   // f_* variables are FFmpeg specific
@@ -176,16 +179,16 @@ public:
     // Use the first ones we find.
     this->f_video_index = -1;
     this->f_data_index = -1;
-    AVCodecContext* codec_context_origin = NULL;
+    AVCodecParameters* codec_param_origin = NULL;
     for (unsigned i = 0; i < this->f_format_context->nb_streams; ++i)
     {
-      AVCodecContext *const enc = this->f_format_context->streams[i]->codec;
-      if (enc->codec_type == AVMEDIA_TYPE_VIDEO && this->f_video_index < 0)
+      AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
+      if (params->codec_type == AVMEDIA_TYPE_VIDEO && this->f_video_index < 0)
       {
         this->f_video_index = i;
-        codec_context_origin = enc;
+        codec_param_origin = params;
       }
-      else if (enc->codec_type == AVMEDIA_TYPE_DATA && this->f_data_index < 0)
+      else if (params->codec_type == AVMEDIA_TYPE_DATA && this->f_data_index < 0)
       {
         this->f_data_index = i;
       }
@@ -203,8 +206,8 @@ public:
       // Fallback for the DATA stream if incorrectly coded as UNKNOWN.
       for (unsigned i = 0; i < this->f_format_context->nb_streams; ++i)
       {
-        AVCodecContext *enc = this->f_format_context->streams[i]->codec;
-        if (enc->codec_type == AVMEDIA_TYPE_UNKNOWN)
+        AVCodecParameters* params = this->f_format_context->streams[i]->codecpar;
+        if (params->codec_type == AVMEDIA_TYPE_UNKNOWN)
         {
           this->f_data_index = i;
           LOG_INFO(this->logger, "Using AVMEDIA_TYPE_UNKNOWN stream as a data stream");
@@ -215,20 +218,21 @@ public:
     av_dump_format(this->f_format_context, 0, this->video_path.c_str(), 0);
 
     // Open the stream
-    AVCodec* codec = avcodec_find_decoder(codec_context_origin->codec_id);
+    AVCodec* codec = avcodec_find_decoder(codec_param_origin->codec_id);
     if (!codec)
     {
       LOG_ERROR(this->logger,
-        "Error: Codec " << codec_context_origin->codec_descriptor
-        << " (" << codec_context_origin->codec_id << ") not found");
+        "Error: Codec " << avcodec_descriptor_get(codec_param_origin->codec_id)
+        << " (" << codec_param_origin->codec_id << ") not found");
       return false;
     }
 
     // Copy context
     this->f_video_encoding = avcodec_alloc_context3(codec);
-    if (avcodec_copy_context(this->f_video_encoding, codec_context_origin) != 0)
+    if (avcodec_parameters_to_context(this->f_video_encoding, codec_param_origin) > 0)
     {
-      LOG_ERROR(this->logger, "Error: Could not copy codec " << this->f_video_encoding->codec_id);
+      LOG_ERROR(this->logger,
+        "Error: Could not fill codec context " << this->f_video_encoding->codec_id);
       return false;
     }
 
@@ -265,7 +269,7 @@ public:
     // The MPEG 2 codec has a latency of 1 frame when encoded in an AVI
     // stream, so the pts of the last packet (stored in pts) is
     // actually the next frame's pts.
-    if (this->f_video_stream->codec->codec_id == AV_CODEC_ID_MPEG2VIDEO &&
+    if (this->f_video_stream->codecpar->codec_id == AV_CODEC_ID_MPEG2VIDEO &&
       std::string("avi") == this->f_format_context->iformat->name)
     {
       this->f_frame_number_offset = 1;
