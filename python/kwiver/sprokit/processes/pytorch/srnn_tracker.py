@@ -479,7 +479,7 @@ class SRNNTracker(KwiverProcess):
             # Directly add explicit init tracks
             for tid, ts in zip(prev_inits, prev_track_state_list):
                 # XXX This throws an error should a new ID overlap with an existing one
-                self._track_set.add_new_track_state(tid, ts)
+                self._track_set.make_track(tid).append(ts)
 
         inits = inits.get(timestamp.get_frame(), {})
         if not self._explicit_initialization and inits:
@@ -602,7 +602,7 @@ class SRNNTracker(KwiverProcess):
         # Directly add explicit init tracks
         for tid, ts in init_track_states:
             # XXX This throws an error should a new ID overlap with an existing one
-            self._track_set.add_new_track_state(tid, ts)
+            self._track_set.make_track(tid).append(ts)
 
         next_track_id = int(self._track_set.get_max_track_id()) + 1
 
@@ -637,8 +637,8 @@ class SRNNTracker(KwiverProcess):
                         track_state_list[c].detected_object.confidence()
                         >= self._track_initialization_threshold
                 ):
-                    self._track_set.add_new_track_state(next_track_id,
-                            track_state_list[c])
+                    track = self._track_set.make_track(next_track_id)
+                    track.append(track_state_list[c])
                     next_track_id += 1
             else:
                 # add to existing track
