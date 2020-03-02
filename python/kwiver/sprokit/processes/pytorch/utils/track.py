@@ -133,17 +133,19 @@ class track_set(object):
     def active_count(self):
         return len(self.active_id_set)
 
-    def add_new_track(self, track):
-        if track.track_id in self.id_ts_dict:
+    def make_track(self, track_id):
+        if track_id in self.id_ts_dict:
             raise ValueError("Track ID exists in the track set!")
 
-        self.id_ts_dict[track.track_id] = track
-        self.active_id_set[track.track_id] = None
+        new_track = track(track_id)
+
+        self.id_ts_dict[track_id] = new_track
+        self.active_id_set[track_id] = None
+
+        return new_track
 
     def add_new_track_state(self, track_id, track_state):
-        new_track = track(track_id)
-        new_track.append(track_state)
-        self.add_new_track(new_track)
+        self.make_track(track_id).append(track_state)
 
 
 if __name__ == '__main__':
