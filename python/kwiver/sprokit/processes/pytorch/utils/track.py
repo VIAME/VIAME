@@ -144,9 +144,6 @@ class track_set(object):
 
         return new_track
 
-    def add_new_track_state(self, track_id, track_state):
-        self.make_track(track_id).append(track_state)
-
 
 if __name__ == '__main__':
     t = track(0)
