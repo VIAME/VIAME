@@ -116,10 +116,7 @@ class track_set(object):
         return (self[i] for i in self.active_id_set)
 
     def __getitem__(self, track_id):
-        try:
-            return self.id_ts_dict[track_id]
-        except KeyError:
-            raise IndexError
+        return self.id_ts_dict[track_id]
 
     def get_all_track_id(self):
         return sorted(self.id_ts_dict)
@@ -138,8 +135,7 @@ class track_set(object):
 
     def add_new_track(self, track):
         if track.track_id in self.id_ts_dict:
-            print("track ID exists in the track set!!!")
-            raise RuntimeError
+            raise ValueError("Track ID exists in the track set!")
 
         self.id_ts_dict[track.track_id] = track
         self.active_id_set[track.track_id] = None
