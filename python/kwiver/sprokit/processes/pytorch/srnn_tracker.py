@@ -433,7 +433,6 @@ class SRNNTracker(KwiverProcess):
             lf: {t.id: t[lf].detection() for t in tracks} for lf, tracks
             in groupby(inits, lambda t: t.last_frame).items()
         }
-        assert inits.keys() <= {self._prev_frame, timestamp.get_frame()}
 
         def max_iou_filter(det_dict, max_iou):
             """Return a function that takes a DetectedObject and returns true when
@@ -456,6 +455,16 @@ class SRNNTracker(KwiverProcess):
             return run
 
         prev_inits = inits.get(self._prev_frame)
+        if prev_inits:
+            assert all(
+                det is self._prev_inits[tid]
+                for tid, det in prev_inits.items()
+                if tid in self._prev_inits
+            )
+            prev_inits = {
+                tid: det for tid, det in prev_inits.items()
+                if tid not in self._prev_inits
+            }
         if prev_inits:
             if not self._explicit_initialization:
                 is_overlap_free = max_iou_filter(prev_inits, self._init_max_iou)
@@ -505,6 +514,7 @@ class SRNNTracker(KwiverProcess):
 
         self._step_track_set(fid, track_state_list, zip(inits, init_track_state_list))
 
+        self._prev_inits = inits
         self._prev_frame = timestamp.get_frame()
         self._prev_fid, self._prev_ts = fid, ts
         self._prev_im = im
