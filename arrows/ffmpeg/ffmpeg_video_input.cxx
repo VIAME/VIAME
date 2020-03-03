@@ -50,7 +50,6 @@ class ffmpeg_video_input::priv
 public:
   /// Constructor
   priv() :
-    f_format_context(nullptr),
     f_video_index(-1),
     f_data_index(-1),
     f_video_encoding(nullptr),
@@ -340,27 +339,9 @@ public:
     this->f_data_index = -1;
     this->f_start_time = -1;
 
-    if (this->f_video_stream)
-    {
-      avcodec_close(this->f_video_stream->codec);
-      this->f_video_stream = nullptr;
-    }
-    if (this->f_format_context)
-    {
-      avformat_close_input(&this->f_format_context);
-      this->f_format_context = nullptr;
-    }
-    if (this->f_video_encoding)
-    {
-      avcodec_close(this->f_video_encoding);
-      avcodec_free_context(&this->f_video_encoding);
-      this->f_video_encoding = nullptr;
-    }
-    if (this->f_filter_graph)
-    {
-      avfilter_graph_free(&this->f_filter_graph);
-      this->f_filter_graph = nullptr;
-    }
+    avformat_close_input(&this->f_format_context);
+    avformat_free_context(this->f_format_context);
+    avcodec_free_context(&this->f_video_encoding);
   }
 
   // ==================================================================
@@ -1040,13 +1021,13 @@ ffmpeg_video_input
     return nullptr;
   }
 
-  AVCodecContext* enc = d->f_format_context->streams[d->f_video_index]->codec;
+  AVCodecParameters* params = d->f_format_context->streams[d->f_video_index]->codecpar;
 
   // If we have not already converted this frame, try to convert it
   if (!d->current_image_memory && d->f_frame->data[0] != 0)
   {
-    int width = enc->width;
-    int height = enc->height;
+    int width = params->width;
+    int height = params->height;
     int depth = 3;
     vital::image_pixel_traits pixel_trait = vital::image_pixel_traits_of<unsigned char>();
     bool direct_copy;
@@ -1080,7 +1061,6 @@ ffmpeg_video_input
     }
 
     AVPixelFormat pix_fmt = static_cast<AVPixelFormat>(frame->format);
-    // If the pixel format is not recognized by then convert the data into RGB_24
     switch (pix_fmt)
     {
       case AV_PIX_FMT_GRAY8:
