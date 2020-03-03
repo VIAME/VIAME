@@ -165,6 +165,17 @@ public:
   {
   }
 
+    // Use forced naming convention for modules
+  bool is_module_loaded() override
+  {
+    return plugin_loader().is_module_loaded( "epx." + module_name() );
+  }
+
+  void mark_module_as_loaded() override
+  {
+    plugin_loader().mark_module_as_loaded( "epx." + module_name() );
+  }
+
   // ----------------------------------------------------------------------------
   /// Register an Embedded Pipeline Extension plugin.
   /**
