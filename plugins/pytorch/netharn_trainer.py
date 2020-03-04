@@ -69,6 +69,8 @@ class NetHarnTrainer( TrainDetector ):
         self._tmp_training_file = "training_truth.json"
         self._tmp_validation_file = "validation_truth.json"
         self._gt_frames_only = False
+        self._chip_width = "576"
+        self._chip_overlap = "0.20"
         self._backbone = ""
         self._categories = []
 
@@ -84,6 +86,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
+        cfg.set_value( "chip_width", str( self._chip_width ) )
+        cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
         cfg.set_value( "backbone", self._backbone )
 
         return cfg
@@ -101,6 +105,8 @@ class NetHarnTrainer( TrainDetector ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
+        self._chip_width = str( cfg.get_value( "chip_width" ) )
+        self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
         self._backbone = str( cfg.get_value( "backbone" ) )
 
         # Check variables
@@ -179,8 +185,8 @@ class NetHarnTrainer( TrainDetector ):
                 "--lr=1e-3",
                 "--max_epoch=50",
                 "--input_dims=window",
-                "--window_dims=576,576",
-                "--window_overlap=0.20",
+                "--window_dims=" + self._chip_width + "," + self._chip_width,
+                "--window_overlap=" + self._chip_overlap,
                 "--multiscale=True",
                 "--normalize_inputs=True",
                 "--workers=4",
