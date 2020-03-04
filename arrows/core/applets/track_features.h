@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_ARROWS_CORE_TOOLS_TRACK_FEATURES_H
-#define KWIVER_ARROWS_CORE_TOOLS_TRACK_FEATURES_H
+#ifndef KWIVER_ARROWS_CORE_APPLETS_TRACK_FEATURES_H
+#define KWIVER_ARROWS_CORE_APPLETS_TRACK_FEATURES_H
 
 #include <vital/applets/kwiver_applet.h>
 #include <arrows/core/applets/kwiver_algo_core_applets_export.h>
@@ -54,4 +54,4 @@ public:
 
 } } } // end namespace
 
-#endif /* KWIVER_ARROWS_CORE_TOOLS_TRACK_FEATURES_H */
+#endif /* KWIVER_ARROWS_CORE_APPLETS_TRACK_FEATURES_H */
