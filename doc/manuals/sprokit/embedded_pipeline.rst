@@ -1,5 +1,6 @@
+*****************
 Embedded Pipeline
-=================
+*****************
 
 The embedded pipeline class provides a way to instantiate and run a
 sprokit pipeline within a program. The main use case for an embedded

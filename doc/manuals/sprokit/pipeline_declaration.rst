@@ -359,7 +359,7 @@ When a port is declared as static, the value at this port may be
 supplied via the configuration using the special static/ prefix
 before the port name. The syntax for specifying static values is::
 
- :static/<port-name> <key-value>
+ static/<port-name> = <value>
 
 If a port is connected and also has a static value configured, the
 configured static value is ignored.
