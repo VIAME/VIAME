@@ -48,7 +48,7 @@ void register_factories( kwiver::vital::plugin_loader& vpm )
 
   process_registrar reg( vpm, "kwiver_processes_vxl" );
 
-  if ( is_process_module_loaded( vpm, reg.module_name() ) )
+  if ( reg.is_module_loaded() )
   {
     return;
   }
@@ -56,6 +56,6 @@ void register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< kwiver::kw_archive_writer_process >();
 
   // - - - - - - - - - - - - - - - - - - - - - - -
-  mark_process_module_as_loaded( vpm, reg.module_name() );
+  reg.mark_module_as_loaded();
 
 }

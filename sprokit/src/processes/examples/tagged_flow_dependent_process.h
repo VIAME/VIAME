@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2017 by Kitware, Inc.
+ * Copyright 2012-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,32 +66,37 @@ namespace sprokit
 class PROCESSES_EXAMPLES_NO_EXPORT tagged_flow_dependent_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    tagged_flow_dependent_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~tagged_flow_dependent_process();
-  protected:
-    /**
-     * \brief Reset the process.
-     */
-    void _reset();
+public:
+  PLUGIN_INFO( "tagged_flow_dependent",
+               "A process with a tagged flow dependent types" );
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+  tagged_flow_dependent_process(kwiver::vital::config_block_sptr const& config);
 
-    /**
-     * \brief Step the process.
-     */
-    void _step();
-  private:
-    void make_ports();
+  /**
+   * \brief Destructor.
+   */
+  ~tagged_flow_dependent_process();
 
-    class priv;
-    std::unique_ptr<priv> d;
+protected:
+  /**
+   * \brief Reset the process.
+   */
+  void _reset() override;
+
+  /**
+   * \brief Step the process.
+   */
+  void _step() override;
+
+private:
+  void make_ports();
+
+  class priv;
+  std::unique_ptr<priv> d;
 };
 
 }

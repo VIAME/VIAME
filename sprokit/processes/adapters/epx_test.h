@@ -46,6 +46,9 @@ class KWIVER_EPX_TEST_NO_EXPORT epx_test
   : public embedded_pipeline_extension
 {
 public:
+  PLUGIN_INFO( "test",
+               "Embedded Pipeline Extension used for testing" );
+
   // -- CONSTRUCTORS --
   epx_test();
   virtual ~epx_test() = default;

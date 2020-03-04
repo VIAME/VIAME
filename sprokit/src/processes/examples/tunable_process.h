@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,35 +69,40 @@ namespace sprokit {
 class PROCESSES_EXAMPLES_NO_EXPORT tunable_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    tunable_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~tunable_process();
-  protected:
-    /**
-     * \brief Configure the process.
-     */
-    void _configure();
+public:
+  PLUGIN_INFO( "tunable",
+               "A process with a tunable parameter" );
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+  tunable_process(kwiver::vital::config_block_sptr const& config);
 
-    /**
-     * \brief Step the process.
-     */
-    void _step();
+  /**
+   * \brief Destructor.
+   */
+  ~tunable_process();
 
-    /**
-     * \brief Step the process.
-     */
-    void _reconfigure(kwiver::vital::config_block_sptr const& conf);
-  private:
-    class priv;
-    std::unique_ptr<priv> d;
+protected:
+  /**
+   * \brief Configure the process.
+   */
+  void _configure() override;
+
+  /**
+   * \brief Step the process.
+   */
+  void _step() override;
+
+  /**
+   * \brief Step the process.
+   */
+  void _reconfigure(kwiver::vital::config_block_sptr const& conf) override;
+
+private:
+  class priv;
+  std::unique_ptr<priv> d;
 };
 
 }
