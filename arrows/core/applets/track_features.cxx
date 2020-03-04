@@ -125,7 +125,7 @@ bool check_config(kwiver::vital::config_block_sptr config)
 {
   bool config_valid = true;
 
-#define MAPTK_CONFIG_FAIL(msg) \
+#define KWIVER_CONFIG_FAIL(msg) \
   LOG_ERROR(main_logger, "Config Check Fail: " << msg); \
   config_valid = false
 
@@ -137,13 +137,13 @@ bool check_config(kwiver::vital::config_block_sptr config)
     kwiver::vital::config_path_t fp = config->get_value<kwiver::vital::config_path_t>("output_homography_file");
     if ( kwiversys::SystemTools::FileIsDirectory( fp ) )
     {
-      MAPTK_CONFIG_FAIL("Given output homography file is a directory! "
+      KWIVER_CONFIG_FAIL("Given output homography file is a directory! "
                         << "(Given: " << fp << ")");
     }
     else if ( ST::GetFilenamePath( fp ) != "" &&
               ! ST::FileIsDirectory( ST::GetFilenamePath( fp ) ))
     {
-      MAPTK_CONFIG_FAIL("Given output homography file does not have a valid "
+      KWIVER_CONFIG_FAIL("Given output homography file does not have a valid "
                         << "parent path! (Given: " << fp << ")");
     }
 
@@ -152,21 +152,21 @@ bool check_config(kwiver::vital::config_block_sptr config)
              ::check_nested_algo_configuration("output_homography_generator",
                                                config) )
     {
-      MAPTK_CONFIG_FAIL("output_homography_generator configuration check failed");
+      KWIVER_CONFIG_FAIL("output_homography_generator configuration check failed");
     }
   }
 
   if ( ! config->has_value("video_source") ||
       config->get_value<std::string>("video_source") == "")
   {
-    MAPTK_CONFIG_FAIL("Config needs value video_source");
+    KWIVER_CONFIG_FAIL("Config needs value video_source");
   }
   else
   {
     std::string path = config->get_value<std::string>("video_source");
     if ( ! ST::FileExists( kwiver::vital::path_t(path), true ) )
     {
-      MAPTK_CONFIG_FAIL("video_source path, " << path << ", does not exist or is not a regular file");
+      KWIVER_CONFIG_FAIL("video_source path, " << path << ", does not exist or is not a regular file");
     }
   }
 
@@ -176,42 +176,42 @@ bool check_config(kwiver::vital::config_block_sptr config)
     std::string mask_list_file = config->get_value<std::string>("mask_list_file");
     if (mask_list_file != "" && ! ST::FileExists( kwiver::vital::path_t(mask_list_file), true ))
     {
-      MAPTK_CONFIG_FAIL("mask_list_file path, " << mask_list_file << ", does not exist");
+      KWIVER_CONFIG_FAIL("mask_list_file path, " << mask_list_file << ", does not exist");
     }
   }
 
   if (!config->has_value("output_tracks_file") ||
       config->get_value<std::string>("output_tracks_file") == "" )
   {
-    MAPTK_CONFIG_FAIL("Config needs value output_tracks_file");
+    KWIVER_CONFIG_FAIL("Config needs value output_tracks_file");
   }
   else if ( ! ST::FileIsDirectory( ST::CollapseFullPath( ST::GetFilenamePath(
               config->get_value<kwiver::vital::path_t>("output_tracks_file") ) ) ) )
   {
-    MAPTK_CONFIG_FAIL("output_tracks_file is not in a valid directory");
+    KWIVER_CONFIG_FAIL("output_tracks_file is not in a valid directory");
   }
 
   if (!kwiver::vital::algo::video_input::check_nested_algo_configuration("video_reader", config))
   {
-    MAPTK_CONFIG_FAIL("video_reader configuration check failed");
+    KWIVER_CONFIG_FAIL("video_reader configuration check failed");
   }
 
   if (!kwiver::vital::algo::track_features::check_nested_algo_configuration("feature_tracker", config))
   {
-    MAPTK_CONFIG_FAIL("feature_tracker configuration check failed");
+    KWIVER_CONFIG_FAIL("feature_tracker configuration check failed");
   }
 
   if (!kwiver::vital::algo::image_io::check_nested_algo_configuration("image_reader", config))
   {
-    MAPTK_CONFIG_FAIL("image_reader configuration check failed");
+    KWIVER_CONFIG_FAIL("image_reader configuration check failed");
   }
 
   if (!kwiver::vital::algo::convert_image::check_nested_algo_configuration("convert_image", config))
   {
-    MAPTK_CONFIG_FAIL("convert_image configuration check failed");
+    KWIVER_CONFIG_FAIL("convert_image configuration check failed");
   }
 
-#undef MAPTK_CONFIG_FAIL
+#undef KWIVER_CONFIG_FAIL
 
   return config_valid;
 }
