@@ -176,15 +176,17 @@ class NetHarnTrainer( TrainDetector ):
                 "--lr=1e-3",
                 "--max_epoch=50",
                 "--input_dims=window",
-                "--window_dims=512,512",
-                "--window_overlap=0.25",
+                "--window_dims=576,576",
+                "--window_overlap=0.20",
                 "--multiscale=True",
                 "--normalize_inputs=True",
                 "--workers=4",
                 "--sampler_backend=none",
                 "--xpu=" + gpu_string,
                 "--batch_size=4",
-                "--bstep=4" ]
+                "--bstep=4",
+                "--timeout=1209600",
+                "--channels=rgb" ]
 
         subprocess.call( cmd )
 
