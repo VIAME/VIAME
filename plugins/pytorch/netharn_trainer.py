@@ -69,6 +69,7 @@ class NetHarnTrainer( TrainDetector ):
         self._tmp_training_file = "training_truth.json"
         self._tmp_validation_file = "validation_truth.json"
         self._gt_frames_only = False
+        self._backbone = ""
         self._categories = []
 
     def get_configuration( self ):
@@ -83,6 +84,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "gpu_count", str( self._gpu_count ) )
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
+        cfg.set_value( "backbone", self._backbone )
 
         return cfg
 
@@ -99,6 +101,7 @@ class NetHarnTrainer( TrainDetector ):
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._gpu_count = int( cfg.get_value( "gpu_count" ) )
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
+        self._backbone = str( cfg.get_value( "backbone" ) )
 
         # Check variables
         if torch.cuda.is_available() and self._gpu_count < 0:
@@ -187,6 +190,9 @@ class NetHarnTrainer( TrainDetector ):
                 "--bstep=4",
                 "--timeout=1209600",
                 "--channels=rgb" ]
+
+        if len( self._backbone ) > 0:
+            cmd.append( "--backbone_init=" + self._backbone )
 
         subprocess.call( cmd )
 
