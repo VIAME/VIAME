@@ -359,7 +359,7 @@ write_object_track_set_viame_csv
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
       auto confidence = ( det ? det->confidence() : 0 );
-  
+
       stream() << trk_ptr->id() << d->m_delim               // 1: track id
                << d->format_image_id( state ) << d->m_delim // 2: video or image id
                << state->frame() << d->m_delim              // 3: frame number
@@ -369,7 +369,7 @@ write_object_track_set_viame_csv
                << bbox.max_y() << d->m_delim                // 7: BR-y
                << confidence << d->m_delim                  // 8: confidence
                << "0";                                      // 9: length
-  
+
       if( det )
       {
         const kwiver::vital::detected_object_type_sptr dot =

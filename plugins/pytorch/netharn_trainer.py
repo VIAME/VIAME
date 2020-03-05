@@ -72,6 +72,7 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_width = "576"
         self._chip_overlap = "0.20"
         self._backbone = ""
+        self._pipeline_template = ""
         self._categories = []
 
     def get_configuration( self ):
@@ -89,6 +90,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "chip_width", str( self._chip_width ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
         cfg.set_value( "backbone", self._backbone )
+        cfg.set_value( "pipeline_template", self._pipeline_template )
 
         return cfg
 
@@ -108,6 +110,7 @@ class NetHarnTrainer( TrainDetector ):
         self._chip_width = str( cfg.get_value( "chip_width" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
         self._backbone = str( cfg.get_value( "backbone" ) )
+        self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
 
         # Check variables
         if torch.cuda.is_available() and self._gpu_count < 0:
@@ -201,6 +204,20 @@ class NetHarnTrainer( TrainDetector ):
             cmd.append( "--backbone_init=" + self._backbone )
 
         subprocess.call( cmd )
+
+        print( "\nMaking a reference to final model\n" )
+
+        if len( self._pipeline_template ) > 0:
+            input_wgt_relpath = input_wgt_file_fp
+
+            if not os.path.isabs( input_wgt_file_fp ):
+                input_wgt_relpath = os.path.join( "..", input_wgt_relpath )
+
+            self.insert_model_files( self._pipeline_template,
+                                     output_pipeline_fp,
+                                     output_cfg_file,
+                                     output_wgt_file if is_final else input_wgt_relpath,
+                                     output_lbl_file )
 
         print( "\nModel training complete!\n" )
 
