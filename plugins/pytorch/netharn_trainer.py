@@ -205,8 +205,6 @@ class NetHarnTrainer( TrainDetector ):
 
         subprocess.call( cmd )
 
-        print( "\nMaking a reference to final model\n" )
-
         if len( self._pipeline_template ) > 0:
             input_wgt_relpath = input_wgt_file_fp
 
