@@ -158,7 +158,7 @@ class NetharnDetector(ImageObjectDetector):
 
         self._thresh = float(self._kwiver_config['thresh'])
 
-        from . import _netharn_detect_predict as detect_predict
+        from bioharn import detect_predict
         pred_config = detect_predict.DetectPredictConfig()
         pred_config['deployed'] = self._kwiver_config['deployed']
         pred_config['xpu'] = self._kwiver_config['xpu']
