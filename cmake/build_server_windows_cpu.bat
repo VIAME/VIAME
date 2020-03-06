@@ -31,6 +31,8 @@ move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 REM xcopy %VIAME_BUILD_DIR%\VIAME\lib\site-packages %VIAME_BUILD_DIR%\VIAME\lib\python3.6\site-packages /H /R /S
 REM rmdir %VIAME_BUILD_DIR%\VIAME\lib\site-packages /s /q
 
+copy /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
+
 REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
 REM ---------------------------------------------------

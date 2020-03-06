@@ -40,6 +40,8 @@ REM xcopy %MMDET_OPS_SOURCE%\dcn\*.pyd %MMDET_OPS_INSTALL%\dcn\ /H /R /S
 REM xcopy %MMDET_OPS_SOURCE%\roi_align\*.pyd %MMDET_OPS_INSTALL%\roi_align\ /H /R /S
 REM xcopy %MMDET_OPS_SOURCE%\roi_pool\*.pyd %MMDET_OPS_INSTALL%\roi_pool\ /H /R /S
 
+copy /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
+
 REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
 REM ---------------------------------------------------
