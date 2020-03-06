@@ -258,14 +258,6 @@ windowed_trainer
   this->d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
   this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
 
-  vital::algo::image_io_sptr io;
-  vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
-  d->m_image_io = io;
-
-  vital::algo::train_detector_sptr trainer;
-  vital::algo::train_detector::set_nested_algo_configuration( "trainer", config, trainer );
-  d->m_trainer = trainer;
-
   if( !d->m_skip_format )
   {
     // Delete and reset folder contents
@@ -289,6 +281,14 @@ windowed_trainer
       kwiversys::SystemTools::MakeDirectory( folder );
     }
   }
+
+  vital::algo::image_io_sptr io;
+  vital::algo::image_io::set_nested_algo_configuration( "image_reader", config, io );
+  d->m_image_io = io;
+
+  vital::algo::train_detector_sptr trainer;
+  vital::algo::train_detector::set_nested_algo_configuration( "trainer", config, trainer );
+  d->m_trainer = trainer;
 }
 
 
