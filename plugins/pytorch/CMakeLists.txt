@@ -34,11 +34,6 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     netharn_detector )
 
   kwiver_add_python_module(
-    ${CMAKE_CURRENT_SOURCE_DIR}/_netharn_detect_predict.py
-    viame/arrows/pytorch
-    _netharn_detect_predict )
-
-  kwiver_add_python_module(
     ${CMAKE_CURRENT_SOURCE_DIR}/netharn_trainer.py
     viame/arrows/pytorch
     netharn_trainer )
