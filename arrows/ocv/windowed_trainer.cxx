@@ -63,7 +63,7 @@ class windowed_trainer::priv
 public:
   priv()
     : m_train_directory( "deep_training" )
-    , m_chip_subdirectory( "windowed_chips" )
+    , m_chip_subdirectory( "cached_chips" )
     , m_chip_format( "png" )
     , m_skip_format( false )
     , m_mode( "disabled" )
@@ -515,6 +515,16 @@ windowed_trainer::priv
       else
       {
         format_mode = "chip_and_original";
+      }
+    }
+    else if( format_mode == "original_and_resized" )
+    {
+      formatted_names.push_back( image_fn );
+      formatted_truth.push_back( groundtruth[fid] );
+
+      if( ( original_image.rows * original_image.cols ) < m_chip_adaptive_thresh )
+      {
+        format_mode = "maintain_ar";
       }
     }
 
