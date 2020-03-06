@@ -246,6 +246,13 @@ windowed_detector
       mode = "disabled";
     }
   }
+  else if( mode == "original_and_resized" )
+  {
+    if( ( cv_image.rows * cv_image.cols ) < d->m_chip_adaptive_thresh )
+    {
+      mode = "disabled";
+    }
+  }
 
   cv::Mat cv_resized_image;
 
@@ -323,7 +330,7 @@ windowed_detector
     }
 
     // Extract full sized image chip if enabled
-    if( mode == "chip_and_original" )
+    if( mode == "chip_and_original" || mode == "original_and_resized" )
     {
       cv::Mat scaled_original;
 
