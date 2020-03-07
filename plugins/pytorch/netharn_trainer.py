@@ -69,7 +69,7 @@ class NetHarnTrainer( TrainDetector ):
         self._tmp_training_file = "training_truth.json"
         self._tmp_validation_file = "validation_truth.json"
         self._gt_frames_only = False
-        self._chip_width = "576"
+        self._chip_width = "640"
         self._chip_overlap = "0.20"
         self._backbone = ""
         self._pipeline_template = ""
