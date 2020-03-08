@@ -71,6 +71,8 @@ class NetHarnTrainer( TrainDetector ):
         self._gt_frames_only = False
         self._chip_width = "640"
         self._chip_overlap = "0.20"
+        self._batch_size = "auto"
+        self._timeout = "1209600"
         self._backbone = ""
         self._pipeline_template = ""
         self._categories = []
@@ -89,6 +91,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
         cfg.set_value( "chip_width", str( self._chip_width ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
+        cfg.set_value( "batch_size", self._batch_size )
+        cfg.set_value( "timeout", self._timeout )
         cfg.set_value( "backbone", self._backbone )
         cfg.set_value( "pipeline_template", self._pipeline_template )
 
@@ -109,12 +113,31 @@ class NetHarnTrainer( TrainDetector ):
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
         self._chip_width = str( cfg.get_value( "chip_width" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
+        self._batch_size = str( cfg.get_value( "batch_size" ) )
+        self._timeout = str( cfg.get_value( "timeout" ) )
         self._backbone = str( cfg.get_value( "backbone" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
 
-        # Check variables
-        if torch.cuda.is_available() and self._gpu_count < 0:
-            self._gpu_count = torch.cuda.device_count()
+        # Check GPU-related variables
+        gpu_memory_available = 0
+
+        if torch.cuda.is_available():
+            if self._gpu_count < 0:
+                self._gpu_count = torch.cuda.device_count()
+            for i in range( self._gpu_count ):
+                single_gpu_mem = torch.cuda.get_device_properties( i ).total_memory
+                if gpu_memory_available == 0:
+                    gpu_memory_available = single_gpu_mem
+                else:
+                    gpu_memory_available = min( gpu_memory_available, single_gpu_mem )
+
+        if self._batch_size == "auto":
+            if gpu_memory_available > 9e9:
+                self._batch_size = "4"
+            elif gpu_memory_available >= 7e9:
+                self._batch_size = "3"
+            else:
+                self._batch_size = "2"
 
         # Make required directories and file streams
         if self._train_directory is not None:
@@ -195,9 +218,9 @@ class NetHarnTrainer( TrainDetector ):
                 "--workers=4",
                 "--sampler_backend=none",
                 "--xpu=" + gpu_string,
-                "--batch_size=4",
+                "--batch_size=" + self._batch_size,
                 "--bstep=4",
-                "--timeout=1209600",
+                "--timeout=" + self._timeout,
                 "--channels=rgb" ]
 
         if len( self._backbone ) > 0:
