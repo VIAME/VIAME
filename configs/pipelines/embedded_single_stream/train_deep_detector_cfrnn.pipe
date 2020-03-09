@@ -59,6 +59,7 @@ process detector_trainer
     :chip_step_height                           600
     :chip_step_width                            600
     :chip_adaptive_thresh                       2000000
+    :random_validation                          0.10
     :image_reader:type                          vxl
   endblock
 
@@ -70,8 +71,8 @@ process detector_trainer
     :netharn:chip_width                         640
     :netharn:timeout                            1209600
     :netharn:batch_size                         auto
-    relativepath netharn:backbone =             models/pytorch_resnext101.pth
-    relativepath netharn:pipeline_template =    templates/detector_netharn.pipe
+    relativepath netharn:backbone =             ../models/pytorch_resnext101.pth
+    relativepath netharn:pipeline_template =    ../templates/detector_netharn.pipe
   endblock
 
 connect from in_adapt.object_track_set
