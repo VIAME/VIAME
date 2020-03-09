@@ -164,22 +164,22 @@ class NetharnDetector(ImageObjectDetector):
             self._kwiver_config['batch_size'] = "2"
             import torch
             if torch.cuda.is_available():
-                gpu_memory_available = 0
+                gpu_mem = 0
                 if len(self._kwiver_config['xpu']) == 1 and \
                   self._kwiver_config['xpu'] != "0":
                     gpu_id = int(self._kwiver_config['xpu'])
-                    gpu_memory_available = torch.cuda.get_device_properties( gpu_id ).total_memory
+                    gpu_mem = torch.cuda.get_device_properties(gpu_id).total_memory
                 else:
                     self._gpu_count = torch.cuda.device_count()
                     for i in range( self._gpu_count ):
-                        single_gpu_mem = torch.cuda.get_device_properties( i ).total_memory
-                    if gpu_memory_available == 0:
-                        gpu_memory_available = single_gpu_mem
+                        single_gpu_mem = torch.cuda.get_device_properties(i).total_memory
+                    if gpu_mem == 0:
+                        gpu_mem = single_gpu_mem
                     else:
-                        gpu_memory_available = min(gpu_memory_available, single_gpu_mem)
-                if gpu_memory_available > 9e9:
+                        gpu_mem = min(gpu_mem, single_gpu_mem)
+                if gpu_mem > 9e9:
                     self._kwiver_config['batch_size'] = "4"
-                elif gpu_memory_available >= 7e9:
+                elif gpu_mem >= 7e9:
                     self._kwiver_config['batch_size'] = "3"
 
         from bioharn import detect_predict
