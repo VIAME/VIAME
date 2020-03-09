@@ -152,6 +152,10 @@ class NetHarnTrainer( TrainDetector ):
             self._training_file = self._tmp_training_file
             self._validation_file = self._tmp_validation_file
 
+        if self._output_directory is not None:
+            if not os.path.exists( self._output_directory ):
+                os.mkdir( self._output_directory )
+
         from vital.modules.modules import load_known_modules
         load_known_modules()
 
