@@ -72,8 +72,8 @@ CentOS
 A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Windows Desktop Binaries:** <br>
-[VIAME v0.10.3 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e1d03b0af2e2eed35faabbb/download) <br>
-[VIAME v0.10.3 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1HpAlw8tV4_l38eflekTm1RfeM7-R8sqK) <br>
+[VIAME v0.10.5 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e1d03b0af2e2eed35faabbb/download) <br>
+[VIAME v0.10.5 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1BzpvgjOtk1dldMen2k8bO8xW2CS3OlMY) <br>
 [VIAME v0.10.3 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e2ce0aeaf2e2eed353a3383/download) <br>
 [VIAME v0.10.3 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1UZ09OemQlWUJ83afnR5vQDZh-shP7Ir9)
 
@@ -84,10 +84,10 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 [VIAME v0.10.3 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1U8ujavDPWvjyteZMBJyS8ALp3ejTz4k2)
 
 **CentOS or Other Linux Desktop Binaries:** <br>
-[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e42cbaeaf2e2eed358ce3b8/download) <br>
-[VIAME v0.10.4 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1pzP-dh8xSYHWCk_XKwE4khqMdCxQypD6) <br>
-[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e42cbaeaf2e2eed358ce3b8/download) <br>
-[VIAME v0.10.4 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1pzP-dh8xSYHWCk_XKwE4khqMdCxQypD6)
+[VIAME v0.10.5 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e666003af2e2eed350fc402/download) <br>
+[VIAME v0.10.5 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1ST07YxrzSwIq8lt09OaUA6Sam7Ktw3jT) <br>
+[VIAME v0.10.5 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e666003af2e2eed350fc402/download) <br>
+[VIAME v0.10.5 Generic Linux, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1ST07YxrzSwIq8lt09OaUA6Sam7Ktw3jT)
 
 \*Windows 7 requires some updates and service packs installed, e.g. [KB2533623](https://www.microsoft.com/en-us/download/details.aspx?id=26764).
 
@@ -108,7 +108,7 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 
 **Custom Applications:** <br>
 [Seal Multi-View GUI, Windows 7/8/10, GPU Enabled](https://data.kitware.com/api/v1/item/5e62f784af2e2eed35078ed1/download) <br>
-[Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5e403250af2e2eed3583368e/download) <br>
+[Seal Multi-View GUI, Windows 7/8/10, CPU Only](https://data.kitware.com/api/v1/item/5e665b42af2e2eed350fb460/download) <br>
 [Seal Multi-View GUI, CentOS 7, GPU Enabled](https://data.kitware.com/api/v1/item/5e62f9ddaf2e2eed3507956a/download) <br>
 [Seal Multi-View GUI, Generic Linux, GPU Enabled](https://data.kitware.com/api/v1/item/5e62f946af2e2eed35079522/download)
 
