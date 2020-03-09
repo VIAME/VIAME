@@ -76,6 +76,7 @@ class NetHarnTrainer( TrainDetector ):
         self._backbone = ""
         self._pipeline_template = ""
         self._categories = []
+        self._resize_option = "original_and_resized"
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -229,16 +230,30 @@ class NetHarnTrainer( TrainDetector ):
         subprocess.call( cmd )
 
         if len( self._pipeline_template ) > 0:
-            input_wgt_relpath = input_wgt_file_fp
+            # Copy model file to final directory
+            output_model_name = "trained_detector.zip"
 
-            if not os.path.isabs( input_wgt_file_fp ):
-                input_wgt_relpath = os.path.join( "..", input_wgt_relpath )
+            final_model = os.path.join( self._train_directory,
+              "fit", "nice", self._config_file, "deploy.zip" )
+            output_model = os.path.join( self._output_directory,
+              output_model_name )
 
-            self.insert_model_files( self._pipeline_template,
-                                     output_pipeline_fp,
-                                     output_cfg_file,
-                                     output_wgt_file if is_final else input_wgt_relpath,
-                                     output_lbl_file )
+            copyfile( final_model, output_model )
+
+            # Copy pipeline file
+            fin = open( self._pipeline_template )
+            fout = open( os.path.join( self._output_directory,
+              "detector.pipe" ), 'w' )
+            all_lines = []
+            for s in list( fin ):
+                all_lines.append( s )
+            for i, s in enumerate( all_lines ):
+                all_lines[i] = s.replace( "[MODEL-FILE]", output_model_name )
+                all_lines[i] = s.replace( "[WINDOW-OPTION]", self._resize_option )
+            for s in all_lines:
+                fout.write( s )
+            fout.close()
+            fin.close()
 
         print( "\nModel training complete!\n" )
 
