@@ -74,14 +74,14 @@ A CUDA-enabled GPU with 8 Gb or more VRAM <br>
 **Windows Desktop Binaries:** <br>
 [VIAME v0.10.5 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e665f2eaf2e2eed350fc323/download) <br>
 [VIAME v0.10.5 Windows 7\*/8/10, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1BzpvgjOtk1dldMen2k8bO8xW2CS3OlMY) <br>
-[VIAME v0.10.3 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e2ce0aeaf2e2eed353a3383/download) <br>
-[VIAME v0.10.3 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1UZ09OemQlWUJ83afnR5vQDZh-shP7Ir9)
+[VIAME v0.10.5 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e66d1eeaf2e2eed35127b19/download) <br>
+[VIAME v0.10.5 Windows 7\*/8/10, 64-Bit, CPU Only, Python 3.6, Mirror2](https://drive.google.com/open?id=1QpLYhSsPrsqklz88oLaEojtOuKLkbPah)
 
 **Ubuntu Desktop Binaries:** <br>
 [VIAME v0.10.3 Ubuntu 18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e2f2509af2e2eed353f01f4/download) <br>
 [VIAME v0.10.3 Ubuntu 18.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/a/kitware.com/file/d/13H-nt2nCDGkIr2RE6L4CJdqMr8sNFKZV/view?usp=sharing) <br>
-[VIAME v0.10.3 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e1d57bcaf2e2eed35fca176/download) <br>
-[VIAME v0.10.3 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1U8ujavDPWvjyteZMBJyS8ALp3ejTz4k2)
+[VIAME v0.10.5 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e66d338af2e2eed35128d77/download) <br>
+[VIAME v0.10.5 Ubuntu 16.04, 64-Bit, GPU Enabled, Python 3.6, Mirror2](https://drive.google.com/open?id=1f_30ltw4q1vJHDqYpXOdPTbz2aHEpv0v)
 
 **CentOS or Other Linux Desktop Binaries:** <br>
 [VIAME v0.10.5 RHEL/CentOS 7, 64-Bit, GPU Enabled, Python 3.6, Mirror1](https://data.kitware.com/api/v1/item/5e666003af2e2eed350fc402/download) <br>
