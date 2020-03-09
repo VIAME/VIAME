@@ -17,10 +17,18 @@ process detector_input
 
 process detector1
   :: image_object_detector
-  :detector:type                               netharn
+  :detector:type                               ocv_windowed
 
-  block detector:netharn
-    relativepath deployed =                    [-MODEL-FILE-]
+  block detector:ocv_windowed
+    :detector:type                             nerharn
+
+    :mode                                      [-WINDOW-OPTION-]
+    :chip_width                                640
+    :chip_height                               640
+
+    block detector:netharn
+      relativepath deployed =                  [-MODEL-FILE-]
+    endblock
   endblock
 
 connect from detector_input.image
