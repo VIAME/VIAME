@@ -53,26 +53,24 @@ process detector_trainer
   block trainer:ocv_windowed
     :train_directory                            deep_training
     :mode                                       chip_and_original
-    :scale                                      1.25
-    :chip_width                                 1333
-    :chip_height                                800
-    :chip_step_height                           1100
+    :scale                                      1.0
+    :chip_width                                 640
+    :chip_height                                640
+    :chip_step_height                           600
     :chip_step_width                            600
     :chip_adaptive_thresh                       2000000
     :image_reader:type                          vxl
   endblock
 
   block trainer:ocv_windowed:trainer
-    :type                                       mmdet
-    relativepath mmdet:config_file =            ../models/cfrnn_train.py
-    relativepath mmdet:seed_weights =           ../models/cfrnn_seed.pth
-    relativepath mmdet:pipeline_template =      ../templates/detector_cfrnn.pipe
-    :mmdet:train_directory                      deep_training
-    :mmdet:gpu_count                            -1
-    :mmdet:launcher                             none
-    :mmdet:random_seed                          none
-    :mmdet:validate                             false
-    :mmdet:train_in_new_process                 true
+    :type                                       netharn
+    :netharn:train_directory                    deep_training
+    :netharn:gpu_count                          -1
+    :netharn:chip_width                         640
+    :netharn:timeout                            1209600
+    :netharn:batch_size                         auto
+    relativepath netharn:backbone =             models/pytorch_resnext101.pth
+    relativepath netharn:pipeline_template =    templates/detector_netharn.pipe
   endblock
 
 connect from in_adapt.object_track_set
