@@ -246,14 +246,13 @@ class NetHarnTrainer( TrainDetector ):
 
             # Copy pipeline file
             fin = open( self._pipeline_template )
-            fout = open( os.path.join( self._output_directory,
-              "detector.pipe" ), 'w' )
+            fout = open( os.path.join( self._output_directory, "detector.pipe" ), 'w' )
             all_lines = []
             for s in list( fin ):
                 all_lines.append( s )
-            for i, s in enumerate( all_lines ):
-                all_lines[i] = s.replace( "[-MODEL-FILE-]", output_model_name )
-                all_lines[i] = s.replace( "[-WINDOW-OPTION-]", self._resize_option )
+            for i, line in enumerate( all_lines ):
+                line = line.replace( "[-MODEL-FILE-]", output_model_name )
+                all_lines[i] = line.replace( "[-WINDOW-OPTION-]", self._resize_option )
             for s in all_lines:
                 fout.write( s )
             fout.close()
