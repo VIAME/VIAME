@@ -161,12 +161,12 @@ class NetharnDetector(ImageObjectDetector):
         self._thresh = float(self._kwiver_config['thresh'])
 
         if self._kwiver_config['batch_size'] == "auto":
-            self._kwiver_config['batch_size'] = "2"
+            self._kwiver_config['batch_size'] = 2
             import torch
             if torch.cuda.is_available():
                 gpu_mem = 0
                 if len(self._kwiver_config['xpu']) == 1 and \
-                  self._kwiver_config['xpu'] != "0":
+                  self._kwiver_config['xpu'] != 0:
                     gpu_id = int(self._kwiver_config['xpu'])
                     gpu_mem = torch.cuda.get_device_properties(gpu_id).total_memory
                 else:
@@ -178,9 +178,9 @@ class NetharnDetector(ImageObjectDetector):
                     else:
                         gpu_mem = min(gpu_mem, single_gpu_mem)
                 if gpu_mem > 9e9:
-                    self._kwiver_config['batch_size'] = "4"
+                    self._kwiver_config['batch_size'] = 4
                 elif gpu_mem >= 7e9:
-                    self._kwiver_config['batch_size'] = "3"
+                    self._kwiver_config['batch_size'] = 3
 
         from bioharn import detect_predict
         pred_config = detect_predict.DetectPredictConfig()
