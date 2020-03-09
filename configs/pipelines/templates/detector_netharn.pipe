@@ -20,7 +20,7 @@ process detector1
   :detector:type                               ocv_windowed
 
   block detector:ocv_windowed
-    :detector:type                             nerharn
+    :detector:type                             netharn
 
     :mode                                      [-WINDOW-OPTION-]
     :chip_width                                640

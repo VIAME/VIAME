@@ -99,6 +99,8 @@ class NetharnDetector(ImageObjectDetector):
             'deployed': "",
             'thresh': 0.01,
             'xpu': "0",
+            'batch_size': "auto",
+            'overlap': "0.2",
         }
 
         # netharn variables
@@ -158,8 +160,33 @@ class NetharnDetector(ImageObjectDetector):
 
         self._thresh = float(self._kwiver_config['thresh'])
 
+        if self._kwiver_config['batch_size'] == "auto":
+            self._kwiver_config['batch_size'] = "2"
+            if torch.cuda.is_available():
+                gpu_memory_available = 0
+                if len(self._kwiver_config['xpu']) == 1 and \
+                  self._kwiver_config['xpu'] != "0":
+                    gpu_id = int(self._kwiver_config['xpu'])
+                    gpu_memory_available = torch.cuda.get_device_properties( gpu_id ).total_memory
+                else:
+                    self._gpu_count = torch.cuda.device_count()
+                    for i in range( self._gpu_count ):
+                        single_gpu_mem = torch.cuda.get_device_properties( i ).total_memory
+                    if gpu_memory_available == 0:
+                        gpu_memory_available = single_gpu_mem
+                    else:
+                        gpu_memory_available = min(gpu_memory_available, single_gpu_mem)
+                if gpu_memory_available > 9e9:
+                    self._kwiver_config['batch_size'] = "4"
+                elif gpu_memory_available >= 7e9:
+                    self._kwiver_config['batch_size'] = "3"
+                else:
+                    self._kwiver_config['batch_size'] = "2"
+
         from bioharn import detect_predict
         pred_config = detect_predict.DetectPredictConfig()
+        pred_config['batch_size'] = self._kwiver_config['batch_size']
+        pred_config['overlap'] = self._kwiver_config['overlap']
         pred_config['deployed'] = self._kwiver_config['deployed']
         pred_config['xpu'] = self._kwiver_config['xpu']
         self.predictor = detect_predict.DetectPredictor(pred_config)
