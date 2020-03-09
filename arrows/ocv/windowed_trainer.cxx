@@ -81,6 +81,7 @@ public:
     , m_overlap_required( 0.05 )
     , m_chips_w_gt_only( false )
     , m_max_neg_ratio( 0.0 )
+    , m_random_validation( 0.0 )
     , m_ignore_category( "false_alarm" )
     , m_min_train_box_length( 5 )
     , m_synthetic_labels( true )
@@ -109,6 +110,7 @@ public:
   double m_overlap_required;
   bool m_chips_w_gt_only;
   double m_max_neg_ratio;
+  double m_random_validation;
   std::string m_ignore_category;
   int m_min_train_box_length;
 
@@ -211,6 +213,8 @@ windowed_trainer
   config->set_value( "max_neg_ratio", d->m_max_neg_ratio,
     "Do not use more than this many more frames without groundtruth in "
     "training than there are frames with truth." );
+  config->set_value( "random_validation", d->m_random_validation,
+    "Randomly add this percentage of training frames to validation." );
   config->set_value( "ignore_category", d->m_ignore_category,
     "Ignore this category in training, but still include chips around it." );
   config->set_value( "min_train_box_length", d->m_min_train_box_length,
@@ -255,6 +259,7 @@ windowed_trainer
   this->d->m_overlap_required = config->get_value< double >( "overlap_required" );
   this->d->m_chips_w_gt_only = config->get_value< bool >( "chips_w_gt_only" );
   this->d->m_max_neg_ratio = config->get_value< double >( "max_neg_ratio" );
+  this->d->m_random_validation = config->get_value< double >( "random_validation" );
   this->d->m_ignore_category = config->get_value< std::string >( "ignore_category" );
   this->d->m_min_train_box_length = config->get_value< int >( "min_train_box_length" );
 
@@ -387,9 +392,19 @@ windowed_trainer
       cv::Mat image = arrows::ocv::image_container::vital_to_ocv(
         train_images[i]->get_image(), arrows::ocv::image_container::RGB_COLOR );
 
-      d->format_image_from_memory(
-        image, train_groundtruth[i], d->m_mode,
-        filtered_train_names, filtered_train_truth );
+      if( d->m_random_validation > 0.0 &&
+          static_cast< double >( rand() ) / RAND_MAX <= d->m_random_validation )
+      {
+        d->format_image_from_memory(
+          image, train_groundtruth[i], d->m_mode,
+          filtered_test_names, filtered_test_truth );
+      }
+      else
+      {
+        d->format_image_from_memory(
+          image, train_groundtruth[i], d->m_mode,
+          filtered_train_names, filtered_train_truth );
+      }
     }
     for( unsigned i = 0; i < test_images.size(); ++i )
     {
@@ -457,7 +472,7 @@ windowed_trainer::priv
   {
     if( negative_ds_factor > 0.0 &&
         ( !groundtruth[fid] || groundtruth[fid]->empty() ) &&
-        rand() / RAND_MAX > negative_ds_factor )
+        static_cast< double >( rand() ) / RAND_MAX > negative_ds_factor )
     {
       continue;
     }
