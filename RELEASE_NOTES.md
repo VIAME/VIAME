@@ -1,3 +1,16 @@
+v0.10.6 - 3/12/2020
+===================
+
+
+-Fix scoring examples which became broken in last
+
+
+-Add tracker training example for windows binaries
+
+
+-Fix issue in running test-time multi-GPU from an image input list
+
+
 v0.10.5 - 2/26/2020
 ===================
 
