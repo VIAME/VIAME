@@ -56,6 +56,7 @@ public:
     f_video_stream(nullptr),
     f_frame(nullptr),
     f_filtered_frame(nullptr),
+    f_packet(nullptr),
     f_software_context(nullptr),
     f_filter_graph(nullptr),
     f_filter_sink_context(nullptr),
@@ -85,6 +86,7 @@ public:
   AVStream* f_video_stream;
   AVFrame* f_frame;
   AVFrame* f_filtered_frame;
+  AVPacket* f_packet;
   SwsContext* f_software_context;
   AVFilterGraph* f_filter_graph;
   AVFilterContext *f_filter_sink_context;
@@ -261,6 +263,7 @@ public:
     this->f_video_stream = this->f_format_context->streams[this->f_video_index];
     this->f_frame = av_frame_alloc();
     this->f_filtered_frame = av_frame_alloc();
+    this->f_packet = av_packet_alloc();
 
     // The MPEG 2 codec has a latency of 1 frame when encoded in an AVI
     // stream, so the pts of the last packet (stored in pts) is
@@ -307,26 +310,13 @@ public:
   */
   void close()
   {
-    if (this->f_frame)
-    {
-      av_frame_free(&this->f_frame);
-    }
-    this->f_frame = nullptr;
-    if (this->f_filtered_frame)
-    {
-      av_frame_free(&this->f_filtered_frame);
-    }
-    this->f_filtered_frame = nullptr;
-
-    if (this->f_video_encoding && this->f_video_encoding->opaque)
-    {
-      av_freep(&this->f_video_encoding->opaque);
-    }
-
     this->f_video_index = -1;
     this->f_data_index = -1;
     this->f_start_time = -1;
 
+    av_frame_free(&this->f_frame);
+    av_frame_free(&this->f_filtered_frame);
+    av_packet_free(&this->f_packet);
     avformat_close_input(&this->f_format_context);
     avformat_free_context(this->f_format_context);
     avcodec_free_context(&this->f_video_encoding);
@@ -453,16 +443,13 @@ public:
     // clear the metadata from the previous frame
     this->metadata.clear();
 
-    // Allocate packet
-    AVPacket* packet = av_packet_alloc();
-
     while (!this->frame_advanced &&
-           av_read_frame(this->f_format_context, packet) >= 0)
+           av_read_frame(this->f_format_context, this->f_packet) >= 0)
     {
       // Make sure that the packet is from the actual video stream.
-      if (packet->stream_index == this->f_video_index)
+      if (this->f_packet->stream_index == this->f_video_index)
       {
-        int err = avcodec_send_packet(this->f_video_encoding, packet);
+        int err = avcodec_send_packet(this->f_video_encoding, this->f_packet);
         if (err < 0)
         {
           LOG_ERROR(this->logger, "Error sending packet to decoder");
@@ -474,13 +461,13 @@ public:
         // Ignore the frame and move to the next
         if (err == AVERROR_INVALIDDATA)
         {
-          av_packet_unref(packet);
+          av_packet_unref(this->f_packet);
           continue;
         }
         if (err < 0)
         {
           LOG_ERROR(this->logger, "Error decoding packet");
-          av_packet_unref(packet);
+          av_packet_unref(this->f_packet);
           return false;
         }
 
@@ -494,18 +481,15 @@ public:
       }
 
       // grab the metadata from this packet if from the metadata stream
-      else if (packet->stream_index == this->f_data_index)
+      else if (this->f_packet->stream_index == this->f_data_index)
       {
-        this->metadata.insert(this->metadata.end(), packet->data,
-          packet->data + packet->size);
+        this->metadata.insert(this->metadata.end(), this->f_packet->data,
+          this->f_packet->data + this->f_packet->size);
       }
 
       // De-reference previous packet
-      av_packet_unref(packet);
+      av_packet_unref(this->f_packet);
     }
-
-    // Free up packet memory
-    av_packet_free(&packet);
 
     // The cached frame is out of date, whether we managed to get a new
     // frame or not.
