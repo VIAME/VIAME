@@ -11,6 +11,7 @@ v0.10.6 - 3/12/2020
 -Fix issue in running test-time multi-GPU from an image input list
 
 
+
 v0.10.5 - 2/26/2020
 ===================
 
@@ -18,11 +19,13 @@ v0.10.5 - 2/26/2020
 -Add improved CFRNN training proceedure using netharn
 
 
+
 v0.10.4 - 1/31/2020
 ===================
 
 
 -Fix issue in centos binaries backing X11 library
+
 
 
 v0.10.3 - 1/13/2020
@@ -41,11 +44,13 @@ v0.10.3 - 1/13/2020
 -New seal multi-view GUI release
 
 
+
 v0.10.2 - 12/1/2019
 ===================
 
 
 -Fix CentOS issues with unable to run pipelines (Ubuntu and Windows fine)
+
 
 
 v0.10.2 - 11/25/2019
