@@ -81,6 +81,7 @@ public:
   int m_max_sets;
   int m_set_size;
   std::string m_detection_class;
+  std::string m_image_name;
 };
 
 
@@ -116,6 +117,7 @@ get_configuration() const
   config->set_value( "max_sets", d->m_max_sets, "Number of detection sets to generate." );
   config->set_value( "set_size", d->m_set_size, "Number of detection in a set." );
   config->set_value( "detection_class", d->m_detection_class, "Label for detection detected object type" );
+  config->set_value( "image_name", d->m_image_name, "Image name to return with each detection set" );
 
   return config;
 }
@@ -138,6 +140,7 @@ set_configuration(vital::config_block_sptr config_in)
   d->m_max_sets     = config->get_value<double>( "max_sets" );
   d->m_set_size     = config->get_value<double>( "set_size" );
   d->m_detection_class     = config->get_value<std::string>( "detection_class" );
+  d->m_image_name   = config->get_value<std::string>( "image_name" );
 }
 
 
@@ -187,6 +190,8 @@ read_set( kwiver::vital::detected_object_set_sptr & detected_set, std::string& i
   }
 
   ++d->m_frame_ct;
+
+  image_name = d->m_image_name;
 
   return true;
 }
