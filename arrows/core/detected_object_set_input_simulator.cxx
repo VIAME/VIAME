@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,7 +163,7 @@ bool
 detected_object_set_input_simulator::
 read_set( kwiver::vital::detected_object_set_sptr & detected_set, std::string& image_name )
 {
-  if ( d->m_frame_ct > d->m_max_sets )
+  if ( d->m_frame_ct >= d->m_max_sets )
   {
     return false;
   }
@@ -172,21 +172,21 @@ read_set( kwiver::vital::detected_object_set_sptr & detected_set, std::string& i
 
   for (int i = 0; i < d->m_set_size; ++i )
   {
-    const double ct = (double)d->m_frame_ct;
+    double ct_adj = d->m_frame_ct + static_cast< double >( i ) / d->m_set_size;
 
     kwiver::vital::bounding_box_d bbox(
-      d->m_center_x + ct*d->m_dx - d->m_width/2.0,
-      d->m_center_y + ct*d->m_dy - d->m_height/2.0,
-      d->m_center_x + ct*d->m_dx + d->m_width/2.0,
-      d->m_center_y + ct*d->m_dy + d->m_height/2.0);
-
-    ++d->m_frame_ct;
+      d->m_center_x + ct_adj*d->m_dx - d->m_width/2.0,
+      d->m_center_y + ct_adj*d->m_dy - d->m_height/2.0,
+      d->m_center_x + ct_adj*d->m_dx + d->m_width/2.0,
+      d->m_center_y + ct_adj*d->m_dy + d->m_height/2.0);
 
     auto dot = std::make_shared< kwiver::vital::detected_object_type >();
     dot->set_score( d->m_detection_class, 1.0 );
 
     detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
   }
+
+  ++d->m_frame_ct;
 
   return true;
 }
