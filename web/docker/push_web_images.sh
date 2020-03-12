@@ -1,5 +1,10 @@
 #! /bin/bash
 
+# From VIAME repo root directory:
+# './web/docker/push_web_images.sh <docker-image-tag>'
+
+# Script pushes local docker images to kitware's dockerhub.com VIAME project
+
 docker_tag=$1
 
 docker login

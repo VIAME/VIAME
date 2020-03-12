@@ -33,8 +33,9 @@ RUN wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz \
 	&& rm -rf cmake-3.14.0.tar.gz
 
 # Update VIAME sub git deps
-COPY . /viame/ \
-	&& cd viame \
+COPY . /viame/
+
+RUN cd viame \
 	&& git submodule update --init --recursive \
 	&& mkdir build \
 	&& cd build 

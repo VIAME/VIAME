@@ -1,6 +1,11 @@
 #! /bin/bash
 
+# From VIAME repo root directory:
+# './web/docker/build_web_images.sh <docker-image-tag>'
+
 docker_tag=$1
+
+
 
 # Build girder server
 docker build -t kitware/viame/girder-server:$docker_tag -f web/docker/girder_server.Dockerfile .
