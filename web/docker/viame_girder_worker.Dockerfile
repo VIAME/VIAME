@@ -1,4 +1,4 @@
-FROM kitware/viame/girder-worker:latest
+FROM kitware/viame/girder-worker-base:latest
 
 USER root
 
