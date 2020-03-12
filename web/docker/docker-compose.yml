@@ -1,0 +1,61 @@
+## Use this to start the girder/ girder-worker ecosystem
+version: "3.2"
+services:
+  ## === === === === prebuilt services === === === === ===
+  rabbit:
+    image: rabbitmq:management
+
+  mongo:
+    image: mongo:latest
+    volumes:
+      - mongo_db:/data/db
+
+  ## === === === === Girder === === === === ===
+  girder:
+    build:
+      context: ../
+      dockerfile: docker/girder.Dockerfile
+    depends_on:
+      - mongo
+      - girder_worker
+    ports:
+      - "8081:8080"
+    volumes:
+      - girder_assetstore:/home/assetstore
+      - ./server:/home/viame_girder
+      - pipelines:${VIAME_PIPELINES_PATH:-/home/VIAME/pipelines}:ro
+      - type: bind
+        source: ${PUBLIC_DATA_PATH}
+        target: /data/public
+        read_only: true
+        volume:
+          nocopy: true
+    environment:
+      - VIAME_PIPELINES_PATH=${VIAME_PIPELINES_PATH:-/home/VIAME/pipelines}
+      - MONGO_URI=mongodb://mongo:27017/girder
+      - GIRDER_ADMIN_USER=${GIRDER_ADMIN_USER}
+      - GIRDER_ADMIN_PASS=${GIRDER_ADMIN_PASS}
+
+  ## === === === === Girder Worker === === === === ===
+  girder_worker:
+    volumes:
+      - ./server:/home/viame_girder
+      - pipelines:/home/VIAME/build/install/configs/pipelines
+    depends_on:
+      - rabbit
+    environment:
+      - GIRDER_WORKER_BROKER=amqp://guest:guest@rabbit/
+      - GIRDER_WORKER_BACKEND=amqp://guest:guest@rabbit/
+      - GIRDER_WORKER_PLUGINS_ENABLED=girder_io
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbit/
+
+    # Swap this and the build step if you need to change things locally
+    # image: gitlab.kitware.com:4567/opengeoscience/viameweb/app/girder_worker
+    build:
+      context: ../
+      dockerfile: docker/viame_girder_worker.Dockerfile
+
+volumes:
+  mongo_db:
+  girder_assetstore:
+  pipelines:
