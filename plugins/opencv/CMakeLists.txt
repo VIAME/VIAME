@@ -1,6 +1,14 @@
 
 ###
+# Sub folder options
+##
+if( VIAME_ENABLE_UW_PREDICTOR )
+  add_subdirectory( uw_predictor )
+endif()
+
+###
 # Loadable algorithms
+##
 
 find_package( OpenCV REQUIRED )
 

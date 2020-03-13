@@ -32,10 +32,6 @@ if( VIAME_ENABLE_MATLAB )
   add_subdirectory( matlab )
 endif()
 
-if( VIAME_ENABLE_UW_PREDICTOR )
-  add_subdirectory( uw_predictor )
-endif()
-
 if( VIAME_ENABLE_SMQTK )
   add_subdirectory( smqtk )
 endif()
