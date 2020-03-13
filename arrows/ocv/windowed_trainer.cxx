@@ -534,12 +534,20 @@ windowed_trainer::priv
     }
     else if( format_mode == "original_and_resized" )
     {
-      formatted_names.push_back( image_fn );
-      formatted_truth.push_back( groundtruth[fid] );
-
-      if( ( original_image.rows * original_image.cols ) < m_chip_adaptive_thresh )
+      if( original_image.rows <= m_chip_height &&
+          original_image.cols <= m_chip_width )
       {
-        format_mode = "maintain_ar";
+        formatted_names.push_back( image_fn );
+        formatted_truth.push_back( groundtruth[fid] );
+        continue;
+      }
+
+      format_mode = "maintain_ar";
+
+      if( ( original_image.rows * original_image.cols ) >= m_chip_adaptive_thresh )
+      {
+        formatted_names.push_back( image_fn );
+        formatted_truth.push_back( groundtruth[fid] );
       }
     }
 
