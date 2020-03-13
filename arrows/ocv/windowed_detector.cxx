@@ -251,13 +251,6 @@ windowed_detector
       mode = "disabled";
     }
   }
-  else if( mode == "original_and_resized" )
-  {
-    if( ( cv_image.rows * cv_image.cols ) < d->m_chip_adaptive_thresh )
-    {
-      mode = "disabled";
-    }
-  }
 
   cv::Mat cv_resized_image;
 
@@ -269,7 +262,8 @@ windowed_detector
   if( mode != "disabled" )
   {
     scale_factor = format_image( cv_image, cv_resized_image,
-      mode, d->m_scale, d->m_chip_width, d->m_chip_height );
+      ( mode == "original_and_resized" ? "scale" : mode ),
+      d->m_scale, d->m_chip_width, d->m_chip_height );
   }
   else
   {
