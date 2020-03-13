@@ -67,6 +67,7 @@ public:
     , m_batch_size( 1 )
     , m_min_detection_dim( 2 )
     , m_original_to_chip_size( false )
+    , m_black_pad( false )
   {}
 
   ~priv() {}
@@ -83,6 +84,7 @@ public:
   int m_batch_size;
   int m_min_detection_dim;
   bool m_original_to_chip_size;
+  bool m_black_pad;
 
   // Helper functions
   struct region_info
@@ -161,6 +163,8 @@ windowed_detector
     "Minimum detection dimension in original image space." );
   config->set_value( "original_to_chip_size", d->m_original_to_chip_size,
     "Optionally enforce the input image is the specified chip size" );
+  config->set_value( "black_pad", d->m_black_pad,
+    "Black pad the edges of resized chips to ensure consistent dimensions" );
 
   vital::algo::image_object_detector::get_nested_algo_configuration(
     "detector", config, d->m_detector );
@@ -192,6 +196,7 @@ windowed_detector
   this->d->m_batch_size = config->get_value< int >( "batch_size" );
   this->d->m_min_detection_dim = config->get_value< int >( "min_detection_dim" );
   this->d->m_original_to_chip_size = config->get_value< bool >( "original_to_chip_size" );
+  this->d->m_black_pad = config->get_value< bool >( "black_pad" );
 
   vital::algo::image_object_detector::set_nested_algo_configuration(
     "detector", config, d->m_detector );
@@ -279,7 +284,37 @@ windowed_detector
   std::vector< cv::Mat > regions_to_process;
   std::vector< priv::region_info > region_properties;
 
-  if( mode != "chip" && mode != "chip_and_original" )
+  if( mode == "original_and_resized" )
+  {
+    cv::Mat scaled_original;
+
+    if( cv_image.rows <= d->m_chip_height && cv_image.cols <= d->m_chip_width )
+    {
+      regions_to_process.push_back( cv_image );
+
+      region_properties.push_back(
+        priv::region_info( original_dims, 1.0 ) );
+    }
+    else
+    {
+      if( ( cv_image.rows * cv_image.cols ) >= d->m_chip_adaptive_thresh )
+      {
+        regions_to_process.push_back( cv_resized_image );
+
+        region_properties.push_back(
+          priv::region_info( original_dims, 1.0 / scale_factor ) );
+      }
+
+        double scaled_original_scale = scale_image_maintaining_ar( cv_image,
+          scaled_original, d->m_chip_width, d->m_chip_height, d->m_black_pad );
+
+        regions_to_process.push_back( scaled_original );
+
+        region_properties.push_back(
+          priv::region_info( original_dims, 1.0 / scaled_original_scale ) );
+    }
+  }
+  else if( mode != "chip" && mode != "chip_and_original" )
   {
     regions_to_process.push_back( cv_resized_image );
 
@@ -316,7 +351,8 @@ windowed_detector
         cv::Mat scaled_crop, tmp_cropped;
 
         double scaled_crop_scale = scale_image_maintaining_ar(
-          cropped_chip, scaled_crop, d->m_chip_width, d->m_chip_height );
+          cropped_chip, scaled_crop, d->m_chip_width, d->m_chip_height,
+          d->m_black_pad );
 
         regions_to_process.push_back( scaled_crop );
 
@@ -330,14 +366,14 @@ windowed_detector
     }
 
     // Extract full sized image chip if enabled
-    if( mode == "chip_and_original" || mode == "original_and_resized" )
+    if( mode == "chip_and_original" )
     {
       cv::Mat scaled_original;
 
       if( d->m_original_to_chip_size )
       {
         double scaled_original_scale = scale_image_maintaining_ar( cv_image,
-          scaled_original, d->m_chip_width, d->m_chip_height );
+          scaled_original, d->m_chip_width, d->m_chip_height, d->m_black_pad );
 
         regions_to_process.push_back( scaled_original );
 
