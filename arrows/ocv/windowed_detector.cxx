@@ -305,13 +305,13 @@ windowed_detector
           priv::region_info( original_dims, 1.0 / scale_factor ) );
       }
 
-        double scaled_original_scale = scale_image_maintaining_ar( cv_image,
-          scaled_original, d->m_chip_width, d->m_chip_height, d->m_black_pad );
+      double scaled_original_scale = scale_image_maintaining_ar( cv_image,
+        scaled_original, d->m_chip_width, d->m_chip_height, d->m_black_pad );
 
-        regions_to_process.push_back( scaled_original );
+      regions_to_process.push_back( scaled_original );
 
-        region_properties.push_back(
-          priv::region_info( original_dims, 1.0 / scaled_original_scale ) );
+      region_properties.push_back(
+        priv::region_info( original_dims, 1.0 / scaled_original_scale ) );
     }
   }
   else if( mode != "chip" && mode != "chip_and_original" )
