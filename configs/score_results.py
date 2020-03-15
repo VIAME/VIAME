@@ -3,13 +3,16 @@
 import os
 import sys
 import re
-import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import atexit
 import tempfile
 import subprocess
 import shutil
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 temp_dir = tempfile.mkdtemp(prefix='score-tmp')
 atexit.register(lambda: shutil.rmtree(temp_dir))
