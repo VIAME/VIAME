@@ -3,7 +3,11 @@ set( EXAMPLE_INSTALL_FILES
 
 
 if( VIAME_ENABLE_PYTORCH )
-  if( NOT WIN32 )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_siamrpn_viame_csv.bat )
+  else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
          train_siamrpn_viame_csv.sh )
