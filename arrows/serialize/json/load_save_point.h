@@ -41,71 +41,71 @@ namespace cereal {
 
 // ---- points
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_2i& pt );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_2i& pt );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::point_2i& pt );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::point_2i& pt );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_2d& pt );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_2d& pt );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::point_2d& pt );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::point_2d& pt );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_2f& pt );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_2f& pt );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::point_2f& pt );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::point_2f& pt );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_3d& pt );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_3d& pt );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::point_3d& pt );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::point_3d& pt );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_3f& pt );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_3f& pt );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::point_3f& pt );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::point_3f& pt );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_4d& pt );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_4d& pt );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::point_4d& pt );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::point_4d& pt );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_4f& pt );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::point_4f& pt );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::point_4f& pt );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::point_4f& pt );
 
 
 // ---- covariance
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_2d& cov );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_2d& cov );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_2d& cov );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_2d& cov );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_2f& cov );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_2f& cov );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_2f& cov );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_2f& cov );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_3d& cov );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_3d& cov );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_3d& cov );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_3d& cov );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_3f& cov );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_3f& cov );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_3f& cov );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_3f& cov );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_4d& cov );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_4d& cov );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_4d& cov );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_4d& cov );
 
 KWIVER_SERIALIZE_JSON_EXPORT
-void save( cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_4f& cov );
+void save( ::cereal::JSONOutputArchive& archive, const ::kwiver::vital::covariance_4f& cov );
 KWIVER_SERIALIZE_JSON_EXPORT
-void load( cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_4f& cov );
+void load( ::cereal::JSONInputArchive& archive, ::kwiver::vital::covariance_4f& cov );
 
 } // end namespace
 

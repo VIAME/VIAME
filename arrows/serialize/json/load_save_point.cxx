@@ -45,7 +45,7 @@ namespace cereal {
 
 // ============================================================================
   template <class P, unsigned N>
-void save_point( cereal::JSONOutputArchive& archive, const P& pt )
+void save_point( ::cereal::JSONOutputArchive& archive, const P& pt )
 {
   // Get values as an vector
   auto data = pt.value();
@@ -63,7 +63,7 @@ void save_point( cereal::JSONOutputArchive& archive, const P& pt )
 
 // ----------------------------------------------------------------------------
   template <class P, unsigned N>
-void load_point( cereal::JSONInputArchive& archive, P& pt )
+void load_point( ::cereal::JSONInputArchive& archive, P& pt )
 {
   // get values as a vector
   std::vector< typename P::data_type > values;
@@ -95,9 +95,9 @@ void load_point( cereal::JSONInputArchive& archive, P& pt )
 
 // ----------------------------------------------------------------------------
 #define LOAD_SAVE( P, N )                                       \
-  void save( cereal::JSONOutputArchive& archive, const P& pt )  \
+  void save( ::cereal::JSONOutputArchive& archive, const P& pt )  \
   { save_point<P, N>( archive, pt ); }                          \
-  void load( cereal::JSONInputArchive& archive, P& pt )         \
+  void load( ::cereal::JSONInputArchive& archive, P& pt )         \
   { load_point<P, N>(archive, pt ); }
 
   LOAD_SAVE( ::kwiver::vital::point_2i, 2 )
@@ -112,7 +112,7 @@ void load_point( cereal::JSONInputArchive& archive, P& pt )
 
 // ============================================================================
 template <class C>
-void save_covariance( cereal::JSONOutputArchive& archive, const C& cov )
+void save_covariance( ::cereal::JSONOutputArchive& archive, const C& cov )
 {
   auto* data = cov.data();
   std::vector< typename C::data_type > cov_values( data, data + C::data_size );
@@ -122,7 +122,7 @@ void save_covariance( cereal::JSONOutputArchive& archive, const C& cov )
 
 // ----------------------------------------------------------------------------
 template <class C>
-void load_covariance( cereal::JSONInputArchive& archive, C& cov )
+void load_covariance( ::cereal::JSONInputArchive& archive, C& cov )
 {
   std::vector< typename C::data_type > cov_values;
 
@@ -142,9 +142,9 @@ void load_covariance( cereal::JSONInputArchive& archive, C& cov )
 
 // ----------------------------------------------------------------------------
 #define LOAD_SAVE( C )                                          \
-void save( cereal::JSONOutputArchive& archive, const C& cov )   \
+void save( ::cereal::JSONOutputArchive& archive, const C& cov )   \
 { save_covariance<C>(archive, cov ); }                          \
-void load( cereal::JSONInputArchive& archive, C& cov )          \
+void load( ::cereal::JSONInputArchive& archive, C& cov )          \
 { load_covariance<C>(archive, cov ); }
 
   LOAD_SAVE( ::kwiver::vital::covariance_2d )
