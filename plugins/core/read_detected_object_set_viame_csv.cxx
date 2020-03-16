@@ -44,6 +44,8 @@
 
 #include <map>
 #include <sstream>
+#include <tuple>
+#include <utility>
 #include <cstdlib>
 
 namespace viame {
@@ -83,9 +85,9 @@ public:
   int m_current_idx;
   int m_last_idx;
 
-  // Map of detected objects indexed by frame number. Each set
-  // contains all detections for a single frame.
-  std::map< int, kwiver::vital::detected_object_set_sptr > m_detection_by_id;
+  // Map of file name and detected objects indexed by frame number.
+  // Each set contains all detections for a single frame.
+  std::map< int, std::pair< std::string, kwiver::vital::detected_object_set_sptr > > m_detection_by_id;
 
   // Map of detected objects indexed by frame name. Each set
   // contains all detections for a single frame.
@@ -180,8 +182,8 @@ read_detected_object_set_viame_csv
   }
   else
   {
-    // Return detections for this frame.
-    set = d->m_detection_by_id[d->m_current_idx];
+    // Return image name and detections for this frame.
+    std::tie( image_name, set ) = d->m_detection_by_id[d->m_current_idx];
   }
 
   ++d->m_current_idx;
@@ -244,8 +246,9 @@ read_detected_object_set_viame_csv::priv
     if( m_detection_by_id.count( frame_id ) == 0 )
     {
       // create a new detection set entry
+      auto dos = std::make_shared<kwiver::vital::detected_object_set>();
       m_detection_by_id[ frame_id ] =
-        std::make_shared<kwiver::vital::detected_object_set>();
+	std::make_pair( str_id, std::move( dos ) );
     }
 
     if( !str_id.empty() &&
@@ -315,7 +318,7 @@ read_detected_object_set_viame_csv::priv
     }
 
     // Add detection to set for the frame
-    m_detection_by_id[frame_id]->add( dob );
+    m_detection_by_id[frame_id].second->add( dob );
 
     if( !str_id.empty() )
     {
