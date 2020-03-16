@@ -98,11 +98,11 @@ make -j$(nproc)
 
 # Remove all source files used for the build to save space
 cd /viame
-rm -rf -v !("build")
+rm -rfv !("build")
 
 # Remove all build files used for the build to save space
 cd /viame/build
-rm -rf -v !("install")
+rm -rfv !("install")
 
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed
