@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2015, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,8 @@ class covariance_
 public:
   /// Number of unique values in a NxN symmetric matrix
   static const unsigned int data_size = N * ( N + 1 ) / 2;
+  using data_type = T;
+  using matrix_type = Eigen::Matrix< T, N, N >;
 
   /// Default Constructor - Initialize to identity
   covariance_< N, T > ( )
@@ -105,7 +107,7 @@ public:
    * Averages off diagonal elements to enforce symmetry
    * \param mat matrix to construct from.
    */
-  explicit covariance_< N, T > ( const Eigen::Matrix< T, N, N > &mat )
+  explicit covariance_< N, T > ( const matrix_type &mat )
   {
     unsigned int n = 0;
     for ( unsigned int j = 0; j < N; ++j )
@@ -127,7 +129,7 @@ public:
 
 
   /// Extract a full matrix
-  Eigen::Matrix< T, N, N > matrix() const
+  matrix_type matrix() const
   {
     Eigen::Matrix< T, N, N > mat;
     unsigned int n = 0;
@@ -150,7 +152,6 @@ public:
     return data_[vector_index( i, j )];
   }
 
-
   /// Return the i-th row, j-th column (const)
   const T& operator()( unsigned int i, unsigned int j ) const
   {
@@ -161,13 +162,14 @@ public:
 
   /// Access the underlying data
   const T* data() const { return data_; }
+  void set_data( T* in_data ) { memcpy( data_, in_data, sizeof( data_ ) ); }
 
   /// Equality operator
   bool operator==( covariance_< N, T > const& other ) const
   {
     const T* d1 = data_;
     const T* d2 = other.data_;
-    for( unsigned i=0; i<data_size; ++i, ++d1, ++d2 )
+    for( unsigned i= 0 ; i < data_size; ++i, ++d1, ++d2 )
     {
       if(*d1 != *d2)
       {
@@ -183,12 +185,13 @@ public:
     return ! operator==(other);
   }
 
+  //+ This does not belong here!!! Serialization is an operation not a property!
   /// Serialization of the class data
   template<class Archive>
   void serialize(Archive & archive)
   {
     T* d = data_;
-    for( unsigned i=0; i<data_size; ++i, ++d)
+    for( unsigned i = 0; i < data_size; ++i, ++d)
     {
       archive( *d );
     }
@@ -207,26 +210,13 @@ protected:
 };
 
 /// \cond DoxygenSuppress
-typedef covariance_< 2, double > covariance_2d;
-typedef covariance_< 2, float > covariance_2f;
-typedef covariance_< 3, double > covariance_3d;
-typedef covariance_< 3, float > covariance_3f;
+using covariance_2d = covariance_< 2, double >;
+using covariance_2f = covariance_< 2, float >;
+using covariance_3d = covariance_< 3, double >;
+using covariance_3f = covariance_< 3, float >;
+using covariance_4d = covariance_< 4, double >;
+using covariance_4f = covariance_< 4, float >;
 /// \endcond
-
-/// output stream operator for a covariance
-/**
- * \param s output stream
- * \param c covariance matrix to stream
- */
-template < unsigned N, typename T >
-//VITAL_EXPORT
-std::ostream& operator<<( std::ostream& s, const covariance_< N, T >& c );
-
-/// input stream operator for a covariance
-template < unsigned N, typename T >
-//VITAL_EXPORT
-std::istream& operator>>( std::istream& s, covariance_< N, T >& c );
-
 
 } } // end namespace vital
 
