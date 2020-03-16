@@ -77,17 +77,25 @@ class detected_object_set_input_trampoline :
     bool read_set(kwiver::vital::detected_object_set_sptr& set, std::string& image_path) override
     {
       kwiver::vital::python::gil_scoped_acquire gil;
-      pybind11::function overload = pybind11::get_overload(static_cast<dosi const*>(this), "read_set");
-      if (overload) {
-	auto o = overload();
-	if (pybind11::isinstance<pybind11::none>(o)) {
-	  return false;
+      if (image_path.empty()) {
+	pybind11::function overload = pybind11::get_overload(static_cast<dosi const*>(this), "read_set");
+	if (overload) {
+	  auto o = overload();
+	  if (pybind11::isinstance<pybind11::none>(o)) {
+	    return false;
+	  }
+	  std::tie(set, image_path) = o.cast<std::tuple<kwiver::vital::detected_object_set_sptr, std::string>>();
+	  return true;
 	}
-	std::tie(set, image_path) = o.cast<std::tuple<kwiver::vital::detected_object_set_sptr, std::string>>();
-	return true;
       } else {
-	pybind11::pybind11_fail("Tried to call pure virtual function \"dosi::read_set\"");
+	pybind11::function overload = pybind11::get_overload(static_cast<dosi const*>(this), "read_set_by_path");
+	if (overload) {
+	  auto o = overload(image_path);
+	  set = o.cast<kwiver::vital::detected_object_set_sptr>();
+	  return true;
+	}
       }
+      pybind11::pybind11_fail("Tried to call pure virtual function \"dosi::read_set\"");
     }
 
     void open(std::string const& filename) override

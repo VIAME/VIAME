@@ -53,6 +53,13 @@ void detected_object_set_input(py::module &m)
 	 },
 	 R"(Return a pair of the next DetectedObjectSet and the corresponding
 file name, or None if the input is exhausted)")
+    .def("read_set_by_path",
+	 [](dosi& self, std::string path) {
+	   kwiver::vital::detected_object_set_sptr result;
+	   self.read_set(result, path);
+	   return result;
+	 },
+	 R"(Return the DetectedObjectSet for the provided file name)")
     .def("open", &dosi::open)
     .def("close", &dosi::close)
     ;
