@@ -6,11 +6,11 @@ if( VIAME_ENABLE_PYTORCH )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_siamrpn_viame_csv.bat )
+         train_st_tracker_viame_csv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
-         train_siamrpn_viame_csv.sh )
+         train_st_tracker_viame_csv.sh )
   endif()
 endif()
 

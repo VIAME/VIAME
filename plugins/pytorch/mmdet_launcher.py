@@ -32,6 +32,9 @@ import pickle
 import os
 import argparse
 
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
 def main():
     parser = argparse.ArgumentParser( description='Train a detector' )
     parser.add_argument( 'config', help='train config file path' )
