@@ -669,6 +669,8 @@ if __name__ == "__main__" :
         log_info( lb1 )
       video_str = " video" if len( video_list ) == 1 else " videos"
       log_info( "Processing " + str( len( video_list ) ) + video_str + lb2 )
+    else:
+      log_info( lb1 )
 
     # Get required paths
     pipeline_loc = args.pipeline
