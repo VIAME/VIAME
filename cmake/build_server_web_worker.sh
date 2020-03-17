@@ -88,7 +88,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DPYTHON_EXECUTABLE:PATH=/usr/local/bin/python3 \
 -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.6 \
 -DPYTHON_LIBRARY:PATH=/usr/local/lib/libpython3.6.so \
--DPYTHON_VERSION:PATH=3.6
+-DPYTHON_VERSION:STRING=3.6
 
 # Build VIAME first attempt
 make -j$(nproc) -k || true
