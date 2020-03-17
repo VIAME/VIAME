@@ -68,6 +68,11 @@ class DetectedObjectSetInputCoco(DetectedObjectSetInput):
         self.frame += 1
         return det_objs, fname
 
+    def read_set_by_path(self, image_path):
+        self._ensure_loaded()
+        annots = self.frame_info_by_path.get(image_path, ())
+        return self.__to_detected_object_set(annots)
+
     def __to_detected_object_set(self, annots):
         """Convert list of annotations to a DetectedObjectSet"""
         det_objs = []
@@ -103,6 +108,9 @@ class DetectedObjectSetInputCoco(DetectedObjectSetInput):
         assert len(frame_info) == len(data['images'])
         for ann in data['annotations']:
             frame_info[ann['image_id']][1].append(ann)
+        frame_info_by_path = {}
+        for fname, annots in frame_info.values():
+            frame_info_by_path.setdefault(fname, []).extend(annots)
 
         if frame_info:
             self.frame, self.stop_frame = min(frame_info), max(frame_info) + 1
@@ -110,6 +118,7 @@ class DetectedObjectSetInputCoco(DetectedObjectSetInput):
             self.frame, self.stop_frame = 0, 0
         self.categories = categories
         self.frame_info = frame_info
+        self.frame_info_by_path = frame_info_by_path
         self.loaded = True
 
 def __vital_algorithm_register__():
