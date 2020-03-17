@@ -63,10 +63,13 @@ class DetectedObjectSetInputCoco(DetectedObjectSetInput):
         self._ensure_loaded()
         if self.frame >= self.stop_frame:
             return None
-        try:
-            fname, annots = self.frame_info[self.frame]
-        except KeyError:
-            return vt.DetectedObjectSet(), ''
+        fname, annots = self.frame_info.get(self.frame, ('', ()))
+        det_objs = self.__to_detected_object_set(annots)
+        self.frame += 1
+        return det_objs, fname
+
+    def __to_detected_object_set(self, annots):
+        """Convert list of annotations to a DetectedObjectSet"""
         det_objs = []
         for ann in annots:
             x, y, w, h = ann['bbox']
@@ -79,8 +82,7 @@ class DetectedObjectSetInputCoco(DetectedObjectSetInput):
                     score,
                 ),
             ))
-        self.frame += 1
-        return vt.DetectedObjectSet(det_objs), fname
+        return vt.DetectedObjectSet(det_objs)
 
     def _ensure_loaded(self):
         if self.loaded:
