@@ -86,7 +86,7 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=ON \
 -DPYTHON_EXECUTABLE:PATH=/usr/local/bin/python3 \
--DPYTHON_INCLUDE_DIR:PATH=/usr/local/include/python3 \
+-DPYTHON_INCLUDE_DIR:PATH=/usr/local/include/python3.6m \
 -DPYTHON_LIBRARY:PATH=/usr/local/lib/libpython3.6.so \
 -DPYTHON_VERSION:PATH=3.6
 
