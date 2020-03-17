@@ -510,7 +510,7 @@ if __name__ == "__main__" :
   parser.add_argument("-o", dest="output_directory", default=".",
                       help="Output directory to store files in")
 
-  parser.add_argument("-logs", dest="log_directory", default="Logs",
+  parser.add_argument("-logs", dest="log_directory", default="logs",
                       help="Output sub-directory for log files, if empty will not use files")
 
   parser.add_argument("-video-exts", dest="video_exts", default="3qp;3g2;amv;asf;avi;drc;gif;gifv;"
