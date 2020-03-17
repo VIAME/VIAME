@@ -1,16 +1,39 @@
 ###
-# Example image and appearance querying examples
+# Application level pipelines
 ##
 
-if( VIAME_ENABLE_SMQTK )
-  add_subdirectory( smqtk_on_chips )
+set( EXAMPLE_INSTALL_FILES
+     README.rst
+     input_list.txt )
 
-  if( VIAME_ENABLE_VIVIA )
-    add_subdirectory( viame_ingest )
-  endif()
-
+if( WIN32 )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       create_index.around_detections.bat
+       create_index.around_existing_detections.bat
+       create_index.full_frame_only.bat
+       create_index.detection_and_tracking.bat
+       process_database_using_svm_model.bat
+       process_full_frames_using_svm_model.bat
+       generate_detections_using_svm_model.bat
+       launch_search_interface.bat
+       launch_annotation_interface.bat )
+else()
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       create_index.around_detections.sh
+       create_index.around_existing_detections.sh
+       create_index.full_frame_only.sh
+       create_index.detection_and_tracking.sh
+       process_database_using_svm_model.sh
+       process_full_frames_using_svm_model.sh
+       generate_detections_using_svm_model.sh
+       launch_search_interface.sh
+       launch_annotation_interface.sh )
 endif()
 
-if( VIAME_ENABLE_FLASK )
-  add_subdirectory( flask_clustering )
-endif()
+###
+# Install configuration files to examples directory
+##
+install( FILES       ${EXAMPLE_INSTALL_FILES}
+         DESTINATION examples/search_and_rapid_model_generation )

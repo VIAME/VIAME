@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../../.."
+export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 source ${VIAME_INSTALL}/setup_viame.sh
 
@@ -9,5 +9,5 @@ source ${VIAME_INSTALL}/setup_viame.sh
 
 python ${VIAME_INSTALL}/configs/process_video.py --init \
   -l input_list.txt \
-  -p pipelines/index_default.pipe -o database \
+  -p pipelines/index_default.trk.pipe -o database \
   --build-index -install ${VIAME_INSTALL}

@@ -1,9 +1,0 @@
-{
-    "brightness_levels": null,
-    "contrast_levels": null,
-    "crop": {
-        "center_levels": null,
-        "quadrant_pyramid_levels": null,
-        "tile_shape": [64, 64]
-    }
-}
