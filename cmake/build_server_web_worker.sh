@@ -21,9 +21,7 @@ libssl-dev \
 g++ \
 zlib1g-dev \
 bzip2 \
-libbz2-dev \
-python3 \
-python3-dev
+libbz2-dev
 
 
 # Install CMAKE
@@ -87,10 +85,10 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_DOWNLOAD_MODELS-HABCAM:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-MOUSS:BOOL=ON \
 -DVIAME_DOWNLOAD_MODELS-PYTORCH:BOOL=ON \
--DPYTHON_EXECUTABLE:PATH=/usr/bin/python3 \
--DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.5 \
--DPYTHON_LIBRARY:PATH=/usr/lib/x86_64-linux-gnu/libpython3.5m.so \
--DPYTHON_VERSION:PATH=3.5
+-DPYTHON_EXECUTABLE:PATH=/usr/local/bin/python3 \
+-DPYTHON_INCLUDE_DIR:PATH=/usr/local/include/python3.6 \
+-DPYTHON_LIBRARY:PATH=/usr/local/lib/libpython3.6.so \
+-DPYTHON_VERSION:PATH=3.6
 
 # Build VIAME first attempt
 make -j$(nproc) -k || true
