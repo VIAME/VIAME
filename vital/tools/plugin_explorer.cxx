@@ -76,7 +76,7 @@ typedef kwiversys::SystemTools ST;
 // -- forward definitions --
 static void display_attributes( kwiver::vital::plugin_factory_handle_t const fact );
 static void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const std::string& category );
-static kwiver::vital::category_explorer* get_category_handler( const std::string& cat );
+static kwiver::vital::category_explorer_sptr get_category_handler( const std::string& cat );
 
 
 //==================================================================
@@ -103,7 +103,7 @@ static std::string version_string( PLUGIN_EXPLORER_VERSION );
 enum { prog_default, prog_processopedia, prog_alog_explorer };
 static int program_personality( prog_default );
 
-static std::map< const std::string, kwiver::vital::category_explorer *> category_map;
+static std::map< const std::string, kwiver::vital::category_explorer_sptr> category_map;
 
 // ==================================================================
 
@@ -278,7 +278,7 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
 void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
                           const std::string& category )
 {
-  kwiver::vital::category_explorer* cat_handler = get_category_handler( category );
+  kwiver::vital::category_explorer_sptr cat_handler = get_category_handler( category );
 
   for( auto it : plugin_map )
   {
@@ -305,8 +305,6 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
     {
       continue;
     }
-
-    pe_out() << "\nPlugins that implement type \"" << ds << "\"" << std::endl;
 
     // Get vector of factories
     for( kwiver::vital::plugin_factory_handle_t const fact : facts )
@@ -339,7 +337,8 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
 
 
 // ------------------------------------------------------------------
-kwiver::vital::category_explorer* get_category_handler( const std::string& cat )
+kwiver::vital::category_explorer_sptr
+get_category_handler( const std::string& cat )
 {
   std::string handler_name = cat;
 
@@ -426,7 +425,7 @@ void load_explorer_plugins()
     std::string name;
     if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, name ) )
     {
-      auto cat_ex = fact->create_object<kwiver::vital::category_explorer>();
+      auto cat_ex = kwiver::vital::category_explorer_sptr(fact->create_object<kwiver::vital::category_explorer>());
       if ( cat_ex )
       {
         if ( cat_ex->initialize( G_explorer_context ) )

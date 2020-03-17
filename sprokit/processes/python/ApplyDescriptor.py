@@ -31,7 +31,6 @@ from sprokit.pipeline import process
 from kwiver.kwiver_process import KwiverProcess
 from vital.util.VitalPIL import from_pil, get_pil_image
 from sprokit import sprokit_logging
-
 logger = sprokit_logging.getLogger(__name__)
 
 apply_descriptor_test_mode = False

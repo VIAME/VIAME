@@ -38,9 +38,13 @@
 #include <vital/plugin_loader/plugin_factory.h>
 
 #include <kwiversys/CommandLineArguments.hxx>
+#include <memory>
 
 namespace kwiver {
 namespace vital {
+
+class category_explorer;
+typedef std::shared_ptr<category_explorer> category_explorer_sptr;
 
 // ----------------------------------------------------------------
 /**
