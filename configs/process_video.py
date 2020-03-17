@@ -507,7 +507,7 @@ if __name__ == "__main__" :
   parser.add_argument("-id", dest="input_detections", default="",
                       help="Input detections around which to create descriptors")
 
-  parser.add_argument("-o", dest="output_directory", default="database",
+  parser.add_argument("-o", dest="output_directory", default=".",
                       help="Output directory to store files in")
 
   parser.add_argument("-logs", dest="log_directory", default="Logs",

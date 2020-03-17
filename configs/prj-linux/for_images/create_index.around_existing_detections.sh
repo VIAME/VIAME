@@ -22,6 +22,6 @@ export PIPES_PER_GPU=1
 python ${VIAME_INSTALL}/configs/process_video.py --init \
   -l ${INPUT_LIST} -id ${INPUT_DETECTIONS} \
   -ifrate ${INPUT_FRAME_RATE} -frate ${PROCESS_FRAME_RATE} \
-  -p pipelines/index_existing.pipe \
+  -p pipelines/index_existing.pipe -o database \
   -gpus ${TOTAL_GPU_COUNT} -pipes-per-gpu ${PIPES_PER_GPU} \
   --build-index -install ${VIAME_INSTALL}
