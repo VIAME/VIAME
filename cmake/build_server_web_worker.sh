@@ -1,4 +1,4 @@
 #! /bin/bash
 
-find /usr/local -name "*python*"
+find / -name "*python*"
 ls /usr/local/include/pycon* 
