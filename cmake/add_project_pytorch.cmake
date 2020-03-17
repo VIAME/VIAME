@@ -57,15 +57,19 @@ if( VIAME_ENABLE_CUDNN )
     message( FATAL_ERROR "CUDNN version 7.0 or higher required for internal pytorch" )
   endif()
 
-  set( CUDNN_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}" )
+  set( EXTRA_ENV "CUDNN_LIBRARY=${CUDNN_LIBRARIES}" )
   if( CUDNN_ROOT_DIR )
-    list( APPEND CUDNN_ENV "CUDNN_INCLUDE_DIR=${CUDNN_ROOT_DIR}/include" )
+    list( APPEND EXTRA_ENV "CUDNN_INCLUDE_DIR=${CUDNN_ROOT_DIR}/include" )
   endif()
   if( WIN32 )
-    string( REPLACE ";" "----" CUDNN_ENV "${CUDNN_ENV}" )
+    string( REPLACE ";" "----" EXTRA_ENV "${EXTRA_ENV}" )
   endif()
 else()
-  unset( CUDNN_ENV )
+  unset( EXTRA_ENV )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-DISABLE-NINJA )
+  list( APPEND EXTRA_ENV "USE_NINJA=OFF" )
 endif()
 
 set( PYTHON_BASEPATH
@@ -171,7 +175,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
                             "CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}"
                             "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}"
                             "TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}"
-                            "${CUDNN_ENV}"
+                            "${EXTRA_ENV}"
       ${LIBRARY_PIP_BUILD_CMD} )
   set( LIBRARY_PYTHON_INSTALL
     ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
@@ -181,7 +185,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
                             "CUDA_HOME=${CUDA_TOOLKIT_ROOT_DIR}"
                             "TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCHITECTURES}"
                             "TORCH_NVCC_FLAGS=${TORCH_NVCC_FLAGS}"
-                            "${CUDNN_ENV}"
+                            "${EXTRA_ENV}"
       ${LIBRARY_PIP_INSTALL_CMD} )
 
   if( "${LIB}" STREQUAL "bioharn" )
