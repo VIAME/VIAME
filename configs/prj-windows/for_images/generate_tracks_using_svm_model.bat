@@ -5,6 +5,7 @@ SET VIAME_INSTALL=C:\Program Files\VIAME
 
 REM Processing options
 SET INPUT_LIST=input_list.txt
+SET OUTPUT_DIRECTORY=output
 SET INPUT_FRAME_RATE=1
 SET PROCESS_FRAME_RATE=1
 
@@ -22,7 +23,7 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 python.exe "%VIAME_INSTALL%\configs\process_video.py" ^
   -l "%INPUT_LIST%" -ifrate %INPUT_FRAME_RATE% -frate %PROCESS_FRAME_RATE% ^
-  -p pipelines\tracker_svm_models.pipe --no-reset-prompt ^
+  -p pipelines\tracker_svm_models.pipe -o %OUTPUT_DIRECTORY% --no-reset-prompt ^
   -gpus %TOTAL_GPU_COUNT% -pipes-per-gpu %PIPES_PER_GPU% 
 
 pause
