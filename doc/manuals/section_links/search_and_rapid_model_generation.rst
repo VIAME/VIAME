@@ -1,6 +1,4 @@
 .. include:: ../../../examples/search_and_rapid_model_generation/README.rst
-.. include:: ../../../examples/search_and_rapid_model_generation/viame_ingest/README.rst
-.. include:: ../../../examples/search_and_rapid_model_generation/smqtk_on_chips/README.rst
 
 ======================
 Rapid Model Generation
