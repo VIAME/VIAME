@@ -45,11 +45,9 @@ option( VIAME_ENABLE_FFMPEG         "Enable FFMPEG-Dependent Code"  ON )
 option( VIAME_ENABLE_DOCS           "Enable Documentation"          OFF )
 option( VIAME_ENABLE_VIVIA          "Enable Vivia GUIs"             ON )
 option( VIAME_ENABLE_SEAL_TK        "Enable Seal-TK GUIs"           OFF )
-option( VIAME_ENABLE_FLASK          "Enable Flask GUIs"             OFF )
 option( VIAME_ENABLE_KWANT          "Enable KW Scoring Code"        ON )
 
 mark_as_advanced( VIAME_ENABLE_SEAL_TK )
-mark_as_advanced( VIAME_ENABLE_FLASK )
 
 ###
 # Add default-enabled algorithmic plugin enable flags
@@ -574,17 +572,5 @@ else()
       @ONLY
       )
     install( SCRIPT ${CMAKE_BINARY_DIR}/viame-install-fixup.cmake )
-  endif()
-
-  if( VIAME_ENABLE_FLASK )
-    set( FT_DATA_ROOT "${CMAKE_BINARY_DIR}/data"
-         CACHE STRING "Where fishtracker data is stored" )
-    file( COPY "plugins/flask"
-          DESTINATION "plugins/flask"
-          PATTERN "*.in" EXCLUDE )
-    configure_file( "plugins/flask/flask/fishtracker.py.in"
-                    "plugins/flask/flask/fishtracker.py" )
-    configure_file( "plugins/flask/Python/run_python_script.sh.in"
-                    "plugins/flask/Python/run_python_script.sh" )
   endif()
 endif()
