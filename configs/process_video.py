@@ -570,9 +570,6 @@ if __name__ == "__main__" :
   parser.add_argument("-plot-smooth", dest="smooth", default=1, type=int,
                       help="Smoothing factor for plots")
 
-  parser.add_argument("-plot-dir-prefix", dest="plot_dir_prefix", default="plots",
-                      help="Directory prefix to dump detection plots into")
-
   parser.add_argument("-auto-detect-gt", dest="auto_detect_gt", default="",
                       help="Automatically pass to pipes GT of this type if present")
 
@@ -712,7 +709,7 @@ if __name__ == "__main__" :
   if args.detection_plots:
     import generate_detection_plots
     log_info( lb1 + "Generating data plots for detections" )
-    detection_plot_dir = args.plot_dir_prefix + "_detections"
+    detection_plot_dir = os.path.join( output_directory, "detection_plots" )
     create_dir( detection_plot_dir, logging=False, recreate=True, prompt=False )
     generate_detection_plots.detection_plot( args.output_directory,
       detection_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
@@ -722,7 +719,7 @@ if __name__ == "__main__" :
   if args.track_plots:
     import generate_detection_plots
     log_info( lb1 + "Generating data plots for tracks" )
-    track_plot_dir = args.plot_dir_prefix + "_tracks"
+    track_plot_dir = os.path.join( args.output_directory, "track_plots" )
     create_dir( track_plot_dir, logging=False, recreate=True, prompt=False )
     generate_detection_plots.detection_plot( args.output_directory,
       track_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
