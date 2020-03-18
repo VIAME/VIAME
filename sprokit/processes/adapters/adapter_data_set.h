@@ -146,7 +146,8 @@ public:
    * @brief Add typed value to data set.
    *
    * This method adds the specified value to the adapter data set. The
-   * value is copied into the data set.
+   * value is copied into the data set. This will overwrite the value
+   * at the port
    *
    * @param port Name of the port where data is sent.
    * @param val Value to be wrapped in datum for port.
@@ -154,7 +155,7 @@ public:
   template <typename T>
   void add_value( sprokit::process::port_t const& port, T const& val )
   {
-    m_port_datum_set.emplace( port, sprokit::datum::new_datum<T>( val ) );
+    m_port_datum_set[port] = sprokit::datum::new_datum<T>( val );
   }
 
   /**
