@@ -1,4 +1,4 @@
-v0.10.6 - 3/12/2020
+v0.10.6 - 3/18/2020
 ===================
 
 
@@ -9,6 +9,9 @@ v0.10.6 - 3/12/2020
 
 
 -Fix issue in running test-time multi-GPU from an image input list
+
+
+-Add extra checks for project file scripts with early exits
 
 
 
