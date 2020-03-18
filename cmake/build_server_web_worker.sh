@@ -41,8 +41,8 @@ mkdir build
 cd build
 
 # Configure Paths [should be removed when no longer necessary by fletch]
-export PATH=$PATH:/viame/build/install/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.6
+export PATH=$PATH:/usr/local/cuda/bin:/viame/build/install/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/viame/build/install/lib:/viame/build/install/lib/python3.6
 export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.6m
 export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.6m
 
