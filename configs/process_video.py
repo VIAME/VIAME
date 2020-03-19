@@ -695,7 +695,10 @@ if __name__ == "__main__" :
 
     # Identify all videos to process
     if len( args.input_list ) > 0:
-      video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
+      if args.gpu_count > 1:
+        video_list = split_image_list( args.input_list, args.gpu_count, args.output_directory )
+      else:
+        video_list = [ args.input_list ]
       is_image_list = True
     elif len( args.input_dir ) > 0:
       video_list = list_videos_in_dir( args.input_dir, args.video_exts )
@@ -748,8 +751,8 @@ if __name__ == "__main__" :
     if is_image_list:
       if args.gpu_count > 1: # Each thread outputs 1 list, add multiple
         add_final_list_csv( args, video_list )
-      for image_list in video_list: # Clean up after split_image_list
-        os.unlink( image_list )
+        for image_list in video_list: # Clean up after split_image_list
+          os.unlink( image_list )
 
     if not video_queue.empty():
       exit_with_error( "Some videos were not processed!" )
