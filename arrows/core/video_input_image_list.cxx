@@ -62,6 +62,7 @@ public:
   : m_parent( parent )
   , c_sort_by_time( false )
   , c_skip_bad_images( false )
+  , c_disable_image_load( false )
   , m_current_file( m_files.end() )
   , m_frame_number( 0 )
   , m_image( nullptr )
@@ -75,6 +76,7 @@ public:
   std::vector< std::string > c_allowed_extensions;
   bool c_sort_by_time;
   bool c_skip_bad_images;
+  bool c_disable_image_load;
 
   // local state
   std::vector < kv::path_t > m_files;
@@ -149,6 +151,10 @@ video_input_image_list
     "Whether or not to skip over bad images if they fail to load. The process "
     "will fail regardless of this flag on the first image if it is invalid as "
     "an extra safety check." );
+  config->set_value( "disable_image_load", "false",
+    "Option to disable file loading altogether, which can assist in debug "
+    "situations or when performing detection conversions which just want "
+    "to make use of this process for its output filenames." );
 
   vital::algo::image_io::
     get_nested_algo_configuration( "image_reader", config, d->m_image_reader );
@@ -177,6 +183,7 @@ video_input_image_list
   // Read standalone variables
   d->c_sort_by_time = config->get_value<bool>( "sort_by_time" );
   d->c_skip_bad_images = config->get_value<bool>( "skip_bad_images" );
+  d->c_disable_image_load = config->get_value<bool>( "disable_image_load" );
 
   // Setup actual reader algorithm
   vital::algo::image_io::
@@ -394,7 +401,11 @@ video_input_image_list
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    if ( !d->c_skip_bad_images )
+    if ( d->c_disable_image_load )
+    {
+      d->m_image = kv::image_container_sptr();
+    }
+    else if ( !d->c_skip_bad_images )
     {
       d->m_image = d->m_image_reader->load( *d->m_current_file );
     }
