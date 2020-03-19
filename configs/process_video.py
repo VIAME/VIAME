@@ -720,6 +720,11 @@ if __name__ == "__main__" :
     # Get required paths
     pipeline_loc = args.pipeline
 
+    # Check for local pipelines and pre-reqs present
+    if "_local.pipe" in args.pipeline:
+      if not os.path.exists( "category_models/detector.pipe" ):
+        exit_with_error( "Use of this script requires training a detector first" )
+
     # Process videos in parallel, one per GPU
     video_queue = queue.Queue()
     for video_name in video_list:
