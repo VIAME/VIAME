@@ -341,6 +341,47 @@ def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id ):
 def remove_quotes( input_str ):
   return input_str.replace( "\"", "" )
 
+def add_final_list_csv( args, video_list ):
+  if len( video_list ) == 0:
+    return
+  for video in video_list:
+    if video.endswith( "_part0.txt" ):
+      output_file = video_list[0].replace( "_part0.txt", detection_ext )
+      output_stream = open( output_file, "w" )
+      id_adjustment = 0
+      is_first = True
+      used_ids = set()
+      last_id = 0
+    input_stream = open( video.replace( ".txt", detection_ext ), "r" )
+    id_mappings = dict()
+    for line in input_stream:
+      if len( line ) > 0 and ( line[0] == '#' or line[0:9] == 'target_id' ):
+        if is_first:
+          output_stream.write( line )
+        continue
+      parsed_line = line.rstrip().split(',')
+      if len( parsed_line ) < 2:
+        continue
+      orig_id = int( parsed_line[0] )
+      if orig_id in id_mappings:
+        final_id = id_mappings[ orig_id ]
+      elif orig_id in used_ids:
+        last_id = last_id + 1
+        final_id = last_id
+        id_mappings[ orig_id ] = final_id
+        used_ids.add( final_id )
+      else:
+        final_id = orig_id
+        id_mappings[ orig_id ] = orig_id
+        used_ids.add( orig_id )
+      last_id = max( last_id, final_id )
+      parsed_line[0] = str( final_id )
+      parsed_line[2] = str( int( parsed_line[2] ) + id_adjustment )
+      output_stream.write( ','.join( parsed_line ) + '\n' )
+    id_adjustment = id_adjustment + file_length( video )
+    input_stream.close()
+    is_first = False
+
 # Process a single video
 def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd='',
                           cpu=0, gpu=None, write_track_time=True ):
@@ -677,6 +718,8 @@ if __name__ == "__main__" :
     for video_name in video_list:
       if os.path.isfile( video_name ) or os.path.isdir( video_name ):
         video_queue.put( video_name )
+      else:
+        log_info( "Skipping unknown input: " + video_name + lb )
 
     def process_video_thread( gpu, cpu ):
       while True:
@@ -687,7 +730,7 @@ if __name__ == "__main__" :
         process_video_kwiver( video_name, args, is_image_list,
                               cpu=cpu, gpu=gpu, write_track_time=not is_image_list )
 
-    gpu_thread_list = [ i for i in range( args.gpu_count) for _ in range( args.pipes ) ]
+    gpu_thread_list = [ i for i in range( args.gpu_count ) for _ in range( args.pipes ) ]
     cpu_thread_list = list( range( args.pipes ) ) * args.gpu_count
 
     threads = [ threading.Thread( target = process_video_thread, args = (gpu,cpu,) )
@@ -699,7 +742,9 @@ if __name__ == "__main__" :
       thread.join()
 
     if is_image_list:
-      for image_list in video_list:  # Clean up after split_image_list
+      if args.gpu_count > 1: # Each thread outputs 1 list, add multiple
+        add_final_list_csv( args, video_list )
+      for image_list in video_list: # Clean up after split_image_list
         os.unlink( image_list )
 
     if not video_queue.empty():
