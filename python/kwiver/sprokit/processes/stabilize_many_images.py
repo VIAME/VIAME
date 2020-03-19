@@ -27,6 +27,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import itertools
+
 # XXX This class should be defined somewhere else
 from .simple_homog_tracker import Transformer
 
@@ -73,7 +75,21 @@ def register_image_set():
       to some common coordinate space (XXX what homography type?)
 
     """
-    raise NotImplementedError
+    # XXX At the moment it's stateless
+    output = None
+    while True:
+        # The returned homographies will be relative to the "middle" one
+        fds, = yield output
+        hl = len(fds) // 2
+        # Compute homographies between adjacent images
+        l2c = [estimate_single_homography(*sfd, *tfd)
+               for sfd, tfd in zip(fds[:hl], fds[1:hl + 1])]
+        r2c = [estimate_single_homography(*sfd, *tfd)
+               for tfd, sfd in zip(fds[hl:-1], fds[hl + 1:])]
+        # Compute homographies to center
+        l2c = list(itertools.accumulate(reversed(l2c), compose_homographies))[::-1]
+        r2c = itertools.accumulate(r2c, compose_homographies)
+        output = [*l2c, get_identity_homography(), *r2c]
 
 def estimate_homography():
     """Create a Transformer that estimates homographies using features and
@@ -83,6 +99,21 @@ def estimate_homography():
     and returns:
     - a homography mapping the current coordinates to those in a
       reference frame
+
+    """
+    raise NotImplementedError
+
+def get_identity_homography():
+    """Return a homography representing the identity transformation"""
+    raise NotImplementedError
+
+def estimate_single_homography(
+        source_features, source_descriptors,
+        target_features, target_descriptors,
+):
+    """Return a homography that converts coordinates of the source to
+    those of the target, estimated using the provided feature and
+    descriptor sets.
 
     """
     raise NotImplementedError
