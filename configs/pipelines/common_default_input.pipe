@@ -19,6 +19,7 @@ process input
 
   block video_reader:image_list
     :image_reader:type                                  vxl
+    :skip_bad_images                                    true
 
     block image_reader:vxl
       :force_byte                                       true
