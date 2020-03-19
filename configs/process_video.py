@@ -83,6 +83,8 @@ def log_info( msg ):
 
 # Create a directory if it doesn't exist
 def create_dir( dirname, logging=True, recreate=False, prompt=True ):
+  if dirname == '.' or dirname == "":
+    return
   if recreate:
     if os.path.exists( dirname ):
       if not prompt or database_tool.query_yes_no( lb1 + "Reset folder: " + dirname + "?" ):
@@ -210,6 +212,8 @@ def signal_handler( signal, frame ):
   exit_with_error( 'Processing aborted, see you next time' )
 
 def file_length( filename ):
+  if not os.path.exists( filename ):
+    exit_with_error( filename + " does not exist" )
   with open( filename, 'r' ) as f:
     for i, l in enumerate( f ):
       pass
