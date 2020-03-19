@@ -55,7 +55,7 @@ public:
    *
    * \sa metadata::find
    */
-  virtual bool is_valid() const;
+  bool is_valid() const;
 
   /// \copydoc is_valid
   operator bool() const { return this->is_valid(); }
@@ -201,6 +201,36 @@ private:
 }; // end class metadata_item
 
 // -----------------------------------------------------------------
+/*
+ * This class is returned when find can not locate the requested tag.
+ *
+ */
+  class unknown_metadata_item
+    : public metadata_item
+  {
+  public:
+    // -- CONSTRUCTORS --
+    unknown_metadata_item()
+      : metadata_item( "Requested metadata item is not in collection", 0, VITAL_META_UNKNOWN )
+    { }
+
+    virtual bool is_valid() const { return false; }
+    virtual vital_metadata_tag tag() const { return static_cast< vital_metadata_tag >(0); }
+    virtual std::type_info const& type() const { return typeid( void ); }
+    virtual std::string as_string() const { return "--Unknown metadata item--"; }
+    virtual double as_double() const { return 0; }
+    virtual double as_uint64() const { return 0; }
+    virtual std::ostream& print_value(std::ostream& os) const
+    {
+      os << this->as_string();
+      return os;
+    }
+
+  }; // end class unknown_metadata_item
+
+
+// -----------------------------------------------------------------
+/// Class for typed metadata values.
 /**
  * \brief Class for typed metadata values.
 

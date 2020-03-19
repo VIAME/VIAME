@@ -2,122 +2,102 @@
 // OSI-approved BSD 3-Clause License. See top-level LICENSE file or
 // https://github.com/Kitware/kwiver/blob/master/LICENSE for details.
 
-#include <vital/io/camera_io.h>
-#include <vital/types/camera_perspective.h>
+#include <vital/types/camera.h>
 
-#include <pybind11/pybind11.h>
+#include <python/kwiver/vital/util/pybind11.h>
+
 #include <pybind11/eigen.h>
+#include <pybind11/pybind11.h>
 
-#include "covariance_class.cxx"
-#include "eigen_class.cxx"
-#include "rotation_class.cxx"
+#include <memory>
 
 namespace py = pybind11;
+namespace kv = kwiver::vital;
 namespace kwiver {
 namespace vital  {
 namespace python {
 
-bool
-camera_eq(std::shared_ptr<kwiver::vital::simple_camera_perspective> self,
-          std::shared_ptr<kwiver::vital::simple_camera_perspective> other)
-{
-  return ((self->get_center() - other->get_center()).isMuchSmallerThan(0.001) &&
-          (self->get_center_covar().matrix() == other->get_center_covar().matrix()) &&
-          (self->get_rotation().matrix() == other->get_rotation().matrix()));
-}
 
-bool
-camera_ne(std::shared_ptr<kwiver::vital::simple_camera_perspective> self,
-          std::shared_ptr<kwiver::vital::simple_camera_perspective> other)
+class camera_trampoline
+  : public kv::camera
 {
-  return !camera_eq(self, other);
+  using kv::camera::camera;
+
+  kv::camera_sptr clone() const override;
+  kv::vector_2d project( const kv::vector_3d& pt ) const override;
+  unsigned int image_width() const override;
+  unsigned int image_height() const override;
+};
+
+PYBIND11_MODULE( camera, m )
+{
+  py::class_< kv::camera,
+              std::shared_ptr< kv::camera >,
+              camera_trampoline>( m, "Camera" )
+  .def( py::init<>() )
+  .def( "project",      &kv::camera::project )
+  .def( "image_width",  &kv::camera::image_width )
+  .def( "image_height", &kv::camera::image_height )
+  ;
 }
+// We are excluding clone in the base's binding code to follow the pattern
+// described in this pybind issue:
+// https://github.com/pybind/pybind11/issues/1049#issuecomment-326688270
+// Subclasses will still be able to override it, however.
+// Pybind automatically downcasts pointers returned by clone() to the lowest possible
+// subtype, but under certain circumstances, the returned pointer can get sliced.
+// The above link has a solution to this issue. The trampoline's implementation of
+// clone() also was modified to follow this pattern
 
 }
 }
 }
 
 using namespace kwiver::vital::python;
-PYBIND11_MODULE(camera, m)
+kv::camera_sptr
+camera_trampoline
+::clone() const
 {
+  auto self = py::cast(this);
+  auto cloned = self.attr("clone")();
 
-  py::class_<kwiver::vital::simple_camera_perspective,
-             std::shared_ptr<kwiver::vital::simple_camera_perspective> >(m, "Camera")
-  .def(py::init<>())
-  .def(py::init([](EigenArray &center)
-                  {
-                    Eigen::Vector3d vec(center.getMatrixD().data());
-                    kwiver::vital::simple_camera_perspective ret_cam(vec, kwiver::vital::rotation_<double>());
-                    return ret_cam;
-                  }))
-  .def(py::init([](EigenArray &center, PyRotation &rotation)
-                  {
-                    Eigen::Vector3d vec(center.getMatrixD().data());
-                    kwiver::vital::simple_camera_perspective ret_cam(vec, rotation.getRotD());
-                    return ret_cam;
-                  }))
-  .def(py::init([](EigenArray &center, PyRotation &rotation, py::object &int_obj)
-                  {
-                    Eigen::Vector3d vec(center.getMatrixD().data());
-                    kwiver::vital::simple_camera_intrinsics c_int = int_obj.cast<kwiver::vital::simple_camera_intrinsics>();
-                    kwiver::vital::simple_camera_perspective ret_cam(vec, rotation.getRotD(), c_int);
-                    return ret_cam;
-                  }))
-  .def("as_matrix", &kwiver::vital::simple_camera_perspective::as_matrix)
-  .def("as_string", [](kwiver::vital::simple_camera_perspective &self)
-                      {
-                        std::ostringstream ss;
-                        ss << self;
-                        return ss.str();
-                      })
-  .def_static("from_string", [](std::string str)
-                      {
-                        kwiver::vital::simple_camera_perspective self;
-                        std::istringstream ss(str);
-                        ss >> self;
-                        return self;
-                      })
-  .def("clone_look_at", &kwiver::vital::simple_camera_perspective::clone_look_at,
-    py::arg("stare_point"), py::arg("up_direction")=Eigen::Matrix<double,3,1>::UnitZ())
-  .def("project", &kwiver::vital::simple_camera_perspective::project,
-    py::arg("pt"))
-  .def("depth", &kwiver::vital::simple_camera_perspective::depth)
-  .def("write_krtd_file", [](kwiver::vital::simple_camera_perspective &self, std::string path)
-                                {
-                                  kwiver::vital::write_krtd_file(self, path);
-                                })
-  .def_static("from_krtd_file", [](std::string path)
-                                {
-                                  kwiver::vital::camera_perspective_sptr c(kwiver::vital::read_krtd_file(path));
-                                  return c;
-                                })
-  .def_property("center", &kwiver::vital::simple_camera_perspective::center,
-                          &kwiver::vital::simple_camera_perspective::set_center)
-  .def_property("covariance", [](kwiver::vital::simple_camera_perspective &self)
-                                {
-                                  return PyCovariance3d(self.get_center_covar().matrix());
-                                },
-                              [](kwiver::vital::simple_camera_perspective &self, PyCovariance3d val)
-                                {
-                                  self.set_center_covar(val.get_covar());
-                                })
-  .def_property("translation", &kwiver::vital::simple_camera_perspective::translation,
-                               &kwiver::vital::simple_camera_perspective::set_translation)
-  .def_property("rotation", [](kwiver::vital::simple_camera_perspective &self)
-                                {
-                                  PyRotation rot;
-                                  rot.setType('d');
-                                  rot.setRotD(self.get_rotation());
-                                  return rot;
-                                },
-                            [](kwiver::vital::simple_camera_perspective &self, PyRotation val)
-                                {
-                                  self.set_rotation(val.getRotD());
-                                })
-  .def("__eq__", &camera_eq,
-    py::arg("other"))
-  .def("__ne__", &camera_ne,
-    py::arg("other"))
-  ;
+  auto keep_python_state_alive = std::make_shared<py::object>(cloned);
+  auto ptr = cloned.cast<camera_trampoline*>();
 
+  // aliasing shared_ptr: points to `camera_trampoline* ptr` but refcounts the Python object
+  return std::shared_ptr<kv::camera>(keep_python_state_alive, ptr);
+}
+
+kv::vector_2d
+camera_trampoline
+::project( const kv::vector_3d& pt ) const
+{
+  VITAL_PYBIND11_OVERLOAD_PURE(
+    kv::vector_2d,
+    kv::camera,
+    project,
+    pt
+  );
+}
+
+unsigned int
+camera_trampoline
+::image_width() const
+{
+  VITAL_PYBIND11_OVERLOAD_PURE(
+    unsigned int,
+    kv::camera,
+    image_width,
+  );
+}
+
+unsigned int
+camera_trampoline
+::image_height() const
+{
+  VITAL_PYBIND11_OVERLOAD_PURE(
+    unsigned int,
+    kv::camera,
+    image_height,
+  );
 }

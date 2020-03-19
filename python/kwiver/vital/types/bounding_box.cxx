@@ -91,5 +91,7 @@ PYBIND11_MODULE(bounding_box, m)
     )", py::globals(), locals);
     return locals["retval"].cast<std::string>();
     })
+  .def("__eq__", [](bbox self, bbox other) {return self == other;})
+  .def("__ne__", [](bbox self, bbox other) {return self != other;})
   ;
 }

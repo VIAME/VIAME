@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2018 by Kitware, Inc.
+Copyright 2018, 2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import nose.tools
 from kwiver.vital.types import Timestamp
 
 
-class TestRGBColor (unittest.TestCase):
+class TestTimestamp (unittest.TestCase):
 
   def test_new(self):
     Timestamp()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #ckwg +28
-# Copyright 2019 by Kitware, Inc.
+# Copyright 2019-2020 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,10 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from kwiver.vital.config import config
+from kwiver.vital.tests.py_helpers import create_geo_poly
+from kwiver.vital.types import GeoPolygon
+
+import numpy as np
 import nose.tools
 
 class TestVitalConfig(object):
@@ -74,7 +78,6 @@ class TestVitalConfig(object):
 
     def test_default_value(self):
         c = config.empty_config()
-        keya = 'keya'
         keyb = 'keyb'
         valueb = 'valueb'
         get_valueb = c.get_value(keyb, valueb)
@@ -254,3 +257,93 @@ class TestVitalConfig(object):
         value = 10
         c[key] = value
         nose.tools.assert_equal(c[key], str(value))
+
+##################geo_poly tests###################
+
+    def check_pts_equal(self, gp1, gp2):
+        pts_in = gp1.polygon().get_vertices()
+        pts_out = gp2.polygon().get_vertices()
+
+        nose.tools.assert_equal(len(pts_in), len(pts_out))
+        for loc_in, loc_out in zip(pts_in, pts_out):
+            np.testing.assert_array_almost_equal(loc_in, loc_out, decimal=15)
+
+    def test_get_value_geo_poly(self):
+        c = config.empty_config()
+        keya = "keya"
+        valuea = create_geo_poly()
+
+        c.set_value_geo_poly(keya, valuea)
+        get_valuea = c.get_value_geo_poly(keya)
+        self.check_pts_equal(valuea, get_valuea)
+
+    def test_get_value_empty_geo_poly(self):
+        c = config.empty_config()
+        keya = 'keya'
+        valuea = GeoPolygon()
+
+        c.set_value_geo_poly(keya, valuea)
+        get_valuea = c.get_value_geo_poly(keya)
+
+        nose.tools.ok_(valuea.is_empty())
+        nose.tools.ok_(get_valuea.is_empty())
+
+    def test_default_value_geo_poly(self):
+        c = config.empty_config()
+        keyb = 'keyb'
+        valueb = create_geo_poly()
+
+        get_valueb = c.get_value_geo_poly(keyb, valueb)
+
+        self.check_pts_equal(valueb, get_valueb)
+
+
+    @nose.tools.raises(RuntimeError)
+    def test_get_value_geo_poly_no_exist(self):
+        c = config.empty_config()
+        keya = 'keya'
+        c.get_value_geo_poly(keya)
+
+    def test_get_value_geo_poly_nested(self):
+        c = config.empty_config()
+        keya = 'keya'
+        keyb = 'keyb'
+        valuea = create_geo_poly()
+        c.set_value_geo_poly(keya + config.Config.block_sep() + keyb, valuea)
+        nc = c.subblock(keya)
+        get_valuea = nc.get_value_geo_poly(keyb)
+
+        self.check_pts_equal(valuea, get_valuea)
+
+    @nose.tools.raises(RuntimeError)
+    def test_unset_geo_poly(self):
+        c = config.empty_config()
+        keya = 'keya'
+        valuea = create_geo_poly()
+        c.set_value_geo_poly(keya, valuea)
+        c.unset_value(keya)
+        c.get_value_geo_poly(keya)
+
+    def test_set_get_value_wrong_type(self):
+        c = config.empty_config()
+        key = 'key'
+        value_gp = create_geo_poly()
+        value_str = 'value_str'
+
+        nose.tools.assert_raises(TypeError, c.set_value_geo_poly, key, value_str)
+        nose.tools.assert_raises(TypeError, c.set_value, key, value_gp)
+
+        c.set_value(key, value_str)
+
+        nose.tools.assert_raises(RuntimeError, c.get_value_geo_poly, key)
+
+    def test_get_geo_poly_str(self):
+        c = config.empty_config()
+        keya = 'key'
+        valuea = create_geo_poly()
+
+        c.set_value_geo_poly(keya, valuea)
+        str_out = c.get_value(keya)
+        nose.tools.ok_(isinstance(str_out, str))
+
+################end geo_poly tests#################

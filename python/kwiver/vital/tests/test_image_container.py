@@ -42,7 +42,7 @@ from kwiver.vital.types import (
 
 import nose.tools
 import numpy as np
-from kwiver.vital.tests.helpers import create_numpy_image, map_dtype_name_to_pixel_type
+from kwiver.vital.tests.py_helpers import create_numpy_image, map_dtype_name_to_pixel_type
 
 
 class TestVitalImageContainer (object):

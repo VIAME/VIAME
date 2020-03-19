@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016 by Kitware, Inc.
+Copyright 2016-2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,13 @@ import unittest
 import nose.tools
 import numpy
 
-from kwiver.vital.types import Landmark, Covariance, RGBColor
+from kwiver.vital.types import Landmark, Covar3f, Covar3d, RGBColor
 
 
 class TestLandmark (unittest.TestCase):
 
     ctypeS = ['d', 'f']
+    precs = [15, 6]
 
     def test_new(self):
         Landmark()
@@ -75,7 +76,7 @@ class TestLandmark (unittest.TestCase):
             numpy.testing.assert_equal(l.loc, [1,2,3])
 
     def test_set_loc(self):
-        for ct in self.ctypeS:
+        for ct, prec in zip(self.ctypeS, self.precs):
             print(ct)
 
             l = Landmark(ctype=ct)
@@ -87,10 +88,10 @@ class TestLandmark (unittest.TestCase):
                      8.3]
             numpy.testing.assert_almost_equal(l.loc, [9.12,
                                                       4.1,
-                                                      8.3], 6)
+                                                      8.3], prec)
 
     def test_get_scale(self):
-        for ct in self.ctypeS:
+        for ct, prec in zip(self.ctypeS, self.precs):
             l = Landmark(ctype=ct)
             print(ct)
 
@@ -100,13 +101,13 @@ class TestLandmark (unittest.TestCase):
             nose.tools.assert_equal(l.scale, 17)
 
             l = Landmark(scale=2.22, ctype=ct)
-            nose.tools.assert_almost_equal(l.scale, 2.22, 6)
+            nose.tools.assert_almost_equal(l.scale, 2.22, prec)
 
             l = Landmark([3, 4, 5], 44.5, ct)
-            nose.tools.assert_almost_equal(l.scale, 44.5, 6)
+            nose.tools.assert_almost_equal(l.scale, 44.5, prec)
 
     def test_set_scale(self):
-        for ct in self.ctypeS:
+        for ct, prec in zip(self.ctypeS, self.precs):
             print(ct)
 
             l = Landmark(ctype=ct)
@@ -117,10 +118,10 @@ class TestLandmark (unittest.TestCase):
             nose.tools.assert_equal(l.scale, 2)
 
             l.scale = 2.456
-            nose.tools.assert_almost_equal(l.scale, 2.456, 6)
+            nose.tools.assert_almost_equal(l.scale, 2.456, prec)
 
             l.scale = -2
-            nose.tools.assert_almost_equal(l.scale, -2, 6)
+            nose.tools.assert_almost_equal(l.scale, -2, prec)
 
 
     def test_normal(self):
@@ -135,17 +136,17 @@ class TestLandmark (unittest.TestCase):
             numpy.testing.assert_equal(l.normal, [0,1,0])
 
     def test_covariance(self):
-        for ct in self.ctypeS:
+        covars = [Covar3d(7), Covar3f(7)]
+        for ct, covar, prec in zip(self.ctypeS, covars, self.precs):
             print(ct)
             l = Landmark(ctype=ct)
 
             # check default
-            #nose.tools.assert_equal(l.covariance, Covariance.new_covar(3))
+            numpy.testing.assert_array_equal(l.covariance.matrix(), Covar3d().matrix())
 
             # set type-aligned covariance
-            c = Covariance.new_covar(3, ct, 7)
-            l.covariance = c
-            #nose.tools.assert_equal(l.covariance, c)
+            l.covariance = covar
+            numpy.testing.assert_array_almost_equal(l.covariance.matrix(), covar.matrix(), prec)
 
     def test_color(self):
         for ct in self.ctypeS:
@@ -173,3 +174,24 @@ class TestLandmark (unittest.TestCase):
 
             l.observations = 42
             nose.tools.assert_equal(l.observations, 42)
+
+    def test_cos_obs_angle(self):
+        for ct, prec in zip(self.ctypeS, self.precs):
+            print(ct)
+            l = Landmark(ctype=ct)
+
+            # default
+            nose.tools.assert_equal(l.cos_obs_angle, 1)
+
+            l.cos_obs_angle = 0.5
+            numpy.testing.assert_almost_equal(l.cos_obs_angle, 0.5, prec)
+
+            l.cos_obs_angle = -0.5
+            numpy.testing.assert_almost_equal(l.cos_obs_angle, -0.5, prec)
+
+            # Can technically go outside range of cosine
+            l.cos_obs_angle = 1.5
+            numpy.testing.assert_almost_equal(l.cos_obs_angle, 1.5, prec)
+
+            l.cos_obs_angle = -1.5
+            numpy.testing.assert_almost_equal(l.cos_obs_angle, -1.5, prec)

@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2016-2019 by Kitware, Inc.
+Copyright 2016-2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,27 +37,28 @@ import logging
 import math
 from six.moves import range
 
-import numpy
+import numpy as np
+import nose.tools as nt
 
 from kwiver.vital.types import (
     Camera,
     CameraIntrinsics,
     CameraMap,
-    EigenArray,
     Feature,
+    geodesy,
+    GeoPolygon,
     Landmark,
-    Rotation,
+    Polygon,
+    RotationD,
     Track,
+    track_descriptor,
     TrackSet,
     TrackState,
 )
 
 
 def random_point_3d(stddev):
-    pt = [[numpy.random.normal(0., stddev)],
-          [numpy.random.normal(0., stddev)],
-          [numpy.random.normal(0., stddev)]]
-    return EigenArray.from_iterable(pt, target_shape=(3, 1))
+    return np.random.normal(loc=0., scale=stddev, size=3)
 
 
 
@@ -72,7 +73,7 @@ def camera_seq(num_cams=20, k=None):
     if k is None:
         k = CameraIntrinsics(1000, [640, 480])
     d = {}
-    r = Rotation()  # identity
+    r = RotationD()  # identity
     for i in range(num_cams):
         frac = float(i) / num_cams
         x = 4 * math.cos(2*frac)
@@ -94,8 +95,8 @@ def init_cameras(num_cams=20, intrinsics=None):
     """
     if intrinsics is None:
         intrinsics = CameraIntrinsics(1000, (640, 480))
-    r = Rotation()
-    c = EigenArray.from_iterable((0, 0, 1))
+    r = RotationD()
+    c = np.array([0, 0, 1])
     d = {}
     for i in range(num_cams):
         cam = Camera(c, r, intrinsics).clone_look_at([0, 0, 0],
@@ -116,7 +117,7 @@ def noisy_cameras(cam_map, pos_stddev=1., rot_stddev=1.):
     for f, c in cam_map.as_dict().iteritems():
         c2 = Camera(
             c.center + random_point_3d(pos_stddev),
-            c.rotation * Rotation.from_rodrigues(random_point_3d(rot_stddev)),
+            c.rotation * RotationD(random_point_3d(rot_stddev)),
             c.intrinsics
         )
         cmap[f] = c2
@@ -140,7 +141,7 @@ def subset_tracks(trackset, keep_fraction=0.75):
 
         msg = 'track %d:' % t.id,
         for ts in t:
-            if numpy.random.rand() < keep_fraction:
+            if np.random.rand() < keep_fraction:
                 nt.append(ts)
                 msg += '.',
             else:
@@ -156,7 +157,7 @@ def reprojection_error_vec(cam, lm, feat):
     :type cam: Camera
     :type lm: Landmark
     :type feat: Feature
-    :rtype: EigenArray
+    :rtype: numpy array
     """
     pt = cam.project(lm.loc)
     return pt - feat.location
@@ -180,20 +181,20 @@ def create_numpy_image(dtype_name, nchannels, order='c'):
         shape = (5, 4)
     else:
         shape = (5, 4, nchannels)
-    size = numpy.prod(shape)
+    size = np.prod(shape)
 
-    dtype = numpy.dtype(dtype_name)
+    dtype = np.dtype(dtype_name)
 
     if dtype_name == 'bool':
-        np_img = numpy.zeros(size, dtype=dtype).reshape(shape)
+        np_img = np.zeros(size, dtype=dtype).reshape(shape)
         np_img[0::2] = 1
     else:
-        np_img = numpy.arange(size, dtype=dtype).reshape(shape)
+        np_img = np.arange(size, dtype=dtype).reshape(shape)
 
     if order.startswith('c'):
-        np_img = numpy.ascontiguousarray(np_img)
+        np_img = np.ascontiguousarray(np_img)
     elif order.startswith('fortran'):
-        np_img = numpy.asfortranarray(np_img)
+        np_img = np.asfortranarray(np_img)
     else:
         raise KeyError(order)
     if order.endswith('-reverse'):
@@ -211,3 +212,40 @@ def map_dtype_name_to_pixel_type(dtype_name):
     else:
         want = dtype_name
     return want
+
+
+# Just gets a list of num_desc track_descriptors, each with td_size random entries
+# Returns a track_descriptor_set and a copy of the lists used to set each track_descriptor
+def create_track_descriptor_set(td_size=5, num_desc=3):
+    ret_track_descriptor_set = []
+    lists_used = []
+    for i in range(num_desc):
+        l = np.random.uniform(low=0.0, high=1000, size=td_size)
+        td = track_descriptor.TrackDescriptor.create("td" + str(i))
+        td.resize_descriptor(td_size)
+        for j in range(td_size):
+            td[j] = l[j]
+        ret_track_descriptor_set.append(td)
+        lists_used.append(l)
+    return (ret_track_descriptor_set, lists_used)
+
+
+
+
+# Creates a geo_polygon with the provided pts and crs
+# Default uses many decimal places to test double roundtrips
+def create_geo_poly(crs=geodesy.SRID.lat_lon_NAD83, pts=None):
+    if pts is None:
+        loc1 = np.array([-77.397577193572642, 38.17996907564275])
+        loc2 = np.array([-77.329127515765311, 38.18134786411568])
+        loc3 = np.array([-77.327408991847565, 38.12731304379414])
+        loc4 = np.array([-77.395808248573299, 38.12593882643528])
+        pts = [loc1, loc2, loc3, loc4]
+    return GeoPolygon(Polygon(pts), crs)
+
+# Makes sure that a pure virtual method cannot be called
+def no_call_pure_virtual_method(mthd, *args, **kwargs):
+    with nt.assert_raises_regexp(
+                RuntimeError, "Tried to call pure virtual function",
+            ):
+                mthd(*args, **kwargs)
