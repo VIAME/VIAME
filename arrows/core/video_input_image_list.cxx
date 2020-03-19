@@ -61,6 +61,7 @@ public:
   priv( video_input_image_list* parent )
   : m_parent( parent )
   , c_sort_by_time( false )
+  , c_skip_bad_images( false )
   , m_current_file( m_files.end() )
   , m_frame_number( 0 )
   , m_image( nullptr )
@@ -73,6 +74,7 @@ public:
   std::vector< std::string > c_search_path;
   std::vector< std::string > c_allowed_extensions;
   bool c_sort_by_time;
+  bool c_skip_bad_images;
 
   // local state
   std::vector < kv::path_t > m_files;
@@ -143,6 +145,10 @@ video_input_image_list
   config->set_value( "sort_by_time", "false",
     "Instead of accepting the input list as-is, sort input file order based "
     "on timestamp metadata contained either in the file or in each filename." );
+  config->set_value( "skip_bad_images", "false",
+    "Whether or not to skip over bad images if they fail to load. The process "
+    "will fail regardless of this flag on the first image if it is invalid as "
+    "an extra safety check." );
 
   vital::algo::image_io::
     get_nested_algo_configuration( "image_reader", config, d->m_image_reader );
@@ -170,6 +176,7 @@ video_input_image_list
 
   // Read standalone variables
   d->c_sort_by_time = config->get_value<bool>( "sort_by_time" );
+  d->c_skip_bad_images = config->get_value<bool>( "skip_bad_images" );
 
   // Setup actual reader algorithm
   vital::algo::image_io::
@@ -280,7 +287,7 @@ video_input_image_list
 bool
 video_input_image_list
 ::next_frame( kv::timestamp& ts,
-              uint32_t                  timeout )
+              uint32_t timeout )
 {
   // returns timestamp
   // does not support timeout
@@ -313,7 +320,7 @@ bool
 video_input_image_list
 ::seek_frame( kv::timestamp& ts,   // returns timestamp
               kv::timestamp::frame_t frame_number,
-              uint32_t                  timeout )
+              uint32_t timeout )
 {
   // Check if requested frame exists
   if (frame_number > static_cast<int>( d->m_files.size() ) || frame_number <= 0)
@@ -387,7 +394,25 @@ video_input_image_list
     //
     // This call returns a *new* image container. This is good since
     // we are going to pass it downstream using the sptr.
-    d->m_image = d->m_image_reader->load( *d->m_current_file );
+    if ( !d->c_skip_bad_images )
+    {
+      d->m_image = d->m_image_reader->load( *d->m_current_file );
+    }
+    else
+    {
+      try
+      {
+        d->m_image = d->m_image_reader->load( *d->m_current_file );
+      }
+      catch ( ... )
+      {
+        if ( d->m_frame_number > 1 )
+        {
+          LOG_WARN( logger(), "failed to load \"" << *d->m_current_file << "\"" );
+          d->m_image = kv::image_container_sptr();
+        }
+      }
+    }
   }
   return d->m_image;
 }
