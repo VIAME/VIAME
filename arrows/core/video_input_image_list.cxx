@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,8 @@
 namespace kwiver {
 namespace arrows {
 namespace core {
+
+namespace kv = kwiver::vital;
 
 class video_input_image_list::priv
 {
@@ -130,19 +132,17 @@ video_input_image_list
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
   config->set_value( "path", "",
-                     "Path to search for image file. "
-                     "If a file name is not absolute, this list of directories "
-                     "is scanned to find the file. The current directory '.' is "
-                     "automatically appended to the end of the path. The format "
-                     "of this path is the same as the standard path specification, "
-                     "a set of directories separated by a colon (':')" );
+    "Path to search for image file. "
+    "If a file name is not absolute, this list of directories is scanned to "
+    "find the file. The current directory '.' is automatically appended to "
+    "the end of the path. The format of this path is the same as the standard "
+    "path specification, a set of directories separated by a colon (':')" );
   config->set_value( "allowed_extensions", "",
-                     "Semicolon-separated list of allowed file extensions. "
-                     "Leave empty to allow all file extensions." );
+    "Semicolon-separated list of allowed file extensions. Leave empty to allow "
+    "all file extensions." );
   config->set_value( "sort_by_time", "false",
-                     "Instead of accepting the input list as-is, sort input file "
-                     "order based on timestamp metadata contained either in the "
-                     "file or in each filename." );
+    "Instead of accepting the input list as-is, sort input file order based "
+    "on timestamp metadata contained either in the file or in each filename." );
 
   vital::algo::image_io::
     get_nested_algo_configuration( "image_reader", config, d->m_image_reader );
