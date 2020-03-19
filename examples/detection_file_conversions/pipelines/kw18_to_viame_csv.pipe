@@ -13,9 +13,9 @@ process image_reader
   :: video_input
   :video_filename                                   input_list.txt
   :frame_time                                              0.03333
-  :disable_file_load                                          true
   :video_reader:type                                    image_list
   :video_reader:image_list:image_reader:type                   vxl
+  :video_reader:image_list:disable_image_load                 true
 
 process track_reader1
   :: read_object_track
