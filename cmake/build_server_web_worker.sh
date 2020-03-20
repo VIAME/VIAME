@@ -98,15 +98,15 @@ make -j$(nproc) -k || true
 # Should be removed when non-determinism in kwiver python build fixed
 make -j$(nproc)
 
-# Remove all source files used for the build to save space
-cd /viame
-rm -rfv !('build')
-
-# Remove all build files used for the build to save space
-cd /viame/build
-rm -rfv !('install')
-
 # HACK: Ensure invalid libsvm symlink isn't created
 # Should be removed when this issue is fixed
 rm install/lib/libsvm.so
 cp install/lib/libsvm.so.2 install/lib/libsvm.so
+
+# Remove all source files used for the build to save space
+cd /viame
+find . -not -path "./build*" -not -path "." -not -path ".." -exec rm -rf '{}' \;
+
+# Remove all build files used for the build to save space
+cd /viame/build
+find . -not -path "./install*" -not -path "." -not -path ".." -exec rm -rf '{}' \;
