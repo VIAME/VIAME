@@ -98,7 +98,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "timeout", self._timeout )
         cfg.set_value( "backbone", self._backbone )
         cfg.set_value( "pipeline_template", self._pipeline_template )
-        cfg.set_value( "max_scale_wrt_chip", self._max_scale_wrt_chip )
+        cfg.set_value( "max_scale_wrt_chip", str( self._max_scale_wrt_chip ) )
 
         return cfg
 
