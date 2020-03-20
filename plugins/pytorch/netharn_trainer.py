@@ -37,6 +37,7 @@ from vital.types import BoundingBox
 from vital.types import CategoryHierarchy
 from vital.types import DetectedObjectSet
 from vital.types import DetectedObject
+from vital.types import DetectedObjectType
 
 from PIL import Image
 
@@ -179,6 +180,21 @@ class NetHarnTrainer( TrainDetector ):
             return False
         return True
 
+    def filter_truth( self, init_truth, categories ):
+        filtered_truth = DetectedObjectSet()
+        for i, item in enumerate( init_truth ):
+            class_lbl = item.type().get_most_likely_class()
+            if categories is not None and not categories.has_class_id( class_lbl ):
+                continue
+            if categories is not None:
+                class_lbl = categories.get_class_name( class_lbl )
+            elif class_lbl not in self._categories:
+                self._categories.append( class_lbl )
+            truth_type = DetectedObjectType( class_lbl, 1.0 )
+            item.set_type( truth_type )
+            filtered_truth.add( item )
+        return filtered_truth
+
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
         if len( train_files ) != len( train_dets ):
             print( "Error: train file and groundtruth count mismatch" )
@@ -188,11 +204,11 @@ class NetHarnTrainer( TrainDetector ):
         for i in range( len( train_files ) + len( test_files ) ):
             if i < len( train_files ):
                 filename = train_files[ i ]
-                groundtruth = train_dets[ i ]
+                groundtruth = self.filter_truth( train_dets[ i ], categories )
                 self._training_writer.write_set( groundtruth, os.path.abspath( filename ) )
             else:
                 filename = test_files[ i-len( train_files ) ]
-                groundtruth = test_dets[ i-len( train_files ) ]
+                groundtruth = self.filter_truth( test_dets[ i-len( train_files ) ], categories )
                 self._validation_writer.write_set( groundtruth, os.path.abspath( filename ) )
 
     def update_model( self ):
