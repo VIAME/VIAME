@@ -115,6 +115,10 @@ void
 database_query
 ::set_temporal_bounds( timestamp const& lower, timestamp const& upper )
 {
+  if (upper < lower)
+  {
+    throw std::logic_error("upper temporal bound less than lower temporal bound");
+  }
   m_temporal_lower = lower;
   m_temporal_upper = upper;
 }
