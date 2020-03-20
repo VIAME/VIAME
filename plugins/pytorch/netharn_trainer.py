@@ -78,6 +78,7 @@ class NetHarnTrainer( TrainDetector ):
         self._pipeline_template = ""
         self._categories = []
         self._resize_option = "original_and_resized"
+        self._max_scale_wrt_chip = 2.0
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -97,6 +98,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "timeout", self._timeout )
         cfg.set_value( "backbone", self._backbone )
         cfg.set_value( "pipeline_template", self._pipeline_template )
+        cfg.set_value( "max_scale_wrt_chip", self._max_scale_wrt_chip )
 
         return cfg
 
@@ -119,6 +121,7 @@ class NetHarnTrainer( TrainDetector ):
         self._timeout = str( cfg.get_value( "timeout" ) )
         self._backbone = str( cfg.get_value( "backbone" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
+        self._max_scale_wrt_chip = float( cfg.get_value( "max_scale_wrt_chip" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -182,6 +185,8 @@ class NetHarnTrainer( TrainDetector ):
 
     def filter_truth( self, init_truth, categories ):
         filtered_truth = DetectedObjectSet()
+        use_frame = True
+        max_length = int( self._max_scale_wrt_chip * float( self._chip_width ) )
         for i, item in enumerate( init_truth ):
             class_lbl = item.type().get_most_likely_class()
             if categories is not None and not categories.has_class_id( class_lbl ):
@@ -190,10 +195,15 @@ class NetHarnTrainer( TrainDetector ):
                 class_lbl = categories.get_class_name( class_lbl )
             elif class_lbl not in self._categories:
                 self._categories.append( class_lbl )
+
             truth_type = DetectedObjectType( class_lbl, 1.0 )
             item.set_type( truth_type )
-            filtered_truth.add( item )
-        return filtered_truth
+
+            if item.bounding_box().width() <= max_length and \
+               item.bounding_box().height() <= max_length:
+                filtered_truth.add( item )
+
+        return filtered_truth, use_frame
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
         if len( train_files ) != len( train_dets ):
@@ -204,11 +214,11 @@ class NetHarnTrainer( TrainDetector ):
         for i in range( len( train_files ) + len( test_files ) ):
             if i < len( train_files ):
                 filename = train_files[ i ]
-                groundtruth = self.filter_truth( train_dets[ i ], categories )
+                groundtruth, use_frame = self.filter_truth( train_dets[ i ], categories )
                 self._training_writer.write_set( groundtruth, os.path.abspath( filename ) )
             else:
                 filename = test_files[ i-len( train_files ) ]
-                groundtruth = self.filter_truth( test_dets[ i-len( train_files ) ], categories )
+                groundtruth, use_frame = self.filter_truth( test_dets[ i-len( train_files ) ], categories )
                 self._validation_writer.write_set( groundtruth, os.path.abspath( filename ) )
 
     def update_model( self ):
