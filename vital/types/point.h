@@ -48,7 +48,6 @@
 #include <memory>
 
 namespace kwiver {
-
 namespace vital {
 
 template < unsigned N, typename T >
@@ -57,6 +56,7 @@ class VITAL_EXPORT point
 public:
   using vector_type = Eigen::Matrix< T, N, 1 >;
   using covariance_type = covariance_< N, float >;
+  using data_type = T;
 
   point() {}
   explicit point( vector_type const& v, covariance_type const& c = {} )
@@ -82,6 +82,18 @@ public:
   covariance_type covariance() const { return m_covariance; }
   void set_covariance( covariance_type const& v ) { m_covariance = v; }
 
+  /// Equality operator
+  bool operator==( point< N, T > const& other ) const
+  {
+    return this->value() == other.value();
+  }
+
+  /// Inequality operator
+  bool operator!=( point< N, T > const& other ) const
+  {
+    return ! operator==(other);
+  }
+
 protected:
   vector_type m_value = vector_type::Zero();
   covariance_type m_covariance;
@@ -105,7 +117,6 @@ VITAL_EXPORT ::std::ostream& operator<<( ::std::ostream&, point_4d const& );
 VITAL_EXPORT ::std::ostream& operator<<( ::std::ostream&, point_4f const& );
 
 } // namespace vital
-
 } // namespace kwiver
 
 #endif

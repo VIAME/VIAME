@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,6 +141,12 @@ TEST( serialize, detected_object )
   obj->set_detector_name( "test_detector" );
   obj->set_index( 1234 );
 
+  obj->add_note( "This is a note" );
+  obj->add_note( "This is another note" );
+
+  obj->add_keypoint( "point-1", ::kwiver::vital::point_2d( 123,234 ) );
+  obj->add_keypoint( "point-2", ::kwiver::vital::point_2d( 234,123 ) );
+
   kwiver::vital::any obj_any( *obj );
   auto mes = obj_ser.serialize( obj_any );
 
@@ -154,6 +160,26 @@ TEST( serialize, detected_object )
   EXPECT_EQ( obj->confidence(), obj_dser->confidence() );
   EXPECT_EQ( obj->detector_name(), obj_dser->detector_name() );
 
+  // Notes
+  {
+    auto obj_notes = obj->notes();
+    auto dser_notes = obj_dser->notes();
+    EXPECT_EQ( obj_notes.size(), dser_notes.size() );
+    for ( size_t i = 0; i < obj_notes.size(); ++i )
+    {
+      EXPECT_EQ( obj_notes[i], dser_notes[i] );
+    }
+  }
+
+  // keypoints
+  {
+    auto obj_kp = obj->keypoints();
+    auto dser_kp = obj_dser->keypoints();
+    EXPECT_EQ( obj_kp.size(), dser_kp.size() );
+    EXPECT_EQ( obj_kp, dser_kp );
+  }
+
+  // detected object type
   dot = obj->type();
   if (dot)
   {
