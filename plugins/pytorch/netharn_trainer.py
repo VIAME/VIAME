@@ -217,11 +217,13 @@ class NetHarnTrainer( TrainDetector ):
             if i < len( train_files ):
                 filename = train_files[ i ]
                 groundtruth, use_frame = self.filter_truth( train_dets[ i ], categories )
-                self._training_writer.write_set( groundtruth, os.path.abspath( filename ) )
+                if use_frame:
+                    self._training_writer.write_set( groundtruth, os.path.abspath( filename ) )
             else:
                 filename = test_files[ i-len( train_files ) ]
                 groundtruth, use_frame = self.filter_truth( test_dets[ i-len( train_files ) ], categories )
-                self._validation_writer.write_set( groundtruth, os.path.abspath( filename ) )
+                if use_frame:
+                    self._validation_writer.write_set( groundtruth, os.path.abspath( filename ) )
 
     def update_model( self ):
         self._training_writer.complete()
