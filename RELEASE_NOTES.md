@@ -1,3 +1,19 @@
+v0.10.8 - 3/20/2020
+===================
+
+
+-Fix issue with timeout in latest CFRNN training
+
+
+
+v0.10.7 - 3/19/2020
+===================
+
+
+-Fix issue with labels.txt file not being used in latest CFRNN training
+
+
+
 v0.10.6 - 3/18/2020
 ===================
 
