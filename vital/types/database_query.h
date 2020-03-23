@@ -45,7 +45,6 @@
 #include <vital/vital_config.h>
 
 #include <memory>
-#include <stdexcept>
 
 namespace kwiver {
 namespace vital {

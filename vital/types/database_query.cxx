@@ -34,6 +34,7 @@
  */
 
 #include "database_query.h"
+#include <stdexcept>
 
 namespace kwiver {
 namespace vital {
