@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -221,15 +221,19 @@ matlab_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t required;
+
   sprokit::process::port_flags_t optional;
   required.insert( flag_required );
+
+  sprokit::process::port_flags_t shared;
+  shared.insert( flag_output_shared );
 
   // -- input --
   declare_input_port_using_trait( timestamp, optional );
   declare_input_port_using_trait( image, required );
 
   // -- output --
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image, shared );
 }
 
 

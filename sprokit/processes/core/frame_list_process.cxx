@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -258,9 +258,11 @@ void frame_list_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t shared;
+  shared.insert( flag_output_shared );
 
   declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image, shared );
   declare_output_port_using_trait( image_file_name, optional );
 }
 

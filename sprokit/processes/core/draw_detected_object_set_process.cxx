@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -147,7 +147,9 @@ void draw_detected_object_set_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t output;
+  output.insert( flag_output_shared );
+
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
@@ -156,7 +158,7 @@ void draw_detected_object_set_process
   declare_input_port_using_trait( detected_object_set, required );
 
   // -- output --
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image, output );
 }
 
 
