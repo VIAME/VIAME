@@ -238,6 +238,21 @@ bool operator== ( bounding_box<T> const& lhs, bounding_box<T> const& rhs )
 }
 
 
+/**
+ * @brief Inequality operator for bounding box
+ *
+ * @param lhs The box to check against
+ * @param rhs The other box to check against
+ *
+ * @return \b true if boxes are different
+ */
+template <typename T>
+bool operator!= ( bounding_box<T> const& lhs, bounding_box<T> const& rhs )
+{
+  return !(lhs == rhs);
+}
+
+
 // Define for common types.
 typedef bounding_box< int > bounding_box_i;
 typedef bounding_box< double > bounding_box_d;
