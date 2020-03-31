@@ -185,6 +185,12 @@ foreach( ID RANGE ${DEP_COUNT} )
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${DEP} )
 
+  if( "${DEP}" STREQUAL "pycocotools" )
+    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} pillow )
+  else()
+    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
+  endif()
+
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
@@ -196,7 +202,7 @@ foreach( ID RANGE ${DEP_COUNT} )
     )
 
   ExternalProject_Add( ${DEP}
-    DEPENDS ${VIAME_PYTHON_DEPS_DEPS}
+    DEPENDS ${PYTHON_LIB_DEPS}
     PREFIX ${VIAME_BUILD_PREFIX}
     SOURCE_DIR ${VIAME_CMAKE_DIR}
     USES_TERMINAL_BUILD 1
