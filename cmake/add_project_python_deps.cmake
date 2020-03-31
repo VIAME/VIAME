@@ -185,7 +185,7 @@ foreach( ID RANGE ${DEP_COUNT} )
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${DEP} )
 
-  if( "${DEP}" STREQUAL "pycocotools" )
+  if( "${DEP}" STREQUAL "pycocotools" AND VIAME_ENABLE_PYTORCH )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} pillow )
   else()
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
