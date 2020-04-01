@@ -59,8 +59,8 @@ tags_to_vector( metadata_sptr const& md,
     }
     else
     {
-      throw metadata_exception("Missing RPC metadata: " +
-                               md_traits.tag_to_name(tags[i]));
+      VITAL_THROW(metadata_exception, "Missing RPC metadata: " +
+                                      md_traits.tag_to_name(tags[i]));
     }
   }
 
@@ -75,8 +75,8 @@ tags_to_matrix( metadata_sptr const& md,
   metadata_traits md_traits;
   if (tags.size() != 4)
   {
-    throw metadata_exception(
-      "Should have 4 metadata tags for RPC coefficients");
+    VITAL_THROW(metadata_exception,
+                "Should have 4 metadata tags for RPC coefficients");
   }
 
   rpc_matrix rslt;
@@ -89,8 +89,8 @@ tags_to_matrix( metadata_sptr const& md,
     }
     else
     {
-      throw metadata_exception("Missing RPC metadata: " +
-                               md_traits.tag_to_name(tags[i]));
+      VITAL_THROW(metadata_exception, "Missing RPC metadata: " +
+                                      md_traits.tag_to_name(tags[i]));
     }
   }
 
