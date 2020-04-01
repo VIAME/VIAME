@@ -30,6 +30,7 @@
 
 #include "track_descriptor.h"
 
+#include <assert.h>
 #include <sstream>
 
 
@@ -153,6 +154,8 @@ double&
 track_descriptor
 ::at( const size_t idx )
 {
+  assert(this->data_); // Only runs in Debug
+
   // validate element index
   if ( idx >= this->data_->size() )
   {
@@ -171,6 +174,8 @@ double const&
 track_descriptor
 ::at( const size_t idx ) const
 {
+  assert(this->data_);
+
   // validate element index
   if ( idx >= this->data_->size() )
   {
@@ -189,6 +194,7 @@ size_t
 track_descriptor
 ::descriptor_size() const
 {
+  assert(this->data_);
   return this->data_->size();
 }
 
@@ -218,6 +224,7 @@ bool
 track_descriptor
 ::has_descriptor() const
 {
+  assert(this->data_);
   return this->data_->size() != 0;
 }
 
