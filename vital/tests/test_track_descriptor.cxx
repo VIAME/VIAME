@@ -37,6 +37,11 @@
 
 #include <gtest/gtest.h>
 
+// Only run debug tests if in debug mode
+#ifndef NDEBUG
+#define RUN_DEBUG_TESTS
+#endif
+
 using namespace kwiver::vital;
 
 // ----------------------------------------------------------------------------
@@ -46,18 +51,18 @@ int main(int argc, char** argv)
   return RUN_ALL_TESTS();
 }
 
-// The following tests are meant only for debug mode
-// The functions being tested only throw exceptions in DEBUG
-#ifdef DEBUG
+// The following tests are meant only for a debug build,
+// as the functions only throw the tested exceptions in debug builds
+#ifdef RUN_DEBUG_TESTS
 // ----------------------------------------------------------------------------
-TEST(track_descriptor, size_with_exit)
+TEST(track_descriptor, size_with_throw)
 {
   track_descriptor_sptr td = track_descriptor::create("foo_type");
   ASSERT_THROW(td->descriptor_size(), std::logic_error);
 }
 
 // ----------------------------------------------------------------------------
-TEST(track_descriptor, at_with_exit)
+TEST(track_descriptor, at_with_throw)
 {
   track_descriptor_sptr td = track_descriptor::create("foo_type");
   ASSERT_THROW(td->at(0), std::logic_error);
@@ -84,7 +89,7 @@ TEST(track_descriptor, has_descriptor)
 }
 
 // ----------------------------------------------------------------------------
-TEST(track_descriptor, size_no_exit)
+TEST(track_descriptor, size_no_throw)
 {
   track_descriptor_sptr td = track_descriptor::create("foo_type");
 
@@ -103,7 +108,7 @@ TEST(track_descriptor, size_no_exit)
 }
 
 // ----------------------------------------------------------------------------
-TEST(track_descriptor, at_no_exit)
+TEST(track_descriptor, at_no_throw)
 {
   track_descriptor_sptr td = track_descriptor::create("foo_type");
 

@@ -32,6 +32,10 @@
 
 #include <sstream>
 
+#ifndef NDEBUG
+// Only check null data_ in debug mode
+#define DEBUG_CHECK_DATA_NULL
+#endif
 
 namespace kwiver {
 namespace vital {
@@ -153,7 +157,7 @@ double&
 track_descriptor
 ::at( const size_t idx )
 {
-  #ifdef DEBUG
+  #ifdef DEBUG_CHECK_DATA_NULL
   if (!this->data_)
   {
     std::stringstream msg;
@@ -180,7 +184,7 @@ double const&
 track_descriptor
 ::at( const size_t idx ) const
 {
-  #ifdef DEBUG
+  #ifdef DEBUG_CHECK_DATA_NULL
   if (!this->data_)
   {
     std::stringstream msg;
@@ -207,7 +211,7 @@ size_t
 track_descriptor
 ::descriptor_size() const
 {
-  #ifdef DEBUG
+  #ifdef DEBUG_CHECK_DATA_NULL
   if (!this->data_)
   {
     std::stringstream msg;
