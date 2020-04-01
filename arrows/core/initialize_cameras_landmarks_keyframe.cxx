@@ -2541,8 +2541,6 @@ initialize_cameras_landmarks_keyframe::priv
   do {
     prev_inlier_lm_count = cur_inlier_lm_count;
 
-    bool triang_threshold_changed = false;
-    double triang_thresh_orig = 10;
     if (iterations < num_permissive_triangulation_iterations)
     {
       retriangulate(lms, cams, trks, inlier_lm_ids, 3,
