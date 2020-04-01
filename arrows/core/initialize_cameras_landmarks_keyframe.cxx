@@ -493,8 +493,8 @@ initialize_cameras_landmarks_keyframe::priv
   vel.setZero();
 
   auto existing_cams = cams->T_cameras();
-  auto closest_fid = -1;
-  auto next_closest_fid = -1;
+  frame_id_t closest_fid = -1;
+  frame_id_t next_closest_fid = -1;
   auto it = existing_cams.find(vel_frame);
   simple_camera_perspective_sptr closest_cam, next_closest_cam;
   closest_cam = nullptr;
@@ -709,20 +709,20 @@ public:
 
   void add_entry(vector_2d loc)
   {
-    int cx = m_mask.cols()* (loc.x() / double(m_input_w));
-    int cy = m_mask.rows()* (loc.y() / double(m_input_h));
-    cx = std::min<int>(cx, m_mask.cols()-1);
-    cy = std::min<int>(cy, m_mask.rows()-1);
+    int cx = static_cast<int>(m_mask.cols() * (loc.x() / double(m_input_w)));
+    int cy = static_cast<int>(m_mask.rows() * (loc.y() / double(m_input_h)));
+    cx = std::min<int>(cx, static_cast<int>(m_mask.cols()) - 1);
+    cy = std::min<int>(cy, static_cast<int>(m_mask.rows()) - 1);
     auto &mv = m_mask(cy, cx);
     ++mv;
   }
 
   bool conditionally_remove_entry(vector_2d loc)
   {
-    int cx = m_mask.cols()* (loc.x() / double(m_input_w));
-    int cy = m_mask.rows()* (loc.y() / double(m_input_h));
-    cx = std::min<int>(cx, m_mask.cols()-1);
-    cy = std::min<int>(cy, m_mask.rows()-1);
+    int cx = static_cast<int>(m_mask.cols() * (loc.x() / double(m_input_w)));
+    int cy = static_cast<int>(m_mask.rows() * (loc.y() / double(m_input_h)));
+    cx = std::min<int>(cx, static_cast<int>(m_mask.cols()) - 1);
+    cy = std::min<int>(cy, static_cast<int>(m_mask.rows()) - 1);
     auto &mv = m_mask(cy, cx);
     if (mv > m_min_features_per_cell)
     {
@@ -790,8 +790,8 @@ initialize_cameras_landmarks_keyframe::priv
     {
       continue;
     }
-    int image_w = 2 * cam.second->intrinsics()->principal_point().x();
-    int image_h = 2 * cam.second->intrinsics()->principal_point().y();
+    int image_w = static_cast<int>(2 * cam.second->intrinsics()->principal_point().x());
+    int image_h = static_cast<int>(2 * cam.second->intrinsics()->principal_point().y());
 
     auto mask = std::make_shared<gridded_mask>(image_w, image_h,
                                                min_features_per_cell);
@@ -835,12 +835,14 @@ initialize_cameras_landmarks_keyframe::priv
     auto &t1 = lm_to_downsample.back();
     for(int ns = 0; ns < 20; ++ns)
     {
-      int rand_idx = std::min<int>((double(std::rand()) / double(RAND_MAX)) *
-                                     lm_to_downsample.size(),
-                                   lm_to_downsample.size() - 1);
+      int rand_idx = std::min<int>(static_cast<int>(
+                                     (double(std::rand()) / double(RAND_MAX)) *
+                                     lm_to_downsample.size()),
+                                   static_cast<int>(lm_to_downsample.size()) - 1);
       t1 = lm_to_downsample[rand_idx];
       int length_thresh = dis(gen);
-      int t1_effective_len = std::min<int>(t1->size(), good_enough_size);
+      int t1_effective_len = std::min<int>(static_cast<int>(t1->size()),
+                                           good_enough_size);
 
       if (t1_effective_len <= length_thresh)
       {
@@ -988,7 +990,7 @@ initialize_cameras_landmarks_keyframe::priv
   rp.f1 = frame_1;
   rp.R01 = cam.get_rotation().matrix();
   rp.t01 = cam.translation();
-  rp.well_conditioned_landmark_count = inlier_lm_ids.size();
+  rp.well_conditioned_landmark_count = static_cast<int>(inlier_lm_ids.size());
   rp.angle_sum = 0;
 
   rp.coverage_0 = image_coverage(cam_map, trks, lms, frame_0);
@@ -1076,7 +1078,7 @@ initialize_cameras_landmarks_keyframe::priv
 
     m_kf_match_matrix = match_matrix(tracks, m_kf_mm_frames);
 
-    const int cols = m_kf_match_matrix.cols();
+    const int cols = static_cast<int>(m_kf_match_matrix.cols());
 
     const int min_matches = 100;
 
@@ -1210,12 +1212,13 @@ initialize_cameras_landmarks_keyframe::priv
   {
     int max_existing_spacing = -1;
     auto reconstructed_cam_ids = cams->get_frame_ids();
-    int cid_prev = -1;
+    frame_id_t cid_prev = -1;
     for (auto cid : reconstructed_cam_ids)
     {
       if (cid_prev >= 0)
       {
-        max_existing_spacing = std::max<int>(max_existing_spacing, cid - cid_prev);
+        max_existing_spacing = std::max<int>(max_existing_spacing,
+                                             static_cast<int>(cid - cid_prev));
       }
       cid_prev = cid;
     }
@@ -1229,7 +1232,7 @@ initialize_cameras_landmarks_keyframe::priv
     // We can't use the relative pose scores any more to do the selection.
     // Score each remaining camera accordint to how far it is temporally from
     // the reconstructed cameras and how many 3D landmarks it sees.
-    double best_score = -1;
+    long best_score = -1;
 
     for (auto rc : frames_to_resection)
     {
@@ -1263,7 +1266,7 @@ initialize_cameras_landmarks_keyframe::priv
         // there is no reason to try this frame
         continue;
       }
-      double score = intersect_lmks.size() * closest_frame_diff;
+      long score = static_cast<long>(intersect_lmks.size() * closest_frame_diff);
       if (score > best_score)
       {
         best_score = score;
@@ -1453,7 +1456,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   // do 3PT algorithm here
   three_point_pose(fid_to_resection, nc, tracks, lms,
-    image_coverage_threshold, m_pnp);
+                   static_cast<float>(image_coverage_threshold), m_pnp);
 
   if (!nc)
   {
@@ -1496,7 +1499,7 @@ initialize_cameras_landmarks_keyframe::priv
     for (auto &cam : persp_cams)
     {
       auto cam_fid = cam.first;
-      int best_fid_difference = std::numeric_limits<int>::max();
+      frame_id_t best_fid_difference = std::numeric_limits<frame_id_t>::max();
       vector_3d closest_prior;
       for (auto &prior : pos_priors)
       {
@@ -1998,7 +2001,8 @@ initialize_cameras_landmarks_keyframe::priv
 
   if (m_frac_frames_for_init > 0)
   {
-    size_t num_init_keyframes = keyframes.size() * m_frac_frames_for_init;
+    size_t num_init_keyframes = static_cast<size_t>(keyframes.size() *
+                                                    m_frac_frames_for_init);
     for (auto kfid : keyframes)
     {
       beginning_keyframes.insert(kfid);
@@ -2041,7 +2045,8 @@ initialize_cameras_landmarks_keyframe::priv
             last_continuous_track_frames.end());
 
   auto last_kf_for_init =
-    last_continuous_track_frames[last_continuous_track_frames.size()*0.70];
+    last_continuous_track_frames[static_cast<size_t>(0.7 *
+                                   last_continuous_track_frames.size())];
 
   LOG_DEBUG(m_logger, "last_kf_for_init " << last_kf_for_init);
 
@@ -2161,7 +2166,7 @@ initialize_cameras_landmarks_keyframe::priv
 
   sfm_constraints_sptr ba_constraints = nullptr;
 
-  int prev_ba_lm_count = lms.size();
+  int prev_ba_lm_count = static_cast<int>(lms.size());
   auto trks = tracks->tracks();
 
   std::set<frame_id_t> frames_that_were_in_sfm_solution;
@@ -2286,7 +2291,7 @@ initialize_cameras_landmarks_keyframe::priv
       }
     }
 
-    int next_ba_cam_count = std::max<int>(cams->size() * 0.2, 5);
+    int next_ba_cam_count = std::max<int>(static_cast<int>(cams->size() * 0.2), 5);
 
     if ((lms.size() > prev_ba_lm_count * 1.5 ||
       lms.size() < prev_ba_lm_count * 0.5) ||
@@ -2418,7 +2423,7 @@ initialize_cameras_landmarks_keyframe::priv
           }
         }
 
-        prev_ba_lm_count = lms.size();
+        prev_ba_lm_count = static_cast<int>(lms.size());
 
         if (!continue_processing)
         {
@@ -3293,7 +3298,7 @@ initialize_cameras_landmarks_keyframe::priv
   const double volume_unit_size = 2.0;
 
   std::unordered_map<uint32_t, std::set<landmark_id_t>> lm_hash;
-  lm_hash.reserve(0.5*lmks.size());
+  lm_hash.reserve(lmks.size() / 2);
 
   for (auto &lm : lmks)
   {
@@ -3639,7 +3644,7 @@ initialize_cameras_landmarks_keyframe::priv
       // merging landmarks is very slow with limited benefit, so disable for now.
       // merge_landmarks(lmks, cams, tracks);
       down_select_landmarks(lmks, cams, tracks, fids_to_triang);
-      lmks_last_down_select = lmks.size();
+      lmks_last_down_select = static_cast<int>(lmks.size());
     }
 
     frames_since_last_local_ba.insert(fid_to_register);

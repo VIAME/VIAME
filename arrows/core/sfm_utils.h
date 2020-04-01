@@ -235,7 +235,7 @@ clean_cameras_and_landmarks(
   std::vector<vital::frame_id_t> &removed_cams,
   const std::set<vital::frame_id_t> &active_cams,
   const std::set<vital::landmark_id_t> &active_lms,
-  float image_coverage_threshold = 0.25,
+  double image_coverage_threshold = 0.25,
   double error_tol = 5.0,
   int min_landmark_inliers = -1);
 

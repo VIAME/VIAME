@@ -703,7 +703,7 @@ clean_cameras_and_landmarks(
   std::vector<frame_id_t> &removed_cams,
   const std::set<vital::frame_id_t> &active_cams,
   const std::set<vital::landmark_id_t> &active_lms,
-  float image_coverage_threshold,
+  double image_coverage_threshold,
   double error_tol,
   int min_landmark_inliers)
 {
@@ -772,7 +772,8 @@ clean_cameras_and_landmarks(
     remove_landmarks(lm_to_remove, det_lms);
 
     std::set<frame_id_t> cams_to_remove =
-      detect_bad_cameras(det_cams, det_lms, tracks, image_coverage_threshold);
+      detect_bad_cameras(det_cams, det_lms, tracks,
+                         static_cast<float>(image_coverage_threshold));
 
     for (auto frame_id : cams_to_remove)
     {
