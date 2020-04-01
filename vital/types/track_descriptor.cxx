@@ -224,8 +224,7 @@ bool
 track_descriptor
 ::has_descriptor() const
 {
-  assert(this->data_);
-  return this->data_->size() != 0;
+  return (this->data_ && this->data_->size());
 }
 
 
