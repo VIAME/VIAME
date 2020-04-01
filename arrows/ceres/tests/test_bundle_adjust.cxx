@@ -571,7 +571,7 @@ test_ba_camera_smoothing(camera_map_sptr cameras,
                                       landmarks0->landmarks(),
                                       tracks->tracks());
   std::cout << "Final reprojection RMSE: " << end_rmse << std::endl;
-  EXPECT_NEAR(0.0, end_rmse, 1e-3);
+  EXPECT_NEAR(0.0, end_rmse, 0.1);
 }
 
 // ----------------------------------------------------------------------------
