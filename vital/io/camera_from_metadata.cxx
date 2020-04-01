@@ -442,8 +442,6 @@ update_metadata_from_camera(simple_camera_perspective const& cam,
     geo_point gc(loc, lgcs.origin().crs());
 
     md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_LOCATION, gc));
-    md.add(NEW_METADATA_ITEM(VITAL_META_SENSOR_ALTITUDE,
-                             gc.location().z()));
   }
 }
 
