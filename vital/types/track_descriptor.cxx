@@ -30,7 +30,6 @@
 
 #include "track_descriptor.h"
 
-#include <assert.h>
 #include <sstream>
 
 
@@ -154,7 +153,14 @@ double&
 track_descriptor
 ::at( const size_t idx )
 {
-  assert(this->data_); // Only runs in Debug
+  #ifdef DEBUG
+  if (!this->data_)
+  {
+    std::stringstream msg;
+    msg << "Attempted to access raw data of null descriptor ptr";
+    throw std::logic_error( msg.str() );
+  }
+  #endif
 
   // validate element index
   if ( idx >= this->data_->size() )
@@ -174,7 +180,14 @@ double const&
 track_descriptor
 ::at( const size_t idx ) const
 {
-  assert(this->data_);
+  #ifdef DEBUG
+  if (!this->data_)
+  {
+    std::stringstream msg;
+    msg << "Attempted to access raw data of null descriptor ptr";
+    throw std::logic_error( msg.str() );
+  }
+  #endif
 
   // validate element index
   if ( idx >= this->data_->size() )
@@ -194,7 +207,15 @@ size_t
 track_descriptor
 ::descriptor_size() const
 {
-  assert(this->data_);
+  #ifdef DEBUG
+  if (!this->data_)
+  {
+    std::stringstream msg;
+    msg << "Attempted to access size of null descriptor ptr";
+    throw std::logic_error( msg.str() );
+  }
+  #endif
+
   return this->data_->size();
 }
 
