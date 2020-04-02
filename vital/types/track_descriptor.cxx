@@ -160,9 +160,7 @@ track_descriptor
   #ifdef DEBUG_CHECK_DATA_NULL
   if (!this->data_)
   {
-    std::stringstream msg;
-    msg << "Attempted to access raw data of null descriptor ptr";
-    throw std::logic_error( msg.str() );
+    throw std::logic_error( "Attempted to access raw data of null descriptor ptr" );
   }
   #endif
 
@@ -187,9 +185,7 @@ track_descriptor
   #ifdef DEBUG_CHECK_DATA_NULL
   if (!this->data_)
   {
-    std::stringstream msg;
-    msg << "Attempted to access raw data of null descriptor ptr";
-    throw std::logic_error( msg.str() );
+    throw std::logic_error( "Attempted to access raw data of null descriptor ptr" );
   }
   #endif
 
@@ -214,9 +210,7 @@ track_descriptor
   #ifdef DEBUG_CHECK_DATA_NULL
   if (!this->data_)
   {
-    std::stringstream msg;
-    msg << "Attempted to access size of null descriptor ptr";
-    throw std::logic_error( msg.str() );
+    throw std::logic_error( "Attempted to access size of null descriptor ptr" );
   }
   #endif
 
