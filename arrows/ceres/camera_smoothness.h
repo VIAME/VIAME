@@ -151,7 +151,8 @@ public:
                                   rotated_baseline2);
 
 
-    residuals[0] = scale_ * rotated_baseline1[2] * rotated_baseline2[2];
+    residuals[0] = scale_ * rotated_baseline1[2] *
+                   scale_ * rotated_baseline2[2];
 
     return true;
   }

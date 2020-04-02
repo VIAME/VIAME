@@ -620,15 +620,18 @@ camera_options
     }
     // Normalize the weight
     const double weight = this->camera_path_smoothness
-                        * problem.NumResiduals() / sum_dist;
+                        * problem.NumResiduals();
+    const double scale = constraints.size() / sum_dist;
+    auto scaled_loss = new ::ceres::ScaledLoss(NULL, weight,
+                           ::ceres::Ownership::TAKE_OWNERSHIP);
     for (auto const& t : constraints)
     {
       auto cam_itr = std::get<0>(t);
-      const double w = weight * std::get<1>(t);
+      const double s = scale * std::get<1>(t);
       ::ceres::CostFunction* smoothness_cost  =
-        camera_position_smoothness::create(w, std::get<2>(t));
+        camera_position_smoothness::create(s, std::get<2>(t));
       problem.AddResidualBlock(smoothness_cost,
-                               NULL,
+                               scaled_loss,
                                (cam_itr-1)->second,
                                cam_itr->second,
                                (cam_itr+1)->second);
@@ -665,22 +668,25 @@ camera_options
           prev_idx->second != curr_idx->second)
       {
         sum_dist += (Eigen::Map<vector_3d>(prev_cam->second + 3) -
-                     Eigen::Map<vector_3d>(curr_cam->second + 3)).squaredNorm();
+                     Eigen::Map<vector_3d>(curr_cam->second + 3)).norm();
         constraints.push_back(curr_cam);
       }
     }
     // Normalize the weight
     const double weight = this->camera_forward_motion_damping
-                        * problem.NumResiduals() / sum_dist;
+                        * problem.NumResiduals();
+    const double scale = constraints.size() / sum_dist;
+    auto scaled_loss = new ::ceres::ScaledLoss(NULL, weight,
+                           ::ceres::Ownership::TAKE_OWNERSHIP);
     for (auto curr_cam : constraints)
     {
       auto prev_cam = curr_cam - 1;
       double inv_dist = 1.0 / static_cast<double>(curr_cam->first -
                                                   prev_cam->first);
       ::ceres::CostFunction* fwd_mo_cost =
-        camera_limit_forward_motion::create(weight * inv_dist);
+        camera_limit_forward_motion::create(scale * inv_dist);
       problem.AddResidualBlock(fwd_mo_cost,
-                               NULL,
+                               scaled_loss,
                                prev_cam->second,
                                curr_cam->second);
     }
