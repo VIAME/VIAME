@@ -591,15 +591,13 @@ TEST(bundle_adjust, camera_path_smoothness)
   camera_map_sptr cameras = kwiver::testing::camera_seq(20, K);
   test_ba_camera_smoothing(cameras, cfg);
 
+  // test cameras at a larger scale
+  cameras = kwiver::testing::camera_seq(20, K, 1000.0);
+  test_ba_camera_smoothing(cameras, cfg, 1000.0);
 
   // create a camera sequence (elliptical path)
   cameras = kwiver::testing::camera_seq(100, K);
   test_ba_camera_smoothing(cameras, cfg);
-
-
-  // create a camera sequence (elliptical path)
-  cameras = kwiver::testing::camera_seq(100, K, 1000.0);
-  test_ba_camera_smoothing(cameras, cfg, 1000.0);
 
   // test with non-sequential cameras
   auto cams = cameras->cameras();
@@ -609,7 +607,7 @@ TEST(bundle_adjust, camera_path_smoothness)
     cams.erase(frame);
   }
   cameras = std::make_shared<simple_camera_map>(cams);
-  test_ba_camera_smoothing(cameras, cfg, 1000.0);
+  test_ba_camera_smoothing(cameras, cfg);
 }
 
 // ----------------------------------------------------------------------------
@@ -630,25 +628,23 @@ TEST(bundle_adjust, camera_forward_motion_damping)
   camera_map_sptr cameras = kwiver::testing::camera_seq(20, K);
   test_ba_camera_smoothing(cameras, cfg);
 
+  // test cameras at a larger scale
+  cameras = kwiver::testing::camera_seq(20, K, 1000.0);
+  test_ba_camera_smoothing(cameras, cfg, 1000.0);
 
   // create a camera sequence (elliptical path)
   cameras = kwiver::testing::camera_seq(100, K);
   test_ba_camera_smoothing(cameras, cfg);
 
-
-  // create a camera sequence (elliptical path)
-  cameras = kwiver::testing::camera_seq(100, K, 1000.0);
-  test_ba_camera_smoothing(cameras, cfg, 1000.0);
-
   // test with non-sequential cameras
   auto cams = cameras->cameras();
   for (auto frame : { 2, 3, 6, 11, 13, 19, 20, 21, 23,
-    24, 27, 33, 34, 50, 51, 53 })
+                      24, 27, 33, 34, 50, 51, 53 })
   {
     cams.erase(frame);
   }
   cameras = std::make_shared<simple_camera_map>(cams);
-  test_ba_camera_smoothing(cameras, cfg, 1000.0);
+  test_ba_camera_smoothing(cameras, cfg);
 }
 
 // ----------------------------------------------------------------------------
