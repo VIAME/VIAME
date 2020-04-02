@@ -299,6 +299,27 @@ TEST_P(geo_polygon_roundtrip, insert_operator)
 }
 
 // ----------------------------------------------------------------------------
+TEST_P(geo_polygon_roundtrip, config_block)
+{
+  auto const expected_loc = GetParam().loc;
+  auto const expected_crs = GetParam().crs;
+
+  auto const config = config_block::empty_config();
+  auto const key = config_block_key_t{ "key" };
+
+  config->set_value( key, geo_polygon{ { expected_loc }, expected_crs } );
+
+  auto const value = config->get_value<geo_polygon>( key );
+  ASSERT_EQ( expected_crs, value.crs() );
+
+  auto const actual_loc = value.polygon( expected_crs ).get_vertices()[0];
+
+  // Successful round-trip?
+  EXPECT_EQ( expected_loc[0], actual_loc[0] );
+  EXPECT_EQ( expected_loc[1], actual_loc[1] );
+}
+
+// ----------------------------------------------------------------------------
 INSTANTIATE_TEST_CASE_P(
   ,
   geo_polygon_roundtrip,
