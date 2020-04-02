@@ -52,16 +52,10 @@ merge_images
 {
 }
 
-/// Destructor
-merge_images
-::~merge_images()
-{
-}
-
 /// Merge images
 kwiver::vital::image_container_sptr
 merge_images::merge(kwiver::vital::image_container_sptr image1,
-        kwiver::vital::image_container_sptr image2) const
+                    kwiver::vital::image_container_sptr image2) const
 {
   cv::Mat cv_image1 = ocv::image_container::vital_to_ocv(image1->get_image(),
     ocv::image_container::RGB_COLOR);

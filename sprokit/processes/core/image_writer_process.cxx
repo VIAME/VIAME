@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,10 +66,7 @@ create_config_trait( file_name_template, std::string, "image%04d.png",
                      "format specifier to convert an integer increasing image number. "
                      "The image file type is determined by the file extension and the concrete writer selected." );
 
-// This is more for documentation
-create_config_trait( image_writer, std::string , "", "Config block name to configure algorithm. "
-                       "The algorithm type is selected with \"image_writer:type\". Specific writer parameters "
-                       "depend on writer type selected.");
+create_algorithm_name_config_trait( image_writer );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -120,17 +117,23 @@ void image_writer_process
 
   // Get algo config entries
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
-  algo::image_io::set_nested_algo_configuration( "image_writer", algo_config, d->m_image_writer);
+
+  algo::image_io::set_nested_algo_configuration_using_trait(
+    image_writer,
+    algo_config,
+    d->m_image_writer);
   if ( ! d->m_image_writer )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
              "Unable to create image_writer." );
   }
 
   // instantiate image reader and converter based on config type
-  if ( ! algo::image_io::check_nested_algo_configuration( "image_writer", algo_config ) )
+  if ( ! algo::image_io::check_nested_algo_configuration_using_trait(
+         image_writer,
+         algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 

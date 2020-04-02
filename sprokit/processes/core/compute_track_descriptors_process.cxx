@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2019 by Kitware, Inc.
+ * Copyright 2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,10 +44,11 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-namespace kwiver
-{
+namespace kwiver {
 
 namespace algo = vital::algo;
+
+create_algorithm_name_config_trait( computer );
 
 create_config_trait( inject_to_detections, bool, "false",
   "If the input are single frame detections (not tracks) then "
@@ -112,24 +113,28 @@ void compute_track_descriptors_process
 
   vital::config_block_sptr algo_config = get_config();
 
-  algo::compute_track_descriptors::set_nested_algo_configuration(
-    "computer", algo_config, d->m_computer );
+  algo::compute_track_descriptors::set_nested_algo_configuration_using_trait(
+    computer,
+    algo_config,
+    d->m_computer );
 
   if( !d->m_computer )
   {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Unable to create compute_track_descriptors" );
+    VITAL_THROW( sprokit::invalid_configuration_exception,
+                 name(), "Unable to create compute_track_descriptors" );
   }
 
-  algo::compute_track_descriptors::get_nested_algo_configuration(
-    "computer", algo_config, d->m_computer );
+  algo::compute_track_descriptors::get_nested_algo_configuration_using_trait(
+    computer,
+    algo_config,
+    d->m_computer );
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !algo::compute_track_descriptors::check_nested_algo_configuration(
-    "computer", algo_config ) )
+  if( !algo::compute_track_descriptors::check_nested_algo_configuration_using_trait(
+        computer, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception,
+                 name(), "Configuration check failed." );
   }
 
   d->inject_to_detections = config_value_using_trait( inject_to_detections );
@@ -198,7 +203,7 @@ compute_track_descriptors_process
 
   if( detections && tracks )
   {
-    throw sprokit::invalid_configuration_exception(
+    VITAL_THROW( sprokit::invalid_configuration_exception,
       name(), "Cannot connect both detections and tracks to process" );
   }
 
@@ -307,6 +312,7 @@ void compute_track_descriptors_process
 void compute_track_descriptors_process
 ::make_config()
 {
+  declare_config_using_trait( computer );
   declare_config_using_trait( inject_to_detections );
   declare_config_using_trait( add_custom_uid );
   declare_config_using_trait( uid_basename );
