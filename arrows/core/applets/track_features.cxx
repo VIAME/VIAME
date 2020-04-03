@@ -338,7 +338,7 @@ run()
       std::ifstream mask_ifs(mask_list_file.c_str());
       if( !mask_ifs )
       {
-        throw kwiver::vital::path_not_exists(mask_list_file);
+        VITAL_THROW( kwiver::vital::path_not_exists, mask_list_file );
       }
       // load filepaths from file
       for( std::string line; std::getline(mask_ifs, line); )
@@ -346,14 +346,15 @@ run()
         mask_files.push_back(line);
         if( ! ST::FileExists( mask_files[mask_files.size()-1], true ) )
         {
-          throw kwiver::vital::path_not_exists( mask_files[mask_files.size()-1] );
+          VITAL_THROW( kwiver::vital::path_not_exists, mask_files[mask_files.size()-1] );
         }
       }
       // Check that image/mask list sizes are the same
       if( timestamps.size() != mask_files.size() )
       {
-        throw kwiver::vital::invalid_value("video and mask file lists have "
-                                           "different frame counts");
+        VITAL_THROW( kwiver::vital::invalid_value,
+                     "video and mask file lists have "
+                     "different frame counts");
       }
       LOG_DEBUG( main_logger,
                  "Validated " << mask_files.size() << " mask image files." );
