@@ -86,30 +86,41 @@ register_factories(kwiver::vital::plugin_loader& vpm)
   }
 
   static auto const module_name = std::string( "module_python" );
+  auto logger = kwiver::vital::get_logger(module_name);
   if(vpm.is_module_loaded(module_name))
   {
     return;
   }
-
   check_and_initialize_python_interpretor();
-  std::string python_library_path = "";
+  bool python_library_loaded = load_python_library_from_env();
+  if (!python_library_loaded)
   {
-    kwiver::vital::python::gil_scoped_acquire acquire;
-    (void)acquire;
-    python_library_path = find_python_library();
+    std::string python_library_path = "";
+    {
+      kwiver::vital::python::gil_scoped_acquire acquire;
+      (void)acquire;
+      python_library_path = find_python_library();
+    }
+    python_library_loaded = load_python_library_from_interpretor(python_library_path);
   }
-  load_python_library_symbols(python_library_path);
-  // Load python modules
+  if (python_library_loaded)
   {
-    kwiver::vital::python::gil_scoped_acquire acquire;
-    (void)acquire;
-    VITAL_PYTHON_IGNORE_EXCEPTION(load_python_modules())
-  }
+     // Load python modules
+     {
+       kwiver::vital::python::gil_scoped_acquire acquire;
+       (void)acquire;
+       VITAL_PYTHON_IGNORE_EXCEPTION(load_python_modules())
+     }
 
+     {
+       kwiver::vital::python::gil_scoped_acquire acquire;
+       (void)acquire;
+       VITAL_PYTHON_IGNORE_EXCEPTION(load_additional_cpp_modules(vpm))
+     }
+  }
+  else
   {
-    kwiver::vital::python::gil_scoped_acquire acquire;
-    (void)acquire;
-    VITAL_PYTHON_IGNORE_EXCEPTION(load_additional_cpp_modules(vpm))
+      LOG_ERROR(logger, "Cannot load python library from interpretor or env");
   }
   vpm.mark_module_as_loaded(module_name);
 }

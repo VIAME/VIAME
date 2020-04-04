@@ -33,7 +33,8 @@
 
 #include <string>
 bool is_python_library_loaded(const std::string& python_library_path);
-void load_python_library_symbols(const std::string python_library_path);
+bool load_python_library_from_env();
+bool load_python_library_from_interpretor(const std::string python_library_path);
 std::string find_python_library();
 void check_and_initialize_python_interpretor();
 
