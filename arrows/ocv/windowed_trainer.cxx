@@ -271,11 +271,13 @@ windowed_trainer
     {
       kwiversys::SystemTools::RemoveADirectory( d->m_train_directory );
 
+#ifndef WIN32
       if( kwiversys::SystemTools::FileExists( d->m_train_directory ) )
       {
         LOG_ERROR( d->m_logger, "Unable to delete pre-existing training dir" );
         return;
       }
+#endif
     }
 
     kwiversys::SystemTools::MakeDirectory( d->m_train_directory );
