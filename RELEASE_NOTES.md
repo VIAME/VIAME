@@ -8,6 +8,9 @@ v0.10.9 - 4/06/2020
 -Add continue training from prior model CFRNN script
 
 
+-Fix issue in habcam model pack
+
+
 
 v0.10.8 - 3/20/2020
 ===================
