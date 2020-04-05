@@ -1,3 +1,14 @@
+v0.10.9 - 4/06/2020
+===================
+
+
+-Fix issue with CFRNN training on windows
+
+
+-Add continue training from prior model CFRNN script
+
+
+
 v0.10.8 - 3/20/2020
 ===================
 
