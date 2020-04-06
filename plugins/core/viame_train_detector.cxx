@@ -82,6 +82,7 @@ public:
   std::string opt_detector;
   std::string opt_out_config;
   std::string opt_threshold;
+  std::string opt_settings;
   std::string opt_pipeline_file;
 
   trainer_vars()
@@ -533,6 +534,10 @@ main( int argc, char* argv[] )
     &g_params.opt_out_config, "Output a sample configuration to file" );
   g_params.m_args.AddArgument( "-o",          argT::SPACE_ARGUMENT,
     &g_params.opt_out_config, "Output a sample configuration to file" );
+  g_params.m_args.AddArgument( "--setting", argT::SPACE_ARGUMENT,
+    &g_params.opt_settings, "Over-ride some setting in the config" );
+  g_params.m_args.AddArgument( "-s",          argT::SPACE_ARGUMENT,
+    &g_params.opt_settings, "Over-ride some setting in the config" );
   g_params.m_args.AddArgument( "--threshold", argT::SPACE_ARGUMENT,
     &g_params.opt_threshold, "Threshold override to apply over inputs" );
   g_params.m_args.AddArgument( "-t",          argT::SPACE_ARGUMENT,
@@ -770,6 +775,11 @@ main( int argc, char* argv[] )
   else
   {
     config->set_value( "detector_trainer:type", g_params.opt_detector );
+  }
+
+  if( !g_params.opt_settings.empty() )
+  {
+    config->merge_config(kwiver::vital::read_config_file(g_params.opt_config));
   }
 
   kwiver::vital::algo::train_detector::set_nested_algo_configuration
