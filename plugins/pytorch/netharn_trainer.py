@@ -61,8 +61,7 @@ class NetHarnTrainer( TrainDetector ):
         TrainDetector.__init__( self )
 
         self._config_file = "bioharn-det-v14-cascade"
-        self._pretrained = ""
-        self._seed_weights = ""
+        self._seed_model = ""
         self._train_directory = "deep_training"
         self._output_directory = "category_models"
         self._output_prefix = "custom_cfrnn"
@@ -86,8 +85,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg = super( TrainDetector, self ).get_configuration()
 
         cfg.set_value( "config_file", self._config_file )
-        cfg.set_value( "pretrained", self._pretrained )
-        cfg.set_value( "seed_weights", self._seed_weights )
+        cfg.set_value( "seed_model", self._seed_model )
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "output_directory", self._output_directory )
         cfg.set_value( "output_prefix", self._output_prefix )
@@ -110,8 +108,7 @@ class NetHarnTrainer( TrainDetector ):
 
         # Read configs from file
         self._config_file = str( cfg.get_value( "config_file" ) )
-        self._pretrained = str( cfg.get_value( "pretrained" ) )
-        self._seed_weights = str( cfg.get_value( "seed_weights" ) )
+        self._seed_model = str( cfg.get_value( "seed_model" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._output_directory = str( cfg.get_value( "output_directory" ) )
         self._output_prefix = str( cfg.get_value( "output_prefix" ) )
@@ -263,6 +260,9 @@ class NetHarnTrainer( TrainDetector ):
 
         if len( self._backbone ) > 0:
             cmd.append( "--backbone_init=" + self._backbone )
+
+        if len( self._seed_model ) > 0:
+            cmd.append( "--pretrained=" + self._seed_model )
 
         subprocess.call( cmd )
 
