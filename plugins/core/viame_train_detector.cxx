@@ -779,7 +779,39 @@ main( int argc, char* argv[] )
 
   if( !g_params.opt_settings.empty() )
   {
-    config->merge_config(kwiver::vital::read_config_file(g_params.opt_config));
+    const std::string& setting = g_params.opt_settings;
+    size_t const split_pos = setting.find( "=" );
+
+    if( split_pos == std::string::npos )
+    {
+      std::string const reason = "Error: The setting on the command line \'"
+        + setting + "\' does not contain the \'=\' string which separates "
+        "the key from the value";
+
+      throw std::runtime_error( reason );
+    }
+
+    kwiver::vital::config_block_key_t setting_key =
+      setting.substr( 0, split_pos );
+    kwiver::vital::config_block_value_t setting_value =
+      setting.substr( split_pos + 1 );
+  
+    kwiver::vital::config_block_keys_t keys;
+  
+    kwiver::vital::tokenize( setting_key, keys,
+      kwiver::vital::config_block::block_sep,
+      kwiver::vital::TokenizeTrimEmpty );
+  
+    if( keys.size() < 2 )
+    {
+      std::string const reason = "Error: The key portion of setting "
+        "\'" + setting + "\' does not contain at least two keys in its "
+        "keypath which is invalid. (e.g. must be at least a:b)";
+  
+      throw std::runtime_error(reason);
+    }
+
+    config->set_value( setting_key, setting_value );
   }
 
   kwiver::vital::algo::train_detector::set_nested_algo_configuration
