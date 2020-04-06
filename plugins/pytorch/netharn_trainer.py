@@ -52,6 +52,7 @@ import os
 import signal
 import sys
 import subprocess
+import time
 
 class NetHarnTrainer( TrainDetector ):
     """
@@ -277,7 +278,13 @@ class NetHarnTrainer( TrainDetector ):
 
     def interupt_handler( self ):
         self.proc.send_signal( signal.SIGINT )
-        self.proc.kill()
+        timeout = 0
+        while self.proc.poll() is None:
+            time.sleep( 0.1 )
+            timeout += 0.1
+            if timeout > 5:
+                self.proc.kill()
+                break
         self.save_final_model()
         sys.exit( 0 )
 
