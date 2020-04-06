@@ -264,8 +264,24 @@ class NetHarnTrainer( TrainDetector ):
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )
 
-        subprocess.call( cmd )
+        signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
+        signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
+        self.proc = subprocess.Popen( cmd, stdout=subprocess.PIPE,
+          shell=True, preexec_fn=os.setsid )
+
+        subprocess.call( cmd )
+        self.save_final_model()
+
+        print( "\nModel training complete!\n" )
+
+    def interupt_handler( self ):
+        self.proc.send_signal( signal.SIGINT )
+        self.proc.kill()
+        self.save_final_model()
+        sys.exit( 0 )
+
+    def save_final_model( self ):
         if len( self._pipeline_template ) > 0:
             # Copy model file to final directory
             output_model_name = "trained_detector.zip"
@@ -290,8 +306,6 @@ class NetHarnTrainer( TrainDetector ):
                 fout.write( s )
             fout.close()
             fin.close()
-
-        print( "\nModel training complete!\n" )
 
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
