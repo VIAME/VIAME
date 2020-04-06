@@ -37,7 +37,7 @@
 
 namespace kwiver {
 
-create_config_trait( filter, std::string, "", "Algorithm configuration subblock" );
+create_algorithm_name_config_trait( filter );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -78,19 +78,26 @@ _configure()
 
   vital::config_block_sptr algo_config = get_config();
 
-  vital::algo::image_filter::set_nested_algo_configuration( "filter", algo_config, d->m_filter );
+  vital::algo::image_filter::set_nested_algo_configuration_using_trait(
+    filter,
+    algo_config,
+    d->m_filter );
 
   if ( ! d->m_filter )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create filter" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create filter" );
   }
 
-  vital::algo::image_filter::get_nested_algo_configuration( "filter", algo_config, d->m_filter );
+  vital::algo::image_filter::get_nested_algo_configuration_using_trait(
+    filter,
+    algo_config,
+    d->m_filter );
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::image_filter::check_nested_algo_configuration( "filter", algo_config ) )
+  if ( ! vital::algo::image_filter::check_nested_algo_configuration_using_trait(
+         filter, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 

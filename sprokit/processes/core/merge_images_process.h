@@ -58,7 +58,18 @@ class KWIVER_PROCESSES_NO_EXPORT merge_images_process
 {
 public:
   PLUGIN_INFO( "merge_image",
-               "Merge multiple images into one." )
+               "Merge multiple images into one.\n\n"
+               "This process merges all the channels in two input "
+               "images into a single output image based on the "
+               "implementation "
+               "of the 'merge_images' algorithm selected.\n"
+               "This process has two input ports accepting "
+               "the images. The first two connect commands will be "
+               "accepted as the input ports. The actual input port "
+               "names do not matter.\n"
+               "The channels from the image from the first port "
+               "connected will be added to the output image first."
+    )
 
   merge_images_process( kwiver::vital::config_block_sptr const& config );
   virtual ~merge_images_process();

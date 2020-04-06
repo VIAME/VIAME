@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,9 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
+
+create_algorithm_name_config_trait( descriptor_extractor );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -92,18 +93,26 @@ void extract_descriptors_process
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   // Instantiate the configured algorithm
-  algo::extract_descriptors::set_nested_algo_configuration( "descriptor_extractor", algo_config, d->m_extractor );
+  algo::extract_descriptors::set_nested_algo_configuration_using_trait(
+    descriptor_extractor,
+    algo_config,
+    d->m_extractor );
   if ( ! d->m_extractor )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create descriptor_extractor" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create descriptor_extractor" );
   }
 
-  algo::extract_descriptors::get_nested_algo_configuration( "descriptor_extractor", algo_config, d->m_extractor );
+  algo::extract_descriptors::get_nested_algo_configuration_using_trait(
+    descriptor_extractor,
+    algo_config,
+    d->m_extractor );
 
   // Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::extract_descriptors::check_nested_algo_configuration( "descriptor_extractor", algo_config ) )
+  if ( ! algo::extract_descriptors::check_nested_algo_configuration_using_trait(
+         descriptor_extractor,
+         algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -157,6 +166,7 @@ void extract_descriptors_process
 void extract_descriptors_process
 ::make_config()
 {
+  declare_config_using_trait( descriptor_extractor );
 }
 
 

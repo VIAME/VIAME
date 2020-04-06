@@ -49,8 +49,7 @@ namespace kwiver {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "", "Name of the detection set file to write." );
-create_config_trait( writer, std::string , "", "Block name for algorithm parameters. "
-                     "e.g. writer:type would be used to specify the algorithm type." );
+create_algorithm_name_config_trait( writer );
 
 /**
  * \class detected_object_output_process
@@ -120,7 +119,7 @@ void detected_object_output_process
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
              "Required file name not specified." );
   }
 
@@ -128,16 +127,21 @@ void detected_object_output_process
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if ( ! algo::detected_object_set_output::check_nested_algo_configuration( "writer", algo_config ) )
+  if ( ! algo::detected_object_set_output::check_nested_algo_configuration_using_trait(
+         writer,
+         algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
-  algo::detected_object_set_output::set_nested_algo_configuration( "writer", algo_config, d->m_writer);
+  algo::detected_object_set_output::set_nested_algo_configuration_using_trait(
+    writer,
+    algo_config,
+    d->m_writer);
   if ( ! d->m_writer )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
              "Unable to create writer." );
   }
 }

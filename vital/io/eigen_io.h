@@ -67,7 +67,7 @@ operator>>( std::istream& s, Matrix< T, M, N >& m )
     {
       if ( ! ( s >> std::skipws >> m( i, j ) ) )
       {
-        throw kwiver::vital::invalid_data( "Encountered a non-numeric value while "
+        VITAL_THROW( kwiver::vital::invalid_data, "Encountered a non-numeric value while "
                                     "parsing an Eigen::Matrix" );
       }
     }

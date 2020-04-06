@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,10 +46,9 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
 
-create_config_trait( keyframe_selection, std::string, "", "Algorithm configuration subblock." )
+create_algorithm_name_config_trait( keyframe_selection_1 );
 
 create_port_trait( next_tracks, feature_track_set,
                    "feature track set for the next frame.");
@@ -146,19 +145,24 @@ void keyframe_selection_process
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  const std::string algo_name = "keyframe_selection_1";
-
   // Instantiate the configured algorithm
-  algo::keyframe_selection::set_nested_algo_configuration(algo_name, algo_config, d->m_keyframe_selection );
+  algo::keyframe_selection::set_nested_algo_configuration_using_trait(
+    keyframe_selection_1,
+    algo_config,
+    d->m_keyframe_selection );
   if ( ! d->m_keyframe_selection )
   {
     VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create keyframe_selection" );
   }
 
-  algo::keyframe_selection::get_nested_algo_configuration(algo_name, algo_config, d->m_keyframe_selection);
+  algo::keyframe_selection::get_nested_algo_configuration_using_trait(
+    keyframe_selection_1,
+    algo_config,
+    d->m_keyframe_selection);
 
   //// Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::keyframe_selection::check_nested_algo_configuration(algo_name, algo_config ) )
+  if ( ! algo::keyframe_selection::check_nested_algo_configuration_using_trait(
+         keyframe_selection_1, algo_config ) )
   {
     VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
@@ -250,7 +254,7 @@ void keyframe_selection_process
 void keyframe_selection_process
 ::make_config()
 {
-  declare_config_using_trait( keyframe_selection );
+  declare_config_using_trait( keyframe_selection_1 );
 }
 
 

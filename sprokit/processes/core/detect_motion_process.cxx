@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 
 namespace kwiver {
 
-create_config_trait( algo, std::string, "", "Algorithm configuration subblock" );
+create_algorithm_name_config_trait( algo );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -83,14 +83,15 @@ _configure()
   // Check config so it will give run-time diagnostic of config problems
   if ( ! vital::algo::detect_motion::check_nested_algo_configuration_using_trait( algo, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   vital::algo::detect_motion::set_nested_algo_configuration_using_trait( algo, algo_config, d->m_algo );
 
   if ( ! d->m_algo )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create motion detector algorithm" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Unable to create motion detector algorithm" );
   }
 }
 

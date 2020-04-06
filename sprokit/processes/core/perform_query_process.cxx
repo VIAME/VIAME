@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,7 @@
 
 #include <tuple>
 
-namespace kwiver
-{
+namespace kwiver {
 
 namespace algo = vital::algo;
 
@@ -58,6 +57,10 @@ create_port_trait( result_descriptor_uids, string_vector,
   "Descriptor set response from external query handler" );
 create_port_trait( result_descriptor_scores, double_vector,
   "Descriptor set scores from external query handler" );
+
+// -- config traits --
+create_algorithm_name_config_trait( descriptor_reader );
+create_algorithm_name_config_trait( track_reader );
 
 create_config_trait( external_handler, bool,
   "true", "Whether or not an external query handler is used" );
@@ -125,9 +128,6 @@ perform_query_process
   : process( config ),
     d( new perform_query_process::priv( this ) )
 {
-  // Attach our logger name to process logger
-  attach_logger( vital::get_logger( name() ) );
-
   // Required for external feedback loop
   set_data_checking_level( check_none );
 
@@ -157,42 +157,52 @@ void perform_query_process
 
   if( d->external_handler )
   {
-    algo::read_track_descriptor_set::set_nested_algo_configuration(
-      "descriptor_reader", algo_config, d->descriptor_reader );
+    algo::read_track_descriptor_set::set_nested_algo_configuration_using_trait(
+      descriptor_reader,
+      algo_config,
+      d->descriptor_reader );
 
     if( !d->descriptor_reader )
     {
-      throw sprokit::invalid_configuration_exception(
+      VITAL_THROW( sprokit::invalid_configuration_exception,
         name(), "Unable to create descriptor reader" );
     }
 
-    algo::read_track_descriptor_set::get_nested_algo_configuration(
-      "descriptor_reader", algo_config, d->descriptor_reader );
+    algo::read_track_descriptor_set::get_nested_algo_configuration_using_trait(
+      descriptor_reader,
+      algo_config,
+      d->descriptor_reader );
 
-    if( !algo::read_track_descriptor_set::check_nested_algo_configuration(
-      "descriptor_reader", algo_config ) )
+    if( !algo::read_track_descriptor_set::check_nested_algo_configuration_using_trait(
+          descriptor_reader,
+          algo_config ) )
     {
-      throw sprokit::invalid_configuration_exception(
-        name(), "Configuration check failed." );
+      VITAL_THROW( sprokit::invalid_configuration_exception,
+                   name(), "Configuration check failed." );
     }
 
-    algo::read_object_track_set::set_nested_algo_configuration(
-      "track_reader", algo_config, d->track_reader );
+  algo::read_object_track_set::set_nested_algo_configuration_using_trait(
+    track_reader,
+    algo_config,
+    d->track_reader );
 
     if( !d->track_reader )
     {
-      throw sprokit::invalid_configuration_exception(
-        name(), "Unable to create track reader" );
+      VITAL_THROW( sprokit::invalid_configuration_exception,
+                   name(), "Unable to create track reader" );
     }
 
-    algo::read_object_track_set::get_nested_algo_configuration(
-      "track_reader", algo_config, d->track_reader );
+    algo::read_object_track_set::get_nested_algo_configuration_using_trait(
+      track_reader,
+      algo_config,
+      d->track_reader );
 
-    if( !algo::read_object_track_set::check_nested_algo_configuration(
-      "track_reader", algo_config ) )
+    if( !algo::read_object_track_set::check_nested_algo_configuration_using_trait(
+          track_reader,
+          algo_config ) )
     {
-      throw sprokit::invalid_configuration_exception(
-        name(), "Configuration check failed." );
+      VITAL_THROW( sprokit::invalid_configuration_exception,
+                   name(), "Configuration check failed." );
     }
   }
 }
@@ -471,6 +481,8 @@ void perform_query_process
 void perform_query_process
 ::make_config()
 {
+  declare_config_using_trait( descriptor_reader );
+  declare_config_using_trait( track_reader );
   declare_config_using_trait( external_handler );
   declare_config_using_trait( database_folder );
   declare_config_using_trait( max_result_count );

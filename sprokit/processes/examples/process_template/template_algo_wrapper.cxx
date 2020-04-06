@@ -143,13 +143,13 @@ template_algo_wrapper
   //++ Note that these methods are static on the abstract base algorithm type.
   if ( ! kwiver::vital::algo::image_object_detector::check_nested_algo_configuration( "algo_name", algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   kwiver::vital::algo::image_object_detector::set_nested_algo_configuration( "algo_name", algo_config, d->m_algo );
   if ( ! d->m_algo )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create algorithm." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create algorithm." );
   }
 }
 

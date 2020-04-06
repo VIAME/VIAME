@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,8 +83,7 @@ create_config_trait( frame_time, double, "0.3333333", "Inter frame time in secon
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
                      "video stream application.");
 
-create_config_trait( image_reader, std::string, "", "Algorithm configuration subblock." )
-
+create_algorithm_name_config_trait( image_reader );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -156,19 +155,27 @@ void image_file_reader_process
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
-  algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
+  algo::image_io::set_nested_algo_configuration_using_trait(
+    image_reader,
+    algo_config,
+    d->m_image_reader);
   if ( ! d->m_image_reader )
   {
-    throw sprokit::invalid_configuration_exception( name(),
-             "Unable to create image_reader." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Unable to create image_reader." );
   }
 
-  algo::image_io::get_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
+  algo::image_io::get_nested_algo_configuration_using_trait(
+    image_reader,
+    algo_config,
+    d->m_image_reader);
 
   // instantiate image reader and converter based on config type
-  if ( ! algo::image_io::check_nested_algo_configuration( "image_reader", algo_config ) )
+  if ( ! algo::image_io::check_nested_algo_configuration_using_trait(
+         image_reader,
+         algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -194,7 +201,7 @@ void image_file_reader_process
 
       case priv::ERROR_ABORT:
       default:
-        throw kwiver::vital::file_not_found_exception( file, "could not locate file in path" );
+        VITAL_THROW( kwiver::vital::file_not_found_exception, file, "could not locate file in path" );
       } // end switch
     }
   }

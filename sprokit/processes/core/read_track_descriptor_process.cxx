@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,13 +45,12 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
 
 create_config_trait( file_name, std::string, "",
   "Name of the track descriptor set file to read." );
-create_config_trait( reader, std::string , "",
-  "Algorithm type to use as the reader." );
+
+create_algorithm_name_config_trait( reader );
 
 //--------------------------------------------------------------------------------
 // Private implementation class
@@ -97,32 +96,32 @@ void read_track_descriptor_process
 
   if( d->m_file_name.empty() )
   {
-    throw sprokit::invalid_configuration_exception( name(),
-      "Required file name not specified." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Required file name not specified." );
   }
 
   // Get algo config entries
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if(  algo::read_track_descriptor_set::check_nested_algo_configuration(
-         "reader",
+  if(  algo::read_track_descriptor_set::check_nested_algo_configuration_using_trait(
+         reader,
          algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(),
-      "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
-  algo::read_track_descriptor_set::set_nested_algo_configuration(
-    "reader",
+  algo::read_track_descriptor_set::set_nested_algo_configuration_using_trait(
+    reader,
     algo_config,
     d->m_reader );
 
   if( ! d->m_reader )
   {
-    throw sprokit::invalid_configuration_exception( name(),
-      "Unable to create reader." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Unable to create reader." );
   }
 }
 

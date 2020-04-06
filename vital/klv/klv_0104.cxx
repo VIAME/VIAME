@@ -349,7 +349,7 @@ traits< double >::convert( uint8_t const* data, std::size_t length )
   }
   else
   {
-    throw kwiver::vital::metadata_exception( "Length does not correspond to double or float." );
+    VITAL_THROW( kwiver::vital::metadata_exception, "Length does not correspond to double or float." );
   }
 
   return val;
@@ -410,7 +410,7 @@ klv_0104::get_value( tag tg, kwiver::vital::any const& data ) const
   traits< T >* t = dynamic_cast< traits< T >* > ( m_traitsvec[tg] );
   if ( ! t )
   {
-    throw kwiver::vital::metadata_exception( t->m_name + "' type mismatch" );
+    VITAL_THROW( kwiver::vital::metadata_exception, t->m_name + "' type mismatch" );
   }
 
   return kwiver::vital::any_cast< T > ( data );
