@@ -6,6 +6,9 @@ SET VIAME_INSTALL=C:\Program Files\VIAME
 REM Processing options
 SET INPUT_DIRECTORY=training_data
 
+REM Disable warnings
+SET KWIMAGE_DISABLE_C_EXTENSIONS=1
+
 REM Setup paths and run command
 CALL "%VIAME_INSTALL%\setup_viame.bat"
 
