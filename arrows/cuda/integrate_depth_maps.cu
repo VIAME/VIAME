@@ -165,7 +165,7 @@ __device__ int computeVoxelIDDepth(int coordinates[3])
 //*****************************************************************************
 
 // Main kernel for adding a depth map to the volume
-__global__ void depthMapKernel(double* depths, double matrixK[size4x4], double matrixRT[size4x4],
+__global__ void depthMapKernel(double* depths, double* weights, double matrixK[size4x4], double matrixRT[size4x4],
   double* output)
 {
   // Get voxel coordinate according to thread id
@@ -201,7 +201,8 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   // Compute the ID on depthmap values according to pixel position and depth map dimensions
   int depthMapId = computeVoxelIDDepth(pixel);
   double depth = depths[depthMapId];
-  if (depth <= 0)
+  double weight = weights ? weights[depthMapId] : 1.0;
+  if (depth <= 0 || weight <= 0)
     return;
 
   int gridId = computeVoxelIDGrid(voxelIndex);  // Get the distance between voxel and camera
@@ -209,7 +210,7 @@ __global__ void depthMapKernel(double* depths, double matrixK[size4x4], double m
   double newValue;
   rayPotential(realDepth, depth, newValue);
   // Update the value to the output
-  output[gridId] += newValue;
+  output[gridId] += weight * newValue;
 }
 
 //*****************************************************************************
@@ -240,14 +241,14 @@ void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
 
 //*****************************************************************************
 
-void launch_depth_kernel(double * d_depth, int h_depthMapDims[2], double d_K[size4x4], double d_RT[size4x4], double* d_volume)
+void launch_depth_kernel(double * d_depth, double * d_conf, int h_depthMapDims[2], double d_K[size4x4], double d_RT[size4x4], double* d_volume)
 {
   // Organize threads into blocks and grids
   dim3 dimBlock(grid_dims[0], 1, 1); // nb threads on each block
   dim3 dimGrid(1, grid_dims[1], grid_dims[2]); // nb blocks on a grid
   CudaErrorCheck(cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int)));
   CudaErrorCheck(cudaDeviceSynchronize());
-  depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_K, d_RT, d_volume);
+  depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_conf, d_K, d_RT, d_volume);
   CudaErrorCheck(cudaPeekAtLastError());
   CudaErrorCheck(cudaDeviceSynchronize());
 }

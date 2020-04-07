@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2018 by Kitware, Inc.
+ * Copyright 2012-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,19 +49,25 @@
 
 #include <limits>
 
+#include <vital/logger/logger.h>
+
 namespace kwiver {
 namespace arrows {
 namespace super3d {
 
-void
+bool
 compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
                           const std::vector<vpgl_perspective_camera<double> > &cameras,
                           world_space *ws,
                           unsigned int ref_frame,
                           unsigned int S,
                           vil_image_view<double> &cost_volume,
+                          cost_volume_callback_t callback,
                           const std::vector<vil_image_view<bool> > &masks)
 {
+  static vital::logger_handle_t logger =
+    vital::get_logger("arrows.super3d.compute_world_cost_volume");
+
   const vil_image_view<double> &ref = frames[ref_frame];
   cost_volume = vil_image_view<double>(ws->ni(), ws->nj(), 1, S);
   cost_volume.fill(0.0);
@@ -70,8 +76,10 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
 
   double s_step = 1.0/static_cast<double>(S);
 
-  std::cout << "Computing cost volume of size (" << cost_volume.ni() << ", "
-            << cost_volume.nj() << ", " << cost_volume.nplanes() << ").\n";
+  LOG_DEBUG(logger, "Computing cost volume of size ("
+                     << cost_volume.ni() << ", "
+                     << cost_volume.nj() << ", "
+                     << cost_volume.nplanes() << ")");
 
   int ni = ws->ni(), nj = ws->nj();
   vil_image_view<double> warp_ref(ni, nj, 1), warp(ni, nj, 1);
@@ -82,7 +90,14 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
   //Depths
   for (unsigned int k = 0; k < S; k++)
   {
-    std::cout << k << " " << std::flush;
+    LOG_TRACE(logger, "Depth Layer: " << k);
+    if (callback)
+    {
+      if (!callback(k))
+      {
+        return false;
+      }
+    }
     double s = (k + 0.5) * s_step;
 
     // Warp ref image to world volume
@@ -141,8 +156,7 @@ compute_world_cost_volume(const std::vector<vil_image_view<double> > &frames,
       }
     }
   }
-
-  std::cout << "\n";
+  return true;
 }
 
 //*****************************************************************************
@@ -160,12 +174,15 @@ compute_g(const vil_image_view<double> &ref_img,
   vil_image_view<double> ref_img_g;
   vil_sobel_3x3(ref_img, ref_img_g);
 
-  std::cout << "Computing g weighting.\n";
+  bool invalid_mask = !mask ||
+                      mask->ni() != ref_img.ni() ||
+                      mask->nj() != ref_img.nj();
+
   for (unsigned int i = 0; i < ref_img_g.ni(); i++)
   {
     for (unsigned int j = 0; j < ref_img_g.nj(); j++)
     {
-      if (!mask || !(*mask)(i, j))
+      if (invalid_mask || (*mask)(i, j))
       {
         double dx = ref_img_g(i, j, 0);
         double dy = ref_img_g(i, j, 1);
@@ -185,7 +202,10 @@ save_cost_volume(const vil_image_view<double> &cost_volume,
                       const vil_image_view<double> &g_weight,
                       const char *file_name)
 {
-  std::cout << "Saving cost volume to " << file_name << "\n";
+  static vital::logger_handle_t logger =
+    vital::get_logger("arrows.super3d.save_cost_volume");
+  LOG_DEBUG(logger, "Saving cost volume to " << file_name);
+
   FILE *file = std::fopen(file_name, "wb");
 
   unsigned int ni = cost_volume.ni(), nj = cost_volume.nj();
@@ -219,7 +239,9 @@ load_cost_volume(vil_image_view<double> &cost_volume,
                       vil_image_view<double> &g_weight,
                       const char *file_name)
 {
-  std::cout << "Loading cost volume from " << file_name << "\n";
+  static vital::logger_handle_t logger =
+    vital::get_logger("arrows.super3d.load_cost_volume");
+  LOG_DEBUG(logger, "Loading cost volume from " << file_name);
 
   FILE *file = fopen(file_name, "rb");
 
@@ -228,7 +250,7 @@ load_cost_volume(vil_image_view<double> &cost_volume,
       fread(&nj, sizeof(unsigned int), 1, file) != 1 ||
       fread(&np, sizeof(unsigned int), 1, file) != 1 )
   {
-    std::cerr << "Error loading cost volume" << std::endl;
+    LOG_ERROR(logger, "Error loading cost volume");
     return;
   }
 
@@ -243,7 +265,7 @@ load_cost_volume(vil_image_view<double> &cost_volume,
       {
         if (fread(&cost_volume(i,j,s), sizeof(double), 1, file) != 1)
         {
-          std::cerr << "Error loading cost volume" << std::endl;
+          LOG_ERROR(logger, "Error loading cost volume");
           return;
         }
       }
@@ -254,7 +276,7 @@ load_cost_volume(vil_image_view<double> &cost_volume,
     for (unsigned int j = 0; j < nj; j++)
       if (fread(&g_weight(i,j), sizeof(double), 1, file) != 1)
       {
-        std::cerr << "Error loading cost volume" << std::endl;
+        LOG_ERROR(logger, "Error loading cost volume");
         return;
       }
 

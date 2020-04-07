@@ -6,6 +6,8 @@ set( ceres_headers_public
   lens_distortion.h
   optimize_cameras.h
   reprojection_error.h
+  camera_intrinsic_prior.h
+  camera_position.h
   camera_smoothness.h
   )
 set( ceres_headers_private

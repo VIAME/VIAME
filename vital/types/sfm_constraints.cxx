@@ -308,6 +308,11 @@ sfm_constraints
 {
   position_map local_positions;
 
+  if (!m_priv->m_md)
+  {
+    return local_positions;
+  }
+
   for (auto mdv : m_priv->m_md->metadata())
   {
     auto fid = mdv.first;

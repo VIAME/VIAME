@@ -70,6 +70,62 @@ compute_height_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
 
 //*****************************************************************************
 
+/// Compute a robust 3D bounding box for a set of landmarks
+bool
+compute_robust_ROI(std::vector<landmark_sptr> const& landmarks,
+                   double bounds[6],
+                   double percentile,
+                   double zmax_percentile,
+                   double margin)
+{
+  unsigned int num_pts = landmarks.size();
+  if (num_pts < 2)
+  {
+    return false;
+  }
+
+  std::vector<double> x, y, z;
+  x.reserve(num_pts);
+  y.reserve(num_pts);
+  z.reserve(num_pts);
+
+  for (unsigned int i = 0; i < num_pts; ++i)
+  {
+    vector_3d pt = landmarks[i]->loc();
+    x.push_back(pt[0]);
+    y.push_back(pt[1]);
+    z.push_back(pt[2]);
+  }
+
+  std::sort(x.begin(), x.end());
+  std::sort(y.begin(), y.end());
+  std::sort(z.begin(), z.end());
+
+  unsigned int min_index = static_cast<unsigned int>(percentile * (num_pts - 1));
+  unsigned int max_index = static_cast<unsigned int>(num_pts - 1 - min_index);
+  unsigned int zmax_index = static_cast<unsigned int>((num_pts - 1) * (1.0 - zmax_percentile));
+
+  bounds[0] = x[min_index];
+  bounds[1] = x[max_index];
+  bounds[2] = y[min_index];
+  bounds[3] = y[max_index];
+  bounds[4] = z[min_index];
+  bounds[5] = z[zmax_index];
+
+  for (unsigned i = 0; i < 3; ++i)
+  {
+    unsigned i_min = 2 * i;
+    unsigned i_max = i_min + 1;
+    double offset = (bounds[i_max] - bounds[i_min]) * margin;
+    bounds[i_min] -= offset;
+    bounds[i_max] += offset;
+  }
+
+  return true;
+}
+
+//*****************************************************************************
+
 std::vector<vector_3d>
 points_of_box(kwiver::vital::vector_3d const& minpt,
               kwiver::vital::vector_3d const& maxpt)

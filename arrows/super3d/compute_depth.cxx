@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2017-2018 by Kitware, Inc.
+* Copyright 2017-2019 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,12 @@
 #include <vital/types/landmark.h>
 #include <arrows/vxl/camera.h>
 #include <vnl/vnl_double_3.h>
+#include <vil/algo/vil_threshold.h>
 #include <vil/vil_image_view.h>
 #include <vil/vil_math.h>
 #include <vil/vil_convert.h>
 #include <vil/vil_crop.h>
+#include <vil/vil_plane.h>
 #include <vpgl/vpgl_perspective_camera.h>
 #include <vital/types/bounding_box.h>
 
@@ -76,11 +78,12 @@ public:
       world_plane_normal(0.0, 0.0, 1.0),
       callback_interval(-1),    //default is no callback
       callback(NULL),
-      m_logger(vital::get_logger("arrows.depth.compute_depth"))
+      m_logger(vital::get_logger("arrows.super3d.compute_depth"))
   {
   }
 
   bool iterative_update_callback(depth_refinement_monitor::update_data data);
+  bool cost_volume_update_callback(unsigned int slice_num);
 
   std::unique_ptr<world_space> compute_world_space_roi(vpgl_perspective_camera<double> &cam,
                                                        vil_image_view<double> &frame,
@@ -239,7 +242,31 @@ compute_depth
 #pragma omp parallel for schedule(static, 1)
     for (int i = 0; i < static_cast< int >(masks.size()); i++)
     {
-      masks[i] = vxl::image_container::vital_to_vxl(masks_in[i]->get_image());
+      if (!masks_in[i])
+      {
+        continue;
+      }
+      auto vxl_mask = vxl::image_container::vital_to_vxl(masks_in[i]->get_image());
+      if (!vxl_mask)
+      {
+        continue;
+      }
+      if (vxl_mask->pixel_format() == VIL_PIXEL_FORMAT_BOOL)
+      {
+        masks[i] = vxl_mask;
+      }
+      else if (vxl_mask->pixel_format() == VIL_PIXEL_FORMAT_BYTE)
+      {
+        vil_threshold_above<vxl_byte>(vxl_mask, masks[i], 128);
+      }
+      else
+      {
+        // unsupported pixel format
+        continue;
+      }
+      // ensure that this is a single channel image
+      // take only the first channel
+      masks[i] = vil_plane(masks[i], 0);
     }
     ref_mask = &masks[ref_frame];
   }
@@ -256,14 +283,23 @@ compute_depth
   vil_image_view<double> g;
   vil_image_view<double> cost_volume;
 
-  compute_world_cost_volume(frames, cameras, ws.get(), ref_frame,
-                            d_->S, cost_volume, masks);
+  cost_volume_callback_t cv_callback = std::bind1st(std::mem_fun(
+    &compute_depth::priv::cost_volume_update_callback), this->d_.get());
+  if (!compute_world_cost_volume(frames, cameras, ws.get(), ref_frame,
+                                 d_->S, cost_volume,
+                                 cv_callback, masks))
+  {
+    // user terminated processing early through the callback
+    return nullptr;
+  }
+
+  LOG_DEBUG(d_->m_logger, "Computing g weighting");
   compute_g(frames[ref_frame], g, d_->gw_alpha, 1.0, ref_mask);
 
-  std::cout << "Refining Depth. ..\n";
+  LOG_DEBUG(d_->m_logger, "Refining Depth");
   vil_image_view<double> height_map(cost_volume.ni(), cost_volume.nj(), 1);
 
-  if (d_->callback_interval <= 0 || !d_->callback)
+  if (!d_->callback)
   {
     refine_depth(cost_volume, g, height_map, d_->iterations,
                  d_->theta0, d_->theta_end, d_->lambda, d_->epsilon);
@@ -307,15 +343,38 @@ compute_depth::priv
 {
   if (this->callback)
   {
-    double depth_scale = this->depth_max - this->depth_min;
-    vil_math_scale_and_offset_values(data.current_result,
-                                     depth_scale, this->depth_min);
-    vil_image_view<double> depth;
-    height_map_to_depth_map(this->ref_cam, data.current_result, depth);
-    image_container_sptr result =
-      std::make_shared<vxl::image_container>(
-        vxl::image_container::vxl_to_vital(depth));
-    return this->callback(result, data.num_iterations);
+    image_container_sptr result = nullptr;
+    if (data.current_result)
+    {
+      double depth_scale = this->depth_max - this->depth_min;
+      vil_math_scale_and_offset_values(data.current_result,
+        depth_scale, this->depth_min);
+      vil_image_view<double> depth;
+      height_map_to_depth_map(this->ref_cam, data.current_result, depth);
+      result = std::make_shared<vxl::image_container>(
+                 vxl::image_container::vxl_to_vital(depth));
+    }
+    unsigned percent_complete = 50 + (50 * data.num_iterations)
+                                     / this->iterations;
+    std::stringstream ss;
+    ss << "Depth refinement iteration " << data.num_iterations
+       << " of " << this->iterations;
+    return this->callback(result, ss.str(), percent_complete);
+  }
+  return true;
+}
+
+//Bridge from super3d cost volume computation  monitor
+bool
+compute_depth::priv
+::cost_volume_update_callback(unsigned int slice_num)
+{
+  if (this->callback)
+  {
+    unsigned percent_complete = (50 * slice_num) / this->S;
+    std::stringstream ss;
+    ss << "Computing cost volume slice " << slice_num << " of " << this->S;
+    return this->callback(nullptr, ss.str(), percent_complete);
   }
   return true;
 }

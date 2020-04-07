@@ -35,6 +35,7 @@
 
 #include "match_features_fundamental_matrix.h"
 
+#include <algorithm>
 #include <iostream>
 
 #include <vital/exceptions/algorithm.h>
@@ -57,7 +58,8 @@ public:
   priv()
   : inlier_scale(10.0),
     min_required_inlier_count(0),
-    min_required_inlier_percent(0.0)
+    min_required_inlier_percent(0.0),
+    motion_filter_percentile(0.75)
   {
   }
 
@@ -69,6 +71,9 @@ public:
 
   // min inlier percent required to make any matches
   double min_required_inlier_percent;
+
+  // filter outliers with motion larger than this percentile
+  double motion_filter_percentile;
 
   // The feature matching algorithm to use
   vital::algo::match_features_sptr matcher_;
@@ -115,6 +120,11 @@ match_features_fundamental_matrix
                     "The minimum required percentage of inlier points. If the "
                     "percentage of points considered inliers is less than this "
                     "amount, no matches will be returned.");
+  config->set_value("motion_filter_percentile", d_->motion_filter_percentile,
+                    "If less than 1.0, find this percentile of the motion "
+                    "magnitude and filter matches with motion larger than "
+                    "twice this value.  This helps remove outlier matches "
+                    "when the motion between images is small.");
 
   // nested algorithm configurations
   vital::algo::estimate_fundamental_matrix::get_nested_algo_configuration("fundamental_matrix_estimator",
@@ -145,6 +155,8 @@ match_features_fundamental_matrix
   d_->inlier_scale = config->get_value<double>("inlier_scale");
   d_->min_required_inlier_count = config->get_value<int>("min_required_inlier_count");
   d_->min_required_inlier_percent = config->get_value<double>("min_required_inlier_percent");
+  d_->motion_filter_percentile =
+    config->get_value<double>("motion_filter_percentile");
 }
 
 
@@ -154,10 +166,11 @@ match_features_fundamental_matrix
 ::check_configuration(vital::config_block_sptr config) const
 {
   bool config_valid = true;
+  double motion_filter_percentile =
+    config->get_value<double>("motion_filter_percentile",
+                              d_->motion_filter_percentile);
   // this algorithm is optional
-  if (config->has_value("filter_features") &&
-      config->get_value<std::string>("filter_features") != "" &&
-      !vital::algo::filter_features::check_nested_algo_configuration("filter_features", config))
+  if (motion_filter_percentile < 0.0 || motion_filter_percentile > 1.0)
   {
     config_valid = false;
   }
@@ -171,6 +184,19 @@ match_features_fundamental_matrix
   );
 }
 
+
+namespace {
+
+// compute the p-th percentile of the data
+double percentile(std::vector<double> const & data, double p)
+{
+  p = std::max(0.0, std::min(1.0, p));
+  std::vector<double> d(data);
+  size_t nth_idx = static_cast<size_t>(d.size() * p);
+  std::nth_element(d.begin(), d.begin() + nth_idx, d.end());
+  return d[nth_idx];
+}
+}
 
 // ----------------------------------------------------------------------------
 // Match one set of features and corresponding descriptors to another
@@ -212,7 +238,38 @@ match_features_fundamental_matrix
     }
   }
 
-  return match_set_sptr(new simple_match_set(inlier_m));
+  if (d_->motion_filter_percentile >= 1.0)
+  {
+    return match_set_sptr(new simple_match_set(inlier_m));
+  }
+
+  // Further filter the matches by motion amount to remove outliers.
+  // For relatively small motions there may be outliers that agree
+  // with the epipolar geometry but have unusually large motion.
+  // Discard matches with motion above the twice the Nth percentile.
+  auto f1 = feat1->features();
+  auto f2 = feat2->features();
+  std::vector<double> dists;
+  dists.reserve(inlier_m.size());
+  for (auto const& m : inlier_m)
+  {
+    vector_2d dist = f1[m.first]->loc() - f2[m.second]->loc();
+    dists.push_back(dist.norm());
+  }
+  double max_dist = 2.0 * percentile(dists, d_->motion_filter_percentile);
+  std::vector<vital::match> filtered_m;
+  for (unsigned i = 0; i < inlier_m.size(); ++i)
+  {
+    if (dists[i] < max_dist)
+    {
+      filtered_m.push_back(inlier_m[i]);
+    }
+  }
+
+  LOG_DEBUG(logger(), "Filtered " << inlier_m.size() - filtered_m.size() <<
+                      " matches with motion greater than " << max_dist);
+
+  return match_set_sptr(new simple_match_set(filtered_m));
 }
 
 

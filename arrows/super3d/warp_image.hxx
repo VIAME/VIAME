@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2010-2016 by Kitware, Inc.
+ * Copyright 2010-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,8 @@
 #include <vgl/vgl_intersection.h>
 
 #include <limits>
+
+#include <vital/logger/logger.h>
 
 
 namespace
@@ -282,9 +284,12 @@ warp_image( vil_image_view<T> const& src,
     interp = &bicubic_interp_wrapper;
     break;
   default:
-    std::cerr << "warp_image: Unrecognized interpolator: "
-              << param.interpolator_ << std::endl;
-    return false;
+    {
+      auto logger = vital::get_logger("arrows.super3d.warp_image");
+      LOG_ERROR(logger, "warp_image: Unrecognized interpolator: "
+                        << param.interpolator_);
+      return false;
+    }
   }
 
   // Extract start and end, row/col scanning ranges [start..end-1]

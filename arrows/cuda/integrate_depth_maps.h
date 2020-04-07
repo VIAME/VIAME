@@ -66,12 +66,16 @@ public:
   /// Check that the algorithm's currently configuration is valid
   virtual bool check_configuration(vital::config_block_sptr config) const;
 
-  /// Integrate multiple depth maps into a common volume
+  /// Integrate multiple depth maps with per-pixel weights into a common volume
   /**
+  * The weight maps in this variant encode how much weight to give each depth
+  * pixel in the integration sum.  If the vector of weight_maps is empty then
+  * all depths are given full weight.
   *
   * \param [in]     minpt_bound the min point of the bounding region
   * \param [in]     maxpt_bound the max point of the bounding region
   * \param [in]     depth_maps  the set of floating point depth map images
+  * \param [in]     weight_maps the set of floating point [0,1] weight maps
   * \param [in]     cameras     the set of cameras, one for each depth map
   * \param [in,out] volume      the fused volumetric data
   * \param [out]    spacing     the spacing between voxels in each dimension
@@ -83,6 +87,7 @@ public:
     integrate(kwiver::vital::vector_3d const& minpt_bound,
               kwiver::vital::vector_3d const& maxpt_bound,
               std::vector<kwiver::vital::image_container_sptr> const& depth_maps,
+              std::vector<kwiver::vital::image_container_sptr> const& weight_maps,
               std::vector<kwiver::vital::camera_perspective_sptr> const& cameras,
               kwiver::vital::image_container_sptr& volume,
               kwiver::vital::vector_3d &spacing) const;
