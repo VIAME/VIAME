@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,8 @@ namespace kwiver {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "", "Name of the detection set file to read." );
-create_config_trait( reader, std::string , "", "Algorithm type to use as the reader." );
+
+create_algorithm_name_config_trait( reader )
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -94,21 +95,25 @@ void detected_object_input_process
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
   {
-    throw sprokit::invalid_configuration_exception( name(),
-             "Required file name not specified." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Required file name not specified." );
   }
 
   // Get algo config entries
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if ( ! algo::detected_object_set_input::check_nested_algo_configuration( "reader", algo_config ) )
+  if ( ! algo::detected_object_set_input::check_nested_algo_configuration_using_trait(
+         reader, algo_config ) )
   {
     VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
-  algo::detected_object_set_input::set_nested_algo_configuration( "reader", algo_config, d->m_reader);
+  algo::detected_object_set_input::set_nested_algo_configuration_using_trait(
+    reader,
+    algo_config,
+    d->m_reader);
   if ( ! d->m_reader )
   {
     VITAL_THROW( sprokit::invalid_configuration_exception, name(),

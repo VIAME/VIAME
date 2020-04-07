@@ -46,6 +46,7 @@ kwiver_discover_gtests(vital rotation                       LIBRARIES ${test_lib
 kwiver_discover_gtests(vital similarity                     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital timestamp                      LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital track                          LIBRARIES ${test_libraries})
+kwiver_discover_gtests(vital track_descriptor               LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital track_set                      LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital vector                         LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital uid                            LIBRARIES ${test_libraries})

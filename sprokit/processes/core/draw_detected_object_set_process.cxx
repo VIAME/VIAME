@@ -39,9 +39,7 @@
 namespace kwiver {
 
 // (config-key, value-type, default-value, description )
-  create_config_trait( draw_algo, std::string, "", "Name of drawing algorithm config block.\n\n"
-                       "Specify an implementation of the `draw_detected_object_set` algorithm "
-                       "as draw_algo:type = <type>");
+create_algorithm_name_config_trait( draw_algo );
 
 // ----------------------------------------------------------------
 /**
@@ -110,15 +108,19 @@ void draw_detected_object_set_process
   auto algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::draw_detected_object_set::check_nested_algo_configuration( "draw_algo", algo_config ) )
+  if ( ! vital::algo::draw_detected_object_set::check_nested_algo_configuration_using_trait(
+         draw_algo, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
-  vital::algo::draw_detected_object_set::set_nested_algo_configuration( "draw_algo", algo_config, d->m_algo );
+  vital::algo::draw_detected_object_set::set_nested_algo_configuration_using_trait(
+    draw_algo,
+    algo_config,
+    d->m_algo );
   if ( ! d->m_algo )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create algorithm." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create algorithm." );
   }
 }
 
@@ -168,7 +170,6 @@ void draw_detected_object_set_process
 {
   declare_config_using_trait( draw_algo );
 }
-
 
 // ================================================================
 draw_detected_object_set_process::priv

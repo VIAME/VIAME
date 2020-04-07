@@ -368,7 +368,7 @@ public:
         << "\" for interface type \"" << demangle( typeid(I).name() )
         << "\"";
 
-    throw kwiver::vital::plugin_factory_not_found( str.str() );
+    VITAL_THROW( kwiver::vital::plugin_factory_not_found, str.str() );
   }
 
   /**

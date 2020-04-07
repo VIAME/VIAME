@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,8 @@ namespace kwiver
 
 namespace algo = vital::algo;
 
+create_algorithm_name_config_trait( track_associator );
+
 create_port_trait( unused_detections,
   detected_object_set,
   "Set of detected objects not linked to any tracks." );
@@ -94,23 +96,27 @@ void associate_detections_to_tracks_process
 
   vital::config_block_sptr algo_config = get_config();
 
-  algo::associate_detections_to_tracks::set_nested_algo_configuration(
-    "track_associator", algo_config, d->m_track_associator );
+  algo::associate_detections_to_tracks::set_nested_algo_configuration_using_trait(
+    track_associator,
+    algo_config,
+    d->m_track_associator );
 
   if( !d->m_track_associator )
   {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Unable to create associate_detections_to_tracks" );
+    VITAL_THROW( sprokit::invalid_configuration_exception,
+                 name(), "Unable to create associate_detections_to_tracks" );
   }
 
-  algo::associate_detections_to_tracks::get_nested_algo_configuration(
-    "track_associator", algo_config, d->m_track_associator );
+  algo::associate_detections_to_tracks::get_nested_algo_configuration_using_trait(
+    track_associator,
+    algo_config,
+    d->m_track_associator );
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !algo::associate_detections_to_tracks::check_nested_algo_configuration(
-    "track_associator", algo_config ) )
+  if( !algo::associate_detections_to_tracks::check_nested_algo_configuration_using_trait(
+    track_associator, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception(
+    VITAL_THROW( sprokit::invalid_configuration_exception,
       name(), "Configuration check failed." );
   }
 }
@@ -189,7 +195,7 @@ void associate_detections_to_tracks_process
 void associate_detections_to_tracks_process
 ::make_config()
 {
-
+  declare_config_using_trait( track_associator);
 }
 
 

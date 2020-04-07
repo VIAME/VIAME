@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ namespace kwiver
 create_port_trait( output_image, image, "Image with tracks" );
 
 // config items
-//          None for now
+create_algorithm_name_config_trait( draw_tracks );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -93,20 +93,28 @@ draw_tracks_process
 
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  algo::draw_tracks::set_nested_algo_configuration( "draw_tracks", algo_config, d->m_draw_tracks );
+  algo::draw_tracks::set_nested_algo_configuration_using_trait(
+    draw_tracks,
+    algo_config,
+    d->m_draw_tracks );
   if ( ! d->m_draw_tracks )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create draw_tracks" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Unable to create draw_tracks" );
   }
 
-  algo::draw_tracks::get_nested_algo_configuration( "draw_tracks", algo_config, d->m_draw_tracks );
+  algo::draw_tracks::get_nested_algo_configuration_using_trait(
+    draw_tracks,
+    algo_config,
+    d->m_draw_tracks );
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! algo::draw_tracks::check_nested_algo_configuration( "draw_tracks", algo_config ) )
+  if ( ! algo::draw_tracks::check_nested_algo_configuration_using_trait(
+         draw_tracks, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Configuration check failed." );
   }
-
 }
 
 
@@ -159,6 +167,7 @@ void
 draw_tracks_process
 ::make_config()
 {
+  declare_config_using_trait( draw_tracks );
 }
 
 

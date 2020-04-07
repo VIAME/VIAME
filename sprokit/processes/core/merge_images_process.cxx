@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,7 @@ namespace algo = kwiver::vital::algo;
 
 namespace kwiver {
 
-  create_config_trait( merge_images, std::string, "",
-                       "Algorithm configuration subblock" );
+create_algorithm_name_config_trait( merge_images );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -80,8 +79,10 @@ void merge_images_process
 {
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  algo::merge_images::set_nested_algo_configuration(
-    "merge_images", algo_config, d->m_images_merger );
+  algo::merge_images::set_nested_algo_configuration_using_trait(
+    merge_images,
+    algo_config,
+    d->m_images_merger );
 
   if( !d->m_images_merger )
   {
@@ -89,12 +90,14 @@ void merge_images_process
                  name(), "Unable to create \"merge_images\"" );
   }
 
-  algo::merge_images::get_nested_algo_configuration(
-      "merge_images", algo_config, d->m_images_merger );
+  algo::merge_images::get_nested_algo_configuration_using_trait(
+    merge_images,
+    algo_config,
+    d->m_images_merger );
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !algo::merge_images::check_nested_algo_configuration(
-        "merge_images", algo_config ) )
+  if( !algo::merge_images::check_nested_algo_configuration_using_trait(
+        merge_images, algo_config ) )
   {
     VITAL_THROW(  sprokit::invalid_configuration_exception,
                   name(), "Configuration check failed." );
@@ -189,7 +192,6 @@ merge_images_process
 
       d->p_port_list.insert( port_name );
     }
-
   }
 }
 

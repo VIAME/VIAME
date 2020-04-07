@@ -93,8 +93,6 @@ downsample_process
   : process( config ),
     d( new downsample_process::priv( this ) )
 {
-  attach_logger( vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }

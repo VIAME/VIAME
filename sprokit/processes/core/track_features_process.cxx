@@ -48,8 +48,7 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver
 {
 
-  create_config_trait( track_features, std::string, "",
-    "Algorithm configuration subblock." )
+create_algorithm_name_config_trait( track_features );
 
 /**
  * \class track_features_process
@@ -129,24 +128,28 @@ void track_features_process
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   // Instantiate the configured algorithm
-  algo::track_features::set_nested_algo_configuration( "track_features",
-    algo_config, d->m_tracker );
+  algo::track_features::set_nested_algo_configuration_using_trait(
+    track_features,
+    algo_config,
+    d->m_tracker );
 
   if ( ! d->m_tracker )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Unable to create track_features" );
   }
 
-  algo::track_features::get_nested_algo_configuration("track_features",
-    algo_config, d->m_tracker);
+  algo::track_features::get_nested_algo_configuration_using_trait(
+    track_features,
+    algo_config,
+    d->m_tracker);
 
   //// Check config so it will give run-time diagnostic if any config problems
   // are found
-  if ( ! algo::track_features::check_nested_algo_configuration(
-          "track_features", algo_config ) )
+  if ( ! algo::track_features::check_nested_algo_configuration_using_trait(
+         track_features, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Configuration check failed." );
   }
 
