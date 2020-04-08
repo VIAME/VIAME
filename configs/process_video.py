@@ -766,7 +766,7 @@ if __name__ == "__main__" :
   if args.detection_plots:
     import generate_detection_plots
     log_info( lb1 + "Generating data plots for detections" )
-    detection_plot_dir = os.path.join( output_directory, "detection_plots" )
+    detection_plot_dir = os.path.join( args.output_directory, "detection_plots" )
     create_dir( detection_plot_dir, logging=False, recreate=True, prompt=False )
     generate_detection_plots.detection_plot( args.output_directory,
       detection_plot_dir, args.objects.split( "," ), float( args.plot_threshold ),
