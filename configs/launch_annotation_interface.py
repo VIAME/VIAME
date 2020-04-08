@@ -272,9 +272,9 @@ def process_video_dir( args ):
       print( "Generating cache for video file, this may take up to a few minutes.\n" )
       file_path = generate_index_for_video( args, file_path, file_no_ext )
     else:
-      from process_video import make_filelist_for_image_dir
-      file_path = make_filelist_for_image_dir( file_path, args.cache_dir,
-                                               file_no_ext )
+      from process_video import make_filelist_for_dir
+      file_path = make_filelist_for_dir( file_path, args.cache_dir,
+                                         file_no_ext )
 
   (fd, name) = tempfile.mkstemp(prefix='vpview-project-',
                                 suffix='.prj',
