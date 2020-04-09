@@ -25,7 +25,7 @@ process split
   :: split_image
   :split_image:type                            ocv_horizontally
 
-connect from initial_filter.image
+connect from input.image
         to   split.image
 
 # ==================================== OUTPUT ======================================
