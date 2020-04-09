@@ -48,7 +48,7 @@ namespace algo {
 
 // ----------------------------------------------------------------
 /**
- * @brief Image object detector base class/
+ * @brief Case class for refining detected object sets.
  *
  */
 class VITAL_ALGO_EXPORT refine_detections
