@@ -254,6 +254,13 @@ kwiver_add_python_library(landmark
   landmark.cxx)
 target_link_libraries(python-vital.types-landmark
   PUBLIC ${PYTHON_LIBRARIES}
+  vital)
+
+kwiver_add_python_library(mesh
+  vital/types
+  mesh.cxx)
+target_link_libraries(python-vital.types-mesh
+  PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
 kwiver_add_python_library(landmark_map
@@ -450,6 +457,7 @@ if(NOT SKBUILD)
     landmark
     landmark_map
     local_cartesian
+    mesh
     rotation
     local_geo_cs
     match_set

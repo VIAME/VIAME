@@ -1,4 +1,5 @@
 add_subdirectory(serialize)
+add_subdirectory(core)
 
 if(KWIVER_ENABLE_TESTS)
   add_subdirectory( tests )
