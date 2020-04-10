@@ -40,6 +40,8 @@
 #include <vital/types/geodesy.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
+#include <sstream>
+
 using namespace kwiver::vital;
 
 namespace {
@@ -51,6 +53,8 @@ auto const loc3 = vector_2d{ 601375.01, 4744863.31 };
 auto const loc1a = vector_3d{ -73.759291, 42.849631, 50 };
 auto const loc2a = vector_3d{ -73.757161, 42.849764, 50 };
 auto const loc3a = vector_3d{ 601375.01, 4744863.31, 50 };
+
+auto const locrt = vector_2d{ 0.123456789012345678, -0.987654321098765432 };
 
 auto constexpr crs_ll = SRID::lat_lon_WGS84;
 auto constexpr crs_utm_18n = SRID::UTM_WGS84_north + 18;
@@ -187,3 +191,85 @@ TEST(geo_point, conversion)
   std::cout << "LLA->UTMa epsilon: " << epsilon_lla_to_utma << std::endl;
   std::cout << "UTMa->LLA epsilon: " << epsilon_utma_to_lla << std::endl;
 }
+
+// ----------------------------------------------------------------------------
+TEST(geo_point, insert_operator_empty)
+{
+  kwiver::vital::geo_point p_empty;
+
+  std::stringstream str;
+  str << p_empty;
+
+  EXPECT_EQ( "geo_point\n[ empty ]", str.str() );
+}
+
+// ----------------------------------------------------------------------------
+struct roundtrip_test
+{
+  char const* text;
+  geo_point point;
+};
+
+// ----------------------------------------------------------------------------
+void
+PrintTo( roundtrip_test const& v, ::std::ostream* os )
+{
+  (*os) << v.text;
+}
+
+// ----------------------------------------------------------------------------
+class geo_point_roundtrip : public ::testing::TestWithParam<roundtrip_test>
+{
+};
+
+// ----------------------------------------------------------------------------
+TEST_P(geo_point_roundtrip, insert_operator)
+{
+  auto const p = GetParam().point;
+  auto const expected_loc = p.location();
+  auto const expected_crs = p.crs();
+
+  // Write point to stream
+  auto out = std::stringstream{};
+  out << p;
+
+  // Replace commas so we can read numbers back in
+  auto s = out.str();
+  std::replace( s.begin(), s.end(), ',', ' ' );
+
+  // Read back values
+  auto in = std::stringstream{ s };
+
+  double easting, northing, altitude;
+  int crs;
+  std::string dummy;
+
+  in >> dummy; // geo_point\n
+  in >> dummy; // [
+  in >> easting;
+  in >> northing;
+  in >> altitude;
+  in >> dummy; // ]
+  in >> dummy; // @
+  in >> crs;
+
+  // Successful round-trip?
+  EXPECT_EQ( expected_loc[0], easting );
+  EXPECT_EQ( expected_loc[1], northing );
+  EXPECT_EQ( expected_loc[2], altitude );
+  EXPECT_EQ( expected_crs, crs );
+}
+
+// ----------------------------------------------------------------------------
+INSTANTIATE_TEST_CASE_P(
+  ,
+  geo_point_roundtrip,
+  ::testing::Values(
+      ( roundtrip_test{ "1", geo_point{ loc1, crs_ll } } ),
+      ( roundtrip_test{ "2", geo_point{ loc2, crs_ll } } ),
+      ( roundtrip_test{ "3", geo_point{ loc3, crs_utm_18n } } ),
+      ( roundtrip_test{ "1a", geo_point{ loc1a, crs_ll } } ),
+      ( roundtrip_test{ "2a", geo_point{ loc2a, crs_ll } } ),
+      ( roundtrip_test{ "3a", geo_point{ loc3a, crs_utm_18n } } ),
+      ( roundtrip_test{ "rt", geo_point{ locrt, 12345 } } )
+  ) );
