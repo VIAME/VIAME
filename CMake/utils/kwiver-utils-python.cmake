@@ -123,16 +123,11 @@ function (kwiver_add_python_module path     modpath    module)
   if (WIN32)
     if (python_noarch)
       return ()
-    else ()
-      set(python_install_path lib)
     endif ()
   else ()
     if (python_noarch)
       set(python_noarchdir /noarch)
-      set(python_install_path lib)
       set(python_arch u)
-    else ()
-      set(python_install_path "lib${LIB_SUFFIX}")
     endif ()
   endif ()
 
@@ -145,8 +140,6 @@ function (kwiver_add_python_module path     modpath    module)
 
   set(pyfile_src "${path}")
   set(pyfile_dst "${kwiver_python_output_path}${python_noarchdir}/${python_sitename}/${modpath}/${module}.py")
-  # installation path for this module
-  set(pypkg_install_path "${python_install_path}/${kwiver_python_subdir}/${python_sitename}/${modpath}")
 
   # copy and configure the source file into the binary directory
   if (KWIVER_SYMLINK_PYTHON)
@@ -164,7 +157,7 @@ function (kwiver_add_python_module path     modpath    module)
   # install the configured binary to the kwiver python install path
   kwiver_install(
     FILES       "${pyfile_dst}"
-    DESTINATION "${pypkg_install_path}"
+    DESTINATION "${kwiver_python_install_path}/${modpath}"
     COMPONENT   runtime)
 
   add_dependencies(python
@@ -231,9 +224,8 @@ function (kwiver_create_python_init    modpath)
   endif()
 
   # Installation __init__
-  set ( install_path "${CMAKE_INSTALL_PREFIX}/${python_site_packages}/${modpath}")
   kwiver_install(
     FILES       "${init_path}"
-    DESTINATION "${install_path}"
+    DESTINATION "${kwiver_python_install_path}/${modpath}"
     COMPONENT   runtime)
 endfunction ()
