@@ -51,6 +51,11 @@
 #      the value of `kwiver_python_subdir`.
 #      (e.g. build/lib/python2.7, build/lib/python3.5m)
 #
+#    kwiver_python_install_path
+#      The base location in the install tree where python files/modules are
+#      to be installed.
+#      (e.g. ${CMAKE_INSTALL_PREFIX}/lib/python3)
+#
 #    sprokit_python_output_path
 #      Similar to `kwiver_python_output_path`. Used by sprokit to define extra
 #      python output paths. This may be removed in the future.
@@ -146,11 +151,16 @@ include_directories(SYSTEM ${PYTHON_INCLUDE_DIR})
 #
 _pycmd(python_site_packages "from distutils import sysconfig; print(sysconfig.get_python_lib(prefix=''))")
 message(STATUS "python_site_packages = ${python_site_packages}")
+
 # Current usage determines most of the path in alternate ways.
 # All we need to supply is the '*-packages' directory name.
 # Customers could be converted to accept a larger part of the path from this function.
 get_filename_component(python_sitename ${python_site_packages} NAME)
 
+###
+# Python install path
+set(kwiver_python_install_path "${CMAKE_INSTALL_PREFIX}/${python_site_packages}")
+message(STATUS "kwiver_python_install_path = ${kwiver_python_install_path}")
 
 ###
 # Python major/minor version
@@ -233,6 +243,9 @@ PYTHON_CONFIG_STATUS
   * python_sitename = \"${python_sitename}\"
 
   * kwiver_python_subdir = \"${kwiver_python_subdir}\"
+  * kwiver_python_install_path = \"${kwiver_python_install_path}\"
   * kwiver_python_output_path = \"${kwiver_python_output_path}\"
   * sprokit_python_output_path = \"${sprokit_python_output_path}\"
 ")
+
+message(STATUS "${PYTHON_CONFIG_STATUS}")
