@@ -276,7 +276,7 @@ TEST_P(geo_polygon_roundtrip, insert_operator)
   geo_polygon p{ { expected_loc }, expected_crs };
 
   // Write polygon to stream
-  auto s = std::stringstream{};
+  std::stringstream s;
   s << p;
 
   // Read back values
