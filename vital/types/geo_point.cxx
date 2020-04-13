@@ -37,6 +37,7 @@
 #include "geodesy.h"
 
 #include <iomanip>
+#include <limits>
 #include <stdexcept>
 
 namespace kwiver {
@@ -136,7 +137,7 @@ operator<<( std::ostream& str, vital::geo_point const& obj )
     auto const old_prec = str.precision();
     auto const loc = obj.location();
 
-    str << std::setprecision(22)
+    str << std::setprecision( std::numeric_limits<double>::digits10 + 2 )
         << "[ " << loc[0]
         << ", " << loc[1]
         << ", " << loc[2]
