@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018 by Kitware, Inc.
+ * Copyright 2014-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 #include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
 
 #include <vital/algo/algorithm_factory.h>
+#include <vital/applets/cxxopts.hpp>
 #include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
 #include <vital/plugin_loader/plugin_factory.h>
@@ -55,23 +56,7 @@
 #include <memory>
 #include <map>
 
-
-/*
-TODO
-
-- expand help text to be more like a man page.
-- handle processopedia and algo_explorer personalities.
-
-- make it easy to display one factory (e.g. process, algo) Maybe add flag
-  for finding impl type by regexp.
-
-- configuration output is different for algos va proc's. These should
-  be the same. Maybe some common code would help, although they have
-  slightly different contents.
-
- */
-
-typedef kwiversys::SystemTools ST;
+using ST = kwiversys::SystemTools;
 
 // -- forward definitions --
 static void display_attributes( kwiver::vital::plugin_factory_handle_t const fact );
@@ -96,12 +81,6 @@ static kwiversys::RegularExpression type_regex;
 
 static bool opt_version(false);
 static std::string version_string( PLUGIN_EXPLORER_VERSION );
-
-// This program can have different personalities depending on the name
-// of the executable.  This is to emulate the useful behaviour of
-// older dedicated programs.
-enum { prog_default, prog_processopedia, prog_alog_explorer };
-static int program_personality( prog_default );
 
 static std::map< const std::string, kwiver::vital::category_explorer_sptr> category_map;
 
@@ -320,6 +299,7 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
         }
       }
 
+      // use category handler if there is one
       if ( cat_handler )
       {
         cat_handler->explore( fact );
@@ -355,29 +335,6 @@ get_category_handler( const std::string& cat )
 
   return nullptr;
 }
-
-
-//+ Move this into the context class so it is available to all plugins.
-//+ Don't forget to wrap the description text.
-// ------------------------------------------------------------------
-void print_config( kwiver::vital::config_block_sptr const config )
-{
-  kwiver::vital::config_block_keys_t all_keys = config->available_values();
-  const std::string indent( "    " );
-
-  pe_out() << indent << "Configuration block contents\n";
-
-  for( kwiver::vital::config_block_key_t key : all_keys )
-  {
-    kwiver::vital::config_block_value_t val = config->get_value< kwiver::vital::config_block_value_t > ( key );
-    pe_out() << std::endl
-             << indent << "\"" << key << "\" = \"" << val << "\"\n";
-
-    kwiver::vital::config_block_description_t descr = config->get_description( key );
-    pe_out() << indent << "Description: " << descr << std::endl;
-  }
-}
-
 
 // ------------------------------------------------------------------
 /**
@@ -478,100 +435,64 @@ main( int argc, char* argv[] )
 
   G_explorer_context = new kwiver::vital::context_factory( &G_context );
 
-  {
-    const std::string prog_name( argv[0] );
-
-    // Check to see if we are running under a sanctioned alias
-    if ( prog_name.find( "processopedia" ) != std::string::npos )
-    {
-      program_personality = prog_processopedia;
-      G_context.opt_process = true;
-    }
-    else if ( prog_name.find( "algo_explorer" ) != std::string::npos )
-    {
-      program_personality = prog_alog_explorer;
-      G_context.opt_algo = true;
-    }
-  }
-
   // Set formatting string for description formatting
-  G_context.m_wtb.set_indent_string( "      " );
+  G_context.m_wtb.set_indent_string( "          " );
 
-  // set up the command line args
-  G_context.m_args.Initialize( argc, argv );
-  G_context.m_args.StoreUnusedArguments( true );
-  typedef kwiversys::CommandLineArguments argT;
+  G_context.m_cmd_options.reset( new cxxopts::Options( "plugin_explorer",
+                                                       "This program display information about plugins." ) );
 
-  G_context.m_args.AddArgument( "--help",    argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
-  G_context.m_args.AddArgument( "-h",        argT::NO_ARGUMENT, &G_context.opt_help, "Display usage information" );
-  G_context.m_args.AddArgument( "-v",        argT::NO_ARGUMENT, &opt_version, "Display program version" );
-  G_context.m_args.AddArgument( "--version", argT::NO_ARGUMENT, &opt_version, "Display program version" );
-  G_context.m_args.AddArgument( "--detail",  argT::NO_ARGUMENT, &G_context.opt_detail,
-                                "Display detailed information about plugins" );
+  G_context.m_cmd_options->add_options()
+    ( "h,help", "Display applet usage" )
+    ( "v,version", "Display version information" )
+    ;
 
-  G_context.m_args.AddArgument( "-d",        argT::NO_ARGUMENT, &G_context.opt_detail,
-                                "Display detailed information about plugins" );
+  G_context.m_cmd_options->add_options("Selector")
+    ( "p,proc", "Display only sprokit process type plugins. "
+      "If type is specified as \"all\", then all processes are listed. Otherwise, the type "
+      "will be treated as a regexp and only processes names that match the regexp will be displayed.",
+      cxxopts::value<std::string>() )
 
-  G_context.m_args.AddArgument( "--path",    argT::NO_ARGUMENT, &G_context.opt_path_list, "Display plugin search path" );
-  G_context.m_args.AddCallback( "-I",        argT::SPACE_ARGUMENT, path_callback, 0, "Add directory to plugin search path" );
-  G_context.m_args.AddArgument( "--factory", argT::SPACE_ARGUMENT, &G_context.opt_fact_regex,
-                                "Only display factories whose interface type matches specified regexp" );
+    ( "i,interface", "Only display plugins whose interface type matches specified regexp",
+      cxxopts::value<std::string>() )
 
-  G_context.m_args.AddArgument( "--fact",    argT::SPACE_ARGUMENT, &G_context.opt_fact_regex,
-                                "Only display factories whose interface type matches specified regexp" );
+    ( "t,type", "Only display factories whose instance name matches the specified regexp. "
+              "The plugins are selected from all available interfaces.",
+      cxxopts::value<std::string>() )
 
-  G_context.m_args.AddArgument( "--type",    argT::SPACE_ARGUMENT, &G_context.opt_type_regex,
-                                "Only display factories whose instance name matches the specified regexp. "
-                                "The plugins are selected from all available categories." );
+    ( "a,algo", "Display only algorithm type plugins. "
+      "If type is specified as \"all\", then all algorithms are listed. Otherwise, the type "
+      "will be treated as a regexp and only algorithm types that match the regexp will be displayed.",
+      cxxopts::value<std::string>() )
 
-  G_context.m_args.AddArgument( "--brief",   argT::NO_ARGUMENT, &G_context.opt_brief, "Generate brief display" );
-  G_context.m_args.AddArgument( "-b",        argT::NO_ARGUMENT, &G_context.opt_brief, "Generate brief display" );
-  G_context.m_args.AddArgument( "--files",   argT::NO_ARGUMENT, &G_context.opt_files, "Display list of loaded files" );
-  G_context.m_args.AddArgument( "--mod",     argT::NO_ARGUMENT, &G_context.opt_modules, "Display list of loaded modules" );
-  G_context.m_args.AddArgument( "--all",     argT::NO_ARGUMENT, &G_context.opt_all, "Display all plugin types" );
+    ( "scheduler", "Display scheduler type plugins" )
 
-  std::string algo_arg;
-  G_context.m_args.AddArgument( "--algorithm", argT::SPACE_ARGUMENT, &algo_arg,
-                                "Display only algorithm type plugins. "
-                                "If type is specified as \"all\", then all algorithms are listed. Otherwise, the type "
-                                "will be treated as a regexp and only algorithm types that match the regexp will be displayed.");
+    ( "filter", "Filter based on <attr-name> <attr-value>",
+      cxxopts::value<std::vector<std::string>>())
 
-  G_context.m_args.AddArgument( "--algo",    argT::SPACE_ARGUMENT, &algo_arg,
-                                "Display only algorithm type plugins. "
-                                "If type is specified as \"all\", then all algorithms are listed. Otherwise, the type "
-                                "will be treated as a regexp and only algorithm types that match the regexp will be displayed.");
+    ( "all", "Display all plugin types" )
+    ;
 
-  std::string proc_arg;
-  G_context.m_args.AddArgument( "--process",   argT::SPACE_ARGUMENT, &proc_arg,
-                                "Display only sprokit process type plugins. "
-                                "If type is specified as \"all\", then all processes are listed. Otherwise, the type "
-                                "will be treated as a regexp and only processes names that match the regexp will be displayed." );
-  G_context.m_args.AddArgument( "--proc",      argT::SPACE_ARGUMENT, &proc_arg,
-                                "Display only sprokit process type plugins. "
-                                "If type is specified as \"all\", then all processes are listed. Otherwise, the type "
-                                "will be treated as a regexp and only processes names that match the regexp will be displayed." );
+  G_context.m_cmd_options->add_options("Display modifiers")
+    ( "d,detail", "Display detailed information about the plugins" )
+    ( "b,brief", "Generate a brief display" )
+    ( "attrs", "Display raw attributes for plugins without calling any category specific formatting" )
+    ( "fmt", "Generate display using alternative format, such as 'rst' or 'pipe'",
+      cxxopts::value<std::string>() )
+    ;
 
-  G_context.m_args.AddArgument( "--scheduler", argT::NO_ARGUMENT, &G_context.opt_scheduler, "Display scheduler type plugins" );
+  G_context.m_cmd_options->add_options("File related")
+    ( "skip-relative", "Skip built-in plugin paths that are relative to the executable location")
+    ( "I", "Add directory to search path", cxxopts::value<std::vector<std::string>>() )
+    ( "load", "Load only specified plugin file for inspection. No other plugins are loaded.",
+      cxxopts::value<std::string>() )
+    ;
 
-  std::vector< std::string > filter_args;
-  G_context.m_args.AddArgument( "--filter",  argT::MULTI_ARGUMENT, &filter_args,
-                                "Filter factories based on attribute name and value. "
-                                "Only two fields must follow: <attr-name> <attr-value>" );
-
-  G_context.m_args.AddArgument( "--summary", argT::NO_ARGUMENT, &G_context.opt_summary,
-                                "Display summary of all plugin types" );
-
-  G_context.m_args.AddArgument( "--attrs",   argT::NO_ARGUMENT, &G_context.opt_attrs,
-                                "Display raw attributes for plugins without calling any category specific formatting" );
-
-  G_context.m_args.AddArgument( "--load",    argT::SPACE_ARGUMENT, &G_context.opt_load_module,
-                                "Load only specified plugin file for inspection. No other plugins are loaded." );
-
-  G_context.m_args.AddArgument( "--skip-relative", argT::NO_ARGUMENT, &G_context.opt_skip_relative,
-                                "Skip built-in plugin paths that are relative to the executable location");
-
-  G_context.m_args.AddArgument( "--fmt",     argT::SPACE_ARGUMENT, &G_context.formatting_type,
-                                "Generate display using alternative format, such as 'rst' or 'pipe'" );
+  G_context.m_cmd_options->add_options("Meta")
+    ( "path", "Display plugin search path" )
+    ( "files", "Display list of loaded files" )
+    ( "mod", "Display list of modules loaded" )
+    ( "summary", "Display a summary of all loadable modules" )
+    ;
 
 
   // Need to load plugins before we display help since they can add
@@ -585,17 +506,29 @@ main( int argc, char* argv[] )
   }
 
   // Parse args
-  if ( ! G_context.m_args.Parse() )
-  {
-    std::cerr << "Problem parsing arguments" << std::endl;
-    exit( 0 );
-  }
+  // The parse result has to be created locally due to class design.
+  // No default CTOR, copy CTOR or copy operation.
+  cxxopts::ParseResult local_result = G_context.m_cmd_options->parse( argc, argv );
+  G_context.m_result = &local_result; // this is the best we can do
+  auto& cmd_args = *G_context.m_result;  // for shorthand access
+
+  G_context.opt_detail = cmd_args["detail"].as<bool>();
+  G_context.opt_help = cmd_args["help"].as<bool>();
+  G_context.opt_path_list = cmd_args["path"].as<bool>();
+  G_context.opt_brief = cmd_args["brief"].as<bool>();
+  G_context.opt_modules = cmd_args["mod"].as<bool>();
+  G_context.opt_files = cmd_args["files"].as<bool>();
+  G_context.opt_all = cmd_args["all"].as<bool>();
+  G_context.opt_scheduler = cmd_args["scheduler"].as<bool>();
+  G_context.opt_summary = cmd_args["summary"].as<bool>();
+  G_context.opt_attrs = cmd_args["attrs"].as<bool>();
+  G_context.opt_skip_relative = cmd_args["skip-relative"].as<bool>();
 
   if ( G_context.opt_help )
   {
     pe_out() << "Usage for " << argv[0] << std::endl
              << "   Version: " << version_string << std::endl
-             << G_context.m_args.GetHelp() << std::endl;
+             << G_context.m_cmd_options->help() << std::endl;
 
     exit( 0 );
   }
@@ -608,9 +541,10 @@ main( int argc, char* argv[] )
   }
 
   // Handle process type parameter
-  if ( ! proc_arg.empty() )
+  if ( cmd_args.count("proc") )
   {
     G_context.opt_process = true;
+    const auto& proc_arg{ cmd_args["proc"].as<std::string>() };
 
     // Handle process type string
     if ( proc_arg != "all" )
@@ -619,15 +553,17 @@ main( int argc, char* argv[] )
       G_context.opt_type_filt = true; // do type filtering
       if ( ! type_regex.compile( proc_arg) )
       {
-        std::cerr << "Invalid regular expression for type filter \"" << proc_arg << "\"" << std::endl;
+        std::cerr << "Invalid regular expression for type filter \""
+                  << proc_arg << "\"" << std::endl;
         return 1;
       }
     }
   }
 
-  if (! algo_arg.empty() )
+  if ( cmd_args.count("algo") )
   {
     G_context.opt_algo = true;
+    const auto& algo_arg{ cmd_args["algo"].as<std::string>() };
 
     // Handle algorithm type string
     if ( algo_arg != "all" )
@@ -636,7 +572,8 @@ main( int argc, char* argv[] )
       G_context.opt_fact_filt = true; // do factory filtering
       if ( ! fact_regex.compile( algo_arg) )
       {
-        std::cerr << "Invalid regular expression for type filter \"" << algo_arg << "\"" << std::endl;
+        std::cerr << "Invalid regular expression for type filter \""
+                  << algo_arg << "\"" << std::endl;
         return 1;
       }
     }
@@ -644,39 +581,48 @@ main( int argc, char* argv[] )
   }
 
   // If a factory filtering regex specified, then compile it.
-  if ( ! G_context.opt_fact_regex.empty() )
+  if ( cmd_args.count("interface") )
   {
     G_context.opt_fact_filt = true;
-    if ( ! fact_regex.compile( G_context.opt_fact_regex) )
+    const auto& regex_arg{ cmd_args["interface"].as<std::string>() };
+
+    if ( ! fact_regex.compile( regex_arg) )
     {
-      std::cerr << "Invalid regular expression for factory filter \"" << G_context.opt_fact_regex << "\"" << std::endl;
+      std::cerr << "Invalid regular expression for factory filter \""
+                << regex_arg << "\"" << std::endl;
       return 1;
     }
   }
 
   // If a instance type filtering regex specified, then compile it.
-  if ( ! G_context.opt_type_regex.empty() )
+  if ( cmd_args.count("type") )
   {
     G_context.opt_type_filt = true;
-    if ( ! type_regex.compile( G_context.opt_type_regex) )
+    const auto& regex_arg{ cmd_args["type"].as<std::string>() };
+
+    if ( ! type_regex.compile( regex_arg ) )
     {
-      std::cerr << "Invalid regular expression for type filter \"" << G_context.opt_type_regex << "\"" << std::endl;
+      std::cerr << "Invalid regular expression for type filter \""
+                << regex_arg << "\"" << std::endl;
       return 1;
     }
   }
 
-  if ( filter_args.size() > 0 )
+  if ( cmd_args.count("filter") )
   {
     // check for attribute based filtering
-    if ( filter_args.size() == 2 )
+    if ( cmd_args.count("filter") == 2 )
     {
+      const auto& filter_args{ cmd_args["filter"].as<std::vector<std::string>>() };
+
       G_context.opt_attr_filter = true;
       G_context.opt_filter_attr = filter_args[0];
       G_context.opt_filter_regex = filter_args[1];
 
       if ( ! filter_regex.compile( G_context.opt_filter_regex ) )
       {
-        std::cerr << "Invalid regular expression for attribute filter \"" << G_context.opt_filter_regex << "\"" << std::endl;
+        std::cerr << "Invalid regular expression for attribute filter \""
+                  << G_context.opt_filter_regex << "\"" << std::endl;
         return 1;
       }
     }
@@ -718,11 +664,6 @@ main( int argc, char* argv[] )
     vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/modules");
     vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/sprokit");
   }
-
-  char** newArgv = 0;
-  int newArgc = 0;
-  G_context.m_args.GetUnusedArguments(&newArgc, &newArgv);
-
 
   // Look for plugin file name from command line
   if ( ! G_context.opt_load_module.empty() )

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,7 +118,7 @@ display_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
 
   std::string descrip = "-- Not_Set --";
   fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, descrip );
-  descrip = m_context->wrap_text( descrip );
+  descrip = m_context->format_description( descrip );
 
   if ( m_context->if_brief() )
   {
@@ -144,20 +144,19 @@ display_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
 
     m_context->output_stream() << indent << "-- Configuration --" << std::endl;
 
-    for( auto  key : all_keys )
+    for( auto key : all_keys )
     {
-      auto  val = config->get_value< kwiver::vital::config_block_value_t > ( key );
+      auto val = config->get_value< kwiver::vital::config_block_value_t > ( key );
 
       m_context->output_stream() << indent << "\"" << key << "\" = \"" << val << "\"\n";
 
       kwiver::vital::config_block_description_t descr = config->get_description( key );
-      m_context->output_stream() << indent << "Description: " << m_context->wrap_text( descr ) << std::endl;
+      m_context->output_stream() << indent << "Description: " << m_context->format_description( descr )
+                                 << std::endl;
     }
   }
 
 } // algo_explorer::explore
-
-
 
 
 // ==================================================================
@@ -246,9 +245,9 @@ algo_explorer_pipe::
   auto config = ptr->get_configuration();
   auto all_keys = config->available_values();
 
-  for( auto  key : all_keys )
+  for( auto key : all_keys )
   {
-    auto  val = config->get_value< kwiver::vital::config_block_value_t > ( key );
+    auto val = config->get_value< kwiver::vital::config_block_value_t > ( key );
 
     m_context->output_stream() << "    " << key << " = " << val << std::endl;
 
