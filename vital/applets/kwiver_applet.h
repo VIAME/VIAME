@@ -61,6 +61,14 @@ public:
 
   void initialize( kwiver::tools::applet_context* ctxt );
 
+  /**
+   * @brief Main part of the applet.
+   *
+   * This method implements the main functionality of the applet. This
+   * is called for the applet to do its stuff.
+   *
+   * @return Application return code.
+   */
   virtual int run() = 0;
 
   /**
