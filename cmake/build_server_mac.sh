@@ -1,56 +1,20 @@
 #! /bin/bash
 
-# debugging and logging
-set -x
- 
-# install Fletch & VIAME system deps
-yum update -y
-yum -y groupinstall 'Development Tools'
-yum install -y zip \
-git \
-wget \
-openssl \
-openssl-devel \
-zlib \
-zlib-devel \
-freeglut-devel \
-mesa-libGLU-devel \
-lapack-devel \
-libXt-devel \
-libXmu-devel \
-libXi-devel \
-expat-devel \
-readline-devel \
-curl \
-curl-devel \
-atlas-devel \
-file \
-which \
-bzip2 \
-bzip2-devel
-
-
-# Install CMAKE
-wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz
-tar zxvf cmake-3.*
-cd cmake-3.14.0
-./bootstrap --prefix=/usr/local --system-curl
-make -j$(nproc)
-make install
-cd /
-rm -rf cmake-3.14.0.tar.gz
-
 # Update VIAME sub git sources
-cd /viame/
+export VIAME_SOURCE_FOLDER=/home/kitware/workspace/VIAME_release_macos/
+export VIAME_BUILD_FOLDER=${VIAME_SOURCE_FOLDER}/build
+export VIAME_INSTALL_FOLDER=${VIAME_BUILD_FOLDER}/install
+
+cd $VIAME_SOURCE_FOLDER
 git submodule update --init --recursive
-mkdir build
-cd build 
+mkdir $VIAME_BUILD_FOLDER
+cd $VIAME_BUILD_FOLDER
 
 # Configure Paths [should be removed when no longer necessary by fletch]
-export PATH=$PATH:/viame/build/install/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/build/install/lib:/viame/build/install/lib/python3.6
-export C_INCLUDE_PATH=$C_INCLUDE_PATH:/viame/build/install/include/python3.6m
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/viame/build/install/include/python3.6m
+export PATH=$PATH:$VIAME_INSTALL_FOLDER/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$VIAME_INSTALL_FOLDER/lib:$VIAME_INSTALL_FOLDER/lib/python3.6
+export C_INCLUDE_PATH=$C_INCLUDE_PATH:$VIAME_INSTALL_FOLDER/include/python3.6m
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:$VIAME_INSTALL_FOLDER/include/python3.6m
 
 # Configure VIAME
 cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -104,32 +68,3 @@ cp ../cmake/setup_viame.sh.install install/setup_viame.sh
 # Should be removed when this issue is fixed
 rm install/lib/libsvm.so
 cp install/lib/libsvm.so.2 install/lib/libsvm.so
-
-# HACK: Copy in CUDA dlls missed by create_package
-# Should be removed when this issue is fixed
-cp -P /usr/local/cuda/lib64/libcudart.so* install/lib
-cp -P /usr/local/cuda/lib64/libcusparse.so* install/lib
-cp -P /usr/local/cuda/lib64/libcufft.so* install/lib
-cp -P /usr/local/cuda/lib64/libcusolver.so* install/lib
-cp -P /usr/local/cuda/lib64/libnvrtc* install/lib
-cp -P /usr/local/cuda/lib64/libnvToolsExt.so* install/lib
-
-# HACK: Copy in other possible library requirements if present
-# Should be removed when this issue is fixed
-cp /usr/lib64/libva.so.1 install/lib || true
-cp /usr/lib64/libreadline.so.6 install/lib || true
-cp /usr/lib64/libdc1394.so.22 install/lib || true
-cp /usr/lib64/libcrypto.so.10 install/lib || true
-cp /usr/lib64/libpcre.so.1 install/lib || true
-cp /usr/lib64/libgomp.so.1 install/lib || true
-cp /usr/lib64/libSM.so.6 install/lib || true
-cp /usr/lib64/libICE.so.6 install/lib || true
-cp /usr/lib64/libblas.so.3 install/lib || true
-cp /usr/lib64/liblapack.so.3 install/lib || true
-cp /usr/lib64/libgfortran.so.3 install/lib || true
-cp /usr/lib64/libquadmath.so.0 install/lib || true
-
-#cp /usr/lib64/libX11.so.6 install/lib || true
-#cp /usr/lib64/libXau.so.6 install/lib || true
-#cp /usr/lib64/libxcb.so.1 install/lib || true
-#cp /usr/lib64/libXext.so.6 install/lib || true
