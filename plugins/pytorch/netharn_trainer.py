@@ -269,7 +269,7 @@ class NetHarnTrainer( TrainDetector ):
         signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
         self.proc = subprocess.Popen( cmd, stdout=subprocess.PIPE,
-          shell=True, preexec_fn=os.setsid )
+          shell=True, preexec_fn=(None if os.name == 'nt' else os.setsid) )
 
         subprocess.call( cmd )
         self.save_final_model()
