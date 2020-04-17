@@ -28,8 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <python/kwiver/vital/types/camera.cxx>
-#include <python/kwiver/vital/types/mesh.cxx>
+#include "render_mesh_depth_map.h"
 
 #include <arrows/core/render_mesh_depth_map.h>
 #include <arrows/core/mesh_operations.h>
