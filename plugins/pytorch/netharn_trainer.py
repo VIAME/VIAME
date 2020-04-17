@@ -80,6 +80,7 @@ class NetHarnTrainer( TrainDetector ):
         self._categories = []
         self._resize_option = "original_and_resized"
         self._max_scale_wrt_chip = 2.0
+        self._no_format = False
 
     def get_configuration( self ):
         # Inherit from the base class
@@ -100,6 +101,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "backbone", self._backbone )
         cfg.set_value( "pipeline_template", self._pipeline_template )
         cfg.set_value( "max_scale_wrt_chip", str( self._max_scale_wrt_chip ) )
+        cfg.set_value( "no_format", str( self._no_format ) )
 
         return cfg
 
@@ -123,6 +125,7 @@ class NetHarnTrainer( TrainDetector ):
         self._backbone = str( cfg.get_value( "backbone" ) )
         self._pipeline_template = str( cfg.get_value( "pipeline_template" ) )
         self._max_scale_wrt_chip = float( cfg.get_value( "max_scale_wrt_chip" ) )
+        self._no_format = strtobool( cfg.get_value( "no_format" ) )
 
         # Check GPU-related variables
         gpu_memory_available = 0
@@ -164,13 +167,14 @@ class NetHarnTrainer( TrainDetector ):
         from vital.modules.modules import load_known_modules
         load_known_modules()
 
-        self._training_writer = \
-          DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
-        self._validation_writer = \
-          DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
+        if not self._no_format:
+            self._training_writer = \
+              DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
+            self._validation_writer = \
+              DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
 
-        self._training_writer.open( self._training_file )
-        self._validation_writer.open( self._validation_file )
+            self._training_writer.open( self._training_file )
+            self._validation_writer.open( self._validation_file )
 
         # Initialize persistent variables
         self._training_data = []
@@ -209,6 +213,8 @@ class NetHarnTrainer( TrainDetector ):
         return filtered_truth, use_frame
 
     def add_data_from_disk( self, categories, train_files, train_dets, test_files, test_dets ):
+        if self._no_format:
+            return
         if len( train_files ) != len( train_dets ):
             print( "Error: train file and groundtruth count mismatch" )
             return
@@ -227,8 +233,9 @@ class NetHarnTrainer( TrainDetector ):
                     self._validation_writer.write_set( groundtruth, os.path.abspath( filename ) )
 
     def update_model( self ):
-        self._training_writer.complete()
-        self._validation_writer.complete()
+        if not self._no_format:
+            self._training_writer.complete()
+            self._validation_writer.complete()
 
         gpu_string = ','.join([ str(i) for i in range(0,self._gpu_count) ])
 
