@@ -1,7 +1,7 @@
 #! /bin/bash
 
 # Update VIAME sub git sources
-export VIAME_SOURCE_FOLDER=/home/kitware/workspace/VIAME_release_macos/
+export VIAME_SOURCE_FOLDER=/home/kitware/workspace/VIAME_release_macos
 export VIAME_BUILD_FOLDER=${VIAME_SOURCE_FOLDER}/build
 export VIAME_INSTALL_FOLDER=${VIAME_BUILD_FOLDER}/install
 
