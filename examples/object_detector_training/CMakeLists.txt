@@ -29,7 +29,7 @@ if( VIAME_ENABLE_YOLO )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH )
+if( VIAME_ENABLE_PYTORCH-NETHARN )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
@@ -41,17 +41,17 @@ if( VIAME_ENABLE_PYTORCH )
          train_cfrnn_viame_csv.sh
          train_cfrnn_habcam.sh )
   endif()
+endif()
 
-  if( VIAME_ENABLE_SMQTK )
-    if( WIN32 )
-      set( EXAMPLE_INSTALL_FILES
-           ${EXAMPLE_INSTALL_FILES}
-           train_svm_viame_csv.bat )
-    else()
-      set( EXAMPLE_INSTALL_FILES
-           ${EXAMPLE_INSTALL_FILES}
-           train_svm_viame_csv.sh )
-    endif()
+if( VIAME_ENABLE_SMQTK )
+  if( WIN32 )
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_svm_viame_csv.bat )
+  else()
+    set( EXAMPLE_INSTALL_FILES
+         ${EXAMPLE_INSTALL_FILES}
+         train_svm_viame_csv.sh )
   endif()
 endif()
 
