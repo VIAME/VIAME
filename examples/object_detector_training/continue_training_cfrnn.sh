@@ -4,7 +4,7 @@
 export VIAME_INSTALL="$(cd "$(dirname ${BASH_SOURCE[0]})" && pwd)/../.."
 
 # Core processing options
-export INPUT_DIRECTORY=training_data
+export INPUT_DIRECTORY=training_data_mouss
 export INITIAL_MODEL=category_models/trained_detector.zip
 
 # Setup paths and run command
