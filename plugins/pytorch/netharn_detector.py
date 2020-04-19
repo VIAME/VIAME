@@ -99,8 +99,7 @@ class NetharnDetector(ImageObjectDetector):
             'deployed': "",
             'thresh': 0.01,
             'xpu': "0",
-            'batch_size': "auto",
-            'overlap': "0.2",
+            'batch_size': "auto"
         }
 
         # netharn variables
@@ -185,7 +184,6 @@ class NetharnDetector(ImageObjectDetector):
         from bioharn import detect_predict
         pred_config = detect_predict.DetectPredictConfig()
         pred_config['batch_size'] = self._kwiver_config['batch_size']
-        pred_config['overlap'] = self._kwiver_config['overlap']
         pred_config['deployed'] = self._kwiver_config['deployed']
         pred_config['xpu'] = self._kwiver_config['xpu']
         self.predictor = detect_predict.DetectPredictor(pred_config)
