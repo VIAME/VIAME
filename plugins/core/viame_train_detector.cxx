@@ -209,17 +209,6 @@ std::string append_path( std::string p1, std::string p2 )
   return p1 + "/" + p2;
 }
 
-bool remove_and_reset_folder( std::string location )
-{
-  if( does_folder_exist( location ) )
-  {
-    boost::filesystem::remove_all( location );
-  }
-
-  create_folder( location );
-  return true;
-}
-
 std::string get_filename_with_last_path( std::string path )
 {
   return append_path( boost::filesystem::path( path ).parent_path().filename().string(),
