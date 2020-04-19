@@ -13,6 +13,16 @@ DownloadAndExtract(
 set( EXAMPLE_INSTALL_FILES
      README.rst )
 
+if( WIN32 )
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_trained_deep_model.bat )
+else()
+  set( EXAMPLE_INSTALL_FILES
+       ${EXAMPLE_INSTALL_FILES}
+       run_trained_deep_model.sh )
+endif()
+
 if( VIAME_ENABLE_YOLO )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
@@ -33,11 +43,13 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
+         continue_training_cfrnn.bat
          train_cfrnn_viame_csv.bat
          train_cfrnn_habcam.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
+         continue_training_cfrnn.sh
          train_cfrnn_viame_csv.sh
          train_cfrnn_habcam.sh )
   endif()
@@ -47,10 +59,12 @@ if( VIAME_ENABLE_SMQTK )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
+         run_trained_svm_model.bat
          train_svm_viame_csv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
          ${EXAMPLE_INSTALL_FILES}
+         run_trained_svm_model.sh
          train_svm_viame_csv.sh )
   endif()
 endif()
