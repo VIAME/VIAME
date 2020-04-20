@@ -145,6 +145,8 @@ function (kwiver_add_python_module path     modpath    module)
   endif ()
 
   set(pyfile_src "${path}")
+  # SKBUILD associates the package root with CMAKE_INSTALL_PREFIX
+  # in source build this would be kwiver_python_install_path/project_name
   if(SKBUILD)
     set(pyfile_dst "${CMAKE_BINARY_DIR}/${modpath}/${module}.py")
     # installation path for this module
@@ -168,7 +170,7 @@ function (kwiver_add_python_module path     modpath    module)
       PYTHON_EXECUTABLE)
   endif()
 
-  # install the configured binary to the kwiver python install path
+  # install the configured binary to pypkg_install_path
   kwiver_install(
     FILES       "${pyfile_dst}"
     DESTINATION "${pypkg_install_path}"
@@ -241,7 +243,8 @@ function (kwiver_create_python_init    modpath)
     endforeach()
   endif()
 
-  # Installation __init__
+  # SKBUILD associates the package root with CMAKE_INSTALL_PREFIX
+  # in source build this would be kwiver_python_install_path/project_name
   if(SKBUILD)
     set ( install_path "${CMAKE_INSTALL_PREFIX}/${modpath}")
   else()
