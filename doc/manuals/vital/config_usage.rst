@@ -17,7 +17,11 @@ typical way to control the behaviour of the software. Configuration
 blocks can also be created pragmatically such as when specifying an
 expected set of configurable items.
 
-When algorithms are used within processes, the
+When algorithms are used within processes, the configuration entries
+are specified as a block in the pipe file. The process takes the
+appropriate config subblock and passes it to the
+``set_nested_algo_configuration()`` method to instantiate and
+configure the algorithm.
 
 
 From File to config_block
@@ -321,3 +325,45 @@ the file to be edited. The following is an example of selecting a
 different include file based on mode.::
 
   include $ENV{MODE}/config.file.conf
+
+
+Using enums in config entries
+-----------------------------
+
+Quite often a configuration parameter can only take a fixed number of
+values such as when the user is trying to configure an enum. The enum
+support in vital directly supports converting strings to enum values
+with the use of the ``enum_converter`` and enum support in the config
+block. The enum converter will verify that the supplied string
+represents an enum value, and throw an error if it does not. The list
+of valid enum strings is provided to assist in documenting config
+entries.
+
+The following code snippet shows how to use the enum support to create
+a new config entry and convert config entry to an enum value.::
+
+   #include <vital/util/enum_converter.h>
+
+   using kvll = kwiver::vital::kwiver_logger::log_level_t;
+
+   // Declare the enum converter
+   //              converter-name   enum-type
+   ENUM_CONVERTER( level_converter, kvll,
+      { "trace", kvll::LEVEL_TRACE },
+      { "debug", kvll::LEVEL_DEBUG },
+      { "info",  kvll::LEVEL_INFO },
+      { "warn",  kvll::LEVEL_WARN },
+      { "error", kvll::LEVEL_ERROR }
+    );
+
+
+    // Create config entry from enum. level_converter supplies the list of
+    // valid enum strings.
+   conf->set_value( "level", level_converter().to_string( m_log_level ),
+                   "Logger level to use when generating log messages. "
+                   "Allowable values are: " + level_converter().element_name_string()
+    );
+
+
+   // Convert config entry to an enum value.
+   kvll log_level = conf->get_enum_value<level_converter>( "level" );

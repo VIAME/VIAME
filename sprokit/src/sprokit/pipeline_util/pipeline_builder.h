@@ -211,6 +211,8 @@ private:
   kwiver::vital::config_path_list_t m_search_path;
 };
 
+using  pipeline_builder_sptr = std::shared_ptr< pipeline_builder>;
+
 }
 
 #endif // SPROKIT_TOOLS_PIPELINE_BUILDER_H
