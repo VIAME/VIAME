@@ -128,7 +128,7 @@ explorer_context
     // If in detail mode, print the rest of the description
     if( if_detail() )
     {
-      auto descr {text.substr( pos )};
+      std::string descr {text.substr( pos )};
       string_trim( descr );
       output += "\n";
       output += wrap_text( descr );

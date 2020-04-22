@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2018, 2020 by Kitware, Inc.
+ * Copyright 2014-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@
 #include <memory>
 #include <map>
 
-using ST = kwiversys::SystemTools;
+typedef kwiversys::SystemTools ST;
 
 // -- forward definitions --
 static void display_attributes( kwiver::vital::plugin_factory_handle_t const fact );
@@ -299,7 +299,6 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
         }
       }
 
-      // use category handler if there is one
       if ( cat_handler )
       {
         cat_handler->explore( fact );
@@ -333,6 +332,8 @@ get_category_handler( const std::string& cat )
     return category_map[handler_name];
   }
 
+  LOG_WARN( G_logger, "Formatting type \"" << G_context.formatting_type
+            << "\" for category \"" << cat << "\" not available." );
   return nullptr;
 }
 
@@ -404,19 +405,6 @@ void load_explorer_plugins()
 }
 
 
-// ------------------------------------------------------------------
-int
-path_callback( const char*  argument,   // name of argument
-               const char*  value,      // value of argument
-               void*        call_data ) // data from register call
-{
-  const std::string p( value );
-
-  G_context.opt_path.push_back( p );
-  return 1;   // return true for OK
-}
-
-
 // ==================================================================
 /*                   _
  *   _ __ ___   __ _(_)_ __
@@ -436,7 +424,7 @@ main( int argc, char* argv[] )
   G_explorer_context = new kwiver::vital::context_factory( &G_context );
 
   // Set formatting string for description formatting
-  G_context.m_wtb.set_indent_string( "          " );
+  G_context.m_wtb.set_indent_string( "      " );
 
   G_context.m_cmd_options.reset( new cxxopts::Options( "plugin_explorer",
                                                        "This program display information about plugins." ) );
@@ -508,8 +496,17 @@ main( int argc, char* argv[] )
   // Parse args
   // The parse result has to be created locally due to class design.
   // No default CTOR, copy CTOR or copy operation.
-  cxxopts::ParseResult local_result = G_context.m_cmd_options->parse( argc, argv );
-  G_context.m_result = &local_result; // this is the best we can do
+  try
+  {
+    static cxxopts::ParseResult local_result = G_context.m_cmd_options->parse( argc, argv );
+    G_context.m_result = &local_result; // this is the best we can do
+  }
+  catch ( std::exception & e )
+  {
+    std::cerr << "Exception while processing command line parameters.\n" << e.what() << std::endl;
+    exit(1);
+  }
+
   auto& cmd_args = *G_context.m_result;  // for shorthand access
 
   G_context.opt_detail = cmd_args["detail"].as<bool>();
@@ -531,6 +528,11 @@ main( int argc, char* argv[] )
              << G_context.m_cmd_options->help() << std::endl;
 
     exit( 0 );
+  }
+
+  if ( cmd_args.count("fmt"))
+  {
+    G_context.formatting_type = cmd_args["fmt"].as<std::string>();
   }
 
   if (opt_version)
