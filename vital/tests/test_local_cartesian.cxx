@@ -60,7 +60,7 @@ main(int argc, char* argv[])
 }
 
 // ----------------------------------------------------------------------------
-TEST(geo_point, constructor)
+TEST(local_cartesian, constructor)
 {
   kwiver::vital::local_cartesian lc1(origA);
   EXPECT_EQ(lc1.get_origin().location(), origA.location());
@@ -72,7 +72,7 @@ TEST(geo_point, constructor)
 }
 
 // ----------------------------------------------------------------------------
-TEST(geo_point, api)
+TEST(local_cartesian, api)
 {
   kwiver::vital::local_cartesian lc1(origA);
   // Test values of the point as originally constructed
@@ -92,13 +92,13 @@ TEST(geo_point, api)
 
 void CompareLLA(kwiver::vital::vector_3d gp1, kwiver::vital::vector_3d gp2)
 {
-  EXPECT_NEAR(gp1[0], gp2[0], 1e-8);
-  EXPECT_NEAR(gp1[1], gp2[1], 1e-8);
+  EXPECT_NEAR(gp1[0], gp2[0], 1e-7);
+  EXPECT_NEAR(gp1[1], gp2[1], 1e-7);
   EXPECT_NEAR(gp1[2], gp2[2], 1e-3);
 }
 
 // ----------------------------------------------------------------------------
-TEST(geo_point, conversion)
+TEST(local_cartesian, conversion)
 {
   kwiver::vital::plugin_manager::instance().load_all_plugins();
 
@@ -128,19 +128,18 @@ TEST(geo_point, conversion)
   kwiver::vital::local_cartesian lc_utm(origB);
 
   // Get the geopoint from an offset
-  lc_lla.convert_from_cartesian(offset1, geo_outB);
+  lc_utm.convert_from_cartesian(offset1, geo_outB);
   CompareLLA(geo_outB.location(), geo1.location());
 
   // Now get the cartesian value from that geo_point
-  lc_lla.convert_to_cartesian(geo_outB, cart_outB);
+  lc_utm.convert_to_cartesian(geo_outB, cart_outB);
   CompareLLA(cart_outB, offset1);
 
   // Get the geopoint from another offset
-  lc_lla.convert_from_cartesian(offset2, geo_outB);
+  lc_utm.convert_from_cartesian(offset2, geo_outB);
   CompareLLA(geo_outB.location(), geo2.location());
 
   // Now get the cartesian value from that geo_point
-  lc_lla.convert_to_cartesian(geo_outB, cart_outB);
+  lc_utm.convert_to_cartesian(geo_outB, cart_outB);
   CompareLLA(cart_outB, offset2);
-
 }
