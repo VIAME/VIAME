@@ -76,9 +76,12 @@ class Siamese(nn.Module):
 # LSTMs
 # ==================================================================
 class BaseLSTM(nn.Module):
-    def __init__(self, f_in_num):
+    def __init__(self, f_in_num, normalized):
         super(BaseLSTM, self).__init__()
 
+        self.normalized = normalized
+        if normalized:
+            self.bn = nn.BatchNorm1d(f_in_num)
         self.target_fc = nn.Linear(f_in_num, g_config.H)
         self.lstm = nn.LSTM(
             input_size=f_in_num,
@@ -92,6 +95,12 @@ class BaseLSTM(nn.Module):
 
     # TODO: we may need to add hidden status from previous
     def forward(self, track_input, target_input):
+        if self.normalized:
+            # Put all input into one batch and normalize it
+            all_input = torch.cat((track_input, target_input.unsqueeze(1)), 1)
+            all_input_norm = self.bn(all_input.transpose(1, 2)).transpose(1, 2)
+            track_input, target_input = all_input_norm[:, :-1], all_input_norm[:, -1]
+
         target_out = self.target_fc(target_input)
         r_out, (h_t, c_t) = self.lstm(track_input, None)
 
@@ -109,23 +118,23 @@ class BaseLSTM(nn.Module):
 
 
 class AppearanceLSTM(BaseLSTM):
-    def __init__(self):
-        super(AppearanceLSTM, self).__init__(g_config.A_F_num)
+    def __init__(self, normalized):
+        super(AppearanceLSTM, self).__init__(g_config.A_F_num, normalized)
 
 
 class InteractionLSTM(BaseLSTM):
-    def __init__(self):
-        super(InteractionLSTM, self).__init__(g_config.I_F_num)
+    def __init__(self, normalized):
+        super(InteractionLSTM, self).__init__(g_config.I_F_num, normalized)
 
 
 class MotionLSTM(BaseLSTM):
-    def __init__(self):
-        super(MotionLSTM, self).__init__(g_config.M_F_num)
+    def __init__(self, normalized):
+        super(MotionLSTM, self).__init__(g_config.M_F_num, normalized)
 
 
 class BBoxLSTM(BaseLSTM):
-    def __init__(self):
-        super(BBoxLSTM, self).__init__(g_config.B_F_num)
+    def __init__(self, normalized):
+        super(BBoxLSTM, self).__init__(g_config.B_F_num, normalized)
 
 
 # Target LSTM
@@ -133,16 +142,17 @@ class BBoxLSTM(BaseLSTM):
 class TargetLSTM(nn.Module):
     def __init__(self, app_model='', motion_model='', interaction_model='', bbox_model='',
                  model_list=(RnnType.Appearance, RnnType.Motion, RnnType.Interaction),
-                 use_gpu_flag=True):
+                 normalized=False, use_gpu_flag=True):
         super(TargetLSTM, self).__init__()
 
         self.model_list = model_list
 
-        def config_model(model, model_path):
-            """Move model to GPU if use_gpu_flag is true and initialize the model
-            from model_path if truthy.
+        def load_model(make_model, model_path):
+            """Call make_model and move the resulting model to GPU if use_gpu_flag
+            is true and initialize it from model_path if truthy.
 
             """
+            model = make_model(normalized=normalized)
             if use_gpu_flag:
                 model = model.cuda()
             if model_path:
@@ -151,16 +161,16 @@ class TargetLSTM(nn.Module):
             return model
 
         if RnnType.Appearance in self.model_list:
-            self.appearance = config_model(AppearanceLSTM(), app_model)
+            self.appearance = load_model(AppearanceLSTM, app_model)
 
         if RnnType.Motion in self.model_list:
-            self.motion = config_model(MotionLSTM(), motion_model)
+            self.motion = load_model(MotionLSTM, motion_model)
 
         if RnnType.Interaction in self.model_list:
-            self.interaction = config_model(InteractionLSTM(), interaction_model)
+            self.interaction = load_model(InteractionLSTM, interaction_model)
 
         if RnnType.BBox in self.model_list:
-            self.bbar = config_model(BBoxLSTM(), bbox_model)
+            self.bbar = load_model(BBoxLSTM, bbox_model)
 
         self.lstm = nn.LSTM(
             input_size=g_config.K * len(model_list),
