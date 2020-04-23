@@ -55,7 +55,7 @@ are quite large, in terms of disk space, due to the inclusion of multiple defaul
 but if just building your desired features from source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
-RHEL/CentOS 7 64-Bit, Ubuntu 16.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
+RHEL/CentOS 7 64-Bit, Ubuntu 16.04/18.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
 6 Gb of Disk Space for the Full Installation <br>
 
 **Installation Recommendations:** <br>
