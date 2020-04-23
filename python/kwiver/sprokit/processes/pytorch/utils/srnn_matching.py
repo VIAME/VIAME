@@ -84,12 +84,12 @@ class TargetRNNDataLoader(data.Dataset):
 
 class SRNNMatching(object):
     def __init__(self, targetRNN_full_model_path, targetRNN_AIM_V_model_path,
-                    batch_size, gpu_list=None):
+                 normalized, batch_size, gpu_list=None):
         self._device, self._use_gpu_flag = get_device(gpu_list)
         self._batch_size = batch_size
 
         def load_model(model_list, model_path):
-            model = TargetLSTM(model_list=model_list, use_gpu_flag=self._use_gpu_flag)
+            model = TargetLSTM(model_list=model_list, normalized=normalized, use_gpu_flag=self._use_gpu_flag)
             model = model.to(self._device)
             if self._use_gpu_flag:
                 snapshot = torch.load(model_path)
