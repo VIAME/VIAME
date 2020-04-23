@@ -73,15 +73,15 @@ class Siamese(nn.Module):
         return output1
 
 
-# Appearance LSTM
+# LSTMs
 # ==================================================================
-class AppearanceLSTM(nn.Module):
-    def __init__(self):
-        super(AppearanceLSTM, self).__init__()
+class BaseLSTM(nn.Module):
+    def __init__(self, f_in_num):
+        super(BaseLSTM, self).__init__()
 
-        self.target_fc = nn.Linear(g_config.A_F_num, g_config.H)
+        self.target_fc = nn.Linear(f_in_num, g_config.H)
         self.lstm = nn.LSTM(
-            input_size=g_config.A_F_num,
+            input_size=f_in_num,
             hidden_size=g_config.H,
             num_layers=1,
             batch_first=True
@@ -108,108 +108,24 @@ class AppearanceLSTM(nn.Module):
         return torch.stack(outs, dim=1), torch.stack(relu_outs, dim=1)
 
 
-# Interaction LSTM
-# ==================================================================
-class InteractionLSTM(nn.Module):
+class AppearanceLSTM(BaseLSTM):
     def __init__(self):
-        super(InteractionLSTM, self).__init__()
-
-        self.target_fc = nn.Linear(g_config.I_F_num, g_config.H)
-        self.lstm = nn.LSTM(
-            input_size=g_config.I_F_num,
-            hidden_size=g_config.H,
-            num_layers=1,
-            batch_first=True
-        )
-        self.fc1 = nn.Linear(g_config.H * 2, g_config.K)
-        self.fc2 = nn.Linear(g_config.K, 2)
-        self.relu = nn.ReLU()
-
-    def forward(self, track_input, target_input):
-
-        target_out = self.target_fc(target_input)
-        r_out, (h_t, c_t) = self.lstm(track_input, None)
-
-        outs = []
-        relu_outs = []
-        for i in range(g_config.timeStep):
-            h_t = r_out[:, i, :]
-            combined_out = torch.cat((h_t, target_out), 1)
-            fc1_output = self.fc1(combined_out)
-            relu_output = self.relu(fc1_output)
-            relu_outs.append(relu_output)
-            outs.append(self.fc2(relu_output))
-
-        return torch.stack(outs, dim=1), torch.stack(relu_outs, dim=1)
+        super(AppearanceLSTM, self).__init__(g_config.A_F_num)
 
 
-# Motion LSTM
-# ==================================================================
-class MotionLSTM(nn.Module):
+class InteractionLSTM(BaseLSTM):
     def __init__(self):
-        super(MotionLSTM, self).__init__()
-
-        self.target_fc = nn.Linear(g_config.M_F_num, g_config.H)
-        self.lstm = nn.LSTM(
-            input_size=g_config.M_F_num,
-            hidden_size=g_config.H,
-            num_layers=1,
-            batch_first=True
-        )
-        self.fc1 = nn.Linear(g_config.H * 2, g_config.K)
-        self.fc2 = nn.Linear(g_config.K, 2)
-        self.relu = nn.ReLU()
-
-    def forward(self, track_input, target_input):
-        target_out = self.target_fc(target_input)
-        r_out, (h_t, c_t) = self.lstm(track_input, None)
-
-        outs = []
-        relu_outs = []
-        for i in range(g_config.timeStep):
-            h_t = r_out[:, i, :]
-            combined_out = torch.cat((h_t, target_out), 1)
-            fc1_output = self.fc1(combined_out)
-            relu_output = self.relu(fc1_output)
-
-            relu_outs.append(relu_output)
-            outs.append(self.fc2(relu_output))
-
-        return torch.stack(outs, dim=1), torch.stack(relu_outs, dim=1)
+        super(InteractionLSTM, self).__init__(g_config.I_F_num)
 
 
-# BBox area and w to h ratio LSTM
-# ==================================================================
-class BBoxLSTM(nn.Module):
+class MotionLSTM(BaseLSTM):
     def __init__(self):
-        super(BBoxLSTM, self).__init__()
+        super(MotionLSTM, self).__init__(g_config.M_F_num)
 
-        self.target_fc = nn.Linear(g_config.B_F_num, g_config.H)
-        self.lstm = nn.LSTM(
-            input_size=g_config.B_F_num,
-            hidden_size=g_config.H,
-            num_layers=1,
-            batch_first=True
-        )
-        self.fc1 = nn.Linear(g_config.H * 2, g_config.K)
-        self.fc2 = nn.Linear(g_config.K, 2)
-        self.relu = nn.ReLU()
 
-    def forward(self, track_input, target_input):
-        target_out = self.target_fc(target_input)
-        r_out, (h_t, c_t) = self.lstm(track_input, None)
-
-        outs = []
-        relu_outs = []
-        for i in range(g_config.timeStep):
-            h_t = r_out[:, i, :]
-            combined_out = torch.cat((h_t, target_out), 1)
-            fc1_output = self.fc1(combined_out)
-            relu_output = self.relu(fc1_output)
-            relu_outs.append(relu_output)
-            outs.append(self.fc2(relu_output))
-
-        return torch.stack(outs, dim=1), torch.stack(relu_outs, dim=1)
+class BBoxLSTM(BaseLSTM):
+    def __init__(self):
+        super(BBoxLSTM, self).__init__(g_config.B_F_num)
 
 
 # Target LSTM
