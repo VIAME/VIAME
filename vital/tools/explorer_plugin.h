@@ -36,15 +36,14 @@
 #include <vital/vital_config.h>
 #include <vital/noncopyable.h>
 #include <vital/plugin_loader/plugin_factory.h>
-
-#include <kwiversys/CommandLineArguments.hxx>
-#include <memory>
+#include <vital/applets/cxxopts.hpp>
+#include <vital/config/config_block.h>
 
 namespace kwiver {
 namespace vital {
 
 class category_explorer;
-typedef std::shared_ptr<category_explorer> category_explorer_sptr;
+using category_explorer_sptr = std::shared_ptr<category_explorer>;
 
 // ----------------------------------------------------------------
 /**
@@ -79,7 +78,16 @@ public:
    *
    * @return Pointer to command line args object.
    */
-  kwiversys::CommandLineArguments* command_line_args();
+  cxxopts::Options& command_line_args();
+
+  /**
+   * @brief Parsed version of the command line
+   *
+   *
+   * @return Reference to the parsed command line options.
+   */
+  cxxopts::ParseResult& command_line_result();
+
 
   /**
    * @brief Wrap long text to line length.
@@ -97,7 +105,7 @@ public:
    * @brief Return formatting type string.
    *
    * This method returns the formatting type string that was specified
-   * on the commane line.
+   * on the command line.
    *
    * @return Formatting type string.
    */
@@ -112,6 +120,32 @@ public:
    * format in addition to this plugin's output format.
    */
   void display_attr( const kwiver::vital::plugin_factory_handle_t fact) const;
+
+  /**
+   * @brief Format description text.
+   *
+   * The supplied text is wrapped to the current formatting
+   * specifications. The input text is in the standard description
+   * format with a short description, followed by a blank line and
+   * then the extended description. If the command is not operating in
+   * the "detail" mode, then only the first line is returned.
+   *
+   * @param text Raw input text to be formatted
+   *
+   * @return Formatted description
+   */
+  std::string format_description( std::string const& text ) const;
+
+  /**
+   * @brief Print a config block.
+   *
+   * The specified config block is formatted and sent to the current
+   * output stream. The formatting of the description is controlled by
+   * the "detailed" option.
+   *
+   * @param config Block to format and print
+   */
+  void print_config( kwiver::vital::config_block_sptr const config ) const;
 
   bool if_detail() const;
   bool if_brief() const;

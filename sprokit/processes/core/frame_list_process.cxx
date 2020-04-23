@@ -66,14 +66,15 @@ namespace kwiver {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( image_list_file, std::string, "",
-                     "Name of file that contains list of image file names. "
+                     "Name of file that contains list of image file names.\n\n"
                      "Each line in the file specifies the name of a single image file.");
 
 create_config_trait( path, std::string, "",
-                     "Path to search for image file. The format is the same as the standard "
+                     "Path to search for image file.\n\n"
+                     " The format is the same as the standard "
                      "path specification, a set of directories separated by a colon (':')" );
 
-create_config_trait( frame_time, double, "0.03333333", "Inter frame time in seconds. "
+create_config_trait( frame_time, double, "0.03333333", "Inter frame time in seconds.\n\n "
                      "The generated timestamps will have the specified number of seconds in the generated "
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
                      "video stream application.");
