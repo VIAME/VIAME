@@ -151,6 +151,11 @@ class SRNNTracker(KwiverProcess):
         add_declare_config_trait("targetRNN_batch_size", '256',
                                  'targetRNN model processing batch size')
 
+        # target RNN normalization
+        add_declare_config_trait("targetRNN_normalized_models", 'False',
+                                 "If the provided models have a normalization layer, "
+                                 "this should be exactly the string 'True' (no quotes)")
+
         # matching similarity threshold
         add_declare_config_trait("similarity_threshold", '0.5',
                                  'similarity threshold.')
@@ -225,8 +230,11 @@ class SRNNTracker(KwiverProcess):
         targetRNN_batch_size = int(self.config_value('targetRNN_batch_size'))
         targetRNN_AIM_model_path = self.config_value('targetRNN_AIM_model_path')
         targetRNN_AIM_V_model_path = self.config_value('targetRNN_AIM_V_model_path')
-        self._srnn_matching = SRNNMatching(targetRNN_AIM_model_path,
-                targetRNN_AIM_V_model_path, targetRNN_batch_size, self._gpu_list)
+        targetRNN_normalized_models = 'True' == self.config_value('targetRNN_normalized_models')
+        self._srnn_matching = SRNNMatching(
+            targetRNN_AIM_model_path, targetRNN_AIM_V_model_path,
+            targetRNN_normalized_models, targetRNN_batch_size, self._gpu_list,
+        )
 
         self._gtbbox_flag = False
         # use MOT gt detection
