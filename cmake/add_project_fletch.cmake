@@ -151,6 +151,12 @@ if( VIAME_ENABLE_FFMPEG )
     ${fletch_DEP_FLAGS}
     -Dfletch_ENABLE_FFmpeg:BOOL=ON
   )
+  if( APPLE )
+    set( fletch_DEP_FLAGS
+      ${fletch_DEP_FLAGS}
+      -DFFmpeg_SELECT_VERSION:STRING=2.6.2
+    )
+  endif()
 else()
   set( fletch_DEP_FLAGS
     ${fletch_DEP_FLAGS}
