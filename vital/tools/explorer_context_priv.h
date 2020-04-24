@@ -92,8 +92,7 @@ public:
   priv() = default;
 
   virtual ~priv()
-  {
-  }
+  { }
 };
 
 

@@ -45,6 +45,7 @@ kwiver_add_library( explorer_plugin
 
 target_link_libraries( explorer_plugin
   PUBLIC   vital
+           ${VITAL_BOOST_REGEX}
   PRIVATE  kwiversys
            vital_util
   )

@@ -546,7 +546,7 @@ main( int argc, char* argv[] )
   if ( cmd_args.count("proc") )
   {
     G_context.opt_process = true;
-    const auto& proc_arg{ cmd_args["proc"].as<std::string>() };
+    std::string const proc_arg{ cmd_args["proc"].as<std::string>() };
 
     // Handle process type string
     if ( proc_arg != "all" )
@@ -565,7 +565,7 @@ main( int argc, char* argv[] )
   if ( cmd_args.count("algo") )
   {
     G_context.opt_algo = true;
-    const auto& algo_arg{ cmd_args["algo"].as<std::string>() };
+    std::string const algo_arg{ cmd_args["algo"].as<std::string>() };
 
     // Handle algorithm type string
     if ( algo_arg != "all" )
@@ -586,7 +586,7 @@ main( int argc, char* argv[] )
   if ( cmd_args.count("interface") )
   {
     G_context.opt_fact_filt = true;
-    const auto& regex_arg{ cmd_args["interface"].as<std::string>() };
+    std::string const regex_arg{ cmd_args["interface"].as<std::string>() };
 
     if ( ! fact_regex.compile( regex_arg) )
     {
@@ -600,7 +600,7 @@ main( int argc, char* argv[] )
   if ( cmd_args.count("type") )
   {
     G_context.opt_type_filt = true;
-    const auto& regex_arg{ cmd_args["type"].as<std::string>() };
+    std::string const regex_arg{ cmd_args["type"].as<std::string>() };
 
     if ( ! type_regex.compile( regex_arg ) )
     {
@@ -615,7 +615,7 @@ main( int argc, char* argv[] )
     // check for attribute based filtering
     if ( cmd_args.count("filter") == 2 )
     {
-      const auto& filter_args{ cmd_args["filter"].as<std::vector<std::string>>() };
+      std::vector< std::string > const filter_args{ cmd_args["filter"].as<std::vector<std::string>>() };
 
       G_context.opt_attr_filter = true;
       G_context.opt_filter_attr = filter_args[0];
