@@ -39,14 +39,15 @@ if(fletch_ENABLED_ZLib)
   if(KWIVER_BUILD_SHARED)
     find_package(ZLIB MODULE REQUIRED)
   else()
+    # Zlib produces both static and dynamic libraries
+    # This allows static libraries to be picked instead of shared libraries
+    # Thereby not creating a zlib dependency in he library
     find_library(ZLIB_LIBRARIES NAMES libz.a libz libzlib
                  PATHS ${fletch_ROOT}
                  PATH_SUFFIXES lib
                  )
   endif()
 endif()
-
-set_target_properties(kwiver_algo_ffmpeg PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic")
 
 target_link_libraries( kwiver_algo_ffmpeg
   PUBLIC               kwiver_algo_core
@@ -60,7 +61,6 @@ algorithms_create_plugin( kwiver_algo_ffmpeg
   register_algorithms.cxx
   )
 
-set_target_properties(kwiver_algo_ffmpeg_plugin PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic")
 
 if (KWIVER_ENABLE_TESTS)
   add_subdirectory(tests)

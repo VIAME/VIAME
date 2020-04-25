@@ -13,7 +13,6 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   include( kwiver-flags-gnu )
 endif()
 
-kwiver_check_compiler_flag( -s )
 
 get_property( kwiver_cxx_flags GLOBAL PROPERTY kwiver_warnings )
 string( REPLACE ";" " " kwiver_cxx_flags "${kwiver_cxx_flags}" )
