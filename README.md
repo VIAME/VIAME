@@ -234,7 +234,9 @@ Source Code Layout
    │   └── ...             # Assorted other packages (typically for algorithms)
    ├── plugins             # Integrated algorithms or wrappers around external projects
    │   └── ...             # Assorted plugins (detectors, depth maps, filters, etc.)
+   ├── tools               # Standalone tools or scripts, often building on the above
    └── README.md           # Project introduction page that you are reading
+   └── RELEASE_NOTES.md    # A list of the latest updates in the system per version
 </pre>
 
 
