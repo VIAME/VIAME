@@ -509,6 +509,7 @@ else()
 
   add_subdirectory( examples )
   add_subdirectory( configs )
+  add_subdirectory( tools )
 
   ###
   # Configure setup scripts
