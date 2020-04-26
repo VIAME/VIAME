@@ -16,6 +16,16 @@ set( PYTHON_SCRIPTS
   generate_detection_plots.py
   score_results.py )
 
+if( VIAME_ENABLE_OPENCV )
+  set( PYTHON_SCRIPTS
+    ${PYTHON_SCRIPTS}
+    calibrate_cameras.py
+    compute_depth.py
+    compute_disparity.py
+    ply_utilities.py
+    stereo_rectify.py )
+endif()
+
 ###
 # C/C++ compiled standalone tools
 ##
