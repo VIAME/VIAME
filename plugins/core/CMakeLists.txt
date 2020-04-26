@@ -63,11 +63,7 @@ target_link_libraries( viame_core_plugin
   PUBLIC               kwiver::vital_vpm
   )
 
-kwiver_add_executable( viame_train_detector
-  viame_train_detector.cxx
-  )
-
-find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
+find_package( Boost ${KWIVER_BOOST_VERSION} REQUIRED
     COMPONENTS
       chrono
       filesystem
@@ -75,21 +71,6 @@ find_package(Boost ${KWIVER_BOOST_VERSION} REQUIRED
 
 include_directories( SYSTEM ${Boost_INCLUDE_DIRS} )
 link_directories( ${Boost_LIBRARY_DIRS} )
-
-target_link_libraries( viame_train_detector
-  PRIVATE      kwiver::vital
-               kwiver::vital_vpm
-               kwiver::vital_config
-               kwiver::vital_exceptions
-               kwiver::vital_logger
-               kwiver::vital_algo
-               kwiver::vital_util
-               kwiver::kwiversys
-               kwiver::sprokit_pipeline
-               kwiver::kwiver_adapter
-               ${Boost_SYSTEM_LIBRARY}
-               ${Boost_FILESYSTEM_LIBRARY}
-  )
 
 # Add process library
 set( process_headers

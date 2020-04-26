@@ -141,19 +141,8 @@ install( DIRECTORY prj-windows
          DESTINATION configs )
 
 ###
-# All files manually-included based on options
+# All config files manually-included by default or based on options
 ##
-set( RUN_SCRIPT_FILES
-  check_formatting.py
-  database_tool.py
-  extract_video_frames.py
-  process_video.py
-  launch_search_interface.py
-  launch_timeline_interface.py
-  launch_annotation_interface.py
-  generate_detection_plots.py
-  score_results.py )
-
 set( CORE_PIPELINE_FILES
   pipelines/classify_detections_svm.pipe
   pipelines/common_default_descriptor.pipe
@@ -420,8 +409,6 @@ if( VIAME_ENABLE_SEAK_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
              DESTINATION configs/pipelines/embedded_dual_stream )
 endif()
 
-install( FILES       ${RUN_SCRIPT_FILES}
-         DESTINATION configs )
 install( FILES       ${CORE_PIPELINE_FILES}
          DESTINATION configs/pipelines )
 install( DIRECTORY   pipelines/templates
