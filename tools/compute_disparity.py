@@ -148,8 +148,8 @@ def main():
     cv2.imwrite(basename+"-left.jpg", left_img)
     cv2.imwrite(basename+"-right.jpg", right_img)
 
-    left_img = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)
-    right_img = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)
+    #left_img = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)
+    #right_img = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)
 
     print("computing disparity")
     disp_img = scaled_disparity(left_img, right_img)
