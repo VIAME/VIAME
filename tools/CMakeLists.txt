@@ -58,6 +58,6 @@ target_link_libraries( viame_train_detector
   )
 
 if( VIAME_ENABLE_PYTHON )
-  install( FILES       ${RUN_SCRIPT_FILES}
+  install( FILES       ${PYTHON_SCRIPTS}
            DESTINATION configs )
 endif()
