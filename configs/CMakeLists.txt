@@ -170,6 +170,7 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_debayer_and_enhance.pipe
   pipelines/filter_enhance.pipe
   pipelines/filter_extract_left.pipe
+  pipelines/filter_split_and_debayer.pipe
   pipelines/filter_to_kwa.pipe
   pipelines/full_frame_classifier_svm.pipe
   pipelines/index_default.pipe

@@ -1,0 +1,71 @@
+# Filters input images via spltting them, debayering them and lastly enhancement
+
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                               5
+
+# ================================= INPUT VIDEO ====================================
+
+process input
+  :: video_input
+  :video_filename                                       input_list.txt
+  :frame_time                                           1
+  :video_reader:type                                    image_list
+  :video_reader:image_list:image_reader:type            vxl
+  :video_reader:image_list:image_reader:vxl:force_byte  false
+  :video_reader:vidl_ffmpeg:time_source                 current
+
+# ================================== CROP INPUTS ===================================
+
+process split
+  :: split_image
+  :split_image:type                            ocv_horizontally
+
+connect from input.image
+        to   split.image
+
+# =================================== DEBAYER ======================================
+
+process debayer
+  :: image_filter
+  :filter:type                                 ocv_debayer
+  :filter:ocv_debayer:pattern                  BG
+  :filter:ocv_debayer:force_8bit               true
+
+connect from split.left_image
+        to   debayer.image
+
+# =================================== FILTERS ======================================
+
+process filter
+  :: image_filter
+  :filter:type                                 ocv_enhancer
+  :filter:ocv_enhancer:apply_smoothing         false
+  :filter:ocv_enhancer:smooth_kernel           3
+  :filter:ocv_enhancer:apply_denoising         false
+  :filter:ocv_enhancer:denoise_kernel          3
+  :filter:ocv_enhancer:denoise_coeff           2
+  :filter:ocv_enhancer:auto_balance            true
+  :filter:ocv_enhancer:force_8bit              false
+  :filter:ocv_enhancer:apply_clahe             true
+  :filter:ocv_enhancer:clip_limit              3
+  :filter:ocv_enhancer:saturation              1.20
+
+connect from debayer.image
+        to   filter.image
+
+# ==================================== OUTPUT ======================================
+
+process output
+  :: image_writer
+  :file_name_template                          .png
+  :image_writer:type                           vxl
+
+connect from filter.image
+        to   output.image
+connect from input.file_name
+        to   output.image_file_name
+
+# -- end of file --
