@@ -145,8 +145,8 @@ def main():
     basename, ext = os.path.splitext(os.path.basename(args[0]))
 
     # save left and right images
-    cv2.imwrite(basename+"-left.jpg", left_img)
-    cv2.imwrite(basename+"-right.jpg", right_img)
+    #cv2.imwrite(basename+"-left.jpg", left_img)
+    #cv2.imwrite(basename+"-right.jpg", right_img)
 
     #left_img = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)
     #right_img = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)
