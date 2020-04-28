@@ -39,7 +39,7 @@ void transfer_bbox_with_depth_map(py::module &m)
 {
   m.def("backproject_to_depth_map",
         [](std::shared_ptr<kwiver::vital::simple_camera_perspective> const src_cam,
-           std::shared_ptr<s_image_cont_t> const img_cont,
+           std::shared_ptr<kwiver::vital::simple_image_container> const img_cont,
            kwiver::vital::vector_2d const& img_pt)
         {
           return kwiver::arrows::core::
@@ -48,7 +48,7 @@ void transfer_bbox_with_depth_map(py::module &m)
 
   m.def("backproject_wrt_height",
         [](std::shared_ptr<kwiver::vital::simple_camera_perspective> const src_cam,
-           std::shared_ptr<s_image_cont_t> const img_cont,
+           std::shared_ptr<kwiver::vital::simple_image_container> const img_cont,
            kwiver::vital::vector_2d const& img_pt_bottom,
            kwiver::vital::vector_2d const& img_pt_top)
         {
@@ -59,7 +59,7 @@ void transfer_bbox_with_depth_map(py::module &m)
   m.def("transfer_bbox_with_depth_map_stationary_camera",
         [](std::shared_ptr<kwiver::vital::simple_camera_perspective> const src_cam,
            std::shared_ptr<kwiver::vital::simple_camera_perspective> const dest_cam,
-           std::shared_ptr<s_image_cont_t> const img_cont,
+           std::shared_ptr<kwiver::vital::simple_image_container> const img_cont,
            kwiver::vital::bounding_box<double> const bbox)
         {
           return kwiver::arrows::core::
