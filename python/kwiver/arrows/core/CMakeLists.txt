@@ -1,9 +1,11 @@
 set( core_python_headers
      render_mesh_depth_map.h
+     transfer_bbox_with_depth_map.h
    )
 
  set( core_python_sources
       render_mesh_depth_map.cxx
+      transfer_bbox_with_depth_map.cxx
       core_module.cxx
     )
 
