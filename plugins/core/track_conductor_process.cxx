@@ -406,6 +406,11 @@ merge_init_signals( const kv::object_track_set_sptr priority,
 
   for( auto track : priority->tracks() )
   {
+    if( !track )
+    {
+      continue;
+    }
+
     auto it = to_output.find( track->id() );
 
     if( it == to_output.end() ||
@@ -417,6 +422,11 @@ merge_init_signals( const kv::object_track_set_sptr priority,
 
   for( auto track : secondary->tracks() )
   {
+    if( !track )
+    {
+      continue;
+    }
+
     auto it = to_output.find( track->id() );
 
     if( it == to_output.end() ||
