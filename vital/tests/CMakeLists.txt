@@ -30,6 +30,7 @@ kwiver_discover_gtests(vital essential_matrix               LIBRARIES ${test_lib
 kwiver_discover_gtests(vital estimate_similarity_transform  LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital file_md5                       LIBRARIES ${test_libraries} ARGUMENTS "${kwiver_test_data_directory}/rpc_data.dat" "a04bf5b37758551864c93663c26f63b0" )
 kwiver_discover_gtests(vital fundamental_matrix             LIBRARIES ${test_libraries})
+kwiver_discover_gtests(vital geo_MGRS                       LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital geo_point                      LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital geo_polygon                    LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital geodesy                        LIBRARIES ${test_libraries})
