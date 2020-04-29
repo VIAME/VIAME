@@ -14,10 +14,19 @@ process out_adapt
 # ==================================================================================
 process scallop_cfrnn_detector
   :: image_object_detector
-  :detector:type                               netharn
+  :detector:type                               ocv_windowed
 
-  block detector:netharn
-    relativepath deployed =                    ../models/habcam_scallop_netharn.zip
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      original_and_resized
+    :chip_width                                512
+    :chip_height                               512
+    :chip_adaptive_thresh                      1200000
+
+    block detector:netharn
+      relativepath deployed =                  ../models/habcam_scallop_netharn.zip
+    endblock
   endblock
 
 process scallop_cfrnn_filter
