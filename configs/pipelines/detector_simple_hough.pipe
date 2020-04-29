@@ -12,6 +12,18 @@ include common_default_input_with_downsampler.pipe
 
 # ==================================================================================
 
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+connect from downsampler.output_1
+        to   detector_input.image
+
 process detector
   :: image_object_detector
   :detector:type                               hough_circle
@@ -22,7 +34,7 @@ process detector
   :detector:hough_circle:min_radius            0
   :detector:hough_circle:max_radius            0
 
-connect from downsampler.output_1
+connect from detector_input.image
         to   detector.image
 
 # ==================================================================================
