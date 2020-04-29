@@ -187,6 +187,9 @@ foreach( ID RANGE ${DEP_COUNT} )
 
   if( "${DEP}" STREQUAL "pycocotools" AND VIAME_ENABLE_PYTORCH )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} pillow )
+  elseif( "${DEP}" STREQUAL "pillow" AND
+    ( VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_CAMTRAWL ) )
+    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} imgaug )
   else()
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
   endif()
