@@ -1,3 +1,14 @@
+v0.10.9 - 4/30/2020
+===================
+
+
+-Fix issue on windows with running CFRNN detectors at test time
+
+
+-Fix issue with running detector downloading excess un-needed model files
+
+
+
 v0.10.9 - 4/06/2020
 ===================
 
