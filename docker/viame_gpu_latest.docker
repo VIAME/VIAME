@@ -4,7 +4,7 @@ USER root
 
 WORKDIR /home
 
-RUN apt-get update
+RUN apt-get update \
   && apt-get install -y git \
   && git clone https://github.com/VIAME/VIAME.git /viame \ 
 	&& cd /viame/cmake \
