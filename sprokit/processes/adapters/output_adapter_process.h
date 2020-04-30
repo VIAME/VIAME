@@ -61,7 +61,8 @@ public:
   virtual ~output_adapter_process();
 
   // Process interface
-  virtual void _step();
+  void _step() override;
+  void _finalize() override;
 
   /**
    * @brief Return list of active ports.
@@ -74,7 +75,7 @@ public:
   adapter::ports_info_t get_ports();
 
 private:
-  void _configure();
+  void _configure() override;
 
   // This is used to intercept connections and make ports JIT
   void input_port_undefined(port_t const& port) override;

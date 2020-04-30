@@ -44,7 +44,7 @@ epx_test()
 {
 }
 
-
+// ----------------------------------------------------------------------------
 void
 epx_test::
 pre_setup( context& ctxt )
@@ -60,7 +60,7 @@ pre_setup( context& ctxt )
   std::cout <<  "exp_test: pipe config:\n" << str.str() <<std::endl;
 }
 
-
+// ----------------------------------------------------------------------------
 void
 epx_test::
 end_of_output( context& ctxt )
@@ -68,7 +68,7 @@ end_of_output( context& ctxt )
   std::cout << "exp_test End_Of_Output called\n";
 }
 
-
+// ----------------------------------------------------------------------------
 void epx_test::configure( kwiver::vital::config_block_sptr const conf )
 {
   // print config
@@ -79,7 +79,7 @@ void epx_test::configure( kwiver::vital::config_block_sptr const conf )
   std::cout <<  "exp_test: configure called with config:\n" << str.str() <<std::endl;
 }
 
-
+// ----------------------------------------------------------------------------
 kwiver::vital::config_block_sptr epx_test::get_configuration() const
 {
   auto conf = kwiver::vital::config_block::empty_config();
