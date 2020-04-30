@@ -275,10 +275,9 @@ class NetHarnTrainer( TrainDetector ):
         signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
         signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
-        self.proc = subprocess.Popen( cmd, stdout=subprocess.PIPE,
-          shell=True, preexec_fn=(None if os.name == 'nt' else os.setsid) )
+        self.proc = subprocess.Popen( cmd )
+        self.proc.wait()
 
-        subprocess.call( cmd )
         self.save_final_model()
 
         print( "\nModel training complete!\n" )
