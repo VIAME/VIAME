@@ -73,6 +73,7 @@ class NetHarnTrainer( TrainDetector ):
         self._gt_frames_only = False
         self._chip_width = "640"
         self._chip_overlap = "0.20"
+        self._max_epochs = "50"
         self._batch_size = "auto"
         self._timeout = "1209600"
         self._backbone = ""
@@ -96,6 +97,7 @@ class NetHarnTrainer( TrainDetector ):
         cfg.set_value( "gt_frames_only", str( self._gt_frames_only ) )
         cfg.set_value( "chip_width", str( self._chip_width ) )
         cfg.set_value( "chip_overlap", str( self._chip_overlap ) )
+        cfg.set_value( "max_epochs", str( self._max_epochs ) )
         cfg.set_value( "batch_size", self._batch_size )
         cfg.set_value( "timeout", self._timeout )
         cfg.set_value( "backbone", self._backbone )
@@ -120,6 +122,7 @@ class NetHarnTrainer( TrainDetector ):
         self._gt_frames_only = strtobool( cfg.get_value( "gt_frames_only" ) )
         self._chip_width = str( cfg.get_value( "chip_width" ) )
         self._chip_overlap = str( cfg.get_value( "chip_overlap" ) )
+        self._max_epochs = str( cfg.get_value( "max_epochs" ) )
         self._batch_size = str( cfg.get_value( "batch_size" ) )
         self._timeout = str( cfg.get_value( "timeout" ) )
         self._backbone = str( cfg.get_value( "backbone" ) )
@@ -252,7 +255,7 @@ class NetHarnTrainer( TrainDetector ):
                 "--arch=cascade",
                 "--optim=sgd",
                 "--lr=1e-3",
-                "--max_epoch=50",
+                "--max_epoch=" + self._max_epochs,
                 "--input_dims=window",
                 "--window_dims=" + self._chip_width + "," + self._chip_width,
                 "--window_overlap=" + self._chip_overlap,
