@@ -4,7 +4,8 @@ USER root
 
 WORKDIR /home
 
-RUN git clone https://github.com/VIAME/VIAME.git /viame \ 
+RUN apt-get install -y git \
+  && git clone https://github.com/VIAME/VIAME.git /viame \ 
 	&& cd /viame/cmake \
 	&& chmod +x build_server_docker_gpu.sh \
 	&& ./build_server_docker_gpu.sh
