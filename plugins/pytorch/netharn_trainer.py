@@ -307,6 +307,10 @@ class NetHarnTrainer( TrainDetector ):
             output_model = os.path.join( self._output_directory,
               output_model_name )
 
+            if not os.path.exists( final_model ):
+                print( "\nModel failed to finsh training\n" )
+                sys.exit( 0 )
+
             copyfile( final_model, output_model )
 
             # Copy pipeline file
