@@ -18,9 +18,9 @@ if( VIAME_DOWNLOAD_MODELS )
     # Default default and generic detection models
     if( VIAME_ENABLE_PYTORCH-NETHARN )
       DownloadAndExtract(
-        https://data.kitware.com/api/v1/item/5ea916069014a6d84e3a3be6/download
-        d5d263f0ae48bd475a19dfccb3377722
-        ${VIAME_DOWNLOAD_DIR}/models-netharn_detection-v1.0.1.tar.gz
+        https://data.kitware.com/api/v1/item/5eaa2cff9014a6d84e3dc9a3/download
+        0326e714ede2d91c6ea79d530e98ce7b
+        ${VIAME_DOWNLOAD_DIR}/models-netharn_detection-v1.0.2.tar.gz
         ${CMAKE_CURRENT_SOURCE_DIR}/pipelines )
     elseif( VIAME_ENABLE_PYTORCH-MMDET )
       DownloadAndExtract(
