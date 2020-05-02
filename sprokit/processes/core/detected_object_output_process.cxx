@@ -235,6 +235,14 @@ void detected_object_output_process
 
 // ----------------------------------------------------------------
 void detected_object_output_process
+::_finalize()
+{
+  d->m_writer->complete();
+}
+
+
+// ----------------------------------------------------------------
+void detected_object_output_process
 ::make_ports()
 {
   // Set up for required ports

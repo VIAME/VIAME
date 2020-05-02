@@ -166,7 +166,7 @@ compute_association_matrix_from_features
       for( unsigned d = 0; d < filtered_dets->size(); ++d )
       {
         track_sptr trk = filtered_tracks[t];
-        detected_object_sptr det = filtered_dets->begin()[d];
+        detected_object_sptr det = filtered_dets->at(d);
 
         auto det_features = det->descriptor();
         auto trk_features = decltype(det_features){};

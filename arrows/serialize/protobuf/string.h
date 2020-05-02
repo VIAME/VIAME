@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,17 +44,14 @@ class KWIVER_SERIALIZE_PROTOBUF_EXPORT string
   : public vital::algorithm_impl< string, vital::algo::data_serializer >
 {
 public:
-  // Type name this class supports
-  static constexpr char const* name = "kwiver:string";
-
-  static constexpr char const* description =
-    "Serializes a string  using protobuf notation. ";
+  PLUGIN_INFO( "kwiver:string",
+               "Serializes a string using protobuf notation." );
 
   string();
   virtual ~string();
 
-  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
-  virtual vital::any deserialize( const std::string& message ) override;
+  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  vital::any deserialize( const std::string& message ) override;
 
 };
 

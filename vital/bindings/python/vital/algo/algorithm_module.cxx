@@ -38,24 +38,24 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+
 #include <vital/algo/algorithm.h>
-#include <vital/bindings/python/vital/algo/algorithm.h>
 
-#include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
-#include <vital/bindings/python/vital/algo/image_object_detector.h>
 #include <vital/algo/image_object_detector.h>
+#include <vital/algo/train_detector.h>
 
-#include <vital/bindings/python/vital/algo/trampoline/image_filter_trampoline.txx>
+#include <vital/bindings/python/vital/algo/algorithm.h>
+#include <vital/bindings/python/vital/algo/detected_object_set_input.h>
+#include <vital/bindings/python/vital/algo/detected_object_set_output.h>
 #include <vital/bindings/python/vital/algo/image_filter.h>
-
-#include <vital/bindings/python/vital/algo/trampoline/train_detector_trampoline.txx>
+#include <vital/bindings/python/vital/algo/image_object_detector.h>
 #include <vital/bindings/python/vital/algo/train_detector.h>
 
+#include <vital/bindings/python/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
 #include <vital/bindings/python/vital/algo/trampoline/detected_object_set_output_trampoline.txx>
+#include <vital/bindings/python/vital/algo/trampoline/image_filter_trampoline.txx>
+#include <vital/bindings/python/vital/algo/trampoline/train_detector_trampoline.txx>
 #include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
-#include <vital/bindings/python/vital/algo/detected_object_set_output.h>
-
-#include <vital/algo/train_detector.h>
 
 #include <sstream>
 
@@ -64,6 +64,10 @@ namespace py = pybind11;
 PYBIND11_MODULE(algorithm, m)
 {
   algorithm(m);
+
+  register_algorithm<kwiver::vital::algo::detected_object_set_input,
+	    algorithm_def_dosi_trampoline<>>(m, "detected_object_set_input");
+  detected_object_set_input(m);
 
   register_algorithm<kwiver::vital::algo::detected_object_set_output,
 	    algorithm_def_doso_trampoline<>>(m, "detected_object_set_output");

@@ -98,7 +98,7 @@ public:
    * The currently open detection set file is closed. If there is no
    * currently open file, then this method does nothing.
    */
-  void close();
+  virtual void close();
 
   /// Read next detected object set
   /**

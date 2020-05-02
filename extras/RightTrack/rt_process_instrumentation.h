@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,31 +52,35 @@ class RIGHTTRACK_PLUGIN_NO_EXPORT rt_process_instrumentation
 public:
   // -- CONSTRUCTORS --
   rt_process_instrumentation();
-  virtual ~rt_process_instrumentation();
+  virtual ~rt_process_instrumentation() = default;
 
-  virtual void configure( kwiver::vital::config_block_sptr const config );
-  virtual kwiver::vital::config_block_sptr get_configuration() const;
+  void configure( kwiver::vital::config_block_sptr const config ) override;
+  kwiver::vital::config_block_sptr get_configuration() const override;
 
-  virtual void start_init_processing( std::string const& data );
-  virtual void stop_init_processing();
+  void start_init_processing( std::string const& data ) override;
+  void stop_init_processing() override;
 
-  virtual void start_reset_processing( std::string const& data );
-  virtual void stop_reset_processing();
+  void start_finalize_processing( std::string const& data ) override;
+  void stop_finalize_processing() override;
 
-  virtual void start_flush_processing( std::string const& data );
-  virtual void stop_flush_processing();
+  void start_reset_processing( std::string const& data ) override;
+  void stop_reset_processing() override;
 
-  virtual void start_step_processing( std::string const& data );
-  virtual void stop_step_processing();
+  void start_flush_processing( std::string const& data ) override;
+  void stop_flush_processing() override;
 
-  virtual void start_configure_processing( std::string const& data );
-  virtual void stop_configure_processing();
+  void start_step_processing( std::string const& data ) override;
+  void stop_step_processing() override;
 
-  virtual void start_reconfigure_processing( std::string const& data );
-  virtual void stop_reconfigure_processing();
+  void start_configure_processing( std::string const& data ) override;
+  void stop_configure_processing() override;
+
+  void start_reconfigure_processing( std::string const& data ) override;
+  void stop_reconfigure_processing() override;
 
 private:
   std::unique_ptr< RightTrack::BoundedEvent > m_init_event;
+  std::unique_ptr< RightTrack::BoundedEvent > m_finalize_event;
   std::unique_ptr< RightTrack::BoundedEvent > m_reset_event;
   std::unique_ptr< RightTrack::BoundedEvent > m_flush_event;
   std::unique_ptr< RightTrack::BoundedEvent > m_step_event;

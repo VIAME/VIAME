@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -152,19 +152,16 @@ matcher_process
 
     auto frame_number = frame_time.get_frame();
     std::vector<vital::feature_sptr> vf = curr_feat->features();
-    std::vector<vital::descriptor_sptr> df = curr_desc->descriptors();
-
     // special case for the first frame
     if ( ! d->m_curr_tracks )
     {
       typedef std::vector< vital::feature_sptr >::const_iterator feat_itr;
-      typedef std::vector< vital::descriptor_sptr >::const_iterator desc_itr;
 
       feat_itr fit = vf.begin();
-      desc_itr dit = df.begin();
+      auto dit = curr_desc->cbegin();
 
       std::vector< vital::track_sptr > new_tracks;
-      for ( ; fit != vf.end() && dit != df.end(); ++fit, ++dit )
+      for ( ; fit != vf.end() && dit != curr_desc->cend(); ++fit, ++dit )
       {
         auto ts = std::make_shared<vital::feature_track_state>( frame_number, *fit, *dit );
         new_tracks.push_back( vital::track::create() );
@@ -194,7 +191,9 @@ matcher_process
       {
         matched.insert( m.second );
         vital::track_sptr t = active_tracks[m.first];
-        auto ts = std::make_shared<vital::feature_track_state>( frame_number, vf[m.second], df[m.second] );
+        auto ts = std::make_shared<vital::feature_track_state>( frame_number,
+                                                                vf[m.second],
+                                                                curr_desc->at(m.second) );
         t->append( ts );
       }
 
@@ -208,7 +207,9 @@ matcher_process
 
       for( unsigned i : unmatched )
       {
-        auto ts = std::make_shared<vital::feature_track_state>( frame_number, vf[i], df[i] );
+        auto ts = std::make_shared<vital::feature_track_state>( frame_number,
+                                                                vf[i],
+                                                                curr_desc->at(i) );
 
         all_tracks.push_back( vital::track::create() );
         all_tracks.back()->append( ts );

@@ -54,7 +54,16 @@ TEST(descriptor_set, default_set)
 {
   ocv::descriptor_set ds;
   EXPECT_EQ( 0, ds.size() );
-  EXPECT_TRUE( ds.descriptors().empty() );
+  EXPECT_TRUE( ds.empty() );
+  // Should not iterate at all
+  ocv::descriptor_set::iterator it = ds.begin();
+  size_t count = 0;
+  for( const descriptor_sptr& d : ds )
+  {
+    (void)d; // avoid unused variable warning.
+    ++count;
+  }
+  EXPECT_EQ( count, 0 );
 }
 
 // ----------------------------------------------------------------------------
@@ -68,21 +77,35 @@ TEST(descriptor_set, populated_set)
   ocv::descriptor_set ds(data);
 
   EXPECT_EQ( num_desc,  ds.size() );
+  EXPECT_FALSE( ds.empty() );
   EXPECT_EQ( data.data, ds.ocv_desc_matrix().data )
     << "descriptor_set should contain original cv::Mat";
 
-  std::vector<descriptor_sptr> desc = ds.descriptors();
-  EXPECT_EQ( ds.size(), desc.size() );
+  // Iteration yield count should match expected size.
+  size_t count = 0;
+  for( const descriptor_sptr & d_sptr : ds )
+  {
+    (void)d_sptr; // avoid unused variable warning.
+    ++count;
+  }
+  EXPECT_EQ( ds.size(), count );
 
   for ( unsigned i = 0; i < num_desc; ++i )
   {
     SCOPED_TRACE( "At descriptor " + std::to_string(i) );
-    ASSERT_EQ( dim, desc[i]->size() );
+    ASSERT_EQ( dim, ds.at(i)->size() );
 
-    std::vector<double> vals = desc[i]->as_double();
+    std::vector<double> vals = ds.at(i)->as_double();
     cv::Mat row = data.row(i);
-    ASSERT_TRUE( std::equal( vals.begin(), vals.end(), row.begin<double>() ) );
+    EXPECT_TRUE( std::equal( vals.begin(), vals.end(), row.begin<double>() ) );
   }
+}
+
+// ----------------------------------------------------------------------------
+// Test spawning multiple iterators and that their returns do not conflict with
+// each other.
+TEST( descriptor_set, coiteration )
+{
 }
 
 namespace {
@@ -96,26 +119,34 @@ void test_conversions(const cv::Mat& data)
   ocv::descriptor_set ds(data);
   EXPECT_EQ( data.rows, static_cast<int>( ds.size() ) );
 
-  std::vector<descriptor_sptr> desc = ds.descriptors();
-  EXPECT_EQ( ds.size(), desc.size() );
+  // Iteration yield count should match expected size.
+  size_t count = 0;
+  ocv::descriptor_set::iterator it = ds.begin();
+  for( const descriptor_sptr & d_sptr : ds )
+  {
+    (void)d_sptr; // avoid unused variable warning.
+    ++count;
+  }
+  EXPECT_EQ( ds.size(), count );
 
   cv::Mat double_data;
   data.convertTo(double_data, CV_64F);
 
   [&]{
-    for ( unsigned i = 0; i < desc.size(); ++i )
+    for ( unsigned i = 0; i < ds.size(); ++i )
     {
       SCOPED_TRACE( "At descriptor " + std::to_string(i) );
-      ASSERT_EQ( data.cols, static_cast<int>( desc[i]->size() ) );
+      EXPECT_EQ( data.cols, static_cast<int>( ds.at(i)->size() ) );
 
-      auto const& vals = desc[i]->as_double();
+      auto const& vals = ds.at(i)->as_double();
 
       cv::Mat row = double_data.row(i);
       ASSERT_TRUE( std::equal(vals.begin(), vals.end(), row.begin<double>() ) );
     }
   }();
 
-  simple_descriptor_set simp_ds(desc);
+  simple_descriptor_set simp_ds(
+      std::vector<descriptor_sptr>( ds.cbegin(), ds.cend() ) );
   cv::Mat recon_mat = ocv::descriptors_to_ocv_matrix(simp_ds);
   EXPECT_NE( data.data, recon_mat.data )
     << "Reconstructed matrix should point to new memory, not original";

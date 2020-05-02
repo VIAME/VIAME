@@ -56,9 +56,10 @@ public:
   virtual ~detected_object_output_process();
 
 protected:
-  virtual void _configure();
-  virtual void _init();
-  virtual void _step();
+  void _configure() override;
+  void _init() override;
+  void _step() override;
+  void _finalize() override;
 
 private:
   void make_ports();

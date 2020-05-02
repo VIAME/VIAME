@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,18 +48,15 @@ class KWIVER_SERIALIZE_JSON_EXPORT detected_object_type
   : public vital::algorithm_impl< detected_object_type, vital::algo::data_serializer >
 {
 public:
-  // Type name this class supports
-  static constexpr char const* name = "kwiver:detected_object_type";
-
-  static constexpr char const* description =
-    "Serializes a detected_object_type using JSON notation. "
-    "This implementation only handles a single data item.";
+  PLUGIN_INFO( "kwiver:detected_object_type",
+               "Serializes a detected_object_type using JSON notation. "
+               "This implementation only handles a single data item." );
 
   detected_object_type();
   virtual ~detected_object_type();
 
-  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
-  virtual vital::any deserialize( const std::string& message ) override;
+  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  vital::any deserialize( const std::string& message ) override;
 };
 
 } } } }       // end namespace kwiver

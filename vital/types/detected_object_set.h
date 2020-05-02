@@ -40,10 +40,9 @@
 #include <vital/vital_config.h>
 #include <vital/attribute_set.h>
 #include <vital/noncopyable.h>
+#include <vital/set.h>
 
 #include <vital/types/detected_object.h>
-
-#include <iterator>
 
 namespace kwiver {
 namespace vital {
@@ -68,11 +67,10 @@ using detected_object_set_scptr = std::shared_ptr< detected_object_set const >;
  * concurrently.
  */
 class VITAL_EXPORT detected_object_set
-  : private noncopyable
+  : public set< detected_object_sptr >
+  , private noncopyable
 {
 public:
-  using iterator = std::vector< detected_object_sptr >::iterator;
-  using  const_iterator = std::vector< detected_object_sptr >::const_iterator;
 
   /**
    * @brief Create an empty detection set.
@@ -129,7 +127,7 @@ public:
    *
    * @return Number of detections.
    */
-  size_t size() const;
+  virtual size_t size() const override;
 
   /**
    * @brief Returns whether or not this set is empty.
@@ -138,24 +136,7 @@ public:
    *
    * @return Whether or not the set is empty.
    */
-  bool empty() const;
-
-  //@{
-  /**
-   * @brief Detected object set iterators;
-   *
-   * This method returns an iterator for the set of detected
-   * objects. The iterator points to a shared pointer to a detected
-   * object.
-   *
-   * @return An iterator over the objects in this set;
-   */
-  iterator begin();
-  iterator end();
-
-  const_iterator cbegin() const;
-  const_iterator cend() const;
-  //@}
+  virtual bool empty() const override;
 
   //@{
   /**
@@ -174,8 +155,8 @@ public:
    * @throws std::range if position is now within the range of objects
    * in container.
    */
-  detected_object_sptr at( size_t pos );
-  const detected_object_sptr at( size_t pos ) const;
+  virtual detected_object_sptr at( size_t pos ) override;
+  virtual const detected_object_sptr at( size_t pos ) const override;
   //@}
 
   /**
@@ -290,6 +271,11 @@ public:
    * @param attrs Pointer to attribute set to attach.
    */
   void set_attributes( attribute_set_sptr attrs );
+
+protected:
+  iterator::next_value_func_t get_iter_next_func() override;
+  const_iterator::next_value_func_t get_const_iter_next_func() const override;
+
 
 private:
   // List of detections ordered by confidence value.

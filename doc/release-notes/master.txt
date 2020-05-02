@@ -9,6 +9,15 @@ Updates since v1.4.0
 
 Vital
 
+
+Vital Types
+
+ * Added ``kwiver::vital::set`` mixin class to define standard set methods as
+   well as iterability.
+
+ * Added iterator, const_iterator and iterable classes to support container-
+   independent iteration.
+
  * Added a parameter to the clone() methods of the track_state, track and
    track_set types controlling whether to make an actual deep copy (default) or
    to make a shallow copy (previous behavior) where elements of the derived
@@ -60,6 +69,8 @@ Vital Types
  * Refactored detected_object_set to convert some methods to external
    functions since they were not properties of the class.
 
+ * Vital types protobuf support now requires protobuf version 3 or greater.
+
 Vital Bindings
 
  * Remove ctypes python bindings
@@ -95,6 +106,9 @@ Arrows: OpenCV
 
 Arrows: Serialization
 
+ * Updated serialization algorithms to use PLUGIN_INFO macro and added
+   serializer specific plugin registrar.
+
 Arrows: Super3d
 
 Arrows: VXL
@@ -115,6 +129,11 @@ Sprokit: Processes
  * Added method to comapre the config declared by the process against
    the config supplied by the pipeline. Any differences can be written
    to the log. This is useful for identifying misspelled config items.
+
+ * Add finalize method to process base class which allows derived
+   processes to be optionally called when the all upstream processes
+   have terminated and a complete datum is present on all required
+   input ports.
 
 Tools
 

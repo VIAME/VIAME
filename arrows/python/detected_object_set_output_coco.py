@@ -27,31 +27,41 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
-
 import datetime
 import json
 
 from vital.algo import DetectedObjectSetOutput
 
 class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
+    """COCO-formatted output for DetectedObjectSets
+
+    See DetectedObjectSetOutput for method information.
+
+    """
     def __init__(self):
         DetectedObjectSetOutput.__init__(self)
+        # List of dicts corresponding to elements of the output
+        # "annotations" attribute, minus the "id" attribute
         self.detections = []
+        # List of image paths
         self.images = []
+        # Dict mapping category names to numerical IDs
         self.categories = {}
-        self.category_id_adj = 1
+        # The first ID to be assigned to a category (and then counting
+        # up from there)
+        self.category_start_id = 1
+        # The current file object or None
         self.file = None
 
     def get_configuration(self):
         cfg = super(DetectedObjectSetOutput, self).get_configuration()
-        cfg.set_value( "category_id_adj", self.category_id_adj )
+        cfg.set_value("category_start_id", str(self.category_start_id))
         return cfg
 
     def set_configuration(self, cfg_in):
         cfg = self.get_configuration()
         cfg.merge_config(cfg_in)
-        self.category_id_adj = int( cfg.get_value( "category_id_adj" ) )
+        self.category_start_id = int(cfg.get_value("category_start_id"))
 
     def check_configuration(self, cfg):
         return True
@@ -79,19 +89,18 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
             if det.type() is not None:
                 d['category_id'] = self.categories.setdefault(
                     det.type().get_most_likely_class(),
-                    len(self.categories)+self.category_id_adj,
+                    len(self.categories) + self.category_start_id,
                 )
             self.detections.append(d)
         self.images.append(file_name)
 
     def complete(self):
-        # XXX The datetime code here requires Python 3.6+
-        now = datetime.datetime.now().astimezone()
+        now = datetime.datetime.now(datetime.timezone.utc).astimezone()
         json.dump(dict(
             info=dict(
                 year=now.year,
                 description="Created by DetectedObjectSetOutputCoco",
-                date_created=now.isoformat(' ', 'seconds'),
+                date_created=now.replace(microsecond=0).isoformat(' '),
             ),
             annotations=[dict(d, id=i)
                          for i, d in enumerate(self.detections)],
@@ -103,8 +112,7 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
 
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
-    # XXX It ought to be possible to give this a less awkward name...
-    implementation_name = "DetectedObjectSetOutputCoco"
+    implementation_name = 'coco'
     if algorithm_factory.has_algorithm_impl_name(
             DetectedObjectSetOutputCoco.static_type_name(),
             implementation_name,

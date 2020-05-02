@@ -65,15 +65,16 @@ filter_features
 ::filter( feature_set_sptr feat, descriptor_set_sptr descr) const
 {
   std::vector<unsigned int> indices;
-  const std::vector<descriptor_sptr> &descr_vec = descr->descriptors();
-
   feature_set_sptr filt_feat = filter(feat, indices);
+
+  // Iterate through descriptor sptrs, keeping those in the same index as the
+  // kept features.
   std::vector<descriptor_sptr> filtered_descr;
   filtered_descr.reserve(indices.size());
 
   for (unsigned int i = 0; i < indices.size(); i++)
   {
-    filtered_descr.push_back(descr_vec[indices[i]]);
+    filtered_descr.push_back( descr->at( indices[i] ) );
   }
 
   descriptor_set_sptr filt_descr = std::make_shared<kwiver::vital::simple_descriptor_set>(

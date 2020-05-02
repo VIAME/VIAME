@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #ckwg +28
-# Copyright 2011-2013 by Kitware, Inc.
+# Copyright 2011-2013, 2020 by Kitware, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -80,6 +80,8 @@ def make_sink(conf):
         def __init__(self, conf):
             process.PythonProcess.__init__(self, conf)
 
+            self.stepped = False
+            self.finalized = False
             self.conf_output = 'output'
 
             self.declare_configuration_key(self.conf_output, 'output.txt', 'Output file name', False)
@@ -105,8 +107,12 @@ def make_sink(conf):
 
             self.fout.write('%d\n' % num)
             self.fout.flush()
+            self.stepped = True
 
             self._base_step()
+
+        def _finalize(self):
+            self.finalized = True
 
     return Sink(conf)
 
@@ -208,6 +214,9 @@ def test_python_to_python(sched_type):
     run_pipeline(sched_type, p, c)
 
     check_file(output_file, list(range(min, max)))
+
+    if t.stepped and not t.finalized:
+        test_error("sink process not finalized")
 
 
 def test_cpp_to_python(sched_type):

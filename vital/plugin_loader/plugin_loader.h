@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016, 2019 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 #define KWIVER_VITAL_PLUGIN_LOADER_H_
 
 #include <vital/plugin_loader/vital_vpm_export.h>
-#include <vital/plugin_loader/plugin_loader_filter.h>
 
 #include <vital/vital_types.h>
 #include <vital/logger/logger.h>
@@ -50,11 +49,13 @@ namespace vital {
 
 // base class of factory hierarchy
 class plugin_factory;
+class plugin_loader_filter;
 
 using plugin_factory_handle_t = std::shared_ptr< plugin_factory >;
 using plugin_factory_vector_t = std::vector< plugin_factory_handle_t >;
 using plugin_map_t            = std::map< std::string, plugin_factory_vector_t >;
-using plugin_module_map_t     =  std::map< std::string, path_t >;
+using plugin_module_map_t     = std::map< std::string, path_t >;
+using plugin_filter_handle_t  = std::shared_ptr< plugin_loader_filter >;
 
 class plugin_loader_impl;
 

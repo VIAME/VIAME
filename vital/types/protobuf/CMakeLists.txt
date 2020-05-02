@@ -2,7 +2,7 @@
 # CMake file for building protobuf libraries.
 #
 
-find_package( Protobuf REQUIRED )
+find_package( Protobuf REQUIRED 3 )
 
 set( proto_files
   bounding_box.proto
@@ -38,6 +38,5 @@ kwiver_add_library( vital_types_protobuf
   ${cpp_hdrs} ${cpp_srcs} )
 
 target_link_libraries( vital_types_protobuf
-  PUBLIC       vital
-               ${PROTOBUF_LIBRARIES}
+  PUBLIC       ${PROTOBUF_LIBRARIES}
   )

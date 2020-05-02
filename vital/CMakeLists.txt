@@ -178,6 +178,7 @@ set( vital_sources
   types/database_query.cxx
   types/descriptor.cxx
   types/descriptor_request.cxx
+  types/descriptor_set.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx
   types/detected_object_set_util.cxx

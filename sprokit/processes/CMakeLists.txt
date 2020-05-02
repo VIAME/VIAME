@@ -66,3 +66,7 @@ kwiver_add_plugin( process_explorer_plugin
            sprokit_pipeline
            explorer_plugin )
 endif()
+
+if (KWIVER_ENABLE_TESTS)
+  add_subdirectory( tests )
+endif()
