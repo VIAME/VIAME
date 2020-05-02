@@ -172,9 +172,9 @@ class NetHarnTrainer( TrainDetector ):
 
         if not self._no_format:
             self._training_writer = \
-              DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
+              DetectedObjectSetOutput.create( "coco" )
             self._validation_writer = \
-              DetectedObjectSetOutput.create( "DetectedObjectSetOutputCoco" )
+              DetectedObjectSetOutput.create( "coco" )
 
             self._training_writer.open( self._training_file )
             self._validation_writer.open( self._validation_file )
