@@ -324,7 +324,7 @@ def video_frame_rate_settings_list( options ):
     output += fset( 'downsampler:burst_frame_break=' + options.batch_skip )
   return output
 
-def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id ):
+def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id, gt_type ):
   output = []
   if len( gt_files ) == 0:
     exit_with_error( "Directory " + basename + " contains no GT files" )
@@ -335,9 +335,14 @@ def groundtruth_reader_settings_list( options, gt_files, basename, gpu_id ):
       output_extension = str( gpu_id ) + '.lbl'
     else:
       output_extension = 'lbl'
+
+    lbl_file = options.input_dir + "/labels.txt"
+    if not os.path.exists( lbl_file ):
+      lbl_file = "labels.txt"
+
     output += fset( 'detection_reader:file_name=' + gt_files[0] )
-    output += fset( 'detection_reader:reader:type=' + options.auto_detect_gt )
-    output += fset( 'write_descriptor_ids:category_file=' + options.input_dir + "/labels.txt" )
+    output += fset( 'detection_reader:reader:type=' + gt_type )
+    output += fset( 'write_descriptor_ids:category_file=' + lbl_file )
     output += fset( 'write_descriptor_ids:output_directory=' + options.output_directory )
     output += fset( 'write_descriptor_ids:output_extension=' + output_extension )
   return output
@@ -472,7 +477,8 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
       exit_with_error( "Unable to find input detections" )
     gt_files = [ options.input_detections ]
   if auto_detect_gt or options.write_svm_info:
-    command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu )
+    gt_type = options.auto_detect_gt if auto_detect_gt else "viame_csv"
+    command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu, gt_type )
 
   if write_track_time:
     command += fset( 'track_writer:writer:viame_csv:write_time_as_uid=true' )
