@@ -1,0 +1,23 @@
+# Format Converter
+#
+# Convert file types in the same order as some input list
+
+# ===================== GLOBAL PROPERTIES ========================
+# global pipeline config
+#
+config _pipeline:_edge
+       :capacity                                                 5
+
+# ====================== INPUT FRAME LIST ========================
+process detection_reader
+  :: detected_object_input
+  :file_name                                input_groundtruth.json
+  :reader:type                                                coco
+
+process detection_writer
+  :: detected_object_output
+  :file_name                                    converted_file.csv
+  :writer:type                                           viame_csv
+
+connect from detection_reader.detected_object_set
+        to   detection_writer.detected_object_set

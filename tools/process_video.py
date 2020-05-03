@@ -465,7 +465,13 @@ def process_video_kwiver( input_name, options, is_image_list=False, base_ovrd=''
   command += object_detector_settings_list( options )
   command += object_tracker_settings_list( options )
 
-  if auto_detect_gt:
+  if options.write_svm_info and not auto_detect_gt:
+    if len( options.input_detections ) == 0:
+      exit_with_error( "Input detections must be specified to write out svm header info" )
+    if not os.path.exists( options.input_detections ):
+      exit_with_error( "Unable to find input detections" )
+    gt_files = [ options.input_detections ]
+  if auto_detect_gt or options.write_svm_info:
     command += groundtruth_reader_settings_list( options, gt_files, basename_no_ext, gpu )
 
   if write_track_time:
@@ -632,6 +638,9 @@ if __name__ == "__main__" :
 
   parser.add_argument("--ts-from-file", dest="ts_from_file", action="store_true",
                       help="Attempt to retrieve timestamps from image filenames.")
+
+  parser.add_argument("--write-svm-info", dest="write_svm_info", action="store_true",
+                      help="Write out header information used for training SVMs")
 
   parser.add_argument("--debug", dest="debug", action="store_true",
                       help="Run with debugger attached to process")
