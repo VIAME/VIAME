@@ -1,0 +1,70 @@
+KWIVER v1.6.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and fixes
+over the previous v1.5.0 release.
+
+Updates since v1.5.0
+--------------------
+
+Vital
+
+Vital Algo
+
+Vital Types
+
+Vital Plugin-loader
+
+Vital Util
+
+Vital Logger
+
+Vital Tools
+
+Vital Types
+
+Vital Bindings
+
+Arrows
+
+Arrows: Core
+
+Arrows: Ceres
+
+Arrows: CUDA
+
+Arrows: FFmpeg
+
+Arrows: GDAL
+
+Arrows: KPF
+
+Arrows: OpenCV
+
+Arrows: Serialization
+
+Arrows: Super3d
+
+Arrows: VXL
+
+Arrows: Python
+
+Sprokit
+
+Sprokit: Processes
+
+Tools
+
+Unit Tests
+
+General Documentation
+
+Bug Fixes
+---------
+
+Arrows: Core
+
+Arrows: Ceres
+
+Arrows: Super3D
+
