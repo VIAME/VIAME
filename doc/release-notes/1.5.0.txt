@@ -233,6 +233,12 @@ Tools
    - vital/applets - contains applet framework
    - arrows/core/applets - general applets
 
+Build System
+
+ * KWIVER now exports its version number in the CMake exports so that
+   other packages can determine which version of KWIVER was found.
+
+
 Bug Fixes
 ---------
 
