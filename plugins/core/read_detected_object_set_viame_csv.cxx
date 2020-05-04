@@ -69,6 +69,7 @@ public:
   priv( read_detected_object_set_viame_csv* parent )
     : m_parent( parent )
     , m_first( true )
+    , m_confidence_override( -1.0 )
     , m_current_idx( 0 )
     , m_last_idx( 0 )
   { }
@@ -79,6 +80,7 @@ public:
 
   read_detected_object_set_viame_csv* m_parent;
   bool m_first;
+  double m_confidence_override;
 
   int m_current_idx;
   int m_last_idx;
@@ -113,6 +115,8 @@ void
 read_detected_object_set_viame_csv
 ::set_configuration( kwiver::vital::config_block_sptr config )
 {
+  d->m_confidence_override =
+    config->get_value< double >( "confidence_override", d->m_confidence_override );
 }
 
 
@@ -269,6 +273,11 @@ read_detected_object_set_viame_csv::priv
       conf = 1.0;
     }
 
+    if( m_confidence_override > 0.0 )
+    {
+      conf = m_confidence_override;
+    }
+
     // Create detection
     kwiver::vital::detected_object_sptr dob;
 
@@ -296,6 +305,11 @@ read_detected_object_set_viame_csv::priv
       std::string spec_id = col[i];
 
       double spec_conf = atof( col[i+1].c_str() );
+
+      if( m_confidence_override > 0.0 )
+      {
+        spec_conf = m_confidence_override;
+      }
 
       dot->set_score( spec_id, spec_conf );
     }
