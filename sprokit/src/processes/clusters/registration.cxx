@@ -72,11 +72,12 @@ PROCESSES_CLUSTERS_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = module_t("cluster_processes");
+  process_registrar reg( vpm, "cluster_processes" );
+
   static kwiver::vital::logger_handle_t logger = kwiver::vital::get_logger( "sprokit.register_cluster" );
 
   // See if clusters have already been loaded
-  if (sprokit::is_process_module_loaded(vpm, module_name))
+  if ( reg.is_module_loaded() )
   {
     return;
   }
@@ -172,5 +173,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     }
   }
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  reg.mark_module_as_loaded();
 }

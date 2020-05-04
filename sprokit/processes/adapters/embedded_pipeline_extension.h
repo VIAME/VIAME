@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,11 @@
 
 #include <sprokit/processes/adapters/kwiver_adapter_export.h>
 
+#include <sprokit/pipeline/pipeline.h>
 #include <vital/config/config_block.h>
 #include <vital/logger/logger.h>
-#include <sprokit/pipeline/pipeline.h>
+#include <vital/plugin_loader/plugin_info.h>
+#include <vital/plugin_loader/plugin_registrar.h>
 
 #include <memory>
 
@@ -106,9 +108,6 @@ public:
    */
   virtual void end_of_output( context& ctxt ) { };
 
-  // Add other hooks as needed.
-
-
   /**
    * @brief Configure provider.
    *
@@ -143,6 +142,65 @@ protected:
 
 // define pointer type for this interface
 using embedded_pipeline_extension_sptr = std::shared_ptr< embedded_pipeline_extension >;
+
+
+// ============================================================================
+/// Derived class to register Embedded Pipeline Extensions
+/**
+ * Embedded Pipeline Extension Registrar
+ *
+ * This class assists in registering embedded pipeline extensions
+ *
+ */
+class embedded_pipeline_extension_registrar
+  : public plugin_registrar
+{
+public:
+  embedded_pipeline_extension_registrar( kwiver::vital::plugin_loader& vpl,
+                    const std::string& mod_name )
+    : plugin_registrar( vpl, mod_name )
+  {
+  }
+
+    // Use forced naming convention for modules
+  bool is_module_loaded() override
+  {
+    return plugin_loader().is_module_loaded( "epx." + module_name() );
+  }
+
+  void mark_module_as_loaded() override
+  {
+    plugin_loader().mark_module_as_loaded( "epx." + module_name() );
+  }
+
+  // ----------------------------------------------------------------------------
+  /// Register an Embedded Pipeline Extension plugin.
+  /**
+   * A EPX of the specified type is registered with the plugin
+   * manager.
+   *
+   * @tparam epx_t Type of the EPX being registered.
+   *
+   * @return The plugin loader reference is returned.
+   */
+  template <typename epx_t>
+  kwiver::vital::plugin_factory_handle_t register_EPX()
+  {
+    using kvpf = kwiver::vital::plugin_factory;
+
+    kwiver::vital::plugin_factory* fact = new kwiver::vital::plugin_factory_0< epx_t >(
+      typeid( kwiver::embedded_pipeline_extension ).name() );
+
+    fact->add_attribute( kvpf::PLUGIN_NAME,      epx_t::_plugin_name )
+      .add_attribute( kvpf::PLUGIN_DESCRIPTION,  epx_t::_plugin_description )
+      .add_attribute( kvpf::PLUGIN_MODULE_NAME,  this->module_name() )
+      .add_attribute( kvpf::PLUGIN_ORGANIZATION, this->organization() )
+      .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "embedded-pipeline-extension" )
+      ;
+
+    return plugin_loader().add_factory( fact );
+  }
+};
 
 } // end namespace
 

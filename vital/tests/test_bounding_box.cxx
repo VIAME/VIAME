@@ -99,3 +99,26 @@ TEST(bounding_box, intersection_bbox_d)
   EXPECT_EQ( 200, bbi.lower_right().x() );
   EXPECT_EQ( 223, bbi.lower_right().y() );
 }
+
+// ----------------------------------------------------------------------------
+TEST(bounding_box, comparisons)
+{
+  kwiver::vital::bounding_box_d::vector_type tl1{ 12, 23 };
+  kwiver::vital::bounding_box_d::vector_type br1{ 200, 223 };
+  kwiver::vital::bounding_box_d::vector_type tl2{ 10, 15 };
+  kwiver::vital::bounding_box_d::vector_type br2{ 120, 110 };
+
+  kwiver::vital::bounding_box_d bb1{ tl1, br1 };
+  kwiver::vital::bounding_box_d bb1_clone = bb1;
+  kwiver::vital::bounding_box_d bb2{ tl2, br2 };
+
+  // Check ==
+  EXPECT_TRUE(  bb1 == bb1_clone );
+  EXPECT_FALSE( bb1 == bb2 );
+  EXPECT_FALSE( bb1_clone == bb2 );
+
+  // Check !=
+  EXPECT_FALSE(  bb1 != bb1_clone );
+  EXPECT_TRUE( bb1 != bb2 );
+  EXPECT_TRUE( bb1_clone != bb2 );
+}

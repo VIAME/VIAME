@@ -70,8 +70,8 @@ public:
   /// Return the native OpenCV descriptors as a matrix
   const cv::Mat& ocv_desc_matrix() const { return data_; }
 
-  virtual vital::descriptor_sptr at( size_t index ) override;
-  virtual vital::descriptor_sptr const at( size_t index ) const override;
+  vital::descriptor_sptr at( size_t index ) override;
+  vital::descriptor_sptr const at( size_t index ) const override;
 
 protected:
   iterator::next_value_func_t get_iter_next_func() override;

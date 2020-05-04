@@ -48,7 +48,7 @@ public:
                "This program provides a simple Qt-based front-end "
                "for executing pipelines and viewing images produced by the same." );
 
-  virtual int run() override;
+  int run() override;
 };
 
 } // namespace tools

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2018 by Kitware, Inc.
+ * Copyright 2012-2019 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,8 @@
 #include <vnl/vnl_double_3.h>
 #include <vnl/vnl_double_2.h>
 
+#include <vital/logger/logger.h>
+
 namespace kwiver {
 namespace arrows {
 namespace super3d {
@@ -63,6 +65,9 @@ refine_depth(vil_image_view<double> &cost_volume,
              double epsilon,
              depth_refinement_monitor *drm)
 {
+  static vital::logger_handle_t logger =
+    vital::get_logger("arrows.super3d.refine_depth");
+
   vil_image_view<double> sqrt_cost_range(cost_volume.ni(), cost_volume.nj(), 1);
   double a_step = 1.0 / cost_volume.nplanes();
 
@@ -102,17 +107,20 @@ refine_depth(vil_image_view<double> &cost_volume,
 
   for (unsigned int iter = 1; iter <= iterations; iter++)
   {
-    std::cout << "theta: " << theta << "\n";
+    LOG_TRACE(logger, "theta: " << theta);
     min_search_bound(a, d, cost_volume, sqrt_cost_range, theta, lambda);
     huber(q, d, a, g, theta, 0.25/theta, epsilon);
     theta = pow(10.0, log(theta)/denom - beta);
 
     if (drm)
     {
-      if (drm->callback_ && !(iter % drm->interval_))
+      if (drm->callback_)
       {
         depth_refinement_monitor::update_data data;
-        data.current_result.deep_copy(d);
+        if (!(iter % drm->interval_))
+        {
+          data.current_result.deep_copy(d);
+        }
         data.num_iterations = iter;
         // if the callback returns false, that means
         // the user has requested early termination

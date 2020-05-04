@@ -157,4 +157,20 @@ create_port_trait( serialized_message, serialized_message, "serialized data type
 create_port_trait( coordinate_system_updated, kwiver_logical, "Set to true if new reference frame is established." );
 create_port_trait( motion_heat_map, image, "Motion heat map." );
 
+// ============================================================================
+// Common configuration traits
+//
+create_config_trait( algorithm, std::string, "", "Name of algorithm config sub-block.\n\n"
+                     "Typical usage is:\n"
+                     "algorithm = <algo-name>\n"
+                     "block <algo-name>\n"
+                     "  type = foo\n"
+                     "  block foo\n"
+                     "    param = val\n"
+                     "  endblock  # foo\n"
+                     "endblock  # <algo-name>\n"
+  );
+
+
+
 #endif // KWIVER_VITAL_TYPE_TRAITS_H

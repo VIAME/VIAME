@@ -514,6 +514,8 @@ Miscellaneous: :a:`[misc]`
 
   - :a:`[misc.modern.override]`
     Always decorate virtual method overrides with :cpp:`override`.
+    Use of the :cpp:`virtual` keyword is discouraged in declarations
+    with :cpp:`override`.
 
   - :a:`[misc.modern.member_init]`
     Prefer inline member initialization when possible.

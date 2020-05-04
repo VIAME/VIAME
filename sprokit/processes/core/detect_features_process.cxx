@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,10 +44,9 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
 
-  create_config_trait( feature_detector, std::string, "", "Algorithm configuration subblock." )
+create_algorithm_name_config_trait( feature_detector );
 
 /**
  * \class detect_features_process
@@ -120,16 +119,20 @@ void detect_features_process
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::detect_features::check_nested_algo_configuration( "feature_detector", algo_config ) )
+  if ( ! algo::detect_features::check_nested_algo_configuration_using_trait(
+         feature_detector, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // Instantiate the configured algorithm
-  algo::detect_features::set_nested_algo_configuration( "feature_detector", algo_config, d->m_detector );
+  algo::detect_features::set_nested_algo_configuration_using_trait(
+    feature_detector,
+    algo_config,
+    d->m_detector );
   if ( ! d->m_detector )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create feature_detector" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create feature_detector" );
   }
 }
 

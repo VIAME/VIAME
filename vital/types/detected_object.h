@@ -83,6 +83,8 @@ public:
   using vector_t = std::vector< detected_object_sptr >;
   using descriptor_t = descriptor_dynamic< double >;
   using descriptor_scptr = std::shared_ptr< descriptor_t const >;
+  using notes_t = std::vector< std::string>;
+  using keypoints_t = std::map< std::string, vital::point_2d >;
 
   /**
    * @brief Create default detected object.
@@ -302,7 +304,7 @@ public:
    *
    * @return A vector of notes.
    */
-  std::vector< std::string > notes() const;
+  notes_t notes() const;
 
   /**
    * @brief Add a note for this detection.
@@ -329,7 +331,7 @@ public:
    *
    * @return A map of keypoints and their identifiers.
    */
-  std::map< std::string, vital::point_2d > keypoints() const;
+  keypoints_t keypoints() const;
 
   /**
    * @brief Add a note for this detection

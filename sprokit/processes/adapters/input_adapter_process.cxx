@@ -99,6 +99,7 @@ input_adapter_process
   if ( m_active_ports.count( port ) == 0 )
   {
     port_flags_t p_flags;
+    p_flags.insert( flag_required );
 
     if ( port[0] != '_' ) // skip special ports (e.g. _heartbeat)
     {

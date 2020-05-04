@@ -184,8 +184,6 @@ int main(int argc, char *argv[])
   // Global shared context
   // Allocated on the stack so it will automatically clean up
   //
-  using kvpf = kwiver::vital::plugin_factory;
-
   applet_context_t tool_context = std::make_shared< kwiver::tools::applet_context >();
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();

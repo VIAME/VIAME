@@ -41,8 +41,9 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
+
+create_algorithm_name_config_trait( split_image );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -79,25 +80,24 @@ void split_image_process
 {
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  algo::split_image::set_nested_algo_configuration(
-    "split_image", algo_config, d->m_image_splitter );
+  algo::split_image::set_nested_algo_configuration_using_trait(
+    split_image, algo_config, d->m_image_splitter );
 
   if( !d->m_image_splitter )
   {
-    throw sprokit::invalid_configuration_exception(
+    VITAL_THROW( sprokit::invalid_configuration_exception,
       name(), "Unable to create \"split_image\"" );
   }
-  algo::split_image::get_nested_algo_configuration(
-    "split_image", algo_config, d->m_image_splitter );
+  algo::split_image::get_nested_algo_configuration_using_trait(
+    split_image, algo_config, d->m_image_splitter );
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !algo::split_image::check_nested_algo_configuration(
-        "split_image", algo_config ) )
+  if( !algo::split_image::check_nested_algo_configuration_using_trait(
+        split_image, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Configuration check failed." );
   }
-
 }
 
 
@@ -147,7 +147,7 @@ void split_image_process
 void split_image_process
 ::make_config()
 {
-
+  declare_config_using_trait( split_image );
 }
 
 

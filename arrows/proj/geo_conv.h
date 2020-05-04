@@ -56,9 +56,9 @@ public:
   geo_conversion() {}
   virtual ~geo_conversion();
 
-  virtual char const* id() const override;
+  char const* id() const override;
 
-  virtual vital::geo_crs_description_t describe( int crs ) override;
+  vital::geo_crs_description_t describe( int crs ) override;
 
   /// Conversion operator
   virtual vital::vector_2d operator()( vital::vector_2d const& point,

@@ -225,6 +225,18 @@ public:
     return the_clone;
   }
 
+  /// Convert to a camera map of a type B for which B is a base class of T
+  template <typename B>
+  std::map< frame_id_t, std::shared_ptr<B> > map_of_()
+  {
+    std::map< frame_id_t, std::shared_ptr<B> > new_map;
+    for (auto &d : data_)
+    {
+      new_map[d.first] = d.second;
+    }
+    return new_map;
+  }
+
   /// return a map from integer IDs to simple perspective camera shared pointers
   virtual frame_to_T_sptr_map const& T_cameras() const { return data_; }
 

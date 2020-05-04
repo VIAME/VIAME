@@ -17,7 +17,11 @@ typical way to control the behaviour of the software. Configuration
 blocks can also be created pragmatically such as when specifying an
 expected set of configurable items.
 
-When algorithms are used within processes, the
+When algorithms are used within processes, the configuration entries
+are specified as a block in the pipe file. The process takes the
+appropriate config subblock and passes it to the
+``set_nested_algo_configuration()`` method to instantiate and
+configure the algorithm.
 
 
 From File to config_block
@@ -50,7 +54,9 @@ description. This is done for both algorithms and processes.
 Don't be shy with the entry description. This description serves as
 the design specification for the entry. The expected format is a short
 description followed by a longer detailed description separated by two
-new-lines, as shown below.::
+new-lines, as shown below.
+
+.. code-block:: c++
 
   config->set_value( "config_name", <default_value>,
                      "Short description.\n\n"
@@ -86,7 +92,9 @@ attempting to get a value that is not present generates an exception.
 The recommended way to avoid this problem is to use the expected
 configuration, as created by the ``get_configuration()`` method to
 supply any missing entries. The following code snippet shows how this
-is done.::
+is done.
+
+.. code-block:: c++
 
     // Set this algorithm's properties via a config block
     void
@@ -118,7 +126,9 @@ Lets first look at the code that will instantiate the configured
 algorithm and then look at the contents of the configuration file.
 
 The following code snippet instantiates a ``draw_detected_object_set``
-algorithm.::
+algorithm.
+
+.. code-block:: c++
 
   // this pointer will be used to reference the algorithm after it is created.
   vital::algo::draw_detected_object_set_sptr m_algo;
@@ -182,7 +192,9 @@ differently than for algorithms, but underneath, they both use the
 same structure.
 
 Configuration items for a process are defined using
-``create_config_trait()`` macro as shown below.::
+``create_config_trait()`` macro as shown below.
+
+.. code-block:: c++
 
   //                    name,      type,  default,        description
   create_config_trait( threshold, float, "-1", "min threshold for output (float).\n\n"
@@ -234,7 +246,9 @@ keys that are in the supplied config but not in the expected
 config. These items are supplied but not expected.
 
 The following code snippet shows how to report the difference between
-two config blocks.::
+two config blocks.
+
+.. code-block:: c++
 
   //                                    ref-config                received-config
   kwiver::vital::config_difference cd( this->get_configuration(), config );
@@ -273,13 +287,12 @@ portions of a config.
 Starting with the example config section that selects an algorithm and
 configures it::
 
-
     algorithm_instance_name:type = type_name
     algorithm_instance_name:type_name:algo_param = value
     algorithm_instance_name:type_name:threshold = 234
 
- The block construct can be used to simplify the configuration and
- make it easier to navigate.::
+The block construct can be used to simplify the configuration and
+make it easier to navigate.::
 
   block algorithm_instance_name
     type = type_name
@@ -288,7 +301,6 @@ configures it::
       threshold = 234
     endblock
   endblock
-
 
 In cases where the configuration block is extensive or used in
 multiple applications, that part of the configuration can exist as a
@@ -306,12 +318,52 @@ where ``type_name.conf`` contains::
       threshold = 234
     endblock
 
-
 Environment variables and config macros can be combined to provide a
 level of adaptability to config files. Using the environment macro in
 an include directive can provide run time agility without requiring
 the file to be edited. The following is an example of selecting a
 different include file based on mode.::
 
-
   include $ENV{MODE}/config.file.conf
+
+
+Using enums in config entries
+-----------------------------
+
+Quite often a configuration parameter can only take a fixed number of
+values such as when the user is trying to configure an enum. The enum
+support in vital directly supports converting strings to enum values
+with the use of the ``enum_converter`` and enum support in the config
+block. The enum converter will verify that the supplied string
+represents an enum value, and throw an error if it does not. The list
+of valid enum strings is provided to assist in documenting config
+entries.
+
+The following code snippet shows how to use the enum support to create
+a new config entry and convert config entry to an enum value.::
+
+   #include <vital/util/enum_converter.h>
+
+   using kvll = kwiver::vital::kwiver_logger::log_level_t;
+
+   // Declare the enum converter
+   //              converter-name   enum-type
+   ENUM_CONVERTER( level_converter, kvll,
+      { "trace", kvll::LEVEL_TRACE },
+      { "debug", kvll::LEVEL_DEBUG },
+      { "info",  kvll::LEVEL_INFO },
+      { "warn",  kvll::LEVEL_WARN },
+      { "error", kvll::LEVEL_ERROR }
+    );
+
+
+    // Create config entry from enum. level_converter supplies the list of
+    // valid enum strings.
+   conf->set_value( "level", level_converter().to_string( m_log_level ),
+                   "Logger level to use when generating log messages. "
+                   "Allowable values are: " + level_converter().element_name_string()
+    );
+
+
+   // Convert config entry to an enum value.
+   kvll log_level = conf->get_enum_value<level_converter>( "level" );

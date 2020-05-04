@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,8 +55,8 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver {
 
 //                 (config-key, value-type, default-value, description )
-create_config_trait( video_reader, std::string, "", "Name of video input algorithm. "
-  " Name of the video reader algorithm plugin is specified as video_reader:type = <algo-name>" );
+create_algorithm_name_config_trait( video_reader );
+
 create_config_trait( video_filename, std::string, "", "Name of video file." );
 create_config_trait( frame_time, double, "0.03333333",
                      "Inter frame time in seconds. "
@@ -123,16 +123,18 @@ void video_input_process
     d->m_has_config_frame_time = true;
   }
 
-  if ( ! algo::video_input::check_nested_algo_configuration( "video_reader", algo_config ) )
+  if ( ! algo::video_input::check_nested_algo_configuration_using_trait(
+         video_reader, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // instantiate requested/configured algo type
-  algo::video_input::set_nested_algo_configuration( "video_reader", algo_config, d->m_video_reader );
+  algo::video_input::set_nested_algo_configuration_using_trait(
+    video_reader, algo_config, d->m_video_reader );
   if ( ! d->m_video_reader )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create video_reader." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create video_reader." );
   }
 }
 
@@ -182,8 +184,8 @@ void video_input_process
       // number or frame time or both.
       if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
       {
-        throw sprokit::invalid_configuration_exception( name(),
-                                                        "Video reader selected does not supply image data." );
+        VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                     "Video reader selected does not supply image data." );
       }
 
 
@@ -265,9 +267,14 @@ void video_input_process
   // Set up for required ports
   sprokit::process::port_flags_t optional;
 
+  // We are outputting a shared ref to the output image, therefore we
+  // should mark it as shared.
+  sprokit::process::port_flags_t shared;
+  shared.insert( flag_output_shared );
+
   declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( image, optional );
-  declare_output_port_using_trait( metadata, optional );
+  declare_output_port_using_trait( image, shared );
+  declare_output_port_using_trait( metadata, shared );
   declare_output_port_using_trait( frame_rate, optional );
 }
 

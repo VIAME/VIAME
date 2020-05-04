@@ -83,6 +83,22 @@ compute_height_range_from_landmarks(std::vector<landmark_sptr> const& landmarks,
                                     double &height_min, double &height_max,
                                     vector_3d const& world_normal = vector_3d(0.0, 0.0, 1.0));
 
+/// Compute a robust 3D bounding box for a set of landmarks
+/**
+* \param landmarks a vector of landmarks
+* \param bounds is the output 3D bounds
+* \param percentile outlier percentile for x and y dimensions
+* \param zmax_percentile outlier percentile for z dimension
+* \param margin widening factor applied to resulting bounds
+*/
+KWIVER_ALGO_CORE_EXPORT
+bool
+compute_robust_ROI(std::vector<landmark_sptr> const& landmarks,
+                   double bounds[6],
+                   double percentile = 0.1,
+                   double zmax_percentile = 0.01,
+                   double margin = 0.5);
+
 /// Return the axis aligned 2D box of a 3D box projected into an image
 /**
 * \param minpt is one of the points defining the 3D region

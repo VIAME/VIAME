@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,11 @@
 
 #include <sprokit/pipeline/process_exception.h>
 
-namespace kwiver
-{
+namespace kwiver {
 
 namespace algo = vital::algo;
+
+create_algorithm_name_config_trait( track_initializer );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -85,24 +86,28 @@ void initialize_object_tracks_process
 
   vital::config_block_sptr algo_config = get_config();
 
-  algo::initialize_object_tracks::set_nested_algo_configuration(
-    "track_initializer", algo_config, d->m_track_initializer );
+  algo::initialize_object_tracks::set_nested_algo_configuration_using_trait(
+    track_initializer,
+    algo_config,
+    d->m_track_initializer );
 
   if( !d->m_track_initializer )
   {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Unable to create initialize_object_tracks" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Unable to create initialize_object_tracks" );
   }
 
-  algo::initialize_object_tracks::get_nested_algo_configuration(
-    "track_initializer", algo_config, d->m_track_initializer );
+  algo::initialize_object_tracks::get_nested_algo_configuration_using_trait(
+    track_initializer,
+    algo_config,
+    d->m_track_initializer );
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !algo::initialize_object_tracks::check_nested_algo_configuration(
-    "track_initializer", algo_config ) )
+  if( !algo::initialize_object_tracks::check_nested_algo_configuration_using_trait(
+        track_initializer, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Configuration check failed." );
   }
 }
 
@@ -189,6 +194,7 @@ void initialize_object_tracks_process
 void initialize_object_tracks_process
 ::make_config()
 {
+  declare_config_using_trait( track_initializer );
 }
 
 

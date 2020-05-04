@@ -48,7 +48,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
   process_registrar reg( vpm, "kwiver_processes_test" );
 
-  if ( is_process_module_loaded( vpm, reg.module_name() ) )
+  if ( reg.is_module_loaded() )
   {
     return;
   }
@@ -56,5 +56,5 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_process< kwiver::test_proc_seq >();
 
 // - - - - - - - - - - - - - - - - - - - - - - -
-  mark_process_module_as_loaded( vpm, reg.module_name() );
+  reg.mark_module_as_loaded();
 }

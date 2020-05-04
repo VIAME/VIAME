@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +45,9 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
 
-create_config_trait( detect_loops, std::string, "",
-                     "Algorithm configuration subblock." );
+create_algorithm_name_config_trait( close_loops );
 
 create_port_trait( next_tracks, feature_track_set,
                    "feature track set for the next frame.  Features are not yet matched for "
@@ -151,10 +149,10 @@ void close_loops_process
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  const std::string algo_name = "close_loops";
-
   // Instantiate the configured algorithm
-  algo::close_loops::set_nested_algo_configuration(algo_name, algo_config,
+  algo::close_loops::set_nested_algo_configuration_using_trait(
+    close_loops,
+    algo_config,
     d->m_loop_closer );
 
   if ( ! d->m_loop_closer )
@@ -163,13 +161,15 @@ void close_loops_process
       "Unable to create close_loops" );
   }
 
-  algo::close_loops::get_nested_algo_configuration(algo_name, algo_config,
+  algo::close_loops::get_nested_algo_configuration_using_trait(
+    close_loops,
+    algo_config,
     d->m_loop_closer);
 
   //// Check config so it will give run-time diagnostic if any config problems
   // are found
-  if ( ! algo::close_loops::check_nested_algo_configuration(
-      algo_name, algo_config ) )
+  if ( ! algo::close_loops::check_nested_algo_configuration_using_trait(
+         close_loops, algo_config ) )
   {
     VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Configuration check failed." );
@@ -245,7 +245,7 @@ void close_loops_process
 void close_loops_process
 ::make_config()
 {
-  declare_config_using_trait( detect_loops );
+  declare_config_using_trait( close_loops );
 }
 
 

@@ -270,6 +270,9 @@ endif()
 # include as the last subdir
 add_subdirectory( vital )
 
+# this is where the algorithm default configuration files live
+add_subdirectory(config)
+
 if(MSVC)
   # Generate files to inform msvc of the kwiver runtime environment
   kwiver_setup_msvc_env() # Setup .bat scripts need to be complete and on disk

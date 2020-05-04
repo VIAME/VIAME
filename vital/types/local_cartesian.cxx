@@ -186,7 +186,7 @@ public:
     double equatorial_radius = semiMajorAxis;
     double eccentricity_squared = Geocent_e2;
 
-    double rho, c, s, ct2, e1, e2a;
+    double rho, c, s, e1, e2a;
 
     e1 = 1.0 - eccentricity_squared;
     e2a = eccentricity_squared * equatorial_radius;

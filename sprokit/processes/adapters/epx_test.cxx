@@ -44,7 +44,7 @@ epx_test()
 {
 }
 
-
+// ----------------------------------------------------------------------------
 void
 epx_test::
 pre_setup( context& ctxt )
@@ -60,7 +60,7 @@ pre_setup( context& ctxt )
   std::cout <<  "exp_test: pipe config:\n" << str.str() <<std::endl;
 }
 
-
+// ----------------------------------------------------------------------------
 void
 epx_test::
 end_of_output( context& ctxt )
@@ -68,7 +68,7 @@ end_of_output( context& ctxt )
   std::cout << "exp_test End_Of_Output called\n";
 }
 
-
+// ----------------------------------------------------------------------------
 void epx_test::configure( kwiver::vital::config_block_sptr const conf )
 {
   // print config
@@ -79,7 +79,7 @@ void epx_test::configure( kwiver::vital::config_block_sptr const conf )
   std::cout <<  "exp_test: configure called with config:\n" << str.str() <<std::endl;
 }
 
-
+// ----------------------------------------------------------------------------
 kwiver::vital::config_block_sptr epx_test::get_configuration() const
 {
   auto conf = kwiver::vital::config_block::empty_config();
@@ -103,24 +103,15 @@ void
 register_factories( kwiver::vital::plugin_loader& vpm )
 
 {
-  static auto const module_name = kwiver::vital::plugin_manager::module_t( "kwiver_epx_test" );
+  kwiver::embedded_pipeline_extension_registrar reg( vpm, "kwiver_epx_test" );
+  using namespace kwiver;
 
-  if ( vpm.is_module_loaded( module_name ) )
+  if ( reg.is_module_loaded() )
   {
     return;
   }
 
-  // ----------------------------------------------------------------------------
-  // Add test embedded pipeline extension
-  auto fact = vpm.ADD_FACTORY( kwiver::embedded_pipeline_extension, kwiver::epx_test );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "test")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                       "Extension for testing.")
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, "embedded-pipeline-extension" )
-    ;
-  // - - - - - - - - - - - - - - - - - - - - - - -
-  vpm.mark_module_as_loaded( module_name );
+  reg.register_EPX< epx_test >();
+
+  reg.mark_module_as_loaded();
 }

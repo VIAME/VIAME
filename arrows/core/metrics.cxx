@@ -157,47 +157,6 @@ reprojection_errors(const std::map<frame_id_t, camera_sptr>& cameras,
 }
 
 
-/// subsample the cameras favoring more recent cameras
-vital::camera_map::map_camera_t
-subsample_cameras_favor_recent(const vital::camera_map::map_camera_t& cameras)
-{
-  // General idea of this loop is to pick more frames near the last frame in time and
-  // fewer earlier.  So if we are more than 100 frames back, only pick every hundredth
-  // frame.  If fewer than 100 but more than 10 frames back pick every tenth and if
-  // less than ten frames back pick every frame.
-  // The idea is that more recent cameras are more likely to have high reprojection
-  // errors while older cameras have been optimized more and so will mostly have low
-  // reprojection errors and those reprojection errors will be similar to each other.
-
-  vital::camera_map::map_camera_t ret_cams;
-
-  frame_id_t last_frame = cameras.rend()->first;
-
-  for (auto cam : cameras)
-  {
-    auto frame_num = cam.first;
-    if (last_frame - frame_num > 100)
-    {
-      if (frame_num % 100 != 1)
-      {
-        continue;
-      }
-    }
-    else if (last_frame - frame_num > 10)
-    {
-      if (frame_num % 10 != 1)
-      {
-        continue;
-      }
-    }
-
-    ret_cams[frame_num] = cam.second;
-  }
-
-  return ret_cams;
-}
-
-
 /// Compute the per camera Root-Mean-Square-Error (RMSE) of the reprojections
 std::map<frame_id_t, double>
 reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,

@@ -36,6 +36,8 @@
 #ifndef KWIVER_VITAL_GEO_MGRS_H_
 #define KWIVER_VITAL_GEO_MGRS_H_
 
+#include <vital/vital_export.h>
+
 #include <ostream>
 #include <string>
 
@@ -54,7 +56,7 @@ namespace vital {
  *   Datums, Ellipsoids, Grids, and Grid Reference Systems</a>,
  *   Defense Mapping Agency, Technical Manual TM8358.1 (1990).
  */
-class geo_MGRS
+class VITAL_EXPORT geo_MGRS
 {
 public:
   geo_MGRS();
@@ -79,7 +81,7 @@ private:
 }; // end class geo_MGRS
 
 
-std::ostream & operator<< (std::ostream & str, const kwiver::vital::geo_MGRS & obj);
+VITAL_EXPORT std::ostream & operator<< (std::ostream & str, const kwiver::vital::geo_MGRS & obj);
 
 } } // end namespace
 

@@ -6,6 +6,7 @@ find_package( Protobuf REQUIRED 3 )
 
 set( proto_files
   bounding_box.proto
+  covariance.proto
   detected_object.proto
   detected_object_set.proto
   detected_object_type.proto
@@ -21,6 +22,7 @@ set( proto_files
   track_set.proto
   object_track_state.proto
   object_track_set.proto
+  point.proto
   )
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})

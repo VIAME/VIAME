@@ -44,6 +44,8 @@
 #include <vital/types/geodesy.h>
 #include <vital/types/polygon.h>
 
+#include <sstream>
+
 using namespace kwiver::vital;
 
 namespace {
@@ -53,6 +55,8 @@ auto const loc_ll = vector_2d{ -149.484444, -17.619482 };
 auto const loc_utm = vector_2d{ 236363.98, 8050181.74 };
 
 auto const loc2_ll = vector_2d{ -73.759291, 42.849631 };
+
+auto const loc_rt = vector_2d{ 0.123456789012345678, -0.987654321098765432 };
 
 auto constexpr crs_ll = SRID::lat_lon_WGS84;
 auto constexpr crs_utm_6s = SRID::UTM_WGS84_south + 6;
@@ -230,3 +234,98 @@ TEST(geo_polygon, config_block_io)
 
   EXPECT_EQ( loc, config->get_value<geo_polygon>( key ).polygon( crs ) );
 }
+
+// ----------------------------------------------------------------------------
+TEST(geo_polygon, insert_operator_empty)
+{
+  geo_polygon p_empty;
+
+  std::stringstream str;
+  str << p_empty;
+
+  EXPECT_EQ( str.str(), "{ empty }" );
+}
+
+
+// ----------------------------------------------------------------------------
+struct roundtrip_test
+{
+  char const* text;
+  vector_2d loc;
+  int crs;
+};
+
+// ----------------------------------------------------------------------------
+void
+PrintTo( roundtrip_test const& v, ::std::ostream* os )
+{
+  (*os) << v.text;
+}
+
+// ----------------------------------------------------------------------------
+class geo_polygon_roundtrip : public ::testing::TestWithParam<roundtrip_test>
+{
+};
+
+// ----------------------------------------------------------------------------
+TEST_P(geo_polygon_roundtrip, insert_operator)
+{
+  auto const expected_loc = GetParam().loc;
+  auto const expected_crs = GetParam().crs;
+
+  geo_polygon p{ { expected_loc }, expected_crs };
+
+  // Write polygon to stream
+  std::stringstream s;
+  s << p;
+
+  // Read back values
+  double easting, northing;
+  int crs;
+  std::string dummy;
+
+  s >> dummy; // {
+  s >> easting;
+  s >> dummy; // /
+  s >> northing;
+  s >> dummy; // }
+  s >> dummy; // @
+  s >> crs;
+
+  // Successful round-trip?
+  EXPECT_EQ( expected_loc[0], easting );
+  EXPECT_EQ( expected_loc[1], northing );
+  EXPECT_EQ( expected_crs, crs );
+}
+
+// ----------------------------------------------------------------------------
+TEST_P(geo_polygon_roundtrip, config_block)
+{
+  auto const expected_loc = GetParam().loc;
+  auto const expected_crs = GetParam().crs;
+
+  auto const config = config_block::empty_config();
+  auto const key = config_block_key_t{ "key" };
+
+  config->set_value( key, geo_polygon{ { expected_loc }, expected_crs } );
+
+  auto const value = config->get_value<geo_polygon>( key );
+  ASSERT_EQ( expected_crs, value.crs() );
+
+  auto const actual_loc = value.polygon( expected_crs ).get_vertices()[0];
+
+  // Successful round-trip?
+  EXPECT_EQ( expected_loc[0], actual_loc[0] );
+  EXPECT_EQ( expected_loc[1], actual_loc[1] );
+}
+
+// ----------------------------------------------------------------------------
+INSTANTIATE_TEST_CASE_P(
+  ,
+  geo_polygon_roundtrip,
+  ::testing::Values(
+      ( roundtrip_test{ "ll", loc_ll, crs_ll } ),
+      ( roundtrip_test{ "utm", loc_utm, crs_utm_6s } ),
+      ( roundtrip_test{ "2", loc2_ll, crs_ll } ),
+      ( roundtrip_test{ "rt", loc2_ll, 12345 } )
+  ) );

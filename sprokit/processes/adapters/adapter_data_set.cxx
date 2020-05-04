@@ -75,7 +75,7 @@ void
 adapter_data_set
 ::add_datum( sprokit::process::port_t const& port, sprokit::datum_t const& datum )
 {
-  m_port_datum_set.emplace( port, datum );
+  m_port_datum_set[port] = datum ;
 }
 
 

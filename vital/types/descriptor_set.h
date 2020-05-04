@@ -98,14 +98,14 @@ public:
    *
    * @returns Number of elements in this set.
    */
-  virtual size_t size() const override;
+  size_t size() const override;
 
   /**
    * Whether or not this set is empty.
    *
    * @return True if this set is empty or false otherwise.
    */
-  virtual bool empty() const override;
+  bool empty() const override;
 
   //@{
   /**
@@ -115,8 +115,8 @@ public:
    * @throws std::out_of_range If position is now within the range of objects
    *                           in container.
    */
-  virtual descriptor_sptr at( size_t index ) override;
-  virtual descriptor_sptr const at( size_t index ) const override;
+  descriptor_sptr at( size_t index ) override;
+  descriptor_sptr const at( size_t index ) const override;
   //@}
 
   /// Return a vector of descriptor shared pointers

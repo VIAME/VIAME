@@ -123,7 +123,7 @@ read_pos_file( path_t const& file_path )
         << file_path
         << "  (discovered " << tokens.size() << " field(s), expected "
         << "14 or 15).";
-    throw vital::invalid_data( ss.str() );
+    VITAL_THROW( vital::invalid_data, ss.str() );
   }
 
   // make a new metadata container.

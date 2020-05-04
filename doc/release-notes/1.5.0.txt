@@ -7,6 +7,19 @@ over the previous v1.4.0 release.
 Updates since v1.4.0
 --------------------
 
+Vital
+
+Vital Algo
+
+ * Changed the callback API on compute_depth to accept a string status
+   message.  Integer progress is now interpreted as percent complete
+   rather than number of iterations.
+
+ * Added a variant of the integrate_depth_maps API that takes weight images
+   along with depth images. This feature was added to include binary image
+   masks in the fusion, but it also extends to continuous weight values
+   between zero and one.
+
 Vital Types
 
  * Added ``kwiver::vital::set`` mixin class to define standard set methods as
@@ -35,12 +48,16 @@ Vital Plugin-loader
    objects can be added to the plugin loader at run time to select or
    exclude specific plugins.
 
+Vital Util
+
 Vital Logger
 
  * Log4cplus now searches in more locations to find the log4cplus.properties
    file during start up.  If not found with the environment variable or in the
    current working directory it will now search in the location of the
    executable and also in "../lib/kwiver" relative to the executable.
+
+Vital Tools
 
 Vital Types
 
@@ -71,11 +88,101 @@ Vital Bindings
  * Moved python bindings associated with config from sprokit.pipeline to
    vital.config.
 
+Arrows
+
 Arrows: Core
 
  * Added an algorithm implementation (transform_detected_object_set) for
    transforming detected object sets from one camera perspective to another.
    Implements vital::algo::detected_object_filter.
+
+ * Added an algorithm implementation (transfer_bbox_with_depth_map) for
+   transforming detected object set bounding boxes from one camera perspective
+   to another with respect to a depth map.  Implements
+   vital::algo::detected_object_filter.
+
+ * Added a detect_features adaptor that applies a filter_features
+   algorithm to filter features returned by the detector.  This allows
+   a filter to be injected anywhere a detector is normally used.
+
+ * Added an adaptive non-max suppression filter for features points.
+   This algorithm provides more uniformity to detected features by
+   removing all features within a radius of the strongest points.
+   The radius is dynamically adapted to achieve a target point count.
+
+ * Added an option to the fundamental matrix matcher that does a second
+   round of filtering to remove outliers with large motion relative to
+   most other matches.
+
+ * When resectioning cameras in the keyframe initializer we now copy the
+   intrinsics from the nearest existing camera rather than from the base
+   camera in the config or metadata.  This way the focal length better matches
+   existing cameras and the initial pose will better match as well.
+
+ * During keyframe camera initialization the algorithm detects if the camera
+   graph has split into multiple components.  Previously only the largest
+   component was kept resulting in significant data loss.  Instead the
+   algorithm now tries to retriangulate tracks that previously held the
+   camera graph together.
+
+ * Refactored initialize_cameras_landmarks_keyframe code for better
+   reuseability and readability.
+
+ * Updated the initialize_cameras_landmarks_keyframe algorithm to better
+   handle early termination through callbacks.
+
+ * Added a new SfM utility function to compute a set of well-distributed
+   but well-connected keyframes for use in initializing SfM.
+
+ * Use a canonical transform estimator in initialize_cameras_landmarks_keyframe
+   to reorient the solution when no metadata constraints are available.
+   This also helps detect upside down cameras and trigger a Necker reversal to
+   correct for that case.
+
+ * Added utility functions to estimate the ground center of landmarks and
+   to apply a translational offset to landmarks and cameras.
+
+ * Added a utitily to compute the subset of cameras located on the positive
+   side of a specified plane.
+
+ * Improved Necker reversal correction in the keyframe camera and landmark
+   initializer by allowing reversal of individual cameras that are upside down
+   provided that all cameras are above the estimated ground plane.
+
+ * In the keyframe camera and landmark initializer, only use windowed bundle
+   adjustment for filling in cameras after the entire initial sequence is
+   complete.
+
+ * In the keyframe camera and landmark initializer, we no longer update
+   the base_camera intrinsics configuration value with estimated values.
+   These should remain fixed to their configured settings.  Instead we now
+   use nearby established cameras to initialize similar or shared intrinsics.
+
+ * Added a utility to compute the subset of cameras located on the positive
+   side of a specified plane.
+
+ * Improved Necker reversal correction in the keyframe camera and landmark
+   initializer by allowing reversal of individual cameras that are upside down
+   provided that all cameras are above the estimated ground plane.
+
+Arrows: Ceres
+
+ * Fixed long-broken bundle adjustment regularization parameters for
+   camera smoothness and forward motion damping.  The fixed versions now
+   support non-sequential camera frame numbers and the residual costs are
+   normalized relative to both the number of existing residuals and the
+   spatial scale of the camera positions.  These normalization allow the
+   regularization to work similarly across different problem sizes and scales.
+
+ * Added a configuration option to the bundle adjuster that allow for
+   callbacks to not provided updates on every iteration for efficiency.
+
+ * Add a new option for minimum horizontal field of view (hfov) in bundle
+   adjustment and camera optimization.  This is mostly for telescopic lenses
+   when the hfov is very small (e.g. less than 5 degrees).  There is a
+   tendency for small FOVs to drift toward zero due to lack of perspective.
+   This new parameter introduces a large cost if the HFOV drops below the
+   set threshold.
 
 Arrows: CUDA
 
@@ -85,10 +192,35 @@ Arrows: CUDA
    a double surface artifact.  Setting Epsilon = 0 restores the previous
    behavior.
 
+ * CUDA depth map integration now uses optional weight maps to down-weight
+   the contribution of some rays.
+
+Arrows: FFmpeg
+
+Arrows: GDAL
+
+Arrows: KPF
+
+Arrows: OpenCV
+
 Arrows: Serialization
 
  * Updated serialization algorithms to use PLUGIN_INFO macro and added
    serializer specific plugin registrar.
+
+Arrows: Super3d
+
+ * Replaced cout and cerr usage in Super3D with vital logger.
+
+ * Improved callback handling in compute_depth.  Callbacks are now more
+   frequent providing better progress updates and quicker early termination.
+   However, depth maps updates still occur at the slower rate as before.
+
+Arrows: VXL
+
+Arrows: Python
+
+Sprokit
 
 Sprokit: Processes
 
@@ -99,7 +231,7 @@ Sprokit: Processes
    empty detected object sets are prepended to the stream until the
    offset is satisfied.
 
- * Added method to compare the config declared by the process against
+ * Added method to comapre the config declared by the process against
    the config supplied by the pipeline. Any differences can be written
    to the log. This is useful for identifying misspelled config items.
 
@@ -119,14 +251,35 @@ Tools
    - vital/applets - contains applet framework
    - arrows/core/applets - general applets
 
+Unit Tests
+
+General Documentation
+
 Bug Fixes
 ---------
 
-Arrows - Core
+Arrows: Core
 
- * Fixed a bug in parsing the similarity_estimator configuration in
-   initialize_cameras_landmarks_keyframe
+ * Fixed a bug in initialize_cameras_landmarks_keyframe that was causing
+   points to be rejected because cameras were swapped.
 
-Arrows: ffmpeg
+Arrows: Ceres
 
- * Fixed the memory leak that occurred when a video was opened and closed.
+ * Fixed an issue in bundle adjustment where intrinsics were optimized
+   when shared between fixed and non-fixed cameras.  This resulted in an
+   increased error in residual terms of fixed cameras not included in the
+   bundle adjustment.  As a result, filtering often removed these points as
+   outliers.  It is better to only optimize intrinsics when not shared with
+   a fixed camera.
+
+ * Fixed and issue with bundle adjustment regularization in which the
+   regularization would dominate the data terms if the scale of the data
+   was large.
+
+Arrows: Super3D
+
+ * Fixed mask conversion code to allow both boolean and byte images
+   without crashing.
+
+ * Fixed a bug in which the mask was being applied to G-weighting in an
+   inverted way from what was expected.

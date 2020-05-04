@@ -4,8 +4,6 @@
 
 ###
 #
-set( plugin_explorer_version "1.0" )
-
 kwiver_add_executable( plugin_explorer
   plugin_explorer.cxx
   )
@@ -25,7 +23,7 @@ set( public_headers
 
 set_source_files_properties(plugin_explorer.cxx
   PROPERTIES
-    COMPILE_DEFINITIONS "PLUGIN_EXPLORER_VERSION=\"1.1\"")
+    COMPILE_DEFINITIONS "PLUGIN_EXPLORER_VERSION=\"1.2\"")
 
 # public headers for explorer
 kwiver_install_headers(
@@ -47,6 +45,7 @@ kwiver_add_library( explorer_plugin
 
 target_link_libraries( explorer_plugin
   PUBLIC   vital
+           ${VITAL_BOOST_REGEX}
   PRIVATE  kwiversys
            vital_util
   )

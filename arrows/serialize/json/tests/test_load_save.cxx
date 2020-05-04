@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,30 @@
  */
 
 #include <arrows/serialize/json/load_save.h>
+#include <arrows/serialize/json/load_save_point.h>
 #include <arrows/serialize/json/load_save_track_state.h>
 #include <arrows/serialize/json/load_save_track_set.h>
 
 #include <gtest/gtest.h>
 
-#include <vital/types/metadata.h>
 #include <vital/types/bounding_box.h>
-#include <vital/types/image_container.h>
+#include <vital/types/covariance.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/detected_object_type.h>
 #include <vital/types/geo_polygon.h>
+#include <vital/types/geodesy.h>
+#include <vital/types/image_container.h>
 #include <vital/types/metadata.h>
-#include <vital/types/metadata_traits.h>
+#include <vital/types/metadata.h>
 #include <vital/types/metadata_tags.h>
+#include <vital/types/metadata_traits.h>
+#include <vital/types/object_track_set.h>
+#include <vital/types/point.h>
 #include <vital/types/polygon.h>
 #include <vital/types/timestamp.h>
-#include <vital/types/geodesy.h>
-#include <vital/types/track_set.h>
 #include <vital/types/track.h>
-#include <vital/types/object_track_set.h>
+#include <vital/types/track_set.h>
 #include <vital/vital_types.h>
 
 #include <arrows/serialize/json/track.h>
@@ -389,32 +392,45 @@ TEST( load_save, track_state)
 // ----------------------------------------------------------------------------
 TEST( load_save, object_track_state)
 {
-  auto dot = std::make_shared<kwiver::vital::detected_object_type>();
+  auto dot = std::make_shared< kwiver::vital::detected_object_type >();
 
   dot->set_score( "first", 1 );
   dot->set_score( "second", 10 );
   dot->set_score( "third", 101 );
   dot->set_score( "last", 121 );
 
-  auto obj = std::make_shared< kwiver::vital::detected_object>(
+  // create detected object
+  auto obj = std::make_shared< kwiver::vital::detected_object >(
     kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, dot );
   obj->set_detector_name( "test_detector" );
   obj->set_index( 1234 );
+  obj->add_note( "this is a note" );
 
+  ::kwiver::vital::point_2d p2d( 123, 456 );
+  obj->add_keypoint( "keypoint-1", p2d );
 
-  kwiver::vital::object_track_state obj_trk_state(1, 1, obj);
+  ::kwiver::vital::geo_point::geo_3d_point_t g3d( 123, 234, 345 );
+  obj->set_geo_point( ::kwiver::vital::geo_point( g3d, 42 ) );
+
+  // Create object track state
+  kwiver::vital::object_track_state obj_trk_state( 1, 1, obj );
+
+  obj_trk_state.set_image_point( ::kwiver::vital::point_2d( 123, 321 ) );
+  obj_trk_state.set_track_point( ::kwiver::vital::point_3d( 123, 234, 345 ) );
+
   std::stringstream msg;
-
   try
   {
     cereal::JSONOutputArchive ar( msg );
-    cereal::save( ar, obj_trk_state);
+    cereal::save( ar, obj_trk_state );
   }
-  catch(std::exception const& e) {
+  catch ( std::exception const& e )
+  {
     std::cout << "exception caught: " << e.what() << std::endl;
   }
 
 #if DEBUG
+
   std::cout << "object track state as json - " << msg.str() << std::endl;
 #endif
 
@@ -424,7 +440,6 @@ TEST( load_save, object_track_state)
     cereal::load( ar, obj_dser );
   }
 
-
   auto do_sptr = obj_trk_state.detection();
   auto do_sptr_dser = obj_dser.detection();
 
@@ -432,6 +447,14 @@ TEST( load_save, object_track_state)
   EXPECT_EQ( do_sptr->index(), do_sptr_dser->index() );
   EXPECT_EQ( do_sptr->confidence(), do_sptr_dser->confidence() );
   EXPECT_EQ( do_sptr->detector_name(), do_sptr_dser->detector_name() );
+
+  EXPECT_EQ( do_sptr->notes().size(), do_sptr_dser->notes().size() );
+  EXPECT_EQ( do_sptr->notes()[ 0 ], do_sptr_dser->notes()[ 0 ] );
+
+  EXPECT_EQ( do_sptr->keypoints().size(), do_sptr_dser->keypoints().size() );
+
+  auto kpts = do_sptr_dser->keypoints();
+  EXPECT_EQ( kpts.count( "keypoint-1" ), 1 );
 
   auto dot_sptr_dser = do_sptr_dser->type();
 
@@ -444,12 +467,15 @@ TEST( load_save, object_track_state)
 
     for ( size_t i = 0; i < dot->size(); ++i )
     {
-      EXPECT_EQ( *(it->first), *(it_dser->first) );
+      EXPECT_EQ( *( it->first ), *( it_dser->first ) );
       EXPECT_EQ( it->second, it_dser->second );
     }
   }
-  EXPECT_EQ(obj_trk_state.time(), obj_dser.time());
-  EXPECT_EQ(obj_trk_state.frame(), obj_dser.frame());
+
+  EXPECT_EQ( obj_trk_state.time(), obj_dser.time() );
+  EXPECT_EQ( obj_trk_state.frame(), obj_dser.frame() );
+  EXPECT_EQ( obj_trk_state.image_point().value(), obj_dser.image_point().value() );
+  EXPECT_EQ( obj_trk_state.track_point().value(), obj_dser.track_point().value() );
 }
 // ============================================================================
 TEST( load_save, track_set )
@@ -504,7 +530,7 @@ TEST( load_save, track_set )
 
       EXPECT_EQ( obj_trk_state_sptr->frame(), dser_trk_state_sptr->frame() );
     }
-  }
+  } // end for
 
 }
 
@@ -513,11 +539,11 @@ TEST( load_save, object_track_set )
 {
   auto obj_trk_set_sptr = std::make_shared< kwiver::vital::object_track_set >();
   auto obj_trk_set_sptr_dser = std::make_shared< kwiver::vital::object_track_set >();
-  for ( kwiver::vital::track_id_t trk_id=1; trk_id<3; ++trk_id )
+  for ( kwiver::vital::track_id_t trk_id = 1; trk_id < 3; ++trk_id )
   {
     auto trk = kwiver::vital::track::create();
     trk->set_id( trk_id );
-    for ( int i=trk_id*2; i < ( trk_id+1 )*2; i++ )
+    for ( int i = trk_id * 2; i < ( trk_id+1 )*2; i++ )
     {
       auto dot = std::make_shared<kwiver::vital::detected_object_type>();
 
@@ -604,4 +630,85 @@ TEST( load_save, object_track_set )
       }
     }
   }
+}
+
+// ---------------------------------------------------------------------------
+TEST( load_save, covariance )
+{
+
+#define TEST_COV(T, ... )                                               \
+do {                                                                    \
+  ::kwiver::vital::T::matrix_type val;                                  \
+  val << __VA_ARGS__;                                                   \
+  ::kwiver::vital::T obj( val );                                        \
+  std::stringstream msg;                                                \
+  {                                                                     \
+    cereal::JSONOutputArchive ar( msg );                                \
+    cereal::save( ar, obj );                                            \
+  }                                                                     \
+                                                                        \
+  if (DEBUG)                                                            \
+  {                                                                     \
+    std::cout << # T << " as json - " << msg.str() << std::endl;        \
+  }                                                                     \
+                                                                        \
+  ::kwiver::vital::T obj_dser;                                          \
+  {                                                                     \
+    cereal::JSONInputArchive ar( msg );                                 \
+    cereal::load( ar, obj_dser );                                       \
+  }                                                                     \
+                                                                        \
+  EXPECT_EQ( obj, obj_dser );                                           \
+} while(0)
+
+
+TEST_COV( covariance_2d, 1, 2, 3, 4 );
+TEST_COV( covariance_2f, 1, 2, 3, 4 );
+TEST_COV( covariance_3d, 1, 2, 3, 4, 5, 6, 7, 8, 9 );
+TEST_COV( covariance_3f, 1, 2, 3, 4, 5, 6, 7, 8, 9 );
+TEST_COV( covariance_4d, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 );
+TEST_COV( covariance_4f, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 );
+
+#undef TEST_COV
+
+}
+
+// ---------------------------------------------------------------------------
+TEST( load_save, points )
+{
+
+#define TEST_POINT(T, ... )                                             \
+do {                                                                    \
+  ::kwiver::vital::T obj{ __VA_ARGS__ };                                \
+    std::stringstream msg;                                              \
+  {                                                                     \
+    cereal::JSONOutputArchive ar( msg );                                \
+    cereal::save( ar, obj );                                            \
+  }                                                                     \
+                                                                        \
+  if (DEBUG)                                                            \
+  {                                                                     \
+    std::cout << # T << " as json - " << msg.str() << std::endl;        \
+  }                                                                     \
+                                                                        \
+  ::kwiver::vital::T obj_dser;                                          \
+  {                                                                     \
+    cereal::JSONInputArchive ar( msg );                                 \
+    cereal::load( ar, obj_dser );                                       \
+  }                                                                     \
+                                                                        \
+  EXPECT_EQ( obj.value(), obj_dser.value() );                           \
+} while(0)
+
+
+  TEST_POINT( point_2i, 1, 2 );
+  TEST_POINT( point_2d, 1, 2 );
+  TEST_POINT( point_2f, 1, 2 );
+  TEST_POINT( point_3d, 1, 2, 3 );
+  TEST_POINT( point_3f, 1, 2, 3 );
+  TEST_POINT( point_4d, 1, 2, 3, 4 );
+  TEST_POINT( point_4f, 1, 2, 3, 4 );
+
+#undef TEST_POINT
+
 }

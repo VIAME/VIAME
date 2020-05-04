@@ -285,6 +285,7 @@ output_port_undefined(port_t const& port_name)
     {
       port_flags_t required;
       required.insert( flag_required );
+      required.insert( flag_output_shared );
 
       LOG_TRACE( logger(), "Creating output port: \"" << port_name << "\"" );
 

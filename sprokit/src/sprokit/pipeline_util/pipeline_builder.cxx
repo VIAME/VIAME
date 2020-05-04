@@ -101,7 +101,7 @@ pipeline_builder
   std::ifstream input( def_file );
   if ( ! input )
   {
-    throw sprokit::file_no_exist_exception( def_file );
+    VITAL_THROW( sprokit::file_no_exist_exception, def_file );
   }
 
   // process the input stream
@@ -132,7 +132,7 @@ pipeline_builder
   std::ifstream input( def_file );
   if ( ! input )
   {
-    throw sprokit::file_no_exist_exception( def_file );
+    VITAL_THROW( sprokit::file_no_exist_exception, def_file );
   }
 
   // process the input stream
@@ -151,7 +151,7 @@ pipeline_builder
   std::ifstream input( path );
   if ( ! input )
   {
-    throw sprokit::file_no_exist_exception( path );
+    VITAL_THROW( sprokit::file_no_exist_exception, path );
   }
 
   // process the input stream
