@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 
 #include <vital/logger/logger.h>
 #include <vital/util/wrap_text_block.h>
+#include <vital/version.h>
 
 #include <kwiversys/SystemTools.hxx>
 
@@ -116,15 +117,13 @@ void append_kwiver_config_paths( config_path_list_t &path_vector )
 // ------------------------------------------------------------------
 // Helper method to get all possible locations of application config files
 config_path_list_t
-application_config_file_paths(std::string const& application_name,
-                              std::string const& application_version,
-                              config_path_t const& install_prefix)
+application_config_file_paths_helper(std::string const& application_name,
+                                     std::string const& application_version,
+                                     config_path_t const& install_prefix)
 {
-  // First, add any paths specified by our local environment variable
   auto paths = config_path_list_t{};
-  append_kwiver_config_paths( paths );
 
-  // Now add platform specific directories
+  // Platform specific directories
   auto data_paths = config_path_list_t{};
 
 #if defined(_WIN32)
@@ -196,6 +195,69 @@ application_config_file_paths(std::string const& application_name,
 #if defined(__APPLE__)
     paths.push_back( install_prefix + "/Resources/config" );
 #endif
+  }
+
+  return paths;
+}
+
+// ------------------------------------------------------------------
+/// Get additional application configuration file paths
+config_path_list_t
+application_config_file_paths(std::string const& application_name,
+                              std::string const& application_version,
+                              config_path_t const& install_prefix)
+{
+  return application_config_file_paths(application_name, application_version,
+                                       install_prefix, install_prefix);
+}
+
+// ------------------------------------------------------------------
+/// Get additional application configuration file paths
+config_path_list_t
+application_config_file_paths(std::string const& application_name,
+                              std::string const& application_version,
+                              config_path_t const& app_install_prefix,
+                              config_path_t const& kwiver_install_prefix)
+{
+  // First, add any paths specified by our local environment variable
+  auto paths = config_path_list_t{};
+  append_kwiver_config_paths(paths);
+
+  auto app_paths = application_config_file_paths_helper(application_name,
+                                                        application_version,
+                                                        app_install_prefix);
+  for (auto const& path : app_paths)
+  {
+    paths.push_back(path);
+  }
+
+  auto kwiver_paths = application_config_file_paths_helper("kwiver",
+                                                           KWIVER_VERSION,
+                                                           kwiver_install_prefix);
+  for (auto const& path : kwiver_paths)
+  {
+    paths.push_back(path);
+  }
+
+  return paths;
+}
+
+// ------------------------------------------------------------------
+/// Get KWIVER configuration file paths
+config_path_list_t
+kwiver_config_file_paths(config_path_t const& install_prefix)
+{
+  // First, add any paths specified by our local environment variable
+  auto paths = config_path_list_t{};
+  append_kwiver_config_paths(paths);
+
+  auto kwiver_paths = application_config_file_paths_helper("kwiver",
+                                                           KWIVER_VERSION,
+                                                           install_prefix);
+
+  for (auto const& path : kwiver_paths)
+  {
+    paths.push_back(path);
   }
 
   return paths;
