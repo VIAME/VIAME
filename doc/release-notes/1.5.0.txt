@@ -48,16 +48,12 @@ Vital Plugin-loader
    objects can be added to the plugin loader at run time to select or
    exclude specific plugins.
 
-Vital Util
-
 Vital Logger
 
  * Log4cplus now searches in more locations to find the log4cplus.properties
    file during start up.  If not found with the environment variable or in the
    current working directory it will now search in the location of the
    executable and also in "../lib/kwiver" relative to the executable.
-
-Vital Tools
 
 Vital Types
 
@@ -142,7 +138,7 @@ Arrows: Core
  * Added utility functions to estimate the ground center of landmarks and
    to apply a translational offset to landmarks and cameras.
 
- * Added a utitily to compute the subset of cameras located on the positive
+ * Added a utility to compute the subset of cameras located on the positive
    side of a specified plane.
 
  * Improved Necker reversal correction in the keyframe camera and landmark
@@ -195,14 +191,6 @@ Arrows: CUDA
  * CUDA depth map integration now uses optional weight maps to down-weight
    the contribution of some rays.
 
-Arrows: FFmpeg
-
-Arrows: GDAL
-
-Arrows: KPF
-
-Arrows: OpenCV
-
 Arrows: Serialization
 
  * Updated serialization algorithms to use PLUGIN_INFO macro and added
@@ -216,12 +204,6 @@ Arrows: Super3d
    frequent providing better progress updates and quicker early termination.
    However, depth maps updates still occur at the slower rate as before.
 
-Arrows: VXL
-
-Arrows: Python
-
-Sprokit
-
 Sprokit: Processes
 
  * Added a core sprokit process to shift a stream of detected object
@@ -231,7 +213,7 @@ Sprokit: Processes
    empty detected object sets are prepended to the stream until the
    offset is satisfied.
 
- * Added method to comapre the config declared by the process against
+ * Added method to compare the config declared by the process against
    the config supplied by the pipeline. Any differences can be written
    to the log. This is useful for identifying misspelled config items.
 
@@ -250,10 +232,6 @@ Tools
    - tools - contains executables, E.g. kwiver tool runner
    - vital/applets - contains applet framework
    - arrows/core/applets - general applets
-
-Unit Tests
-
-General Documentation
 
 Bug Fixes
 ---------
