@@ -19,6 +19,7 @@ process detection_reader
   :: detected_object_input
   :file_name                                   [INSERT_ME]
   :reader:type                                 viame_csv
+  :reader:viame_csv:confidence_override        0.15
 
 connect from downsampler.output_2
         to   detection_reader.image_file_name
@@ -29,6 +30,14 @@ include common_generic_detector.pipe
 
 connect from downsampler.output_1
         to   detector_input.image
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detection_reader.detected_object_set
+        to   detector_merger.detected_object_set1
+connect from detector_output.detected_object_set
+        to   detector_merger.detected_object_set2
 
 process nms_refiner
   :: refine_detections
@@ -50,7 +59,7 @@ process detector_filter
     :keep_classes                              vertebrate;invertebrate
   endblock
 
-connect from detector_output.detected_object_set
+connect from detector_merger.detected_object_set
         to   nms_refiner.detected_object_set
 connect from nms_refiner.detected_object_set
         to   detector_filter.detected_object_set

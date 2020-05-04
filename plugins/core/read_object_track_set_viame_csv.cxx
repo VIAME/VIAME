@@ -68,6 +68,7 @@ public:
     , m_first( true )
     , m_batch_load( true )
     , m_delim( "," )
+    , m_confidence_override( -1.0 )
     , m_current_idx( 0 )
     , m_last_idx( 1 )
   {}
@@ -79,6 +80,7 @@ public:
   bool m_first;
   bool m_batch_load;
   std::string m_delim;
+  double m_confidence_override;
 
   kwiver::vital::frame_id_t m_current_idx;
   kwiver::vital::frame_id_t m_last_idx;
@@ -133,8 +135,12 @@ void
 read_object_track_set_viame_csv
 ::set_configuration( kwiver::vital::config_block_sptr config )
 {
-  d->m_delim = config->get_value<std::string>( "delimiter", d->m_delim );
-  d->m_batch_load = config->get_value<bool>( "batch_load", d->m_batch_load );
+  d->m_delim =
+    config->get_value< std::string >( "delimiter", d->m_delim );
+  d->m_batch_load =
+    config->get_value< bool >( "batch_load", d->m_batch_load );
+  d->m_confidence_override =
+    config->get_value< double >( "confidence_override", d->m_confidence_override );
 }
 
 
@@ -250,6 +256,11 @@ read_object_track_set_viame_csv::priv
 
     double conf = atof( col[COL_CONFIDENCE].c_str() );
 
+    if( m_confidence_override > 0.0 )
+    {
+      conf = m_confidence_override;
+    }
+
     // Create detection object
     kwiver::vital::detected_object_sptr dob;
 
@@ -276,6 +287,11 @@ read_object_track_set_viame_csv::priv
 
       std::string spec_id = col[i];
       double spec_conf = atof( col[i+1].c_str() );
+
+      if( m_confidence_override > 0.0 )
+      {
+        spec_conf = m_confidence_override;
+      }
 
       dot->set_score( spec_id, spec_conf );
     }
