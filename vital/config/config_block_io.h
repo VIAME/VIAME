@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2014, 2019 by Kitware, Inc.
+ * Copyright 2013-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,7 +227,9 @@ void VITAL_CONFIG_EXPORT write_config( config_block_sptr const& config,
 /// Get additional application configuration file paths
 /**
  * This includes the KWIVER_CONFIG_PATH contents at the head of the returned
- * list.
+ * list.  The paths returned include application config paths followed by
+ * KWIVER config paths for the current version of KWIVER and assuming
+ * the same install prefix for both.
  *
  * \param application_name
  *   The application name, used to build the list of standard locations to be
@@ -236,8 +238,8 @@ void VITAL_CONFIG_EXPORT write_config( config_block_sptr const& config,
  *   The application version number, used to build the list of standard
  *   locations to be searched.
  * \param install_prefix
- *   The prefix to which the application is installed (should be one directory
- *   higher than the location of the executing binary).
+ *   The prefix to which the application and KWIVER are installed (should be
+ *   one directory higher than the location of the executing binary).
  *
  * \return
  *   List of additional application configuration search paths.
@@ -246,6 +248,50 @@ config_path_list_t VITAL_CONFIG_EXPORT
 application_config_file_paths(std::string const& application_name,
                               std::string const& application_version,
                               config_path_t const& install_prefix);
+
+// ------------------------------------------------------------------
+/// Get additional application configuration file paths
+/**
+ * This includes the KWIVER_CONFIG_PATH contents at the head of the returned
+ * list.  The paths returned include application config paths followed by
+ * KWIVER config paths for the current version of KWIVER.
+ *
+ * \param application_name
+ *   The application name, used to build the list of standard locations to be
+ *   searched.
+ * \param application_version
+ *   The application version number, used to build the list of standard
+ *   locations to be searched.
+ * \param app_install_prefix
+ *   The prefix to which the application is installed (should be one directory
+ *   higher than the location of the executing binary).
+ * \param kwiver_install_prefix
+ *   The prefix to which KWIVER is installed.
+ *
+ * \return
+ *   List of additional application configuration search paths.
+ */
+config_path_list_t VITAL_CONFIG_EXPORT
+application_config_file_paths(std::string const& application_name,
+                              std::string const& application_version,
+                              config_path_t const& app_install_prefix,
+                              config_path_t const& kwiver_install_prefix);
+
+// ------------------------------------------------------------------
+/// Get KWIVER configuration file paths
+/**
+ * This includes the KWIVER_CONFIG_PATH contents at the head of the returned
+ * list.  The remainder of the list provides config paths for KWIVER
+ * installed configuration files for the current version of KWIVER
+ *
+ * \param install_prefix
+ *   The prefix to which KWIVER is installed.
+ *
+ * \return
+ *   List of KWIVER configuration search paths.
+ */
+config_path_list_t VITAL_CONFIG_EXPORT
+kwiver_config_file_paths(config_path_t const& install_prefix);
 
 } }
 

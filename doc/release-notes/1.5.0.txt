@@ -84,6 +84,14 @@ Vital Bindings
  * Moved python bindings associated with config from sprokit.pipeline to
    vital.config.
 
+Vital Config
+
+ * Extended the application_config_file_paths() function to list configuration
+   file paths for both the application name provided and for KWIVER-provided
+   configuration files.  This allows KWIVER-provided configuration files to be
+   found if the file is not found in an application configuration directory
+   first.
+
 Arrows
 
 Arrows: Core
