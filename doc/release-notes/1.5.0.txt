@@ -7,6 +7,14 @@ over the previous v1.4.0 release.
 Updates since v1.4.0
 --------------------
 
+Config
+
+ * Default configuration files have been added to KWIVER for several
+   algorithms.  These configuration files provide recommended ways to combine
+   algorithms across arrows, assuming all arrows are available.  The
+   configuration files are installed and may be loaded automatically by
+   applets as their default configuration.
+
 Vital
 
 Vital Algo
