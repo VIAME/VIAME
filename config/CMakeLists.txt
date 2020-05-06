@@ -2,8 +2,10 @@ set(config_files
   ceres_bundle_adjuster.conf
   core_feature_descriptor_io.conf
   core_feature_tracker.conf
+  core_fmatrix_guided_feature_matcher.conf
   core_homography_guided_feature_matcher.conf
   core_initializer.conf
+  core_nonmax_detector.conf
   core_output_homography_generator.conf
   core_pca_canonical_tfm.conf
   core_track_filter.conf

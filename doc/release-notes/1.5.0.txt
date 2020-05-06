@@ -7,6 +7,14 @@ over the previous v1.4.0 release.
 Updates since v1.4.0
 --------------------
 
+Config
+
+ * Default configuration files have been added to KWIVER for several
+   algorithms.  These configuration files provide recommended ways to combine
+   algorithms across arrows, assuming all arrows are available.  The
+   configuration files are installed and may be loaded automatically by
+   applets as their default configuration.
+
 Vital
 
 Vital Algo
@@ -83,6 +91,14 @@ Vital Bindings
 
  * Moved python bindings associated with config from sprokit.pipeline to
    vital.config.
+
+Vital Config
+
+ * Extended the application_config_file_paths() function to list configuration
+   file paths for both the application name provided and for KWIVER-provided
+   configuration files.  This allows KWIVER-provided configuration files to be
+   found if the file is not found in an application configuration directory
+   first.
 
 Arrows
 
@@ -232,6 +248,12 @@ Tools
    - tools - contains executables, E.g. kwiver tool runner
    - vital/applets - contains applet framework
    - arrows/core/applets - general applets
+
+Build System
+
+ * KWIVER now exports its version number in the CMake exports so that
+   other packages can determine which version of KWIVER was found.
+
 
 Bug Fixes
 ---------
