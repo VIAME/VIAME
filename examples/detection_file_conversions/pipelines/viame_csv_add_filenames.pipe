@@ -24,7 +24,7 @@ process track_reader
 
 process track_writer
   :: write_object_track
-  :file_name                                       annotations.csv
+  :file_name                                            output.csv
   :writer:type                                           viame_csv
 
 connect from image_reader.file_name
