@@ -468,7 +468,7 @@ class SRNNTracker(KwiverProcess):
             #print('***track_state_list len', len(track_state_list))
 
             # estimate similarity matrix
-            similarity_mat, track_idx_list = timing('SRNN association', lambda: (
+            similarity_mat = timing('SRNN association', lambda: (
                 self._srnn_matching(tracks, track_state_list, self._ts_threshold)
             ))
 
@@ -492,7 +492,7 @@ class SRNNTracker(KwiverProcess):
                         next_track_id += 1
                 else:
                     # add to existing track
-                    self._track_set[track_idx_list[r]].append(track_state_list[c])
+                    tracks[r].append(track_state_list[c])
 
         print('total tracks', len(self._track_set))
 
