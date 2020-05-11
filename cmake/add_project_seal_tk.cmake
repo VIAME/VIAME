@@ -15,6 +15,12 @@ else()
   set( SEAL_CXX_FLAGS -I${VIAME_BUILD_INSTALL_PREFIX}/include ${CMAKE_CXX_FLAGS} )
 endif()
 
+if( VIAME_ENABLE_VXL )
+  set( SEAL_VIDEO_SOURCE vxl )
+else()
+  set( SEAL_VIDEO_SOURCE ocv )
+endif()
+
 ExternalProject_Add( seal_tk
   DEPENDS fletch kwiver
   PREFIX ${VIAME_BUILD_PREFIX}
@@ -27,6 +33,10 @@ ExternalProject_Add( seal_tk
     ${VIAME_ARGS_kwiver}
     ${VIAME_ARGS_Qt}
     -DBUILD_SHARED_LIBS:BOOL=ON
+    -DNOAA_TRACK_READER:STRING=viame_csv
+    -DNOAA_TRACK_WRITER:STRING=viame_csv
+    -DNOAA_VIDEO_READER:STRING=add_timestamp_from_filename
+    -DNOAA_VIDEO_READER_PASSTRHOUGH:STRING=${SEAL_VIDEO_SOURCE}
     -DCMAKE_CXX_FLAGS:STRING=${SEAL_CXX_FLAGS}
 
   INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
