@@ -150,17 +150,17 @@ refine_detections_nms
   vital::detected_object_set_sptr results(new vital::detected_object_set());
 
   // Prune first
-  for(auto det = dets->begin(); det != dets->end(); det++)
+  for(auto det : *dets)
   {
     bool should_add = true;
  
     kwiver::vital::bounding_box_d det_bbox =
-      scale_about_center((*det)->bounding_box(), d_->nms_scale_factor);
+      scale_about_center(det->bounding_box(), d_->nms_scale_factor);
 
-    for(auto result = results->begin(); result != results->end(); result++)
+    for(auto result : *results)
     {
       kwiver::vital::bounding_box_d res_bbox =
-        scale_about_center((*result)->bounding_box(), d_->nms_scale_factor);
+        scale_about_center(result->bounding_box(), d_->nms_scale_factor);
 
       kwiver::vital::bounding_box_d overlap =
         kwiver::vital::intersection(det_bbox, res_bbox);
@@ -191,11 +191,11 @@ refine_detections_nms
       if(d_->output_scale_factor != 1.0)
       {
         kwiver::vital::bounding_box_d adj_bbox =
-          scale_about_center((*det)->bounding_box(), d_->output_scale_factor);
+          scale_about_center(det->bounding_box(), d_->output_scale_factor);
 
-        (*det)->set_bounding_box(adj_bbox);
+        det->set_bounding_box(adj_bbox);
       }
-      results->add(*det);
+      results->add(det);
     }
   }
 
