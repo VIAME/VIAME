@@ -21,6 +21,7 @@ set( headers_public
 
 set( private_headers
   load_save.h
+  load_save_point.h
   load_save_track_state.h
   load_save_track_set.h
   track_item.h
@@ -33,6 +34,7 @@ set( sources
   detected_object_type.cxx
   image.cxx
   load_save.cxx
+  load_save_point.cxx
   load_save_metadata.cxx
   metadata.cxx
   object_track_set.cxx

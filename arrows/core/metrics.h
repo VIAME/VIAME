@@ -157,25 +157,6 @@ reprojection_rmse_by_cam(const vital::camera_map::map_camera_t& cameras,
                          const std::vector<vital::track_sptr>& tracks);
 
 
-/// Subsamples cameras favoring more recent cameras
-/**
- * This subsampling strategy keeps all cameras within ten frames of the latest frame,
- * then progressively fewer cameras as the cameras are in the more distant past.
- * It keeps cameras that are between 10 and 100 frames behind the latest frame and
- * have frame ids modulo 10 of 1, e.g. 11, 21, 31 etc.  Frames that are more than
- * 100 behind the latest frame if their frame ids modulo 100 are 1, e.g. 101, 201 etc.
- * This approach is designed to pick a similar set of cameras on successive calls so
- * that the reprojection errors on those cameras can be compared between successive
- * calls.
- *
- * \param[in] cameras the map of cameras to be subsampled
- * \returns a camera map containing the subsampled cameras
- */
-KWIVER_ALGO_CORE_EXPORT
-vital::camera_map::map_camera_t
-subsample_cameras_favor_recent(const vital::camera_map::map_camera_t& cameras);
-
-
 /// Compute the Root-Mean-Square-Error (RMSE) of the reprojections
 /**
  * \param [in] cameras is the map of frames/cameras used for projection

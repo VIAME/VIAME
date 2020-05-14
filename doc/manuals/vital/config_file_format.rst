@@ -81,9 +81,9 @@ Including Files
 The include directive logically inserts the contents of the specified
 file into the current file at the point of the include
 directive. Include files provide an easy way to break up large
-configurations into smaller reusable pieces.
+configurations into smaller reusable pieces. ::
 
-``include filename``
+  include    a_file
 
 If the file name is not an absolute path, it is located by scanning
 the current config search path.  The manner in which the config

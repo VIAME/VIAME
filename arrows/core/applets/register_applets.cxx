@@ -39,6 +39,7 @@
 
 #include <arrows/core/applets/dump_klv.h>
 #include <arrows/core/applets/render_mesh.h>
+#include <arrows/core/applets/track_features.h>
 
 namespace kwiver {
 namespace arrows {
@@ -60,6 +61,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   // -- register applets --
   reg.register_tool< dump_klv >();
   reg.register_tool< render_mesh >();
+  reg.register_tool< track_features >();
 
   reg.mark_module_as_loaded();
 }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,9 @@ class KWIVER_PROCESSES_NO_EXPORT algo_wrapper_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "algo_wrapper",
+               "Template process to wrap an algo" );
+
   algo_wrapper_process( kwiver::vital::config_block_sptr const& config );
   virtual ~algo_wrapper_process();
 

@@ -16,6 +16,8 @@ kwiver_discover_gtests(core interpolate_track_spline  LIBRARIES ${test_libraries
 kwiver_discover_gtests(core mesh_operations           LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core render_mesh_depth_map     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core track_set_impl            LIBRARIES ${test_libraries})
+kwiver_discover_gtests(core transfer_bbox_with_depth_map
+                                                      LIBRARIES ${test_libraries} ARGUMENTS "${kwiver_test_data_directory}")
 kwiver_discover_gtests(core triangle_scan_iterator    LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core triangulate_landmarks     LIBRARIES ${test_libraries})
 kwiver_discover_gtests(core triangulate_landmarks_rpc LIBRARIES ${test_libraries} ARGUMENTS "${kwiver_test_data_directory}")

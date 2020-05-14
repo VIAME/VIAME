@@ -55,11 +55,6 @@ merge_images
 {
 }
 
-/// Destructor
-merge_images
-::~merge_images()
-{
-}
 
 kwiver::vital::config_block_sptr
 merge_images

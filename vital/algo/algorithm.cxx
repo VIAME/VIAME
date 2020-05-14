@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2015 by Kitware, Inc.
+ * Copyright 2014-2015, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -217,13 +217,13 @@ algorithm
   if ( ! has_algorithm_impl_name( type_name, instance_name ) )
   {
     std::stringstream msg;
-    msg << "Configuration Failure: invalid option\n"
-        << "   " << type_key << " = " << instance_name << "\n"
-        << "   valid options are";
+    msg << "Implementation '" << instance_name << "' for algorithm type "
+        << type_key << " could not be found.\nMake sure KWIVER_PLUGIN_PATH is set correctly.";
 
     // Get list of factories for the algo_name
     kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
     auto fact_list = vpm.get_factories( type_name );
+    bool first {true};
 
     // Find the one that provides the impl_name
     for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
@@ -232,8 +232,19 @@ algorithm
       std::string reg_name;
       if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, reg_name ) )
       {
+        if (first)
+        {
+          first = false;
+          msg << "   Available implementations are:";
+        }
+
         msg << "\n      " << reg_name;
       }
+    }
+
+    if (first)
+    {
+      msg << "   There are no implementations available.";
     }
 
     LOG_WARN( logger, msg.str() );

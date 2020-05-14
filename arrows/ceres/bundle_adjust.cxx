@@ -387,9 +387,6 @@ bundle_adjust
       continue;
     }
 
-    int num_fixed_cameras_this_lm = 0;
-    //lowest index track is landmark id
-
     bool fixed_landmark = to_fix_landmarks.find(lm_id) != to_fix_landmarks.end();
 
     for (auto ts : *t)
@@ -405,7 +402,6 @@ bundle_adjust
       if (fixed_landmark && fixed_camera)
       {
         //skip this measurement because it involves both a fixed camera and fixed landmark.
-        //It could influence the intrinsics but we will ignore that for speed.
         continue;
       }
 
@@ -417,15 +413,6 @@ bundle_adjust
       if (!fts->inlier)
       {
         continue; // feature is not an inlier so don't use it in ba.
-      }
-
-      if (fixed_camera)
-      {
-        ++num_fixed_cameras_this_lm;
-        if (num_fixed_cameras_this_lm > 4)
-        {
-          continue;
-        }
       }
 
       unsigned intr_idx = d_->frame_to_intr_map[fts->frame()];
@@ -444,7 +431,28 @@ bundle_adjust
     }
   }
 
+
+  if (d_->camera_path_smoothness > 0.0 ||
+      d_->camera_forward_motion_damping > 0.0)
+  {
+    // sort the camera parameters in order of frame number
+    std::vector<std::pair<vital::frame_id_t, double *> > ordered_params;
+    for (auto& item : d_->camera_params)
+    {
+      ordered_params.push_back(std::make_pair(item.first, &item.second[0]));
+    }
+    std::sort(ordered_params.begin(), ordered_params.end());
+
+    // Add camera path regularization residuals
+    d_->add_camera_path_smoothness_cost(problem, ordered_params);
+
+    // Add forward motion regularization residuals
+    d_->add_forward_motion_damping_cost(problem, ordered_params, d_->frame_to_intr_map);
+  }
+
+
   //fix all the cameras in the to_fix_cameras list
+  std::unordered_set<unsigned int> to_fix_intrinsics;
   for (auto tfc : to_fix_cameras)
   {
     auto cam_itr = d_->camera_params.find(tfc);
@@ -457,6 +465,14 @@ bundle_adjust
     {
       problem.SetParameterBlockConstant(state_ptr);
       fixed_cameras.insert(tfc);
+    }
+    // Mark the intrinsics for this camera fixed as well.
+    // Only optimize intrinsics if no cameras using these
+    // intrinsics are fixed
+    auto const& intr_itr = d_->frame_to_intr_map.find(tfc);
+    if (intr_itr != d_->frame_to_intr_map.end())
+    {
+      to_fix_intrinsics.insert(intr_itr->second);
     }
   }
 
@@ -479,8 +495,11 @@ bundle_adjust
     }
   }
 
+  // add costs for priors
   int num_position_priors_applied =
     d_->add_position_prior_cost(problem, d_->camera_params, constraints);
+
+  d_->add_intrinsic_priors_cost(problem, d_->camera_intr_params);
 
   if (num_position_priors_applied < 3)
   {
@@ -521,14 +540,16 @@ bundle_adjust
       {
         double *param0 = &cam_itr_0->second[0];
         double *param1 = &cam_itr_1->second[0];
-        double dx = param0[3] - param1[3];
-        double dy = param0[4] - param1[4];
-        double dz = param0[5] - param1[5];
-        double distance_squared = dx*dx + dy*dy + dz*dz;
-        int num_residuals = problem.NumResiduals();
+        double distance_squared =
+          (Eigen::Map<vector_3d>(param0 + 3) -
+           Eigen::Map<vector_3d>(param1 + 3)).squaredNorm();
+        double scale = problem.NumResiduals() / distance_squared;
 
-        auto dist_loss = new ::ceres::ScaledLoss(NULL, num_residuals, ::ceres::Ownership::TAKE_OWNERSHIP);
-        problem.AddResidualBlock(distance_constraint::create(distance_squared), dist_loss, param0, param1);
+        auto dist_loss =
+          new ::ceres::ScaledLoss(NULL, scale,
+                                  ::ceres::Ownership::TAKE_OWNERSHIP);
+        problem.AddResidualBlock(distance_constraint::create(distance_squared),
+                                 dist_loss, param0, param1);
       }
     }
   }
@@ -538,7 +559,8 @@ bundle_adjust
   {
     std::vector<double>& cip = d_->camera_intr_params[idx];
     // apply the constraints
-    if (constant_intrinsics.size() > 4 + ndp)
+    if (constant_intrinsics.size() > 4 + ndp ||
+        to_fix_intrinsics.count(idx) > 0)
     {
       // set all parameters in the block constant
       problem.SetParameterBlockConstant(&cip[0]);
@@ -550,12 +572,6 @@ bundle_adjust
         new ::ceres::SubsetParameterization(5 + ndp, constant_intrinsics));
     }
   }
-
-  // Add camera path regularization residuals
-  d_->add_camera_path_smoothness_cost(problem, d_->camera_params);
-
-  // Add camera path regularization residuals
-  d_->add_forward_motion_damping_cost(problem, d_->camera_params, d_->frame_to_intr_map);
 
   // If the loss function was added to a residual block, ownership was
   // transfered.  If not then we need to delete it.
@@ -593,15 +609,10 @@ bundle_adjust
 {
   kwiver::vital::algo::bundle_adjust::set_callback(cb);
   ::ceres::Solver::Options& o = d_->options;
+  o.callbacks.clear();
   if(this->m_callback)
   {
-    o.callbacks.clear();
     o.callbacks.push_back(&d_->ceres_callback);
-    o.update_state_every_iteration = true;
-  }
-  else
-  {
-    o.update_state_every_iteration = false;
   }
 }
 
@@ -614,6 +625,10 @@ bundle_adjust
 {
   if(this->m_callback)
   {
+    if (!d_->options.update_state_every_iteration)
+    {
+      return this->m_callback(nullptr, nullptr, nullptr);
+    }
     // Update the landmarks with the optimized values
     typedef std::map<track_id_t, std::vector<double> > lm_param_map_t;
     for(const lm_param_map_t::value_type& lmp : d_->landmark_params)

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -160,6 +160,26 @@ TEST( serialize, detected_object )
   EXPECT_EQ( obj->confidence(), obj_dser->confidence() );
   EXPECT_EQ( obj->detector_name(), obj_dser->detector_name() );
 
+  // Notes
+  {
+    auto obj_notes = obj->notes();
+    auto dser_notes = obj_dser->notes();
+    EXPECT_EQ( obj_notes.size(), dser_notes.size() );
+    for ( size_t i = 0; i < obj_notes.size(); ++i )
+    {
+      EXPECT_EQ( obj_notes[i], dser_notes[i] );
+    }
+  }
+
+  // keypoints
+  {
+    auto obj_kp = obj->keypoints();
+    auto dser_kp = obj_dser->keypoints();
+    EXPECT_EQ( obj_kp.size(), dser_kp.size() );
+    EXPECT_EQ( obj_kp, dser_kp );
+  }
+
+  // detected object type
   dot = obj->type();
   if (dot)
   {

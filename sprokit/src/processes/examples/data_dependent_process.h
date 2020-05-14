@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2017 by Kitware, Inc.
+ * Copyright 2012-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,44 +64,47 @@ namespace sprokit {
 class PROCESSES_EXAMPLES_NO_EXPORT data_dependent_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    data_dependent_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~data_dependent_process();
-  protected:
-    /**
-     * \brief Configure the process.
-     */
-    void _configure();
-    /**
-     * \brief Step the process.
-     */
-    void _step();
-    /**
-     * \brief Reset the process.
-     */
-    void _reset();
-    /**
-     * \brief Set the type for an output port.
-     *
-     * \param port The name of the port.
-     * \param new_type The type of the connected port.
-     *
-     * \returns True if the type can work, false otherwise.
-     */
-    bool _set_output_port_type(port_t const& port, port_type_t const& new_type);
-  private:
-    void make_ports();
+public:
+  PLUGIN_INFO( "data_dependent",
+               "A process with a data dependent type" );
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+  data_dependent_process(kwiver::vital::config_block_sptr const& config);
+  /**
+   * \brief Destructor.
+   */
+  ~data_dependent_process();
+protected:
+  /**
+   * \brief Configure the process.
+   */
+  void _configure() override;
+  /**
+   * \brief Step the process.
+   */
+  void _step() override;
+  /**
+   * \brief Reset the process.
+   */
+  void _reset() override;
+  /**
+   * \brief Set the type for an output port.
+   *
+   * \param port The name of the port.
+   * \param new_type The type of the connected port.
+   *
+   * \returns True if the type can work, false otherwise.
+   */
+  bool _set_output_port_type(port_t const& port, port_type_t const& new_type) override;
 
-    class priv;
-    std::unique_ptr<priv> d;
+private:
+  void make_ports();
+
+  class priv;
+  std::unique_ptr<priv> d;
 };
 
 }

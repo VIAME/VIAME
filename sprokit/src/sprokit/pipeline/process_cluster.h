@@ -54,6 +54,8 @@ namespace sprokit
  * definitions are loaded. They can also be specified in a regular
  * pipeline description file.
  *
+ * Note that a bespoke cluster can be created by using this API directly.
+ *
  * \ingroup base_classes
  */
   class SPROKIT_PIPELINE_EXPORT process_cluster
@@ -101,6 +103,9 @@ namespace sprokit
   protected:
     /// Map a configuration value to a process.
     /**
+     * This method establishes how cluster level config items are
+     * mapped to the individual processes.
+     *
      * \throws mapping_after_process_exception Thrown when a process named \p name_ already exists.
      *
      * \param key The key on the cluster.
@@ -113,6 +118,9 @@ namespace sprokit
 
     /// Add a process to the cluster.
     /**
+     * This method adds a process to the cluster. The config supplied
+     * is passed directly to the process when it is created.
+     *
      * \throws duplicate_process_name_exception Thrown when a process named \p name_ already exists.
      *
      * \param name_ The name of the process.
@@ -166,27 +174,25 @@ namespace sprokit
     /**
      *
      */
-    virtual void _configure() override;
+    void _configure() override;
 
     /// Post-connection initialization for subclasses.
     /**
      *
      */
-    virtual void _init() override;
+    void _init() override;
 
     /// Reset logic for subclasses.
     /**
      *
      */
-    virtual void _reset() override;
+    void _reset() override;
 
-    /// A stub implementation to ensure that clusters should not be stepped.
+    /// Finalize logic for the cluster
     /**
      *
-     *
-     * \throws process_exception Always thrown since clusters should not be stepped.
      */
-    virtual void _step() override;
+    void _finalize() override;
 
     /// Runtime configuration for subclasses.
     /**
@@ -194,7 +200,7 @@ namespace sprokit
      *
      * \params conf The configuration block to apply.
      */
-    virtual void _reconfigure(kwiver::vital::config_block_sptr const& conf) override;
+    void _reconfigure(kwiver::vital::config_block_sptr const& conf) override;
 
     /// Subclass property query method.
     /**
@@ -202,9 +208,16 @@ namespace sprokit
      *
      * \returns Properties on the subclass.
      */
-    virtual properties_t _properties() const override;
+    properties_t _properties() const override;
 
   private:
+    /// A stub implementation to ensure that clusters should not be stepped.
+    /**
+     *
+     * \throws process_exception Always thrown since clusters should not be stepped.
+     */
+    void _step() final;
+
     class SPROKIT_PIPELINE_NO_EXPORT priv;
     std::unique_ptr<priv> d;
   };

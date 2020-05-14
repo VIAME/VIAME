@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2020 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,16 +69,13 @@ create_config_trait( file_name_template, std::string, "",
   "extension and the concrete writer selected. If an image name over-ride "
   "is provided over a pipeline, only the extension in the name is used.");
 
-create_config_trait( image_writer, std::string , "", "Config block name "
-  "to configure algorithm. The algorithm type is selected with "
-  "\"image_writer:type\". Specific writer parameters depend on writer type "
-  "selected." );
-
 create_config_trait( replace_filename_strings, std::string , "",
   "An optional comma-seperated list of pairs, corresponding to filename "
   "components we wish to replace. For example, if this is color,grey "
   "all instances of the word color in the filename will be replaced "
   "with grey." );
+
+create_algorithm_name_config_trait( image_writer );
 
 // -----------------------------------------------------------------------------
 // Private implementation class
@@ -136,22 +133,25 @@ void image_writer_process
   // Get algo config entries
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  algo::image_io::set_nested_algo_configuration(
-    "image_writer", algo_config, d->m_image_writer);
-
-  if( !d->m_image_writer )
+  algo::image_io::set_nested_algo_configuration_using_trait(
+    image_writer,
+    algo_config,
+    d->m_image_writer);
+  if ( !d->m_image_writer )
   {
-    throw sprokit::invalid_configuration_exception( name(),
-      "Unable to create image_writer." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Unable to create image_writer." );
   }
 
   // instantiate image reader and converter based on config type
-  if( !algo::image_io::check_nested_algo_configuration(
-    "image_writer", algo_config ) )
+  if( ! algo::image_io::check_nested_algo_configuration_using_trait(
+        image_writer,
+        algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(),
-      "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Configuration check failed." );
   }
+
 
   // Identify find-replace strings
   std::string full_string = config_value_using_trait( replace_filename_strings );

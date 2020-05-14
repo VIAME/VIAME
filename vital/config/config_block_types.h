@@ -56,7 +56,6 @@ typedef std::string config_block_value_t;
 /// The type that represents a description of a configuration key.
 typedef std::string config_block_description_t;
 
-class config_block;
 /// Shared pointer for the \c config_block class
 typedef std::shared_ptr<config_block> config_block_sptr;
 

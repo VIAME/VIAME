@@ -58,11 +58,6 @@ namespace kwiver {
 create_config_trait( video_filename, std::string, "",
   "Name of video file." );
 
-create_config_trait( video_reader, std::string, "",
-  "Name of video input algorithm. "
-  "Name of the video reader algorithm plugin is specified as "
-  "video_reader:type = <algo-name>" );
-
 create_config_trait( frame_time, double, "0.03333333",
   "Inter frame time in seconds. "
   "If the input video stream does not supply frame times, "
@@ -79,6 +74,8 @@ create_config_trait( exit_on_invalid, bool, "true",
   "exit and throw an error, continue processing data. If the "
   "first frame cannot be read, always exit regardless of this "
   "setting." );
+
+create_algorithm_name_config_trait( video_reader );
 
 // -----------------------------------------------------------------------------
 // Private implementation class
@@ -139,21 +136,29 @@ void video_input_process
   d->m_exit_on_invalid = config_value_using_trait( exit_on_invalid );
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
+
   if( algo_config->has_value( "frame_time" ) )
   {
     d->m_has_config_frame_time = true;
   }
 
-  if( !algo::video_input::check_nested_algo_configuration( "video_reader", algo_config ) )
+  if( !algo::video_input::check_nested_algo_configuration_using_trait(
+         video_reader, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Configuration check failed." );
   }
 
   // instantiate requested/configured algo type
-  algo::video_input::set_nested_algo_configuration( "video_reader", algo_config, d->m_video_reader );
+  algo::video_input::set_nested_algo_configuration_using_trait(
+    video_reader,
+    algo_config,
+    d->m_video_reader );
+
   if( !d->m_video_reader )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create video_reader." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                 "Unable to create video_reader." );
   }
 }
 
@@ -231,8 +236,8 @@ void video_input_process
       // number or frame time or both.
       if ( ! d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_DATA ) )
       {
-        throw sprokit::invalid_configuration_exception( name(),
-          "Video reader selected does not supply image data." );
+        VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                     "Video reader selected does not supply image data." );
       }
 
       if ( d->m_video_traits.capability( kwiver::vital::algo::video_input::HAS_FRAME_NUMBERS ) )
@@ -329,9 +334,14 @@ void video_input_process
   // Set up for required ports
   sprokit::process::port_flags_t optional;
 
+  // We are outputting a shared ref to the output image, therefore we
+  // should mark it as shared.
+  sprokit::process::port_flags_t shared;
+  shared.insert( flag_output_shared );
+
   declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( image, optional );
-  declare_output_port_using_trait( metadata, optional );
+  declare_output_port_using_trait( image, shared );
+  declare_output_port_using_trait( metadata, shared );
   declare_output_port_using_trait( frame_rate, optional );
   declare_output_port_using_trait( file_name, optional );
 }

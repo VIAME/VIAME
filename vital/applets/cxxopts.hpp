@@ -28,13 +28,13 @@ THE SOFTWARE.
 // Short term patch for CentOS 7 support.
 #if defined KWIVER_USE_BOOST_REGEX
 
-#define REGEX_NS boost
 #include <boost/regex.hpp>
+namespace re = boost;
 
 #else
 
-#define REGEX_NS std
 #include <regex>
+namespace re = std;
 
 #endif
 // end centos workaround
@@ -477,11 +477,11 @@ namespace cxxopts
   {
     namespace
     {
-      REGEX_NS::basic_regex<char> integer_pattern
+      re::basic_regex<char> integer_pattern
         ("(-)?(0x)?([0-9a-zA-Z]+)|((0x)?0)");
-      REGEX_NS::basic_regex<char> truthy_pattern
+      re::basic_regex<char> truthy_pattern
         ("(t|T)(rue)?");
-      REGEX_NS::basic_regex<char> falsy_pattern
+      re::basic_regex<char> falsy_pattern
         ("((f|F)(alse)?)?");
     }
 
@@ -551,8 +551,8 @@ namespace cxxopts
     void
     integer_parser(const std::string& text, T& value)
     {
-      REGEX_NS::smatch match;
-      if (!REGEX_NS::regex_match(text, match, integer_pattern))
+      re::smatch match;
+      if (!re::regex_match(text, match, integer_pattern))
       {
         throw argument_incorrect_type(text);
       }
@@ -687,15 +687,15 @@ namespace cxxopts
     void
     parse_value(const std::string& text, bool& value)
     {
-      REGEX_NS::smatch result;
+      re::smatch result;
 
-      if (REGEX_NS::regex_match(text, result, truthy_pattern))
+      if (re::regex_match(text, result, truthy_pattern))
       {
         value = true;
         return;
       }
 
-      if (REGEX_NS::regex_match(text, result, falsy_pattern))
+      if (re::regex_match(text, result, falsy_pattern))
       {
         value = false;
         return;
@@ -1366,10 +1366,10 @@ namespace cxxopts
     constexpr int OPTION_LONGEST = 30;
     constexpr int OPTION_DESC_GAP = 2;
 
-    REGEX_NS::basic_regex<char> option_matcher
+    re::basic_regex<char> option_matcher
       ("--([[:alnum:]][-_[:alnum:]]+)(=(.*))?|-([[:alnum:]]+)");
 
-    REGEX_NS::basic_regex<char> option_specifier
+    re::basic_regex<char> option_specifier
       ("(([[:alnum:]]),)?[ ]*([[:alnum:]][-_[:alnum:]]*)?");
 
     String
@@ -1518,8 +1518,8 @@ OptionAdder::operator()
   std::string arg_help
 )
 {
-  REGEX_NS::match_results<const char*> result;
-  if (!REGEX_NS::regex_match(opts.c_str(), result, option_specifier))
+  re::match_results<const char*> result;
+  if (!re::regex_match(opts.c_str(), result, option_specifier))
   {
     throw invalid_option_format_error(opts);
   }
@@ -1537,8 +1537,8 @@ OptionAdder::operator()
 
   auto option_names = []
   (
-    const REGEX_NS::sub_match<const char*>& short_,
-    const REGEX_NS::sub_match<const char*>& long_
+    const re::sub_match<const char*>& short_,
+    const re::sub_match<const char*>& long_
   )
   {
     if (long_.length() == 1)
@@ -1723,8 +1723,8 @@ ParseResult::parse(int& argc, char**& argv)
       break;
     }
 
-    REGEX_NS::match_results<const char*> result;
-    if (!REGEX_NS::regex_match(argv[current], result, option_matcher))
+    re::match_results<const char*> result;
+    if (!re::regex_match(argv[current], result, option_matcher))
     {
       //not a flag
 

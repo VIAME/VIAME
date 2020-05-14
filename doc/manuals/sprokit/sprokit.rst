@@ -16,4 +16,3 @@ processing pipelines that address computer vision problems.
   getting-started
   distributed_pipeline
   architecture
-

@@ -17,6 +17,4 @@ interconnected with those written in C++.
 
    pipeline_design
    pipeline_declaration
-   process_patterns
    process
-   embedded_pipeline

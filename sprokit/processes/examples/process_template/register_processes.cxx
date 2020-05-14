@@ -44,29 +44,22 @@ TEMPLATE_PROCESSES_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  // The module name identifies this loadable collection or
-  // processes. The name must be unique across all loadable modules,
-  // since we check to see if it is already loaded.
-  static const auto module_name = kwiver::vital::plugin_manager::module_t( "template_processes" ); //++ <- replace with real name of module
+  // The process registrar does all the hard work of registering the
+  // process with the plugin loader.
+  sprokit::process_registrar reg( vpm, "template_process" );
 
   // Check to see if module is already loaded. If so, then don't do again.
-  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if ( reg.is_module_loaded() )
   {
     return;
   }
 
   // ----------------------------------------------------------------
-
-  auto fact = vpm.ADD_PROCESS( group_ns::template_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "template" ) //+ use your process name
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Description of process. Make as long as necessary to fully explain what the process does "
-                    "and how to use it. Explain specific algorithms used, etc." )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  // The process registrar registers the specified process type.
+  reg.register_process< group_ns::template_process >();
 
   //++ Add more additional processes here.
 
 // - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  reg.mark_module_as_loaded();
 }

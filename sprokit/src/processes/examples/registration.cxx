@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2016 by Kitware, Inc.
+ * Copyright 2011-2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,138 +63,37 @@ PROCESSES_EXAMPLES_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static const auto module_name = kwiver::vital::plugin_manager::module_t( "example_processes" );
+  using namespace sprokit;
 
-  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
+  process_registrar reg( vpm, "sprokit.example_processes" );
+
+  if ( reg.is_module_loaded() )
   {
     return;
   }
 
-  auto fact = vpm.ADD_PROCESS( sprokit::any_source_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "any_source" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process which creates arbitrary data" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  reg.register_process< any_source_process >();
+  reg.register_process< const_number_process >();
+  reg.register_process< const_process >();
+  reg.register_process< data_dependent_process >();
+  reg.register_process< duplicate_process >();
+  reg.register_process< expect_process >();
+  reg.register_process< feedback_process >();
+  reg.register_process< flow_dependent_process >();
+  reg.register_process< multiplication_process >();
+  reg.register_process< multiplier_cluster >();
+  reg.register_process< mutate_process >();
+  reg.register_process< number_process >();
+  reg.register_process< orphan_cluster >();
+  reg.register_process< orphan_process >();
+  reg.register_process< print_number_process >();
+  reg.register_process< shared_process >();
+  reg.register_process< skip_process >();
+  reg.register_process< tagged_flow_dependent_process >();
+  reg.register_process< take_number_process >();
+  reg.register_process< take_string_process >();
+  reg.register_process< tunable_process >();
 
-  fact = vpm.ADD_PROCESS( sprokit::const_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "const" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process wth a const flag" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::const_number_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "const_number" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Outputs a constant number" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::data_dependent_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "data_dependent" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process with a data dependent type" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::duplicate_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "duplicate" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process which duplicates input" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::expect_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "expect" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process which expects some conditions" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::feedback_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "feedback" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process which feeds data into itself" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::flow_dependent_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "flow_dependent" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process with a flow dependent type" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::multiplication_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "multiplication" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Multiplies numbers" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::multiplier_cluster );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "multiplier_cluster" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A constant factor multiplier cluster" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::mutate_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "mutate" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process with a mutable flag" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::number_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "numbers" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Outputs numbers within a range" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::orphan_cluster );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "orphan_cluster" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A dummy cluster" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::orphan_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "orphan" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A dummy process" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::print_number_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "print_number" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Print numbers to a file" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::shared_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "shared" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process with the shared flag" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::skip_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "skip" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process which skips input data" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::tagged_flow_dependent_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "tagged_flow_dependent" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process with a tagged flow dependent types" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::take_number_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "take_number" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Print numbers to a file" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::take_string_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "take_string" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Print strings to a file" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  fact = vpm.ADD_PROCESS( sprokit::tunable_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "tunable" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A process with a tunable parameter" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
-
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+// - - - - - - - - - - - - - - - - - - - - - - -
+  reg.mark_module_as_loaded();
 }

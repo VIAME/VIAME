@@ -65,7 +65,7 @@ protected:
   virtual void _step();
 
   // This is used to intercept connections and make ports JIT
-  virtual void input_port_undefined(port_t const& port) override;
+  void input_port_undefined(port_t const& port) override;
 
 private:
   class priv;

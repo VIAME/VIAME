@@ -39,12 +39,201 @@
 #include <vital/vital_types.h>
 #include <vital/types/feature_track_set.h>
 #include <arrows/core/metrics.h>
+#include <arrows/core/match_matrix.h>
 
 using namespace kwiver::vital;
 
 namespace kwiver {
 namespace arrows {
 namespace core {
+
+
+/// Detect tracks which remain stationary in the image
+std::set<vital::track_sptr>
+detect_stationary_tracks(vital::feature_track_set_sptr tracks,
+                         double threshold)
+{
+  std::set<vital::track_sptr> stationary_tracks;
+  auto tids = tracks->all_track_ids();
+  for (auto tid : tids)
+  {
+    // Compute the mean image location of this track
+    auto tk_sptr = tracks->get_track(tid);
+    vital::vector_2d mean_loc(0.0, 0.0);
+    double nfts = 0;
+    for (auto fts : *tk_sptr | as_feature_track)
+    {
+      auto loc = fts->feature->loc();
+      mean_loc *= (nfts / (nfts + 1.0));
+      mean_loc += loc * (1.0 / (nfts + 1.0));
+      nfts += 1.0;
+    }
+    if (nfts <= 0)
+    {
+      continue;
+    }
+
+    // If at least one point is far from the mean then this
+    // this track is not considered stationary
+    bool stationary_track = true;
+    for (auto fts : *tk_sptr | as_feature_track)
+    {
+      auto loc = fts->feature->loc();
+      auto diff = loc - mean_loc;
+      if (diff.norm() > threshold)
+      {
+        stationary_track = false;
+        break;
+      }
+    }
+
+    if (stationary_track)
+    {
+      stationary_tracks.insert(tk_sptr);
+    }
+  }
+  return stationary_tracks;
+}
+
+// anonymous namespace for local functions
+namespace
+{
+
+// Helper function to subdivide the keyframe list as needed for better
+// connectivity of tracks
+void subdivide_keyframes(std::set<vital::frame_id_t>& key_idx,
+                         Eigen::SparseMatrix<unsigned int> const& mm,
+                         double ratio_threshold = 0.75)
+{
+  if (key_idx.empty())
+  {
+    return;
+  }
+  // Check each pair of adjacent keyframes to ensure that they
+  // are reasonably well connected.  If not, recursively
+  // subdivide adding more frames until adjacent frames are well
+  // connected.
+  std::set<vital::frame_id_t> new_key_idx;
+  auto key2 = key_idx.begin();
+  for (auto key1 = key2++; key2 != key_idx.end(); ++key1, ++key2)
+  {
+    // key1 and key2 are always sequential keyframes in the original sequence
+    new_key_idx.insert(*key1);
+    // k1 and k2 are candidates for sequential keyframe in the new sequence
+    auto k1 = *key1;
+    auto k2 = *key2;
+    // If k1 == k2 then we have subdivided down to the sub-frame level
+    // and we need to stop and move to the next interval.
+    while (k1 < k2)
+    {
+      while (k1 < k2)
+      {
+        // As a baseline, consider the average number of tracks between
+        // the nearest neighbors of each of k1 and k2 in this interval.
+        // This is typically the best case, adjacent frames are most similar.
+        double avg_tracks = (mm.coeff(k1, k1 + 1) + mm.coeff(k2 - 1, k2)) / 2;
+        // We want the number of tracks over this interval to be within
+        // a high percentage of the frame-to-frame track count
+        auto num_tracks = mm.coeff(k1, k2);
+        double ratio = num_tracks / avg_tracks;
+        if (ratio > ratio_threshold)
+        {
+          // This interval is good, so move on to the next
+          break;
+        }
+        // This interval is weak, so pick a new k2 half way between and retry
+        k2 = (k1 + k2) / 2;
+      }
+      if (k1 < k2)
+      {
+        // We found an acceptable k2, so add it
+        new_key_idx.insert(k2);
+        // Move on to the other half of the interval
+        k1 = k2;
+        k2 = *key2;
+      }
+    }
+  }
+  key_idx.swap(new_key_idx);
+}
+
+}
+
+/// Select keyframes that are a good starting point for SfM
+std::set<vital::frame_id_t>
+keyframes_for_sfm(feature_track_set_sptr tracks,
+                  const frame_id_t radius,
+                  const double ratio_threshold)
+{
+  std::set<vital::frame_id_t> keyframes;
+  // Compute the match matrix for all frames
+  auto all_frames_set = tracks->all_frame_ids();
+  std::vector<frame_id_t> all_frames(all_frames_set.begin(),
+                                     all_frames_set.end());
+  auto mm = match_matrix(tracks, all_frames);
+
+  // Compute the total track score on each frame.
+  // The track score is the sum of the lengths of the tracks
+  // passing through that frame.  This is equal to the sum
+  // of the rows or columns of the match matrix.
+  std::vector<std::pair<unsigned long, frame_id_t> > scores;
+  scores.reserve(all_frames.size());
+  for (frame_id_t k = 0; k < mm.outerSize(); ++k)
+  {
+    unsigned long score = 0;
+    for (decltype(mm)::InnerIterator it(mm, k); it; ++it)
+    {
+      score += it.value();
+    }
+    scores.push_back(std::make_pair(score, k));
+  }
+  // Sort the frames in order of decreasing score
+  typedef decltype(scores)::value_type s_t;
+  std::sort(scores.begin(), scores.end(),
+    [](const s_t &l, const s_t &r)
+  {
+    return l.first > r.first;
+  });
+
+  // Consider each score in order and use non-maximum suppression
+  // to keep the strongest frames that are separated by at least
+  // radius frames.
+  std::vector<bool> mask(all_frames.size(), false);
+  std::set<vital::frame_id_t> key_idx;
+  for (auto const& s : scores)
+  {
+    auto const& idx = s.second;
+    if (mask[idx])
+    {
+      // A nearby frame was already selected
+      continue;
+    }
+    // Compute a range of indices within radius of the current
+    // accounting for boundary conditions.
+    const frame_id_t min_range = idx - std::min(idx, radius);
+    const frame_id_t max_range =
+      std::min(idx + radius, static_cast<frame_id_t>(mask.size() - 1));
+    // Mark each frame within radius as covered
+    for (frame_id_t i = min_range; i <= max_range; ++i)
+    {
+      mask[i] = true;
+    }
+    key_idx.insert(idx);
+  }
+
+  if (ratio_threshold > 0.0)
+  {
+    subdivide_keyframes(key_idx, mm, ratio_threshold);
+  }
+
+  // Look up the actual frame numbers for each selected index
+  for (auto k : key_idx)
+  {
+    keyframes.insert(all_frames[k]);
+  }
+
+  return keyframes;
+}
 
 /// Calculate fraction of each image that is covered by landmark projections
 frame_coverage_vec
@@ -258,6 +447,39 @@ connected_camera_components(
     }
   }
   return comps;
+}
+
+/// Detect critical tracks that connect disjoint components
+std::vector<track_sptr>
+detect_critical_tracks(camera_components const& cc,
+                       feature_track_set_sptr tracks)
+{
+  std::vector<track_sptr> critical_tracks;
+  // build a mapping from frame number to connected component index
+  std::map<frame_id_t, unsigned int> cc_map;
+  for (unsigned int i=0; i<cc.size(); ++i)
+  {
+    for (auto const& f : cc[i])
+    {
+      cc_map[f] = i;
+    }
+  }
+
+  // find tracks which span more than one connected component
+  for (auto const& t : tracks->tracks())
+  {
+    unsigned int first_idx = cc_map[t->first_frame()];
+    for (auto const& ts : *t)
+    {
+      auto idx = cc_map[ts->frame()];
+      if (idx != first_idx)
+      {
+        critical_tracks.push_back(t);
+        break;
+      }
+    }
+  }
+  return critical_tracks;
 }
 
 /// Detect underconstrained landmarks.
@@ -481,7 +703,7 @@ clean_cameras_and_landmarks(
   std::vector<frame_id_t> &removed_cams,
   const std::set<vital::frame_id_t> &active_cams,
   const std::set<vital::landmark_id_t> &active_lms,
-  float image_coverage_threshold,
+  double image_coverage_threshold,
   double error_tol,
   int min_landmark_inliers)
 {
@@ -550,7 +772,8 @@ clean_cameras_and_landmarks(
     remove_landmarks(lm_to_remove, det_lms);
 
     std::set<frame_id_t> cams_to_remove =
-      detect_bad_cameras(det_cams, det_lms, tracks, image_coverage_threshold);
+      detect_bad_cameras(det_cams, det_lms, tracks,
+                         static_cast<float>(image_coverage_threshold));
 
     for (auto frame_id : cams_to_remove)
     {
@@ -572,6 +795,85 @@ clean_cameras_and_landmarks(
     }
   }
 }
+
+/// Return true if the camera is upright
+bool
+camera_upright(vital::camera_perspective const& camera,
+               vital::vector_3d const& up)
+{
+  return up.dot(camera.rotation().inverse() * vector_3d(0, -1, 0)) > 0;
+}
+
+/// Return true if most cameras are upright
+bool
+majority_upright(
+  vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
+  vital::vector_3d const& up)
+{
+  int net_cams_pointing_up = 0;
+  for (auto const& cam : cameras)
+  {
+    if (camera_upright(*cam.second, up))
+    {
+      ++net_cams_pointing_up;
+    }
+    else
+    {
+      --net_cams_pointing_up;
+    }
+  }
+  return net_cams_pointing_up > 0;
+}
+
+/// Return a subset of cameras on the positive side of a plane
+vital::camera_perspective_map::frame_to_T_sptr_map
+cameras_above_plane(
+  vital::camera_perspective_map::frame_to_T_sptr_map const& cameras,
+  vital::vector_4d const& plane)
+{
+  vital::camera_perspective_map::frame_to_T_sptr_map out_cams;
+  for (auto const& cam : cameras)
+  {
+    if (cam.second->center().dot(plane.head(3)) + plane[3] > 0.0)
+    {
+      out_cams.insert(cam);
+    }
+  }
+  return out_cams;
+}
+
+// Compute the ground center of a collection of landmarks
+vital::vector_3d
+landmarks_ground_center(vital::landmark_map const& landmarks,
+                        double ground_frac)
+{
+  const auto num_landmarks = landmarks.size();
+  if (num_landmarks == 0)
+  {
+    return vital::vector_3d(0.0, 0.0, 0.0);
+  }
+  std::vector<double> x, y, z;
+  x.reserve(num_landmarks);
+  y.reserve(num_landmarks);
+  z.reserve(num_landmarks);
+  for (auto lm : landmarks.landmarks())
+  {
+    auto v = lm.second->loc();
+    x.push_back(v[0]);
+    y.push_back(v[1]);
+    z.push_back(v[2]);
+  }
+  // compute the median in x and y
+  size_t mid = x.size() / 2;
+  std::nth_element(x.begin(), x.begin() + mid, x.end());
+  std::nth_element(y.begin(), y.begin() + mid, y.end());
+  // compute ground fraction index
+  size_t gidx = static_cast<size_t>(x.size() * ground_frac);
+  std::nth_element(z.begin(), z.begin() + gidx, z.end());
+
+  return vital::vector_3d(x[mid], y[mid], z[gidx]);
+}
+
 }
 }
 }

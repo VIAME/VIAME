@@ -132,6 +132,26 @@ KWIVER_ALGO_CORE_EXPORT
 vital::landmark_map_sptr transform(vital::landmark_map_sptr landmarks,
                                    const vital::similarity_d& xform);
 
+/// translate landmarks in place by the provided offset vector
+KWIVER_ALGO_CORE_EXPORT
+void translate_inplace(vital::landmark_map& landmarks,
+                       vital::vector_3d const& offset);
+
+/// translate cameras in place by the provided offset vector
+KWIVER_ALGO_CORE_EXPORT
+void translate_inplace(vital::simple_camera_perspective_map& cameras,
+                       vital::vector_3d const& offset);
+
+/// translate cameras in place by the provided offset vector
+/**
+ * \note only translates cameras which are perspective and have a
+ * defined center
+ */
+KWIVER_ALGO_CORE_EXPORT
+void translate_inplace(vital::camera_map& cameras,
+                       vital::vector_3d const& offset);
+
+
 } // end namespace core
 } // end namespace arrows
 } // end namespace kwiver

@@ -39,6 +39,9 @@ class PROCESSES_TEST_NO_EXPORT test_process
   : public sprokit::process
 {
   public:
+  PLUGIN_INFO( "test",
+               "A test process" );
+
     test_process(kwiver::vital::config_block_sptr const& config);
     ~test_process();
 };
@@ -60,17 +63,14 @@ PROCESSES_TEST_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = kwiver::vital::plugin_manager::module_t("test_processes");
+  process_registrar reg( vpm, "test_processes" );
 
-  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
+  if ( reg.is_module_loaded() )
   {
     return;
   }
 
-  auto fact = vpm.ADD_PROCESS( test_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "test" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "A test process" );
+  reg.register_process< test_process >();
 
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+  reg.mark_module_as_loaded();
 }

@@ -8,7 +8,7 @@ project(KWIVER)
 ###
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 1)
-set(KWIVER_VERSION_MINOR 4)
+set(KWIVER_VERSION_MINOR 5)
 set(KWIVER_VERSION_PATCH 0)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
@@ -272,6 +272,9 @@ endif()
 ###
 # include as the last subdir
 add_subdirectory( vital )
+
+# this is where the algorithm default configuration files live
+add_subdirectory(config)
 
 if(MSVC)
   # Generate files to inform msvc of the kwiver runtime environment

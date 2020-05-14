@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2017 by Kitware, Inc.
+ * Copyright 2012-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,31 +68,35 @@ namespace sprokit
 class PROCESSES_EXAMPLES_NO_EXPORT feedback_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    feedback_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~feedback_process();
-  protected:
-    /**
-     * \brief Flush the process.
-     */
-    void _flush();
-    /**
-     * \brief Step the process.
-     */
-    void _step();
-  private:
-    class priv;
-    std::unique_ptr<priv> d;
+public:
+  PLUGIN_INFO( "feedback",
+               "A process which feeds data into itself" );
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+  feedback_process(kwiver::vital::config_block_sptr const &config);
+  /**
+   * \brief Destructor.
+   */
+  ~feedback_process();
+
+protected:
+  /**
+   * \brief Flush the process.
+   */
+  void _flush() override;
+  /**
+   * \brief Step the process.
+   */
+  void _step() override;
+
+private:
+  class priv;
+  std::unique_ptr<priv> d;
 };
 
-}
+} // namespace sprokit
 
 #endif // SPROKIT_PROCESSES_EXAMPLES_FEEDBACK_PROCESS_H

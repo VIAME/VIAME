@@ -53,8 +53,12 @@ class camera_position_smoothness
 {
 public:
   /// Constructor
-  camera_position_smoothness(const double smoothness)
-      : smoothness_(smoothness) {}
+  camera_position_smoothness(const double smoothness,
+                             const double fraction = 0.5)
+      : smoothness_(smoothness),
+        f1_(1.0-fraction),
+        f2_(fraction)
+  {}
 
   /// Position smoothness error functor for use in Ceres
   /**
@@ -74,21 +78,26 @@ public:
                                         const T* const next_pose,
                                         T* residuals) const
   {
-    residuals[0] = smoothness_ * (prev_pose[3] + next_pose[3] - T(2) * curr_pose[3]);
-    residuals[1] = smoothness_ * (prev_pose[4] + next_pose[4] - T(2) * curr_pose[4]);
-    residuals[2] = smoothness_ * (prev_pose[5] + next_pose[5] - T(2) * curr_pose[5]);
+    residuals[0] = smoothness_ *
+      (f1_ * prev_pose[3] + f2_ * next_pose[3] - curr_pose[3]);
+    residuals[1] = smoothness_ *
+      (f1_ * prev_pose[4] + f2_ * next_pose[4] - curr_pose[4]);
+    residuals[2] = smoothness_ *
+      (f1_ * prev_pose[5] + f2_ * next_pose[5] - curr_pose[5]);
 
     return true;
   }
 
   /// Cost function factory
-  static ::ceres::CostFunction* create(const double s)
+  static ::ceres::CostFunction* create(const double s, const double f = 0.5)
   {
     typedef camera_position_smoothness Self;
-    return new ::ceres::AutoDiffCostFunction<Self, 3, 6, 6, 6>(new Self(s));
+    return new ::ceres::AutoDiffCostFunction<Self, 3, 6, 6, 6>(new Self(s, f));
   }
 
   double smoothness_;
+  double f1_;
+  double f2_;
 };
 
 
@@ -142,7 +151,8 @@ public:
                                   rotated_baseline2);
 
 
-    residuals[0] = scale_ * rotated_baseline1[2] * rotated_baseline2[2];
+    residuals[0] = scale_ * rotated_baseline1[2] *
+                   scale_ * rotated_baseline2[2];
 
     return true;
   }

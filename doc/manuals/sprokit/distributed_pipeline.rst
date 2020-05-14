@@ -1,7 +1,6 @@
 Distributed Processing
 ======================
 
-
 A key component required in  KWIVER to enable the
 construction of fully elaborated computer vision systems is a strategy for
 multi-processing by distributing Sprokit pipelines across multiple computing
@@ -37,7 +36,6 @@ In keeping with KWIVER's architecture, both of these are represented as
 abstractions, under which specific implementations (JSON, Protocol Buffers,
 ZeroMQ, ROS etc.) can be constructed.
 
-
 Serialization
 -------------
 
@@ -54,57 +52,58 @@ straightforward.
 Constructing a Serialization Algorithm
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-All serializer algorithms must be derived from the `data_serializer`
-algorithm.  All derived classes must implement the `deserialize()` and
-`serialize()` methods, in addition to the configuration support methods.
+All serializer algorithms must be derived from the ``data_serializer``
+algorithm.  All derived classes must implement the ``deserialize()`` and
+``serialize()`` methods, in addition to the configuration support methods.
 
-The `serialize()` method converts one or more data items into a
+The ``serialize()`` method converts one or more data items into a
 serialized byte stream. The format of the byte stream depends on the
 serialization_type being implemented. Examples of serialization types
-are `json` and `protobuf`.
+are ``json`` and ``protobuf``.
 
-The `serialize()` and `deserialize()` methods must be compatible so
-that the `deserialize()` method can take the output of the `serialize()`
+The ``serialize()`` and ``deserialize()`` methods must be compatible so
+that the ``deserialize()`` method can take the output of the ``serialize()``
 method and reproduce the original data items.
 
-The `serialize()` method takes in a map of one or more named data
-items and the `deserialize()` method produces a similar map. It is up
-to the `data_serializer` implementation to define what these names are
+The ``serialize()`` method takes in a map of one or more named data
+items and the ``deserialize()`` method produces a similar map. It is up
+to the *data_serializer* implementation to define what these names are
 and the associated data types.
 
-Basic one element `data_serializer` implementations usually do not
+Basic one element *data_serializer* implementations usually do not
 require any configuration, but more complicated multi-input
 serializers can require an arbitrary amount of configuration data. These
 configuration parameters are supplied
-
 
 Serialization and Deserialization Processes
 -------------------------------------------
 
 The KWIVER serialization infrastructure is designed to allow the use
 of multiple cooperating Sprokit pipelines to interact with one another
-in a multiprocessing environment.  The purpose of serialization is to package
+in a multiprocessing environment. The purpose of serialization is to package
 data in a format (a byte string) that can easily be transmitted or
-received via a *transport*.  The purpose of the serialization and
+received via a *transport*. The purpose of the serialization and
 deserialization processes is to convert one or more Sprokit data
 ports to and from a single byte string for transmission by a transport
 process.
 
 The serializer process dynamically creates serialization algorithms
-based on the ports being connected.  A fully qualified serialization
+based on the ports being connected. A fully qualified serialization
 port name takes the following form::
 
   process.<group>/<element>
 
 On the input side of serializer process, the fully qualified name is
-used to group individual data elements::
+used to group individual data elements. In the following case, the
+group *detections* is being created.::
 
   connect from detected_object_reader.detected_object_set to serializer.detections/dos
-  connect from image_reader.image to serializer.detections/image
+  connect from image_reader.image                         to serializer.detections/image
 
-On the output side, the `<group>` portion of the name is used to connect
-the entire serialized set (Sprokit's pipeline handling mechanism will insure
-synchronization of the elements) on the `detections` output port::
+On the output side, the `<group>` (*detections* in this case) portion
+of the name is used to connect the entire serialized set (Sprokit's
+pipeline handling mechanism will insure synchronization of the
+elements) on the `detections` output port::
 
   connect from serializer.detections to transport.serialized_message
 
@@ -114,22 +113,23 @@ Similarly, for a deserializer the input side uses the group name::
 
 And the output side presents the deserialized element names::
 
-  connect from deserializer.detections/dos to detected_object_writer.dos
+  connect from deserializer.detections/dos   to detected_object_writer.dos
   connect from deserializer.detections/image to image_writer.image
 
 There are some things worth noting:
 
-* The serialized group name is embedded in the serailized "packet".  This allows
+* The serialized group name is embedded in the serailized "packet". This allows
   the serializer and deserializer to validate that the the serialized output
-  and input match up.  Connecting a serializer output port `group` to a
-  deserializer input port `different_group` will result in an error.
+  and input match up. Connecting a serializer output port *group* to a
+  deserializer input port *different_group* will result in an error.
+
 * A single serializer can have individual elements connected to different
-  input groups.  This will simply create multiple group output ports. Similarly
+  input groups. This will simply create multiple group output ports.Similarly
   a deserializer can have multiple groups on the input side -- the individual
   elements for both groups will appear on the output side (with the appropriate
   group name in the port name).
 
-[de]serializer process details
+serializer/deserializer process details
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The serializer process always requires the `serialization_type` config
@@ -138,8 +138,7 @@ algorithms. If the type specified is `json`, then the data_serializer
 will be selected from the 'serialize-json' group. The list of
 data_serializer algorithms can be displayed with the following command
 
-`plugin_explorer --fact serialize`
-
+    ``plugin_explorer --fact serialize``
 
 Transport Processes
 -------------------
@@ -181,7 +180,6 @@ zmq_transport_receive_process
 ..  doxygenclass:: kwiver::zmq_transport_receive_process
     :project: kwiver
     :members:
-
 
 Distributed Pipelines Examples
 ------------------------------

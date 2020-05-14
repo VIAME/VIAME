@@ -111,7 +111,8 @@ noisy_landmarks( kwiver::vital::landmark_map_sptr  landmarks,
 // create a camera sequence (elliptical path)
 kwiver::vital::camera_map_sptr
 camera_seq(kwiver::vital::frame_id_t num_cams,
-           kwiver::vital::camera_intrinsics_sptr K)
+           kwiver::vital::camera_intrinsics_sptr K,
+           double scale = 1.0)
 {
   using namespace kwiver::vital;
   camera_map::map_camera_t cameras;
@@ -124,7 +125,7 @@ camera_seq(kwiver::vital::frame_id_t num_cams,
     double x = 4 * std::cos( 2 * frac );
     double y = 3 * std::sin( 2 * frac );
     simple_camera_perspective* cam =
-      new simple_camera_perspective(vector_3d(x,y,2+frac), R, K);
+      new simple_camera_perspective(scale * vector_3d(x,y,2+frac), R, K);
     // look at the origin
     cam->look_at( vector_3d( 0, 0, 0 ) );
     cameras[i] = camera_sptr( cam );
@@ -137,9 +138,10 @@ camera_seq(kwiver::vital::frame_id_t num_cams,
 kwiver::vital::camera_map_sptr
 camera_seq(kwiver::vital::frame_id_t num_cams = 20,
            kwiver::vital::simple_camera_intrinsics K =
-               kwiver::vital::simple_camera_intrinsics(1000, kwiver::vital::vector_2d(640, 480)))
+               kwiver::vital::simple_camera_intrinsics(1000, kwiver::vital::vector_2d(640, 480)),
+           double scale = 1.0)
 {
-  return camera_seq(num_cams, K.clone());
+  return camera_seq(num_cams, K.clone(), scale);
 }
 
 

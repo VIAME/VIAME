@@ -32,6 +32,10 @@
 
 #include <sstream>
 
+#ifndef NDEBUG
+// Only check null data_ in debug mode
+#define DEBUG_CHECK_DATA_NULL
+#endif
 
 namespace kwiver {
 namespace vital {
@@ -153,6 +157,13 @@ double&
 track_descriptor
 ::at( const size_t idx )
 {
+  #ifdef DEBUG_CHECK_DATA_NULL
+  if (!this->data_)
+  {
+    throw std::logic_error( "Attempted to access raw data of null descriptor ptr" );
+  }
+  #endif
+
   // validate element index
   if ( idx >= this->data_->size() )
   {
@@ -171,6 +182,13 @@ double const&
 track_descriptor
 ::at( const size_t idx ) const
 {
+  #ifdef DEBUG_CHECK_DATA_NULL
+  if (!this->data_)
+  {
+    throw std::logic_error( "Attempted to access raw data of null descriptor ptr" );
+  }
+  #endif
+
   // validate element index
   if ( idx >= this->data_->size() )
   {
@@ -189,6 +207,13 @@ size_t
 track_descriptor
 ::descriptor_size() const
 {
+  #ifdef DEBUG_CHECK_DATA_NULL
+  if (!this->data_)
+  {
+    throw std::logic_error( "Attempted to access size of null descriptor ptr" );
+  }
+  #endif
+
   return this->data_->size();
 }
 
@@ -218,7 +243,7 @@ bool
 track_descriptor
 ::has_descriptor() const
 {
-  return this->data_->size() != 0;
+  return (this->data_ && this->data_->size());
 }
 
 

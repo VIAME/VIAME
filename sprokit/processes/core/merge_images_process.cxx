@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,18 @@
 
 #include "merge_images_process.h"
 
-#include <vital/vital_types.h>
+#include <kwiver_type_traits.h>
+#include <sprokit/pipeline/process_exception.h>
+#include <vital/algo/merge_images.h>
 #include <vital/types/image_container.h>
 #include <vital/util/string.h>
-
-#include <vital/algo/merge_images.h>
-
-#include <kwiver_type_traits.h>
-
-#include <sprokit/pipeline/process_exception.h>
+#include <vital/vital_types.h>
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
+
+create_algorithm_name_config_trait( merge_images );
 
 // ----------------------------------------------------------------------------
 // Private implementation class
@@ -53,7 +51,7 @@ public:
   priv();
   ~priv();
 
-  algo::merge_images_sptr         m_images_merger;
+  algo::merge_images_sptr m_images_merger;
   std::set< std::string > p_port_list;
 };
 
@@ -80,25 +78,29 @@ void merge_images_process
 {
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  algo::merge_images::set_nested_algo_configuration(
-    "merge_images", algo_config, d->m_images_merger );
+  algo::merge_images::set_nested_algo_configuration_using_trait(
+    merge_images,
+    algo_config,
+    d->m_images_merger );
 
   if( !d->m_images_merger )
   {
-    throw sprokit::invalid_configuration_exception(
-        name(), "Unable to create \"merge_images\"" );
+    VITAL_THROW( sprokit::invalid_configuration_exception,
+                 name(), "Unable to create \"merge_images\"" );
   }
-  algo::merge_images::get_nested_algo_configuration(
-      "merge_images", algo_config, d->m_images_merger );
+
+  algo::merge_images::get_nested_algo_configuration_using_trait(
+    merge_images,
+    algo_config,
+    d->m_images_merger );
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !algo::merge_images::check_nested_algo_configuration(
-        "merge_images", algo_config ) )
+  if( !algo::merge_images::check_nested_algo_configuration_using_trait(
+        merge_images, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(),
-      "Configuration check failed." );
+    VITAL_THROW(  sprokit::invalid_configuration_exception,
+                  name(), "Configuration check failed." );
   }
-
 }
 
 
@@ -144,9 +146,9 @@ void merge_images_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
+  required.insert( flag_output_shared );
 
   // -- output --
   declare_output_port_using_trait( image, required );
@@ -157,22 +159,18 @@ void merge_images_process
 void merge_images_process
 ::make_config()
 {
-
+  declare_config_using_trait( merge_images );
 }
 
 
-// ============================================================================
-merge_images_process::priv
-::priv()
-{
-}
-
-
-merge_images_process::priv
-::~priv()
-{
-}
-
+// ----------------------------------------------------------------------------
+/*
+ * This method accepts port names when connections are made and
+ * dynamically created the required ports.
+ *
+ * Note that only two connections are accepted and the ports are
+ * typed for images.
+ */
 void
 merge_images_process
 ::input_port_undefined(port_t const& port_name)
@@ -182,6 +180,13 @@ merge_images_process
   // Just create an input port to read detections from
   if (! kwiver::vital::starts_with( port_name, "_" ) )
   {
+    if ( d->p_port_list.size() >= 2)
+    {
+      LOG_ERROR( logger(), "Attempt to connect more than 2 input ports. "
+                 "Connection aborted.");
+      return;
+    }
+
     // Check for unique port name
     if ( d->p_port_list.count( port_name ) == 0 )
     {
@@ -199,5 +204,18 @@ merge_images_process
     }
   }
 }
+
+// ================================================================
+merge_images_process::priv
+::priv()
+{
+}
+
+
+merge_images_process::priv
+::~priv()
+{
+}
+
 
 } // end namespace

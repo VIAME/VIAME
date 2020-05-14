@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,9 +82,6 @@ handle_descriptor_request_process
   : process( config ),
     d( new handle_descriptor_request_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -242,9 +239,12 @@ void handle_descriptor_request_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
 
+  sprokit::process::port_flags_t required;
   required.insert( flag_required );
+
+  sprokit::process::port_flags_t shared;
+  shared.insert( flag_output_shared );
 
   // -- input --
   declare_input_port_using_trait( descriptor_request, required );

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016. 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,10 @@ class TEMPLATE_PROCESSES_NO_EXPORT template_process
   : public sprokit::process
 {
 public:
+  PLUGIN_INFO( "template",
+               "Description of process. Make as long as necessary to fully explain what the process does "
+               "and how to use it. Explain specific algorithms used, etc." );
+
   template_process( kwiver::vital::config_block_sptr const& config );
   virtual ~template_process();
 
@@ -68,15 +72,15 @@ protected:
   //++ configure() and step() are generally needed.  Not all of the
   //++ others are needed in every process, so they can be omitted if not
   //++ used.
-  virtual void _configure();
-  virtual void _step();
+  void _configure() override;
+  void _step() override;
 
   //++ These methods are not usually needed by a simple process.
   //++ They are only included for completeness. If not needed then delete them.
-  virtual void _init();
-  virtual void _reset();
-  virtual void _flush();
-  virtual void _reconfigure(kwiver::vital::config_block_sptr const& conf);
+  void _init() override;
+  void _reset() override;
+  void _flush() override;
+  void _reconfigure(kwiver::vital::config_block_sptr const& conf) override;
 
 private:
   //++ these methods group config creation operations and port

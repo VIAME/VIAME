@@ -45,13 +45,13 @@ int kwiver::vital::hamming_distance(vital::descriptor_sptr d1, vital::descriptor
 
   if (d1_bytes % 4)
   {
-    throw vital::invalid_value("Descriptor must be a multiple of four bytes long.");
+    VITAL_THROW( vital::invalid_value,"Descriptor must be a multiple of four bytes long.");
   }
 
   const int d2_bytes = d2->num_bytes();
   if (d1_bytes != d2_bytes)
   {
-    throw vital::invalid_value("Descriptors must be the same number of bytes long");
+    VITAL_THROW( vital::invalid_value,"Descriptors must be the same number of bytes long");
   }
 
   const int num_ints_long(d1_bytes / 4);

@@ -286,12 +286,10 @@ public:
         return false;
     }
 
-    auto seek_timestamp = av_rescale_q( 0, av_get_time_base_q(),
-                                        this->f_video_stream->time_base );
     // Now seek back to the start of the video
     auto seek_rslt = av_seek_frame( this->f_format_context,
                                     this->f_video_index,
-                                    seek_timestamp,
+                                    0,
                                     AVSEEK_FLAG_BACKWARD );
     avcodec_flush_buffers( this->f_video_encoding );
     if (seek_rslt < 0 )
@@ -302,7 +300,6 @@ public:
     }
     this->frame_advanced = 0;
     this->f_frame->data[0] = NULL;
-
     return true;
   }
 
@@ -333,7 +330,7 @@ public:
 
     if (this->f_video_stream)
     {
-      avcodec_close(this->f_video_stream ->codec);
+      avcodec_close(this->f_video_stream->codec);
       this->f_video_stream = nullptr;
     }
     if (this->f_format_context)
@@ -341,8 +338,12 @@ public:
       avformat_close_input(&this->f_format_context);
       this->f_format_context = nullptr;
     }
-
-    this->f_video_encoding = nullptr;
+    if (this->f_video_encoding)
+    {
+      avcodec_close(this->f_video_encoding);
+      avcodec_free_context(&this->f_video_encoding);
+      this->f_video_encoding = nullptr;
+    }
   }
 
   // ==================================================================
@@ -455,10 +456,8 @@ public:
     bool advance_successful = false;
     do
     {
-      auto rescaled_frame_ts = av_rescale_q( frame_ts, av_get_time_base_q(),
-                                          this->f_video_stream->time_base );
       auto seek_rslt = av_seek_frame( this->f_format_context,
-                                      this->f_video_index, rescaled_frame_ts,
+                                      this->f_video_index, frame_ts,
                                       AVSEEK_FLAG_BACKWARD );
       avcodec_flush_buffers( this->f_video_encoding );
 

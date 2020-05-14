@@ -1,0 +1,285 @@
+KWIVER v1.5.0 Release Notes
+===========================
+
+This is a minor release of KWIVER that provides both new functionality and fixes
+over the previous v1.4.0 release.
+
+Updates since v1.4.0
+--------------------
+
+Config
+
+ * Default configuration files have been added to KWIVER for several
+   algorithms.  These configuration files provide recommended ways to combine
+   algorithms across arrows, assuming all arrows are available.  The
+   configuration files are installed and may be loaded automatically by
+   applets as their default configuration.
+
+Vital
+
+Vital Algo
+
+ * Changed the callback API on compute_depth to accept a string status
+   message.  Integer progress is now interpreted as percent complete
+   rather than number of iterations.
+
+ * Added a variant of the integrate_depth_maps API that takes weight images
+   along with depth images. This feature was added to include binary image
+   masks in the fusion, but it also extends to continuous weight values
+   between zero and one.
+
+Vital Types
+
+ * Added ``kwiver::vital::set`` mixin class to define standard set methods as
+   well as iterability.
+
+ * Added iterator, const_iterator and iterable classes to support container-
+   independent iteration.
+
+ * Added a parameter to the clone() methods of the track_state, track and
+   track_set types controlling whether to make an actual deep copy (default) or
+   to make a shallow copy (previous behavior) where elements of the derived
+   feature_track_state or object_track_state would still be shared. (This
+   change also affects track_set::merge_in_other_track_set(). However, the copy
+   constructors of feature_track_state and object_track_state still make only
+   shallow copies.)
+
+ * Added a variant of config_block::get_enum_value that accepts a default
+   value to fall back on.
+
+ * Added support for registering callbacks to the KWIVER logger.  Callbacks
+   receive any message that is logged with the KWIVER logging framework.
+
+Vital Plugin-loader
+
+ * Added support for filtering plugins when they are loaded. Filter
+   objects can be added to the plugin loader at run time to select or
+   exclude specific plugins.
+
+Vital Logger
+
+ * Log4cplus now searches in more locations to find the log4cplus.properties
+   file during start up.  If not found with the environment variable or in the
+   current working directory it will now search in the location of the
+   executable and also in "../lib/kwiver" relative to the executable.
+
+Vital Types
+
+ * Added functions to camera_intrinsics to test if a point is in the valid
+   domain of the mapping function.  In the radial distortion case of
+   simple_camera_intrinsics, this computes a maximum radius for which
+   distortion is valid.  This feature is to help avoid invalid projections
+   of points into images due to the distortion being non-injective.
+
+ * Added get_vector() member function to access the vector of all metadata on
+   a frame in metadata_map.
+
+ * Added ``kwiver::vital::set`` mixin class to define standard set methods as
+   well as iterability.
+
+ * Added iterator, const_iterator and iterable classes to support container-
+   independent iteration.
+
+ * Refactored detected_object_set to convert some methods to external
+   functions since they were not properties of the class.
+
+ * Vital types protobuf support now requires protobuf version 3 or greater.
+
+Vital Bindings
+
+ * Remove ctypes python bindings
+
+ * Moved python bindings associated with config from sprokit.pipeline to
+   vital.config.
+
+Vital Config
+
+ * Extended the application_config_file_paths() function to list configuration
+   file paths for both the application name provided and for KWIVER-provided
+   configuration files.  This allows KWIVER-provided configuration files to be
+   found if the file is not found in an application configuration directory
+   first.
+
+Arrows
+
+Arrows: Core
+
+ * Added an algorithm implementation (transform_detected_object_set) for
+   transforming detected object sets from one camera perspective to another.
+   Implements vital::algo::detected_object_filter.
+
+ * Added an algorithm implementation (transfer_bbox_with_depth_map) for
+   transforming detected object set bounding boxes from one camera perspective
+   to another with respect to a depth map.  Implements
+   vital::algo::detected_object_filter.
+
+ * Added a detect_features adaptor that applies a filter_features
+   algorithm to filter features returned by the detector.  This allows
+   a filter to be injected anywhere a detector is normally used.
+
+ * Added an adaptive non-max suppression filter for features points.
+   This algorithm provides more uniformity to detected features by
+   removing all features within a radius of the strongest points.
+   The radius is dynamically adapted to achieve a target point count.
+
+ * Added an option to the fundamental matrix matcher that does a second
+   round of filtering to remove outliers with large motion relative to
+   most other matches.
+
+ * When resectioning cameras in the keyframe initializer we now copy the
+   intrinsics from the nearest existing camera rather than from the base
+   camera in the config or metadata.  This way the focal length better matches
+   existing cameras and the initial pose will better match as well.
+
+ * During keyframe camera initialization the algorithm detects if the camera
+   graph has split into multiple components.  Previously only the largest
+   component was kept resulting in significant data loss.  Instead the
+   algorithm now tries to retriangulate tracks that previously held the
+   camera graph together.
+
+ * Refactored initialize_cameras_landmarks_keyframe code for better
+   reuseability and readability.
+
+ * Updated the initialize_cameras_landmarks_keyframe algorithm to better
+   handle early termination through callbacks.
+
+ * Added a new SfM utility function to compute a set of well-distributed
+   but well-connected keyframes for use in initializing SfM.
+
+ * Use a canonical transform estimator in initialize_cameras_landmarks_keyframe
+   to reorient the solution when no metadata constraints are available.
+   This also helps detect upside down cameras and trigger a Necker reversal to
+   correct for that case.
+
+ * Added utility functions to estimate the ground center of landmarks and
+   to apply a translational offset to landmarks and cameras.
+
+ * Added a utility to compute the subset of cameras located on the positive
+   side of a specified plane.
+
+ * Improved Necker reversal correction in the keyframe camera and landmark
+   initializer by allowing reversal of individual cameras that are upside down
+   provided that all cameras are above the estimated ground plane.
+
+ * In the keyframe camera and landmark initializer, only use windowed bundle
+   adjustment for filling in cameras after the entire initial sequence is
+   complete.
+
+ * In the keyframe camera and landmark initializer, we no longer update
+   the base_camera intrinsics configuration value with estimated values.
+   These should remain fixed to their configured settings.  Instead we now
+   use nearby established cameras to initialize similar or shared intrinsics.
+
+ * Added a utility to compute the subset of cameras located on the positive
+   side of a specified plane.
+
+ * Improved Necker reversal correction in the keyframe camera and landmark
+   initializer by allowing reversal of individual cameras that are upside down
+   provided that all cameras are above the estimated ground plane.
+
+Arrows: Ceres
+
+ * Fixed long-broken bundle adjustment regularization parameters for
+   camera smoothness and forward motion damping.  The fixed versions now
+   support non-sequential camera frame numbers and the residual costs are
+   normalized relative to both the number of existing residuals and the
+   spatial scale of the camera positions.  These normalization allow the
+   regularization to work similarly across different problem sizes and scales.
+
+ * Added a configuration option to the bundle adjuster that allow for
+   callbacks to not provided updates on every iteration for efficiency.
+
+ * Add a new option for minimum horizontal field of view (hfov) in bundle
+   adjustment and camera optimization.  This is mostly for telescopic lenses
+   when the hfov is very small (e.g. less than 5 degrees).  There is a
+   tendency for small FOVs to drift toward zero due to lack of perspective.
+   This new parameter introduces a large cost if the HFOV drops below the
+   set threshold.
+
+Arrows: CUDA
+
+ * Added a new parameter for the truncated signed distance function in depth
+   map integration.  The new "Epsilon" value is used in the occluded portion
+   of the function that was previously zero.  Setting Epsilon > 0 can remove
+   a double surface artifact.  Setting Epsilon = 0 restores the previous
+   behavior.
+
+ * CUDA depth map integration now uses optional weight maps to down-weight
+   the contribution of some rays.
+
+Arrows: Serialization
+
+ * Updated serialization algorithms to use PLUGIN_INFO macro and added
+   serializer specific plugin registrar.
+
+Arrows: Super3d
+
+ * Replaced cout and cerr usage in Super3D with vital logger.
+
+ * Improved callback handling in compute_depth.  Callbacks are now more
+   frequent providing better progress updates and quicker early termination.
+   However, depth maps updates still occur at the slower rate as before.
+
+Sprokit: Processes
+
+ * Added a core sprokit process to shift a stream of detected object
+   sets by a specified offset.  When a negative offset is specified,
+   detected object sets are initially consumed from the stream until
+   the offset is satisfied.  When a positive offset is specified,
+   empty detected object sets are prepended to the stream until the
+   offset is satisfied.
+
+ * Added method to compare the config declared by the process against
+   the config supplied by the pipeline. Any differences can be written
+   to the log. This is useful for identifying misspelled config items.
+
+ * Add finalize method to process base class which allows derived
+   processes to be optionally called when the all upstream processes
+   have terminated and a complete datum is present on all required
+   input ports.
+
+Tools
+
+ * Converting stand-alone tools to reside under the main "kwiver" top
+   level tool. Individual tools are specified as a parameter to the
+   "kwiver" tool runner.
+
+ * Moved source of tools/applets and reorganized:
+   - tools - contains executables, E.g. kwiver tool runner
+   - vital/applets - contains applet framework
+   - arrows/core/applets - general applets
+
+Build System
+
+ * KWIVER now exports its version number in the CMake exports so that
+   other packages can determine which version of KWIVER was found.
+
+
+Bug Fixes
+---------
+
+Arrows: Core
+
+ * Fixed a bug in initialize_cameras_landmarks_keyframe that was causing
+   points to be rejected because cameras were swapped.
+
+Arrows: Ceres
+
+ * Fixed an issue in bundle adjustment where intrinsics were optimized
+   when shared between fixed and non-fixed cameras.  This resulted in an
+   increased error in residual terms of fixed cameras not included in the
+   bundle adjustment.  As a result, filtering often removed these points as
+   outliers.  It is better to only optimize intrinsics when not shared with
+   a fixed camera.
+
+ * Fixed and issue with bundle adjustment regularization in which the
+   regularization would dominate the data terms if the scale of the data
+   was large.
+
+Arrows: Super3D
+
+ * Fixed mask conversion code to allow both boolean and byte images
+   without crashing.
+
+ * Fixed a bug in which the mask was being applied to G-weighting in an
+   inverted way from what was expected.

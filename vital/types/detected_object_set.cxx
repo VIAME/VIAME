@@ -314,7 +314,7 @@ detected_object_set
   return [=] () mutable ->iterator::reference {
     if( it == m_detected_objects.end() )
     {
-      throw stop_iteration_exception( "detected_object_set" );
+      VITAL_THROW( stop_iteration_exception, "detected_object_set" );
     }
     return *(it++);
   };
@@ -330,7 +330,7 @@ detected_object_set
   return [=] () mutable ->const_iterator::reference {
     if( cit == m_detected_objects.end() )
     {
-      throw stop_iteration_exception( "detected_object_set" );
+      VITAL_THROW( stop_iteration_exception, "detected_object_set" );
     }
     return *(cit++);
   };

@@ -555,16 +555,24 @@ class SPROKIT_PIPELINE_EXPORT process
      */
     type_t type() const;
 
+    /*
+     * Process properties. A process can have more than one property.
+     */
     /// A property which indicates that the process cannot be run in a thread of its own.
     static property_t const property_no_threads;
+
     /// A property which indicates that the process is not reentrant.
     static property_t const property_no_reentrancy;
+
     /// A property which indicates that the input of the process is not synchronized.
     static property_t const property_unsync_input;
+
     /// A property which indicates that the output of the process is not synchronized.
     static property_t const property_unsync_output;
-    /// Indicates that the process supports instrumentation call
+
+    /// Indicates that the process has selected an instrumentation provider.
     static property_t const property_instrumented;
+
     /// Indicates the process is written in Python
     static property_t const property_python;
 
@@ -573,11 +581,16 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /// The name of the configuration value for the name.
     static kwiver::vital::config_block_key_t const config_name;
+
     /// The name of the configuration value for the type.
     static kwiver::vital::config_block_key_t const config_type;
 
+    /*
+     * Port types.
+     */
     /// A type which means that the type of the data is irrelevant.
     static port_type_t const type_any;
+
     /// A type which indicates that no actual data is ever created.
     static port_type_t const type_none;
 

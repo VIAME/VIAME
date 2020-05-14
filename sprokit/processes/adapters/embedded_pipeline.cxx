@@ -412,9 +412,6 @@ embedded_pipeline
   // Note: Can throws stop_before_start_exception Thrown when the
   // scheduler has not been started
   m_priv->m_scheduler->stop();
-
-  // Wait for scheduler to terminate.
-  m_priv->m_scheduler->wait();
 }
 
 

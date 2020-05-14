@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,7 @@
 namespace kwiver {
 
 // (config-key, value-type, default-value, description )
-  create_config_trait( draw_algo, std::string, "", "Name of drawing algorithm config block.\n\n"
-                       "Specify an implementation of the `draw_detected_object_set` algorithm "
-                       "as draw_algo:type = <type>");
+create_algorithm_name_config_trait( draw_algo );
 
 // ----------------------------------------------------------------
 /**
@@ -110,15 +108,19 @@ void draw_detected_object_set_process
   auto algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! vital::algo::draw_detected_object_set::check_nested_algo_configuration( "draw_algo", algo_config ) )
+  if ( ! vital::algo::draw_detected_object_set::check_nested_algo_configuration_using_trait(
+         draw_algo, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
-  vital::algo::draw_detected_object_set::set_nested_algo_configuration( "draw_algo", algo_config, d->m_algo );
+  vital::algo::draw_detected_object_set::set_nested_algo_configuration_using_trait(
+    draw_algo,
+    algo_config,
+    d->m_algo );
   if ( ! d->m_algo )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create algorithm." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create algorithm." );
   }
 }
 
@@ -147,7 +149,9 @@ void draw_detected_object_set_process
 ::make_ports()
 {
   // Set up for required ports
-  sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t output;
+  output.insert( flag_output_shared );
+
   sprokit::process::port_flags_t required;
   required.insert( flag_required );
 
@@ -156,7 +160,7 @@ void draw_detected_object_set_process
   declare_input_port_using_trait( detected_object_set, required );
 
   // -- output --
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image, output );
 }
 
 
@@ -166,7 +170,6 @@ void draw_detected_object_set_process
 {
   declare_config_using_trait( draw_algo );
 }
-
 
 // ================================================================
 draw_detected_object_set_process::priv

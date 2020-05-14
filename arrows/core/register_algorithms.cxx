@@ -49,6 +49,7 @@
 #include <arrows/core/compute_ref_homography_core.h>
 #include <arrows/core/convert_image_bypass.h>
 #include <arrows/core/create_detection_grid.h>
+#include <arrows/core/detect_features_filtered.h>
 #include <arrows/core/detected_object_set_input_csv.h>
 #include <arrows/core/detected_object_set_input_kw18.h>
 #include <arrows/core/detected_object_set_input_simulator.h>
@@ -59,6 +60,7 @@
 #include <arrows/core/example_detector.h>
 #include <arrows/core/feature_descriptor_io.h>
 #include <arrows/core/filter_features_magnitude.h>
+#include <arrows/core/filter_features_nonmax.h>
 #include <arrows/core/filter_features_scale.h>
 #include <arrows/core/filter_tracks.h>
 #include <arrows/core/full_frame_detector.h>
@@ -77,6 +79,7 @@
 #include <arrows/core/refine_detections_nms.h>
 #include <arrows/core/track_features_augment_keyframes.h>
 #include <arrows/core/track_features_core.h>
+#include <arrows/core/transfer_bbox_with_depth_map.h>
 #include <arrows/core/transform_detected_object_set.h>
 #include <arrows/core/triangulate_landmarks.h>
 #include <arrows/core/uv_unwrap_mesh.h>
@@ -119,6 +122,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< compute_ref_homography_core >();
   reg.register_algorithm< convert_image_bypass >();
   reg.register_algorithm< create_detection_grid >();
+  reg.register_algorithm< detect_features_filtered >();
   reg.register_algorithm< detected_object_set_input_csv >();
   reg.register_algorithm< detected_object_set_input_kw18 >();
   reg.register_algorithm< detected_object_set_input_simulator >();
@@ -129,6 +133,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< example_detector >();
   reg.register_algorithm< feature_descriptor_io >();
   reg.register_algorithm< filter_features_magnitude >();
+  reg.register_algorithm< filter_features_nonmax >();
   reg.register_algorithm< filter_features_scale >();
   reg.register_algorithm< filter_tracks >();
   reg.register_algorithm< full_frame_detector >();
@@ -147,6 +152,7 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   reg.register_algorithm< refine_detections_nms >();
   reg.register_algorithm< track_features_augment_keyframes >();
   reg.register_algorithm< track_features_core >();
+  reg.register_algorithm< transfer_bbox_with_depth_map >();
   reg.register_algorithm< transform_detected_object_set >();
   reg.register_algorithm< triangulate_landmarks >();
   reg.register_algorithm< uv_unwrap_mesh >();

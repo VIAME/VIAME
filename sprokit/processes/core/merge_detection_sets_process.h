@@ -60,7 +60,7 @@ protected:
   virtual void _step();
   virtual void _init();
 
-  virtual void input_port_undefined( port_t const& port ) override;
+  void input_port_undefined( port_t const& port ) override;
 
 
 private:

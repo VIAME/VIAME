@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,8 @@ namespace algo = kwiver::vital::algo;
 
 namespace kwiver
 {
-create_config_trait( homography_generator, std::string, "", "Name of algorithm config block." );
+
+create_algorithm_name_config_trait( homography_generator );
 
 // ----------------------------------------------------------------
 /**
@@ -121,19 +122,27 @@ void compute_homography_process
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   // Check config so it will give run-time diagnostic of config problems
-  if ( ! algo::compute_ref_homography::check_nested_algo_configuration("homography_generator", algo_config ) )
+  if ( ! algo::compute_ref_homography::check_nested_algo_configuration_using_trait(
+         homography_generator,
+         algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
-  algo::compute_ref_homography::set_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
+  algo::compute_ref_homography::set_nested_algo_configuration_using_trait(
+    homography_generator,
+    algo_config,
+    d->m_compute_homog );
   if ( ! d->m_compute_homog )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
              "Unable to create compute_ref_homography" );
   }
 
-  algo::compute_ref_homography::get_nested_algo_configuration( "homography_generator", algo_config, d->m_compute_homog );
+  algo::compute_ref_homography::get_nested_algo_configuration_using_trait(
+    homography_generator,
+    algo_config,
+    d->m_compute_homog );
 }
 
 
@@ -184,6 +193,7 @@ void compute_homography_process
 void compute_homography_process
 ::make_config()
 {
+  declare_config_using_trait( homography_generator );
 }
 
 

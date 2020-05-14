@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2012-2013 by Kitware, Inc.
+ * Copyright 2012-2013, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -130,12 +130,36 @@
 /**
  * @brief Start a named configuration block.
  *
- * This macro starts a named config block.
+ * This macro inserts a "config <name>" line in the config starting a
+ * named config block. Note that this is different than a nested
+ * config block.
  *
  * @param name Name of the config block.
  */
 #define SPROKIT_CONFIG_BLOCK(name) \
   "config " << name << "\n"
+
+/**
+ * @brief Start a nested config block.
+ *
+ * This macro inserts a BLOCK <name> line in the configuration,
+ * starting a nested config block. Note that this is different than
+ * starting a named config block.
+ *
+ * @param name - Name of the nested block.
+ */
+#define SPROKIT_CONFIG_NESTED_BLOCK(name) \
+  "block " << name << "\n"
+
+/**
+ * @brief End a nested config block.
+ *
+ * This macro inserts an "ENDBLOCK" line in the config terminating the
+ * current nested config block level. This does not have any effect on
+ * the named config block.
+ */
+#define SPROKIT_CONFIG_NESTED_BLOCK_END() \
+  "endblock\n"
 
 /**
  * @brief Define a connection between two ports.

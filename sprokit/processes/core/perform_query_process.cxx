@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,7 @@
 #include <fstream>
 #include <tuple>
 
-namespace kwiver
-{
+namespace kwiver {
 
 namespace algo = vital::algo;
 
@@ -70,11 +69,12 @@ create_config_trait( use_tracks_for_history, bool,
   "false", "Use object track states for track descriptor history" );
 create_config_trait( merge_duplicate_results, bool,
   "false", "If use_tracks_for_history is on, use the track with the "
-           "highest confidence, otherwise concatenate the history of "
-           "all entries with the same track" );
+  "highest confidence, otherwise concatenate the history of all entries "
+  "with the same track" );
 
-create_port_trait( feedback_request, query_result,
-  "Feedback requests" );
+create_algorithm_name_config_trait( descriptor_query );
+
+create_port_trait( feedback_request, query_result, "Feedback requests" );
 
 
 //------------------------------------------------------------------------------
@@ -121,7 +121,9 @@ public:
   vital::track_descriptor_set_sptr all_descriptors;
 
   void reset_query( const vital::database_query_sptr& query );
-  unsigned get_instance_id( std::map< std::string, unsigned >& instance_ids, const std::string& uid );
+
+  unsigned get_instance_id( std::map< std::string, unsigned >& instance_ids,
+                            const std::string& uid );
 
   void add_results_to_list( const vital::query_result_set_sptr& results,
                             const std::vector<std::string>& uids,
@@ -140,6 +142,9 @@ perform_query_process
 {
   // Attach our logger name to process logger
   attach_logger( vital::get_logger( name() ) );
+
+  // Required for external feedback loop
+  set_data_checking_level( check_none );
 
   make_ports();
   make_config();
@@ -187,23 +192,23 @@ void perform_query_process
 
   if( d->external_handler )
   {
-    algo::query_track_descriptor_set::set_nested_algo_configuration(
-      "descriptor_query", algo_config, d->descriptor_query );
+    if( algo::query_track_descriptor_set::check_nested_algo_configuration_using_trait(
+          descriptor_query,
+          algo_config ) )
+    {
+      VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                   "Configuration check failed." );
+    }
+
+    algo::query_track_descriptor_set::set_nested_algo_configuration_using_trait(
+      descriptor_query,
+      algo_config,
+      d->descriptor_query );
 
     if( !d->descriptor_query )
     {
-      throw sprokit::invalid_configuration_exception(
-        name(), "Unable to create descriptor query" );
-    }
-
-    algo::query_track_descriptor_set::get_nested_algo_configuration(
-      "descriptor_query", algo_config, d->descriptor_query );
-
-    if( !algo::query_track_descriptor_set::check_nested_algo_configuration(
-      "descriptor_query", algo_config ) )
-    {
-      throw sprokit::invalid_configuration_exception(
-        name(), "Configuration check failed." );
+      VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                   "Unable to create descriptor query." );
     }
 
     d->descriptor_query->use_tracks_for_history( d->use_tracks_for_history );
@@ -228,8 +233,8 @@ perform_query_process
 
     if( !pipe_stream )
     {
-      throw sprokit::invalid_configuration_exception(
-        name(), "Unable to open pipeline file: " + d->external_pipeline_file );
+      VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                   "Unable to open pipeline file: " + d->external_pipeline_file );
     }
 
     try
@@ -256,8 +261,8 @@ perform_query_process
 
     if( !pipe_stream )
     {
-      throw sprokit::invalid_configuration_exception(
-        name(), "Unable to open pipeline file: " + d->augmentation_pipeline_file );
+      VITAL_THROW( sprokit::invalid_configuration_exception, name(),
+                   "Unable to open pipeline file: " + d->augmentation_pipeline_file );
     }
 
     try
@@ -299,7 +304,8 @@ merge_history( vital::track_descriptor::descriptor_history_t& dest,
         dest_it++;
       }
     }
-    else if( src_it == src.end() || src_it->get_timestamp().get_frame() > dest_it->get_timestamp().get_frame() )
+    else if( src_it == src.end() ||
+             src_it->get_timestamp().get_frame() > dest_it->get_timestamp().get_frame() )
     {
       dest_it++;
     }
@@ -532,8 +538,8 @@ perform_query_process
         }
 
         // Run seperate augmentation pipeline to get more positives and negatives
-        for( vital::const_iterator< vital::image_container_sptr > query_image = d->query_images->begin();
-			 query_image == d->query_images->end(); query_image++ )
+        for( auto query_image = d->query_images->begin();
+			       query_image == d->query_images->end(); query_image++ )
         {
           auto ids = adapter::adapter_data_set::create();
 
@@ -765,6 +771,8 @@ void perform_query_process
   declare_config_using_trait( unused_descriptors_as_negative );
   declare_config_using_trait( use_tracks_for_history );
   declare_config_using_trait( merge_duplicate_results );
+
+  declare_config_using_trait( descriptor_query );
 }
 
 
