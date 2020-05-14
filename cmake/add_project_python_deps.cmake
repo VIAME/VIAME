@@ -26,7 +26,7 @@ endif()
 
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS imgaug ubelt pygments )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug==0.4.0" "ubelt" "pygments" )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug" "ubelt" "pygments" )
 endif()
 
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_OPENCV )
@@ -70,11 +70,6 @@ if( VIAME_ENABLE_ITK_EXTRAS )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH )
-  list( APPEND VIAME_PYTHON_DEPS pillow )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "Pillow<=6.2.2" )
-endif()
-
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-INTERNAL )
   list( APPEND VIAME_PYTHON_DEPS "pyyaml" )
   list( APPEND VIAME_PYTHON_DEP_CMDS "pyyaml" )
@@ -90,39 +85,32 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
 
   set( ARGS_TORCH )
   set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
+  set( PYTORCH_VERSION 1.5.0 )
 
   if( WIN32 AND VIAME_ENABLE_CUDA )
-    set( PYTORCH_VERSION 1.2.0 )
-
-    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
+    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.2" )
       set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
-    elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
-      if( PYTHON_VERSION VERSION_EQUAL 3.6 )
-        set( ARGS_TORCH "https://download.pytorch.org/whl/cu100/torch-1.2.0-cp36-cp36m-win_amd64.whl" )
-      else()
-        set( ARGS_TORCH "==${PYTORCH_VERSION}+cu100 -f ${PYTORCH_ARCHIVE}" )
-      endif()
+    elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
+      set( ARGS_TORCH "==${PYTORCH_VERSION}+cu101 -f ${PYTORCH_ARCHIVE}" )
     elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
       set( ARGS_TORCH "==${PYTORCH_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
     else()
       message( FATAL_ERROR "With your current build settings you must either:\n"
         " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
-        " (b) Use CUDA 9.2 or 10.0+\n"
+        " (b) Use CUDA 10.1 or above or\n"
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
   elseif( VIAME_ENABLE_CUDA )
-    set( PYTORCH_VERSION 1.3.0 )
-
-    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
+    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.2" )
       set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
-    elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.0" )
-      set( ARGS_TORCH "==${PYTORCH_VERSION}+cu100 -f ${PYTORCH_ARCHIVE}" )
+    elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
+      set( ARGS_TORCH "==${PYTORCH_VERSION}+cu101 -f ${PYTORCH_ARCHIVE}" )
     elseif( CUDA_VERSION VERSION_EQUAL "9.2" )
       set( ARGS_TORCH "==${PYTORCH_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
     else()
       message( FATAL_ERROR "With your current build settings you must either:\n"
         " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
-        " (b) Use CUDA 9.2 or 10.0+\n"
+        " (b) Use CUDA 10.1 or above or\n"
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
   else()
@@ -184,17 +172,7 @@ foreach( ID RANGE ${DEP_COUNT} )
   list( GET VIAME_PYTHON_DEP_CMDS ${ID} CMD )
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${DEP} )
-
-  if( "${DEP}" STREQUAL "pycocotools" AND VIAME_ENABLE_PYTORCH )
-    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} pillow )
-  elseif( "${DEP}" STREQUAL "pillow" AND
-    ( VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_CAMTRAWL ) )
-    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} imgaug )
-  elseif( "${DEP}" STREQUAL "torch" )
-    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} pillow )
-  else()
-    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
-  endif()
+  set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
 
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
