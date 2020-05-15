@@ -96,8 +96,8 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
       set( ARGS_TORCH "==${PYTORCH_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
     else()
       message( FATAL_ERROR "With your current build settings you must either:\n"
-        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
-        " (b) Use CUDA 10.1 or above or\n"
+        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL\n"
+        " (b) Use CUDA 10.1 or above\n"
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
   elseif( VIAME_ENABLE_CUDA )
@@ -109,8 +109,8 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
       set( ARGS_TORCH "==${PYTORCH_VERSION}+cu92 -f ${PYTORCH_ARCHIVE}" )
     else()
       message( FATAL_ERROR "With your current build settings you must either:\n"
-        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL or\n"
-        " (b) Use CUDA 10.1 or above or\n"
+        " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL\n"
+        " (b) Use CUDA 10.1 or above\n"
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
   else()
