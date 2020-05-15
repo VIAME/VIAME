@@ -76,6 +76,11 @@ if( VIAME_ENABLE_PYTORCH-FORCE-CUDA )
   list( APPEND EXTRA_ENV "FORCE_CUDA=1" )
 endif()
 
+if( NOT WIN32 )
+  list( APPEND EXTRA_ENV "CPPFLAGS=-I${VIAME_BUILD_INSTALL_PREFIX}/include" )
+  list( APPEND EXTRA_ENV "LDFLAGS=-L${VIAME_BUILD_INSTALL_PREFIX}/lib" )
+endif()
+
 set( PYTHON_BASEPATH
   ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
 
@@ -153,7 +158,7 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     set( LIBRARY_PIP_INSTALL_CMD
       ${PYTHON_EXECUTABLE} -m pip install --user -e . )
   else()
-    if( "${LIB}" STREQUAL "mmcv" )
+    if( "${LIB}" STREQUAL "mmcv" OR "${LIB}" STREQUAL "torchvision" )
       set( LIBRARY_PIP_BUILD_CMD
         ${PYTHON_EXECUTABLE} setup.py
           bdist_wheel -d ${LIBRARY_PIP_BUILD_DIR} )
