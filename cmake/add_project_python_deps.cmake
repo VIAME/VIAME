@@ -24,6 +24,11 @@ if( VIAME_ENABLE_TENSORFLOW )
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_DEPS scikit-image )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "scikit-image==0.16.2" )
+endif()
+
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS imgaug ubelt pygments )
   list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug" "ubelt" "pygments" )
@@ -172,6 +177,12 @@ foreach( ID RANGE ${DEP_COUNT} )
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${DEP} )
   set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
+
+  if( "${DEP}" STREQUAL "imgaug" AND VIAME_ENABLE_NETHARN )
+    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} scikit-image )
+  else()
+    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
+  endif()
 
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
