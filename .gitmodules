@@ -27,7 +27,7 @@
 	url = https://github.com/pytorch/pytorch.git
 [submodule "packages/pytorch-libs/torchvision"]
 	path = packages/pytorch-libs/torchvision
-	url = https://github.com/VIAME/vision.git
+	url = https://github.com/pytorch/vision.git
 [submodule "packages/pytorch-libs/mmdetection"]
 	path = packages/pytorch-libs/mmdetection
 	url = https://github.com/viame/mmdetection.git
