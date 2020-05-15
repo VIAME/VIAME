@@ -42,9 +42,9 @@ There have been a number of contributors to VIAME including, but not
 limited to:
 (Software Framework and Algorithms) Matt Dawkins, Jon Crall,
 Linus Sherrill, Matt Leotta, People from the Above References;
-(Graphical User Interfaces) Matthew Woehlke, Kyle Edwards, Matthew Ma,
-Rusty Blue, Aashish Chaudhary, Betsy McPhail, Jacob Nesbitt;
-(Detector Model Development) Deborah Hart (Skate), Yuval Boss, Joe
-Redmon (Arctic Seal, YOLO), Neel Joshi, Marcel Simon (Arctic Seal, TF),
+(Graphical User Interfaces) Matthew Woehlke, Jacob Nesbitt, Brandon Davis,
+Bryon Lewis, Rusty Blue, Betsy McPhail, Aashish Chaudhary, Kyle Edwards,
+Matthew Ma; (Detector Model Development) Deborah Hart (Skate), Yuval Boss,
+Joe Redmon (Arctic Seal, YOLO), Neel Joshi, Marcel Simon (Arctic Seal, TF),
 and multiple annotators who have generated training data across multiple
 organizations.

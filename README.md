@@ -50,9 +50,9 @@ and place them in a directory of your choosing, for example C:\Program Files\VIA
 on Linux. If you're using packages built with GPU support, make sure to have sufficient video drivers installed,
 version 410.48 or higher. The best way to install drivers depends on your operating system, see below.
 Lastly, run through some of the examples to validate the installation. It is no longer necessary
-to install any dependencies of VIAME besides drivers, everything else is packaged inside of it. The binaries
-are quite large, in terms of disk space, due to the inclusion of multiple default model files and programs,
-but if just building your desired features from source (e.g. for embedded apps) they are much smaller.
+to install any dependencies of VIAME besides video drivers, everything else is packaged inside of it. The
+binaries are quite large, in terms of disk space, due to the inclusion of multiple default model files and
+programs, but if just building your desired features from source (e.g. for embedded apps) they are much smaller.
 
 **Installation Requirements:** <br>
 RHEL/CentOS 7 64-Bit, Ubuntu 16.04/18.04 64-Bit, Windows 7, 8, or 10 64-Bit <br>
