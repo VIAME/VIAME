@@ -1,9 +1,9 @@
 #! /bin/bash
 
-# debugging and logging
+# Debugging and logging
 set -x
  
-# install Fletch & VIAME system deps
+# Install Fletch & VIAME system deps
 yum update -y
 yum -y groupinstall 'Development Tools'
 yum install -y zip \
@@ -29,6 +29,10 @@ which \
 bzip2 \
 bzip2-devel
 
+# Install and use more recent compiler
+yum -y install centos-release-scl
+yum -y install devtoolset-7-gcc*
+scl enable devtoolset-7 bash
 
 # Install CMAKE
 wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz
