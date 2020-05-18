@@ -69,7 +69,7 @@ namespace algo = kwiver::vital::algo;
 namespace kwiver {
 
 // (config-key, value-type, default-value, description )
-create_config_trait( error_mode, std::string, "fail",
+create_config_trait( error_mode, std::string, "abort",
                      "How to handle file not found errors. Options are 'abort' and 'skip'. "
                      "Specifying 'fail' will cause an exception to be thrown. "
                      "The 'pass' option will only log a warning and wait for the next file name." );
@@ -275,6 +275,7 @@ void image_file_reader_process
   declare_config_using_trait( error_mode );
   declare_config_using_trait( path );
   declare_config_using_trait( image_reader );
+  declare_config_using_trait( frame_time );
 }
 
 
