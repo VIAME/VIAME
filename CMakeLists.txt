@@ -227,19 +227,6 @@ endif ()
 #---------------------------------------------------------------------
 #
 
-# Use Git (if available) to add Git hash info to the version header
-set(kwiver_configure_with_git on)
-kwiver_configure_file(version.h
-  "${CMAKE_CURRENT_SOURCE_DIR}/vital/version.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/vital/version.h"
-  KWIVER_VERSION_MAJOR
-  KWIVER_VERSION_MINOR
-  KWIVER_VERSION_PATCH
-  KWIVER_VERSION
-  KWIVER_SOURCE_DIR
-  )
-set(kwiver_configure_with_git)
-
 
 set( LIB_SUFFIX "" CACHE STRING
   "Library directory suffix. e.g. suffix=\"kwiver\" will install libraries in \"libkwiver\" rather than \"lib\"")
@@ -275,6 +262,22 @@ add_subdirectory( vital )
 
 # this is where the algorithm default configuration files live
 add_subdirectory(config)
+
+
+# Use Git (if available) to add Git hash info to the version header
+set(kwiver_configure_with_git on)
+kwiver_configure_file(version.h
+  "${CMAKE_CURRENT_SOURCE_DIR}/vital/version.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/vital/version.h"
+  KWIVER_VERSION_MAJOR
+  KWIVER_VERSION_MINOR
+  KWIVER_VERSION_PATCH
+  KWIVER_VERSION
+  KWIVER_SOURCE_DIR
+  )
+set(kwiver_configure_with_git)
+
+
 
 if(MSVC)
   # Generate files to inform msvc of the kwiver runtime environment
