@@ -24,6 +24,11 @@ if( VIAME_ENABLE_TENSORFLOW )
   endif()
 endif()
 
+if( VIAME_ENABLE_PYTORCH )
+  list( APPEND VIAME_PYTHON_DEPS scikit-image )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "scikit-image==0.16.2" )
+endif()
+
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
   list( APPEND VIAME_PYTHON_DEPS imgaug ubelt pygments )
   list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug" "ubelt" "pygments" )
@@ -73,11 +78,6 @@ if( VIAME_ENABLE_ITK_EXTRAS )
   else()
     list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython" )
   endif()
-endif()
-
-if( VIAME_ENABLE_PYTORCH )
-  list( APPEND VIAME_PYTHON_DEPS scikit-image )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "scikit-image==0.16.2" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-INTERNAL )
