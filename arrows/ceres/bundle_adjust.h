@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017, 2019 by Kitware, Inc.
+ * Copyright 2015-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ namespace ceres {
 
 /// A class for bundle adjustment of feature tracks using Ceres
 class KWIVER_ALGO_CERES_EXPORT bundle_adjust
-: public vital::algorithm_impl<bundle_adjust, vital::algo::bundle_adjust>
+: public vital::algo::bundle_adjust
 {
 public:
   /// Constructor

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,7 @@ namespace burnout {
  *
  */
 class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
-  : public vital::algorithm_impl< burnout_track_descriptors,
-      vital::algo::compute_track_descriptors >
+  : public vital::algo::compute_track_descriptors
 {
 public:
   burnout_track_descriptors();

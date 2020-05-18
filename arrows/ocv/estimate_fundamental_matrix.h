@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016, 2019 by Kitware, Inc.
+ * Copyright 2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace ocv {
 
 /// A class that using OpenCV to estimate a fundamental matrix from matching 2D points
 class KWIVER_ALGO_OCV_EXPORT estimate_fundamental_matrix
-  : public vital::algorithm_impl<estimate_fundamental_matrix, vital::algo::estimate_fundamental_matrix>
+  : public vital::algo::estimate_fundamental_matrix
 {
 public:
   PLUGIN_INFO( "ocv",

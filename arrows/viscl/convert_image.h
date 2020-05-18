@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016, 2019 by Kitware, Inc.
+ * Copyright 2014-2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ namespace vcl {
 
 /// Class to convert an image to a viscl base image
 class KWIVER_ALGO_VISCL_EXPORT convert_image
-  : public vital::algorithm_impl<convert_image, vital::algo::convert_image>
+  : public vital::algo::convert_image
 {
 public:
 

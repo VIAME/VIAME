@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ namespace arrows {
 namespace core {
 
 class KWIVER_ALGO_CORE_EXPORT example_detector
-        : public vital::algorithm_impl<example_detector, vital::algo::image_object_detector>
+        : public vital::algo::image_object_detector
 {
 public:
   PLUGIN_INFO( "example_detector",

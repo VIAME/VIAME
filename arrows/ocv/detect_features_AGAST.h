@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,9 +50,7 @@ namespace ocv {
 
 
 class KWIVER_ALGO_OCV_EXPORT detect_features_AGAST
-  : public vital::algorithm_impl< detect_features_AGAST,
-                                  ocv::detect_features,
-                                  vital::algo::detect_features >
+  : public ocv::detect_features
 {
 public:
   PLUGIN_INFO( "ocv_AGAST",

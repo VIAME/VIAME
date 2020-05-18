@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ namespace core {
  * metadata files have the same base name as the image files.
  */
 class KWIVER_ALGO_CORE_EXPORT video_input_pos
-  : public vital::algorithm_impl < video_input_pos, vital::algo::video_input >
+  : public  vital::algo::video_input
 {
 public:
   PLUGIN_INFO(  "pos",

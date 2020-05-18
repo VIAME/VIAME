@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace arrows {
 namespace core {
 
 class KWIVER_ALGO_CORE_EXPORT detected_object_set_output_csv
-  : public vital::algorithm_impl<detected_object_set_output_csv, vital::algo::detected_object_set_output>
+  : public vital::algo::detected_object_set_output
 {
 public:
   // NOTE: Keep description in sync with detected_object_set_input_csv

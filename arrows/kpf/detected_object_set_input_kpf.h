@@ -45,7 +45,7 @@ namespace arrows {
 namespace kpf {
 
 class KWIVER_ALGO_KPF_EXPORT detected_object_set_input_kpf
-  : public vital::algorithm_impl<detected_object_set_input_kpf, vital::algo::detected_object_set_input>
+  : public vital::algo::detected_object_set_input
 {
 public:
   detected_object_set_input_kpf();

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,7 @@ namespace darknet {
  *
  */
 class KWIVER_ALGO_DARKNET_EXPORT darknet_detector
-  : public vital::algorithm_impl< darknet_detector,
-      vital::algo::image_object_detector >
+  : public vital::algo::image_object_detector
 {
 public:
   darknet_detector();

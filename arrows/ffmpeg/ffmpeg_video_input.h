@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ namespace ffmpeg {
  *
  */
 class KWIVER_ALGO_FFMPEG_EXPORT ffmpeg_video_input
-  : public vital::algorithm_impl < ffmpeg_video_input, vital::algo::video_input >
+  : public  vital::algo::video_input
 {
 public:
   /// Constructor

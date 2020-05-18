@@ -46,7 +46,7 @@ namespace serialize {
 namespace json {
 
 class KWIVER_SERIALIZE_JSON_EXPORT detected_object_set
-  : public vital::algorithm_impl< detected_object_set, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   PLUGIN_INFO( "kwiver:detected_object_set",

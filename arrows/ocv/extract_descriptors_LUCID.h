@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,9 +51,7 @@ namespace ocv {
 
 
 class KWIVER_ALGO_OCV_EXPORT extract_descriptors_LUCID
-  : public vital::algorithm_impl< extract_descriptors_LUCID,
-                                  ocv::extract_descriptors,
-                                  vital::algo::extract_descriptors >
+  : public ocv::extract_descriptors
 {
 public:
   PLUGIN_INFO( "ocv_LUCID",

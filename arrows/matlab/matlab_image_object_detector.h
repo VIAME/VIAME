@@ -44,7 +44,7 @@ namespace arrows {
 namespace matlab {
 
 class KWIVER_ALGO_MATLAB_EXPORT matlab_image_object_detector
-  : public vital::algorithm_impl< matlab_image_object_detector, vital::algo::image_object_detector >
+  : public vital::algo::image_object_detector
 {
 public:
   matlab_image_object_detector();

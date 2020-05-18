@@ -51,7 +51,7 @@ namespace qt {
 /// are supported, and offers no configuration. It is intended more as a proof
 /// of concept.
 class KWIVER_ALGO_QT_EXPORT image_io
-  : public vital::algorithm_impl< image_io, vital::algo::image_io >
+  : public vital::algo::image_io
 {
 public:
   /// Constructor

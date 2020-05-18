@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,7 @@ namespace core {
 
 /// Initialize object tracks via simple single frame thresholding
 class KWIVER_ALGO_CORE_EXPORT initialize_object_tracks_threshold
-  : public vital::algorithm_impl<initialize_object_tracks_threshold,
-      vital::algo::initialize_object_tracks>
+  : public vital::algo::initialize_object_tracks
 {
 public:
   PLUGIN_INFO( "threshold",

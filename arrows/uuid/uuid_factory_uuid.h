@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ namespace uuid {
 
 
 class KWIVER_ALGO_UUID_EXPORT uuid_factory_uuid
-  : public vital::algorithm_impl<uuid_factory_uuid, vital::algo::uuid_factory>
+  : public vital::algo::uuid_factory
 {
 public:
   uuid_factory_uuid();

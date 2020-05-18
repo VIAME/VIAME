@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,7 @@ namespace arrows {
 namespace core {
 
 class KWIVER_ALGO_CORE_EXPORT read_track_descriptor_set_csv
-  : public vital::algorithm_impl< read_track_descriptor_set_csv,
-      vital::algo::read_track_descriptor_set >
+  : public vital::algo::read_track_descriptor_set
 {
 public:
   PLUGIN_INFO( "csv",
