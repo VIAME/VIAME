@@ -223,6 +223,9 @@ set(kwiver_python_output_path "${KWIVER_BINARY_DIR}/${python_lib_subdir}")
 # are placed between lib and `kwiver_python_subdir`
 set(sprokit_python_output_path "${KWIVER_BINARY_DIR}/lib")
 
+set(KWIVER_PYTHON_VERSION "${PYTHON_VERSION}" CACHE STRING "" )
+mark_as_advanced(KWIVER_PYTHON_VERSION)
+
 ###
 # Status string for debugging
 #
