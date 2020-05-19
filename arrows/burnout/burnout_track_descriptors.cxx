@@ -161,9 +161,9 @@ vital_to_vidtk( const vital::object_track_state* ots )
   vidtk::track_state_sptr output( new vidtk::track_state() );
   output->set_timestamp( vital_to_vidtk( ots->frame(), ots->time() ) );
 
-  if( ots->detection )
+  if( ots->detection() )
   {
-    auto bbox = ots->detection->bounding_box();
+    auto bbox = ots->detection()->bounding_box();
     vidtk::image_object_sptr iobj( new vidtk::image_object() );
     iobj->set_bbox( bbox.min_x(), bbox.max_x(), bbox.min_y(), bbox.max_y() );
     output->set_image_object( iobj );

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,9 @@ namespace matlab {
 MxArraySptr
 convert_mx_image( const kwiver::vital::image_container_sptr image )
 {
-  cv::Mat ocv_image = kwiver::arrows::ocv::image_container::vital_to_ocv( image->get_image() );
+  cv::Mat ocv_image = kwiver::arrows::ocv::image_container::vital_to_ocv(
+    image->get_image(),
+    kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
 
   const size_t planes = ocv_image.channels();
   const size_t rows = ocv_image.rows;
@@ -109,7 +111,10 @@ kwiver::vital::image_container_sptr convert_mx_image( const MxArraySptr mx_image
     }
   }
 
-  kwiver::vital::image_container_sptr retval = std::make_shared< kwiver::arrows::ocv::image_container >( ocv_image );
+  kwiver::vital::image_container_sptr retval =
+    std::make_shared< kwiver::arrows::ocv::image_container >(
+      ocv_image,
+      kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
   return retval;
 }
 
