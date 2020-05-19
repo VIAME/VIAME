@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,30 +43,17 @@ KWIVER_ALGO_DARKNET_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "arrows.darknet" );
-  if (vpm.is_module_loaded( module_name ) )
+  ::kwiver::vital::algorithm_registrar reg( vpm, "arrows.darknet" );
+
+  if (reg.is_module_loaded())
   {
     return;
   }
 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_detector );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Image object detector using darknet" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  reg.register_algorithm< ::kwiver::arrows::darknet::darknet_detector >();
+  reg.register_algorithm< ::kwiver::arrows::darknet::darknet_trainer >();
 
-  fact = vpm.ADD_ALGORITHM( "darknet", kwiver::arrows::darknet::darknet_trainer );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Training utility for darknet" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  vpm.mark_module_as_loaded( module_name );
+  reg.mark_module_as_loaded();
 }
 
 } } } // end namespace

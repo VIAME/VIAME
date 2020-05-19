@@ -457,12 +457,6 @@ match_descriptor_sets
   d_->m_logger = this->logger();
 }
 
-match_descriptor_sets
-::~match_descriptor_sets()
-{
-
-}
-
 void
 match_descriptor_sets
 ::append_to_index(const vital::descriptor_set_sptr desc, frame_id_t frame_number)

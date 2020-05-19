@@ -59,34 +59,37 @@ public:
   ffmpeg_video_input();
   virtual ~ffmpeg_video_input();
 
+  PLUGIN_INFO( "ffmpeg",
+               "Use FFMPEG to read video files as a sequence of images." )
+
   /// Get this algorithm's \link vital::config_block configuration block \endlink
-  virtual vital::config_block_sptr get_configuration() const;
+  vital::config_block_sptr get_configuration() const override;
 
   /// Set this algorithm's properties via a config block
-  virtual void set_configuration(vital::config_block_sptr config);
+  void set_configuration(vital::config_block_sptr config) override;
 
   /// Check that the algorithm's currently configuration is valid
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  bool check_configuration(vital::config_block_sptr config) const override;
 
-  virtual void open( std::string video_name );
-  virtual void close();
+  void open( std::string video_name ) override;
+  void close() override;
 
-  virtual bool end_of_video() const;
-  virtual bool good() const;
+  bool end_of_video() const override;
+  bool good() const override;
 
-  virtual bool seekable() const;
-  virtual size_t num_frames() const;
+  bool seekable() const override;
+  size_t num_frames() const override;
 
-  virtual bool next_frame( kwiver::vital::timestamp& ts,
-                           uint32_t timeout = 0 );
-  virtual bool seek_frame(kwiver::vital::timestamp& ts,
-                          kwiver::vital::timestamp::frame_t frame_number,
-                          uint32_t timeout = 0) ;
+  bool next_frame( ::kwiver::vital::timestamp& ts,
+                   uint32_t timeout = 0 ) override;
+  bool seek_frame( ::kwiver::vital::timestamp& ts,
+                   ::kwiver::vital::timestamp::frame_t frame_number,
+                   uint32_t timeout = 0) override;
 
-  virtual kwiver::vital::timestamp frame_timestamp() const;
-  virtual kwiver::vital::image_container_sptr frame_image();
-  virtual kwiver::vital::metadata_vector frame_metadata();
-  virtual kwiver::vital::metadata_map_sptr metadata_map();
+  ::kwiver::vital::timestamp frame_timestamp() const override;
+  ::kwiver::vital::image_container_sptr frame_image() override ;
+  ::kwiver::vital::metadata_vector frame_metadata() override;
+  ::kwiver::vital::metadata_map_sptr metadata_map() override;
 
 private:
   /// private implementation class
