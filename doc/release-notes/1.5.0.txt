@@ -254,6 +254,9 @@ Build System
  * KWIVER now exports its version number in the CMake exports so that
    other packages can determine which version of KWIVER was found.
 
+ * KWIVER now exports the full and major Python versions used when
+   building the libraries in the CMake exports so that other packages
+   can determine which version was used.
 
 Bug Fixes
 ---------
