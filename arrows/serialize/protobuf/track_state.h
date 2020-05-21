@@ -40,7 +40,7 @@ namespace serialize {
 namespace protobuf {
 
 class KWIVER_SERIALIZE_PROTOBUF_EXPORT track_state
-  : public vital::algorithm_impl< track_state, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   PLUGIN_INFO( "kwiver:track_state",

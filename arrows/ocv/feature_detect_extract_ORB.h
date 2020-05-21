@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016, 2019 by Kitware, Inc.
+ * Copyright 2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,9 +48,7 @@ namespace ocv {
 
 
 class KWIVER_ALGO_OCV_EXPORT detect_features_ORB
-  : public vital::algorithm_impl< detect_features_ORB,
-                                  ocv::detect_features,
-                                  vital::algo::detect_features >
+  : public ocv::detect_features
 {
 public:
   PLUGIN_INFO( "ocv_ORB",
@@ -76,9 +74,7 @@ private:
 
 
 class KWIVER_ALGO_OCV_EXPORT extract_descriptors_ORB
-  : public vital::algorithm_impl< extract_descriptors_ORB,
-                                  ocv::extract_descriptors,
-                                  vital::algo::extract_descriptors >
+  : public ocv::extract_descriptors
 {
 public:
   PLUGIN_INFO( "ocv_ORB",

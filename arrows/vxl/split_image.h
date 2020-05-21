@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2019 by Kitware, Inc.
+ * Copyright 2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace vxl {
 
 /// A class for drawing various information about feature tracks
 class KWIVER_ALGO_VXL_EXPORT split_image
-: public vital::algorithm_impl<split_image, vital::algo::split_image>
+: public vital::algo::split_image
 {
 public:
   PLUGIN_INFO( "vxl",

@@ -45,7 +45,7 @@ namespace ocv {
 
 // Implementation of merge image channels.
 class KWIVER_ALGO_OCV_EXPORT merge_images
-  : public vital::algorithm_impl<merge_images, vital::algo::merge_images>
+  : public vital::algo::merge_images
 {
 public:
   PLUGIN_INFO( "ocv",

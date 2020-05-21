@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ namespace arrows {
 namespace ocv {
 
 class KWIVER_ALGO_OCV_EXPORT hough_circle_detector
-  : public vital::algorithm_impl< hough_circle_detector, vital::algo::image_object_detector>
+  : public vital::algo::image_object_detector
 {
 public:
   PLUGIN_INFO( "hough_circle",

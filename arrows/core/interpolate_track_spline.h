@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,7 @@ namespace core {
  * depend on imagery.
  */
 class KWIVER_ALGO_CORE_EXPORT interpolate_track_spline
-  : public vital::algorithm_impl<interpolate_track_spline,
-                                 vital::algo::interpolate_track>
+  : public vital::algo::interpolate_track
 {
 public:
   PLUGIN_INFO( "spline",

@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2018-2019 by Kitware, Inc.
+* Copyright 2018-2020 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ namespace arrows {
 namespace cuda {
 
 class KWIVER_ALGO_CUDA_EXPORT integrate_depth_maps
-  : public vital::algorithm_impl<integrate_depth_maps, vital::algo::integrate_depth_maps>
+  : public vital::algo::integrate_depth_maps
 {
 public:
   PLUGIN_INFO( "cuda",

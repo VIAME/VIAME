@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016, 2019 by Kitware, Inc.
+ * Copyright 2014-2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace ocv {
 
 /// A class for outputting various debug info about feature tracks
 class KWIVER_ALGO_OCV_EXPORT analyze_tracks
-: public vital::algorithm_impl<analyze_tracks, vital::algo::analyze_tracks>
+: public vital::algo::analyze_tracks
 {
 public:
   PLUGIN_INFO( "ocv",

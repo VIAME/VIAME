@@ -40,7 +40,7 @@ namespace serialize {
 namespace protobuf {
 
 class KWIVER_SERIALIZE_PROTOBUF_EXPORT detected_object_type
-  : public vital::algorithm_impl< detected_object_type, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   PLUGIN_INFO( "kwiver:detected_object_type",

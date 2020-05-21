@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,7 @@ namespace dbow2 {
  * This class implements bag of words image matching with DBoW2
  */
 class KWIVER_ALGO_DBOW2_EXPORT match_descriptor_sets
-  : public vital::algorithm_impl< match_descriptor_sets,
-                                  vital::algo::match_descriptor_sets >
+  : public vital::algo::match_descriptor_sets
 {
 public:
   match_descriptor_sets();

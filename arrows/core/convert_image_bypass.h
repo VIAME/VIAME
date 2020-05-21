@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace core {
 
 /// A class for bypassing image conversion
 class KWIVER_ALGO_CORE_EXPORT convert_image_bypass
-  : public vital::algorithm_impl<convert_image_bypass, vital::algo::convert_image>
+  : public vital::algo::convert_image
 {
 public:
   PLUGIN_INFO( "bypass",
