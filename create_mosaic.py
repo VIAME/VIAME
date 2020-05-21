@@ -12,24 +12,25 @@ import tqdm
 def read_homog_file(path):
     """Read a homography output file into an Nx3x3 array.
     Coordinate order is Y, X, Z.
-    Only reads until the first break.
+    Also returns the reference frame for each frame.
 
     """
     with open(path) as f:
         # "start" will contain the starting index
         start = None
         result = []
+        refs = []
         for i, line in enumerate(f):
             *matrix, fromf, tof = line.split()
             if start is None:
-                assert int(fromf) == int(tof)
                 start = int(fromf)
             assert len(matrix) == 9
             assert int(fromf) == i + start
-            if int(tof) != start: break
             result.append(list(map(float, matrix)))
+            refs.append(int(tof))
     swap_xy = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]])
-    return swap_xy @ np.array(result).reshape((-1, 3, 3)) @ swap_xy
+    result = swap_xy @ np.array(result).reshape((-1, 3, 3)) @ swap_xy
+    return result, np.array(refs)
 
 def unhomogenize(coords):
     """Signature (i+1, j) -> (i, j)"""
@@ -109,7 +110,7 @@ def paste_many(homogs, ims):
 
 def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, step=None):
     image_files = sorted(glob.iglob(image_glob))[start:stop]
-    homogs = read_homog_file(homog_file)[start:stop]
+    homogs, refs = (x[start:stop] for x in read_homog_file(homog_file))
     length = min(len(image_files), len(homogs))
     if (frames is None) == (step is None):
         raise ValueError("Exactly one of frames and step must be specified")
@@ -117,6 +118,8 @@ def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, s
         frame_numbers = [(length - 1) * i // (frames - 1) for i in range(frames)]
     else:
         frame_numbers = range(0, length, step)
+    if len(np.unique(refs[frame_numbers])) > 1:
+        raise ValueError("Requested frames do not all have the same reference")
     images = (skio.imread(image_files[i]) for i in tqdm.tqdm(frame_numbers))
     skio.imsave(out_file, paste_many(homogs[frame_numbers], images))
 
