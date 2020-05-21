@@ -374,10 +374,13 @@ void load_explorer_plugins()
     p.append( "/plugin_explorer" );
   }
 
+  // Load explorer plugins
   pl.load_plugins( pathl );
 
   auto fact_list = pl.get_factories( typeid( kwiver::vital::category_explorer ).name() );
 
+  // Scan all implementations loaded and build map from plugin
+  // category to formatting plugin
   for( auto fact : fact_list )
   {
     std::string name;
@@ -653,16 +656,9 @@ main( int argc, char* argv[] )
   // ========
   kwiver::vital::plugin_manager_internal& vpm = kwiver::vital::plugin_manager_internal::instance();
 
-  // remove all default plugin filters
-  vpm.get_loader()->clear_filters();
-
-  // Add the default filter which checks for duplicate plugins
-  kwiver::vital::plugin_filter_handle_t filt = std::make_shared<kwiver::vital::plugin_filter_default>();
-  vpm.get_loader()->add_filter( filt );
-
   if (!G_context.opt_skip_relative)
   {
-    // It is somewhat problematic to keep these in sync with the CMake values
+    // Add path relative to the current executable/binary directory
     vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/plugins");
   }
 

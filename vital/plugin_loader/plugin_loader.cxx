@@ -159,7 +159,7 @@ plugin_loader
   fact->get_attribute( plugin_factory::CONCRETE_TYPE, concrete_type );
 
   // If the hook has declined to register the factory, just return.
-  for ( auto filt : m_impl->m_filters )
+  for ( auto & filt : m_impl->m_filters )
   {
     if ( ! filt->add_factory( fact_handle ) )
     {

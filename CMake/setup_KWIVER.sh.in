@@ -8,7 +8,7 @@ export VG_PLUGIN_PATH=$this_dir
 export PATH=$this_dir/bin:$PATH
 # shellcheck disable=SC2145
 export @LIBRARY_PATH_VAR@="$this_dir/@KWIVER_DEFAULT_LIBRARY_DIR@:$@LIBRARY_PATH_VAR@"
-export KWIVER_PLUGIN_PATH=$this_dir/@KWIVER_DEFAULT_LIBRARY_DIR@/@kwiver_plugin_module_subdir@:$this_dir/@KWIVER_DEFAULT_LIBRARY_DIR@/@kwiver_plugin_process_subdir@:$KWIVER_PLUGIN_PATH
+export KWIVER_PLUGIN_PATH=$this_dir/@KWIVER_DEFAULT_LIBRARY_DIR@/@kwiver_plugin_subdir@:$KWIVER_PLUGIN_PATH
 export KWIVER_CONFIG_PATH=$this_dir/share/kwiver/@KWIVER_VERSION@/config
 
 # export KWIVER_DEFAULT_LOG_LEVEL=info

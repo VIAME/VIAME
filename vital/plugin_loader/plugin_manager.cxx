@@ -74,15 +74,8 @@ public:
     , m_loader( new plugin_loader( register_function_name, shared_library_suffix ) )
     , m_logger( kwiver::vital::get_logger( "vital.plugin_manager" ) )
   {
-    using kvpf = kwiver::vital::plugin_factory;
-
     // Add the default filter which checks for duplicate plugins
     plugin_filter_handle_t filt = std::make_shared<kwiver::vital::plugin_filter_default>();
-    m_loader->add_filter( filt );
-
-    // Add filter that excludes applets
-    filt = std::make_shared<kwiver::vital::plugin_filter_category>(
-      plugin_filter_category::condition::NOT_EQUAL, kvpf::APPLET_CATEGORY );
     m_loader->add_filter( filt );
   }
 

@@ -191,13 +191,6 @@ int main(int argc, char *argv[])
   const std::string exec_path = kwiver::vital::get_executable_path();
   vpm.add_search_path(exec_path + "/../lib/kwiver/plugins");
 
-  // remove all default plugin filters
-  vpm.get_loader()->clear_filters();
-
-  // Add filter to select all plugins
-  kwiver::vital::plugin_filter_handle_t filt = std::make_shared<kwiver::vital::plugin_filter_default>();
-  vpm.get_loader()->add_filter( filt );
-
   vpm.load_all_plugins();
 
   // initialize the global context
