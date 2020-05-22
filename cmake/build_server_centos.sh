@@ -33,6 +33,8 @@ bzip2-devel
 yum -y install centos-release-scl
 yum -y install devtoolset-7
 scl enable devtoolset-7 bash
+which gcc
+gcc --version
 
 # Install CMAKE
 wget https://cmake.org/files/v3.17/cmake-3.17.0.tar.gz
