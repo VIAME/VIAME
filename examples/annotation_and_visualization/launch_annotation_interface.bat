@@ -8,5 +8,4 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-python.exe "%VIAME_INSTALL%\configs\launch_annotation_interface.py"
-
+sealtk.exe --pipeline-directory %VIAME_INSTALL%\configs\pipelines\embedded_dual_stream --theme %VIAME_INSTALL%\configs\gui-params\dark_gui_settings.ini
