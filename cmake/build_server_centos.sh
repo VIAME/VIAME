@@ -31,8 +31,8 @@ bzip2-devel
 
 # Install and use more recent compiler
 yum -y install centos-release-scl
-yum -y install devtoolset-6-gcc*
-scl enable devtoolset-6 bash
+yum -y install devtoolset-7
+scl enable devtoolset-7 bash
 
 # Install CMAKE
 wget https://cmake.org/files/v3.17/cmake-3.17.0.tar.gz
