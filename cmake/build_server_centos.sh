@@ -32,7 +32,7 @@ bzip2-devel
 # Install and use more recent compiler
 yum -y install centos-release-scl
 yum -y install devtoolset-7
-scl enable devtoolset-7 bash
+scl enable devtoolset-7 sh
 which gcc
 gcc --version
 
