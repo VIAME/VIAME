@@ -188,14 +188,6 @@ plugin_manager
         dirpath.push_back( dir_name );
       }
 
-      if ( SELECT( PROCESS_INSTRUMENTATION ) )
-      {
-        // load process instrumentation providers (or should this be
-        // grouped with processes?)
-        std::string dir_name = p + "/proc_instr";
-        dirpath.push_back( dir_name );
-      }
-
       if ( SELECT( OTHERS ) )
       {
         // load everything else

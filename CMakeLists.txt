@@ -155,11 +155,11 @@ set(BUILD_SHARED_LIBS ${KWIVER_BUILD_SHARED})
 set( kwiver_plugin_subdir                         kwiver/plugins )
 set( kwiver_plugin_process_subdir                 ${kwiver_plugin_subdir}/processes )
 set( kwiver_plugin_algorithm_subdir               ${kwiver_plugin_subdir}/algorithms )
-set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/proc_instr )
+set( kwiver_plugin_process_instrumentation_subdir ${kwiver_plugin_subdir}/processes )
 set( kwiver_plugin_scheduler_subdir               ${kwiver_plugin_subdir}/processes )
 set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/modules )
 set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/plugin_explorer )
-set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/modules/logger )
+set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/logger )
 set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
 
 ##

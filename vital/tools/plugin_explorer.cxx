@@ -677,7 +677,7 @@ main( int argc, char* argv[] )
       vpm.add_search_path( path );
     }
 
-    vpm.load_all_plugins();
+    vpm.load_all_plugins( ::kwiver::vital::plugin_manager::plugin_type::ALL );
   }
 
   if ( G_context.opt_path_list )

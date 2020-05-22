@@ -67,14 +67,14 @@ public:
 
   enum class plugin_type
   {
-    PROCESSES               = 0x0001,
-    ALGORITHMS              = 0x0002,
-    APPLETS                 = 0x0004,
-    EXPLORER                = 0x0008,
-    PROCESS_INSTRUMENTATION = 0x0010,
-    OTHERS                  = 0x0020,
-    LEGACY                  = 0x0040,
-    ALL                     = 0xffff
+    PROCESSES  = 0x0001,
+    ALGORITHMS = 0x0002,
+    APPLETS    = 0x0004,
+    EXPLORER   = 0x0008,
+    OTHERS     = 0x0020,
+    LEGACY     = 0x0040,
+    DEFAULT    = 0x00f7,
+    ALL        = 0xffff
   };
 
 
@@ -96,7 +96,7 @@ public:
    *
    * @throws plugin_already_exists - if a duplicate plugin is detected
    */
-  void load_all_plugins( plugin_type type = plugin_type::ALL );
+  void load_all_plugins( plugin_type type = plugin_type::DEFAULT );
 
   /**
    * @brief Load plugins from list of directories.
