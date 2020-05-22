@@ -35,14 +35,14 @@ yum -y install devtoolset-6-gcc*
 scl enable devtoolset-6 bash
 
 # Install CMAKE
-wget https://cmake.org/files/v3.14/cmake-3.14.0.tar.gz
+wget https://cmake.org/files/v3.17/cmake-3.17.0.tar.gz
 tar zxvf cmake-3.*
-cd cmake-3.14.0
+cd cmake-3.17.0
 ./bootstrap --prefix=/usr/local --system-curl
 make -j$(nproc)
 make install
 cd /
-rm -rf cmake-3.14.0.tar.gz
+rm -rf cmake-3.17.0.tar.gz
 
 # Update VIAME sub git sources
 cd /viame/
