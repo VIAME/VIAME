@@ -132,7 +132,8 @@ kwiver::vital::metadata_sptr add_timestamp_from_filename::fixup_metadata(
     md = std::make_shared<kwiver::vital::metadata>();
   }
 
-  kwiver::vital::time_usec_t utc_time_usec = convert_to_timestamp( filename );
+  kwiver::vital::time_usec_t utc_time_usec =
+    convert_to_timestamp( filename, true );
 
   kwiver::vital::timestamp ts;
   ts.set_time_usec( utc_time_usec );
