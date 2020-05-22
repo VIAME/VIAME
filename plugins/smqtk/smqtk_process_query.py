@@ -58,10 +58,10 @@ def print(msg):
    import traceback
    try:
        msg = '[{}] {}'.format(threading.current_thread(), msg)
-       with open('database/Logs/SMQTK_Query_Log', 'a') as f:
+       with open('database/logs/SMQTK_Query_Log', 'a') as f:
            f.write(str(msg) + '\n')
    except Exception as ex:
-       with open('database/Logs/SMQTK_Query_Error_Log', 'a') as f:
+       with open('database/logs/SMQTK_Query_Error_Log', 'a') as f:
            f.write('Error durring print! Attempting to report\n')
            f.write(repr(ex) + '\n')
            f.write(traceback.format_exc() + '\n')
