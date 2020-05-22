@@ -27,7 +27,8 @@ atlas-devel \
 file \
 which \
 bzip2 \
-bzip2-devel
+bzip2-devel \
+gtk3-devel
 
 # Install and use more recent compiler
 yum -y install centos-release-scl
@@ -47,6 +48,14 @@ rm -rf cmake-3.17.0.tar.gz
 # Update VIAME sub git sources
 cd /viame/
 git submodule update --init --recursive
+
+# Install Qt5 (tmp hack)
+wget https://data.kitware.com/api/v1/item/5d5dd35185f25b11ff435f80/download
+mv download download.tar.gz
+tar -xvf download.tar.gz
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/viame/qt5-centos7/lib
+
+# Make build directory
 mkdir build
 cd build 
 
@@ -62,14 +71,15 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_CREATE_PACKAGE:BOOL=ON \
 -DVIAME_ENABLE_BURNOUT:BOOL=OFF \
 -DVIAME_ENABLE_CAFFE:BOOL=OFF \
--DVIAME_ENABLE_CAMTRAWL:BOOL=ON \
+-DVIAME_ENABLE_CAMTRAWL:BOOL=OFF \
 -DVIAME_ENABLE_CUDA:BOOL=ON \
 -DVIAME_ENABLE_CUDNN:BOOL=ON \
 -DVIAME_ENABLE_DOCS:BOOL=OFF \
 -DVIAME_ENABLE_FFMPEG:BOOL=ON \
--DVIAME_ENABLE_GDAL:BOOL=ON \
+-DVIAME_ENABLE_GDAL:BOOL=OFF \
 -DVIAME_ENABLE_FLASK:BOOL=OFF \
--DVIAME_ENABLE_ITK:BOOL=OFF \
+-DVIAME_ENABLE_ITK:BOOL=ON \
+-DVIAME_ENABLE_ITK_EXTRAS:BOOL=ON \
 -DVIAME_ENABLE_KWANT:BOOL=ON \
 -DVIAME_ENABLE_KWIVER:BOOL=ON \
 -DVIAME_ENABLE_MATLAB:BOOL=OFF \
@@ -80,15 +90,17 @@ cmake ../ -DCMAKE_BUILD_TYPE:STRING=Release \
 -DVIAME_ENABLE_PYTORCH-INTERNAL:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-MMDET:BOOL=ON \
 -DVIAME_ENABLE_PYTORCH-NETHARN:BOOL=ON \
--DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=ON \
+-DVIAME_ENABLE_PYTORCH-PYSOT:BOOL=OFF \
 -DVIAME_ENABLE_SCALLOP_TK:BOOL=OFF \
--DVIAME_ENABLE_SEAL_TK:BOOL=OFF \
--DVIAME_ENABLE_SMQTK:BOOL=ON \
--DVIAME_ENABLE_TENSORFLOW:BOOL=OFF \
+-DVIAME_ENABLE_SEAL_TK:BOOL=ON \
+-DVIAME_ENABLE_SMQTK:BOOL=OFF \
+-DVIAME_ENABLE_TENSORFLOW:BOOL=ON \
 -DVIAME_ENABLE_UW_PREDICTOR:BOOL=OFF \
--DVIAME_ENABLE_VIVIA:BOOL=ON \
+-DVIAME_ENABLE_VIVIA:BOOL=OFF \
 -DVIAME_ENABLE_VXL:BOOL=ON \
--DVIAME_ENABLE_YOLO:BOOL=ON 
+-DVIAME_ENABLE_YOLO:BOOL=ON \
+-DVIAME_DOWNLOAD_MODELS-ARCTIC-SEAL:BOOL=ON \
+-DEXTERNAL_Qt:PATH=/viame/qt5-centos7
 
 # Build VIAME first attempt
 make -j$(nproc) -k || true
@@ -137,3 +149,18 @@ cp /usr/lib64/libquadmath.so.0 install/lib || true
 #cp /usr/lib64/libXau.so.6 install/lib || true
 #cp /usr/lib64/libxcb.so.1 install/lib || true
 #cp /usr/lib64/libXext.so.6 install/lib || true
+#cp /usr/lib64/libfreetype.so.6 install/lib || true
+
+# HACK: Install correct Qt5 binaries in install tree
+# Should be removed when this issue is fixed
+cd install
+wget https://data.kitware.com/api/v1/item/5d5f112385f25b11ff47c1a8/download
+mv download download.tar.gz
+tar -xvf download.tar.gz
+rm download.tar.gz
+cd ..
+
+# HACK: Remove unused default models in seal
+rm install/configs/pipelines/models/default_cfrnn.py
+rm install/configs/pipelines/models/default_cfrnn.lbl
+rm install/configs/pipelines/models/default_cfrnn.pth
