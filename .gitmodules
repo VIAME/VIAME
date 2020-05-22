@@ -42,7 +42,7 @@
 	url = https://github.com/VIAME/pysot
 [submodule "packages/seal-tk"]
 	path = packages/seal-tk
-	url = https://github.com/Kitware/seal-tk.git
+	url = git@kwgitlab.kitware.com:computer-vision/seal-tk.git
 [submodule "packages/itk-modules/trimmed-point-set"]
 	path = packages/itk-modules/trimmed-point-set
 	url = https://github.com/InsightSoftwareConsortium/ITKTrimmedPointSetRegistration.git
