@@ -32,6 +32,8 @@ move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 
 copy /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
+del %VIAME_BUILD_DIR%\VIAME\configs\pipelines\models\default_cfrnn.zip
+
 REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
 REM ---------------------------------------------------
