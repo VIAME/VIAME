@@ -33,9 +33,7 @@ move %MISSING_SVM_DLL% %VIAME_BUILD_DIR%\VIAME\bin
 copy /y "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Team Tools\Performance Tools\msvcr120.dll" %VIAME_BUILD_DIR%\VIAME\bin
 copy /y %VIAME_SOURCE_DIR%\cmake\setup_viame.bat.install %VIAME_BUILD_DIR%\VIAME\setup_viame.bat
 
-del %VIAME_BUILD_DIR%\VIAME\configs\pipelines\models\default_cfrnn.py
-del %VIAME_BUILD_DIR%\VIAME\configs\pipelines\models\default_cfrnn.lbl
-del %VIAME_BUILD_DIR%\VIAME\configs\pipelines\models\default_cfrnn.pth
+del %VIAME_BUILD_DIR%\VIAME\configs\pipelines\models\default_cfrnn.zip
 
 REM ---------------------------------------------------
 REM COMPRESS FINAL PACKAGE
