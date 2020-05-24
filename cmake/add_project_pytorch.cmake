@@ -10,13 +10,10 @@
 CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
 set( PYTORCH_LIBS_TO_BUILD )
+set( COMMON_PYTORCH_PROJECT_DEP fletch pytorch scikit-image )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
-
-  set( COMMON_PYTORCH_PROJECT_DEP fletch pytorch scikit-image )
-else()
-  set( COMMON_PYTORCH_PROJECT_DEP fletch torch scikit-image )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )

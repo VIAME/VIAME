@@ -91,7 +91,7 @@ if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
-  list( APPEND VIAME_PYTHON_DEPS torch )
+  list( APPEND VIAME_PYTHON_DEPS pytorch )
 
   set( ARGS_TORCH )
   set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
