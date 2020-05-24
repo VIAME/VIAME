@@ -14,13 +14,9 @@ set( PYTORCH_LIBS_TO_BUILD )
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
 
-  set( COMMON_PYTORCH_PROJECT_DEP fletch pytorch )
+  set( COMMON_PYTORCH_PROJECT_DEP fletch pytorch scikit-image )
 else()
-  set( COMMON_PYTORCH_PROJECT_DEP fletch torch )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-NETHARN OR VIAME_ENABLE_PYTORCH-MMDET )
-  set( COMMON_PYTORCH_PROJECT_DEP ${COMMON_PYTORCH_PROJECT_DEP} scikit-image )
+  set( COMMON_PYTORCH_PROJECT_DEP fletch torch scikit-image )
 endif()
 
 if( VIAME_ENABLE_PYTORCH )
