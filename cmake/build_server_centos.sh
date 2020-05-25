@@ -170,4 +170,4 @@ rm download.tar.gz
 cd ..
 
 # HACK: Remove unused default models in seal
-rm install/configs/pipelines/models/default_cfrnn.zip
+rm install/configs/pipelines/models/default_detector.zip
