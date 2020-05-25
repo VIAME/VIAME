@@ -171,8 +171,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
         -P ${VIAME_CMAKE_DIR}/install_python_wheel.cmake )
   endif()
 
-  message( FATAL_ERROR "${PYTORCH_ENV_VARS}" )
-
   set( LIBRARY_PYTHON_BUILD
     ${CMAKE_COMMAND} -E env "${PYTORCH_ENV_VARS}"
       "TORCH_NVCC_FLAGS=-Xfatbin -compress-all"
