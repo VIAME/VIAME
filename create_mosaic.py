@@ -99,22 +99,25 @@ def paste(dest, src, src_to_dest):
     dest_slice = dest[tuple(slice(ul, br + 1) for ul, br in zip(trans_ul, trans_br))]
     np.copyto(dest_slice, trans, where=mask[..., np.newaxis])
 
-def paste_many(homogs, ims):
-    """Given a sequence of homographies and an iterable of images, produce
-    a mosaic image
+def paste_many(homogs, ims, im0):
+    """Given a sequence of homographies, an iterable of images, and a
+    template image, produce a mosaic image
 
     """
-    ims = iter(ims)
-    im = next(ims)
-    im_size = im.shape[:2]
+    im_size = im0.shape[:2]
     ul, br = get_extreme_coordinates(homogs, im_size)
     # XXX The extra + 1 is a hack
-    dest = np.zeros(tuple(np.array(br) - ul + 1 + 1) + (im.shape[2],), dtype=im.dtype)
-    for hom, im in zip(homogs, itt.chain([im], ims)):
+    dest = np.zeros(tuple(np.array(br) - ul + 1 + 1) + (im0.shape[2],), dtype=im0.dtype)
+    for hom, im in zip(homogs, ims):
         assert im.shape[:2] == im_size
         hom = translator(tuple(-x for x in ul)) @ hom
         paste(dest, im, hom)
     return dest
+
+def peek_iterable(it):
+    it = iter(it)
+    x = next(it)
+    return x, itt.chain([x], it)
 
 def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, step=None):
     image_files = sorted(glob.iglob(image_glob))[start:stop]
@@ -129,7 +132,9 @@ def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, s
     if len(np.unique(refs[frame_numbers])) > 1:
         raise ValueError("Requested frames do not all have the same reference")
     images = (skio.imread(image_files[i]) for i in tqdm.tqdm(frame_numbers))
-    skio.imsave(out_file, paste_many(homogs[frame_numbers], images))
+    im0, images = peek_iterable(images)
+    im_size = im0.shape[:2]
+    skio.imsave(out_file, paste_many(homogs[frame_numbers], images, im0))
 
 def create_parser():
     p = argparse.ArgumentParser()
