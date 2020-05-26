@@ -32,18 +32,22 @@ def read_homog_file(path):
     result = swap_xy @ np.array(result).reshape((-1, 3, 3)) @ swap_xy
     return result, np.array(refs)
 
-def unhomogenize(coords):
-    """Signature (i+1, j) -> (i, j)"""
-    return coords[..., :-1, :] / coords[..., -1:, :]
+def transform_homog(homog, coords):
+    """Signature (n+1, n+1), n -> n"""
+    ones = np.ones(coords.shape[:-1] + (1,), dtype=coords.dtype)
+    coords = np.concatenate((coords, ones), axis=-1)[..., np.newaxis]
+    tcoords = homog @ coords
+    tcoords = np.squeeze(tcoords, -1)
+    return tcoords[..., :-1] / tcoords[..., -1:]
 
 def get_extreme_coordinates(homogs, im_size):
     """Return a pair of the UL and BR coordinates"""
     y, x = im_size
     y -= 1; x -= 1
-    box = np.array([[0, 0, 1], [y, 0, 1], [0, x, 1], [y, x, 1]]).T
-    transformed = unhomogenize(homogs @ box)
-    min_yx = np.floor(transformed.min((0, -1))).astype(int)
-    max_yx = np.ceil(transformed.max((0, -1))).astype(int)
+    box = np.array([[0, 0], [y, 0], [0, x], [y, x]])
+    transformed = transform_homog(homogs[:, np.newaxis], box)
+    min_yx = np.floor(transformed.min((0, 1))).astype(int)
+    max_yx = np.ceil(transformed.max((0, 1))).astype(int)
     return tuple(min_yx), tuple(max_yx)
 
 def translator(offset):
@@ -66,9 +70,9 @@ def paste(dest, src, src_to_dest):
     if dest.dtype != np.uint8 or src.dtype != np.uint8:
         raise ValueError("Only 8-bit (per channel) images supported")
     y, x = src.shape[:2]
-    bbox = np.array([[0, 0, 1], [y, 0, 1], [0, x, 1], [y, x, 1]]).T
-    trans_bbox = unhomogenize(src_to_dest @ bbox)
-    trans_ul, trans_br = trans_bbox.min(-1), trans_bbox.max(-1)
+    bbox = np.array([[0, 0], [y, 0], [0, x], [y, x]])
+    trans_bbox = transform_homog(src_to_dest, bbox)
+    trans_ul, trans_br = trans_bbox.min(0), trans_bbox.max(0)
     # Round outward
     trans_ul = np.floor(trans_ul).astype(int)
     trans_br = np.ceil(trans_br).astype(int)
