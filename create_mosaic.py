@@ -3,6 +3,7 @@ import glob
 import itertools as itt
 
 import numpy as np
+import scipy.optimize
 from skimage import (
     io as skio,
     transform as sktr,
@@ -44,6 +45,39 @@ def get_image_box(im_size):
     y, x = im_size
     y -= 1; x -= 1
     return np.array([[0, 0], [y, 0], [0, x], [y, x]])
+
+def score_homog(homog, im_size):
+    """Signature (3, 3) -> () (fixing size as a pair)"""
+    box = get_image_box(im_size)
+    def get_dists(x):
+        """Signature (n, m) -> (n, n)"""
+        diffs = np.expand_dims(x, -3) - np.expand_dims(x, -2)
+        return (diffs ** 2).sum(-1) ** .5
+    tbox = transform_homog(np.expand_dims(homog, -3), box)
+    return ((get_dists(tbox) - get_dists(box)) ** 2).sum((-1, -2))
+
+def optimize_homog_fit(homogs, im_size):
+    """Return a homography that, when applied after the provided ndarray
+    of homographies, minimizes the distortion of images of the given
+    size
+
+    """
+    def embed(x):
+        result = np.empty((3, 3), dtype=x.dtype)
+        result.flat[:-1] = x
+        result[2, 2] = 1
+        return result
+    def score(x):
+        return score_homog(embed(x) @ homogs, im_size).sum()
+    result = scipy.optimize.minimize(
+        score, np.eye(3).flat[:-1], method='Nelder-Mead',
+    )
+    if result.success:
+        return embed(result.x)
+    else:
+        raise RuntimeError(
+            "Optimization failed with the message: " + result.message,
+        )
 
 def get_extreme_coordinates(homogs, im_size):
     """Return a pair of the UL and BR coordinates"""
@@ -119,7 +153,7 @@ def peek_iterable(it):
     x = next(it)
     return x, itt.chain([x], it)
 
-def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, step=None):
+def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, step=None, optimize_fit=None):
     image_files = sorted(glob.iglob(image_glob))[start:stop]
     homogs, refs = (x[start:stop] for x in read_homog_file(homog_file))
     length = min(len(image_files), len(homogs))
@@ -133,8 +167,11 @@ def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, s
         raise ValueError("Requested frames do not all have the same reference")
     images = (skio.imread(image_files[i]) for i in tqdm.tqdm(frame_numbers))
     im0, images = peek_iterable(images)
-    im_size = im0.shape[:2]
-    skio.imsave(out_file, paste_many(homogs[frame_numbers], images, im0))
+    rel_homogs = homogs[frame_numbers]
+    if optimize_fit:
+        fit_homog = optimize_homog_fit(rel_homogs, im0.shape[:2])
+        rel_homogs = fit_homog @ rel_homogs
+    skio.imsave(out_file, paste_many(rel_homogs, images, im0))
 
 def create_parser():
     p = argparse.ArgumentParser()
@@ -145,6 +182,7 @@ def create_parser():
     p.add_argument('--start', type=int, metavar='N', help='Ignore first N frames')
     p.add_argument('--stop', type=int, metavar='N', help='Ignore frames after the Nth')
     p.add_argument('--step', type=int, metavar='N', help='Write every Nth frame')
+    p.add_argument('--optimize-fit', action='store_true', help='Apply an additional transformation to all images to minimize distortion')
     return p
 
 if __name__ == '__main__':
