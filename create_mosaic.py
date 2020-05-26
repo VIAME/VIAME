@@ -40,11 +40,14 @@ def transform_homog(homog, coords):
     tcoords = np.squeeze(tcoords, -1)
     return tcoords[..., :-1] / tcoords[..., -1:]
 
-def get_extreme_coordinates(homogs, im_size):
-    """Return a pair of the UL and BR coordinates"""
+def get_image_box(im_size):
     y, x = im_size
     y -= 1; x -= 1
-    box = np.array([[0, 0], [y, 0], [0, x], [y, x]])
+    return np.array([[0, 0], [y, 0], [0, x], [y, x]])
+
+def get_extreme_coordinates(homogs, im_size):
+    """Return a pair of the UL and BR coordinates"""
+    box = get_image_box(im_size)
     transformed = transform_homog(homogs[:, np.newaxis], box)
     min_yx = np.floor(transformed.min((0, 1))).astype(int)
     max_yx = np.ceil(transformed.max((0, 1))).astype(int)
