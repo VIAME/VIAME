@@ -89,7 +89,8 @@ def paste(dest, src, src_to_dest):
     # Convert everything back to uint8 (warp converts to double)
     trans = (trans * 255).round().astype(np.uint8)
 
-    dest[tuple(m + ul for m, ul in zip(mask.nonzero(), trans_ul))] = trans[mask]
+    dest_slice = dest[tuple(slice(ul, br + 1) for ul, br in zip(trans_ul, trans_br))]
+    np.copyto(dest_slice, trans, where=mask[..., np.newaxis])
 
 def paste_many(homogs, ims):
     """Given a sequence of homographies and an iterable of images, produce
