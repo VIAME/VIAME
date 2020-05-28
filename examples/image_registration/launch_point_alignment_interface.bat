@@ -8,4 +8,4 @@ CALL "%VIAME_INSTALL%\setup_viame.bat"
 
 REM Run Pipeline
 
-python.exe "%VIAME_INSTALL%\Python36\site-packages\keypointgui\gui.py"
+python.exe "%VIAME_INSTALL%\lib\python3.6\site-packages\keypointgui\gui.py"
