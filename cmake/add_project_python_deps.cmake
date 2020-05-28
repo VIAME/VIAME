@@ -42,6 +42,8 @@ if( ( WIN32 OR NOT VIAME_ENABLE_OPENCV ) AND
 endif()
 
 if( VIAME_ENABLE_ITK_EXTRAS )
+  set( WX_VERSION "4.0.7" )
+
   list( APPEND VIAME_PYTHON_DEPS msgpack )
   list( APPEND VIAME_PYTHON_DEP_CMDS "msgpack" )
 
@@ -58,15 +60,15 @@ if( VIAME_ENABLE_ITK_EXTRAS )
 
     if( "${OS_ID}" MATCHES "centos" )
       set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/centos-7 )
-      list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython" )
+      list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython==${WX_VERSION}" )
     elseif( "${RELEASE_CODENAME}" MATCHES "xenial" )
       set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 )
-      list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython" )
+      list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython==${WX_VERSION}" )
     else()
-      list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython" )
+      list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython==${WX_VERSION}" )
     endif()
   else()
-    list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython" )
+    list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython==${WX_VERSION}" )
   endif()
 endif()
 
