@@ -85,7 +85,7 @@ public:
     frame_advanced(0),
     end_of_video(true),
     number_of_frames(0),
-    have_loop_vars(false),
+    collected_all_metadata(false),
     estimated_num_frames(false)
   {
     f_packet.data = nullptr;
@@ -144,7 +144,7 @@ public:
   int frame_advanced; // This is a boolean check value really
   bool end_of_video;
   size_t number_of_frames;
-  bool have_loop_vars;
+  bool collected_all_metadata;
   bool estimated_num_frames;
 
   // ==================================================================
@@ -614,11 +614,9 @@ public:
 
   // ==================================================================
   /*
-  * @brief Loop over all frames to collect metadata and exact frame count
-  *
-  * @return \b Current frame number.
+  * @brief Loop over all frames to collect metadata
   */
-  void process_loop_dependencies()
+  void collect_all_metadata()
   {
     // is stream open?
     if ( ! this->is_opened() )
@@ -626,7 +624,7 @@ public:
       VITAL_THROW( vital::file_not_read_exception, video_path, "Video not open" );
     }
 
-    if ( !have_loop_vars )
+    if ( !collected_all_metadata )
     {
       std::lock_guard< std::mutex > lock( open_mutex );
 
@@ -667,7 +665,7 @@ public:
           std::make_pair( this->frame_number(), this->current_metadata() ) );
       }
 
-      have_loop_vars = true;
+      collected_all_metadata = true;
     }
   }
 
@@ -684,7 +682,7 @@ public:
       VITAL_THROW(vital::file_not_read_exception, video_path, "Video not open");
     }
 
-    if (!estimated_num_frames && !have_loop_vars)
+    if (!estimated_num_frames && !collected_all_metadata)
     {
       std::lock_guard< std::mutex > lock(open_mutex);
 
@@ -861,7 +859,7 @@ ffmpeg_video_input
   d->frame_advanced = 0;
   d->end_of_video = true;
   d->number_of_frames = 0;
-  d->have_loop_vars = false;
+  d->collected_all_metadata = false;
   d->estimated_num_frames = false;
   d->metadata.clear();
 }
@@ -1050,7 +1048,7 @@ kwiver::vital::metadata_map_sptr
 ffmpeg_video_input
 ::metadata_map()
 {
-  d->process_loop_dependencies();
+  d->collect_all_metadata();
 
   return std::make_shared<kwiver::vital::simple_metadata_map>(d->metadata_map);
 }
