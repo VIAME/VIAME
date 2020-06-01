@@ -638,7 +638,6 @@ public:
       // Add metadata for current frame
       if ( frame_advanced )
       {
-        number_of_frames++;
         this->metadata_map.insert(
           std::make_pair( this->frame_number(), this->current_metadata() ) );
       }
@@ -646,7 +645,6 @@ public:
       // Advance video stream to end
       while ( this->advance() )
       {
-        number_of_frames++;
         this->metadata_map.insert(
           std::make_pair( this->frame_number(), this->current_metadata() ) );
       }
@@ -659,7 +657,6 @@ public:
       unsigned int frame_num = 0;
       while ( frame_num < initial_frame_number && this->advance() )
       {
-        number_of_frames++;
         ++frame_num;
         this->metadata_map.insert(
           std::make_pair( this->frame_number(), this->current_metadata() ) );
@@ -682,7 +679,7 @@ public:
       VITAL_THROW(vital::file_not_read_exception, video_path, "Video not open");
     }
 
-    if (!estimated_num_frames && !collected_all_metadata)
+    if ( !estimated_num_frames )
     {
       std::lock_guard< std::mutex > lock(open_mutex);
 
