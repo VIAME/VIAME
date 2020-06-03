@@ -16,6 +16,8 @@ SET "PYTHONPATH=%VIAME_BUILD_DIR%\install\lib\python3.6;%VIAME_BUILD_DIR%\instal
 SET "INCLUDE=C:\Program Files (x86)\Windows Kits\10\Include\10.0.17134.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.17134.0\shared;%INCLUDE%"
 SET "LIB=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\um\x64;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.17134.0\ucrt\x64;%LIB%"
 
+CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x64 10.0.17134.0
+
 git submodule update --init --recursive
 
 "C:\Program Files\CMake\bin\ctest.exe" -S jenkins_dashboard.cmake -VV
