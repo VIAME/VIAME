@@ -153,9 +153,8 @@ video_input_image_list
     "Leave empty to allow all file extensions." );
   config->set_value(
     "sort_by_time", "false",
-    "Instead of accepting the input list as-is, sort input file order "
-    "based on timestamp metadata contained either in the file "
-    "or in each filename." );
+    "Instead of accepting the input list as-is, sort the input file list "
+    "based on the timestamp metadata provided for the file." );
 
   image_io::get_nested_algo_configuration(
     "image_reader", config, d->m_image_reader );
@@ -501,25 +500,41 @@ void
 video_input_image_list::priv
 ::sort_by_time( std::vector< kv::path_t >& files )
 {
-  std::map< kv::time_usec_t, kv::path_t > m_sorted_files;
-
-  for ( auto file : this->m_files )
+  struct entry
   {
-    kv::metadata_sptr md = m_image_reader->load_metadata( file );
+    kv::time_usec_t time;
+    kv::path_t path;
+
+    bool operator<( entry const& other ) const
+    {
+      return this->time < other.time;
+    }
+  };
+
+  auto scratch = std::vector<entry>{};
+  scratch.reserve( files.size() );
+
+  for ( auto& file : files )
+  {
+    auto const& md = this->m_image_reader->load_metadata( file );
 
     if ( !md || !md->timestamp().has_valid_time() )
     {
       VITAL_THROW( kv::invalid_file, file, "Could not load time" );
     }
 
-    m_sorted_files[ md->timestamp().get_time_usec() ] = file;
+    scratch.push_back( { md->timestamp().get_time_usec(),
+                         std::move( file ) } );
   }
 
-  files.clear();
+  std::sort( scratch.begin(), scratch.end() );
 
-  for ( auto file : m_sorted_files )
+  files.clear();
+  files.reserve( scratch.size() );
+
+  for ( auto& file : scratch )
   {
-    files.push_back( file.second );
+    files.push_back( std::move( file.path ) );
   }
 }
 
