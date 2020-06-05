@@ -117,6 +117,17 @@ To use project files extract them into your working directory of choice. Custom 
 contain a full installation, only with non-default features turned on, and should not be copied
 into existing installations because they are a full installation and bad things will happen.
 
+Docker Images
+-------------
+
+Docker images are available on: https://hub.docker.com with the label
+
+kitware/viame:gpu-all-models-latest
+
+Which is the image used in the web server, containing a VIAME installation in /opt/noaa/viame
+
+Additional images will be available in the future besides a version with all models.
+
 Quick Build Instructions
 ------------------------
 
