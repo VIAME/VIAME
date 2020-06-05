@@ -124,7 +124,8 @@ Docker images are available on: https://hub.docker.com with the label
 
 kitware/viame:gpu-all-models-latest
 
-Which is the image used in the web server, containing a VIAME installation in /opt/noaa/viame
+This is the image used in the web server, and is compiled every week. It contains a
+VIAME desktop (not web) installation in /opt/noaa/viame
 
 Additional images will be available in the future besides a version with all models.
 
