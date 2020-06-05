@@ -219,7 +219,7 @@ Source Code Layout
 <pre>
  VIAME
    ├── cmake               # CMake configuration files for subpackages
-   ├── doc                 # Documentation files and manual (pre-compilation)
+   ├── docs                # Documentation files and manual (pre-compilation)
    ├── configs             # All system-runnable config files and models
    │   ├── pipelines       # All processing pipeline configs
    │   │   └── models      # All models, which only get downloaded based on flags
@@ -263,7 +263,7 @@ License, Citations, and Acknowledgements
 VIAME is released under a BSD-3 license.
 
 A non-exhaustive list of relevant papers used within the project alongside contributors
-can be found [here](doc/citations.md).
+can be found [here](docs/citations.md).
 
 VIAME was developed with funding from multiple sources, with special thanks
-to those listed [here](doc/acknowledgements.md).
+to those listed [here](docs/acknowledgements.md).
