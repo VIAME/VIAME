@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,10 +65,11 @@ public:
   priv( read_object_track_set_viame_csv* parent )
     : m_parent( parent )
     , m_logger( kwiver::vital::get_logger( "read_object_track_set_viame_csv" ) )
-    , m_first( true )
     , m_batch_load( true )
     , m_delim( "," )
     , m_confidence_override( -1.0 )
+    , m_frame_id_adjustment( 0 )
+    , m_first( true )
     , m_current_idx( 0 )
     , m_last_idx( 1 )
   {}
@@ -77,13 +78,18 @@ public:
 
   read_object_track_set_viame_csv* m_parent;
   kwiver::vital::logger_handle_t m_logger;
-  bool m_first;
+  typedef int frame_id_t;
+
+  // Configuration parameters
   bool m_batch_load;
   std::string m_delim;
   double m_confidence_override;
+  frame_id_t m_frame_id_adjustment;
 
-  kwiver::vital::frame_id_t m_current_idx;
-  kwiver::vital::frame_id_t m_last_idx;
+  // Internal counters
+  bool m_first;
+  frame_id_t m_current_idx;
+  frame_id_t m_last_idx;
 
   void read_all();
 
@@ -91,13 +97,13 @@ public:
 
   // Map of object tracks indexed by frame number. Each set contains all tracks
   // referenced (active) on that individual frame.
-  std::map< kwiver::vital::frame_id_t, track_vector > m_tracks_by_frame_id;
+  std::map< frame_id_t, track_vector > m_tracks_by_frame_id;
 
   // Compilation of all loaded tracks, track id -> track sptr mapping
-  std::map< kwiver::vital::frame_id_t, kwiver::vital::track_sptr > m_all_tracks;
+  std::map< frame_id_t, kwiver::vital::track_sptr > m_all_tracks;
 
   // Compilation of all loaded track IDs, track id -> type string
-  std::map< kwiver::vital::frame_id_t, std::string > m_track_ids;
+  std::map< frame_id_t, std::string > m_track_ids;
 };
 
 
@@ -141,6 +147,10 @@ read_object_track_set_viame_csv
     config->get_value< bool >( "batch_load", d->m_batch_load );
   d->m_confidence_override =
     config->get_value< double >( "confidence_override", d->m_confidence_override );
+  d->m_frame_id_adjustment =
+    config->get_value< int >( "frame_id_adjustment", d->m_frame_id_adjustment );
+
+  d->m_current_idx = d->m_frame_id_adjustment;
 }
 
 
@@ -176,7 +186,9 @@ read_object_track_set_viame_csv
       trks.push_back( it->second );
     }
 
-    set = kwiver::vital::object_track_set_sptr( new kwiver::vital::object_track_set( trks ) );
+    set = kwiver::vital::object_track_set_sptr(
+      new kwiver::vital::object_track_set( trks ) );
+
     return was_first;
   }
 
@@ -244,7 +256,8 @@ read_object_track_set_viame_csv::priv
      * manner as may be done by streaming writers.
      */
     int trk_id = atoi( col[COL_DET_ID].c_str() );
-    kwiver::vital::frame_id_t frame_id = atoi( col[COL_FRAME_ID].c_str() );
+    frame_id_t frame_id = atoi( col[COL_FRAME_ID].c_str() );
+    frame_id = frame_id + m_frame_id_adjustment;
     kwiver::vital::time_usec_t frame_time;
     std::string str_id = col[COL_SOURCE_ID];
 
@@ -321,7 +334,8 @@ read_object_track_set_viame_csv::priv
 
     // Create new object track state
     kwiver::vital::track_state_sptr ots =
-      std::make_shared< kwiver::vital::object_track_state >( frame_id, frame_time, dob );
+      std::make_shared< kwiver::vital::object_track_state >(
+        frame_id, frame_time, dob );
 
     // Assign object track state to track
     kwiver::vital::track_sptr trk;

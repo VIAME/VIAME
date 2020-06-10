@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,7 @@ public:
     , m_active_writing( false )
     , m_write_time_as_uid( false )
     , m_tot_option( "weighted_average" )
+    , m_frame_id_adjustment( 0 )
   { }
 
   ~priv() { }
@@ -70,6 +71,7 @@ public:
   bool m_active_writing;
   bool m_write_time_as_uid;
   std::string m_tot_option;
+  int m_frame_id_adjustment;
   std::map< unsigned, std::string > m_frame_uids;
 
   std::string format_image_id( const kwiver::vital::object_track_state* ts );
@@ -208,10 +210,11 @@ void write_object_track_set_viame_csv
         kwiver::vital::bounding_box_d( -1, -1, -1, -1 );
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
       auto confidence = ( det ? det->confidence() : 0 );
+      int frame_id = ts->frame() + d->m_frame_id_adjustment;
 
       stream() << trk_ptr->id() << d->m_delim            // 1: track id
                << d->format_image_id( ts ) << d->m_delim // 2: video or image id
-               << ts->frame() << d->m_delim              // 3: frame number
+               << frame_id << d->m_delim                 // 3: frame number
                << bbox.min_x() << d->m_delim             // 4: TL-x
                << bbox.min_y() << d->m_delim             // 5: TL-y
                << bbox.max_x() << d->m_delim             // 6: BR-x
@@ -265,6 +268,8 @@ write_object_track_set_viame_csv
     config->get_value<bool>( "write_time_as_uid", d->m_write_time_as_uid );
   d->m_tot_option =
     config->get_value<std::string>( "tot_option", d->m_tot_option );
+  d->m_frame_id_adjustment =
+    config->get_value<int>( "frame_id_adjustement", d->m_frame_id_adjustment );
 }
 
 
@@ -365,10 +370,11 @@ write_object_track_set_viame_csv
       kwiver::vital::bounding_box_d bbox = ( det ? det->bounding_box() : empty_box );
 
       auto confidence = ( det ? det->confidence() : 0 );
+      int frame_id = state->frame() + d->m_frame_id_adjustment;
 
       stream() << trk_ptr->id() << d->m_delim               // 1: track id
                << d->format_image_id( state ) << d->m_delim // 2: video or image id
-               << state->frame() << d->m_delim              // 3: frame number
+               << frame_id << d->m_delim                    // 3: frame number
                << bbox.min_x() << d->m_delim                // 4: TL-x
                << bbox.min_y() << d->m_delim                // 5: TL-y
                << bbox.max_x() << d->m_delim                // 6: BR-x
