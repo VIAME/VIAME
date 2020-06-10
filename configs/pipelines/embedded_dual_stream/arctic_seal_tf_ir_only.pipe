@@ -18,7 +18,7 @@ connect from in_adapt.image
         to   downsampler.input_1
 connect from in_adapt.file_name
         to   downsampler.input_2
-connect from in_adapt.timestamp
+connect from in_adapt.timestamp2
         to   downsampler.timestamp
 
 connect from in_adapt.image2
