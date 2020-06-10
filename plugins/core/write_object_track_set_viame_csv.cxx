@@ -269,7 +269,7 @@ write_object_track_set_viame_csv
   d->m_tot_option =
     config->get_value<std::string>( "tot_option", d->m_tot_option );
   d->m_frame_id_adjustment =
-    config->get_value<int>( "frame_id_adjustement", d->m_frame_id_adjustment );
+    config->get_value<int>( "frame_id_adjustment", d->m_frame_id_adjustment );
 }
 
 
