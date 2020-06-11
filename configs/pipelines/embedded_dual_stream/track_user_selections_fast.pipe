@@ -1,0 +1,56 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+
+config _pipeline:_edge
+   :capacity                                   5
+
+config _scheduler
+   :type                                       pythread_per_process
+
+# ==================================================================================
+
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+include ../common_short_term_tracker.pipe
+
+process track_initializer
+  :: initialize_object_tracks
+  :track_initializer:type                      threshold
+
+  block track_initializer:threshold:filter
+    :type                                      class_probablity_filter
+    :class_probablity_filter:threshold         0.001
+    :class_probablity_filter:keep_all_classes  true
+    :class_probablity_filter:keep_classes      ex1;ex2;these_are_unused
+  endblock
+
+
+# Turn detections into tracks
+connect from in_adapt.image
+        to   track_initializer.image
+connect from in_adapt.timestamp
+        to   track_initializer.timestamp
+connect from in_adapt.detected_object_set
+        to   track_initializer.detected_object_set
+
+# Connect inputs to tracker
+connect from in_adapt.image
+        to   short_term_tracker.image
+connect from in_adapt.timestamp
+        to   short_term_tracker.timestamp
+connect from track_initializer.object_track_set
+        to   short_term_tracker.initializations
+
+# Connect to outputs
+connect from short_term_tracker.object_track_set
+        to   out_adapt.object_track_set
+
+# -- end of file --
+

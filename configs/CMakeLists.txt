@@ -392,28 +392,45 @@ if( VIAME_ENABLE_CAFFE )
 endif()
 
 if( VIAME_ENABLE_SEAK_TK OR VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
-  set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
-    pipelines/embedded_dual_stream/arctic_seal_tf_eo_only.pipe
-    pipelines/embedded_dual_stream/arctic_seal_tf_ir_only.pipe
-    pipelines/embedded_dual_stream/arctic_seal_tf_ir_to_eo_frame_trigger.pipe
-    pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_only.pipe
-    pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker.pipe
-    pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker_alt.pipe
-    pipelines/embedded_dual_stream/arctic_seal_yolo_eo_ir_early_fusion.pipe
-    pipelines/embedded_dual_stream/arctic_seal_yolo_eo_only.pipe
-    pipelines/embedded_dual_stream/arctic_seal_yolo_ir_only.pipe
-    pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_frame_trigger.pipe
-    pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_region_trigger.pipe
-    pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_tiny_eo_region_tigger.pipe
-    pipelines/embedded_dual_stream/train_yolo_eo.pipe
-    pipelines/embedded_dual_stream/train_yolo_ir.pipe
-    pipelines/embedded_dual_stream/train_cfrnn_eo.pipe
-    pipelines/embedded_dual_stream/train_cfrnn_ir.pipe
+  set( DUAL_EMBEDDED_FILES
     pipelines/embedded_dual_stream/local_trained_eo_detector.pipe
     pipelines/embedded_dual_stream/local_trained_ir_detector.pipe )
 
-    install( FILES       ${DUAL_EMBEDDED_FILES}
-             DESTINATION configs/pipelines/embedded_dual_stream )
+  if( VIAME_ENABLE_PYTORCH-NETHARN )
+    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
+      pipelines/embedded_dual_stream/train_cfrnn_eo.pipe
+      pipelines/embedded_dual_stream/train_cfrnn_ir.pipe )
+  endif()
+
+  if( VIAME_ENABLE_YOLO )
+    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
+      pipelines/embedded_dual_stream/train_yolo_eo.pipe
+      pipelines/embedded_dual_stream/train_yolo_ir.pipe )
+  endif()
+
+  if( VIAME_ENABLE_PYTORCH-PYSOT )
+    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
+      pipelines/embedded_dual_stream/track_user_selections_fast.pipe )
+  endif()
+
+  if( VIAME_DOWNLOAD_MODELS-ARCTIC-SEAL )
+    set( DUAL_EMBEDDED_FILES ${DUAL_EMBEDDED_FILES}
+      pipelines/embedded_dual_stream/arctic_seal_tf_eo_only.pipe
+      pipelines/embedded_dual_stream/arctic_seal_tf_ir_only.pipe
+      pipelines/embedded_dual_stream/arctic_seal_tf_ir_to_eo_frame_trigger.pipe
+      pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_only.pipe
+      pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker.pipe
+      pipelines/embedded_dual_stream/arctic_seal_tiny_yolo_eo_tracker_alt.pipe
+      pipelines/embedded_dual_stream/arctic_seal_yolo_eo_ir_early_fusion.pipe
+      pipelines/embedded_dual_stream/arctic_seal_yolo_eo_only.pipe
+      pipelines/embedded_dual_stream/arctic_seal_yolo_ir_only.pipe
+      pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_frame_trigger.pipe
+      pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_eo_region_trigger.pipe
+      pipelines/embedded_dual_stream/arctic_seal_yolo_ir_to_tiny_eo_region_tigger.pipe )
+  endif()
+
+  install( FILES       ${DUAL_EMBEDDED_FILES}
+           DESTINATION configs/pipelines/embedded_dual_stream )
 endif()
 
 install( FILES       ${CORE_PIPELINE_FILES}
