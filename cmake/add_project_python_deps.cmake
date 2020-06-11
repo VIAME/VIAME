@@ -100,9 +100,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
   set( PYTORCH_VERSION 1.4.0 )
 
   if( WIN32 AND VIAME_ENABLE_CUDA )
-    if( CUDA_VERSION VERSION_GREATER_EQUAL "10.2" )
-      set( ARGS_TORCH "==${PYTORCH_VERSION} -f ${PYTORCH_ARCHIVE}" )
-    elseif( CUDA_VERSION VERSION_GREATER_EQUAL "10.1" )
+    if( CUDA_VERSION VERSION_EQUAL "10.1" )
       if( PYTHON_VERSION VERSION_EQUAL 3.6 )
         set( ARGS_TORCH "https://download.pytorch.org/whl/cu101/torch-1.4.0-cp36-cp36m-win_amd64.whl" )
       else()
@@ -113,7 +111,7 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
     else()
       message( FATAL_ERROR "With your current build settings you must either:\n"
         " (a) Turn on VIAME_ENABLE_PYTORCH-INTERNAL\n"
-        " (b) Use CUDA 10.1 or above\n"
+        " (b) Use CUDA 9.2, or 10.1\n"
         " (c) Disable VIAME_ENABLE_PYTORCH\n" )
     endif()
   elseif( VIAME_ENABLE_CUDA )
