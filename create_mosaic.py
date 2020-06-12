@@ -168,6 +168,7 @@ def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, s
     im0, images = peek_iterable(images)
     rel_homogs = homogs[frame_numbers]
     if optimize_fit:
+        rel_homogs = np.linalg.inv(rel_homogs[0]) @ rel_homogs
         fit_homog = optimize_homog_fit(rel_homogs, im0.shape[:2])
         rel_homogs = fit_homog @ rel_homogs
     skio.imsave(out_file, paste_many(rel_homogs, images, im0))
