@@ -106,8 +106,7 @@ def paste(dest, src, src_to_dest):
     assert src.ndim == 3 and src.shape[2] in (3, 4)
     if dest.dtype != np.uint8 or src.dtype != np.uint8:
         raise ValueError("Only 8-bit (per channel) images supported")
-    y, x = src.shape[:2]
-    bbox = np.array([[0, 0], [y, 0], [0, x], [y, x]])
+    bbox = get_image_box(src.shape[:2])
     trans_bbox = transform_homog(src_to_dest, bbox)
     trans_ul, trans_br = trans_bbox.min(0), trans_bbox.max(0)
     # Round outward
