@@ -139,8 +139,7 @@ def paste_many(homogs, ims, im0):
     """
     im_size = im0.shape[:2]
     ul, br = get_extreme_coordinates(homogs, im_size)
-    # XXX The extra + 1 is a hack
-    dest = np.zeros(tuple(np.array(br) - ul + 1 + 1) + (im0.shape[2],), dtype=im0.dtype)
+    dest = np.zeros(tuple(np.array(br) - ul + 1) + (im0.shape[2],), dtype=im0.dtype)
     for hom, im in zip(homogs, ims):
         assert im.shape[:2] == im_size
         hom = translator(tuple(-x for x in ul)) @ hom
