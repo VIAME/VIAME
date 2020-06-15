@@ -42,7 +42,8 @@ namespace vital {
 
 const double detected_object_type::INVALID_SCORE = std::numeric_limits< double >::min();
 
-// Master list of all class_names
+// Master list of all type names, and members associated with the same
+signal< std::string const& > detected_object_type::class_name_added;
 std::set< std::string > detected_object_type::s_master_name_set;
 std::mutex detected_object_type::s_table_mutex;
 
@@ -189,11 +190,12 @@ detected_object_type
 {
   // Check to see if class_name is in the master set.
   // If not, add it
-  std::lock_guard< std::mutex > lock( detected_object_type::s_table_mutex );
+  std::lock_guard< std::mutex > lock{ s_table_mutex };
   auto it = s_master_name_set.find( class_name );
   if ( it == s_master_name_set.end() )
   {
     auto result = s_master_name_set.insert( class_name );
+    class_name_added( class_name );
     it = result.first;
   }
 
@@ -314,7 +316,7 @@ const std::string*
 detected_object_type
 ::find_string( const std::string& str ) const
 {
-  std::lock_guard< std::mutex > lock( detected_object_type::s_table_mutex );
+  std::lock_guard< std::mutex > lock{ s_table_mutex };
   auto it = s_master_name_set.find( str );
   if ( it == s_master_name_set.end() )
   {
@@ -328,14 +330,13 @@ detected_object_type
 }
 
 
-// ------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 std::vector< std::string >
 detected_object_type
 ::all_class_names()
 {
-  std::lock_guard< std::mutex > lock( detected_object_type::s_table_mutex );
-  std::vector< std::string > names( s_master_name_set.begin(), s_master_name_set.end() );
-  return names;
+  std::lock_guard< std::mutex > lock{ s_table_mutex };
+  return { s_master_name_set.begin(), s_master_name_set.end() };
 }
 
 } } // end namespace
