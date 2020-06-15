@@ -84,6 +84,7 @@ public:
   // Configuration values
   std::vector< std::string > c_search_path;
   std::vector< std::string > c_allowed_extensions;
+  bool c_sort_by_time = false;
 
   // Local state
   std::vector< kv::path_t > m_files;
@@ -101,6 +102,7 @@ public:
 
   void read_from_file( std::string const& filename );
   void read_from_directory( std::string const& dirname );
+  void sort_by_time( std::vector< kv::path_t >& files );
   vital::metadata_sptr frame_metadata(
     kv::path_t const& file, kv::image_container_sptr image = nullptr );
 };
@@ -149,6 +151,10 @@ video_input_image_list
     "allowed_extensions", "",
     "Semicolon-separated list of allowed file extensions. "
     "Leave empty to allow all file extensions." );
+  config->set_value(
+    "sort_by_time", "false",
+    "Instead of accepting the input list as-is, sort the input file list "
+    "based on the timestamp metadata provided for the file." );
 
   image_io::get_nested_algo_configuration(
     "image_reader", config, d->m_image_reader );
@@ -174,6 +180,9 @@ video_input_image_list
     config->get_value< std::string >( "allowed_extensions", {} );
   kv::tokenize( extensions, d->c_allowed_extensions, ";",
                 kv::TokenizeTrimEmpty );
+
+  // Read standalone variables
+  d->c_sort_by_time = config->get_value< bool >( "sort_by_time" );
 
   // Setup actual reader algorithm
   image_io::set_nested_algo_configuration(
@@ -479,6 +488,54 @@ video_input_image_list::priv
 
     this->m_files.push_back( resolved_file );
   }
+
+  if ( c_sort_by_time )
+  {
+    sort_by_time( this->m_files );
+  }
+}
+
+// ----------------------------------------------------------------------------
+void
+video_input_image_list::priv
+::sort_by_time( std::vector< kv::path_t >& files )
+{
+  struct entry
+  {
+    kv::time_usec_t time;
+    kv::path_t path;
+
+    bool operator<( entry const& other ) const
+    {
+      return this->time < other.time;
+    }
+  };
+
+  auto scratch = std::vector<entry>{};
+  scratch.reserve( files.size() );
+
+  for ( auto& file : files )
+  {
+    auto const& md = this->m_image_reader->load_metadata( file );
+
+    if ( !md || !md->timestamp().has_valid_time() )
+    {
+      VITAL_THROW( kv::invalid_file, file, "Could not load time" );
+    }
+
+    scratch.push_back( { md->timestamp().get_time_usec(),
+                         std::move( file ) } );
+  }
+
+  std::sort( scratch.begin(), scratch.end() );
+
+  files.clear();
+  files.reserve( scratch.size() );
+
+  for ( auto& file : scratch )
+  {
+    files.push_back( std::move( file.path ) );
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -529,7 +586,14 @@ video_input_image_list::priv
   }
 
   // Sort the list
-  std::sort( this->m_files.begin(), this->m_files.end() );
+  if ( c_sort_by_time )
+  {
+    sort_by_time( this->m_files );
+  }
+  else
+  {
+    std::sort( this->m_files.begin(), this->m_files.end() );
+  }
 }
 
 // ----------------------------------------------------------------------------
