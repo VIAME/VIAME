@@ -56,18 +56,16 @@ namespace vital {
       : metadata_item( "Requested metadata item is not in collection", 0, VITAL_META_UNKNOWN )
     { }
 
-    virtual bool is_valid() const { return false; }
-    virtual vital_metadata_tag tag() const { return static_cast< vital_metadata_tag >(0); }
-    virtual std::type_info const& type() const { return typeid( void ); }
-    virtual std::string as_string() const { return "--Unknown metadata item--"; }
-    virtual double as_double() const { return 0; }
-    virtual double as_uint64() const { return 0; }
-    virtual std::ostream& print_value(std::ostream& os) const
+    bool is_valid() const override { return false; }
+    std::type_info const& type() const override { return typeid( void ); }
+    std::string as_string() const override { return "--Unknown metadata item--"; }
+    std::ostream& print_value(std::ostream& os) const override
     {
       os << this->as_string();
       return os;
     }
 
+    metadata_item* clone() const override { return nullptr; } // never used
   }; // end class unknown_metadata_item
 
 // ----------------------------------------------------------------------------
@@ -162,13 +160,6 @@ metadata
 ::metadata()
 { }
 
-
-metadata
-::~metadata()
-{
-
-}
-
 // ----------------------------------------------------------------------------
 void
 metadata
@@ -185,6 +176,21 @@ metadata
 #else
   this->m_metadata_map[ tag ] = item_ptr{ item.release() };
 #endif
+}
+
+void
+metadata
+::add_copy( std::shared_ptr<metadata_item const> const& item )
+{
+  if ( !item )
+  {
+    throw std::invalid_argument{ "null pointer" };
+  }
+
+  // Since the design intent for this map is that the metadata
+  // collection owns the elements, we will clone the item passed in.
+  // The original parameter will be freed eventually.
+  this->m_metadata_map[ item->tag() ] = item_ptr{ item->clone() };
 }
 
 
