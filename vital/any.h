@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,16 @@
 #include <vital/util/demangle.h>
 
 #include <algorithm>
+#include <memory>
 #include <typeinfo>
+
 #include <cstring>
 
 namespace kwiver {
+
 namespace vital {
 
-
-// ----------------------------------------------------------------
+// ============================================================================
 /**
  * @brief Class that contains *any* data type.
  *
@@ -50,63 +52,84 @@ namespace vital {
  */
 class any
 {
+  template < typename T >
+  using is_self = std::is_same< typename std::decay< T >::type, any >;
+
+  template < typename T >
+  using non_self = typename std::enable_if< !is_self< T >::value >::type*;
+
 public:
   /**
    * @brief Create empty object.
    *
    */
   any() noexcept
-    : m_content( 0 )
-  { }
+  {
+  }
 
   /**
    * @brief Create new object containing typed value.
    *
-   * This CTOR creates a new object that holds the specified type and
+   * This constructor creates a new object that holds the specified type and
    * value.
    *
    * @param value Data item (value and type) to be held in new object.
    */
-  template < typename T >
-  any( const T& value )
-    : m_content( new internal_typed< T >( value ))
-  { }
+  template < typename T, non_self< T > = nullptr >
+  any( T&& value )
+  {
+    using value_t = typename std::decay< T >::type;
+    this->m_content.reset(
+      new internal_typed< value_t >{ std::forward< T >( value ) } );
+  }
 
   /**
-   * @brief Create new object form existing object.
+   * @brief Create new object from existing object.
    *
-   * This copy CTOR creates a new object that contains the data value
+   * This copy constructor creates a new object that contains the data value
    * and type of another any object.
    *
    * @param other Object to copy type and value from.
    */
   any( any const& other )
-    : m_content( other.m_content ? other.m_content->clone() : 0 )
-  { }
+    : m_content{ other.m_content ? other.m_content->clone() : nullptr }
+  {
+  }
+
+  /**
+   * @brief Create new object from an existing object.
+   *
+   * This move constructor creates a new object that contains the data value
+   * and type of another any object. Afterwords, the other object is left in a
+   * valid but unspecified state.
+   *
+   * @param other Object to move type and value from.
+   */
+  any( any&& other ) noexcept
+  {
+    this->swap( other );
+  }
 
   ~any() noexcept
   {
-    delete m_content;
   }
 
-
-  // ------------------------------------------------------------------
   /**
    * @brief Swap value and type.
    *
-   * This method swaps the specified value and type with this item.
+   * This method swaps the value and type of the specified any object with this
+   * item.
    *
    * @param rhs Item to swap into this.
    *
    * @return Modified current (this) object.
    */
-  any& swap(any& rhs) noexcept
+  any& swap( any& rhs ) noexcept
   {
-    std::swap(m_content, rhs.m_content);
+    this->m_content.swap( rhs.m_content );
     return *this;
   }
 
-  // ------------------------------------------------------------------
   /**
    * @brief Assignment operator.
    *
@@ -117,29 +140,12 @@ public:
    * @return Reference to this object.
    */
   template < typename T >
-  any& operator=( T const& rhs )
+  any& operator=( T&& rhs )
   {
-    any( rhs ).swap( *this );
+    any{ std::forward< T >( rhs ) }.swap( *this );
     return *this;
   }
 
-  // ------------------------------------------------------------------
-  /**
-   * @brief Assignment operator.
-   *
-   * This operator assigns the specified any object to this object.
-   *
-   * @param rhs New value to assign to this object.
-   *
-   * @return Reference to this object.
-   */
-  any& operator=( any rhs )
-  {
-    any( rhs ).swap( *this );
-    return *this;
-  }
-
-  // ------------------------------------------------------------------
   /**
    * @brief Determine if this object has a value.
    *
@@ -151,10 +157,9 @@ public:
    */
   bool empty() const noexcept
   {
-    return ! m_content;
+    return !m_content;
   }
 
-  // ------------------------------------------------------------------
   /**
    * @brief Remove value from object.
    *
@@ -164,10 +169,9 @@ public:
    */
   void clear() noexcept
   {
-    any().swap( *this );
+    m_content.reset();
   }
 
-  // ------------------------------------------------------------------
   /**
    * @brief Get typeid for current value.
    *
@@ -190,9 +194,9 @@ public:
     return m_content ? m_content->type() : typeid(void);
   }
 
-
-  /// Return demangled name of type contained in this object.
   /**
+   * @brief Return demangled name of type contained in this object.
+   *
    * This method returns the demangled name of type contained in this
    * object.
    *
@@ -204,7 +208,7 @@ public:
   }
 
 private:
-  // ------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // Base class for representing content
   class internal
   {
@@ -214,12 +218,14 @@ private:
     virtual internal* clone() const = 0;
   };
 
-  // ------------------------------------------------------------------
-  // type specific content
+  // --------------------------------------------------------------------------
+  // Type specific content
   template < typename T > class internal_typed : public internal
   {
   public:
-    internal_typed( T const& value ) : m_any_data( value ) { }
+    internal_typed( T const& value ) : m_any_data( value ) {}
+    internal_typed( T&& value ) : m_any_data( std::move( value ) ) {}
+
     virtual std::type_info const& type() const noexcept
     {
       return typeid(T);
@@ -227,7 +233,7 @@ private:
 
     virtual internal* clone() const
     {
-      return new internal_typed( m_any_data );
+      return new internal_typed{ m_any_data };
     }
 
     T m_any_data;
@@ -242,20 +248,20 @@ private:
   friend T* any_cast( any * aval ) noexcept;
 
   template < typename T >
-  friend T any_cast(any const& aval);
+  friend T any_cast( any const& aval );
 
-  internal* m_content;
+  std::unique_ptr< internal > m_content;
 };
 
 
-// ==================================================================
-class  bad_any_cast : public std::bad_cast
+// ============================================================================
+class bad_any_cast : public std::bad_cast
 {
 public:
 
   /// Create bad cast exception;
   /**
-   * This is the CTOR for the bnad any cast exception. A message is
+   * This is the constructor for the bnad any cast exception. A message is
    * created from the supplied mangled type names.
    *
    * @param from_type Mangled type name.
@@ -345,11 +351,12 @@ inline T
 any_cast( any const& aval )
 {
   // Is the type requested compatible with the type represented.
-  if (aval.m_content)
+  if ( aval.m_content )
   {
     if ( std::strcmp( typeid( T ).name(), aval.m_content->type().name() ) == 0  )
     {
-      return ( ( any::internal_typed< T >* )aval.m_content )->m_any_data;
+      auto* const adata = aval.m_content.get();
+      return static_cast< any::internal_typed< T >* >( adata )->m_any_data;
     }
 
     throw bad_any_cast( aval.m_content->type().name(), typeid( T ).name() );
