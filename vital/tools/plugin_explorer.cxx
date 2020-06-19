@@ -40,7 +40,7 @@
 #include <vital/plugin_loader/plugin_factory.h>
 #include <vital/plugin_loader/plugin_filter_category.h>
 #include <vital/plugin_loader/plugin_filter_default.h>
-#include <vital/plugin_loader/plugin_manager.h>
+#include <vital/plugin_loader/plugin_manager_internal.h>
 #include <vital/util/demangle.h>
 #include <vital/util/get_paths.h>
 #include <vital/util/wrap_text_block.h>
@@ -374,10 +374,13 @@ void load_explorer_plugins()
     p.append( "/plugin_explorer" );
   }
 
+  // Load explorer plugins
   pl.load_plugins( pathl );
 
   auto fact_list = pl.get_factories( typeid( kwiver::vital::category_explorer ).name() );
 
+  // Scan all implementations loaded and build map from plugin
+  // category to formatting plugin
   for( auto fact : fact_list )
   {
     std::string name;
@@ -651,20 +654,12 @@ main( int argc, char* argv[] )
   }
 
   // ========
-  kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-
-  // remove all default plugin filters
-  vpm.get_loader()->clear_filters();
-
-  // Add the default filter which checks for duplicate plugins
-  kwiver::vital::plugin_filter_handle_t filt = std::make_shared<kwiver::vital::plugin_filter_default>();
-  vpm.get_loader()->add_filter( filt );
+  kwiver::vital::plugin_manager_internal& vpm = kwiver::vital::plugin_manager_internal::instance();
 
   if (!G_context.opt_skip_relative)
   {
-    // It is somewhat problematic to keep these in sync with the CMake values
-    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/modules");
-    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/sprokit");
+    // Add path relative to the current executable/binary directory
+    vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/plugins");
   }
 
   // Look for plugin file name from command line
@@ -682,7 +677,7 @@ main( int argc, char* argv[] )
       vpm.add_search_path( path );
     }
 
-    vpm.load_all_plugins();
+    vpm.load_all_plugins( ::kwiver::vital::plugin_manager::plugin_type::ALL );
   }
 
   if ( G_context.opt_path_list )
