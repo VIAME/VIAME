@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2018 by Kitware, Inc.
+ * Copyright 2013-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -318,7 +318,7 @@ image_io
   LOG_DEBUG( logger(), "Loading image from file: " << filename );
 
   auto md = std::shared_ptr<kwiver::vital::metadata>( new kwiver::vital::metadata() );
-  md->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_URI, filename) );
+  md->add< kwiver::vital::VITAL_META_IMAGE_URI >( filename );
 
   vil_image_resource_sptr img_rsc = vil_load_image_resource(filename.c_str());
 
@@ -476,7 +476,7 @@ image_io
 ::load_metadata_(const std::string& filename) const
 {
   auto md = std::make_shared<kwiver::vital::metadata>();
-  md->add( NEW_METADATA_ITEM( kwiver::vital::VITAL_META_IMAGE_URI, filename) );
+  md->add< kwiver::vital::VITAL_META_IMAGE_URI >( filename );
   return md;
 }
 

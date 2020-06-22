@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,18 +70,29 @@ namespace vital {
 
   }; // end class unknown_metadata_item
 
-// ==================================================================
-
+// ----------------------------------------------------------------------------
 metadata_item
-::metadata_item(std::string name,
-                kwiver::vital::any const& data,
-                vital_metadata_tag tag )
-    : m_name( name )
-    , m_data( data )
-    , m_tag( tag )
-{ }
+::metadata_item( std::string const& name,
+                 kwiver::vital::any const& data,
+                 vital_metadata_tag tag )
+    : m_name{ name },
+      m_data{ data },
+      m_tag{ tag }
+{
+}
 
+// ----------------------------------------------------------------------------
+metadata_item
+::metadata_item( std::string const& name,
+                 kwiver::vital::any&& data,
+                 vital_metadata_tag tag )
+    : m_name{ name },
+      m_data{ std::move( data ) },
+      m_tag{ tag }
+{
+}
 
+// ----------------------------------------------------------------------------
 bool
 metadata_item
 ::is_valid() const
@@ -158,11 +169,22 @@ metadata
 
 }
 
+// ----------------------------------------------------------------------------
 void
 metadata
-::add( metadata_item* item )
+::add( std::unique_ptr< metadata_item >&& item )
 {
-  this->m_metadata_map[item->tag()] = item_ptr(item);
+  if ( !item )
+  {
+    throw std::invalid_argument{ "null pointer" };
+  }
+
+  auto const tag = item->tag();
+#ifdef VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
+  this->m_metadata_map[ tag ] = std::move( item );
+#else
+  this->m_metadata_map[ tag ] = item_ptr{ item.release() };
+#endif
 }
 
 

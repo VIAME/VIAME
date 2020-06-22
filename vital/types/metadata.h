@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,7 @@
 namespace kwiver {
 namespace vital {
 
+template <vital_metadata_tag tag> struct vital_meta_trait;
 
 // -----------------------------------------------------------------
 /// Abstract base class for metadata items
@@ -210,9 +211,12 @@ public:
   virtual std::ostream& print_value(std::ostream& os) const = 0;
 
 protected:
-  metadata_item(std::string name,
-                kwiver::vital::any const& data,
-                vital_metadata_tag tag);
+  metadata_item( std::string const& name,
+                 kwiver::vital::any const& data,
+                 vital_metadata_tag tag );
+  metadata_item( std::string const& name,
+                 kwiver::vital::any&& data,
+                 vital_metadata_tag tag );
 
   const std::string m_name;
   const kwiver::vital::any m_data;
@@ -245,7 +249,17 @@ class typed_metadata
   : public metadata_item
 {
 public:
-  typed_metadata(std::string name, kwiver::vital::any const& data )
+  typed_metadata( std::string const& name, TYPE const& data )
+    : metadata_item( name, data, TAG )
+  {
+  }
+
+  typed_metadata( std::string const& name, TYPE&& data )
+    : metadata_item( name, std::move( data ), TAG )
+  {
+  }
+
+  typed_metadata( std::string const& name, kwiver::vital::any const& data )
     : metadata_item( name, data, TAG )
   {
     if ( data.type() != typeid(TYPE) )
@@ -353,8 +367,34 @@ public:
    *
    * @param item New metadata item to be copied into collection.
    */
-  void add( metadata_item* item );
+  void add( std::unique_ptr< metadata_item >&& item );
 
+  template < vital_metadata_tag Tag >
+  void add( typename vital_meta_trait< Tag >::type&& data )
+  {
+    using tag_t = vital_meta_trait< Tag >;
+    using result_t = typed_metadata< Tag, typename tag_t::type >;
+    using ptr_t = std::unique_ptr< result_t >;
+    this->add( ptr_t{ new result_t{ tag_t::name(), std::move( data ) } } );
+  }
+
+  template < vital_metadata_tag Tag >
+  void add( typename vital_meta_trait< Tag >::type const& data )
+  {
+    using tag_t = vital_meta_trait< Tag >;
+    using result_t = typed_metadata< Tag, typename tag_t::type >;
+    using ptr_t = std::unique_ptr< result_t >;
+    this->add( ptr_t{ new result_t{ tag_t::name(), data } } );
+  }
+
+  template < vital_metadata_tag Tag >
+  void add_any( any const& data )
+  {
+    using tag_t = vital_meta_trait< Tag >;
+    using result_t = typed_metadata< Tag, typename tag_t::type >;
+    using ptr_t = std::unique_ptr< result_t >;
+    this->add( ptr_t{ new result_t{ tag_t::name(), data } } );
+  }
 
   /// Remove metadata item.
   /**
