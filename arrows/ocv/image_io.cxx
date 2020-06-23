@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2015 by Kitware, Inc.
+ * Copyright 2013-2015, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ image_io
 ::load_(const std::string& filename) const
 {
   auto md = std::make_shared<kwiver::vital::metadata>();
-  md->add(NEW_METADATA_ITEM(kwiver::vital::VITAL_META_IMAGE_URI, filename));
+  md->add<kwiver::vital::VITAL_META_IMAGE_URI>(filename);
 
   cv::Mat img = cv::imread(filename.c_str(), -1);
   auto img_ptr = vital::image_container_sptr(new ocv::image_container(img, ocv::image_container::BGR_COLOR));
@@ -91,7 +91,7 @@ image_io
 ::load_metadata_(const std::string& filename) const
 {
   auto md = std::make_shared<kwiver::vital::metadata>();
-  md->add(NEW_METADATA_ITEM(kwiver::vital::VITAL_META_IMAGE_URI, filename));
+  md->add<kwiver::vital::VITAL_META_IMAGE_URI>(filename);
   return md;
 }
 

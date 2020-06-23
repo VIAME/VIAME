@@ -554,16 +554,16 @@ public:
     md->set_timestamp( ts );
 
     // Add file name/uri
-    md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI, video_path ) );
+    md->add< vital::VITAL_META_VIDEO_URI >( video_path );
 
     // Mark whether the frame is a key frame
     if ( this->f_frame->key_frame > 0 )
     {
-      md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_KEY_FRAME, true ) );
+      md->add< vital::VITAL_META_VIDEO_KEY_FRAME >( true );
     }
     else
     {
-      md->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_KEY_FRAME, false ) );
+      md->add< vital::VITAL_META_VIDEO_KEY_FRAME >( false );
     }
   }
 

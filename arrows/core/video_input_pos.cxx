@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,8 +92,7 @@ public:
     // Include the path to the image
     if ( metadata )
     {
-      metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
-                                        paths.first) );
+      metadata->add< vital::VITAL_META_IMAGE_URI >( paths.first );
     }
 
     // Return timestamp
@@ -313,8 +312,8 @@ video_input_pos
   if ( d->d_metadata )
   {
     d->d_metadata->set_timestamp( ts );
-    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
-                                           d->d_current_files->first ) );
+    d->d_metadata->add< vital::VITAL_META_IMAGE_URI >(
+      d->d_current_files->first );
   }
 
   return true;
@@ -362,8 +361,8 @@ video_input_pos
   if ( d->d_metadata )
   {
     d->d_metadata->set_timestamp( ts );
-    d->d_metadata->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI,
-                                           d->d_current_files->first ) );
+    d->d_metadata->add< vital::VITAL_META_IMAGE_URI >(
+      d->d_current_files->first );
   }
 
   return true;
