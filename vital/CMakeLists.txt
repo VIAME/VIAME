@@ -266,9 +266,9 @@ option(KWIVER_USE_CONFIGURATION_SUBDIRECTORY
   "Look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
 
 if (WIN32)
-  set(path_sep ";")
+  set(path_sep "\\073")
 else()  # Other Unix systems
-  set(path_sep ":")
+  set(path_sep "\\072")
 endif()
 
 # Build a default set of plugin path dirs
