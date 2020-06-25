@@ -27,10 +27,10 @@ but select entries are also listed below broken down by individual functionality
 [All Examples](https://github.com/Kitware/VIAME/tree/master/examples) <> 
 [GUIs for Annotation and Visualization](examples/annotation_and_visualization) <>
 [Object Detectors](examples/object_detection) <br />
-[Object Trackers](examples/object_tracking) <>
+[Object Trackers](examples/object_tracking) < >
 [Detector Training API](examples/object_detector_training) <>
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
-[Scoring and Evaluation of Detectors](examples/scoring_and_roc_generation) <br />
+[Scoring of Detectors](examples/scoring_and_roc_generation) <br />
 [Detection File Formats and Conversions](examples/detection_file_conversions) <>
 [Calibration and Image Enhancement](examples/image_enhancement) <>
 [Image Registration and Mosaicing](examples/image_registration)  <br />
