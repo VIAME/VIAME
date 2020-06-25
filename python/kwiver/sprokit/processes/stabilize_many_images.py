@@ -115,6 +115,8 @@ def estimate_single_homography(
     those of the target, estimated using the provided feature and
     descriptor sets.
 
+    (XXX What happens when estimation fails?)
+
     """
     raise NotImplementedError
 
@@ -139,6 +141,9 @@ def merge_feature_and_descriptor_sets(fd_pairs):
 
     Near-duplicates (e.g. those nearly sharing a position) are removed
     except for a single copy.
+
+    (XXX estimate_single_homography will compute a matching between
+    feature points, which could be used to very good effect here)
 
     """
     raise NotImplementedError
