@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2019 by Kitware, Inc.
+ * Copyright 2011-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,20 +64,6 @@ config_block
   // remember, config_block_sptr is a shared pointer
   // Create a new config block with no parent.
   return config_block_sptr( new config_block( name, config_block_sptr() ) );
-}
-
-const config_block_key_t
-config_block
-::block_sep()
-{
-  return config_block_key_t( ":" );
-}
-
-const config_block_key_t
-config_block
-::global_value()
-{
-  return config_block_key_t( "_global" );
 }
 
 // Destructor

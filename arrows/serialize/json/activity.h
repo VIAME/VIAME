@@ -50,14 +50,12 @@ class KWIVER_SERIALIZE_JSON_EXPORT activity
            vital::algo::data_serializer >
 {
 public:
-  // Type name this class supports
-  static constexpr char const* name = "kwiver:activity";
-
-  static constexpr char const* description =
+  // Type name this class supports and description
+  PLUGIN_INFO(
+    "kwiver:activity",
     "Serializes an activity using JSON notation. "
-    "This implementation only handles a single data item.";
-
-  PLUGIN_INFO( name, description );
+    "This implementation only handles a single data item."
+  );
 
   activity();
   virtual ~activity();

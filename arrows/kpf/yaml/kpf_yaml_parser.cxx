@@ -209,7 +209,7 @@ parse_packet( const YAML::const_iterator& it, KPF::packet_t& p )
       break;
 
     case KPF::packet_style::ID:
-      new (&p.id) KPFC::id_t( it->second.as<unsigned long long>() );
+      new (&p.id) KPFC::id_t( it->second.as<uint64_t>() );
       break;
 
     case KPF::packet_style::KV:
@@ -378,7 +378,7 @@ parse_actors( const YAML::Node& n,
         if ( h.style == KPF::packet_style::ID)
         {
           actor.actor_id = KPFC::scoped< KPFC::id_t >(
-            KPFC::id_t( actor_map->second.as<unsigned long long>() ),
+            KPFC::id_t( actor_map->second.as<uint64_t>() ),
             h.domain );
         }
         else
@@ -452,7 +452,7 @@ parse_activity( const YAML::Node& n, KPF::packet_buffer_t& local_packet_buffer )
 
       if (( h.style == KPF::packet_style::ID) && ( h.domain == act.activity_id.domain ))
       {
-        act.activity_id.t.d = i->second.as<unsigned long long>();
+        act.activity_id.t.d = i->second.as<uint64_t>();
       }
       else if (h.style == KPF::packet_style::KV)
       {
