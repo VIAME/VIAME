@@ -37,14 +37,21 @@ from .simple_homog_tracker import Transformer
 @Transformer.decorate
 def stabilize_many_images(
         compute_features_and_descriptors,
-        estimate_single_homography,
+        match_features, estimate_single_homography,
+        compute_ref_homography,
 ):
     """Create a Transformer that performs stabilization on multiple
     images captured by a multi-camera system.  Arguments:
     - compute_features_and_descriptors should be a
       FeatureAndDescriptorComputer or similar callable
-    - estimate_single_homography should be a SingleHomographyEstimator
-      or similar callable
+    - match_features should be kwiver.vital.algo.MatchFeatures.match
+      (bound) or a similar callable
+    - estimate_single_homography should be
+      kwiver.vital.algo.EstimateHomography.estimate (bound) or a
+      similar callable
+    - compute_ref_homography should be
+      kwiver.vital.algo.ComputeRefHomography.estimate (bound) or a
+      similar callable
 
     The .step call expects one argument:
     - a list of kvt.BaseImageContainer objects
@@ -54,8 +61,10 @@ def stabilize_many_images(
       what homography type?)
 
     """
-    ris = register_image_set(estimate_single_homography)
-    eh = estimate_homography()
+    ris = register_image_set(SingleHomographyEstimator(
+        match_features, estimate_single_homography,
+    ))
+    eh = estimate_homography(match_features, compute_ref_homography)
     output = None
     while True:
         images, = yield output
@@ -106,9 +115,16 @@ def register_image_set(estimate_single_homography):
         output = [*l2c, get_identity_homography(), *r2c]
 
 @Transformer.decorate
-def estimate_homography():
+def estimate_homography(match_features, compute_ref_homography):
     """Create a Transformer that estimates homographies using features and
-    descriptors.  The .step call expects two arguments:
+    descriptors.  Arguments:
+    - match_features should be kwiver.vital.algo.MatchFeatures.match
+      (bound) or a similar callable
+    - compute_ref_homography should be
+      kwiver.vital.algo.ComputeRefHomography.estimate (bound) or a
+      similar callable
+
+    The .step call expects two arguments:
     - a kvt.FeatureSet
     - the corresponding kvt.DescriptorSet
     and returns:
@@ -116,20 +132,57 @@ def estimate_homography():
       reference frame
 
     """
+    frame_id = track_id = 0
+    fts = kvt.FeatureTrackSet()
+
+    def step_fts(features, descriptors):
+        """Update fts with the provided features and corresponding
+        descriptors
+
+        """
+        nonlocal track_id
+        atl = [] if frame_id == 0 else fts.active_tracks(frame_id - 1)
+        atsl = [t[frame_id - 1] for t in atl]
+        afs = kvt.SimpleFeatureSet([ts.feature for ts in atsl])
+        ads = kvt.DescriptorSet([ts.descriptor for ts in atsl])
+        m = match_features(afs, ads, features, descriptors)
+        if m is None:
+            m = kvt.MatchSet()
+        ftsl = [kvt.FeatureTrackState(frame_id, *fd) for fd in zip(
+            features.features(), descriptors.descriptors(),
+        )]
+        matched = set()
+        for ai, i in m.matches():
+            matched.add(i)
+            atl[ai].append(ftsl[i])
+        for i, ts in enumerate(ftsl):
+            if i not in matched:
+                t = kvt.Track(track_id)
+                track_id += 1
+                t.append(ts)
+                fts.insert(t)
+
     output = None
     while True:
         features, descriptors = yield output
-        raise NotImplementedError
+        step_fts(features, descriptors)
+        output = compute_ref_homography(frame_id, fts)
+        frame_id += 1
 
 def get_identity_homography():
     """Return a homography representing the identity transformation"""
     return kvt.HomographyD()
 
 class SingleHomographyEstimator:
-    __slots__ = '_feature_matcher', '_homography_estimator'
-    def __init__(self, feature_matcher, homography_estimator):
-        self._feature_matcher = feature_matcher
-        self._homography_estimator = homography_estimator
+    __slots__ = '_match_features', '_estimate_homography'
+    def __init__(self, match_features, estimate_homography):
+        """Initialize an instance from callables with signatures comparable to
+        the (bound) methods kwiver.vital.algo.MatchFeatures.match and
+        kwiver.vital.algo.EstimateHomography.estimate, respectively.
+
+        """
+        self._match_features = match_features
+        self._estimate_homography = estimate_homography
 
     def __call__(self,
                  source_features, source_descriptors,
@@ -141,11 +194,11 @@ class SingleHomographyEstimator:
         (XXX What happens when estimation fails?)
 
         """
-        matches = self._feature_matcher.match(
+        matches = self._match_features(
             source_features, source_descriptors,
             target_features, target_descriptors,
         )
-        return self._homography_estimator.estimate(
+        return self._estimate_homography(
             source_features, target_features, matches,
         )[0]  # Only return the homography, not the inliers
 
@@ -164,11 +217,18 @@ class FeatureAndDescriptorComputer:
         return self._descriptor_extractor.extract(image, features)[::-1]
 
 def warp_features_and_descriptors(homog, features, descriptors):
-    """Return a pair of the given feature set and descriptor set, warped
-    according to the provided homography.
+    """Return a pair of the given kvt.FeatureSet and kvt.DescriptorSet, warped
+    according to the provided kv.BaseHomography.
+
+    (Note that in fact only the feature locations are different.)
 
     """
-    raise NotImplementedError
+    warped_features = []
+    for f in features.features():
+        wf = f.clone()
+        wf.location = homog.map(wf.location)
+        warped_features.append(wf)
+    return kvt.SimpleFeatureSet(warped_features), descriptors
 
 def merge_feature_and_descriptor_sets(fd_pairs):
     """Merge an iterable of pairs of feature sets and corresponding
