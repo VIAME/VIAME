@@ -52,6 +52,7 @@ import os
 import signal
 import sys
 import subprocess
+import threading
 import time
 
 class NetHarnTrainer( TrainDetector ):
@@ -275,8 +276,9 @@ class NetHarnTrainer( TrainDetector ):
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )
 
-        signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
-        signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
+        if threading.current_thread().__class__.__name__ == '_MainThread':
+          signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
+          signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
         self.proc = subprocess.Popen( cmd )
         self.proc.wait()
