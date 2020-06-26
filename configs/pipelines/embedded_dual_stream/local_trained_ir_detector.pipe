@@ -1,0 +1,26 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+include category_models/detector.pipe
+
+connect from in_adapt.image2
+        to   detector_input.image
+
+connect from detector_output.detected_object_set
+        to   out_adapt.detected_object_set2
+connect from in_adapt.timestamp2
+        to   out_adapt.timestamp2
+
+# -- end of file --
