@@ -104,7 +104,7 @@ class DetectedObjectSetOutputCoco(DetectedObjectSetOutput):
 def __vital_algorithm_register__():
     from vital.algo import algorithm_factory
     # XXX It ought to be possible to give this a less awkward name...
-    implementation_name = "DetectedObjectSetOutputCoco"
+    implementation_name = "coco"
     if algorithm_factory.has_algorithm_impl_name(
             DetectedObjectSetOutputCoco.static_type_name(),
             implementation_name,
