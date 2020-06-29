@@ -56,9 +56,9 @@ def stabilize_many_images(
     The .step call expects one argument:
     - a list of kvt.BaseImageContainer objects
     and returns:
-    - a list of homographies, one for each input image, that maps them
-      and other processed images to a common coordinate system (XXX
-      what homography type?)
+    - a list of kvt.F2FHomography objects, one for each input image,
+      that maps them and other processed images to a common coordinate
+      system
 
     """
     ris = register_image_set(SingleHomographyEstimator(
@@ -94,8 +94,8 @@ def register_image_set(estimate_single_homography):
     - a list of kvt.FeatureSet--kvt.DescriptorSet pairs (adjacent
       images should overlap)
     and returns:
-    - a list of homographies, one for each input image, that map them
-      to some common coordinate space (XXX what homography type?)
+    - a list of kvt.BaseHomography objects, one for each input image,
+      that map them to some common coordinate space
 
     """
     # XXX At the moment it's stateless
@@ -128,8 +128,8 @@ def estimate_homography(match_features, compute_ref_homography):
     - a kvt.FeatureSet
     - the corresponding kvt.DescriptorSet
     and returns:
-    - a homography mapping the current coordinates to those in a
-      reference frame
+    - a kvt.F2FHomography mapping the current coordinates to those in
+      a reference frame
 
     """
     frame_id = track_id = 0
@@ -187,9 +187,9 @@ class SingleHomographyEstimator:
     def __call__(self,
                  source_features, source_descriptors,
                  target_features, target_descriptors):
-        """Return a homography that converts coordinates of the source to
-        those of the target, estimated using the provided feature and
-        descriptor sets.
+        """Return a kvt.BaseHomography that converts coordinates of the source
+        to those of the target, estimated using the provided feature
+        and descriptor sets.
 
         (XXX What happens when estimation fails?)
 
