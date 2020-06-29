@@ -69,7 +69,7 @@ def stabilize_many_images(
     while True:
         images, = yield output
         fds = list(map(compute_features_and_descriptors, images))
-        spatial_homogs = ris.step(fds)
+        spatial_homogs = ris.step(fds)[0]
         all_features, all_descs = merge_feature_and_descriptor_sets(
             warp_features_and_descriptors(h, *fd)
             for h, fd in zip(spatial_homogs, fds)
@@ -93,9 +93,13 @@ def register_image_set(estimate_single_homography):
     The .step call expects one argument:
     - a list of kvt.FeatureSet--kvt.DescriptorSet pairs (adjacent
       images should overlap)
-    and returns:
+    and returns a tuple of:
     - a list of kvt.BaseHomography objects, one for each input image,
       that map them to some common coordinate space
+    - a list of lists, each with one index for each input image,
+      indicating corresponding features across images.  (A value of
+      None indicates a lack of a matching feature in the corresponding
+      image)
 
     """
     # XXX At the moment it's stateless
@@ -105,14 +109,48 @@ def register_image_set(estimate_single_homography):
         fds, = yield output
         hl = len(fds) // 2
         # Compute homographies between adjacent images
-        l2c = [estimate_single_homography(*sfd, *tfd)
-               for sfd, tfd in zip(fds[:hl], fds[1:hl + 1])]
-        r2c = [estimate_single_homography(*sfd, *tfd)
-               for tfd, sfd in zip(fds[hl:-1], fds[hl + 1:])]
+        l2c, l2c_matches = [], []
+        for sfd, tfd in zip(fds[:hl], fds[1:hl + 1]):
+            h, m = estimate_single_homography(*sfd, *tfd)
+            l2c.append(h)
+            l2c_matches.append(m)
+        r2c, r2c_matches = [], []
+        for tfd, sfd in zip(fds[hl:-1], fds[hl + 1:]):
+            h, m = estimate_single_homography(*sfd, *tfd)
+            r2c.append(h)
+            r2c_matches.append(m)
         # Compute homographies to center
         l2c = list(itertools.accumulate(reversed(l2c), compose_homographies))[::-1]
         r2c = itertools.accumulate(r2c, compose_homographies)
-        output = [*l2c, get_identity_homography(), *r2c]
+        # Merge matches
+        matches = combine_matches(itertools.chain(
+            (m.matches() for m in l2c_matches),
+            ((p[::-1] for p in m.matches()) for m in r2c_matches),
+        ))
+        output = [*l2c, get_identity_homography(), *r2c], matches
+
+def combine_matches(match_sets):
+    """Given an iterable of iterables of pairs, return a list of lists
+    corresponding to "match chains".  (XXX improve wording)
+
+    """
+    DEFAULT = None
+    curr, result = {}, []
+    for i, matches in enumerate(itertools.chain(match_sets, [[]])):
+        curr, old = {}, curr
+        for x, y in matches:
+            try:
+                chain = old.pop(x)
+            except KeyError:
+                chain = i * [DEFAULT]
+            chain.append(x)
+            curr[y] = chain
+        for chain in result:
+            chain.append(DEFAULT)
+        for x, chain in old.items():
+            chain.append(x)
+            result.append(chain)
+    return result
 
 @Transformer.decorate
 def estimate_homography(match_features, compute_ref_homography):
@@ -188,8 +226,9 @@ class SingleHomographyEstimator:
                  source_features, source_descriptors,
                  target_features, target_descriptors):
         """Return a kvt.BaseHomography that converts coordinates of the source
-        to those of the target, estimated using the provided feature
-        and descriptor sets.
+        to those of the target and a kvt.BaseMatchSet of the
+        corresponding feature points, estimated using the provided
+        feature and descriptor sets.
 
         (XXX What happens when estimation fails?)
 
@@ -198,9 +237,13 @@ class SingleHomographyEstimator:
             source_features, source_descriptors,
             target_features, target_descriptors,
         )
-        return self._estimate_homography(
+        homog, inliers = self._estimate_homography(
             source_features, target_features, matches,
-        )[0]  # Only return the homography, not the inliers
+        )
+        inlier_matches = kvt.MatchSet([
+            m for i, m in zip(inliers, matches.matches()) if i
+        ])
+        return homog, inlier_matches
 
 class FeatureAndDescriptorComputer:
     __slots__ = '_feature_detector', '_descriptor_extractor'
