@@ -143,13 +143,12 @@ def combine_matches(match_sets):
                 chain = old.pop(x)
             except KeyError:
                 chain = i * [DEFAULT]
-            chain.append(x)
+                chain.append(x)
+            chain.append(y)
             curr[y] = chain
         for chain in result:
             chain.append(DEFAULT)
-        for x, chain in old.items():
-            chain.append(x)
-            result.append(chain)
+        result += old.values()
     return result
 
 @Transformer.decorate
