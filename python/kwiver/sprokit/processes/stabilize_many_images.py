@@ -69,14 +69,14 @@ def stabilize_many_images(
     while True:
         images, = yield output
         fds = list(map(compute_features_and_descriptors, images))
-        spatial_homogs = ris.step(fds)[0]
-        all_features, all_descs = merge_feature_and_descriptor_sets(
+        spatial_homogs, spatial_matches = ris.step(fds)
+        all_features, all_descs = merge_feature_and_descriptor_sets([
             warp_features_and_descriptors(h, *fd)
             for h, fd in zip(spatial_homogs, fds)
             # XXX Maybe we want to support something like this to
             # handle questionable matches:
             #   if h is not None
-        )
+        ], spatial_matches)
         temporal_homog = eh.step(all_features, all_descs)
         output = [compose_homographies(temporal_homog, sh)
                   for sh in spatial_homogs]
@@ -272,19 +272,32 @@ def warp_features_and_descriptors(homog, features, descriptors):
         warped_features.append(wf)
     return kvt.SimpleFeatureSet(warped_features), descriptors
 
-def merge_feature_and_descriptor_sets(fd_pairs):
-    """Merge an iterable of pairs of feature sets and corresponding
+def merge_feature_and_descriptor_sets(fd_pairs, matches):
+    """Merge a sequence of pairs of feature sets and corresponding
     descriptor sets into a single pair of one feature set and the
     corresponding descriptor set.
 
-    Near-duplicates (e.g. those nearly sharing a position) are removed
-    except for a single copy.
-
-    (XXX estimate_single_homography will compute a matching between
-    feature points, which could be used to very good effect here)
+    Matches (given in an iterable as lists of indices (and None)) are
+    removed except for a single copy.
 
     """
-    raise NotImplementedError
+    fd_pairs = [(f.features(), d.descriptors()) for f, d in fd_pairs]
+    features, descriptors = [], []
+    consumed = set()
+    for m in matches:
+        it = ((i, j) for i, j in enumerate(m) if j is not None)
+        i, j = next(it)
+        # Just take the feature from the first available set
+        fs, ds = fd_pairs[i]
+        features.append(fs[j])
+        descriptors.append(ds[j])
+        consumed.update([(i, j)], it)
+    for i, (fs, ds) in enumerate(fd_pairs):
+        for j, (f, d) in enumerate(zip(fs, ds)):
+            if (i, j) not in consumed:
+                features.append(f)
+                descriptors.append(d)
+    return kvt.SimpleFeatureSet(features), kvt.DescriptorSet(descriptors)
 
 def compose_homographies(second, first):
     """Return a homography corresponding to applying the first, then the
