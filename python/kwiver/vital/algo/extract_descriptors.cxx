@@ -21,7 +21,20 @@ void extract_descriptors(py::module &m)
     .def_static("static_type_name",
                 &kwiver::vital::algo::extract_descriptors::static_type_name)
     .def("extract",
-         &kwiver::vital::algo::extract_descriptors::extract);
+         [](kwiver::vital::algo::extract_descriptors const& self,
+            kwiver::vital::image_container_sptr image_data,
+            kwiver::vital::feature_set_sptr features,
+            kwiver::vital::image_container_sptr image_mask)
+         {
+           auto descriptors = self.extract(image_data, features, image_mask);
+           // features may have been changed, so be sure to return it as well
+           return std::make_pair(std::move(descriptors), std::move(features));
+         },
+         "Extract from the image a descriptor corresponding to each feature",
+         py::arg("image_data"),
+         py::arg("features"),
+         py::arg("image_mask") = nullptr)
+    ;
 }
 }
 }
