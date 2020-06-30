@@ -56,16 +56,20 @@ class estimate_homography_trampoline :
                std::vector<bool>& inliers,
                double inlier_scale)  const override
     {
-      VITAL_PYBIND11_OVERLOAD(
-        kwiver::vital::homography_sptr,
-        kwiver::vital::algo::estimate_homography,
-        estimate,
-        feat1,
-        feat2,
-        matches,
-        inliers,
-        inlier_scale
-      );
+      kwiver::vital::python::gil_scoped_acquire gil;
+      pybind11::function overload = pybind11::get_overload( static_cast< const kwiver::vital::algo::estimate_homography* > ( this ), "estimate" );
+      if( overload )
+      {
+        auto o = overload( feat1, feat2, matches, inlier_scale );
+        if( o.is_none() )
+        {
+          return nullptr;
+        }
+        auto r = o.cast< std::pair< kwiver::vital::homography_sptr, std::vector<bool> > >();
+        inliers = std::move( r.second );
+        return r.first;
+      }
+      pybind11::pybind11_fail( "Tried to call pure virtual function \"kwiver::vital::algo::estimate_homography::estimate\"" );
     }
 
     kwiver::vital::homography_sptr
@@ -74,15 +78,20 @@ class estimate_homography_trampoline :
                std::vector<bool>& inliers,
                double inlier_scale)  const override
     {
-      VITAL_PYBIND11_OVERLOAD_PURE(
-        kwiver::vital::homography_sptr,
-        kwiver::vital::algo::estimate_homography,
-        estimate,
-        pts1,
-        pts2,
-        inliers,
-        inlier_scale
-      );
+      kwiver::vital::python::gil_scoped_acquire gil;
+      pybind11::function overload = pybind11::get_overload( static_cast< const kwiver::vital::algo::estimate_homography* > ( this ), "estimate" );
+      if( overload )
+      {
+        auto o = overload( pts1, pts2, inlier_scale );
+        if( o.is_none() )
+        {
+          return nullptr;
+        }
+        auto r = o.cast< std::pair< kwiver::vital::homography_sptr, std::vector<bool> > >();
+        inliers = std::move( r.second );
+        return r.first;
+      }
+      pybind11::pybind11_fail( "Tried to call pure virtual function \"kwiver::vital::algo::estimate_homography::estimate\"" );
     }
 
 };
