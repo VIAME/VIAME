@@ -32,6 +32,7 @@ PYBIND11_MODULE(track_set, m)
   py::class_<kwiver::vital::track_set, std::shared_ptr<kwiver::vital::track_set>>(m, "TrackSet")
   .def(py::init<>())
   .def(py::init<std::vector<std::shared_ptr<kwiver::vital::track>>>())
+  .def("active_tracks", &kwiver::vital::track_set::active_tracks)
   .def("all_frame_ids", &kwiver::vital::track_set::all_frame_ids)
   .def("get_track", &get_track,
     py::arg("id"))
