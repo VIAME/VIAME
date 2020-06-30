@@ -29,10 +29,13 @@
 
 import itertools
 
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
+import kwiver.vital.algo as kva
 import kwiver.vital.types as kvt
 
-# XXX This class should be defined somewhere else
-from .simple_homog_tracker import Transformer
+# XXX These items should be defined somewhere else
+from .simple_homog_tracker import add_declare_config, Transformer
 
 @Transformer.decorate
 def stabilize_many_images(
@@ -328,3 +331,80 @@ def compose_homographies(second, first):
                                      first.from_id, first.to_id)
         else:
             return second * first
+
+def add_declare_input_port(process, name, type, flag, desc):
+    process.add_port_trait(name, type, desc)
+    process.declare_input_port_using_trait(name, flag)
+
+def add_declare_output_port(process, name, type, flag, desc):
+    process.add_port_trait(name, type, desc)
+    process.declare_output_port_using_trait(name, flag)
+
+class ManyImageStabilizer(KwiverProcess):
+    _ALGOS = dict(
+        feature_detector=kva.DetectFeatures,
+        descriptor_extractor=kva.ExtractDescriptors,
+        feature_matcher=kva.MatchFeatures,
+        homography_estimator=kva.EstimateHomography,
+        ref_homography_computer=kva.ComputeRefHomography,
+    )
+
+    def __init__(self, config):
+        KwiverProcess.__init__(self, config)
+
+        add_declare_config(self, 'n_input', '2', 'Number of inputs')
+        for k, v in self._ALGOS.items():
+            add_declare_config(self, k, '',
+                               'Configuration for a nested ' + v.static_type_name())
+
+    def _configure(self):
+        config = self.get_config()
+        algos = {k: v.set_nested_algo_configuration(k, config)
+                 for k, v in self._ALGOS.items()}
+        assert None not in algos.values()
+
+        self._n_input = int(self.config_value('n_input'))
+        self._stabilizer = stabilize_many_images(
+            FeatureAndDescriptorComputer(
+                algos['feature_detector'], algos['descriptor_extractor'],
+            ),
+            algos['feature_matcher'].match,
+            algos['homography_estimator'].estimate,
+            algos['ref_homography_computer'].estimate,
+        )
+
+        optional = process.PortFlags()
+        required = process.PortFlags()
+        required.add(self.flag_required)
+        # XXX This doesn't work.  Apparently the proper way to do this
+        # is to override the methods "input_port_undefined" and
+        # "output_port_undefined", except that isn't exposed for
+        # Python.
+        for i in range(1, self._n_input + 1):
+            add_declare_input_port(self, 'image' + str(i), 'image',
+                                   required, 'Input image #' + str(i))
+            add_declare_output_port(self, 'homog' + str(i), 'homography_src_to_ref',
+                                    optional, 'Output homography (source-to-ref) #' + str(i))
+
+        self._base_configure()
+
+    def _step(self):
+        homogs = self._stabilizer.step([
+            self.grab_input_using_trait('image' + str(i))
+            for i in range(1, self._n_input + 1)
+        ])
+        for i, h in enumerate(homogs, 1):
+            self.push_to_port_using_trait('homog' + str(i), h)
+        self._base_step()
+
+def __sprokit_register__():
+    from kwiver.sprokit.pipeline import process_factory
+    module_name = 'python:kwiver.python.ManyImageStabilizer'
+    if process_factory.is_process_module_loaded(module_name):
+        return
+    process_factory.add_process(
+        'many_image_stabilizer',
+        'Simultaneous multi-image stabilization',
+        ManyImageStabilizer,
+    )
+    process_factory.mark_process_module_as_loaded(module_name)
