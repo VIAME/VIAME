@@ -20,7 +20,8 @@ void detect_features(py::module &m)
     .def_static("static_type_name",
                 &kwiver::vital::algo::detect_features::static_type_name)
     .def("detect",
-         &kwiver::vital::algo::detect_features::detect);
+         &kwiver::vital::algo::detect_features::detect,
+         py::arg("image_data"), py::arg("mask") = nullptr);
 }
 }
 }
