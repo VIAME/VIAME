@@ -36,13 +36,15 @@
 #ifndef VITAL_DETECTED_OBJECT_TYPE_H_
 #define VITAL_DETECTED_OBJECT_TYPE_H_
 
+#include <vital/signal.h>
 #include <vital/vital_export.h>
 
-#include <vector>
+#include <functional>
 #include <map>
-#include <set>
 #include <memory>
 #include <mutex>
+#include <set>
+#include <vector>
 
 namespace kwiver {
 namespace vital {
@@ -269,6 +271,23 @@ public:
    * @return Vector of class names.
    */
   static std::vector < std::string > all_class_names();
+
+  /**
+   * @brief Signal emitted when a new type name is created.
+   *
+   * This signal is emitted whenever a new type name is seen for the first
+   * time. Applications which need to perform some function when this occurs
+   * may do so by connecting to this signal. The name of the new type is passed
+   * to the slot.
+   *
+   * @warning
+   * Connected slots execute on whichever thread caused the creation of a new
+   * detected object type name. This thread should generally be treated as
+   * arbitrary, and the slot coded accordingly. Note also that it may be
+   * important for performance that the slot does not take a long time to
+   * execute.
+   */
+  static signal< std::string const& > class_name_added;
 
 private:
   const std::string* find_string( const std::string& str ) const;
