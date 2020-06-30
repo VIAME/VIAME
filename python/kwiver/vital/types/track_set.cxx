@@ -35,6 +35,7 @@ PYBIND11_MODULE(track_set, m)
   .def("all_frame_ids", &kwiver::vital::track_set::all_frame_ids)
   .def("get_track", &get_track,
     py::arg("id"))
+  .def("insert", &kwiver::vital::track_set::insert)
   .def("first_frame", &kwiver::vital::track_set::first_frame)
   .def("last_frame", &kwiver::vital::track_set::last_frame)
   .def("size", &kwiver::vital::track_set::size)
