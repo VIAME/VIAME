@@ -90,6 +90,7 @@ public:
     f_backstep_size(-1),
     f_frame_number_offset(0),
     video_path(""),
+    filter_desc("yadif=deint=1"),
     metadata(0),
     frame_advanced(0),
     end_of_video(true),
@@ -132,6 +133,10 @@ public:
 
   // Name of video we opened
   std::string video_path;
+
+  // FFMPEG filter description string
+  // What you put after -vf in the ffmpeg command line tool
+  std::string filter_desc;
 
   // the buffer of metadata from the data stream
   std::deque<uint8_t> metadata;
@@ -260,7 +265,7 @@ public:
       return false;
     }
 
-    if (!this->init_filters("yadif"))
+    if (!this->init_filters(filter_desc))
     {
       return false;
     }
@@ -916,6 +921,14 @@ ffmpeg_video_input
   // get base config from base class
   vital::config_block_sptr config = vital::algo::video_input::get_configuration();
 
+
+  config->set_value("filter_desc", d->filter_desc,
+    "A string describing the libavfilter pipeline to apply when reading "
+    "the video.  Only filters that operate on each frame independently "
+    "will currently work.  The default \"yadif=deint=1\" filter applies "
+    "deinterlacing only to frames which are interlaced.  "
+    "See details at https://ffmpeg.org/ffmpeg-filters.html");
+
   return config;
 }
 
@@ -931,6 +944,8 @@ ffmpeg_video_input
 
   vital::config_block_sptr config = this->get_configuration();
   config->merge_config(in_config);
+
+  d->filter_desc = config->get_value<std::string>("filter_desc", d->filter_desc);
 }
 
 
