@@ -57,6 +57,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include <libavutil/imgutils.h>
 }
 
 namespace kwiver {
@@ -317,7 +318,7 @@ public:
 
     if (this->f_frame)
     {
-      av_freep(&this->f_frame);
+      av_frame_free(&this->f_frame);
     }
     this->f_frame = nullptr;
 
@@ -935,12 +936,20 @@ ffmpeg_video_input
     vital::image_pixel_traits pixel_trait = vital::image_pixel_traits_of<unsigned char>();
     bool direct_copy;
 
+    AVFrame* frame = d->f_frame;
+    AVPixelFormat pix_fmt = static_cast<AVPixelFormat>(frame->format);
     // If the pixel format is not recognized by then convert the data into RGB_24
-    switch (enc->pix_fmt)
+    switch (pix_fmt)
     {
       case AV_PIX_FMT_GRAY8:
       {
         depth = 1;
+        direct_copy = true;
+        break;
+      }
+      case AV_PIX_FMT_RGB24:
+      {
+        depth = 3;
         direct_copy = true;
         break;
       }
@@ -963,14 +972,19 @@ ffmpeg_video_input
         direct_copy = false;
       }
     }
+
     if (direct_copy)
     {
-      int size = avpicture_get_size(enc->pix_fmt, width, height);
+      int size = av_image_get_buffer_size(pix_fmt, width, height, 1);
       d->current_image_memory = vital::image_memory_sptr(new vital::image_memory(size));
 
-      AVPicture frame;
-      avpicture_fill(&frame, (uint8_t*)d->current_image_memory->data(), enc->pix_fmt, width, height);
-      av_picture_copy(&frame, (AVPicture*)d->f_frame, enc->pix_fmt, width, height);
+      AVFrame picture;
+      av_image_fill_arrays(picture.data, picture.linesize,
+                           (uint8_t*)d->current_image_memory->data(),
+                           pix_fmt, width, height, 1);
+      av_image_copy(picture.data, picture.linesize,
+                    (const uint8_t **)(frame->data), frame->linesize,
+                    pix_fmt, width, height);
     }
     else
     {
@@ -979,7 +993,7 @@ ffmpeg_video_input
 
       d->f_software_context = sws_getCachedContext(
         d->f_software_context,
-        width, height, enc->pix_fmt,
+        width, height, pix_fmt,
         width, height, AV_PIX_FMT_RGB24,
         SWS_BILINEAR,
         NULL, NULL, NULL);
@@ -990,11 +1004,13 @@ ffmpeg_video_input
         return nullptr;
       }
 
-      AVPicture rgb_frame;
-      avpicture_fill(&rgb_frame, (uint8_t*)d->current_image_memory->data(), AV_PIX_FMT_RGB24, width, height);
+      AVFrame rgb_frame;
+      av_image_fill_arrays(rgb_frame.data, rgb_frame.linesize,
+                           (uint8_t*)d->current_image_memory->data(),
+                           AV_PIX_FMT_RGB24, width, height, 1);
 
       sws_scale(d->f_software_context,
-        d->f_frame->data, d->f_frame->linesize,
+        frame->data, frame->linesize,
         0, height,
         rgb_frame.data, rgb_frame.linesize);
     }
