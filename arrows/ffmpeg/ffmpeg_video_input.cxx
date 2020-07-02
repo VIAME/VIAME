@@ -1156,8 +1156,9 @@ ffmpeg_video_input
       av_image_fill_arrays(picture.data, picture.linesize,
                            (uint8_t*)d->current_image_memory->data(),
                            pix_fmt, width, height, 1);
+      auto framedata = const_cast<const uint8_t **>(frame->data);
       av_image_copy(picture.data, picture.linesize,
-                    (const uint8_t **)(frame->data), frame->linesize,
+                    framedata, frame->linesize,
                     pix_fmt, width, height);
     }
     else
