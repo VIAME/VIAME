@@ -265,7 +265,10 @@ public:
       return false;
     }
 
-    if (!this->init_filters(filter_desc))
+    bool empty_filter = filter_desc.empty() ||
+                        std::all_of(filter_desc.begin(),
+                                    filter_desc.end(), isspace);
+    if (!empty_filter && !this->init_filters(filter_desc))
     {
       return false;
     }
@@ -1079,31 +1082,35 @@ ffmpeg_video_input
     int depth = 3;
     vital::image_pixel_traits pixel_trait = vital::image_pixel_traits_of<unsigned char>();
     bool direct_copy;
+    AVFrame* frame = d->f_frame;
 
-    // We are not yet using the more modern FFMPEG streaming API.
-    // Since we are only reading one frame at a time we need to push this
-    // frame into the filter pipeline repeatedly until the same frame comes
-    // out the other side.
-    int ret = AVERROR(EAGAIN);
-    while (ret == AVERROR(EAGAIN) ||
-           d->f_frame->best_effort_timestamp != d->f_filtered_frame->best_effort_timestamp)
+    if (d->f_filter_src_context && d->f_filter_sink_context)
     {
-      // Push the decoded frame into the filter graph
-      if (av_buffersrc_add_frame_flags(d->f_filter_src_context, d->f_frame,
-                                       AV_BUFFERSRC_FLAG_PUSH) < 0)
+      // We are not yet using the more modern FFMPEG streaming API.
+      // Since we are only reading one frame at a time we need to push this
+      // frame into the filter pipeline repeatedly until the same frame comes
+      // out the other side.
+      int ret = AVERROR(EAGAIN);
+      while (ret == AVERROR(EAGAIN) ||
+        d->f_frame->best_effort_timestamp != d->f_filtered_frame->best_effort_timestamp)
       {
-        LOG_ERROR(this->logger(), "Error while feeding the filter graph");
-        return nullptr;
+        // Push the decoded frame into the filter graph
+        if (av_buffersrc_add_frame_flags(d->f_filter_src_context, d->f_frame,
+          AV_BUFFERSRC_FLAG_PUSH) < 0)
+        {
+          LOG_ERROR(this->logger(), "Error while feeding the filter graph");
+          return nullptr;
+        }
+        // Pull a filtered frame from the filter graph
+        ret = av_buffersink_get_frame(d->f_filter_sink_context, d->f_filtered_frame);
+        if (ret == AVERROR_EOF)
+        {
+          return nullptr;
+        }
       }
-      // Pull a filtered frame from the filter graph
-      ret = av_buffersink_get_frame(d->f_filter_sink_context, d->f_filtered_frame);
-      if (ret == AVERROR_EOF)
-      {
-        return nullptr;
-      }
+      frame = d->f_filtered_frame;
     }
 
-    AVFrame* frame = d->f_filtered_frame;
     AVPixelFormat pix_fmt = static_cast<AVPixelFormat>(frame->format);
     // If the pixel format is not recognized by then convert the data into RGB_24
     switch (pix_fmt)
