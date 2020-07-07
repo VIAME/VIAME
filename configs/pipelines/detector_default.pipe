@@ -25,10 +25,10 @@ process detector_writer
 
 connect from downsampler.output_1
         to   detector_input.image
-connect from downsampler.output_2
-        to   detector_writer.image_file_name
 
 connect from detector_filter.detected_object_set
         to   detector_writer.detected_object_set
+connect from downsampler.output_2
+        to   detector_writer.image_file_name
 
 # -- end of file --
