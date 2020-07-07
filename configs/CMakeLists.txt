@@ -223,6 +223,7 @@ if( VIAME_ENABLE_VIVIA )
     pipelines/embedded_single_stream/generic_tracker.pipe
     pipelines/embedded_single_stream/local_deep_detector.pipe
     pipelines/embedded_single_stream/local_deep_tracker.pipe
+    pipelines/embedded_single_stream/local_detector_with_stab_tracker.pipe
     pipelines/embedded_single_stream/local_svm_frame_classifier.pipe
     pipelines/embedded_single_stream/local_svm_detector.pipe
     pipelines/embedded_single_stream/local_svm_tracker.pipe )

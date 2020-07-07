@@ -1,0 +1,38 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   10
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# ==================================================================================
+
+include category_models/detector.pipe
+
+connect from in_adapt.image
+        to   detector_input.image
+
+# ==================================================================================
+
+include ../common_stabilized_iou_tracker.pipe
+
+connect from in_adapt.timestamp
+        to   stabilizer.timestamp
+connect from in_adapt.image
+        to   stabilizer.image
+
+connect from detector_output.detected_object_set
+        to   tracker.detected_object_set
+connect from in_adapt.timestamp
+	      to   tracker.timestamp
+
+connect from tracker.object_track_set
+        to   out_adapt.object_track_set
+
+# -- end of file --
