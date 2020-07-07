@@ -173,6 +173,7 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_split_and_debayer.pipe
   pipelines/filter_to_kwa.pipe
   pipelines/full_frame_classifier_svm.pipe
+  pipelines/generate_empty_frame_lbls.pipe
   pipelines/index_default.pipe
   pipelines/index_default.svm.pipe
   pipelines/index_default.trk.pipe
