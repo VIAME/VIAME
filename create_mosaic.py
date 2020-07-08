@@ -153,7 +153,7 @@ def peek_iterable(it):
 
 def main(
         out_file, homog_file, image_glob, *, optimize_fit=None,
-        frames=None, start=None, stop=None, step=None,
+        frames=None, start=None, stop=None, step=None, reverse=None,
 ):
     image_files = sorted(glob.iglob(image_glob))[start:stop]
     homogs, refs = (x[start:stop] for x in read_homog_file(homog_file))
@@ -164,13 +164,16 @@ def main(
         frame_numbers = [(length - 1) * i // (frames - 1) for i in range(frames)]
     else:
         frame_numbers = range(0, length, step)
+    if reverse:
+        frame_numbers = frame_numbers[::-1]
     if len(np.unique(refs[frame_numbers])) > 1:
         raise ValueError("Requested frames do not all have the same reference")
     images = (skio.imread(image_files[i]) for i in tqdm.tqdm(frame_numbers))
     im0, images = peek_iterable(images)
     rel_homogs = homogs[frame_numbers]
     if optimize_fit:
-        rel_homogs = np.linalg.inv(rel_homogs[0]) @ rel_homogs
+        rel_homog_0 = rel_homogs[-1 if reverse else 0]
+        rel_homogs = np.linalg.inv(rel_homog_0) @ rel_homogs
         fit_homog = optimize_homog_fit(rel_homogs, im0.shape[:2])
         rel_homogs = fit_homog @ rel_homogs
     skio.imsave(out_file, paste_many(rel_homogs, images, im0))
@@ -184,6 +187,7 @@ def create_parser():
     p.add_argument('--start', type=int, metavar='N', help='Ignore first N frames')
     p.add_argument('--stop', type=int, metavar='N', help='Ignore frames after the Nth')
     p.add_argument('--step', type=int, metavar='N', help='Write every Nth frame')
+    p.add_argument('--reverse', action='store_true', help='Render images in reverse order')
     p.add_argument('--optimize-fit', action='store_true', help='Apply an additional transformation to all images to minimize distortion')
     return p
 
