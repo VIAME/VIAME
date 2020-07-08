@@ -151,7 +151,10 @@ def peek_iterable(it):
     x = next(it)
     return x, itt.chain([x], it)
 
-def main(out_file, homog_file, image_glob, frames=None, start=None, stop=None, step=None, optimize_fit=None):
+def main(
+        out_file, homog_file, image_glob, *, optimize_fit=None,
+        frames=None, start=None, stop=None, step=None,
+):
     image_files = sorted(glob.iglob(image_glob))[start:stop]
     homogs, refs = (x[start:stop] for x in read_homog_file(homog_file))
     length = min(len(image_files), len(homogs))
