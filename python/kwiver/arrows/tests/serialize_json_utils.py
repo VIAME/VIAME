@@ -1,6 +1,6 @@
 """
 ckwg +29
-Copyright 2019 by Kitware, Inc.
+Copyright 2019-2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ Utilities to support testing for json serialization of vital types
 
 from kwiver.vital.types import BoundingBox
 from kwiver.vital.types import DetectedObject
-from kwiver.vital.types import DetectedObjectType
+from kwiver.vital.types import ClassMap
 from kwiver.vital.types import DetectedObjectSet
 from kwiver.vital.types import ImageContainer, Image
 from kwiver.vital.types import Timestamp
@@ -51,18 +51,18 @@ def compare_bounding_box(bbox1, bbox2):
            bbox1.max_x() == bbox2.max_x() and \
            bbox2.max_y() == bbox2.max_y()
 
+def create_class_map():
+    return ClassMap("Test", 0.5)
+
+def compare_class_map(cm1, cm2):
+    return cm1.get_most_likely_class() == cm2.get_most_likely_class() and \
+            cm1.get_most_likely_score() == cm2.get_most_likely_score()
+
 def create_detected_object():
     return DetectedObject(create_bounding_box())
 
 def compare_detected_object(do1, do2):
     return compare_bounding_box(do1.bounding_box(), do2.bounding_box())
-
-def create_detected_object_type():
-    return DetectedObjectType("Test", 0.5)
-
-def compare_detected_object_type(dot1, dot2):
-    return dot1.get_most_likely_class() == dot2.get_most_likely_class() and \
-            dot1.get_most_likely_score() == dot2.get_most_likely_score()
 
 def create_detected_object_set():
     dos = DetectedObjectSet()

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018, 2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "detected_object_type.h"
+#include "class_map.h"
 
 
 #include <stdexcept>
@@ -40,12 +40,12 @@
 namespace kwiver {
 namespace vital {
 
-const double detected_object_type::INVALID_SCORE = std::numeric_limits< double >::min();
+const double class_map::INVALID_SCORE = std::numeric_limits< double >::min();
 
 // Master list of all type names, and members associated with the same
-signal< std::string const& > detected_object_type::class_name_added;
-std::set< std::string > detected_object_type::s_master_name_set;
-std::mutex detected_object_type::s_table_mutex;
+signal< std::string const& > class_map::class_name_added;
+std::set< std::string > class_map::s_master_name_set;
+std::mutex class_map::s_table_mutex;
 
 // ==================================================================
 namespace {
@@ -74,12 +74,12 @@ struct more_second
 } // end namespace
 
 // ------------------------------------------------------------------
-detected_object_type
-::detected_object_type()
+class_map
+::class_map()
 { }
 
-detected_object_type
-::detected_object_type( const std::vector< std::string >& class_names,
+class_map
+::class_map( const std::vector< std::string >& class_names,
                         const std::vector< double >& scores )
 {
   if ( class_names.size() != scores.size() )
@@ -100,8 +100,8 @@ detected_object_type
   }
 }
 
-detected_object_type
-::detected_object_type( const std::string& class_name, double score )
+class_map
+::class_map( const std::string& class_name, double score )
 {
   if ( class_name.empty() )
   {
@@ -114,7 +114,7 @@ detected_object_type
 
 // ------------------------------------------------------------------
 bool
-detected_object_type
+class_map
 ::has_class_name( const std::string& class_name ) const
 {
   try
@@ -130,7 +130,7 @@ detected_object_type
 
 // ------------------------------------------------------------------
 double
-detected_object_type
+class_map
 ::score( const std::string& class_name ) const
 {
   const std::string* str_ptr = find_string( class_name );
@@ -150,7 +150,7 @@ detected_object_type
 
 // ------------------------------------------------------------------
 void
-detected_object_type
+class_map
 ::get_most_likely( std::string& max_name ) const
 {
   if ( m_classes.empty() )
@@ -167,7 +167,7 @@ detected_object_type
 
 // ------------------------------------------------------------------
 void
-detected_object_type
+class_map
 ::get_most_likely( std::string& max_name, double& max_score ) const
 {
   if ( m_classes.empty() )
@@ -185,7 +185,7 @@ detected_object_type
 
 // ------------------------------------------------------------------
 void
-detected_object_type
+class_map
 ::set_score( const std::string& class_name, double score )
 {
   // Check to see if class_name is in the master set.
@@ -209,7 +209,7 @@ detected_object_type
 
 // ------------------------------------------------------------------
 void
-detected_object_type
+class_map
 ::delete_score( const std::string& class_name )
 {
   auto str_ptr = find_string( class_name );
@@ -227,7 +227,7 @@ detected_object_type
 
 // ------------------------------------------------------------------
 std::vector< std::string >
-detected_object_type
+class_map
 ::class_names( double threshold ) const
 {
   std::vector< std::pair< const std::string*, double > > items( m_classes.begin(), m_classes.end() );
@@ -254,7 +254,7 @@ detected_object_type
 
 // ------------------------------------------------------------------
 size_t
-detected_object_type
+class_map
 ::size() const
 {
   return m_classes.size();
@@ -262,8 +262,8 @@ detected_object_type
 
 
 // ------------------------------------------------------------------
-detected_object_type::class_const_iterator_t
-detected_object_type
+class_map::class_const_iterator_t
+class_map
 ::begin() const
 {
   return m_classes.begin();
@@ -271,8 +271,8 @@ detected_object_type
 
 
 // ------------------------------------------------------------------
-detected_object_type::class_const_iterator_t
-detected_object_type
+class_map::class_const_iterator_t
+class_map
 ::cbegin() const
 {
   return m_classes.cbegin();
@@ -280,8 +280,8 @@ detected_object_type
 
 
 // ------------------------------------------------------------------
-detected_object_type::class_const_iterator_t
-detected_object_type
+class_map::class_const_iterator_t
+class_map
 ::end() const
 {
   return m_classes.end();
@@ -289,8 +289,8 @@ detected_object_type
 
 
 // ------------------------------------------------------------------
-detected_object_type::class_const_iterator_t
-detected_object_type
+class_map::class_const_iterator_t
+class_map
 ::cend() const
 {
   return m_classes.cend();
@@ -313,7 +313,7 @@ detected_object_type
  * @throws std::runtime_error if the string is not in the global set.
  */
 const std::string*
-detected_object_type
+class_map
 ::find_string( const std::string& str ) const
 {
   std::lock_guard< std::mutex > lock{ s_table_mutex };
@@ -332,7 +332,7 @@ detected_object_type
 
 // ----------------------------------------------------------------------------
 std::vector< std::string >
-detected_object_type
+class_map
 ::all_class_names()
 {
   std::lock_guard< std::mutex > lock{ s_table_mutex };

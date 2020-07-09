@@ -1,9 +1,8 @@
 set( json_python_headers
      serialize_activity.h
-     serialize_activity_type.h
      serialize_bounding_box.h
+     serialize_class_map.h
      serialize_detected_object.h
-     serialize_detected_object_type.h
      serialize_detected_object_set.h
      serialize_image.h
      serialize_timestamp.h
@@ -17,10 +16,9 @@ set( json_python_headers
 set( json_python_sources
      serialize_utils.txx
      serialize_activity.cxx
-     serialize_activity_type.cxx
      serialize_bounding_box.cxx
+     serialize_class_map.cxx
      serialize_detected_object.cxx
-     serialize_detected_object_type.cxx
      serialize_detected_object_set.cxx
      serialize_image.cxx
      serialize_module.cxx

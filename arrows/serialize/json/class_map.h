@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018, 2020 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_SERIALIZATION_PROTO_DETECTED_OBJECT_TYPE_H
-#define ARROWS_SERIALIZATION_PROTO_DETECTED_OBJECT_TYPE_H
+#ifndef ARROWS_SERIALIZATION_JSON_CLASS_MAP
+#define ARROWS_SERIALIZATION_JSON_CLASS_MAP
 
-#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
+#include <arrows/serialize/json/kwiver_serialize_json_export.h>
 #include <vital/algo/data_serializer.h>
+
+namespace cereal {
+  class JSONOutputArchive;
+  class JSONInputArchive;
+} // end namespace cereal
 
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace protobuf {
+namespace json {
 
-class KWIVER_SERIALIZE_PROTOBUF_EXPORT detected_object_type
+class KWIVER_SERIALIZE_JSON_EXPORT class_map
   : public vital::algo::data_serializer
 {
 public:
-  PLUGIN_INFO( "kwiver:detected_object_type",
-               "Serializes a detected_object_type using protobuf notation. "
+  PLUGIN_INFO( "kwiver:class_map",
+               "Serializes a class_map using JSON notation. "
                "This implementation only handles a single data item." );
 
-  detected_object_type();
-  virtual ~detected_object_type();
+  class_map();
+  virtual ~class_map();
 
   std::shared_ptr< std::string > serialize( const vital::any& element ) override;
   vital::any deserialize( const std::string& message ) override;
@@ -56,4 +61,4 @@ public:
 
 } } } }       // end namespace kwiver
 
-#endif // ARROWS_SERIALIZATION_PROTO_DETECTED_OBJECT_TYPEH
+#endif // ARROWS_SERIALIZATION_JSON_CLASS_MAP

@@ -9,7 +9,7 @@ set( proto_files
   covariance.proto
   detected_object.proto
   detected_object_set.proto
-  detected_object_type.proto
+  class_map.proto
   geo_point.proto
   geo_polygon.proto
   image.proto

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,9 +43,9 @@
 namespace kwiver {
 namespace vital {
 
+  class class_map;
   class detected_object;
   class detected_object_set;
-  class detected_object_type;
   class geo_point;
   class geo_polygon;
   class object_track_state;
@@ -58,9 +58,9 @@ namespace kwiver {
 namespace protobuf {
 
   class bounding_box;
+  class class_map;
   class detected_object;
   class detected_object_set;
-  class detected_object_type;
   class geo_point;
   class geo_polygon;
   class image;
@@ -110,14 +110,14 @@ KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const ::kwiver::vital::detected_object_set&  dos,
                        ::kwiver::protobuf::detected_object_set&     proto_dos );
 
-// ---- detected_object_type
+// ---- class_map
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
-void convert_protobuf( const ::kwiver::protobuf::detected_object_type&  proto_bbox,
-                       ::kwiver::vital::detected_object_type&           bbox );
+void convert_protobuf( const ::kwiver::protobuf::class_map&  proto_cm,
+                       ::kwiver::vital::class_map&           cm );
 
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
-void convert_protobuf( const ::kwiver::vital::detected_object_type& bbox,
-                       ::kwiver::protobuf::detected_object_type&    proto_bbox );
+void convert_protobuf( const ::kwiver::vital::class_map& cm,
+                       ::kwiver::protobuf::class_map&    proto_cm );
 
 // ---- geo_polygon
 KWIVER_SERIALIZE_PROTOBUF_EXPORT

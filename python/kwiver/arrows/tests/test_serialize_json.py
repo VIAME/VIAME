@@ -1,6 +1,6 @@
 """
 ckwg +29
-Copyright 2019 by Kitware, Inc.
+Copyright 2019-2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,10 @@ import nose.tools
 
 from kwiver.arrows.serialize.json import serialize_bounding_box
 from kwiver.arrows.serialize.json import deserialize_bounding_box
+from kwiver.arrows.serialize.json import serialize_class_map
+from kwiver.arrows.serialize.json import deserialize_class_map
 from kwiver.arrows.serialize.json import serialize_detected_object
 from kwiver.arrows.serialize.json import deserialize_detected_object
-from kwiver.arrows.serialize.json import serialize_detected_object_type
-from kwiver.arrows.serialize.json import deserialize_detected_object_type
 from kwiver.arrows.serialize.json import serialize_detected_object_set
 from kwiver.arrows.serialize.json import deserialize_detected_object_set
 from kwiver.arrows.serialize.json import serialize_image
@@ -61,10 +61,10 @@ from kwiver.arrows.serialize.json import deserialize_object_track_set
 
 from kwiver.arrows.tests.serialize_json_utils import create_bounding_box
 from kwiver.arrows.tests.serialize_json_utils import compare_bounding_box
+from kwiver.arrows.tests.serialize_json_utils import create_class_map
+from kwiver.arrows.tests.serialize_json_utils import compare_class_map
 from kwiver.arrows.tests.serialize_json_utils import create_detected_object
 from kwiver.arrows.tests.serialize_json_utils import compare_detected_object
-from kwiver.arrows.tests.serialize_json_utils import create_detected_object_type
-from kwiver.arrows.tests.serialize_json_utils import compare_detected_object_type
 from kwiver.arrows.tests.serialize_json_utils import create_detected_object_set
 from kwiver.arrows.tests.serialize_json_utils import compare_detected_object_set
 from kwiver.arrows.tests.serialize_json_utils import create_image
@@ -88,17 +88,17 @@ def test_serialize_bounding_box():
     deserialized_bbox = deserialize_bounding_box(serialized_bbox)
     nose.tools.assert_true(compare_bounding_box( bbox, deserialized_bbox ) )
 
+def test_serialize_class_map():
+    cm = create_class_map()
+    serialized_cm = serialize_class_map(cm)
+    deserialized_cm = deserialize_class_map(serialized_cm)
+    nose.tools.assert_true(compare_class_map( cm, deserialized_cm ) )
+
 def test_serialize_detected_object():
     do = create_detected_object()
     serialized_do = serialize_detected_object(do)
     deserialized_do = deserialize_detected_object(serialized_do)
     nose.tools.assert_true(compare_detected_object( do, deserialized_do ) )
-
-def test_serialize_detected_object_type():
-    dot = create_detected_object_type()
-    serialized_dot = serialize_detected_object_type(dot)
-    deserialized_dot = deserialize_detected_object_type(serialized_dot)
-    nose.tools.assert_true(compare_detected_object_type( dot, deserialized_dot ) )
 
 def test_serialize_detected_object_set():
     dos = create_detected_object_set()

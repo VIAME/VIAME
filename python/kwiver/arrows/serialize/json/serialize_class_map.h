@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,44 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_SERIALIZATION_JSON_ACTIVITY_TYPE
-#define ARROWS_SERIALIZATION_JSON_ACTIVITY_TYPE
+#ifndef KWIVER_PYTHON_ARROW_SERIALIZE_JSON_SERIALIZE_CLASS_MAP_H_
+#define KWIVER_PYTHON_ARROW_SERIALIZE_JSON_SERIALIZE_CLASS_MAP_H_
 
-#include <arrows/serialize/json/kwiver_serialize_json_export.h>
-#include <vital/algo/data_serializer.h>
-#include "load_save.h"
+#include <pybind11/pybind11.h>
 
-namespace cereal {
-  class JSONOutputArchive;
-  class JSONInputArchive;
-} // end namespace cereal
+namespace py = pybind11;
 
-namespace kwiver {
-namespace arrows {
-namespace serialize {
-namespace json {
-
-
-class KWIVER_SERIALIZE_JSON_EXPORT activity_type
-  : public vital::algorithm_impl< activity_type,
-           vital::algo::data_serializer >
-{
-public:
-  // Type name this class supports and description
-  PLUGIN_INFO(
-    "kwiver:activity_type",
-    "Serializes an activity_type using JSON notation. "
-    "This implementation only handles a single data item."
-  );
-
-  activity_type();
-  virtual ~activity_type();
-
-  virtual std::shared_ptr< std::string >
-    serialize( const kwiver::vital::any& element ) override;
-  virtual kwiver::vital::any deserialize( const std::string& message ) override;
-};
-
-} } } }
+void serialize_class_map(py::module &m);
 
 #endif

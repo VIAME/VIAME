@@ -28,15 +28,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <python/kwiver/vital/types/activity.h>
-#include <python/kwiver/vital/types/activity_type.h>
+#include <python/kwiver/arrows/serialize/json/serialize_class_map.h>
+#include <python/kwiver/arrows/serialize/json/serialize_utils.txx>
 
-#include <pybind11/pybind11.h>
+#include <arrows/serialize/json/class_map.h>
+#include <vital/types/class_map.h>
+#include <vital/any.h>
 
-namespace py = pybind11;
-
-PYBIND11_MODULE(activity_types, m)
+void serialize_class_map(py::module &m)
 {
-  activity_type(m);
-  activity(m);
+  m.def("serialize_class_map",
+        &kwiver::python::arrows::json::serialize<
+                          kwiver::vital::class_map,
+                          kwiver::arrows::serialize::json::class_map > );
+  m.def("deserialize_class_map",
+        &kwiver::python::arrows::json::deserialize<
+                          kwiver::vital::class_map,
+                          kwiver::arrows::serialize::json::class_map > );
 }

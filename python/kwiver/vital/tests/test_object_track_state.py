@@ -1,6 +1,6 @@
 """
 ckwg +31
-Copyright 2018 by Kitware, Inc.
+Copyright 2018-2020 by Kitware, Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import unittest
 import nose.tools
 import numpy
 
-from kwiver.vital.types import ObjectTrackState, BoundingBox, DetectedObjectType, \
+from kwiver.vital.types import ObjectTrackState, BoundingBox, ClassMap, \
         DetectedObject
 
 
@@ -50,8 +50,8 @@ class TestObjectTrackState (unittest.TestCase):
                  (10, 10, 20, 20), confidence of 0.4 and "test" label
         """
         bbox = BoundingBox(10, 10, 20, 20)
-        dot  = DetectedObjectType("test", 0.4)
-        do = DetectedObject(bbox, 0.4, dot)
+        cm  = ClassMap("test", 0.4)
+        do = DetectedObject(bbox, 0.4, cm)
         return do
 
     def test_new_ts(self):

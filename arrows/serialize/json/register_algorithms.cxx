@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,9 @@
 #include <vital/algo/algorithm_factory.h>
 
 #include "activity.h"
-#include "activity_type.h"
 #include "bounding_box.h"
+#include "class_map.h"
 #include "detected_object.h"
-#include "detected_object_type.h"
 #include "detected_object_set.h"
 #include "timestamp.h"
 #include "image.h"
@@ -73,10 +72,9 @@ register_factories( kwiver::vital::plugin_loader& vpm )
   using namespace kwiver::arrows::serialize::json;
 
   reg.register_algorithm< activity >();
-  reg.register_algorithm< activity_type >();
   reg.register_algorithm< bounding_box >();
+  reg.register_algorithm< class_map >();
   reg.register_algorithm< detected_object >();
-  reg.register_algorithm< detected_object_type >();
   reg.register_algorithm< detected_object_set >();
   reg.register_algorithm< timestamp >();
   reg.register_algorithm< image >();

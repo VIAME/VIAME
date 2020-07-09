@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "detected_object_type.h"
+#include "class_map.h"
 
 #include "load_save.h"
 
-#include <vital/types/detected_object_type.h>
+#include <vital/types/class_map.h>
 #include <vital/internal/cereal/cereal.hpp>
 #include <vital/internal/cereal/archives/json.hpp>
 
@@ -44,54 +44,54 @@ namespace serialize {
 namespace json {
 
 // ----------------------------------------------------------------------------
-detected_object_type::
-detected_object_type()
+class_map::
+class_map()
 { }
 
 
-detected_object_type::
-~detected_object_type()
+class_map::
+~class_map()
 { }
 
 // ----------------------------------------------------------------------------
 std::shared_ptr< std::string >
-detected_object_type::
+class_map::
 serialize( const vital::any& element )
 {
-  kwiver::vital::detected_object_type dot =
-    kwiver::vital::any_cast< kwiver::vital::detected_object_type > ( element );
+  kwiver::vital::class_map cm =
+    kwiver::vital::any_cast< kwiver::vital::class_map > ( element );
 
   std::stringstream msg;
-  msg << "detected_object_type ";
+  msg << "class_map ";
   {
     cereal::JSONOutputArchive ar( msg );
-    save( ar, dot );
+    save( ar, cm );
   }
 
   return std::make_shared< std::string > ( msg.str() );
 }
 
 // ----------------------------------------------------------------------------
-vital::any detected_object_type::
+vital::any class_map::
 deserialize( const std::string& message )
 {
   std::stringstream msg(message);
-  kwiver::vital::detected_object_type dot;
+  kwiver::vital::class_map cm;
   std::string tag;
   msg >> tag;
 
-  if (tag != "detected_object_type" )
+  if (tag != "class_map" )
   {
-    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"detected_object_type\", received \""
+    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"class_map\", received \""
                << tag << "\". Message dropped." );
   }
   else
   {
     cereal::JSONInputArchive ar( msg );
-    load( ar, dot );
+    load( ar, cm );
   }
 
-  return kwiver::vital::any(dot);
+  return kwiver::vital::any(cm);
 }
 
 } } } }       // end namespace kwiver

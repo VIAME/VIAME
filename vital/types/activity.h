@@ -40,7 +40,7 @@
 #include <vital/vital_export.h>
 
 #include <vital/vital_types.h>
-#include <vital/types/activity_type.h>
+#include <vital/types/class_map.h>
 #include <vital/types/timestamp.h>
 #include <vital/types/object_track_set.h>
 
@@ -64,13 +64,13 @@ public:
 
   /**
    * @brief Create an activity with activity id with optional activity label,
-   *        activity_confidence, activity_type, starting frame, ending frame and
+   *        activity_confidence, class_map, starting frame, ending frame and
    *        participants
    *
    * @param activity_id A numeric identifier associated with the activity
    * @param activity_label A label associated with the activity (default=UNDEFINED_ACTIVITY)
    * @param activity_confidence Confidence in the activity (default=-1.0)
-   * @param activity_type Activity type associated with the activity (default=nullptr)
+   * @param class_map Activity type associated with the activity (default=nullptr)
    * @param start Timestamp for starting frame of an activity (default=-1)
    * @param end Timstamp for ending frame of an activity (default=-1)
    * @param participants Participants in the activity (default=nullptr)
@@ -78,7 +78,7 @@ public:
   activity( activity_id_t activity_id,
             activity_label_t activity_label=UNDEFINED_ACTIVITY,
             activity_confidence_t activity_confidence=-1.0,
-            activity_type_sptr activity_type=nullptr,
+            class_map_sptr class_map=nullptr,
             kwiver::vital::timestamp start=kwiver::vital::timestamp(-1, -1),
             kwiver::vital::timestamp end=kwiver::vital::timestamp(-1, -1),
             kwiver::vital::object_track_set_sptr participants=nullptr );
@@ -116,14 +116,14 @@ public:
    *
    * @return the activity type for the activity
    */
-  activity_type_sptr activity_type() const;
+  class_map_sptr activity_type() const;
 
   /**
    * @brief Set activity type for the activity
    *
-   * @param activity_type  An activity type for the activity
+   * @param activity_type A map of classifications and scores for the activity
    */
-  void set_activity_type( activity_type_sptr activity_type );
+  void set_activity_type( class_map_sptr class_map );
 
   /**
    * @brief Get activity confidence
@@ -191,7 +191,7 @@ public:
 private:
   activity_id_t m_activity_id;
   activity_label_t m_activity_label;
-  activity_type_sptr m_activity_type;
+  class_map_sptr m_class_map;
   activity_confidence_t m_activity_confidence;
   kwiver::vital::object_track_set_sptr m_participants;
   kwiver::vital::timestamp m_start_frame, m_end_frame;

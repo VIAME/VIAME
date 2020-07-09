@@ -23,16 +23,12 @@ target_link_libraries(python-vital.types-types
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
-kwiver_add_python_library(activity_types
+kwiver_add_python_library(activity
   vital/types
-  activity.h
-  activity_type.h
   activity.cxx
-  activity_type.cxx
-  activity_types_module.cxx
   )
 
-target_link_libraries(python-vital.types-activity_types
+target_link_libraries(python-vital.types-activity
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -61,6 +57,13 @@ kwiver_add_python_library(camera_map
   vital/types
   camera_map.cxx)
 target_link_libraries(python-vital.types-camera_map
+  PUBLIC ${PYTHON_LIBRARIES}
+         vital)
+
+kwiver_add_python_library(class_map
+  vital/types
+  class_map.cxx)
+target_link_libraries(python-vital.types-class_map
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -103,13 +106,6 @@ kwiver_add_python_library(detected_object_set
   vital/types
   detected_object_set.cxx)
 target_link_libraries(python-vital.types-detected_object_set
-  PUBLIC ${PYTHON_LIBRARIES}
-         vital)
-
-kwiver_add_python_library(detected_object_type
-  vital/types
-  detected_object_type.cxx)
-target_link_libraries(python-vital.types-detected_object_type
   PUBLIC ${PYTHON_LIBRARIES}
          vital)
 
@@ -197,11 +193,11 @@ if(NOT SKBUILD)
     camera
     camera_intrinsics
     camera_map
+    class_map
     color
     covariance
     descriptor
     descriptor_set
-    detected_object_type
     detected_object
     detected_object_set
     eigen
@@ -214,6 +210,6 @@ if(NOT SKBUILD)
     track
     track_set
     object_track_set
-    activity_types
+    activity
   )
 endif()

@@ -1,5 +1,5 @@
 /*ckwg +30
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@
 
 #include <vital/types/bounding_box.h>
 #include <vital/types/descriptor.h>
-#include <vital/types/detected_object_type.h>
+#include <vital/types/class_map.h>
 #include <vital/types/geo_point.h>
 #include <vital/types/image_container.h>
 #include <vital/types/point.h>
@@ -93,7 +93,7 @@ public:
    * @param classifications Optional object classification.
    */
   detected_object( double confidence = 1.0,
-                   detected_object_type_sptr classifications = nullptr );
+                   class_map_sptr classifications = nullptr );
 
   /**
    * @brief Create detected object with bounding box and other attributes.
@@ -105,7 +105,7 @@ public:
    */
   detected_object( bounding_box_d const& bbox,
                    double confidence = 1.0,
-                   detected_object_type_sptr classifications = nullptr );
+                   class_map_sptr classifications = nullptr );
 
   /**
    * @brief Create detected object with a geo_point and other attributes.
@@ -116,7 +116,7 @@ public:
    */
   detected_object( kwiver::vital::geo_point const& geo_pt,
                    double confidence = 1.0,
-                   detected_object_type_sptr classifications = nullptr );
+                   class_map_sptr classifications = nullptr );
 
   virtual ~detected_object() = default;
 
@@ -244,7 +244,7 @@ public:
    *
    * @return Pointer to classification object or NULL.
    */
-  detected_object_type_sptr type() const;
+  class_map_sptr type() const;
 
   /**
    * @brief Set new classifications for this detection.
@@ -254,7 +254,7 @@ public:
    *
    * @param c New classification for this detection
    */
-  void set_type( detected_object_type_sptr c );
+  void set_type( class_map_sptr c );
 
   /**
    * @brief Get detection mask image.
@@ -360,7 +360,7 @@ private:
   descriptor_scptr m_descriptor;
 
   // The detection type is an optional list of possible object types.
-  detected_object_type_sptr m_type;
+  class_map_sptr m_type;
 
   uint64_t m_index = 0; ///< index for this object
   std::string m_detector_name;

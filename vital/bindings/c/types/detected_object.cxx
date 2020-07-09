@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 
 #include <vital/bindings/c/helpers/c_utils.h>
 #include <vital/bindings/c/helpers/detected_object.h>
-#include <vital/bindings/c/helpers/detected_object_type.h>
+#include <vital/bindings/c/helpers/class_map.h>
 
 #include <memory>
 
@@ -55,22 +55,22 @@ SharedPointerCache< kwiver::vital::detected_object, vital_detected_object_t >
 
 vital_detected_object_t* vital_detected_object_new_with_bbox( vital_bounding_box_t* bbox,
                                                               double confidence,
-                                                              vital_detected_object_type_t* dot)
+                                                              vital_class_map_t* cm)
 {
   STANDARD_CATCH(
     "vital_detected_object_new_with_bbox", 0,;
-    kwiver::vital::detected_object_type_sptr dot_sptr;
+    kwiver::vital::class_map_sptr cm_sptr;
 
-    if( dot != NULL )
+    if( cm != NULL )
     {
-      dot_sptr = kwiver::vital_c::DOT_SPTR_CACHE.get( dot );
+      cm_sptr = kwiver::vital_c::CM_SPTR_CACHE.get( cm );
     }
 
     kwiver::vital::bounding_box_d& bbox_ref =
       *reinterpret_cast< kwiver::vital::bounding_box_d* >( bbox );
 
     kwiver::vital::detected_object_sptr do_sptr =
-      std::make_shared< kwiver::vital::detected_object >( bbox_ref, confidence, dot_sptr );
+      std::make_shared< kwiver::vital::detected_object >( bbox_ref, confidence, cm_sptr );
 
     kwiver::vital_c::DOBJ_SPTR_CACHE.store( do_sptr );
     return reinterpret_cast<vital_detected_object_t*>( do_sptr.get() );
@@ -142,26 +142,26 @@ void vital_detected_object_set_confidence( vital_detected_object_t * obj,
 }
 
 
-vital_detected_object_type_t* vital_detected_object_get_type( vital_detected_object_t * obj )
+vital_class_map_t* vital_detected_object_get_type( vital_detected_object_t * obj )
 {
   STANDARD_CATCH(
     "vital_detected_object_get_type", 0,
-    auto dot = kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->type();
-    return reinterpret_cast<vital_detected_object_type_t*>( dot.get() );
+    auto cm = kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->type();
+    return reinterpret_cast<vital_class_map_t*>( cm.get() );
   );
   return 0;
 }
 
 
 void vital_detected_object_set_type( vital_detected_object_t *      obj,
-                                     vital_detected_object_type_t * dot )
+                                     vital_class_map_t * cm )
 {
   STANDARD_CATCH(
     "vital_detected_object_set_type", 0,
-    auto ldot = std::make_shared< kwiver::vital::detected_object_type > (
-      * reinterpret_cast< kwiver::vital::detected_object_type* >(dot) );
-    //+ DOT is managed by sptr
-    kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_type( ldot );
+    auto lcm = std::make_shared< kwiver::vital::class_map > (
+      * reinterpret_cast< kwiver::vital::class_map* >(cm) );
+    //+ cm is managed by sptr
+    kwiver::vital_c::DOBJ_SPTR_CACHE.get( obj )->set_type( lcm );
   );
 }
 

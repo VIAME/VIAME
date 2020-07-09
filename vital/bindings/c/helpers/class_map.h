@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2020 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,29 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <python/kwiver/arrows/serialize/json/serialize_detected_object_type.h>
-#include <python/kwiver/arrows/serialize/json/serialize_utils.txx>
+/**
+ * \file
+ * \brief C++ Helper utilities for C interface of vital::class_map
+ *
+ * Private header for use in cxx implementation files.
+ */
 
-#include <arrows/serialize/json/detected_object_type.h>
-#include <vital/types/detected_object_type.h>
-#include <vital/any.h>
+#ifndef VITAL_C_HELPERS_CLASS_MAP_H_
+#define VITAL_C_HELPERS_CLASS_MAP_H_
 
-void serialize_detected_object_type(py::module &m)
-{
-  m.def("serialize_detected_object_type",
-        &kwiver::python::arrows::json::serialize<
-                          kwiver::vital::detected_object_type,
-                          kwiver::arrows::serialize::json::detected_object_type > );
-  m.def("deserialize_detected_object_type",
-        &kwiver::python::arrows::json::deserialize<
-                          kwiver::vital::detected_object_type,
-                          kwiver::arrows::serialize::json::detected_object_type > );
-}
+#include <vital/types/class_map.h>
+
+#include <vital/bindings/c/types/class_map.h>
+#include <vital/bindings/c/helpers/c_utils.h>
+
+namespace kwiver {
+namespace vital_c {
+
+/// Declaration of C interface shared_ptr cache of vital::class_map
+extern SharedPointerCache< kwiver::vital::class_map,
+                           vital_class_map_t > CM_SPTR_CACHE;
+
+} }
+
+
+#endif //VITAL_C_HELPERS_CLASS_MAP_H_

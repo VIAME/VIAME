@@ -39,7 +39,7 @@ namespace vital {
   activity::activity()
    :m_activity_id{-1},
     m_activity_label{UNDEFINED_ACTIVITY},
-    m_activity_type{nullptr},
+    m_class_map{nullptr},
     m_activity_confidence{-1.0},
     m_participants{nullptr},
     m_start_frame{kwiver::vital::timestamp(-1, -1)},
@@ -49,13 +49,13 @@ namespace vital {
   activity::activity( activity_id_t activity_id,
                       activity_label_t activity_label,
                       activity_confidence_t activity_confidence,
-                      activity_type_sptr activity_type,
+                      class_map_sptr class_map,
                       kwiver::vital::timestamp start,
                       kwiver::vital::timestamp end,
                       kwiver::vital::object_track_set_sptr participants )
    :m_activity_id{activity_id},
     m_activity_label{activity_label},
-    m_activity_type{activity_type},
+    m_class_map{class_map},
     m_activity_confidence{activity_confidence},
     m_participants{participants},
     m_start_frame{start},
@@ -83,14 +83,14 @@ namespace vital {
     m_activity_label = activity_label;
   }
 
-  activity_type_sptr activity::activity_type() const
+  class_map_sptr activity::activity_type() const
   {
-    return m_activity_type;
+    return std::make_shared< class_map >( *m_class_map );
   }
 
-  void activity::set_activity_type( activity_type_sptr activity_type )
+  void activity::set_activity_type( class_map_sptr class_map )
   {
-    m_activity_type = activity_type;
+    m_class_map = class_map;
   }
 
   activity_confidence_t activity::confidence() const

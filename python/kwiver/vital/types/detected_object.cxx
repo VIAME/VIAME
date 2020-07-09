@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ typedef kwiver::vital::detected_object det_obj;
 std::shared_ptr<det_obj>
 new_detected_object(kwiver::vital::bounding_box<double> bbox,
                     double conf,
-                    kwiver::vital::detected_object_type_sptr type,
+                    kwiver::vital::class_map_sptr type,
                     kwiver::vital::image_container_sptr mask)
 {
   std::shared_ptr<det_obj> new_obj(new det_obj(bbox, conf, type));
@@ -88,7 +88,7 @@ PYBIND11_MODULE(detected_object, m)
     )")
   .def(py::init(&new_detected_object),
     py::arg("bbox"), py::arg("confidence")=1.0,
-    py::arg("classifications")=kwiver::vital::detected_object_type_sptr(),
+    py::arg("classifications")=kwiver::vital::class_map_sptr(),
     py::arg("mask")=kwiver::vital::image_container_sptr(), py::doc(R"(
       Args:
           bbox: coarse localization of the object in image coordinates

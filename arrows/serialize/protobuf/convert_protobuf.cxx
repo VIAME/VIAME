@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,9 @@
 #include "convert_protobuf.h"
 #include "convert_protobuf_point.h"
 
+#include <vital/types/class_map.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
-#include <vital/types/detected_object_type.h>
 #include <vital/types/geo_polygon.h>
 #include <vital/types/polygon.h>
 #include <vital/types/timestamp.h>
@@ -47,9 +47,9 @@
 #include <vital/vital_types.h>
 
 #include <vital/types/protobuf/bounding_box.pb.h>
+#include <vital/types/protobuf/class_map.pb.h>
 #include <vital/types/protobuf/detected_object.pb.h>
 #include <vital/types/protobuf/detected_object_set.pb.h>
-#include <vital/types/protobuf/detected_object_type.pb.h>
 #include <vital/types/protobuf/geo_polygon.pb.h>
 #include <vital/types/protobuf/geo_point.pb.h>
 #include <vital/types/protobuf/metadata.pb.h>
@@ -107,10 +107,10 @@ void convert_protobuf( const ::kwiver::protobuf::detected_object&  proto_det_obj
 
   if ( proto_det_object.has_classifcations() )
   {
-    auto new_dot = std::make_shared< ::kwiver::vital::detected_object_type >();
-    ::kwiver::protobuf::detected_object_type proto_dot = proto_det_object.classifcations();
-    convert_protobuf( proto_dot, *new_dot );
-    det_object.set_type( new_dot );
+    auto new_cm = std::make_shared< ::kwiver::vital::class_map >();
+    ::kwiver::protobuf::class_map proto_cm = proto_det_object.classifcations();
+    convert_protobuf( proto_cm, *new_cm );
+    det_object.set_type( new_cm );
   }
 
   if ( proto_det_object.has_index() )
@@ -163,8 +163,8 @@ void convert_protobuf( const ::kwiver::vital::detected_object& det_object,
   // though somewhat ugly
   if ( const_cast<::kwiver::vital::detected_object&>(det_object).type() != NULL )
   {
-    auto* proto_dot = proto_det_object.mutable_classifcations();
-    convert_protobuf( * const_cast<::kwiver::vital::detected_object&>(det_object).type(), *proto_dot );
+    auto* proto_cm = proto_det_object.mutable_classifcations();
+    convert_protobuf( * const_cast<::kwiver::vital::detected_object&>(det_object).type(), *proto_cm );
 
   }
 
@@ -238,24 +238,24 @@ void convert_protobuf( const ::kwiver::vital::detected_object_set& dos,
 }
 
 // ----------------------------------------------------------------------------
-void convert_protobuf( const ::kwiver::protobuf::detected_object_type&  proto_dot,
-                       ::kwiver::vital::detected_object_type& dot )
+void convert_protobuf( const ::kwiver::protobuf::class_map&  proto_cm,
+                       ::kwiver::vital::class_map& cm )
  {
-   const size_t count( proto_dot.name_size() );
+   const size_t count( proto_cm.name_size() );
    for (size_t i = 0; i < count; ++i )
    {
-     dot.set_score( proto_dot.name(i), proto_dot.score(i) );
+     cm.set_score( proto_cm.name(i), proto_cm.score(i) );
    }
  }
 
 // ----------------------------------------------------------------------------
-void convert_protobuf( const ::kwiver::vital::detected_object_type& dot,
-                       ::kwiver::protobuf::detected_object_type&  proto_dot )
+void convert_protobuf( const ::kwiver::vital::class_map& cm,
+                       ::kwiver::protobuf::class_map&  proto_cm )
 {
-  for ( const auto it : dot )
+  for ( const auto it : cm )
   {
-    proto_dot.add_name( *(it.first) );
-    proto_dot.add_score( it.second);
+    proto_cm.add_name( *(it.first) );
+    proto_cm.add_score( it.second);
   }
 }
 

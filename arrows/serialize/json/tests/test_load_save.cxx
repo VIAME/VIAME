@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018, 2020 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,10 @@
 #include <gtest/gtest.h>
 
 #include <vital/types/bounding_box.h>
+#include <vital/types/class_map.h>
 #include <vital/types/covariance.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
-#include <vital/types/detected_object_type.h>
 #include <vital/types/geo_polygon.h>
 #include <vital/types/geodesy.h>
 #include <vital/types/image_container.h>
@@ -392,16 +392,16 @@ TEST( load_save, track_state)
 // ----------------------------------------------------------------------------
 TEST( load_save, object_track_state)
 {
-  auto dot = std::make_shared< kwiver::vital::detected_object_type >();
+  auto cm = std::make_shared< kwiver::vital::class_map >();
 
-  dot->set_score( "first", 1 );
-  dot->set_score( "second", 10 );
-  dot->set_score( "third", 101 );
-  dot->set_score( "last", 121 );
+  cm->set_score( "first", 1 );
+  cm->set_score( "second", 10 );
+  cm->set_score( "third", 101 );
+  cm->set_score( "last", 121 );
 
   // create detected object
   auto obj = std::make_shared< kwiver::vital::detected_object >(
-    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, dot );
+    kwiver::vital::bounding_box_d{ 1, 2, 3, 4 }, 3.14159, cm );
   obj->set_detector_name( "test_detector" );
   obj->set_index( 1234 );
   obj->add_note( "this is a note" );
@@ -456,16 +456,16 @@ TEST( load_save, object_track_state)
   auto kpts = do_sptr_dser->keypoints();
   EXPECT_EQ( kpts.count( "keypoint-1" ), 1 );
 
-  auto dot_sptr_dser = do_sptr_dser->type();
+  auto cm_sptr_dser = do_sptr_dser->type();
 
-  if ( dot )
+  if ( cm )
   {
-    EXPECT_EQ( dot->size(), dot_sptr_dser->size() );
+    EXPECT_EQ( cm->size(), cm_sptr_dser->size() );
 
-    auto it = dot->begin();
-    auto it_dser = dot_sptr_dser->begin();
+    auto it = cm->begin();
+    auto it_dser = cm_sptr_dser->begin();
 
-    for ( size_t i = 0; i < dot->size(); ++i )
+    for ( size_t i = 0; i < cm->size(); ++i )
     {
       EXPECT_EQ( *( it->first ), *( it_dser->first ) );
       EXPECT_EQ( it->second, it_dser->second );
@@ -545,16 +545,16 @@ TEST( load_save, object_track_set )
     trk->set_id( trk_id );
     for ( int i = trk_id * 2; i < ( trk_id+1 )*2; i++ )
     {
-      auto dot = std::make_shared<kwiver::vital::detected_object_type>();
+      auto cm = std::make_shared<kwiver::vital::class_map>();
 
-      dot->set_score( "first", 1 );
-      dot->set_score( "second", 10 );
-      dot->set_score( "third", 101 );
-      dot->set_score( "last", 121 );
+      cm->set_score( "first", 1 );
+      cm->set_score( "second", 10 );
+      cm->set_score( "third", 101 );
+      cm->set_score( "last", 121 );
 
       auto dobj_sptr = std::make_shared< kwiver::vital::detected_object>(
                               kwiver::vital::bounding_box_d{ 1, 2, 3, 4 },
-                                  3.14159265, dot );
+                                  3.14159265, cm );
       dobj_sptr->set_detector_name( "test_detector" );
       dobj_sptr->set_index( 1234 );
       auto obj_trk_state_sptr = std::make_shared< kwiver::vital::object_track_state >
@@ -612,17 +612,17 @@ TEST( load_save, object_track_set )
       EXPECT_EQ( ser_do_sptr->confidence(), dser_do_sptr->confidence() );
       EXPECT_EQ( ser_do_sptr->detector_name(), dser_do_sptr->detector_name() );
 
-      auto ser_dot_sptr = ser_do_sptr->type();
-      auto dser_dot_sptr = dser_do_sptr->type();
+      auto ser_cm_sptr = ser_do_sptr->type();
+      auto dser_cm_sptr = dser_do_sptr->type();
 
-      if ( ser_dot_sptr )
+      if ( ser_cm_sptr )
       {
-        EXPECT_EQ( ser_dot_sptr->size(),dser_dot_sptr->size() );
+        EXPECT_EQ( ser_cm_sptr->size(),dser_cm_sptr->size() );
 
-        auto ser_it = ser_dot_sptr->begin();
-        auto dser_it = dser_dot_sptr->begin();
+        auto ser_it = ser_cm_sptr->begin();
+        auto dser_it = dser_cm_sptr->begin();
 
-        for ( size_t i = 0; i < ser_dot_sptr->size(); ++i )
+        for ( size_t i = 0; i < ser_cm_sptr->size(); ++i )
         {
           EXPECT_EQ( *(ser_it->first), *(ser_it->first) );
           EXPECT_EQ( dser_it->second, dser_it->second );

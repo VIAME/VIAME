@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2020 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@
  *    to endorse or promote products derived from this software without specific
  *    prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS''
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR
@@ -28,13 +28,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KWIVER_VITAL_PYTHON_ACTIVITY_TYPE_H_
-#define KWIVER_VITAL_PYTHON_ACTIVITY_TYPE_H_
+#ifndef ARROWS_SERIALIZATION_PROTO_CLASS_MAP_H
+#define ARROWS_SERIALIZATION_PROTO_CLASS_MAP_H
 
-#include <pybind11/pybind11.h>
+#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
+#include <vital/algo/data_serializer.h>
 
-namespace py = pybind11;
+namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace protobuf {
 
-void activity_type( py::module& m );
+class KWIVER_SERIALIZE_PROTOBUF_EXPORT class_map
+  : public vital::algo::data_serializer
+{
+public:
+  PLUGIN_INFO( "kwiver:class_map",
+               "Serializes a class_map using protobuf notation. "
+               "This implementation only handles a single data item." );
 
-#endif
+  class_map();
+  virtual ~class_map();
+
+  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  vital::any deserialize( const std::string& message ) override;
+};
+
+} } } }       // end namespace kwiver
+
+#endif // ARROWS_SERIALIZATION_PROTO_CLASS_MAP_H
