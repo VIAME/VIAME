@@ -151,13 +151,21 @@ def peek_iterable(it):
     x = next(it)
     return x, itt.chain([x], it)
 
-def main(
-        out_file, homog_file, image_glob, *, optimize_fit=None,
+def main(out_file, homog_file, image_glob, **kwargs):
+    main_multi(out_file, [(homog_file, image_glob)], **kwargs)
+
+def main_multi(
+        out_file, homogs_and_globs, *, optimize_fit=None,
         frames=None, start=None, stop=None, step=None, reverse=None,
 ):
-    image_files = sorted(glob.iglob(image_glob))[start:stop]
-    homogs, refs = (x[start:stop] for x in read_homog_file(homog_file))
-    length = min(len(image_files), len(homogs))
+    images_homogs_refs = ((
+        sorted(glob.iglob(image_glob)),
+        *read_homog_file(homog_file),
+    ) for homog_file, image_glob in homogs_and_globs)
+    images_homogs_refs = [tuple(
+        x[start:stop] for x in ihr
+    ) for ihr in images_homogs_refs]
+    length = min(len(x) for ihr in images_homogs_refs for x in ihr)
     if (frames is None) == (step is None):
         raise ValueError("Exactly one of frames and step must be specified")
     if frames is not None:
@@ -166,13 +174,21 @@ def main(
         frame_numbers = range(0, length, step)
     if reverse:
         frame_numbers = frame_numbers[::-1]
-    if len(np.unique(refs[frame_numbers])) > 1:
+    if len({
+            x for _, _, refs in images_homogs_refs
+            for x in np.unique(refs[frame_numbers])
+    }) > 1:
         raise ValueError("Requested frames do not all have the same reference")
-    images = (skio.imread(image_files[i]) for i in tqdm.tqdm(frame_numbers))
+    images = (skio.imread(image_files[i])
+              for i in tqdm.tqdm(frame_numbers)
+              for image_files, _, _ in images_homogs_refs)
     im0, images = peek_iterable(images)
-    rel_homogs = homogs[frame_numbers]
+    rel_homogs_4d = np.stack([
+        homogs[frame_numbers] for _, homogs, _ in images_homogs_refs
+    ], axis=1)
+    rel_homogs = rel_homogs_4d.reshape((-1, 3, 3))
     if optimize_fit:
-        rel_homog_0 = rel_homogs[-1 if reverse else 0]
+        rel_homog_0 = rel_homogs_4d[-1 if reverse else 0, 0]
         rel_homogs = np.linalg.inv(rel_homog_0) @ rel_homogs
         fit_homog = optimize_homog_fit(rel_homogs, im0.shape[:2])
         rel_homogs = fit_homog @ rel_homogs
