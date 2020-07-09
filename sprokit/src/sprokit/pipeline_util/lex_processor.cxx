@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -406,9 +406,18 @@ get_next_token()
       // Look for cluster documentation. "--"
       if ( ( '-' == c ) && ( '-' == n ) )
       {
-        // Collect description text from after token to EOL
-        std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
-        kwiver::vital::string_trim( text );
+        std::string text;
+        if ( m_priv->m_cur_char != m_priv->m_input_line.end() )
+        {
+          // Collect description text from after token to EOL
+          text = std::string{ m_priv->m_cur_char + 1, m_priv->m_input_line.end() };
+          kwiver::vital::string_trim( text );
+        }
+        else
+        {
+          text = "/n"; // blank line causes line break
+        }
+
         t = std::make_shared< token > ( TK_CLUSTER_DESC, text );
         t->set_location( current_location() );
 

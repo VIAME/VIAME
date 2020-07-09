@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -819,7 +819,9 @@ collect_comments()
       break;
     }
 
-    comments += t->text() + "\n";
+    // Separate text lines with a space so that all the text will wrap
+    // when displayed.
+    comments += t->text() + " ";
   } // end while
 
   m_lexer.unget_token( t );
