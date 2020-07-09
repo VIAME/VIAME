@@ -155,7 +155,7 @@ def main(out_file, homog_file, image_glob, **kwargs):
     main_multi(out_file, [(homog_file, image_glob)], **kwargs)
 
 def main_multi(
-        out_file, homogs_and_globs, *, optimize_fit=None,
+        out_file, homogs_and_globs, *, optimize_fit=None, zoom=None,
         frames=None, start=None, stop=None, step=None, reverse=None,
 ):
     images_homogs_refs = ((
@@ -192,6 +192,8 @@ def main_multi(
         rel_homogs = np.linalg.inv(rel_homog_0) @ rel_homogs
         fit_homog = optimize_homog_fit(rel_homogs, im0.shape[:2])
         rel_homogs = fit_homog @ rel_homogs
+    if zoom is not None:
+        rel_homogs = np.diag([zoom, zoom, 1]) @ rel_homogs
     skio.imsave(out_file, paste_many(rel_homogs, images, im0))
 
 def create_parser():
@@ -205,6 +207,7 @@ def create_parser():
     p.add_argument('--step', type=int, metavar='N', help='Write every Nth frame')
     p.add_argument('--reverse', action='store_true', help='Render images in reverse order')
     p.add_argument('--optimize-fit', action='store_true', help='Apply an additional transformation to all images to minimize distortion')
+    p.add_argument('--zoom', type=float, metavar='Z', help='Scale the output image by a factor of Z')
     return p
 
 if __name__ == '__main__':
