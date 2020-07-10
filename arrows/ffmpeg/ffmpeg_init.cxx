@@ -40,6 +40,7 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavfilter/avfilter.h>
 }
 
 #include <vital/logger/logger.h>
@@ -88,6 +89,7 @@ void ffmpeg_init()
   static bool initialized = false;
   if ( ! initialized ) {
     av_register_all();
+    avfilter_register_all();
     av_log_set_callback(ffmpeg_kwiver_log_callback);
     initialized = true;
   }

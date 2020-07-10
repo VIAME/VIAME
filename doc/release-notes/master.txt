@@ -43,6 +43,11 @@ Arrows: CUDA
 
 Arrows: FFmpeg
 
+ * Added a libavfilter pipeline into the ffmpeg_video_input reader. This
+   allows users to inject filters in the video reader, much the same as
+   is possible in the ffmpeg command line with the -vf option.  The default
+   filter applies deinterlacing to any interlaced frames.
+
 Arrows: GDAL
 
 Arrows: KPF
