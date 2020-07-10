@@ -3770,41 +3770,33 @@ initialize_cameras_landmarks_keyframe::priv
     return;
   }
 
-  auto base_intrin = m_base_camera.get_intrinsics();
+  auto base_intrin = std::make_shared<simple_camera_intrinsics>(
+    *m_base_camera.get_intrinsics());
 
-  float focal_length;
+  auto pp = base_intrin->principal_point();
+  float focal_length = static_cast<float>(base_intrin->focal_length());
 
+  // Update the principal point to the center of the image.
+  int im_h, im_w;
+  if (constraints->get_image_height(-1, im_h) &&
+      constraints->get_image_width(-1, im_w))
+  {
+    double scale = static_cast<double>(im_w) / (2.0 * pp[0]);
+    pp[0] = im_w*0.5;
+    pp[1] = im_h*0.5;
+    base_intrin->set_principal_point(pp);
+    // Scale the focal length from configuration to match the scaling
+    // of the image relative to the configuration settings.
+    // This keeps the FOV the same as it was in the original configuration.
+    base_intrin->set_focal_length(scale * focal_length);
+    m_base_camera.set_intrinsics(base_intrin);
+  }
+
+  // Update the focal length if there is relevant metadata
   if (constraints->get_focal_length_prior(-1, focal_length))
   {
-    int im_h, im_w;
-
-    auto pp = base_intrin->principal_point();
-    if (constraints->get_image_height(-1, im_h) &&
-        constraints->get_image_width(-1, im_w))
-    {
-      pp[0] = im_w*0.5;
-      pp[1] = im_h*0.5;
-    }
-
-    auto intrin2 =
-      std::make_shared<simple_camera_intrinsics>(focal_length,
-                                                 pp,
-                                                 base_intrin->aspect_ratio(),
-                                                 base_intrin->skew());
-
-    auto dist_coeffs = base_intrin->dist_coeffs();
-    if (dist_coeffs.size() == 5)
-    {
-      Eigen::VectorXd dist;
-      dist.resize(5);
-      for (int i = 0; i < 5; ++i)
-      {
-        dist[i] = dist_coeffs[i];
-      }
-      intrin2->set_dist_coeffs(dist);
-    }
-
-    m_base_camera.set_intrinsics(intrin2);
+    base_intrin->set_focal_length(focal_length);
+    m_base_camera.set_intrinsics(base_intrin);
   }
 }
 
