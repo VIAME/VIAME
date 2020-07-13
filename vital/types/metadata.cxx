@@ -34,13 +34,11 @@
  */
 
 #include "metadata.h"
-#include "metadata_traits.h"
 
 #include <vital/util/demangle.h>
 
 namespace kwiver {
 namespace vital {
-
 
 // ----------------------------------------------------------------
 /*
@@ -98,14 +96,12 @@ metadata_item
   return true;
 }
 
-
 std::string const&
 metadata_item
 ::name() const
 {
   return this->m_name;
 }
-
 
 kwiver::vital::any
 metadata_item
@@ -114,14 +110,12 @@ metadata_item
   return this->m_data;
 }
 
-
 double
 metadata_item
 ::as_double() const
 {
   return kwiver::vital::any_cast< double > ( this->m_data );
 }
-
 
 bool
 metadata_item
@@ -130,14 +124,12 @@ metadata_item
   return m_data.type() == typeid( double );
 }
 
-
 uint64_t
 metadata_item
 ::as_uint64() const
 {
   return kwiver::vital::any_cast< uint64_t > ( this->m_data );
 }
-
 
 bool
 metadata_item
@@ -146,7 +138,6 @@ metadata_item
   return m_data.type() == typeid( uint64_t );
 }
 
-
 bool
 metadata_item
 ::has_string() const
@@ -154,13 +145,12 @@ metadata_item
   return m_data.type() == typeid( std::string );
 }
 
-
 // ==================================================================
 metadata
 ::metadata()
 { }
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------
 void
 metadata
 ::add( std::unique_ptr< metadata_item >&& item )
@@ -178,6 +168,7 @@ metadata
 #endif
 }
 
+// ---------------------------------------------------------------------
 void
 metadata
 ::add_copy( std::shared_ptr<metadata_item const> const& item )
@@ -193,14 +184,13 @@ metadata
   this->m_metadata_map[ item->tag() ] = item_ptr{ item->clone() };
 }
 
-
+// -------------------------------------------------------------------
 bool
 metadata
 ::has( vital_metadata_tag tag ) const
 {
   return m_metadata_map.find( tag ) != m_metadata_map.end();
 }
-
 
 // ------------------------------------------------------------------
 metadata_item const&
@@ -218,7 +208,6 @@ metadata
   return *(it->second);
 }
 
-
 // ------------------------------------------------------------------
 bool
 metadata
@@ -226,7 +215,6 @@ metadata
 {
   return m_metadata_map.erase( tag ) > 0;
 }
-
 
 // ------------------------------------------------------------------
 metadata::const_iterator_t
@@ -236,14 +224,12 @@ metadata
   return m_metadata_map.begin();
 }
 
-
 metadata::const_iterator_t
 metadata
 ::cbegin() const
 {
   return m_metadata_map.cbegin();
 }
-
 
 metadata::const_iterator_t
 metadata
@@ -252,7 +238,6 @@ metadata
   return m_metadata_map.end();
 }
 
-
 metadata::const_iterator_t
 metadata
 ::cend() const
@@ -260,7 +245,7 @@ metadata
   return m_metadata_map.cend();
 }
 
-
+// ---------------------------------------------------------------------
 size_t
 metadata
 ::size() const
@@ -268,14 +253,13 @@ metadata
   return m_metadata_map.size();
 }
 
-
+// ---------------------------------------------------------------------
 bool
 metadata
 ::empty() const
 {
   return m_metadata_map.empty();
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -285,33 +269,13 @@ metadata
   this->m_timestamp = ts;
 }
 
-
+// ---------------------------------------------------------------------
 kwiver::vital::timestamp const&
 metadata
 ::timestamp() const
 {
   return this->m_timestamp;
 }
-
-
-  // ------------------------------------------------------------------
-std::type_info const&
-metadata
-::typeid_for_tag( vital_metadata_tag tag )
-{
-
-  switch (tag)
-  {
-#define VITAL_META_TRAIT_CASE(TAG, NAME, T, ...) case VITAL_META_ ## TAG: return typeid(T);
-
-    KWIVER_VITAL_METADATA_TAGS( VITAL_META_TRAIT_CASE )
-
-#undef VITAL_META_TRAIT_CASE
-
-  default: return typeid(void);
-  }
-}
-
 
 // ------------------------------------------------------------------
 std::string
@@ -357,7 +321,6 @@ metadata
   return ascii;
 }
 
-
 // ------------------------------------------------------------------
 std::ostream& print_metadata( std::ostream& str, metadata const& metadata )
 {
@@ -377,7 +340,6 @@ std::ostream& print_metadata( std::ostream& str, metadata const& metadata )
 
   return str;
 }
-
 
 // ----------------------------------------------------------------------------
 bool test_equal_content( const kwiver::vital::metadata& one,
@@ -403,6 +365,5 @@ bool test_equal_content( const kwiver::vital::metadata& one,
 
   return true;
 }
-
 
 } } // end namespace

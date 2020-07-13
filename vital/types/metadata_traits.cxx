@@ -123,16 +123,6 @@ metadata_traits
 
 
 // ------------------------------------------------------------------
-std::type_info const&
-metadata_traits
-::typeid_for_tag( vital_metadata_tag tag ) const
-{
-  vital_meta_trait_base const& trait = find( tag );
-  return trait.tag_type();
-}
-
-
-// ------------------------------------------------------------------
 std::string
 metadata_traits
 ::tag_to_symbol( vital_metadata_tag tag ) const

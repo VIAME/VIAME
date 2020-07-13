@@ -109,7 +109,7 @@ public:
    *
    * This method returns the type-info for this metadata item.
    *
-   * \return Ty[e info for metadata tag.
+   * \return Type info for metadata tag.
    */
   virtual std::type_info const& type() const = 0;
 
@@ -193,7 +193,7 @@ public:
   virtual std::string as_string() const = 0;
 
   /**
-   * \brief dev/metadata-api-change.
+   * \brief Determine if item has string representation.
    *
    * This method returns \b true if this metadata item contains a data
    * value with std::string type.
@@ -568,17 +568,6 @@ public:
    * \return Timestamp value.
    */
   kwiver::vital::timestamp const& timestamp() const;
-
-  /// Get type representation for vital metadata tag. //+ move to convert_metadata
-  /**
-   * This method returns the type id string for the specified vital
-   * metadata tag.
-   *
-   * @param tag Code for metadata tag.
-   *
-   * @return Type info for this tag
-   */
-  static std::type_info const& typeid_for_tag( vital_metadata_tag tag );
 
   static std::string format_string( std::string const& val );
 

@@ -110,7 +110,7 @@ convert_metadata
                            kwiver::vital::any const& data )
 {
   // If the input data is already in the correct type, just return.
-  if ( metadata::typeid_for_tag( vital_tag ) == data.type() )
+  if ( convert_metadata::typeid_for_tag( vital_tag ) == data.type() )
   {
     return data;
   }
@@ -118,7 +118,7 @@ convert_metadata
   try
   {
     // If destination type is double, then source must be convertable to double
-    if ( metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
+    if ( convert_metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
     {
       kwiver::vital::any converted_data = convert_to_double.convert( data );
       return converted_data;
