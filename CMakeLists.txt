@@ -9,7 +9,7 @@ project(KWIVER)
 # KWIVER version
 set(KWIVER_VERSION_MAJOR 1)
 set(KWIVER_VERSION_MINOR 5)
-set(KWIVER_VERSION_PATCH 0)
+set(KWIVER_VERSION_PATCH 1)
 set(KWIVER_VERSION "${KWIVER_VERSION_MAJOR}.${KWIVER_VERSION_MINOR}.${KWIVER_VERSION_PATCH}")
 
 # This policy is new in CMake 3.12. The NEW behavior uses the <PackageName>_ROOT variable in
