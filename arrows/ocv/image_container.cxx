@@ -124,11 +124,6 @@ image_container
   {
     memory = std::make_shared<mat_image_memory>(img);
   }
-  else
-  {
-    cv::Mat img_clone = img.clone();
-    memory = std::make_shared<mat_image_memory>(img_clone);
-  }
 
   return image(memory, img.data,
                img.cols, img.rows, img.channels(),
