@@ -6,3 +6,11 @@ v1.5.0 release.
 
 Bug Fixes since v1.5.0
 ----------------------
+
+Arrows: OpenCV
+
+ * Fixed a long standing bug with memory management when converting between
+   OpenCV and Vital images.  Reference counting was not handled correctly.
+   A workaround was previously added that forced a deep copy, but this created
+   another bug resulting in images with invalid first_pixel() values.
+   Both of these issues have been addressed.
