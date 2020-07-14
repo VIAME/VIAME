@@ -169,7 +169,14 @@ __global__ void depthMapKernel(double* depths, double* weights, double matrixK[s
   double* output)
 {
   // Get voxel coordinate according to thread id
-  int voxelIndex[3] = { (int)threadIdx.x, (int)blockIdx.y, (int)blockIdx.z };
+  int voxelIndex[3] = { (int)(blockIdx.x * blockDim.x + threadIdx.x),
+                        (int)(blockIdx.y * blockDim.y + threadIdx.y),
+                        (int)blockIdx.z };
+  if (voxelIndex[0] >= c_gridDims.x ||
+      voxelIndex[1] >= c_gridDims.y)
+  {
+    return;
+  }
 
   double voxelCenterCoordinate[3];
   computeVoxelCenter(voxelIndex, voxelCenterCoordinate);
@@ -244,8 +251,12 @@ void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
 void launch_depth_kernel(double * d_depth, double * d_conf, int h_depthMapDims[2], double d_K[size4x4], double d_RT[size4x4], double* d_volume)
 {
   // Organize threads into blocks and grids
-  dim3 dimBlock(grid_dims[0], 1, 1); // nb threads on each block
-  dim3 dimGrid(1, grid_dims[1], grid_dims[2]); // nb blocks on a grid
+  // Number of threads on each block
+  dim3 dimBlock(16, 16, 1);
+  // Number of blocks on a grid
+  dim3 dimGrid((grid_dims[0] - 1) / dimBlock.x + 1,
+               (grid_dims[1] - 1) / dimBlock.y + 1,
+               grid_dims[2]);
   CudaErrorCheck(cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int)));
   CudaErrorCheck(cudaDeviceSynchronize());
   depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_conf, d_K, d_RT, d_volume);
