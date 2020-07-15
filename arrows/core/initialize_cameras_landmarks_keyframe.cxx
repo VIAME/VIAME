@@ -3575,9 +3575,11 @@ initialize_cameras_landmarks_keyframe::priv
     }
   }
 
+  bool done_registering_keyframes = false;
   if (keyframes_to_register.empty())
   {
     frames_to_register = non_keyframes_to_register;
+    done_registering_keyframes = true;
   }
   else
   {
@@ -3596,15 +3598,27 @@ initialize_cameras_landmarks_keyframe::priv
 
   int max_constraints_used = 0;
 
-  bool done_registering_keyframes = false;
   bool disable_windowing = true;
 
   int frames_since_last_ba = 0;
 
   std::map<frame_id_t, double> last_reproj_by_cam;
-  while(!frames_to_register.empty() &&
+  while ((!frames_to_register.empty() || !done_registering_keyframes)  &&
         this->continue_processing)
   {
+    if (frames_to_register.empty() &&
+        !done_registering_keyframes)
+    {
+      done_registering_keyframes = true;
+      disable_windowing = false;
+      frames_to_register = non_keyframes_to_register;
+      if (frames_to_register.empty())
+      {
+        break;
+      }
+      LOG_INFO(m_logger, "Finished processing key frames, "
+                         "start filling intermediate frames ");
+    }
     if (max_constraints_used < 10)
     {
       int num_constraints_used;
@@ -3721,16 +3735,6 @@ initialize_cameras_landmarks_keyframe::priv
       LOG_DEBUG(m_logger, "continue processing is false, "
         "exiting initialize_remaining_cameras loop");
       break;
-    }
-    if ( frames_to_register.empty() &&
-         !done_registering_keyframes &&
-         !keyframes_to_register.empty())
-    {
-      done_registering_keyframes = true;
-      disable_windowing = false;
-      frames_to_register = non_keyframes_to_register;
-      LOG_INFO(m_logger, "Finished processing key frames, "
-                         "start filling intermediate frames ");
     }
   }
 
