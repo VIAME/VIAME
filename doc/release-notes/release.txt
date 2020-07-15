@@ -14,3 +14,9 @@ Arrows: Core
    was also metadata useful for determining focal length.  Distortion
    parameters were also not properly preserved in this initialization
    and this has also been resolved.
+
+Arrows: CUDA
+
+ * Fixed a bug in launching the integrate_depth_maps CUDA kernel.
+   Previously, the kernel would fail to launch if the size of the volume
+   along the X direction was greater than 1024.
