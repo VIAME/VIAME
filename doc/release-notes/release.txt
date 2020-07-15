@@ -14,3 +14,7 @@ Arrows: Core
    was also metadata useful for determining focal length.  Distortion
    parameters were also not properly preserved in this initialization
    and this has also been resolved.
+
+ * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
+   camera estimation loop would sometimes exit early without processing
+   the remaining cameras.
