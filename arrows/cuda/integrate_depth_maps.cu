@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <vector>
 #include "cuda_error_check.h"
+#include <vital/logger/logger.h>
 
 #define size4x4 16
 
@@ -250,6 +251,14 @@ void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
 
 void launch_depth_kernel(double * d_depth, double * d_conf, int h_depthMapDims[2], double d_K[size4x4], double d_RT[size4x4], double* d_volume)
 {
+  int dev_num = 0;
+  int max_threads_per_block;
+  CudaErrorCheck(cudaGetDevice(&dev_num));
+  CudaErrorCheck(cudaDeviceGetAttribute(&max_threads_per_block,
+                 cudaDevAttrMaxThreadsPerBlock, dev_num));
+
+  auto logger = kwiver::vital::get_logger("arrows.cuda.integrate_depth_maps");
+
   // Organize threads into blocks and grids
   // Number of threads on each block
   dim3 dimBlock(16, 16, 1);
@@ -257,6 +266,8 @@ void launch_depth_kernel(double * d_depth, double * d_conf, int h_depthMapDims[2
   dim3 dimGrid((grid_dims[0] - 1) / dimBlock.x + 1,
                (grid_dims[1] - 1) / dimBlock.y + 1,
                grid_dims[2]);
+  LOG_INFO(logger, "block: " << dimBlock.x << " , " << dimBlock.y << ", " << dimBlock.z
+           << "\ngrid: " << dimGrid.x << " , " << dimGrid.y << ", " << dimGrid.z);
   CudaErrorCheck(cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int)));
   CudaErrorCheck(cudaDeviceSynchronize());
   depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_conf, d_K, d_RT, d_volume);
