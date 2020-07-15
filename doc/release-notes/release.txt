@@ -7,6 +7,14 @@ v1.5.0 release.
 Bug Fixes since v1.5.0
 ----------------------
 
+Arrows: Core
+
+ * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
+   principal point was not initialized from the image size unless there
+   was also metadata useful for determining focal length.  Distortion
+   parameters were also not properly preserved in this initialization
+   and this has also been resolved.
+
 Arrows: OpenCV
 
  * Fixed a long standing bug with memory management when converting between
