@@ -14,3 +14,9 @@ Arrows: Core
    was also metadata useful for determining focal length.  Distortion
    parameters were also not properly preserved in this initialization
    and this has also been resolved.
+
+Arrows: OpenCV
+
+ * Fixed improper use of RANSAC in the OpenCV estimate_pnp algorithm.
+   This algorithm was producing a lower then expected success rate when
+   resectioning cameras.
