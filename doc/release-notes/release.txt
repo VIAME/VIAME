@@ -17,4 +17,5 @@ Arrows: Core
 
  * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
    camera estimation loop would sometimes exit early without processing
-   the remaining cameras.
+   the remaining cameras.  This is further improved to try the lists of
+   remaining cameras multiple times until no further cameras are added.
