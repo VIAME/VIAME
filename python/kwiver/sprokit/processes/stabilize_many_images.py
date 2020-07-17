@@ -204,6 +204,7 @@ def estimate_homography(match_features, compute_ref_homography):
 
     output = None
     while True:
+        print(frame_id)
         features, descriptors = yield output
         step_fts(features, descriptors)
         output = compute_ref_homography(frame_id, fts)
@@ -357,6 +358,17 @@ class ManyImageStabilizer(KwiverProcess):
             add_declare_config(self, k, '',
                                'Configuration for a nested ' + v.static_type_name())
 
+        # XXX work around insufficient wrapping
+        self._n_input = int(self.config_value('n_input'))
+        optional = process.PortFlags()
+        required = process.PortFlags()
+        required.add(self.flag_required)
+        for i in range(1, self._n_input + 1):
+            add_declare_input_port(self, 'image' + str(i), 'image',
+                                   required, 'Input image #' + str(i))
+            add_declare_output_port(self, 'homog' + str(i), 'homography_src_to_ref',
+                                    optional, 'Output homography (source-to-ref) #' + str(i))
+
     def _configure(self):
         config = self.get_config()
         algos = {k: v.set_nested_algo_configuration(k, config)
@@ -372,19 +384,6 @@ class ManyImageStabilizer(KwiverProcess):
             algos['homography_estimator'].estimate,
             algos['ref_homography_computer'].estimate,
         )
-
-        optional = process.PortFlags()
-        required = process.PortFlags()
-        required.add(self.flag_required)
-        # XXX This doesn't work.  Apparently the proper way to do this
-        # is to override the methods "input_port_undefined" and
-        # "output_port_undefined", except that isn't exposed for
-        # Python.
-        for i in range(1, self._n_input + 1):
-            add_declare_input_port(self, 'image' + str(i), 'image',
-                                   required, 'Input image #' + str(i))
-            add_declare_output_port(self, 'homog' + str(i), 'homography_src_to_ref',
-                                    optional, 'Output homography (source-to-ref) #' + str(i))
 
         self._base_configure()
 
