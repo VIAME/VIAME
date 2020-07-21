@@ -30,7 +30,7 @@ but select entries are also listed below broken down by individual functionality
 [Object Trackers](examples/object_tracking) < >
 [Detector Training API](examples/object_detector_training) <>
 [Video Search and Rapid Model Generation](examples/search_and_rapid_model_generation) <>
-[Scoring of Detectors](examples/scoring_and_roc_generation) <br />
+[Detector Scoring](examples/scoring_and_roc_generation) <br />
 [Detection File Formats](examples/detection_file_conversions) <>
 [Calibration and Image Enhancement](examples/image_enhancement) <>
 [Image Registration and Mosaicing](examples/image_registration)  <br />
