@@ -122,18 +122,6 @@ public:
   vital_meta_trait_base const& find( vital_metadata_tag tag ) const;
 
 
-  /// Get type representation for vital metadata tag. //+ move to convert_metadata
-  /**
-   * This method returns the type id string for the specified vital
-   * metadata tag.
-   *
-   * @param tag Code for metadata tag.
-   *
-   * @return Type info for this tag
-   */
-  std::type_info const& typeid_for_tag( vital_metadata_tag tag ) const;
-
-
   /// Convert tag value to enum symbol
   /**
    * This method returns the symbol name for the supplied tag.

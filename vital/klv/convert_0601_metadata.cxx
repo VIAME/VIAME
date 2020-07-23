@@ -118,7 +118,7 @@ convert_metadata
              << m_metadata_traits.tag_to_symbol( vital_tag ) );
 
   // If the input data is already in the correct type
-  if ( metadata::typeid_for_tag( vital_tag ) == data.type() )
+  if ( convert_metadata::typeid_for_tag( vital_tag ) == data.type() )
   {
     // leave data as is since it already correct type.
     return data;
@@ -126,7 +126,7 @@ convert_metadata
 
 
   // If destination type is double, then source must be convertable to double
-  if ( metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
+  if ( convert_metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
   {
     if ( klv_0601_has_double( tag ) )
     {

@@ -13,6 +13,9 @@ Vital Algo
 
 Vital Types
 
+ * Add new method to metadata class to add a metadata item being
+   passed by shared_ptr
+
 Vital Plugin-loader
 
  * Added support for filtering plugins when they are loaded. Filter
