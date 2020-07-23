@@ -92,9 +92,9 @@ class SPROKIT_PIPELINE_EXPORT process_factory
 {
 public:
   /**
-   * \brief CTOR for factory object
+   * \brief constructor for factory object
    *
-   * This CTOR also takes a factory function so it can support
+   * This constructor also takes a factory function so it can support
    * creating processes and clusters.
    *
    * \param type Type name of the process
@@ -122,8 +122,8 @@ public:
    * This CTOR also takes a factory function so it can support
    * creating processes and clusters.
    *
-   * \param type Type name of the process
-   * \param itype Type name of interface type.
+   * \param type Type name of the process class.
+   * \param itype Type name of interface type (usually "process").
    * \param factory The Factory function
    */
   cpp_process_factory( const std::string& type,

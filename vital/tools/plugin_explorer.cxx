@@ -56,7 +56,8 @@
 #include <memory>
 #include <map>
 
-typedef kwiversys::SystemTools ST;
+using ST = kwiversys::SystemTools;
+using kvpf = kwiver::vital::plugin_factory;
 
 // -- forward definitions --
 static void display_attributes( kwiver::vital::plugin_factory_handle_t const fact );
@@ -108,13 +109,13 @@ struct print_functor
   void operator() ( std::string const& key, std::string const& val ) const
   {
     // Skip canonical names and other attributes that are displayed elsewhere
-    if ( ( kwiver::vital::plugin_factory::PLUGIN_NAME != key)
-         && ( kwiver::vital::plugin_factory::CONCRETE_TYPE != key )
-         && ( kwiver::vital::plugin_factory::INTERFACE_TYPE != key )
-         && ( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION != key )
-         && ( kwiver::vital::plugin_factory::PLUGIN_FILE_NAME != key )
-         && ( kwiver::vital::plugin_factory::PLUGIN_VERSION != key )
-         && ( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME != key )
+    if ( ( kvpf::PLUGIN_NAME != key)
+         && ( kvpf::CONCRETE_TYPE != key )
+         && ( kvpf::INTERFACE_TYPE != key )
+         && ( kvpf::PLUGIN_DESCRIPTION != key )
+         && ( kvpf::PLUGIN_FILE_NAME != key )
+         && ( kvpf::PLUGIN_VERSION != key )
+         && ( kvpf::PLUGIN_MODULE_NAME != key )
       )
     {
       std::string value(val);
@@ -171,10 +172,10 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
   std::string buf;
 
   buf = "-- Not Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, buf );
+  fact->get_attribute( kvpf::PLUGIN_NAME, buf );
 
   std::string version( "" );
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, version );
+  fact->get_attribute( kvpf::PLUGIN_VERSION, version );
 
   pe_out() << "  Plugin name: " << buf;
 
@@ -192,7 +193,7 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
   pe_out()  << std::endl;
 
   buf = "-- Not Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, buf );
+  fact->get_attribute( kvpf::PLUGIN_DESCRIPTION, buf );
   pe_out() << G_context.m_wtb.wrap_text( buf );
 
   // Stop here if attributes not enabled
@@ -202,18 +203,18 @@ display_attributes( kwiver::vital::plugin_factory_handle_t const fact )
   }
 
   buf = "-- Not Set --";
-  if ( fact->get_attribute( kwiver::vital::plugin_factory::CONCRETE_TYPE, buf ) )
+  if ( fact->get_attribute( kvpf::CONCRETE_TYPE, buf ) )
   {
     buf = kwiver::vital::demangle( buf );
   }
   pe_out() << "      Creates concrete type: " << buf << std::endl;
 
   buf = "-- Not Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_FILE_NAME, buf );
+  fact->get_attribute( kvpf::PLUGIN_FILE_NAME, buf );
   pe_out() << "      Plugin loaded from file: " << buf << std::endl;
 
   buf = "-- Not Set --";
-  fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, buf );
+  fact->get_attribute( kvpf::PLUGIN_MODULE_NAME, buf );
   pe_out() << "      Plugin module name: " << buf << std::endl;
 
   // print all the rest of the attributes
@@ -257,24 +258,12 @@ display_factory( kwiver::vital::plugin_factory_handle_t const fact )
 void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
                           const std::string& category )
 {
-  kwiver::vital::category_explorer_sptr cat_handler = get_category_handler( category );
-
-  for( auto it : plugin_map )
+  for( const auto it : plugin_map )
   {
     std::string ds = kwiver::vital::demangle( it.first );
 
     kwiver::vital::plugin_factory_vector_t const& facts = it.second;
     if (facts.size() == 0)
-    {
-      continue;
-    }
-
-    kwiver::vital::plugin_factory_handle_t const afact = facts[0];
-
-    // We assume that all factories that support an interface all have the same category.
-    std::string cat;
-    if ( ! afact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, cat )
-         || cat != category )
     {
       continue;
     }
@@ -288,17 +277,25 @@ void display_by_category( const kwiver::vital::plugin_map_t& plugin_map,
     // Get vector of factories
     for( kwiver::vital::plugin_factory_handle_t const fact : facts )
     {
+      std::string cat;
+      if ( ! fact->get_attribute( kvpf::PLUGIN_CATEGORY, cat )
+           || cat != category )
+      {
+        continue;
+      }
+
       // If regexp matching is enabled, and this does not match, skip it
       if ( G_context.opt_type_filt )
       {
         std::string type_name = "-- Not Set --";
-        if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type_name )
+        if ( ! fact->get_attribute( kvpf::PLUGIN_NAME, type_name )
              || ( ! type_regex.find( type_name ) ) )
         {
           continue;
         }
       }
 
+      kwiver::vital::category_explorer_sptr cat_handler = get_category_handler( cat );
       if ( cat_handler )
       {
         cat_handler->explore( fact );
@@ -384,7 +381,7 @@ void load_explorer_plugins()
   for( auto fact : fact_list )
   {
     std::string name;
-    if ( fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, name ) )
+    if ( fact->get_attribute( kvpf::PLUGIN_NAME, name ) )
     {
       auto cat_ex = kwiver::vital::category_explorer_sptr(fact->create_object<kwiver::vital::category_explorer>());
       if ( cat_ex )
@@ -453,6 +450,11 @@ main( int argc, char* argv[] )
     ( "a,algo", "Display only algorithm type plugins. "
       "If type is specified as \"all\", then all algorithms are listed. Otherwise, the type "
       "will be treated as a regexp and only algorithm types that match the regexp will be displayed.",
+      cxxopts::value<std::string>() )
+
+    ( "cluster", "Display only cluster type plugins"
+      "If type is specified as \"all\", then all clusters are listed. Otherwise, the type "
+      "will be treated as a regexp and only cluster types that match the regexp will be displayed.",
       cxxopts::value<std::string>() )
 
     ( "scheduler", "Display scheduler type plugins" )
@@ -549,17 +551,17 @@ main( int argc, char* argv[] )
   if ( cmd_args.count("proc") )
   {
     G_context.opt_process = true;
-    std::string const proc_arg{ cmd_args["proc"].as<std::string>() };
+    std::string const regex_arg{ cmd_args["proc"].as<std::string>() };
 
     // Handle process type string
-    if ( proc_arg != "all" )
+    if ( regex_arg != "all" )
     {
       // if not all, then use as type selector regexp
       G_context.opt_type_filt = true; // do type filtering
-      if ( ! type_regex.compile( proc_arg) )
+      if ( ! type_regex.compile( regex_arg) )
       {
         std::cerr << "Invalid regular expression for type filter \""
-                  << proc_arg << "\"" << std::endl;
+                  << regex_arg << "\"" << std::endl;
         return 1;
       }
     }
@@ -568,21 +570,40 @@ main( int argc, char* argv[] )
   if ( cmd_args.count("algo") )
   {
     G_context.opt_algo = true;
-    std::string const algo_arg{ cmd_args["algo"].as<std::string>() };
+    std::string const regex_arg{ cmd_args["algo"].as<std::string>() };
 
     // Handle algorithm type string
-    if ( algo_arg != "all" )
+    if ( regex_arg != "all" )
     {
       // if not all, then use as type selector regexp
+      // Note algo's use factory filtering
       G_context.opt_fact_filt = true; // do factory filtering
-      if ( ! fact_regex.compile( algo_arg) )
+      if ( ! fact_regex.compile( regex_arg) )
       {
         std::cerr << "Invalid regular expression for type filter \""
-                  << algo_arg << "\"" << std::endl;
+                  << regex_arg << "\"" << std::endl;
         return 1;
       }
     }
+  }
 
+  if ( cmd_args.count("cluster") )
+  {
+    G_context.opt_cluster = true;
+    std::string const regex_arg{ cmd_args["cluster"].as<std::string>() };
+
+    // Handle algorithm type string
+    if ( regex_arg != "all" )
+    {
+      // if not all, then use as type selector regexp
+      G_context.opt_type_filt = true; // do factory filtering
+      if ( ! type_regex.compile( regex_arg) )
+      {
+        std::cerr << "Invalid regular expression for type filter \""
+                  << regex_arg << "\"" << std::endl;
+        return 1;
+      }
+    }
   }
 
   // If a factory filtering regex specified, then compile it.
@@ -647,9 +668,9 @@ main( int argc, char* argv[] )
   }
 
   // test for one of --algorithm or --process allowed
-  if ( G_context.opt_algo && G_context.opt_process )
+  if ( ( G_context.opt_algo + G_context.opt_process + G_context.opt_cluster ) > 1 )
   {
-    std::cerr << "Only one of --process or --algorithm allowed" << std::endl;
+    std::cerr << "Only one of --process, --cluster or --algorithm allowed" << std::endl;
     return 1;
   }
 
@@ -718,6 +739,12 @@ main( int argc, char* argv[] )
     display_by_category( plugin_map, "process" );
   }
 
+  else if ( G_context.opt_cluster )
+  {
+    auto plugin_map = vpm.plugin_map();
+    display_by_category( plugin_map, "cluster" );
+  }
+
   else if ( G_context.opt_scheduler )
   {
     auto plugin_map = vpm.plugin_map();
@@ -757,7 +784,7 @@ main( int argc, char* argv[] )
         if ( G_context.opt_type_filt )
         {
           std::string type_name = "-- Not Set --";
-          if ( ! fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type_name )
+          if ( ! fact->get_attribute( kvpf::PLUGIN_NAME, type_name )
                || ( ! type_regex.find( type_name ) ) )
           {
             continue;
@@ -766,7 +793,7 @@ main( int argc, char* argv[] )
 
         // See if there is a category handler for this plugin
         std::string category;
-        if ( ! G_context.opt_attrs && fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_CATEGORY, category ) )
+        if ( ! G_context.opt_attrs && fact->get_attribute( kvpf::PLUGIN_CATEGORY, category ) )
         {
           if ( category_map.count( category ) )
           {

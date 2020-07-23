@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,53 +28,69 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @file   cluster_creator.h
- * @brief  Interface for class cluster_creator.
- */
+#ifndef SPROKIT_PIPELINE_UTIL_BAKERY_DISPLAY_H
+#define SPROKIT_PIPELINE_UTIL_BAKERY_DISPLAY_H
 
-#ifndef SPROKIT_PIPELINE_UTIL_CLUSTER_CREATOR_H
-#define SPROKIT_PIPELINE_UTIL_CLUSTER_CREATOR_H
+#include<sprokit/pipeline_util/sprokit_pipeline_util_export.h>
 
 #include "cluster_bakery.h"
+#include "pipe_bakery.h"
 
-#include <vital/logger/logger.h>
-#include <vital/config/config_block.h>
+#include <vital/util/string.h>
 
+#include <string>
+#include <ostream>
 
 namespace sprokit {
 
-// ----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 /**
- * @brief Cluster Creator
+ * \brief Formatter for pipeline bakery.
  *
- * This class is a factory class for clusters.
+ * This class formats
  */
-class cluster_creator
+class SPROKIT_PIPELINE_UTIL_EXPORT bakery_display
 {
 public:
-  cluster_creator( cluster_bakery const & bakery );
-  ~cluster_creator();
+  bakery_display( std::ostream& str );
+
+    /**
+   * \brief Format bakery blocks in simple text format.
+   *
+   * \param bb Reference to bakery base.
+   */
+  void print( bakery_base const& bakery );
+  void print( cluster_bakery const& bakery );
 
   /**
-   * @brief Create cluster object
+   * \brief Set line prefix for printing.
    *
-   * This method creates a cluster object that can be treated as a
-   * process and added to a pipeline. It is treated the same as the
-   * process constructor.
+   * This prefix string is pre-pended to each line printed to allow
+   * for generating comment style output or any other creative
+   * application. Defaults to the empty string.
    *
-   * @return New process object.
+   * \param pfx The prefix string.
    */
-  process_t operator()( kwiver::vital::config_block_sptr const& config ) const;
+  void set_prefix( std::string const& pfx );
 
-  cluster_bakery const m_bakery;
+  /**
+   * \brief Set option to generate source location.
+   *
+   * The source location is the full file name and line number where
+   * the element was defined in the pipeline file. The display of the
+   * location can be fairly long and adversely affect readability, but
+   * sometimes it is needed when debugging a pipeline file.
+   *
+   * \param opt TRUE will generate the source location, FALSE will not.
+   */
+  void generate_source_loc( bool opt );
 
 private:
-  kwiver::vital::config_block_sptr m_default_config;
-
-  kwiver::vital::logger_handle_t m_logger;
+  std::ostream& m_ostr;
+  std::string m_prefix;
+  bool m_gen_source_loc;
 };
 
-} // end namespace sprokit
+} // end namespace
 
-#endif /* SPROKIT_PIPELINE_UTIL_CLUSTER_CREATOR_H */
+#endif

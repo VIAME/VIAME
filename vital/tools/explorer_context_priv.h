@@ -55,6 +55,7 @@ public:
   bool opt_all {false};
   bool opt_algo {false};
   bool opt_process {false};
+  bool opt_cluster {false};
   bool opt_scheduler {false};
   bool opt_summary {false};
   bool opt_attrs {false};

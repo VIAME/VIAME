@@ -50,12 +50,6 @@ cluster_bakery
 }
 
 
-cluster_bakery
-::~cluster_bakery()
-{
-}
-
-
 // ------------------------------------------------------------------
 /*
  * This method processes a cluster pipe block which contains a vector

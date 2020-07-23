@@ -4,6 +4,7 @@ project(sprokit_pipeline_util)
 
 set(pipeline_util_srcs
   bakery_base.cxx
+  bakery_display.cxx
   cluster_bakery.cxx
   cluster_creator.cxx
   cluster_info.cxx
@@ -16,11 +17,11 @@ set(pipeline_util_srcs
   loaded_cluster.cxx
   pipe_bakery.cxx
   pipe_bakery_exception.cxx
+  pipe_display.cxx
   pipe_parser.cxx
   pipeline_builder.cxx
   provided_by_cluster.cxx
   token.cxx
-  pipe_display.cxx
   )
 
 set(pipeline_util_headers
@@ -37,17 +38,18 @@ set(pipeline_util_headers
 
 set(pipeline_util_private_headers
   bakery_base.h
+  bakery_display.h
   cluster_bakery.h
   cluster_creator.h
   cluster_info.h
   cluster_splitter.h
   lex_processor.h
   loaded_cluster.h
+  pipe_display.h
   pipe_parser.h
   pipeline_builder.h
   provided_by_cluster.h
   token.h
-  pipe_display.h
   )
 
 if (WIN32)
@@ -70,11 +72,12 @@ set(sprokit_pipe_include_options  "DEFAULT_PIPE_INCLUDE_PATHS=\"${SPROKIT_DEFAUL
 
 set(load_pipe_build_options)
 
+# It is not clear why windows is treated differently here
+# Maybe the build options do not work the same.
 if (WIN32)
-  sprokit_configure_file(include-paths.h
+  configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/include-paths.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/include-paths.h"
-    SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS)
+    "${CMAKE_CURRENT_BINARY_DIR}/include-paths.h")
 
   list(APPEND pipeline_util_private_headers
     include-paths.h.in)
@@ -123,5 +126,3 @@ kwiver_install_headers(
   SUBDIR   sprokit/pipeline_util
   NOPATH
   )
-
-sprokit_configure_pkgconfig(sprokit-pipeline_util)
