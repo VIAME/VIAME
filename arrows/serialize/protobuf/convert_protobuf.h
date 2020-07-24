@@ -33,6 +33,7 @@
 
 #include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
 
+#include <vital/types/activity.h>
 #include <vital/types/metadata.h>
 #include <vital/types/bounding_box.h>
 #include <vital/types/image_container.h>
@@ -57,6 +58,7 @@ namespace vital {
 namespace kwiver {
 namespace protobuf {
 
+  class activity;
   class bounding_box;
   class class_map;
   class detected_object;
@@ -82,6 +84,15 @@ namespace kwiver {
 namespace arrows {
 namespace serialize {
 namespace protobuf {
+
+// ---- activity
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const ::kwiver::protobuf::activity& proto_act,
+                       ::kwiver::vital::activity&          act );
+
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const ::kwiver::vital::activity& act,
+                       ::kwiver::protobuf::activity&    proto_act );
 
 // ---- bounding_box
 KWIVER_SERIALIZE_PROTOBUF_EXPORT

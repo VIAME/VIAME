@@ -5,6 +5,7 @@
 find_package( Protobuf REQUIRED 3 )
 
 set( proto_files
+  activity.proto
   bounding_box.proto
   covariance.proto
   detected_object.proto

@@ -624,10 +624,19 @@ void save( cereal::JSONOutputArchive& archive,
     archive( ::cereal::make_nvp( "id", activity.id() ),
              ::cereal::make_nvp( "label", activity.label() ),
              ::cereal::make_nvp( "confidence", activity.confidence() ) );
-    save( archive, *activity.activity_type());
     save( archive, activity.start());
     save( archive, activity.end());
-    save( archive, *activity.participants() );
+
+    // These may be null
+    if ( activity.activity_type() )
+    {
+      save( archive, *activity.activity_type());
+    }
+
+    if ( activity.participants() )
+    {
+      save( archive, *activity.participants() );
+    }
 }
 
 void load( cereal::JSONInputArchive& archive,
@@ -636,7 +645,7 @@ void load( cereal::JSONInputArchive& archive,
   kwiver::vital::activity_id_t id;
   kwiver::vital::activity_label_t label;
   kwiver::vital::activity_confidence_t confidence;
-  kwiver::vital::class_map_sptr class_map =
+  kwiver::vital::class_map_sptr act_type =
                            std::make_shared< kwiver::vital::class_map >();
   kwiver::vital::object_track_set_sptr participants =
                            std::make_shared< kwiver::vital::object_track_set >();
@@ -646,14 +655,35 @@ void load( cereal::JSONInputArchive& archive,
            CEREAL_NVP( confidence ) );
   load( archive, start_frame );
   load( archive, end_frame );
-  load( archive, *class_map );
-  load( archive, *participants );
   activity.set_id( id );
   activity.set_label( label );
   activity.set_confidence( confidence );
-  activity.set_activity_type( class_map );
   activity.set_start( start_frame );
   activity.set_end( end_frame );
+
+  // Optional parameters aren't supported
+  // for JSON. activity_type and participants may or may not exist,
+  // so we check if an exception is thrown when we look for them.
+  // If an exception is thrown, we set those fields to null.
+  try
+  {
+    load( archive, *act_type );
+  }
+  catch( cereal::Exception const& )
+  {
+    act_type = nullptr;
+  }
+
+  try
+  {
+    load( archive, *participants );
+  }
+  catch( cereal::Exception const& )
+  {
+    participants = nullptr;
+  }
+
+  activity.set_activity_type( act_type );
   activity.set_participants( participants );
 }
 

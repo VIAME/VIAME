@@ -21,5 +21,7 @@ from kwiver.vital.types.similarity import *
 from kwiver.vital.types.timestamp import *
 from kwiver.vital.types.track import *
 from kwiver.vital.types.track_set import *
+# For an explanation of why these are out of order,
+# see the CMakeLists.txt in this directory
 from kwiver.vital.types.object_track_set import *
 from kwiver.vital.types.activity import *

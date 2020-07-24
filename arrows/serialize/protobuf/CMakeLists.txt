@@ -11,6 +11,7 @@ endif()
 set( headers_public
   convert_protobuf.h
   convert_protobuf_point.h
+  activity.h
   bounding_box.h
   class_map.h
   detected_object.h
@@ -29,6 +30,7 @@ set( headers_public
 set( sources
   convert_protobuf.cxx
   convert_protobuf_point.cxx
+  activity.cxx
   bounding_box.cxx
   class_map.cxx
   detected_object.cxx

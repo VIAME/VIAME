@@ -85,7 +85,7 @@ namespace vital {
 
   class_map_sptr activity::activity_type() const
   {
-    return std::make_shared< class_map >( *m_class_map );
+    return m_class_map;
   }
 
   void activity::set_activity_type( class_map_sptr class_map )

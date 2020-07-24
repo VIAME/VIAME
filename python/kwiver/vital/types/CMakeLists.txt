@@ -209,6 +209,9 @@ if(NOT SKBUILD)
     timestamp
     track
     track_set
+    # These modules depend on some of the ones above and therefore
+    # must be loaded after them.  (In particular, object_track_set
+    # depends on track_set, and activity depends on object_track_set.)
     object_track_set
     activity
   )

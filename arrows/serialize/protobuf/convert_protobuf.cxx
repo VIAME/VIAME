@@ -46,6 +46,7 @@
 #include <vital/exceptions.h>
 #include <vital/vital_types.h>
 
+#include <vital/types/protobuf/activity.pb.h>
 #include <vital/types/protobuf/bounding_box.pb.h>
 #include <vital/types/protobuf/class_map.pb.h>
 #include <vital/types/protobuf/detected_object.pb.h>
@@ -67,6 +68,7 @@
 #include <zlib.h>
 #include <cstddef>
 #include <cstring>
+#include <memory>
 #include <sstream>
 
 namespace kwiver {
@@ -75,7 +77,80 @@ namespace serialize {
 namespace protobuf {
 
 // ----------------------------------------------------------------------------
-void convert_protobuf( const ::kwiver::protobuf::bounding_box&  proto_bbox,
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const ::kwiver::protobuf::activity& proto_act,
+                       ::kwiver::vital::activity&          act )
+{
+  act = ::kwiver::vital::activity();
+
+  // First convert required params from protobuf
+  ::kwiver::vital::timestamp start_frame;
+  convert_protobuf( proto_act.start_frame(), start_frame );
+
+  ::kwiver::vital::timestamp end_frame;
+  convert_protobuf( proto_act.end_frame(), end_frame );
+
+  // Set required params
+  act.set_id( proto_act.id() );
+  act.set_label( proto_act.label() );
+  act.set_confidence( proto_act.confidence() );
+  act.set_start( start_frame );
+  act.set_end( end_frame );
+
+  // Now get the optional params, if they exist, and set
+  if ( proto_act.has_activity_type() )
+  {
+    auto cm_sptr = std::make_shared< ::kwiver::vital::class_map >();
+    convert_protobuf( proto_act.activity_type(), *cm_sptr );
+    act.set_activity_type( cm_sptr );
+  }
+
+  if ( proto_act.has_participants() )
+  {
+    auto obj_trk_set_sptr = std::make_shared< ::kwiver::vital::object_track_set >();
+    convert_protobuf( proto_act.participants(), obj_trk_set_sptr );
+    act.set_participants( obj_trk_set_sptr );
+  }
+}
+
+// ----------------------------------------------------------------------------
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const ::kwiver::vital::activity& act,
+                       ::kwiver::protobuf::activity&    proto_act )
+{
+  // Again retrieve required params and convert to protobuf
+  ::kwiver::protobuf::timestamp proto_start_frame;
+  convert_protobuf( act.start(), proto_start_frame );
+
+  ::kwiver::protobuf::timestamp proto_end_frame;
+  convert_protobuf( act.end(), proto_end_frame );
+
+  // Set required fields
+  proto_act.set_id( act.id() );
+  proto_act.set_label( act.label() );
+  proto_act.set_confidence( act.confidence() );
+  *proto_act.mutable_start_frame() = proto_start_frame;
+  *proto_act.mutable_end_frame() = proto_end_frame;
+
+  auto cm_sptr = act.activity_type();
+  // Now check if optional fields can be set
+  if ( auto cm_sptr = act.activity_type() )
+  {
+    ::kwiver::protobuf::class_map proto_cm;
+    convert_protobuf( *cm_sptr, proto_cm );
+    *proto_act.mutable_activity_type() = proto_cm;
+  }
+
+  if ( auto obj_trk_set_sptr = act.participants() )
+  {
+    ::kwiver::protobuf::object_track_set proto_obj_trk_set;
+    convert_protobuf( obj_trk_set_sptr, proto_obj_trk_set );
+    *proto_act.mutable_participants() = proto_obj_trk_set;
+  }
+}
+
+// ----------------------------------------------------------------------------
+void convert_protobuf( const ::kwiver::protobuf::bounding_box& proto_bbox,
                   ::kwiver::vital::bounding_box_d& bbox )
  {
    bbox = ::kwiver::vital::bounding_box_d( proto_bbox.xmin(),
