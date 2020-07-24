@@ -38,6 +38,7 @@
 #include <sprokit/pipeline/scheduler_factory.h>
 #include <sprokit/pipeline/pipeline.h>
 #include <sprokit/pipeline_util/pipeline_builder.h>
+#include <sprokit/pipeline_util/pipe_display.h>
 
 #include <cstdlib>
 #include <iostream>
@@ -78,7 +79,7 @@ add_command_options()
     ( "I,include", "A directory to be added to configuration include path. Can occur multiple times.",
       cxxopts::value<std::vector<std::string>>()  )
     ( "S,scheduler", "Scheduler type to use.", cxxopts::value<std::string>() )
-    ( "D,dump-config", "Dump final pipeline configuration. This is useful for "
+    ( "D,dump-pipe", "Dump final pipeline configuration. This is useful for "
       "debugging config related problems." )
     ;
 
@@ -157,10 +158,14 @@ run()
   kwiver::vital::config_block_sptr const conf = builder.config();
 
   // nice to dump config at this point
-  if ( cmd_args["dump-config"].as<bool>() )
+  if ( cmd_args["dump-pipe"].as<bool>() )
   {
-    ::kwiver::vital::config_block_formatter fmt( conf );
-    fmt.print( std::cout, "tree" );
+    std::cout << "\nPipeline contents:\n";;
+    sprokit::pipe_display pd( std::cout );
+    pd.print_loc();
+    pd.display_pipe_blocks( builder.pipeline_blocks() );
+
+    return EXIT_SUCCESS;
   }
 
   if (!pipe)
