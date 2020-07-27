@@ -60,6 +60,12 @@ class Homography(_Homography):
         # Remove z coordinate
         return result[..., :-1, :] / result[..., -1:, :]
 
+HomographyF2F = namedtuple('HomographyF2F', [
+    'homog',  # Homography instance
+    'from_id',  # Source coordinate space ID
+    'to_id',  # Destination coordinate space ID
+])
+
 _BBox = namedtuple('_BBox', ['xmin', 'ymin', 'xmax', 'ymax'])
 
 class BBox(_BBox):
@@ -129,23 +135,27 @@ def ious(x, y):
     u = area(x) + area(y) - i
     return np.where((maxmin < minmax).all(-1), i / u, 0)
 
-def match_boxes_homog(homog, boxes, prev_boxes, min_iou):
+def match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou):
     """Return a list of indices into prev_boxes, where each index
     identifies the entry of prev_boxes that matches the
     corresponding box in boxes.  A returned value may be None in the
     case of no match.
 
-    homog is a Homography transforming the coordinates of boxes
-    to those of prev_boxes.
+    homog and prev_homog are HomographyF2Fs transforming the
+    coordinates of boxes and prev_boxes, respectively, to
+    reference-frame coordinates.
 
     min_iou is the minimum IOU required for a match."""
-    if not boxes:
-        return []
-    if not prev_boxes:
+    if prev_homog.to_id != homog.to_id:
+        logger.debug("Returning no matches due to break in homography stream")
         return [None] * len(boxes)
+    if not (boxes and prev_boxes):
+        return [None] * len(boxes)
+    prev_homog_, homog_ = prev_homog.homog.matrix, homog.homog.matrix
+    rel_homog = Homography(np.matmul(np.linalg.inv(prev_homog_), homog_))
     # Because aligned bounding boxes are easy to work with, we transform to
     # approximate aligned bounding boxes instead of an arbitrary quadrilateral
-    boxes = [transform_box(homog, b) for b in boxes]
+    boxes = [transform_box(rel_homog, b) for b in boxes]
     # Now boxes and prev_boxes are in the same coordinate system.
     # iou has shape (len(boxes), len(prev_boxes))
     iou = ious(
@@ -170,8 +180,8 @@ def core_track(min_iou=None):
     tracks with the given minimum IOU).  The .step call expects two
     arguments:
     - A list of BBoxes
-    - A Homography from this-frame coordinates to previous-frame
-      coordinates (or None)
+    - A HomographyF2F from this-frame coordinates to reference-frame
+      coordinates
     and returns:
     - a list of (integer) track IDs corresponding to the input boxes
 
@@ -183,42 +193,13 @@ def core_track(min_iou=None):
     prev_boxes = None
     while True:
         boxes, homog = yield output
-        if prev_boxes is not None and homog is None:
-            logger.debug("Breaking all tracks after break in homography stream")
-            prev_boxes = None
         if prev_boxes is None:
             track_ids = [new_id() for _ in boxes]
         else:
-            mi = match_boxes_homog(homog, boxes, prev_boxes, min_iou)
+            mi = match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou)
             track_ids = [new_id() if i is None else track_ids[i] for i in mi]
-        prev_boxes = boxes
+        prev_boxes, prev_homog = boxes, homog
         output = track_ids
-
-HomographyF2F = namedtuple('HomographyF2F', [
-    'homog',  # Homography instance
-    'from_id',  # Source coordinate space ID
-    'to_id',  # Destination coordinate space ID
-])
-
-@Transformer.decorate
-def convert_homographies():
-    """Create a Transformer that converts frame-to-frame homographies to
-    homographies to the previous frame, or None if not possible.  The
-    .step call expects one argument:
-    - a HomographyF2F (from this frame to reference frame)
-    and returns a Homography.
-
-    """
-    output = None
-    prev = None
-    while True:
-        curr, = yield output
-        if prev is not None and prev.to_id == curr.to_id:
-            homog = Homography(np.matmul(np.linalg.inv(prev.homog.matrix), curr.homog.matrix))
-        else:
-            homog = None
-        prev = curr
-        output = homog
 
 @Transformer.decorate
 def build_tracks():
@@ -290,17 +271,15 @@ def track(min_iou=None):
     - a Kwiver F2FHomography
     - a Kwiver timestamp
     and returns a Kwiver ObjectTrackSet"""
-    ch = convert_homographies()
     ct = core_track(min_iou)
     bt = build_tracks()
 
     output = None
     while True:
         do_set, homog_s2r, ts = yield output
-        homog = ch.step(wrap_F2FHomography(homog_s2r))
         dos = to_DetectedObject_list(do_set)
         boxes = [get_DetectedObject_bbox(do) for do in dos]
-        track_ids = ct.step(boxes, homog)
+        track_ids = ct.step(boxes, wrap_F2FHomography(homog_s2r))
         tracks = bt.step(track_ids, dos, ts)
         output = to_ObjectTrackSet(tracks)
 
