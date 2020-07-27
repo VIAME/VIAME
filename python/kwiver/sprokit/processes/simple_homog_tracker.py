@@ -135,6 +135,25 @@ def ious(x, y):
     u = area(x) + area(y) - i
     return np.where((maxmin < minmax).all(-1), i / u, 0)
 
+def optimize_iou_based_assignment(iou_array, min_iou):
+    """Given an NxM numpy.ndarray of IOU scores between N source objects
+    and M target objects, return an optimal assignment as an N-length
+    list result such that the ith source object is assigned to the
+    result[i]'th target object, or unassigned if result[i] is None.
+
+    min_iou is the minimum IOU required for a match.
+
+    """
+    # linear_sum_assignment finds a minimum assignment, so subtract
+    # IOUs from 1 (the max)
+    weights = np.where(iou_array < min_iou, 1, 1 - iou_array)
+    source_ind, target_ind = scipy.optimize.linear_sum_assignment(weights)
+    result = [None] * len(iou_array)
+    for si, ti in zip(source_ind, target_ind):
+        if weights[si, ti] < 1:
+            result[si] = ti
+    return result
+
 def match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou):
     """Return a list of indices into prev_boxes, where each index
     identifies the entry of prev_boxes that matches the
@@ -162,15 +181,7 @@ def match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou):
         np.array([[b.matrix] for b in boxes]),
         np.array([[pb.matrix for pb in prev_boxes]]),
     )
-    # linear_sum_assignment finds a minimum assignment, so subtract
-    # IOUs from 1 (the max)
-    weights = np.where(iou < min_iou, 1, 1 - iou)
-    box_ind, prev_box_ind = scipy.optimize.linear_sum_assignment(weights)
-    result = [None] * len(boxes)
-    for bi, pbi in zip(box_ind, prev_box_ind):
-        if weights[bi, pbi] < 1:
-            result[bi] = pbi
-    return result
+    return optimize_iou_based_assignment(iou, min_iou)
 
 @Transformer.decorate
 def min_track(match):
