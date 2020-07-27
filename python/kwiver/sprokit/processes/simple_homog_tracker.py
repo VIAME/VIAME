@@ -172,9 +172,41 @@ def match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou):
             result[bi] = pbi
     return result
 
+@Transformer.decorate
+def min_track(match):
+    """Create a Transformer that performs minimalistic tracking
+
+    Arguments:
+    - A matching function of signature (context1, seq1, context2,
+      seq2, /) -> result, with:
+      - seq1 and seq2 sequences of some specified type
+      - context1 and context2 arbitrary context objects
+      - result an iterable containing the index of the match in the
+        seq2 for each element in seq1 (or None if no match)
+
+    The .step call expects two arguments:
+    - A sequence of the type expected by the matching function
+    - An additional context object of the type expected by the
+      matching function
+    and returns:
+    - a list of (integer) track IDs
+
+    """
+    def new_id(_c=itertools.count(1)): return next(_c)
+    output = None
+    prev_input = None
+    while True:
+        input_, state = yield output
+        if prev_input is None:
+            track_ids = [new_id() for _ in input_]
+        else:
+            mi = match(state, input_, prev_state, prev_input)
+            track_ids = [new_id() if i is None else track_ids[i] for i in mi]
+        prev_input, prev_state = input_, state
+        output = track_ids
+
 DEFAULT_MIN_IOU = 0.2
 
-@Transformer.decorate
 def core_track(min_iou=None):
     """Create a Transformer that performs tracking (only associating
     tracks with the given minimum IOU).  The .step call expects two
@@ -187,19 +219,7 @@ def core_track(min_iou=None):
 
     """
     if min_iou is None: min_iou = DEFAULT_MIN_IOU  # Default value
-    # new_id() gets a new track ID, starting from 1
-    def new_id(_c=itertools.count(1)): return next(_c)
-    output = None
-    prev_boxes = None
-    while True:
-        boxes, homog = yield output
-        if prev_boxes is None:
-            track_ids = [new_id() for _ in boxes]
-        else:
-            mi = match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou)
-            track_ids = [new_id() if i is None else track_ids[i] for i in mi]
-        prev_boxes, prev_homog = boxes, homog
-        output = track_ids
+    return min_track(functools.partial(match_boxes_homog, min_iou=min_iou))
 
 @Transformer.decorate
 def build_tracks():
