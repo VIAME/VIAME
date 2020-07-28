@@ -14,3 +14,11 @@ Arrows: Core
    was also metadata useful for determining focal length.  Distortion
    parameters were also not properly preserved in this initialization
    and this has also been resolved.
+
+Arrows: OpenCV
+
+ * Fixed a long standing bug with memory management when converting between
+   OpenCV and Vital images.  Reference counting was not handled correctly.
+   A workaround was previously added that forced a deep copy, but this created
+   another bug resulting in images with invalid first_pixel() values.
+   Both of these issues have been addressed.
