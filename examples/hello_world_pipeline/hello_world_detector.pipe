@@ -1,5 +1,11 @@
 # =============================================================================
-process image_reader
+# global pipeline config
+#
+config _pipeline:_edge
+  :capacity                                    5
+
+# =============================================================================
+process input
   :: video_input
   :video_filename                              input_list.txt
   :frame_time                                  0.3333
@@ -7,16 +13,10 @@ process image_reader
   :video_reader:image_list:image_reader:type   ocv
 
 # =============================================================================
-process input
+process detector
   :: image_object_detector
   :detector:type                               hello_world
   :detector:hello_world:text                   Hello World!!!
-
-# =============================================================================
-# global pipeline config
-#
-config _pipeline:_edge
-       :capacity 5
 
 # =============================================================================
 # connections
