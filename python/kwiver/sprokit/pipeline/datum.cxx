@@ -67,25 +67,29 @@ using namespace pybind11;
 PYBIND11_MAKE_OPAQUE(std::vector<unsigned char>);
 PYBIND11_MAKE_OPAQUE(std::vector<double>);
 PYBIND11_MAKE_OPAQUE(std::vector<std::string>);
+namespace kwiver{
+namespace sprokit{
+namespace python{
 
-static sprokit::datum new_datum_no_cast(object const& obj);
-template<class T> sprokit::datum new_datum(object const& obj);
-static sprokit::datum empty_datum();
-static sprokit::datum flush_datum();
-static sprokit::datum complete_datum();
-static sprokit::datum error_datum(std::string const& err);
-static sprokit::datum::type_t datum_type(sprokit::datum const& self);
-static sprokit::datum::error_t datum_get_error(sprokit::datum const& self);
-static object datum_get_datum(sprokit::datum const& self);
-static std::string datum_datum_type(sprokit::datum const& self);
+static ::sprokit::datum new_datum_no_cast(object const& obj);
+template<class T> ::sprokit::datum new_datum(object const& obj);
+static ::sprokit::datum empty_datum();
+static ::sprokit::datum flush_datum();
+static ::sprokit::datum complete_datum();
+static ::sprokit::datum error_datum(std::string const& err);
+static ::sprokit::datum::type_t datum_type(::sprokit::datum const& self);
+static ::sprokit::datum::error_t datum_get_error(::sprokit::datum const& self);
+static object datum_get_datum(::sprokit::datum const& self);
+static std::string datum_datum_type(::sprokit::datum const& self);
 
-static PyObject* datum_get_datum_ptr(sprokit::datum& self);
-static sprokit::datum_t datum_from_capsule( PyObject* cap );
+static PyObject* datum_get_datum_ptr(::sprokit::datum& self);
+static ::sprokit::datum_t datum_from_capsule( PyObject* cap );
 
-template<class T> T datum_get_object(sprokit::datum &);
+template<class T> T datum_get_object(::sprokit::datum &);
 
 char const* sprokit_datum_PyCapsule_name() { return  "sprokit::datum"; }
-
+}}}
+using namespace kwiver::sprokit::python;
 
 PYBIND11_MODULE(datum, m)
 {
@@ -217,56 +221,57 @@ PYBIND11_MODULE(datum, m)
 
 } // end module
 
-
 // ------------------------------------------------------------------
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
 // For now, we need to manually specify how we want to cast our datum
 // This should be fixed when we move away from kwiver::vital::any
-sprokit::datum
+::sprokit::datum
 new_datum_no_cast(object const& obj)
 {
-  return *(sprokit::datum::new_datum(obj));
+  return *(::sprokit::datum::new_datum(obj));
 }
 
 template<class T>
-sprokit::datum
+::sprokit::datum
 new_datum(object const& obj)
 {
-  return *(sprokit::datum::new_datum(cast<T>(obj)));
+  return *(::sprokit::datum::new_datum(cast<T>(obj)));
 }
 
-sprokit::datum
+::sprokit::datum
 empty_datum()
 {
-  return *(sprokit::datum::empty_datum());
+  return *(::sprokit::datum::empty_datum());
 }
 
-sprokit::datum
+::sprokit::datum
 flush_datum()
 {
-  return *(sprokit::datum::flush_datum());
+  return *(::sprokit::datum::flush_datum());
 }
 
-sprokit::datum
+::sprokit::datum
 complete_datum()
 {
-  return *(sprokit::datum::complete_datum());
+  return *(::sprokit::datum::complete_datum());
 }
 
-sprokit::datum
+::sprokit::datum
 error_datum(std::string const& err)
 {
-  return *(sprokit::datum::error_datum(err));
+  return *(::sprokit::datum::error_datum(err));
 }
 
-sprokit::datum::type_t
-datum_type(sprokit::datum const& self)
+::sprokit::datum::type_t
+datum_type(::sprokit::datum const& self)
 {
   return self.type();
 }
 
-sprokit::datum::error_t
-datum_get_error(sprokit::datum const& self)
+::sprokit::datum::error_t
+datum_get_error(::sprokit::datum const& self)
 {
   return self.get_error();
 }
@@ -275,10 +280,10 @@ datum_get_error(sprokit::datum const& self)
 // It can be useful if we can assume we're dealing specifically with python
 // otherwise, use a converter like get_image_container
 object
-datum_get_datum(sprokit::datum const& self)
+datum_get_datum(::sprokit::datum const& self)
 {
   object dat = none();
-  if ( self.type() == sprokit::datum::data )
+  if ( self.type() == ::sprokit::datum::data )
   {
     kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
     dat = kwiver::vital::any_cast<object>(any);
@@ -288,7 +293,7 @@ datum_get_datum(sprokit::datum const& self)
 }
 
 std::string
-datum_datum_type(sprokit::datum const& self)
+datum_datum_type(::sprokit::datum const& self)
 {
   kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
 
@@ -313,9 +318,9 @@ datum_datum_type(sprokit::datum const& self)
  * \return Address of real datum object.
  */
 PyObject*
-datum_get_datum_ptr(sprokit::datum& self)
+datum_get_datum_ptr(::sprokit::datum& self)
 {
-  return PyCapsule_New( const_cast< sprokit::datum* >(std::make_shared<sprokit::datum> (self).get()), "sprokit::datum", NULL );
+  return PyCapsule_New( const_cast< ::sprokit::datum* >(std::make_shared<::sprokit::datum> (self).get()), "sprokit::datum", NULL );
 }
 
 
@@ -329,17 +334,17 @@ datum_get_datum_ptr(sprokit::datum& self)
  *
  * \return datum_t sptr that manages supplied datum object.
  */
-sprokit::datum_t
+::sprokit::datum_t
 datum_from_capsule( PyObject* cap )
 {
   // cap is pointer to datum
   if (PyCapsule_IsValid( cap, "sprokit::datum" ))
   {
-    sprokit::datum* dptr = static_cast<sprokit::datum*>( PyCapsule_GetPointer( cap, "sprokit::datum" ) );
-    return sprokit::datum_t(dptr);
+    ::sprokit::datum* dptr = static_cast<::sprokit::datum*>( PyCapsule_GetPointer( cap, "sprokit::datum" ) );
+    return ::sprokit::datum_t(dptr);
   }
 
-  return sprokit::datum::error_datum( "Invalid PyCapsule" );
+  return ::sprokit::datum::error_datum( "Invalid PyCapsule" );
 }
 
 // ------------------------------------------------------------------
@@ -356,8 +361,9 @@ datum_from_capsule( PyObject* cap )
  */
 template<class T>
 T
-datum_get_object(sprokit::datum &self)
+datum_get_object(::sprokit::datum &self)
 {
   kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
   return kwiver::vital::any_cast<T>(any);
 }
+}}}

@@ -34,7 +34,9 @@
 #include <python/kwiver/vital/algo/compute_depth.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void compute_depth(py::module &m)
 {
   py::class_< kwiver::vital::algo::compute_depth,
@@ -49,3 +51,4 @@ void compute_depth(py::module &m)
     .def("set_callback",
         &kwiver::vital::algo::compute_depth::set_callback);
 }
+}}}

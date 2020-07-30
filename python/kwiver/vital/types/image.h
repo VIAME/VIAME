@@ -37,16 +37,18 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
+
 typedef kwiver::vital::image image_t;
 typedef kwiver::vital::image_pixel_traits pixel_traits;
 namespace py = pybind11;
 
-void image(py::module &m);
+
 
 namespace kwiver {
 namespace vital {
 namespace python {
 namespace image {
+  void image(py::module &m);
   pixel_traits::pixel_type pixel_type(std::shared_ptr<image_t> &self);
   std::string pixel_type_name(std::shared_ptr<image_t> &self);
   size_t pixel_num_bytes(std::shared_ptr<image_t> &self);

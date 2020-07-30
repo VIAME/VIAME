@@ -47,12 +47,13 @@ PYBIND11_MAKE_OPAQUE(string_set)
  *
  * \brief Python bindings for \link sprokit::process\endlink.
  */
-
 using namespace pybind11;
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
 // Publicist class to access protected methods
 class wrap_process
-  : public sprokit::process
+  : public ::sprokit::process
 {
   public:
     using process::process;
@@ -96,7 +97,7 @@ class wrap_process
 
 // Trampoline class to allow us to use virtual methods
 class process_trampoline
-  : public sprokit::process
+  : public ::sprokit::process
 {
   public:
     using process::process;
@@ -108,60 +109,64 @@ class process_trampoline
     void _step() override;
     void _finalize() override;
     void _reconfigure(kwiver::vital::config_block_sptr const& config) override;
-    sprokit::process::properties_t _properties() const override;
-    sprokit::process::properties_t _properties_over() const;
-    sprokit::process::ports_t _input_ports() const override;
-    sprokit::process::ports_t _output_ports() const override;
+    ::sprokit::process::properties_t _properties() const override;
+    ::sprokit::process::properties_t _properties_over() const;
+    ::sprokit::process::ports_t _input_ports() const override;
+    ::sprokit::process::ports_t _output_ports() const override;
     port_info_t _input_port_info(port_t const& port) override;
     port_info_t _output_port_info(port_t const& port) override;
     bool _set_input_port_type(port_t const& port, port_type_t const& new_type) override;
     bool _set_output_port_type(port_t const& port, port_type_t const& new_type) override;
     kwiver::vital::config_block_keys_t _available_config() const override;
-    sprokit::process::conf_info_t _config_info(kwiver::vital::config_block_key_t const& key) override;
+    ::sprokit::process::conf_info_t _config_info(kwiver::vital::config_block_key_t const& key) override;
 
 };
 
-void declare_input_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info);
-void declare_input_port_5(sprokit::process &self,
-                          sprokit::process::port_t const& port,
-                          sprokit::process::port_type_t const& type_,
-                          sprokit::process::port_flags_t const& flags_,
-                          sprokit::process::port_description_t const& description_,
-                          sprokit::process::port_frequency_t const& frequency_);
+void declare_input_port_2(::sprokit::process &self, ::sprokit::process::port_t const& port, ::sprokit::process::port_info_t const& port_info);
+void declare_input_port_5(::sprokit::process &self,
+                          ::sprokit::process::port_t const& port,
+                          ::sprokit::process::port_type_t const& type_,
+                          ::sprokit::process::port_flags_t const& flags_,
+                          ::sprokit::process::port_description_t const& description_,
+                          ::sprokit::process::port_frequency_t const& frequency_);
 
-void declare_output_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info);
-void declare_output_port_5(sprokit::process &self,
-                          sprokit::process::port_t const& port,
-                          sprokit::process::port_type_t const& type_,
-                          sprokit::process::port_flags_t const& flags_,
-                          sprokit::process::port_description_t const& description_,
-                          sprokit::process::port_frequency_t const& frequency_);
+void declare_output_port_2(::sprokit::process &self, ::sprokit::process::port_t const& port, ::sprokit::process::port_info_t const& port_info);
+void declare_output_port_5(::sprokit::process &self,
+                          ::sprokit::process::port_t const& port,
+                          ::sprokit::process::port_type_t const& type_,
+                          ::sprokit::process::port_flags_t const& flags_,
+                          ::sprokit::process::port_description_t const& description_,
+                          ::sprokit::process::port_frequency_t const& frequency_);
 
-void declare_configuration_key_2(sprokit::process &self,
+void declare_configuration_key_2(::sprokit::process &self,
                                  kwiver::vital::config_block_key_t const& key,
-                                 sprokit::process::conf_info_t const& info);
-void declare_configuration_key_3(sprokit::process &self,
+                                 ::sprokit::process::conf_info_t const& info);
+void declare_configuration_key_3(::sprokit::process &self,
                                  kwiver::vital::config_block_key_t const& key,
                                  kwiver::vital::config_block_value_t const& def_,
                                  kwiver::vital::config_block_description_t const& description_);
-void declare_configuration_key_4(sprokit::process &self,
+void declare_configuration_key_4(::sprokit::process &self,
                                  kwiver::vital::config_block_key_t const& key,
                                  kwiver::vital::config_block_value_t const& def_,
                                  kwiver::vital::config_block_description_t const& description_,
                                  bool tunable_);
 
-wrap_edge_datum peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, std::size_t idx);
-wrap_edge_datum grab_from_port(sprokit::process &self, sprokit::process::port_t const& port);
-sprokit::datum grab_datum_from_port(sprokit::process &self, sprokit::process::port_t const& port);
-sprokit::datum peek_at_datum_on_port(sprokit::process &self,
-                                     sprokit::process::port_t const& port,
+wrap_edge_datum peek_at_port(::sprokit::process &self, ::sprokit::process::port_t const& port, std::size_t idx);
+wrap_edge_datum grab_from_port(::sprokit::process &self, ::sprokit::process::port_t const& port);
+::sprokit::datum grab_datum_from_port(::sprokit::process &self, ::sprokit::process::port_t const& port);
+::sprokit::datum peek_at_datum_on_port(::sprokit::process &self,
+                                     ::sprokit::process::port_t const& port,
                                      std::size_t idx);
-object grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port);
+object grab_value_from_port(::sprokit::process &self, ::sprokit::process::port_t const& port);
 
-void push_value_to_port(sprokit::process &self, sprokit::process::port_t const& port, object const& obj);
-void push_datum_to_port(sprokit::process &self, sprokit::process::port_t const& port, sprokit::datum const& dat);
+void push_value_to_port(::sprokit::process &self, ::sprokit::process::port_t const& port, object const& obj);
+void push_datum_to_port(::sprokit::process &self, ::sprokit::process::port_t const& port, ::sprokit::datum const& dat);
 
-std::string config_value(sprokit::process &self, kwiver::vital::config_block_key_t const& key);
+std::string config_value(::sprokit::process &self, kwiver::vital::config_block_key_t const& key);
+
+}}}
+using namespace kwiver::sprokit::python;
+
 
 PYBIND11_MODULE(process, m)
 {
@@ -541,6 +546,9 @@ PYBIND11_MODULE(process, m)
   ;
 }
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
 void
 process_trampoline
 ::_configure()
@@ -619,66 +627,66 @@ process_trampoline
   );
 }
 
-sprokit::process::properties_t
+::sprokit::process::properties_t
 process_trampoline
 ::_properties_over() const
 {
   VITAL_PYBIND11_OVERLOAD(
-    sprokit::process::properties_t,
+    ::sprokit::process::properties_t,
     process,
     _properties,
   );
 }
 
-sprokit::process::properties_t
+::sprokit::process::properties_t
 process_trampoline
 ::_properties() const
 {
-  sprokit::process::properties_t consts = _properties_over();
+  ::sprokit::process::properties_t consts = _properties_over();
   consts.insert("_python");
   return consts;
 }
 
-sprokit::process::ports_t
+::sprokit::process::ports_t
 process_trampoline
 ::_input_ports() const
 {
   VITAL_PYBIND11_OVERLOAD(
-    sprokit::process::ports_t,
+    ::sprokit::process::ports_t,
     process,
     _input_ports,
   );
 }
 
-sprokit::process::ports_t
+::sprokit::process::ports_t
 process_trampoline
 ::_output_ports() const
 {
   VITAL_PYBIND11_OVERLOAD(
-    sprokit::process::ports_t,
+    ::sprokit::process::ports_t,
     process,
     _output_ports,
   );
 }
 
-sprokit::process::port_info_t
+::sprokit::process::port_info_t
 process_trampoline
 ::_input_port_info(port_t const& port)
 {
   VITAL_PYBIND11_OVERLOAD(
-    sprokit::process::port_info_t,
+    ::sprokit::process::port_info_t,
     process,
     _input_port_info,
     port
   );
 }
 
-sprokit::process::port_info_t
+::sprokit::process::port_info_t
 process_trampoline
 ::_output_port_info(port_t const& port)
 {
   VITAL_PYBIND11_OVERLOAD(
-    sprokit::process::port_info_t,
+    ::sprokit::process::port_info_t,
     process,
     _output_port_info,
     port
@@ -720,12 +728,12 @@ process_trampoline
   );
 }
 
-sprokit::process::conf_info_t
+::sprokit::process::conf_info_t
 process_trampoline
 ::_config_info(kwiver::vital::config_block_key_t const& key)
 {
   VITAL_PYBIND11_OVERLOAD(
-    sprokit::process::conf_info_t,
+    ::sprokit::process::conf_info_t,
     process,
     _config_info,
     key
@@ -733,92 +741,92 @@ process_trampoline
 }
 
 void
-declare_input_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info)
+declare_input_port_2(::sprokit::process &self, ::sprokit::process::port_t const& port, ::sprokit::process::port_info_t const& port_info)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   ((wrap_process*) self_ptr)->declare_input_port(port, port_info);
 }
 
 void
-declare_input_port_5(sprokit::process &self,
-                     sprokit::process::port_t const& port,
-                     sprokit::process::port_type_t const& type_,
-                     sprokit::process::port_flags_t const& flags_,
-                     sprokit::process::port_description_t const& description_,
-                     sprokit::process::port_frequency_t const& frequency_)
+declare_input_port_5(::sprokit::process &self,
+                     ::sprokit::process::port_t const& port,
+                     ::sprokit::process::port_type_t const& type_,
+                     ::sprokit::process::port_flags_t const& flags_,
+                     ::sprokit::process::port_description_t const& description_,
+                     ::sprokit::process::port_frequency_t const& frequency_)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   ((wrap_process*) self_ptr)->declare_input_port(port, type_, flags_, description_, frequency_);
 }
 
 void
-declare_output_port_2(sprokit::process &self, sprokit::process::port_t const& port, sprokit::process::port_info_t const& port_info)
+declare_output_port_2(::sprokit::process &self, ::sprokit::process::port_t const& port, ::sprokit::process::port_info_t const& port_info)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   ((wrap_process*) self_ptr)->declare_output_port(port, port_info);
 }
 
 void
-declare_output_port_5(sprokit::process &self,
-                      sprokit::process::port_t const& port,
-                      sprokit::process::port_type_t const& type_,
-                      sprokit::process::port_flags_t const& flags_,
-                      sprokit::process::port_description_t const& description_,
-                      sprokit::process::port_frequency_t const& frequency_)
+declare_output_port_5(::sprokit::process &self,
+                      ::sprokit::process::port_t const& port,
+                      ::sprokit::process::port_type_t const& type_,
+                      ::sprokit::process::port_flags_t const& flags_,
+                      ::sprokit::process::port_description_t const& description_,
+                      ::sprokit::process::port_frequency_t const& frequency_)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   ((wrap_process*) self_ptr)->declare_output_port(port, type_, flags_, description_, frequency_);
 }
 
 void
-declare_configuration_key_2(sprokit::process &self,
+declare_configuration_key_2(::sprokit::process &self,
                             kwiver::vital::config_block_key_t const& key,
-                            sprokit::process::conf_info_t const& info)
+                            ::sprokit::process::conf_info_t const& info)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   ((wrap_process*) self_ptr)->declare_configuration_key(key, info);
 }
 
 void
-declare_configuration_key_3(sprokit::process &self,
+declare_configuration_key_3(::sprokit::process &self,
                             kwiver::vital::config_block_key_t const& key,
                             kwiver::vital::config_block_value_t const& def_,
                             kwiver::vital::config_block_description_t const& description_)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   ((wrap_process*) self_ptr)->declare_configuration_key(key, def_, description_);
 }
 
 void
-declare_configuration_key_4(sprokit::process &self,
+declare_configuration_key_4(::sprokit::process &self,
                             kwiver::vital::config_block_key_t const& key,
                             kwiver::vital::config_block_value_t const& def_,
                             kwiver::vital::config_block_description_t const& description_,
                             bool tunable_)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   ((wrap_process*) self_ptr)->declare_configuration_key(key, def_, description_, tunable_);
 }
 
 wrap_edge_datum
-peek_at_port(sprokit::process &self, sprokit::process::port_t const& port, std::size_t idx)
+peek_at_port(::sprokit::process &self, ::sprokit::process::port_t const& port, std::size_t idx)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   return wrap_edge_datum(((wrap_process*) self_ptr)->peek_at_port(port, idx));
 }
 
 wrap_edge_datum
-grab_from_port(sprokit::process &self, sprokit::process::port_t const& port)
+grab_from_port(::sprokit::process &self, ::sprokit::process::port_t const& port)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   return wrap_edge_datum(((wrap_process*) self_ptr)->grab_from_port(port));
 }
 
 object
-grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& port)
+grab_value_from_port(::sprokit::process &self, ::sprokit::process::port_t const& port)
 {
-  sprokit::process* self_ptr = &self;
-  sprokit::datum_t const dat = ((wrap_process*) self_ptr)->grab_datum_from_port(port);
+  ::sprokit::process* self_ptr = &self;
+  ::sprokit::datum_t const dat = ((wrap_process*) self_ptr)->grab_datum_from_port(port);
   kwiver::vital::any const any = dat->get_datum<kwiver::vital::any>();
 
   //We have to explicitly list the different types we try
@@ -847,45 +855,46 @@ grab_value_from_port(sprokit::process &self, sprokit::process::port_t const& por
   return return_val;
 }
 
-sprokit::datum
-grab_datum_from_port(sprokit::process &self, sprokit::process::port_t const& port)
+::sprokit::datum
+grab_datum_from_port(::sprokit::process &self, ::sprokit::process::port_t const& port)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   auto const edat = ((wrap_process*) self_ptr)->grab_from_port(port);
-  sprokit::datum dat = *edat.datum;
+  ::sprokit::datum dat = *edat.datum;
   return dat;
 }
 
-sprokit::datum
-peek_at_datum_on_port(sprokit::process &self, sprokit::process::port_t const& port,
+::sprokit::datum
+peek_at_datum_on_port(::sprokit::process &self, ::sprokit::process::port_t const& port,
                       std::size_t idx)
 {
-  sprokit::process* self_ptr = &self;
-  sprokit::datum dat = *((wrap_process*) self_ptr)->peek_at_datum_on_port(port, idx);
+  ::sprokit::process* self_ptr = &self;
+  ::sprokit::datum dat = *((wrap_process*) self_ptr)->peek_at_datum_on_port(port, idx);
   return dat;
 }
 
 void
-push_datum_to_port(sprokit::process &self, sprokit::process::port_t const& port, sprokit::datum const& dat)
+push_datum_to_port(::sprokit::process &self, ::sprokit::process::port_t const& port, ::sprokit::datum const& dat)
 {
-  sprokit::process* self_ptr = &self;
-  return ((wrap_process*) self_ptr)->push_datum_to_port(port, std::make_shared<sprokit::datum>(dat));
+  ::sprokit::process* self_ptr = &self;
+  return ((wrap_process*) self_ptr)->push_datum_to_port(port, std::make_shared<::sprokit::datum>(dat));
 }
 
 void
-push_value_to_port(sprokit::process &self, sprokit::process::port_t const& port, object const& obj)
+push_value_to_port(::sprokit::process &self, ::sprokit::process::port_t const& port, object const& obj)
 {
   kwiver::vital::any const any = obj;
-  sprokit::datum_t const dat = sprokit::datum::new_datum(any);
+  ::sprokit::datum_t const dat = ::sprokit::datum::new_datum(any);
 
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   return ((wrap_process*) self_ptr)->push_datum_to_port(port, dat);
 
 }
 
 std::string
-config_value(sprokit::process &self, kwiver::vital::config_block_key_t const& key)
+config_value(::sprokit::process &self, kwiver::vital::config_block_key_t const& key)
 {
-  sprokit::process* self_ptr = &self;
+  ::sprokit::process* self_ptr = &self;
   return ((wrap_process*) self_ptr)->config_value<std::string>(key);
 }
+}}}

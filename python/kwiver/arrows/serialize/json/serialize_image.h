@@ -34,6 +34,9 @@
 #include <vital/types/image_container.h>
 #include <pybind11/pybind11.h>
 
+namespace kwiver {
+namespace arrows {
+namespace python {
 namespace py = pybind11;
 
 
@@ -44,5 +47,5 @@ kwiver::vital::simple_image_container
 deserialize_image_using_json( const std::string& message );
 
 void serialize_image(py::module &m);
-
+}}}
 #endif

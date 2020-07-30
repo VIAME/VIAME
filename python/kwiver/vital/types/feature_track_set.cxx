@@ -32,11 +32,14 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 typedef kwiver::vital::feature_track_state feat_track_state;
 typedef kwiver::vital::feature_track_set feat_track_set;
 
-namespace py = pybind11;
 
 std::shared_ptr<feat_track_state>
 new_feat_track_state(int64_t frame,
@@ -60,6 +63,8 @@ get_track(std::shared_ptr<feat_track_set> &self, uint64_t id)
   return track;
 }
 
+}}}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(feature_track_set, m)
 {
   py::class_<feat_track_state, kwiver::vital::track_state, std::shared_ptr<feat_track_state>>(m, "FeatureTrackState")

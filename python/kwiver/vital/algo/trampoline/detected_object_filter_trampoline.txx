@@ -42,7 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/detected_object_filter.h>
 
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_dof_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::detected_object_filter > >
 class algorithm_def_dof_trampoline :
@@ -81,4 +83,5 @@ class detected_object_filter_trampoline :
       );
     }
 };
+}}}
 #endif

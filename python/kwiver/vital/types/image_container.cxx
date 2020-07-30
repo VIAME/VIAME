@@ -34,6 +34,9 @@
 #include <pybind11/embed.h>
 #include <pybind11/numpy.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 std::shared_ptr<s_image_cont_t>
 kwiver::vital::python::image_container::new_cont(kwiver::vital::image &img)
 {
@@ -49,7 +52,7 @@ kwiver::vital::python::image_container::get_image(std::shared_ptr<image_cont_t> 
 }
 
 
-void image_container(py::module& m)
+void kwiver::vital::python::image_container::image_container(py::module& m)
 {
   /*
    *
@@ -153,3 +156,4 @@ void image_container(py::module& m)
   def_fromarray( bool );
   #undef def_fromarray
 }
+}}}

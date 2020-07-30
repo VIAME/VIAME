@@ -79,6 +79,7 @@
 #include <sstream>
 
 namespace py = pybind11;
+using namespace kwiver::vital::python;
 
 PYBIND11_MODULE(algorithm, m)
 {

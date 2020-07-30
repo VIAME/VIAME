@@ -35,6 +35,9 @@
 #include <pybind11/stl.h>
 
 namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 class PyDescriptorBase
 {
@@ -231,3 +234,4 @@ class PyDescriptorSet
 
     std::vector<std::shared_ptr<PyDescriptorBase>> get_descriptors() { return descriptors; };
 };
+}}}

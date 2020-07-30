@@ -34,7 +34,9 @@
 #include <arrows/serialize/json/bounding_box.h>
 #include <vital/types/bounding_box.h>
 #include <vital/any.h>
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void serialize_bounding_box(py::module &m)
 {
   m.def("serialize_bounding_box",
@@ -46,3 +48,4 @@ void serialize_bounding_box(py::module &m)
                               kwiver::vital::bounding_box<double>,
                               kwiver::arrows::serialize::json::bounding_box > );
 }
+}}}

@@ -13,6 +13,7 @@
 #include <python/kwiver/arrows/serialize/json/serialize_object_track_state.h>
 #include <python/kwiver/arrows/serialize/json/serialize_object_track_set.h>
 
+using namespace kwiver::arrows::python;
 namespace py = pybind11;
 
 PYBIND11_MODULE(json, m)

@@ -34,6 +34,9 @@
 #include <pybind11/stl.h>
 
 namespace py=pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 std::shared_ptr<kwiver::vital::track>
 get_track(std::shared_ptr<kwiver::vital::track_set> &self, uint64_t id)
@@ -46,7 +49,9 @@ get_track(std::shared_ptr<kwiver::vital::track_set> &self, uint64_t id)
 
   return track;
 }
+}}}
 
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(track_set, m)
 {
   py::class_<kwiver::vital::track_set, std::shared_ptr<kwiver::vital::track_set>>(m, "TrackSet")

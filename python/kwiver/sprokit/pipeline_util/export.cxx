@@ -48,19 +48,27 @@
 
 using namespace pybind11;
 
-void export_dot(object const& stream, sprokit::pipeline_t const pipe, std::string const& graph_name);
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
+void export_dot(object const& stream, ::sprokit::pipeline_t const pipe, std::string const& graph_name);
+}}}
+using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(export_, m)
 {
   m.def("export_dot", &export_dot, call_guard<kwiver::vital::python::gil_scoped_release>()
     , arg("stream"), arg("pipeline"), arg("name")
     , "Writes the pipeline to the stream in dot format.");
 }
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
 void
-export_dot(object const& stream, sprokit::pipeline_t const pipe, std::string const& graph_name)
+export_dot(object const& stream, ::sprokit::pipeline_t const pipe, std::string const& graph_name)
 {
-  sprokit::python::pyostream ostr(stream);
+  ::sprokit::python::pyostream ostr(stream);
 
-  return sprokit::export_dot(ostr, pipe, graph_name);
+  return ::sprokit::export_dot(ostr, pipe, graph_name);
 }
+}}}

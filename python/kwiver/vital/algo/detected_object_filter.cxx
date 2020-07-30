@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/detected_object_filter.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void detected_object_filter(py::module &m)
 {
   py::class_< kwiver::vital::algo::detected_object_filter,
@@ -46,3 +48,4 @@ void detected_object_filter(py::module &m)
     .def("filter",
          &kwiver::vital::algo::detected_object_filter::filter);
 }
+}}}

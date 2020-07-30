@@ -34,6 +34,9 @@
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void detected_object_filter(py::module &m);
+}}}
 #endif

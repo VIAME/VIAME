@@ -33,7 +33,9 @@
 #include <vital/types/descriptor.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 py::object
 new_descriptor(size_t len, char ctype)
 {
@@ -121,7 +123,8 @@ get_index(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, size_t idx
   T* data = self->raw_data();
   return data[idx];
 }
-
+}}}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(descriptor, m)
 {
   // we have to use a separate function to initialize Descriptors, because it can return one of two separate types (DescriptorD or DescriptorF)

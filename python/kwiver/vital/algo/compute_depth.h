@@ -34,7 +34,9 @@
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void compute_depth(py::module &m);
-
+}}}
 #endif

@@ -38,9 +38,12 @@
 
 namespace py = pybind11;
 
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 typedef kwiver::vital::bounding_box<double> bbox;
-
+}}}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(bounding_box, m)
 {
 

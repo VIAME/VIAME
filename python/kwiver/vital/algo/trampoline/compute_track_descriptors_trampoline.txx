@@ -42,6 +42,10 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/compute_track_descriptors.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
+
 template< class algorithm_def_ctd_base=
             kwiver::vital::algorithm_def<
                kwiver::vital::algo::compute_track_descriptors > >
@@ -98,4 +102,5 @@ class compute_track_descriptors_trampoline :
 
     }
 };
+}}}
 #endif

@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/detect_motion.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void detect_motion(py::module &m)
 {
   py::class_< kwiver::vital::algo::detect_motion,
@@ -46,3 +48,4 @@ void detect_motion(py::module &m)
     .def("process_image",
          &kwiver::vital::algo::detect_motion::process_image);
 }
+}}}

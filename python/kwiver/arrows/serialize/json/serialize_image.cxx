@@ -34,6 +34,9 @@
 #include <vital/types/image_container.h>
 #include <vital/any.h>
 
+namespace kwiver {
+namespace arrows {
+namespace python {
 std::string
 serialize_image_using_json( kwiver::vital::simple_image_container img )
 {
@@ -64,3 +67,4 @@ void serialize_image(py::module &m)
   m.def("serialize_image", serialize_image_using_json);
   m.def("deserialize_image", deserialize_image_using_json);
 }
+}}}

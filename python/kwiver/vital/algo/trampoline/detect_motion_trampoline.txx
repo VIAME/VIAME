@@ -42,7 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/detect_motion.h>
 
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_dm_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::detect_motion > >
 class algorithm_def_dm_trampoline :
@@ -85,4 +87,5 @@ class detect_motion_trampoline :
       );
     }
 };
+}}}
 #endif

@@ -45,9 +45,12 @@
  */
 
 using namespace pybind11;
-
-static object cluster_from_process(sprokit::process_t const& process);
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
+static object cluster_from_process(::sprokit::process_t const& process);
+}}}
+using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(process_cluster, m)
 {
   class_<sprokit::process_cluster, wrap_process_cluster, sprokit::process_cluster_t, sprokit::process >(m, "PythonProcessCluster"
@@ -127,10 +130,13 @@ PYBIND11_MODULE(process_cluster, m)
 
 }
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
 object
-cluster_from_process(sprokit::process_t const& process)
+cluster_from_process(::sprokit::process_t const& process)
 {
-  sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<sprokit::process_cluster>(process);
+  ::sprokit::process_cluster_t const cluster = std::dynamic_pointer_cast<::sprokit::process_cluster>(process);
 
   if (!cluster)
   {
@@ -139,3 +145,4 @@ cluster_from_process(sprokit::process_t const& process)
 
   return cast(cluster);
 }
+}}}

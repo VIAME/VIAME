@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/analyze_tracks.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void analyze_tracks(py::module &m)
 {
   py::class_< kwiver::vital::algo::analyze_tracks,
@@ -44,3 +46,4 @@ void analyze_tracks(py::module &m)
     .def_static("static_type_name", &kwiver::vital::algo::analyze_tracks::static_type_name)
     .def("analyze_tracks", &kwiver::vital::algo::analyze_tracks::print_info);
 }
+}}}

@@ -34,7 +34,9 @@
 #include <arrows/serialize/json/class_map.h>
 #include <vital/types/class_map.h>
 #include <vital/any.h>
-
+namespace kwiver {
+namespace arrows {
+namespace python {
 void serialize_class_map(py::module &m)
 {
   m.def("serialize_class_map",
@@ -46,3 +48,4 @@ void serialize_class_map(py::module &m)
                           kwiver::vital::class_map,
                           kwiver::arrows::serialize::json::class_map > );
 }
+}}}

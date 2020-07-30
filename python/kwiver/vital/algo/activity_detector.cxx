@@ -32,7 +32,9 @@
 #include <python/kwiver/vital/algo/activity_detector.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void activity_detector(py::module &m)
 {
   py::class_< kwiver::vital::algo::activity_detector,
@@ -43,3 +45,4 @@ void activity_detector(py::module &m)
     .def_static("static_type_name", &kwiver::vital::algo::activity_detector::static_type_name)
     .def("detect", &kwiver::vital::algo::activity_detector::detect);
 }
+}}}

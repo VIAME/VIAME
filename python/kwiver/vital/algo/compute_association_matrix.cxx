@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/compute_association_matrix.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void compute_association_matrix(py::module &m)
 {
   py::class_< kwiver::vital::algo::compute_association_matrix,
@@ -46,3 +48,4 @@ void compute_association_matrix(py::module &m)
     .def("compute",
          &kwiver::vital::algo::compute_association_matrix::compute);
 }
+}}}

@@ -33,7 +33,9 @@
 
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void algorithm(py::module &m);
 
 template<class implementation, class trampoline>
@@ -58,4 +60,5 @@ void register_algorithm(py::module &m,
     .def_static("check_nested_algo_configuration",
                 &kwiver::vital::algorithm_def<implementation>::check_nested_algo_configuration);
 }
+}}}
 #endif

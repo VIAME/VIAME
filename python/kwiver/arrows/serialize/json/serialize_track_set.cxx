@@ -35,6 +35,9 @@
 #include <vital/types/track_set.h>
 #include <vital/any.h>
 
+namespace kwiver {
+namespace arrows {
+namespace python {
 void serialize_track_set(py::module &m)
 {
   m.def("serialize_track_set",
@@ -46,3 +49,4 @@ void serialize_track_set(py::module &m)
                           kwiver::vital::track_set_sptr,
                           kwiver::arrows::serialize::json::track_set> );
 }
+}}}

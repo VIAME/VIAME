@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/algorithm.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void algorithm(py::module &m)
 {
   py::class_<kwiver::vital::algorithm, std::shared_ptr<kwiver::vital::algorithm>,
@@ -42,3 +44,4 @@ void algorithm(py::module &m)
     .def("set_configuration", &kwiver::vital::algorithm::set_configuration)
     .def("check_configuration", &kwiver::vital::algorithm::check_configuration);
 }
+}}}

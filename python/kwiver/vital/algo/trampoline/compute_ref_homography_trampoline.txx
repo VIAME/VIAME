@@ -42,6 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/compute_ref_homography.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_crh_base=
             kwiver::vital::algorithm_def<
                kwiver::vital::algo::compute_ref_homography > >
@@ -86,4 +89,5 @@ class compute_ref_homography_trampoline :
       );
     }
 };
+}}}
 #endif

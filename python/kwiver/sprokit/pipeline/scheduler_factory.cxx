@@ -46,10 +46,13 @@
 
 #include <pybind11/stl_bind.h>
 
-using namespace pybind11;
 
-static void register_scheduler( sprokit::scheduler::type_t const& type,
-                                sprokit::scheduler::description_t const& desc,
+using namespace pybind11;
+namespace kwiver{
+namespace sprokit{
+namespace python{
+static void register_scheduler( ::sprokit::scheduler::type_t const& type,
+                                ::sprokit::scheduler::description_t const& desc,
                                 object obj );
 static bool is_scheduler_loaded( const std::string& name );
 static void mark_scheduler_loaded( const std::string& name );
@@ -58,11 +61,11 @@ static std::vector< std::string > scheduler_names();
 static std::string get_default_type();
 
 // ============================================================================
-typedef std::function< pybind11::object( sprokit::pipeline_t const& pipe,
+typedef std::function< pybind11::object( ::sprokit::pipeline_t const& pipe,
                                kwiver::vital::config_block_sptr const& config ) > py_scheduler_factory_func_t;
 
 class python_scheduler_factory
-  : public sprokit::scheduler_factory
+  : public ::sprokit::scheduler_factory
 {
   public:
 
@@ -72,7 +75,7 @@ class python_scheduler_factory
 
   virtual ~python_scheduler_factory() = default;
 
-  virtual sprokit::scheduler_t create_object(sprokit::pipeline_t const& pipe,
+  virtual ::sprokit::scheduler_t create_object(::sprokit::pipeline_t const& pipe,
                                              kwiver::vital::config_block_sptr const& config);
 
 private:
@@ -95,9 +98,9 @@ python_scheduler_factory( const std::string& type,
 
 
 // ----------------------------------------------------------------------------
-sprokit::scheduler_t
+::sprokit::scheduler_t
 python_scheduler_factory::
-create_object(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
+create_object(::sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config)
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
@@ -105,10 +108,11 @@ create_object(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr 
   // Call sprokit factory function.
   pybind11::object obj = m_factory(pipe, config);
   obj.inc_ref();
-  sprokit::scheduler_t schd_ptr = obj.cast<sprokit::scheduler_t>();
+  ::sprokit::scheduler_t schd_ptr = obj.cast<::sprokit::scheduler_t>();
   return schd_ptr;
 }
-
+}}}
+using namespace kwiver::sprokit::python;
 
 //==================================================================
 PYBIND11_MODULE(scheduler_factory, m)
@@ -148,6 +152,9 @@ PYBIND11_MODULE(scheduler_factory, m)
 
 }
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
 
 class python_scheduler_wrapper
 {
@@ -155,7 +162,7 @@ class python_scheduler_wrapper
     python_scheduler_wrapper(object obj);
     ~python_scheduler_wrapper();
 
-    object operator () (sprokit::pipeline_t const& pipeline,
+    object operator () (::sprokit::pipeline_t const& pipeline,
                                       kwiver::vital::config_block_sptr const& config);
   private:
     object const m_obj;
@@ -164,15 +171,15 @@ class python_scheduler_wrapper
 
 
 void
-register_scheduler( sprokit::scheduler::type_t const& type,
-                    sprokit::scheduler::description_t const& desc,
+register_scheduler( ::sprokit::scheduler::type_t const& type,
+                    ::sprokit::scheduler::description_t const& desc,
                     object obj )
 {
   python_scheduler_wrapper const wrap(obj);
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   auto fact = vpm.add_factory( new python_scheduler_factory( type,
-                                                             typeid( sprokit::scheduler ).name(),
+                                                             typeid( ::sprokit::scheduler ).name(),
                                                              wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
@@ -204,7 +211,7 @@ std::string get_description( const std::string& type )
 
   try
   {
-    typedef kwiver::vital::implementation_factory_by_name< sprokit::scheduler > proc_factory;
+    typedef kwiver::vital::implementation_factory_by_name< ::sprokit::scheduler > proc_factory;
     proc_factory ifact;
 
     VITAL_PYTHON_TRANSLATE_EXCEPTION(
@@ -235,7 +242,7 @@ std::vector< std::string > scheduler_names()
   std::vector< std::string > name_list;
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  auto fact_list = vpm.get_factories<sprokit::scheduler>();
+  auto fact_list = vpm.get_factories<::sprokit::scheduler>();
   for( auto fact : fact_list )
   {
     std::string buf;
@@ -252,7 +259,7 @@ std::vector< std::string > scheduler_names()
 // ------------------------------------------------------------------
 std::string get_default_type()
 {
-  return sprokit::scheduler_factory::default_type;
+  return ::sprokit::scheduler_factory::default_type;
 }
 
 
@@ -272,9 +279,10 @@ python_scheduler_wrapper
 // ------------------------------------------------------------------
 object
 python_scheduler_wrapper
-::operator () (sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config)
+::operator () (::sprokit::pipeline_t const& pipeline, kwiver::vital::config_block_sptr const& config)
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
   (void)acquire;
   return m_obj(pipeline, config);
 }
+}}}

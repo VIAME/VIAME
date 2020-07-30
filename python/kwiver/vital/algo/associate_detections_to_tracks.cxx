@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/associate_detections_to_tracks.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void associate_detections_to_tracks(py::module &m)
 {
   py::class_< kwiver::vital::algo::associate_detections_to_tracks,
@@ -47,3 +49,4 @@ void associate_detections_to_tracks(py::module &m)
     .def("associate",
          &kwiver::vital::algo::associate_detections_to_tracks::associate);
 }
+}}}

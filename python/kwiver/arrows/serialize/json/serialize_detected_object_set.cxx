@@ -34,7 +34,9 @@
 #include <arrows/serialize/json/detected_object_set.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/any.h>
-
+namespace kwiver {
+namespace arrows {
+namespace python {
 void serialize_detected_object_set(py::module &m)
 {
   m.def("serialize_detected_object_set",
@@ -46,3 +48,4 @@ void serialize_detected_object_set(py::module &m)
                           kwiver::vital::detected_object_set_sptr,
                           kwiver::arrows::serialize::json::detected_object_set > );
 }
+}}}

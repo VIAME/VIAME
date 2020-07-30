@@ -42,6 +42,10 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/compute_depth.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
+
 template< class algorithm_def_cd_base=
             kwiver::vital::algorithm_def<
                kwiver::vital::algo::compute_depth > >
@@ -95,4 +99,5 @@ class compute_depth_trampoline :
       );
     }
 };
+}}}
 #endif

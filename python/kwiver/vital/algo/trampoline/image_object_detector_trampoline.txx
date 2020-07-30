@@ -44,6 +44,9 @@
 #include <vital/types/detected_object_set.h>
 #include <vital/types/image_container.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template <class algorithm_def_iod_base=kwiver::vital::algorithm_def<kwiver::vital::algo::image_object_detector>>
 class algorithm_def_iod_trampoline :
@@ -80,5 +83,5 @@ class image_object_detector_trampoline :
       );
     }
 };
-
+}}}
 #endif

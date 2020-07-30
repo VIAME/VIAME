@@ -44,7 +44,9 @@
 #include <vital/types/activity.h>
 #include <vital/types/image_container.h>
 
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 template <class algorithm_def_ad_base=kwiver::vital::algorithm_def<kwiver::vital::algo::activity_detector>>
 class algorithm_def_ad_trampoline :
       public algorithm_trampoline<algorithm_def_ad_base>
@@ -80,5 +82,5 @@ class activity_detector_trampoline :
       );
     }
 };
-
+}}}
 #endif

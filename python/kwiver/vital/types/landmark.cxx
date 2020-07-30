@@ -36,6 +36,9 @@
 #include <pybind11/eigen.h>
 
 namespace py=pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 class PyLandmarkBase
 {
@@ -230,6 +233,8 @@ new_landmark(py::object loc_obj, py::object scale_obj, char ctype)
   return retVal;
 }
 
+}}}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(landmark, m)
 {
 

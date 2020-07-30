@@ -35,6 +35,9 @@
 #include <vital/types/timestamp.h>
 #include <vital/any.h>
 
+namespace kwiver {
+namespace arrows {
+namespace python {
 void serialize_timestamp(py::module &m)
 {
   m.def("serialize_timestamp",
@@ -46,3 +49,4 @@ void serialize_timestamp(py::module &m)
                               kwiver::vital::timestamp,
                               kwiver::arrows::serialize::json::timestamp > );
 }
+}}}

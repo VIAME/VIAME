@@ -45,10 +45,12 @@
  */
 
 using namespace pybind11;
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
 // Publisher class to access virtual methods
 class wrap_scheduler
-  : public sprokit::scheduler
+  : public ::sprokit::scheduler
 {
   public:
     using scheduler::scheduler;
@@ -62,10 +64,10 @@ class wrap_scheduler
 
 // Trampoline class to allow us to to use virtual methods
 class scheduler_trampoline
-  : public sprokit::scheduler
+  : public ::sprokit::scheduler
 {
   public:
-    scheduler_trampoline(sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config) : scheduler( pipe, config ) {};
+    scheduler_trampoline(::sprokit::pipeline_t const& pipe, kwiver::vital::config_block_sptr const& config) : scheduler( pipe, config ) {};
     void _start() override;
     void _wait() override;
     void _pause() override;
@@ -74,6 +76,8 @@ class scheduler_trampoline
 };
 
 void scheduler_shutdown(object);
+}}}
+using namespace kwiver::sprokit::python;
 
 PYBIND11_MODULE(scheduler, m)
 {
@@ -107,6 +111,9 @@ PYBIND11_MODULE(scheduler, m)
   ;
 }
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
 // There's some bad refcounting, so we end up with one extra
 // That one extra occurs whether we're using a C++ scheduler
 // or a python scheduler (where we already had to inc_ref to counteract a mistaken dec_ref)
@@ -170,3 +177,4 @@ scheduler_trampoline
     _stop,
   );
 }
+}}}

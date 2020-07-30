@@ -44,6 +44,10 @@
 
 #include <ostream>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
+
 template< class algorithm_def_cl_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::close_loops > >
 class algorithm_def_cl_trampoline :
@@ -88,4 +92,5 @@ class close_loops_trampoline :
       );
     }
 };
+}}}
 #endif

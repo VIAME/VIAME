@@ -44,7 +44,9 @@
 #include <python/kwiver/vital/util/pybind11.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 static void add_algorithm( const std::string& impl_name, std::string const& description,
                             py::object conc_t );
 
@@ -65,7 +67,8 @@ class python_algorithm_factory : public kwiver::vital::algorithm_factory
   private:
     py::object m_conc_f;
 };
-
+}}}
+using namespace kwiver::vital::python;
 
 
 PYBIND11_MODULE(algorithm_factory, m)
@@ -88,6 +91,9 @@ PYBIND11_MODULE(algorithm_factory, m)
       "Returns all the implementations of an algorithm");
 }
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 python_algorithm_factory::python_algorithm_factory( const std::string& algo,
                           const std::string& impl,
                           py::object conc_f )
@@ -158,3 +164,4 @@ static std::vector< std::string > implementation_names(const std::string& algori
 
   return all_implementations;
 }
+}}}

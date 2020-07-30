@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/compute_stereo_depth_map.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void compute_stereo_depth_map(py::module &m)
 {
   py::class_< kwiver::vital::algo::compute_stereo_depth_map,
@@ -46,3 +48,4 @@ void compute_stereo_depth_map(py::module &m)
     .def("compute",
          &kwiver::vital::algo::compute_stereo_depth_map::compute);
 }
+}}}

@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/close_loops.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void close_loops(py::module &m)
 {
   py::class_< kwiver::vital::algo::close_loops,
@@ -46,3 +48,4 @@ void close_loops(py::module &m)
     .def("stitch",
          &kwiver::vital::algo::close_loops::stitch);
 }
+}}}

@@ -34,8 +34,12 @@
 #include <pybind11/embed.h>
 
 namespace py = pybind11;
-
 typedef kwiver::vital::detected_object det_obj;
+namespace kwiver {
+namespace vital  {
+namespace python {
+
+
 
 // We want to be able to add a mask in the python constructor
 // so we need a pass-through cstor
@@ -55,6 +59,9 @@ new_detected_object(kwiver::vital::bounding_box<double> bbox,
   return new_obj;
 }
 
+}}}
+
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(detected_object, m)
 {
   /*

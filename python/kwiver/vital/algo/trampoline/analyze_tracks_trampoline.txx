@@ -46,6 +46,10 @@
 
 #include <ostream>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
+
 template< class algorithm_def_at_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::analyze_tracks > >
 class algorithm_def_at_trampoline :
@@ -85,4 +89,5 @@ class analyze_tracks_trampoline :
       );
     }
 };
+}}}
 #endif

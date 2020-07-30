@@ -36,7 +36,9 @@
 #include <python/kwiver/vital/algo/bundle_adjust.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void bundle_adjust(py::module &m)
 {
   py::class_< kwiver::vital::algo::bundle_adjust,
@@ -61,3 +63,4 @@ void bundle_adjust(py::module &m)
                      (&kwiver::vital::algo::bundle_adjust::optimize))
     .def("set_callback", &kwiver::vital::algo::bundle_adjust::set_callback);
 }
+}}}

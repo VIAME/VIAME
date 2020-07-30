@@ -36,6 +36,9 @@
 #include <pybind11/eigen.h>
 
 namespace py=pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 class PyHomographyBase
 {
@@ -237,6 +240,8 @@ new_random_homography(char ctype)
   return new_homography_from_matrix(data_obj, ctype);
 }
 
+}}}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(homography, m)
 {
   py::class_<PyHomographyBase, std::shared_ptr<PyHomographyBase>>(m, "Homography")

@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/draw_detected_object_set.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void draw_detected_object_set(py::module &m)
 {
   py::class_< kwiver::vital::algo::draw_detected_object_set,
@@ -46,3 +48,4 @@ void draw_detected_object_set(py::module &m)
     .def("draw",
          &kwiver::vital::algo::draw_detected_object_set::draw);
 }
+}}}

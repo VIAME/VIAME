@@ -42,7 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/draw_detected_object_set.h>
 
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_ddos_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::draw_detected_object_set > >
 class algorithm_def_ddos_trampoline :
@@ -83,4 +85,5 @@ class draw_detected_object_set_trampoline :
       );
     }
 };
+}}}
 #endif

@@ -50,10 +50,14 @@
 
 using namespace pybind11;
 
-static std::shared_ptr<wrap_process_cluster> cluster_by_name(sprokit::pipeline& self, sprokit::process::name_t const& name);
-static std::vector<wrap_port_addr> connections_from_addr(sprokit::pipeline& self, sprokit::process::name_t const& name, sprokit::process::port_t const& port);
-static std::vector<wrap_port_addr> receivers_for_port(sprokit::pipeline& self, sprokit::process::name_t const& name, sprokit::process::port_t const& port);
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
+static std::shared_ptr<wrap_process_cluster> cluster_by_name(::sprokit::pipeline& self, ::sprokit::process::name_t const& name);
+static std::vector<wrap_port_addr> connections_from_addr(::sprokit::pipeline& self, ::sprokit::process::name_t const& name, ::sprokit::process::port_t const& port);
+static std::vector<wrap_port_addr> receivers_for_port(::sprokit::pipeline& self, ::sprokit::process::name_t const& name, ::sprokit::process::port_t const& port);
+}}}
+using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(pipeline,m)
 {
   bind_vector<std::vector<std::string> >(m, "names_t");
@@ -141,16 +145,19 @@ PYBIND11_MODULE(pipeline,m)
   ;
 }
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
 std::shared_ptr<wrap_process_cluster>
-cluster_by_name(sprokit::pipeline& self, sprokit::process::name_t const& name)
+cluster_by_name(::sprokit::pipeline& self, ::sprokit::process::name_t const& name)
 {
   return std::dynamic_pointer_cast<wrap_process_cluster> (self.cluster_by_name(name));
 }
 
 std::vector<wrap_port_addr>
-connections_from_addr(sprokit::pipeline& self, sprokit::process::name_t const& name, sprokit::process::port_t const& port)
+connections_from_addr(::sprokit::pipeline& self, ::sprokit::process::name_t const& name, ::sprokit::process::port_t const& port)
 {
-  sprokit::process::port_addrs_t pair_addrs = self.connections_from_addr(name, port);
+  ::sprokit::process::port_addrs_t pair_addrs = self.connections_from_addr(name, port);
   std::vector<wrap_port_addr> wrap_addrs;
   for( unsigned int idx = 0; idx < pair_addrs.size(); idx++)
   {
@@ -161,9 +168,9 @@ connections_from_addr(sprokit::pipeline& self, sprokit::process::name_t const& n
  }
 
 std::vector<wrap_port_addr>
-receivers_for_port(sprokit::pipeline& self, sprokit::process::name_t const&name, sprokit::process::port_t const& port)
+receivers_for_port(::sprokit::pipeline& self, ::sprokit::process::name_t const&name, ::sprokit::process::port_t const& port)
 {
-  sprokit::process::port_addrs_t pair_addrs = self.receivers_for_port(name, port);
+  ::sprokit::process::port_addrs_t pair_addrs = self.receivers_for_port(name, port);
   std::vector<wrap_port_addr> wrap_addrs;
   for(   unsigned int idx = 0; idx < pair_addrs.size(); idx++)
   {
@@ -172,3 +179,4 @@ receivers_for_port(sprokit::pipeline& self, sprokit::process::name_t const&name,
 
   return wrap_addrs;
 }
+}}}

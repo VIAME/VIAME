@@ -139,10 +139,6 @@ config_delitem( kwiver::vital::config_block_sptr self,
   }
 }
 
-}
-}
-}
-
 void
 config( py::module& m)
 {
@@ -272,3 +268,4 @@ config( py::module& m)
 ;
 
 }
+}}}

@@ -44,6 +44,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/bundle_adjust.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template <class algorithm_def_ba_base=kwiver::vital::algorithm_def<kwiver::vital::algo::bundle_adjust>>
 class algorithm_def_ba_trampoline :
@@ -107,5 +110,5 @@ class bundle_adjust_trampoline :
       );
     }
 };
-
+}}}
 #endif

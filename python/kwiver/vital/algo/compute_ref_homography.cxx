@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/compute_ref_homography.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void compute_ref_homography(py::module &m)
 {
   py::class_< kwiver::vital::algo::compute_ref_homography,
@@ -46,3 +48,4 @@ void compute_ref_homography(py::module &m)
     .def("estimate",
          &kwiver::vital::algo::compute_ref_homography::estimate);
 }
+}}}

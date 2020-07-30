@@ -83,11 +83,8 @@ namespace python {
   config_delitem( kwiver::vital::config_block_sptr self,
                   kwiver::vital::config_block_key_t const&  key );
 
-}
-}
-}
-
 /// pybind11 module for config
 void
 config( py::module& m );
+}}}
 #endif

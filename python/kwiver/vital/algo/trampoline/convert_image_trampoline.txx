@@ -42,6 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/convert_image.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template< class algorithm_def_ci_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::convert_image > >
@@ -81,4 +84,5 @@ class convert_image_trampoline :
       );
     }
 };
+}}}
 #endif

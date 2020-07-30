@@ -42,7 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/detected_object_set_input.h>
 
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_dosi_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::detected_object_set_input > >
 class algorithm_def_dosi_trampoline :
@@ -104,4 +106,5 @@ class detected_object_set_input_trampoline :
       );
     }
 };
+}}}
 #endif

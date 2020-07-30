@@ -32,7 +32,9 @@
 #include <python/kwiver/vital/algo/detected_object_set_output.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 using doso = kwiver::vital::algo::detected_object_set_output;
 
 void detected_object_set_output(py::module &m)
@@ -49,3 +51,4 @@ void detected_object_set_output(py::module &m)
     .def("close", &doso::close)
     ;
 }
+}}}

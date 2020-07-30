@@ -34,7 +34,9 @@
 #include <python/kwiver/vital/algo/compute_track_descriptors.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void compute_track_descriptors(py::module &m)
 {
   py::class_< kwiver::vital::algo::compute_track_descriptors,
@@ -49,3 +51,4 @@ void compute_track_descriptors(py::module &m)
     .def("flush",
          &kwiver::vital::algo::compute_track_descriptors::flush);
 }
+}}}

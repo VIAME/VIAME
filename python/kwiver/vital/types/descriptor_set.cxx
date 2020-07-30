@@ -35,6 +35,9 @@
 #include <memory>
 
 namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 typedef kwiver::vital::descriptor_set desc_set;
 typedef kwiver::vital::simple_descriptor_set s_desc_set;
@@ -55,7 +58,8 @@ new_desc_set1(py::list py_list)
   }
   return std::make_shared<s_desc_set>(desc_list);
 }
-
+}}}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(descriptor_set, m)
 {
   py::class_<desc_set, std::shared_ptr<desc_set>>(m, "BaseDescriptorSet");

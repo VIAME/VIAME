@@ -35,6 +35,9 @@
 #include <vital/types/activity.h>
 #include <vital/any.h>
 
+namespace kwiver {
+namespace arrows {
+namespace python {
 void serialize_activity(py::module &m)
 {
   m.def("serialize_activity",
@@ -46,3 +49,4 @@ void serialize_activity(py::module &m)
                           kwiver::vital::activity,
                           kwiver::arrows::serialize::json::activity > );
 }
+}}}

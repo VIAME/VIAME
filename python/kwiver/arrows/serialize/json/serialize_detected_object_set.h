@@ -34,7 +34,9 @@
 #include <pybind11/pybind11.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace arrows {
+namespace python {
 void serialize_detected_object_set(py::module &m);
-
+}}}
 #endif

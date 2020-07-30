@@ -41,6 +41,9 @@
 #include <vital/config/config_block.h>
 #include <python/kwiver/vital/util/pybind11.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template <class algorithm_base=kwiver::vital::algorithm>
 class algorithm_trampoline : public algorithm_base
 {
@@ -85,4 +88,5 @@ class algorithm_trampoline : public algorithm_base
       );
     }
 };
+}}}
 #endif

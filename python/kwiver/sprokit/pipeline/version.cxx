@@ -42,11 +42,13 @@
  */
 
 using namespace pybind11;
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
 class compile
 {
   public:
-    typedef sprokit::version::version_t version_t;
+    typedef  ::sprokit::version::version_t version_t;
 
     static version_t const major;
     static version_t const minor;
@@ -60,9 +62,9 @@ class compile
     static bool check(version_t major_, version_t minor_, version_t patch_);
 };
 
-sprokit::version::version_t const compile::major = KWIVER_VERSION_MAJOR;
-sprokit::version::version_t const compile::minor = KWIVER_VERSION_MINOR;
-sprokit::version::version_t const compile::patch = KWIVER_VERSION_PATCH;
+ ::sprokit::version::version_t const compile::major = KWIVER_VERSION_MAJOR;
+ ::sprokit::version::version_t const compile::minor = KWIVER_VERSION_MINOR;
+ ::sprokit::version::version_t const compile::patch = KWIVER_VERSION_PATCH;
 std::string const compile::version_string = KWIVER_VERSION;
 bool const compile::git_build =
 #ifdef KWIVER_BUILT_FROM_GIT
@@ -77,6 +79,8 @@ std::string const compile::git_dirty = KWIVER_GIT_DIRTY;
 class runtime
 {
 };
+}}}
+using namespace kwiver::sprokit::python;
 
 PYBIND11_MODULE(version, m)
 {
@@ -117,14 +121,16 @@ PYBIND11_MODULE(version, m)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
 bool
 compile
 ::check(version_t major_, version_t minor_, version_t patch_)
 {
   return KWIVER_VERSION_CHECK(major_, minor_, patch_);
 }
-
+}}}
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif

@@ -50,20 +50,23 @@
  */
 
 using namespace pybind11;
-
-static sprokit::process::type_t cluster_info_type(sprokit::cluster_info_t const& self);
-static sprokit::process::description_t cluster_info_description(sprokit::cluster_info_t const& self);
-static sprokit::process_t cluster_info_create(sprokit::cluster_info_t const& self, kwiver::vital::config_block_sptr const& config);
-static sprokit::process_t cluster_info_create_default(sprokit::cluster_info_t const& self);
-static void register_cluster(sprokit::cluster_info_t const& info);
-static sprokit::pipeline_t bake_pipe_file(std::string const& path);
-static sprokit::pipeline_t bake_pipe(object stream);
-static sprokit::cluster_info_t bake_cluster_file(std::string const& path);
-static sprokit::cluster_info_t bake_cluster(object stream);
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
+static ::sprokit::process::type_t cluster_info_type(::sprokit::cluster_info_t const& self);
+static ::sprokit::process::description_t cluster_info_description(::sprokit::cluster_info_t const& self);
+static ::sprokit::process_t cluster_info_create(::sprokit::cluster_info_t const& self, kwiver::vital::config_block_sptr const& config);
+static ::sprokit::process_t cluster_info_create_default(::sprokit::cluster_info_t const& self);
+static void register_cluster(::sprokit::cluster_info_t const& info);
+static ::sprokit::pipeline_t bake_pipe_file(std::string const& path);
+static ::sprokit::pipeline_t bake_pipe(object stream);
+static ::sprokit::cluster_info_t bake_cluster_file(std::string const& path);
+static ::sprokit::cluster_info_t bake_cluster(object stream);
+}}}
+using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(bake, m)
 {
-  class_<sprokit::cluster_info, sprokit::cluster_info_t>(m, "ClusterInfo"
+  class_<sprokit::cluster_info, ::sprokit::cluster_info_t>(m, "ClusterInfo"
     , "Information loaded from a cluster file.")
     .def("type", &cluster_info_type, call_guard<kwiver::vital::python::gil_scoped_release>())
     .def("description", &cluster_info_description, call_guard<kwiver::vital::python::gil_scoped_release>())
@@ -101,37 +104,39 @@ PYBIND11_MODULE(bake, m)
     , "Extract the configuration from pipe blocks.");
 }
 
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
 // ------------------------------------------------------------------
-sprokit::process::type_t
-cluster_info_type(sprokit::cluster_info_t const& self)
+::sprokit::process::type_t
+cluster_info_type(::sprokit::cluster_info_t const& self)
 {
   return self->type;
 }
 
 
 // ------------------------------------------------------------------
-sprokit::process::description_t
-cluster_info_description(sprokit::cluster_info_t const& self)
+::sprokit::process::description_t
+cluster_info_description(::sprokit::cluster_info_t const& self)
 {
   return self->description;
 }
 
 
 // ------------------------------------------------------------------
-sprokit::process_t
-cluster_info_create( sprokit::cluster_info_t const& self,
+::sprokit::process_t
+cluster_info_create( ::sprokit::cluster_info_t const& self,
                      kwiver::vital::config_block_sptr const& config )
 {
-  sprokit::process_factory_func_t const& ctor = self->ctor;
+  ::sprokit::process_factory_func_t const& ctor = self->ctor;
 
   return ctor(config);
 }
 
 
 // ------------------------------------------------------------------
-sprokit::process_t
-cluster_info_create_default(sprokit::cluster_info_t const& self)
+::sprokit::process_t
+cluster_info_create_default(::sprokit::cluster_info_t const& self)
 {
   kwiver::vital::config_block_sptr const conf = kwiver::vital::config_block::empty_config();
 
@@ -141,7 +146,7 @@ cluster_info_create_default(sprokit::cluster_info_t const& self)
 
 // ------------------------------------------------------------------
 void
-register_cluster(sprokit::cluster_info_t const& info)
+register_cluster(::sprokit::cluster_info_t const& info)
 {
   if (!info)
   {
@@ -150,13 +155,13 @@ register_cluster(sprokit::cluster_info_t const& info)
     throw std::runtime_error(reason); // python compatible exception
   }
 
-  sprokit::process::type_t const& type = info->type;
-  sprokit::process::description_t const& description = info->description;
-  sprokit::process_factory_func_t const& ctor = info->ctor;
+  ::sprokit::process::type_t const& type = info->type;
+  ::sprokit::process::description_t const& description = info->description;
+  ::sprokit::process_factory_func_t const& ctor = info->ctor;
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
-  sprokit::process::type_t derived_type = "python::";
-  auto fact = vpm.add_factory( new sprokit::cpp_process_factory( derived_type + type, // derived type name string
+  ::sprokit::process::type_t derived_type = "python::";
+  auto fact = vpm.add_factory( new ::sprokit::cpp_process_factory( derived_type + type, // derived type name string
                                                                  type, // name of the cluster/process
                                                                  ctor ) );
 
@@ -167,42 +172,43 @@ register_cluster(sprokit::cluster_info_t const& info)
 
 
 // ------------------------------------------------------------------
-sprokit::pipeline_t
+::sprokit::pipeline_t
 bake_pipe_file(std::string const& path)
 {
-  sprokit::pipeline_builder builder;
+  ::sprokit::pipeline_builder builder;
   builder.load_pipeline( path );
   return builder.pipeline();
 }
 
 
 // ------------------------------------------------------------------
-sprokit::pipeline_t
+::sprokit::pipeline_t
 bake_pipe(object stream)
 {
-  sprokit::python::pyistream istr(stream);
-  sprokit::pipeline_builder builder;
+  ::sprokit::python::pyistream istr(stream);
+  ::sprokit::pipeline_builder builder;
   builder.load_pipeline( istr );
   return builder.pipeline();
 }
 
 
 // ------------------------------------------------------------------
-sprokit::cluster_info_t
+::sprokit::cluster_info_t
 bake_cluster_file(std::string const& path)
 {
-  sprokit::pipeline_builder builder;
+  ::sprokit::pipeline_builder builder;
   builder.load_cluster( path );
   return builder.cluster_info();
 }
 
 
 // ------------------------------------------------------------------
-sprokit::cluster_info_t
+::sprokit::cluster_info_t
 bake_cluster(object stream)
 {
-  sprokit::python::pyistream istr(stream);
-  sprokit::pipeline_builder builder;
+  ::sprokit::python::pyistream istr(stream);
+  ::sprokit::pipeline_builder builder;
   builder.load_cluster( istr );
   return builder.cluster_info();
 }
+}}}

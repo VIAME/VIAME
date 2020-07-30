@@ -34,6 +34,9 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 pixel_traits::pixel_type
 kwiver::vital::python::image::pixel_type(std::shared_ptr<image_t> &self)
 {
@@ -530,7 +533,7 @@ py::object kwiver::vital::python::image::asarray(image_t img)
   }
 }
 
-void image(py::module& m)
+void kwiver::vital::python::image::image(py::module& m)
 {
   py::class_<image_t, std::shared_ptr<image_t>> img(m, "Image", py::buffer_protocol());
   /*
@@ -615,4 +618,7 @@ void image(py::module& m)
         py::object np_arr = kwiver::vital::python::image::asarray(img);
         return np_arr;
       }, py::doc("Copy the image into a numpy array'"));
+}
+}
+}
 }

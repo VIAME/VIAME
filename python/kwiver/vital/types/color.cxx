@@ -34,6 +34,8 @@
 
 namespace py=pybind11;
 
+
+
 PYBIND11_MODULE(color, m)
 {
   py::class_<kwiver::vital::rgb_color, std::shared_ptr<kwiver::vital::rgb_color> >(m, "RGBColor")

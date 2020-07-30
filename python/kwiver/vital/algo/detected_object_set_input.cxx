@@ -33,7 +33,9 @@
 #include <python/kwiver/vital/algo/detected_object_set_input.h>
 
 namespace py = pybind11;
-
+namespace kwiver {
+namespace vital  {
+namespace python {
 void detected_object_set_input(py::module &m)
 {
   py::class_< kwiver::vital::algo::detected_object_set_input,
@@ -50,3 +52,4 @@ void detected_object_set_input(py::module &m)
     .def("read_set",
          &kwiver::vital::algo::detected_object_set_input::read_set);
 }
+}}}

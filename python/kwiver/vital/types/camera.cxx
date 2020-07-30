@@ -39,6 +39,9 @@
 #include "rotation_class.cxx"
 
 namespace py = pybind11;
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 bool
 camera_eq(std::shared_ptr<kwiver::vital::simple_camera_perspective> self,
@@ -56,6 +59,8 @@ camera_ne(std::shared_ptr<kwiver::vital::simple_camera_perspective> self,
   return !camera_eq(self, other);
 }
 
+}}}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(camera, m)
 {
 

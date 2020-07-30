@@ -42,6 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/associate_detections_to_tracks.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 template< class algorithm_def_adtt_base=
             kwiver::vital::algorithm_def<
                kwiver::vital::algo::associate_detections_to_tracks > >
@@ -94,4 +97,5 @@ class associate_detections_to_tracks_trampoline :
       );
     }
 };
+}}}
 #endif

@@ -47,14 +47,17 @@
 #include <pybind11/stl_bind.h>
 #include "python_wrappers.cxx"
 
+
 using namespace pybind11;
 
 // We need our own factory for inheritance to work
 // This is hopefully something pybind11 will deal with soon, and we can eliminate this class
 // Otherwise, we can rewrite process_factory to have multiple entrypoints
-
-static void register_process( sprokit::process::type_t const& type,
-                              sprokit::process::description_t const& desc,
+namespace kwiver{
+namespace sprokit{
+namespace python{
+static void register_process( ::sprokit::process::type_t const& type,
+                              ::sprokit::process::description_t const& desc,
                               object obj );
 
 static bool is_process_loaded( const std::string& name );
@@ -66,7 +69,7 @@ static std::vector< std::string > process_names();
 typedef std::function< pybind11::object( kwiver::vital::config_block_sptr const& config ) > py_process_factory_func_t;
 
 class python_process_factory
-  : public sprokit::process_factory
+  : public ::sprokit::process_factory
 {
   /**
    * @brief CTOR for factory object
@@ -85,7 +88,7 @@ class python_process_factory
 
   virtual ~python_process_factory();
 
-  virtual sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config);
+  virtual ::sprokit::process_t create_object(kwiver::vital::config_block_sptr const& config);
 
 private:
   py_process_factory_func_t m_factory;
@@ -111,7 +114,7 @@ python_process_factory::
 
 
 // ----------------------------------------------------------------------------
-sprokit::process_t
+::sprokit::process_t
 python_process_factory::
 create_object(kwiver::vital::config_block_sptr const& config)
 {
@@ -123,9 +126,11 @@ create_object(kwiver::vital::config_block_sptr const& config)
 
   // We need to do it this way because of how pybind11 handles memory
   obj.inc_ref();
-  sprokit::process_t proc_ptr = obj.cast<sprokit::process_t>();
+  ::sprokit::process_t proc_ptr = obj.cast<::sprokit::process_t>();
   return proc_ptr;
 }
+}}}
+using namespace kwiver::sprokit::python;
 
 
 // ==================================================================
@@ -164,6 +169,9 @@ PYBIND11_MODULE(process_factory, m)
 
 }
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
 // ==================================================================
 class python_process_wrapper
 {
@@ -181,8 +189,8 @@ private:
 
 // ------------------------------------------------------------------
 void
-register_process( sprokit::process::type_t const&        type,
-                  sprokit::process::description_t const& desc,
+register_process( ::sprokit::process::type_t const&        type,
+                  ::sprokit::process::description_t const& desc,
                   object                                 obj )
 {
   kwiver::vital::python::gil_scoped_acquire acquire;
@@ -192,7 +200,7 @@ register_process( sprokit::process::type_t const&        type,
 
   kwiver::vital::plugin_manager& vpm = kwiver::vital::plugin_manager::instance();
   auto fact = vpm.add_factory( new python_process_factory( type, // derived type name string
-                                                           typeid( sprokit::process ).name(),
+                                                           typeid( ::sprokit::process ).name(),
                                                            wrap ) );
 
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, type )
@@ -224,7 +232,7 @@ std::string get_description( const std::string& type )
   kwiver::vital::plugin_factory_handle_t a_fact;
   try
   {
-    typedef kwiver::vital::implementation_factory_by_name< sprokit::process > proc_factory;
+    typedef kwiver::vital::implementation_factory_by_name< ::sprokit::process > proc_factory;
     proc_factory ifact;
 
     VITAL_PYTHON_TRANSLATE_EXCEPTION(
@@ -255,7 +263,7 @@ std::vector< std::string > process_names()
 {
   std::vector< std::string > name_list;
 
-  auto fact_list = sprokit::get_process_list();
+  auto fact_list = ::sprokit::get_process_list();
   for( auto fact : fact_list )
   {
     std::string buf;
@@ -291,3 +299,4 @@ python_process_wrapper
   (void)acquire;
   return m_obj( config );
 }
+}}}

@@ -42,6 +42,10 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/compute_stereo_depth_map.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
+
 template< class algorithm_def_csdm_base=
             kwiver::vital::algorithm_def<
                kwiver::vital::algo::compute_stereo_depth_map > >
@@ -86,4 +90,5 @@ class compute_stereo_depth_map_trampoline :
       );
     }
 };
+}}}
 #endif

@@ -38,6 +38,7 @@ namespace py = pybind11;
 
 using ts = kwiver::vital::timestamp;
 
+
 PYBIND11_MODULE(timestamp, m)
 {
   py::class_<ts, std::shared_ptr<ts> > (m, "Timestamp", R"(

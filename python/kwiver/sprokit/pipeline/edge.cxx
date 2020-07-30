@@ -44,10 +44,14 @@
 
 using namespace pybind11;
 
-static void push_datum(sprokit::edge& self, wrap_edge_datum const& datum);
-static wrap_edge_datum get_datum(sprokit::edge& self);
-static wrap_edge_datum peek_datum(sprokit::edge& self, pybind11::size_t const& idx);
-
+namespace kwiver{
+namespace sprokit{
+namespace python{
+static void push_datum(::sprokit::edge& self, wrap_edge_datum const& datum);
+static wrap_edge_datum get_datum(::sprokit::edge& self);
+static wrap_edge_datum peek_datum(::sprokit::edge& self, pybind11::size_t const& idx);
+}}}
+using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(edge, m)
 {
   class_<wrap_edge_datum>(m, "EdgeDatum")
@@ -102,24 +106,28 @@ PYBIND11_MODULE(edge, m)
   ;
 }
 
+namespace kwiver{
+namespace sprokit{
+namespace python{
 void
-push_datum(sprokit::edge& self, wrap_edge_datum const& datum)
+push_datum(::sprokit::edge& self, wrap_edge_datum const& datum)
 {
-  self.push_datum((sprokit::edge_datum_t) datum);
+  self.push_datum((::sprokit::edge_datum_t) datum);
 }
 
 wrap_edge_datum
-get_datum(sprokit::edge& self)
+get_datum(::sprokit::edge& self)
 {
-  sprokit::edge_datum_t datum = self.get_datum();
+  ::sprokit::edge_datum_t datum = self.get_datum();
   wrap_edge_datum datum_p(*(datum.datum), wrap_stamp(datum.stamp));
   return datum_p;
 }
 
 wrap_edge_datum
-peek_datum(sprokit::edge& self, pybind11::size_t const& idx)
+peek_datum(::sprokit::edge& self, pybind11::size_t const& idx)
 {
-  sprokit::edge_datum_t datum = self.peek_datum(idx);
+  ::sprokit::edge_datum_t datum = self.peek_datum(idx);
   wrap_edge_datum datum_p(*(datum.datum), wrap_stamp(datum.stamp));
   return datum_p;
 }
+}}}

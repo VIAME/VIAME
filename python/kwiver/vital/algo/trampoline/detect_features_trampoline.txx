@@ -42,6 +42,9 @@
 #include <python/kwiver/vital/algo/trampoline/algorithm_trampoline.txx>
 #include <vital/algo/detect_features.h>
 
+namespace kwiver {
+namespace vital  {
+namespace python {
 
 template< class algorithm_def_df_base=
            kwiver::vital::algorithm_def< kwiver::vital::algo::detect_features > >
@@ -83,4 +86,5 @@ class detect_features_trampoline :
       );
     }
 };
+}}}
 #endif
