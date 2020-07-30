@@ -117,17 +117,12 @@ image_container
   // vital image won't take ownership either
   image_memory_sptr memory;
 #ifndef KWIVER_HAS_OPENCV_VER_3
-  if ( !img.refcount )
+  if ( img.refcount )
 #else
-  if ( !img.u )
+  if ( img.u )
 #endif
   {
     memory = std::make_shared<mat_image_memory>(img);
-  }
-  else
-  {
-    cv::Mat img_clone = img.clone();
-    memory = std::make_shared<mat_image_memory>(img_clone);
   }
 
   return image(memory, img.data,
