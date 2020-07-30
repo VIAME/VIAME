@@ -1,3 +1,17 @@
+v0.10.10 - 7/30/2020
+====================
+
+
+-Fix issue on windows running CFRNN training from pipelines dropdown
+
+
+-Fix issue in C++ hello world example
+
+
+-Fix issue in linux running IQR search and rapid model generation
+
+
+
 v0.10.9 - 4/30/2020
 ===================
 
