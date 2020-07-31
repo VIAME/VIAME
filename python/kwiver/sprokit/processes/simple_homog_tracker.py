@@ -364,22 +364,28 @@ def match_multiboxes_multihomog(
     min_iou is the minimum IOU required for a match.
 
     """
+    # Perform some input validation
     if not (multihomog and prev_multihomog):
         raise ValueError("Multihomographies must be non-empty")
     if not (len({h.to_id for h in multihomog}) == 1 and
             len({h.to_id for h in prev_multihomog}) == 1):
         raise ValueError("Multihomographies must have consistent target IDs")
+
+    # Return early under certain circumstances
     if multihomog[0].to_id != prev_multihomog[0].to_id:
         logger.debug("Returning no matches due to break in homography stream")
         return [None] * len(multiboxes)
     if not (multiboxes and prev_multiboxes):
         return [None] * len(multiboxes)
-    # Turn multihomogs into arrays
+
+    # Compute the transformations between current and previous cameras
     mh = np.array([h.homog.matrix for h in multihomog])
     pmh = np.array([h.homog.matrix for h in prev_multihomog])
     # homogs[i, j] is a transformation from current camera i
     # coordinates to previous camera j coordinates
     homogs = np.matmul(np.linalg.inv(pmh), mh[:, np.newaxis])
+
+    # Compute IOUs between current and previous multiboxes
     boxes, cams, blocks, lengths, indices = arrayify_multiboxes(multiboxes)
     prev = arrayify_multiboxes(prev_multiboxes)
     # trans_boxes[i, j] is the ith box in previous camera j coordinates
@@ -395,6 +401,7 @@ def match_multiboxes_multihomog(
             row_blocks, prev.blocks, prev.lengths, axis=2,
         )] for row_blocks in reblock_multiboxes(box_iou, blocks, lengths)
     ])[np.ix_(indices, prev.indices)]
+
     return optimize_iou_based_assignment(iou, min_iou)
 
 @Transformer.decorate
