@@ -35,7 +35,7 @@
 #include <vital/types/bounding_box.h>
 #include <vital/any.h>
 namespace kwiver {
-namespace vital  {
+namespace arrows  {
 namespace python {
 void serialize_bounding_box(py::module &m)
 {
