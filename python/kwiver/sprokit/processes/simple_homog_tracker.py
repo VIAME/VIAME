@@ -301,6 +301,36 @@ def arrayify_multiboxes(mbs):
     result = boxes, cams, blocks, lengths, indices
     return ArrayifiedMultiboxes(*map(np.asarray, result))
 
+def norm_index(index, length):
+    """Return a positive index such that seq[index] is equivalent to
+    seq[norm_index(index, len(seq))]
+
+    """
+    if index < 0:
+        index += length
+    if index not in range(length):
+        raise IndexError
+    return index
+
+def reblock_multiboxes(array, blocks, lengths, axis=None):
+    """Given an Mx... array and arrays blocks and lengths describing how
+    to split it up (see arrayify_multiboxes), yield XixLix... arrays
+    where Xi is the number of elements in a block and Li is the length
+    of the elements in that block
+
+    If axis is provided, operate on that axis instead of the zeroth.
+
+    """
+    if axis is None: axis = 0
+    axis = norm_index(axis, array.ndim)
+    if array.shape[axis] != blocks[-1, 1]:
+        raise ValueError('Blocks do not match array')
+    shape_pre, shape_post = array.shape[:axis], array.shape[axis + 1:]
+    for (start, stop), length in zip(blocks, lengths):
+        shape = shape_pre + ((stop - start) // length, length) + shape_post
+        slice_ = (slice(None),) * axis + (slice(start, stop),)
+        yield array[slice_].reshape(shape)
+
 def match_multiboxes_multihomog(
         multihomog, multiboxes, prev_multihomog, prev_multiboxes, min_iou,
 ):
