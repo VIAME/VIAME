@@ -78,20 +78,25 @@ _BBox = namedtuple('_BBox', ['xmin', 'ymin', 'xmax', 'ymax'])
 
 class BBox(_BBox):
     @classmethod
-    def from_points(cls, array):
-        """Given a 2xN numpy.ndarray of points (row order x, y)
-        return the smallest enclosing bounding box"""
-        return cls.from_matrix(cls.matrix_from_points(array))
-
-    @classmethod
     def from_matrix(cls, matrix):
         [[xmin, xmax], [ymin, ymax]] = matrix
         return cls(xmin, ymin, xmax, ymax)
+
+    @property
+    def matrix(self):
+        """Return a 2x2 numpy.ndarray (column order min, max; row order x, y)"""
+        return np.array([[self.xmin, self.xmax], [self.ymin, self.ymax]])
 
     @staticmethod
     def matrix_from_points(array):
         """Like BBox.from_points(array).matrix, but broadcasts"""
         return np.stack([array.min(-1), array.max(-1)], axis=-1)
+
+    @classmethod
+    def from_points(cls, array):
+        """Given a 2xN numpy.ndarray of points (row order x, y)
+        return the smallest enclosing bounding box"""
+        return cls.from_matrix(cls.matrix_from_points(array))
 
     @staticmethod
     def matrix_corners(array):
@@ -105,11 +110,6 @@ class BBox(_BBox):
     def corners(self):
         """Return a 2x4 numpy.ndarray of the corner points (row order x, y)"""
         return self.matrix_corners(self.matrix)
-
-    @property
-    def matrix(self):
-        """Return a 2x2 numpy.ndarray (column order min, max; row order x, y)"""
-        return np.array([[self.xmin, self.xmax], [self.ymin, self.ymax]])
 
 class Transformer(object):
     """A Transformer is a stateful object that receives one tuple of
