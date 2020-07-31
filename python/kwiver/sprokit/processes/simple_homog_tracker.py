@@ -53,10 +53,18 @@ class Homography(_Homography):
     def transform(self, array):
         """Given a ...x2xN numpy.ndarray of points (row order x, y)
         return a ...x2xN array of transformed points"""
+        return self.matrix_transform(self.matrix, array)
+
+    @staticmethod
+    def matrix_transform(matrix, array):
+        """Like Homography(matrix).transform(array), but broadcasts over
+        matrix
+
+        """
         ones = np.ones(array.shape[:-2] + (1, array.shape[-1]), dtype=array.dtype)
         # Add z coordinate
         array = np.concatenate((array, ones), axis=-2)
-        result = np.matmul(self.matrix, array)
+        result = np.matmul(matrix, array)
         # Remove z coordinate
         return result[..., :-1, :] / result[..., -1:, :]
 
@@ -73,25 +81,35 @@ class BBox(_BBox):
     def from_points(cls, array):
         """Given a 2xN numpy.ndarray of points (row order x, y)
         return the smallest enclosing bounding box"""
-        xmin, ymin = array.min(1)
-        xmax, ymax = array.max(1)
+        return cls.from_matrix(cls.matrix_from_points(array))
+
+    @classmethod
+    def from_matrix(cls, matrix):
+        [[xmin, xmax], [ymin, ymax]] = matrix
         return cls(xmin, ymin, xmax, ymax)
+
+    @staticmethod
+    def matrix_from_points(array):
+        """Like BBox.from_points(array).matrix, but broadcasts"""
+        return np.stack([array.min(-1), array.max(-1)], axis=-1)
+
+    @staticmethod
+    def matrix_corners(array):
+        """Like BBox.from_matrix(array).corners, but broadcasts"""
+        if array.shape[-2:] != (2, 2):
+            raise ValueError
+        x, y, m, M = 0, 1, 0, 1  # x, y, min, and max
+        return array[..., [[x], [y]], [[m, m, M, M], [m, M, m, M]]]
 
     @property
     def corners(self):
         """Return a 2x4 numpy.ndarray of the corner points (row order x, y)"""
-        return np.array([
-            [self.xmin, self.xmin, self.xmax, self.xmax],
-            [self.ymin, self.ymax, self.ymin, self.ymax],
-        ])
+        return self.matrix_corners(self.matrix)
 
     @property
     def matrix(self):
         """Return a 2x2 numpy.ndarray (column order min, max; row order x, y)"""
-        return np.array([
-            [self.xmin, self.xmax],
-            [self.ymin, self.ymax],
-        ])
+        return np.array([[self.xmin, self.xmax], [self.ymin, self.ymax]])
 
 class Transformer(object):
     """A Transformer is a stateful object that receives one tuple of
@@ -123,7 +141,15 @@ class Transformer(object):
 def transform_box(homog, bbox):
     """Transform the bounding box with the given Homography,
     returning the smallest enclosing bounding box"""
-    return BBox.from_points(homog.transform(bbox.corners))
+    return BBox.from_matrix(transform_matrix_box(homog.matrix, bbox.matrix))
+
+def transform_matrix_box(homog, bbox):
+    """A broadcasting version of
+    transform_box(Homography(homog), BBox.from_matrix(bbox)).matrix
+
+    """
+    tcorners = Homography.matrix_transform(homog, BBox.matrix_corners(bbox))
+    return BBox.matrix_from_points(tcorners)
 
 def ious(x, y):
     """Given two ...x2x2 numpy.ndarrays corresponding to bounding boxes
