@@ -375,20 +375,13 @@ def match_multiboxes_multihomog(
     # box_iou[i, j] is the IOU of the ith box and the jth previous box
     # in the latter's coordinates
     box_iou = ious(trans_boxes[:, prev.cams], prev.boxes, trans_box_areas[:, prev.cams])
-    iou = []
-    for (start, stop), length in zip(blocks, lengths):
-        iou_row = []
-        it = zip(prev.blocks, prev.lengths)
-        for (prev_start, prev_stop), prev_length in it:
-            block = box_iou[start:stop, prev_start:prev_stop]
-            h, w = block.shape[0] // length, block.shape[1] // prev_length
-            # Move the scores for a multibox to their own axis
-            block = block.reshape((h, length, w, prev_length))
-            iou_row.append(np.median(block, axis=(1, 3)))
-        iou.append(iou_row)
     # iou[i, j] is the approx. IOU of the ith multibox and jth
     # previous multibox
-    iou = np.block(iou)
+    iou = np.block([
+        [np.median(block, axis=(1, 3)) for block in reblock_multiboxes(
+            row_blocks, prev.blocks, prev.lengths, axis=2,
+        )] for row_blocks in reblock_multiboxes(box_iou, blocks, lengths)
+    ])
     assignment = optimize_iou_based_assignment(iou, min_iou)
     result = [None] * len(multiboxes)
     for i, j in zip(indices, assignment):
