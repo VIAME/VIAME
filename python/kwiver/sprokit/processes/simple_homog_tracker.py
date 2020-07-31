@@ -161,13 +161,20 @@ def transform_matrix_box(homog, bbox):
     tcorners = Homography.matrix_transform(homog, BBox.matrix_corners(bbox))
     return BBox.matrix_from_points(tcorners)
 
-def ious(x, y):
+def ious(x, y, x_area=None, y_area=None):
     """Given two ...x2x2 numpy.ndarrays corresponding to bounding boxes
-    (cf. BBox.matrix), return a ... array of IOU scores"""
+    (cf. BBox.matrix), return a ... array of IOU scores
+
+    If provided, x_area and y_area should be BBox.matrix_area(x) and
+    BBox.matrix_area(y) respectively.
+
+    """
     maxmin = np.maximum(x[..., 0], y[..., 0])
     minmax = np.minimum(x[..., 1], y[..., 1])
     i = (minmax - maxmin).prod(-1)
-    u = BBox.matrix_area(x) + BBox.matrix_area(y) - i
+    if x_area is None: x_area = BBox.matrix_area(x)
+    if y_area is None: y_area = BBox.matrix_area(y)
+    u = x_area + y_area - i
     return np.where((maxmin < minmax).all(-1), i / u, 0)
 
 def optimize_iou_based_assignment(iou_array, min_iou):
