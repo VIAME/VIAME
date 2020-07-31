@@ -88,6 +88,16 @@ class BBox(_BBox):
         return np.array([[self.xmin, self.xmax], [self.ymin, self.ymax]])
 
     @staticmethod
+    def matrix_area(array):
+        """Like BBox.from_matrix(array).area, but broadcasts"""
+        return (array[..., 1] - array[..., 0]).prod(-1)
+
+    @property
+    def area(self):
+        """Return the area of the bounding box"""
+        return self.matrix_area(self.matrix)
+
+    @staticmethod
     def matrix_from_points(array):
         """Like BBox.from_points(array).matrix, but broadcasts"""
         return np.stack([array.min(-1), array.max(-1)], axis=-1)
@@ -157,8 +167,7 @@ def ious(x, y):
     maxmin = np.maximum(x[..., 0], y[..., 0])
     minmax = np.minimum(x[..., 1], y[..., 1])
     i = (minmax - maxmin).prod(-1)
-    def area(x): return (x[..., 1] - x[..., 0]).prod(-1)
-    u = area(x) + area(y) - i
+    u = BBox.matrix_area(x) + BBox.matrix_area(y) - i
     return np.where((maxmin < minmax).all(-1), i / u, 0)
 
 def optimize_iou_based_assignment(iou_array, min_iou):
