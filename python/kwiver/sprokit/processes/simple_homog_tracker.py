@@ -255,6 +255,18 @@ def track_multiboxes(multihomog, box_lists, min_iou):
         hooks = new_hooks
     return result
 
+def invert_permutation(seq):
+    """Given a sequence that permutes indices, return a list describing
+    the inverse permutation
+
+    """
+    result = [None] * len(seq)
+    for i, j in enumerate(seq):
+        result[j] = i
+    if None in result:
+        raise ValueError("Bad permutation")
+    return result
+
 ArrayifiedMultiboxes = namedtuple('ArrayifiedMultiboxes', [
     'boxes', 'cams', 'blocks', 'lengths', 'indices',
 ])
@@ -271,11 +283,12 @@ def arrayify_multiboxes(mbs):
       stop indices of the block in the first two arrays
     - lengths: A C-length array of the length of multibox represented
       in each block
-    - indices: An N-length array giving the index in the input list
-      for each multibox as represented in the output
+    - indices: An N-length array giving the "index" in the output of
+      each multibox in the input
 
-    So for instance, boxes[i*lengths[0] : (i+1)*lengths[0]]
-    corresponds to mbs[indices[i]] for 0 <= i < blocks[0, 1]
+    So for instance,
+    boxes[indices[i]*lengths[0] : (indices[i]+1)*lengths[0]]
+    corresponds to mbs[i] when 0 <= indices[i] < blocks[0, 1]
 
     """
     if not mbs:
@@ -298,7 +311,7 @@ def arrayify_multiboxes(mbs):
     blocks = np.array(blocks)
     as_strided = np.lib.stride_tricks.as_strided
     blocks = as_strided(blocks, (len(blocks) - 1, 2), blocks.strides * 2)
-    result = boxes, cams, blocks, lengths, indices
+    result = boxes, cams, blocks, lengths, invert_permutation(indices)
     return ArrayifiedMultiboxes(*map(np.asarray, result))
 
 def norm_index(index, length):
@@ -376,18 +389,13 @@ def match_multiboxes_multihomog(
     # in the latter's coordinates
     box_iou = ious(trans_boxes[:, prev.cams], prev.boxes, trans_box_areas[:, prev.cams])
     # iou[i, j] is the approx. IOU of the ith multibox and jth
-    # previous multibox
+    # previous multibox (original indices)
     iou = np.block([
         [np.median(block, axis=(1, 3)) for block in reblock_multiboxes(
             row_blocks, prev.blocks, prev.lengths, axis=2,
         )] for row_blocks in reblock_multiboxes(box_iou, blocks, lengths)
-    ])
-    assignment = optimize_iou_based_assignment(iou, min_iou)
-    result = [None] * len(multiboxes)
-    for i, j in zip(indices, assignment):
-        if j is not None:
-            result[i] = prev.indices[j]
-    return result
+    ])[np.ix_(indices, prev.indices)]
+    return optimize_iou_based_assignment(iou, min_iou)
 
 @Transformer.decorate
 def min_track(match):
