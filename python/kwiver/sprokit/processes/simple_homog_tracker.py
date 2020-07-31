@@ -225,6 +225,147 @@ def match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou):
     )
     return optimize_iou_based_assignment(iou, min_iou)
 
+# A multihomography is a list of homographies, one for each camera.  A
+# multibox is a dict mapping camera indices to boxes.  XXX Making
+# these actual types would be neat.
+def track_multiboxes(multihomog, box_lists, min_iou):
+    """Turn a list of lists of BBoxes (one top-level list per camera) into
+    a list of multiboxes
+
+    """
+    matches = [
+        match_boxes_homog(h, b, ph, pb, min_iou) for h, b, ph, pb
+        in zip(multihomog, box_lists, multihomog[1:], box_lists[1:])
+    ]
+    matches.append(itertools.repeat(None))
+    # List of multibox dicts
+    result = []
+    # Partially maps a current-camera box index to an existing
+    # multibox dict it should be added to.
+    hooks = {}
+    for i, bs, ms in zip(itertools.count(), box_lists, matches):
+        new_hooks = {}
+        for j, b, m in zip(itertools.count(), bs, ms):
+            mb = hooks.get(j, {})
+            if not mb:
+                result.append(mb)
+            mb[i] = b
+            if m is not None:
+                new_hooks[m] = mb
+        hooks = new_hooks
+    return result
+
+ArrayifiedMultiboxes = namedtuple('ArrayifiedMultiboxes', [
+    'boxes', 'cams', 'blocks', 'lengths', 'indices',
+])
+
+def arrayify_multiboxes(mbs):
+    """Turn a non-empty list of N multiboxes into an
+    ArrayifiedMultiboxes containing the following five ndarrays:
+    - boxes: An Mx2x2 array of bounding boxes (per BBox.matrix), where
+      M is the total count of underlying BBoxes and each multibox is
+      represented by a contiguous range of rows
+    - cams: An M-length array of the corresponding camera indices
+    - blocks: An ordered Cx2 array of "blocks", where C is the number
+      of distinct lengths of multibox and each row is the start and
+      stop indices of the block in the first two arrays
+    - lengths: A C-length array of the length of multibox represented
+      in each block
+    - indices: An N-length array giving the index in the input list
+      for each multibox as represented in the output
+
+    So for instance, boxes[i*lengths[0] : (i+1)*lengths[0]]
+    corresponds to mbs[indices[i]] for 0 <= i < blocks[0, 1]
+
+    """
+    if not mbs:
+        raise ValueError
+    indices, mbs = zip(*sorted(enumerate(mbs), key=lambda imb: len(imb[1])))
+    boxes, cams = [], []
+    blocks, i, lengths, cl = [], 0, [], None
+    for mb in mbs:
+        for c, b in mb.items():
+            boxes.append(b.matrix)
+            cams.append(c)
+        if len(mb) != cl:
+            blocks.append(i)
+            cl = len(mb)
+            lengths.append(cl)
+        i += cl
+    blocks.append(i)
+    # Unfortunately this needs to be done directly
+    # (https://github.com/numpy/numpy/issues/7753)
+    blocks = np.array(blocks)
+    as_strided = np.lib.stride_tricks.as_strided
+    blocks = as_strided(blocks, (len(blocks) - 1, 2), blocks.strides * 2)
+    result = boxes, cams, blocks, lengths, indices
+    return ArrayifiedMultiboxes(*map(np.asarray, result))
+
+def match_multiboxes_multihomog(
+        multihomog, multiboxes, prev_multihomog, prev_multiboxes, min_iou,
+):
+    """Return a list of indices into prev_multiboxes, where each index
+    identifies the entry of prev_multiboxes that matches the
+    corresponding multibox in multiboxes.  A returned value may be
+    None in the case of no match.
+
+    multihomog and prev_multihomog are MultiHomographyF2Fs
+    transforming the coordinates of multiboxes and prev_multiboxes,
+    respectively, to reference-frame coordinates.
+
+    IOUs between two multiboxes are approximated by taking the median
+    of all the IOUs between the component detections of the
+    multiboxes.  (Those IOUs are approximated by approximating one box
+    in the other's coordinates and computing that IOU.)
+
+    min_iou is the minimum IOU required for a match.
+
+    """
+    if not (multihomog and prev_multihomog):
+        raise ValueError("Multihomographies must be non-empty")
+    if not (len({h.to_id for h in multihomog}) == 1 and
+            len({h.to_id for h in prev_multihomog}) == 1):
+        raise ValueError("Multihomographies must have consistent target IDs")
+    if multihomog[0].to_id != prev_multihomog[0].to_id:
+        logger.debug("Returning no matches due to break in homography stream")
+        return [None] * len(multiboxes)
+    if not (multiboxes and prev_multiboxes):
+        return [None] * len(multiboxes)
+    # Turn multihomogs into arrays
+    mh = np.array([h.homog.matrix for h in multihomog])
+    pmh = np.array([h.homog.matrix for h in prev_multihomog])
+    # homogs[i, j] is a transformation from current camera i
+    # coordinates to previous camera j coordinates
+    homogs = np.matmul(np.linalg.inv(pmh), mh[:, np.newaxis])
+    boxes, cams, blocks, lengths, indices = arrayify_multiboxes(multiboxes)
+    prev = arrayify_multiboxes(prev_multiboxes)
+    # trans_boxes[i, j] is the ith box in previous camera j coordinates
+    trans_boxes = transform_matrix_box(homogs[cams], boxes[:, np.newaxis])
+    trans_box_areas = BBox.matrix_area(trans_boxes)
+    # box_iou[i, j] is the IOU of the ith box and the jth previous box
+    # in the latter's coordinates
+    box_iou = ious(trans_boxes[:, prev.cams], prev.boxes, trans_box_areas[:, prev.cams])
+    iou = []
+    for (start, stop), length in zip(blocks, lengths):
+        iou_row = []
+        it = zip(prev.blocks, prev.lengths)
+        for (prev_start, prev_stop), prev_length in it:
+            block = box_iou[start:stop, prev_start:prev_stop]
+            h, w = block.shape[0] // length, block.shape[1] // prev_length
+            # Move the scores for a multibox to their own axis
+            block = block.reshape((h, length, w, prev_length))
+            iou_row.append(np.median(block, axis=(1, 3)))
+        iou.append(iou_row)
+    # iou[i, j] is the approx. IOU of the ith multibox and jth
+    # previous multibox
+    iou = np.block(iou)
+    assignment = optimize_iou_based_assignment(iou, min_iou)
+    result = [None] * len(multiboxes)
+    for i, j in zip(indices, assignment):
+        if j is not None:
+            result[i] = prev.indices[j]
+    return result
+
 @Transformer.decorate
 def min_track(match):
     """Create a Transformer that performs minimalistic tracking
@@ -273,6 +414,13 @@ def core_track(min_iou=None):
     """
     if min_iou is None: min_iou = DEFAULT_MIN_IOU  # Default value
     return min_track(functools.partial(match_boxes_homog, min_iou=min_iou))
+
+def core_multitrack(min_iou=None):
+    # XXX doc me.  It's like core_track but with multiboxes and
+    # multihomographies.
+    if min_iou is None: min_iou = DEFAULT_MIN_IOU  # Default value
+    match = functools.partial(match_multiboxes_multihomog, min_iou=min_iou)
+    return min_track(match)
 
 @Transformer.decorate
 def build_tracks():
