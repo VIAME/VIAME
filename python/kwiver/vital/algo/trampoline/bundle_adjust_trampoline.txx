@@ -110,5 +110,7 @@ class bundle_adjust_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

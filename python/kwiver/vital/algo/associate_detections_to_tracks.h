@@ -39,4 +39,6 @@ namespace vital  {
 namespace python {
 void associate_detections_to_tracks(py::module &m);
 #endif
-}}}
+}
+}
+}

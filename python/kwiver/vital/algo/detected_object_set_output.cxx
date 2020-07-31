@@ -51,4 +51,6 @@ void detected_object_set_output(py::module &m)
     .def("close", &doso::close)
     ;
 }
-}}}
+}
+}
+}

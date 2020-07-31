@@ -63,7 +63,9 @@ get_track(std::shared_ptr<feat_track_set> &self, uint64_t id)
   return track;
 }
 
-}}}
+}
+}
+}
 using namespace kwiver::vital::python;
 PYBIND11_MODULE(feature_track_set, m)
 {

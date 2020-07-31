@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void analyze_tracks(py::module &m);
-}}}
+}
+}
+}
 #endif

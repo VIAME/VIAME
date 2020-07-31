@@ -48,4 +48,6 @@ void serialize_class_map(py::module &m)
                           kwiver::vital::class_map,
                           kwiver::arrows::serialize::json::class_map > );
 }
-}}}
+}
+}
+}

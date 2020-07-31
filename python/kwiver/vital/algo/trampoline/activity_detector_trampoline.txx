@@ -82,5 +82,7 @@ class activity_detector_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

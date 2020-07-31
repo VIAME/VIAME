@@ -164,7 +164,9 @@ void push_datum_to_port(::sprokit::process &self, ::sprokit::process::port_t con
 
 std::string config_value(::sprokit::process &self, kwiver::vital::config_block_key_t const& key);
 
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 
 
@@ -897,4 +899,6 @@ config_value(::sprokit::process &self, kwiver::vital::config_block_key_t const& 
   ::sprokit::process* self_ptr = &self;
   return ((wrap_process*) self_ptr)->config_value<std::string>(key);
 }
-}}}
+}
+}
+}

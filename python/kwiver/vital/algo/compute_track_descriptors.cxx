@@ -51,4 +51,6 @@ void compute_track_descriptors(py::module &m)
     .def("flush",
          &kwiver::vital::algo::compute_track_descriptors::flush);
 }
-}}}
+}
+}
+}

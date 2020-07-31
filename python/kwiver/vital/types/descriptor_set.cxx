@@ -58,7 +58,10 @@ new_desc_set1(py::list py_list)
   }
   return std::make_shared<s_desc_set>(desc_list);
 }
-}}}
+}
+}
+}
+
 using namespace kwiver::vital::python;
 PYBIND11_MODULE(descriptor_set, m)
 {

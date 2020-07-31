@@ -49,7 +49,9 @@ namespace kwiver{
 namespace sprokit{
 namespace python{
 static object cluster_from_process(::sprokit::process_t const& process);
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(process_cluster, m)
 {
@@ -145,4 +147,6 @@ cluster_from_process(::sprokit::process_t const& process)
 
   return cast(cluster);
 }
-}}}
+}
+}
+}

@@ -123,7 +123,10 @@ get_index(std::shared_ptr<kwiver::vital::descriptor_dynamic<T>> self, size_t idx
   T* data = self->raw_data();
   return data[idx];
 }
-}}}
+}
+}
+}
+
 using namespace kwiver::vital::python;
 PYBIND11_MODULE(descriptor, m)
 {

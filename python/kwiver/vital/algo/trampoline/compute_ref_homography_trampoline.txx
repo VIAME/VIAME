@@ -89,5 +89,7 @@ class compute_ref_homography_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

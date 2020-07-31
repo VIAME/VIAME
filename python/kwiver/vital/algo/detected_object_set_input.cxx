@@ -52,4 +52,6 @@ void detected_object_set_input(py::module &m)
     .def("read_set",
          &kwiver::vital::algo::detected_object_set_input::read_set);
 }
-}}}
+}
+}
+}

@@ -97,5 +97,7 @@ class associate_detections_to_tracks_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

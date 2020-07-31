@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void bundle_adjust(py::module &m);
-}}}
+}
+}
+}
 #endif

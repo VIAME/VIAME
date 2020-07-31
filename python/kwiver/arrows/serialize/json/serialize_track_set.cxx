@@ -49,4 +49,6 @@ void serialize_track_set(py::module &m)
                           kwiver::vital::track_set_sptr,
                           kwiver::arrows::serialize::json::track_set> );
 }
-}}}
+}
+}
+}

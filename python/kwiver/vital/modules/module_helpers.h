@@ -32,6 +32,7 @@
 #define KWIVER_VITAL_PYTHON_MODULE_HELPERS_H
 
 #include <string>
+
 bool is_python_library_loaded(const std::string& python_library_path);
 bool load_python_library_from_env();
 bool load_python_library_from_interpretor(const std::string python_library_path);

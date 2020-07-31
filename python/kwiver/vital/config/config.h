@@ -86,5 +86,7 @@ namespace python {
 /// pybind11 module for config
 void
 config( py::module& m );
-}}}
+}
+}
+}
 #endif

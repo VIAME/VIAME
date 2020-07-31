@@ -102,5 +102,7 @@ class compute_track_descriptors_trampoline :
 
     }
 };
-}}}
+}
+}
+}
 #endif

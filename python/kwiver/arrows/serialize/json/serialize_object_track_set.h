@@ -39,5 +39,7 @@ namespace python {
 namespace py = pybind11;
 
 void serialize_object_track_set(py::module &m);
-}}}
+}
+}
+}
 #endif

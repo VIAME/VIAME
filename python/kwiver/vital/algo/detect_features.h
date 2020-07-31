@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void detect_features(py::module &m);
-}}}
+}
+}
+}
 #endif

@@ -140,4 +140,6 @@ class wrap_edge_datum : public ::sprokit::edge_datum_t
     wrap_stamp get_stamp() {return wrap_stamp(stamp);}
     void set_stamp(wrap_stamp const& st) {stamp = st.get_stamp();}
 };
-}}}
+}
+}
+}

@@ -234,4 +234,6 @@ class PyDescriptorSet
 
     std::vector<std::shared_ptr<PyDescriptorBase>> get_descriptors() { return descriptors; };
 };
-}}}
+}
+}
+}

@@ -45,4 +45,6 @@ void activity_detector(py::module &m)
     .def_static("static_type_name", &kwiver::vital::algo::activity_detector::static_type_name)
     .def("detect", &kwiver::vital::algo::activity_detector::detect);
 }
-}}}
+}
+}
+}

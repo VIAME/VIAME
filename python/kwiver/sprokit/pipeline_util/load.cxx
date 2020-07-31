@@ -81,7 +81,10 @@ static ::sprokit::cluster_blocks load_cluster_file(std::string const& path);
 static ::sprokit::cluster_blocks load_cluster(object const& stream);
 static std::vector<wrap_port_addr> get_targets(::sprokit::cluster_input_t const& self);
 static void set_targets(::sprokit::cluster_input_t &self, std::vector<wrap_port_addr> const& wrap_targets);
-}}}
+}
+}
+}
+
 using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(load, m)
 {
@@ -643,4 +646,6 @@ set_targets(::sprokit::cluster_input_t &self, std::vector<wrap_port_addr> const&
   }
   self.targets = targets;
 }
-}}}
+}
+}
+}

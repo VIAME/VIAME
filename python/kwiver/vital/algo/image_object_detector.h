@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void image_object_detector(py::module &m);
-}}}
+}
+}
+}
 #endif

@@ -49,4 +49,6 @@ void serialize_timestamp(py::module &m)
                               kwiver::vital::timestamp,
                               kwiver::arrows::serialize::json::timestamp > );
 }
-}}}
+}
+}
+}

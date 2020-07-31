@@ -48,4 +48,6 @@ void detect_features(py::module &m)
     .def("detect",
          &kwiver::vital::algo::detect_features::detect);
 }
-}}}
+}
+}
+}

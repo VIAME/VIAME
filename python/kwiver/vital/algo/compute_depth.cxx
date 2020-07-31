@@ -51,4 +51,6 @@ void compute_depth(py::module &m)
     .def("set_callback",
         &kwiver::vital::algo::compute_depth::set_callback);
 }
-}}}
+}
+}
+}

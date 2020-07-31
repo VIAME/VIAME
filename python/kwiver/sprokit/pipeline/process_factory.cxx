@@ -129,7 +129,9 @@ create_object(kwiver::vital::config_block_sptr const& config)
   ::sprokit::process_t proc_ptr = obj.cast<::sprokit::process_t>();
   return proc_ptr;
 }
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 
 
@@ -299,4 +301,6 @@ python_process_wrapper
   (void)acquire;
   return m_obj( config );
 }
-}}}
+}
+}
+}

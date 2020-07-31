@@ -44,4 +44,6 @@ void algorithm(py::module &m)
     .def("set_configuration", &kwiver::vital::algorithm::set_configuration)
     .def("check_configuration", &kwiver::vital::algorithm::check_configuration);
 }
-}}}
+}
+}
+}

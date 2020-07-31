@@ -79,7 +79,9 @@ std::string const compile::git_dirty = KWIVER_GIT_DIRTY;
 class runtime
 {
 };
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 
 PYBIND11_MODULE(version, m)
@@ -130,7 +132,9 @@ compile
 {
   return KWIVER_VERSION_CHECK(major_, minor_, patch_);
 }
-}}}
+}
+}
+}
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif

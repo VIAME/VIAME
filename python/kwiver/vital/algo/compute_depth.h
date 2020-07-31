@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void compute_depth(py::module &m);
-}}}
+}
+}
+}
 #endif

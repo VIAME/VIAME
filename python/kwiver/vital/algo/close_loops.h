@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void close_loops(py::module &m);
-}}}
+}
+}
+}
 #endif

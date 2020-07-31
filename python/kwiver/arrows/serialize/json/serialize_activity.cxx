@@ -49,4 +49,6 @@ void serialize_activity(py::module &m)
                           kwiver::vital::activity,
                           kwiver::arrows::serialize::json::activity > );
 }
-}}}
+}
+}
+}

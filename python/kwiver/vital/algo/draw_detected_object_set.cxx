@@ -48,4 +48,6 @@ void draw_detected_object_set(py::module &m)
     .def("draw",
          &kwiver::vital::algo::draw_detected_object_set::draw);
 }
-}}}
+}
+}
+}

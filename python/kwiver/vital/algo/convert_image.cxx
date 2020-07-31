@@ -49,4 +49,6 @@ void convert_image(py::module &m)
     .def("convert",
          &kwiver::vital::algo::convert_image::convert);
 }
-}}}
+}
+}
+}

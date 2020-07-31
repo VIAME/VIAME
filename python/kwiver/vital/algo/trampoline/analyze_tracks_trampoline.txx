@@ -89,5 +89,7 @@ class analyze_tracks_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void detect_motion(py::module &m);
-}}}
+}
+}
+}
 #endif

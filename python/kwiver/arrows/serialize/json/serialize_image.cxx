@@ -67,4 +67,6 @@ void serialize_image(py::module &m)
   m.def("serialize_image", serialize_image_using_json);
   m.def("deserialize_image", deserialize_image_using_json);
 }
-}}}
+}
+}
+}

@@ -88,5 +88,7 @@ class algorithm_trampoline : public algorithm_base
       );
     }
 };
-}}}
+}
+}
+}
 #endif

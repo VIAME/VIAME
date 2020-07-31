@@ -49,4 +49,6 @@ void serialize_detected_object(py::module &m)
                           kwiver::vital::detected_object_sptr,
                           kwiver::arrows::serialize::json::detected_object > );
 }
-}}}
+}
+}
+}

@@ -38,5 +38,7 @@ namespace kwiver {
 namespace arrows {
 namespace python {
 void serialize_track_set(py::module &m);
-}}}
+}
+}
+}
 #endif

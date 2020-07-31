@@ -90,5 +90,7 @@ class compute_stereo_depth_map_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

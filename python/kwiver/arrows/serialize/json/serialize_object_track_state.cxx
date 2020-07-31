@@ -49,4 +49,6 @@ void serialize_object_track_state(py::module &m)
                           kwiver::vital::object_track_state,
                           kwiver::arrows::serialize::json::object_track_state> );
 }
-}}}
+}
+}
+}

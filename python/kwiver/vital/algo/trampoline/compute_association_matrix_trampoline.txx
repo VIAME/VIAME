@@ -96,5 +96,7 @@ class compute_association_matrix_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

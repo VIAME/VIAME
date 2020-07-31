@@ -85,5 +85,7 @@ class draw_detected_object_set_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

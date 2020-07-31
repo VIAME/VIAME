@@ -48,4 +48,6 @@ void compute_association_matrix(py::module &m)
     .def("compute",
          &kwiver::vital::algo::compute_association_matrix::compute);
 }
-}}}
+}
+}
+}

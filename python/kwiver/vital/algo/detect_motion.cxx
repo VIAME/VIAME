@@ -48,4 +48,6 @@ void detect_motion(py::module &m)
     .def("process_image",
          &kwiver::vital::algo::detect_motion::process_image);
 }
-}}}
+}
+}
+}

@@ -83,5 +83,7 @@ class image_object_detector_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

@@ -48,4 +48,6 @@ void compute_ref_homography(py::module &m)
     .def("estimate",
          &kwiver::vital::algo::compute_ref_homography::estimate);
 }
-}}}
+}
+}
+}

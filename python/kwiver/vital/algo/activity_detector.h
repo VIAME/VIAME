@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void activity_detector(py::module &m);
-}}}
+}
+}
+}
 #endif

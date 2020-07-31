@@ -83,5 +83,7 @@ class detected_object_filter_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

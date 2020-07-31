@@ -76,7 +76,9 @@ class scheduler_trampoline
 };
 
 void scheduler_shutdown(object);
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 
 PYBIND11_MODULE(scheduler, m)
@@ -177,4 +179,6 @@ scheduler_trampoline
     _stop,
   );
 }
-}}}
+}
+}
+}

@@ -86,5 +86,7 @@ class detect_features_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

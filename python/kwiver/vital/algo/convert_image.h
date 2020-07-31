@@ -39,4 +39,6 @@ namespace vital  {
 namespace python {
 void convert_image(py::module &m);
 #endif
-}}}
+}
+}
+}

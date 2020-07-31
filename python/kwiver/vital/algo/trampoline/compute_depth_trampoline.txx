@@ -99,5 +99,7 @@ class compute_depth_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

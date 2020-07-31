@@ -63,4 +63,6 @@ void bundle_adjust(py::module &m)
                      (&kwiver::vital::algo::bundle_adjust::optimize))
     .def("set_callback", &kwiver::vital::algo::bundle_adjust::set_callback);
 }
-}}}
+}
+}
+}

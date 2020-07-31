@@ -217,7 +217,10 @@ new_feature(py::object loc_obj,
 
   return retVal;
 }
-}}}
+}
+}
+}
+
 using namespace kwiver::vital::python;
 PYBIND11_MODULE(feature, m)
 {

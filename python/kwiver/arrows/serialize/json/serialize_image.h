@@ -47,5 +47,7 @@ kwiver::vital::simple_image_container
 deserialize_image_using_json( const std::string& message );
 
 void serialize_image(py::module &m);
-}}}
+}
+}
+}
 #endif

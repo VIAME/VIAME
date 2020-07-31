@@ -111,7 +111,9 @@ create_object(::sprokit::pipeline_t const& pipe, kwiver::vital::config_block_spt
   ::sprokit::scheduler_t schd_ptr = obj.cast<::sprokit::scheduler_t>();
   return schd_ptr;
 }
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 
 //==================================================================
@@ -285,4 +287,6 @@ python_scheduler_wrapper
   (void)acquire;
   return m_obj(pipeline, config);
 }
-}}}
+}
+}
+}

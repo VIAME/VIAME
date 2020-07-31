@@ -49,4 +49,6 @@ void associate_detections_to_tracks(py::module &m)
     .def("associate",
          &kwiver::vital::algo::associate_detections_to_tracks::associate);
 }
-}}}
+}
+}
+}

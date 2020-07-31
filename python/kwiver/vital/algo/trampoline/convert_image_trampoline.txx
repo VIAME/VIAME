@@ -84,5 +84,7 @@ class convert_image_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

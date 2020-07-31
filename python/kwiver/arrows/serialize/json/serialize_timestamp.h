@@ -39,5 +39,7 @@ namespace python {
 namespace py = pybind11;
 
 void serialize_timestamp(py::module &m);
-}}}
+}
+}
+}
 #endif

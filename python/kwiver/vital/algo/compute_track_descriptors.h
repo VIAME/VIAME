@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void compute_track_descriptors(py::module &m);
-}}}
+}
+}
+}
 #endif

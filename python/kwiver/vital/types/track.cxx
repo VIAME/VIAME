@@ -48,7 +48,9 @@ track_find_state(kwiver::vital::track &self, int64_t frame_id)
   }
   return py::cast<std::shared_ptr<kwiver::vital::track_state>>(*frame_itr);
 }
-}}}
+}
+}
+}
 
 using namespace kwiver::vital::python;
 PYBIND11_MODULE(track, m)

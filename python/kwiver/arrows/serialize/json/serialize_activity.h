@@ -38,5 +38,7 @@ namespace kwiver {
 namespace arrows {
 namespace python {
 void serialize_activity(py::module &m);
-}}}
+}
+}
+}
 #endif

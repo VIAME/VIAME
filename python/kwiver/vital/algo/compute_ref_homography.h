@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void compute_ref_homography(py::module &m);
-}}}
+}
+}
+}
 #endif

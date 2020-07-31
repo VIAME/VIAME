@@ -56,6 +56,9 @@ namespace json {
     return kwiver::vital::any_cast< type >( any_t);
   }
 
-} } } }
+}
+}
+}
+}
 
 #endif

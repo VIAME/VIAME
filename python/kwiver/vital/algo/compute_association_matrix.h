@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void compute_association_matrix(py::module &m);
-}}}
+}
+}
+}
 #endif

@@ -240,7 +240,10 @@ new_random_homography(char ctype)
   return new_homography_from_matrix(data_obj, ctype);
 }
 
-}}}
+}
+}
+}
+
 using namespace kwiver::vital::python;
 PYBIND11_MODULE(homography, m)
 {

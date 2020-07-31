@@ -50,7 +50,9 @@ namespace python{
 static void push_datum(::sprokit::edge& self, wrap_edge_datum const& datum);
 static wrap_edge_datum get_datum(::sprokit::edge& self);
 static wrap_edge_datum peek_datum(::sprokit::edge& self, pybind11::size_t const& idx);
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(edge, m)
 {
@@ -130,4 +132,6 @@ peek_datum(::sprokit::edge& self, pybind11::size_t const& idx)
   wrap_edge_datum datum_p(*(datum.datum), wrap_stamp(datum.stamp));
   return datum_p;
 }
-}}}
+}
+}
+}

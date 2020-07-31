@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void compute_stereo_depth_map(py::module &m);
-}}}
+}
+}
+}
 #endif

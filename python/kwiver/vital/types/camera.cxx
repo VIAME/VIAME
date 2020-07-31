@@ -59,7 +59,10 @@ camera_ne(std::shared_ptr<kwiver::vital::simple_camera_perspective> self,
   return !camera_eq(self, other);
 }
 
-}}}
+}
+}
+}
+
 using namespace kwiver::vital::python;
 PYBIND11_MODULE(camera, m)
 {

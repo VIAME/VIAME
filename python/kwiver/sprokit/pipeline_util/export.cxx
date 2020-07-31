@@ -53,7 +53,10 @@ namespace kwiver{
 namespace sprokit{
 namespace python{
 void export_dot(object const& stream, ::sprokit::pipeline_t const pipe, std::string const& graph_name);
-}}}
+}
+}
+}
+
 using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(export_, m)
 {

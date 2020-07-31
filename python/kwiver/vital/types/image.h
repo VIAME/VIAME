@@ -111,5 +111,8 @@ namespace image {
   py::buffer_info get_buffer_info(image_t &img);
   py::object asarray(image_t img);
 
-} } } }
+}
+}
+}
+}
 #endif

@@ -46,4 +46,6 @@ void analyze_tracks(py::module &m)
     .def_static("static_type_name", &kwiver::vital::algo::analyze_tracks::static_type_name)
     .def("analyze_tracks", &kwiver::vital::algo::analyze_tracks::print_info);
 }
-}}}
+}
+}
+}

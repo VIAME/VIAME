@@ -87,5 +87,7 @@ class detect_motion_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

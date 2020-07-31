@@ -88,7 +88,9 @@ static ::sprokit::datum_t datum_from_capsule( PyObject* cap );
 template<class T> T datum_get_object(::sprokit::datum &);
 
 char const* sprokit_datum_PyCapsule_name() { return  "sprokit::datum"; }
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 
 PYBIND11_MODULE(datum, m)
@@ -366,4 +368,6 @@ datum_get_object(::sprokit::datum &self)
   kwiver::vital::any const any = self.get_datum<kwiver::vital::any>();
   return kwiver::vital::any_cast<T>(any);
 }
-}}}
+}
+}
+}

@@ -59,7 +59,9 @@ new_detected_object(kwiver::vital::bounding_box<double> bbox,
   return new_obj;
 }
 
-}}}
+}
+}
+}
 
 using namespace kwiver::vital::python;
 PYBIND11_MODULE(detected_object, m)

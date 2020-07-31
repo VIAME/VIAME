@@ -36,5 +36,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void detected_object_set_output(pybind11::module &m);
-}}}
+}
+}
+}
 #endif

@@ -45,4 +45,6 @@ void image_object_detector(py::module &m)
     .def_static("static_type_name", &kwiver::vital::algo::image_object_detector::static_type_name)
     .def("detect", &kwiver::vital::algo::image_object_detector::detect);
 }
-}}}
+}
+}
+}

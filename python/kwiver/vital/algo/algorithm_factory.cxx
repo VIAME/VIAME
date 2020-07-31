@@ -67,7 +67,9 @@ class python_algorithm_factory : public kwiver::vital::algorithm_factory
   private:
     py::object m_conc_f;
 };
-}}}
+}
+}
+}
 using namespace kwiver::vital::python;
 
 

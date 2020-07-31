@@ -38,5 +38,7 @@ namespace kwiver {
 namespace arrows {
 namespace python {
 void serialize_detected_object_set(py::module &m);
-}}}
+}
+}
+}
 #endif

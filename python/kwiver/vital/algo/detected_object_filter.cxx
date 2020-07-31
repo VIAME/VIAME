@@ -48,4 +48,6 @@ void detected_object_filter(py::module &m)
     .def("filter",
          &kwiver::vital::algo::detected_object_filter::filter);
 }
-}}}
+}
+}
+}

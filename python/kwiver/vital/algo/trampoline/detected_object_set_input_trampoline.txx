@@ -106,5 +106,7 @@ class detected_object_set_input_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif

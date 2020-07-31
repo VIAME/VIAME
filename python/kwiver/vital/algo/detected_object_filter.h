@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void detected_object_filter(py::module &m);
-}}}
+}
+}
+}
 #endif

@@ -38,5 +38,7 @@ namespace kwiver {
 namespace vital  {
 namespace python {
 void draw_detected_object_set(py::module &m);
-}}}
+}
+}
+}
 #endif

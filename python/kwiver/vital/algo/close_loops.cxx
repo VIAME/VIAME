@@ -48,4 +48,6 @@ void close_loops(py::module &m)
     .def("stitch",
          &kwiver::vital::algo::close_loops::stitch);
 }
-}}}
+}
+}
+}

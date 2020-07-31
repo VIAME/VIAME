@@ -62,7 +62,9 @@ static ::sprokit::pipeline_t bake_pipe_file(std::string const& path);
 static ::sprokit::pipeline_t bake_pipe(object stream);
 static ::sprokit::cluster_info_t bake_cluster_file(std::string const& path);
 static ::sprokit::cluster_info_t bake_cluster(object stream);
-}}}
+}
+}
+}
 using namespace kwiver::sprokit::python;
 PYBIND11_MODULE(bake, m)
 {

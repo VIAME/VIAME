@@ -48,4 +48,6 @@ void compute_stereo_depth_map(py::module &m)
     .def("compute",
          &kwiver::vital::algo::compute_stereo_depth_map::compute);
 }
-}}}
+}
+}
+}

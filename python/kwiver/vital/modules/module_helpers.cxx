@@ -48,7 +48,6 @@
 #endif
 
 namespace py = pybind11;
-
 /*
  * Check if a python interpretor exists and initialize one the python interpretor
  * does not exist
@@ -172,7 +171,6 @@ find_python_library()
     return std::string();
   }
 }
-
 
 // Redefine values that we hacked away
 #ifdef _orig_linux

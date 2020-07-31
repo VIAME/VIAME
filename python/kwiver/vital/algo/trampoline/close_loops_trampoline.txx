@@ -92,5 +92,7 @@ class close_loops_trampoline :
       );
     }
 };
-}}}
+}
+}
+}
 #endif
