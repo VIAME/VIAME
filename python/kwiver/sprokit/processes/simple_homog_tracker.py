@@ -593,6 +593,25 @@ def to_ObjectTrackSet(tracks):
         result.append(t)
     return ObjectTrackSet(result)
 
+def to_ObjectTrackSet_list(tracks, ncam):
+    """Create a list of ncam ObjectTrackSets from a dict of the form
+    {track_id: [(timestamp, {camera_id: detected_object})]} (dicts and
+    lists may contain multiple items).
+
+    """
+    result = [[] for _ in range(ncam)]
+    for tid, states in tracks.items():
+        t_out = [Track(id=tid) for _ in result]
+        for ts, dos in states:
+            for i, do in dos.items():
+                ots = ObjectTrackState(ts.get_frame(), ts.get_time_usec(), do)
+                if not t_out[i].append(ots):
+                    raise ValueError("Unsorted input to to_ObjectTrackSet_list")
+        for r, t in zip(result, t_out):
+            if t:
+                r.append(t)
+    return list(map(ObjectTrackSet, result))
+
 # Okay, here's our "not quite Kwiver" Transformer.  With the converters
 # suitably defined, this will work on Kwiver types.  Then the only
 # thing left to do is wrap it in a Sprokit process.
@@ -617,6 +636,33 @@ def track(min_iou=None):
         track_ids = ct.step(boxes, wrap_F2FHomography(homog_s2r))
         tracks = bt.step(track_ids, dos, ts)
         output = to_ObjectTrackSet(tracks)
+
+@Transformer.decorate
+def multitrack(min_iou=None):
+    """Create a Transformer that performs multi-camera tracking (only
+    associating tracks with the given minimum IOU).  The .step call expects two arguments:
+    - a list of pairs of a Kwiver DetectedObjectSet and a Kwiver
+      F2FHomography, one per camera
+    - a Kwiver timestamp
+
+    and returns an equally long list of Kwiver ObjectTrackSets.  All
+    received lists should be the same length.
+
+    """
+    ct = core_multitrack(min_iou)
+    bt = build_tracks()
+
+    output = None
+    while True:
+        cams, ts = yield output
+        do_sets, homogs = zip(*cams)
+        multihomog = MultiHomographyF2F.from_homographyf2fs(map(wrap_F2FHomography, homogs))
+        do_lists = list(map(to_DetectedObject_list, do_sets))
+        boxes = [list(map(get_DetectedObject_bbox, dos)) for dos in do_lists]
+        multiboxes, ind = track_multiboxes(multihomog, boxes, min_iou)
+        track_ids = ct.step(multiboxes, multihomog)
+        multitracks = bt.step(track_ids, create_track_multiboxes(do_lists, ind), ts)
+        output = to_ObjectTrackSet_list(multitracks, len(cams))
 
 # The process itself
 
