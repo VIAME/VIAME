@@ -288,9 +288,10 @@ class MultiHomographyF2F(object):
     def __len__(self):
         return len(self.homogs)
 
-def track_multiboxes(multihomog, box_lists, min_iou):
+def arg_track_multiboxes(multihomog, box_lists, min_iou):
     """Turn a list of lists of BBoxes (one top-level list per camera) into
-    a list of MultiBBoxes using the provided MultiHomographyF2F
+    a list of dicts mapping camera indices to BBox indices using the
+    provided MultiHomographyF2F
 
     """
     matches = [
@@ -303,17 +304,37 @@ def track_multiboxes(multihomog, box_lists, min_iou):
     # Partially maps a current-camera box index to an existing
     # multibox dict it should be added to.
     hooks = {}
-    for i, bs, ms in zip(itertools.count(), box_lists, matches):
+    for i, ms in enumerate(matches):
         new_hooks = {}
-        for j, b, m in zip(itertools.count(), bs, ms):
+        for j, m in enumerate(ms):
             mb = hooks.get(j, {})
             if not mb:
                 result.append(mb)
-            mb[i] = b
+            mb[i] = j
             if m is not None:
                 new_hooks[m] = mb
         hooks = new_hooks
-    return list(map(MultiBBox, result))
+    return result
+
+def create_track_multiboxes(box_lists, arg_dicts):
+    """Given a list of dicts of indices created by arg_track_multiboxes,
+    replace the index values with the corresponding box from the input
+    lists.
+
+    """
+    return [{i: box_lists[i][j] for i, j in d.items()} for d in arg_dicts]
+
+def track_multiboxes(multihomog, box_lists, min_iou):
+    """Turn a list of lists of BBoxes (one top-level list per camera) into
+    a list of MultiBBoxes using the provided MultiHomographyF2F,
+    returning it in a pair whose second element is a list of dicts
+    like MultiBBox.boxes but with indices into the corresponding input
+    lists for values.
+
+    """
+    arg_dicts = arg_track_multiboxes(multihomog, box_lists, min_iou)
+    box_dicts = create_track_multiboxes(box_lists, arg_dicts)
+    return list(map(MultiBBox, box_dicts)), arg_dicts
 
 def invert_permutation(seq):
     """Given a sequence that permutes indices, return a list describing
