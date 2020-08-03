@@ -362,3 +362,55 @@ def multitrack(min_iou=None):
         track_ids = ct.step(multiboxes, multihomog)
         multitracks = bt.step(track_ids, create_track_multiboxes(do_lists, ind), ts)
         output = to_ObjectTrackSet_list(multitracks, len(cams))
+
+class MulticamHomogTracker(KwiverProcess):
+    def __init__(self, config):
+        KwiverProcess.__init__(self, config)
+
+        add_declare_config(self, "min_iou", str(DEFAULT_MIN_IOU),
+                           "Minimum IOU to associate a detection to a track")
+        add_declare_config(self, 'n_input', '2', 'Number of inputs')
+
+        optional = process.PortFlags()
+        required = process.PortFlags()
+        required.add(self.flag_required)
+
+        self.declare_input_port_using_trait('timestamp', required)
+
+        # XXX work around insufficient wrapping
+        self._n_input = int(self.config_value('n_input'))
+        for i in range(1, self._n_input + 1):
+            add_declare_input_port(self, 'det_objs_' + str(i), 'detected_object_set',
+                                   required, 'Input detected object set #' + str(i))
+            add_declare_input_port(self, 'homog' + str(i), 'homography_src_to_ref',
+                                   required, 'Input homography (source-to-ref) #' + str(i))
+            add_declare_output_port(self, 'obj_tracks_' + str(i), 'object_track_set',
+                                    optional, 'Output object track set #' + str(i))
+
+    def _configure(self):
+        # XXX actually use this
+        self._n_input = int(self.config_value('n_input'))
+        self._tracker = multitrack(float(self.config_value('min_iou')))
+        self._base_configure()
+
+    def _step(self):
+        ots_list = self._tracker.step([
+            (self.grab_input_using_trait('det_objs_' + str(i)),
+             self.grab_input_using_trait('homog' + str(i)))
+            for i in range(1, self._n_input + 1)
+        ], self.grab_input_using_trait('timestamp'))
+        for i, ots in enumerate(ots_list, 1):
+            self.push_to_port_using_trait('obj_tracks_' + str(i), ots)
+        self._base_step()
+
+def __sprokit_register__():
+    from kwiver.sprokit.pipeline import process_factory
+    module_name = 'python:kwiver.python.MulticamHomogTracker'
+    if process_factory.is_process_module_loaded(module_name):
+        return
+    process_factory.add_process(
+        'multicam_homog_tracker',
+        'Multi-camera IOU-based tracker with homography support',
+        MulticamHomogTracker,
+    )
+    process_factory.mark_process_module_as_loaded(module_name)
