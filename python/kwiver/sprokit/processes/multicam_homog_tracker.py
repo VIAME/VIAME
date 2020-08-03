@@ -41,12 +41,16 @@ from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 from kwiver.sprokit.pipeline import process
 from kwiver.vital.types import ObjectTrackSet, ObjectTrackState, Track
 
+# XXX Not ideal places to be importing things from
 from .simple_homog_tracker import (
     DEFAULT_MIN_IOU,
     BBox, Homography, HomographyF2F, Transformer,
     add_declare_config, build_tracks, get_DetectedObject_bbox, ious,
     match_boxes_homog, min_track, optimize_iou_based_assignment,
     to_DetectedObject_list, transform_matrix_box, wrap_F2FHomography,
+)
+from .stabilize_many_images import (
+    add_declare_input_port, add_declare_output_port,
 )
 
 logger = logging.getLogger(__name__)
