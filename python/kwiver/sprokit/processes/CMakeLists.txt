@@ -10,6 +10,10 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/apply_descriptor.py
   sprokit/processes
   apply_descriptor )
 
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/homography_reader.py
+  sprokit/processes
+  homography_reader )
+
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/homography_writer.py
   sprokit/processes
   homography_writer )
