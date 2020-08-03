@@ -225,12 +225,72 @@ def match_boxes_homog(homog, boxes, prev_homog, prev_boxes, min_iou):
     )
     return optimize_iou_based_assignment(iou, min_iou)
 
-# A multihomography is a list of homographies, one for each camera.  A
-# multibox is a dict mapping camera indices to boxes.  XXX Making
-# these actual types would be neat.
+class MultiBBox(object):
+    """Captures bounding boxes for an object from multiple cameras
+
+    The class has one attribute, "boxes", that gives the bounding
+    boxes as a dict that maps a camera index to a BBox.
+
+    """
+
+    __slots__ = 'boxes',
+
+    def __init__(self, boxes):
+        """Create a MultiBBox with the provided value for the boxes attributes
+
+        """
+        self.boxes = boxes
+
+class MultiHomographyF2F(object):
+    """Captures homographies from each of a set of images to a reference frame
+
+    Attributes:
+    - homogs: A list of Homography objects, one per camera
+    - from_id: Source frame identifier
+    - to_id: Target frame identifier
+
+    """
+
+    __slots__ = 'homogs', 'from_id', 'to_id'
+
+    def __init__(self, homogs, from_id, to_id):
+        """Create a MultiHomographyF2F with the provided attribute values"""
+        self.homogs = homogs
+        self.from_id = from_id
+        self.to_id = to_id
+
+    @classmethod
+    def from_homographyf2fs(cls, homogs):
+        """Turn a non-empty iterable of HomographyF2Fs (one per
+        camera) into a MultiHomographyF2F
+
+        """
+        ids = None
+        hs = []
+        for h in homogs:
+            hs.append(h.homog)
+            if ids is None:
+                ids = h.from_id, h.to_id
+            elif ids != (h.from_id, h.to_id):
+                raise ValueError("Inconsistent IDs")
+        return cls(hs, *ids)
+
+    def __getitem__(self, x):
+        """Get the xth item (possibly a slice) as a HomographyF2F (or a list
+        thereof)
+
+        """
+        f, t = self.from_id, self.to_id
+        if isinstance(x, slice):
+            return [HomographyF2F(h, f, t) for h in self.homogs[x]]
+        return HomographyF2F(self.homogs[x], f, t)
+
+    def __len__(self):
+        return len(self.homogs)
+
 def track_multiboxes(multihomog, box_lists, min_iou):
     """Turn a list of lists of BBoxes (one top-level list per camera) into
-    a list of multiboxes
+    a list of MultiBBoxes using the provided MultiHomographyF2F
 
     """
     matches = [
@@ -253,7 +313,7 @@ def track_multiboxes(multihomog, box_lists, min_iou):
             if m is not None:
                 new_hooks[m] = mb
         hooks = new_hooks
-    return result
+    return list(map(MultiBBox, result))
 
 def invert_permutation(seq):
     """Given a sequence that permutes indices, return a list describing
@@ -272,19 +332,19 @@ ArrayifiedMultiboxes = namedtuple('ArrayifiedMultiboxes', [
 ])
 
 def arrayify_multiboxes(mbs):
-    """Turn a non-empty list of N multiboxes into an
+    """Turn a non-empty list of N MultiBBoxes into an
     ArrayifiedMultiboxes containing the following five ndarrays:
     - boxes: An Mx2x2 array of bounding boxes (per BBox.matrix), where
-      M is the total count of underlying BBoxes and each multibox is
+      M is the total count of underlying BBoxes and each MultiBBox is
       represented by a contiguous range of rows
     - cams: An M-length array of the corresponding camera indices
     - blocks: An ordered Cx2 array of "blocks", where C is the number
-      of distinct lengths of multibox and each row is the start and
+      of distinct lengths of MultiBBox and each row is the start and
       stop indices of the block in the first two arrays
-    - lengths: A C-length array of the length of multibox represented
+    - lengths: A C-length array of the length of MultiBBox represented
       in each block
     - indices: An N-length array giving the "index" in the output of
-      each multibox in the input
+      each MultiBBox in the input
 
     So for instance,
     boxes[indices[i]*lengths[0] : (indices[i]+1)*lengths[0]]
@@ -293,10 +353,12 @@ def arrayify_multiboxes(mbs):
     """
     if not mbs:
         raise ValueError
-    indices, mbs = zip(*sorted(enumerate(mbs), key=lambda imb: len(imb[1])))
+    def key(i_mb): return len(i_mb[1].boxes)
+    indices, mbs = zip(*sorted(enumerate(mbs), key=key))
     boxes, cams = [], []
     blocks, i, lengths, cl = [], 0, [], None
     for mb in mbs:
+        mb = mb.boxes
         for c, b in mb.items():
             boxes.append(b.matrix)
             cams.append(c)
@@ -364,23 +426,16 @@ def match_multiboxes_multihomog(
     min_iou is the minimum IOU required for a match.
 
     """
-    # Perform some input validation
-    if not (multihomog and prev_multihomog):
-        raise ValueError("Multihomographies must be non-empty")
-    if not (len({h.to_id for h in multihomog}) == 1 and
-            len({h.to_id for h in prev_multihomog}) == 1):
-        raise ValueError("Multihomographies must have consistent target IDs")
-
     # Return early under certain circumstances
-    if multihomog[0].to_id != prev_multihomog[0].to_id:
+    if multihomog.to_id != prev_multihomog.to_id:
         logger.debug("Returning no matches due to break in homography stream")
         return [None] * len(multiboxes)
     if not (multiboxes and prev_multiboxes):
         return [None] * len(multiboxes)
 
     # Compute the transformations between current and previous cameras
-    mh = np.array([h.homog.matrix for h in multihomog])
-    pmh = np.array([h.homog.matrix for h in prev_multihomog])
+    mh = np.array([h.matrix for h in multihomog.homogs])
+    pmh = np.array([h.matrix for h in prev_multihomog.homogs])
     # homogs[i, j] is a transformation from current camera i
     # coordinates to previous camera j coordinates
     homogs = np.matmul(np.linalg.inv(pmh), mh[:, np.newaxis])
