@@ -135,6 +135,8 @@ class SubFeatureTrackSet(ftset):
     return set()
   def clone(self):
     return SubFeatureTrackSet()
+  def size(self):
+    return len(self.tracks)
 
 class TestSubFeatureTrackSet(unittest.TestCase):
   def test_constructors(self):
@@ -152,4 +154,5 @@ class TestSubFeatureTrackSet(unittest.TestCase):
     cloned = tst.clone()
     self.assertIsInstance(cloned, ftset)
     self.assertListEqual(cloned.tracks, tst.tracks)
-    self.assertEqual(4, len(tst))
+    self.assertEqual(0, len(tst))
+    self.assertEqual(4, tst.size())

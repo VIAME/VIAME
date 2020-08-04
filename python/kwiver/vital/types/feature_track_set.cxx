@@ -58,6 +58,8 @@ public:
 
 PYBIND11_MODULE(feature_track_set, m)
 {
+  py::module::import("kwiver.vital.types.track");
+
   py::class_< feat_track_state, kwiver::vital::track_state, std::shared_ptr< feat_track_state > >(m, "FeatureTrackState")
   .def(py::init< kv::frame_id_t, kv::feature_sptr, kv::descriptor_sptr, bool >())
   .def(py::init< feat_track_state >())
@@ -76,6 +78,8 @@ PYBIND11_MODULE(feature_track_set, m)
   .def_readwrite("descriptor", &feat_track_state::descriptor)
   .def_readwrite("inlier", &feat_track_state::inlier)
   ;
+
+  py::module::import("kwiver.vital.types.track_set");
 
   py::class_<feat_track_set, kwiver::vital::track_set, std::shared_ptr<feat_track_set>>(m, "FeatureTrackSet")
   .def(py::init<>())
