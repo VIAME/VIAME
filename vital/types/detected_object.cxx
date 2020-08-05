@@ -1,5 +1,5 @@
 /*ckwg +30
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ namespace vital {
 // ----------------------------------------------------------------------------
 detected_object
 ::detected_object( double confidence,
-                   detected_object_type_sptr classifications )
+                   class_map_sptr classifications )
   : m_confidence{ confidence },
     m_type{ classifications }
 {
@@ -53,7 +53,7 @@ detected_object
 detected_object
 ::detected_object( bounding_box_d const& bbox,
                    double confidence,
-                   detected_object_type_sptr classifications )
+                   class_map_sptr classifications )
   : m_bounding_box{ bbox },
     m_confidence{ confidence },
     m_type{ classifications }
@@ -64,7 +64,7 @@ detected_object
 detected_object
 ::detected_object( kwiver::vital::geo_point const& gp,
                    double confidence,
-                   detected_object_type_sptr classifications )
+                   class_map_sptr classifications )
   : m_geo_point{ gp },
     m_confidence{ confidence },
     m_type{ classifications }
@@ -76,10 +76,10 @@ detected_object_sptr
 detected_object
 ::clone() const
 {
-  detected_object_type_sptr new_type;
+  class_map_sptr new_type;
   if ( this->m_type )
   {
-    new_type = std::make_shared< detected_object_type >( *this->m_type );
+    new_type = std::make_shared< class_map >( *this->m_type );
   }
 
   auto new_obj = std::make_shared< kwiver::vital::detected_object >(
@@ -166,7 +166,7 @@ detected_object
 }
 
 // ----------------------------------------------------------------------------
-detected_object_type_sptr
+class_map_sptr
 detected_object
 ::type() const
 {
@@ -176,7 +176,7 @@ detected_object
 // ----------------------------------------------------------------------------
 void
 detected_object
-::set_type( detected_object_type_sptr c )
+::set_type( class_map_sptr c )
 {
   m_type = c;
 }

@@ -8,6 +8,7 @@ set( KWIVER_CMAKE_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 if (KWIVER_ENABLE_PYTHON)
   include( kwiver-setup-python )
+  include("${CMAKE_CURRENT_LIST_DIR}/utils/kwiver-utils-tests-python.cmake")
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/utils/kwiver-utils-configuration.cmake")

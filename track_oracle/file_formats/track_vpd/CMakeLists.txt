@@ -37,6 +37,7 @@ target_link_libraries( track_vpd
                        track_oracle_format_base
                        vgl
   PRIVATE              vital_logger
+                       data_terms
                        vul
 )
 

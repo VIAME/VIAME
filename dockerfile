@@ -1,7 +1,12 @@
 # Install KWIVER to /opt/kitware/kwiver
 # Use latest Fletch as base image (Ubuntu 18.04)
 
-FROM kitware/fletch:latest
+FROM kitware/fletch:latest-ubuntu16.04-py2-cuda8.0-cudnn5-devel
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+                          python3-dev \
+                          python3-pip
 
 #
 # Build KWIVER
@@ -19,6 +24,7 @@ RUN cd /kwiver \
     -DKWIVER_ENABLE_EXTRAS=ON \
     -DKWIVER_ENABLE_LOG4CPLUS=ON \
     -DKWIVER_ENABLE_OPENCV=ON \
+    -DKWIVER_ENABLE_FFMPEG=ON \
     -DKWIVER_ENABLE_PROCESSES=ON \
     -DKWIVER_ENABLE_PROJ=ON \
     -DKWIVER_ENABLE_PYTHON=ON \
@@ -30,6 +36,7 @@ RUN cd /kwiver \
     -DKWIVER_INSTALL_DOCS=ON \
     -DKWIVER_PYTHON_MAJOR_VERSION=3 \
     -DKWIVER_USE_BUILD_TREE=ON \
-  && make -j$(nproc) -k 
+  && make -j$(nproc) -k \
+  && make install
 
 CMD [ "bash" ]

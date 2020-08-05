@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018, 2020 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,15 +227,15 @@ write_set( const kwiver::vital::detected_object_set_sptr detections,
     mx_detections->set( det_index, 4, det->confidence() );
 
     // Process classifications if there are any
-    const auto dot( det->type() );
-    if ( dot )
+    const auto cm( det->type() );
+    if ( cm )
     {
-      const auto name_list( dot->class_names() );
+      const auto name_list( cm->class_names() );
       for( auto name : name_list )
       {
         // Add classification entry to cell array
         mx_class->set( det_index, 0, name.c_str() );
-        mx_class->set( det_index, 1, dot->score(name) );
+        mx_class->set( det_index, 1, cm->score(name) );
       } // end foreach
     }
 

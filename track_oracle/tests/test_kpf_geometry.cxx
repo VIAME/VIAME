@@ -187,3 +187,14 @@ TEST(track_oracle, kpf_geometry)
 
   } // ...for each track
 }
+
+// ------------------------------------------------------------------
+TEST(track_oracle, kpf_load_long_ids)
+{
+  to::track_handle_list_type kpf_tracks;
+  string fn = g_data_dir+"/test-large-IDs.geom.yml";
+  bool rc = to::file_format_manager::read( fn, kpf_tracks );
+  EXPECT_TRUE( rc ) << " reading from '" << fn << "'";
+  size_t n_read = kpf_tracks.size();
+  EXPECT_EQ( n_read, 1 ) << " number of tracks read";
+}
