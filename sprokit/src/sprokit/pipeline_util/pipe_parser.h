@@ -52,7 +52,7 @@ namespace sprokit {
 
 // ----------------------------------------------------------------
 /**
- * @brief Pipe and cluster parser.
+ * \brief Pipe and cluster parser.
  *
  */
 class SPROKIT_PIPELINE_UTIL_EXPORT pipe_parser final
@@ -70,34 +70,33 @@ public:
    * path. This search path is used to locate all referenced included
    * files only.
    *
-   * @param file_path Directory or list to add to end of search path.
+   * \param file_path Directory or list to add to end of search path.
    */
   void add_search_path( kwiver::vital::config_path_t const& file_path );
   void add_search_path( kwiver::vital::config_path_list_t const& file_path );
   //@}
 
-
   /**
-   * @brief Parse a pipeline definition.
+   * \brief Parse a pipeline definition.
    *
    * Parse a pipeline definition file into pipe_blocks.
    *
-   * @param input Stream to read pipeline definition from.
-   * @param name Input file name
+   * \param input Stream to read pipeline definition from.
+   * \param name Input file name
    *
-   * @return A vector of pipe blocks representing the pipeline.
+   * \return A vector of pipe blocks representing the pipeline.
    */
   sprokit::pipe_blocks parse_pipeline( std::istream& input, const std::string& name = "" );
 
   /**
-   * @brief Parse cluster definitions.
+   * \brief Parse cluster definitions.
    *
    * Parse a cluster definition into the internal representation.
    *
-   * @param input Stream to read cluster definitions.
-   * @param name Input file name
+   * \param input Stream to read cluster definitions.
+   * \param name Input file name
    *
-   * @return A vector of cluster blocks representing the cluster definition.
+   * \return A vector of cluster blocks representing the cluster definition.
    */
   sprokit::cluster_blocks parse_cluster( std::istream& input, const std::string& name = "" );
 
@@ -122,18 +121,16 @@ public:
     COMPATIBILITY_ERROR };
 
   /**
-   * @brief Set compatibility mode.
+   * \brief Set compatibility mode.
    *
    * This method sets the compatibility mode to use when encountering
    * old style pipeline constructs.
    *
-   * @param mode Compatibility mode to use.
+   * \param mode Compatibility mode to use.
    */
   void set_compatibility_mode( compatibility_mode_t mode );
 
-
 private:
-
   // production methods
   void process_definition( process_pipe_block& ppb );
   void process_config_block( config_pipe_block& pcb );
