@@ -100,6 +100,7 @@ PYBIND11_MODULE( camera_intrinsics, m )
     return self;
   })
   .def( "max_distort_radius",           &kv::simple_camera_intrinsics::max_distort_radius )
+  .def( "get_max_distort_radius_sq",    &kv::simple_camera_intrinsics::get_max_distort_radius_sq )
   .def( "set_focal_length",             &kv::simple_camera_intrinsics::set_focal_length )
   .def( "set_principal_point",          &kv::simple_camera_intrinsics::set_principal_point )
   .def( "set_aspect_ratio",             &kv::simple_camera_intrinsics::set_aspect_ratio )
