@@ -380,7 +380,8 @@ TEST_F( config_block_io, write_config_simple_success )
     EXPECT_EQ( valueB,
              config->get_value< config_block_value_t > ( keyB ) );
     EXPECT_EQ( valueC,
-             config->get_value< config_block_value_t > ( subblock_name + config_block::block_sep + keyC ) );
+             config->get_value< config_block_value_t > ( subblock_name +
+               config_block::block_sep() + keyC ) );
     EXPECT_EQ( valueD,
              config->get_value< config_block_value_t > ( keyD ) );
     EXPECT_EQ( valueE,

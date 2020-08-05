@@ -79,7 +79,8 @@ provided_by_cluster
   kwiver::vital::config_block_value_t const value = info.value;
 
   // It must be mapped to the the actual cluster.
-  if ( ! kwiver::vital::starts_with( value, m_name + kwiver::vital::config_block::block_sep ) )
+  if ( ! kwiver::vital::starts_with( value, m_name +
+                   kwiver::vital::config_block::block_sep() ) )
   {
     return false;
   }
@@ -94,7 +95,9 @@ provided_by_cluster
   kwiver::vital::config_block_keys_t key_path;
 
   // Split path into components
-  kwiver::vital::tokenize( key, key_path, kwiver::vital::config_block::block_sep, kwiver::vital::TokenizeTrimEmpty );
+  kwiver::vital::tokenize( key, key_path,
+                           kwiver::vital::config_block::block_sep(),
+                           kwiver::vital::TokenizeTrimEmpty );
 
   // Is the first component a process name
   bool const is_proc = ( 0 != std::count( m_procs.begin(), m_procs.end(), key_path[0] ) );

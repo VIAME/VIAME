@@ -321,7 +321,8 @@ IMPLEMENT_TEST( map_config_ignore_override )
 
   // Fill a block so that the expect process gets reconfigured to do its check;
   // if the block for it is empty, the check won't happen.
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -777,7 +778,8 @@ IMPLEMENT_TEST( reconfigure_pass_tunable_mappings )
 
   kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -830,7 +832,8 @@ IMPLEMENT_TEST( reconfigure_no_pass_untunable_mappings )
 
   kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_value_t( "new_value" );
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -871,7 +874,9 @@ IMPLEMENT_TEST( reconfigure_pass_extra )
 
   kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + name + kwiver::vital::config_block::block_sep + extra_key, extra_key );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       name + kwiver::vital::config_block::block_sep() +
+                       extra_key, extra_key );
 
   pipeline->reconfigure( new_conf );
 }
@@ -915,8 +920,9 @@ IMPLEMENT_TEST( reconfigure_tunable_only_if_mapped )
 
   kwiver::vital::config_block_value_t const tuned_value = kwiver::vital::config_block_value_t( "new_value" );
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + name + kwiver::vital::config_block::block_sep + key_tunable,
-                       tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       name + kwiver::vital::config_block::block_sep() +
+                       key_tunable, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }
@@ -968,7 +974,8 @@ IMPLEMENT_TEST( reconfigure_mapped_untunable )
 
   kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep + key, tuned_value );
+  new_conf->set_value( cluster_name + kwiver::vital::config_block::block_sep() +
+                       key, tuned_value );
 
   pipeline->reconfigure( new_conf );
 }

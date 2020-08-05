@@ -140,7 +140,7 @@ kwiver_install_headers(
   NOPATH
   )
 
-kwiver_add_library( vital_algo
+kwiver_add_library( vital_algo SHARED
   ${public_headers}
   ${sources}
   ${CMAKE_CURRENT_BINARY_DIR}/vital_algo_export.h

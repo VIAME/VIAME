@@ -28,8 +28,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import print_function
 
-from vital.algo import ImageObjectDetector
-from vital.types import DetectedObjectSet, DetectedObject, BoundingBox
+from kwiver.vital.algo import ImageObjectDetector
+from kwiver.vital.types import DetectedObjectSet, DetectedObject, BoundingBox
 
 class SimpleImageObjectDetector(ImageObjectDetector):
     """
@@ -39,11 +39,11 @@ class SimpleImageObjectDetector(ImageObjectDetector):
     Examples:
         With default value of center(200, 200) and bbox dimension (100, 200)
 
-        >>> from vital.modules import modules
+        >>> from kwiver.vital.modules import modules
         >>> modules.load_known_modules()
-        >>> from vital.algo import ImageObjectDetector
+        >>> from kwiver.vital.algo import ImageObjectDetector
         >>> image_detector = ImageObjectDetector.create("SimpleImageObjectDetector")
-        >>> from vital.types import Image, ImageContainer
+        >>> from kwiver.vital.types import Image, ImageContainer
         >>> image = ImageContainer(Image())
         >>> detection = image_detector.detect(image)
         >>> print(str(detection[0].bounding_box()))
@@ -52,11 +52,11 @@ class SimpleImageObjectDetector(ImageObjectDetector):
         With configuration that changes the center value
 
         >>> modules.load_known_modules()
-        >>> from vital.algo import ImageObjectDetector
+        >>> from kwiver.vital.algo import ImageObjectDetector
         >>> image_detector = ImageObjectDetector.create("SimpleImageObjectDetector")
-        >>> from vital.types import Image, ImageContainer
+        >>> from kwiver.vital.types import Image, ImageContainer
         >>> image = ImageContainer(Image())
-        >>> from vital.config import config
+        >>> from kwiver.vital.config import config
         >>> tc = config.empty_config()
         >>> tc.set_value("center_x", "200")
         >>> tc.set_value("center_y", "100")

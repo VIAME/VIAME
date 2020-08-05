@@ -261,6 +261,46 @@ endif ()
 option(KWIVER_USE_CONFIGURATION_SUBDIRECTORY
   "Look in the configuration's subdirectory for each module path (e.g. debug, release, ...)" ${default})
 
+if (WIN32)
+  set(path_sep ";")
+else()  # Other Unix systems
+  set(path_sep ":")
+endif()
+
+# Build a default set of plugin path dirs
+# Provide that list as the default value for the path option.
+if( NOT SKBUILD )
+kwiver_make_module_path( ${CMAKE_INSTALL_PREFIX} ${kwiver_plugin_module_subdir} )
+set( vital_default_module_path ${kwiver_module_path_result} )
+
+if (KWIVER_USE_BUILD_TREE)
+  kwiver_make_module_path( ${KWIVER_BINARY_DIR} ${kwiver_plugin_module_subdir} )
+  set( vital_default_module_path ${kwiver_module_path_result} ${vital_default_module_path} )
+endif()
+
+set(KWIVER_DEFAULT_MODULE_PATHS "${vital_default_module_path}"
+  CACHE STRING "The default paths for module scanning. Separate paths with ';' character." FORCE)
+mark_as_advanced( KWIVER_DEFAULT_MODULE_PATHS )
+
+# add all paths to the property
+foreach( p IN LISTS KWIVER_DEFAULT_MODULE_PATHS )
+  kwiver_add_module_path( ${p} )
+endforeach(p)
+endif()
+# need to retrieve the GLOBAL PROPERTY kwiver_plugin_path and
+# formulate the default module path
+get_property(plugin_path GLOBAL PROPERTY kwiver_plugin_path)
+
+# convert list to path string using the system specific path separator
+# TODO: The following has a leading ':' that should not be there
+foreach( p IN LISTS plugin_path )
+  set( VITAL_MODULE_PATH "${VITAL_MODULE_PATH}${path_sep}${p}" )
+endforeach(p)
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithm_plugin_manager_paths.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/algorithm_plugin_manager_paths.h" )
+
 ###
 # configure our compiler options
 configure_file(

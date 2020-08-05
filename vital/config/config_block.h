@@ -118,6 +118,18 @@ public:
    */
   static config_block_sptr empty_config( config_block_key_t const& name = config_block_key_t() );
 
+  /**
+   * Class method that returns the block seperator for configuration
+   * \returns The block separator config key
+   */
+  static const config_block_key_t block_sep();
+
+  /**
+   * Class method that returns magic group for global parameters.
+   * \returns global config key
+   */
+  static const config_block_key_t global_value();
+
   /// Destructor
   virtual ~config_block();
 
@@ -389,12 +401,6 @@ public:
    */
   bool has_value( config_block_key_t const& key ) const;
 
-
-  /// The separator between blocks.
-  static config_block_key_t const block_sep;
-
-  /// The magic group for global parameters.
-  static config_block_key_t const global_value;
 
   /// Set source file location where entry is defined.
   /**
