@@ -64,6 +64,7 @@ public:
   std::ostream* m_out_stream {nullptr};
 
   std::vector< std::string > opt_path;
+  std::vector< std::string > opt_cluster_path;
 
   // Used to wrap large text blocks
   kwiver::vital::wrap_text_block m_wtb;

@@ -532,28 +532,32 @@ Clusters are loaded at the same time as the processes, but are loaded
 from the list of directories specified in the `SPROKIT_CLUSTER_PATH`
 environment variable.
 
-A cluster definition starts with the *cluster* keyword followed by
-the name of the cluster. A documentation section must follow the
-cluster name definition. Here is where you describe the purpose and
-function of the cluster in addition to any other important
-information about limitations or assumptions. Comments start
-with ``--`` and continue to the end of the line. These comments
-are included with the cluster definition and are displayed by the
-plugin explorer as part of the cluster documentation. The '#' style
-comments can still be used to annotate the file but are not included
-as part of the cluster documentation.
+A cluster definition starts with the *cluster* keyword followed by the
+name of the cluster. By convention, the name of the cluster file is
+the same as the name of the cluster. A documentation section must
+follow the cluster name definition. Here is where you describe the
+purpose and function of the cluster in addition to any other important
+information about limitations or assumptions. Comments start with
+``--`` and continue to the end of the line. These comments are
+included with the cluster definition and are displayed by the plugin
+explorer as part of the cluster documentation. The '#' style comments
+can still be used to annotate the file but are not included as part of
+the cluster documentation.
 
-The body of the cluster definition is made up of three types of
-declarations that may appear multiple times and in any order. These
-are:
+The body of the cluster definition is made up of a cluster header
+which gives the cluster its name. The header is of the form::
 
-  - cluster header
+  cluster <name>
+
+Following the header are three types of declarations which may appear
+multiple times and in any order. These are:
+
   - config specifier
   - input mapping
   - output mapping
 
 A description is *required* after each one of these entries. The
-description starts with "--" and continues to the end of the
+description starts with ``-``  and continues to the end of the
 line. These descriptions are different from typical comments you would
 put in a pipe file in that they are associated with the cluster
 elements and serve as user documentation for the cluster.
@@ -623,7 +627,7 @@ An example cluster definition is as follows::
 
 The following is a more complicated example::
 
-  cluster configuration_provide
+  cluster multiplier
     -- Multiply a number by a constant factor.
 
     factor = 20
@@ -636,13 +640,11 @@ The following is a more complicated example::
     -- The product.
 
    # The following defines the contained processes
-  process const
-    :: const_number
+  process const :: const_number
     # note fully qualified config name
-    value[ro]= $CONFIG{configuration_provide:factor}
+    value[ro]= $CONFIG{multiplier:factor}
 
-  process multiply
-    :: multiplication
+  process multiply :: multiplication
 
   connect from const.number        to   multiply.factor2
 
@@ -652,13 +654,15 @@ Using a Cluster in a Pipe File
 This description should be based on an example that is available in
 the installed image.::
 
-  << from file xxx.cluster >>
-  cluster xxx
+  << from file cluster_proc.cluster >>
+  cluster cluster_proc
      <cluster definition>
+
+The cluster can be used in a pipe file in the same manner as a process.
+The cluster can not be defined in a pipe file.::
 
   process input :: image_list_reader
     filename = foo
-
 
   # instantiate a cluster in the same manner as a process
   process complex :: cluster_proc

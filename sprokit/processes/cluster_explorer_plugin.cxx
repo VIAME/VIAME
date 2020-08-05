@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sprokit/processes/process_explorer_plugin_export.h>
+#include <sprokit/processes/cluster_explorer_plugin_export.h>
 
 #include <vital/tools/explorer_plugin.h>
 #include <vital/util/wrap_text_block.h>
@@ -147,13 +147,18 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
   sprokit::bakery_display b_disp( out_stream() );
   b_disp.print( *cbp );
 
+  out_stream() << "---- Pipeline Detail ----\n\n";
+
+  sprokit::bakery_base* bb = dynamic_cast< sprokit::bakery_base* >( cbp.get() );
+  b_disp.print( *bb );
+
 } // cluster_explorer::explore
 
 }} // end namespace
 
 // ==================================================================
 extern "C"
-PROCESS_EXPLORER_PLUGIN_EXPORT
+CLUSTER_EXPLORER_PLUGIN_EXPORT
 void register_explorer_plugin( kwiver::vital::plugin_loader& vpm )
 {
   static std::string module("cluster_explorer_plugin" );

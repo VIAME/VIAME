@@ -32,6 +32,7 @@
 #include "explorer_context_priv.h"
 
 #include <vital/algorithm_plugin_manager_paths.h> //+ maybe rename later
+#include <processes/clusters/cluster-paths.h> // cluster default path
 
 #include <vital/algo/algorithm_factory.h>
 #include <vital/applets/cxxopts.hpp>
@@ -43,6 +44,7 @@
 #include <vital/plugin_loader/plugin_manager_internal.h>
 #include <vital/util/demangle.h>
 #include <vital/util/get_paths.h>
+#include <vital/util/string.h>
 #include <vital/util/wrap_text_block.h>
 
 #include <kwiversys/RegularExpression.hxx>
@@ -64,6 +66,8 @@ static void display_attributes( kwiver::vital::plugin_factory_handle_t const fac
 static void display_by_category( const kwiver::vital::plugin_map_t& plugin_map, const std::string& category );
 static kwiver::vital::category_explorer_sptr get_category_handler( const std::string& cat );
 
+// Cluster default path.
+static std::string const cluster_default_include_dirs = std::string(DEFAULT_CLUSTER_PATHS);
 
 //==================================================================
 // Define global program data
@@ -133,18 +137,6 @@ struct print_functor
   // instance data
   std::ostream& m_str;
 };
-
-
-// ------------------------------------------------------------------
-std::string
-join( const std::vector< std::string >& vec, const char* delim )
-{
-  std::stringstream res;
-  std::copy( vec.begin(), vec.end(), std::ostream_iterator< std::string > ( res, delim ) );
-
-  return res.str();
-}
-
 
 // ------------------------------------------------------------------
 void
@@ -354,7 +346,7 @@ void load_explorer_plugins()
   ST::Split( default_module_paths, pathl, PATH_SEPARATOR_CHAR );
 
   // Check env variable for path specification
-  const char * env_ptr = kwiversys::SystemTools::GetEnv( "KWIVER_PLUGIN_PATH" );
+  const char * env_ptr = ST::GetEnv( "KWIVER_PLUGIN_PATH" );
   if ( 0 != env_ptr )
   {
     LOG_DEBUG( G_logger, "Adding path(s) \"" << env_ptr << "\" from environment" );
@@ -476,6 +468,7 @@ main( int argc, char* argv[] )
   G_context.m_cmd_options->add_options("File related")
     ( "skip-relative", "Skip built-in plugin paths that are relative to the executable location")
     ( "I", "Add directory to search path", cxxopts::value<std::vector<std::string>>() )
+    ( "C", "Add directory to cluster search path", cxxopts::value<std::vector<std::string>>() )
     ( "load", "Load only specified plugin file for inspection. No other plugins are loaded.",
       cxxopts::value<std::string>() )
     ;
@@ -535,7 +528,31 @@ main( int argc, char* argv[] )
     exit( 0 );
   }
 
-  if ( cmd_args.count("fmt"))
+  // Handle extra include path directories
+  if ( cmd_args.count( "I" ) )
+  {
+    G_context.opt_path = cmd_args["I"].as<std::vector< std::string > >();
+  }
+
+  // Handle extra cluster path directories
+  if ( cmd_args.count( "C" ) )
+  {
+    G_context.opt_cluster_path = cmd_args["C"].as<std::vector< std::string > >();
+
+    std::string paths = ::kwiver::vital::join( G_context.opt_cluster_path, ":" );
+
+    const char * env_ptr = ST::GetEnv( "SPROKIT_CLUSTER_PATH" );
+    if ( 0 != env_ptr )
+    {
+      paths += ":" + std::string( env_ptr );
+    }
+
+    LOG_DEBUG( G_logger, "Updated cluster include path \"" << paths );
+    std::string new_env = "SPROKIT_CLUSTER_PATH=" + paths;
+    ST::PutEnv( new_env );
+  }
+
+  if ( cmd_args.count( "fmt" ) )
   {
     G_context.formatting_type = cmd_args["fmt"].as<std::string>();
   }
@@ -677,7 +694,7 @@ main( int argc, char* argv[] )
   // ========
   kwiver::vital::plugin_manager_internal& vpm = kwiver::vital::plugin_manager_internal::instance();
 
-  if (!G_context.opt_skip_relative)
+  if ( ! G_context.opt_skip_relative)
   {
     // Add path relative to the current executable/binary directory
     vpm.add_search_path(kwiver::vital::get_executable_path() + "/../lib/kwiver/plugins");
@@ -701,19 +718,31 @@ main( int argc, char* argv[] )
     vpm.load_all_plugins( ::kwiver::vital::plugin_manager::plugin_type::ALL );
   }
 
+  // Display search paths
   if ( G_context.opt_path_list )
   {
     pe_out() << "---- Plugin search path\n";
 
-    std::string path_string;
     std::vector< kwiver::vital::path_t > const search_path( vpm.search_path() );
-    for( auto module_dir : search_path )
+    for( auto const& module_dir : search_path )
     {
       pe_out() << "    " << module_dir << std::endl;
     }
     pe_out() << std::endl;
+
+    pe_out() << "---- Cluster search path\n";
+
+    kwiver::vital::path_list_t cluster_path;
+    ST::GetPath( cluster_path, "SPROKIT_CLUSTER_PATH" );
+    ST::Split( cluster_default_include_dirs, cluster_path, PATH_SEPARATOR_CHAR );
+
+    for ( auto const& p : cluster_path )
+    {
+      pe_out() << "    " << p << std::endl;
+    }
   }
 
+  // Display list of modules loaded.
   if ( G_context.opt_modules )
   {
     pe_out() << "---- Registered module names:\n";

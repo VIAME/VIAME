@@ -159,7 +159,7 @@ display_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
 
     if ( !any_config )
     {
-      m_context->output_stream() << "    No configuration entries/n";
+      m_context->output_stream() << "    No configuration entries\n";
     }
   }
 

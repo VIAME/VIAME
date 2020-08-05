@@ -52,8 +52,7 @@ bakery_display
 */
 
   // display pipeline internals
-  m_ostr << m_prefix
-      << "-- Config Items --\n";
+  m_ostr << m_prefix << "---- Config Items ----\n";
 
   for ( auto const& obj : b_b.m_configs )
   {
@@ -141,7 +140,7 @@ bakery_display
 
   // display c_b.m_inputs
   group_empty = true;
-  m_ostr << m_prefix << "Cluster Input Poprts\n";
+  m_ostr << m_prefix << "Cluster Input Ports\n";
   for ( auto const& port : c_b.m_cluster->m_inputs )
   {
     group_empty = false;
@@ -186,8 +185,6 @@ bakery_display
   {
     m_ostr << m_prefix << "    None\n\n";
   }
-
-
 }
 
 // ----------------------------------------------------------------------------

@@ -53,16 +53,16 @@ set(pipeline_util_private_headers
   )
 
 if (WIN32)
-  set(path_sep ";")
+  set(path_sep "//073")
 else ()
-  set(path_sep ":")
+  set(path_sep "//072")
 endif ()
 
 set(sprokit_default_pipe_include_paths   "${CMAKE_INSTALL_PREFIX}/share/sprokit/pipelines/include")
 
 if (KWIVER_USE_BUILD_TREE)
   set(sprokit_default_pipe_include_paths
-    "${sprokit_default_pipe_include_paths}${path_sep}${sprokit_source_dir}/src/tools/pipelines/include")
+    "${sprokit_default_pipe_include_paths}${path_sep}${KWIVER_SOURCE_DIR}/config/pipelines")
 endif ()
 
 set(SPROKIT_DEFAULT_PIPE_INCLUDE_PATHS "${sprokit_default_pipe_include_paths}"
@@ -109,11 +109,6 @@ target_link_libraries(sprokit_pipeline_util
             ${CMAKE_THREAD_LIBS_INIT}
              kwiversys
  )
-
-if (WIN32)
-  add_dependencies(sprokit_pipeline_util
-    configure-include-paths.h)
-endif ()
 
 kwiver_install_headers(
   ${pipeline_util_headers}
