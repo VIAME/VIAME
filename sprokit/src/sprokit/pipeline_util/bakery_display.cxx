@@ -110,14 +110,15 @@ bakery_display
    */
 
   kwiver::vital::wrap_text_block wtb;
+  wtb.set_indent_string( m_prefix + "    " );
 
-  m_ostr << m_prefix  << "---------------------\n"
-         << m_prefix  << "  Cluster type: " << c_b.m_type << std::endl
-         << m_prefix << "  Description: " << wtb.wrap_text( c_b.m_description ) << std::endl;
-
+  m_ostr << m_prefix << "---------------------\n"
+         << m_prefix << "Cluster type: " << c_b.m_type << std::endl
+         << m_prefix << "Description: " << wtb.wrap_text( c_b.m_description ) << std::endl;
 
   // display c_b.m_configs
-  m_ostr << m_prefix << "-- Cluster Configuration --\n";
+  bool group_empty{ true };
+  m_ostr << m_prefix << "Cluster Configuration\n";
   for ( auto const& c : c_b.m_cluster->m_configs )
   {
     auto const flags_str = kv::join( c.config_value.flags, ", " );
@@ -129,46 +130,63 @@ bakery_display
            << m_prefix << "    Description: " << wtb.wrap_text( c.description )
            << m_prefix << "    Flags      : " << flags_str << std::endl
            << std::endl;
+
+    group_empty = false;
+  }
+
+  if (group_empty)
+  {
+    m_ostr << m_prefix << "    None\n\n";
   }
 
   // display c_b.m_inputs
-  m_ostr << m_prefix << "-- Cluster Input Poprts --\n";
+  group_empty = true;
+  m_ostr << m_prefix << "Cluster Input Poprts\n";
   for ( auto const& port : c_b.m_cluster->m_inputs )
   {
+    group_empty = false;
+
     // description
     // from port
     // targets vector
-    m_ostr << m_prefix << "  Input port map from: " << port.from << std::endl
-           << m_prefix << "   to: ";
+    m_ostr << m_prefix << "  Input port map from: " << port.from << std::endl;
 
-    bool first{true};
     for ( auto const& p : port.targets )
     {
-      m_ostr << p.first << "." << p.second;
-      if ( ! first )
-      {
-        m_ostr << ", ";
-      }
-      first = false;
+      m_ostr << m_prefix << "                   to: "
+             << p.first << "." << p.second << std::endl;
     }
 
-    m_ostr << std::endl
-           << wtb.wrap_text( port.description )
+    m_ostr << wtb.wrap_text( port.description )
            << std::endl;
   }
 
+  if (group_empty)
+  {
+    m_ostr << m_prefix << "    None\n\n";
+  }
+
   // display c_b.m_outputs
-  m_ostr << m_prefix << "-- Cluster Output Poprts --\n";
+  group_empty = true;
+  m_ostr << m_prefix << "Cluster Output Poprts\n";
   for ( auto const& port : c_b.m_cluster->m_outputs )
   {
+    group_empty = false;
+
     // description
     // from
     // to
-    m_ostr << m_prefix << "  Output port map from: " << port.from.first << "." << port.from.second
-           << m_prefix << "  to: " << port.to << std::endl
+    m_ostr << m_prefix << "  Output port map from: " << port.from.first << "." << port.from.second << std::endl
+           << m_prefix << "                    to: " << port.to << std::endl
            << wtb.wrap_text( port.description )
                  << std::endl;
   }
+
+  if (group_empty)
+  {
+    m_ostr << m_prefix << "    None\n\n";
+  }
+
 
 }
 

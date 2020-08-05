@@ -157,22 +157,15 @@ register_factories( kwiver::vital::plugin_loader& vpm )
 
       if (info)
       {
-        process::type_t const& type = info->type;
-        std::string const& description = info->description;
-        process_factory_func_t const& ctor = info->ctor;
 
-        LOG_DEBUG( logger, "Registering a cluster. Name: " << type
-                   << "  interface type: " << typeid( sprokit::process ).name() );
+        LOG_DEBUG( logger, "Registering a cluster. Name: " << info->type );
 
         try
         {
           // Add cluster to process registry with a specific factory function
-          auto fact = vpm.add_factory( new sprokit::cpp_process_factory( type, typeid( sprokit::process ).name(), ctor ) );
-          fact->add_attribute( kvpf::PLUGIN_NAME, type )
-            .add_attribute( kvpf::PLUGIN_DESCRIPTION, description )
-            .add_attribute( kvpf::PLUGIN_MODULE_NAME,  reg.module_name() )
+          auto fact = vpm.add_factory( new sprokit::cluster_process_factory( info ) );
+          fact->add_attribute( kvpf::PLUGIN_MODULE_NAME,  reg.module_name() )
             .add_attribute( kvpf::PLUGIN_ORGANIZATION, reg.organization() )
-            .add_attribute( kvpf::PLUGIN_CATEGORY, kvpf::CLUSTER_CATEGORY )
             .add_attribute( "cluster-file", pstr ) // indicate cluster and source file name
             ;
         }

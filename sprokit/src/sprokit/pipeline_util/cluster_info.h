@@ -58,9 +58,9 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
     /**
      * \brief Constructor.
      *
-     * \param type_ The type of the cluster.
-     * \param description_ A description of the cluster.
-     * \param ctor_ A function to create an instance of the cluster.
+     * \param type The type of the cluster.
+     * \param description A description of the cluster.
+     * \param ctor A function to create an instance of the cluster.
      */
     cluster_info(process::type_t const& type,
                  process::description_t const& description,
@@ -77,9 +77,9 @@ class SPROKIT_PIPELINE_UTIL_EXPORT cluster_info
     process::description_t const description;
 
     /// A factory function to create an instance of the cluster.
-    process_factory_func_t const ctor;
+    sprokit::process_factory_func_t const ctor;
 
-    cluster_bakery_sptr m_bakery;
+    sprokit::cluster_bakery_sptr m_bakery;
 };
 
 /// A handle to information about a cluster.

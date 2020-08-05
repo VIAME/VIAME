@@ -452,7 +452,7 @@ main( int argc, char* argv[] )
       "will be treated as a regexp and only algorithm types that match the regexp will be displayed.",
       cxxopts::value<std::string>() )
 
-    ( "cluster", "Display only cluster type plugins"
+    ( "cluster", "Display only cluster type plugins. "
       "If type is specified as \"all\", then all clusters are listed. Otherwise, the type "
       "will be treated as a regexp and only cluster types that match the regexp will be displayed.",
       cxxopts::value<std::string>() )

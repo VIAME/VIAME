@@ -57,7 +57,7 @@ public:
     /**
    * \brief Format bakery blocks in simple text format.
    *
-   * \param bb Reference to bakery base.
+   * \param bakery Reference to bakery base.
    */
   void print( bakery_base const& bakery );
   void print( cluster_bakery const& bakery );

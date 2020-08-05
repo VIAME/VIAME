@@ -38,6 +38,7 @@
 #include <sprokit/pipeline/process_factory.h>
 #include <sprokit/pipeline_util/bakery_display.h>
 #include <sprokit/pipeline_util/cluster_bakery.h>
+#include <sprokit/pipeline_util/cluster_info.h>
 
 #include <sstream>
 #include <iterator>
@@ -136,21 +137,17 @@ explore( const kwiver::vital::plugin_factory_handle_t fact )
 
   // There is a wealth of info associated with a cluster, but it is
   // all buried in the config_info structure.
-  sprokit::process_factory* pf = dynamic_cast< sprokit::cpp_process_factory* > ( fact.get() );
+  sprokit::cluster_process_factory* pf = dynamic_cast< sprokit::cluster_process_factory* > ( fact.get() );
   if ( ! pf ) // cast failed
   {
     return;
   }
 
-  //+ need to get cluster_bakery
-  //+ auto info = pf->cluster_info();
-  sprokit::cluster_bakery* cbp;
-
+  auto cbp = pf->m_cluster_info->m_bakery;;
   sprokit::bakery_display b_disp( out_stream() );
   b_disp.print( *cbp );
 
 } // cluster_explorer::explore
-
 
 }} // end namespace
 
