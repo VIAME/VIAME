@@ -71,7 +71,6 @@ PYBIND11_MODULE( camera_perspective, m )
               kv::camera,
               camera_perspective_trampoline >( m, "CameraPerspective" )
   .def( py::init<>() )
-  .def( "clone",         &kv::camera_perspective::clone )
   .def( "center",        &kv::camera_perspective::center )
   .def( "translation",   &kv::camera_perspective::translation )
   .def( "center_covar",  &kv::camera_perspective::center_covar )
@@ -79,8 +78,6 @@ PYBIND11_MODULE( camera_perspective, m )
   .def( "intrinsics",    &kv::camera_perspective::intrinsics )
   .def( "image_width",   &kv::camera_perspective::image_width )
   .def( "image_height",  &kv::camera_perspective::image_height )
-  .def( "clone_look_at", &kv::camera_perspective::clone_look_at,
-        py::arg( "stare_point" ), py::arg( "up_direction" ) = kv::vector_3d::UnitZ() )
   .def( "as_matrix",     &kv::camera_perspective::as_matrix )
   .def( "pose_matrix",   &kv::camera_perspective::pose_matrix )
   .def( "project",       &kv::camera_perspective::project )
@@ -130,11 +127,33 @@ kv::camera_sptr
 camera_perspective_trampoline
 ::clone() const
 {
-  VITAL_PYBIND11_OVERLOAD_PURE(
-    kv::camera_sptr,
-    kv::camera_perspective,
-    clone,
-  );
+
+  auto self = py::cast(this);
+
+  auto cloned = self.attr("clone")();
+
+  auto python_keep_alive = std::make_shared<py::object>(cloned);
+
+  auto ptr = cloned.cast<camera_perspective_trampoline*>();
+
+  return std::shared_ptr<kv::camera_perspective>(python_keep_alive, ptr);
+}
+
+kv::camera_perspective_sptr
+camera_perspective_trampoline
+::clone_look_at(
+  const kv::vector_3d &stare_point,
+  const kv::vector_3d &up_direction = kv::vector_3d::UnitZ() ) const
+{
+  auto self = py::cast(this);
+
+  auto cloned = self.attr("clone_look_at")(stare_point,up_direction);
+
+  auto python_keep_alive = std::make_shared<py::object>(cloned);
+
+  auto ptr = cloned.cast<camera_perspective_trampoline*>();
+
+  return std::shared_ptr<kv::camera_perspective>(python_keep_alive, ptr);
 }
 
 kv::vector_3d
@@ -213,23 +232,6 @@ camera_perspective_trampoline
     image_height,
   );
 }
-
-
-kv::camera_perspective_sptr
-camera_perspective_trampoline
-::clone_look_at(
-  const kv::vector_3d &stare_point,
-  const kv::vector_3d &up_direction ) const
-{
-  VITAL_PYBIND11_OVERLOAD_PURE(
-    kv::camera_perspective_sptr,
-    kv::camera_perspective,
-    clone_look_at,
-    stare_point,
-    up_direction
-  );
-}
-
 
 kv::matrix_3x4d
 camera_perspective_trampoline

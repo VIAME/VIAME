@@ -65,8 +65,7 @@ PYBIND11_MODULE(transform_2d, m)
   .def("map", &kv::transform_2d::map)
   // TODO: commenting inverse out is required by the workaround in the link below, but
   // inverse is public, so users will be expecting it in the binding code
-  // .def("inverse", &kv::transform_2d::inverse)
-  // .def("inverse_", static_cast<kv::transform_2d_sptr (kv::transform_2d::*) () const>( &transform_2d_publicist::inverse_ ) )
+  .def("inverse", &kv::transform_2d::inverse)
   ;
 }
 // We are excluding clone and inverse_ in the base's binding code to follow the pattern

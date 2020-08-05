@@ -43,6 +43,7 @@ import nose.tools as nt
 from kwiver.vital.types import (
     Camera,
     CameraIntrinsics,
+    CameraPerspective,
     CameraMap,
     Feature,
     geodesy,

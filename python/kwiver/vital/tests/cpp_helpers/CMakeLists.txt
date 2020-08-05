@@ -4,6 +4,12 @@ set(__helper_modnames
   camera_helpers
   camera_intrinsics_helpers
   transform_2d_helpers
+  det_obj_set_helpers
+  camera_intrinsics_helpers
+  transform_2d_helpers
+  camera_perspective_helpers
+  camera_perspective_map_helpers
+  camera_rpc_helpers
   )
 
 # Add files to the vital.tests.cpp_helpers python module

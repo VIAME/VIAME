@@ -28,30 +28,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/types/transform_2d.h>
+#include <vital/types/detected_object_set.h>
 
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 
+#include <memory>
+
 namespace py = pybind11;
 namespace kv = kwiver::vital;
-
+typedef kwiver::vital::detected_object_set det_obj_set;
 // Helpers to call pure virtual functions from base reference.
-// We'll use these to test that these transform_2d methods can be overriden in C++
-PYBIND11_MODULE( transform_2d_helpers, m )
+// We'll use these to test that these camera methods can be overriden in C++
+PYBIND11_MODULE( det_obj_set_helpers, m )
 {
-  m.def( "call_clone", [] ( const kv::transform_2d& t )
+  m.def( "call_size", [] (const det_obj_set &obj)
   {
-    return t.clone();
+      return obj.size();
   });
 
-  m.def( "call_map", [] ( const kv::transform_2d& t, const kv::vector_2d& p )
+  m.def( "call_empty", [] (const det_obj_set &obj)
   {
-    return t.map(p);
+      return obj.empty();
   });
-
-  m.def( "call_inverse", [] (const kv::transform_2d &t)
+  m.def( "call_at", [] (const det_obj_set &obj, int pos)
   {
-    return t.inverse();
+      return obj.at(pos);
   });
 }

@@ -7,6 +7,7 @@ from kwiver.vital.types.camera import *
 from kwiver.vital.types.camera_intrinsics import *
 from kwiver.vital.types.camera_map import *
 from kwiver.vital.types.camera_perspective import *
+from kwiver.vital.types.camera_perspective_map import *
 from kwiver.vital.types.camera_rpc import *
 from kwiver.vital.types.category_hierarchy import *
 from kwiver.vital.types.color import *
@@ -23,6 +24,7 @@ from kwiver.vital.types.detected_object_set import *
 from kwiver.vital.types.essential_matrix import *
 from kwiver.vital.types.feature import *
 from kwiver.vital.types.feature_set import *
+from kwiver.vital.types.feature_track_set import *
 from kwiver.vital.types.fundamental_matrix import *
 from kwiver.vital.types.geodesy import *
 from kwiver.vital.types.geo_covariance import *

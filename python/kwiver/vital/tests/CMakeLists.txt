@@ -6,15 +6,20 @@ add_subdirectory(cpp_helpers)
 
 # Define modules with tests in them
 set(__testable_modnames
+  test_activity
   test_algorithm_factory
   test_activity_type
   test_camera_intrinsics
   test_category_hierarchy
   test_config
   test_camera_map
+  test_camera_perspective
+  test_camera_perspective_map
+  test_camera_rpc
   test_color
   test_covariance
   test_database_query
+  test_detected_object_set
   test_detected_object_type
   test_descriptor
   test_descriptor_request
@@ -23,6 +28,7 @@ set(__testable_modnames
   test_detected_object
   test_feature
   test_feature_set
+  test_feature_track_set
   test_fundamental_matrix
   test_geo_covariance
   test_geo_MGRS

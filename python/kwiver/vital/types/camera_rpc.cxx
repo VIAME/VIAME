@@ -124,11 +124,15 @@ kv::camera_sptr
 camera_rpc_trampoline
 ::clone() const
 {
-  VITAL_PYBIND11_OVERLOAD_PURE(
-    kv::camera_sptr,
-    kv::camera_rpc,
-    clone,
-  );
+  auto self = py::cast(this);
+
+  auto cloned = self.attr("clone")();
+
+  auto python_keep_alive = std::make_shared<py::object>(cloned);
+
+  auto ptr = cloned.cast<camera_rpc_trampoline*>();
+
+  return std::shared_ptr<kv::camera_rpc>(python_keep_alive, ptr);
 }
 
 kv::rpc_matrix

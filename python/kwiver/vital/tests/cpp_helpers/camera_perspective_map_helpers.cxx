@@ -28,30 +28,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vital/types/transform_2d.h>
-
+#include <vital/types/camera_perspective.h>
+#include <vital/types/camera_map.h>
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+#include <python/kwiver/vital/util/pybind11.h>
+#include <memory>
 
 namespace py = pybind11;
 namespace kv = kwiver::vital;
-
 // Helpers to call pure virtual functions from base reference.
-// We'll use these to test that these transform_2d methods can be overriden in C++
-PYBIND11_MODULE( transform_2d_helpers, m )
+// We'll use these to test that these camera methods can be overriden in C++
+PYBIND11_MODULE( camera_perspective_map_helpers, m )
 {
-  m.def( "call_clone", [] ( const kv::transform_2d& t )
+  m.def( "call_size", [] ( const kv::camera_map_of_< kv::camera_perspective > &self )
   {
-    return t.clone();
+      return self.size();
   });
 
-  m.def( "call_map", [] ( const kv::transform_2d& t, const kv::vector_2d& p )
+  m.def( "call_cameras", [] ( const kv::camera_map_of_< kv::camera_perspective > &self )
   {
-    return t.map(p);
+      return self.cameras();
   });
 
-  m.def( "call_inverse", [] (const kv::transform_2d &t)
+  m.def( "call_get_frame_ids", [] ( const kv::camera_map_of_< kv::camera_perspective > &self )
   {
-    return t.inverse();
+      return self.get_frame_ids();
   });
 }
