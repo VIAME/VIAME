@@ -78,8 +78,8 @@ if( VIAME_ENABLE_PYTORCH )
 endif()
 
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_DEPS imgaug ubelt pygments )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug" "ubelt" "pygments" )
+  list( APPEND VIAME_PYTHON_DEPS imgaug ubelt pygments bezier )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug" "ubelt" "pygments" "bezier==2020.1.14" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-INTERNAL )
