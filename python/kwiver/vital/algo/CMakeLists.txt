@@ -4,45 +4,45 @@ include_directories(${pybind11_INCLUDE_DIR})
 
 kwiver_add_python_library(algorithm
   vital/algo
-  activity_detector.cxx
   activity_detector.h
-  algorithm.cxx
   algorithm.h
+  analyze_tracks.h
+  associate_detections_to_tracks.h
+  bundle_adjust.h
+  close_loops.h
+  compute_association_matrix.h
+  compute_depth.h
+  compute_ref_homography.h
+  compute_stereo_depth_map.h
+  compute_track_descriptors.h
+  convert_image.h
+  detect_features.h
+  detect_motion.h
+  detected_object_filter.h
+  detected_object_set_input.h
+  detected_object_set_output.h
+  draw_detected_object_set.h
+  image_object_detector.h
+  activity_detector.cxx
+  algorithm.cxx
   algorithm_module.cxx
   analyze_tracks.cxx
-  analyze_tracks.h
   associate_detections_to_tracks.cxx
-  associate_detections_to_tracks.h
   bundle_adjust.cxx
-  bundle_adjust.h
   close_loops.cxx
-  close_loops.h
   compute_association_matrix.cxx
-  compute_association_matrix.h
   compute_depth.cxx
-  compute_depth.h
   compute_ref_homography.cxx
-  compute_ref_homography.h
   compute_stereo_depth_map.cxx
-  compute_stereo_depth_map.h
   compute_track_descriptors.cxx
-  compute_track_descriptors.h
   convert_image.cxx
-  convert_image.h
   detect_features.cxx
-  detect_features.h
   detect_motion.cxx
-  detect_motion.h
   detected_object_filter.cxx
-  detected_object_filter.h
   detected_object_set_input.cxx
-  detected_object_set_input.h
   detected_object_set_output.cxx
-  detected_object_set_output.h
   draw_detected_object_set.cxx
-  draw_detected_object_set.h
   image_object_detector.cxx
-  image_object_detector.h
   trampoline/activity_detector_trampoline.txx
   trampoline/algorithm_trampoline.txx
   trampoline/analyze_tracks_trampoline.txx

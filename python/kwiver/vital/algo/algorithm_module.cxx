@@ -11,9 +11,23 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include <vital/algo/algorithm.h>
-#include <vital/algo/analyze_tracks.h>
-#include <vital/algo/image_object_detector.h>
+#include <python/kwiver/vital/algo/trampoline/activity_detector_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/analyze_tracks_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/associate_detections_to_tracks_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/bundle_adjust_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/close_loops_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/compute_association_matrix_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/compute_depth_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/compute_ref_homography_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/compute_stereo_depth_map_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/convert_image_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/detect_features_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/detect_motion_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/detected_object_filter_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/detected_object_set_output_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/draw_detected_object_set_trampoline.txx>
+#include <python/kwiver/vital/algo/trampoline/image_object_detector_trampoline.txx>
 #include <python/kwiver/vital/algo/activity_detector.h>
 #include <python/kwiver/vital/algo/algorithm.h>
 #include <python/kwiver/vital/algo/analyze_tracks.h>
@@ -32,23 +46,6 @@
 #include <python/kwiver/vital/algo/detected_object_set_output.h>
 #include <python/kwiver/vital/algo/draw_detected_object_set.h>
 #include <python/kwiver/vital/algo/image_object_detector.h>
-#include <python/kwiver/vital/algo/trampoline/activity_detector_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/analyze_tracks_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/associate_detections_to_tracks_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/bundle_adjust_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/close_loops_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/compute_association_matrix_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/compute_depth_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/compute_ref_homography_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/compute_stereo_depth_map_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/convert_image_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/detect_features_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/detect_motion_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/detected_object_filter_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/detected_object_set_output_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/draw_detected_object_set_trampoline.txx>
-#include <python/kwiver/vital/algo/trampoline/image_object_detector_trampoline.txx>
 #include <sstream>
 
 namespace py = pybind11;
