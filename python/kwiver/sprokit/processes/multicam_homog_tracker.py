@@ -128,7 +128,7 @@ def arg_track_multiboxes(multihomog, box_lists, min_iou):
         match_boxes_homog(h, b, ph, pb, min_iou) for h, b, ph, pb
         in zip(multihomog, box_lists, multihomog[1:], box_lists[1:])
     ]
-    matches.append(itertools.repeat(None))
+    matches.append(itertools.repeat(None, len(box_lists[-1])))
     # List of multibox dicts
     result = []
     # Partially maps a current-camera box index to an existing
