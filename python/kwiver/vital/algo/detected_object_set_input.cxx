@@ -30,13 +30,15 @@
 #include <utility>
 
 #include <pybind11/pybind11.h>
-#include <vital/bindings/python/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
-#include <vital/bindings/python/vital/algo/detected_object_set_input.h>
+#include <python/kwiver/vital/algo/trampoline/detected_object_set_input_trampoline.txx>
+#include <python/kwiver/vital/algo/detected_object_set_input.h>
 
 namespace py = pybind11;
 
 using dosi = kwiver::vital::algo::detected_object_set_input;
-
+namespace kwiver {
+namespace vital {
+namespace python {
 void detected_object_set_input(py::module &m)
 {
   py::class_< dosi,
@@ -56,4 +58,7 @@ file name, or None if the input is exhausted)")
     .def("open", &dosi::open)
     .def("close", &dosi::close)
     ;
+}
+}
+}
 }
