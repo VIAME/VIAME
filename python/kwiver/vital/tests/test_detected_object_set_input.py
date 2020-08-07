@@ -32,10 +32,10 @@ Tests for the DetectedObjectSetInput wrapping class
 """
 import unittest
 
-from vital.algo import DetectedObjectSetInput
-from vital.config import config
-from vital.modules.modules import load_known_modules
-from vital.types import DetectedObjectSet
+from kwiver.vital.algo import DetectedObjectSetInput
+from kwiver.vital.config import config
+from kwiver.vital.modules.modules import load_known_modules
+from kwiver.vital.types import DetectedObjectSet
 
 SIMULATOR_CONFIG = dict(
     center_x=3,
