@@ -170,7 +170,6 @@ class DataAugmentation(KwiverProcess):
         # self.declare_input_port_using_trait('framestamp', optional)
         self.declare_input_port_using_trait('image', required)
         self.declare_input_port_using_trait('detected_object_set', required)
-        self.declare_input_port_using_trait('descriptor_set', required)
 
         #  output port ( port-name,flags)
         self.declare_output_port_using_trait('new_positive_descriptors', optional)
@@ -232,7 +231,6 @@ class DataAugmentation(KwiverProcess):
             # Grab image container from port using traits
             in_img_c = self.grab_input_using_trait('image')
             dos_ptr = self.grab_input_using_trait('detected_object_set')
-            dets_ptr = self.grab_input_using_trait('descriptor_set')
 
             # Declare outputs
             new_positive_descriptors = []
