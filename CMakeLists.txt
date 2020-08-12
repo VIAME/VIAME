@@ -47,7 +47,8 @@ mark_as_advanced(KWIVER_DEFAULT_LIBRARY_DIR)
 
 #
 # kwiver module config file.
-set(KWIVER_CONFIG_FILE "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+set(KWIVER_CONFIG_FILE          "${KWIVER_BINARY_DIR}/kwiver-config.cmake")
+
 if(CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 19.20)
     set(_vcVersion vc16)
@@ -165,6 +166,9 @@ set( kwiver_plugin_module_subdir                  ${kwiver_plugin_subdir}/module
 set( kwiver_plugin_plugin_explorer_subdir         ${kwiver_plugin_subdir}/plugin_explorer )
 set( kwiver_plugin_logger_subdir                  ${kwiver_plugin_subdir}/logger )
 set( kwiver_plugin_applets_subdir                 ${kwiver_plugin_subdir}/applets )
+
+# other well known subdirs
+set( kwiver_config_subdir                         share/kwiver/${KWIVER_VERSION}/config)
 
 ##
 # System specific compiler flags

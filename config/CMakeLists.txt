@@ -23,7 +23,7 @@ set(config_files
   super3d_depth_map.conf)
 
 # Ensure target directory exists
-set(out_dir "${KWIVER_BINARY_DIR}/share/kwiver/${KWIVER_VERSION}/config")
+set(out_dir "${KWIVER_BINARY_DIR}/${kwiver_config_subdir}")
 add_custom_command(
   OUTPUT "${out_dir}"
   COMMAND "${CMAKE_COMMAND}" -E make_directory "${out_dir}"
@@ -32,7 +32,7 @@ add_custom_command(
 # Set up meta-target
 add_custom_target(kwiver-data-config ALL DEPENDS "${out_dir}")
 
-# Add targets to copy config files
+# Add targets to copy config files to the build area
 foreach(file ${config_files})
   get_filename_component(basename ${file} NAME_WE)
   get_filename_component(filename ${file} NAME)
@@ -48,5 +48,5 @@ endforeach()
 kwiver_install(
   FILES ${config_files}
   COMPONENT runtime
-  DESTINATION share/kwiver/${KWIVER_VERSION}/config
+  DESTINATION ${kwiver_config_subdir}
   )
