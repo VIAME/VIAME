@@ -46,6 +46,8 @@ import numpy as np
 import cv2
 from vital.types import BoundingBox
 
+from kwiver.arrows.pytorch.parse_gpu_list import get_device
+
 
 def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3, iflux=0.2 ):
     rt2 = math.sqrt( 2.0 )
@@ -123,21 +125,17 @@ class AugmentedResnetFeatureExtractor(object):
     def __init__(self, resnet_model_path, img_size, batch_size, 
                  gpu_list=None, rotational_shifts=360, resize_factor=0.2, 
                  int_shift_factor=0.2):
-        if gpu_list is None:
-            gpu_list = [x for x in range(torch.cuda.device_count())]
-            target_gpu = 0 # I assume this is just hardcoding in using the first GPU
-        else:
-            target_gpu = gup_list[0]
+        self._device, use_gpu_flag = get_device(gpu_list)
 
         # load the resnet50 model. Maybe this shouldn't be hardcoded?
-        self._resnet_model = models.resnet50().cuda(device=target_GPU)
+        self._resnet_model = models.resnet50()
    
         weights = torch.load( resnet_model_path )
         self._resnet_model.load_state_dict( weights )
         self._resnet_model = nn.Sequential(*list(self._resnet_model.children())[:-1])
 
         self._resnet_model.train( False ) # is this the same as eval() ?
-        self._resnet_model.cuda() # move the model to the GPU
+        self._resnet_model.to(self._device) # move the model to the GPU
  
         self._transform = transforms.Compose([
             transforms.Scale(img_size),
@@ -166,7 +164,7 @@ class AugmentedResnetFeatureExtractor(object):
                                 batch_size=self._b_size, shuffle=False, **kwargs)
         
         for idx, imgs in enumerate(bbox_loader):
-            v_imgs = Variable(imgs).cuda()
+            v_imgs = Variable(imgs).to(self._device)
             output = self._resnet_model(v_imgs)
             if idx == 0:
                 app_features = output.data

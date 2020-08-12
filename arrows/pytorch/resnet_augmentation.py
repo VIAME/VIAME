@@ -59,6 +59,7 @@ from vital.util.VitalPIL import get_pil_image
 
 from kwiver.arrows.pytorch.grid import Grid
 from kwiver.arrows.pytorch.augmented_resnet_feature_extractor import AugmentedResnetFeatureExtractor
+from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 def to_vital(raw_data):
     if len(raw_data) == 0:
@@ -81,7 +82,7 @@ class DataAugmentation(KwiverProcess):
         self.add_config_trait("gpu_list",
                               "gpu_list",
                               'all',
-                              'Define which GPU to use for augmentation. e.g., all, 1,2')
+                              gpu_list_desc(use_for='augmentation'))
         self.declare_config_using_trait('gpu_list')
 
         # Resnet 
@@ -182,11 +183,7 @@ class DataAugmentation(KwiverProcess):
         self._select_threshold = float(self.config_value('detection_select_threshold'))
 
         # GPU list
-        gpu_list_str = self.config_value('gpu_list')
-        if gpu_list_str == 'all':
-            self._gpu_list = None
-        else:
-            self._gpu_list = list(map(int, GPU_list_str.split(',')))
+        self._gpu_list = parse_gpu_list(self.config_value('gpu_list'))
 
         # Augmentation variables
         self._rotational_shifts = int(self.config_value('rotational_shifts'))
