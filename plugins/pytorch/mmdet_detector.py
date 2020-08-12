@@ -80,7 +80,7 @@ class MMDetDetector( ImageObjectDetector ):
         self._display_detections = strtobool( cfg.get_value( "display_detections" ) )
 
         from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
-        check_config_compatibility( self._net_config )
+        check_config_compatibility( self._net_config, self._weight_file )
 
         import matplotlib
         matplotlib.use( 'PS' ) # bypass multiple Qt load issues
