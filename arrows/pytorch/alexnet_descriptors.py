@@ -43,7 +43,6 @@ from timeit import default_timer as timer
 
 from vital.util.VitalPIL import get_pil_image
 
-from kwiver.arrows.pytorch.grid import Grid
 from kwiver.arrows.pytorch.alexnet_feature_extractor import AlexNetFeatureExtractor
 from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
@@ -105,9 +104,6 @@ class AlexNetDescriptors(KwiverProcess):
         alexnet_batch_size = int(self.config_value('alexnet_batch_size'))
         alexnet_model_path = self.config_value('alexnet_model_path')
         self._app_feature_extractor = AlexNetFeatureExtractor(alexnet_model_path, alexnet_img_size, alexnet_batch_size, self._GPU_list)
-
-        # Init variables
-        self._grid = grid()
 
         self._base_configure()
 
