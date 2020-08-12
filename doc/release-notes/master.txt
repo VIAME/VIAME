@@ -11,6 +11,8 @@ Vital
 
 Vital Algo
 
+ * Extended the API for compute_depth to also return an uncertainty image.
+
 Vital Types
 
  * Add new method to metadata class to add a metadata item being
@@ -67,6 +69,13 @@ Arrows: OpenCV
 Arrows: Serialization
 
 Arrows: Super3d
+
+ * Changed the compute_depth parameters to take a sampling rate, in pixels,
+   instead of an absolute number of depth slices.  This allows the algorithm
+   the scale the number of slices appropriatlely ensuring at least a minimum
+   sampling rate when projecting into support images.
+
+ * Updated the Super3D compute_depth algorithm to compute uncertainty.
 
 Arrows: VXL
 
