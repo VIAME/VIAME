@@ -26,69 +26,83 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 from __future__ import print_function
 from __future__ import division
 from __future__ import absolute_import
 
 import torch
 import torch.utils.data as data
-
-from torchvision import transforms
+import torch.nn as nn
+from torchvision import models, transforms, datasets
 
 from PIL import Image as pilImage
 
+from .parse_gpu_list import get_device
 from vital.types import BoundingBox
-from kwiver.arrows.pytorch.models import Siamese
-from kwiver.arrows.pytorch.parse_gpu_list import get_device
 
-
-class SiameseDataLoader(data.Dataset):
-    def __init__(self, bbox_list, transform, frame_img, in_size, mot_flag):
-        self._frame_img = frame_img
+class ResnetDataLoader(data.Dataset):# This is the same as the siamese one it was based on
+    def __init__(self, bbox_list, transform, frame_img, in_size):
+        self._frame_img = pilImage.new( "RGB", frame_img.size )
+        self._frame_img.paste( frame_img )
         self._transform = transform
         self._bbox_list = bbox_list
-        self._mot_flag = mot_flag
         self._in_size = in_size
 
     def __getitem__(self, index):
-        bb = self._bbox_list[index] if self._mot_flag else self._bbox_list[index].bounding_box()
-        im = self._frame_img.crop((float(bb.min_x()), float(bb.min_y()),
-                      float(bb.max_x()), float(bb.max_y())))
+        bb = self._bbox_list[index].bounding_box()
+        # unwrap
+        min_x = float( bb.min_x() )
+        min_y = float( bb.min_y() )
+        max_x = float( bb.max_x() )
+        max_y = float( bb.max_y() )
+
+        c_x = ( min_x + max_x ) / 2
+        c_y = ( min_y + max_y ) / 2
+
+        padding = 1.12 * max( max_x - min_x, max_y - min_y ) / 2
+
+        # crop a square image
+        im = self._frame_img.crop(
+            (
+                c_x - padding,
+                c_y - padding,
+                c_x + padding,
+                c_y + padding
+            )
+        )
+
         im = im.resize((self._in_size, self._in_size), pilImage.BILINEAR)
         im.convert('RGB')
+
         if self._transform is not None:
             im = self._transform(im)
 
         return im
 
     def __len__(self):
-        return len(self._bbox_list) if self._mot_flag else  self._bbox_list.size()
+        return self._bbox_list.size()
 
 
-class SiameseFeatureExtractor(object):
+class ResnetFeatureExtractor(object):
     """
-    Obtain the appearance features from a trained pytorch siamese
+    Obtain the appearance features from a trained pytorch resnet50
     model
     """
 
-    def __init__(self, siamese_model_path, img_size, batch_size, gpu_list=None):
+    def __init__(self, resnet_model_path, img_size, batch_size, gpu_list=None):
         self._device, use_gpu_flag = get_device(gpu_list)
-        # load Siamese model
-        self._siamese_model = Siamese().to(self._device)
-        if use_gpu_flag:
-            self._siamese_model = torch.nn.DataParallel(self._siamese_model, 
-                                                        device_ids=gpu_list)
-            snapshot = torch.load(siamese_model_path)
-            self._siamese_model.load_state_dict(snapshot['state_dict'])
-        else:
-            snapshot = torch.load(siamese_model_path, map_location='cpu')
-            tmp = {self._strip_prefix(k, 'module.'): v
-                   for k, v in snapshot['state_dict'].items()}
-            self._siamese_model.load_state_dict( tmp )
 
-        print('Model loaded from {}'.format(siamese_model_path))
-        self._siamese_model.train(False)
+        # load the resnet50 model. Maybe this shouldn't be hardcoded?
+        self._resnet_model = models.resnet50()
+        #self._resnet_model.fc = nn.Linear(2048, 46)
+        print( resnet_model_path )
+        weights = torch.load( resnet_model_path )
+
+        self._resnet_model.load_state_dict( weights )
+        self._resnet_model = nn.Sequential(*list(self._resnet_model.children())[:-1])
+
+        self._resnet_model.train( False ) # is this the same as eval() ?
+        self._resnet_model.to(self._device) # move the model to the GPU
 
         self._transform = transforms.Compose([
             transforms.Scale(img_size),
@@ -97,32 +111,26 @@ class SiameseFeatureExtractor(object):
         ])
         self._img_size = img_size
         self._b_size = batch_size
+        self.frame = None
 
-    @classmethod
-    def _strip_prefix(_cls, string, prefix):
-        if not string.startswith(prefix):
-            raise ValueError("{!r} was supposed to start with {!r} but does not".\
-                    format(string, prefix))
-        return string[len(prefix):]
-    
-    def __call__(self, frame, bbox_list, mot_flag):
-        return self._obtain_features(frame, bbox_list, mot_flag)
+    def __call__(self, bbox_list, MOT_flag):
+        return self._obtain_feature(bbox_list, MOT_flag)
 
-    def _obtain_features(self, frame, bbox_list, mot_flag):
+    def _obtain_feature(self, bbox_list, MOT_flag):
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        if frame is not None:
-            bbox_loader_class = SiameseDataLoader(bbox_list, self._transform, 
-                                    frame, self._img_size, mot_flag)
+        if self.frame is not None:
+            bbox_loader_class = ResnetDataLoader(bbox_list, self._transform, 
+                                                self.frame, self._img_size)
         else:
-            raise ValueError("Trying to create SiameseDataLoader without providing frame")
+            raise ValueError("Trying to create ResenetDataLoader without a frame")
 
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, 
-                            batch_size=self._b_size, shuffle=False, **kwargs)
+                                batch_size=self._b_size, shuffle=False, **kwargs)
 
         torch.set_grad_enabled(False)
         for idx, imgs in enumerate(bbox_loader):
             v_imgs = imgs.to(self._device)
-            output = self._siamese_model(v_imgs)
+            output = self._resnet_model(v_imgs)
 
             if idx == 0:
                 app_features = output.data

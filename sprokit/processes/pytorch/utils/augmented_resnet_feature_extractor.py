@@ -46,7 +46,7 @@ import numpy as np
 import cv2
 from vital.types import BoundingBox
 
-from kwiver.arrows.pytorch.parse_gpu_list import get_device
+from .parse_gpu_list import get_device
 
 
 def augment_region( input_image, cx, cy, csize, outsize, rot, tflux=6, sflux=0.3, iflux=0.2 ):

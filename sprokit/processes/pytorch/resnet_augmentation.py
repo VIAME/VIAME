@@ -57,9 +57,9 @@ from timeit import default_timer as timer
 
 from vital.util.VitalPIL import get_pil_image
 
-from kwiver.arrows.pytorch.grid import Grid
-from kwiver.arrows.pytorch.augmented_resnet_feature_extractor import AugmentedResnetFeatureExtractor
-from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
+from .utils.grid import Grid
+from .utils.augmented_resnet_feature_extractor import AugmentedResnetFeatureExtractor
+from .utils.parse_gpu_list import gpu_list_desc, parse_gpu_list
 
 def to_vital(raw_data):
     if len(raw_data) == 0:

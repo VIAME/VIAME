@@ -52,17 +52,17 @@ from vital.types import DetectedObject, DetectedObjectSet
 from vital.types import ObjectTrackState, Track, ObjectTrackSet
 from vital.types import new_descriptor
 
-from kwiver.arrows.pytorch.track import track_state, track, track_set
+from .utils.track import track_state, track, track_set
 from vital.util.VitalPIL import get_pil_image
 
-from kwiver.arrows.pytorch.models import Siamese
-from kwiver.arrows.pytorch.grid import Grid
-from kwiver.arrows.pytorch.srnn_matching import SRNNMatching, RnnType
-from kwiver.arrows.pytorch.siamese_feature_extractor import SiameseFeatureExtractor
-from kwiver.arrows.pytorch.iou_tracker import IOUTracker
-from kwiver.arrows.pytorch.parse_gpu_list import gpu_list_desc, parse_gpu_list
-from kwiver.arrows.pytorch.gt_bbox import GTBBox, GTFileType
-from kwiver.arrows.pytorch.models import get_config
+from .utils.models import Siamese
+from .utils.grid import Grid
+from .utils.srnn_matching import SRNNMatching, RnnType
+from .utils.siamese_feature_extractor import SiameseFeatureExtractor
+from .utils.iou_tracker import IOUTracker
+from .utils.parse_gpu_list import gpu_list_desc, parse_gpu_list
+from .utils.gt_bbox import GTBBox, GTFileType
+from .utils.models import get_config
 
 g_config = get_config()
 

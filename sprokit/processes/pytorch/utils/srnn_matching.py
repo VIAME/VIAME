@@ -4,8 +4,8 @@ from torch import nn
 
 import numpy as np
 
-from kwiver.arrows.pytorch.models import TargetLSTM, get_config, RnnType
-from kwiver.arrows.pytorch.parse_gpu_list import get_device
+from .models import TargetLSTM, get_config, RnnType
+from .parse_gpu_list import get_device
 
 g_config = get_config()
 
