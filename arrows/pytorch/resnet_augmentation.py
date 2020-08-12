@@ -190,7 +190,7 @@ class DataAugmentation(KwiverProcess):
             self._gpu_list = list(map(int, GPU_list_str.split(',')))
 
         # Augmentation variables
-        self._rotational_shifts = float(self.config_value('rotational_shifts'))
+        self._rotational_shifts = int(self.config_value('rotational_shifts'))
         self._resize_factor = float(self.config_value('resize_factor'))
         self._int_shift_factor = float(self.config_value('int_shift_factor'))
 
