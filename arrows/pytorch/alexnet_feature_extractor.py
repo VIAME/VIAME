@@ -116,11 +116,11 @@ class AlexNetFeatureExtractor(object):
         self._b_size = batch_size
 
     def __call__(self, bbox_list, mot_flag):
-        return self._obtain_feature(bbox_list, MOT_flag)
+        return self._obtain_feature(bbox_list, mot_flag)
 
     def _obtain_feature(self, bbox_list, mot_flag):
         kwargs = {'num_workers': 0, 'pin_memory': True}
-        bbox_loader_class = AlexNetDataLoader(bbox_list, self._transform, self._frame, self._img_size)
+        bbox_loader_class = AlexNetDataLoader(bbox_list, self._transform, self.frame, self._img_size)
         bbox_loader = torch.utils.data.DataLoader(bbox_loader_class, batch_size=self._b_size, shuffle=False, **kwargs)
 
         torch.set_grad_enabled(False)
