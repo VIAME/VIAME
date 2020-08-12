@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,7 @@ namespace vxl {
 
 /// A class for triangulating landmarks from feature tracks and cameras using VXL
 class KWIVER_ALGO_VXL_EXPORT triangulate_landmarks
-: public vital::algorithm_impl<triangulate_landmarks,
-                                       vital::algo::triangulate_landmarks>
+: public vital::algo::triangulate_landmarks
 {
 public:
   PLUGIN_INFO( "vxl",

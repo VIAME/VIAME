@@ -196,12 +196,10 @@ equal_descriptor_set(descriptor_set_sptr ds1, descriptor_set_sptr ds2)
   {
     return ::testing::AssertionFailure() << "size mismatch";
   }
-  std::vector<descriptor_sptr> desc1 = ds1->descriptors();
-  std::vector<descriptor_sptr> desc2 = ds2->descriptors();
-  for( unsigned i=0; i< desc1.size(); ++i )
+  for( unsigned i=0; i< ds1->size(); ++i )
   {
-    descriptor_sptr d1 = desc1[i];
-    descriptor_sptr d2 = desc2[i];
+    descriptor_sptr d1 = ds1->at(i);
+    descriptor_sptr d2 = ds2->at(i);
     if( !d1 && !d2 )
     {
       continue;
@@ -326,8 +324,7 @@ TEST(feature_descriptor_io, write_mixed_descriptor_dim)
   descriptor_set_sptr descriptors1 = make_n_descriptors<int16_t>(50, 128);
   descriptor_set_sptr descriptors2 = make_n_descriptors<int16_t>(50, 64);
   std::vector<descriptor_sptr> desc1 = descriptors1->descriptors();
-  std::vector<descriptor_sptr> desc2 = descriptors2->descriptors();
-  desc1.insert(desc1.end(), desc2.begin(), desc2.end());
+  desc1.insert(desc1.end(), descriptors2->cbegin(), descriptors2->cend());
   descriptor_set_sptr descriptors = std::make_shared<simple_descriptor_set>(desc1);
   core::feature_descriptor_io fd_io;
   EXPECT_THROW(fd_io.save(filename, empty_features, descriptors),
@@ -347,8 +344,7 @@ TEST(feature_descriptor_io, write_mixed_descriptor_type)
   descriptor_set_sptr descriptors1 = make_n_descriptors<uint16_t>(50, 96);
   descriptor_set_sptr descriptors2 = make_n_descriptors<uint32_t>(50, 96);
   std::vector<descriptor_sptr> desc1 = descriptors1->descriptors();
-  std::vector<descriptor_sptr> desc2 = descriptors2->descriptors();
-  desc1.insert(desc1.end(), desc2.begin(), desc2.end());
+  desc1.insert(desc1.end(), descriptors2->cbegin(), descriptors2->cend());
   descriptor_set_sptr descriptors = std::make_shared<simple_descriptor_set>(desc1);
   core::feature_descriptor_io fd_io;
   EXPECT_THROW(fd_io.save(filename, empty_features, descriptors),

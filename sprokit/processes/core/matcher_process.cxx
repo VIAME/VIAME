@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,10 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
+
+create_algorithm_name_config_trait( feature_matcher );
+create_algorithm_name_config_trait( loop_closer );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -104,32 +106,46 @@ void matcher_process
   kwiver::vital::config_block_sptr algo_config = get_config();
 
   // Instantiate the configured algorithm
-  algo::match_features::set_nested_algo_configuration( "feature_matcher", algo_config, d->m_matcher );
+  algo::match_features::set_nested_algo_configuration_using_trait(
+    feature_matcher,
+    algo_config,
+    d->m_matcher );
   if ( ! d->m_matcher )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create feature_matcher" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create feature_matcher" );
   }
 
-  algo::match_features::get_nested_algo_configuration( "feature_matcher", algo_config, d->m_matcher );
+  algo::match_features::get_nested_algo_configuration_using_trait(
+    feature_matcher,
+    algo_config,
+    d->m_matcher );
 
   // Check config so it will give run-time diagnostic if any config problems are found
-  if ( ! algo::match_features::check_nested_algo_configuration( "feature_matcher", algo_config ) )
+  if ( ! algo::match_features::check_nested_algo_configuration_using_trait(
+         feature_matcher, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // - Loop closure algorithm
-  algo::close_loops::set_nested_algo_configuration( "loop_closer", algo_config, d->m_closer );
+  algo::close_loops::set_nested_algo_configuration_using_trait(
+    loop_closer,
+    algo_config,
+    d->m_closer );
   if ( ! d->m_closer )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Unable to create loop_closer" );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Unable to create loop_closer" );
   }
 
-  algo::close_loops::get_nested_algo_configuration( "loop_closer", algo_config, d->m_closer );
+  algo::close_loops::get_nested_algo_configuration_using_trait(
+    loop_closer,
+    algo_config,
+    d->m_closer );
 
-  if ( ! algo::close_loops::check_nested_algo_configuration( "loop_closer", algo_config ) )
+  if ( ! algo::close_loops::check_nested_algo_configuration_using_trait(
+         loop_closer, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -152,19 +168,16 @@ matcher_process
 
     auto frame_number = frame_time.get_frame();
     std::vector<vital::feature_sptr> vf = curr_feat->features();
-    std::vector<vital::descriptor_sptr> df = curr_desc->descriptors();
-
     // special case for the first frame
     if ( ! d->m_curr_tracks )
     {
       typedef std::vector< vital::feature_sptr >::const_iterator feat_itr;
-      typedef std::vector< vital::descriptor_sptr >::const_iterator desc_itr;
 
       feat_itr fit = vf.begin();
-      desc_itr dit = df.begin();
+      auto dit = curr_desc->cbegin();
 
       std::vector< vital::track_sptr > new_tracks;
-      for ( ; fit != vf.end() && dit != df.end(); ++fit, ++dit )
+      for ( ; fit != vf.end() && dit != curr_desc->cend(); ++fit, ++dit )
       {
         auto ts = std::make_shared<vital::feature_track_state>( frame_number, *fit, *dit );
         new_tracks.push_back( vital::track::create() );
@@ -194,7 +207,9 @@ matcher_process
       {
         matched.insert( m.second );
         vital::track_sptr t = active_tracks[m.first];
-        auto ts = std::make_shared<vital::feature_track_state>( frame_number, vf[m.second], df[m.second] );
+        auto ts = std::make_shared<vital::feature_track_state>( frame_number,
+                                                                vf[m.second],
+                                                                curr_desc->at(m.second) );
         t->append( ts );
       }
 
@@ -208,7 +223,9 @@ matcher_process
 
       for( unsigned i : unmatched )
       {
-        auto ts = std::make_shared<vital::feature_track_state>( frame_number, vf[i], df[i] );
+        auto ts = std::make_shared<vital::feature_track_state>( frame_number,
+                                                                vf[i],
+                                                                curr_desc->at(i) );
 
         all_tracks.push_back( vital::track::create() );
         all_tracks.back()->append( ts );
@@ -249,6 +266,8 @@ void matcher_process
 void matcher_process
 ::make_config()
 {
+  declare_config_using_trait( feature_matcher );
+  declare_config_using_trait( loop_closer );
 }
 
 

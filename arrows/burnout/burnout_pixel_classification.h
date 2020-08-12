@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,21 +46,22 @@ namespace burnout {
  * images via automatic white balancing and smoothing.
  */
 class KWIVER_ALGO_BURNOUT_EXPORT burnout_pixel_classification
-  : public vital::algorithm_impl< burnout_pixel_classification,
-      vital::algo::image_filter >
+  : public vital::algo::image_filter
 {
 public:
-
   burnout_pixel_classification();
   virtual ~burnout_pixel_classification();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  PLUGIN_INFO( "burnout_classifier",
+               "Pixel classification using burnout" )
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  vital::config_block_sptr get_configuration() const override;
 
-  virtual kwiver::vital::image_container_sptr filter(
-    kwiver::vital::image_container_sptr image_data );
+  void set_configuration( vital::config_block_sptr config ) override;
+  bool check_configuration( vital::config_block_sptr config ) const override;
+
+  kwiver::vital::image_container_sptr filter(
+    kwiver::vital::image_container_sptr image_data ) override;
 
 private:
 

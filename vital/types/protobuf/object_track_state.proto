@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,12 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+syntax = "proto2";
+
 import "track_state.proto";
 import "detected_object.proto";
+import "point.proto";
 
 package kwiver.protobuf;
 
@@ -36,4 +40,6 @@ message object_track_state {
   required track_state track_state = 1;
   required int64 time = 2;
   optional detected_object detection = 3;
+  required point_d image_point = 4;  // 2d point
+  required point_d track_point = 5;   // 3d point
 }

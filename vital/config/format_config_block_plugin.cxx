@@ -52,7 +52,7 @@ public:
   format_config_block_markdown();
   virtual ~format_config_block_markdown() = default;
 
-  virtual void print( std::ostream& str ) override;
+  void print( std::ostream& str ) override;
 
 }; // end class format_config_block_markdown
 
@@ -114,7 +114,7 @@ public:
   format_config_block_tree();
   virtual ~format_config_block_tree() = default;
 
-  virtual void print( std::ostream& str ) override;
+  void print( std::ostream& str ) override;
 
 protected:
   void format_block( std::ostream& str,
@@ -240,7 +240,6 @@ register_factories( kwiver::vital::plugin_loader& vpm )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
     .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
     ;
-
 
   fact = vpm.ADD_FACTORY( kwiver::vital::format_config_block, kwiver::vital::format_config_block_tree );
   fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "tree")

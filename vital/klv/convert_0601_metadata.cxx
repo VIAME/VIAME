@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,7 +118,7 @@ convert_metadata
              << m_metadata_traits.tag_to_symbol( vital_tag ) );
 
   // If the input data is already in the correct type
-  if ( metadata::typeid_for_tag( vital_tag ) == data.type() )
+  if ( convert_metadata::typeid_for_tag( vital_tag ) == data.type() )
   {
     // leave data as is since it already correct type.
     return data;
@@ -126,7 +126,7 @@ convert_metadata
 
 
   // If destination type is double, then source must be convertable to double
-  if ( metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
+  if ( convert_metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
   {
     if ( klv_0601_has_double( tag ) )
     {
@@ -168,7 +168,7 @@ convert_metadata
 {
   static kwiver::vital::logger_handle_t logger( kwiver::vital::get_logger( "vital.convert_metadata" ) );
 
-  md.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, MISB_0601 ) );
+  md.add< VITAL_META_METADATA_ORIGIN >( MISB_0601 );
 
   //
   // Data items that are used to collect multi-value metadataa items such as
@@ -204,21 +204,21 @@ convert_metadata
     switch (tag)
     {
 // Refine simple case to a define
-#define CASE(N)                                                         \
-  case KLV_0601_ ## N:                                                  \
-    md.add( NEW_METADATA_ITEM( VITAL_META_ ## N,                        \
-      normalize_0601_tag_data( KLV_0601_ ## N, VITAL_META_ ## N, data ) ) ); \
+#define CASE(N)                                                             \
+  case KLV_0601_ ## N:                                                      \
+    md.add_any< VITAL_META_ ## N >(                                         \
+      normalize_0601_tag_data( KLV_0601_ ## N, VITAL_META_ ## N, data ) );  \
     break
 
-#define CASE_COPY(N)                                                    \
-  case KLV_0601_ ## N:                                                  \
-    md.add( NEW_METADATA_ITEM( VITAL_META_ ## N, data ) );              \
+#define CASE_COPY(N)                        \
+  case KLV_0601_ ## N:                      \
+    md.add_any< VITAL_META_ ## N >( data ); \
     break
 
-#define CASE2(KN,VN)                                                    \
-  case KLV_0601_ ## KN:                                                 \
-    md.add( NEW_METADATA_ITEM( VITAL_META_ ## VN,                       \
-      normalize_0601_tag_data( KLV_0601_ ## KN, VITAL_META_ ## VN, data ) ) ); \
+#define CASE2(KN,VN)                                                          \
+  case KLV_0601_ ## KN:                                                       \
+    md.add_any< VITAL_META_ ## VN >(                                          \
+      normalize_0601_tag_data( KLV_0601_ ## KN, VITAL_META_ ## VN, data ) );  \
     break
 
       CASE( UNIX_TIMESTAMP );
@@ -418,7 +418,7 @@ convert_metadata
     {
       vector_3d sensor_loc(raw_sensor_location[0], raw_sensor_location[1], raw_sensor_location[2]);
       auto const sensor_location = geo_point{ sensor_loc, SRID::lat_lon_WGS84 };
-      md.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
+      md.add< VITAL_META_SENSOR_LOCATION >( sensor_location );
     }
   }
 
@@ -431,7 +431,7 @@ convert_metadata
     else
     {
       auto const frame_center = geo_point{ raw_frame_center, SRID::lat_lon_WGS84 };
-      md.add( NEW_METADATA_ITEM( VITAL_META_FRAME_CENTER, frame_center ) );
+      md.add< VITAL_META_FRAME_CENTER >( frame_center );
     }
   }
 
@@ -444,7 +444,7 @@ convert_metadata
     else
     {
       auto const target_location = geo_point{ raw_target_location, SRID::lat_lon_WGS84 };
-      md.add( NEW_METADATA_ITEM( VITAL_META_TARGET_LOCATION, target_location ) );
+      md.add< VITAL_META_TARGET_LOCATION >( target_location );
     }
   }
 
@@ -500,7 +500,7 @@ convert_metadata
         raw_corners.push_back( raw_corner_pt4 + rfc );
 
         kwiver::vital::geo_polygon corners{ raw_corners, kwiver::vital::SRID::lat_lon_WGS84 };
-        md.add( NEW_METADATA_ITEM( VITAL_META_CORNER_POINTS, corners ) );
+        md.add< VITAL_META_CORNER_POINTS >( corners );
       }
     }
   } // corner points are empty

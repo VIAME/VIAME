@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,29 +45,30 @@ namespace darknet {
  * @brief Darknet Training Utility Class
  */
 class KWIVER_ALGO_DARKNET_EXPORT darknet_trainer
-  : public vital::algorithm_impl<darknet_trainer, vital::algo::train_detector>
+  : public vital::algo::train_detector
 {
 public:
-
   darknet_trainer();
   virtual ~darknet_trainer();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  PLUGIN_INFO( "darknet",
+               "Training utility for darknet." )
 
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  vital::config_block_sptr get_configuration() const override;
 
-  virtual void
-  train_from_disk(vital::category_hierarchy_sptr object_labels,
-    std::vector< std::string > train_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-    std::vector< std::string > test_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
+  void set_configuration( vital::config_block_sptr config ) override;
+  bool check_configuration( vital::config_block_sptr config ) const override;
+
+  void train_from_disk( vital::category_hierarchy_sptr object_labels,
+                        std::vector< std::string > train_image_names,
+                        std::vector< vital::detected_object_set_sptr > train_groundtruth,
+                        std::vector< std::string > test_image_names,
+                        std::vector< vital::detected_object_set_sptr > test_groundtruth ) override;
 
 private:
-
   class priv;
-  const std::unique_ptr<priv> d;
+
+  const std::unique_ptr< priv > d;
 };
 
 } } }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,21 +46,18 @@ namespace json {
 
 
 class KWIVER_SERIALIZE_JSON_EXPORT object_track_set
-  : public vital::algorithm_impl< object_track_set, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
-  // Type name this class supports
-  static constexpr char const* name = "kwiver:object_track_set";
-
-  static constexpr char const* description =
-    "Serializes a object track set  using json notation. "
-    "This implementation only handles a single data item.";
+  PLUGIN_INFO( "kwiver:object_track_set",
+               "Serializes a object track set  using json notation. "
+               "This implementation only handles a single data item." );
 
   object_track_set();
   virtual ~object_track_set();
 
-  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
-  virtual vital::any deserialize( const std::string& message ) override;
+  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  vital::any deserialize( const std::string& message ) override;
 };
 
 } } } }       // end namespace kwiver

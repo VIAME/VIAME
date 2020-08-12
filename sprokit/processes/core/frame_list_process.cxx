@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2017 by Kitware, Inc.
+ * Copyright 2015-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,19 +66,20 @@ namespace kwiver {
 
 // (config-key, value-type, default-value, description )
 create_config_trait( image_list_file, std::string, "",
-                     "Name of file that contains list of image file names. "
+                     "Name of file that contains list of image file names.\n\n"
                      "Each line in the file specifies the name of a single image file.");
 
 create_config_trait( path, std::string, "",
-                     "Path to search for image file. The format is the same as the standard "
+                     "Path to search for image file.\n\n"
+                     " The format is the same as the standard "
                      "path specification, a set of directories separated by a colon (':')" );
 
-create_config_trait( frame_time, double, "0.03333333", "Inter frame time in seconds. "
+create_config_trait( frame_time, double, "0.03333333", "Inter frame time in seconds.\n\n "
                      "The generated timestamps will have the specified number of seconds in the generated "
                      "timestamps for sequential frames. This can be used to simulate a frame rate in a "
                      "video stream application.");
 
-create_config_trait( image_reader, std::string, "", "Algorithm configuration subblock" );
+create_algorithm_name_config_trait( image_reader );
 
 //----------------------------------------------------------------
 // Private implementation class
@@ -139,19 +140,19 @@ void frame_list_process
 
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
-  algo::image_io::set_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
+  algo::image_io::set_nested_algo_configuration_using_trait( image_reader, algo_config, d->m_image_reader);
   if ( ! d->m_image_reader )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
              "Unable to create image_reader." );
   }
 
-  algo::image_io::get_nested_algo_configuration( "image_reader", algo_config, d->m_image_reader);
+  algo::image_io::get_nested_algo_configuration_using_trait( image_reader, algo_config, d->m_image_reader);
 
   // instantiate image reader and converter based on config type
-  if ( ! algo::image_io::check_nested_algo_configuration( "image_reader", algo_config ) )
+  if ( ! algo::image_io::check_nested_algo_configuration_using_trait( image_reader, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 }
 
@@ -169,7 +170,7 @@ void frame_list_process
   {
     std::stringstream msg;
     msg <<  "Could not open image list \"" << d->m_config_image_list_filename << "\"";
-    throw sprokit::invalid_configuration_exception( this->name(), msg.str() );
+    VITAL_THROW( sprokit::invalid_configuration_exception, this->name(), msg.str() );
   }
 
   kwiver::vital::data_stream_reader stream_reader( ifs );
@@ -184,7 +185,7 @@ void frame_list_process
       resolved_file = kwiversys::SystemTools::FindFile( line, d->m_config_path, true );
       if ( resolved_file.empty() )
       {
-        throw kwiver::vital::file_not_found_exception( line, "could not locate file in path" );
+        VITAL_THROW( kwiver::vital::file_not_found_exception, line, "could not locate file in path" );
       }
     }
 
@@ -258,9 +259,11 @@ void frame_list_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
+  sprokit::process::port_flags_t shared;
+  shared.insert( flag_output_shared );
 
   declare_output_port_using_trait( timestamp, optional );
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image, shared );
   declare_output_port_using_trait( image_file_name, optional );
 }
 

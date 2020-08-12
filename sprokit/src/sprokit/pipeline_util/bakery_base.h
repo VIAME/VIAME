@@ -71,7 +71,6 @@ public:
   class config_info_t
   {
   public:
-
     config_info_t( const kwiver::vital::config_block_value_t&           val,
                    bool                                  ro,
                    bool                                  relative_path,
@@ -94,11 +93,9 @@ public:
   process_decls_t m_processes;
   process::connections_t m_connections;
 
-
   // Static methods
   static kwiver::vital::config_block_key_t flatten_keys(kwiver::vital::config_block_keys_t const& keys);
   static kwiver::vital::config_block_sptr extract_configuration_from_decls( bakery_base::config_decls_t& configs );
-
 
   // static data
   static config_flag_t const flag_read_only;
@@ -111,7 +108,6 @@ protected:
                               config_value_t const&                     value );
 
 private:
-
   // macro provider
   std::shared_ptr< kwiver::vital::token_expander > m_token_expander;
   kwiver::vital::token_type_symtab* m_symtab;

@@ -98,7 +98,7 @@ PYBIND11_MODULE(detected_object_set, m)
       return self.at(idx);
     })
 
-  .def("__iter__", [](det_obj_set &self) { return py::make_iterator(self.begin(), self.end()); },
+  .def("__iter__", [](det_obj_set &self) { return py::make_iterator(self.cbegin(), self.cend()); },
           py::keep_alive<0, 1>())
 
   .def("__nice__", [](det_obj_set& self) -> std::string {

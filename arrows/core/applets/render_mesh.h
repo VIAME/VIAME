@@ -55,8 +55,8 @@ public:
                "various images such as depth map or height map.");
 
 
-  virtual int run() override;
-  virtual void add_command_options() override;
+  int run() override;
+  void add_command_options() override;
 
 protected:
 

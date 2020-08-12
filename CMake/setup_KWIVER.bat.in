@@ -8,17 +8,16 @@ if [%1] == [] (
   set config=%1
 )
 
-set PATH=%~dp0/bin/%config%;%~dp0/lib/%config%/@kwiver_plugin_module_subdir@;%~dp0/lib/%config%/@kwiver_plugin_process_subdir@;@EXTRA_WIN32_PATH@;%PATH%
+set PATH=%~dp0/bin/%config%;%~dp0/lib/%config%/@kwiver_plugin_module_subdir@;%~dp0/lib/%config%/@kwiver_plugin_process_subdir@;%~dp0/lib/%config%/@kwiver_plugin_algorithms_subdir@;@EXTRA_WIN32_PATH@;%PATH%
 
-set KWIVER_PLUGIN_PATH=%~dp0/lib/%config%/@kwiver_plugin_module_subdir@;%~dp0/lib/%config%/@kwiver_plugin_process_subdir@
+set KWIVER_PLUGIN_PATH=%~dp0/lib/%config%/@kwiver_plugin_subdir@
+
+set KWIVER_CONFIG_PATH=%~dp0/share/kwiver/@KWIVER_VERSION@/config
 
 :: Set default log reporting level for default logger.
 :: set KWIVER_DEFAULT_LOG_LEVEL=info
 
 :: Additional pipeline include directories can be specified in the following env var.
 :: set SPROKIT_PIPE_INCLUDE_PATH=
-
-:: Additional config include directories can be specified in the following env var.
-:: set KWIVER_CONFIG_PATH=
 
 :: Append here

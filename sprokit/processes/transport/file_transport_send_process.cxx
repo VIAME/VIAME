@@ -89,7 +89,7 @@ void file_transport_send_process
   d->m_output_file.open( d->m_file_name );
   if ( ! d->m_output_file )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
                      "Unable to open output file." );
   }
 }

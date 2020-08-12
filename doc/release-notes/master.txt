@@ -1,27 +1,20 @@
-KWIVER v1.5.0 Release Notes
+KWIVER v1.6.0 Release Notes
 ===========================
 
 This is a minor release of KWIVER that provides both new functionality and fixes
-over the previous v1.4.0 release.
+over the previous v1.5.0 release.
 
-Updates since v1.4.0
+Updates since v1.5.0
 --------------------
 
 Vital
 
- * Added a parameter to the clone() methods of the track_state, track and
-   track_set types controlling whether to make an actual deep copy (default) or
-   to make a shallow copy (previous behavior) where elements of the derived
-   feature_track_state or object_track_state would still be shared. (This
-   change also affects track_set::merge_in_other_track_set(). However, the copy
-   constructors of feature_track_state and object_track_state still make only
-   shallow copies.)
+Vital Algo
 
- * Added a variant of config_block::get_enum_value that accepts a default
-   value to fall back on.
+Vital Types
 
- * Added support for registering callbacks to the KWIVER logger.  Callbacks
-   receive any message that is logged with the KWIVER logging framework.
+ * Add new method to metadata class to add a metadata item being
+   passed by shared_ptr
 
 Vital Plugin-loader
 
@@ -29,63 +22,34 @@ Vital Plugin-loader
    objects can be added to the plugin loader at run time to select or
    exclude specific plugins.
 
+ * Added optional bit mask to load_all_plugins() which allows selected
+   groups of plugins to be loaded. In addition the build/install
+   directory structure for the plugins was reorganized.
+
 Vital Util
 
 Vital Logger
-
- * Log4cplus now searches in more locations to find the log4cplus.properties
-   file during start up.  If not found with the environment variable or in the
-   current working directory it will now search in the location of the
-   executable and also in "../lib/kwiver" relative to the executable.
 
 Vital Tools
 
 Vital Types
 
- * Added functions to camera_intrinsics to test if a point is in the valid
-   domain of the mapping function.  In the radial distortion case of
-   simple_camera_intrinsics, this computes a maximum radius for which
-   distortion is valid.  This feature is to help avoid invalid projections
-   of points into images due to the distortion being non-injective.
-
- * Added get_vector() member function to access the vector of all metadata on
-   a frame in metadata_map.
-
- * Added ``kwiver::vital::set`` mixin class to define standard set methods as
-   well as iterability.
-
- * Added iterator, const_iterator and iterable classes to support container-
-   independent iteration.
-
- * Refactored detected_object_set to convert some methods to external
-   functions since they were not properties of the class.
-
 Vital Bindings
-
- * Remove ctypes python bindings
-
- * Moved python bindings associated with config from sprokit.pipeline to
-   vital.config.
 
 Arrows
 
 Arrows: Core
 
- * Added an algorithm implementation (transform_detected_object_set) for
-   transforming detected object sets from one camera perspective to another.
-   Implements vital::algo::detected_object_filter.
-
 Arrows: Ceres
 
 Arrows: CUDA
 
- * Added a new parameter for the truncated signed distance function in depth
-   map integration.  The new "Epsilon" value is used in the occluded portion
-   of the function that was previously zero.  Setting Epsilon > 0 can remove
-   a double surface artifact.  Setting Epsilon = 0 restores the previous
-   behavior.
-
 Arrows: FFmpeg
+
+ * Added a libavfilter pipeline into the ffmpeg_video_input reader. This
+   allows users to inject filters in the video reader, much the same as
+   is possible in the ffmpeg command line with the -vf option.  The default
+   filter applies deinterlacing to any interlaced frames.
 
 Arrows: GDAL
 
@@ -105,27 +69,7 @@ Sprokit
 
 Sprokit: Processes
 
- * Added a core sprokit process to shift a stream of detected object
-   sets by a specified offset.  When a negative offset is specified,
-   detected object sets are initially consumed from the stream until
-   the offset is satisfied.  When a positive offset is specified,
-   empty detected object sets are prepended to the stream until the
-   offset is satisfied.
-
- * Added method to comapre the config declared by the process against
-   the config supplied by the pipeline. Any differences can be written
-   to the log. This is useful for identifying misspelled config items.
-
 Tools
-
- * Converting stand-alone tools to reside under the main "kwiver" top
-   level tool. Individual tools are specified as a parameter to the
-   "kwiver" tool runner.
-
- * Moved source of tools/applets and reorganized:
-   - tools - contains executables, E.g. kwiver tool runner
-   - vital/applets - contains applet framework
-   - arrows/core/applets - general applets
 
 Unit Tests
 
@@ -133,3 +77,9 @@ General Documentation
 
 Bug Fixes
 ---------
+
+Arrows: Core
+
+Arrows: Ceres
+
+Arrows: Super3D

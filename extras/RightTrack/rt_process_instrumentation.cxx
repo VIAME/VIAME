@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,6 @@ rt_process_instrumentation::
 rt_process_instrumentation()
 {
 }
-
-
-// ------------------------------------------------------------------
-rt_process_instrumentation::
-~rt_process_instrumentation()
-{ }
 
 
 // ------------------------------------------------------------------
@@ -132,6 +126,24 @@ rt_process_instrumentation::
 stop_init_processing()
 {
   m_init_event->End();
+}
+
+
+// ------------------------------------------------------------------
+void
+rt_process_instrumentation::
+start_finalize_processing( std::string const& data )
+{
+  m_finalize_event->Start( /* data */ );
+}
+
+
+// ------------------------------------------------------------------
+void
+rt_process_instrumentation::
+stop_finalize_processing()
+{
+  m_finalize!_event->End();
 }
 
 

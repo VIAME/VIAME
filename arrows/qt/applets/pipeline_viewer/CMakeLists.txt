@@ -20,7 +20,7 @@ set( headers
   )
 
 kwiver_add_plugin( kwiver_pipeline_viewer
-  SUBDIR       ${kwiver_plugin_applets}
+  SUBDIR       ${kwiver_plugin_applets_subdir}
   SOURCES      ${sources} ${headers}
   PRIVATE      kwiver_tools_applet
                kwiver_algo_qt

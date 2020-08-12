@@ -30,8 +30,6 @@
 
 #include "take_number_process.h"
 
-#include <sprokit/pipeline_util/path.h>
-
 #include <vital/config/config_block.h>
 #include <sprokit/pipeline/process_exception.h>
 

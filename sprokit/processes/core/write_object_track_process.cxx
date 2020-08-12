@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,9 +50,8 @@ namespace kwiver {
 // (config-key, value-type, default-value, description )
 create_config_trait( file_name, std::string, "",
   "Name of the track descriptor set file to write." );
-create_config_trait( writer, std::string , "",
-  "Block name for algorithm parameters. "
-  "e.g. writer:type would be used to specify the algorithm type." );
+
+create_algorithm_name_config_trait( writer );
 
 //--------------------------------------------------------------------------------
 // Private implementation class
@@ -78,6 +77,7 @@ write_object_track_process
 {
   make_ports();
   make_config();
+  set_data_checking_level( check_sync );
 }
 
 
@@ -97,7 +97,7 @@ void write_object_track_process
   d->m_file_name = config_value_using_trait( file_name );
   if ( d->m_file_name.empty() )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
              "Required file name not specified." );
   }
 
@@ -105,17 +105,21 @@ void write_object_track_process
   kwiver::vital::config_block_sptr algo_config = get_config(); // config for process
 
   // validate configuration
-  if( ! algo::write_object_track_set::check_nested_algo_configuration( "writer", algo_config ) )
+  if( ! algo::write_object_track_set::check_nested_algo_configuration_using_trait(
+        writer, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), "Configuration check failed." );
   }
 
   // instantiate image reader and converter based on config type
-  algo::write_object_track_set::set_nested_algo_configuration( "writer", algo_config, d->m_writer );
+  algo::write_object_track_set::set_nested_algo_configuration_using_trait(
+    writer,
+    algo_config,
+    d->m_writer );
 
   if( ! d->m_writer )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
              "Unable to create writer." );
   }
 }
@@ -133,21 +137,23 @@ void write_object_track_process
 void write_object_track_process
 ::_step()
 {
-  std::string file_name;
-
-  // image name is optional
-  if ( has_input_port_edge_using_trait( image_file_name ) )
+  auto const& port_info = peek_at_port_using_trait( object_track_set );
+  if( port_info.datum->type() == sprokit::datum::complete )
   {
-    file_name = grab_from_port_using_trait( image_file_name );
+    grab_edge_datum_using_trait( object_track_set );
+    d->m_writer->close();
+    mark_process_as_complete();
+    return;
   }
 
-  kwiver::vital::object_track_set_sptr input
-    = grab_from_port_using_trait( object_track_set );
+  auto const& input = grab_from_port_using_trait( object_track_set );
+  auto const& ts = try_grab_from_port_using_trait( timestamp );
+  auto const& file_name = try_grab_from_port_using_trait( image_file_name );
 
   {
     scoped_step_instrumentation();
 
-    d->m_writer->write_set( input );
+    d->m_writer->write_set( input, ts, file_name );
   }
 }
 
@@ -163,6 +169,7 @@ void write_object_track_process
 
   declare_input_port_using_trait( image_file_name, optional );
   declare_input_port_using_trait( object_track_set, required );
+  declare_input_port_using_trait( timestamp, optional );
 }
 
 

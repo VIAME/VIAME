@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2019 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace core {
  * input sources together into a single source.
  */
 class KWIVER_ALGO_CORE_EXPORT video_input_splice
-  : public vital::algorithm_impl < video_input_splice, vital::algo::video_input >
+  : public  vital::algo::video_input
 {
 public:
   PLUGIN_INFO( "splice",

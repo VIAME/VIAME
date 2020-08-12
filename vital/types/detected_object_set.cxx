@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2018 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -284,42 +284,6 @@ set_attributes( attribute_set_sptr attrs )
 }
 
 
-// ------------------------------------------------------------------
-detected_object_set::iterator
-detected_object_set::
-begin()
-{
-  return m_detected_objects.begin();
-}
-
-
-// ------------------------------------------------------------------
-detected_object_set::iterator
-detected_object_set::
-end()
-{
-  return m_detected_objects.end();
-}
-
-
-// ------------------------------------------------------------------
-detected_object_set::const_iterator
-detected_object_set::
-cbegin() const
-{
-  return m_detected_objects.begin();
-}
-
-
-// ------------------------------------------------------------------
-detected_object_set::const_iterator
-detected_object_set::
-cend() const
-{
-  return m_detected_objects.end();
-}
-
-
 // ----------------------------------------------------------------------------
 detected_object_sptr
 detected_object_set::
@@ -335,6 +299,41 @@ detected_object_set::
 at( size_t pos ) const
 {
   return m_detected_objects.at( pos );
+}
+
+
+using vec_t = std::vector< detected_object_sptr >;
+
+// ----------------------------------------------------------------------------
+// Next value function for non-const iteration.
+detected_object_set::iterator::next_value_func_t
+detected_object_set
+::get_iter_next_func()
+{
+  vec_t::iterator it = m_detected_objects.begin();
+  return [=] () mutable ->iterator::reference {
+    if( it == m_detected_objects.end() )
+    {
+      VITAL_THROW( stop_iteration_exception, "detected_object_set" );
+    }
+    return *(it++);
+  };
+}
+
+// ----------------------------------------------------------------------------
+// Next value function for const iteration.
+detected_object_set::const_iterator::next_value_func_t
+detected_object_set
+::get_const_iter_next_func() const
+{
+  vec_t::const_iterator cit = m_detected_objects.begin();
+  return [=] () mutable ->const_iterator::reference {
+    if( cit == m_detected_objects.end() )
+    {
+      VITAL_THROW( stop_iteration_exception, "detected_object_set" );
+    }
+    return *(cit++);
+  };
 }
 
 } } // end namespace

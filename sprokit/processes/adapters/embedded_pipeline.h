@@ -58,13 +58,16 @@ namespace kwiver {
  * send() method. Outputs from the pipeline are retrieved using the
  * receive() method.
  *
- * The pipeline description must contain only one input adapter
- * (process type "input_adapter") and only one output adapter (process
- * type "output_adapter"). The actual process names are up to you.
- * The pipeline should be configured so that the inputs to the
- * pipeline come from the input_adapter and the outputs go to the
- * output_adapter. There are no other constraints on the pipeline
- * topology.
+ * The pipeline description must contain no more than one input
+ * adapter (process type "input_adapter") and no more than one output
+ * adapter (process type "output_adapter"). The actual process names
+ * are up to you.  The pipeline should be configured so that the
+ * inputs to the pipeline come from the input_adapter and the outputs
+ * go to the output_adapter. There are no other constraints on the
+ * pipeline topology.
+ *
+ * Refer to the documentation for generating pipelines that contain
+ * source or sink processes.
  *
  * When creating a data set for the input adapter, there must be a
  * datum for each port on the input_adapter_process. The process will
@@ -225,11 +228,10 @@ public:
    * @brief Can pipeline accept more input?
    *
    * This method checks to see if the input adapter process can accept
-   * more data. Calling the send() method when this method returns \b
-   * true will cause the caller to wait until the pipeline can accept
-   * the input.
+   * more data. This method can be used to create a polling
+   * (non-blocking) approach to sending data to the pipeline.
    *
-   * @return \b true if interface queue is full and a send() call would wait.
+   * @return \b true if interface queue is full.
    */
   bool full() const;
 
@@ -237,11 +239,10 @@ public:
    * @brief Is any pipeline output ready?
    *
    * This method checks to see if there is a pipeline output data set
-   * ready. Calling the receive() method when this method returns \b
-   * true will cause the caller to wait until the pipeline produces
-   * another data set.
+   * ready. This method can be used if the pipeline owner is polling
+   * for output.
    *
-   * @return \b true if interface queue is full and thread would wait for receive().
+   * @return \b true if interface queue is empty.
    */
   bool empty() const;
 

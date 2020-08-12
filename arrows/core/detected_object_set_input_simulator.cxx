@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,6 +81,7 @@ public:
   int m_max_sets;
   int m_set_size;
   std::string m_detection_class;
+  std::string m_image_name;
 };
 
 
@@ -116,6 +117,7 @@ get_configuration() const
   config->set_value( "max_sets", d->m_max_sets, "Number of detection sets to generate." );
   config->set_value( "set_size", d->m_set_size, "Number of detection in a set." );
   config->set_value( "detection_class", d->m_detection_class, "Label for detection detected object type" );
+  config->set_value( "image_name", d->m_image_name, "Image name to return with each detection set" );
 
   return config;
 }
@@ -138,6 +140,7 @@ set_configuration(vital::config_block_sptr config_in)
   d->m_max_sets     = config->get_value<double>( "max_sets" );
   d->m_set_size     = config->get_value<double>( "set_size" );
   d->m_detection_class     = config->get_value<std::string>( "detection_class" );
+  d->m_image_name   = config->get_value<std::string>( "image_name" );
 }
 
 
@@ -163,7 +166,7 @@ bool
 detected_object_set_input_simulator::
 read_set( kwiver::vital::detected_object_set_sptr & detected_set, std::string& image_name )
 {
-  if ( d->m_frame_ct > d->m_max_sets )
+  if ( d->m_frame_ct >= d->m_max_sets )
   {
     return false;
   }
@@ -172,21 +175,23 @@ read_set( kwiver::vital::detected_object_set_sptr & detected_set, std::string& i
 
   for (int i = 0; i < d->m_set_size; ++i )
   {
-    const double ct = (double)d->m_frame_ct;
+    double ct_adj = d->m_frame_ct + static_cast< double >( i ) / d->m_set_size;
 
     kwiver::vital::bounding_box_d bbox(
-      d->m_center_x + ct*d->m_dx - d->m_width/2.0,
-      d->m_center_y + ct*d->m_dy - d->m_height/2.0,
-      d->m_center_x + ct*d->m_dx + d->m_width/2.0,
-      d->m_center_y + ct*d->m_dy + d->m_height/2.0);
-
-    ++d->m_frame_ct;
+      d->m_center_x + ct_adj*d->m_dx - d->m_width/2.0,
+      d->m_center_y + ct_adj*d->m_dy - d->m_height/2.0,
+      d->m_center_x + ct_adj*d->m_dx + d->m_width/2.0,
+      d->m_center_y + ct_adj*d->m_dy + d->m_height/2.0);
 
     auto dot = std::make_shared< kwiver::vital::detected_object_type >();
     dot->set_score( d->m_detection_class, 1.0 );
 
     detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
   }
+
+  ++d->m_frame_ct;
+
+  image_name = d->m_image_name;
 
   return true;
 }

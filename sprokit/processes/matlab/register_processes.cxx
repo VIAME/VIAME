@@ -44,20 +44,17 @@ extern "C"
 KWIVER_PROCESSES_MATLAB_EXPORT
 void register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  static const auto module_name = kwiver::vital::plugin_manager::module_t( "kwiver_processes_matlab" );
+  using namespace sprokit;
 
-  if ( sprokit::is_process_module_loaded( vpm, module_name ) )
+  process_registrar reg( vpm, "kwiver_processes_matlab" );
+
+  if ( is_process_module_loaded( vpm, reg.module_name() ) )
   {
     return;
   }
 
-  // ----------------------------------------------------------------
-  auto fact = vpm.ADD_PROCESS( kwiver::matlab::matlab_process );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, "matlab_bridge" );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION, "Bridge to process written in matlab." );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" );
+  reg.register_process< kwiver::matlab_process >();
 
-  // - - - - - - - - - - - - - - - - - - - - - - -
-  sprokit::mark_process_module_as_loaded( vpm, module_name );
+// - - - - - - - - - - - - - - - - - - - - - - -
+  mark_process_module_as_loaded( vpm, reg.module_name() );
 }

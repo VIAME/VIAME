@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,8 @@ bool has_algorithm_impl_name(std::string const& type_name,
   for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
   {
     std::string attr_val;
-    if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, attr_val ) && ( attr_val == impl_name ) )
+    if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, attr_val )
+         && ( attr_val == impl_name ) )
     {
       return true;
     }
@@ -67,7 +68,8 @@ kwiver::vital::algorithm_sptr create_algorithm( std::string const& algo_name,
   for( kwiver::vital::plugin_factory_handle_t a_fact : fact_list )
   {
     std::string attr_val;
-    if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, attr_val ) && ( attr_val == impl_name ) )
+    if ( a_fact->get_attribute( kwiver::vital::plugin_factory::PLUGIN_NAME, attr_val )
+         && ( attr_val == impl_name ) )
     {
       kwiver::vital::algorithm_factory* pf = dynamic_cast< kwiver::vital::algorithm_factory* > ( a_fact.get() );
       if (0 == pf)
@@ -76,7 +78,7 @@ kwiver::vital::algorithm_sptr create_algorithm( std::string const& algo_name,
         std::stringstream str;
         str << "Factory for algorithm name \"" << algo_name << "\" implementation \""
             << impl_name << "\" could not be converted to algorithm_factory type.";
-        throw kwiver::vital::plugin_factory_not_found( str.str() );
+        VITAL_THROW( kwiver::vital::plugin_factory_not_found, str.str() );
       }
 
       // created algorithm
@@ -90,7 +92,7 @@ kwiver::vital::algorithm_sptr create_algorithm( std::string const& algo_name,
   str << "Could not find factory for algorithm \"" << impl_name
       << "\" implementing \"" << algo_name << "\"";
 
-  throw kwiver::vital::plugin_factory_not_found( str.str() );
+  VITAL_THROW( kwiver::vital::plugin_factory_not_found, str.str() );
 }
 
 } } // end namesapce

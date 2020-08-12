@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2017 by Kitware, Inc.
+ * Copyright 2013-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #ifndef VITAL_ALGO_ALGORITHM_H_
 #define VITAL_ALGO_ALGORITHM_H_
 
+#include <vital/vital_export.h>
 #include <vital/vital_config.h>
 #include <vital/algo/vital_algo_export.h>
 
@@ -302,56 +303,19 @@ public:
                                               config_block_sptr config);
 };
 
-//+ This whole class may not be needed
-// ------------------------------------------------------------------
-/// An intermediate templated base class for algorithm implementations
-/**
- *  Uses a variation of the curiously recurring template pattern (CRTP) to
- *  implement the clone() and register_self() functions for the derived class
- *  with respect to the base algorithm_def implementation.
- *
- *  Each algorithm implementation should be declared as shown below
- *  \code
-    class my_algo_impl
-    : public algorithm_impl<my_algo_impl, my_algo_def>
-    {
-      ...
-    };
-    \endcode
- *  where \c my_algo_def is the abstract algorithm class being implemented.
- *
- *  While the above example shows the algorithm_impl taking two template
- *  arguments, the full definition takes 3: the implementation class, the parent
- *  definition class that's being sub-classed and the base definition class. We
- *  define here that the "base" definition class is the first class along a
- *  class hierarchy that implements the algorithm_def class (e.g. the
- *  detect_features class or the estimate_homography class defined in
- *  kwiver::vital::algo)
- *
- *  In most cases, the parent definition class *is* the base definition class.
- *  In some cases, however, algorithm_def implementations may be sub-classed,
- *  giving rise to intermediate definitions. These cannot just directly be used
- *  as the parent *and* based because of the use of CRTP and templated types
- *  conflicting in one or more parts of the hierarchy. Thus, if an algorithm
- *  implementation is using a parent definition that is NOT the base definition,
- *  the base must also be provided as the third template argument. It also
- *  follows that the Parent algorithm_def type provided must descend from the
- *  BaseDef algorithm_def type provided. IF this is not the case, some compilers
- *  may error if this is the case (e.g. GCC will fail with an "invalid covariant
- *  return type" due to the algorithm_impl's clone method).
- *
- *  \sa algorithm_def
- */
+#if 01
+
 template <typename Self, typename Parent, typename BaseDef=Parent>
-class algorithm_impl
+class VITAL_DEPRECATED algorithm_impl
   : public Parent
 {
 public:
   /// shared pointer type of this impl's base vital::algorithm_def class.
-
-  virtual ~algorithm_impl() = default;
+ VITAL_DEPRECATED algorithm_impl() { }
+  virtual VITAL_DEPRECATED ~algorithm_impl() = default;
 };
 
+#endif
 
 } // end namespace vital
 } // end namespace kwiver

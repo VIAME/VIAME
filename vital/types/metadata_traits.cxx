@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017 by Kitware, Inc.
+ * Copyright 2016-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,8 +69,12 @@ struct vital_meta_trait_object
     virtual bool is_integral() const override { return std::is_integral<T>::value; } \
     virtual bool is_floating_point() const override { return std::is_floating_point<T>::value; } \
     virtual vital_metadata_tag tag() const override { return VITAL_META_ ## TAG; } \
-    virtual metadata_item* create_metadata_item ( const kwiver::vital::any& data ) const override \
-    { return new kwiver::vital::typed_metadata< VITAL_META_ ## TAG, T > ( NAME, data ); } \
+    virtual std::unique_ptr<metadata_item> create_metadata_item ( const kwiver::vital::any& data ) const override \
+    { \
+      return std::unique_ptr<metadata_item>{ \
+        new kwiver::vital::typed_metadata< VITAL_META_ ## TAG, T > ( NAME, data ) \
+      }; \
+    } \
   };
 
 #endif
@@ -115,16 +119,6 @@ metadata_traits
     ix = m_trait_table.find(VITAL_META_UNKNOWN);
   }
   return *ix->second;
-}
-
-
-// ------------------------------------------------------------------
-std::type_info const&
-metadata_traits
-::typeid_for_tag( vital_metadata_tag tag ) const
-{
-  vital_meta_trait_base const& trait = find( tag );
-  return trait.tag_type();
 }
 
 

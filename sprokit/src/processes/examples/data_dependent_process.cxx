@@ -59,10 +59,14 @@ class data_dependent_process::priv
     static port_t const port_output;
 };
 
-kwiver::vital::config_block_key_t const data_dependent_process::priv::config_reject = kwiver::vital::config_block_key_t("reject");
-kwiver::vital::config_block_key_t const data_dependent_process::priv::config_set_on_configure = kwiver::vital::config_block_key_t("set_on_configure");
-kwiver::vital::config_block_value_t const data_dependent_process::priv::default_reject = kwiver::vital::config_block_value_t("false");
-kwiver::vital::config_block_value_t const data_dependent_process::priv::default_set_on_configure = kwiver::vital::config_block_value_t("true");
+kwiver::vital::config_block_key_t const data_dependent_process::priv::config_reject =
+  kwiver::vital::config_block_key_t("reject");
+kwiver::vital::config_block_key_t const data_dependent_process::priv::config_set_on_configure =
+  kwiver::vital::config_block_key_t("set_on_configure");
+kwiver::vital::config_block_value_t const data_dependent_process::priv::default_reject =
+  kwiver::vital::config_block_value_t("false");
+kwiver::vital::config_block_value_t const data_dependent_process::priv::default_set_on_configure =
+  kwiver::vital::config_block_value_t("true");
 process::port_t const data_dependent_process::priv::port_output = port_t("output");
 
 data_dependent_process
@@ -74,6 +78,7 @@ data_dependent_process
     priv::config_reject,
     priv::default_reject,
     kwiver::vital::config_block_description_t("Whether to reject type setting requests or not."));
+
   declare_configuration_key(
     priv::config_set_on_configure,
     priv::default_set_on_configure,
@@ -92,12 +97,15 @@ data_dependent_process
 {
 }
 
+// ----------------------------------------------------------------------------
 void
 data_dependent_process
 ::_configure()
 {
   d->configuring = true;
 
+  // If the type has not already been set and we are to set type at
+  // config time.
   if (!d->type_set && d->set_on_configure)
   {
     set_output_port_type(priv::port_output, type_none);

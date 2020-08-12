@@ -210,7 +210,7 @@ kw_archive_writer_process
   if( ! *d->m_index_stream )
   {
     std::string const reason = "Failed to open " + index_filename + " for writing";
-    throw sprokit::invalid_configuration_exception( name(), reason );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), reason );
   }
 
   if( d->m_separate_meta )
@@ -222,7 +222,7 @@ kw_archive_writer_process
     if( ! *d->m_meta_stream )
     {
       std::string const reason = "Failed to open " + meta_filename + " for writing";
-      throw sprokit::invalid_configuration_exception( name(), reason );
+      VITAL_THROW( sprokit::invalid_configuration_exception, name(), reason );
     }
 
     d->m_meta_bstream.reset( new vsl_b_ostream( d->m_meta_stream.get() ) );
@@ -236,7 +236,7 @@ kw_archive_writer_process
   if( ! *d->m_data_stream )
   {
     std::string const reason = "Failed to open " + data_filename + " for writing";
-    throw sprokit::invalid_configuration_exception( name(), reason );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), reason );
   }
 
   // Write file headers
@@ -278,7 +278,7 @@ kw_archive_writer_process
       ( d->m_separate_meta && ! *d->m_meta_stream ) )
   {
     static std::string const reason = "Failed while writing file headers";
-    throw sprokit::invalid_configuration_exception( name(), reason );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), reason );
   }
 } // kw_archive_writer_process::_init
 
@@ -359,7 +359,7 @@ kw_archive_writer_process
   if( d->m_base_filename.empty() )
   {
     static std::string const reason = "No output filename specified";
-    throw sprokit::invalid_configuration_exception( name(), reason );
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(), reason );
   }
 
   {

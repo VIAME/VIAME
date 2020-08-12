@@ -65,6 +65,7 @@ PYBIND11_MODULE(descriptor_set, m)
   .def(py::init(&new_desc_set1),
     py::arg("list"))
   .def("descriptors", &s_desc_set::descriptors)
+  .def("empty", &s_desc_set::empty)
   .def("size", &s_desc_set::size)
   .def("__len__", &s_desc_set::size)
   ;

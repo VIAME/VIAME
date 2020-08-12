@@ -254,6 +254,9 @@ public:
   */
   bool remove( track_state_sptr const& state );
 
+  /// Remove all track states.
+  void clear();
+
   /// Access a const iterator to the start of the history
   history_const_itr begin() const { return history_.begin(); }
 

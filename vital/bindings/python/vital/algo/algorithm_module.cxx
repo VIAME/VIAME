@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2019 by Kitware, Inc.
+ * Copyright 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,10 @@
 
 #include <vital/algo/algorithm.h>
 #include <vital/algo/image_object_detector.h>
+#include <vital/bindings/python/vital/algo/trampoline/detected_object_set_output_trampoline.txx>
 #include <vital/bindings/python/vital/algo/trampoline/image_object_detector_trampoline.txx>
 #include <vital/bindings/python/vital/algo/algorithm.h>
+#include <vital/bindings/python/vital/algo/detected_object_set_output.h>
 #include <vital/bindings/python/vital/algo/image_object_detector.h>
 #include <sstream>
 
@@ -50,6 +52,9 @@ namespace py = pybind11;
 PYBIND11_MODULE(algorithm, m)
 {
   algorithm(m);
+  register_algorithm<kwiver::vital::algo::detected_object_set_output,
+	    algorithm_def_doso_trampoline<>>(m, "detected_object_set_output");
+  detected_object_set_output(m);
   register_algorithm<kwiver::vital::algo::image_object_detector,
             algorithm_def_iod_trampoline<>>(m, "image_object_detector");
   image_object_detector(m);

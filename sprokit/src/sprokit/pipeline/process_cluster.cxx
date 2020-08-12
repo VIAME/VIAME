@@ -48,8 +48,7 @@
  * \brief Implementation for \link sprokit::process_cluster process cluster\endlink.
  */
 
-namespace sprokit
-{
+namespace sprokit {
 
 process::property_t const process_cluster::property_cluster = process::property_t("_cluster");
 
@@ -143,7 +142,9 @@ static process::name_t convert_name(process::name_t const& cluster_name, process
 // ------------------------------------------------------------------
 void
 process_cluster
-::map_config(kwiver::vital::config_block_key_t const& key, name_t const& name_, kwiver::vital::config_block_key_t const& mapped_key)
+::map_config(kwiver::vital::config_block_key_t const& key,
+             name_t const& name_,
+             kwiver::vital::config_block_key_t const& mapped_key)
 {
   if (d->has_name(name_))
   {
@@ -161,71 +162,86 @@ process_cluster
 // ------------------------------------------------------------------
 void
 process_cluster
-::add_process(name_t const& name_, type_t const& type_, kwiver::vital::config_block_sptr const& conf)
+::add_process( name_t const& name_, // local process name
+               type_t const& type_, // process type
+               kwiver::vital::config_block_sptr const& conf )
 {
-  if (d->processes.count(name_))
+  if ( d->processes.count( name_ ) )
   {
     VITAL_THROW( duplicate_process_name_exception,
-                 name_);
+                 name_ );
   }
 
-  typedef std::set<kwiver::vital::config_block_key_t> key_set_t;
+  typedef std::set< kwiver::vital::config_block_key_t > key_set_t;
 
   kwiver::vital::config_block_keys_t const cur_keys = conf->available_values();
   key_set_t ro_keys;
 
   kwiver::vital::config_block_sptr const new_conf = kwiver::vital::config_block::empty_config();
 
-  for (kwiver::vital::config_block_key_t const& key : cur_keys)
+  // Loop over all config keys provided and make a list of those that are READ_ONLY
+  for ( kwiver::vital::config_block_key_t const& key : cur_keys )
   {
-    kwiver::vital::config_block_value_t const value = conf->get_value<kwiver::vital::config_block_value_t>(key);
+    kwiver::vital::config_block_value_t const value =
+      conf->get_value< kwiver::vital::config_block_value_t >( key );
 
-    new_conf->set_value(key, value);
+    new_conf->set_value( key, value );
 
-    if (conf->is_read_only(key))
+    if ( conf->is_read_only( key ) )
     {
-      ro_keys.insert(key);
+      ro_keys.insert( key );
     }
   }
 
-  priv::config_mappings_t const mappings = d->config_map[name_];
+  // Now map these configs for the named process
+  priv::config_mappings_t const mappings = d->config_map[ name_ ];
 
-  for (priv::config_mapping_t const& mapping : mappings)
+  for ( priv::config_mapping_t const& mapping : mappings )
   {
     kwiver::vital::config_block_key_t const& key = mapping.first;
     kwiver::vital::config_block_key_t const& mapped_key = mapping.second;
 
-    kwiver::vital::config_block_value_t const value = config_value<kwiver::vital::config_block_value_t>(key);
+    kwiver::vital::config_block_value_t const value =
+      config_value< kwiver::vital::config_block_value_t >( key );
 
-    if (ro_keys.count(mapped_key))
+    if ( ro_keys.count( mapped_key ) )
     {
-      kwiver::vital::config_block_value_t const new_value = new_conf->get_value<kwiver::vital::config_block_value_t>(mapped_key);
+      kwiver::vital::config_block_value_t const new_value =
+        new_conf->get_value< kwiver::vital::config_block_value_t >( mapped_key );
 
       VITAL_THROW( mapping_to_read_only_value_exception,
-                   name(), key, value, name_, mapped_key, new_value);
+                   name(), key, value, name_, mapped_key, new_value );
     }
 
-    if (new_conf->has_value(mapped_key))
+    if ( new_conf->has_value( mapped_key ) )
     {
-      LOG_WARN( d->m_logger, "Config item \"" << mapped_key << "\" already has a value. Value will be replaced." );
+      LOG_WARN( d->m_logger,
+                "Config item \"" << mapped_key <<
+      "\" already has a value. Value will be replaced." );
     }
 
-    new_conf->set_value(mapped_key, value);
+    // Create an entry for the config value to be keyed by the mapped key
+    new_conf->set_value( mapped_key, value );
+
     // Make sure that the parameter is not reconfigured away by anything other
     // than this cluster.
-    new_conf->mark_read_only(mapped_key);
+    new_conf->mark_read_only( mapped_key );
   }
 
-  for (kwiver::vital::config_block_key_t const& key : ro_keys)
+  // Make sure all RO entries are marked
+  for ( kwiver::vital::config_block_key_t const& key : ro_keys )
   {
-    new_conf->mark_read_only(key);
+    new_conf->mark_read_only( key );
   }
 
-  name_t const real_name = convert_name(name(), name_);
+  // convert the supplied process name into the cluster based name and
+  // create using that name.
+  name_t const real_name = convert_name( name(), name_ );
 
-  process_t const proc = create_process(type_, real_name, new_conf);
+  process_t const proc = create_process( type_, real_name, new_conf );
 
-  d->processes[name_] = proc;
+  // Note we are filing the process under the supplied name
+  d->processes[ name_ ] = proc;
 }
 
 
@@ -350,7 +366,8 @@ process_cluster
 }
 
 
-// ------------------------------------------------------------------
+// ============================================================================
+// Stub process implementations.
 void
 process_cluster
 ::_configure()
@@ -377,6 +394,14 @@ process_cluster
 // ------------------------------------------------------------------
 void
 process_cluster
+::_finalize()
+{
+}
+
+
+// ------------------------------------------------------------------
+void
+process_cluster
 ::_step()
 {
   VITAL_THROW( process_exception );
@@ -386,45 +411,47 @@ process_cluster
 // ------------------------------------------------------------------
 void
 process_cluster
-::_reconfigure(kwiver::vital::config_block_sptr const& conf)
+::_reconfigure( kwiver::vital::config_block_sptr const& conf )
 {
   kwiver::vital::config_block_keys_t const tunable_keys = available_tunable_config();
 
-  for (priv::config_map_t::value_type const& config_mapping : d->config_map)
+  for ( priv::config_map_t::value_type const& config_mapping : d->config_map )
   {
     name_t const& name_ = config_mapping.first;
     priv::config_mappings_t const& mappings = config_mapping.second;
 
-    kwiver::vital::config_block_sptr const provide_conf = kwiver::vital::config_block::empty_config();
+    kwiver::vital::config_block_sptr const provide_conf =
+      kwiver::vital::config_block::empty_config();
 
-    for (priv::config_mapping_t const& mapping : mappings)
+    for ( priv::config_mapping_t const& mapping : mappings )
     {
       kwiver::vital::config_block_key_t const& key = mapping.first;
 
-      if (!std::count(tunable_keys.begin(), tunable_keys.end(), key))
+      if ( !std::count( tunable_keys.begin(), tunable_keys.end(), key ) )
       {
         continue;
       }
 
       kwiver::vital::config_block_key_t const& mapped_key = mapping.second;
 
-      kwiver::vital::config_block_value_t const& value = config_value<kwiver::vital::config_block_value_t>(key);
+      kwiver::vital::config_block_value_t const& value =
+        config_value< kwiver::vital::config_block_value_t >( key );
 
-      provide_conf->set_value(mapped_key, value);
+      provide_conf->set_value( mapped_key, value );
     }
 
-    process_t const proc = d->processes[name_];
+    process_t const proc = d->processes[ name_ ];
 
     // Grab the new subblock for the process.
-    kwiver::vital::config_block_sptr const proc_conf = conf->subblock(name_);
+    kwiver::vital::config_block_sptr const proc_conf = conf->subblock( name_ );
 
     // Reconfigure the given process normally.
-    proc->reconfigure(proc_conf);
+    proc->reconfigure( proc_conf );
     // Overwrite any provided configuration values which may be read-only.
-    proc->reconfigure_with_provides(provide_conf);
+    proc->reconfigure_with_provides( provide_conf );
   }
 
-  process::_reconfigure(conf);
+  process::_reconfigure( conf );
 }
 
 
@@ -484,8 +511,13 @@ process_cluster::priv
 
 
 // ------------------------------------------------------------------
+/*
+ * This function creates a new name from the cluster name and process name.
+ * The result is <cluster>/<proc>
+ */
 process::name_t
-convert_name(process::name_t const& cluster_name, process::name_t const& process_name)
+convert_name(process::name_t const& cluster_name,
+             process::name_t const& process_name)
 {
   static process::name_t const sep = process::name_t("/");
 

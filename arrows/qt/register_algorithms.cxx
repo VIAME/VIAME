@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,33 +39,8 @@
 #include <arrows/qt/image_io.h>
 
 namespace kwiver {
-
 namespace arrows {
-
 namespace qt {
-
-namespace {
-
-static auto const module_name         = std::string{ "arrows.qt" };
-static auto const module_version      = std::string{ "1.0" };
-static auto const module_organization = std::string{ "Kitware Inc." };
-
-// ----------------------------------------------------------------------------
-template < typename algorithm_t >
-void
-register_algorithm( kwiver::vital::plugin_loader& vpm )
-{
-  using kvpf = kwiver::vital::plugin_factory;
-
-  auto fact = vpm.ADD_ALGORITHM( algorithm_t::name, algorithm_t );
-  fact->add_attribute( kvpf::PLUGIN_DESCRIPTION,  algorithm_t::description )
-       .add_attribute( kvpf::PLUGIN_MODULE_NAME,  module_name )
-       .add_attribute( kvpf::PLUGIN_VERSION,      module_version )
-       .add_attribute( kvpf::PLUGIN_ORGANIZATION, module_organization )
-       ;
-}
-
-} // namespace (anonymous)
 
 // ----------------------------------------------------------------------------
 extern "C"
@@ -73,18 +48,18 @@ KWIVER_ALGO_QT_PLUGIN_EXPORT
 void
 register_factories( kwiver::vital::plugin_loader& vpm )
 {
-  if ( vpm.is_module_loaded( module_name ) )
+  ::kwiver::vital::algorithm_registrar reg( vpm, "arrows.qt" );
+
+  if (reg.is_module_loaded())
   {
     return;
   }
 
-  register_algorithm< image_io >( vpm );
+  reg.register_algorithm< image_io >();
 
-  vpm.mark_module_as_loaded( module_name );
+  reg.mark_module_as_loaded();
 }
 
 } // end namespace qt
-
 } // end namespace arrows
-
 } // end namespace kwiver

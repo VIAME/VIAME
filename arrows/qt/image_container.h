@@ -76,22 +76,22 @@ public:
   bool operator!() const { return data_.isNull(); }
 
   /// \copydoc vital::image_container::size
-  virtual size_t size() const override
+  size_t size() const override
   { return static_cast< size_t >( data_.sizeInBytes() ); }
 
   /// \copydoc vital::image_container::width
-  virtual size_t width() const override
+  size_t width() const override
   { return static_cast< size_t >( data_.width() ); }
 
   /// \copydoc vital::image_container::height
-  virtual size_t height() const override
+  size_t height() const override
   { return static_cast< size_t >( data_.height() ); }
 
   /// \copydoc vital::image_container::depth
-  virtual size_t depth() const override;
+  size_t depth() const override;
 
   /// \copydoc vital::image_container::get_image
-  virtual vital::image get_image() const override
+  vital::image get_image() const override
   { return qt_to_vital( data_ ); }
   using vital::image_container::get_image;
 

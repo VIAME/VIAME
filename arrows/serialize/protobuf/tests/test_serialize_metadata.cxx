@@ -71,20 +71,20 @@ TEST( serialize_metadata, metadata )
 
   {
     const auto& info = traits.find( kwiver::vital::VITAL_META_METADATA_ORIGIN );
-    auto* item = info.create_metadata_item( kwiver::vital::any(std::string ("test-source")) );
-    meta_sptr->add( item );
+    auto item = info.create_metadata_item( kwiver::vital::any(std::string ("test-source")) );
+    meta_sptr->add( std::move( item ) );
   }
 
   {
     const auto& info = traits.find( kwiver::vital::VITAL_META_UNIX_TIMESTAMP );
-    auto* item = info.create_metadata_item( kwiver::vital::any((uint64_t)12345678) );
-    meta_sptr->add( item );
+    auto item = info.create_metadata_item( kwiver::vital::any((uint64_t)12345678) );
+    meta_sptr->add( std::move( item ) );
   }
 
   {
     const auto& info = traits.find( kwiver::vital::VITAL_META_SENSOR_VERTICAL_FOV );
-    auto* item = info.create_metadata_item( kwiver::vital::any((double)12345.678) );
-    meta_sptr->add( item );
+    auto item = info.create_metadata_item( kwiver::vital::any((double)12345.678) );
+    meta_sptr->add( std::move( item ) );
   }
 
   {
@@ -92,8 +92,8 @@ TEST( serialize_metadata, metadata )
 
     kwiver::vital::geo_point::geo_3d_point_t geo_3d( 42.50, 73.54, 100 );
     kwiver::vital::geo_point pt (  geo_3d, kwiver::vital::SRID::lat_lon_WGS84 );
-    auto* item = info.create_metadata_item( kwiver::vital::any(pt) );
-    meta_sptr->add( item );
+    auto item = info.create_metadata_item( kwiver::vital::any(pt) );
+    meta_sptr->add( std::move( item ) );
   }
 
   {
@@ -105,8 +105,8 @@ TEST( serialize_metadata, metadata )
     raw_obj.push_back( 100, 400 );
 
     kwiver::vital::geo_polygon poly( raw_obj, kwiver::vital::SRID::lat_lon_WGS84 );
-    auto* item = info.create_metadata_item( kwiver::vital::any(poly) );
-    meta_sptr->add( item );
+    auto item = info.create_metadata_item( kwiver::vital::any(poly) );
+    meta_sptr->add( std::move( item ) );
   }
 
   kasp::metadata meta_ser;      // The serializer

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,9 @@
 
 namespace algo = kwiver::vital::algo;
 
-namespace kwiver
-{
+namespace kwiver {
 
-  create_config_trait(detect_features_if_keyframe_process, std::string, "",
-    "Algorithm configuration subblock." )
+create_algorithm_name_config_trait( augment_keyframes );
 
 /**
  * \class detect_features_if_keyframe_process
@@ -135,26 +133,28 @@ void detect_features_if_keyframe_process
   // Get our process config
   kwiver::vital::config_block_sptr algo_config = get_config();
 
-  const std::string track_features_name = "augment_keyframes";
-
   // Instantiate the configured algorithm
-  algo::track_features::set_nested_algo_configuration(
-    track_features_name, algo_config, d->m_tracker );
+  algo::track_features::set_nested_algo_configuration_using_trait(
+    augment_keyframes,
+    algo_config,
+    d->m_tracker );
   if ( ! d->m_tracker )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Unable to create detect_features_if_keyframe" );
   }
 
-  algo::track_features::get_nested_algo_configuration(
-    track_features_name, algo_config, d->m_tracker);
+  algo::track_features::get_nested_algo_configuration_using_trait(
+    augment_keyframes,
+    algo_config,
+    d->m_tracker);
 
   // Check config so it will give run-time diagnostic if any config problems
   // are found
-  if ( ! algo::track_features::check_nested_algo_configuration(
-        track_features_name, algo_config ) )
+  if ( ! algo::track_features::check_nested_algo_configuration_using_trait(
+        augment_keyframes, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception( name(),
+    VITAL_THROW( sprokit::invalid_configuration_exception, name(),
       "Configuration check failed." );
   }
 }
@@ -241,7 +241,7 @@ void detect_features_if_keyframe_process
 void detect_features_if_keyframe_process
 ::make_config()
 {
-  declare_config_using_trait(detect_features_if_keyframe_process);
+  declare_config_using_trait( augment_keyframes );
 }
 
 

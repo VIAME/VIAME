@@ -8,11 +8,13 @@ set( plugin_core_headers
   close_loops_exhaustive.h
   close_loops_keyframe.h
   close_loops_multi_method.h
+  colorize.h
   compute_association_matrix_from_features.h
   compute_ref_homography_core.h
   convert_image_bypass.h
   create_detection_grid.h
   depth_utils.h
+  detect_features_filtered.h
   detected_object_set_input_kw18.h
   detected_object_set_output_kw18.h
   detected_object_set_input_csv.h
@@ -23,6 +25,7 @@ set( plugin_core_headers
   example_detector.h
   feature_descriptor_io.h
   filter_features_magnitude.h
+  filter_features_nonmax.h
   filter_features_scale.h
   filter_tracks.h
   handle_descriptor_request_core.h
@@ -41,6 +44,7 @@ set( plugin_core_headers
   render_mesh_depth_map.h
   track_features_augment_keyframes.h
   track_features_core.h
+  transfer_bbox_with_depth_map.h
   transform.h
   transform_detected_object_set.h
   triangle_scan_iterator.h
@@ -87,11 +91,13 @@ set( plugin_core_sources
   close_loops_exhaustive.cxx
   close_loops_keyframe.cxx
   close_loops_multi_method.cxx
+  colorize.cxx
   compute_association_matrix_from_features.cxx
   compute_ref_homography_core.cxx
   convert_image_bypass.cxx
   create_detection_grid.cxx
   depth_utils.cxx
+  detect_features_filtered.cxx
   detected_object_set_input_kw18.cxx
   detected_object_set_output_kw18.cxx
   detected_object_set_input_csv.cxx
@@ -102,6 +108,7 @@ set( plugin_core_sources
   example_detector.cxx
   feature_descriptor_io.cxx
   filter_features_magnitude.cxx
+  filter_features_nonmax.cxx
   filter_features_scale.cxx
   filter_tracks.cxx
   handle_descriptor_request_core.cxx
@@ -120,6 +127,7 @@ set( plugin_core_sources
   render_mesh_depth_map.cxx
   track_features_augment_keyframes.cxx
   track_features_core.cxx
+  transfer_bbox_with_depth_map.cxx
   transform.cxx
   transform_detected_object_set.cxx
   triangle_scan_iterator.cxx

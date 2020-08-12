@@ -233,9 +233,8 @@ void load( ::cereal::JSONInputArchive& archive, kwiver::vital::metadata& meta )
   for ( const auto & it : meta_vect )
   {
     const auto& trait = meta_traits.find( it.tag );
-    auto* item = trait.create_metadata_item( it.item_value );
-    meta.add( item );
-  } // end for
+    meta.add( trait.create_metadata_item( it.item_value ) );
+  }
 }
 
 } // end namespace

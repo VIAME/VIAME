@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2018 by Kitware, Inc.
+ * Copyright 2011-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ pipeline_builder
   std::ifstream input( def_file );
   if ( ! input )
   {
-    throw sprokit::file_no_exist_exception( def_file );
+    VITAL_THROW( sprokit::file_no_exist_exception, def_file );
   }
 
   // process the input stream
@@ -132,7 +132,7 @@ pipeline_builder
   std::ifstream input( def_file );
   if ( ! input )
   {
-    throw sprokit::file_no_exist_exception( def_file );
+    VITAL_THROW( sprokit::file_no_exist_exception, def_file );
   }
 
   // process the input stream
@@ -151,7 +151,7 @@ pipeline_builder
   std::ifstream input( path );
   if ( ! input )
   {
-    throw sprokit::file_no_exist_exception( path );
+    VITAL_THROW( sprokit::file_no_exist_exception, path );
   }
 
   // process the input stream
@@ -166,6 +166,7 @@ void
 pipeline_builder
 ::add_setting( std::string const& setting )
 {
+  static auto command_line_src = std::make_shared< std::string >( "Command Line" );
   size_t const split_pos = setting.find(split_str);
 
   if (split_pos == std::string::npos)
@@ -194,13 +195,15 @@ pipeline_builder
   sprokit::config_value_t value;
   value.key_path.push_back(keys.back());
   value.value = setting_value;
-
+  value.loc = ::kwiver::vital::source_location( command_line_src, 1 );
   keys.pop_back();
 
   sprokit::config_pipe_block block;
   block.key = keys;
   block.values.push_back(value);
+  block.loc = ::kwiver::vital::source_location( command_line_src, 1 );
 
+  // Add to pipe blocks
   m_blocks.push_back(block);
 }
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017 by Kitware, Inc.
+ * Copyright 2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,15 +45,14 @@
 
 #include <boost/filesystem/path.hpp>
 
-namespace kwiver
-{
+namespace kwiver {
 
 namespace algo = vital::algo;
 
-create_port_trait( filename, file_name,
-  "KWA input filename" );
-create_port_trait( stream_id, string,
-  "Stream ID to place in file" );
+create_port_trait( filename, file_name, "KWA input filename" );
+create_port_trait( stream_id, string, "Stream ID to place in file" );
+
+create_algorithm_name_config_trait( handler );
 
 //------------------------------------------------------------------------------
 // Private implementation class
@@ -76,9 +75,6 @@ handle_descriptor_request_process
   : process( config ),
     d( new handle_descriptor_request_process::priv )
 {
-  // Attach our logger name to process logger
-  attach_logger( vital::get_logger( name() ) );
-
   make_ports();
   make_config();
 }
@@ -96,24 +92,28 @@ void handle_descriptor_request_process
 {
   vital::config_block_sptr algo_config = get_config();
 
-  algo::handle_descriptor_request::set_nested_algo_configuration(
-    "handler", algo_config, d->m_handler );
+  algo::handle_descriptor_request::set_nested_algo_configuration_using_trait(
+    handler,
+    algo_config,
+    d->m_handler );
 
   if( !d->m_handler )
   {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Unable to create handle_descriptor_request" );
+    VITAL_THROW( sprokit::invalid_configuration_exception,
+                 name(), "Unable to create handle_descriptor_request" );
   }
 
-  algo::handle_descriptor_request::get_nested_algo_configuration(
-    "handler", algo_config, d->m_handler );
+  algo::handle_descriptor_request::get_nested_algo_configuration_using_trait(
+    handler,
+    algo_config,
+    d->m_handler );
 
   // Check config so it will give run-time diagnostic of config problems
-  if( !algo::handle_descriptor_request::check_nested_algo_configuration(
-    "handler", algo_config ) )
+  if( !algo::handle_descriptor_request::check_nested_algo_configuration_using_trait(
+    handler, algo_config ) )
   {
-    throw sprokit::invalid_configuration_exception(
-      name(), "Configuration check failed." );
+    VITAL_THROW( sprokit::invalid_configuration_exception,
+                 name(), "Configuration check failed." );
   }
 }
 
@@ -181,9 +181,12 @@ void handle_descriptor_request_process
 {
   // Set up for required ports
   sprokit::process::port_flags_t optional;
-  sprokit::process::port_flags_t required;
 
+  sprokit::process::port_flags_t required;
   required.insert( flag_required );
+
+  sprokit::process::port_flags_t shared;
+  shared.insert( flag_output_shared );
 
   // -- input --
   declare_input_port_using_trait( descriptor_request, required );
@@ -191,7 +194,7 @@ void handle_descriptor_request_process
   // -- output --
   declare_output_port_using_trait( track_descriptor_set, optional );
 
-  declare_output_port_using_trait( image, optional );
+  declare_output_port_using_trait( image, shared );
   declare_output_port_using_trait( timestamp, optional );
   declare_output_port_using_trait( filename, optional );
   declare_output_port_using_trait( stream_id, optional );
@@ -202,6 +205,7 @@ void handle_descriptor_request_process
 void handle_descriptor_request_process
 ::make_config()
 {
+  declare_config_using_trait( handler );
 }
 
 

@@ -7,13 +7,14 @@ The pipeline runner applet is used to execute a preconfigured pipeline applicati
 kwiver runner [options] pipe-file
 ---------------------------------
 
-Options are:
+**Options are:**
 
--h, --help
+  ``-h, --help``
 
-  Display applet usage.
+    Display applet usage.
 
 **pipe options:**
+
   ``-c, --config <file>``
 
     Specifies a file containing supplemental configuration entries.
@@ -55,5 +56,3 @@ Options are:
 
 The ``pipe-file`` is the name of the pipeline defintion file.
 See <xxx> for a description of the pipeline syntax.
-
-

@@ -149,43 +149,43 @@ public:
   static std::type_info const& static_data_type() { return typeid( T ); }
 
   /// Access the type info of the underlying data (double or float)
-  virtual std::type_info const& data_type() const { return typeid( T ); }
+  std::type_info const& data_type() const override { return typeid( T ); }
 
   /// Accessor for the image coordinates using underlying data type
   Eigen::Matrix< T, 2, 1 > const& get_loc() const { return loc_; }
 
   /// Accessor for the image coordinates
-  virtual vector_2d loc() const { return loc_.template cast< double > (); }
+  vector_2d loc() const override { return loc_.template cast< double > (); }
 
   /// Accessor for the feature magnitude using underlying data type
   T get_magnitude() const { return magnitude_; }
 
   /// Accessor for the feature magnitude
-  virtual double magnitude() const { return static_cast< double > ( magnitude_ ); }
+  double magnitude() const override { return static_cast< double > ( magnitude_ ); }
 
   /// Accessor for the feature scale using underlying data type
   T get_scale() const { return scale_; }
 
   /// Accessor for the feature scale
-  virtual double scale() const { return static_cast< double > ( scale_ ); }
+  double scale() const override { return static_cast< double > ( scale_ ); }
 
   /// Accessor for the feature angle using underlying data type
   T get_angle() const { return angle_; }
 
   /// Accessor for the feature angle
-  virtual double angle() const { return static_cast< double > ( angle_ ); }
+  double angle() const override { return static_cast< double > ( angle_ ); }
 
   /// Accessor for the covariance using underlying data type
   covariance_< 2, T > const& get_covar() const { return covar_; }
 
   /// Accessor for the covariance
-  virtual covariance_2d covar() const { return static_cast< covariance_2d > ( covar_ ); }
+  covariance_2d covar() const override { return static_cast< covariance_2d > ( covar_ ); }
 
   /// Accessor for a const reference to the RGB color
-  virtual rgb_color const& get_color() const { return color_; }
+  rgb_color const& get_color() const { return color_; }
 
   /// Accessor for the RGB color
-  virtual rgb_color color() const { return color_; }
+  rgb_color color() const override { return color_; }
 
 
   /// Set the feature position in image space
@@ -213,7 +213,7 @@ public:
     archive( loc_, magnitude_, scale_, angle_, covar_, color_ );
   }
 
-  feature_sptr clone() const;
+  feature_sptr clone() const override;
 
 protected:
   /// location of feature

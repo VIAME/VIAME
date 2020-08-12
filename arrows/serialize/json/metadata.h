@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,19 +45,17 @@ namespace serialize {
 namespace json {
 
 class KWIVER_SERIALIZE_JSON_EXPORT metadata
-  : public vital::algorithm_impl< metadata, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
-  // Type name this class supports
-  static constexpr char const* name = "kwiver:metadata";
-  static constexpr char const* description =
-    "Serializes a metadata vector using json notation.";
+  PLUGIN_INFO( "kwiver:metadata",
+               "Serializes a metadata vector using json notation." );
 
   metadata();
   virtual ~metadata();
 
-  virtual std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
-  virtual vital::any deserialize( const std::string& message ) override;
+  std::shared_ptr< std::string > serialize( const vital::any& elements ) override;
+  vital::any deserialize( const std::string& message ) override;
 };
 
 } } } }       // end namespace kwiver

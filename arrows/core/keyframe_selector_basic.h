@@ -1,5 +1,5 @@
 /*ckwg +29
-* Copyright 2017-2018 by Kitware, Inc.
+* Copyright 2017-2018, 2020 by Kitware, Inc.
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -53,8 +53,7 @@ namespace core {
 
   /// A basic query formulator
   class KWIVER_ALGO_CORE_EXPORT keyframe_selector_basic
-    : public vital::algorithm_impl<keyframe_selector_basic,
-    vital::algo::keyframe_selection>
+    : public vital::algo::keyframe_selection
   {
   public:
     PLUGIN_INFO( "basic",

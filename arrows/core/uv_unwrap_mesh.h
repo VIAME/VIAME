@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, SAS.
+ * Copyright 2018, 2020 by Kitware, SAS.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ namespace core {
 
 /// A class for unwrapping a mesh and generating texture coordinates
 class KWIVER_ALGO_CORE_EXPORT uv_unwrap_mesh
-    : public vital::algorithm_impl<uv_unwrap_mesh, vital::algo::uv_unwrap_mesh>
+    : public vital::algo::uv_unwrap_mesh
 {
 public:
   PLUGIN_INFO( "core",

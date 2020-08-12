@@ -1,8 +1,24 @@
 Logging Guidelines
 ==================
 
-Thje following are the available log levels and guidnace on which
-level applies in a given situation.
+The following are general guidelines for using logging in KWIVER. In
+addition, the available log levels are listed below and guidance on
+which level applies in a given situation.
+
+Logger Names
+------------
+
+Logger instances are identified by a name string which can be composed
+as a hierarchy with each level separated by a period ('.'). The main
+purpose of the logger name is to provide structure for grouping
+loggers so their output can be controlled in a manner to get the
+desired subset of log messages needed to verify correct operation or
+to diagnose a problem. The output can be controlled at any level in
+the naming hierarchy. Logger names should represent a logical
+structure of the application or framework (based on fuctional
+groupings) rather than on a physical file name or class name approach.
+The location of the log message is provided directly by the file name
+and line number attributes.
 
 FATAL
 -----

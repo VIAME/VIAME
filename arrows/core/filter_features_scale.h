@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace core {
 
 /// \brief Algorithm that filters features based on feature scale
 class KWIVER_ALGO_CORE_EXPORT filter_features_scale
-  : public vital::algorithm_impl<filter_features_scale, vital::algo::filter_features>
+  : public vital::algo::filter_features
 {
 public:
   PLUGIN_INFO( "scale",

@@ -51,8 +51,8 @@ public:
               "This program displays the KLV metadata packets that are embedded in "
               "a video stream.");
 
-  virtual int run() override;
-  virtual void add_command_options() override;
+  int run() override;
+  void add_command_options() override;
 
 }; // end of class
 

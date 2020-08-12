@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,29 +43,33 @@ namespace kwiver {
 namespace arrows {
 namespace ocv {
 
-/// A class for writing out image chips around detections, useful as a debugging process
-/// for ensuring that the refine detections process is running on desired ROIs.
+// Implementation of merge image channels.
 class KWIVER_ALGO_OCV_EXPORT merge_images
-  : public vital::algorithm_impl<merge_images, vital::algo::merge_images>
+  : public vital::algo::merge_images
 {
 public:
   PLUGIN_INFO( "ocv",
-               "Merge two images into one using opencv functions" )
+               "Merge two images into one using opencv functions.\n\n"
+               "The channels from the first image are added to the "
+               "output image first, followed by the channels from the "
+               "second image. This implementation takes no configuration "
+               "parameters."
+    )
 
   /// Constructor
   merge_images();
 
   /// Destructor
-  virtual ~merge_images();
+  virtual ~merge_images() = default;
 
-  virtual void set_configuration( kwiver::vital::config_block_sptr ) { }
-  virtual bool check_configuration( kwiver::vital::config_block_sptr config )
-    const { return true; }
+  void set_configuration( kwiver::vital::config_block_sptr ) override { }
+  bool check_configuration( kwiver::vital::config_block_sptr config ) const override
+  { return true; }
 
   /// Merge images
-  virtual kwiver::vital::image_container_sptr
-  merge(kwiver::vital::image_container_sptr image1,
-        kwiver::vital::image_container_sptr image2) const;
+  kwiver::vital::image_container_sptr
+    merge(kwiver::vital::image_container_sptr image1,
+          kwiver::vital::image_container_sptr image2) const override;
 };
 
 } // end namespace ocv

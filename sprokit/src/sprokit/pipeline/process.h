@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2017 by Kitware, Inc.
+ * Copyright 2011-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -555,16 +555,24 @@ class SPROKIT_PIPELINE_EXPORT process
      */
     type_t type() const;
 
+    /*
+     * Process properties. A process can have more than one property.
+     */
     /// A property which indicates that the process cannot be run in a thread of its own.
     static property_t const property_no_threads;
+
     /// A property which indicates that the process is not reentrant.
     static property_t const property_no_reentrancy;
+
     /// A property which indicates that the input of the process is not synchronized.
     static property_t const property_unsync_input;
+
     /// A property which indicates that the output of the process is not synchronized.
     static property_t const property_unsync_output;
-    /// Indicates that the process supports instrumentation call
+
+    /// Indicates that the process has selected an instrumentation provider.
     static property_t const property_instrumented;
+
     /// Indicates the process is written in Python
     static property_t const property_python;
 
@@ -573,11 +581,16 @@ class SPROKIT_PIPELINE_EXPORT process
 
     /// The name of the configuration value for the name.
     static kwiver::vital::config_block_key_t const config_name;
+
     /// The name of the configuration value for the type.
     static kwiver::vital::config_block_key_t const config_type;
 
+    /*
+     * Port types.
+     */
     /// A type which means that the type of the data is irrelevant.
     static port_type_t const type_any;
+
     /// A type which indicates that no actual data is ever created.
     static port_type_t const type_none;
 
@@ -727,8 +740,8 @@ class SPROKIT_PIPELINE_EXPORT process
      * \brief Post-connection initialization for subclasses.
      *
      * Initialization is the final step before a process is
-     * stepped. This is where processes should have a chance to get a
-     * first look at the edges that are connected to a port and change
+     * stepped. This is where processes have a chance to get a first
+     * look at the edges that are connected to a port and change
      * behavior based on them. After this is called, the process will
      * be stepped until it is either complete or the scheduler is
      * stopped.
@@ -760,9 +773,21 @@ class SPROKIT_PIPELINE_EXPORT process
      * \li Obtaining data from the input edges.
      * \li Running the algorithm.
      * \li Pushing data out via the output edges.
-     *
      */
     virtual void _step();
+
+    /**
+     * \brief Termination processing for subclasses.
+     *
+     * This method is called when the all upstream processes have
+     * terminated and a \c complete datum is present on all \b
+     * required input ports. The _step() method will never be called
+     * after this method is called.
+     *
+     * If a process self terminates by calling
+     * mark_process_as_complete(), this method will not be called.
+     */
+    virtual void _finalize();
 
     /**
      * \brief Runtime configuration for subclasses.
@@ -1199,6 +1224,25 @@ class SPROKIT_PIPELINE_EXPORT process
     T grab_from_port_as(port_t const& port) const;
 
     /**
+     * \brief Grab a datum from a port as a certain type.
+     *
+     * This method grabs an input value directly from the port with no handling
+     * for static ports, iff the port is connected. This call will block until
+     * a datum is available.
+     *
+     * \sa process::has_input_port_edge
+     *
+     * \param port The port to get data from.
+     *
+     * \throws no_such_port_exception if the named port does not exist.
+     *
+     * \returns The datum from the port, or a default-constructed value if the
+     *          port is not connected.
+     */
+    template <typename T>
+    T try_grab_from_port_as(port_t const& port) const;
+
+    /**
      * \brief Grab an input as a specific type.
      *
      * This method returns a data value form a port or the configured
@@ -1348,6 +1392,10 @@ class SPROKIT_PIPELINE_EXPORT process
     void start_init_processing();
     void stop_init_processing();
 
+    void start_finalize_processing( std::string const& data );
+    void start_finalize_processing();
+    void stop_finalize_processing();
+
     void start_reset_processing( std::string const& data );
     void start_reset_processing();
     void stop_reset_processing( );
@@ -1392,6 +1440,7 @@ private:                                                                \
 }
 
 SCOPED_INSTRUMENTATION(init);
+SCOPED_INSTRUMENTATION(finalize);
 SCOPED_INSTRUMENTATION(reset);
 SCOPED_INSTRUMENTATION(flush);
 SCOPED_INSTRUMENTATION(step);
@@ -1408,6 +1457,7 @@ SCOPED_INSTRUMENTATION(reconfigure);
  * when the scope is exited.
  */
 #define scoped_init_instrumentation()        scoped_init_instrumentation_( this )
+#define scoped_finalize_instrumentation()    scoped_finalize_instrumentation_( this )
 #define scoped_reset_instrumentation()       scoped_reset_instrumentation_( this )
 #define scoped_flush_instrumentation()       scoped_flush_instrumentation_( this )
 #define scoped_step_instrumentation()        scoped_step_instrumentation_( this )
@@ -1455,6 +1505,16 @@ process
   return grab_datum_from_port(port)->get_datum<T>();
 }
 
+// ----------------------------------------------------------------------------
+template <typename T>
+T
+process
+::try_grab_from_port_as(port_t const& port) const
+{
+  return (has_input_port_edge(port)
+          ? grab_datum_from_port(port)->get_datum<T>()
+          : T{} );
+}
 
 // ----------------------------------------------------------------------------
 template <typename T>

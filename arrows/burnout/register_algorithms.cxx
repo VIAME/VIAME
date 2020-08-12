@@ -42,43 +42,20 @@ namespace burnout {
 extern "C"
 KWIVER_ALGO_BURNOUT_PLUGIN_EXPORT
 void
-register_factories( kwiver::vital::plugin_loader& vpm )
+register_factories( ::kwiver::vital::plugin_loader& vpm )
 {
-  static auto const module_name = std::string( "arrows.burnout" );
-  if( vpm.is_module_loaded( module_name ) )
+  ::kwiver::vital::algorithm_registrar reg( vpm, "arrows.burnout" );
+
+  if (reg.is_module_loaded())
   {
     return;
   }
 
-  // add factory               implementation-name       type-to-create
-  auto fact = vpm.ADD_ALGORITHM( "burnout",
-    kwiver::arrows::burnout::burnout_track_descriptors );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Track descriptors using burnout" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
+  reg.register_algorithm< ::kwiver::arrows::burnout::burnout_track_descriptors >();
+  reg.register_algorithm< ::kwiver::arrows::burnout::burnout_image_enhancer >();
+  reg.register_algorithm< ::kwiver::arrows::burnout::burnout_pixel_classification >();
 
-  fact = vpm.ADD_ALGORITHM( "burnout_enhancer",
-    kwiver::arrows::burnout::burnout_image_enhancer );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Image filtering using burnout" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  fact = vpm.ADD_ALGORITHM( "burnout_classifier",
-    kwiver::arrows::burnout::burnout_pixel_classification );
-  fact->add_attribute( kwiver::vital::plugin_factory::PLUGIN_DESCRIPTION,
-                    "Pixel classification using burnout" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_MODULE_NAME, module_name )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_VERSION, "1.0" )
-    .add_attribute( kwiver::vital::plugin_factory::PLUGIN_ORGANIZATION, "Kitware Inc." )
-    ;
-
-  vpm.mark_module_as_loaded( module_name );
+  reg.mark_module_as_loaded();
 }
 
 } } } // end namespace

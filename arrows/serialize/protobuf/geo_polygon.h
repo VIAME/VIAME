@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,20 +40,17 @@ namespace serialize {
 namespace protobuf {
 
 class KWIVER_SERIALIZE_PROTOBUF_EXPORT geo_polygon
-  : public vital::algorithm_impl< geo_polygon, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
-  // Type name this class supports
-  static constexpr char const* name = "kwiver:corner_points";
-
-  static constexpr char const* description =
-    "Serializes a geo_polygon using protobuf notation. ";
+  PLUGIN_INFO( "kwiver:corner_points",
+               "Serializes a geo_polygon using protobuf notation." );
 
   geo_polygon();
   virtual ~geo_polygon();
 
-  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
-  virtual vital::any deserialize( const std::string& message ) override;
+  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  vital::any deserialize( const std::string& message ) override;
 };
 
 } } } }       // end namespace kwiver

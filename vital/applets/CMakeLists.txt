@@ -34,7 +34,7 @@ target_link_libraries( kwiver_tools_applet
 ###
 # Add applet for tools plugin
 kwiver_add_plugin( vital_applets
-  SUBDIR       ${kwiver_plugin_applets}
+  SUBDIR       ${kwiver_plugin_applets_subdir}
   SOURCES      ${sources} ${headers}
   PRIVATE      vital
                vital_vpm

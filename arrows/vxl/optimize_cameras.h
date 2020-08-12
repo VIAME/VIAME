@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016, 2019 by Kitware, Inc.
+ * Copyright 2014-2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ namespace arrows {
 namespace vxl {
 
 class KWIVER_ALGO_VXL_EXPORT optimize_cameras
-  : public vital::algorithm_impl<optimize_cameras, vital::algo::optimize_cameras>
+  : public vital::algo::optimize_cameras
 {
 public:
   PLUGIN_INFO( "vxl",

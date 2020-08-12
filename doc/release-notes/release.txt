@@ -1,13 +1,28 @@
-KWIVER v1.4.1 Release Notes
+KWIVER v1.5.1 Release Notes
 ===========================
 
-This is a patch release of KWIVER that provides fixes over the previous v1.4.0
-release.
+This is a patch release of KWIVER that provides fixes over the previous
+v1.5.0 release.
 
-Bug Fixes since v1.4.0
+Bug Fixes since v1.5.0
 ----------------------
 
-Arrows - Core
+Vital
 
- * Fixed a bug in parsing the similarity_estimator configuration in
-   initialize_cameras_landmarks_keyframe
+ * Added a missing include file in track.cxx required to build on MSVC 2019.
+
+Arrows: Core
+
+ * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
+   principal point was not initialized from the image size unless there
+   was also metadata useful for determining focal length.  Distortion
+   parameters were also not properly preserved in this initialization
+   and this has also been resolved.
+
+Arrows: OpenCV
+
+ * Fixed a long standing bug with memory management when converting between
+   OpenCV and Vital images.  Reference counting was not handled correctly.
+   A workaround was previously added that forced a deep copy, but this created
+   another bug resulting in images with invalid first_pixel() values.
+   Both of these issues have been addressed.

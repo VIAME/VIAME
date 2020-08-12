@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,9 @@ IMPLEMENT_TEST(image_conversion)
     return;
   }
 
-  auto ic_sptr = std::make_shared< kwiver::arrows::ocv::image_container >( ocv_image );
+  auto ic_sptr = std::make_shared< kwiver::arrows::ocv::image_container >(
+    ocv_image,
+    kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
 
 #if DEBUG
   cv::namedWindow( "input OCV image", cv::WINDOW_AUTOSIZE ); // Create a window for display.
@@ -84,7 +86,9 @@ IMPLEMENT_TEST(image_conversion)
   kwiver::arrows::matlab::MxArraySptr mx_image = kwiver::arrows::matlab::convert_mx_image( ic_sptr );
 
   auto ocv_ic = kwiver::arrows::matlab::convert_mx_image( mx_image );
-  cv::Mat ocv_ic_mat = kwiver::arrows::ocv::image_container::vital_to_ocv( ocv_ic->get_image() );
+  cv::Mat ocv_ic_mat = kwiver::arrows::ocv::image_container::vital_to_ocv(
+    ocv_ic->get_image(),
+    kwiver::arrows::ocv::image_container::ColorMode::BGR_COLOR );
 
 #if DEBUG
   cv::namedWindow( "output OCV image", cv::WINDOW_AUTOSIZE ); // Create a window for display.

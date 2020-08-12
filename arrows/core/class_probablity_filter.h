@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ namespace core {
  */
 
 class KWIVER_ALGO_CORE_EXPORT class_probablity_filter
-  : public vital::algorithm_impl<class_probablity_filter, vital::algo::detected_object_filter>
+  : public vital::algo::detected_object_filter
 {
 public:
   PLUGIN_INFO( "class_probablity_filter",

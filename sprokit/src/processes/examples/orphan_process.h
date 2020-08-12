@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2012 by Kitware, Inc.
+ * Copyright 2011-2012, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,17 +56,20 @@ namespace sprokit
 class PROCESSES_EXAMPLES_NO_EXPORT orphan_process
   : public process
 {
-  public:
-    /**
-     * \brief Constructor.
-     *
-     * \param config The configuration for the process.
-     */
-    orphan_process(kwiver::vital::config_block_sptr const& config);
-    /**
-     * \brief Destructor.
-     */
-    ~orphan_process();
+public:
+  PLUGIN_INFO( "orphan",
+               "A dummy process" );
+  /**
+   * \brief Constructor.
+   *
+   * \param config The configuration for the process.
+   */
+
+  orphan_process(kwiver::vital::config_block_sptr const& config);
+  /**
+   * \brief Destructor.
+   */
+  ~orphan_process();
 };
 
 }

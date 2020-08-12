@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "plugin_loader.h"
 #include "plugin_factory.h"
+#include "plugin_loader.h"
+#include "plugin_loader_filter.h"
 
 #include <vital/exceptions/plugin.h>
 #include <vital/logger/logger.h>
@@ -158,7 +159,7 @@ plugin_loader
   fact->get_attribute( plugin_factory::CONCRETE_TYPE, concrete_type );
 
   // If the hook has declined to register the factory, just return.
-  for ( auto filt : m_impl->m_filters )
+  for ( auto & filt : m_impl->m_filters )
   {
     if ( ! filt->add_factory( fact_handle ) )
     {

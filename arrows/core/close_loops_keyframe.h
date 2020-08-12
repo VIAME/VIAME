@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ namespace core {
  * This class attempts close loops with all previous (or as specified) frames
  */
 class KWIVER_ALGO_CORE_EXPORT close_loops_keyframe
-  : public vital::algorithm_impl<close_loops_keyframe, vital::algo::close_loops>
+  : public vital::algo::close_loops
 {
 public:
   PLUGIN_INFO( "keyframe",

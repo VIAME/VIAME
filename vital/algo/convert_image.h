@@ -43,7 +43,17 @@ namespace kwiver {
 namespace vital {
 namespace algo {
 
-/// An abstract base class for converting base image type
+/// An abstract base class for converting base image type.
+/**
+ * Arrows that implement this interface convert the input image type
+ * (e.g. BGR 16) to a different type (e.g. RGB 8). Concrete
+ * implementations usually work with a single image representation,
+ * such as VXL or OCV.
+ *
+ * If you are lookling for an interface for an image transform that
+ * will change the value of a pixel, then use the image_filter
+ * interface.
+ */
 class VITAL_ALGO_EXPORT convert_image
   : public kwiver::vital::algorithm_def<convert_image>
 {

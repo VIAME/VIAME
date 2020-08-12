@@ -30,6 +30,8 @@
 
 #include "explorer_plugin.h"
 #include "explorer_context_priv.h"
+#include <vital/config/config_block.h>
+#include <vital/util/string.h>
 
 namespace kwiver {
 namespace vital {
@@ -58,11 +60,20 @@ output_stream() const
 
 
 // ------------------------------------------------------------------
-kwiversys::CommandLineArguments*
+cxxopts::Options&
 explorer_context::
 command_line_args()
 {
-  return &p->m_args;
+  return *p->m_cmd_options;
+}
+
+
+// ------------------------------------------------------------------
+cxxopts::ParseResult&
+explorer_context::
+command_line_result()
+{
+  return *p->m_result;
 }
 
 
@@ -93,6 +104,63 @@ display_attr( const kwiver::vital::plugin_factory_handle_t fact ) const
 {
   p->display_attr( fact );
 }
+
+// ----------------------------------------------------------------------------
+std::string
+explorer_context
+::format_description( std::string const& text ) const
+{
+  std::string output;
+
+  // String off the first line. Up to the first new-line.
+  auto pos = text.find( '\n' );
+  if ( pos == std::string::npos)
+  {
+    output = wrap_text( text );
+    left_trim( output );
+  }
+  else
+  {
+    output = wrap_text( text.substr( 0, pos ) );
+    string_trim( output );
+    output += "\n";
+
+    // If in detail mode, print the rest of the description
+    if( if_detail() )
+    {
+      std::string descr {text.substr( pos )};
+      string_trim( descr );
+      output += "\n";
+      output += wrap_text( descr );
+    }
+
+  }
+  return output;
+}
+
+// ----------------------------------------------------------------------------
+void
+explorer_context
+::print_config( kwiver::vital::config_block_sptr const config ) const
+{
+  kwiver::vital::config_block_keys_t all_keys = config->available_values();
+  const std::string indent( "    " );
+
+  output_stream() << indent << "Configuration block contents\n";
+
+  for( auto key : all_keys )
+  {
+    auto val = config->get_value< kwiver::vital::config_block_value_t > ( key );
+    output_stream() << std::endl
+                    << indent << "\"" << key << "\" = \"" << val << "\"\n";
+
+    auto descr = config->get_description( key );
+    output_stream() << indent << "Description: "
+                    << format_description( descr )
+                    << std::endl;
+  }
+}
+
 
 // ------------------------------------------------------------------
 bool explorer_context::if_detail() const { return p->opt_detail; }

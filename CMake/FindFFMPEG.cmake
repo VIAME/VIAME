@@ -64,6 +64,13 @@ else()
     /usr/local/lib64
   )
 
+  find_library( FFMPEG_avfilter_LIBRARY avfilter
+    /usr/lib
+    /usr/local/lib
+    /usr/lib64
+    /usr/local/lib64
+  )
+
   find_library( FFMPEG_swscale_LIBRARY swscale
     /usr/lib
     /usr/local/lib
@@ -78,6 +85,9 @@ else()
     set( FFMPEG_LIBRARIES ${FFMPEG_avformat_LIBRARY} ${FFMPEG_avcodec_LIBRARY} )
     if( FFMPEG_avutil_LIBRARY )
        set( FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_avutil_LIBRARY} )
+    endif()
+    if( FFMPEG_avfilter_LIBRARY )
+       set( FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_avfilter_LIBRARY} )
     endif()
     if( FFMPEG_swscale_LIBRARY )
        set( FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${FFMPEG_swscale_LIBRARY} )

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015 by Kitware, Inc.
+ * Copyright 2015, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,6 +116,22 @@ kwiver::vital::config_block_description_t const  NAME ## _config_trait::descript
  */
 #define create_config_trait(KEY, TYPE, DEF, DESCR) create_named_config_trait( KEY, # KEY, TYPE, DEF, DESCR )
 
+/**
+ * \brief
+ *
+ * Specialized macro to create a uniform description of the config
+ * block that specifies an algorithm name. Being defined on one place
+ * all processes can have the documentation upgraded right here.
+ */
+#define create_algorithm_name_config_trait( NAME )                      \
+create_config_trait( NAME, std::string , "",                            \
+                     "Algorithm configuration subblock to select and configure desired implementation.\n\n" \
+                     "Configuration example:\n"                         \
+                     "block " #NAME "\n"                                \
+                     "    type = impl # desired implementation\n"       \
+                     "    impl:param = value # implementation specific config item\n" \
+                     "    # etc\n"                                      \
+                     "endblock" );
 
 #define declare_config_using_trait(KEY)                         \
 declare_configuration_key( KEY ## _config_trait::key,           \
@@ -128,14 +144,17 @@ declare_configuration_key( KEY ## _config_trait::key,                   \
                            KEY ## _config_trait::description, true)     \
 //@}
 
-// Get value from process config using trait
+/// Get value from process config using trait
 #define config_value_using_trait(KEY) config_value< KEY ## _config_trait::type >( KEY ## _config_trait::key )
 
-// Get value from config blockusing trait
+/// Get value from a specific config block using trait
 #define reconfig_value_using_trait(CONF,KEY) CONF->get_value< KEY ## _config_trait::type >( KEY ## _config_trait::key )
 
+/// Config block using traits
+#define set_value_using_trait( KEY, VAL ) set_value( KEY, VAL, KEY ## _config_trait::description )
+#define get_value_using_trait( KEY, ... ) get_value<KEY ## _config_trait::type>( KEY, __VA_ARG__ )
 
-// Algorithm interface using traits
+/// Algorithm interface using traits
 #define check_nested_algo_configuration_using_trait(KEY, ALGO) \
   check_nested_algo_configuration( KEY ## _config_trait::key, ALGO )
 
@@ -423,15 +442,7 @@ grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
  kwiver::vital::timestamp frame_time = grab_from_port_using_trait( timestamp );
  \endcode
  *
- * Optional ports can be handled as follows:
- *
-\code
-  // See if optional input port has been connected.
-  if ( has_input_port_edge_using_trait( timestamp ) )
-  {
-    frame_time = grab_input_using_trait( timestamp );
-  }
-\endcode
+ * Optional ports can be handled using #try_grab_from_port_using_trait.
  *
  * \sa sprokit::process::grab_from_port_as()
  *
@@ -442,6 +453,24 @@ grab_input_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 #define grab_from_port_using_trait(PN)                                  \
 grab_from_port_as< PN ## _port_trait::type > ( PN ## _port_trait::port_name )
 
+
+/**
+ * \brief Get input from port using port trait name.
+ *
+ * This method grabs an input value directly from the port specified by the
+ * port trait with \b no handling for static ports, iff that port is connected.
+ * This call will block until a datum is available.
+ *
+ * \sa grab_from_port_using_trait, sprokit::process::grab_from_port_as()
+ *
+ * \param PN Port trait name.
+ *
+ * \return Data value from port, or a default-constructed value of the port's
+ *         type if the port is not connected.
+ */
+#define try_grab_from_port_using_trait(PN) \
+  try_grab_from_port_as< PN ## _port_trait::type >( \
+    PN ## _port_trait::port_name )
 
 
 /**

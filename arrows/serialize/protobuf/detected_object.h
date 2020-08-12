@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018 by Kitware, Inc.
+ * Copyright 2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,21 +40,18 @@ namespace serialize {
 namespace protobuf {
 
 class KWIVER_SERIALIZE_PROTOBUF_EXPORT detected_object
-  : public vital::algorithm_impl< detected_object, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
-  // Type name this class supports
-  static constexpr char const* name = "kwiver:detected_object";
-
-  static constexpr char const* description =
-    "Serializes a detected_object using protobuf notation. "
-    "This implementation only handles a single data item.";
+  PLUGIN_INFO( "kwiver:detected_object",
+               "Serializes a detected_object using protobuf notation. "
+               "This implementation only handles a single data item." );
 
   detected_object();
   virtual ~detected_object();
 
-  virtual std::shared_ptr< std::string > serialize( const vital::any& element ) override;
-  virtual vital::any deserialize( const std::string& message ) override;
+  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  vital::any deserialize( const std::string& message ) override;
 };
 
 } } } }       // end namespace kwiver

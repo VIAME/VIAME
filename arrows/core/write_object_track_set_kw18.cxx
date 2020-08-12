@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,6 +89,12 @@ write_object_track_set_kw18
 write_object_track_set_kw18
 ::~write_object_track_set_kw18()
 {
+}
+
+
+void write_object_track_set_kw18
+::close()
+{
   for( auto trk_pair : d->m_tracks )
   {
     auto trk_ptr = trk_pair.second;
@@ -130,6 +136,8 @@ write_object_track_set_kw18
                << std::endl;
     }
   }
+
+  write_object_track_set::close();
 }
 
 
@@ -154,7 +162,10 @@ write_object_track_set_kw18
 // -------------------------------------------------------------------------------
 void
 write_object_track_set_kw18
-::write_set( const kwiver::vital::object_track_set_sptr set )
+::write_set(
+  kwiver::vital::object_track_set_sptr const& set,
+  kwiver::vital::timestamp const& /*ts*/,
+  std::string const& /*frame_identifier*/ )
 {
   if( d->m_first )
   {

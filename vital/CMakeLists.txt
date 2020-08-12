@@ -72,12 +72,14 @@ set( vital_public_headers
   algorithm_capabilities.h
   any.h
   attribute_set.h
+  context.h
   exceptions.h
   iterator.h
   math_constants.h
   noncopyable.h
   optional.h
   set.h
+  signal.h
 
   io/camera_from_metadata.h
   io/camera_io.h
@@ -159,6 +161,7 @@ set( vital_public_headers
 set( vital_sources
   algorithm_capabilities.cxx
   attribute_set.cxx
+  context.cxx
 
   io/camera_from_metadata.cxx
   io/camera_io.cxx
@@ -176,6 +179,7 @@ set( vital_sources
   types/database_query.cxx
   types/descriptor.cxx
   types/descriptor_request.cxx
+  types/descriptor_set.cxx
   types/detected_object.cxx
   types/detected_object_set.cxx
   types/detected_object_set_util.cxx

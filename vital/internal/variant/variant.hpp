@@ -384,9 +384,9 @@ namespace vital{
 
 #ifdef MPARK_CPP14_CONSTEXPR
     template <typename... Traits>
-    inline constexpr Trait common_trait(Traits... traits) {
+    inline constexpr Trait common_trait(Traits... traits_) {
       Trait result = Trait::TriviallyAvailable;
-      for (Trait t : {traits...}) {
+      for (Trait t : {traits_...}) {
         if (static_cast<int>(t) > static_cast<int>(result)) {
           result = t;
         }

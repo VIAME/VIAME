@@ -12,11 +12,11 @@ other pipe and config files into a single dasily distributed file.
 kwiver pipe-config       [options] pipe-file
 --------------------------------------------
 
-Options are:
+**Options are:**
 
   ``-h, --help``
 
-  Display applet usage information.
+    Display applet usage information.
 
 **output options:**
 

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2011-2013, 2019 by Kitware, Inc.
+ * Copyright 2011-2013, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +62,7 @@ class wrap_process
     using process::_reset;
     using process::_flush;
     using process::_step;
+    using process::_finalize;
     using process::_reconfigure;
     using process::_properties;
     using process::_input_ports;
@@ -105,6 +106,7 @@ class process_trampoline
     void _reset() override;
     void _flush() override;
     void _step() override;
+    void _finalize() override;
     void _reconfigure(kwiver::vital::config_block_sptr const& config) override;
     sprokit::process::properties_t _properties() const override;
     sprokit::process::properties_t _properties_over() const;
@@ -435,6 +437,7 @@ PYBIND11_MODULE(process, m)
     .def("_base_reset", static_cast<void (sprokit::process::*)()>(&wrap_process::_reset), call_guard<kwiver::vital::python::gil_scoped_release>(), "Base class reset.")
     .def("_base_flush", static_cast<void (sprokit::process::*)()>(&wrap_process::_flush), call_guard<kwiver::vital::python::gil_scoped_release>(), "Base class flush.")
     .def("_base_step", static_cast<void (sprokit::process::*)()>(&wrap_process::_step), call_guard<kwiver::vital::python::gil_scoped_release>(), "Base class step.")
+    .def("_base_finalize", static_cast<void (sprokit::process::*)()>(&wrap_process::_finalize), call_guard<kwiver::vital::python::gil_scoped_release>(), "Base class finalize.")
     .def("_base_reconfigure", static_cast<void (sprokit::process::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process::_reconfigure), call_guard<kwiver::vital::python::gil_scoped_release>(), arg("conf"), "Base class reconfigure.")
     .def("_base_properties", static_cast<sprokit::process::properties_t (sprokit::process::*)() const>(&wrap_process::_properties), call_guard<kwiver::vital::python::gil_scoped_release>(), "Base class properties.")
     .def("_base_input_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_input_ports), call_guard<kwiver::vital::python::gil_scoped_release>(), "Base class input ports.")
@@ -450,6 +453,7 @@ PYBIND11_MODULE(process, m)
     .def("_reset", static_cast<void (sprokit::process::*)()>(&wrap_process::_reset), call_guard<kwiver::vital::python::gil_scoped_release>(), "Sub class reset.")
     .def("_flush", static_cast<void (sprokit::process::*)()>(&wrap_process::_flush), call_guard<kwiver::vital::python::gil_scoped_release>(), "Sub class flush.")
     .def("_step", static_cast<void (sprokit::process::*)()>(&wrap_process::_step), call_guard<kwiver::vital::python::gil_scoped_release>(), "Sub class step.")
+    .def("_finalize", static_cast<void (sprokit::process::*)()>(&wrap_process::_finalize), call_guard<kwiver::vital::python::gil_scoped_release>(), "Sub class step.")
     .def("_reconfigure", static_cast<void (sprokit::process::*)(kwiver::vital::config_block_sptr const&)>(&wrap_process::_reconfigure), call_guard<kwiver::vital::python::gil_scoped_release>(), arg("conf"), "Sub class reconfigure.")
     .def("_properties", static_cast<sprokit::process::properties_t (sprokit::process::*)() const>(&wrap_process::_properties), call_guard<kwiver::vital::python::gil_scoped_release>(), "Sub class properties.")
     .def("_input_ports", static_cast<sprokit::process::ports_t (sprokit::process::*)() const>(&wrap_process::_input_ports), call_guard<kwiver::vital::python::gil_scoped_release>(), "Sub class input ports.")
@@ -589,6 +593,17 @@ process_trampoline
     void,
     process,
     _step,
+  );
+}
+
+void
+process_trampoline
+::_finalize()
+{
+  VITAL_PYBIND11_OVERLOAD(
+    void,
+    process,
+    _finalize,
   );
 }
 

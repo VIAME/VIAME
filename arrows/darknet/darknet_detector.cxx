@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 // kwiver includes
 #include <vital/util/cpu_timer.h>
 #include <vital/config/config_block_formatter.h>
+#include <vital/types/detected_object_set_util.h>
 
 #include <arrows/ocv/image_container.h>
 #include <kwiversys/SystemTools.hxx>
@@ -311,7 +312,7 @@ detect( vital::image_container_sptr image_data ) const
     detections = d->process_image( cv_resized_image );
 
     // rescales output detections if required
-    detections->scale( 1.0 / scale_factor );
+    scale_detections( detections, 1.0 / scale_factor );
   }
   else
   {
@@ -334,9 +335,9 @@ detect( vital::image_container_sptr image_data ) const
 
         vital::detected_object_set_sptr new_dets = d->process_image( scaled_crop );
 
-        new_dets->scale( 1.0 / scaled_crop_scale );
-        new_dets->shift( li, lj );
-        new_dets->scale( 1.0 / scale_factor );
+        scale_detections( new_dets, 1.0 / scaled_crop_scale );
+        shift_detections( new_dets, li, lj );
+        scale_detections( new_dets, 1.0 / scale_factor );
 
         detections->add( new_dets );
       }
@@ -352,7 +353,7 @@ detect( vital::image_container_sptr image_data ) const
 
       vital::detected_object_set_sptr new_dets = d->process_image( scaled_original );
 
-      new_dets->scale( 1.0 / scaled_original_scale );
+      scale_detections( new_dets, 1.0 / scaled_original_scale );
 
       detections->add( new_dets );
     }

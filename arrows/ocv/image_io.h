@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2013-2016, 2019 by Kitware, Inc.
+ * Copyright 2013-2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ namespace ocv {
 
 /// A class for using OpenCV to read and write images
 class KWIVER_ALGO_OCV_EXPORT image_io
-  : public vital::algorithm_impl<image_io, vital::algo::image_io>
+  : public vital::algo::image_io
 {
 public:
   PLUGIN_INFO( "ocv",

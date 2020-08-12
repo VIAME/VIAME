@@ -10,6 +10,7 @@ endif()
 
 set( headers_public
   convert_protobuf.h
+  convert_protobuf_point.h
   bounding_box.h
   detected_object_type.h
   detected_object.h
@@ -27,6 +28,7 @@ set( headers_public
 
 set( sources
   convert_protobuf.cxx
+  convert_protobuf_point.cxx
   bounding_box.cxx
   detected_object_type.cxx
   detected_object.cxx
@@ -47,7 +49,7 @@ include_directories(${PROTOBUF_INCLUDE_DIR})
 
 # Need to add this include file to the compile because of a defficiency in the protobuf
 # compiler. The compiler has the option to insert an export macro into class definitions
-# but has no way of defining that macro. as of libprotoc 2.6.1 this is the accepted way
+# but has no way of defining that macro. As of libprotoc 2.6.1 this is the accepted way
 # of defining the export symbols.
 add_compile_options( -include "${CMAKE_BINARY_DIR}/vital/types/protobuf/vital_types_protobuf_export.h" )
 

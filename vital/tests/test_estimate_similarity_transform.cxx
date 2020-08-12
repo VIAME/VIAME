@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017 by Kitware, Inc.
+ * Copyright 2014-2017, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ namespace
 // ----------------------------------------------------------------------------
 /// Dummy algo impl to test function wrappers
 class dummy_est
-  : public kwiver::vital::algorithm_impl < dummy_est, kwiver::vital::algo::estimate_similarity_transform >
+  : public kwiver::vital::algo::estimate_similarity_transform
 {
 public:
   dummy_est()
