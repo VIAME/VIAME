@@ -21,10 +21,6 @@ if( KWIVER_ENABLE_PROCESSES )
   kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/alexnet_descriptors.py
     kwiver/processes/pytorch
     alexnet_descriptors )
-
-  kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/seg_detection.py
-    kwiver/processes/pytorch
-    seg_detection )
 endif()
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/siamese_feature_extractor.py
@@ -62,18 +58,6 @@ kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/srnn_matching.py
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/gt_bbox.py
   kwiver/arrows/pytorch
   gt_bbox )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/seg_utils.py
-  kwiver/arrows/pytorch
-  seg_utils )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/fcn_segmentation.py
-  kwiver/arrows/pytorch
-  fcn_segmentation )
-
-kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/fcn_models.py
-  kwiver/arrows/pytorch
-  fcn_models )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/iou_tracker.py
   kwiver/arrows/pytorch
