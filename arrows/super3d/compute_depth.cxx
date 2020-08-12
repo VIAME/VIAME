@@ -36,6 +36,7 @@
 #include <arrows/super3d/compute_depth.h>
 #include <arrows/vxl/image_container.h>
 #include <vital/types/landmark.h>
+#include <vital/util/transform_image.h>
 #include <arrows/vxl/camera.h>
 #include <vnl/vnl_double_3.h>
 #include <vil/algo/vil_threshold.h>
@@ -210,6 +211,7 @@ compute_depth::priv
 
 //*****************************************************************************
 
+//Compute the depth and return the uncertainty by reference
 image_container_sptr
 compute_depth
 ::compute(std::vector<kwiver::vital::image_container_sptr> const& frames_in,
@@ -217,8 +219,10 @@ compute_depth
           double depth_min, double depth_max,
           unsigned int ref_frame,
           vital::bounding_box<int> const& roi,
+          kwiver::vital::image_container_sptr& depth_uncertainty,
           std::vector<kwiver::vital::image_container_sptr> const& masks_in) const
 {
+
   //convert frames
   std::vector<vil_image_view<double> > frames(frames_in.size());
 #pragma omp parallel for schedule(static, 1)
@@ -321,7 +325,14 @@ compute_depth
   vil_math_scale_and_offset_values(height_map, scale, depth_min);
 
   vil_image_view<double> depth;
+  vil_image_view<double> depth_uncertainty_data;
   height_map_to_depth_map(d_->ref_cam, height_map, depth);
+
+  depth_uncertainty_data = vil_copy_deep(depth);
+  vil_transform(depth_uncertainty_data, [](double x){return std::sqrt(x);});
+
+  // Setting the value by reference
+  depth_uncertainty = vital::image_container_sptr(new vxl::image_container(depth_uncertainty_data));
 
   return vital::image_container_sptr(new vxl::image_container(depth));
 }
@@ -359,7 +370,8 @@ compute_depth::priv
     std::stringstream ss;
     ss << "Depth refinement iteration " << data.num_iterations
        << " of " << this->iterations;
-    return this->callback(result, ss.str(), percent_complete);
+    // TODO Check if this can be the real uncertainty
+    return this->callback(result, ss.str(), percent_complete, nullptr);
   }
   return true;
 }
@@ -374,7 +386,8 @@ compute_depth::priv
     unsigned percent_complete = (50 * slice_num) / this->S;
     std::stringstream ss;
     ss << "Computing cost volume slice " << slice_num << " of " << this->S;
-    return this->callback(nullptr, ss.str(), percent_complete);
+    // TODO Check if this can be the real uncertainty
+    return this->callback(nullptr, ss.str(), percent_complete, nullptr);
   }
   return true;
 }
