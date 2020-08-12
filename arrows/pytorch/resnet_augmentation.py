@@ -197,13 +197,13 @@ class DataAugmentation(KwiverProcess):
         # Read in database pickle
         self._use_hist = ( self.config_value('use_historical_database') == 'true' )
         self._negative_sample_count = int( self.config_value('negative_sample_count') )
-        tree_fn = self.config_value('historical_tree')
-        database_fn = self.config_value('historical_database')
-
-        with open(tree_fn, "rb") as input_file:
-            self._hist_tree = pickle.load(input_file)
-        with open(database_fn, "rb") as input_file:
-            self._hist_data = pickle.load(input_file)
+        if self._use_hist:
+            tree_fn = self.config_value('historical_tree')
+            database_fn = self.config_value('historical_database')
+            with open(tree_fn, "rb") as input_file:
+                self._hist_tree = pickle.load(input_file)
+            with open(database_fn, "rb") as input_file:
+                self._hist_data = pickle.load(input_file)
 
         # Resnet model config
         resnet_img_size = int(self.config_value('resnet_model_input_size'))
