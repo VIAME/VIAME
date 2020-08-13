@@ -298,11 +298,12 @@ def check_config_compatibility( input_cfg, input_weights ):
 
     if "num_stages" in file_lines[2] or "num_stages" in file_lines[3]:
         # Do v1 to v2 upgrade
-        print( "\nERROR: Detection model was generated on an old version of software\n" )
-        print( "Unable to upgrade models to latest version, retrain or contact devs\n" )
-        sys.exit(0)
-        #class_count = 1
-        #convert_v1_to_v2_weights( input_weights, input_weights, class_count )
+        class_count = 1
+        for line in file_lines:
+            if "num_classes" in line:
+                class_count = int(line.rstrip()[line.find("=")+1:line.find(",")])-1
+                break
+        convert_v1_to_v2_weights( input_weights, input_weights, class_count )
 
     if auto_edit_performed:
         with open( input_cfg, 'w' ) as out_file:
