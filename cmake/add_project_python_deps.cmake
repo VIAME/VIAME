@@ -77,9 +77,14 @@ if( VIAME_ENABLE_PYTORCH )
   list( APPEND VIAME_PYTHON_DEP_CMDS "scikit-image==0.16.2" )
 endif()
 
+if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_DEPS imgaug )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug" )
+endif()
+
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_DEPS imgaug ubelt pygments bezier )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug" "ubelt" "pygments" "bezier==2020.1.14" )
+  list( APPEND VIAME_PYTHON_DEPS ubelt pygments bezier )
+  list( APPEND VIAME_PYTHON_DEP_CMDS "ubelt" "pygments" "bezier==2020.1.14" )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-INTERNAL )
