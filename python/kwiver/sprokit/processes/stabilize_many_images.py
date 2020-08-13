@@ -112,23 +112,21 @@ def register_image_set(estimate_single_homography):
         fds, = yield output
         hl = len(fds) // 2
         # Compute homographies between adjacent images
-        l2c, l2c_matches = [], []
-        for sfd, tfd in zip(fds[:hl], fds[1:hl + 1]):
+        homogs, matches = [], []
+        for i, lrfd in enumerate(zip(fds[:-1], fds[1:])):
+            # Targets towards the middle
+            sfd, tfd = lrfd if i < hl else lrfd[::-1]
             h, m = estimate_single_homography(*sfd, *tfd)
-            l2c.append(h)
-            l2c_matches.append(m)
-        r2c, r2c_matches = [], []
-        for tfd, sfd in zip(fds[hl:-1], fds[hl + 1:]):
-            h, m = estimate_single_homography(*sfd, *tfd)
-            r2c.append(h)
-            r2c_matches.append(m)
+            homogs.append(h)
+            matches.append(m)
         # Compute homographies to center
+        l2c, r2c = homogs[:hl], homogs[hl:]
         l2c = list(itertools.accumulate(reversed(l2c), compose_homographies))[::-1]
         r2c = itertools.accumulate(r2c, compose_homographies)
         # Merge matches
         matches = combine_matches(itertools.chain(
-            (m.matches() for m in l2c_matches),
-            ((p[::-1] for p in m.matches()) for m in r2c_matches),
+            (m.matches() for m in matches[:hl]),
+            ((p[::-1] for p in m.matches()) for m in matches[hl:]),
         ))
         output = [*l2c, get_identity_homography(), *r2c], matches
 
