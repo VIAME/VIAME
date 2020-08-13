@@ -56,6 +56,7 @@ class MMDetDetector( ImageObjectDetector ):
         self._thresh = 0.01
         self._gpu_index = "0"
         self._display_detections = False
+        self._template = ""
 
     def get_configuration(self):
         # Inherit from the base class
@@ -66,6 +67,7 @@ class MMDetDetector( ImageObjectDetector ):
         cfg.set_value( "thresh", str( self._thresh ) )
         cfg.set_value( "gpu_index", self._gpu_index )
         cfg.set_value( "display_detections", str( self._display_detections ) )
+        cfg.set_value( "template", str( self._template ) )
         return cfg
 
     def set_configuration( self, cfg_in ):
@@ -78,9 +80,10 @@ class MMDetDetector( ImageObjectDetector ):
         self._thresh = float( cfg.get_value( "thresh" ) )
         self._gpu_index = str( cfg.get_value( "gpu_index" ) )
         self._display_detections = strtobool( cfg.get_value( "display_detections" ) )
+        self._template = str( cfg.get_value( "template" ) )
 
         from viame.arrows.pytorch.mmdet_compatibility import check_config_compatibility
-        check_config_compatibility( self._net_config, self._weight_file )
+        check_config_compatibility( self._net_config, self._weight_file, self._template )
 
         import matplotlib
         matplotlib.use( 'PS' ) # bypass multiple Qt load issues
@@ -98,7 +101,7 @@ class MMDetDetector( ImageObjectDetector ):
             print( "A class file must be specified!" )
             return False
         if not cfg.has_value( "weight_file" ):
-            print("No weight file specified")
+            print( "No weight file specified" )
             return False
         return True
 

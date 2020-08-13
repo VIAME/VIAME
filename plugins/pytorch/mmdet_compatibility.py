@@ -276,7 +276,7 @@ def convert_v1_to_v2_weights(in_file, out_file, num_classes):
     checkpoint['state_dict'] = out_state_dict
     torch.save(checkpoint, out_file)
 
-def check_config_compatibility( input_cfg, input_weights ):
+def check_config_compatibility( input_cfg, input_weights, input_template ):
 
     if not os.path.exists( input_cfg ):
         print( "\nInput model config file: " + input_cfg + " does not exist\n" )
@@ -298,10 +298,11 @@ def check_config_compatibility( input_cfg, input_weights ):
 
     if "num_stages" in file_lines[2] or "num_stages" in file_lines[3]:
         # Do v1 to v2 upgrade
+        print( "Upgrading model files to latest version" )
         class_count = 1
         for line in file_lines:
             if "num_classes" in line:
-                class_count = int(line.rstrip()[line.find("=")+1:line.find(",")])-1
+                class_count = int(line.rstrip()[line.find("=")+1:line.find(",")])
                 break
         convert_v1_to_v2_weights( input_weights, input_weights, class_count )
 
