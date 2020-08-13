@@ -52,3 +52,6 @@
 [submodule "packages/pytorch-libs/bioharn"]
 	path = packages/pytorch-libs/bioharn
 	url = https://gitlab.kitware.com/jon.crall/bioharn.git
+[submodule "packages/pytorch-libs/imgaug"]
+	path = packages/pytorch-libs/imgaug
+	url = https://github.com/VIAME/imgaug.git
