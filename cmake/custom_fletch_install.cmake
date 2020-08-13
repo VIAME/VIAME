@@ -1,4 +1,4 @@
-message("Running fletch install")
+message( "Running fletch install" )
 
 include( ${VIAME_CMAKE_DIR}/common_macros.cmake )
 
@@ -48,6 +48,10 @@ if( PYTHON_VERSION )
     file( GLOB FILES_TO_MOVE "${DIR_TO_MOVE}/*" )
     file( COPY ${FILES_TO_MOVE} DESTINATION ${OUTPUT_PYTHON_DIR} )
     file( REMOVE_RECURSE  ${DIR_TO_MOVE} )
+  endif()
+
+  if( VIAME_ENABLE_OPENCV )
+    file( COPY ${VIAME_CMAKE_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
   endif()
 endif()
 
