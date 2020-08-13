@@ -7,47 +7,69 @@
 #   VIAME_ARGS_COMMON -
 ##
 
-# --------------------- ADD ANY EXTRA PYTHON DEPS HERE -------------------------
+# --------------------- ADD ANY BASIC PYTHON DEPS HERE -------------------------
+# Basic dependencies are installed jointly in one local pip installation call
 
-set( VIAME_PYTHON_DEPS numpy matplotlib )
-set( VIAME_PYTHON_DEP_CMDS "numpy" "matplotlib" )
+set( VIAME_PYTHON_BASIC_DEPS "numpy" "matplotlib" )
 
 if( VIAME_ENABLE_TENSORFLOW )
-  list( APPEND VIAME_PYTHON_DEPS humanfriendly )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "humanfriendly" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "humanfriendly" )
 
-  list( APPEND VIAME_PYTHON_DEPS tensorflow )
   if( VIAME_ENABLE_CUDA )
-    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow-gpu==1.14" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow-gpu==1.14" )
   else()
-    list( APPEND VIAME_PYTHON_DEP_CMDS "tensorflow==1.14" )
+    list( APPEND VIAME_PYTHON_BASIC_DEPS "tensorflow==1.14" )
   endif()
 endif()
 
 if( VIAME_ENABLE_PYTORCH-MMDET )
-  list( APPEND VIAME_PYTHON_DEPS yapf )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "yapf" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "yapf" )
 endif()
 
 if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_OPENCV )
-  list( APPEND VIAME_PYTHON_DEPS tqdm scipy )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "tqdm" "scipy" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "tqdm" "scipy" )
 endif()
 
 if( ( WIN32 OR NOT VIAME_ENABLE_OPENCV ) AND
       ( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_OPENCV OR
         VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN ) )
-  list( APPEND VIAME_PYTHON_DEPS cv2 )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "opencv-python" )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "opencv-python" )
 endif()
+
+if( VIAME_ENABLE_ITK_EXTRAS )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "msgpack" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "scikit-image==0.16.2" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "imgaug" )
+endif()
+
+if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "ubelt" "pygments" "bezier==2020.1.14" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-INTERNAL )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pyyaml" )
+endif()
+
+if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
+  list( APPEND VIAME_PYTHON_BASIC_DEPS "pycocotools" )
+endif()
+
+# ---------------------- ADD ANY ADV PYTHON DEPS HERE --------------------------
+# Advanced python dependencies are installed individually due to special reqs
+
+set( VIAME_PYTHON_ADV_DEPS )
+set( VIAME_PYTHON_ADV_DEP_CMDS )
 
 if( VIAME_ENABLE_ITK_EXTRAS )
   set( WX_VERSION "4.0.7" )
 
-  list( APPEND VIAME_PYTHON_DEPS msgpack )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "msgpack" )
-
-  list( APPEND VIAME_PYTHON_DEPS wxPython )
+  list( APPEND VIAME_PYTHON_ADV_DEPS wxPython )
 
   if( UNIX )
     if( EXISTS "/etc/os-release" )
@@ -60,45 +82,20 @@ if( VIAME_ENABLE_ITK_EXTRAS )
 
     if( "${OS_ID}" MATCHES "centos" )
       set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/centos-7 )
-      list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython==${WX_VERSION}" )
+      list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython==${WX_VERSION}" )
     elseif( "${RELEASE_CODENAME}" MATCHES "xenial" )
       set( WXP_ARCHIVE https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-16.04 )
-      list( APPEND VIAME_PYTHON_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython==${WX_VERSION}" )
+      list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "-U -f ${WXP_ARCHIVE} wxPython==${WX_VERSION}" )
     else()
-      list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython==${WX_VERSION}" )
+      list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "wxPython==${WX_VERSION}" )
     endif()
   else()
-    list( APPEND VIAME_PYTHON_DEP_CMDS "wxPython==${WX_VERSION}" )
+    list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "wxPython==${WX_VERSION}" )
   endif()
 endif()
 
-if( VIAME_ENABLE_PYTORCH )
-  list( APPEND VIAME_PYTHON_DEPS scikit-image )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "scikit-image==0.16.2" )
-endif()
-
-if( VIAME_ENABLE_PYTORCH-MMDET OR VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_DEPS imgaug )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "imgaug" )
-endif()
-
-if( VIAME_ENABLE_CAMTRAWL OR VIAME_ENABLE_PYTORCH-NETHARN )
-  list( APPEND VIAME_PYTHON_DEPS ubelt pygments bezier )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "ubelt" "pygments" "bezier==2020.1.14" )
-endif()
-
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-INTERNAL )
-  list( APPEND VIAME_PYTHON_DEPS "pyyaml" )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "pyyaml" )
-endif()
-
-if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-MMDET AND NOT WIN32 )
-  list( APPEND VIAME_PYTHON_DEPS "pycocotools" )
-  list( APPEND VIAME_PYTHON_DEP_CMDS "pycocotools" )
-endif()
-
 if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
-  list( APPEND VIAME_PYTHON_DEPS pytorch )
+  list( APPEND VIAME_PYTHON_ADV_DEPS pytorch )
 
   set( ARGS_TORCH )
   set( PYTORCH_ARCHIVE https://download.pytorch.org/whl/torch_stable.html )
@@ -138,13 +135,13 @@ if( VIAME_ENABLE_PYTORCH AND NOT VIAME_ENABLE_PYTORCH-INTERNAL )
 
   string( FIND "${ARGS_TORCH}" "https://" TMP_VAR )
   if( "${TMP_VAR}" EQUAL 0 )
-    list( APPEND VIAME_PYTHON_DEP_CMDS "${ARGS_TORCH}" )
+    list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "${ARGS_TORCH}" )
   else()
-    list( APPEND VIAME_PYTHON_DEP_CMDS "torch${ARGS_TORCH}" )
+    list( APPEND VIAME_PYTHON_ADV_DEP_CMDS "torch${ARGS_TORCH}" )
   endif()
 endif()
 
-# ------------------------------------------------------------------------------
+# ---------------------------- INSTALL ROUTINES --------------------------------
 
 set( PYTHON_BASEPATH
   ${VIAME_BUILD_INSTALL_PREFIX}/lib/python${PYTHON_VERSION} )
@@ -174,21 +171,26 @@ if( VIAME_ENABLE_SMQTK )
   set( VIAME_PYTHON_DEPS_DEPS smqtk ${VIAME_PYTHON_DEPS_DEPS} )
 endif()
 
-list( LENGTH VIAME_PYTHON_DEPS DEP_COUNT )
+list( APPEND VIAME_PYTHON_ADV_DEPS python-deps )
+
+list( LENGTH VIAME_PYTHON_ADV_DEPS DEP_COUNT )
 math( EXPR DEP_COUNT "${DEP_COUNT} - 1" )
 
 foreach( ID RANGE ${DEP_COUNT} )
 
-  list( GET VIAME_PYTHON_DEPS ${ID} DEP )
-  list( GET VIAME_PYTHON_DEP_CMDS ${ID} CMD )
+  list( GET VIAME_PYTHON_ADV_DEPS ${ID} DEP )
 
   set( VIAME_PROJECT_LIST ${VIAME_PROJECT_LIST} ${DEP} )
-  set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
 
-  if( "${DEP}" STREQUAL "imgaug" AND VIAME_ENABLE_PYTORCH )
-    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} scikit-image )
-  else()
+  if( "${DEP}" STREQUAL "python-deps" )
     set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} )
+    set( CMD ${VIAME_PYTHON_BASIC_DEPS} )
+    if( WIN32 )
+      string( REPLACE ";" "----" CMD "${CMD}" )
+    endif()
+  else()
+    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} python_deps )
+    list( GET VIAME_PYTHON_ADV_DEP_CMDS ${ID} CMD )
   endif()
 
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
