@@ -217,6 +217,38 @@ compute_depth::priv
 
 //*****************************************************************************
 
+vil_image_view<double>
+compute_uncertainty(vil_image_view<double> const& height_map,
+                    vil_image_view<double> const& cost_volume)
+{
+  const int S = static_cast<int>(cost_volume.nplanes());
+  vil_image_view<double> uncertainty(height_map.ni(), height_map.nj(), 1);
+  // This scale is 1/(2*sigma) converted from [0,255] to [0,1]
+  const double cost_scale = 255.0 / (2.0 * 5.0);
+
+  for (unsigned int j = 0; j < cost_volume.nj(); j++)
+  {
+    for (unsigned int i = 0; i < cost_volume.ni(); i++)
+    {
+      double const& dij = height_map(i, j);
+      double sum_w = 0.0;
+      double var = 0.0;
+      for (unsigned int k = 0; k < cost_volume.nplanes(); k++)
+      {
+        const double d_k = (static_cast<double>(k) + 0.5) / S;
+        const double diff = d_k - dij;
+        const double w = std::exp(-cost_volume(i, j, k) * cost_scale);
+        sum_w += w;
+        var += w * diff * diff;
+      }
+      uncertainty(i, j) = std::sqrt(var / sum_w);
+    }
+  }
+  return uncertainty;
+}
+
+//*****************************************************************************
+
 //Compute the depth and return the uncertainty by reference
 image_container_sptr
 compute_depth
@@ -330,19 +362,17 @@ compute_depth
     delete drm;
   }
 
+  auto uncertainty = compute_uncertainty(height_map, cost_volume);
+
   // map depth from normalized range back into true depth
   double scale = depth_max - depth_min;
   vil_math_scale_and_offset_values(height_map, scale, depth_min);
 
   vil_image_view<double> depth;
-  vil_image_view<double> depth_uncertainty_data;
   height_map_to_depth_map(d_->ref_cam, height_map, depth);
 
-  depth_uncertainty_data = vil_copy_deep(depth);
-  vil_transform(depth_uncertainty_data, [](double x){return std::sqrt(x);});
-
   // Setting the value by reference
-  depth_uncertainty = vital::image_container_sptr(new vxl::image_container(depth_uncertainty_data));
+  depth_uncertainty = std::make_shared<vxl::image_container>(uncertainty);
 
   return vital::image_container_sptr(new vxl::image_container(depth));
 }
