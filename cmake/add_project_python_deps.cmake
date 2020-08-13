@@ -189,7 +189,7 @@ foreach( ID RANGE ${DEP_COUNT} )
       string( REPLACE ";" "----" CMD "${CMD}" )
     endif()
   else()
-    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} python_deps )
+    set( PYTHON_LIB_DEPS ${VIAME_PYTHON_DEPS_DEPS} python-deps )
     list( GET VIAME_PYTHON_ADV_DEP_CMDS ${ID} CMD )
   endif()
 
