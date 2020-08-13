@@ -1,0 +1,127 @@
+# ==============================================================================
+#
+# Cascade Faster R-CNN Detector with Intensity, Hue, and Motion
+#
+# ==============================================================================
+
+process detector_input
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :force_three_channel                       true
+  endblock
+
+process color_convert
+  :: image_filter
+  :filter:type                                 ocv_convert_color
+
+  block filter:ocv_convert_color
+    :input_color_space                         rgb
+    :output_color_space                        hls
+  endblock
+
+connect from detector_input.image
+        to   color_convert.image
+
+process split_channels
+  :: split_image
+  :split_image:type                            ocv_channels
+
+connect from color_convert.image
+        to   split_channels.image
+
+process ensure_grey
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :single_channel                            true
+  endblock
+
+connect from detector_input.image
+        to   ensure_grey.image
+
+process motion_filter
+  :: image_filter
+  :filter:type                                 vxl_average
+
+  block filter:vxl_average
+    :type                                      window
+    :window_size                               10
+    :round                                     false
+    :output_variance                           true
+  endblock
+
+connect from ensure_grey.image
+        to   motion_filter.image
+
+process float_to_byte
+  :: image_filter
+  :filter:type                                 vxl_convert_image
+
+  block filter:vxl_convert_image
+    :format                                    byte
+    :scale_factor                              0.50
+  endblock
+
+connect from motion_filter.image
+        to   float_to_byte.image
+
+# ==============================================================================
+
+process image_merger
+  :: merge_images
+  :merge_images:type                           ocv
+
+connect from split_channels.right_image
+        to   image_merger.image1
+connect from split_channels.left_image
+        to   image_merger.image2
+connect from float_to_byte.image
+        to   image_merger.image3
+
+# ==============================================================================
+
+process detector1
+  :: image_object_detector
+  :detector:type                               ocv_windowed
+
+  block detector:ocv_windowed
+    :detector:type                             netharn
+
+    :mode                                      [-WINDOW-OPTION-]
+    :chip_width                                640
+    :chip_height                               640
+    :chip_adaptive_thresh                      1600000
+
+    block detector:netharn
+      relativepath deployed =                  [-MODEL-FILE-]
+    endblock
+  endblock
+
+connect from image_merger.image
+        to   detector1.image
+
+# ==============================================================================
+
+process detector_merger
+  :: merge_detection_sets
+
+connect from detector1.detected_object_set
+        to   detector_merger.detected_object_set1
+
+process detector_output
+  :: refine_detections
+  :refiner:type                                nms
+
+  block refiner:nms
+    :max_overlap                               0.50
+    :nms_scale_factor                          1.0
+    :output_scale_factor                       1.0
+  endblock
+
+connect from detector_merger.detected_object_set
+        to   detector_output.detected_object_set
