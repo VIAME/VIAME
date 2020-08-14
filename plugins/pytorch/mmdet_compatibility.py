@@ -224,8 +224,9 @@ def check_config_compatibility( input_cfg, input_weights, input_template ):
 
     if perform_upgrade:
         if len( input_template ) == 0:
-            loc = os.path.join( "configs", "pipelines", "templates", "detector_mmdet.py" )
-            input_template = os.path.join( os.environ[ "VIAME_INSTALL" ], loc )
+            conf_file = "detector_mmdet.py"
+            conf_file = os.path.join( "configs", "pipelines", "templates", conf_file )
+            input_template = os.path.join( os.environ[ "VIAME_INSTALL" ], conf_file )
         if not os.path.exists( input_template ):
             print( "\nInput template: " + input_template + " does not exist\n" )
             sys.exit()
