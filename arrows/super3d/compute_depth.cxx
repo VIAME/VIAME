@@ -106,6 +106,8 @@ public:
 
   vpgl_perspective_camera<double> ref_cam;
 
+  vil_image_view<double> cost_volume;
+
   compute_depth::callback_t callback;
 
   /// Logger handle
@@ -327,12 +329,11 @@ compute_depth
 
   d_->ref_cam = cameras[ref_frame];
   vil_image_view<double> g;
-  vil_image_view<double> cost_volume;
 
   cost_volume_callback_t cv_callback = std::bind1st(std::mem_fun(
     &compute_depth::priv::cost_volume_update_callback), this->d_.get());
   if (!compute_world_cost_volume(frames, cameras, ws.get(), ref_frame,
-                                 d_->num_slices, cost_volume,
+                                 d_->num_slices, d_->cost_volume,
                                  cv_callback, masks))
   {
     // user terminated processing early through the callback
@@ -343,11 +344,11 @@ compute_depth
   compute_g(frames[ref_frame], g, d_->gw_alpha, 1.0, ref_mask);
 
   LOG_DEBUG(d_->m_logger, "Refining Depth");
-  vil_image_view<double> height_map(cost_volume.ni(), cost_volume.nj(), 1);
+  vil_image_view<double> height_map(d_->cost_volume.ni(), d_->cost_volume.nj(), 1);
 
   if (!d_->callback)
   {
-    refine_depth(cost_volume, g, height_map, d_->iterations,
+    refine_depth(d_->cost_volume, g, height_map, d_->iterations,
                  d_->theta0, d_->theta_end, d_->lambda, d_->epsilon);
   }
   else
@@ -357,12 +358,12 @@ compute_depth
                      this->d_.get());
     depth_refinement_monitor *drm =
       new depth_refinement_monitor(f, d_->callback_interval);
-    refine_depth(cost_volume, g, height_map, d_->iterations,
+    refine_depth(d_->cost_volume, g, height_map, d_->iterations,
                  d_->theta0, d_->theta_end, d_->lambda, d_->epsilon, drm);
     delete drm;
   }
 
-  auto uncertainty = compute_uncertainty(height_map, cost_volume);
+  auto uncertainty = compute_uncertainty(height_map, d_->cost_volume);
 
   // map depth from normalized range back into true depth
   double scale = depth_max - depth_min;
@@ -396,23 +397,30 @@ compute_depth::priv
   if (this->callback)
   {
     image_container_sptr result = nullptr;
+    image_container_sptr result_u = nullptr;
     if (data.current_result)
     {
+      auto uncertainty = compute_uncertainty(data.current_result,
+                                             this->cost_volume);
       double depth_scale = this->depth_max - this->depth_min;
       vil_math_scale_and_offset_values(data.current_result,
-        depth_scale, this->depth_min);
+                                       depth_scale, this->depth_min);
+      vil_math_scale_values(uncertainty, depth_scale);
       vil_image_view<double> depth;
-      height_map_to_depth_map(this->ref_cam, data.current_result, depth);
+      height_map_to_depth_map(this->ref_cam, data.current_result,
+                              depth, uncertainty);
       result = std::make_shared<vxl::image_container>(
                  vxl::image_container::vxl_to_vital(depth));
+      result_u = std::make_shared<vxl::image_container>(
+                  vxl::image_container::vxl_to_vital(uncertainty));
     }
     unsigned percent_complete = 50 + (50 * data.num_iterations)
                                      / this->iterations;
     std::stringstream ss;
     ss << "Depth refinement iteration " << data.num_iterations
        << " of " << this->iterations;
-    // TODO Check if this can be the real uncertainty
-    return this->callback(result, ss.str(), percent_complete, nullptr);
+
+    return this->callback(result, ss.str(), percent_complete, result_u);
   }
   return true;
 }
