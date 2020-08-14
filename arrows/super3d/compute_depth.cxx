@@ -367,9 +367,10 @@ compute_depth
   // map depth from normalized range back into true depth
   double scale = depth_max - depth_min;
   vil_math_scale_and_offset_values(height_map, scale, depth_min);
+  vil_math_scale_values(uncertainty, scale);
 
   vil_image_view<double> depth;
-  height_map_to_depth_map(d_->ref_cam, height_map, depth);
+  height_map_to_depth_map(d_->ref_cam, height_map, depth, uncertainty);
 
   // Setting the value by reference
   depth_uncertainty = std::make_shared<vxl::image_container>(uncertainty);
