@@ -105,7 +105,6 @@ def register_image_set(estimate_single_homography):
       image)
 
     """
-    # XXX At the moment it's stateless
     output = None
     while True:
         # The returned homographies will be relative to the "middle" one
@@ -116,7 +115,13 @@ def register_image_set(estimate_single_homography):
         for i, lrfd in enumerate(zip(fds[:-1], fds[1:])):
             # Targets towards the middle
             sfd, tfd = lrfd if i < hl else lrfd[::-1]
-            h, m = estimate_single_homography(*sfd, *tfd)
+            hm = estimate_single_homography(*sfd, *tfd)
+            if hm is None:
+                # XXX It might be better to exclude features from
+                # across a bad match entirely.
+                # Reuse the estimate from last frame
+                hm = prev_homogs[i], kvt.MatchSet()
+            h, m = hm
             homogs.append(h)
             matches.append(m)
         # Compute homographies to center
@@ -128,6 +133,7 @@ def register_image_set(estimate_single_homography):
             (m.matches() for m in matches[:hl]),
             ((p[::-1] for p in m.matches()) for m in matches[hl:]),
         ))
+        prev_homogs = homogs
         output = [*l2c, get_identity_homography(), *r2c], matches
 
 def combine_matches(match_sets):
@@ -231,16 +237,19 @@ class SingleHomographyEstimator:
         corresponding feature points, estimated using the provided
         feature and descriptor sets.
 
-        (XXX What happens when estimation fails?)
+        If estimation fails, return None instead of the above pair.
 
         """
         matches = self._match_features(
             source_features, source_descriptors,
             target_features, target_descriptors,
         )
-        homog, inliers = self._estimate_homography(
+        hi = self._estimate_homography(
             source_features, target_features, matches,
         )
+        if hi is None:
+            return None
+        homog, inliers = hi
         inlier_matches = kvt.MatchSet([
             m for i, m in zip(inliers, matches.matches()) if i
         ])
