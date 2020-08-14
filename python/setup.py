@@ -37,7 +37,7 @@ setup(
             ],
         platforms=[
                    'linux',
-                   'Unix'
+                   'Unix',
                    ],
         cmake_minimum_required_version='3.3',
         packages = find_packages(
@@ -48,7 +48,7 @@ setup(
         setup_requires=[
                         'setuptools',
                         'cmake',
-                        'scikit-build'
+                        'scikit-build',
                        ],
         install_requires=[
                           'numpy',
@@ -60,7 +60,7 @@ setup(
                         'mock',
                         'coverage',
                         'external_arrow',
-                        'pytest'
+                        'pytest',
                       ],
         cmake_args=[
                     '-DCMAKE_BUILD_TYPE=Release',
@@ -80,7 +80,7 @@ setup(
                     '-DKWIVER_ENABLE_FFMPEG=ON',
                     '-DKWIVER_ENABLE_ZeroMQ=ON',
                     '-DKWIVER_ENABLE_SERIALIZE_JSON=ON',
-                    '-DKWIVER_ENABLE_SERIALIZE_PROTOBUF=ON'
+                    '-DKWIVER_ENABLE_SERIALIZE_PROTOBUF=ON',
                    ],
         entry_points={
             'kwiver.python_plugin_registration': [
@@ -89,8 +89,8 @@ setup(
                 'process_image=kwiver.sprokit.processes.process_image',
                 'print_number_process=kwiver.sprokit.processes.kw_print_number_process',
                 'homography_writer=kwiver.sprokit.processes.homography_writer',
-                'simple_homog_tracker=kwiver.sprokit.processes.simple_homog_tracker'
-		'simple_image_object_detector=kwiver.arrows.simple_image_object_detector'
+                'simple_homog_tracker=kwiver.sprokit.processes.simple_homog_tracker',
+		'simple_image_object_detector=kwiver.arrows.simple_image_object_detector',
                 ],
             'kwiver.cpp_search_paths': [
                 'sprokit_process=kwiver.vital.util.entrypoint:sprokit_process_path',
@@ -106,6 +106,6 @@ setup(
             'console_scripts': [
                 'plugin_explorer=kwiver.kwiver_tools:plugin_explorer',
                 'kwiver=kwiver.kwiver_tools:kwiver',
-                ]
+                ],
         },
     )
