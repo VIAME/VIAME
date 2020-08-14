@@ -1,7 +1,9 @@
 ###
 # Loadable algorithms and processes
 
-kwiver_create_python_init( sprokit/processes/pytorch )
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+  sprokit/processes/pytorch
+  __init__.py )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/srnn_tracker.py
   sprokit/processes/pytorch

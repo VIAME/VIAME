@@ -1,7 +1,9 @@
 ###
 # Loadable algorithms and processes
 
-kwiver_create_python_init( sprokit/processes/pytorch/utils )
+kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py
+  sprokit/processes/pytorch/utils
+  __init__.py )
 
 kwiver_add_python_module( ${CMAKE_CURRENT_SOURCE_DIR}/siamese_feature_extractor.py
   sprokit/processes/pytorch/utils
