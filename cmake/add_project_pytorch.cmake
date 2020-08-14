@@ -180,8 +180,6 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
     ${LIBRARY_PIP_INSTALL_CMD} )
 
-  set( COMMON_PYTORCH_PROJECT_DEP  )
-
   if( "${LIB}" STREQUAL "bioharn" )
     set( PROJECT_DEPS netharn )
   elseif( "${LIB}" STREQUAL "netharn" )
