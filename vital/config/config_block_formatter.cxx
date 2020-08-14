@@ -33,7 +33,6 @@
 #include "format_config_block.h"
 
 #include <vital/util/string.h>
-#include <vital/plugin_loader/plugin_manager.h>
 
 #include <sstream>
 #include <iostream>
@@ -63,6 +62,7 @@ generate_source_loc( bool opt )
 }
 
 // ------------------------------------------------------------------
+
 void config_block_formatter::
 print( std::ostream& str )
 {
@@ -94,24 +94,5 @@ print( std::ostream& str )
     str << std::endl;
   }
 }
-
-// ------------------------------------------------------------------
-void config_block_formatter::
-print( std::ostream& str, const std::string& fmt )
-{
-  using plugin_factory_t = kwiver::vital::implementation_factory_by_name< kwiver::vital::format_config_block >;
-
-  plugin_factory_t fact;
-
-  format_config_block_sptr formatter( fact.create( fmt ) );
-
-  // Pass along current formatting options
-  formatter->m_config = this->m_config;
-  formatter->opt_gen_source_loc = this->m_gen_source_loc;
-  formatter->opt_prefix = this->m_prefix;
-
-  formatter->print( str );
-}
-
 }
 }   // end namespace

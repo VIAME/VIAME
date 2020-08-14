@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016, 2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -207,10 +207,10 @@ detect( vital::image_container_sptr image_data) const
     kwiver::vital::bounding_box_d bbox( circles[i][0] - circles[i][2], circles[i][1] - circles[i][2],
                                         circles[i][0] + circles[i][2], circles[i][1] + circles[i][2] );
 
-    auto dot = std::make_shared< kwiver::vital::detected_object_type >();
-    dot->set_score( "circle", 1.0 );
+    auto cm = std::make_shared< kwiver::vital::class_map >();
+    cm->set_score( "circle", 1.0 );
 
-    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, dot ) );
+    detected_set->add( std::make_shared< kwiver::vital::detected_object >( bbox, 1.0, cm ) );
   } // end for
 
   return detected_set;

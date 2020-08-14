@@ -138,8 +138,9 @@ IMPLEMENT_TEST( basic_pipeline )
     std::cout << "    " << port << "\n";
   }
 
-  kwiver::vital::config_block_sptr const scheduler_config = conf->subblock(scheduler_block +
-                                              kwiver::vital::config_block::block_sep + scheduler_type);
+  kwiver::vital::config_block_sptr const scheduler_config =
+        conf->subblock(scheduler_block +
+                       kwiver::vital::config_block::block_sep() + scheduler_type);
 
   sprokit::scheduler_t scheduler = sprokit::create_scheduler(scheduler_type, pipe, scheduler_config);
 

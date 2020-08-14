@@ -24,7 +24,7 @@ kwiver_discover_gtests(vital database_query                 LIBRARIES ${test_lib
 kwiver_discover_gtests(vital descriptor_set_simple          LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital detected_object                LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital detected_object_set            LIBRARIES ${test_libraries})
-kwiver_discover_gtests(vital detected_object_type           LIBRARIES ${test_libraries})
+kwiver_discover_gtests(vital class_map                      LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital enumerate_matrix               LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital essential_matrix               LIBRARIES ${test_libraries})
 kwiver_discover_gtests(vital estimate_similarity_transform  LIBRARIES ${test_libraries})

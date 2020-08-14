@@ -65,7 +65,7 @@ static kwiver::vital::config_block_key_t const instrumentation_block_key =
   kwiver::vital::config_block_key_t("_instrumentation");
 static kwiver::vital::config_block_key_t const instrumentation_type_key =
   kwiver::vital::config_block_key_t(instrumentation_block_key
-                                    + kwiver::vital::config_block::block_sep + "type" );
+                              + kwiver::vital::config_block::block_sep() + "type" );
 
 process::property_t const process::property_no_threads = property_t("_no_thread");
 process::property_t const process::property_no_reentrancy = property_t("_no_reentrant");
@@ -688,8 +688,9 @@ process
     if (instr_prov != "none" )
     {
       // Get instrumentation interface
-      kwiver::vital::config_block_sptr instr_block = d->conf->subblock_view( instrumentation_block_key
-                                    + kwiver::vital::config_block::block_sep + instr_prov );
+      kwiver::vital::config_block_sptr instr_block =
+        d->conf->subblock_view( instrumentation_block_key
+                    + kwiver::vital::config_block::block_sep() + instr_prov );
 
       instrumentation_factory ifact;
       d->m_proc_instrumentation.reset( ifact.create( instr_prov ) );

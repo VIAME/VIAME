@@ -34,13 +34,6 @@ if (KWIVER_ENABLE_OPENCV)
   add_subdirectory( ocv )
 endif()
 
-if (KWIVER_ENABLE_PYTHON)
-  add_subdirectory( python )
-
-  if( KWIVER_ENABLE_PYTORCH )
-    add_subdirectory( pytorch )
-  endif()
-endif()
 
 if (KWIVER_ENABLE_CAFFE)
 #  add_subdirectory(caffe)

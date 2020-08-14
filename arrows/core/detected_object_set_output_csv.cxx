@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,14 +148,14 @@ write_set( const kwiver::vital::detected_object_set_sptr set, std::string const&
       ;
 
     // Process classifications if there are any
-    const auto dot( (*det)->type() );
-    if ( dot )
+    const auto cm( (*det)->type() );
+    if ( cm )
     {
-      const auto name_list( dot->class_names() );
+      const auto name_list( cm->class_names() );
       for( auto name : name_list )
       {
         // Write out the <name> <score> pair
-        stream() << d->m_delim << name << d->m_delim << dot->score( name );
+        stream() << d->m_delim << name << d->m_delim << cm->score( name );
       } // end foreach
     }
 

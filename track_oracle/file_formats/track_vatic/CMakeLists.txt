@@ -28,7 +28,8 @@ kwiver_add_library( track_vatic
 )
 
 target_link_libraries( track_vatic
-PUBLIC                 track_oracle
+  PUBLIC               track_oracle
+                       data_terms
                        track_oracle_format_base
                        vgl
                        vital_logger

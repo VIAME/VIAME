@@ -209,7 +209,7 @@ parse_packet( const YAML::const_iterator& it, KPF::packet_t& p )
       break;
 
     case KPF::packet_style::ID:
-      new (&p.id) KPFC::id_t( it->second.as<int>() );
+      new (&p.id) KPFC::id_t( it->second.as<uint64_t>() );
       break;
 
     case KPF::packet_style::KV:
@@ -378,7 +378,7 @@ parse_actors( const YAML::Node& n,
         if ( h.style == KPF::packet_style::ID)
         {
           actor.actor_id = KPFC::scoped< KPFC::id_t >(
-            KPFC::id_t( actor_map->second.as<int>() ),
+            KPFC::id_t( actor_map->second.as<uint64_t>() ),
             h.domain );
         }
         else
@@ -452,7 +452,7 @@ parse_activity( const YAML::Node& n, KPF::packet_buffer_t& local_packet_buffer )
 
       if (( h.style == KPF::packet_style::ID) && ( h.domain == act.activity_id.domain ))
       {
-        act.activity_id.t.d = i->second.as<int>();
+        act.activity_id.t.d = i->second.as<uint64_t>();
       }
       else if (h.style == KPF::packet_style::KV)
       {
@@ -624,7 +624,7 @@ kpf_yaml_parser_t
   this->current_record_schema = check;
 
   // special case for meta
-  if ((check == schema_style::INVALID) && ( str2style( n_sub->first.as<string>()) == packet_style::META ))
+  if ( str2style( n_sub->first.as<string>()) == packet_style::META )
   {
     okay = parse_as_kpf_v3( n, schema_style::UNSPECIFIED, local_packet_buffer );
   }

@@ -127,7 +127,7 @@ function(_kwiver_path_to_root_from_lib_dir path_to_root lib_dir)
         string(REPLACE "/" ";" library_dir_list ${lib_dir})
         list(LENGTH library_dir_list len_library_dir_list)
         if(CMAKE_VERSION VERSION_GREATER "3.15")
-          string(REPEAT "../" ${len_library_dir_list} path_to_root)
+          string(REPEAT "../" ${len_library_dir_list} _path_to_root)
         else()
           foreach(_ RANGE 1 ${len_library_dir_list})
             string(CONCAT _path_to_root "${_path_to_root}" "../")
@@ -289,14 +289,16 @@ function(kwiver_add_library     name)
   _kwiver_export("${name}")
   # LIB_SUFFIX should only apply to installation location, not the build
   # locations that properties above this point pertain to.
-  kwiver_install(
-    TARGETS             "${name}"
-    ${exports}
-    ARCHIVE DESTINATION "${library_dir}${LIB_SUFFIX}/${library_subdir}"
-    LIBRARY DESTINATION "${library_dir}${LIB_SUFFIX}/${library_subdir}"
-    RUNTIME DESTINATION "bin/${library_subdir}"
-    COMPONENT           ${component}
-    )
+  if (NOT SKBUILD OR NOT target_type STREQUAL "STATIC_LIBRARY")
+    kwiver_install(
+      TARGETS             "${name}"
+      ${exports}
+      ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/${library_dir}${LIB_SUFFIX}/${library_subdir}"
+      LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/${library_dir}${LIB_SUFFIX}/${library_subdir}"
+      RUNTIME DESTINATION "bin/${library_subdir}"
+      COMPONENT           ${component}
+      )
+  endif()
 
   if ( NOT no_export)
     set_property(GLOBAL APPEND PROPERTY kwiver_libraries "${name}")
@@ -343,6 +345,9 @@ endfunction()
 # install path to allow installing of headers in subdirectories.
 #-
 function(kwiver_install_headers)
+  if(SKBUILD)
+    return()
+  endif()
   set(options NOPATH)
   set(oneValueArgs SUBDIR)
   cmake_parse_arguments(mih "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
@@ -399,7 +404,7 @@ endfunction()
 #
 # Options are:
 # SOURCES - list of source files needed to create the plugin.
-# PUBLIC - list of libraries the plugin will publically link against.
+# PUBLIC - list of libraries the plugin will publicaly link against.
 # PRIVATE - list of libraries the plugin will privately link against.
 # SUBDIR - subdirectory in "lib" where plugin will be installed.
 #

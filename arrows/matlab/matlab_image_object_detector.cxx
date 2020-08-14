@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2018 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -320,11 +320,11 @@ detect( kwiver::vital::image_container_sptr image_data) const
                                         detections->at<double>(i, (size_t) 2), // lr-x
                                         detections->at<double>(i, (size_t) 3) ); // lr-y
 
-    // Save classifications in DOT
-    kwiver::vital::detected_object_type_sptr dot;
+    // Save classifications in CM
+    kwiver::vital::class_map_sptr cm;
     if ( class_rows ) // there are some classification details
     {
-      dot = std::make_shared< kwiver::vital::detected_object_type >();
+      cm = std::make_shared< kwiver::vital::class_map >();
 
       for ( size_t cc = 0; cc < class_cols; ++cc )
       {
@@ -348,12 +348,12 @@ detect( kwiver::vital::image_container_sptr image_data) const
         temp =  d->engine()-> get_variable( "temp_temp" );
         const double c_score = temp->at<double>(0);
 
-        dot->set_score( c_name, c_score );
+        cm->set_score( c_name, c_score );
       } // end for cc
     }
 
-    // Save mask in DOT
-    auto detection = std::make_shared< kwiver::vital::detected_object >( bbox, detections->at<double>(i, 4), dot );
+    // Save mask in DO
+    auto detection = std::make_shared< kwiver::vital::detected_object >( bbox, detections->at<double>(i, 4), cm );
 
     if( mask_entries )
     {

@@ -98,8 +98,8 @@ sprokit_build_tooled_test(process_introspection test_libraries test_process_intr
 set(test_python_path)
 
 if (KWIVER_ENABLE_PYTHON)
-  set(python_module_path
-    "${sprokit_python_output_path}/${CMAKE_CFG_INTDIR}/${kwiver_python_subdir}")
+ set(python_module_path
+    "${kwiver_python_output_path}")
 
   set(cur_python_path
     "$ENV{PYTHONPATH}")

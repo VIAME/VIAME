@@ -135,14 +135,9 @@ endif()
 #
 include( kwiver-utils )
 
-if( KWIVER_ENABLE_PYTHON )
-  set( kwiver_python_subdir "python${PYTHON_VERSION}" )
-  set( kwiver_python_output_path "${KWIVER_BINARY_DIR}/lib/${kwiver_python_subdir}" )
-
-  kwiver_create_python_init( kwiver )
-
-  if( NOT WIN32 )
-    OPTION( KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF )
+if (KWIVER_ENABLE_PYTHON)
+  if (NOT WIN32)
+    OPTION(KWIVER_SYMLINK_PYTHON "Symlink python files instead of copying." OFF)
   endif()
 
   if( NOT KWIVER_ENABLE_C_BINDINGS )
@@ -257,6 +252,9 @@ if (KWIVER_ENABLE_TOOLS)
   add_subdirectory(tools)
 endif()
 
+if (KWIVER_ENABLE_PYTHON)
+  add_subdirectory(python)
+endif()
 ###
 # include as the last subdir
 add_subdirectory( vital )
@@ -335,19 +333,20 @@ configure_file(
 
 kwiver_export_targets("${KWIVER_BINARY_DIR}/kwiver-config-targets.cmake")
 
-kwiver_install(
-  FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
-  DESTINATION "${kwiver_cmake_install_dir}"
-  RENAME      kwiver-config.cmake
-  )
+if(NOT SKBUILD)
+  kwiver_install(
+    FILES       "${KWIVER_CONFIG_INSTALL_FILE}"
+    DESTINATION "${kwiver_cmake_install_dir}"
+    RENAME      kwiver-config.cmake
+    )
 
-kwiver_install(
-  EXPORT      ${kwiver_export_name}
-  NAMESPACE   kwiver::
-  DESTINATION "${kwiver_cmake_install_dir}"
-  FILE        kwiver-config-targets.cmake
-  )
-
+  kwiver_install(
+    EXPORT      ${kwiver_export_name}
+    NAMESPACE   kwiver::
+    DESTINATION "${kwiver_cmake_install_dir}"
+    FILE        kwiver-config-targets.cmake
+    )
+endif()
 ###
 # link compile commands to root of source tree
 if ( CMAKE_EXPORT_COMPILE_COMMANDS )

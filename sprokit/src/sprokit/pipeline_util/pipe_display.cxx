@@ -113,7 +113,9 @@ config_printer
   kwiver::vital::config_block_keys_t const& keys = config_block.key;
   sprokit::config_values_t const& values = config_block.values;
 
-  kwiver::vital::config_block_key_t const key_path = kwiver::vital::join( keys, kwiver::vital::config_block::block_sep );
+  kwiver::vital::config_block_key_t const key_path =
+        kwiver::vital::join( keys,
+                             kwiver::vital::config_block::block_sep() );
 
   // generate pipe level config block
   m_ctxt.m_ostr << "config " << key_path << std::endl;
@@ -184,7 +186,8 @@ key_printer
 {
   const auto& value = config_value.value;
   const auto& keys = config_value.key_path;
-  const auto key_path = kwiver::vital::join( keys, kwiver::vital::config_block::block_sep );
+  const auto key_path = kwiver::vital::join( keys,
+                 kwiver::vital::config_block::block_sep() );
 
   const auto& flags = config_value.flags;
 
