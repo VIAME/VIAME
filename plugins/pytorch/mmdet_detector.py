@@ -91,7 +91,8 @@ class MMDetDetector( ImageObjectDetector ):
 
         gpu_string = 'cuda:' + str( self._gpu_index )
         self._model = init_detector( self._net_config, self._weight_file, device=gpu_string )
-        self._labels = open( self._class_names, "r" ).read().splitlines()
+        with open( self._class_names, "r" ) as in_file:
+            self._labels = in_file.read().splitlines()
 
     def check_configuration( self, cfg ):
         if not cfg.has_value( "net_config" ):
