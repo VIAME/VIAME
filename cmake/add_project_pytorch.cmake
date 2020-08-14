@@ -10,7 +10,6 @@
 CreateDirectory( ${VIAME_BUILD_PREFIX}/src/pytorch-build )
 
 set( PYTORCH_LIBS_TO_BUILD )
-set( COMMON_PYTORCH_PROJECT_DEP fletch python-deps pytorch )
 
 if( VIAME_ENABLE_PYTORCH-INTERNAL )
   set( PYTORCH_LIBS_TO_BUILD ${PYTORCH_LIBS_TO_BUILD} pytorch )
@@ -181,14 +180,18 @@ foreach( LIB ${PYTORCH_LIBS_TO_BUILD} )
     "TMPDIR=${LIBRARY_PIP_TMP_DIR}"
     ${LIBRARY_PIP_INSTALL_CMD} )
 
+  set( COMMON_PYTORCH_PROJECT_DEP  )
+
   if( "${LIB}" STREQUAL "bioharn" )
-    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} netharn )
+    set( PROJECT_DEPS netharn )
   elseif( "${LIB}" STREQUAL "netharn" )
-    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} mmdetection )
+    set( PROJECT_DEPS mmdetection )
   elseif( "${LIB}" STREQUAL "mmdetection" )
-    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} imgaug mmcv torchvision )
+    set( PROJECT_DEPS fletch mmcv torchvision )
+  elseif( "${LIB}" STREQUAL "pytorch" )
+    set( PROJECT_DEPS fletch python-deps )
   else()
-    set( PROJECT_DEPS ${COMMON_PYTORCH_PROJECT_DEP} )
+    set( PROJECT_DEPS fletch python-deps pytorch )
   endif()
 
   ExternalProject_Add( ${LIB}
