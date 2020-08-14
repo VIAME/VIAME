@@ -63,8 +63,8 @@ endif()
 # ---------------------- ADD ANY ADV PYTHON DEPS HERE --------------------------
 # Advanced python dependencies are installed individually due to special reqs
 
-set( VIAME_PYTHON_ADV_DEPS )
-set( VIAME_PYTHON_ADV_DEP_CMDS )
+set( VIAME_PYTHON_ADV_DEPS python-deps )
+set( VIAME_PYTHON_ADV_DEP_CMDS "custom-install" )
 
 if( VIAME_ENABLE_ITK_EXTRAS )
   set( WX_VERSION "4.0.7" )
@@ -170,8 +170,6 @@ set( VIAME_PYTHON_DEPS_DEPS fletch )
 if( VIAME_ENABLE_SMQTK )
   set( VIAME_PYTHON_DEPS_DEPS smqtk ${VIAME_PYTHON_DEPS_DEPS} )
 endif()
-
-list( APPEND VIAME_PYTHON_ADV_DEPS python-deps )
 
 list( LENGTH VIAME_PYTHON_ADV_DEPS DEP_COUNT )
 math( EXPR DEP_COUNT "${DEP_COUNT} - 1" )
