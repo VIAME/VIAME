@@ -90,6 +90,10 @@ setup(
                 'print_number_process=kwiver.sprokit.processes.kw_print_number_process',
                 'homography_writer=kwiver.sprokit.processes.homography_writer',
                 'simple_homog_tracker=kwiver.sprokit.processes.simple_homog_tracker',
+                'alexnet_descriptors=kwiver.sprokit.processes.pytorch.alexnet_descriptors',
+                'resnet_augmentation=kwiver.sprokit.processes.pytorch.resnet_augmentation',
+                'resnet_descriptors=kwiver.sprokit.processes.pytorch.resnet_descriptors',
+                'srnn_tracker=kwiver.sprokit.processes.pytorch.srnn_tracker',
 		'simple_image_object_detector=kwiver.arrows.simple_image_object_detector',
                 ],
             'kwiver.cpp_search_paths': [
