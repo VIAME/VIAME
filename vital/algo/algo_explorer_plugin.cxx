@@ -143,6 +143,7 @@ display_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
     auto all_keys = config->available_values();
 
     m_context->output_stream() << indent << "-- Configuration --" << std::endl;
+    bool any_config { false };
 
     for( auto key : all_keys )
     {
@@ -153,6 +154,12 @@ display_algo( std::shared_ptr< kwiver::vital::algorithm_factory > fact )
       kwiver::vital::config_block_description_t descr = config->get_description( key );
       m_context->output_stream() << indent << "Description: " << m_context->format_description( descr )
                                  << std::endl;
+      any_config = true;
+    }
+
+    if ( !any_config )
+    {
+      m_context->output_stream() << "    No configuration entries\n";
     }
   }
 

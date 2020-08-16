@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,10 +96,7 @@ public:
   {
   }
 
-  ~include_context()
-  {
-  }
-
+  ~include_context() = default;
 
   /**
    * @brief Get name of file.
@@ -218,50 +215,45 @@ public:
 /* ---------------------------------------------------
  * Constructor
  */
-lex_processor::
-lex_processor()
+lex_processor
+::lex_processor()
   : m_logger( kwiver::vital::get_logger( "sprokit.pipe_processor" ) )
-  ,m_priv( new lex_processor::priv )
+  , m_priv( new lex_processor::priv )
 { }
 
-
-lex_processor::
-~lex_processor()
+lex_processor
+::~lex_processor()
 { }
-
 
 // ------------------------------------------------------------------
 void
-lex_processor::
-open_file( const std::string& file_name )
+lex_processor
+::open_file( const std::string& file_name )
 {
   // open file, throw error if open error
   m_priv->m_include_stack.push_back( std::make_shared< include_context >( file_name ) );
 }
 
-
 // ------------------------------------------------------------------
 void
-lex_processor::
-open_stream( std::istream& input, const std::string& file_name )
+lex_processor
+::open_stream( std::istream& input, const std::string& file_name )
 {
   m_priv->m_include_stack.push_back( std::make_shared< include_context >( input, file_name ) );
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::source_location
-lex_processor::
-current_location() const
+lex_processor
+::current_location() const
 {
   return m_priv->current_loc();
 }
 
-
 // ------------------------------------------------------------------
 std::string
-lex_processor::
-get_rest_of_line()
+lex_processor
+::get_rest_of_line()
 {
   std::string line( m_priv->m_cur_char, m_priv->m_input_line.end() );
   kwiver::vital::string_trim( line );
@@ -270,30 +262,27 @@ get_rest_of_line()
   return line;
 }
 
-
 // ------------------------------------------------------------------
 void
-lex_processor::
-flush_line()
+lex_processor
+::flush_line()
 {
   m_priv->flush_line();
 }
 
-
 // ------------------------------------------------------------------
 void
-lex_processor::
-add_search_path( kwiver::vital::config_path_t const& file_path )
+lex_processor
+::add_search_path( kwiver::vital::config_path_t const& file_path )
 {
   m_priv->m_search_path.push_back( file_path );
   LOG_DEBUG( m_logger, "Adding \"" << file_path << "\" to search path" );
 }
 
-
 // ------------------------------------------------------------------
 void
-lex_processor::
-add_search_path( kwiver::vital::config_path_list_t const& file_path )
+lex_processor
+::add_search_path( kwiver::vital::config_path_list_t const& file_path )
 {
   m_priv->m_search_path.insert( m_priv->m_search_path.end(),
                               file_path.begin(), file_path.end() );
@@ -302,11 +291,10 @@ add_search_path( kwiver::vital::config_path_list_t const& file_path )
              << "\" to search path" );
 }
 
-
 // ------------------------------------------------------------------
 void
-lex_processor::
-unget_token( token_sptr token )
+lex_processor
+::unget_token( token_sptr token )
 {
   m_priv->m_token_stack.push_back( token );
 
@@ -315,11 +303,10 @@ unget_token( token_sptr token )
 #endif
 }
 
-
 // ---------------------------------------------------
 token_sptr
-lex_processor::
-get_token()
+lex_processor
+::get_token()
 {
   auto t = get_next_token();
 
@@ -330,11 +317,10 @@ get_token()
   return t;
 }
 
-
 // ---------------------------------------------------
 token_sptr
-lex_processor::
-get_next_token()
+lex_processor
+::get_next_token()
 {
   // First check the token stack
   if ( ! m_priv->m_token_stack.empty() )
@@ -406,9 +392,18 @@ get_next_token()
       // Look for cluster documentation. "--"
       if ( ( '-' == c ) && ( '-' == n ) )
       {
-        // Collect description text from after token to EOL
-        std::string text( m_priv->m_cur_char + 1, m_priv->m_input_line.end() );
-        kwiver::vital::string_trim( text );
+        std::string text;
+        if ( m_priv->m_cur_char != m_priv->m_input_line.end() )
+        {
+          // Collect description text from after token to EOL
+          text = std::string{ m_priv->m_cur_char + 1, m_priv->m_input_line.end() };
+          kwiver::vital::string_trim( text );
+        }
+        else
+        {
+          text = "\n"; // blank line causes line break
+        }
+
         t = std::make_shared< token > ( TK_CLUSTER_DESC, text );
         t->set_location( current_location() );
 
@@ -484,11 +479,10 @@ get_next_token()
   return get_next_token();
 } // lex_processor::get_next_token
 
-
 // ----------------------------------------------------------------------------
 bool
-lex_processor::
-get_next_line()
+lex_processor
+::get_next_line()
 {
   // get new line
   while ( !m_priv->get_line() )
@@ -552,28 +546,25 @@ get_next_line()
   return true;
 }
 
-
 // ------------------------------------------------------------------
 void
-lex_processor::
-absorb_eol( bool opt )
+lex_processor
+::absorb_eol( bool opt )
 {
   m_priv->m_absorb_eol = opt;
 }
 
-
 // ------------------------------------------------------------------
 void
-lex_processor::
-absorb_whitespace( bool opt )
+lex_processor
+::absorb_whitespace( bool opt )
 {
   m_priv->m_absorb_whitespace = opt;
 }
 
-
 // ==================================================================
-lex_processor::priv::
-priv()
+lex_processor::priv
+::priv()
   : m_absorb_eol( true )
   , m_absorb_whitespace( true )
 {
@@ -604,11 +595,10 @@ priv()
   m_token_expander.add_token_type( new kwiver::vital::token_type_sysenv() );
 }
 
-
 // ------------------------------------------------------------------
 token_sptr
-lex_processor::priv::
-process_id()
+lex_processor::priv
+::process_id()
 {
   int a;
 
@@ -642,7 +632,6 @@ process_id()
   return t;
 }
 
-
 //------------------------------------------------------------------
 /*
  * This function returns the token that is associated with
@@ -650,8 +639,8 @@ process_id()
  * TK_IDENTIFIER token is returned.
  */
 int
-lex_processor::priv::
-find_res_word( const std::string& n ) const
+lex_processor::priv
+::find_res_word( const std::string& n ) const
 {
   if ( m_keyword_table.count( n )  > 0 )
   {
@@ -661,22 +650,20 @@ find_res_word( const std::string& n ) const
   return TK_IDENTIFIER;     // not in table
 }
 
-
 // ------------------------------------------------------------------
 kwiver::vital::source_location
-lex_processor::priv::
-current_loc() const
+lex_processor::priv
+::current_loc() const
 {
   // Get current location from the include file stack top element
   return kwiver::vital::source_location( m_include_stack.back()->m_filename,
            static_cast<int>(m_include_stack.back()->m_reader.line_number()) );
 }
 
-
 // ------------------------------------------------------------------
 bool
-lex_processor::priv::
-get_line()
+lex_processor::priv
+::get_line()
 {
   bool status = m_include_stack.back()->m_reader.getline( m_input_line );
 
@@ -688,7 +675,6 @@ get_line()
   return status;
 }
 
-
 // ------------------------------------------------------------------
 /**
  * @brief Flush remaining line in parser.
@@ -697,13 +683,12 @@ get_line()
  * idempotent in that multiple calls will not flush multiple lines.
  */
 void
-lex_processor::priv::
-flush_line()
+lex_processor::priv
+::flush_line()
 {
   m_input_line.clear();
   m_cur_char = m_input_line.end();
 }
-
 
 // ------------------------------------------------------------------
 /**
@@ -722,8 +707,8 @@ flush_line()
  * @return Full file path, or empty string on failure.
  */
 kwiver::vital::config_path_t
-lex_processor::priv::
-resolve_file_name( kwiver::vital::config_path_t const& file_name )
+lex_processor::priv
+::resolve_file_name( kwiver::vital::config_path_t const& file_name )
 {
   // Test for absolute file name
   if ( kwiversys::SystemTools::FileIsFullPath( file_name ) )
