@@ -408,7 +408,6 @@ def __sprokit_register__():
     from sprokit.pipeline import process_factory
 
     module_name = 'python_' + __name__
-    print("REGISTER MY CAMTRAWL MODULE: {}, {}".format(module_name, __file__))
 
     # module_name = 'python:camtrawl.processes'
     # module_name = 'python' + __name__
