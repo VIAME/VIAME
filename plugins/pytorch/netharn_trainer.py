@@ -268,8 +268,7 @@ class NetHarnTrainer( TrainDetector ):
                      "--schedule=ReduceLROnPlateau-p3-c3",
                      "--input_dims=" + self._chip_width + "," + self._chip_width ]
         else:
-            cmd += [ "python.exe" if os.name == 'nt' else "python",
-                     "bioharn.detect_fit",
+            cmd += [ "bioharn.detect_fit",
                      "--nice=" + self._identifier,
                      "--arch=cascade",
                      "--lr=1e-3",
