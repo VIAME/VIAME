@@ -44,7 +44,7 @@ import random
 
 import numpy as np
 import cv2
-from vital.types import BoundingBox
+from kwiver.vital.types import BoundingBox
 
 from .parse_gpu_list import get_device
 

@@ -34,14 +34,14 @@ from __future__ import absolute_import
 import sys
 import threading
 
-from sprokit.pipeline import process
-from kwiver.kwiver_process import KwiverProcess
-from vital.types import DetectedObject, DetectedObjectSet
-from vital.types import new_descriptor
+from kwiver.sprokit.pipeline import process
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.vital.types import DetectedObject, DetectedObjectSet
+from kwiver.vital.types import new_descriptor
 
 from timeit import default_timer as timer
 
-from vital.util.VitalPIL import get_pil_image
+from kwiver.vital.util.VitalPIL import get_pil_image
 
 from .utils.grid import Grid
 from .utils.resnet_feature_extractor import ResnetFeatureExtractor
@@ -170,7 +170,7 @@ class ResnetDescriptors(KwiverProcess):
 
 # ==================================================================
 def __sprokit_register__():
-    from sprokit.pipeline import process_factory
+    from kwiver.sprokit.pipeline import process_factory
 
     module_name = 'python:kwiver.pytorch.resnet_descriptors'
 

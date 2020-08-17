@@ -38,7 +38,7 @@ from torchvision import transforms
 
 from PIL import Image as pilImage
 
-from vital.types import BoundingBox
+from kwiver.vital.types import BoundingBox
 from .models import Siamese
 from .parse_gpu_list import get_device
 

@@ -40,7 +40,7 @@ from torchvision import models, transforms, datasets
 from PIL import Image as pilImage
 
 from .parse_gpu_list import get_device
-from vital.types import BoundingBox
+from kwiver.vital.types import BoundingBox
 
 class AlexNetDataLoader( data.Dataset ):
     def __init__( self, bbox_list, transform, frame_img, in_size ):

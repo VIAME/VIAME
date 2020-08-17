@@ -46,16 +46,16 @@ import threading
 
 from PIL import Image as pilImage
 
-from sprokit.pipeline import process
-from sprokit.pipeline import datum
-from kwiver.kwiver_process import KwiverProcess
-from vital.types import Image
-from vital.types import DetectedObject, DetectedObjectSet
-from vital.types import new_descriptor, DescriptorSet
+from kwiver.sprokit.pipeline import process
+from kwiver.sprokit.pipeline import datum
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
+from kwiver.vital.types import Image
+from kwiver.vital.types import DetectedObject, DetectedObjectSet
+from kwiver.vital.types import new_descriptor, DescriptorSet
 
 from timeit import default_timer as timer
 
-from vital.util.VitalPIL import get_pil_image
+from kwiver.vital.util.VitalPIL import get_pil_image
 
 from .utils.grid import Grid
 from .utils.augmented_resnet_feature_extractor import AugmentedResnetFeatureExtractor
@@ -289,7 +289,7 @@ class DataAugmentation(KwiverProcess):
 
 # ==================================================================================
 def __sprokit_register__():
-    from sprokit.pipeline import process_factory
+    from kwiver.sprokit.pipeline import process_factory
 
     module_name = 'python:kwiver.pytorch.resnet_augmentation'
 

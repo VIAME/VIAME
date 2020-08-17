@@ -44,16 +44,16 @@ import scipy.optimize
 from timeit import default_timer as timer
 from PIL import Image as pilImage
 
-from sprokit.pipeline import process
-from kwiver.kwiver_process import KwiverProcess
+from kwiver.sprokit.pipeline import process
+from kwiver.sprokit.processes.kwiver_process import KwiverProcess
 
-from vital.types import Image
-from vital.types import DetectedObject, DetectedObjectSet
-from vital.types import ObjectTrackState, Track, ObjectTrackSet
-from vital.types import new_descriptor
+from kwiver.vital.types import Image
+from kwiver.vital.types import DetectedObject, DetectedObjectSet
+from kwiver.vital.types import ObjectTrackState, Track, ObjectTrackSet
+from kwiver.vital.types import new_descriptor
 
 from .utils.track import track_state, track, track_set
-from vital.util.VitalPIL import get_pil_image
+from kwiver.vital.util.VitalPIL import get_pil_image
 
 from .utils.models import Siamese
 from .utils.grid import Grid
@@ -432,7 +432,7 @@ class SRNNTracker(KwiverProcess):
 
 # ==================================================================
 def __sprokit_register__():
-    from sprokit.pipeline import process_factory
+    from kwiver.sprokit.pipeline import process_factory
 
     module_name = 'python:kwiver.pytorch.SRNNTracker'
 
