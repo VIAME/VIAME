@@ -32,7 +32,7 @@ process full_frame_generator
   :detector:full_frame:detection_type          unannotated_frame
 
 connect from downsampler.output_1
-        to   detector.image
+        to   full_frame_generator.image
 
 process detector_merger
   :: merge_detection_sets
