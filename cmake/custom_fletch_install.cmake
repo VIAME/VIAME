@@ -51,7 +51,8 @@ if( PYTHON_VERSION )
   endif()
 
   if( VIAME_ENABLE_OPENCV )
-    file( COPY ${VIAME_CMAKE_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
+    set( PATCH_DIR ${VIAME_CMAKE_DIR}/../packages/patches/fletch )
+    file( COPY ${PATCH_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
   endif()
 endif()
 
