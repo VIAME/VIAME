@@ -253,6 +253,11 @@ class SingleHomographyEstimator:
         inlier_matches = kvt.MatchSet([
             m for i, m in zip(inliers, matches.matches()) if i
         ])
+        vet_homography(homog, inlier_matches, source_features, target_features)
+        # XXX MatchSet doesn't implemented __len__
+        # XXX Hard-coded value
+        if inlier_matches.size() < 10:
+            return None
         return homog, inlier_matches
 
 class FeatureAndDescriptorComputer:
@@ -339,6 +344,29 @@ def compose_homographies(second, first):
                                      first.from_id, first.to_id)
         else:
             return second * first
+
+def vet_homography(homog, inlier_matches, source_features, target_features):
+    sf, tf = source_features.features(), target_features.features()
+    sp, tp = [], []
+    for si, ti in inlier_matches.matches():
+        sp.append(sf[si].location)
+        tp.append(tf[ti].location)
+    return _vet_homography(homog.matrix(), sp, tp)
+
+def _vet_homography(homog, source_points, target_points):
+    import numpy as np
+    def norm(h): return h / h[2, 2]
+    def conform(ps):
+        return np.concatenate((ps, np.ones((len(ps), 1))), 1).T
+    def message(count, total, name):
+        print(f'{count}/{total} {name} points transformed out-of-camera!')
+    def vet(homog, ps, name):
+        tps = norm(homog) @ conform(ps)
+        c = np.count_nonzero(tps[2] <= 0)
+        # XXX matches hard-coded value above
+        if c or len(ps) < 10: message(c, len(ps), name)
+    vet(homog, source_points, 'source')
+    vet(np.linalg.inv(homog), target_points, 'target')
 
 def add_declare_input_port(process, name, type, flag, desc):
     process.add_port_trait(name, type, desc)
