@@ -197,6 +197,37 @@ compute_g(const vil_image_view<double> &ref_img,
 
 //*****************************************************************************
 
+/// Compute the number of depth slices needed to properly sample the data
+double
+compute_depth_sampling(world_space const& ws,
+  std::vector<vpgl_perspective_camera<double> > const& cameras)
+{
+  double max_dist = 0.0;
+  for (unsigned i = 0; i < 3; ++i)
+  {
+    for (unsigned j = 0; j < 3; ++j)
+    {
+      auto near = ws.point_at_depth_on_axis((ws.ni() * i) / 2,
+                                            (ws.nj() * j) / 2, 0.0);
+      auto far = ws.point_at_depth_on_axis((ws.ni() * i) / 2,
+                                           (ws.nj() * j) / 2, 1.0);
+      for (auto const& cam : cameras)
+      {
+        auto p1 = cam.project(vgl_homg_point_3d<double>(near[0], near[1], near[2]));
+        auto p2 = cam.project(vgl_homg_point_3d<double>(far[0], far[1], far[2]));
+        double dist = (p2 - p1).length();
+        if (dist > max_dist)
+        {
+          max_dist = dist;
+        }
+      }
+    }
+  }
+  return max_dist;
+}
+
+//*****************************************************************************
+
 void
 save_cost_volume(const vil_image_view<double> &cost_volume,
                       const vil_image_view<double> &g_weight,

@@ -69,14 +69,14 @@ class compute_depth::priv
 public:
   /// Constructor
   priv()
-    : S(30),
-      theta0(1.0),
+    : theta0(1.0),
       theta_end(0.001),
       lambda(0.65),
       gw_alpha(20),
       epsilon(0.01),
       iterations(2000),
       world_plane_normal(0.0, 0.0, 1.0),
+      depth_sample_rate(0.5),
       callback_interval(-1),    //default is no callback
       callback(NULL),
       m_logger(vital::get_logger("arrows.super3d.compute_depth"))
@@ -91,7 +91,6 @@ public:
                                                        double depth_min, double depth_max,
                                                        vital::bounding_box<int> const& roi);
 
-  unsigned int S;
   double theta0;
   double theta_end;
   double lambda;
@@ -99,9 +98,11 @@ public:
   double epsilon;
   unsigned int iterations;
   vnl_double_3 world_plane_normal;
+  double depth_sample_rate;
   int callback_interval;
 
   double depth_min, depth_max;
+  unsigned int num_slices;
 
   vpgl_perspective_camera<double> ref_cam;
 
@@ -150,7 +151,11 @@ compute_depth::get_configuration() const
                     "up direction in world space");
   config->set_value("callback_interval", d_->callback_interval,
                     "number of iterations between updates (-1 turns off updates)");
-  config->set_value("num_slices", d_->S, "Number of depth slices");
+  config->set_value("depth_sample_rate", d_->depth_sample_rate,
+                    "Specifies the maximum sampling rate, in pixels, of the "
+                    "depth steps projected into support views.  This rate "
+                    "determines the number of depth slices in the cost "
+                    "volume.  Smaller values create more depth slices.");
 
   return config;
 }
@@ -175,7 +180,8 @@ compute_depth::set_configuration(vital::config_block_sptr in_config)
   d_->epsilon = config->get_value<double>("epsilon", d_->epsilon);
   d_->callback_interval = config->get_value<double>("callback_interval",
                                                     d_->callback_interval);
-  d_->S = config->get_value<unsigned int>("num_slices", d_->S);
+  d_->depth_sample_rate = config->get_value<double>("depth_sample_rate",
+                                                    d_->depth_sample_rate);
 
   std::istringstream ss(config->get_value<std::string>("world_plane_normal",
                                                        "0 0 1"));
@@ -283,6 +289,10 @@ compute_depth
 
   std::unique_ptr<world_space> ws = d_->compute_world_space_roi(cameras[ref_frame], frames[ref_frame], depth_min, depth_max, roi);
 
+  double depth_sampling = compute_depth_sampling(*ws, cameras) /
+                            d_->depth_sample_rate;
+  d_->num_slices = static_cast<unsigned int>(depth_sampling);
+
   d_->ref_cam = cameras[ref_frame];
   vil_image_view<double> g;
   vil_image_view<double> cost_volume;
@@ -290,7 +300,7 @@ compute_depth
   cost_volume_callback_t cv_callback = std::bind1st(std::mem_fun(
     &compute_depth::priv::cost_volume_update_callback), this->d_.get());
   if (!compute_world_cost_volume(frames, cameras, ws.get(), ref_frame,
-                                 d_->S, cost_volume,
+                                 d_->num_slices, cost_volume,
                                  cv_callback, masks))
   {
     // user terminated processing early through the callback
@@ -383,9 +393,9 @@ compute_depth::priv
 {
   if (this->callback)
   {
-    unsigned percent_complete = (50 * slice_num) / this->S;
+    unsigned percent_complete = (50 * slice_num) / this->num_slices;
     std::stringstream ss;
-    ss << "Computing cost volume slice " << slice_num << " of " << this->S;
+    ss << "Computing cost volume slice " << slice_num << " of " << this->num_slices;
     // TODO Check if this can be the real uncertainty
     return this->callback(nullptr, ss.str(), percent_complete, nullptr);
   }
