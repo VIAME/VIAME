@@ -195,6 +195,7 @@ def main_multi(
     if zoom is not None:
         rel_homogs = np.diag([zoom, zoom, 1]) @ rel_homogs
     skio.imsave(out_file, paste_many(rel_homogs, images, im0))
+    () = images  # Finally move the progress bar to 100%
 
 def create_parser():
     p = argparse.ArgumentParser()
