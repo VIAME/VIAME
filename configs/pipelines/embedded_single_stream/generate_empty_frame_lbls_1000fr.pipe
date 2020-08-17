@@ -1,0 +1,38 @@
+# ============================== GLOBAL PROPERTIES =================================
+# global pipeline config
+#
+config _pipeline:_edge
+   :capacity                                   5
+
+# ==================================================================================
+process in_adapt
+ :: input_adapter
+
+process out_adapt
+ :: output_adapter
+
+# =================================== DETECTOR =====================================
+
+process detector
+  :: image_object_detector
+  :detector:type                               full_frame
+  :detector:full_frame:detection_type          unannotated_frame
+
+connect from in_adapt.image
+        to   detector.image
+
+# ==================================================================================
+
+process full_frame_tracker
+  :: image_object_detector
+  :fixed_frame_count                           1000
+
+connect from in_adapt.timestamp
+        to   full_frame_tracker.timestamp
+connect from detector.detected_object_set
+        to   full_frame_tracker.detected_object_set
+
+connect from full_frame_tracker.object_track_set
+        to   out_adapt.object_track_set
+
+# -- end of file --

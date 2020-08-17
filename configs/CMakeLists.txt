@@ -173,12 +173,16 @@ set( CORE_PIPELINE_FILES
   pipelines/filter_split_and_debayer.pipe
   pipelines/filter_to_kwa.pipe
   pipelines/full_frame_classifier_svm.pipe
-  pipelines/generate_empty_frame_lbls.pipe
+  pipelines/generate_empty_frame_lbls_1fr.pipe
+  pipelines/generate_empty_frame_lbls_10fr.pipe
+  pipelines/generate_empty_frame_lbls_100fr.pipe
+  pipelines/generate_empty_frame_lbls_1000fr.pipe
   pipelines/index_default.pipe
   pipelines/index_default.svm.pipe
   pipelines/index_default.trk.pipe
   pipelines/index_existing.pipe
   pipelines/index_full_frame.pipe
+  pipelines/index_full_frame.svm.pipe
   pipelines/measurement_default.trk.pipe
   pipelines/measurement_depth_map.pipe
   pipelines/measurement.gmm_only.pipe
@@ -218,7 +222,10 @@ if( VIAME_ENABLE_VIVIA )
   set( GUI_PIPELINE_FILES
     pipelines/embedded_single_stream/default_detector.pipe
     pipelines/embedded_single_stream/default_tracker.pipe
-    pipelines/embedded_single_stream/generate_empty_frame_lbls.pipe
+    pipelines/embedded_single_stream/generate_empty_frame_lbls_1fr.pipe
+    pipelines/embedded_single_stream/generate_empty_frame_lbls_10fr.pipe
+    pipelines/embedded_single_stream/generate_empty_frame_lbls_100fr.pipe
+    pipelines/embedded_single_stream/generate_empty_frame_lbls_1000fr.pipe
     pipelines/embedded_single_stream/generic_detector.pipe
     pipelines/embedded_single_stream/generic_tracker.pipe
     pipelines/embedded_single_stream/local_deep_detector.pipe
