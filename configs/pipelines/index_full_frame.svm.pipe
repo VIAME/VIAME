@@ -19,24 +19,27 @@ process detection_reader
   :: detected_object_input
   :file_name                                   [INSERT_ME]
   :reader:type                                 viame_csv
-  :reader:viame_csv:confidence_override        0.15
+  :reader:viame_csv:confidence_override        1.0
 
 connect from downsampler.output_2
         to   detection_reader.image_file_name
 
 # =================================== DETECTOR =====================================
 
-include common_generic_detector.pipe
+process full_frame_generator
+  :: image_object_detector
+  :detector:type                               full_frame
+  :detector:full_frame:detection_type          unannotated_frame
 
 connect from downsampler.output_1
-        to   detector_input.image
+        to   detector.image
 
 process detector_merger
   :: merge_detection_sets
 
 connect from detection_reader.detected_object_set
         to   detector_merger.detected_object_set1
-connect from detector_output.detected_object_set
+connect from full_frame_generator.detected_object_set
         to   detector_merger.detected_object_set2
 
 process nms_refiner
