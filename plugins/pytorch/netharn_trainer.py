@@ -280,6 +280,9 @@ class NetHarnTrainer( TrainDetector ):
                      "--multiscale=True",
                      "--bstep=4" ]
 
+            if len( self._backbone ) > 0:
+                cmd.append( "--backbone_init=" + self._backbone )
+
         cmd += [ "--train_dataset=" + self._training_file,
                  "--vali_dataset=" + self._validation_file,
                  "--workdir=" + self._train_directory,
@@ -294,9 +297,6 @@ class NetHarnTrainer( TrainDetector ):
                  "--timeout=" + self._timeout,
                  "--channels=rgb",
                  "--sampler_backend=none" ]
-
-            if len( self._backbone ) > 0:
-                cmd.append( "--backbone_init=" + self._backbone )
 
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )
