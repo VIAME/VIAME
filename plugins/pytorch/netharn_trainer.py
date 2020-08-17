@@ -327,9 +327,9 @@ class NetHarnTrainer( TrainDetector ):
         if len( self._pipeline_template ) > 0:
             # Copy model file to final directory
             if self._mode == "frame_classifier":
-                output_model_name = "trained_detector.zip"
-            else:
                 output_model_name = "trained_classifier.zip"
+            else:
+                output_model_name = "trained_detector.zip"
 
             final_model = os.path.join( self._train_directory,
               "fit", "nice", self._identifier, "deploy.zip" )
