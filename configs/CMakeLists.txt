@@ -322,7 +322,8 @@ if( VIAME_ENABLE_PYTORCH-NETHARN )
     pipelines/train_netharn_cascade.viame_csv.conf
     pipelines/train_netharn_cascade.habcam.conf
     pipelines/train_netharn_cascade_nf.viame_csv.conf
-    pipelines/train_netharn_cascade_wtf.viame_csv.conf )
+    pipelines/train_netharn_cascade_wtf.viame_csv.conf
+    pipelines/train_netharn_resnet.viame_csv.conf )
 endif()
 
 if( VIAME_ENABLE_PYTORCH AND VIAME_ENABLE_PYTORCH-PYSOT )

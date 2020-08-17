@@ -62,7 +62,8 @@ class NetHarnTrainer( TrainDetector ):
     def __init__( self ):
         TrainDetector.__init__( self )
 
-        self._config_file = "bioharn-det-v14-cascade"
+        self._identifier = "bioharn-det-v14-cascade"
+        self._mode = "detector"
         self._seed_model = ""
         self._train_directory = "deep_training"
         self._output_directory = "category_models"
@@ -88,7 +89,8 @@ class NetHarnTrainer( TrainDetector ):
         # Inherit from the base class
         cfg = super( TrainDetector, self ).get_configuration()
 
-        cfg.set_value( "config_file", self._config_file )
+        cfg.set_value( "identifier", self._identifier )
+        cfg.set_value( "mode", self._mode )
         cfg.set_value( "seed_model", self._seed_model )
         cfg.set_value( "train_directory", self._train_directory )
         cfg.set_value( "output_directory", self._output_directory )
@@ -113,7 +115,8 @@ class NetHarnTrainer( TrainDetector ):
         cfg.merge_config( cfg_in )
 
         # Read configs from file
-        self._config_file = str( cfg.get_value( "config_file" ) )
+        self._identifier = str( cfg.get_value( "identifier" ) )
+        self._mode = str( cfg.get_value( "mode" ) )
         self._seed_model = str( cfg.get_value( "seed_model" ) )
         self._train_directory = str( cfg.get_value( "train_directory" ) )
         self._output_directory = str( cfg.get_value( "output_directory" ) )
@@ -144,13 +147,25 @@ class NetHarnTrainer( TrainDetector ):
                 else:
                     gpu_memory_available = min( gpu_memory_available, single_gpu_mem )
 
-        if self._batch_size == "auto":
-            if gpu_memory_available > 9e9:
-                self._batch_size = "4"
-            elif gpu_memory_available >= 7e9:
-                self._batch_size = "3"
-            else:
-                self._batch_size = "2"
+        if self._mode == "detector":
+            if self._batch_size == "auto":
+                if gpu_memory_available > 9e9:
+                    self._batch_size = "4"
+                elif gpu_memory_available >= 7e9:
+                    self._batch_size = "3"
+                else:
+                    self._batch_size = "2"
+        elif self._mode == "frame_classifier":
+            if self._batch_size == "auto":
+                if gpu_memory_available > 9e9:
+                    self._batch_size = "8"
+                elif gpu_memory_available >= 7e9:
+                    self._batch_size = "6"
+                else:
+                    self._batch_size = "4"
+        else:
+            print( "Invalid mode string " + self._mode )
+            return False
 
         # Make required directories and file streams
         if self._train_directory is not None:
@@ -186,9 +201,9 @@ class NetHarnTrainer( TrainDetector ):
         self._sample_count = 0
 
     def check_configuration( self, cfg ):
-        if not cfg.has_value( "config_file" ) or \
-          len( cfg.get_value( "config_file") ) == 0:
-            print( "A config file must be specified!" )
+        if not cfg.has_value( "identifier" ) or \
+          len( cfg.get_value( "identifier") ) == 0:
+            print( "A model identifier must be specified!" )
             return False
         return True
 
@@ -243,42 +258,52 @@ class NetHarnTrainer( TrainDetector ):
 
         gpu_string = ','.join([ str(i) for i in range(0,self._gpu_count) ])
 
-        cmd = [ "python.exe" if os.name == 'nt' else "python",
-                "-m",
-                "bioharn.detect_fit",
-                "--nice=" + self._config_file,
-                "--train_dataset=" + self._training_file,
-                "--vali_dataset=" + self._validation_file,
-                "--workdir=" + self._train_directory,
-                "--schedule=ReduceLROnPlateau-p2-c2",
-                "--augment=complex",
-                "--init=noop",
-                "--arch=cascade",
-                "--optim=sgd",
-                "--lr=1e-3",
-                "--max_epoch=" + self._max_epochs,
-                "--input_dims=window",
-                "--window_dims=" + self._chip_width + "," + self._chip_width,
-                "--window_overlap=" + self._chip_overlap,
-                "--multiscale=True",
-                "--normalize_inputs=True",
-                "--workers=4",
-                "--sampler_backend=none",
-                "--xpu=" + gpu_string,
-                "--batch_size=" + self._batch_size,
-                "--bstep=4",
-                "--timeout=" + self._timeout,
-                "--channels=rgb" ]
+        cmd = [ "python.exe" if os.name == 'nt' else "python", "-m" ]
 
-        if len( self._backbone ) > 0:
-            cmd.append( "--backbone_init=" + self._backbone )
+        if self._mode == "frame_classifier":
+            cmd += [ "bioharn.clf_fit",
+                     "--name=" + self._identifier,
+                     "--arch=resnet50",
+                     "--lr=0.5e-3",
+                     "--schedule=ReduceLROnPlateau-p3-c3",
+                     "--input_dims=" + self._chip_width + "," + self._chip_width ]
+        else:
+            cmd += [ "python.exe" if os.name == 'nt' else "python",
+                     "bioharn.detect_fit",
+                     "--nice=" + self._identifier,
+                     "--arch=cascade",
+                     "--lr=1e-3",
+                     "--schedule=ReduceLROnPlateau-p2-c2",
+                     "--input_dims=window",
+                     "--window_dims=" + self._chip_width + "," + self._chip_width,
+                     "--window_overlap=" + self._chip_overlap,
+                     "--multiscale=True",
+                     "--bstep=4" ]
+
+        cmd += [ "--train_dataset=" + self._training_file,
+                 "--vali_dataset=" + self._validation_file,
+                 "--workdir=" + self._train_directory,
+                 "--xpu=" + gpu_string,
+                 "--workers=4",
+                 "--augmenter=complex",
+                 "--normalize_inputs=True",
+                 "--init=noop",
+                 "--optim=sgd",
+                 "--max_epoch=" + self._max_epochs,
+                 "--batch_size=" + self._batch_size,
+                 "--timeout=" + self._timeout,
+                 "--channels=rgb",
+                 "--sampler_backend=none" ]
+
+            if len( self._backbone ) > 0:
+                cmd.append( "--backbone_init=" + self._backbone )
 
         if len( self._seed_model ) > 0:
             cmd.append( "--pretrained=" + self._seed_model )
 
         if threading.current_thread().__class__.__name__ == '_MainThread':
-          signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
-          signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
+            signal.signal( signal.SIGINT, lambda signal, frame: self.interupt_handler() )
+            signal.signal( signal.SIGTERM, lambda signal, frame: self.interupt_handler() )
 
         self.proc = subprocess.Popen( cmd )
         self.proc.wait()
@@ -302,10 +327,13 @@ class NetHarnTrainer( TrainDetector ):
     def save_final_model( self ):
         if len( self._pipeline_template ) > 0:
             # Copy model file to final directory
-            output_model_name = "trained_detector.zip"
+            if self._mode == "frame_classifier":
+                output_model_name = "trained_detector.zip"
+            else:
+                output_model_name = "trained_classifier.zip"
 
             final_model = os.path.join( self._train_directory,
-              "fit", "nice", self._config_file, "deploy.zip" )
+              "fit", "nice", self._identifier, "deploy.zip" )
             output_model = os.path.join( self._output_directory,
               output_model_name )
 
