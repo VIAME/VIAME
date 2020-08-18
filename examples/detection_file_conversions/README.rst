@@ -22,7 +22,7 @@ Integrated Detection Formats
 |  A subset of the output ASCII formats already integrated into VIAME is listed below.
 |  New formats can be integrated to the system by implementing a derived version of the
 |  vital::detected_object_set_input or vital::read_object_track_set classes in C++ or
-|  python which produce either detected_object_sets or object_track_sets, respectively.
+|  python, which produce either detected_object_sets or object_track_sets, respectively.
 |
 | **VIAME CSV - System Default Comma Seperated Value Detection Format**
 |
