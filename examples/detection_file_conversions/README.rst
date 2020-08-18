@@ -101,7 +101,7 @@ Integrated Detection Formats
 |
 |  The habcam reader/writer can be specified in config files using 'habcam'.
 |
-| **KW18 - Kitware KW18 Column Seperated Track Format**
+| **KW18 (Deprecated) - Kitware KW18 Column Seperated Track Format**
 |
 |  KW18s are a space seperated file format for representing detections or tracks.
 |
