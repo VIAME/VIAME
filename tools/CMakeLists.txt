@@ -20,6 +20,7 @@ if( VIAME_ENABLE_OPENCV )
   set( PYTHON_SCRIPTS
     ${PYTHON_SCRIPTS}
     calibrate_cameras.py
+    create_mosaic.py
     compute_depth.py
     compute_disparity.py
     ply_utilities.py
