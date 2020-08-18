@@ -135,7 +135,7 @@ Integrated Detection Formats
 Example Conversions
 *******************
 
-| There are multiple ways to perform format conversions, either using KWIVER
-| pipelines with reader/writer nodes (e.g. see pipelines directory) or using
-| quick standalone scripts (see scripts). Conversion pipelines are simple,
-| containing a detection input node (reader) and output node (writer).
+| There are multiple ways to perform format conversions, either using KWIVER pipelines
+| with reader/writer nodes (e.g. see pipelines directory) or using quick standalone
+| scripts (see scripts). Conversion pipelines are simple, containing a detection input
+| node (reader) and output node (writer).
