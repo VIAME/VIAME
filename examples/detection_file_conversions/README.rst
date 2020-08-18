@@ -3,8 +3,8 @@
 Detection File Formats and Conversions
 ======================================
 
-| This document corresponds to `this example online`_, in addition to the
-| detection_file_conversions example folder in a VIAME installation.
+| This document corresponds to `this example online`_, in addition to the "detection file
+| conversions" example folder in a VIAME installation.
 |
 | This folder contains examples of different formats which VIAME supports, and additionally
 | how to convert between textual formats representing object detections, tracks, results,
