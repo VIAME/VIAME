@@ -52,7 +52,10 @@ Integrated Detection Formats
 |   - 10,11+  : class-name, score (this pair may be omitted or repeated)
 |
 |  There can be as many class, score pairs as necessary (e.g. fields 12 and 13, 14
-|  and 15, etc...).
+|  and 15, etc...). In the case of tracks, which may span multiple lines and thus
+|  have multiple probabilities per line, the probabilities from the last state in
+|  the track should be treated as the aggregate probability for the track and it's
+|  okay for prior states to have no probability to prevent respecifying it.
 |
 |  Lastly, optional categorical values associated with each detection in the file
 |  after species/class pairs. Attributes are given via a keyword followed by any
@@ -126,9 +129,8 @@ Integrated Detection Formats
 |    - 7: detection confidence
 |    - 8,9+  : class-name  score (this pair may be omitted or repeated)
 |
-|  The kwiver reader/writer can be specified in config files using 'csv'.
-|
-|  We reccomend you don't use it for anything.
+|  The kwiver reader/writer can be specified in config files using 'csv'. We reccomend
+|  you don't use it for anything.
 |
 
 *******************
@@ -136,6 +138,7 @@ Example Conversions
 *******************
 
 | There are multiple ways to perform format conversions, either using KWIVER pipelines
-| with reader/writer nodes (e.g. see pipelines directory) or using quick standalone
-| scripts (see scripts). Conversion pipelines are simple, containing a detection input
-| node (reader) and output node (writer).
+| with reader/writer nodes (e.g. see pipelines directory in this example directory) or
+| using quick standalone scripts (see scripts). Conversion pipelines are simple,
+| containing a detection input node (reader) and output node (writer) and can be run 
+| with the 'kwiver runner' command line tool.
