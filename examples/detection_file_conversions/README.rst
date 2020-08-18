@@ -6,12 +6,12 @@ Detection File Formats and Conversions
 | This document corresponds to `this example online`_, in addition to the
 | detection_file_conversions example folder in a VIAME installation.
 |
-| This folder contains examples of different formats which VIAME supports, and
-| additionally how to convert between textual formats representing object detections,
-| tracks, results, etc. There are multiple ways to perform format conversions, either
-| using KWIVER pipelines with reader/writer nodes (e.g. see pipelines directory) or
-| using quick standalone scripts (see scripts). Conversion pipelines are simple,
-| containing a detection input node (reader) and output node (writer).
+| This folder contains examples of different formats which VIAME supports, and additionally
+| how to convert between textual formats representing object detections, tracks, results,
+| etc. There are multiple ways to perform format conversions, either using KWIVER pipelines
+| with reader/writer nodes (e.g. see pipelines directory) or using quick standalone 
+| scripts (see scripts). Conversion pipelines are simple, containing a detection input
+| node (reader) and output node (writer).
 
 .. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/detection_file_conversions
 
@@ -135,8 +135,7 @@ Integrated Detection Formats
 Example Conversions
 *******************
 
-There are multiple ways to perform format conversions, either using KWIVER
-pipelines with reader/writer nodes (e.g. see pipelines directory) or
-using quick standalone scripts (see scripts). Conversion pipelines
-are simple, containing a detection input node (reader) and output
-node (writer).
+| There are multiple ways to perform format conversions, either using KWIVER
+| pipelines with reader/writer nodes (e.g. see pipelines directory) or using
+| quick standalone scripts (see scripts). Conversion pipelines are simple,
+| containing a detection input node (reader) and output node (writer).
