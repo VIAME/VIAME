@@ -8,11 +8,12 @@ detection_file_conversions example folder in a VIAME installation.
 
 .. _this example online: https://github.com/VIAME/VIAME/tree/master/examples/detection_file_conversions
 
-This folder contains examples of how to convert between textual formats representing object
-detections, tracks, results, etc. There are multiple ways to perform format conversions,
-either using KWIVER pipelines with reader/writer nodes (e.g. see pipelines directory) or
-using quick standalone scripts (see scripts). Conversion pipelines are simple, containing
-a detection input node (reader) and output node (writer).
+This folder contains examples of different formats which VIAME supports, and
+additionally how to convert between textual formats representing object detections,
+tracks, results, etc. There are multiple ways to perform format conversions, either
+using KWIVER pipelines with reader/writer nodes (e.g. see pipelines directory) or
+using quick standalone scripts (see scripts). Conversion pipelines are simple,
+containing a detection input node (reader) and output node (writer).
 
 ****************************
 Integrated Detection Formats
@@ -23,52 +24,52 @@ New formats can be integrated to the system by implementing a derived version of
 vital::detected_object_set_input or vital::read_object_track_set classes in C++ or
 python which produce either detected_object_sets or object_track_sets, respectively.
 
-| **VIAME CSV - System Default Comma Seperated Value Detection Format**
+|**VIAME CSV - System Default Comma Seperated Value Detection Format**
 |
-|  There are 3 parts to a VIAME csv. First, 9 required fields comma seperated, with
-|  a single line for either each detection, or each detection state, in a track:
+There are 3 parts to a VIAME csv. First, 9 required fields comma seperated, with
+a single line for either each detection, or each detection state, in a track:
 |
-|   - 1: Detection or Track Unique ID
-|   - 2: Video or Image String Identifier
-|   - 3: Unique Frame Integer Identifier
-|   - 4: TL-x (top left of the image is the origin: 0,0)
-|   - 5: TL-y
-|   - 6: BR-x
-|   - 7: BR-y
-|   - 8: Auxiliary Confidence (how likely is this actually an object)
-|   - 9: Target Length
+|  - 1: Detection or Track Unique ID
+|  - 2: Video or Image String Identifier
+|  - 3: Unique Frame Integer Identifier
+|  - 4: TL-x (top left of the image is the origin: 0,0)
+|  - 5: TL-y
+|  - 6: BR-x
+|  - 7: BR-y
+|  - 8: Auxiliary Confidence (how likely is this actually an object)
+|  - 9: Target Length
 |
-|  Where detections can be linked onto tracks on multiple frames via sharing the
-|  same track ID field. Depending on the context (image or video) the second field
-|  may either be video timestamp or an image filename. Fields 4 through 7 represent
-|  a bounding box for the target in the imagery. Depending on the context, auxiliary
-|  confidence may represent how likely this detection is a target, or it may be the
-|  confidence in the length measurement, if present. If length measurement is not
-|  present, it can be specified with a value less than 0, most commonly "-1".
+Where detections can be linked onto tracks on multiple frames via sharing the
+same track ID field. Depending on the context (image or video) the second field
+may either be video timestamp or an image filename. Fields 4 through 7 represent
+a bounding box for the target in the imagery. Depending on the context, auxiliary
+confidence may represent how likely this detection is a target, or it may be the
+confidence in the length measurement, if present. If length measurement is not
+present, it can be specified with a value less than 0, most commonly "-1".
 |
-|  Next, a sequence of optional species <=> score pairs, also comma seperated:
+Next, a sequence of optional species <=> score pairs, also comma seperated:
 |
-|   - 10,11+  : class-name, score (this pair may be omitted or repeated)
+|  - 10,11+  : class-name, score (this pair may be omitted or repeated)
 |
-|  There can be as many class, score pairs as necessary (e.g. fields 12 and 13, 14
-|  and 15, etc...).
+There can be as many class, score pairs as necessary (e.g. fields 12 and 13, 14
+and 15, etc...).
 |
-|  Lastly, optional categorical values associated with each detection in the file
-|  after species/class pairs. Attributes are given via a keyword followed by any
-|  space seperate values the attribute may have. Possible attributes are:
+Lastly, optional categorical values associated with each detection in the file
+after species/class pairs. Attributes are given via a keyword followed by any
+space seperate values the attribute may have. Possible attributes are:
 |
-|    (kp) head 120 320            (optional head, tail, or arbitrary keypoints)
-|    (atr) is_diseased true       (attribute keyword then booling or numeric value)
-|    (note) this is a note        (notes take no form just can't have commas)
-|    (+poly) 12 455 40 515 25 480 (a polygon for the detection)
-|    (-poly) 38 485 39 490 37 470 (a hole in a polygon for a detection)
+|   (kp) head 120 320            [optional head, tail, or arbitrary keypoints]
+|   (atr) is_diseased true       [attribute keyword then booling or numeric value]
+|   (note) this is a note        [notes take no form just can't have commas]
+|   (+poly) 12 455 40 515 25 480 [a polygon for the detection]
+|   (-poly) 38 485 39 490 37 470 [a hole in a polygon for a detection]
 |
-|  Throwing together all of these components, an example line might look like:
+Throwing together all of these components, an example line might look like:
 |
-|    1,image.png,0,104,265,189,390,0.32,1.5,flounder,0.32,(kp) head 120 320
+1,image.png,0,104,265,189,390,0.32,1.5,flounder,0.32,(kp) head 120 320,(note) slimy fish
 |
-|  This file format is supported by most GUIs and detector training tools. It can
-|  be used via specifying the 'viame_csv' keyword in any readers or writers
+This file format is supported by most GUIs and detector training tools. It can
+be used via specifying the 'viame_csv' keyword in any readers or writers
 |
 | **COCO JSON - Common Objects in Context**
 |
@@ -83,12 +84,12 @@ python which produce either detected_object_sets or object_track_sets, respectiv
 |
 | **HABCAM - Space or comma seperated annotation format used by the HabCam project**
 |
-|  A typical habcam annotation looks like:
+A typical habcam annotation looks like:
 |
 |    201503.20150517.png 527 201501 boundingBox 458 970 521 1021
 |
-|  Which corresponds to image_name, species_id (species id to labels seperate),
-|  date, annot_type [either boundingBox, line, or point], tl_x, tl_y, bl_x, bl_y
+Which corresponds to image_name, species_id (species id to labels seperate),
+date, annot_type [either boundingBox, line, or point], tl_x, tl_y, bl_x, bl_y
 |
 |  For the point type, only 1 set of coordinate is provided
 |
