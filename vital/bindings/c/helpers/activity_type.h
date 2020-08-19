@@ -30,25 +30,25 @@
 
 /**
  * \file
- * \brief C++ Helper utilities for C interface of vital::class_map
+ * \brief C++ Helper utilities for C interface of vital::activity_type
  *
  * Private header for use in cxx implementation files.
  */
 
-#ifndef VITAL_C_HELPERS_CLASS_MAP_H_
-#define VITAL_C_HELPERS_CLASS_MAP_H_
+#ifndef VITAL_C_HELPERS_ACTIVTY_TYPE_H_
+#define VITAL_C_HELPERS_ACTIVTY_TYPE_H_
 
-#include <vital/types/class_map.h>
+#include <vital/types/activity_type.h>
 
-#include <vital/bindings/c/types/class_map.h>
+#include <vital/bindings/c/types/activity_type.h>
 #include <vital/bindings/c/helpers/c_utils.h>
 
 namespace kwiver {
 namespace vital_c {
 
-/// Declaration of C interface shared_ptr cache of vital::class_map
-extern SharedPointerCache< kwiver::vital::class_map,
-                           vital_class_map_t > CM_SPTR_CACHE;
+/// Declaration of C interface shared_ptr cache of vital::activity_type
+extern SharedPointerCache< kwiver::vital::activity_type,
+                           vital_activity_type_t > AT_SPTR_CACHE;
 
 } }
 

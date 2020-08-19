@@ -38,7 +38,7 @@
 
 #include <vital/bindings/c/vital_c_export.h>
 #include <vital/bindings/c/types/bounding_box.h>
-#include <vital/bindings/c/types/class_map.h>
+#include <vital/bindings/c/types/detected_object_type.h>
 #include <vital/bindings/c/types/image.h>
 
 #include <stdint.h>
@@ -59,7 +59,7 @@ VITAL_C_EXPORT
 vital_detected_object_t* vital_detected_object_new_with_bbox(
   vital_bounding_box_t* bbox,
   double confidence,
-  vital_class_map_t* cm); // optional, could be NULL
+  vital_detected_object_type_t* dot); // optional, could be NULL
 
 VITAL_C_EXPORT
 vital_detected_object_t* vital_detected_object_copy(vital_detected_object_t * obj);
@@ -79,11 +79,11 @@ void vital_detected_object_set_confidence( vital_detected_object_t * obj,
                                            double conf );
 
 VITAL_C_EXPORT
-vital_class_map_t* vital_detected_object_get_type(vital_detected_object_t * obj);
+vital_detected_object_type_t* vital_detected_object_get_type(vital_detected_object_t * obj);
 
 VITAL_C_EXPORT
 void vital_detected_object_set_type( vital_detected_object_t * obj,
-                                     vital_class_map_t* ob_type);
+                                     vital_detected_object_type_t* ob_type);
 
 VITAL_C_EXPORT
 int64_t vital_detected_object_index(vital_detected_object_t * obj);
