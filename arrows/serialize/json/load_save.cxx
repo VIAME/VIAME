@@ -35,7 +35,7 @@
 #include <arrows/serialize/json/track_item.h>
 
 #include <vital/exceptions.h>
-#include <vital/types/class_map.h>
+#include <vital/types/class_map_types.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
 #include <vital/types/geo_point.h>

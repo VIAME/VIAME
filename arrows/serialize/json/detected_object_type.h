@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2020 by Kitware, Inc.
+ * Copyright 2018-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,35 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-syntax = "proto2";
+#ifndef ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
+#define ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE
 
-package kwiver.protobuf;
+#include <arrows/serialize/json/kwiver_serialize_json_export.h>
+#include <vital/algo/data_serializer.h>
+namespace cereal {
+  class JSONOutputArchive;
+  class JSONInputArchive;
+} // end namespace cereal
+namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace json {
 
-import "activity_type.proto";
-import "object_track_set.proto";
-import "timestamp.proto";
+class KWIVER_SERIALIZE_JSON_EXPORT detected_object_type
+  : public vital::algo::data_serializer
+{
+public:
+  PLUGIN_INFO( "kwiver:detected_object_type",
+               "Serializes a detected_object_type using JSON notation. "
+               "This implementation only handles a single data item." );
 
-message activity {
-  required int64 id = 1;
-  required string label = 2;
-  optional activity_type activity_type_ = 3;
-  required double confidence = 4;
-  optional object_track_set participants = 5;
-  required timestamp start_frame = 6;
-  required timestamp end_frame = 7;
-}
+  detected_object_type();
+  virtual ~detected_object_type();
+
+  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
+  vital::any deserialize( const std::string& message ) override;
+};
+
+} } } }       // end namespace kwiver
+
+#endif // ARROWS_SERIALIZATION_JSON_DETECTED_OBJECT_TYPE

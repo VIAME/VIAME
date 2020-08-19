@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2018-2020 by Kitware, Inc.
+ * Copyright 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,71 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ARROWS_SERIALIZATION_PROTO_CLASS_MAP_H
-#define ARROWS_SERIALIZATION_PROTO_CLASS_MAP_H
+#include <arrows/serialize/json/activity_type.h>
+#include <arrows/serialize/json/load_save.h>
 
-#include <arrows/serialize/protobuf/kwiver_serialize_protobuf_export.h>
-#include <vital/algo/data_serializer.h>
+#include <vital/types/activity_type.h>
+#include <vital/internal/cereal/cereal.hpp>
+#include <vital/internal/cereal/archives/json.hpp>
+
+#include <sstream>
+
+namespace kasj = kwiver::arrows::serialize::json;
 
 namespace kwiver {
 namespace arrows {
 namespace serialize {
-namespace protobuf {
+namespace json {
 
-class KWIVER_SERIALIZE_PROTOBUF_EXPORT class_map
-  : public vital::algo::data_serializer
+// ----------------------------------------------------------------------------
+activity_type::
+activity_type()
+{ }
+
+
+activity_type::
+~activity_type()
+{ }
+
+// ----------------------------------------------------------------------------
+std::shared_ptr< std::string >
+activity_type::
+serialize( const kwiver::vital::any& element )
 {
-public:
-  PLUGIN_INFO( "kwiver:class_map",
-               "Serializes a class_map using protobuf notation. "
-               "This implementation only handles a single data item." );
+  kwiver::vital::activity_type at =
+    kwiver::vital::any_cast< kwiver::vital::activity_type > ( element );
 
-  class_map();
-  virtual ~class_map();
+  std::stringstream msg;
+  msg << "activity_type ";
+  {
+    cereal::JSONOutputArchive ar( msg );
+    save( ar, at );
+  }
 
-  std::shared_ptr< std::string > serialize( const vital::any& element ) override;
-  vital::any deserialize( const std::string& message ) override;
-};
+  return std::make_shared< std::string > ( msg.str() );
+}
 
-} } } }       // end namespace kwiver
+// ----------------------------------------------------------------------------
+kwiver::vital::any activity_type::
+deserialize( const std::string& message )
+{
+  std::stringstream msg(message);
+  kwiver::vital::activity_type at;
+  std::string tag;
+  msg >> tag;
 
-#endif // ARROWS_SERIALIZATION_PROTO_CLASS_MAP_H
+  if (tag != "activity_type" )
+  {
+    LOG_ERROR( logger(), "Invalid data type tag received. Expected \"activity_type\", received \""
+               << tag << "\". Message dropped." );
+  }
+  else
+  {
+    cereal::JSONInputArchive ar( msg );
+    load( ar, at );
+  }
+
+  return kwiver::vital::any(at);
+}
+
+} } } }

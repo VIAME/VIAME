@@ -33,8 +33,10 @@
  * \brief test class_map class
  */
 
-#include <vital/types/class_map.h>
 #include <vital/types/class_map.txx>
+
+#include <vital/types/activity_type.h>
+#include <vital/types/detected_object_type.h>
 
 #include <gtest/gtest.h>
 
@@ -131,6 +133,8 @@ TEST(class_map, name_pool)
   test_class_map cm_2( alt_names, scores );
 
   EXPECT_EQ( 10, test_class_map::all_class_names().size() );
+  EXPECT_EQ( 0, activity_type::all_class_names().size() );
+  EXPECT_EQ( 0, detected_object_type::all_class_names().size() );
 
   for ( auto const& name : test_class_map::all_class_names() )
   {

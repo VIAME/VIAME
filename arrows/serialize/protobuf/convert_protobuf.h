@@ -43,8 +43,6 @@
 
 namespace kwiver {
 namespace vital {
-
-  class class_map;
   class detected_object;
   class detected_object_set;
   class geo_point;
@@ -59,8 +57,9 @@ namespace kwiver {
 namespace protobuf {
 
   class activity;
+  class activity_type;
   class bounding_box;
-  class class_map;
+  class detected_object_type;
   class detected_object;
   class detected_object_set;
   class geo_point;
@@ -94,6 +93,15 @@ KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const ::kwiver::vital::activity& act,
                        ::kwiver::protobuf::activity&    proto_act );
 
+// ---- activity_type
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const ::kwiver::vital::activity_type& at,
+                       ::kwiver::protobuf::activity_type&  proto_at );
+
+KWIVER_SERIALIZE_PROTOBUF_EXPORT
+void convert_protobuf( const ::kwiver::protobuf::activity_type&  proto_at,
+                       ::kwiver::vital::activity_type& at );
+
 // ---- bounding_box
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const ::kwiver::protobuf::bounding_box&  proto_bbox,
@@ -121,14 +129,14 @@ KWIVER_SERIALIZE_PROTOBUF_EXPORT
 void convert_protobuf( const ::kwiver::vital::detected_object_set&  dos,
                        ::kwiver::protobuf::detected_object_set&     proto_dos );
 
-// ---- class_map
+// ---- detected_object
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
-void convert_protobuf( const ::kwiver::protobuf::class_map&  proto_cm,
-                       ::kwiver::vital::class_map&           cm );
+void convert_protobuf( const ::kwiver::protobuf::detected_object_type&  proto_dot,
+                       ::kwiver::vital::detected_object_type&           dot );
 
 KWIVER_SERIALIZE_PROTOBUF_EXPORT
-void convert_protobuf( const ::kwiver::vital::class_map& cm,
-                       ::kwiver::protobuf::class_map&    proto_cm );
+void convert_protobuf( const ::kwiver::vital::detected_object_type& dot,
+                       ::kwiver::protobuf::detected_object_type&    proto_dot );
 
 // ---- geo_polygon
 KWIVER_SERIALIZE_PROTOBUF_EXPORT

@@ -40,7 +40,8 @@
 namespace kwiver {
 namespace vital {
   class activity;
-  class class_map;
+  class activity_type;
+  class detected_object_type;
   class detected_object;
   class detected_object_set;
   class geo_point;

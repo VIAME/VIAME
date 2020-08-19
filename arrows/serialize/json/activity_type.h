@@ -28,20 +28,44 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-syntax = "proto2";
+#ifndef ARROWS_SERIALIZATION_JSON_ACTIVITY_TYPE
+#define ARROWS_SERIALIZATION_JSON_ACTIVITY_TYPE
 
-package kwiver.protobuf;
+#include <arrows/serialize/json/kwiver_serialize_json_export.h>
+#include <vital/algo/data_serializer.h>
+#include "load_save.h"
 
-import "activity_type.proto";
-import "object_track_set.proto";
-import "timestamp.proto";
+namespace cereal {
+  class JSONOutputArchive;
+  class JSONInputArchive;
+} // end namespace cereal
 
-message activity {
-  required int64 id = 1;
-  required string label = 2;
-  optional activity_type activity_type_ = 3;
-  required double confidence = 4;
-  optional object_track_set participants = 5;
-  required timestamp start_frame = 6;
-  required timestamp end_frame = 7;
-}
+namespace kwiver {
+namespace arrows {
+namespace serialize {
+namespace json {
+
+
+class KWIVER_SERIALIZE_JSON_EXPORT activity_type
+  : public vital::algorithm_impl< activity_type,
+           vital::algo::data_serializer >
+{
+public:
+  // Type name this class supports and description
+  PLUGIN_INFO(
+    "kwiver:activity_type",
+    "Serializes an activity_type using JSON notation. "
+    "This implementation only handles a single data item."
+  );
+
+  activity_type();
+  virtual ~activity_type();
+
+  virtual std::shared_ptr< std::string >
+    serialize( const kwiver::vital::any& element ) override;
+  virtual kwiver::vital::any deserialize( const std::string& message ) override;
+};
+
+} } } }
+
+#endif

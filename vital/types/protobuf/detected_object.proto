@@ -30,7 +30,7 @@
 
 syntax = "proto2";
 
-import "class_map.proto";
+import "detected_object_type.proto";
 import "bounding_box.proto";
 import "geo_point.proto";
 import "point.proto";
@@ -41,7 +41,7 @@ message detected_object {
 
   required double confidence = 1;
   required bounding_box bbox = 2;
-  optional class_map classifcations = 3;
+  optional detected_object_type classifcations = 3;
   optional int64 index = 4;
   optional string detector_name = 5;
   repeated string notes = 6;

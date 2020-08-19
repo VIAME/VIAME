@@ -31,9 +31,10 @@
 #include "convert_protobuf.h"
 #include "convert_protobuf_point.h"
 
-#include <vital/types/class_map.h>
+#include <vital/types/activity_type.h>
 #include <vital/types/detected_object.h>
 #include <vital/types/detected_object_set.h>
+#include <vital/types/detected_object_type.h>
 #include <vital/types/geo_polygon.h>
 #include <vital/types/polygon.h>
 #include <vital/types/timestamp.h>
@@ -47,10 +48,11 @@
 #include <vital/vital_types.h>
 
 #include <vital/types/protobuf/activity.pb.h>
+#include <vital/types/protobuf/activity_type.pb.h>
 #include <vital/types/protobuf/bounding_box.pb.h>
-#include <vital/types/protobuf/class_map.pb.h>
 #include <vital/types/protobuf/detected_object.pb.h>
 #include <vital/types/protobuf/detected_object_set.pb.h>
+#include <vital/types/protobuf/detected_object_type.pb.h>
 #include <vital/types/protobuf/geo_polygon.pb.h>
 #include <vital/types/protobuf/geo_point.pb.h>
 #include <vital/types/protobuf/metadata.pb.h>
@@ -98,11 +100,11 @@ void convert_protobuf( const ::kwiver::protobuf::activity& proto_act,
   act.set_end( end_frame );
 
   // Now get the optional params, if they exist, and set
-  if ( proto_act.has_activity_type() )
+  if ( proto_act.has_activity_type_() )
   {
-    auto cm_sptr = std::make_shared< ::kwiver::vital::class_map >();
-    convert_protobuf( proto_act.activity_type(), *cm_sptr );
-    act.set_activity_type( cm_sptr );
+    auto at_sptr = std::make_shared< ::kwiver::vital::activity_type >();
+    convert_protobuf( proto_act.activity_type_(), *at_sptr );
+    act.set_activity_type( at_sptr );
   }
 
   if ( proto_act.has_participants() )
@@ -132,13 +134,13 @@ void convert_protobuf( const ::kwiver::vital::activity& act,
   *proto_act.mutable_start_frame() = proto_start_frame;
   *proto_act.mutable_end_frame() = proto_end_frame;
 
-  auto cm_sptr = act.activity_type();
+  auto at_sptr = act.activity_type();
   // Now check if optional fields can be set
-  if ( auto cm_sptr = act.activity_type() )
+  if ( auto at_sptr = act.activity_type() )
   {
-    ::kwiver::protobuf::class_map proto_cm;
-    convert_protobuf( *cm_sptr, proto_cm );
-    *proto_act.mutable_activity_type() = proto_cm;
+    ::kwiver::protobuf::activity_type proto_at;
+    convert_protobuf( *at_sptr, proto_at );
+    *proto_act.mutable_activity_type_() = proto_at;
   }
 
   if ( auto obj_trk_set_sptr = act.participants() )
@@ -182,10 +184,10 @@ void convert_protobuf( const ::kwiver::protobuf::detected_object&  proto_det_obj
 
   if ( proto_det_object.has_classifcations() )
   {
-    auto new_cm = std::make_shared< ::kwiver::vital::class_map >();
-    ::kwiver::protobuf::class_map proto_cm = proto_det_object.classifcations();
-    convert_protobuf( proto_cm, *new_cm );
-    det_object.set_type( new_cm );
+    auto new_dot = std::make_shared< ::kwiver::vital::detected_object_type >();
+    ::kwiver::protobuf::detected_object_type proto_dot = proto_det_object.classifcations();
+    convert_protobuf( proto_dot, *new_dot );
+    det_object.set_type( new_dot );
   }
 
   if ( proto_det_object.has_index() )
@@ -238,8 +240,8 @@ void convert_protobuf( const ::kwiver::vital::detected_object& det_object,
   // though somewhat ugly
   if ( const_cast<::kwiver::vital::detected_object&>(det_object).type() != NULL )
   {
-    auto* proto_cm = proto_det_object.mutable_classifcations();
-    convert_protobuf( * const_cast<::kwiver::vital::detected_object&>(det_object).type(), *proto_cm );
+    auto* proto_dot = proto_det_object.mutable_classifcations();
+    convert_protobuf( * const_cast<::kwiver::vital::detected_object&>(det_object).type(), *proto_dot );
 
   }
 
@@ -313,24 +315,46 @@ void convert_protobuf( const ::kwiver::vital::detected_object_set& dos,
 }
 
 // ----------------------------------------------------------------------------
-void convert_protobuf( const ::kwiver::protobuf::class_map&  proto_cm,
-                       ::kwiver::vital::class_map& cm )
+void convert_protobuf( const ::kwiver::protobuf::detected_object_type&  proto_dot,
+                       ::kwiver::vital::detected_object_type& dot )
  {
-   const size_t count( proto_cm.name_size() );
+   const size_t count( proto_dot.name_size() );
    for (size_t i = 0; i < count; ++i )
    {
-     cm.set_score( proto_cm.name(i), proto_cm.score(i) );
+     dot.set_score( proto_dot.name(i), proto_dot.score(i) );
    }
  }
 
 // ----------------------------------------------------------------------------
-void convert_protobuf( const ::kwiver::vital::class_map& cm,
-                       ::kwiver::protobuf::class_map&  proto_cm )
+void convert_protobuf( const ::kwiver::vital::detected_object_type& dot,
+                       ::kwiver::protobuf::detected_object_type&  proto_dot )
 {
-  for ( const auto it : cm )
+  for ( const auto it : dot )
   {
-    proto_cm.add_name( *(it.first) );
-    proto_cm.add_score( it.second);
+    proto_dot.add_name( *(it.first) );
+    proto_dot.add_score( it.second);
+  }
+}
+
+// ----------------------------------------------------------------------------
+void convert_protobuf( const ::kwiver::protobuf::activity_type&  proto_at,
+                       ::kwiver::vital::activity_type& at )
+ {
+   const size_t count( proto_at.name_size() );
+   for (size_t i = 0; i < count; ++i )
+   {
+     at.set_score( proto_at.name(i), proto_at.score(i) );
+   }
+ }
+
+// ----------------------------------------------------------------------------
+void convert_protobuf( const ::kwiver::vital::activity_type& at,
+                       ::kwiver::protobuf::activity_type&  proto_at )
+{
+  for ( const auto it : at )
+  {
+    proto_at.add_name( *(it.first) );
+    proto_at.add_score( it.second);
   }
 }
 
