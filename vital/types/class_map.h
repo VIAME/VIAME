@@ -37,13 +37,12 @@
 #define VITAL_CLASS_MAP_H_
 
 #include <vital/signal.h>
-#include <vital/vital_export.h>
 
-#include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <set>
+#include <unordered_set>
 #include <vector>
 
 namespace kwiver {
@@ -71,10 +70,11 @@ namespace vital {
  * static string pool. Every effort has been made to make this pool
  * externally unmutable. Your cooperation is appreciated.
  */
-class VITAL_EXPORT class_map
+template < typename T >
+class class_map
 {
 public:
-  static const double INVALID_SCORE;
+  static constexpr double INVALID_SCORE = std::numeric_limits< double >::min();
 
   using class_map_t = std::map< std::string const*, double >;
   using class_const_iterator_t = class_map_t::const_iterator;
@@ -308,16 +308,14 @@ private:
    * previously unseen class_name is passed to the CTOR or
    * set_score().
    */
-  static std::set< std::string > s_master_name_set;
+  static std::unordered_set< std::string > s_master_name_set;
 
   // Used to control access to shared resources
   static std::mutex s_table_mutex;
 };
 
-// typedef for a class_map shared pointer
-using class_map_sptr = std::shared_ptr< class_map >;
-using class_map_scptr = std::shared_ptr< class_map const >;
+} // namespace vital
 
-} }
+} // namespace kwiver
 
 #endif

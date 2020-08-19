@@ -140,39 +140,39 @@ filter( const vital::detected_object_set_sptr input_set ) const
   for ( auto det = input_set->cbegin(); det != ie; ++det )
   {
     bool det_selected( false );
-    auto out_cm = std::make_shared<vital::class_map>( );
+    auto out_dot = std::make_shared<vital::detected_object_type>( );
 
-    // Make sure that there is an associated CM
-    auto input_cm = (*det)->type();
-    if ( ! input_cm )
+    // Make sure that there is an associated DOT
+    auto input_dot = (*det)->type();
+    if ( ! input_dot )
     {
       // This is unexpected
-      LOG_WARN( logger(), "No class_map associated with a detected object" );
+      LOG_WARN( logger(), "No detected_object_type associated with a detected object" );
       continue;
     }
 
     // Get list of class names that are above threshold
-    auto selected_names = input_cm->class_names( m_threshold );
+    auto selected_names = input_dot->class_names( m_threshold );
 
     // Loop over all selected class names
     for( const std::string& a_name : selected_names )
     {
       if ( m_keep_all_classes || m_keep_classes.count( a_name ) )
       {
-        // insert class-name/score into CM
-        out_cm->set_score( a_name, input_cm->score( a_name ) );
-        LOG_TRACE( logger(), "Selecting class: " << a_name << "  score: " << input_cm->score( a_name ) );
+        // insert class-name/score into DOT
+        out_dot->set_score( a_name, input_dot->score( a_name ) );
+        LOG_TRACE( logger(), "Selecting class: " << a_name << "  score: " << input_dot->score( a_name ) );
         det_selected = true;
       }
     } // end foreach class-name
 
     // It this detection has been selected, add it to output list
-    // Clone input detection and replace CM.
+    // Clone input detection and replace DOT.
     // Add to returned set
     if (det_selected)
     {
       auto out_det = (*det)->clone();
-      out_det->set_type( out_cm );
+      out_det->set_type( out_dot );
       ret_set->add( out_det );
     }
   } // end foreach detection
