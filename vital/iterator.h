@@ -151,6 +151,36 @@ public:
   }
 
   /**
+   * Equality operator
+   *
+   * Two iterators are considered equal if their current iteration references
+   * are equal in value or both iterators in a past-end state. If one
+   * iterator is in a past-end state and the other is not, they two iterators
+   * will never be equal.
+   *
+   * \returns If the two iterators are equal to each other.
+   */
+  virtual
+  bool equal_to( base_iterator<T, Tb> const & other ) const
+  {
+    // If both iterators are at their ends, they are equal.
+    if( this->m_at_end && other.m_at_end )
+    {
+      return true;
+    }
+    // Both are not at their end, but one is: not equal.
+    else if( this->m_at_end || other.m_at_end )
+    {
+      return false;
+    }
+    // Otherwise, the dereferenced value for each base_iterator are equal
+    else
+    {
+      return (*this->m_cur_val_ptr) == (*other.m_cur_val_ptr);
+    }
+  }
+
+  /**
    * Equality operator overload
    *
    * Two iterators are considered equal if their current iteration references
@@ -164,20 +194,7 @@ public:
                           base_iterator<T, Tb> const & rhs )
   {
     // If both iterators are at their ends, they are equal.
-    if( lhs.m_at_end && rhs.m_at_end )
-    {
-      return true;
-    }
-    // Both are not at their end, but one is: not equal.
-    else if( lhs.m_at_end || rhs.m_at_end )
-    {
-      return false;
-    }
-    // Otherwise, the dereferenced value for each base_iterator are equal
-    else
-    {
-      return (*lhs.m_cur_val_ptr) == (*rhs.m_cur_val_ptr);
-    }
+    return lhs.equal_to( rhs );
   }
 
   /**
@@ -350,6 +367,24 @@ public:
 
   /// Use base class's equality operator overload.
   using base_t::operator=;
+
+  /**
+   * Friend operator== overload for testing equality.
+   */
+  friend bool operator==( iterator<T> const & lhs,
+                          iterator<T> const & rhs )
+  {
+    return lhs.equal_to( rhs );
+  }
+
+  /**
+   * Friend operator!= overload for testing inequality.
+   */
+  friend bool operator!=( iterator<T> const & lhs,
+                          iterator<T> const & rhs )
+  {
+    return ! lhs.equal_to( rhs );
+  }
 
   /**
    * Allow const_iterator to access protected members when copy-constructing
