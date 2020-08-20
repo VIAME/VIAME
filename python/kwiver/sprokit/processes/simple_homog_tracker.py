@@ -260,7 +260,7 @@ def to_DetectedObject_list(dos):
 
 def get_DetectedObject_bbox(do):
     """Get the bounding box of a Kwiver DetectedObject as a BBox"""
-    bbox = do.bounding_box()
+    bbox = do.bounding_box
     return BBox(bbox.min_x(), bbox.min_y(), bbox.max_x(), bbox.max_y())
 
 def to_ObjectTrackSet(tracks):
