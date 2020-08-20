@@ -191,12 +191,21 @@ foreach( ID RANGE ${DEP_COUNT} )
   set( PYTHON_DEP_PIP_CMD pip install --user ${CMD} )
   string( REPLACE " " ";" PYTHON_DEP_PIP_CMD "${PYTHON_DEP_PIP_CMD}" )
 
-  set( PYTHON_DEP_INSTALL
+  set( PYTHON_DEP_BUILD
     ${CMAKE_COMMAND} -E env "PYTHONPATH=${CUSTOM_PYTHONPATH}"
                             "PATH=${CUSTOM_PATH}"
                             "PYTHONUSERBASE=${VIAME_BUILD_INSTALL_PREFIX}"
       ${PYTHON_EXECUTABLE} -m ${PYTHON_DEP_PIP_CMD}
     )
+
+  if( "${DEP}" STREQUAL "pytorch" )
+    set( PYTHON_DEP_INSTALL ${CMAKE_COMMAND}
+      -DVIAME_PYTHON_BASE:PATH=${PYTHON_BASEPATH}
+      -DVIAME_PATCH_DIR:PATH=${VIAME_SOURCE_DIR}/packages/patches
+      -P ${VIAME_SOURCE_DIR}/cmake/custom_pytorch_install.cmake )
+  else()
+    set( PYTHON_DEP_INSTALL "" )
+  endif()
 
   ExternalProject_Add( ${DEP}
     DEPENDS ${PYTHON_LIB_DEPS}
@@ -204,8 +213,8 @@ foreach( ID RANGE ${DEP_COUNT} )
     SOURCE_DIR ${VIAME_CMAKE_DIR}
     USES_TERMINAL_BUILD 1
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND ${PYTHON_DEP_INSTALL}
-    INSTALL_COMMAND ""
+    BUILD_COMMAND ${PYTHON_DEP_BUILD}
+    INSTALL_COMMAND ${PYTHON_DEP_INSTALL}
     INSTALL_DIR ${VIAME_BUILD_INSTALL_PREFIX}
     LIST_SEPARATOR "----"
     )
