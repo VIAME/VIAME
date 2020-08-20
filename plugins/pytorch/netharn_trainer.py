@@ -223,8 +223,9 @@ class NetHarnTrainer( TrainDetector ):
             truth_type = DetectedObjectType( class_lbl, 1.0 )
             item.set_type( truth_type )
 
-            if item.bounding_box().width() > max_length or \
-               item.bounding_box().height() > max_length:
+            if self._mode == "detector" and \
+               ( item.bounding_box().width() > max_length or \
+                 item.bounding_box().height() > max_length ):
                 use_frame = False
                 break
 
