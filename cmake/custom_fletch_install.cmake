@@ -50,7 +50,7 @@ if( PYTHON_VERSION )
     file( REMOVE_RECURSE  ${DIR_TO_MOVE} )
   endif()
 
-  if( VIAME_ENABLE_OPENCV )
+  if( NOT WIN32 AND VIAME_ENABLE_OPENCV )
     set( PATCH_DIR ${VIAME_CMAKE_DIR}/../packages/patches/fletch )
     file( COPY ${PATCH_DIR}/opencv_python-3.4.0.14.dist-info DESTINATION ${OUTPUT_PYTHON_DIR} )
   endif()

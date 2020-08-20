@@ -10,7 +10,7 @@
 # --------------------- ADD ANY BASIC PYTHON DEPS HERE -------------------------
 # Basic dependencies are installed jointly in one local pip installation call
 
-set( VIAME_PYTHON_BASIC_DEPS "numpy" "matplotlib" )
+set( VIAME_PYTHON_BASIC_DEPS "numpy" "matplotlib==3.1.1" )
 
 if( VIAME_ENABLE_TENSORFLOW )
   list( APPEND VIAME_PYTHON_BASIC_DEPS "humanfriendly" )
