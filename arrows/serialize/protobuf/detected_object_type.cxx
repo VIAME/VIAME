@@ -71,7 +71,7 @@ serialize( const vital::any& element )
   if ( ! proto_dot.SerializeToOstream( &msg ) )
   {
     VITAL_THROW( kwiver::vital::serialization_exception,
-                 "Error serializing detected_type from protobuf" );
+                 "Error serializing detected_object_type from protobuf" );
   }
   return std::make_shared< std::string > ( msg.str() );
 }

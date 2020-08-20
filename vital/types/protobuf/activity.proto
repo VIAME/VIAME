@@ -39,7 +39,7 @@ import "timestamp.proto";
 message activity {
   required int64 id = 1;
   required string label = 2;
-  optional activity_type activity_type_ = 3;
+  optional activity_type classifications = 3;
   required double confidence = 4;
   optional object_track_set participants = 5;
   required timestamp start_frame = 6;

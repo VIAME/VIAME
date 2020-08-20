@@ -37,26 +37,26 @@ namespace kwiver {
 namespace vital {
 
   activity::activity()
-   :m_activity_id{-1},
-    m_activity_label{UNDEFINED_ACTIVITY},
-    m_activity_type{nullptr},
-    m_activity_confidence{-1.0},
+   :m_id{-1},
+    m_label{UNDEFINED_ACTIVITY},
+    m_type{nullptr},
+    m_confidence{-1.0},
     m_participants{nullptr},
     m_start_frame{kwiver::vital::timestamp(-1, -1)},
     m_end_frame{kwiver::vital::timestamp(-1, -1)}
   {}
 
-  activity::activity( activity_id_t activity_id,
-                      activity_label_t activity_label,
-                      activity_confidence_t activity_confidence,
-                      activity_type_sptr activity_type,
+  activity::activity( activity_id_t id,
+                      activity_label_t label,
+                      double confidence,
+                      activity_type_sptr classifications,
                       kwiver::vital::timestamp start,
                       kwiver::vital::timestamp end,
                       kwiver::vital::object_track_set_sptr participants )
-   :m_activity_id{activity_id},
-    m_activity_label{activity_label},
-    m_activity_type{activity_type},
-    m_activity_confidence{activity_confidence},
+   :m_id{id},
+    m_label{label},
+    m_type{classifications},
+    m_confidence{confidence},
     m_participants{participants},
     m_start_frame{start},
     m_end_frame{end}
@@ -65,42 +65,42 @@ namespace vital {
   activity_id_t
   activity::id() const
   {
-    return m_activity_id;
+    return m_id;
   }
 
-  void activity::set_id( activity_id_t const activity_id )
+  void activity::set_id( activity_id_t const id )
   {
-    m_activity_id = activity_id;
+    m_id = id;
   }
 
   activity_label_t activity::label() const
   {
-    return m_activity_label;
+    return m_label;
   }
 
-  void activity::set_label( activity_label_t const activity_label )
+  void activity::set_label( activity_label_t const label )
   {
-    m_activity_label = activity_label;
+    m_label = label;
   }
 
-  activity_type_sptr activity::activity_type() const
+  activity_type_sptr activity::type() const
   {
-    return m_activity_type;
+    return m_type;
   }
 
-  void activity::set_activity_type( activity_type_sptr activity_type )
+  void activity::set_type( activity_type_sptr c )
   {
-    m_activity_type = activity_type;
+    m_type = c;
   }
 
-  activity_confidence_t activity::confidence() const
+  double activity::confidence() const
   {
-    return m_activity_confidence;
+    return m_confidence;
   }
 
-  void activity::set_confidence( activity_confidence_t activity_confidence )
+  void activity::set_confidence( double confidence )
   {
-    m_activity_confidence=activity_confidence;
+    m_confidence = confidence;
   }
 
   kwiver::vital::timestamp activity::start() const

@@ -100,11 +100,11 @@ void convert_protobuf( const ::kwiver::protobuf::activity& proto_act,
   act.set_end( end_frame );
 
   // Now get the optional params, if they exist, and set
-  if ( proto_act.has_activity_type_() )
+  if ( proto_act.has_classifications() )
   {
     auto at_sptr = std::make_shared< ::kwiver::vital::activity_type >();
-    convert_protobuf( proto_act.activity_type_(), *at_sptr );
-    act.set_activity_type( at_sptr );
+    convert_protobuf( proto_act.classifications(), *at_sptr );
+    act.set_type( at_sptr );
   }
 
   if ( proto_act.has_participants() )
@@ -134,13 +134,13 @@ void convert_protobuf( const ::kwiver::vital::activity& act,
   *proto_act.mutable_start_frame() = proto_start_frame;
   *proto_act.mutable_end_frame() = proto_end_frame;
 
-  auto at_sptr = act.activity_type();
+  auto at_sptr = act.type();
   // Now check if optional fields can be set
-  if ( auto at_sptr = act.activity_type() )
+  if ( auto at_sptr = act.type() )
   {
     ::kwiver::protobuf::activity_type proto_at;
     convert_protobuf( *at_sptr, proto_at );
-    *proto_act.mutable_activity_type_() = proto_at;
+    *proto_act.mutable_classifications() = proto_at;
   }
 
   if ( auto obj_trk_set_sptr = act.participants() )
@@ -182,10 +182,10 @@ void convert_protobuf( const ::kwiver::protobuf::detected_object&  proto_det_obj
   convert_protobuf( proto_bbox, bbox );
   det_object.set_bounding_box( bbox );
 
-  if ( proto_det_object.has_classifcations() )
+  if ( proto_det_object.has_classifications() )
   {
     auto new_dot = std::make_shared< ::kwiver::vital::detected_object_type >();
-    ::kwiver::protobuf::detected_object_type proto_dot = proto_det_object.classifcations();
+    ::kwiver::protobuf::detected_object_type proto_dot = proto_det_object.classifications();
     convert_protobuf( proto_dot, *new_dot );
     det_object.set_type( new_dot );
   }
@@ -240,7 +240,7 @@ void convert_protobuf( const ::kwiver::vital::detected_object& det_object,
   // though somewhat ugly
   if ( const_cast<::kwiver::vital::detected_object&>(det_object).type() != NULL )
   {
-    auto* proto_dot = proto_det_object.mutable_classifcations();
+    auto* proto_dot = proto_det_object.mutable_classifications();
     convert_protobuf( * const_cast<::kwiver::vital::detected_object&>(det_object).type(), *proto_dot );
 
   }

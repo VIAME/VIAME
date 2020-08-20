@@ -104,7 +104,7 @@ TEST( load_save, activity_default )
   // Check members
   EXPECT_EQ( act.id(), act_dser.id() );
   EXPECT_EQ( act.label(), act_dser.label() );
-  EXPECT_EQ( act.activity_type(), act_dser.activity_type() );
+  EXPECT_EQ( act.type(), act_dser.type() );
   EXPECT_EQ( act.participants(), act_dser.participants() );
   EXPECT_DOUBLE_EQ( act.confidence(), act_dser.confidence() );
 
@@ -188,8 +188,8 @@ TEST( load_save, activity )
   EXPECT_EQ( act.end(), act_dser.end() );
 
   // Check values in the retrieved class map
-  auto const act_type = act.activity_type();
-  auto const act_type_dser = act_dser.activity_type();
+  auto const act_type = act.type();
+  auto const act_type_dser = act_dser.type();
   EXPECT_EQ( act_type->size(), act_type_dser->size() );
   EXPECT_DOUBLE_EQ( act_type->score( "first" ),  act_type_dser->score( "first" ) );
   EXPECT_DOUBLE_EQ( act_type->score( "second" ), act_type_dser->score( "second" ) );

@@ -43,15 +43,15 @@ PYBIND11_MODULE(activity, m)
     .def(py::init<>())
     .def(py::init<kwiver::vital::activity_id_t,
                   kwiver::vital::activity_label_t,
-                  kwiver::vital::activity_confidence_t,
+                  double,
                   kwiver::vital::activity_type_sptr,
                   kwiver::vital::timestamp,
                   kwiver::vital::timestamp,
                   kwiver::vital::object_track_set_sptr>(),
-          py::arg("activity_id") = -1,
-          py::arg("activity_label") = kwiver::vital::UNDEFINED_ACTIVITY,
-          py::arg("activity_confidence") = -1.0,
-          py::arg("activity_type") =
+          py::arg("id") = -1,
+          py::arg("label") = kwiver::vital::UNDEFINED_ACTIVITY,
+          py::arg("confidence") = -1.0,
+          py::arg("classifications") =
            std::make_shared<kwiver::vital::activity_type>(kwiver::vital::UNDEFINED_ACTIVITY,
                                                         -1.0),
           py::arg("start_time") = kwiver::vital::timestamp(-1, -1),
@@ -62,8 +62,8 @@ PYBIND11_MODULE(activity, m)
     .def("set_id", &kwiver::vital::activity::set_id)
     .def("label",  &kwiver::vital::activity::label)
     .def("set_label", &kwiver::vital::activity::set_label)
-    .def("activity_type", &kwiver::vital::activity::activity_type)
-    .def("set_activity_type", &kwiver::vital::activity::set_activity_type)
+    .def("type", &kwiver::vital::activity::type)
+    .def("set_type", &kwiver::vital::activity::set_type)
     .def("confidence", &kwiver::vital::activity::confidence)
     .def("set_confidence", &kwiver::vital::activity::set_confidence)
     .def("start_time", &kwiver::vital::activity::start)

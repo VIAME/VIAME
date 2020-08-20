@@ -66,21 +66,21 @@ public:
 
   /**
    * @brief Create an activity with activity id with optional activity label,
-   *        activity_confidence, activity_type, starting frame, ending frame
-   *        and participants
+   *        confidence, classifications, starting frame, ending frame and
+   *        participants
    *
-   * @param activity_id A numeric identifier associated with the activity
-   * @param activity_label A label associated with the activity (default=UNDEFINED_ACTIVITY)
-   * @param activity_confidence Confidence in the activity (default=-1.0)
-   * @param activity_type Activity type associated with the activity (default=nullptr)
-   * @param start Timestamp for starting frame of an activity (default=-1)
-   * @param end Timstamp for ending frame of an activity (default=-1)
-   * @param participants Participants in the activity (default=nullptr)
+   * @param id A numeric identifier associated with the activity
+   * @param label A label associated with the activity (default=UNDEFINED_ACTIVITY)
+   * @param confidence Confidence in the activity (default=-1.0)
+   * @param classifications Optional activity classifications
+   * @param start Optional timestamp for starting frame of an activity
+   * @param end Optional timstamp for ending frame of an activity
+   * @param participants Optional participants in the activity
    */
-  activity( activity_id_t activity_id,
-            activity_label_t activity_label=UNDEFINED_ACTIVITY,
-            activity_confidence_t activity_confidence=-1.0,
-            activity_type_sptr activity_type=nullptr,
+  activity( activity_id_t id,
+            activity_label_t label=UNDEFINED_ACTIVITY,
+            double confidence=-1.0,
+            activity_type_sptr classifications=nullptr,
             kwiver::vital::timestamp start=kwiver::vital::timestamp(-1, -1),
             kwiver::vital::timestamp end=kwiver::vital::timestamp(-1, -1),
             kwiver::vital::object_track_set_sptr participants=nullptr );
@@ -95,9 +95,9 @@ public:
   /**
    * @brief Set activity id for the activity
    *
-   * @param activity_id  An activity id for the activity
+   * @param id  An activity id for the activity
    */
-  void set_id( activity_id_t const activity_id );
+  void set_id( activity_id_t const id );
 
   /**
    * @brief Get activity label
@@ -109,37 +109,37 @@ public:
   /**
    * @brief Set activity label for the activity
    *
-   * @param activity_label  An activity id for the activity
+   * @param label  An activity id for the activity
    */
-  void set_label( activity_label_t const activity_label );
+  void set_label( activity_label_t const label );
 
   /**
    * @brief Get activity type
    *
    * @return the activity type for the activity
    */
-  activity_type_sptr activity_type() const;
+  activity_type_sptr type() const;
 
   /**
    * @brief Set activity type for the activity
    *
-   * @param activity_type A map of classifications and scores for the activity
+   * @param c New classifications for this activity
    */
-  void set_activity_type( activity_type_sptr activity_type );
+  void set_type( activity_type_sptr c );
 
   /**
    * @brief Get activity confidence
    *
    * @return the activity confidence for the activity
    */
-  activity_confidence_t confidence() const;
+  double confidence() const;
 
   /**
    * @brief Set activity confidence for the activity
    *
-   * @param activity_confidence The confidence associated with the activity
+   * @param confidence The confidence associated with the activity
    */
-  void set_confidence( activity_confidence_t activity_confidence );
+  void set_confidence( double confidence );
 
   /**
    * @brief Get the starting frame for the activity
@@ -191,10 +191,10 @@ public:
   void set_participants( kwiver::vital::object_track_set_sptr participants );
 
 private:
-  activity_id_t m_activity_id;
-  activity_label_t m_activity_label;
-  activity_type_sptr m_activity_type;
-  activity_confidence_t m_activity_confidence;
+  activity_id_t m_id;
+  activity_label_t m_label;
+  activity_type_sptr m_type;
+  double m_confidence;
   kwiver::vital::object_track_set_sptr m_participants;
   kwiver::vital::timestamp m_start_frame, m_end_frame;
 };

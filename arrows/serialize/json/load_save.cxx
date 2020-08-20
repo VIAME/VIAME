@@ -628,9 +628,9 @@ void save( cereal::JSONOutputArchive& archive,
     save( archive, activity.end());
 
     // These may be null
-    if ( activity.activity_type() )
+    if ( activity.type() )
     {
-      save( archive, *activity.activity_type());
+      save( archive, *activity.type());
     }
 
     if ( activity.participants() )
