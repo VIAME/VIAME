@@ -31,6 +31,7 @@
 #include "pipeline_runner.h"
 
 #include <vital/config/config_block.h>
+#include <vital/config/config_block_formatter.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <sprokit/pipeline/scheduler.h>
@@ -76,7 +77,10 @@ add_command_options()
       cxxopts::value<std::vector<std::string>>() )
     ( "I,include", "A directory to be added to configuration include path. Can occur multiple times.",
       cxxopts::value<std::vector<std::string>>()  )
-    ( "S,scheduler", "Scheduler type to use.", cxxopts::value<std::string>() );
+    ( "S,scheduler", "Scheduler type to use.", cxxopts::value<std::string>() )
+    ( "D,dump-config", "Dump final pipeline configuration. This is useful for "
+      "debugging config related problems." )
+    ;
 
     // positional parameters
   m_cmd_options->add_options()
@@ -152,12 +156,20 @@ run()
   // get handle to config block
   kwiver::vital::config_block_sptr const conf = builder.config();
 
+  // nice to dump config at this point
+  if ( cmd_args["dump-config"].as<bool>() )
+  {
+    ::kwiver::vital::config_block_formatter fmt( conf );
+    fmt.print( std::cout, "tree" );
+  }
+
   if (!pipe)
   {
     std::cerr << "Error: Unable to bake pipeline" << std::endl;
     return EXIT_FAILURE;
   }
 
+  // Get pipeline ready to run
   pipe->setup_pipeline();
 
   //

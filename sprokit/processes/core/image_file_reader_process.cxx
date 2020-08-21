@@ -313,10 +313,10 @@ void image_file_reader_process
 void image_file_reader_process
 ::make_config()
 {
-  declare_config_using_trait( frame_time );
   declare_config_using_trait( error_mode );
   declare_config_using_trait( path );
   declare_config_using_trait( image_reader );
+  declare_config_using_trait( frame_time );
   declare_config_using_trait( no_path_in_name );
 }
 
