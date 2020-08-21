@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2019 by Kitware, Inc.
+ * Copyright 2017-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 #include "darknet_custom_resize.h"
 
 #include <vital/util/cpu_timer.h>
+#include <vital/types/detected_object_set_util.h>
 #include <vital/algo/image_io.h>
 
 #include <arrows/ocv/image_container.h>
@@ -734,7 +735,7 @@ darknet_trainer::priv
     resized_scale = format_image( original_image, resized_image,
       m_resize_option, m_scale, m_resize_i, m_resize_j );
 
-    scaled_groundtruth->scale( resized_scale );
+    scale_detections( scaled_groundtruth, resized_scale );
   }
   else
   {
@@ -814,7 +815,7 @@ darknet_trainer::priv
         scaled_original, m_resize_i, m_resize_j );
 
       kwiver::vital::detected_object_set_sptr scaled_original_dets_ptr = groundtruth->clone();
-      scaled_original_dets_ptr->scale( scaled_original_scale );
+      scale_detections( scaled_original_dets_ptr, scaled_original_scale );
 
       std::string img_file, gt_file;
       generate_fn( image_folder, label_folder, img_file, gt_file );
