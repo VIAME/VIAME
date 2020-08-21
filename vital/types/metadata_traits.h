@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ struct vital_meta_trait_base
   virtual bool is_integral() const = 0;
   virtual bool is_floating_point() const = 0;
   virtual vital_metadata_tag tag() const = 0;
-  virtual metadata_item* create_metadata_item( const kwiver::vital::any& data ) const = 0;
+  virtual std::unique_ptr<metadata_item> create_metadata_item( const kwiver::vital::any& data ) const = 0;
 };
 
 
@@ -72,8 +72,6 @@ struct vital_meta_trait_base
 // vital meta compile time traits
 //
 //
-template <vital_metadata_tag tag> struct vital_meta_trait;
-
 
 // Macro to define basic metadata trait
 // This macro is available for others to create separate sets of traits.
@@ -124,18 +122,6 @@ public:
   vital_meta_trait_base const& find( vital_metadata_tag tag ) const;
 
 
-  /// Get type representation for vital metadata tag. //+ move to convert_metadata
-  /**
-   * This method returns the type id string for the specified vital
-   * metadata tag.
-   *
-   * @param tag Code for metadata tag.
-   *
-   * @return Type info for this tag
-   */
-  std::type_info const& typeid_for_tag( vital_metadata_tag tag ) const;
-
-
   /// Convert tag value to enum symbol
   /**
    * This method returns the symbol name for the supplied tag.
@@ -183,10 +169,5 @@ private:
 }; // end class metadata_traits
 
 } } // end namespace
-
-// usage for creating metadata items
-#define NEW_METADATA_ITEM( TAG, DATA )                                  \
-  new kwiver::vital::typed_metadata< TAG, kwiver::vital::vital_meta_trait<TAG>::type > \
-  ( kwiver::vital::vital_meta_trait<TAG>::name(), DATA )
 
 #endif

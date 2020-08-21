@@ -13,6 +13,9 @@ Vital Algo
 
 Vital Types
 
+ * Add new method to metadata class to add a metadata item being
+   passed by shared_ptr
+
 Vital Plugin-loader
 
  * Added support for filtering plugins when they are loaded. Filter
@@ -42,6 +45,11 @@ Arrows: Ceres
 Arrows: CUDA
 
 Arrows: FFmpeg
+
+ * Added a libavfilter pipeline into the ffmpeg_video_input reader. This
+   allows users to inject filters in the video reader, much the same as
+   is possible in the ffmpeg command line with the -vf option.  The default
+   filter applies deinterlacing to any interlaced frames.
 
 Arrows: GDAL
 

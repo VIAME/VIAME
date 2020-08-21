@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,8 +227,7 @@ public:
 
         meta->set_timestamp( ts );
 
-        meta->add( NEW_METADATA_ITEM( vital::VITAL_META_VIDEO_URI,
-                                      video_path ) );
+        meta->add< vital::VITAL_META_VIDEO_URI>( video_path );
         retval.push_back( meta );
       } // end valid metadata packet.
     } // end while
@@ -248,8 +247,7 @@ public:
 
       meta->set_timestamp(ts);
 
-      meta->add(NEW_METADATA_ITEM(vital::VITAL_META_VIDEO_URI,
-        video_path));
+      meta->add< vital::VITAL_META_VIDEO_URI >( video_path );
 
       retval.push_back(meta);
     }

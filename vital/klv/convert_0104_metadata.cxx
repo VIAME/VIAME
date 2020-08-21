@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,7 +110,7 @@ convert_metadata
                            kwiver::vital::any const& data )
 {
   // If the input data is already in the correct type, just return.
-  if ( metadata::typeid_for_tag( vital_tag ) == data.type() )
+  if ( convert_metadata::typeid_for_tag( vital_tag ) == data.type() )
   {
     return data;
   }
@@ -118,7 +118,7 @@ convert_metadata
   try
   {
     // If destination type is double, then source must be convertable to double
-    if ( metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
+    if ( convert_metadata::typeid_for_tag( vital_tag ) == typeid( double ) )
     {
       kwiver::vital::any converted_data = convert_to_double.convert( data );
       return converted_data;
@@ -163,7 +163,7 @@ void convert_metadata
   // Add our "origin" tag to indicate that the source of this metadata
   // collection is from a 0104 spec packet.
   //
-  md.add( NEW_METADATA_ITEM( VITAL_META_METADATA_ORIGIN, MISB_0104 ) );
+  md.add< VITAL_META_METADATA_ORIGIN >( MISB_0104 );
 
   for ( auto itr = uds.begin(); itr != uds.end(); ++itr )
   {
@@ -195,15 +195,15 @@ void convert_metadata
     switch (tag)
     {
 // Refine simple case to a define
-#define CASE(N)                                           \
-case klv_0104::N:                                         \
-  md.add( NEW_METADATA_ITEM( VITAL_META_ ## N, data ) );  \
+#define CASE(N)                           \
+case klv_0104::N:                         \
+  md.add_any< VITAL_META_ ## N >( data ); \
   break
 
-#define CASE2(KN,MN)                                         \
-      case klv_0104::KN:                                     \
-    md.add( NEW_METADATA_ITEM( VITAL_META_ ## MN, data ) );  \
-    break
+#define CASE2(KN,MN)                        \
+case klv_0104::KN:                          \
+  md.add_any< VITAL_META_ ## MN >( data );  \
+  break
 
       CASE( UNIX_TIMESTAMP );
       CASE( MISSION_ID );
@@ -311,7 +311,7 @@ case klv_0104::N:                                         \
     {
       vector_3d sensor_loc(raw_sensor_location[0], raw_sensor_location[1], raw_sensor_location[2]);
       auto const sensor_location = geo_point{ sensor_loc, SRID::lat_lon_WGS84 };
-      md.add( NEW_METADATA_ITEM( VITAL_META_SENSOR_LOCATION, sensor_location ) );
+      md.add< VITAL_META_SENSOR_LOCATION >( sensor_location );
     }
   }
 
@@ -324,7 +324,7 @@ case klv_0104::N:                                         \
     else
     {
       auto const frame_center = geo_point{ raw_frame_center, SRID::lat_lon_WGS84 };
-      md.add( NEW_METADATA_ITEM( VITAL_META_FRAME_CENTER, frame_center ) );
+      md.add< VITAL_META_FRAME_CENTER >( frame_center );
     }
   }
 
@@ -374,7 +374,7 @@ case klv_0104::N:                                         \
       raw_corners.push_back( raw_corner_pt4 );
 
       kwiver::vital::geo_polygon corners{ raw_corners, kwiver::vital::SRID::lat_lon_WGS84 };
-      md.add( NEW_METADATA_ITEM( VITAL_META_CORNER_POINTS, corners ) );
+      md.add< VITAL_META_CORNER_POINTS >( corners );
     }
   }
 }

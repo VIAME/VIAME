@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,11 @@
  */
 
 #include "metadata.h"
-#include "metadata_traits.h"
 
 #include <vital/util/demangle.h>
 
 namespace kwiver {
 namespace vital {
-
 
 // ----------------------------------------------------------------
 /*
@@ -56,39 +54,47 @@ namespace vital {
       : metadata_item( "Requested metadata item is not in collection", 0, VITAL_META_UNKNOWN )
     { }
 
-    virtual bool is_valid() const { return false; }
-    virtual vital_metadata_tag tag() const { return static_cast< vital_metadata_tag >(0); }
-    virtual std::type_info const& type() const { return typeid( void ); }
-    virtual std::string as_string() const { return "--Unknown metadata item--"; }
-    virtual double as_double() const { return 0; }
-    virtual double as_uint64() const { return 0; }
-    virtual std::ostream& print_value(std::ostream& os) const
+    bool is_valid() const override { return false; }
+    std::type_info const& type() const override { return typeid( void ); }
+    std::string as_string() const override { return "--Unknown metadata item--"; }
+    std::ostream& print_value(std::ostream& os) const override
     {
       os << this->as_string();
       return os;
     }
 
+    metadata_item* clone() const override { return nullptr; } // never used
   }; // end class unknown_metadata_item
 
-// ==================================================================
-
+// ----------------------------------------------------------------------------
 metadata_item
-::metadata_item(std::string name,
-                kwiver::vital::any const& data,
-                vital_metadata_tag tag )
-    : m_name( name )
-    , m_data( data )
-    , m_tag( tag )
-{ }
+::metadata_item( std::string const& name,
+                 kwiver::vital::any const& data,
+                 vital_metadata_tag tag )
+    : m_name{ name },
+      m_data{ data },
+      m_tag{ tag }
+{
+}
 
+// ----------------------------------------------------------------------------
+metadata_item
+::metadata_item( std::string const& name,
+                 kwiver::vital::any&& data,
+                 vital_metadata_tag tag )
+    : m_name{ name },
+      m_data{ std::move( data ) },
+      m_tag{ tag }
+{
+}
 
+// ----------------------------------------------------------------------------
 bool
 metadata_item
 ::is_valid() const
 {
   return true;
 }
-
 
 std::string const&
 metadata_item
@@ -97,14 +103,12 @@ metadata_item
   return this->m_name;
 }
 
-
 kwiver::vital::any
 metadata_item
 ::data() const
 {
   return this->m_data;
 }
-
 
 double
 metadata_item
@@ -113,14 +117,12 @@ metadata_item
   return kwiver::vital::any_cast< double > ( this->m_data );
 }
 
-
 bool
 metadata_item
 ::has_double() const
 {
   return m_data.type() == typeid( double );
 }
-
 
 uint64_t
 metadata_item
@@ -129,14 +131,12 @@ metadata_item
   return kwiver::vital::any_cast< uint64_t > ( this->m_data );
 }
 
-
 bool
 metadata_item
 ::has_uint64() const
 {
   return m_data.type() == typeid( uint64_t );
 }
-
 
 bool
 metadata_item
@@ -145,34 +145,52 @@ metadata_item
   return m_data.type() == typeid( std::string );
 }
 
-
 // ==================================================================
 metadata
 ::metadata()
 { }
 
-
-metadata
-::~metadata()
-{
-
-}
-
+// ---------------------------------------------------------------------
 void
 metadata
-::add( metadata_item* item )
+::add( std::unique_ptr< metadata_item >&& item )
 {
-  this->m_metadata_map[item->tag()] = item_ptr(item);
+  if ( !item )
+  {
+    throw std::invalid_argument{ "null pointer" };
+  }
+
+  auto const tag = item->tag();
+#ifdef VITAL_STD_MAP_UNIQUE_PTR_ALLOWED
+  this->m_metadata_map[ tag ] = std::move( item );
+#else
+  this->m_metadata_map[ tag ] = item_ptr{ item.release() };
+#endif
 }
 
+// ---------------------------------------------------------------------
+void
+metadata
+::add_copy( std::shared_ptr<metadata_item const> const& item )
+{
+  if ( !item )
+  {
+    throw std::invalid_argument{ "null pointer" };
+  }
 
+  // Since the design intent for this map is that the metadata
+  // collection owns the elements, we will clone the item passed in.
+  // The original parameter will be freed eventually.
+  this->m_metadata_map[ item->tag() ] = item_ptr{ item->clone() };
+}
+
+// -------------------------------------------------------------------
 bool
 metadata
 ::has( vital_metadata_tag tag ) const
 {
   return m_metadata_map.find( tag ) != m_metadata_map.end();
 }
-
 
 // ------------------------------------------------------------------
 metadata_item const&
@@ -190,7 +208,6 @@ metadata
   return *(it->second);
 }
 
-
 // ------------------------------------------------------------------
 bool
 metadata
@@ -198,7 +215,6 @@ metadata
 {
   return m_metadata_map.erase( tag ) > 0;
 }
-
 
 // ------------------------------------------------------------------
 metadata::const_iterator_t
@@ -208,14 +224,12 @@ metadata
   return m_metadata_map.begin();
 }
 
-
 metadata::const_iterator_t
 metadata
 ::cbegin() const
 {
   return m_metadata_map.cbegin();
 }
-
 
 metadata::const_iterator_t
 metadata
@@ -224,7 +238,6 @@ metadata
   return m_metadata_map.end();
 }
 
-
 metadata::const_iterator_t
 metadata
 ::cend() const
@@ -232,7 +245,7 @@ metadata
   return m_metadata_map.cend();
 }
 
-
+// ---------------------------------------------------------------------
 size_t
 metadata
 ::size() const
@@ -240,14 +253,13 @@ metadata
   return m_metadata_map.size();
 }
 
-
+// ---------------------------------------------------------------------
 bool
 metadata
 ::empty() const
 {
   return m_metadata_map.empty();
 }
-
 
 // ------------------------------------------------------------------
 void
@@ -257,33 +269,13 @@ metadata
   this->m_timestamp = ts;
 }
 
-
+// ---------------------------------------------------------------------
 kwiver::vital::timestamp const&
 metadata
 ::timestamp() const
 {
   return this->m_timestamp;
 }
-
-
-  // ------------------------------------------------------------------
-std::type_info const&
-metadata
-::typeid_for_tag( vital_metadata_tag tag )
-{
-
-  switch (tag)
-  {
-#define VITAL_META_TRAIT_CASE(TAG, NAME, T, ...) case VITAL_META_ ## TAG: return typeid(T);
-
-    KWIVER_VITAL_METADATA_TAGS( VITAL_META_TRAIT_CASE )
-
-#undef VITAL_META_TRAIT_CASE
-
-  default: return typeid(void);
-  }
-}
-
 
 // ------------------------------------------------------------------
 std::string
@@ -329,7 +321,6 @@ metadata
   return ascii;
 }
 
-
 // ------------------------------------------------------------------
 std::ostream& print_metadata( std::ostream& str, metadata const& metadata )
 {
@@ -349,7 +340,6 @@ std::ostream& print_metadata( std::ostream& str, metadata const& metadata )
 
   return str;
 }
-
 
 // ----------------------------------------------------------------------------
 bool test_equal_content( const kwiver::vital::metadata& one,
@@ -375,6 +365,5 @@ bool test_equal_content( const kwiver::vital::metadata& one,
 
   return true;
 }
-
 
 } } // end namespace

@@ -666,7 +666,7 @@ video_input_image_list::priv
     md = std::make_shared< kv::metadata >();
   }
 
-  md->add( NEW_METADATA_ITEM( vital::VITAL_META_IMAGE_URI, file ) );
+  md->add< vital::VITAL_META_IMAGE_URI >( file );
 
   m_metadata_by_path[ file ] = md;
   return md;

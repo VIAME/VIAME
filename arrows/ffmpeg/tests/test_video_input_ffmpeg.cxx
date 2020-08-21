@@ -39,6 +39,7 @@
 #include <arrows/ffmpeg/ffmpeg_video_input.h>
 #include <arrows/tests/test_video_input.h>
 #include <vital/exceptions/io.h>
+#include <vital/exceptions/video.h>
 #include <vital/plugin_loader/plugin_manager.h>
 
 #include <arrows/vxl/vidl_ffmpeg_video_input.h>
@@ -456,4 +457,118 @@ TEST_F(ffmpeg_video_input, metadata_map)
     }
     std::cout << std::endl;
   }
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, empty_filter_desc)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
+  auto config = vif.get_configuration();
+  // make the avfilter pipeline empty
+  config->set_value("filter_desc", "");
+  vif.set_configuration(config);
+
+  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
+
+  // Open the video
+  vif.open(video_file);
+
+  // Get the next frame
+  kwiver::vital::timestamp ts;
+  vif.next_frame(ts);
+  EXPECT_EQ(ts.get_frame(), 1);
+
+  kwiver::vital::image_container_sptr frame = vif.frame_image();
+  EXPECT_EQ(frame->depth(), 3);
+  EXPECT_EQ(frame->get_image().width(), 80);
+  EXPECT_EQ(frame->get_image().height(), 54);
+  EXPECT_EQ(frame->get_image().d_step(), 1);
+  EXPECT_EQ(frame->get_image().h_step(), 80 * 3);
+  EXPECT_EQ(frame->get_image().w_step(), 3);
+  EXPECT_TRUE(frame->get_image().is_contiguous());
+
+  EXPECT_EQ(decode_barcode(*frame), 1);
+
+  vif.next_frame(ts);
+  frame = vif.frame_image();
+  EXPECT_EQ(ts.get_frame(), 2);
+  EXPECT_EQ(decode_barcode(*frame), 2);
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, invalid_filter_desc)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
+  auto config = vif.get_configuration();
+  // set an invalid avfilter pipeline in the filter description
+  config->set_value("filter_desc", "_invalid_filter_");
+  vif.set_configuration(config);
+
+  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
+
+  // Open the video
+  EXPECT_THROW(
+    vif.open(video_file),
+    kwiver::vital::video_runtime_exception);
+}
+
+// ----------------------------------------------------------------------------
+// helper function to make a horizontally flipped image view
+// TODO: make this a more general function within KWIVER
+kwiver::vital::image
+hflip_image(kwiver::vital::image const& image)
+{
+  const auto w = image.width();
+  const auto h = image.height();
+  const auto d = image.depth();
+  const auto ws = image.w_step();
+  const auto hs = image.h_step();
+  const auto ds = image.d_step();
+  return kwiver::vital::image(image.memory(),
+    static_cast<const uint8_t*>(image.first_pixel()) + ws * (w - 1),
+    w, h, d, -ws, hs + ws*w, ds, image.pixel_traits());
+}
+
+// ----------------------------------------------------------------------------
+TEST_F(ffmpeg_video_input, hflip_filter_desc)
+{
+  kwiver::arrows::ffmpeg::ffmpeg_video_input vif;
+  auto config = vif.get_configuration();
+  // use the hflip filter for horizontal flipping
+  config->set_value("filter_desc", "hflip");
+  vif.set_configuration(config);
+
+  kwiver::vital::path_t video_file = data_dir + "/video.mp4";
+
+  // Open the video
+  vif.open(video_file);
+
+  // Get the next frame
+  kwiver::vital::timestamp ts;
+  vif.next_frame(ts);
+  EXPECT_EQ(ts.get_frame(), 1);
+
+  kwiver::vital::image_container_sptr frame = vif.frame_image();
+  EXPECT_EQ(frame->depth(), 3);
+  EXPECT_EQ(frame->get_image().width(), 80);
+  EXPECT_EQ(frame->get_image().height(), 54);
+  EXPECT_EQ(frame->get_image().d_step(), 1);
+  EXPECT_EQ(frame->get_image().h_step(), 80 * 3);
+  EXPECT_EQ(frame->get_image().w_step(), 3);
+  EXPECT_TRUE(frame->get_image().is_contiguous());
+
+  EXPECT_NE(decode_barcode(*frame), 1);
+
+  // undo horizontal flipping and confirm that the frame is now correct
+  kwiver::vital::simple_image_container hflip_frame(hflip_image(frame->get_image()));
+  EXPECT_EQ(decode_barcode(hflip_frame), 1);
+
+  vif.next_frame(ts);
+  frame = vif.frame_image();
+  EXPECT_EQ(ts.get_frame(), 2);
+  EXPECT_NE(decode_barcode(*frame), 2);
+
+  // undo horizontal flipping and confirm that the frame is now correct
+  hflip_frame = kwiver::vital::simple_image_container(hflip_image(frame->get_image()));
+  EXPECT_EQ(decode_barcode(hflip_frame), 2);
 }

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016-2017, 2019 by Kitware, Inc.
+ * Copyright 2016-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,19 @@ public:
    * @throws metadata_exception When error encountered.
    */
    void convert( klv_data const& klv, metadata& md );
+
+
+  /**
+   * \brief Get type representation for vital metadata tag.
+   *
+   * This method returns the type id string for the specified vital
+   * metadata tag.
+   *
+   * \param tag Code for metadata tag.
+   *
+   * \return Type info for this tag
+   */
+  static std::type_info const& typeid_for_tag( vital_metadata_tag tag );
 
 
   /** Constants used to determine the source of this metadata
