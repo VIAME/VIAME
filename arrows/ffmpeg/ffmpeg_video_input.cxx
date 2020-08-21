@@ -85,7 +85,8 @@ public:
     frame_advanced(0),
     end_of_video(true),
     number_of_frames(0),
-    have_loop_vars(false)
+    collected_all_metadata(false),
+    estimated_num_frames(false)
   {
     f_packet.data = nullptr;
   }
@@ -143,7 +144,8 @@ public:
   int frame_advanced; // This is a boolean check value really
   bool end_of_video;
   size_t number_of_frames;
-  bool have_loop_vars;
+  bool collected_all_metadata;
+  bool estimated_num_frames;
 
   // ==================================================================
   /*
@@ -612,11 +614,9 @@ public:
 
   // ==================================================================
   /*
-  * @brief Loop over all frames to collect metadata and exact frame count
-  *
-  * @return \b Current frame number.
+  * @brief Loop over all frames to collect metadata
   */
-  void process_loop_dependencies()
+  void collect_all_metadata()
   {
     // is stream open?
     if ( ! this->is_opened() )
@@ -624,7 +624,7 @@ public:
       VITAL_THROW( vital::file_not_read_exception, video_path, "Video not open" );
     }
 
-    if ( !have_loop_vars )
+    if ( !collected_all_metadata )
     {
       std::lock_guard< std::mutex > lock( open_mutex );
 
@@ -638,7 +638,6 @@ public:
       // Add metadata for current frame
       if ( frame_advanced )
       {
-        number_of_frames++;
         this->metadata_map.insert(
           std::make_pair( this->frame_number(), this->current_metadata() ) );
       }
@@ -646,7 +645,6 @@ public:
       // Advance video stream to end
       while ( this->advance() )
       {
-        number_of_frames++;
         this->metadata_map.insert(
           std::make_pair( this->frame_number(), this->current_metadata() ) );
       }
@@ -659,13 +657,88 @@ public:
       unsigned int frame_num = 0;
       while ( frame_num < initial_frame_number && this->advance() )
       {
-        number_of_frames++;
         ++frame_num;
         this->metadata_map.insert(
           std::make_pair( this->frame_number(), this->current_metadata() ) );
       }
 
-      have_loop_vars = true;
+      collected_all_metadata = true;
+    }
+  }
+
+
+  // ==================================================================
+  /*
+  * @brief Seek to the end of the video to estimate number of frames
+  */
+  void estimate_num_frames()
+  {
+    // is stream open?
+    if (!this->is_opened())
+    {
+      VITAL_THROW(vital::file_not_read_exception, video_path, "Video not open");
+    }
+
+    if ( !estimated_num_frames )
+    {
+      std::lock_guard< std::mutex > lock(open_mutex);
+
+      auto initial_frame_number = this->frame_number();
+
+      if (!frame_advanced && !end_of_video)
+      {
+        initial_frame_number = 0;
+      }
+
+      bool advance_successful = false;
+      // Seek to as close as possibly to the end of the video
+      int64_t frame_ts = this->f_video_stream->duration + this->f_start_time;
+      do
+      {
+        auto seek_rslt = av_seek_frame(this->f_format_context,
+                                       this->f_video_index,
+                                       frame_ts,
+                                       AVSEEK_FLAG_BACKWARD);
+        avcodec_flush_buffers(this->f_video_encoding);
+
+        if (seek_rslt < 0)
+        {
+          break;
+        }
+
+        advance_successful = this->advance();
+
+        // Continue to make seek request further back until we land at a valid frame
+        frame_ts -= this->f_backstep_size * this->stream_time_base_to_frame();
+      } while (!advance_successful);
+
+      LOG_DEBUG(this->logger, "Seeked to near end frame: " << this->frame_number());
+
+      // Step through the end of the video to find the last valid frame number
+      do
+      {
+        number_of_frames = this->frame_number();
+      }
+      while (this->advance());
+      // The number of frames is one greater than the last valid frame number
+      ++number_of_frames;
+
+      LOG_DEBUG(this->logger, "Found " << number_of_frames << " video frames");
+
+      // Set this flag so we do not have a count frames next time
+      estimated_num_frames = true;
+
+      // Return the video to its state before seeking to the end
+      if (initial_frame_number == 0)
+      {
+        // Close and reopen to reset
+        this->close();
+        this->open(video_path);
+      }
+      else
+      {
+        this->seek(initial_frame_number);
+      }
     }
   }
 
@@ -783,7 +856,8 @@ ffmpeg_video_input
   d->frame_advanced = 0;
   d->end_of_video = true;
   d->number_of_frames = 0;
-  d->have_loop_vars = false;
+  d->collected_all_metadata = false;
+  d->estimated_num_frames = false;
   d->metadata.clear();
 }
 
@@ -971,7 +1045,7 @@ kwiver::vital::metadata_map_sptr
 ffmpeg_video_input
 ::metadata_map()
 {
-  d->process_loop_dependencies();
+  d->collect_all_metadata();
 
   return std::make_shared<kwiver::vital::simple_metadata_map>(d->metadata_map);
 }
@@ -1008,7 +1082,7 @@ size_t
 ffmpeg_video_input
 ::num_frames() const
 {
-  d->process_loop_dependencies();
+  d->estimate_num_frames();
 
   return d->number_of_frames;
 }

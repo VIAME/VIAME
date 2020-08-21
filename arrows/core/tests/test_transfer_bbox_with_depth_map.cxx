@@ -34,9 +34,6 @@
 
 #include <arrows/core/transfer_bbox_with_depth_map.h>
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
 using namespace kwiver::vital;
 
 path_t g_data_dir;
