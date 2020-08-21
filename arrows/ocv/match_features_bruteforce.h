@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,9 +49,7 @@ namespace ocv {
 
 /// Feature matcher implementation using OpenCV's brute-force feature matcher
 class KWIVER_ALGO_OCV_EXPORT match_features_bruteforce
-    : public vital::algorithm_impl< match_features_bruteforce,
-                                    match_features,
-                                    vital::algo::match_features >
+    : public match_features
 {
 public:
   PLUGIN_INFO( "ocv_brute_force",

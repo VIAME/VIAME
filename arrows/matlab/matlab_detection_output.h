@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016, 2019 by Kitware, Inc.
+ * Copyright 2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ namespace arrows {
 namespace matlab {
 
 class KWIVER_ALGO_MATLAB_EXPORT matlab_detection_output
-  : public vital::algorithm_impl<matlab_detection_output, vital::algo::detected_object_set_output>
+  : public vital::algo::detected_object_set_output
 {
 public:
   matlab_detection_output();

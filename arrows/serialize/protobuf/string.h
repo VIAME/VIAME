@@ -41,7 +41,7 @@ namespace protobuf {
 
 
 class KWIVER_SERIALIZE_PROTOBUF_EXPORT string
-  : public vital::algorithm_impl< string, vital::algo::data_serializer >
+  : public vital::algo::data_serializer
 {
 public:
   PLUGIN_INFO( "kwiver:string",

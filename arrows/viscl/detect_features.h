@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2016, 2019 by Kitware, Inc.
+ * Copyright 2014-2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ namespace vcl {
 
 /// An algorithm class for detecting feature points using VisCL
 class KWIVER_ALGO_VISCL_EXPORT detect_features
-: public vital::algorithm_impl<detect_features, vital::algo::detect_features>
+: public vital::algo::detect_features
 {
 public:
   /// Constructor

@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2015-2016, 2019 by Kitware, Inc.
+ * Copyright 2015-2016, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,8 +59,7 @@ namespace vxl {
  *  landmarks to unit standard deviation.
  */
 class KWIVER_ALGO_VXL_EXPORT estimate_canonical_transform
-  : public vital::algorithm_impl<estimate_canonical_transform,
-                                 vital::algo::estimate_canonical_transform>
+  : public vital::algo::estimate_canonical_transform
 {
 public:
   PLUGIN_INFO( "vxl_plane",

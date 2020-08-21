@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ namespace core {
  * percentage of feature tracks.
  */
 class KWIVER_ALGO_CORE_EXPORT close_loops_bad_frames_only
-  : public vital::algorithm_impl<close_loops_bad_frames_only, vital::algo::close_loops>
+  : public vital::algo::close_loops
 {
 public:
   PLUGIN_INFO( "bad_frames_only",

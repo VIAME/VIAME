@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2016 by Kitware, Inc.
+ * Copyright 2016, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ namespace ocv {
 /// An abstract base class for algorithms which draw tracks on top of
 /// images in various ways, for analyzing results.
 class KWIVER_ALGO_OCV_EXPORT draw_detected_object_set
-  : public vital::algorithm_impl< draw_detected_object_set, vital::algo::draw_detected_object_set>
+  : public vital::algo::draw_detected_object_set
 {
 public:
   PLUGIN_INFO( "ocv",

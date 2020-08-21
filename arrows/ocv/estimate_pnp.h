@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017, 2019 by Kitware, Inc.
+ * Copyright 2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ namespace ocv {
 /// A class that uses OpenCV to estimate a camera's pose from 3D feature
 /// and point projection pairs.
 class KWIVER_ALGO_OCV_EXPORT estimate_pnp
-  : public vital::algorithm_impl<estimate_pnp, vital::algo::estimate_pnp>
+  : public vital::algo::estimate_pnp
 {
 public:
   PLUGIN_INFO( "ocv",

@@ -46,7 +46,7 @@ namespace gdal {
 
 /// A class for using GDAL to read and write images
 class KWIVER_ALGO_GDAL_EXPORT image_io
-  : public vital::algorithm_impl<image_io, vital::algo::image_io>
+  : public vital::algo::image_io
 {
 public:
   // No configuration for this class yet

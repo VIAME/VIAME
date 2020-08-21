@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2017, 2019 by Kitware, Inc.
+ * Copyright 2014-2017, 2019-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ namespace vxl {
  * filtering.
  */
 class KWIVER_ALGO_VXL_EXPORT close_loops_homography_guided
-  : public vital::algorithm_impl<vxl::close_loops_homography_guided, vital::algo::close_loops>
+  : public vital::algo::close_loops
 {
 public:
   PLUGIN_INFO( "vxl_homography_guided",

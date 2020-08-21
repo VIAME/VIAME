@@ -44,7 +44,7 @@ namespace arrows {
 namespace matlab {
 
 class KWIVER_ALGO_MATLAB_EXPORT matlab_image_filter
-  : public vital::algorithm_impl< matlab_image_filter, vital::algo::image_filter >
+  : public vital::algo::image_filter
 {
 public:
   matlab_image_filter();

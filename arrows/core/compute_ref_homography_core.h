@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2014-2019 by Kitware, Inc.
+ * Copyright 2014-2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ namespace core {
  * compute reference frames on all frames in a sequence.
  */
 class KWIVER_ALGO_CORE_EXPORT compute_ref_homography_core
-  : public vital::algorithm_impl<compute_ref_homography_core, vital::algo::compute_ref_homography>
+  : public vital::algo::compute_ref_homography
 {
 public:
   PLUGIN_INFO( "core",

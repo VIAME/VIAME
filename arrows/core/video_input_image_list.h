@@ -1,5 +1,5 @@
 /*ckwg +29
- * Copyright 2017-2018 by Kitware, Inc.
+ * Copyright 2017-2018, 2020 by Kitware, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ namespace core {
  *   image_reader:type = vxl
  */
 class KWIVER_ALGO_CORE_EXPORT video_input_image_list
-  : public vital::algorithm_impl < video_input_image_list, vital::algo::video_input >
+  : public vital::algo::video_input
 {
 public:
   PLUGIN_INFO( "image_list",
