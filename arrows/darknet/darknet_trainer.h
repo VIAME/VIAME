@@ -45,38 +45,38 @@ namespace darknet {
  * @brief Darknet Training Utility Class
  */
 class KWIVER_ALGO_DARKNET_EXPORT darknet_trainer
-  : public vital::algorithm_impl<darknet_trainer, vital::algo::train_detector>
+  : public vital::algorithm_impl< darknet_trainer, vital::algo::train_detector >
 {
 public:
-
   darknet_trainer();
   virtual ~darknet_trainer();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  PLUGIN_INFO( "darknet",
+               "Training utility for darknet." )
 
-  virtual void set_configuration(vital::config_block_sptr config);
-  virtual bool check_configuration(vital::config_block_sptr config) const;
+  vital::config_block_sptr get_configuration() const override;
 
-  virtual void
-  add_data_from_disk(vital::category_hierarchy_sptr object_labels,
-    std::vector< std::string > train_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-    std::vector< std::string > test_image_names,
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
+  void set_configuration( vital::config_block_sptr config ) override;
+  bool check_configuration( vital::config_block_sptr config ) const override;
 
-  virtual void
-  add_data_from_memory(vital::category_hierarchy_sptr object_labels,
-    std::vector< kwiver::vital::image_container_sptr > train_images,
-    std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
-    std::vector< kwiver::vital::image_container_sptr > test_images,
-    std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth);
+  void add_data_from_disk( vital::category_hierarchy_sptr object_labels,
+                           std::vector< std::string > train_image_names,
+                           std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+                           std::vector< std::string > test_image_names,
+                           std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth ) override;
 
-  virtual void update_model();
+  void add_data_from_memory( vital::category_hierarchy_sptr object_labels,
+                             std::vector< kwiver::vital::image_container_sptr > train_images,
+                             std::vector< kwiver::vital::detected_object_set_sptr > train_groundtruth,
+                             std::vector< kwiver::vital::image_container_sptr > test_images,
+                             std::vector< kwiver::vital::detected_object_set_sptr > test_groundtruth ) override;
+
+  void update_model() override;
 
 private:
-
   class priv;
-  const std::unique_ptr<priv> d;
+
+  const std::unique_ptr< priv > d;
 };
 
 } } }

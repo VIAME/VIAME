@@ -49,21 +49,23 @@ class KWIVER_ALGO_BURNOUT_EXPORT burnout_track_descriptors
       vital::algo::compute_track_descriptors >
 {
 public:
-
   burnout_track_descriptors();
   virtual ~burnout_track_descriptors();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  PLUGIN_INFO( "burnout",
+               "Track descriptors using burnout" )
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  vital::config_block_sptr get_configuration() const override;
 
-  virtual kwiver::vital::track_descriptor_set_sptr
+  void set_configuration( vital::config_block_sptr config ) override;
+  bool check_configuration( vital::config_block_sptr config ) const override;
+
+  kwiver::vital::track_descriptor_set_sptr
   compute( kwiver::vital::timestamp ts,
            kwiver::vital::image_container_sptr image_data,
-           kwiver::vital::object_track_set_sptr tracks );
+           kwiver::vital::object_track_set_sptr tracks ) override;
 
-  virtual kwiver::vital::track_descriptor_set_sptr flush();
+  kwiver::vital::track_descriptor_set_sptr flush() override;
 
 private:
 

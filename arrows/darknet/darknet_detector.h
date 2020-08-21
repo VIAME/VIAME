@@ -50,20 +50,21 @@ class KWIVER_ALGO_DARKNET_EXPORT darknet_detector
       vital::algo::image_object_detector >
 {
 public:
-
   darknet_detector();
   virtual ~darknet_detector();
 
-  virtual vital::config_block_sptr get_configuration() const;
+  PLUGIN_INFO( "darknet",
+               "Image object detector using darknet." )
 
-  virtual void set_configuration( vital::config_block_sptr config );
-  virtual bool check_configuration( vital::config_block_sptr config ) const;
+  vital::config_block_sptr get_configuration() const override;
 
-  virtual vital::detected_object_set_sptr detect(
-    vital::image_container_sptr image_data ) const;
+  void set_configuration( vital::config_block_sptr config ) override;
+  bool check_configuration( vital::config_block_sptr config ) const override;
+
+  vital::detected_object_set_sptr detect(
+    vital::image_container_sptr image_data ) const override;
 
 private:
-
   class priv;
   const std::unique_ptr<priv> d;
 };
