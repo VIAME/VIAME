@@ -17,7 +17,7 @@ endif()
 
 if (KWIVER_ENABLE_TOOLS)
 kwiver_add_plugin( modules_python
-  SUBDIR          ${kwiver_plugin_module_subdir}
+  SUBDIR          ${kwiver_plugin_process_subdir}
   SOURCES         ${modules_python_srcs}
   PRIVATE         vital_python_util
                   kwiversys
