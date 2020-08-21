@@ -36,6 +36,7 @@
 #include "track.h"
 
 #include <algorithm>
+#include <stdexcept>
 
 #include <vital/exceptions.h>
 
