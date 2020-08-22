@@ -1,44 +1,44 @@
 # ==============================================================================
 #
-# Cascade Faster R-CNN Detector
+# MMDet Cascade Faster R-CNN Detector
 #
 # ==============================================================================
 
 process input
   :: video_input
-  :video_filename                                       input_list.txt
-  :frame_time                                           1
-  :exit_on_invalid                                      false
+  :video_filename                              input_list.txt
+  :frame_time                                  1
+  :exit_on_invalid                             false
 
-  :video_reader:type                                    image_list
+  :video_reader:type                           image_list
 
   block video_reader:vidl_ffmpeg
-    :time_source                                        start_at_0
+    :time_source                               start_at_0
   endblock
 
   block video_reader:image_list
-    :image_reader:type                                  vxl
-    :skip_bad_images                                    true
+    :image_reader:type                         vxl
+    :skip_bad_images                           true
 
     block image_reader:vxl
-      :force_byte                                       true
+      :force_byte                              true
     endblock
 
     block image_reader:add_timestamp_from_filename
-      :image_reader:type                                vxl
+      :image_reader:type                       vxl
 
       block image_reader:vxl
-        :force_byte                                     true
+        :force_byte                            true
       endblock
     endblock
   endblock
 
 process downsampler
   :: downsample
-  :target_frame_rate                                    5
-  :burst_frame_count                                    0
-  :burst_frame_break                                    0
-  :renumber_frames                                      true
+  :target_frame_rate                           5
+  :burst_frame_count                           0
+  :burst_frame_break                           0
+  :renumber_frames                             true
 
 connect from input.image
         to   downsampler.input_1
