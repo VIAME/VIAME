@@ -15,13 +15,13 @@ include common_default_input_with_downsampler.pipe
 process detector
   :: image_object_detector
   :detector:type                               full_frame
-  :detector:full_frame:detection_type          unannotated_frame
+  :detector:full_frame:detection_type          unannotated_sequence
 
 connect from downsampler.output_1
         to   detector.image
 
 process full_frame_tracker
-  :: image_object_detector
+  :: full_frame_tracker
   :fixed_frame_count                           100
 
 connect from in_adapt.timestamp
