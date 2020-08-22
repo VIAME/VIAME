@@ -4,6 +4,8 @@
 
 export INPUT_DIRECTORY=training_data
 export ANNOTATION_TYPE=viame_csv
+export CONFIG_FILE=pipelines/index_full_frame.svm.pipe
+#export CONFIG_FILE=pipelines/index_full_frame.svm.annot_only.pipe
 
 # Setup VIAME Paths (no need to run multiple times if you already ran it)
 
@@ -14,7 +16,7 @@ source ${VIAME_INSTALL}/setup_viame.sh
 # Perform indexing operation required for SVM model train
 
 python ${VIAME_INSTALL}/configs/process_video.py --init -d ${INPUT_DIRECTORY} \
-  -p pipelines/index_full_frame.svm.pipe -o database --build-index \
+  -p  -o database --build-index \
   -auto-detect-gt ${ANNOTATION_TYPE} -install ${VIAME_INSTALL}
 
 # Perform actual SVM model generation

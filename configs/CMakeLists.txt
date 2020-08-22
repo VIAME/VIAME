@@ -183,6 +183,7 @@ set( CORE_PIPELINE_FILES
   pipelines/index_existing.pipe
   pipelines/index_full_frame.pipe
   pipelines/index_full_frame.svm.pipe
+  pipelines/index_full_frame.svm.annot_only.pipe
   pipelines/measurement_default.trk.pipe
   pipelines/measurement_depth_map.pipe
   pipelines/measurement.gmm_only.pipe

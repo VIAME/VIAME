@@ -68,6 +68,8 @@ public:
 
   // Internal variables
   unsigned m_frame_counter;
+  unsigned m_track_counter;
+  std::vector< kv::track_state_sptr > m_states;
 
   // Other variables
   full_frame_tracker_process* parent;
@@ -79,6 +81,7 @@ full_frame_tracker_process::priv
 ::priv( full_frame_tracker_process* ptr )
   : m_fixed_frame_count( 0 )
   , m_frame_counter( 0 )
+  , m_track_counter( 1 )
   , parent( ptr )
 {
 }
@@ -92,12 +95,10 @@ full_frame_tracker_process::priv
 
 // =============================================================================
 full_frame_tracker_process
-::full_frame_tracker_process( kwiver::vital::config_block_sptr const& config )
+::full_frame_tracker_process( kv::config_block_sptr const& config )
   : process( config ),
     d( new full_frame_tracker_process::priv( this ) )
 {
-  set_data_checking_level( check_none );
-
   make_ports();
   make_config();
 }
@@ -155,38 +156,46 @@ full_frame_tracker_process
   kv::timestamp timestamp;
   kv::detected_object_set_sptr detections;
 
-  auto port_info = peek_at_port_using_trait( detected_object_set );
-
-  if( port_info.datum->type() == sprokit::datum::complete )
+  if( has_input_port_edge_using_trait( timestamp ) )
   {
-    grab_edge_datum_using_trait( detected_object_set );
-
-    if( has_input_port_edge_using_trait( image ) )
-    {
-      grab_edge_datum_using_trait( image );
-    }
-    if( has_input_port_edge_using_trait( timestamp ) )
-    {
-      grab_edge_datum_using_trait( timestamp );
-    }
-
-    // Flush any outstanding tracks
+    timestamp = grab_from_port_using_trait( timestamp );
   }
-  else
+  if( has_input_port_edge_using_trait( image ) )
   {
-    if( has_input_port_edge_using_trait( timestamp ) )
-    {
-      timestamp = grab_from_port_using_trait( timestamp );
-    }
-    if( has_input_port_edge_using_trait( image ) )
-    {
-      image = grab_from_port_using_trait( image );
-    }
-    if( has_input_port_edge_using_trait( detected_object_set ) )
-    {
-      detections = grab_from_port_using_trait( detected_object_set );
-    }
+    image = grab_from_port_using_trait( image );
   }
+  if( has_input_port_edge_using_trait( detected_object_set ) )
+  {
+    detections = grab_from_port_using_trait( detected_object_set );
+  }
+
+  if( d->m_states.size() == d->m_fixed_frame_count )
+  {
+    d->m_track_counter++;
+    d->m_states.clear();
+  }
+
+  if( detections->size() == 1 )
+  {
+    d->m_states.push_back(
+      std::make_shared< kwiver::vital::object_track_state >(
+        timestamp, detections->at( 0 ) ) );
+  }
+
+  kv::track_sptr ot = kv::track::create();
+  ot->set_id( d->m_track_counter );
+
+  for( auto state : d->m_states )
+  {
+    ot->append( state );
+  }
+
+  kv::object_track_set_sptr output(
+    new kv::object_track_set(
+      std::vector< kv::track_sptr >( 1, ot ) ) );
+
+  push_to_port_using_trait( timestamp, timestamp );
+  push_to_port_using_trait( object_track_set, output );
 }
 
 } // end namespace core
