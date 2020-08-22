@@ -15,13 +15,11 @@ if( VIAME_ENABLE_OPENCV )
   if( WIN32 )
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}
-      create_mosaic.py
       generate_mosaic_for_list.bat
       register_eo_ir_per_frame_ocv.bat )
   else()
     set( EXAMPLE_INSTALL_FILES
       ${EXAMPLE_INSTALL_FILES}
-      create_mosaic.py
       generate_mosaic_for_list.sh
       register_eo_ir_per_frame_ocv.sh )
   endif()
