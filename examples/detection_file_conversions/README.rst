@@ -62,7 +62,7 @@ Integrated Detection Formats
 |  space seperate values the attribute may have. Possible attributes are:
 |
 |    (kp) head 120 320            [optional head, tail, or arbitrary keypoints]
-|    (atr) is_diseased true       [attribute keyword then booling or numeric value]
+|    (atr) is_diseased true       [attribute keyword then boolean or numeric value]
 |    (note) this is a note        [notes take no form just can't have commas]
 |    (poly) 12 455 40 515 25 480  [a polygon for the detection]
 |    (hole) 38 485 39 490 37 470  [a hole in a polygon for a detection]
