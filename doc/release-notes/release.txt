@@ -7,6 +7,14 @@ v1.5.0 release.
 Bug Fixes since v1.5.0
 ----------------------
 
+Config
+
+ * Add support for Visual Studio 2019 in the setup_KWIVER.bat
+
+Vital
+
+ * Added a missing include file in track.cxx required to build on MSVC 2019.
+
 Arrows: Core
 
  * Fixed a bug in initialize_cameras_landmarks_keyframe in which the
@@ -19,3 +27,11 @@ Arrows: Core
    camera estimation loop would sometimes exit early without processing
    the remaining cameras.  This is further improved to try the lists of
    remaining cameras multiple times until no further cameras are added.
+
+Arrows: OpenCV
+
+ * Fixed a long standing bug with memory management when converting between
+   OpenCV and Vital images.  Reference counting was not handled correctly.
+   A workaround was previously added that forced a deep copy, but this created
+   another bug resulting in images with invalid first_pixel() values.
+   Both of these issues have been addressed.
