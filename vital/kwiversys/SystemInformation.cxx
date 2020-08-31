@@ -54,6 +54,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <mutex>
 
 #if defined(_WIN32)
 # include <windows.h>
@@ -1082,6 +1083,9 @@ void StacktraceSignalHandler(
       void * /*sigContext*/)
 {
 #if defined(__linux) || defined(__APPLE__)
+  //mutex is to handle the possiblity of a race condition
+  static std::mutex mutex;
+  mutex.lock();
   std::ostringstream oss;
   oss
      << std::endl
@@ -1288,6 +1292,9 @@ void StacktraceSignalHandler(
   // and abort
   SystemInformationImplementation::SetStackTraceOnError(0);
   abort();
+  //In the case multiple signals happen at the same time, only one will be
+  //processed, since the code terminates before the mutex is unlocked.
+  mutex.unlock();
 #else
   // avoid warning C4100
   (void)sigNo;
