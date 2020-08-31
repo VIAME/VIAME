@@ -62,6 +62,7 @@ do.
 #include <sys/wait.h>  /* waitpid */
 #include <sys/stat.h>  /* open mode */
 #include <unistd.h>    /* pipe, close, fork, execvp, select, _exit */
+#include <pthread.h>   /* mutex */
 #include <fcntl.h>     /* fcntl */
 #include <errno.h>     /* errno */
 #include <time.h>      /* gettimeofday */
@@ -2945,6 +2946,7 @@ static void kwsysProcessesRemove(kwsysProcess* cp)
 }
 
 /*--------------------------------------------------------------------------*/
+pthread_mutex_t signalHandlerLock;
 static void kwsysProcessesSignalHandler(int signum
 #if KWSYSPE_USE_SIGINFO
                                         , siginfo_t* info, void* ucontext
@@ -2956,6 +2958,7 @@ static void kwsysProcessesSignalHandler(int signum
   (void)info;
   (void)ucontext;
 #endif
+  pthread_mutex_lock(&signalHandlerLock);
 
   /* Signal all process objects that a child has terminated.  */
   switch(signum)
@@ -3014,6 +3017,7 @@ static void kwsysProcessesSignalHandler(int signum
       memset(&defSigAction, 0, sizeof(defSigAction));
       defSigAction.sa_handler = SIG_DFL;
       sigemptyset(&defSigAction.sa_mask);
+      /*Restore sigaction to default*/
       while((sigaction(signum, &defSigAction, 0) < 0) &&
             (errno == EINTR));
       /* Unmask the signal.  */
@@ -3024,6 +3028,7 @@ static void kwsysProcessesSignalHandler(int signum
       raise(signum);
       /* We shouldn't get here... but if we do... */
       _exit(1);
+      pthread_mutex_unlock(&signalHandlerLock);
       }
       /* break omitted to silence unreachable code clang compiler warning.  */
     }
@@ -3046,7 +3051,9 @@ static void kwsysProcessesSignalHandler(int signum
     case SIGTERM:
       sigaddset(&newSigAction.sa_mask, SIGINT);
       oldSigAction = &kwsysProcessesOldSigTermAction; break;
-    default: return 0;
+    default:
+      pthread_mutex_unlock(&signalHandlerLock);
+      return 0;
     }
   while((sigaction(signum, &newSigAction,
                    oldSigAction) < 0) &&
@@ -3055,4 +3062,5 @@ static void kwsysProcessesSignalHandler(int signum
 #endif
 
   errno = old_errno;
+  pthread_mutex_unlock(&signalHandlerLock);
 }
