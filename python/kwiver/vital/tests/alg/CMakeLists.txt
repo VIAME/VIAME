@@ -50,8 +50,6 @@ set(__test_algorithms
   simple_uv_unwrap_mesh
   simple_write_object_track_set
   simple_write_track_descriptor_set
-  simple_associate_detections_to_tracks
-  simple_bundle_adjust
   )
 
 set(test_algorithms
