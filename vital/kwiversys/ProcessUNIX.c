@@ -2098,6 +2098,7 @@ static int kwsysProcessSetupOutputPipeFile(int* p, const char* name)
   /* Set close-on-exec flag on the pipe's end.  */
   if(fcntl(fout, F_SETFD, FD_CLOEXEC) < 0)
     {
+    close(fout);
     return 0;
     }
 
