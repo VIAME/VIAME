@@ -29,6 +29,7 @@
  */
 
 #include <vital/types/metadata.h>
+#include <vital/types/metadata_traits.h>
 #include <vital/types/metadata_tags.h>
 #include <vital/types/geo_point.h>
 #include <vital/types/geo_polygon.h>
@@ -38,10 +39,37 @@
 
 #include <memory>
 #include <string>
-
+#include <pybind11/stl.h>
 
 namespace py = pybind11;
 using namespace kwiver::vital;
+
+void adder(metadata &self, py::object data, vital_metadata_tag t )
+{
+
+  #define TAG_CASE( TAG, NAME, TYPE, ... ) case VITAL_META_##TAG: \
+  { \
+  auto vital_meta_data_ ## TAG = data.cast< typename vital_meta_trait< VITAL_META_ ## TAG >::type >(); \
+  self.add<VITAL_META_ ## TAG>(vital_meta_data_ ## TAG); \
+  break; \
+  }
+
+  switch (t)
+  {
+
+    KWIVER_VITAL_METADATA_TAGS( TAG_CASE )
+
+  default:
+    // default to unknown tag type
+    {
+      auto vital_meta_data_ = data.cast< typename vital_meta_trait< VITAL_META_UNKNOWN >::type >();
+      self.add<VITAL_META_UNKNOWN>(vital_meta_data_ );
+      break;
+    }
+  } // end switch
+
+#undef TAG_CASE
+}
 
 #define REGISTER_TYPED_METADATA( TAG, NAME, T, ... ) \
   py::class_< typed_metadata< VITAL_META_ ## TAG, T >, \
@@ -67,7 +95,6 @@ using namespace kwiver::vital;
     return ret; \
   }) \
   ;
-
 
 PYBIND11_MODULE( metadata, m )
 {
@@ -125,22 +152,18 @@ PYBIND11_MODULE( metadata, m )
 
   // Now the typed subclasses (around 100 of them)
   KWIVER_VITAL_METADATA_TAGS( REGISTER_TYPED_METADATA )
-
   // Now bind the actual metadata class
   py::class_< metadata, std::shared_ptr< metadata > >( m, "Metadata" )
   .def( py::init<>() )
-  // TODO: may have to change pointer argument
-  // .def( "add",           &metadata::add)
+  // TODO: resolve rvalue references in members https://github.com/pybind/pybind11/issues/1694
+  .def( "add_copy", (void (metadata::*)(std::shared_ptr<metadata_item const>const &)) &metadata::add_copy)
+  // usage: .add(identifier, tag)
+  .def( "add", &adder)
   .def( "erase",         &metadata::erase )
   .def( "has",           &metadata::has )
-  // TODO: make sure that this is correct...
-  .def( "find",          &metadata::find, py::return_value_policy::reference )
+  .def( "find",          &metadata::find, py::return_value_policy::reference_internal )
   .def( "size",          &metadata::size )
   .def( "empty",         &metadata::empty )
-  .def_static( "typeid_for_tag", [] ( metadata const& self, vital_metadata_tag tag )
-  {
-    return demangle( self.typeid_for_tag( tag ).name() );
-  })
   .def_static( "format_string", &metadata::format_string )
   .def_property( "timestamp",   &metadata::timestamp, &metadata::set_timestamp )
   ;

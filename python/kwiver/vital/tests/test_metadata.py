@@ -36,15 +36,11 @@ unknown_metadata_item, and metadata
 """
 
 # TODO:
-# 1.) Test constructor?
-# 3.) metadata::typeid_for_tag
-# 4.) metadata::add
 # 8.) stuff with std::string name mangling, testing .type!
-# 9.) VIRTUAL AND OVERRIDES IN DERIVED CLASSES, AS_UINT WRONG RETURN TYPE
-
 import nose.tools as nt
 import numpy as np
 
+from kwiver.vital.types.metadata_traits import *
 from kwiver.vital.types.metadata import *
 from kwiver.vital.types import (
     geodesy as gd,
@@ -311,6 +307,22 @@ class TestVitalMetadata(object):
             mt.tags.VITAL_META_CORNER_POINTS,
             mt.tags.VITAL_META_UNKNOWN,
         ]
+        self.small_tag = [
+            mt.tags.VITAL_META_UNKNOWN,
+            mt.tags.VITAL_META_UNIX_TIMESTAMP,
+            mt.tags.VITAL_META_SLANT_RANGE,
+            mt.tags.VITAL_META_MISSION_ID,
+            mt.tags.VITAL_META_VIDEO_KEY_FRAME,
+        ]
+
+    def populate_metadata(self, m):
+        m.add(100, self.tags[-1])
+        m.add("hello", self.tags[3])
+        m.add(2, self.tags[1])
+        m.add(True, self.tags[4])
+        m.add(1.1, self.tags[2])
+
+
 
     def test_init(self):
         Metadata()
@@ -319,15 +331,22 @@ class TestVitalMetadata(object):
         m = Metadata()
         nt.assert_equals(m.size(), 0)
         nt.ok_(m.empty())
-        # TODO...
+        m.add(0, self.tags[-1])
+        m.add("hello", self.tags[3])
+        m.add(2, self.tags[1])
+        m.add(True, self.tags[4])
+        nt.assert_equals(m.size(), 4)
+
 
     def test_erase(self):
         m = Metadata()
-        # TODO: Check that the err msg is helpful
         for tag in self.tags:
             nt.assert_false(m.erase(tag))
+        self.populate_metadata(m)
+        for tag in self.small_tag:
+            nt.assert_true(m.erase(tag))
 
-        # TODO: Add them and check they can be erased
+
 
     # Tests for has and find
     def test_retrieve(self):
@@ -336,13 +355,16 @@ class TestVitalMetadata(object):
         for tag in self.tags:
             nt.assert_false(m.has(tag))
             nt.ok_(isinstance(m.find(tag), UnknownMetadataItem))
-
-        # TODO: Add them and check they can be erased
-
-    # TODO: When we can add elements to metadatas, add
-    # one to the metadatas list below with elements in it
+        self.populate_metadata(m)
+        for tag in self.small_tag:
+            nt.assert_true(m.has(tag))
+            nt.ok_(isinstance(m.find(tag), MetadataItem))
+            found = m.find(tag)
+            found.type()
     def test_timestamp(self):
-        metadatas = [Metadata()]
+        m = Metadata()
+        self.populate_metadata(m)
+        metadatas = [Metadata(), m]
         for m in metadatas:
             nt.assert_false(m.timestamp.is_valid())
 
