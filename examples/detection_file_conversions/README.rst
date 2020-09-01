@@ -41,11 +41,13 @@ Integrated Detection Formats
 |
 |  Where detections can be linked onto tracks on multiple frames via sharing the
 |  same track ID field. Depending on the context (image or video) the second field
-|  may either be video timestamp or an image filename. Fields 4 through 7 represent
-|  a bounding box for the target in the imagery. Depending on the context, auxiliary
-|  confidence may represent how likely this detection is an object, or it may be the
-|  confidence in the length measurement, if present. If length measurement is not
-|  present, it can be specified with a value less than 0, most commonly "-1".
+|  may either be video timestamp or an image filename. Field 3 is a unique frame
+|  identifier for the frame in the given video or loaded sequence, starting from 0
+|  not 1. Fields 4 through 7 represent a bounding box for the target in the imagery.
+|  Depending on the context, auxiliary confidence may represent how likely this
+|  detection is an object, or it may be the confidence in the length measurement,
+|  if present. If length measurement is not present, it can be specified with a
+|  value less than 0, most commonly "-1".
 |
 |  Next, a sequence of optional species <=> score pairs, also comma seperated:
 |
