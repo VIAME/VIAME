@@ -49,7 +49,8 @@ void cuda_initalize(int h_gridDims[3], double h_gridOrig[3],
                     double h_rayPDelta);
 
 void launch_depth_kernel(double * d_depth, double * d_weight, int depthmap_dims[2],
-                         double d_K[16], double d_RT[16], double* output);
+                         double d_K[16], double d_RT[16], double* output,
+                         unsigned max_voxels_per_launch);
 
 namespace kwiver {
 namespace arrows {
@@ -68,6 +69,7 @@ public:
       ray_potential_delta(200.0),
       grid_spacing {1.0, 1.0, 1.0},
       voxel_spacing_factor(1.0),
+      max_voxels_per_launch(20000000),
       m_logger(vital::get_logger("arrows.cuda.integrate_depth_maps"))
   {
   }
@@ -87,6 +89,9 @@ public:
 
   // multiplier on all dimensions of grid spacing
   double voxel_spacing_factor;
+
+  // Maximum number of voxels to process in a single kernel launch
+  unsigned max_voxels_per_launch;
 
   // Logger handle
   vital::logger_handle_t m_logger;
@@ -133,6 +138,11 @@ integrate_depth_maps::get_configuration() const
   config->set_value("voxel_spacing_factor", d_->voxel_spacing_factor,
                     "Multiplier on voxel spacing.  Set to 1.0 for voxel "
                     "sizes that project to 1 pixel on average.");
+  config->set_value("max_voxels_per_launch", d_->max_voxels_per_launch,
+                    "Maximum number of voxels to process in a single kernel "
+                    "launch.  Processing too much data at once on the GPU "
+                    "can cause the GPU to time out.  Set to zero for "
+                    "unlimited.");
 
   std::ostringstream stream;
   stream << d_->grid_spacing[0] << " "
@@ -169,6 +179,9 @@ integrate_depth_maps::set_configuration(vital::config_block_sptr in_config)
     config->get_value<double>("ray_potential_delta", d_->ray_potential_delta);
   d_->voxel_spacing_factor =
     config->get_value<double>("voxel_spacing_factor", d_->voxel_spacing_factor);
+  d_->max_voxels_per_launch =
+    config->get_value<unsigned>("max_voxels_per_launch",
+                                d_->max_voxels_per_launch);
 
   std::ostringstream ostream;
   ostream << d_->grid_spacing[0] << " "
@@ -319,7 +332,8 @@ integrate_depth_maps::integrate(
     // run code on device
     LOG_INFO( logger(), "depth map " << i );
     launch_depth_kernel(d_depth.get(), d_weight.get(), depthmap_dims,
-                        d_K.get(), d_RT.get(), d_volume.get());
+                        d_K.get(), d_RT.get(), d_volume.get(),
+                        d_->max_voxels_per_launch);
   }
 
   // Transfer data from device to host
