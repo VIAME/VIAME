@@ -39,15 +39,32 @@ import unittest
 import nose.tools as nt
 import numpy as np
 
+from kwiver.vital.tests.cpp_helpers import camera_intrinsics_helpers
+from kwiver.vital.tests.py_helpers import no_call_pure_virtual_method
 from kwiver.vital.types import CameraIntrinsics, SimpleCameraIntrinsics
 
-# TODO:
-# Test overriding methods with trampoline
-# Tests for base camera_intrinsics class
-# Tests for rest of methods in simple_ci
-# Tests for inherited methods in simple_ci
-# TODO below
-# figure out whats going on with max_distort_radius and others
+class TestCameraInstrinsicsBase(unittest.TestCase):
+    def test_init(self):
+        CameraIntrinsics()
+    def test_virt_methods(self):
+        ci = CameraIntrinsics()
+        no_call_pure_virtual_method(ci.focal_length)
+        no_call_pure_virtual_method(ci.principal_point)
+        no_call_pure_virtual_method(ci.aspect_ratio)
+        no_call_pure_virtual_method(ci.skew)
+        no_call_pure_virtual_method(ci.image_width)
+        no_call_pure_virtual_method(ci.image_height)
+        no_call_pure_virtual_method(ci.map, np.array([0, 1]))
+        no_call_pure_virtual_method(ci.unmap, np.array([0 ,1]))
+        no_call_pure_virtual_method(ci.as_matrix)
+
+    def test_members(self):
+        ci = CameraIntrinsics()
+        nt.ok_(ci.is_map_valid(np.array([2, 1, 1])))
+        np.testing.assert_array_almost_equal(np.array([3, 2]), ci.distort(np.array([3, 2])))
+        np.testing.assert_array_almost_equal(np.array([3, 2]), ci.undistort(np.array([3 ,2])))
+
+
 
 class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
     def setUp(self):
@@ -145,12 +162,16 @@ class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
         self.check_cam_intrins_properties_equal(s)
 
     def test_init_from_base(self):
-        # TODO: use py_camera_intrinsics here
-        pass
+        no_call_pure_virtual_method(SimpleCameraIntrinsics, CameraIntrinsics())
+        SimpleCameraIntrinsics(SimpleCameraIntrinsics())
 
     # TODO
     def test_init_from_string(self):
-        pass
+        ret_str = "0.09 1 1 0.83 2 3 4 2 9"
+        ret_intr = SimpleCameraIntrinsics.from_string(ret_str)
+        nt.ok_(isinstance(ret_intr, SimpleCameraIntrinsics))
+        nt.assert_equal(ret_intr.focal_length(), 0.09)
+        np.testing.assert_array_almost_equal(ret_intr.principal_point(), np.array([1, 3]))
 
     def test_init_from_calibration_mat(self):
         s = SimpleCameraIntrinsics(self.K, self.dist_coeffs)
@@ -199,32 +220,167 @@ class TestVitalSimpleCameraIntrinsics(unittest.TestCase):
         s.set_dist_coeffs(self.dist_coeffs)
         np.testing.assert_array_almost_equal(s.dist_coeffs(), self.dist_coeffs)
 
-    # TODO
     def test_max_distort_radius(self):
-        pass
+        s = SimpleCameraIntrinsics(self.focal_length, self.principal_point, dist_coeffs=np.array([-0.1, 0.0, 0.0]),)
+        a = s.max_distort_radius()*s.max_distort_radius()
+        b = s.get_max_distort_radius_sq()
+        nt.assert_equal(a, b)
 
-    # TODO
+    def dist_deriv(self, r, a, b, c):
+        r2 = r*r
+        return 1 + 3 * a *r2 + 5 * b * r2 * r2 + 7 * c * r2 * r2 * r2
+    def check_finite_max_radius(self, a, b, c):
+        mr = SimpleCameraIntrinsics().max_distort_radius_sq(a, b, c)
+        self.assertGreater(mr, 0.0)
+        nt.ok_(np.isfinite(mr))
+        nt.assert_almost_equal(self.dist_deriv(mr, a, b, c), 0.0)
     def test_max_distort_radius_sq(self):
-        pass
+        self.check_finite_max_radius(0.0, -0.2, 0.0)
+        self.check_finite_max_radius(-2.0/3, 1.0/5, 0.0)
 
-    # TODO
     def test_str(self):
-        pass
+        s = SimpleCameraIntrinsics(self.focal_length, self.principal_point)
+        s = str(s)
+        nt.ok_(isinstance(s, str))
 
-    # def test_as_matrix(self):
-    #     numpy.testing.assert_equal(CameraIntrinsics().as_matrix(), numpy.eye(3))
-    #     numpy.testing.assert_equal(
-    #         CameraIntrinsics(10, (2, 3), 2, 5).as_matrix(),
-    #         [[10, 5, 2], [0, 5, 3], [0, 0, 1]],
-    #     )
+    def test_as_matrix(self):
+        np.testing.assert_equal(SimpleCameraIntrinsics().as_matrix(), np.eye(3))
+        np.testing.assert_equal(
+            SimpleCameraIntrinsics(10, (2, 3), 2, 5).as_matrix(),
+            [[10, 5, 2], [0, 5, 3], [0, 0, 1]],
+        )
+    def test_map_unmap(self):
+        s = SimpleCameraIntrinsics(
+            self.focal_length,
+            self.principal_point,
+            self.aspect_ratio,
+            self.skew,
+            self.dist_coeffs,
+            self.image_width,
+            self.image_height,
+        )
+        np.testing.assert_array_almost_equal(np.array([35377.05, 16426.53]), s.map(np.array([3, 2])))
+        np.testing.assert_array_almost_equal(np.array([0.084889, -0.316774]), s.unmap(np.array([3 ,2])))
 
-    # def test_equal(self):
-    #     ci1 = CameraIntrinsics()
-    #     ci2 = CameraIntrinsics()
-    #     ntools.assert_true(ci1 == ci2)
-    #     ntools.assert_false(ci1 != ci2)
+    def test_distort_undistort(self):
+        s = SimpleCameraIntrinsics(
+            self.focal_length,
+            self.principal_point,
+            self.aspect_ratio,
+            self.skew,
+            self.dist_coeffs,
+            self.image_width,
+            self.image_height,
+        )
+        np.testing.assert_array_almost_equal(np.array([2814.9, 1876.6]), s.distort(np.array([3, 2])))
+        np.testing.assert_array_almost_equal(np.array([0.92024957, 0.61349972]), s.undistort(np.array([3 ,2])))
 
-    #     ci1 = CameraIntrinsics(2, (10, 10), 3, 1)
-    #     ci2 = CameraIntrinsics(2, (11, 10), 3, 0.1)
-    #     ntools.assert_false(ci1 == ci2)
-    #     ntools.assert_true(ci1 != ci2)
+
+    def test_is_map_valid(self):
+        s = SimpleCameraIntrinsics(
+            self.focal_length,
+            self.principal_point,
+            self.aspect_ratio,
+            self.skew,
+            self.dist_coeffs,
+            self.image_width,
+            self.image_height,
+        )
+        nt.ok_(s.is_map_valid(np.array([1.0, -1.0])))
+    def test_clone(self):
+        s = SimpleCameraIntrinsics(self.focal_length, self.principal_point, dist_coeffs=np.array([-0.1, 0.0, 0.0]),)
+        s_clone = s.clone()
+        nt.ok_(isinstance(s_clone, SimpleCameraIntrinsics))
+        nt.assert_equal(s.focal_length(), s_clone.focal_length())
+
+class InheritedCameraIntrinsics(CameraIntrinsics):
+    def __init__(self, focal_length, principal_point):
+        CameraIntrinsics.__init__(self)
+        self.focal_ = focal_length
+        self.prin_pt = principal_point
+        self.aspect_ratio_ = 1.2
+        self.skew_ = 3.1
+        self.dist_coeffs_ = [4.5, 5.2, 6.8]
+    def clone(self):
+        return InheritedCameraIntrinsics(self.focal_, self.prin_pt)
+    def focal_length(self):
+        return self.focal_
+    def principal_point(self):
+        return self.prin_pt
+    def aspect_ratio(self):
+        return self.aspect_ratio_
+    def skew(self):
+        return self.skew_
+    def image_width(self):
+        return 1080
+    def image_height(self):
+        return 720
+    def dist_coeffs(self):
+        return self.dist_coeffs_
+    def as_matrix(self):
+        return np.ndarray((3,3), dtype=float)
+    def map(self, vec2):
+        return vec2
+    def unmap(self, vec2):
+        return vec2
+    def distort(self, vec2):
+        return vec2
+    def undistort(self, vec2):
+        return vec2
+    def is_map_valid(self, vec3):
+        return True
+
+class TestInheritedCamIntrins(unittest.TestCase):
+    @classmethod
+    def setUp(self):
+        self.focal_length = 10.5
+        self.principal_point = [3.14, 6.28]
+        self.aspect_ratio = 1.2
+        self.skew = 3.1
+        self.dist_coeffs = [4.5, 5.2, 6.8]
+        self.image_width = 1080
+        self.image_height = 720
+        self.inCam = InheritedCameraIntrinsics(self.focal_length, self.principal_point)
+    def test_subclass(self):
+        nt.ok_(issubclass(InheritedCameraIntrinsics, CameraIntrinsics))
+    def test_clone(self):
+        cloned = camera_intrinsics_helpers.clone(self.inCam)
+        nt.ok_(isinstance(cloned, InheritedCameraIntrinsics))
+        nt.assert_equal(cloned.focal_length(), self.inCam.focal_length())
+    def test_fl(self):
+        fl = camera_intrinsics_helpers.focal_length(self.inCam)
+        self.assertEquals(self.focal_length, fl)
+    def test_principal_point(self):
+        p = camera_intrinsics_helpers.principal_point(self.inCam)
+        np.testing.assert_array_equal(p, self.principal_point)
+    def test_aspect_ratio(self):
+        ar = camera_intrinsics_helpers.aspect_ratio(self.inCam)
+        np.testing.assert_array_equal(ar, self.aspect_ratio)
+    def test_skew(self):
+        s = camera_intrinsics_helpers.skew(self.inCam)
+        nt.assert_equal(s, self.skew)
+    def test_image_width_height(self):
+        w = camera_intrinsics_helpers.image_width(self.inCam)
+        h = camera_intrinsics_helpers.image_height(self.inCam)
+        nt.assert_equal(w, self.image_width)
+        nt.assert_equal(h, self.image_height)
+    def test_dist_coeffs(self):
+        dist_co = camera_intrinsics_helpers.dist_coeffs(self.inCam)
+        np.testing.assert_array_equal(dist_co, self.dist_coeffs)
+    def test_as_matrix(self):
+        as_mat = camera_intrinsics_helpers.as_matrix(self.inCam)
+        np.testing.assert_array_equal(as_mat, np.ndarray((3,3), dtype=float))
+    def test_map_unmap(self):
+        np.testing.assert_array_equal(camera_intrinsics_helpers.map
+                                    (self.inCam, np.array([2, 3])), np.array([2, 3]))
+        np.testing.assert_array_equal(camera_intrinsics_helpers.unmap(
+                                     self.inCam, np.array([2, 3])),
+                                     np.array([2, 3]))
+    def test_distort_undistort(self):
+        np.testing.assert_array_equal(camera_intrinsics_helpers.distort
+                                    (self.inCam, np.array([2, 3])), np.array([2, 3]))
+        np.testing.assert_array_equal(camera_intrinsics_helpers.undistort(
+                                     self.inCam, np.array([2, 3])),
+                                     np.array([2, 3]))
+    def test_is_map_valid(self):
+        nt.ok_(camera_intrinsics_helpers.is_map_valid(self.inCam, np.array([3, 2, 1])))

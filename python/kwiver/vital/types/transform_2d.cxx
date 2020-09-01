@@ -45,6 +45,7 @@ class transform_2d_trampoline
   : public kv::transform_2d
 {
 public:
+  using kv::transform_2d::transform_2d;
   kv::transform_2d_sptr clone() const override;
   kv::vector_2d map( kv::vector_2d const& p ) const override;
   kv::transform_2d_sptr inverse_() const override;
