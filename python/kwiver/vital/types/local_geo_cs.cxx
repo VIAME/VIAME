@@ -41,17 +41,17 @@ PYBIND11_MODULE( local_geo_cs, m )
 {
   py::class_< kv::local_geo_cs, std::shared_ptr< kv::local_geo_cs > >( m, "LocalGeoCS" )
   .def( py::init<>() )
-  .def( "update_camera", &kv::local_geo_cs::update_camera,
-        py::arg( "md" ), py::arg( "cam" ), py::arg( "rot_offset" ) = kv::rotation_d() )
-  .def( "update_metadata",     &kv::local_geo_cs::update_metadata )
+  // .def( "update_camera", &kv::local_geo_cs::update_camera,
+  //       py::arg( "md" ), py::arg( "cam" ), py::arg( "rot_offset" ) = kv::rotation_d() )
+  // .def( "update_metadata",     &kv::local_geo_cs::update_metadata )
   .def_property( "geo_origin", &kv::local_geo_cs::origin, &kv::local_geo_cs::set_origin )
   ;
 
   m.def( "read_local_geo_cs_from_file",      &kv::read_local_geo_cs_from_file );
   m.def( "write_local_geo_cs_to_file",       &kv::write_local_geo_cs_to_file );
-  m.def( "set_intrinsics_from_metadata",     &kv::set_intrinsics_from_metadata );
-  m.def( "initialize_cameras_with_metadata", &kv::initialize_cameras_with_metadata,
-         py::arg( "md_map" ), py::arg( "base_camera" ), py::arg( "lgcs" ),
-         py::arg( "rot_offset" ) = kv::rotation_d() );
-  m.def( "update_metadata_from_cameras",     &kv::update_metadata_from_cameras );
+  // m.def( "set_intrinsics_from_metadata",     &kv::set_intrinsics_from_metadata );
+  // m.def( "initialize_cameras_with_metadata", &kv::initialize_cameras_with_metadata,
+  //        py::arg( "md_map" ), py::arg( "base_camera" ), py::arg( "lgcs" ),
+  //        py::arg( "rot_offset" ) = kv::rotation_d() );
+  // m.def( "update_metadata_from_cameras",     &kv::update_metadata_from_cameras );
 }
