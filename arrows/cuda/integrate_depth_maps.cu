@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <vector>
 #include "cuda_error_check.h"
+#include <vital/logger/logger.h>
 
 #define size4x4 16
 
@@ -166,10 +167,18 @@ __device__ int computeVoxelIDDepth(int coordinates[3])
 
 // Main kernel for adding a depth map to the volume
 __global__ void depthMapKernel(double* depths, double* weights, double matrixK[size4x4], double matrixRT[size4x4],
-  double* output)
+  double* output, int z_offset)
 {
   // Get voxel coordinate according to thread id
-  int voxelIndex[3] = { (int)threadIdx.x, (int)blockIdx.y, (int)blockIdx.z };
+  int voxelIndex[3] = { (int)(blockIdx.x * blockDim.x + threadIdx.x),
+                        (int)(blockIdx.y * blockDim.y + threadIdx.y),
+                        (int)blockIdx.z + z_offset };
+  if (voxelIndex[0] >= c_gridDims.x ||
+      voxelIndex[1] >= c_gridDims.y ||
+      voxelIndex[2] >= c_gridDims.z)
+  {
+    return;
+  }
 
   double voxelCenterCoordinate[3];
   computeVoxelCenter(voxelIndex, voxelCenterCoordinate);
@@ -241,16 +250,45 @@ void cuda_initalize(int h_gridDims[3],     // Dimensions of the output volume
 
 //*****************************************************************************
 
-void launch_depth_kernel(double * d_depth, double * d_conf, int h_depthMapDims[2], double d_K[size4x4], double d_RT[size4x4], double* d_volume)
+void launch_depth_kernel(double * d_depth, double * d_conf,
+                         int h_depthMapDims[2], double d_K[size4x4],
+                         double d_RT[size4x4], double* d_volume,
+                         unsigned max_voxels_per_launch)
 {
+  auto logger = kwiver::vital::get_logger("arrows.cuda.integrate_depth_maps");
+
+  int zstep = grid_dims[2];
+  unsigned num_voxels_xy = grid_dims[0] * grid_dims[1];
+  if (max_voxels_per_launch > 0)
+  {
+    zstep = max_voxels_per_launch / num_voxels_xy;
+  }
+  if (zstep == 0)
+  {
+    zstep = 1;
+    LOG_WARN(logger, num_voxels_xy << " voxels per X-Y slice exceeds "
+                     << max_voxels_per_launch);
+  }
+
   // Organize threads into blocks and grids
-  dim3 dimBlock(grid_dims[0], 1, 1); // nb threads on each block
-  dim3 dimGrid(1, grid_dims[1], grid_dims[2]); // nb blocks on a grid
-  CudaErrorCheck(cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims, 2 * sizeof(int)));
+  // Number of threads on each block
+  dim3 dimBlock(16, 16, 1);
+  // Number of blocks on a grid
+  dim3 dimGrid((grid_dims[0] - 1) / dimBlock.x + 1,
+               (grid_dims[1] - 1) / dimBlock.y + 1,
+               zstep);
+
+  CudaErrorCheck(cudaMemcpyToSymbol(c_depthMapDims, h_depthMapDims,
+                                    2 * sizeof(int)));
   CudaErrorCheck(cudaDeviceSynchronize());
-  depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_conf, d_K, d_RT, d_volume);
-  CudaErrorCheck(cudaPeekAtLastError());
-  CudaErrorCheck(cudaDeviceSynchronize());
+  for (int z_offset = 0; z_offset < grid_dims[2]; z_offset += zstep)
+  {
+    LOG_DEBUG(logger, "Launching kernel with Z=" << z_offset);
+    depthMapKernel << < dimGrid, dimBlock >> >(d_depth, d_conf, d_K, d_RT,
+                                               d_volume, z_offset);
+    CudaErrorCheck(cudaPeekAtLastError());
+    CudaErrorCheck(cudaDeviceSynchronize());
+  }
 }
 
 
