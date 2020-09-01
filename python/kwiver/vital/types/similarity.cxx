@@ -58,7 +58,7 @@ void declare_similarity( py::module &m,
 }
 }
 }
-
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(similarity, m)
 {
   declare_similarity< float > ( m, "F", "f" );

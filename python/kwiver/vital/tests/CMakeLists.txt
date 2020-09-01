@@ -20,7 +20,7 @@ set(__testable_modnames
   test_covariance
   test_database_query
   test_detected_object_set
-  test_detected_object_type
+  # test_detected_object_type
   test_descriptor
   test_descriptor_request
   test_descriptor_set
@@ -43,8 +43,10 @@ set(__testable_modnames
   test_iqr_feedback
   test_landmark
   test_local_cartesian
+  test_local_geo_cs
   test_metadata
   test_metadata_tags
+  test_metadata_traits
   test_object_track_state
   test_object_track_set
   test_query_result

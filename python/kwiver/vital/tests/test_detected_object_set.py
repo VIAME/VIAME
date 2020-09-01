@@ -42,7 +42,7 @@ from kwiver.vital.types import (
     BoundingBox as bb,
     descriptor,
     DetectedObject as do,
-    DetectedObjectType as dot,
+    ClassMap as cm,
     Image,
     ImageContainer,
     geodesy,
@@ -73,17 +73,17 @@ class TestDetectedObjectSet(unittest.TestCase):
         self.conf = 0.5
         self.conf2 = 0.4
         self.conf3 = 0.75
-        self.dot = dot("example_class", 0.4)
-        self.dot2 = dot("foo2", 3.14)
-        self.dot3 = dot("foo3", 0.11)
+        self.cm = cm("example_class", 0.4)
+        self.cm2 = cm("foo2", 3.14)
+        self.cm3 = cm("foo3", 0.11)
         self.mask = ImageContainer(Image(1080, 720))
         self.mask2 = ImageContainer(Image(1920, 1080))
         self.mask3 = ImageContainer(Image(720, 1080))
 
         # Establish set of DO objects to pass to DOS constructor
-        self.set = np.array([do(self.bbox1, self.conf, self.dot, self.mask),
-                             do(self.bbox2, self.conf2, self.dot2, self.mask2),
-                             do(self.bbox3, self.conf3, self.dot3, self.mask3),
+        self.set = np.array([do(self.bbox1, self.conf, self.cm, self.mask),
+                             do(self.bbox2, self.conf2, self.cm2, self.mask2),
+                             do(self.bbox3, self.conf3, self.cm3, self.mask3),
                              do(self.bbox4)])
 
     def test_Constructor(self):
@@ -120,7 +120,7 @@ class TestDetectedObjectSet(unittest.TestCase):
         self.assertEqual(d_empt.size(), 0)
 
         # Test Add
-        tst_do = do(self.bbox1, self.conf2, self.dot3, self.mask)
+        tst_do = do(self.bbox1, self.conf2, self.cm3, self.mask)
         tst_dos = dos()
         d.add(tst_do)
         self.assertEqual(d.size(), 5)

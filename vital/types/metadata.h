@@ -225,7 +225,9 @@ private:
       os << this->as_string();
       return os;
     }
-
+private:
+    // never used - required to make python bindings valid
+    metadata_item* clone() const override { return nullptr; }
   }; // end class unknown_metadata_item
 
 

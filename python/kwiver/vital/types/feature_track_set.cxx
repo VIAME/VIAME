@@ -40,13 +40,12 @@ get_track(std::shared_ptr<feat_track_set> &self, uint64_t id)
   return track;
 }
 
-}
-}
-}
-using namespace kwiver::vital::python;
+
+
 class feature_track_set_trampoline : public kv::feature_track_set
 {
 public:
+  using kv::feature_track_set::feature_track_set;
   kv::feature_set_sptr last_frame_features() const override;
   kv::descriptor_set_sptr last_frame_descriptors() const override;
   kv::feature_set_sptr frame_features(kv::frame_id_t offset = -1) const override;
@@ -54,8 +53,10 @@ public:
   std::vector< kv::feature_track_state_sptr > frame_feature_track_states(kv::frame_id_t offset = -1) const override;
   std::set< kv::frame_id_t > keyframes() const override;
 };
-
-
+}
+}
+}
+using namespace kwiver::vital::python;
 PYBIND11_MODULE(feature_track_set, m)
 {
   py::module::import("kwiver.vital.types.track");
@@ -81,7 +82,7 @@ PYBIND11_MODULE(feature_track_set, m)
 
   py::module::import("kwiver.vital.types.track_set");
 
-  py::class_<feat_track_set, kwiver::vital::track_set, std::shared_ptr<feat_track_set>>(m, "FeatureTrackSet")
+  py::class_<feat_track_set, kwiver::vital::track_set, kwiver::vital::python::feature_track_set_trampoline, std::shared_ptr<feat_track_set>>(m, "FeatureTrackSet")
   .def(py::init<>())
   .def(py::init<std::vector<std::shared_ptr<kwiver::vital::track>>>())
   .def("all_frame_ids", &feat_track_set::all_frame_ids)
